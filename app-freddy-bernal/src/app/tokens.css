@@ -1,0 +1,89 @@
+/* Design tokens. PROVISIONAL colors from the Stitch model (diseno/stitch/operaciones_360/DESIGN.md)
+   until the "F BERNAL" brand manual arrives. Changing the brand = changing this file
+   (and the email copy in emails/layout.tsx). Nothing else. */
+
+:root {
+  --c-bg: #f7f7f5;          /* alabastro */
+  --c-surface: #ffffff;
+  --c-surface-2: #f4f4f2;
+  --c-border: #e9e8e4;
+  --c-text: #111111;
+  --c-text-2: #666660;
+  --c-muted: #75746f;       /* darker than the model's #8E8D88 to pass AA on white */
+  --c-accent: #fe5a03;
+  --c-accent-hover: #e04f00;
+  --c-accent-soft: #fff1e8;
+  --c-on-accent: #111111;   /* dark text on orange: AA contrast (white on #FE5A03 is only 3:1) */
+  --c-accent-ink: #b33d00;  /* orange for text on light backgrounds (AA) */
+  --c-slate: #182a32;
+  --c-on-slate: #f1f1ef;
+  --c-olive: #7f8630;
+  --c-ok: #047857;
+  --c-ok-soft: #e7f8f1;
+  --c-warn: #b45309;
+  --c-warn-soft: #fef3e2;
+  --c-danger: #c81e1e;
+  --c-danger-soft: #fdecec;
+  --c-info: #1d4ed8;
+  --c-info-soft: #eaf1fe;
+  --c-focus: #fd943c;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --c-bg: #111614;
+    --c-surface: #1a201e;
+    --c-surface-2: #222927;
+    --c-border: #2e3633;
+    --c-text: #f1f1ef;
+    --c-text-2: #b9b8b2;
+    --c-muted: #9a9993;
+    --c-accent: #ff6a1a;
+    --c-accent-hover: #ff8340;
+    --c-accent-soft: #3a1f10;
+    --c-on-accent: #160800;
+    --c-accent-ink: #ff8a4c;
+    --c-slate: #0b1418;
+    --c-on-slate: #f1f1ef;
+    --c-olive: #b4bb5c;
+    --c-ok: #34d399;
+    --c-ok-soft: #0f2a21;
+    --c-warn: #fbbf24;
+    --c-warn-soft: #2e2410;
+    --c-danger: #f87171;
+    --c-danger-soft: #331717;
+    --c-info: #60a5fa;
+    --c-info-soft: #13223a;
+    --c-focus: #fd943c;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --c-bg: #111614;
+  --c-surface: #1a201e;
+  --c-surface-2: #222927;
+  --c-border: #2e3633;
+  --c-text: #f1f1ef;
+  --c-text-2: #b9b8b2;
+  --c-muted: #9a9993;
+  --c-accent: #ff6a1a;
+  --c-accent-hover: #ff8340;
+  --c-accent-soft: #3a1f10;
+  --c-on-accent: #160800;
+  --c-accent-ink: #ff8a4c;
+  --c-slate: #0b1418;
+  --c-on-slate: #f1f1ef;
+  --c-olive: #b4bb5c;
+  --c-ok: #34d399;
+  --c-ok-soft: #0f2a21;
+  --c-warn: #fbbf24;
+  --c-warn-soft: #2e2410;
+  --c-danger: #f87171;
+  --c-danger-soft: #331717;
+  --c-info: #60a5fa;
+  --c-info-soft: #13223a;
+  --c-focus: #fd943c;
+  color-scheme: dark;
+}

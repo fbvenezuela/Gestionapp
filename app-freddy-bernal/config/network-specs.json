@@ -1,0 +1,74 @@
+{
+  "$comment": "Reglas por red para validar el video antes de programar. Se editan en Ajustes > Reglas por red. Valores tomados de la documentación pública de cada red; verified_on vacío = verificar contra la documentación vigente antes de confiar en ellos.",
+  "specs": [
+    {
+      "network": "instagram",
+      "label": "Instagram",
+      "length_group": "long",
+      "copy_max_chars": 2200,
+      "source_url": "https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user/media",
+      "notes": "Reels por API. Hashtags máx. 30.",
+      "formats": {
+        "reel": { "min_duration_s": 3, "max_duration_s": 900, "aspects": ["9:16"], "aspect_tolerance": 0.02, "min_width": 540, "max_width": 1920, "max_size_mb": 300, "min_fps": 23, "max_fps": 60, "video_codecs": ["avc", "h264", "hevc", "h265"], "audio_codecs": ["aac"] },
+        "photo": { "aspects": ["4:5", "1:1", "1.91:1"], "aspect_tolerance": 0.03, "max_size_mb": 8 }
+      }
+    },
+    {
+      "network": "facebook",
+      "label": "Facebook",
+      "length_group": "long",
+      "copy_max_chars": 63206,
+      "source_url": "https://developers.facebook.com/docs/video-api/guides/reels-publishing",
+      "notes": "Reels de página por API: 3 a 90 s.",
+      "formats": {
+        "reel": { "min_duration_s": 3, "max_duration_s": 90, "aspects": ["9:16"], "aspect_tolerance": 0.02, "min_width": 540, "min_height": 960, "max_size_mb": 1024, "min_fps": 24, "max_fps": 60, "video_codecs": ["avc", "h264", "hevc", "h265", "vp9"], "audio_codecs": ["aac"] },
+        "video": { "min_duration_s": 1, "max_duration_s": 14400, "max_size_mb": 10240, "max_fps": 60 }
+      }
+    },
+    {
+      "network": "tiktok",
+      "label": "TikTok",
+      "length_group": "long",
+      "copy_max_chars": 2200,
+      "source_url": "https://developers.tiktok.com/doc/content-posting-api-media-transfer-guide",
+      "notes": "El máximo real depende de la cuenta (max_video_post_duration_sec). Hasta que auditen la app, lo publicado por API sale privado.",
+      "formats": {
+        "video": { "min_duration_s": 3, "max_duration_s": 600, "aspects": ["9:16"], "aspect_tolerance": 0.02, "min_width": 360, "min_height": 360, "max_width": 4096, "max_size_mb": 4096, "min_fps": 23, "max_fps": 60, "video_codecs": ["avc", "h264", "hevc", "h265", "vp8"], "audio_codecs": ["aac", "mp3", "opus"] }
+      }
+    },
+    {
+      "network": "threads",
+      "label": "Threads",
+      "length_group": "medium",
+      "copy_max_chars": 500,
+      "source_url": "https://developers.facebook.com/docs/threads/overview",
+      "notes": "",
+      "formats": {
+        "video": { "max_duration_s": 300, "max_size_mb": 1024, "min_fps": 23, "max_fps": 60, "max_width": 1920, "video_codecs": ["avc", "h264", "hevc", "h265"], "audio_codecs": ["aac"] }
+      }
+    },
+    {
+      "network": "x",
+      "label": "X",
+      "length_group": "short",
+      "copy_max_chars": 280,
+      "source_url": "https://developer.x.com/en/docs/x-api/v1/media/upload-media/uploading-media/media-best-practices",
+      "notes": "El largo se cuenta con twitter-text (links = 23, emojis = 2). Cuentas Premium aceptan más.",
+      "formats": {
+        "video": { "min_duration_s": 0.5, "max_duration_s": 140, "max_width": 1920, "max_height": 1200, "max_size_mb": 512, "max_fps": 60, "video_codecs": ["avc", "h264"], "audio_codecs": ["aac"] }
+      }
+    },
+    {
+      "network": "youtube",
+      "label": "YouTube",
+      "length_group": "long",
+      "copy_max_chars": 5000,
+      "source_url": "https://support.google.com/youtube/answer/15424877",
+      "notes": "Shorts hasta 3 min en vertical o cuadrado. Título máx. 100 caracteres.",
+      "formats": {
+        "short": { "max_duration_s": 180, "aspects": ["9:16", "1:1"], "aspect_tolerance": 0.02, "max_fps": 60 },
+        "video": { "max_duration_s": 43200, "max_size_mb": 262144, "max_fps": 60 }
+      }
+    }
+  ]
+}

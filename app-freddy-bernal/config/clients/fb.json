@@ -1,0 +1,464 @@
+{
+ "$comment": "Todo lo propio de un cliente vive aquí. Para otro cliente se copia este archivo y se cambia APP_BRAND.",
+ "brand": {
+  "appName": "FB · Operaciones 360",
+  "shortName": "Operaciones 360",
+  "clientName": "Freddy Bernal",
+  "clientTitle": "Gobernador del Táchira",
+  "bossLabel": "el jefe",
+  "region": "Táchira",
+  "greeting": "¡Saludos, Táchira!",
+  "closings": [
+   "Seguimos trabajando",
+   "Por amor al Táchira"
+  ],
+  "hashtags": [
+   "#Táchira",
+   "#FreddyBernal"
+  ],
+  "programName": "Reporte Bernal 2.0",
+  "logoText": "FB",
+  "themeColor": "#FE5A03"
+ },
+ "timezone": "America/Caracas",
+ "municipalities": [
+  "Andrés Bello",
+  "Antonio Rómulo Costa",
+  "Ayacucho",
+  "Bolívar",
+  "Cárdenas",
+  "Córdoba",
+  "Fernández Feo",
+  "Francisco de Miranda",
+  "García de Hevia",
+  "Guásimos",
+  "Independencia",
+  "Jáuregui",
+  "José María Vargas",
+  "Junín",
+  "Libertad",
+  "Libertador",
+  "Lobatera",
+  "Michelena",
+  "Panamericano",
+  "Pedro María Ureña",
+  "Rafael Urdaneta",
+  "Samuel Darío Maldonado",
+  "San Cristóbal",
+  "San Judas Tadeo",
+  "Seboruco",
+  "Simón Rodríguez",
+  "Sucre",
+  "Torbes",
+  "Uribante"
+ ],
+ "categories": {
+  "content": [
+   {
+    "name": "Gestión y obras",
+    "emoji": "🏗️",
+    "children": [
+     {
+      "emoji": "🏗️",
+      "name": "Obras"
+     },
+     {
+      "emoji": "🛣️",
+      "name": "Vialidad"
+     },
+     {
+      "emoji": "🌉",
+      "name": "Infraestructura"
+     },
+     {
+      "emoji": "💧",
+      "name": "Agua potable"
+     },
+     {
+      "emoji": "⚡",
+      "name": "Electricidad"
+     },
+     {
+      "emoji": "🏠",
+      "name": "Vivienda"
+     },
+     {
+      "emoji": "🚌",
+      "name": "Transporte"
+     },
+     {
+      "emoji": "🏙️",
+      "name": "Urbanismo y servicios públicos"
+     }
+    ]
+   },
+   {
+    "name": "Bienestar social",
+    "emoji": "❤️",
+    "children": [
+     {
+      "emoji": "🏥",
+      "name": "Salud"
+     },
+     {
+      "emoji": "👨‍👩‍👧‍👦",
+      "name": "Familia"
+     },
+     {
+      "emoji": "👶",
+      "name": "Niñez"
+     },
+     {
+      "emoji": "🧑‍🎓",
+      "name": "Juventud"
+     },
+     {
+      "emoji": "👵",
+      "name": "Adultos mayores"
+     },
+     {
+      "emoji": "♿",
+      "name": "Inclusión y discapacidad"
+     },
+     {
+      "emoji": "👩",
+      "name": "Mujer"
+     },
+     {
+      "emoji": "🤝",
+      "name": "Desarrollo social"
+     },
+     {
+      "emoji": "🍲",
+      "name": "Alimentación"
+     }
+    ]
+   },
+   {
+    "name": "Formación",
+    "emoji": "📚",
+    "children": [
+     {
+      "emoji": "📚",
+      "name": "Educación"
+     },
+     {
+      "emoji": "🏫",
+      "name": "Escuelas y liceos"
+     },
+     {
+      "emoji": "🎓",
+      "name": "Universidades"
+     },
+     {
+      "emoji": "💻",
+      "name": "Tecnología e innovación"
+     },
+     {
+      "emoji": "🔬",
+      "name": "Ciencia"
+     }
+    ]
+   },
+   {
+    "name": "Orden y comunidad",
+    "emoji": "🛡️",
+    "children": [
+     {
+      "emoji": "🛡️",
+      "name": "Seguridad"
+     },
+     {
+      "emoji": "🚓",
+      "name": "Policía estadal"
+     },
+     {
+      "emoji": "🚒",
+      "name": "Protección civil y bomberos"
+     },
+     {
+      "emoji": "🗳️",
+      "name": "Participación ciudadana"
+     },
+     {
+      "emoji": "🏘️",
+      "name": "Comunas y consejos comunales"
+     },
+     {
+      "emoji": "🙋",
+      "name": "Atención al ciudadano"
+     }
+    ]
+   },
+   {
+    "name": "Economía y producción",
+    "emoji": "💼",
+    "children": [
+     {
+      "emoji": "💼",
+      "name": "Economía"
+     },
+     {
+      "emoji": "🌾",
+      "name": "Agricultura"
+     },
+     {
+      "emoji": "🐄",
+      "name": "Ganadería"
+     },
+     {
+      "emoji": "☕",
+      "name": "Café y cacao"
+     },
+     {
+      "emoji": "🏭",
+      "name": "Industria"
+     },
+     {
+      "emoji": "🛍️",
+      "name": "Comercio y emprendimiento"
+     },
+     {
+      "emoji": "💳",
+      "name": "Empleo"
+     },
+     {
+      "emoji": "🌐",
+      "name": "Frontera e intercambio comercial"
+     }
+    ]
+   },
+   {
+    "name": "Identidad tachirense",
+    "emoji": "🏔️",
+    "children": [
+     {
+      "emoji": "🏔️",
+      "name": "Turismo"
+     },
+     {
+      "emoji": "🎡",
+      "name": "Ferias y fiestas (Feria de San Sebastián)"
+     },
+     {
+      "emoji": "🎭",
+      "name": "Cultura"
+     },
+     {
+      "emoji": "🎶",
+      "name": "Música y tradiciones"
+     },
+     {
+      "emoji": "🍽️",
+      "name": "Gastronomía andina"
+     },
+     {
+      "emoji": "⛪",
+      "name": "Fe y religiosidad"
+     },
+     {
+      "emoji": "🏛️",
+      "name": "Historia y patrimonio"
+     }
+    ]
+   },
+   {
+    "name": "Deporte y recreación",
+    "emoji": "⚽",
+    "children": [
+     {
+      "emoji": "⚽",
+      "name": "Deporte"
+     },
+     {
+      "emoji": "🚴",
+      "name": "Ciclismo"
+     },
+     {
+      "emoji": "🏟️",
+      "name": "Deportivo Táchira"
+     },
+     {
+      "emoji": "🏃",
+      "name": "Recreación y espacios públicos"
+     }
+    ]
+   },
+   {
+    "name": "Ambiente",
+    "emoji": "🌳",
+    "children": [
+     {
+      "emoji": "🌳",
+      "name": "Ambiente"
+     },
+     {
+      "emoji": "🌿",
+      "name": "Páramos y parques nacionales"
+     },
+     {
+      "emoji": "♻️",
+      "name": "Reciclaje"
+     },
+     {
+      "emoji": "🌧️",
+      "name": "Gestión de riesgos y lluvias"
+     }
+    ]
+   },
+   {
+    "name": "Gobierno",
+    "emoji": "🏛️",
+    "children": [
+     {
+      "emoji": "🏛️",
+      "name": "Gestión de gobierno"
+     },
+     {
+      "emoji": "📢",
+      "name": "Rendición de cuentas"
+     },
+     {
+      "emoji": "🤝",
+      "name": "Alianzas institucionales"
+     },
+     {
+      "emoji": "📅",
+      "name": "Agenda del gobernador"
+     },
+     {
+      "emoji": "💬",
+      "name": "Mensajes y saludos especiales"
+     }
+    ]
+   }
+  ],
+  "youtube_pillar": [
+   {
+    "name": "Tradiciones del Táchira",
+    "emoji": "🎶",
+    "children": []
+   },
+   {
+    "name": "Lugares que visitar",
+    "emoji": "🏔️",
+    "children": []
+   },
+   {
+    "name": "Así están las vías",
+    "emoji": "🛣️",
+    "children": []
+   }
+  ]
+ },
+ "copyFormulas": [
+  {
+   "code": "FAB",
+   "name": "FAB: características, ventajas, beneficios",
+   "description": "Qué es, qué tiene de bueno y qué gana la gente.",
+   "steps": [
+    {
+     "key": "feature",
+     "label": "Característica",
+     "hint": "Qué es la obra o el acto, con su dato principal."
+    },
+    {
+     "key": "advantage",
+     "label": "Ventaja",
+     "hint": "Qué mejora frente a como estaba."
+    },
+    {
+     "key": "benefit",
+     "label": "Beneficio",
+     "hint": "Qué gana la gente en su día a día."
+    }
+   ]
+  },
+  {
+   "code": "PAS",
+   "name": "PAS: problema, agitación, solución",
+   "description": "El problema, por qué importa y cómo se resuelve.",
+   "steps": [
+    {
+     "key": "problem",
+     "label": "Problema",
+     "hint": "Qué pasaba."
+    },
+    {
+     "key": "agitation",
+     "label": "Agitación",
+     "hint": "A quién afecta y cuánto (solo cifras de la ficha)."
+    },
+    {
+     "key": "solution",
+     "label": "Solución",
+     "hint": "Qué se hizo o se va a hacer, con plazos si los hay."
+    }
+   ]
+  },
+  {
+   "code": "AIDA",
+   "name": "AIDA: atención, interés, deseo, acción",
+   "description": "Engancha, explica, muestra lo bueno e invita a actuar.",
+   "steps": [
+    {
+     "key": "attention",
+     "label": "Atención",
+     "hint": "Un dato fuerte o una pregunta."
+    },
+    {
+     "key": "interest",
+     "label": "Interés",
+     "hint": "Qué está pasando."
+    },
+    {
+     "key": "desire",
+     "label": "Deseo",
+     "hint": "Qué cambia para la gente."
+    },
+    {
+     "key": "action",
+     "label": "Acción",
+     "hint": "Qué puede hacer quien lee: comentar, compartir, ir."
+    }
+   ]
+  }
+ ],
+ "tweetSlots": [
+  {
+   "from": "07:00",
+   "to": "09:00"
+  },
+  {
+   "from": "11:30",
+   "to": "13:30"
+  },
+  {
+   "from": "16:30",
+   "to": "18:30"
+  },
+  {
+   "from": "19:00",
+   "to": "20:30"
+  },
+  {
+   "from": "20:30",
+   "to": "22:00"
+  }
+ ],
+ "tweetsPerDay": {
+  "min": 4,
+  "max": 5
+ },
+ "tweetLowStockDays": 6,
+ "mfaRoles": [
+  "admin",
+  "boss",
+  "dispatch",
+  "supervisor",
+  "complaints_operator",
+  "aid_operator"
+ ],
+ "uploadMaxMb": 10240,
+ "defaultCollaborators": []
+}

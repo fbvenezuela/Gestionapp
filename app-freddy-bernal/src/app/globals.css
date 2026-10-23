@@ -1,0 +1,82 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/* Tailwind theme: every color the app uses comes from tokens.css. Components never
+   write a color by hand (tests/unit/no-hardcoded-colors.test.ts checks this). */
+@theme inline {
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-border: var(--c-border);
+  --color-text: var(--c-text);
+  --color-text-2: var(--c-text-2);
+  --color-muted: var(--c-muted);
+  --color-accent: var(--c-accent);
+  --color-accent-hover: var(--c-accent-hover);
+  --color-accent-soft: var(--c-accent-soft);
+  --color-on-accent: var(--c-on-accent);
+  --color-accent-ink: var(--c-accent-ink);
+  --color-slate: var(--c-slate);
+  --color-on-slate: var(--c-on-slate);
+  --color-olive: var(--c-olive);
+  --color-ok: var(--c-ok);
+  --color-ok-soft: var(--c-ok-soft);
+  --color-warn: var(--c-warn);
+  --color-warn-soft: var(--c-warn-soft);
+  --color-danger: var(--c-danger);
+  --color-danger-soft: var(--c-danger-soft);
+  --color-info: var(--c-info);
+  --color-info-soft: var(--c-info-soft);
+  --color-focus: var(--c-focus);
+
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Courier New', monospace;
+
+  --radius-chip: 6px;
+  --radius-control: 8px;
+  --radius-card: 12px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 3px solid var(--c-focus);
+  outline-offset: 2px;
+}
+
+/* Inputs at 16px so iOS does not zoom. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+.label-caps {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 72px);
+}
+
+@media (min-width: 1024px) {
+  .safe-bottom {
+    padding-bottom: 2rem;
+  }
+}

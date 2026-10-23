@@ -1,0 +1,69 @@
+// Database access with RLS always on for user requests.
+//
+// Every user query runs inside a transaction that switches to the `authenticated`
+// role and sets `request.jwt.claims`, exactly like Supabase's API does. So the
+// same policies protect the app, the PostgREST API and the tests.
+//
+// Backends:
+//  - demo / tests: PGlite (Postgres compiled to WASM, in memory) + the same migrations.
+//  - supabase: postgres.js against the project's pooler (DATABASE_URL).
+
+export type Claims = {
+  sub: string;
+  email?: string;
+  role?: 'authenticated';
+  aal?: 'aal1' | 'aal2';
+  session_id?: string;
+};
+
+export type Row = Record<string, unknown>;
+
+export interface Sql {
+  query<T = Row>(text: string, params?: unknown[]): Promise<T[]>;
+  one<T = Row>(text: string, params?: unknown[]): Promise<T | null>;
+}
+
+export interface Backend {
+  transaction<T>(fn: (sql: Sql) => Promise<T>): Promise<T>;
+  exec(text: string): Promise<void>;
+}
+
+export async function asUser<T>(backend: Backend, claims: Claims, fn: (sql: Sql) => Promise<T>): Promise<T> {
+  return backend.transaction(async (sql) => {
+    await sql.query(`select set_config('request.jwt.claims', $1, true)`, [
+      JSON.stringify({ role: 'authenticated', aal: 'aal1', ...claims }),
+    ]);
+    await sql.query('set local role authenticated');
+    return fn(sql);
+  });
+}
+
+export async function asSystem<T>(backend: Backend, fn: (sql: Sql) => Promise<T>): Promise<T> {
+  return backend.transaction(async (sql) => {
+    await sql.query(`select set_config('request.jwt.claims', '', true)`);
+    return fn(sql);
+  });
+}
+
+export class DbError extends Error {
+  code?: string;
+  constructor(message: string, code?: string) {
+    super(message);
+    this.code = code;
+  }
+}
+
+// Turn a Postgres error into a short Spanish message for people.
+export function friendlyDbError(e: unknown): string {
+  const err = e as { code?: string; message?: string };
+  const msg = err?.message ?? '';
+  if (err?.code === '42501' || /row-level security|permission denied/i.test(msg)) {
+    // Our own guards raise with a readable Spanish message; keep it.
+    if (/^[A-ZÁÉÍÓÚ¿¡]/.test(msg) && !/row-level security|permission denied/i.test(msg)) return msg;
+    return 'No tienes permiso para hacer esto.';
+  }
+  if (err?.code === '23505') return 'Eso ya existe.';
+  if (err?.code === '23514' || err?.code === '22001') return 'Algún dato no es válido o es muy largo.';
+  if (err?.code === 'P0001' && msg) return msg;
+  return 'No se pudo guardar. Revisa la señal y vuelve a intentar.';
+}

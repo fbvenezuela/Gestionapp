@@ -1,0 +1,95 @@
+'use client';
+
+import { useActionState, useEffect, useState } from 'react';
+import { Mail, KeyRound, Inbox } from 'lucide-react';
+import { requestCode, verifyCode, type ActionState } from '@/lib/auth/actions';
+import { demoInbox } from '@/lib/auth/demo-inbox';
+import { Button } from '@/components/ui/button';
+import { Card, CardBody } from '@/components/ui/card';
+import { Field, Input } from '@/components/ui/field';
+
+type DemoUser = { email: string; label: string; name: string };
+
+export function LoginForm({ demoUsers }: { demoUsers: DemoUser[] | null }) {
+  const [reqState, reqAction, reqPending] = useActionState<ActionState, FormData>(requestCode, {});
+  const [verState, verAction, verPending] = useActionState<ActionState, FormData>(verifyCode, {});
+  const [email, setEmail] = useState('');
+  const [inbox, setInbox] = useState<{ subject: string; text: string; at: string }[]>([]);
+  const step = reqState.ok ? 'code' : 'email';
+  const sentTo = reqState.data?.email ?? email;
+
+  useEffect(() => {
+    if (demoUsers && reqState.ok && sentTo) demoInbox(sentTo).then(setInbox);
+  }, [demoUsers, reqState, sentTo]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Card>
+        <CardBody className="flex flex-col gap-4">
+          {step === 'email' ? (
+            <form action={reqAction} className="flex flex-col gap-4">
+              <h1 className="text-xl font-bold">Entrar</h1>
+              <p className="text-[15px] text-text-2">Escribe tu correo y te mandamos un código de 6 números. No hay contraseña.</p>
+              <Field label="Correo" htmlFor="email" error={reqState.error}>
+                <Input id="email" name="email" type="email" inputMode="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nombre@correo.com" />
+              </Field>
+              <Button type="submit" size="lg" disabled={reqPending}>
+                <Mail className="h-5 w-5" aria-hidden /> {reqPending ? 'Enviando…' : 'Mandarme el código'}
+              </Button>
+            </form>
+          ) : (
+            <form action={verAction} className="flex flex-col gap-4">
+              <h1 className="text-xl font-bold">Escribe el código</h1>
+              <p className="text-[15px] text-text-2" role="status">{reqState.info}</p>
+              <input type="hidden" name="email" value={sentTo} />
+              <Field label="Código de 6 números" htmlFor="code" error={verState.error}>
+                <Input id="code" name="code" inputMode="numeric" autoComplete="one-time-code" pattern="\d{6}" maxLength={6} required autoFocus className="text-center font-mono text-2xl tracking-[0.4em]" />
+              </Field>
+              <Button type="submit" size="lg" disabled={verPending}>
+                <KeyRound className="h-5 w-5" aria-hidden /> {verPending ? 'Entrando…' : 'Entrar'}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => location.reload()}>
+                Usar otro correo
+              </Button>
+            </form>
+          )}
+        </CardBody>
+      </Card>
+
+      {demoUsers && step === 'code' && inbox.length > 0 ? (
+        <Card className="border-info/40 bg-info-soft">
+          <CardBody>
+            <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-info">
+              <Inbox className="h-4 w-4" aria-hidden /> Buzón de prueba (solo en la demostración)
+            </p>
+            {inbox.map((m, i) => (
+              <div key={i} className="text-sm">
+                <p className="font-semibold">{m.subject}</p>
+                <p className="text-text-2">Llegó a las {m.at}</p>
+              </div>
+            ))}
+          </CardBody>
+        </Card>
+      ) : null}
+
+      {demoUsers && step === 'email' ? (
+        <Card>
+          <CardBody>
+            <p className="mb-1 text-sm font-semibold">Versión de demostración</p>
+            <p className="mb-3 text-sm text-text-2">Los datos son inventados. Toca un usuario para probar cada rol; el código aparece aquí mismo.</p>
+            <ul className="grid gap-2">
+              {demoUsers.map((u) => (
+                <li key={u.email}>
+                  <button type="button" onClick={() => setEmail(u.email)} className="flex min-h-11 w-full items-center justify-between gap-2 rounded-[var(--radius-control)] border border-border px-3 text-left text-sm hover:bg-surface-2">
+                    <span className="font-semibold">{u.label}</span>
+                    <span className="truncate text-text-2">{u.email}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </CardBody>
+        </Card>
+      ) : null}
+    </div>
+  );
+}
