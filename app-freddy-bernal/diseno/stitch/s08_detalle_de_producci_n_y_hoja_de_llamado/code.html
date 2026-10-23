@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>FB · OPERACIONES 360</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&amp;family=Courier+Prime:wght@700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary-fixed-dim": "#ffb59a", "secondary-fixed": "#d2e5f0", "primary-container": "#fe5a03", "on-primary-fixed": "#380d00", "status-success": "#10B981", "on-primary-fixed-variant": "#812900", "on-tertiary": "#ffffff", "tertiary-container": "#90973f", "on-secondary-fixed": "#0b1e26", "accent-orange-support": "#FD943C", "surface-container-lowest": "#ffffff", "on-tertiary-fixed": "#1b1d00", "on-surface-variant": "#5b4137", "text-muted": "#8E8D88", "on-error-container": "#93000a", "text-secondary": "#666660", "on-secondary-fixed-variant": "#374952", "text-primary": "#111111", "surface-bright": "#f9f9f7", "status-info": "#3B82F6", "secondary": "#4f616a", "on-error": "#ffffff", "accent-yellow": "#FFD380", "tertiary-fixed-dim": "#c5cd6e", "surface-container-high": "#e8e8e6", "surface-tint": "#a83800", "on-tertiary-container": "#292d00", "inverse-on-surface": "#f1f1ef", "border-subtle": "#E9E8E4", "primary-fixed": "#ffdbcf", "on-surface": "#1a1c1b", "background": "#f9f9f7", "secondary-fixed-dim": "#b6c9d4", "on-primary": "#ffffff", "primary": "#a83800", "inverse-primary": "#ffb59a", "outline-variant": "#e4beb2", "error-container": "#ffdad6", "surface-variant": "#e2e3e1", "secondary-container": "#cfe3ed", "inverse-surface": "#2f3130", "outline": "#907065", "on-background": "#1a1c1b", "error": "#ba1a1a", "accent-olive-deep": "#465324", "status-danger": "#EF4444", "on-primary-container": "#511700", "surface": "#FFFFFF", "surface-container": "#eeeeec", "on-secondary": "#ffffff", "surface-container-low": "#f4f4f2", "tertiary": "#5d630d", "on-secondary-container": "#53656e", "tertiary-fixed": "#e1e987", "on-tertiary-fixed-variant": "#454b00", "surface-container-highest": "#e2e3e1", "surface-dim": "#dadad8", "status-warning": "#F59E0B" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter": "1.5rem", "space-xs": "0.25rem", "space-2xl": "3rem", "margin": "2rem", "space-md": "1rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "space-xl": "2rem", "gutter-mobile": "1rem", "margin-mobile": "1rem" }, "fontFamily": { "headline-lg": ["Montserrat"], "headline-md": ["Montserrat"], "display-lg-mobile": ["Montserrat"], "headline-sm": ["Montserrat"], "label-sm": ["Montserrat"], "body-sm": ["Montserrat"], "body-lg": ["Montserrat"], "title-lg": ["Montserrat"], "body-md": ["Montserrat"], "title-md": ["Montserrat"], "label-md": ["Montserrat"], "code-time": ["Courier Prime"], "display-lg": ["Montserrat"], "label-lg": ["Montserrat"], "headline-lg-mobile": ["Montserrat"] }, "fontSize": { "headline-lg": ["2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.015em", "fontWeight": "700" }], "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }], "display-lg-mobile": ["2rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.01em", "fontWeight": "700" }], "headline-sm": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "0em", "fontWeight": "600" }], "label-sm": ["0.6875rem", { "lineHeight": "0.875rem", "letterSpacing": "0.04em", "fontWeight": "500" }], "body-sm": ["0.8125rem", { "lineHeight": "1.25rem", "letterSpacing": "0.01em", "fontWeight": "400" }], "body-lg": ["1.125rem", { "lineHeight": "1.75rem", "letterSpacing": "0em", "fontWeight": "400" }], "title-lg": ["1.125rem", { "lineHeight": "1.625rem", "letterSpacing": "0em", "fontWeight": "600" }], "body-md": ["0.9375rem", { "lineHeight": "1.5rem", "letterSpacing": "0em", "fontWeight": "400" }], "title-md": ["1rem", { "lineHeight": "1.5rem", "letterSpacing": "0em", "fontWeight": "600" }], "label-md": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.03em", "fontWeight": "600" }], "code-time": ["0.8125rem", { "lineHeight": "1rem", "letterSpacing": "0.05em", "fontWeight": "700" }], "display-lg": ["3rem", { "lineHeight": "3.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }], "label-lg": ["0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-lg-mobile": ["1.75rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.01em", "fontWeight": "700" }] } } } };</script></head><body class="bg-background font-body-md text-text-primary min-h-screen"><header class="fixed top-0 left-0 right-0 h-16 bg-surface/95 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><div class="w-2.5 h-6 bg-primary-container rounded-DEFAULT"></div><span class="font-headline-sm text-headline-sm text-text-primary tracking-tight">FB <span class="text-primary-container font-headline-sm text-headline-sm">·</span> OPERACIONES 360</span><span class="px-space-xs py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm uppercase tracking-wider rounded-DEFAULT">DEMO PILOTO</span></div><div class="hidden xl:flex items-center gap-space-xs px-space-sm py-1 bg-surface-container-low rounded-lg text-text-secondary"><span class="material-symbols-outlined text-[16px] text-primary-container">folder_special</span><span class="font-label-sm text-label-sm font-semibold text-text-secondary uppercase">PROYECTO:</span><span class="font-label-sm text-label-sm text-text-primary font-bold">P-001 Operación editorial piloto · DEMO</span></div></div><div class="flex items-center gap-space-md"><div class="hidden md:flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded-lg"><span class="font-label-sm text-label-sm text-text-secondary uppercase whitespace-nowrap">Vista de rol:</span><select class="bg-transparent font-label-md text-label-md text-text-primary font-semibold focus:outline-none cursor-pointer pr-space-xs"><option value="r01">R01 Dirección General</option><option selected="" value="r02">R02 Coordinación</option><option value="r04">R04 Editor General</option><option value="r07">R07 Diseñador</option><option value="r10">R10 Editor Audiovisual</option><option value="r11">R11 Publicador</option><option value="r16">R16 Aprobador Ejecutivo</option></select></div><div class="relative hidden lg:flex items-center"><span class="material-symbols-outlined absolute left-2.5 text-text-muted text-[18px]">search</span><input class="pl-8 pr-12 py-1.5 bg-surface-container-low rounded-lg font-body-sm text-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary-container w-64 xl:w-72" placeholder="Buscar módulo, orden o ficha (Ctrl+K)" type="text"/><kbd class="absolute right-2 font-code-time text-code-time text-text-muted bg-surface-container px-1 py-0.5 rounded-DEFAULT text-[10px]">⌘K</kbd></div><div class="relative group"><button class="flex items-center gap-space-xs px-space-md py-1.5 bg-primary-container text-on-primary font-label-md text-label-md rounded-lg shadow-sm hover:opacity-95 transition-opacity"><span class="material-symbols-outlined text-[18px]">add</span><span>Crear</span><span class="material-symbols-outlined text-[16px]">expand_more</span></button><div class="absolute right-0 mt-1 w-44 bg-surface rounded-lg shadow-[0_4px_16px_-2px_rgba(17,17,17,0.08)] py-1 hidden group-hover:block z-50"><a class="flex items-center gap-space-xs px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:bg-surface-container-low hover:text-text-primary" data-path="bandeja-de-solicitudes" href="#"><span class="material-symbols-outlined text-[16px]">inbox</span>Solicitud</a><a class="flex items-center gap-space-xs px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:bg-surface-container-low hover:text-text-primary" data-path="proyectos-y-ordenes" href="#"><span class="material-symbols-outlined text-[16px]">assignment</span>Orden de Trabajo</a><a class="flex items-center gap-space-xs px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:bg-surface-container-low hover:text-text-primary" data-path="contenidos-y-diseno" href="#"><span class="material-symbols-outlined text-[16px]">draw</span>Contenido</a><a class="flex items-center gap-space-xs px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:bg-surface-container-low hover:text-text-primary" data-path="producciones" href="#"><span class="material-symbols-outlined text-[16px]">video_camera_back</span>Producción</a></div></div><button aria-label="Alertas" class="relative p-1.5 text-text-secondary hover:text-text-primary transition-colors"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 bg-status-danger rounded-full ring-2 ring-surface"></span></button><div class="flex items-center gap-space-xs pl-space-xs"><div class="text-right hidden sm:block"><div class="font-label-sm text-label-sm font-bold text-text-primary leading-none">Freddy Bernal</div><div class="font-label-sm text-label-sm text-primary-container font-semibold leading-tight">Coordinación · DEMO</div></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 bg-surface z-40 overflow-y-auto shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="py-space-md px-space-sm"><nav class="flex flex-col gap-space-md" data-active-classes="bg-primary-container text-on-primary font-bold"><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">INICIO</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="centro-de-control" href="#"><span class="material-symbols-outlined text-[18px]">dashboard</span><span>Centro de control</span><span class="ml-auto font-code-time text-code-time text-text-muted">S01</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="mi-trabajo" href="#"><span class="material-symbols-outlined text-[18px]">checklist</span><span>Mi trabajo</span><span class="ml-auto font-code-time text-code-time text-text-muted">S02</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">ORGANIZACIÓN</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="bandeja-de-solicitudes" href="#"><span class="material-symbols-outlined text-[18px]">inbox</span><span>Bandeja de Solicitudes</span><span class="ml-auto font-code-time text-code-time text-text-muted">S03</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="proyectos-y-ordenes" href="#"><span class="material-symbols-outlined text-[18px]">assignment</span><span>Proyectos y Órdenes</span><span class="ml-auto font-code-time text-code-time text-text-muted">S04</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="planificacion-y-calendario" href="#"><span class="material-symbols-outlined text-[18px]">calendar_month</span><span>Planificación y Calendario</span><span class="ml-auto font-code-time text-code-time text-text-muted">S06</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="reuniones-y-decisiones" href="#"><span class="material-symbols-outlined text-[18px]">groups</span><span>Reuniones y Decisiones</span><span class="ml-auto font-code-time text-code-time text-text-muted">S20</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">CREACIÓN</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="producciones" href="#"><span class="material-symbols-outlined text-[18px]">video_camera_back</span><span>Producciones</span><span class="ml-auto font-code-time text-code-time text-text-muted">S07</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="contenidos-y-diseno" href="#"><span class="material-symbols-outlined text-[18px]">draw</span><span>Contenidos y Diseño</span><span class="ml-auto font-code-time text-code-time text-text-muted">S09</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="sala-de-revision" href="#"><span class="material-symbols-outlined text-[18px]">rate_review</span><span>Sala de Revisión</span><span class="ml-auto font-code-time text-code-time text-text-muted">S11</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="aprobaciones" href="#"><span class="material-symbols-outlined text-[18px]">verified</span><span>Aprobaciones</span><span class="ml-auto font-code-time text-code-time text-text-muted">S12</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">DISTRIBUCIÓN Y SEGUIMIENTO</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="publicaciones" href="#"><span class="material-symbols-outlined text-[18px]">send</span><span>Publicaciones</span><span class="ml-auto font-code-time text-code-time text-text-muted">S13</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="mejoras-e-implementacion" href="#"><span class="material-symbols-outlined text-[18px]">upgrade</span><span>Mejoras e Implementación</span><span class="ml-auto font-code-time text-code-time text-text-muted">S15</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="canales-e-incidencias" href="#"><span class="material-symbols-outlined text-[18px]">rss_feed</span><span>Canales e Incidencias</span><span class="ml-auto font-code-time text-code-time text-text-muted">S16</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="resultados-y-reportes" href="#"><span class="material-symbols-outlined text-[18px]">analytics</span><span>Resultados y Reportes</span><span class="ml-auto font-code-time text-code-time text-text-muted">S17</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="comunidad" href="#"><span class="material-symbols-outlined text-[18px]">forum</span><span>Comunidad</span><span class="ml-auto font-code-time text-code-time text-text-muted">S21</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">RECURSOS</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="biblioteca" href="#"><span class="material-symbols-outlined text-[18px]">photo_library</span><span>Biblioteca</span><span class="ml-auto font-code-time text-code-time text-text-muted">S14</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="recursos-del-proyecto" href="#"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span>Recursos del Proyecto</span><span class="ml-auto font-code-time text-code-time text-text-muted">S19</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="equipo-y-recursos" href="#"><span class="material-symbols-outlined text-[18px]">badge</span><span>Equipo y Recursos</span><span class="ml-auto font-code-time text-code-time text-text-muted">S18</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">ADMINISTRACIÓN</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="configuracion-y-seguridad" href="#"><span class="material-symbols-outlined text-[18px]">settings</span><span>Configuración y Seguridad</span><span class="ml-auto font-code-time text-code-time text-text-muted">S22</span></a></div></nav></div></aside><div class="pl-64"><main class="w-full pt-16 min-h-screen bg-background px-space-lg py-space-lg"><div class="flex flex-col w-full gap-space-lg">
+<!-- Top Operational Breadcrumb & Dossier Meta -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-space-xs text-text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wider font-bold">CREACIÓN</span>
+<span class="font-label-sm text-label-sm text-text-muted">/</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider font-bold">MÓDULO S08</span>
+<span class="font-label-sm text-label-sm text-text-muted">/</span>
+<span class="font-code-time text-code-time bg-surface-container px-1.5 py-0.5 rounded-DEFAULT text-primary-container font-bold">PR-001</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<h1 class="font-headline-md text-headline-md text-text-primary tracking-tight">Detalle de Producción: Entrevista Territorial Piloto</h1>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-status-warning font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-status-warning animate-pulse"></span>
+          EN FASE DE RODAJE
+        </span>
+</div>
+<div class="flex items-center gap-space-md text-text-secondary">
+<span class="flex items-center gap-1 font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-primary-container">link</span>
+          Vinculada a <strong class="text-text-primary font-code-time text-code-time ml-0.5">OT-001</strong>
+</span>
+<span class="text-text-muted text-[10px]">•</span>
+<span class="font-body-sm text-body-sm">P-001 Operación editorial piloto · DEMO</span>
+<span class="text-text-muted text-[10px]">•</span>
+<span class="font-code-time text-code-time text-text-muted">RESP: R09 REALIZACIÓN</span>
+</div>
+</div>
+<!-- Quick Workflow Control Buttons -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<button class="inline-flex items-center gap-1.5 px-3 py-2 bg-surface text-text-primary font-label-md text-label-md rounded-lg shadow-sm hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-[18px] text-primary-container">picture_as_pdf</span>
+<span>Hoja de Llamado PDF</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-3 py-2 bg-surface text-text-primary font-label-md text-label-md rounded-lg shadow-sm hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-[18px] text-status-warning">report_problem</span>
+<span>Registrar Incidencia</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-3 py-2 bg-surface text-text-primary font-label-md text-label-md rounded-lg shadow-sm hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-[18px] text-status-info">cloud_upload</span>
+<span>Subir Originales</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-container text-on-primary font-label-md text-label-md rounded-lg shadow-sm hover:opacity-95 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">forward_to_inbox</span>
+<span>Entregar a Edición (S10)</span>
+</button>
+</div>
+</div>
+<!-- Telemetry Bar -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-space-md">
+<div class="bg-surface rounded-xl p-space-md shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted">Ventana Operativa</span>
+<span class="font-headline-sm text-headline-sm text-text-primary font-code-time">08:30 <span class="font-label-sm text-text-muted font-normal">VET</span></span>
+<span class="font-label-sm text-label-sm text-status-success flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span> Call Sheet distribuida
+        </span>
+</div>
+<div class="w-11 h-11 rounded-lg bg-surface-container-low flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[22px]">timer</span>
+</div>
+</div>
+<div class="bg-surface rounded-xl p-space-md shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted">Dotación Técnica</span>
+<span class="font-headline-sm text-headline-sm text-text-primary font-code-time">4 / 4 <span class="font-label-sm text-text-muted font-normal">ROLES</span></span>
+<span class="font-label-sm text-label-sm text-text-secondary">100% Confirmado en plaza</span>
+</div>
+<div class="w-11 h-11 rounded-lg bg-surface-container-low flex items-center justify-center text-text-secondary">
+<span class="material-symbols-outlined text-[22px]">badge</span>
+</div>
+</div>
+<div class="bg-surface rounded-xl p-space-md shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted">Ingesta Bruta (RAW)</span>
+<span class="font-headline-sm text-headline-sm text-text-primary font-code-time">27.0 <span class="font-label-sm text-text-muted font-normal">GB</span></span>
+<span class="font-label-sm text-label-sm text-status-danger flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-danger"></span> 1 Archivo con error MD5
+        </span>
+</div>
+<div class="w-11 h-11 rounded-lg bg-surface-container-low flex items-center justify-center text-status-danger">
+<span class="material-symbols-outlined text-[22px]">inventory</span>
+</div>
+</div>
+<div class="bg-surface rounded-xl p-space-md shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted">Seguridad y Permisos</span>
+<span class="font-headline-sm text-headline-sm text-status-success font-code-time">NIVEL 2</span>
+<span class="font-label-sm text-label-sm text-text-secondary">Token de encriptación activo</span>
+</div>
+<div class="w-11 h-11 rounded-lg bg-surface-container-low flex items-center justify-center text-status-success">
+<span class="material-symbols-outlined text-[22px]">lock</span>
+</div>
+</div>
+</div>
+<!-- Operational Tab Navigation -->
+<div class="bg-surface rounded-xl shadow-sm p-1.5 flex items-center gap-1 overflow-x-auto">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md transition-all whitespace-nowrap shadow-sm">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span>Agenda y Hoja de Llamado</span>
+<span class="bg-white/20 text-white font-code-time text-code-time px-1.5 py-0.2 rounded text-[11px]">ACTIVA</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg text-text-secondary hover:bg-surface-container-low font-label-md text-label-md transition-all whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+<span>Escaleta y Tiempos</span>
+<span class="font-code-time text-code-time text-text-muted text-[11px]">00:45:00</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg text-text-secondary hover:bg-surface-container-low font-label-md text-label-md transition-all whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]">photo_camera</span>
+<span>Plan de Captura y Planos</span>
+<span class="font-code-time text-code-time text-text-muted text-[11px]">12 Planos</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg text-text-secondary hover:bg-surface-container-low font-label-md text-label-md transition-all whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]">group</span>
+<span>Equipo Técnico y Roles</span>
+<span class="font-code-time text-code-time text-text-muted text-[11px]">4 pers.</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg text-text-secondary hover:bg-surface-container-low font-label-md text-label-md transition-all whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]">videocam</span>
+<span>Recursos y Equipamiento</span>
+<span class="font-code-time text-code-time text-text-muted text-[11px]">3 Kits</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg text-text-secondary hover:bg-surface-container-low font-label-md text-label-md transition-all whitespace-nowrap ml-auto">
+<span class="material-symbols-outlined text-[18px] text-status-danger">cloud_alert</span>
+<span class="text-status-danger font-semibold">Material Ingestado</span>
+<span class="w-2 h-2 rounded-full bg-status-danger"></span>
+</button>
+</div>
+<!-- Bento Content Area (12 Columns) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- LEFT PANEL: Restrictive Call Sheet & Timeline (7 Cols) -->
+<div class="lg:col-span-7 flex flex-col gap-space-lg">
+<!-- Call Sheet Secure Header Box -->
+<div class="bg-surface rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/5 rounded-bl-full pointer-events-none"></div>
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-code-time text-code-time uppercase">HOJA DE LLAMADO TÉCNICA</span>
+<span class="font-label-sm text-label-sm text-text-muted">CÓDIGO: CALL-PR001-V2</span>
+</div>
+<h2 class="font-title-lg text-title-lg text-text-primary">Convocatoria Operativa Territorial San Cristóbal</h2>
+<p class="font-body-sm text-body-sm text-text-secondary">Sesión presencial de entrevista piloto en locación no fija con unidad móvil de captura liviana.</p>
+</div>
+<div class="bg-surface-container-low px-3 py-2 rounded-lg flex flex-col items-end">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">FECHA DE RODAJE</span>
+<span class="font-headline-sm text-headline-sm text-primary-container font-code-time">23 OCT 2024</span>
+</div>
+</div>
+<!-- Safe Access Restriction Banner -->
+<div class="bg-surface-container-low p-space-sm rounded-lg flex items-center gap-space-sm text-text-secondary">
+<span class="material-symbols-outlined text-primary-container text-[20px]">encrypted</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-primary font-bold">SEGURIDAD OPERACIONAL: ACCESO RESTRINGIDO</span>
+<span class="font-body-sm text-body-sm text-text-muted">Información privada accesible únicamente para el personal técnico acreditado en la orden OT-001.</span>
+</div>
+<span class="ml-auto font-code-time text-code-time bg-surface text-text-secondary px-2 py-1 rounded text-[11px] shadow-sm">LOG #8942</span>
+</div>
+<!-- Schedule Slots Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted">CONVOCATORIA TÉCNICA</span>
+<span class="font-code-time text-code-time text-primary-container font-bold">08:30 VET</span>
+</div>
+<span class="font-title-md text-title-md text-text-primary">Check-in y Verificación de Kits</span>
+<p class="font-body-sm text-body-sm text-text-secondary">Montaje de 2 tiros de cámara FX6, calibración de balance de blancos 4300K, prueba de radiofrecuencia de micrófonos.</p>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted">INICIO DE RODAJE</span>
+<span class="font-code-time text-code-time text-status-success font-bold">09:15 VET</span>
+</div>
+<span class="font-title-md text-title-md text-text-primary">Bloque de Grabación Territorial</span>
+<p class="font-body-sm text-body-sm text-text-secondary">Duración estimada: 45 min continuos. Plan de rescate lumínico en caso de nubosidad repentina.</p>
+</div>
+</div>
+<!-- Geospatial Location & Safe Coordination Point -->
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">PUNTO DE ENCUENTRO Y GEOLOCALIZACIÓN OPERATIVA</span>
+<div class="relative rounded-xl overflow-hidden shadow-sm h-48 bg-surface-container">
+<!-- Simulated Map Component with Data Location Hook -->
+<div class="w-full h-full bg-cover bg-center" data-alt="Aerial architectural view of San Cristobal Tachira downtown plaza with mountain backdrop, bathed in morning sunlight, precise cartographic telemetry overlay aesthetic, editorial photojournalist style in warm neutral tones." data-location="San Cristobal, Tachira, Venezuela" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDfbYPfaaVCP4OLsP2rEdy5c052WsCK6bvwzKPeSjZe6uPvcDv7CI6XwqPOFPweezE1yhvy-PM4cCp6rf1lLmnFl6XEmkS7yYAQwWi4prJjStbZTYbBKst1cIoi5fDvkgBS4wE5Z1Q4mEFFBgvdPhNa6iV2KmpebDYJacOfYjksUROFIu7JPWJUFg_JbLoaPjBCw9DYwe733wKcbIYVL0xyjvJveDL9j0Pjcxu8NvKVUpLsaruo5pmGEg')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-space-md text-white">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[24px]">location_on</span>
+<div>
+<div class="font-title-md text-title-md font-bold text-white">San Cristóbal, Táchira · Eje Central</div>
+<div class="font-body-sm text-body-sm text-white/80 font-code-time">COORDS: 7°46'11.8"N 72°13'45.2"W · ALT: 810 msnm</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-1 rounded bg-black/50 backdrop-blur-md text-white font-label-sm text-label-sm uppercase tracking-wider">Perímetro Asegurado</span>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-space-sm mt-1">
+<div class="p-space-sm bg-surface-container-low rounded-lg">
+<span class="font-label-sm text-label-sm text-text-muted uppercase block">Contacto en Plaza</span>
+<span class="font-label-md text-label-md text-text-primary font-bold">Enlace Regional Táchira</span>
+<span class="font-code-time text-code-time text-primary-container block">+58 (276) 555-0199</span>
+</div>
+<div class="p-space-sm bg-surface-container-low rounded-lg">
+<span class="font-label-sm text-label-sm text-text-muted uppercase block">Condición Climática</span>
+<span class="font-label-md text-label-md text-text-primary font-bold">24°C Despejado</span>
+<span class="font-body-sm text-body-sm text-text-secondary block">Luz natural óptima</span>
+</div>
+<div class="p-space-sm bg-surface-container-low rounded-lg">
+<span class="font-label-sm text-label-sm text-text-muted uppercase block">Protocolo Médico</span>
+<span class="font-label-md text-label-md text-text-primary font-bold">Botiquín Táctico A</span>
+<span class="font-body-sm text-body-sm text-status-success block">Acreditación al día</span>
+</div>
+</div>
+</div>
+<!-- Interactive Confirmation Check -->
+<div class="pt-space-sm flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<input checked="" class="w-4 h-4 text-primary-container rounded cursor-pointer accent-primary-container" id="check-prep" type="checkbox"/>
+<label class="font-label-md text-label-md text-text-primary cursor-pointer" for="check-prep">
+              He revisado la hoja de llamado y confirmo el estado de preparación de las baterías y memorias.
+            </label>
+</div>
+<button class="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container text-text-primary rounded-lg font-label-sm text-label-sm font-semibold transition-all">
+            Confirmar Preparación
+          </button>
+</div>
+</div>
+<!-- Institutional Protocol and Attire Directives -->
+<div class="bg-surface rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[20px]">style</span>
+<h3 class="font-title-md text-title-md text-text-primary">Protocolo de Imagen, Vestimenta y Entorno</h3>
+</div>
+<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-status-success font-label-sm text-label-sm uppercase font-semibold">Verificado OK</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col gap-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted">DIRECTRIZ TEXTIL VOCERO</span>
+<span class="font-title-md text-title-md text-text-primary">Camisa Institucional Neutra</span>
+<p class="font-body-sm text-body-sm text-text-secondary">Se prohíben patrones de micro-cuadros (riesgo de efecto Moiré en sensor 4K) y colores de alto contraste con el fondo cálido institucional.</p>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col gap-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted">ENCUADRE Y COMPOSICIÓN</span>
+<span class="font-title-md text-title-md text-text-primary">Tratamiento Visual 16:9 y 9:16</span>
+<p class="font-body-sm text-body-sm text-text-secondary">Cámara A centrada en busto parlante con margen de recorte para Shorts/Reels; Cámara B en plano medio angular a 45 grados.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT PANEL: Technical Team, Resources & Ingest Engine (5 Cols) -->
+<div class="lg:col-span-5 flex flex-col gap-space-lg">
+<!-- Crew Confirmation Matrix -->
+<div class="bg-surface rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[20px]">badge</span>
+<h3 class="font-title-md text-title-md text-text-primary">Equipo Técnico y Recursos</h3>
+</div>
+<span class="font-code-time text-code-time text-text-muted text-body-sm">4 Integrantes</span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<!-- Crew Item 1 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-full bg-primary-container/10 text-primary-container flex items-center justify-center font-bold text-sm">
+                R09
+              </div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-text-primary leading-tight">Dirección / Realización</span>
+<span class="font-body-sm text-body-sm text-text-secondary">R09 Realizador · DEMO</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-status-success font-label-sm text-label-sm">
+              Confirmado
+            </span>
+</div>
+<!-- Crew Item 2 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-full bg-surface-container text-text-secondary flex items-center justify-center font-bold text-sm">
+                C1
+              </div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-text-primary leading-tight">Operador de Cámara 1</span>
+<span class="font-body-sm text-body-sm text-text-secondary">Kit Sony FX6 4K + 24-70mm GM</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-blue-500/10 text-status-info font-label-sm text-label-sm">
+              Reservado
+            </span>
+</div>
+<!-- Crew Item 3 (With Alert) -->
+<div class="p-space-sm rounded-lg bg-amber-500/5 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-full bg-amber-500/20 text-status-warning flex items-center justify-center font-bold text-sm">
+                  AUD
+                </div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-text-primary leading-tight">Ingeniero de Sonido</span>
+<span class="font-body-sm text-body-sm text-text-secondary">Sound Devices + Lavalier Dual</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-status-warning/10 text-status-warning font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span> Alerta Toma
+              </span>
+</div>
+<div class="mt-1 p-2 bg-surface rounded text-status-danger font-body-sm text-body-sm flex items-start gap-2">
+<span class="material-symbols-outlined text-[16px] mt-0.5">info</span>
+<span>Toma 3 de solapa presenta ruido estático. Requiere sincronización con backup ambiental o re-toma.</span>
+</div>
+</div>
+<!-- Crew Item 4 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-full bg-surface-container text-text-secondary flex items-center justify-center font-bold text-sm">
+                IMG
+              </div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-text-primary leading-tight">Asesor de Imagen y Protocolo</span>
+<span class="font-body-sm text-body-sm text-text-secondary">Chequeo de paleta institucional</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-status-success font-label-sm text-label-sm">
+              Aprobado
+            </span>
+</div>
+</div>
+</div>
+<!-- Ingest Engine & Raw Asset Status (Crucial Operational Element) -->
+<div class="bg-surface rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[20px]">folder_zip</span>
+<h3 class="font-title-md text-title-md text-text-primary">Módulo de Carga e Ingesta de Material</h3>
+</div>
+<span class="font-code-time text-code-time text-status-warning text-label-sm bg-status-warning/10 px-2 py-0.5 rounded font-bold">1 ACCIÓN PENDIENTE</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">
+          Registro criptográfico de tarjetas de memoria transferidas al servidor central. Verificación de suma de chequeo (MD5).
+        </p>
+<!-- Ingest File List -->
+<div class="flex flex-col gap-space-sm">
+<!-- File 1: OK -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-status-success text-[20px]">video_file</span>
+<div class="flex flex-col">
+<span class="font-code-time text-code-time font-bold text-text-primary">CAM_A_001.MOV</span>
+<span class="font-label-sm text-label-sm text-text-muted">ProRes 422 HQ · 4K 23.98 fps · MD5: e3b0c442...</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-code-time text-code-time text-text-primary font-bold">14.2 GB</span>
+<span class="block font-label-sm text-label-sm text-status-success">Verificado 100%</span>
+</div>
+</div>
+<!-- Progress Full -->
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-status-success w-full"></div>
+</div>
+</div>
+<!-- File 2: OK -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-status-success text-[20px]">video_file</span>
+<div class="flex flex-col">
+<span class="font-code-time text-code-time font-bold text-text-primary">CAM_B_001.MOV</span>
+<span class="font-label-sm text-label-sm text-text-muted">ProRes 422 HQ · 4K 23.98 fps · MD5: 9a2f7781...</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-code-time text-code-time text-text-primary font-bold">12.8 GB</span>
+<span class="block font-label-sm text-label-sm text-status-success">Verificado 100%</span>
+</div>
+</div>
+<!-- Progress Full -->
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-status-success w-full"></div>
+</div>
+</div>
+<!-- File 3: ERROR / WARNING -->
+<div class="p-space-sm rounded-lg bg-rose-500/5 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-status-danger text-[20px]">audio_file</span>
+<div class="flex flex-col">
+<span class="font-code-time text-code-time font-bold text-status-danger">AUDIO_LAV_TOMA3.WAV</span>
+<span class="font-label-sm text-label-sm text-status-danger">24-bit / 48kHz Broadcast WAV · MD5 Discordante</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-code-time text-code-time text-status-danger font-bold">ERROR</span>
+<span class="block font-label-sm text-label-sm text-status-danger font-bold">Falla de Checksum</span>
+</div>
+</div>
+<!-- Progress Bar with Alert Color -->
+<div class="w-full h-1.5 bg-rose-200 rounded-full overflow-hidden">
+<div class="h-full bg-status-danger w-3/4"></div>
+</div>
+<div class="flex items-center justify-between mt-1 pt-1">
+<span class="font-body-sm text-body-sm text-text-secondary">Pendiente de re-subida por el operador de sonido.</span>
+<button class="px-2.5 py-1 bg-surface text-status-danger hover:bg-rose-50 rounded font-label-sm text-label-sm font-semibold transition-all shadow-sm">
+                Forzar Re-escaneo
+              </button>
+</div>
+</div>
+</div>
+<!-- Ingest Drag & Drop Box -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col items-center justify-center text-center gap-2 cursor-pointer hover:bg-surface-container transition-all">
+<div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center text-primary-container shadow-sm">
+<span class="material-symbols-outlined text-[20px]">upload_file</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-bold">Arrastre tarjetas de memoria o archivos brutos</span>
+<span class="font-body-sm text-body-sm text-text-muted">Compatible con formatos Cinema DNG, Apple ProRes y BWF Wave</span>
+</div>
+</div>
+<!-- Transfer Telemetry Stats -->
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low rounded-lg font-code-time text-code-time text-body-sm">
+<span class="text-text-secondary">VELOCIDAD LOCAL: <strong class="text-text-primary">450 MB/s</strong></span>
+<span class="text-text-secondary">ALMACENAMIENTO EDITORIAL: <strong class="text-status-success">DISPONIBLE</strong></span>
+</div>
+</div>
+</div>
+</div>
+<!-- Operational Audit Trail Footer -->
+<div class="bg-surface rounded-xl p-space-md shadow-sm flex flex-col sm:flex-row items-center justify-between gap-space-sm text-text-secondary">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary-container text-[18px]">verified_user</span>
+<span class="font-body-sm text-body-sm">
+        Registro de Producción Sellado por <strong class="text-text-primary">R02 Coordinación</strong> · Licencia Operativa FB-360-PILOTO-TÁCHIRA
+      </span>
+</div>
+<div class="flex items-center gap-space-md font-code-time text-code-time text-label-sm">
+<span>SERVER: CARACAS-NODE-01</span>
+<span>PING: 18ms</span>
+<span class="text-status-success font-bold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-status-success"></span> VÍNCULO ACTIVO
+      </span>
+</div>
+</div>
+</div></main></div></body></html>

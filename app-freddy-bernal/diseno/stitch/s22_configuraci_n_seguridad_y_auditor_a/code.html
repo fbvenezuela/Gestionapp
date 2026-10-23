@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>FB · OPERACIONES 360</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&amp;family=Courier+Prime:wght@700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary-fixed-dim": "#ffb59a", "secondary-fixed": "#d2e5f0", "primary-container": "#fe5a03", "on-primary-fixed": "#380d00", "status-success": "#10B981", "on-primary-fixed-variant": "#812900", "on-tertiary": "#ffffff", "tertiary-container": "#90973f", "on-secondary-fixed": "#0b1e26", "accent-orange-support": "#FD943C", "surface-container-lowest": "#ffffff", "on-tertiary-fixed": "#1b1d00", "on-surface-variant": "#5b4137", "text-muted": "#8E8D88", "on-error-container": "#93000a", "text-secondary": "#666660", "on-secondary-fixed-variant": "#374952", "text-primary": "#111111", "surface-bright": "#f9f9f7", "status-info": "#3B82F6", "secondary": "#4f616a", "on-error": "#ffffff", "accent-yellow": "#FFD380", "tertiary-fixed-dim": "#c5cd6e", "surface-container-high": "#e8e8e6", "surface-tint": "#a83800", "on-tertiary-container": "#292d00", "inverse-on-surface": "#f1f1ef", "border-subtle": "#E9E8E4", "primary-fixed": "#ffdbcf", "on-surface": "#1a1c1b", "background": "#f9f9f7", "secondary-fixed-dim": "#b6c9d4", "on-primary": "#ffffff", "primary": "#a83800", "inverse-primary": "#ffb59a", "outline-variant": "#e4beb2", "error-container": "#ffdad6", "surface-variant": "#e2e3e1", "secondary-container": "#cfe3ed", "inverse-surface": "#2f3130", "outline": "#907065", "on-background": "#1a1c1b", "error": "#ba1a1a", "accent-olive-deep": "#465324", "status-danger": "#EF4444", "on-primary-container": "#511700", "surface": "#FFFFFF", "surface-container": "#eeeeec", "on-secondary": "#ffffff", "surface-container-low": "#f4f4f2", "tertiary": "#5d630d", "on-secondary-container": "#53656e", "tertiary-fixed": "#e1e987", "on-tertiary-fixed-variant": "#454b00", "surface-container-highest": "#e2e3e1", "surface-dim": "#dadad8", "status-warning": "#F59E0B" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter": "1.5rem", "space-xs": "0.25rem", "space-2xl": "3rem", "margin": "2rem", "space-md": "1rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "space-xl": "2rem", "gutter-mobile": "1rem", "margin-mobile": "1rem" }, "fontFamily": { "headline-lg": ["Montserrat"], "headline-md": ["Montserrat"], "display-lg-mobile": ["Montserrat"], "headline-sm": ["Montserrat"], "label-sm": ["Montserrat"], "body-sm": ["Montserrat"], "body-lg": ["Montserrat"], "title-lg": ["Montserrat"], "body-md": ["Montserrat"], "title-md": ["Montserrat"], "label-md": ["Montserrat"], "code-time": ["Courier Prime"], "display-lg": ["Montserrat"], "label-lg": ["Montserrat"], "headline-lg-mobile": ["Montserrat"] }, "fontSize": { "headline-lg": ["2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.015em", "fontWeight": "700" }], "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }], "display-lg-mobile": ["2rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.01em", "fontWeight": "700" }], "headline-sm": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "0em", "fontWeight": "600" }], "label-sm": ["0.6875rem", { "lineHeight": "0.875rem", "letterSpacing": "0.04em", "fontWeight": "500" }], "body-sm": ["0.8125rem", { "lineHeight": "1.25rem", "letterSpacing": "0.01em", "fontWeight": "400" }], "body-lg": ["1.125rem", { "lineHeight": "1.75rem", "letterSpacing": "0em", "fontWeight": "400" }], "title-lg": ["1.125rem", { "lineHeight": "1.625rem", "letterSpacing": "0em", "fontWeight": "600" }], "body-md": ["0.9375rem", { "lineHeight": "1.5rem", "letterSpacing": "0em", "fontWeight": "400" }], "title-md": ["1rem", { "lineHeight": "1.5rem", "letterSpacing": "0em", "fontWeight": "600" }], "label-md": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.03em", "fontWeight": "600" }], "code-time": ["0.8125rem", { "lineHeight": "1rem", "letterSpacing": "0.05em", "fontWeight": "700" }], "display-lg": ["3rem", { "lineHeight": "3.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }], "label-lg": ["0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-lg-mobile": ["1.75rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.01em", "fontWeight": "700" }] } } } };</script></head><body class="bg-background font-body-md text-text-primary min-h-screen"><header class="fixed top-0 left-0 right-0 h-16 bg-surface/95 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><div class="w-2.5 h-6 bg-primary-container rounded-DEFAULT"></div><span class="font-headline-sm text-headline-sm text-text-primary tracking-tight">FB <span class="text-primary-container font-headline-sm text-headline-sm">·</span> OPERACIONES 360</span><span class="px-space-xs py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm uppercase tracking-wider rounded-DEFAULT">DEMO PILOTO</span></div><div class="hidden xl:flex items-center gap-space-xs px-space-sm py-1 bg-surface-container-low rounded-lg text-text-secondary"><span class="material-symbols-outlined text-[16px] text-primary-container">folder_special</span><span class="font-label-sm text-label-sm font-semibold text-text-secondary uppercase">PROYECTO:</span><span class="font-label-sm text-label-sm text-text-primary font-bold">P-001 Operación editorial piloto · DEMO</span></div></div><div class="flex items-center gap-space-md"><div class="hidden md:flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded-lg"><span class="font-label-sm text-label-sm text-text-secondary uppercase whitespace-nowrap">Vista de rol:</span><select class="bg-transparent font-label-md text-label-md text-text-primary font-semibold focus:outline-none cursor-pointer pr-space-xs"><option value="r01">R01 Dirección General</option><option selected="" value="r02">R02 Coordinación</option><option value="r04">R04 Editor General</option><option value="r07">R07 Diseñador</option><option value="r10">R10 Editor Audiovisual</option><option value="r11">R11 Publicador</option><option value="r16">R16 Aprobador Ejecutivo</option></select></div><div class="relative hidden lg:flex items-center"><span class="material-symbols-outlined absolute left-2.5 text-text-muted text-[18px]">search</span><input class="pl-8 pr-12 py-1.5 bg-surface-container-low rounded-lg font-body-sm text-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary-container w-64 xl:w-72" placeholder="Buscar módulo, orden o ficha (Ctrl+K)" type="text"/><kbd class="absolute right-2 font-code-time text-code-time text-text-muted bg-surface-container px-1 py-0.5 rounded-DEFAULT text-[10px]">⌘K</kbd></div><div class="relative group"><button class="flex items-center gap-space-xs px-space-md py-1.5 bg-primary-container text-on-primary font-label-md text-label-md rounded-lg shadow-sm hover:opacity-95 transition-opacity"><span class="material-symbols-outlined text-[18px]">add</span><span>Crear</span><span class="material-symbols-outlined text-[16px]">expand_more</span></button><div class="absolute right-0 mt-1 w-44 bg-surface rounded-lg shadow-[0_4px_16px_-2px_rgba(17,17,17,0.08)] py-1 hidden group-hover:block z-50"><a class="flex items-center gap-space-xs px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:bg-surface-container-low hover:text-text-primary" data-path="bandeja-de-solicitudes" href="#"><span class="material-symbols-outlined text-[16px]">inbox</span>Solicitud</a><a class="flex items-center gap-space-xs px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:bg-surface-container-low hover:text-text-primary" data-path="proyectos-y-ordenes" href="#"><span class="material-symbols-outlined text-[16px]">assignment</span>Orden de Trabajo</a><a class="flex items-center gap-space-xs px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:bg-surface-container-low hover:text-text-primary" data-path="contenidos-y-diseno" href="#"><span class="material-symbols-outlined text-[16px]">draw</span>Contenido</a><a class="flex items-center gap-space-xs px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:bg-surface-container-low hover:text-text-primary" data-path="producciones" href="#"><span class="material-symbols-outlined text-[16px]">video_camera_back</span>Producción</a></div></div><button aria-label="Alertas" class="relative p-1.5 text-text-secondary hover:text-text-primary transition-colors"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 bg-status-danger rounded-full ring-2 ring-surface"></span></button><div class="flex items-center gap-space-xs pl-space-xs"><div class="text-right hidden sm:block"><div class="font-label-sm text-label-sm font-bold text-text-primary leading-none">Freddy Bernal</div><div class="font-label-sm text-label-sm text-primary-container font-semibold leading-tight">Coordinación · DEMO</div></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 bg-surface z-40 overflow-y-auto shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="py-space-md px-space-sm"><nav class="flex flex-col gap-space-md" data-active-classes="bg-primary-container text-on-primary font-bold"><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">INICIO</div><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg transition-all bg-primary-container text-on-primary font-bold" data-path="centro-de-control" href="#"><span class="material-symbols-outlined text-[18px]">dashboard</span><span>Centro de control</span><span class="ml-auto font-code-time text-code-time text-text-muted">S01</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="mi-trabajo" href="#"><span class="material-symbols-outlined text-[18px]">checklist</span><span>Mi trabajo</span><span class="ml-auto font-code-time text-code-time text-text-muted">S02</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">ORGANIZACIÓN</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="bandeja-de-solicitudes" href="#"><span class="material-symbols-outlined text-[18px]">inbox</span><span>Bandeja de Solicitudes</span><span class="ml-auto font-code-time text-code-time text-text-muted">S03</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="proyectos-y-ordenes" href="#"><span class="material-symbols-outlined text-[18px]">assignment</span><span>Proyectos y Órdenes</span><span class="ml-auto font-code-time text-code-time text-text-muted">S04</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="planificacion-y-calendario" href="#"><span class="material-symbols-outlined text-[18px]">calendar_month</span><span>Planificación y Calendario</span><span class="ml-auto font-code-time text-code-time text-text-muted">S06</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="reuniones-y-decisiones" href="#"><span class="material-symbols-outlined text-[18px]">groups</span><span>Reuniones y Decisiones</span><span class="ml-auto font-code-time text-code-time text-text-muted">S20</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">CREACIÓN</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="producciones" href="#"><span class="material-symbols-outlined text-[18px]">video_camera_back</span><span>Producciones</span><span class="ml-auto font-code-time text-code-time text-text-muted">S07</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="contenidos-y-diseno" href="#"><span class="material-symbols-outlined text-[18px]">draw</span><span>Contenidos y Diseño</span><span class="ml-auto font-code-time text-code-time text-text-muted">S09</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="sala-de-revision" href="#"><span class="material-symbols-outlined text-[18px]">rate_review</span><span>Sala de Revisión</span><span class="ml-auto font-code-time text-code-time text-text-muted">S11</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="aprobaciones" href="#"><span class="material-symbols-outlined text-[18px]">verified</span><span>Aprobaciones</span><span class="ml-auto font-code-time text-code-time text-text-muted">S12</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">DISTRIBUCIÓN Y SEGUIMIENTO</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="publicaciones" href="#"><span class="material-symbols-outlined text-[18px]">send</span><span>Publicaciones</span><span class="ml-auto font-code-time text-code-time text-text-muted">S13</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="mejoras-e-implementacion" href="#"><span class="material-symbols-outlined text-[18px]">upgrade</span><span>Mejoras e Implementación</span><span class="ml-auto font-code-time text-code-time text-text-muted">S15</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="canales-e-incidencias" href="#"><span class="material-symbols-outlined text-[18px]">rss_feed</span><span>Canales e Incidencias</span><span class="ml-auto font-code-time text-code-time text-text-muted">S16</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="resultados-y-reportes" href="#"><span class="material-symbols-outlined text-[18px]">analytics</span><span>Resultados y Reportes</span><span class="ml-auto font-code-time text-code-time text-text-muted">S17</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="comunidad" href="#"><span class="material-symbols-outlined text-[18px]">forum</span><span>Comunidad</span><span class="ml-auto font-code-time text-code-time text-text-muted">S21</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">RECURSOS</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="biblioteca" href="#"><span class="material-symbols-outlined text-[18px]">photo_library</span><span>Biblioteca</span><span class="ml-auto font-code-time text-code-time text-text-muted">S14</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="recursos-del-proyecto" href="#"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span>Recursos del Proyecto</span><span class="ml-auto font-code-time text-code-time text-text-muted">S19</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="equipo-y-recursos" href="#"><span class="material-symbols-outlined text-[18px]">badge</span><span>Equipo y Recursos</span><span class="ml-auto font-code-time text-code-time text-text-muted">S18</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">ADMINISTRACIÓN</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="configuracion-y-seguridad" href="#"><span class="material-symbols-outlined text-[18px]">settings</span><span>Configuración y Seguridad</span><span class="ml-auto font-code-time text-code-time text-text-muted">S22</span></a></div></nav></div></aside><div class="pl-64"><main class="w-full pt-16 min-h-screen bg-background px-space-lg py-space-lg"><div class="flex flex-col w-full">
+<div class="flex flex-col gap-space-lg">
+<!-- Header Context & Telemetry Bar -->
+<div class="flex flex-col xl:flex-row xl:items-end justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-md text-label-md text-text-secondary uppercase tracking-wider">GOBERNANZA Y CONTROL CENTRAL</span>
+<span class="text-text-muted">/</span>
+<span class="inline-flex items-center gap-1.5 px-space-xs py-0.5 rounded-full bg-status-success/10 text-status-success font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success animate-pulse"></span>
+            LEDGER SINCRONIZADO · SHA-256 ACTIVO
+          </span>
+</div>
+<div class="flex items-baseline gap-space-md">
+<h1 class="font-headline-lg text-headline-lg text-text-primary tracking-tight">S22 · Configuración, Gobernanza y Auditoría</h1>
+<span class="font-code-time text-code-time text-primary-container px-2 py-0.5 bg-primary-fixed rounded">ENV: PILOTO-PROD-V4.2</span>
+</div>
+<p class="font-body-md text-body-md text-text-secondary max-w-3xl">
+          Administración criptográfica, matriz de perfiles operacionales R01–R18, control de doble aprobación y registro de auditoría append-only con sello de inmutabilidad.
+        </p>
+</div>
+<!-- Action Cluster -->
+<div class="flex flex-wrap items-center gap-space-sm">
+<button class="flex items-center gap-space-xs px-space-md py-2 bg-surface hover:bg-surface-container-low text-text-primary font-label-md text-label-md rounded-lg shadow-sm transition-all" id="btnAuditSessions">
+<span class="material-symbols-outlined text-[18px] text-text-secondary">fingerprint</span>
+<span>Auditar Sesiones Activas</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-2 bg-surface hover:bg-surface-container-low text-text-primary font-label-md text-label-md rounded-lg shadow-sm transition-all" id="btnInviteUser">
+<span class="material-symbols-outlined text-[18px] text-primary-container">person_add</span>
+<span>Invitar Usuario (R01-R18)</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-2 bg-primary-container hover:bg-on-primary-fixed-variant text-on-primary font-label-md text-label-md rounded-lg shadow-sm transition-all" id="btnExportLedger">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span>Exportar Registro Criptográfico</span>
+</button>
+</div>
+</div>
+<!-- Quick Telemetry Banners / Bento Overview -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-md">
+<div class="bg-surface rounded-xl p-space-md shadow-sm flex items-start justify-between relative overflow-hidden">
+<div class="flex flex-col gap-1 z-10">
+<span class="font-label-sm text-label-sm text-text-secondary uppercase">Usuarios Registrados</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md text-text-primary">38</span>
+<span class="font-label-sm text-label-sm text-status-success font-semibold">14 roles activos</span>
+</div>
+<span class="font-body-sm text-body-sm text-text-muted mt-1">2FA Forzoso: 100% de la dotación</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-text-primary">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+</div>
+<div class="absolute -right-4 -bottom-4 w-20 h-20 bg-primary-container/5 rounded-full pointer-events-none"></div>
+</div>
+<div class="bg-surface rounded-xl p-space-md shadow-sm flex items-start justify-between relative overflow-hidden">
+<div class="flex flex-col gap-1 z-10">
+<span class="font-label-sm text-label-sm text-text-secondary uppercase">Candados de Flujo</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md text-primary-container">3/3</span>
+<span class="font-label-sm text-label-sm text-status-success font-semibold">Blindados</span>
+</div>
+<span class="font-body-sm text-body-sm text-text-muted mt-1">Anti-Autoaprobación en forzado</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-[20px]">policy</span>
+</div>
+<div class="absolute -right-4 -bottom-4 w-20 h-20 bg-primary-container/5 rounded-full pointer-events-none"></div>
+</div>
+<div class="bg-surface rounded-xl p-space-md shadow-sm flex items-start justify-between relative overflow-hidden">
+<div class="flex flex-col gap-1 z-10">
+<span class="font-label-sm text-label-sm text-text-secondary uppercase">Eventos Auditados (Hoy)</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md text-text-primary">1,482</span>
+<span class="font-label-sm text-label-sm text-text-secondary font-semibold font-code-time">0 ERR</span>
+</div>
+<span class="font-body-sm text-body-sm text-text-muted mt-1">Último bloque: <span class="font-code-time text-text-primary">#98,214</span></span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-text-primary">
+<span class="material-symbols-outlined text-[20px]">history_edu</span>
+</div>
+<div class="absolute -right-4 -bottom-4 w-20 h-20 bg-secondary-container/10 rounded-full pointer-events-none"></div>
+</div>
+<div class="bg-surface rounded-xl p-space-md shadow-sm flex items-start justify-between relative overflow-hidden">
+<div class="flex flex-col gap-1 z-10">
+<span class="font-label-sm text-label-sm text-text-secondary uppercase">Sandbox &amp; Redes</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md text-status-warning">MODO DEMO</span>
+<span class="font-label-sm text-label-sm text-text-secondary">Aislado</span>
+</div>
+<span class="font-body-sm text-body-sm text-text-muted mt-1">NAS: <span class="font-code-time text-status-success">10.0.4.12:OK</span></span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-status-warning">
+<span class="material-symbols-outlined text-[20px]">shield</span>
+</div>
+<div class="absolute -right-4 -bottom-4 w-20 h-20 bg-status-warning/5 rounded-full pointer-events-none"></div>
+</div>
+</div>
+<!-- Main Segmented Tabs System -->
+<div class="flex flex-col bg-surface rounded-xl shadow-sm overflow-hidden">
+<!-- Tabs Bar -->
+<div class="flex items-center gap-space-xs px-space-md pt-space-md bg-surface-container-low overflow-x-auto no-scrollbar">
+<button class="tab-btn flex items-center gap-space-xs px-space-md py-3 rounded-t-lg font-label-md text-label-md transition-colors bg-surface text-primary-container font-bold shadow-sm" data-tab="tab-audit">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+<span>Registro y Auditoría (Audit Log)</span>
+<span class="px-1.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-code-time text-[10px]">LEDGER</span>
+</button>
+<button class="tab-btn flex items-center gap-space-xs px-space-md py-3 rounded-t-lg font-label-md text-label-md transition-colors text-text-secondary hover:text-text-primary hover:bg-surface/50" data-tab="tab-governance">
+<span class="material-symbols-outlined text-[18px]">gavel</span>
+<span>Reglas de Flujos y Doble Aprobación</span>
+</button>
+<button class="tab-btn flex items-center gap-space-xs px-space-md py-3 rounded-t-lg font-label-md text-label-md transition-colors text-text-secondary hover:text-text-primary hover:bg-surface/50" data-tab="tab-roles">
+<span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+<span>Usuarios y Permisos (R01-R18)</span>
+</button>
+<button class="tab-btn flex items-center gap-space-xs px-space-md py-3 rounded-t-lg font-label-md text-label-md transition-colors text-text-secondary hover:text-text-primary hover:bg-surface/50" data-tab="tab-security">
+<span class="material-symbols-outlined text-[18px]">encrypted</span>
+<span>Seguridad y 2FA</span>
+</button>
+<button class="tab-btn flex items-center gap-space-xs px-space-md py-3 rounded-t-lg font-label-md text-label-md transition-colors text-text-secondary hover:text-text-primary hover:bg-surface/50" data-tab="tab-integrations">
+<span class="material-symbols-outlined text-[18px]">hub</span>
+<span>Integraciones &amp; Servidores NAS</span>
+</button>
+</div>
+<!-- Tab Content 1: AUDIT LOG (Default / Primary) -->
+<div class="tab-pane flex flex-col p-space-lg gap-space-lg" id="tab-audit">
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-md bg-surface-container-low p-space-md rounded-lg">
+<div class="flex items-center gap-space-md flex-wrap">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[20px]">token</span>
+<span class="font-label-md text-label-md text-text-primary font-bold">Cadena de Bloques Append-Only:</span>
+<span class="font-code-time text-code-time text-text-secondary">Merkle Root: 0x9f18a2...3b11</span>
+</div>
+<span class="h-4 w-px bg-surface-container-highest"></span>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-status-success"></span>
+<span class="font-label-sm text-label-sm text-text-secondary">Criptográficamente sellado (Zona Horaria VET / UTC-4)</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm w-full lg:w-auto">
+<div class="relative flex-1 lg:w-64">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-text-muted text-[16px]">search</span>
+<input class="w-full pl-8 pr-3 py-1.5 bg-surface text-text-primary placeholder:text-text-muted font-body-sm text-body-sm rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-container" placeholder="Filtrar por hash, usuario o ficha..." type="text"/>
+</div>
+<select class="px-3 py-1.5 bg-surface text-text-primary font-label-sm text-label-sm rounded-lg shadow-sm focus:outline-none cursor-pointer">
+<option value="all">Todos los Módulos</option>
+<option value="s10">S10 Ficha Editorial</option>
+<option value="s11">S11 Sala de Revisión</option>
+<option value="s05">S05 Ficha OT</option>
+<option value="s22">S22 Seguridad</option>
+</select>
+</div>
+</div>
+<!-- Audit Table -->
+<div class="w-full overflow-x-auto rounded-lg shadow-sm">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container text-text-secondary font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-3 px-space-md">Timestamp (VET)</th>
+<th class="py-3 px-space-md">Usuario Ejecutante</th>
+<th class="py-3 px-space-md">Módulo</th>
+<th class="py-3 px-space-md">Acción Realizada</th>
+<th class="py-3 px-space-md">IP / Dispositivo</th>
+<th class="py-3 px-space-md text-right">Hash SHA-256 Inmutable</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 text-text-primary font-body-sm text-body-sm">
+<!-- Item 1 -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface group">
+<td class="py-3.5 px-space-md font-code-time text-code-time text-text-primary whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-primary-container">lock_clock</span>
+<span>21 Oct 16:45:12</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded bg-primary-fixed text-on-primary-fixed flex items-center justify-center font-code-time text-[10px] font-bold">R04</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">Editor General</span>
+<span class="text-text-muted text-[11px]">r04.editor@táchira.gob.ve</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-time text-code-time font-bold">S10 Ficha Editorial</span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-status-success"></span>
+<span class="font-medium text-text-primary">Aprobación Guion E-001 v2.0</span>
+<span class="text-text-muted font-code-time text-[11px]">(Dictamen favorable)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md font-code-time text-[12px] text-text-secondary whitespace-nowrap">
+<div>190.202.14.88</div>
+<div class="text-text-muted text-[10px]">macOS · Safari 17.2</div>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1.5 px-2 py-1 bg-surface-container rounded group-hover:bg-primary-fixed/40 transition-colors">
+<span class="material-symbols-outlined text-[14px] text-primary-container">fingerprint</span>
+<span class="font-code-time text-code-time text-text-primary font-bold">sha256:88c01d449fa1</span>
+<button class="text-text-muted hover:text-text-primary" onclick="navigator.clipboard.writeText('88c01d449fa176df298c4b2210ef5632a9018d9e2612cf776510a')" title="Copiar Hash Completo">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 2 -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface-bright group">
+<td class="py-3.5 px-space-md font-code-time text-code-time text-text-primary whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-status-danger">report</span>
+<span>21 Oct 14:10:05</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded bg-primary-fixed text-on-primary-fixed flex items-center justify-center font-code-time text-[10px] font-bold">R04</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">Editor General</span>
+<span class="text-text-muted text-[11px]">r04.editor@táchira.gob.ve</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-time text-code-time font-bold">S11 Sala de Revisión</span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-status-danger"></span>
+<span class="font-medium text-text-primary">Observación bloqueante timecode 00:18 E-003</span>
+<span class="px-1.5 py-0.2 rounded bg-status-danger/10 text-status-danger text-[10px] font-bold">RECHAZO</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md font-code-time text-[12px] text-text-secondary whitespace-nowrap">
+<div>190.202.14.88</div>
+<div class="text-text-muted text-[10px]">macOS · Safari 17.2</div>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1.5 px-2 py-1 bg-surface-container rounded group-hover:bg-primary-fixed/40 transition-colors">
+<span class="material-symbols-outlined text-[14px] text-primary-container">fingerprint</span>
+<span class="font-code-time text-code-time text-text-primary font-bold">sha256:91af10ee74b2</span>
+<button class="text-text-muted hover:text-text-primary" onclick="navigator.clipboard.writeText('91af10ee74b2e880293daff01894ec90bca2399120deae55a0194')" title="Copiar Hash Completo">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 3 -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface group">
+<td class="py-3.5 px-space-md font-code-time text-code-time text-text-primary whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-text-muted">lock_clock</span>
+<span>21 Oct 11:15:40</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded bg-secondary-container text-on-secondary-fixed flex items-center justify-center font-code-time text-[10px] font-bold">R02</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">Coordinación Operativa</span>
+<span class="text-text-muted text-[11px]">f.bernal@gobernacion.tachira</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-time text-code-time font-bold">S05 Ficha OT-001</span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-status-info"></span>
+<span class="font-medium text-text-primary">Cambio de alcance autorizado (Añadido E-006)</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container text-text-secondary text-[10px]">REESTRUCTURACIÓN</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md font-code-time text-[12px] text-text-secondary whitespace-nowrap">
+<div>10.0.1.42</div>
+<div class="text-text-muted text-[10px]">Windows 11 · Chrome 122</div>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1.5 px-2 py-1 bg-surface-container rounded group-hover:bg-primary-fixed/40 transition-colors">
+<span class="material-symbols-outlined text-[14px] text-primary-container">fingerprint</span>
+<span class="font-code-time text-code-time text-text-primary font-bold">sha256:7c331ab902e4</span>
+<button class="text-text-muted hover:text-text-primary" onclick="navigator.clipboard.writeText('7c331ab902e4bf80155b99182310deaf38765410987afc234')" title="Copiar Hash Completo">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 4 -->
+<tr class="hover:bg-surface-container-low transition-colors bg-surface-bright group">
+<td class="py-3.5 px-space-md font-code-time text-code-time text-text-primary whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-status-warning">key</span>
+<span>21 Oct 09:30:11</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded bg-inverse-surface text-inverse-on-surface flex items-center justify-center font-code-time text-[10px] font-bold">R15</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-text-primary">Admin Técnico Central</span>
+<span class="text-text-muted text-[11px]">sysadmin@comms.tachira</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-text-primary font-code-time text-code-time font-bold">S22 Seguridad</span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-status-warning"></span>
+<span class="font-medium text-text-primary">Rotación de credencial API Telegram</span>
+<span class="px-1.5 py-0.2 rounded bg-status-warning/10 text-status-warning text-[10px] font-bold">CRÍTICO</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md font-code-time text-[12px] text-text-secondary whitespace-nowrap">
+<div>10.0.0.5</div>
+<div class="text-text-muted text-[10px]">Console CLI · SSH-RSA</div>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1.5 px-2 py-1 bg-surface-container rounded group-hover:bg-primary-fixed/40 transition-colors">
+<span class="material-symbols-outlined text-[14px] text-primary-container">fingerprint</span>
+<span class="font-code-time text-code-time text-text-primary font-bold">sha256:e3b0c44298fc</span>
+<button class="text-text-muted hover:text-text-primary" onclick="navigator.clipboard.writeText('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')" title="Copiar Hash Completo">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Ledger Bottom Telemetry and Pagination -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-space-md pt-space-xs text-text-secondary font-label-md text-label-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-status-success">verified</span>
+<span>Integridad de bloque validada por 3 nodos testigo independientes.</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="px-3 py-1 bg-surface-container hover:bg-surface-container-high rounded text-text-primary disabled:opacity-50" disabled="">Anterior</button>
+<span class="font-code-time text-code-time text-text-primary px-2">Página 1 de 148</span>
+<button class="px-3 py-1 bg-surface-container hover:bg-surface-container-high rounded text-text-primary">Siguiente</button>
+</div>
+</div>
+</div>
+<!-- Tab Content 2: GOVERNANCE RULES (Active Toggles with Candado) -->
+<div class="tab-pane hidden flex-col p-space-lg gap-space-lg" id="tab-governance">
+<div class="flex items-center justify-between pb-space-xs">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-text-primary">Reglas de Gobernanza y Aprobación Institucional</h2>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5">
+              Políticas forzosas de cumplimiento estricto. La modificación de estas reglas requiere doble firma de R01 (Dirección) y R15 (Técnico).
+            </p>
+</div>
+<span class="px-3 py-1 rounded-full bg-status-success/10 text-status-success font-label-sm text-label-sm font-semibold flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-status-success"></span>
+            3 Candados Activos y Forzados
+          </span>
+</div>
+<div class="flex flex-col gap-space-md">
+<!-- Rule 1: Anti Autoaprobacion -->
+<div class="bg-surface-container-low p-space-lg rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md max-w-3xl">
+<div class="w-12 h-12 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[24px]">lock_person</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-title-lg text-title-lg text-text-primary">Regla Anti-Autoaprobación</span>
+<span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-code-time text-[11px] font-bold">FORZADO POR SISTEMA</span>
+</div>
+<p class="font-body-md text-body-md text-text-secondary">
+                  "El creador de un contenido no puede actuar como aprobador independiente de su propia pieza."
+                </p>
+<div class="flex items-center gap-4 mt-2 font-label-sm text-label-sm text-text-muted">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">shield</span> Aplica a R04, R07, R10 y R16</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">history</span> Activo desde 01 Oct 2024</span>
+</div>
+</div>
+</div>
+<!-- Toggle Lock (Non editable without escalation) -->
+<div class="flex items-center gap-3 self-end md:self-center shrink-0">
+<span class="font-code-time text-code-time text-primary-container font-bold uppercase">BLOQUEADO</span>
+<button class="w-14 h-8 rounded-full bg-primary-container flex items-center px-1 cursor-not-allowed opacity-90 relative" disabled="" title="Regla mandataria no deshabilitable en producción">
+<div class="w-6 h-6 rounded-full bg-surface shadow-sm flex items-center justify-center ml-auto">
+<span class="material-symbols-outlined text-primary-container text-[14px]">lock</span>
+</div>
+</button>
+</div>
+</div>
+<!-- Rule 2: Checksum SHA-256 for RAW media -->
+<div class="bg-surface-container-low p-space-lg rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md max-w-3xl">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high text-text-primary flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[24px]">sd_card_alert</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-title-lg text-title-lg text-text-primary">Trazabilidad de Medios Brutos (Ingest)</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-text-primary font-code-time text-[11px] font-bold">INTEGRIDAD HARDWARE</span>
+</div>
+<p class="font-body-md text-body-md text-text-secondary">
+                  "Exigir verificación checksum SHA-256 antes de formatear tarjetas de memoria y liberar rodajes de campo."
+                </p>
+<div class="flex items-center gap-4 mt-2 font-label-sm text-label-sm text-text-muted">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">folder_zip</span> Verificación bit-a-bit en NAS Central</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">check_circle</span> Validación obligatoria en S07</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 self-end md:self-center shrink-0">
+<span class="font-code-time text-code-time text-status-success font-bold uppercase">HABILITADO</span>
+<button class="w-14 h-8 rounded-full bg-status-success flex items-center px-1 cursor-pointer transition-all">
+<div class="w-6 h-6 rounded-full bg-surface shadow-sm flex items-center justify-center ml-auto">
+<span class="material-symbols-outlined text-status-success text-[14px]">check</span>
+</div>
+</button>
+</div>
+</div>
+<!-- Rule 3: Demostración y Simulación Segura -->
+<div class="bg-surface-container-low p-space-lg rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md max-w-3xl">
+<div class="w-12 h-12 rounded-xl bg-status-warning/20 text-status-warning flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[24px]">cloud_off</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-title-lg text-title-lg text-text-primary">Demostración y Simulación Segura</span>
+<span class="px-2 py-0.5 rounded bg-status-warning/20 text-text-primary font-code-time text-[11px] font-bold">AISLAMIENTO SANDBOX</span>
+</div>
+<p class="font-body-md text-body-md text-text-secondary">
+                  "Toda publicación o conexión externa en entorno DEMO opera en modo sandbox blindado, impidiendo emisiones accidentales a redes públicas reales."
+                </p>
+<div class="flex items-center gap-4 mt-2 font-label-sm text-label-sm text-text-muted">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">public_off</span> Mocks de API Telegram, Meta y X</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">vpn_lock</span> Salida WAN bloqueada</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 self-end md:self-center shrink-0">
+<span class="font-code-time text-code-time text-primary-container font-bold uppercase">BLOQUEADO</span>
+<button class="w-14 h-8 rounded-full bg-primary-container flex items-center px-1 cursor-not-allowed opacity-90" disabled="" title="Protección de demostración forzada">
+<div class="w-6 h-6 rounded-full bg-surface shadow-sm flex items-center justify-center ml-auto">
+<span class="material-symbols-outlined text-primary-container text-[14px]">lock</span>
+</div>
+</button>
+</div>
+</div>
+</div>
+<!-- Decision Flow Matrix Snapshot -->
+<div class="bg-surface p-space-md rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-text-primary">Matriz de Doble Aprobación por Nivel de Riesgo</span>
+<span class="font-code-time text-code-time text-text-muted">POLÍTICA S20-REV.3</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<div class="p-space-md bg-surface-container-low rounded-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase font-bold text-text-secondary">Nivel Verde (Bajo)</span>
+<span class="px-2 py-0.5 rounded bg-surface text-text-secondary font-code-time text-[10px]">1 FIRMA</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">Artes rutinarios e infografías de servicio: Aprobación simple por R04 Editor General.</p>
+</div>
+<div class="p-space-md bg-surface-container-low rounded-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase font-bold text-status-warning">Nivel Ámbar (Medio)</span>
+<span class="px-2 py-0.5 rounded bg-status-warning/20 text-text-primary font-code-time text-[10px] font-bold">2 FIRMAS</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">Piezas audiovisuales y declaraciones de gestión: Requiere visto bueno de R04 y R02 Coordinación.</p>
+</div>
+<div class="p-space-md bg-surface-container-low rounded-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase font-bold text-status-danger">Nivel Rojo (Estratégico)</span>
+<span class="px-2 py-0.5 rounded bg-status-danger/20 text-status-danger font-code-time text-[10px] font-bold">DOBLE CANDADO R01/R16</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">Discursos oficiales y alertas de seguridad: Firma concurrente de R01 Dirección y R16 Ejecutivo.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Tab Content 3: USERS & ROLES MATRIX (R01-R18) -->
+<div class="tab-pane hidden flex-col p-space-lg gap-space-lg" id="tab-roles">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-text-primary">Matriz de Usuarios y Permisos Institucionales (R01–R18)</h2>
+<p class="font-body-sm text-body-sm text-text-secondary">Control granular de acceso basado en roles con separación estricta de funciones ejecutivas y de redacción.</p>
+</div>
+<div class="flex items-center gap-space-sm">
+<input class="px-3 py-1.5 bg-surface-container-low text-text-primary placeholder:text-text-muted font-body-sm text-body-sm rounded-lg focus:outline-none" placeholder="Buscar funcionario o rol..." type="text"/>
+<button class="px-space-md py-1.5 bg-primary-container text-on-primary font-label-md text-label-md rounded-lg shadow-sm">
+              Crear Nuevo Rol
+            </button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md">
+<!-- Role Card R01 -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between gap-space-md hover:bg-surface-container transition-colors">
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="px-2 py-1 rounded bg-primary-fixed text-on-primary-fixed font-code-time text-code-time font-bold">R01</span>
+<span class="px-2 py-0.5 rounded-full bg-status-success/15 text-status-success font-label-sm text-label-sm">2 Asignados</span>
+</div>
+<h3 class="font-title-md text-title-md text-text-primary">Dirección General</h3>
+<p class="font-body-sm text-body-sm text-text-secondary">Acceso irrestricto a gobernanza, firma de nivel rojo y visión estratégica global del despacho.</p>
+</div>
+<div class="flex items-center justify-between pt-space-xs font-label-sm text-label-sm text-text-muted">
+<span>Nivel: 5 (Superadmin)</span>
+<button class="text-primary-container hover:underline font-bold">Configurar Permisos</button>
+</div>
+</div>
+<!-- Role Card R02 -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between gap-space-md hover:bg-surface-container transition-colors">
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="px-2 py-1 rounded bg-secondary-container text-on-secondary-fixed font-code-time text-code-time font-bold">R02</span>
+<span class="px-2 py-0.5 rounded-full bg-status-success/15 text-status-success font-label-sm text-label-sm">3 Asignados</span>
+</div>
+<h3 class="font-title-md text-title-md text-text-primary">Coordinación Operativa</h3>
+<p class="font-body-sm text-body-sm text-text-secondary">Gestión de órdenes de trabajo (OT), redistribución de carga y primera firma de control operativo.</p>
+</div>
+<div class="flex items-center justify-between pt-space-xs font-label-sm text-label-sm text-text-muted">
+<span>Nivel: 4 (Gestor)</span>
+<button class="text-primary-container hover:underline font-bold">Configurar Permisos</button>
+</div>
+</div>
+<!-- Role Card R04 -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between gap-space-md hover:bg-surface-container transition-colors">
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="px-2 py-1 rounded bg-surface-container-high text-text-primary font-code-time text-code-time font-bold">R04</span>
+<span class="px-2 py-0.5 rounded-full bg-status-success/15 text-status-success font-label-sm text-label-sm">4 Asignados</span>
+</div>
+<h3 class="font-title-md text-title-md text-text-primary">Editor General</h3>
+<p class="font-body-sm text-body-sm text-text-secondary">Aprobación de escaletas, supervisión de sala de revisión S11 y asignación editorial.</p>
+</div>
+<div class="flex items-center justify-between pt-space-xs font-label-sm text-label-sm text-text-muted">
+<span>Nivel: 3 (Editorial)</span>
+<button class="text-primary-container hover:underline font-bold">Configurar Permisos</button>
+</div>
+</div>
+<!-- Role Card R07 -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between gap-space-md hover:bg-surface-container transition-colors">
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="px-2 py-1 rounded bg-surface-container-high text-text-primary font-code-time text-code-time font-bold">R07</span>
+<span class="px-2 py-0.5 rounded-full bg-status-success/15 text-status-success font-label-sm text-label-sm">6 Asignados</span>
+</div>
+<h3 class="font-title-md text-title-md text-text-primary">Diseñador Gráfico</h3>
+<p class="font-body-sm text-body-sm text-text-secondary">Producción de piezas fijas, carruseles, infografías y maquetación para redes sociales.</p>
+</div>
+<div class="flex items-center justify-between pt-space-xs font-label-sm text-label-sm text-text-muted">
+<span>Nivel: 2 (Creador)</span>
+<button class="text-primary-container hover:underline font-bold">Configurar Permisos</button>
+</div>
+</div>
+<!-- Role Card R10 -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between gap-space-md hover:bg-surface-container transition-colors">
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="px-2 py-1 rounded bg-surface-container-high text-text-primary font-code-time text-code-time font-bold">R10</span>
+<span class="px-2 py-0.5 rounded-full bg-status-success/15 text-status-success font-label-sm text-label-sm">5 Asignados</span>
+</div>
+<h3 class="font-title-md text-title-md text-text-primary">Editor Audiovisual</h3>
+<p class="font-body-sm text-body-sm text-text-secondary">Edición de Reels, cápsulas informativas, subtitulado y mezcla sonora en S07.</p>
+</div>
+<div class="flex items-center justify-between pt-space-xs font-label-sm text-label-sm text-text-muted">
+<span>Nivel: 2 (Creador)</span>
+<button class="text-primary-container hover:underline font-bold">Configurar Permisos</button>
+</div>
+</div>
+<!-- Role Card R15 -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between gap-space-md hover:bg-surface-container transition-colors">
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="px-2 py-1 rounded bg-inverse-surface text-inverse-on-surface font-code-time text-code-time font-bold">R15</span>
+<span class="px-2 py-0.5 rounded-full bg-status-success/15 text-status-success font-label-sm text-label-sm">1 Asignado</span>
+</div>
+<h3 class="font-title-md text-title-md text-text-primary">Admin Técnico Central</h3>
+<p class="font-body-sm text-body-sm text-text-secondary">Custodia criptográfica, mantenimiento de servidor NAS, logs y rotación de tokens API.</p>
+</div>
+<div class="flex items-center justify-between pt-space-xs font-label-sm text-label-sm text-text-muted">
+<span>Nivel: 5 (Root Técnico)</span>
+<button class="text-primary-container hover:underline font-bold">Configurar Permisos</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Tab Content 4: SECURITY & 2FA -->
+<div class="tab-pane hidden flex-col p-space-lg gap-space-lg" id="tab-security">
+<div class="flex flex-col gap-1">
+<h2 class="font-headline-sm text-headline-sm text-text-primary">Seguridad Criptográfica y Autenticación de Dos Factores (2FA)</h2>
+<p class="font-body-sm text-body-sm text-text-secondary">Configuración de directivas de contraseñas, caducidad de tokens JWT y llaves de seguridad física FIDO2.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-space-lg">
+<!-- Directivas de Acceso -->
+<div class="bg-surface-container-low p-space-lg rounded-xl flex flex-col gap-space-md">
+<span class="font-title-md text-title-md text-text-primary">Parámetros de Autenticación de Sesión</span>
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between py-2 border-b-0">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Exigir Llave FIDO2 / Passkey para R01 y R15</span>
+<span class="font-body-sm text-body-sm text-text-secondary">Autenticación por hardware sin contraseñas SMS</span>
+</div>
+<button class="w-12 h-6 rounded-full bg-status-success flex items-center px-1">
+<div class="w-4 h-4 rounded-full bg-surface ml-auto shadow"></div>
+</button>
+</div>
+<div class="flex items-center justify-between py-2 border-b-0">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Tiempo de expiración de sesión inactiva</span>
+<span class="font-body-sm text-body-sm text-text-secondary">Cierre automático de terminal por abandono</span>
+</div>
+<select class="px-2 py-1 bg-surface rounded text-text-primary font-code-time text-code-time">
+<option>15 minutos</option>
+<option selected="">30 minutos</option>
+<option>60 minutos</option>
+</select>
+</div>
+<div class="flex items-center justify-between py-2 border-b-0">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Lista Blanca de Direcciones IP (VPN Gubernamental)</span>
+<span class="font-body-sm text-body-sm text-text-secondary">Restringe acceso exclusivamente a subredes autorizadas</span>
+</div>
+<button class="w-12 h-6 rounded-full bg-status-success flex items-center px-1">
+<div class="w-4 h-4 rounded-full bg-surface ml-auto shadow"></div>
+</button>
+</div>
+</div>
+</div>
+<!-- Hash Ledger Specs -->
+<div class="bg-surface-container-low p-space-lg rounded-xl flex flex-col gap-space-md justify-between">
+<div>
+<span class="font-title-md text-title-md text-text-primary">Especificación del Ledger Inmutable</span>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+                Cada transacción del sistema se cifra y encadena con el bloque precedente mediante algoritmo SHA-256 estándar FIPS PUB 180-4.
+              </p>
+</div>
+<div class="bg-surface p-space-md rounded-lg font-code-time text-[12px] text-text-primary space-y-1 overflow-x-auto">
+<div>ALGORITMO: SHA-256 (HMAC Salt 512-bit)</div>
+<div>LONGITUD BLOQUE: 1,024 transacciones</div>
+<div>SELLADO DE TIEMPO: NTP Estrato 1 (UTC-4 VET)</div>
+<div>REPLICA: Espejo asíncrono en NAS Offsite</div>
+</div>
+<button class="w-full py-2 bg-surface hover:bg-surface-container text-text-primary font-label-md text-label-md rounded-lg shadow-sm text-center transition-colors">
+              Ejecutar Test de Verificación de Bloques Criptográficos
+            </button>
+</div>
+</div>
+</div>
+<!-- Tab Content 5: INTEGRATIONS & NAS SERVERS -->
+<div class="tab-pane hidden flex-col p-space-lg gap-space-lg" id="tab-integrations">
+<div class="flex flex-col gap-1">
+<h2 class="font-headline-sm text-headline-sm text-text-primary">Integraciones de Canales y Almacenamiento NAS</h2>
+<p class="font-body-sm text-body-sm text-text-secondary">Conexiones de red, sincronización con sistemas de almacenamiento masivo y pasarelas de difusión.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
+<!-- NAS Central -->
+<div class="bg-surface-container-low p-space-lg rounded-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary-container text-[24px]">dns</span>
+<div>
+<h3 class="font-title-md text-title-md text-text-primary">Servidor NAS Central (QAP-1688X)</h3>
+<span class="font-code-time text-code-time text-text-muted">IP: 10.0.4.12 · 10GbE SFP+</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-status-success/15 text-status-success font-label-sm text-label-sm font-semibold">CONECTADO</span>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between font-label-sm text-label-sm text-text-secondary">
+<span>Capacidad Bruta Ocupada</span>
+<span class="font-code-time text-text-primary">34.2 TB / 64.0 TB (53%)</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 53%;"></div>
+</div>
+</div>
+<div class="flex items-center justify-between text-text-muted font-body-sm text-body-sm pt-2">
+<span>Sincronización de medios RAW: Automática</span>
+<button class="text-primary-container font-label-sm text-label-sm font-bold hover:underline">Gestionar Volúmenes</button>
+</div>
+</div>
+<!-- Social API Sandbox Gateways -->
+<div class="bg-surface-container-low p-space-lg rounded-xl flex flex-col gap-space-md justify-between">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-text-primary text-[24px]">share</span>
+<div>
+<h3 class="font-title-md text-title-md text-text-primary">Pasarelas de Redes Sociales</h3>
+<span class="font-label-sm text-label-sm text-status-warning font-semibold">Modo Sandbox Activo</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-status-warning/20 text-text-primary font-code-time text-[10px] font-bold">MOCK MODE</span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between p-2 bg-surface rounded">
+<span class="font-label-md text-label-md text-text-primary">Telegram Bot API (Canal Oficial)</span>
+<span class="font-code-time text-code-time text-status-success">Simulado (Ok)</span>
+</div>
+<div class="flex items-center justify-between p-2 bg-surface rounded">
+<span class="font-label-md text-label-md text-text-primary">Meta Graph API (Instagram / FB)</span>
+<span class="font-code-time text-code-time text-status-success">Simulado (Ok)</span>
+</div>
+<div class="flex items-center justify-between p-2 bg-surface rounded">
+<span class="font-label-md text-label-md text-text-primary">X (Twitter) Developer V2</span>
+<span class="font-code-time text-code-time text-status-success">Simulado (Ok)</span>
+</div>
+</div>
+<button class="w-full py-2 bg-surface hover:bg-surface-container text-text-primary font-label-md text-label-md rounded-lg shadow-sm text-center transition-colors">
+              Probar Enrutamiento de Sandbox
+            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal: Invite User (Hidden by default) -->
+<div class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-space-md hidden" id="modalInvite">
+<div class="bg-surface rounded-xl shadow-xl max-w-lg w-full p-space-lg flex flex-col gap-space-md relative">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary-container text-[22px]">person_add</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Invitar Usuario con Rol Restringido</h3>
+</div>
+<button class="text-text-muted hover:text-text-primary" id="btnCloseModal">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">
+          El nuevo integrante recibirá un enlace cifrado de un solo uso para enrolar su dispositivo y configurar su llave de seguridad física o aplicación TOTP.
+        </p>
+<form class="flex flex-col gap-space-md" id="formInviteUser" onsubmit="event.preventDefault();">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-text-secondary uppercase">Correo Institucional Oficial</label>
+<input class="px-space-sm py-2 bg-surface-container-low rounded-lg text-text-primary font-body-sm text-body-sm focus:outline-none focus:ring-1 focus:ring-primary-container" placeholder="nombre.apellido@tachira.gob.ve" required="" type="email"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-text-secondary uppercase">Perfil Asignado (Matriz R01-R18)</label>
+<select class="px-space-sm py-2 bg-surface-container-low rounded-lg text-text-primary font-label-md text-label-md focus:outline-none cursor-pointer">
+<option value="R04">R04 · Editor General</option>
+<option selected="" value="R07">R07 · Diseñador Gráfico</option>
+<option value="R10">R10 · Editor Audiovisual</option>
+<option value="R11">R11 · Publicador / Community Manager</option>
+<option value="R12">R12 · Analista de Métricas</option>
+<option value="R14">R14 · Asistente de Producción</option>
+</select>
+</div>
+<div class="flex items-start gap-2 p-space-sm bg-primary-fixed/30 rounded-lg">
+<span class="material-symbols-outlined text-primary-container text-[18px]">verified</span>
+<span class="font-body-sm text-body-sm text-text-primary">Esta asignación generará un registro con hash inmutable en el ledger de auditoría S22.</span>
+</div>
+<div class="flex justify-end gap-space-sm pt-space-xs">
+<button class="px-space-md py-2 bg-surface-container hover:bg-surface-container-high text-text-primary font-label-md text-label-md rounded-lg" id="btnCancelModal" type="button">
+              Cancelar
+            </button>
+<button class="px-space-md py-2 bg-primary-container text-on-primary font-label-md text-label-md rounded-lg shadow-sm hover:opacity-95" id="btnSubmitModal" type="submit">
+              Generar Invitación Criptográfica
+            </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Notification Toast (Hidden by default) -->
+<div class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-space-sm px-space-md py-3 bg-surface text-text-primary rounded-xl shadow-xl border-0" id="toastNotification">
+<span class="material-symbols-outlined text-status-success text-[20px]" id="toastIcon">check_circle</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold" id="toastTitle">Acción Completada</span>
+<span class="font-body-sm text-body-sm text-text-secondary" id="toastMessage">Registro inmutable asentado exitosamente.</span>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    // Tabs Navigation Logic
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-tab');
+
+        // Update Buttons
+        tabButtons.forEach(b => {
+          b.classList.remove('bg-surface', 'text-primary-container', 'font-bold', 'shadow-sm');
+          b.classList.add('text-text-secondary', 'hover:text-text-primary');
+        });
+        btn.classList.add('bg-surface', 'text-primary-container', 'font-bold', 'shadow-sm');
+        btn.classList.remove('text-text-secondary', 'hover:text-text-primary');
+
+        // Update Panels
+        tabPanes.forEach(pane => {
+          if (pane.id === targetId) {
+            pane.classList.remove('hidden');
+            pane.classList.add('flex');
+          } else {
+            pane.classList.add('hidden');
+            pane.classList.remove('flex');
+          }
+        });
+      });
+    });
+
+    // Toast Trigger Utility
+    function triggerToast(title, message, isSuccess = true) {
+      const toast = document.getElementById('toastNotification');
+      const toastTitle = document.getElementById('toastTitle');
+      const toastMsg = document.getElementById('toastMessage');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastTitle.textContent = title;
+      toastMsg.textContent = message;
+      toastIcon.textContent = isSuccess ? 'check_circle' : 'info';
+      toastIcon.className = `material-symbols-outlined text-[20px] ${isSuccess ? 'text-status-success' : 'text-primary-container'}`;
+
+      toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3500);
+    }
+
+    // Modal Interaction
+    const modalInvite = document.getElementById('modalInvite');
+    const btnInvite = document.getElementById('btnInviteUser');
+    const btnCloseModal = document.getElementById('btnCloseModal');
+    const btnCancelModal = document.getElementById('btnCancelModal');
+    const formInvite = document.getElementById('formInviteUser');
+
+    function openModal() {
+      modalInvite.classList.remove('hidden');
+    }
+    function closeModal() {
+      modalInvite.classList.add('hidden');
+    }
+
+    if (btnInvite) btnInvite.addEventListener('click', openModal);
+    if (btnCloseModal) btnCloseModal.addEventListener('click', closeModal);
+    if (btnCancelModal) btnCancelModal.addEventListener('click', closeModal);
+
+    if (formInvite) {
+      formInvite.addEventListener('submit', (e) => {
+        e.preventDefault();
+        closeModal();
+        triggerToast('Invitación Enviada', 'El token temporal con validación de rol ha sido emitido.');
+      });
+    }
+
+    // Export Cryptographic Ledger
+    const btnExportLedger = document.getElementById('btnExportLedger');
+    if (btnExportLedger) {
+      btnExportLedger.addEventListener('click', () => {
+        triggerToast('Exportación Iniciada', 'Descargando paquete TAR.GZ con sellos SHA-256 inmutables.');
+      });
+    }
+
+    // Audit Active Sessions
+    const btnAuditSessions = document.getElementById('btnAuditSessions');
+    if (btnAuditSessions) {
+      btnAuditSessions.addEventListener('click', () => {
+        triggerToast('Auditoría en Tiempo Real', '38 terminales verificadas sin anomalías de telemetría.', false);
+      });
+    }
+  })();
+</script></main></div></body></html>

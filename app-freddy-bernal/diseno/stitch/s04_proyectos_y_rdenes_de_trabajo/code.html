@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>FB · OPERACIONES 360</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&amp;family=Courier+Prime:wght@700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary-fixed-dim": "#ffb59a", "secondary-fixed": "#d2e5f0", "primary-container": "#fe5a03", "on-primary-fixed": "#380d00", "status-success": "#10B981", "on-primary-fixed-variant": "#812900", "on-tertiary": "#ffffff", "tertiary-container": "#90973f", "on-secondary-fixed": "#0b1e26", "accent-orange-support": "#FD943C", "surface-container-lowest": "#ffffff", "on-tertiary-fixed": "#1b1d00", "on-surface-variant": "#5b4137", "text-muted": "#8E8D88", "on-error-container": "#93000a", "text-secondary": "#666660", "on-secondary-fixed-variant": "#374952", "text-primary": "#111111", "surface-bright": "#f9f9f7", "status-info": "#3B82F6", "secondary": "#4f616a", "on-error": "#ffffff", "accent-yellow": "#FFD380", "tertiary-fixed-dim": "#c5cd6e", "surface-container-high": "#e8e8e6", "surface-tint": "#a83800", "on-tertiary-container": "#292d00", "inverse-on-surface": "#f1f1ef", "border-subtle": "#E9E8E4", "primary-fixed": "#ffdbcf", "on-surface": "#1a1c1b", "background": "#f9f9f7", "secondary-fixed-dim": "#b6c9d4", "on-primary": "#ffffff", "primary": "#a83800", "inverse-primary": "#ffb59a", "outline-variant": "#e4beb2", "error-container": "#ffdad6", "surface-variant": "#e2e3e1", "secondary-container": "#cfe3ed", "inverse-surface": "#2f3130", "outline": "#907065", "on-background": "#1a1c1b", "error": "#ba1a1a", "accent-olive-deep": "#465324", "status-danger": "#EF4444", "on-primary-container": "#511700", "surface": "#FFFFFF", "surface-container": "#eeeeec", "on-secondary": "#ffffff", "surface-container-low": "#f4f4f2", "tertiary": "#5d630d", "on-secondary-container": "#53656e", "tertiary-fixed": "#e1e987", "on-tertiary-fixed-variant": "#454b00", "surface-container-highest": "#e2e3e1", "surface-dim": "#dadad8", "status-warning": "#F59E0B" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter": "1.5rem", "space-xs": "0.25rem", "space-2xl": "3rem", "margin": "2rem", "space-md": "1rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "space-xl": "2rem", "gutter-mobile": "1rem", "margin-mobile": "1rem" }, "fontFamily": { "headline-lg": ["Montserrat"], "headline-md": ["Montserrat"], "display-lg-mobile": ["Montserrat"], "headline-sm": ["Montserrat"], "label-sm": ["Montserrat"], "body-sm": ["Montserrat"], "body-lg": ["Montserrat"], "title-lg": ["Montserrat"], "body-md": ["Montserrat"], "title-md": ["Montserrat"], "label-md": ["Montserrat"], "code-time": ["Courier Prime"], "display-lg": ["Montserrat"], "label-lg": ["Montserrat"], "headline-lg-mobile": ["Montserrat"] }, "fontSize": { "headline-lg": ["2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.015em", "fontWeight": "700" }], "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }], "display-lg-mobile": ["2rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.01em", "fontWeight": "700" }], "headline-sm": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "0em", "fontWeight": "600" }], "label-sm": ["0.6875rem", { "lineHeight": "0.875rem", "letterSpacing": "0.04em", "fontWeight": "500" }], "body-sm": ["0.8125rem", { "lineHeight": "1.25rem", "letterSpacing": "0.01em", "fontWeight": "400" }], "body-lg": ["1.125rem", { "lineHeight": "1.75rem", "letterSpacing": "0em", "fontWeight": "400" }], "title-lg": ["1.125rem", { "lineHeight": "1.625rem", "letterSpacing": "0em", "fontWeight": "600" }], "body-md": ["0.9375rem", { "lineHeight": "1.5rem", "letterSpacing": "0em", "fontWeight": "400" }], "title-md": ["1rem", { "lineHeight": "1.5rem", "letterSpacing": "0em", "fontWeight": "600" }], "label-md": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.03em", "fontWeight": "600" }], "code-time": ["0.8125rem", { "lineHeight": "1rem", "letterSpacing": "0.05em", "fontWeight": "700" }], "display-lg": ["3rem", { "lineHeight": "3.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }], "label-lg": ["0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-lg-mobile": ["1.75rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.01em", "fontWeight": "700" }] } } } };</script></head><body class="bg-background font-body-md text-text-primary min-h-screen"><header class="fixed top-0 left-0 right-0 h-16 bg-surface/95 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><div class="w-2.5 h-6 bg-primary-container rounded-DEFAULT"></div><span class="font-headline-sm text-headline-sm text-text-primary tracking-tight">FB <span class="text-primary-container font-headline-sm text-headline-sm">·</span> OPERACIONES 360</span><span class="px-space-xs py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm uppercase tracking-wider rounded-DEFAULT">DEMO PILOTO</span></div><div class="hidden xl:flex items-center gap-space-xs px-space-sm py-1 bg-surface-container-low rounded-lg text-text-secondary"><span class="material-symbols-outlined text-[16px] text-primary-container">folder_special</span><span class="font-label-sm text-label-sm font-semibold text-text-secondary uppercase">PROYECTO:</span><span class="font-label-sm text-label-sm text-text-primary font-bold">P-001 Operación editorial piloto · DEMO</span></div></div><div class="flex items-center gap-space-md"><div class="hidden md:flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded-lg"><span class="font-label-sm text-label-sm text-text-secondary uppercase whitespace-nowrap">Vista de rol:</span><select class="bg-transparent font-label-md text-label-md text-text-primary font-semibold focus:outline-none cursor-pointer pr-space-xs"><option value="r01">R01 Dirección General</option><option selected="" value="r02">R02 Coordinación</option><option value="r04">R04 Editor General</option><option value="r07">R07 Diseñador</option><option value="r10">R10 Editor Audiovisual</option><option value="r11">R11 Publicador</option><option value="r16">R16 Aprobador Ejecutivo</option></select></div><div class="relative hidden lg:flex items-center"><span class="material-symbols-outlined absolute left-2.5 text-text-muted text-[18px]">search</span><input class="pl-8 pr-12 py-1.5 bg-surface-container-low rounded-lg font-body-sm text-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary-container w-64 xl:w-72" placeholder="Buscar módulo, orden o ficha (Ctrl+K)" type="text"/><kbd class="absolute right-2 font-code-time text-code-time text-text-muted bg-surface-container px-1 py-0.5 rounded-DEFAULT text-[10px]">⌘K</kbd></div><div class="relative group"><button class="flex items-center gap-space-xs px-space-md py-1.5 bg-primary-container text-on-primary font-label-md text-label-md rounded-lg shadow-sm hover:opacity-95 transition-opacity"><span class="material-symbols-outlined text-[18px]">add</span><span>Crear</span><span class="material-symbols-outlined text-[16px]">expand_more</span></button><div class="absolute right-0 mt-1 w-44 bg-surface rounded-lg shadow-[0_4px_16px_-2px_rgba(17,17,17,0.08)] py-1 hidden group-hover:block z-50"><a class="flex items-center gap-space-xs px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:bg-surface-container-low hover:text-text-primary" data-path="bandeja-de-solicitudes" href="#"><span class="material-symbols-outlined text-[16px]">inbox</span>Solicitud</a><a class="flex items-center gap-space-xs px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:bg-surface-container-low hover:text-text-primary" data-path="proyectos-y-ordenes" href="#"><span class="material-symbols-outlined text-[16px]">assignment</span>Orden de Trabajo</a><a class="flex items-center gap-space-xs px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:bg-surface-container-low hover:text-text-primary" data-path="contenidos-y-diseno" href="#"><span class="material-symbols-outlined text-[16px]">draw</span>Contenido</a><a class="flex items-center gap-space-xs px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:bg-surface-container-low hover:text-text-primary" data-path="producciones" href="#"><span class="material-symbols-outlined text-[16px]">video_camera_back</span>Producción</a></div></div><button aria-label="Alertas" class="relative p-1.5 text-text-secondary hover:text-text-primary transition-colors"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 bg-status-danger rounded-full ring-2 ring-surface"></span></button><div class="flex items-center gap-space-xs pl-space-xs"><div class="text-right hidden sm:block"><div class="font-label-sm text-label-sm font-bold text-text-primary leading-none">Freddy Bernal</div><div class="font-label-sm text-label-sm text-primary-container font-semibold leading-tight">Coordinación · DEMO</div></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 bg-surface z-40 overflow-y-auto shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="py-space-md px-space-sm"><nav class="flex flex-col gap-space-md" data-active-classes="bg-primary-container text-on-primary font-bold"><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">INICIO</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="centro-de-control" href="#"><span class="material-symbols-outlined text-[18px]">dashboard</span><span>Centro de control</span><span class="ml-auto font-code-time text-code-time text-text-muted">S01</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="mi-trabajo" href="#"><span class="material-symbols-outlined text-[18px]">checklist</span><span>Mi trabajo</span><span class="ml-auto font-code-time text-code-time text-text-muted">S02</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">ORGANIZACIÓN</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="bandeja-de-solicitudes" href="#"><span class="material-symbols-outlined text-[18px]">inbox</span><span>Bandeja de Solicitudes</span><span class="ml-auto font-code-time text-code-time text-text-muted">S03</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="proyectos-y-ordenes" href="#"><span class="material-symbols-outlined text-[18px]">assignment</span><span>Proyectos y Órdenes</span><span class="ml-auto font-code-time text-code-time text-text-muted">S04</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="planificacion-y-calendario" href="#"><span class="material-symbols-outlined text-[18px]">calendar_month</span><span>Planificación y Calendario</span><span class="ml-auto font-code-time text-code-time text-text-muted">S06</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="reuniones-y-decisiones" href="#"><span class="material-symbols-outlined text-[18px]">groups</span><span>Reuniones y Decisiones</span><span class="ml-auto font-code-time text-code-time text-text-muted">S20</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">CREACIÓN</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="producciones" href="#"><span class="material-symbols-outlined text-[18px]">video_camera_back</span><span>Producciones</span><span class="ml-auto font-code-time text-code-time text-text-muted">S07</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="contenidos-y-diseno" href="#"><span class="material-symbols-outlined text-[18px]">draw</span><span>Contenidos y Diseño</span><span class="ml-auto font-code-time text-code-time text-text-muted">S09</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="sala-de-revision" href="#"><span class="material-symbols-outlined text-[18px]">rate_review</span><span>Sala de Revisión</span><span class="ml-auto font-code-time text-code-time text-text-muted">S11</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="aprobaciones" href="#"><span class="material-symbols-outlined text-[18px]">verified</span><span>Aprobaciones</span><span class="ml-auto font-code-time text-code-time text-text-muted">S12</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">DISTRIBUCIÓN Y SEGUIMIENTO</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="publicaciones" href="#"><span class="material-symbols-outlined text-[18px]">send</span><span>Publicaciones</span><span class="ml-auto font-code-time text-code-time text-text-muted">S13</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="mejoras-e-implementacion" href="#"><span class="material-symbols-outlined text-[18px]">upgrade</span><span>Mejoras e Implementación</span><span class="ml-auto font-code-time text-code-time text-text-muted">S15</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="canales-e-incidencias" href="#"><span class="material-symbols-outlined text-[18px]">rss_feed</span><span>Canales e Incidencias</span><span class="ml-auto font-code-time text-code-time text-text-muted">S16</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="resultados-y-reportes" href="#"><span class="material-symbols-outlined text-[18px]">analytics</span><span>Resultados y Reportes</span><span class="ml-auto font-code-time text-code-time text-text-muted">S17</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="comunidad" href="#"><span class="material-symbols-outlined text-[18px]">forum</span><span>Comunidad</span><span class="ml-auto font-code-time text-code-time text-text-muted">S21</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">RECURSOS</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="biblioteca" href="#"><span class="material-symbols-outlined text-[18px]">photo_library</span><span>Biblioteca</span><span class="ml-auto font-code-time text-code-time text-text-muted">S14</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="recursos-del-proyecto" href="#"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span>Recursos del Proyecto</span><span class="ml-auto font-code-time text-code-time text-text-muted">S19</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="equipo-y-recursos" href="#"><span class="material-symbols-outlined text-[18px]">badge</span><span>Equipo y Recursos</span><span class="ml-auto font-code-time text-code-time text-text-muted">S18</span></a></div><div class="flex flex-col gap-0.5"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">ADMINISTRACIÓN</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-text-secondary hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-all" data-path="configuracion-y-seguridad" href="#"><span class="material-symbols-outlined text-[18px]">settings</span><span>Configuración y Seguridad</span><span class="ml-auto font-code-time text-code-time text-text-muted">S22</span></a></div></nav></div></aside><div class="pl-64"><main class="w-full pt-16 min-h-screen bg-background px-space-lg py-space-lg"><div class="flex flex-col w-full">
+<!-- Cabecera Operativa y Breadcrumbs -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md mb-space-lg">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-space-xs text-text-muted">
+<span class="font-label-md text-label-md uppercase tracking-wider text-text-secondary">ORGANIZACIÓN</span>
+<span class="font-code-time text-code-time text-text-muted">/</span>
+<span class="px-space-xs py-0.5 bg-surface-container font-code-time text-code-time text-text-primary rounded-DEFAULT">MÓDULO S04</span>
+<span class="inline-flex items-center gap-1.5 ml-2 px-space-xs py-0.5 rounded-full bg-status-success/10 text-status-success font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success animate-pulse"></span>
+          ENLACE ACTIVO P-001
+        </span>
+</div>
+<div class="flex items-baseline gap-space-sm mt-0.5">
+<h1 class="font-headline-lg text-headline-lg text-text-primary tracking-tight">Proyectos y Órdenes de Trabajo</h1>
+<span class="font-code-time text-code-time text-primary-container font-bold">REV-2025.4B</span>
+</div>
+</div>
+<!-- Acciones Globales de Cabecera -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<button class="inline-flex items-center gap-1 px-space-sm py-2 bg-surface text-text-secondary hover:text-text-primary rounded-lg shadow-sm font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[18px]">filter_alt</span>
+<span>Responsable</span>
+</button>
+<button class="inline-flex items-center gap-1 px-space-sm py-2 bg-surface text-text-secondary hover:text-text-primary rounded-lg shadow-sm font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+<span>Exportar CSV</span>
+</button>
+<button class="inline-flex items-center gap-1 px-space-sm py-2 bg-surface text-text-primary hover:bg-surface-container-low rounded-lg shadow-sm font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[18px]">add_box</span>
+<span>Crear Proyecto</span>
+</button>
+<button class="inline-flex items-center gap-1 px-space-md py-2 bg-primary-container text-on-primary rounded-lg shadow-md hover:bg-primary transition-colors font-label-md text-label-md font-bold">
+<span class="material-symbols-outlined text-[18px]">assignment_add</span>
+<span>Crear Orden (OT)</span>
+</button>
+</div>
+</div>
+<!-- Métricas Rápidas Telemetría Superior (4 Tarjetas Bento) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md mb-space-xl">
+<!-- Métrica 1 -->
+<div class="bg-surface p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary">Proyectos Activos</span>
+<span class="p-1.5 bg-surface-container-low rounded-lg text-primary-container">
+<span class="material-symbols-outlined text-[20px]">folder_managed</span>
+</span>
+</div>
+<div class="flex items-baseline gap-2 mt-space-sm">
+<span class="font-display-lg text-display-lg text-text-primary leading-none">01</span>
+<span class="font-code-time text-code-time text-status-success font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span> 100% cap.
+        </span>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between text-text-muted">
+<span class="font-body-sm text-body-sm truncate">P-001 Editorial Piloto · DEMO</span>
+<span class="font-code-time text-code-time text-text-primary font-bold">ACTIVO</span>
+</div>
+</div>
+<!-- Métrica 2 -->
+<div class="bg-surface p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary">Órdenes de Trabajo</span>
+<span class="p-1.5 bg-surface-container-low rounded-lg text-secondary">
+<span class="material-symbols-outlined text-[20px]">dataset</span>
+</span>
+</div>
+<div class="flex items-baseline gap-2 mt-space-sm">
+<span class="font-display-lg text-display-lg text-text-primary leading-none">04</span>
+<span class="font-code-time text-code-time text-text-secondary">OT-001 a OT-004</span>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center gap-space-xs text-text-muted">
+<span class="w-2 h-2 rounded-full bg-status-warning"></span>
+<span class="font-body-sm text-body-sm">3 en ejecución · 1 completada</span>
+</div>
+</div>
+<!-- Métrica 3 -->
+<div class="bg-surface p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary">Entregables en Curso</span>
+<span class="p-1.5 bg-surface-container-low rounded-lg text-status-info">
+<span class="material-symbols-outlined text-[20px]">layers</span>
+</span>
+</div>
+<div class="flex items-baseline justify-between mt-space-sm">
+<span class="font-display-lg text-display-lg text-text-primary leading-none">12</span>
+<div class="text-right">
+<span class="font-title-md text-title-md text-primary-container">50%</span>
+<span class="font-label-sm text-label-sm block text-text-muted">Aprobados</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-low h-2 rounded-full mt-space-sm overflow-hidden flex">
+<div class="bg-primary-container h-full w-1/2 rounded-full"></div>
+<div class="bg-accent-yellow h-full w-1/4"></div>
+</div>
+</div>
+<!-- Métrica 4 (Crítica) -->
+<div class="bg-surface p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-status-danger font-bold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-status-danger animate-ping"></span>
+          Bloqueos Operativos
+        </span>
+<span class="p-1.5 bg-status-danger/10 text-status-danger rounded-lg">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+</span>
+</div>
+<div class="flex items-baseline gap-2 mt-space-sm">
+<span class="font-display-lg text-display-lg text-status-danger leading-none">01</span>
+<span class="font-label-md text-label-md text-status-danger font-bold uppercase bg-status-danger/10 px-2 py-0.5 rounded-DEFAULT">Crítico</span>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-text-secondary truncate">E-004 Máster Audio Micro</span>
+<span class="font-code-time text-code-time text-status-danger font-bold">OT-001</span>
+</div>
+</div>
+</div>
+<!-- Contenedor Maestro: Grid Principal Asimétrico (9 cols Tablero / 3 cols Resumen) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- Columna Principal: Vistas y Tabla de Órdenes de Trabajo (9/12) -->
+<div class="lg:col-span-8 xl:col-span-9 flex flex-col gap-space-md">
+<!-- Barra de Segmentación de Vistas y Buscador de Órdenes -->
+<div class="bg-surface p-space-sm rounded-xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-space-sm">
+<div class="flex items-center p-1 bg-surface-container-low rounded-lg w-full sm:w-auto">
+<button class="flex items-center gap-1.5 px-space-md py-1.5 bg-surface text-text-primary rounded-md shadow-sm font-label-md text-label-md font-bold transition-all" id="btnViewList">
+<span class="material-symbols-outlined text-[16px] text-primary-container">format_list_bulleted</span>
+<span>Lista de Órdenes</span>
+<span class="ml-1 px-1.5 py-0.2 bg-surface-container font-code-time text-[10px] rounded-full">4</span>
+</button>
+<button class="flex items-center gap-1.5 px-space-md py-1.5 text-text-secondary hover:text-text-primary rounded-md font-label-md text-label-md transition-all" id="btnViewKanban">
+<span class="material-symbols-outlined text-[16px]">view_kanban</span>
+<span>Tablero Kanban</span>
+</button>
+<button class="flex items-center gap-1.5 px-space-md py-1.5 text-text-secondary hover:text-text-primary rounded-md font-label-md text-label-md transition-all" id="btnViewTimeline">
+<span class="material-symbols-outlined text-[16px]">timeline</span>
+<span>Cronograma Hitos</span>
+</button>
+</div>
+<!-- Filtro Rápido Local -->
+<div class="flex items-center gap-space-xs w-full sm:w-auto justify-end">
+<div class="relative w-full sm:w-64">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-text-muted text-[18px]">search</span>
+<input class="w-full pl-8 pr-3 py-1.5 bg-surface-container-low rounded-lg font-body-sm text-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary-container" placeholder="Filtrar por código o título..." type="text"/>
+</div>
+<button class="p-1.5 bg-surface-container-low text-text-secondary hover:text-text-primary rounded-lg" title="Más filtros">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</button>
+</div>
+</div>
+<!-- Tabla Operativa de Órdenes de Trabajo (S04) -->
+<div class="bg-surface rounded-xl shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-text-secondary font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-3 px-space-md font-semibold">CÓDIGO OT / TÍTULO</th>
+<th class="py-3 px-space-sm font-semibold">RESPONSABLE &amp; EQUIPO</th>
+<th class="py-3 px-space-sm font-semibold">ENTREGABLES / AVANCE</th>
+<th class="py-3 px-space-sm font-semibold">ESTADO OPERACIONAL</th>
+<th class="py-3 px-space-sm font-semibold">CALENDARIO</th>
+<th class="py-3 px-space-md text-right font-semibold">ACCIONES</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low font-body-md text-body-md">
+<!-- OT-001 -->
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="py-space-md px-space-md">
+<div class="flex items-start gap-space-xs">
+<div class="w-1.5 h-10 bg-primary-container rounded-full mt-0.5"></div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-code-time text-code-time text-primary-container font-bold">OT-001</span>
+<span class="px-1.5 py-0.2 bg-primary-fixed text-on-primary-fixed font-label-sm text-[10px] rounded-DEFAULT">P-001 EDITORIAL</span>
+</div>
+<a class="font-title-md text-title-md text-text-primary hover:text-primary-container transition-colors block mt-0.5 font-semibold" href="#">
+                        Entrevista informativa piloto · DEMO
+                      </a>
+<span class="font-body-sm text-body-sm text-text-muted flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">videocam</span> Cobertura central con vocero
+                      </span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-label-sm text-label-sm font-bold">
+                      CO
+                    </div>
+<div>
+<div class="font-label-md text-label-md text-text-primary font-semibold">Coordinación · DEMO</div>
+<div class="font-label-sm text-label-sm text-text-muted">Freddy Bernal (R02)</div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="flex flex-col gap-1 w-36">
+<div class="flex justify-between font-code-time text-code-time text-text-secondary text-[11px]">
+<span>6 entregables</span>
+<span class="font-bold text-text-primary">3/6 (50%)</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden flex">
+<div class="bg-status-success h-full w-1/2"></div>
+<div class="bg-status-danger h-full w-1/6" title="Bloqueado E-004"></div>
+</div>
+<span class="font-label-sm text-[10px] text-text-muted">Aprobados: E-001, E-002, E-003</span>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="inline-flex flex-col items-start gap-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-status-warning/15 text-status-warning font-label-sm text-label-sm font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-status-warning"></span>
+                      EN CURSO
+                    </span>
+<span class="inline-flex items-center gap-1 text-status-danger font-label-sm text-[11px] font-semibold bg-status-danger/10 px-1.5 py-0.5 rounded-DEFAULT">
+<span class="material-symbols-outlined text-[12px]">block</span> Bloqueo E-004 audio
+                    </span>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="font-code-time text-code-time text-text-primary font-bold">HOY 18:30</div>
+<div class="font-label-sm text-label-sm text-text-muted">Corte técnico</div>
+</td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<a class="inline-flex items-center gap-1 px-space-sm py-1.5 bg-primary-container text-on-primary font-label-sm text-label-sm rounded-lg hover:bg-primary transition-colors shadow-sm font-bold" data-path="sala-de-revision" href="#" title="Abrir Ficha de Orden">
+<span>Abrir Ficha S05</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+<button class="p-1 text-text-muted hover:text-text-primary rounded-md hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- OT-002 -->
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="py-space-md px-space-md">
+<div class="flex items-start gap-space-xs">
+<div class="w-1.5 h-10 bg-status-success rounded-full mt-0.5"></div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-code-time text-code-time text-text-secondary font-bold">OT-002</span>
+<span class="px-1.5 py-0.2 bg-surface-container text-text-secondary font-label-sm text-[10px] rounded-DEFAULT">REDES / RRSS</span>
+</div>
+<a class="font-title-md text-title-md text-text-primary hover:text-primary-container transition-colors block mt-0.5 font-semibold" href="#">
+                        Carrusel informativo de demostración
+                      </a>
+<span class="font-body-sm text-body-sm text-text-muted flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">photo_library</span> 5 láminas infográficas Instagram/X
+                      </span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed font-label-sm text-label-sm font-bold">
+                      MK
+                    </div>
+<div>
+<div class="font-label-md text-label-md text-text-primary font-semibold">Marketing · DEMO</div>
+<div class="font-label-sm text-label-sm text-text-muted">C. Valero (R07)</div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="flex flex-col gap-1 w-36">
+<div class="flex justify-between font-code-time text-code-time text-status-success text-[11px]">
+<span>1 entregable</span>
+<span class="font-bold">1/1 (100%)</span>
+</div>
+<div class="w-full bg-status-success h-1.5 rounded-full overflow-hidden"></div>
+<span class="font-label-sm text-[10px] text-text-muted">Validado por Aprobador R16</span>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="inline-flex flex-col items-start gap-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-status-success/15 text-status-success font-label-sm text-label-sm font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+                      PUBLICADO MANUAL
+                    </span>
+<span class="font-code-time text-[10px] text-text-muted flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">tag</span> ID-DEMO-9912
+                    </span>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="font-code-time text-code-time text-text-muted">AYER 21:10</div>
+<div class="font-label-sm text-label-sm text-status-success font-medium">Ejecutado OK</div>
+</td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<a class="inline-flex items-center gap-1 px-space-sm py-1.5 bg-surface-container-low text-text-primary font-label-sm text-label-sm rounded-lg hover:bg-surface-container transition-colors shadow-sm" data-path="sala-de-revision" href="#" title="Ver registro histórico">
+<span>Ver Ficha</span>
+</a>
+<button class="p-1 text-text-muted hover:text-text-primary rounded-md hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- OT-003 -->
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="py-space-md px-space-md">
+<div class="flex items-start gap-space-xs">
+<div class="w-1.5 h-10 bg-accent-yellow rounded-full mt-0.5"></div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-code-time text-code-time text-text-secondary font-bold">OT-003</span>
+<span class="px-1.5 py-0.2 bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-[10px] rounded-DEFAULT">MEJ-001</span>
+</div>
+<a class="font-title-md text-title-md text-text-primary hover:text-primary-container transition-colors block mt-0.5 font-semibold" href="#">
+                        Actualización de plantilla de portada · DEMO
+                      </a>
+<span class="font-body-sm text-body-sm text-text-muted flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">brush</span> Estandarización de retícula editorial v2
+                      </span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-accent-yellow/50 flex items-center justify-center text-text-primary font-label-sm text-label-sm font-bold">
+                      AR
+                    </div>
+<div>
+<div class="font-label-md text-label-md text-text-primary font-semibold">Arte &amp; Gráfica · DEMO</div>
+<div class="font-label-sm text-label-sm text-text-muted">A. Méndez (R07)</div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="flex flex-col gap-1 w-36">
+<div class="flex justify-between font-code-time text-code-time text-text-secondary text-[11px]">
+<span>1 entregable</span>
+<span class="font-bold text-status-warning">0/1 (0%)</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-accent-yellow h-full w-1/3"></div>
+</div>
+<span class="font-label-sm text-[10px] text-text-muted">Prototipo Figma cargado</span>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="inline-flex flex-col items-start gap-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary-container/50 text-secondary font-label-sm text-label-sm font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                      VALIDACIÓN CRUZADA
+                    </span>
+<span class="font-label-sm text-[10px] text-text-muted">Esperando R04 Editor General</span>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="font-code-time text-code-time text-text-primary font-bold">MAÑANA 12:00</div>
+<div class="font-label-sm text-label-sm text-text-secondary">Ventana de pruebas</div>
+</td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<a class="inline-flex items-center gap-1 px-space-sm py-1.5 bg-surface-container-low text-text-primary font-label-sm text-label-sm rounded-lg hover:bg-surface-container transition-colors shadow-sm" data-path="sala-de-revision" href="#">
+<span>Validar</span>
+</a>
+<button class="p-1 text-text-muted hover:text-text-primary rounded-md hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- OT-004 -->
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="py-space-md px-space-md">
+<div class="flex items-start gap-space-xs">
+<div class="w-1.5 h-10 bg-status-danger rounded-full mt-0.5"></div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-code-time text-code-time text-text-secondary font-bold">OT-004</span>
+<span class="px-1.5 py-0.2 bg-primary-fixed text-on-primary-fixed font-label-sm text-[10px] rounded-DEFAULT">P-001 AUDIOVISUAL</span>
+</div>
+<a class="font-title-md text-title-md text-text-primary hover:text-primary-container transition-colors block mt-0.5 font-semibold" href="#">
+                        Reporte Bernal — episodio piloto de demostración
+                      </a>
+<span class="font-body-sm text-body-sm text-text-muted flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">sensors</span> Rodaje en set principal · Teleprómpter
+                      </span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center text-text-primary font-label-sm text-label-sm font-bold">
+                      PR
+                    </div>
+<div>
+<div class="font-label-md text-label-md text-text-primary font-semibold">Producción · DEMO</div>
+<div class="font-label-sm text-label-sm text-text-muted">Unidad Móvil 01</div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="flex flex-col gap-1 w-36">
+<div class="flex justify-between font-code-time text-code-time text-text-secondary text-[11px]">
+<span>4 entregables</span>
+<span class="font-bold text-status-warning">0/4 (0%)</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-1/12"></div>
+</div>
+<span class="font-label-sm text-[10px] text-text-muted">Preproducción cerrada</span>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="inline-flex flex-col items-start gap-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-status-danger/15 text-status-danger font-label-sm text-label-sm font-bold animate-pulse">
+<span class="w-1.5 h-1.5 rounded-full bg-status-danger"></span>
+                      EN RIESGO OPERATIVO
+                    </span>
+<span class="font-label-sm text-[10px] text-status-danger font-semibold">Falta confirmación de crew</span>
+</div>
+</td>
+<td class="py-space-md px-space-sm">
+<div class="font-code-time text-code-time text-status-danger font-bold">HOY 10:00 AM</div>
+<div class="font-label-sm text-label-sm text-status-danger">¡En curso inminente!</div>
+</td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1.5">
+<a class="inline-flex items-center gap-1 px-space-sm py-1.5 bg-status-danger text-on-error font-label-sm text-label-sm rounded-lg hover:opacity-90 transition-opacity shadow-sm font-bold" data-path="sala-de-revision" href="#">
+<span class="material-symbols-outlined text-[14px]">emergency</span>
+<span>Asignar Crew</span>
+</a>
+<button class="p-1 text-text-muted hover:text-text-primary rounded-md hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Barra inferior de paginación y telemetría de registros -->
+<div class="bg-surface-bright px-space-md py-space-sm flex flex-col sm:flex-row items-center justify-between gap-space-sm">
+<div class="flex items-center gap-2 text-text-muted font-body-sm text-body-sm">
+<span>Mostrando <strong class="text-text-primary">4 de 4</strong> órdenes activas del proyecto</span>
+<span class="font-code-time text-[11px] text-text-secondary bg-surface px-2 py-0.5 rounded-md shadow-xs">SYNC_TIME: 10:42:15</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2 py-1 rounded bg-surface text-text-muted cursor-not-allowed text-body-sm font-label-sm" disabled="">Anterior</button>
+<button class="px-2.5 py-1 rounded bg-primary-container text-on-primary font-bold text-body-sm font-label-sm">1</button>
+<button class="px-2 py-1 rounded bg-surface text-text-muted cursor-not-allowed text-body-sm font-label-sm" disabled="">Siguiente</button>
+</div>
+</div>
+</div>
+<!-- Mosaico Rápido: Desglose de Entregables Críticos de OT-001 -->
+<div class="bg-surface p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary-container text-[20px]">flag_circle</span>
+<h3 class="font-title-md text-title-md text-text-primary font-bold">Detalle de Entregables OT-001 (En curso crítico)</h3>
+</div>
+<span class="font-code-time text-code-time text-text-muted">6 ENTREGABLES PROGRAMADOS</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-space-sm">
+<!-- Item E-001 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-start justify-between">
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-code-time text-code-time text-status-success font-bold">E-001</span>
+<span class="font-label-sm text-label-sm font-semibold text-text-primary">Guion técnico</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5">Aprobado por R04 Editor</p>
+</div>
+<span class="material-symbols-outlined text-status-success text-[18px]">check_circle</span>
+</div>
+<!-- Item E-002 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-start justify-between">
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-code-time text-code-time text-status-success font-bold">E-002</span>
+<span class="font-label-sm text-label-sm font-semibold text-text-primary">Piezas de audio preliminar</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5">Aprobado por R10 Sonido</p>
+</div>
+<span class="material-symbols-outlined text-status-success text-[18px]">check_circle</span>
+</div>
+<!-- Item E-003 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-start justify-between">
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-code-time text-code-time text-status-success font-bold">E-003</span>
+<span class="font-label-sm text-label-sm font-semibold text-text-primary">Video corte offline v1</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5">Aprobado por R02 Coord.</p>
+</div>
+<span class="material-symbols-outlined text-status-success text-[18px]">check_circle</span>
+</div>
+<!-- Item E-004 (BLOQUEADO) -->
+<div class="p-space-sm rounded-lg bg-status-danger/10 flex items-start justify-between">
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-code-time text-code-time text-status-danger font-bold">E-004</span>
+<span class="font-label-sm text-label-sm font-bold text-status-danger">Audio máster depurado</span>
+</div>
+<p class="font-body-sm text-body-sm text-status-danger/90 mt-0.5">Bloqueo: Ruido parásito canal 2</p>
+</div>
+<span class="material-symbols-outlined text-status-danger text-[18px] animate-pulse">error</span>
+</div>
+<!-- Item E-005 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-start justify-between opacity-75">
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-code-time text-code-time text-text-secondary font-bold">E-005</span>
+<span class="font-label-sm text-label-sm font-semibold text-text-primary">Gráficos de titulación</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted mt-0.5">En cola de render</p>
+</div>
+<span class="material-symbols-outlined text-text-muted text-[18px]">hourglass_empty</span>
+</div>
+<!-- Item E-006 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-start justify-between opacity-75">
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-code-time text-code-time text-text-secondary font-bold">E-006</span>
+<span class="font-label-sm text-label-sm font-semibold text-text-primary">Copia final máster Web</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted mt-0.5">Requiere E-004 y E-005</p>
+</div>
+<span class="material-symbols-outlined text-text-muted text-[18px]">lock</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Panel Lateral Resumen del Proyecto P-001 (3/12) -->
+<div class="lg:col-span-4 xl:col-span-3 flex flex-col gap-space-md">
+<!-- Ficha Master Proyecto P-001 -->
+<div class="bg-surface p-space-md rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-code-time text-code-time text-primary-container font-bold">PROYECTO RAÍZ</span>
+<h2 class="font-headline-sm text-headline-sm text-text-primary mt-0.5">P-001 Operación editorial piloto</h2>
+</div>
+<span class="px-2 py-0.5 bg-status-success/15 text-status-success font-label-sm text-label-sm font-bold rounded-full">
+            ACTIVO
+          </span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+          Operación integral para la cobertura, producción y distribución coordinada del plan de comunicaciones estratégicas de gobernanza.
+        </p>
+<!-- Alcance y Validación -->
+<div class="mt-space-xs p-space-sm bg-surface-container-low rounded-lg flex flex-col gap-1.5">
+<div class="flex items-center justify-between text-text-secondary font-label-sm text-label-sm">
+<span>Alcance Aprobado:</span>
+<span class="font-code-time text-code-time text-text-primary font-bold">v1.1</span>
+</div>
+<div class="flex items-center justify-between text-text-secondary font-label-sm text-label-sm">
+<span>Aprobador:</span>
+<span class="font-label-sm font-bold text-text-primary">Dirección General (R01)</span>
+</div>
+<div class="flex items-center justify-between text-text-secondary font-label-sm text-label-sm">
+<span>Fecha de Validación:</span>
+<span class="font-code-time text-code-time text-text-muted">14 Feb 2025</span>
+</div>
+</div>
+<!-- Hitos Clave de la Semana (Cronograma Compacto) -->
+<div class="mt-space-sm">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-muted font-bold">Hitos de la Semana</span>
+<span class="font-code-time text-code-time text-primary-container font-bold">2 de 3</span>
+</div>
+<div class="flex flex-col gap-2.5">
+<!-- Hito 1 -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-md text-label-md">
+<span class="text-text-primary font-semibold truncate">H1: Montaje set audiovisual</span>
+<span class="font-code-time text-code-time text-status-success">100%</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-status-success h-full w-full"></div>
+</div>
+</div>
+<!-- Hito 2 -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-md text-label-md">
+<span class="text-text-primary font-semibold truncate">H2: Paquete infográfico redes</span>
+<span class="font-code-time text-code-time text-status-success">100%</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-status-success h-full w-full"></div>
+</div>
+</div>
+<!-- Hito 3 -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-md text-label-md">
+<span class="text-text-primary font-semibold truncate">H3: Transmisión primer episodio</span>
+<span class="font-code-time text-code-time text-primary-container">40%</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-2/5"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Gráfico SVG Sparkline Dinámico de Actividad Editorial -->
+<div class="mt-space-sm p-space-sm bg-surface-container-low rounded-lg">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm text-text-secondary font-semibold">Ritmo Operacional (7 días)</span>
+<span class="font-code-time text-code-time text-status-success">+24% vs plan</span>
+</div>
+<div class="w-full h-12 flex items-end gap-1 pt-2">
+<svg class="w-full h-full text-primary-container overflow-visible" fill="none" viewbox="0 0 200 40">
+<path d="M0 35 L30 28 L60 32 L90 15 L120 18 L150 5 L180 12 L200 8" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+<path d="M0 35 L30 28 L60 32 L90 15 L120 18 L150 5 L180 12 L200 8 L200 40 L0 40 Z" fill="currentColor" fill-opacity="0.08"></path>
+<circle cx="150" cy="5" fill="#fe5a03" r="3"></circle>
+</svg>
+</div>
+</div>
+<!-- Separador sutil sin borders -->
+<div class="h-0.5 bg-surface-container-low my-1"></div>
+<!-- Card de Auditoría y Gobernanza -->
+<div class="bg-surface-container-high/40 p-space-sm rounded-lg flex items-start gap-2 text-text-secondary">
+<span class="material-symbols-outlined text-secondary text-[20px] shrink-0 mt-0.5">verified_user</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-primary font-bold">Control de Auditoría y Trazabilidad</span>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5 leading-snug">
+              Archivar una orden conserva historial y evidencias íntegras; jamás elimina entregables ni actas de validación.
+            </p>
+</div>
+</div>
+<!-- Botones de Gestión de Proyecto -->
+<div class="flex flex-col gap-1.5 mt-space-xs">
+<button class="w-full py-2 bg-surface text-text-primary font-label-md text-label-md rounded-lg shadow-sm hover:bg-surface-container transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span>Editar Parámetros de Proyecto</span>
+</button>
+<button class="w-full py-2 bg-transparent text-text-muted hover:text-text-primary font-label-md text-label-md rounded-lg transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">archive</span>
+<span>Ver Archivo Histórico P-000</span>
+</button>
+</div>
+</div>
+<!-- Widget Complementario: Enlace Rápido con Sala de Revisión -->
+<div class="bg-surface p-space-md rounded-xl shadow-sm">
+<div class="flex items-center gap-2 mb-2 text-text-primary">
+<span class="material-symbols-outlined text-primary-container text-[20px]">rate_review</span>
+<span class="font-title-md text-title-md font-bold">Atajo Sala S11</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mb-space-sm">
+          Hay 2 entregables con marcas de tiempo pendientes de arbitraje de calidad.
+        </p>
+<a class="w-full py-2 bg-surface-container-low hover:bg-surface-container text-text-primary font-label-md text-label-md rounded-lg transition-colors flex items-center justify-center gap-1 font-semibold" data-path="sala-de-revision" href="#">
+<span>Abrir Sala de Revisión</span>
+<span class="material-symbols-outlined text-[16px]">launch</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Microinteracciones de cambio de pestañas de visualización (S04)
+  document.addEventListener('DOMContentLoaded', () => {
+    const btnList = document.getElementById('btnViewList');
+    const btnKanban = document.getElementById('btnViewKanban');
+    const btnTimeline = document.getElementById('btnViewTimeline');
+
+    const tabs = [btnList, btnKanban, btnTimeline];
+
+    tabs.forEach(tab => {
+      if (!tab) return;
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        tabs.forEach(t => {
+          t.classList.remove('bg-surface', 'text-text-primary', 'shadow-sm', 'font-bold');
+          t.classList.add('text-text-secondary');
+        });
+        tab.classList.add('bg-surface', 'text-text-primary', 'shadow-sm', 'font-bold');
+        tab.classList.remove('text-text-secondary');
+      });
+    });
+  });
+</script></main></div></body></html>
