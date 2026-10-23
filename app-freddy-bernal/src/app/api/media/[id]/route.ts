@@ -1,0 +1,41 @@
+import fs from 'node:fs';
+import { Readable } from 'node:stream';
+import { NextResponse, type NextRequest } from 'next/server';
+import { getSession } from '@/lib/auth/session';
+import { withUser } from '@/lib/db';
+import { isDemo } from '@/lib/env';
+import { demoFilePath } from '@/lib/storage/demo-store';
+
+// Downloads a private file. RLS decides whether the person may read the row; the file
+// is then served through a short-lived signed URL (5 minutes). File names never carry
+// a date: <event code>-<label>.<ext>.
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const s = await getSession();
+  if (!s || !s.mfaOk) return new NextResponse('Entra de nuevo.', { status: 401 });
+  const row = await withUser(s.claims, (sql) =>
+    sql.one<{ bucket: string; storage_path: string; label: string; mime: string; code: string | null }>(
+      `select m.bucket, m.storage_path, m.label, m.mime, e.code from public.media_assets m left join public.events e on e.id = m.event_id
+        where m.id = $1 and m.deleted_at is null and m.status = 'ready'`,
+      [id],
+    ),
+  );
+  if (!row) return new NextResponse('No encontrado', { status: 404 });
+  const ext = row.storage_path.split('.').pop();
+  const name = `${row.code ?? 'pieza'}-${row.label}`.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9-]+/g, '-') + `.${ext}`;
+  const inline = req.nextUrl.searchParams.get('ver') === '1';
+
+  if (isDemo()) {
+    const file = demoFilePath(row.storage_path);
+    if (!fs.existsSync(file)) return new NextResponse('Archivo de demostración: no hay un archivo real detrás.', { status: 404 });
+    const stream = Readable.toWeb(fs.createReadStream(file)) as ReadableStream;
+    return new NextResponse(stream, {
+      headers: { 'Content-Type': row.mime || 'application/octet-stream', 'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename="${name}"`, 'Cache-Control': 'private, no-store' },
+    });
+  }
+  const { supabaseServer } = await import('@/lib/supabase/server');
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.storage.from(row.bucket).createSignedUrl(row.storage_path, 300, inline ? undefined : { download: name });
+  if (error || !data) return new NextResponse('No se pudo preparar la descarga.', { status: 500 });
+  return NextResponse.redirect(data.signedUrl, { headers: { 'Cache-Control': 'private, no-store' } });
+}

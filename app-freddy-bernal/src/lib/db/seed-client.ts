@@ -20,7 +20,7 @@ export async function seedClient(sql: Sql, brandKey?: string) {
   };
   for (const [key, value] of Object.entries(settings)) {
     await sql.query(
-      `insert into public.app_settings (key, value) values ($1, $2::jsonb) on conflict (key) do nothing`,
+      `insert into public.app_settings (key, value) values ($1, $2::text::jsonb) on conflict (key) do nothing`,
       [key, JSON.stringify(value)],
     );
   }
@@ -38,7 +38,7 @@ export async function seedClient(sql: Sql, brandKey?: string) {
   for (const [i, f] of cfg.copyFormulas.entries()) {
     await sql.query(
       `insert into public.copy_formulas (code, name, description, steps, sort)
-       values ($1, $2, $3, $4::jsonb, $5) on conflict (code) do nothing`,
+       values ($1, $2, $3, $4::text::jsonb, $5) on conflict (code) do nothing`,
       [f.code, f.name, f.description, JSON.stringify(f.steps), i],
     );
   }
@@ -46,7 +46,7 @@ export async function seedClient(sql: Sql, brandKey?: string) {
   for (const s of networkSpecsSeed) {
     await sql.query(
       `insert into public.network_specs (network, label, formats, copy_max_chars, length_group, notes, source_url)
-       values ($1, $2, $3::jsonb, $4, $5, $6, $7) on conflict (network) do nothing`,
+       values ($1, $2, $3::text::jsonb, $4, $5, $6, $7) on conflict (network) do nothing`,
       [s.network, s.label, JSON.stringify(s.formats), s.copy_max_chars, s.length_group, s.notes, s.source_url],
     );
   }

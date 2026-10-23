@@ -1,0 +1,8 @@
+title = "fb-operaciones-360"
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Demo-only values with no real access"
+regexes = ['''demo-only-not-a-secret-change-me''']
+paths = ['''app-freddy-bernal/diseno/.*''', '''app-freddy-bernal/package-lock\.json''']

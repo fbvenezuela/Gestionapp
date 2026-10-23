@@ -21,6 +21,11 @@ export function fmtDateTime(v: string | Date | null | undefined) {
   return dt(v)?.toFormat("ccc d 'de' LLL, h:mm a") ?? '';
 }
 
+// Timestamps arrive as Date (pg drivers) or ISO strings; compare them as numbers.
+export function ms(v: string | Date | null | undefined): number {
+  return v ? new Date(v).getTime() : 0;
+}
+
 export function today() {
   return DateTime.now().setZone(TZ).setLocale('es').startOf('day');
 }

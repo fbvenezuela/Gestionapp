@@ -1,6 +1,6 @@
 # Lo que falta decidir o conseguir (antes o durante la construcción)
 
-Actualizado: 22/10/2026 (noche). Mientras no esté, la sesión de Claude Code avanza con lo que está entre paréntesis («por ahora») y lo deja marcado.
+Actualizado: 23/10/2026. La plataforma interna ya está construida en modo demostración; lo de abajo es lo que falta para pasar a datos reales y lo que hay que decidir. Mientras no esté, la sesión de Claude Code avanza con lo que está entre paréntesis («por ahora») y lo deja marcado.
 
 ## Lo tiene que mandar alguien
 1. **Branding:** manual de identidad visual «F BERNAL», logos (incluido el de «Reporte Bernal 2.0»), colores y tipografías. Hillary preguntó el 22/10 si lo necesitas; le dijiste que sí. (Por ahora: paleta y logo provisionales, fáciles de cambiar en un solo archivo.)
@@ -69,3 +69,15 @@ Actualizado: 22/10/2026 (noche). Mientras no esté, la sesión de Claude Code av
 
 25. **¿Quien graba ve la fecha y la hora?** Tiene que saber cuándo y dónde estar. Recomendado: solo de los eventos que
     tiene asignados. Confirmar con Hillary. (Por ahora: así, anotado en `DECISIONES.md`.)
+
+## Estado al 23/10/2026 (lo que hizo la sesión de Claude Code)
+- #15 y #16: el código está listo para Supabase, Vercel y Resend; **falta que Juan abra las cuentas** (organización del
+  cliente) y pegue las variables (`README.md` §Conectar las cuentas). Mientras, la app corre en modo demostración.
+- #17: correos en modo buzón (no sale nada). Falta el dominio para Resend.
+- #18: video en Supabase Storage por partes (D-12).
+- #19, #22, #25: decididos «por ahora» en `DECISIONES.md` (D-09, D-08, D-05). Confirmar con Hillary.
+- 2.7 (tweets por día y horas): D-16. Confirmar.
+- #6 (clave de IA): sin clave los copies salen con plantilla; con `ANTHROPIC_API_KEY` y `AI_ENABLED=true` los escribe la IA.
+- #21: publicación manual validada; las APIs de cada red, en fase 2.
+- Nuevo — #26: los límites de video de cada red están cargados de la documentación pública, marcados «verificar»
+  (Ajustes → Reglas por red → «Guardar y marcar verificado»).

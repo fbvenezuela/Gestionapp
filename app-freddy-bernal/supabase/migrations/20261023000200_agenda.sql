@@ -93,7 +93,8 @@ select public.wire_standard_triggers('public.event_schedule', false, true);
 select public.wire_standard_triggers('public.event_brief', false, true);
 select public.wire_standard_triggers('public.event_assignments', false, false);
 select public.wire_standard_triggers('public.storyboards', false, true);
-select public.wire_standard_triggers('public.storyboard_blocks', true, true);
+-- Blocks are working notes: the storyboard team may remove them (still audited).
+select public.wire_standard_triggers('public.storyboard_blocks', false, true);
 
 -- ---------------------------------------------------------------------------
 -- Visibility helpers

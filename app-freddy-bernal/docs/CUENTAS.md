@@ -6,7 +6,7 @@ contraseñas del equipo, no en el repositorio ni en un chat.
 
 | Servicio | Para qué | Cuenta / correo | Organización o equipo | Plan | Administradores | Doble factor | Abierta el | Notas |
 |---|---|---|---|---|---|---|---|---|
-| GitHub | Código (repositorio privado) | | | | | | | |
+| GitHub | Código (repositorio privado) | | fbvenezuela (repositorio `Gestionapp`) | | | | | confirmar que sea privado |
 | Supabase | Base de datos, usuarios, archivos, tiempo real | | | | | | | proyecto de prueba y de producción |
 | Vercel | Versiones de prueba y producción | | | | | | | conectado al repositorio |
 | Resend | Correos del equipo | | | | | | | dominio verificado: |
@@ -19,3 +19,6 @@ contraseñas del equipo, no en el repositorio ni en un chat.
 | Dominio / DNS | La web del gobernador | lo tiene Pedro Poller | | | | | | |
 
 Variables de entorno: los nombres van en `.env.example`; los valores, solo en Vercel y en `.env.local` (que no se sube).
+
+## Variables que hay que llenar (sin valores aquí)
+La lista completa, con qué es cada una y de dónde sale, está en `.env.example`. Las de producción van solo en Vercel.

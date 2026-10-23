@@ -17,3 +17,4 @@ tests/fixtures/large/
 .demo-uploads/
 .DS_Store
 *.log
+public/mediainfo/
