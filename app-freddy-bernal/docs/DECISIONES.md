@@ -141,6 +141,17 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 - **Por qué:** Juan dijo «lo que consideres mejor» (24/10). El semáforo viene del Plan del diagnóstico; se mantiene
   «nada se publica sin aprobación» (regla del prompt).
 - **Plazos:** `reviewDeadlinesMin` en `config/clients/fb.json` (ajuste `review.deadlines_min`).
+- **Lo que sale es exactamente lo aprobado** (revisión del 24/10, todo en la base):
+  - Cada pieza tiene un número de **revisión** que sube con cada versión nueva o copy cambiado; quien aprueba firma la
+    revisión que vio y, si la pieza cambió mientras tanto, la base rechaza la aprobación (también al aprobar verdes en
+    grupo: las que cambiaron se saltan).
+  - Un copy no se pasa a otra pieza ni a otro largo; cambiar uno aprobado devuelve la pieza a revisión. Una versión no
+    se vuelve atrás. Subir a rojo una pieza aprobada por supervisión la devuelve a revisión (la aprueba el jefe).
+  - Una publicación se programa o se marca publicada solo con el copy aprobado de esa red y la portada de la versión
+    aprobada; después no cambia de pieza, red, formato, copy, portada ni origen. Si la pieza deja de estar aprobada, lo
+    programado vuelve a borrador con el motivo. El paquete usa la versión aprobada.
+  - Un archivo terminado no se reemplaza (ni en la tabla ni en Storage): un archivo distinto es una versión nueva.
+  - Redes puede subir el nivel, nunca bajarlo, después de la primera revisión.
 
 ## D-24. Voz y cierre se eligen por pieza
 - **Qué:** en el editor de copies, además de la fórmula, se elige la **voz** (el jefe en primera persona, que abre con su

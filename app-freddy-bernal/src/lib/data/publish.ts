@@ -6,14 +6,15 @@ import type { PublishingWindows } from '../domain/publishing-windows';
 type Spec = { network: string; label: string; formats: Record<string, FormatRule>; copy_max_chars: number; length_group: 'long' | 'medium' | 'short' };
 
 export async function loadPublishContext(sql: Sql, pieceId: string) {
-  const piece = await sql.one<{ id: string; title: string; status: string; kind: string; current_version: number }>(
-    `select id, title, status, kind, current_version from public.pieces where id = $1 and deleted_at is null`,
+  const piece = await sql.one<{ id: string; title: string; status: string; kind: string; current_version: number; approved_version: number | null }>(
+    `select id, title, status, kind, current_version, approved_version from public.pieces where id = $1 and deleted_at is null`,
     [pieceId],
   );
   if (!piece) return null;
+  // What goes out is the approved version's file and cover.
   const version = await sql.one<{ media_asset_id: string | null; cover_asset_id: string | null }>(
     `select media_asset_id, cover_asset_id from public.piece_versions where piece_id = $1 and version = $2`,
-    [pieceId, piece.current_version],
+    [pieceId, piece.status === 'approved' && piece.approved_version ? piece.approved_version : piece.current_version],
   );
   const media = version?.media_asset_id
     ? await sql.one<{ mime: string; duration_s: number | null; width: number | null; height: number | null; fps: number | null; video_codec: string | null; audio_codec: string | null; size_bytes: number }>(

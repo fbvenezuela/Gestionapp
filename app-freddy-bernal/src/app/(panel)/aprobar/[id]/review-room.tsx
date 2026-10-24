@@ -25,8 +25,8 @@ export function LevelPicker({ pieceId, level, canLower }: { pieceId: string; lev
   );
 }
 
-export function ReviewRoom({ pieceId, canApprove, canRequestChanges, canAskVoice, note, media }: {
-  pieceId: string; canApprove: boolean; canRequestChanges: boolean; canAskVoice: boolean; note: string; media: { id: string; mime: string } | null;
+export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, canAskVoice, note, media }: {
+  pieceId: string; revision: number; canApprove: boolean; canRequestChanges: boolean; canAskVoice: boolean; note: string; media: { id: string; mime: string } | null;
 }) {
   const router = useRouter();
   const { run, pending } = useAction();
@@ -95,7 +95,7 @@ export function ReviewRoom({ pieceId, canApprove, canRequestChanges, canAskVoice
             ) : null}
             <div className="grid gap-2 sm:grid-cols-3">
               {canApprove ? (
-                <Button type="button" size="lg" disabled={pending || !allChecked} onClick={() => run(() => reviewPiece({ pieceId, decision: 'approved', comment }), { success: 'Aprobada.', refresh: false, onOk: (r) => r.ok && router.push('/aprobar') })}>
+                <Button type="button" size="lg" disabled={pending || !allChecked} onClick={() => run(() => reviewPiece({ pieceId, decision: 'approved', comment, revision }), { success: 'Aprobada.', refresh: false, onOk: (r) => r.ok && router.push('/aprobar') })}>
                   <CheckCircle2 className="h-5 w-5" aria-hidden /> {allChecked ? 'Aprobar' : 'Marca la lista para aprobar'}
                 </Button>
               ) : null}
@@ -107,7 +107,7 @@ export function ReviewRoom({ pieceId, canApprove, canRequestChanges, canAskVoice
                 onClick={async () => {
                   if (!comment.trim()) return alert('Escribe qué hay que cambiar.');
                   const text = atSecond !== null ? `[${fmtSecond(atSecond)}] ${comment}` : comment;
-                  const r = await run(() => reviewPiece({ pieceId, decision: 'changes_requested', comment: text }), { success: 'Se pidieron los cambios.', refresh: false });
+                  const r = await run(() => reviewPiece({ pieceId, decision: 'changes_requested', comment: text, revision }), { success: 'Se pidieron los cambios.', refresh: false });
                   if (r?.ok) router.push('/aprobar');
                 }}
               >

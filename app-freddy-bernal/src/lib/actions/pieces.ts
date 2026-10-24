@@ -65,11 +65,19 @@ export async function addVersion(raw: unknown) {
       await sql.query(`insert into public.piece_versions (piece_id, version, media_asset_id, cover_asset_id, notes) values ($1, $2, $3, $4, $5)`, [
         i.pieceId, v, i.mediaId ?? prev?.media_asset_id ?? null, i.coverId ?? prev?.cover_asset_id ?? null, i.notes,
       ]);
-      await sql.query(`update public.pieces set current_version = $2 where id = $1`, [i.pieceId, v]);
-      return { version: v };
+      const after = await sql.one<{ id: string; title: string; status: string; review_level: Level }>(
+        `update public.pieces set current_version = $2 where id = $1 returning id, title, status, review_level`,
+        [i.pieceId, v],
+      );
+      // A new version of a piece that was approved or had changes requested goes back to review.
+      const back = after && after.status === 'in_review' && (p.status === 'approved' || p.status === 'changes_requested');
+      return { version: v, reopened: back ? { id: after.id, title: after.title, level: after.review_level } : null };
     },
-    { revalidate: ['/piezas', '/aprobar'] },
-  );
+    { revalidate: ['/piezas', '/aprobar', '/hoy'] },
+  ).then(async (r) => {
+    if (r.ok && r.data!.reopened) await notifyReviewers(r.data!.reopened.id, r.data!.reopened.title, r.data!.reopened.level, `Versión nueva (${r.data!.version})`);
+    return r;
+  });
 }
 
 export async function sendToReview(raw: unknown) {
@@ -90,13 +98,15 @@ export async function sendToReview(raw: unknown) {
 // Supervision, the boss or admin change the level (the database decides who may).
 export async function setReviewLevel(raw: unknown) {
   return act(z.object({ pieceId: uuid, level }), raw, async (sql, i) => {
-    const before = await sql.one<{ review_level: Level; status: string; title: string }>(`select review_level, status, title from public.pieces where id = $1`, [i.pieceId]);
+    const before = await sql.one<{ review_level: Level }>(`select review_level from public.pieces where id = $1`, [i.pieceId]);
     if (!before) throw new UserError('Pieza no encontrada.');
     await sql.query(`select public.set_review_level($1, $2)`, [i.pieceId, i.level]);
-    return { ...before, pieceId: i.pieceId, level: i.level };
+    const after = await sql.one<{ status: string; title: string }>(`select status, title from public.pieces where id = $1`, [i.pieceId]);
+    return { pieceId: i.pieceId, title: after?.title ?? '', status: after?.status ?? '', before: before.review_level, level: i.level };
   }, { revalidate: ['/aprobar', '/piezas', '/hoy', '/jefe'] }).then(async (r) => {
-    if (r.ok && r.data!.status === 'in_review' && r.data!.level === 'rojo' && r.data!.review_level !== 'rojo') {
-      await notifyReviewers(r.data!.pieceId, r.data!.title, 'rojo', 'Supervisión la pasó a rojo');
+    // Raised to red (even if supervision had approved it): now it waits for the boss.
+    if (r.ok && r.data!.status === 'in_review' && r.data!.level === 'rojo' && r.data!.before !== 'rojo') {
+      await notifyReviewers(r.data!.pieceId, r.data!.title, 'rojo', 'La pasaron a rojo');
     }
     return r;
   });
@@ -105,13 +115,16 @@ export async function setReviewLevel(raw: unknown) {
 // Green pieces: supervision approves several at once (each one still goes through
 // review_piece, so the database checks every one).
 export async function approveGreen(raw: unknown) {
-  return act(z.object({ pieceIds: z.array(uuid).min(1).max(50) }), raw, async (sql, i) => {
-    const rows = await sql.query<{ id: string }>(
-      `select id from public.pieces where id = any($1::uuid[]) and status = 'in_review' and review_level = 'verde' and deleted_at is null`,
-      [i.pieceIds],
+  return act(z.object({ pieces: z.array(z.object({ id: uuid, revision: z.number().int().min(0) })).min(1).max(50) }), raw, async (sql, i) => {
+    const rows = await sql.query<{ id: string; revision: number }>(
+      `select id, revision from public.pieces where id = any($1::uuid[]) and status = 'in_review' and review_level = 'verde' and deleted_at is null`,
+      [i.pieces.map((p) => p.id)],
     );
-    for (const p of rows) await sql.query(`select public.review_piece($1, 'approved', '')`, [p.id]);
-    return { n: rows.length };
+    // Only what the supervisor saw: a piece that changed since the list loaded is skipped.
+    const seen = new Map(i.pieces.map((p) => [p.id, p.revision]));
+    const ok = rows.filter((p) => seen.get(p.id) === p.revision);
+    for (const p of ok) await sql.query(`select public.review_piece($1, 'approved', '', $2)`, [p.id, p.revision]);
+    return { n: ok.length, skipped: i.pieces.length - ok.length };
   }, { revalidate: ['/aprobar', '/piezas', '/hoy'] }).then(async (r) => {
     if (r.ok && r.data!.n) {
       await notify({ userIds: await usersWithRole('social'), kind: 'piece_approved', title: `Aprobadas ${r.data!.n} piezas verdes`, body: 'Ya se pueden publicar.', link: '/publicar/nueva', key: `green:${Date.now()}` });
@@ -228,8 +241,10 @@ export async function saveCopy(raw: unknown) {
 // Review (supervisor)
 // ---------------------------------------------------------------------------
 export async function reviewPiece(raw: unknown) {
-  return act(z.object({ pieceId: uuid, decision: z.enum(['approved', 'changes_requested']), comment: z.string().max(2000).default('') }), raw, async (sql, i, s) => {
-    await sql.query(`select public.review_piece($1, $2, $3)`, [i.pieceId, i.decision, i.comment]);
+  const schema = z.object({ pieceId: uuid, decision: z.enum(['approved', 'changes_requested']), comment: z.string().max(2000).default(''), revision: z.number().int().min(0) });
+  return act(schema, raw, async (sql, i, s) => {
+    // The revision the person looked at: if the piece changed since, the database refuses.
+    await sql.query(`select public.review_piece($1, $2, $3, $4)`, [i.pieceId, i.decision, i.comment, i.revision]);
     const p = await sql.one<{ title: string; created_by: string | null }>(`select title, created_by from public.pieces where id = $1`, [i.pieceId]);
     return p ? { ...p, who: s.roles.includes('boss') && !s.roles.includes('supervisor') ? 'El jefe' : 'Supervisión' } : null;
   }, { revalidate: ['/aprobar', '/piezas', '/hoy', '/jefe'] }).then(async (r) => {

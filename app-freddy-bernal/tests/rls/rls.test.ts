@@ -233,6 +233,95 @@ describe('semáforo de aprobación', () => {
   });
 });
 
+describe('lo que sale es exactamente lo aprobado', () => {
+  // A fresh amarillo piece with a file and its three copies, approved by supervision.
+  const approvedPiece = async () => {
+    const id = (await t.as('social', (sql) => sql.one<{ id: string }>(`insert into public.pieces (kind, title) values ('video', 'Pieza aprobada de prueba') returning id`)))!.id;
+    await t.as('social', (sql) => sql.query(`insert into public.piece_versions (piece_id, version) values ($1, 1)`, [id]));
+    await t.as('social', (sql) => sql.query(`update public.pieces set current_version = 1 where id = $1`, [id]));
+    for (const g of ['long', 'medium', 'short']) await t.as('social', (sql) => sql.query(`insert into public.copies (piece_id, length_group, body) values ($1, $2, $3)`, [id, g, `Copy ${g} aprobado.`]));
+    await t.as('social', (sql) => sql.query(`update public.pieces set status = 'in_review' where id = $1`, [id]));
+    await t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'approved')`, [id]));
+    return id;
+  };
+  const status = async (id: string) => (await t.system((sql) => sql.one<{ status: string }>(`select status from public.pieces where id = $1`, [id])))!.status;
+
+  it('un copy no se pasa a otra pieza ni a otro largo', async () => {
+    const a = await approvedPiece();
+    // Targets without a copy of that length, so only the guard can stop it (no unique clash).
+    const empty = (await t.as('social', (sql) => sql.one<{ id: string }>(`insert into public.pieces (kind, title) values ('video', 'Pieza sin copies') returning id`)))!.id;
+    const good = await t.system((sql) => sql.one<{ id: string }>(`select id from public.copies where piece_id = $1 and length_group = 'long'`, [a]));
+    await fails(t.as('social', (sql) => sql.query(`update public.copies set piece_id = $1 where id = $2`, [empty, good!.id])));
+    const lone = await t.as('social', (sql) => sql.one<{ id: string }>(`insert into public.copies (piece_id, length_group, body) values ($1, 'long', 'Solo largo.') returning id`, [empty]));
+    await fails(t.as('social', (sql) => sql.query(`update public.copies set length_group = 'short' where id = $1`, [lone!.id])));
+    expect(await status(a)).toBe('approved');
+  });
+
+  it('subir a rojo una pieza aprobada por supervisión la devuelve a revisión', async () => {
+    const a = await approvedPiece();
+    await t.as('supervisor', (sql) => sql.query(`select public.set_review_level($1, 'rojo')`, [a]));
+    expect(await status(a)).toBe('in_review');
+  });
+
+  it('una versión no se vuelve atrás', async () => {
+    const a = await approvedPiece();
+    await t.as('social', (sql) => sql.query(`insert into public.piece_versions (piece_id, version) values ($1, 2)`, [a]));
+    await t.as('social', (sql) => sql.query(`update public.pieces set current_version = 2 where id = $1`, [a]));
+    await fails(t.as('social', (sql) => sql.query(`update public.pieces set current_version = 1 where id = $1`, [a])));
+  });
+
+  it('la aprobación nombra lo que se vio: si cambió, la base la rechaza', async () => {
+    const a = await approvedPiece();
+    await t.as('social', (sql) => sql.query(`update public.copies set body = 'Copy cambiado.' where piece_id = $1 and length_group = 'short'`, [a]));
+    const r1 = (await t.system((sql) => sql.one<{ revision: number }>(`select revision from public.pieces where id = $1`, [a])))!.revision;
+    await t.as('social', (sql) => sql.query(`update public.copies set body = 'Otra vez cambiado.' where piece_id = $1 and length_group = 'short'`, [a]));
+    await fails(t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'approved', '', $2)`, [a, r1])));
+    await t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'approved', '', $2)`, [a, r1 + 1]));
+    expect(await status(a)).toBe('approved');
+    // Nobody sets the revision by hand.
+    const r = await t.as('social', (sql) => sql.one<{ revision: number }>(`update public.pieces set revision = 0 where id = $1 returning revision`, [a]));
+    expect(r!.revision).toBe(r1 + 1);
+  });
+
+  it('al dejar de estar aprobada, lo programado vuelve a borrador; lo publicado se puede corregir y borrar', async () => {
+    const a = await approvedPiece();
+    const body = 'Copy long aprobado.';
+    const sch = await t.as('social', (sql) => sql.one<{ id: string }>(`insert into public.publications (piece_id, network, copy_body, status, scheduled_at) values ($1, 'instagram', $2, 'scheduled', now() + interval '1 day') returning id`, [a, body]));
+    const pub = await t.as('social', (sql) => sql.one<{ id: string }>(`insert into public.publications (piece_id, network, copy_body, status, url) values ($1, 'facebook', $2, 'published', 'https://example.com/p/1') returning id`, [a, body]));
+    await t.as('social', (sql) => sql.query(`update public.copies set body = 'Copy nuevo.' where piece_id = $1 and length_group = 'long'`, [a]));
+    const s1 = await t.system((sql) => sql.one<{ status: string }>(`select status from public.publications where id = $1`, [sch!.id]));
+    expect(s1!.status).toBe('draft');
+    await t.as('social', (sql) => sql.query(`update public.publications set url = 'https://example.com/p/2' where id = $1`, [pub!.id]));
+    await t.as('admin', (sql) => sql.query(`update public.publications set deleted_at = now() where id = $1`, [pub!.id]));
+  });
+
+  it('se programa solo con el copy aprobado de esa red, y no se cambia después', async () => {
+    const a = await approvedPiece();
+    await fails(t.as('social', (sql) => sql.query(`insert into public.publications (piece_id, network, copy_body, status, scheduled_at) values ($1, 'x', 'Texto que nadie aprobó', 'scheduled', now())`, [a])));
+    const ok = await t.as('social', (sql) => sql.one<{ id: string }>(`insert into public.publications (piece_id, network, copy_body, status, scheduled_at) values ($1, 'x', 'Copy short aprobado.', 'scheduled', now()) returning id`, [a]));
+    await fails(t.as('social', (sql) => sql.query(`update public.publications set copy_body = 'Texto cambiado' where id = $1`, [ok!.id])));
+    await fails(t.as('social', (sql) => sql.query(`update public.publications set origin = 'boss_spontaneous', piece_id = null, title = 'Truco', status = 'published', url = 'https://example.com/t' where id = $1`, [ok!.id])));
+  });
+
+  it('redes no baja el nivel de una pieza que ya pasó por revisión', async () => {
+    const id = (await t.as('social', (sql) => sql.one<{ id: string }>(`insert into public.pieces (kind, title) values ('video', 'Pieza que bajaría') returning id`)))!.id;
+    await t.as('social', (sql) => sql.query(`insert into public.piece_versions (piece_id, version) values ($1, 1)`, [id]));
+    await t.as('social', (sql) => sql.query(`update public.pieces set current_version = 1, review_level = 'verde' where id = $1`, [id]));
+    await t.as('social', (sql) => sql.query(`update public.pieces set status = 'in_review' where id = $1`, [id]));
+    await t.as('supervisor', (sql) => sql.query(`select public.set_review_level($1, 'amarillo')`, [id]));
+    await t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'changes_requested', 'Ajusta el cierre')`, [id]));
+    await fails(t.as('social', (sql) => sql.query(`update public.pieces set review_level = 'verde', status = 'in_review' where id = $1`, [id])));
+    await t.as('social', (sql) => sql.query(`update public.pieces set status = 'in_review' where id = $1`, [id]));
+  });
+
+  it('un archivo terminado no se reemplaza', async () => {
+    const m = await t.system((sql) => sql.one<{ id: string }>(`select id from public.media_assets where kind = 'final' and status = 'ready' limit 1`));
+    await fails(t.as('social', (sql) => sql.query(`update public.media_assets set storage_path = 'otro/archivo.mp4' where id = $1`, [m!.id])));
+    await fails(t.as('social', (sql) => sql.query(`update public.media_assets set status = 'uploading' where id = $1`, [m!.id])));
+    await t.as('social', (sql) => sql.query(`update public.media_assets set label = 'Etiqueta nueva' where id = $1`, [m!.id]));
+  });
+});
+
 describe('publicaciones espontáneas del jefe', () => {
   it('se registran después, publicadas, con link y sin pieza', async () => {
     const r = await t.as('social', (sql) =>
@@ -251,6 +340,9 @@ describe('publicaciones espontáneas del jefe', () => {
   });
   it('una publicación del equipo sigue necesitando pieza aprobada', async () => {
     await fails(t.as('social', (sql) => sql.query(`insert into public.publications (network, status, url) values ('x', 'published', 'https://example.com/c')`)));
+  });
+  it('no se registra con fecha futura', async () => {
+    await fails(t.as('social', (sql) => sql.query(`insert into public.publications (origin, title, network, status, url, published_at) values ('boss_spontaneous', 'Del futuro', 'x', 'published', 'https://example.com/f', now() + interval '2 days')`)));
   });
   it('quien graba no registra publicaciones', async () => {
     await fails(t.as('camera', (sql) => sql.query(`insert into public.publications (origin, title, network, status, url) values ('boss_spontaneous', 'Intento', 'x', 'published', 'https://example.com/d')`)));

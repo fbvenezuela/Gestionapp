@@ -41,6 +41,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
         <div className="flex flex-col gap-4">
           <ReviewRoom
             pieceId={p.id}
+            revision={p.revision}
             canApprove={inReview && (red ? isBoss : isSup)}
             canRequestChanges={inReview && (isSup || isBoss)}
             canAskVoice={isSup || s.roles.includes('admin')}

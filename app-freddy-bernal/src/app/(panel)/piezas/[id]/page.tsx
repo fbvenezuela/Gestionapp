@@ -36,7 +36,7 @@ export default async function PiecePage({ params }: { params: Promise<{ id: stri
         title={p.title}
         subtitle={[PIECE_KIND[p.kind], p.event_title, p.category_name].filter(Boolean).join(' · ')}
         actions={
-          p.status === 'approved' ? <LinkButton href={`/publicar/nueva?pieza=${p.id}`}>Publicar</LinkButton> : p.status === 'draft' || p.status === 'changes_requested' ? <SendToReview pieceId={p.id} level={p.review_level} /> : undefined
+          p.status === 'approved' ? <LinkButton href={`/publicar/nueva?pieza=${p.id}`}>Publicar</LinkButton> : p.status === 'draft' || p.status === 'changes_requested' ? <SendToReview pieceId={p.id} level={p.review_level} locked={!!p.sent_to_review_at} /> : undefined
         }
       />
       <div className="mb-4 flex flex-wrap items-center gap-2">

@@ -19,14 +19,14 @@ export default async function PublicationPage({ params }: { params: Promise<{ id
     const p = await sql.one<{
       id: string; piece_id: string | null; origin: string; network: string; format: string; copy_body: string; cover_asset_id: string | null; collaborators: string[];
       scheduled_at: string | null; published_at: string | null; url: string | null; evidence_asset_id: string | null; republish_of: string | null;
-      status: string; failure_reason: string | null; validation: { level: string; text: string }[] | null; title: string; current_version: number;
+      status: string; failure_reason: string | null; validation: { level: string; text: string }[] | null; title: string; current_version: number | null; approved_version: number | null;
     }>(
-      `select x.*, coalesce(p.title, x.title) as title, p.current_version from public.publications x left join public.pieces p on p.id = x.piece_id where x.id = $1 and x.deleted_at is null`,
+      `select x.*, coalesce(p.title, x.title) as title, p.current_version, p.approved_version from public.publications x left join public.pieces p on p.id = x.piece_id where x.id = $1 and x.deleted_at is null`,
       [id],
     );
     if (!p) return null;
     const media = p.piece_id
-      ? await sql.one<{ media_asset_id: string | null }>(`select media_asset_id from public.piece_versions where piece_id = $1 and version = $2`, [p.piece_id, p.current_version])
+      ? await sql.one<{ media_asset_id: string | null }>(`select media_asset_id from public.piece_versions where piece_id = $1 and version = $2`, [p.piece_id, p.approved_version ?? p.current_version])
       : null;
     const metrics = await sql.query<{ captured_at: string; views: number | null; reach: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null; source: string }>(
       `select captured_at, views, reach, likes, comments, shares, saves, source from public.publication_metrics where publication_id = $1 order by captured_at desc`,

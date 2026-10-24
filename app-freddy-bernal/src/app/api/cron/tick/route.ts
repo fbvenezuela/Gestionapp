@@ -28,7 +28,8 @@ export async function GET(req: NextRequest) {
   const due = await withSystem((sql) =>
     sql.query<{ id: string; network: string; format: string; copy_body: string; collaborators: string[]; mode: string; title: string }>(
       `select x.id, x.network, x.format, x.copy_body, x.collaborators, x.mode, p.title from public.publications x join public.pieces p on p.id = x.piece_id
-        where x.status = 'scheduled' and x.scheduled_at <= now() and x.deleted_at is null limit 50`,
+        where x.status = 'scheduled' and x.scheduled_at <= now() and x.deleted_at is null
+          and p.status = 'approved' and p.deleted_at is null limit 50`,
     ),
   );
   const social = await usersWithRole('social');

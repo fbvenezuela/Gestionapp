@@ -11,18 +11,20 @@ import { Uploader } from '@/components/media/uploader';
 
 const LEVEL_OPTIONS: { value: Level; text: string }[] = [
   { value: 'verde', text: '🟢 Verde: rutina' },
-  { value: 'amarillo', text: '🟡 Amarillo: normal, 60 min' },
-  { value: 'rojo', text: '🔴 Rojo: sensible, la aprueba el jefe' },
+  { value: 'amarillo', text: '🟡 Amarillo: normal' },
+  { value: 'rojo', text: '🔴 Rojo: la aprueba el jefe' },
 ];
 
-export function SendToReview({ pieceId, level: saved }: { pieceId: string; level: Level }) {
+export function SendToReview({ pieceId, level: saved, locked }: { pieceId: string; level: Level; locked: boolean }) {
   const { run, pending } = useAction();
   const [level, setLevel] = useState<Level>(saved);
-  // A red piece stays red unless the boss or admin lower it (the database enforces it).
-  const options = saved === 'rojo' ? LEVEL_OPTIONS.filter((o) => o.value === 'rojo') : LEVEL_OPTIONS;
+  // Once it went through review, it can go up but not down (only supervision, the boss
+  // or admin lower it; the database enforces it). A red piece stays red.
+  const rank = (l: Level) => LEVEL_OPTIONS.findIndex((o) => o.value === l);
+  const options = locked || saved === 'rojo' ? LEVEL_OPTIONS.filter((o) => rank(o.value) >= rank(saved)) : LEVEL_OPTIONS;
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Select aria-label="Nivel de aprobación" title={LEVELS[level].hint} value={level} onChange={(e) => setLevel(e.target.value as Level)} className="w-auto">
+    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+      <Select aria-label="Nivel de aprobación" title={LEVELS[level].hint} value={level} onChange={(e) => setLevel(e.target.value as Level)} className="w-full sm:w-auto">
         {options.map((o) => <option key={o.value} value={o.value}>{o.text}</option>)}
       </Select>
       <Button disabled={pending} onClick={() => run(() => sendToReview({ pieceId, level }), { success: level === 'rojo' ? 'Enviada al jefe y a supervisión.' : 'Enviada a supervisión.' })}>

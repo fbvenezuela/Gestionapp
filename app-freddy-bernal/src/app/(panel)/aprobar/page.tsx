@@ -61,7 +61,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
                     <h2 className="flex-1 text-base font-semibold">
                       {list.length} {list.length === 1 ? 'pieza' : 'piezas'} · aprueba {LEVELS[lvl].who}
                     </h2>
-                    {lvl === 'verde' && canApprove ? <ApproveGreen ids={list.map((p) => p.id)} /> : null}
+                    {lvl === 'verde' && canApprove ? <ApproveGreen pieces={list.map((p) => ({ id: p.id, revision: p.revision }))} /> : null}
                   </div>
                   <ul className="divide-y divide-border">
                     {list.map((p) => {
