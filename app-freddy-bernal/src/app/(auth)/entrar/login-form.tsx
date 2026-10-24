@@ -1,8 +1,8 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useState, useTransition } from 'react';
 import { Mail, KeyRound, Inbox } from 'lucide-react';
-import { requestCode, verifyCode, type ActionState } from '@/lib/auth/actions';
+import { demoQuickLogin, requestCode, verifyCode, type ActionState } from '@/lib/auth/actions';
 import { demoInbox } from '@/lib/auth/demo-inbox';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
@@ -10,11 +10,13 @@ import { Field, Input } from '@/components/ui/field';
 
 type DemoUser = { email: string; label: string; name: string };
 
-export function LoginForm({ demoUsers }: { demoUsers: DemoUser[] | null }) {
+export function LoginForm({ demoUsers, quick }: { demoUsers: DemoUser[] | null; quick: boolean }) {
   const [reqState, reqAction, reqPending] = useActionState<ActionState, FormData>(requestCode, {});
   const [verState, verAction, verPending] = useActionState<ActionState, FormData>(verifyCode, {});
   const [email, setEmail] = useState('');
   const [inbox, setInbox] = useState<{ subject: string; text: string; at: string }[]>([]);
+  const [quickPending, startQuick] = useTransition();
+  const [quickError, setQuickError] = useState('');
   const step = reqState.ok ? 'code' : 'email';
   const sentTo = reqState.data?.email ?? email;
 
@@ -76,13 +78,31 @@ export function LoginForm({ demoUsers }: { demoUsers: DemoUser[] | null }) {
         <Card>
           <CardBody>
             <p className="mb-1 text-sm font-semibold">Versión de demostración</p>
-            <p className="mb-3 text-sm text-text-2">Los datos son inventados. Toca un usuario para probar cada rol; el código aparece aquí mismo.</p>
+            <p className="mb-3 text-sm text-text-2">
+              {quick
+                ? 'Los datos son inventados. Toca un rol para entrar directo, sin código ni doble factor (solo mientras probamos).'
+                : 'Los datos son inventados. Toca un usuario para probar cada rol; el código aparece aquí mismo.'}
+            </p>
+            {quickError ? <p className="mb-2 text-sm font-medium text-danger" role="alert">{quickError}</p> : null}
             <ul className="grid gap-2">
               {demoUsers.map((u) => (
                 <li key={u.email}>
-                  <button type="button" onClick={() => setEmail(u.email)} className="flex min-h-11 w-full items-center justify-between gap-2 rounded-[var(--radius-control)] border border-border px-3 text-left text-sm hover:bg-surface-2">
+                  <button
+                    type="button"
+                    disabled={quickPending}
+                    aria-label={quick ? `Entrar como ${u.label} (${u.email})` : undefined}
+                    onClick={() => {
+                      if (!quick) return setEmail(u.email);
+                      setQuickError('');
+                      startQuick(async () => {
+                        const r = await demoQuickLogin(u.email);
+                        if (r?.error) setQuickError(r.error);
+                      });
+                    }}
+                    className="flex min-h-11 w-full items-center justify-between gap-2 rounded-[var(--radius-control)] border border-border px-3 text-left text-sm hover:bg-surface-2 disabled:opacity-60"
+                  >
                     <span className="font-semibold">{u.label}</span>
-                    <span className="truncate text-text-2">{u.email}</span>
+                    <span className="truncate text-text-2">{quick ? 'Entrar →' : u.email}</span>
                   </button>
                 </li>
               ))}

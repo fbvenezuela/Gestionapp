@@ -2,7 +2,7 @@ import 'server-only';
 import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { env } from '../env';
+import { demoShortcuts, env } from '../env';
 import { withSystem, withUser, type Claims, type Sql } from '../db';
 import { DEMO_COOKIE, readSession } from './cookie';
 import { ROLES, type Role } from '../roles';
@@ -33,7 +33,8 @@ async function readClaims(): Promise<Claims | null> {
     );
     if (!revoked || !revoked.active) return null;
     if (revoked.revoked && new Date(revoked.revoked).getTime() > p.iat * 1000) return null;
-    return { sub: p.uid, aal: p.aal, session_id: p.sid, role: 'authenticated' };
+    // Testing shortcuts (demo data only): every demo session counts as 2FA-verified.
+    return { sub: p.uid, aal: demoShortcuts() ? 'aal2' : p.aal, session_id: p.sid, role: 'authenticated' };
   }
   const { supabaseServer } = await import('../supabase/server');
   const supabase = await supabaseServer();

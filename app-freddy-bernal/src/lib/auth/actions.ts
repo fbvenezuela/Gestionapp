@@ -6,7 +6,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { LoginCodeEmail } from '@emails/templates';
-import { env } from '../env';
+import { demoShortcuts, env } from '../env';
 import { withSystem } from '../db';
 import { brand } from '../client-config';
 import { sendEmail } from '../email/send';
@@ -86,8 +86,7 @@ export async function verifyCode(_: ActionState, form: FormData): Promise<Action
       return (await sql.one<{ id: string }>(`select id from public.profiles where email = $1`, [email.data]))?.id ?? null;
     });
     if (!uid) return { error: 'El código no es correcto o ya venció. Pide uno nuevo.' };
-    const now = Math.floor(Date.now() / 1000);
-    (await cookies()).set(DEMO_COOKIE, signSession({ uid, aal: 'aal1', iat: now, exp: now + SESSION_HOURS * 3600, sid: crypto.randomUUID() }), cookieOpts);
+    await startDemoSession(uid, demoShortcuts() ? 'aal2' : 'aal1');
     redirect('/');
   }
 
@@ -95,6 +94,26 @@ export async function verifyCode(_: ActionState, form: FormData): Promise<Action
   const supabase = await supabaseServer();
   const { error } = await supabase.auth.verifyOtp({ email: email.data, token: code.data, type: 'email' });
   if (error) return { error: 'El código no es correcto o ya venció. Pide uno nuevo.' };
+  redirect('/');
+}
+
+async function startDemoSession(uid: string, aal: 'aal1' | 'aal2') {
+  const now = Math.floor(Date.now() / 1000);
+  (await cookies()).set(DEMO_COOKIE, signSession({ uid, aal, iat: now, exp: now + SESSION_HOURS * 3600, sid: crypto.randomUUID() }), cookieOpts);
+}
+
+// Testing shortcut: enter as a demo user with one tap (no code, no 2FA). Refuses
+// unless the app runs on the in-memory demo database with shortcuts on, and only for
+// the invented demo accounts.
+export async function demoQuickLogin(email: string): Promise<ActionState> {
+  if (!demoShortcuts()) return { error: 'No disponible.' };
+  const parsed = emailSchema.safeParse(email);
+  if (!parsed.success || !parsed.data.endsWith('@demo.test')) return { error: 'No disponible.' };
+  const uid = await withSystem(
+    async (sql) => (await sql.one<{ id: string }>(`select id from public.profiles where email = $1 and active and deleted_at is null`, [parsed.data]))?.id ?? null,
+  );
+  if (!uid) return { error: 'Ese usuario de prueba no existe.' };
+  await startDemoSession(uid, 'aal2');
   redirect('/');
 }
 

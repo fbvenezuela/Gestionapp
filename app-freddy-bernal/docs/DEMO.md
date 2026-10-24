@@ -3,9 +3,9 @@
 **Link:** el de la versión de prueba de Vercel (ver `README.md`, «Publicar la demostración»). En local:
 `npm run build && npm start` → http://localhost:3000.
 
-Todo es **inventado**. Para entrar: escribe el correo del rol, toca «Mandarme el código» y el código aparece en el
-«Buzón de prueba» debajo del formulario. Los roles con doble factor (administración, jefe, despacho y supervisión)
-piden configurarlo la primera vez: con Google Authenticator escaneas el QR.
+Todo es **inventado**. Para entrar, **toca el rol** en la lista «Versión de demostración»: entras directo, sin código
+ni doble factor (atajo solo para probar, `DEMO_SHORTCUTS`). Para ver el flujo real (código por correo + doble factor
+con Google Authenticator), pon `DEMO_SHORTCUTS=false` en Vercel. Con datos reales el atajo no existe.
 
 | Rol | Correo | Qué tocar |
 |---|---|---|

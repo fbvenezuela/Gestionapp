@@ -34,7 +34,8 @@ cd app-freddy-bernal
 npm test && npm run lint && npm run typecheck
 npm run build && PW_CHROMIUM_PATH=/opt/pw-browsers/chromium npm run test:e2e   # en el contenedor de Claude
 ```
-Usuarios demo en `docs/DEMO.md` (el código aparece en el «Buzón de prueba» del formulario de entrar).
+Usuarios demo en `docs/DEMO.md`. En demo, `DEMO_SHORTCUTS` (activo por defecto) deja entrar con un toque y sin doble
+factor; con `DATABASE_URL` nunca se activa. Playwright levanta dos servidores: 3100 estricto y 3101 con atajos.
 
 ## Qué falta (siguiente sesión)
 1. Conectar `fb-dev` (Supabase) y desplegar la versión de prueba en Vercel con datos reales; probar las políticas de

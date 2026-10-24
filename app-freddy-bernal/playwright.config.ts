@@ -1,6 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
+// Two demo servers: one STRICT (code by email + 2FA, like production) and one with the
+// testing shortcuts on (one-tap sign-in, no 2FA). The main suite runs on the strict one.
 const port = Number(process.env.E2E_PORT ?? 3100);
+const shortcutsPort = port + 1;
+const mobile = { ...devices['Galaxy S9+'], viewport: { width: 360, height: 760 } };
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -18,9 +22,13 @@ export default defineConfig({
     launchOptions: process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : undefined,
   },
   projects: [
-    { name: 'mobile-360', use: { ...devices['Galaxy S9+'], viewport: { width: 360, height: 760 } } },
+    { name: 'mobile-360', testIgnore: /demo-shortcuts\.spec\.ts/, use: mobile },
+    { name: 'shortcuts', testMatch: /demo-shortcuts\.spec\.ts/, use: { ...mobile, baseURL: `http://localhost:${shortcutsPort}` } },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
-    : { command: `npx next start -p ${port}`, port, reuseExistingServer: true, timeout: 120_000 },
+    : [
+        { command: `npx next start -p ${port}`, port, env: { DEMO_SHORTCUTS: 'false' }, reuseExistingServer: !process.env.CI, timeout: 120_000 },
+        { command: `npx next start -p ${shortcutsPort}`, port: shortcutsPort, env: { DEMO_SHORTCUTS: 'true' }, reuseExistingServer: !process.env.CI, timeout: 120_000 },
+      ],
 });

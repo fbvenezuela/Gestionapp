@@ -38,3 +38,10 @@ export const env = {
 export function isDemo() {
   return env.dataMode === 'demo';
 }
+
+// Testing shortcuts: one-tap sign-in per role and no 2FA step. ONLY with the
+// in-memory demo database (invented data). With a real database (DATABASE_URL) this
+// is always false, whatever the variable says. Turn off in demo with DEMO_SHORTCUTS=false.
+export function demoShortcuts() {
+  return env.dataMode === 'demo' && process.env.DEMO_SHORTCUTS !== 'false';
+}

@@ -91,6 +91,13 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 ## D-18. Next 16 «proxy» solo refresca la sesión
 - **Qué:** `src/proxy.ts` no decide permisos. Las páginas llaman a `requireSession()` y la base aplica RLS.
 
+## D-20. Atajos de prueba en la demostración (entrar con un toque, sin doble factor)
+- **Qué:** con la base de demostración, los usuarios de prueba (`@demo.test`) entran con un toque y su sesión cuenta
+  como verificada con doble factor. Se apaga con `DEMO_SHORTCUTS=false`.
+- **Por qué:** Juan pidió (24/10) poder entrar y revisar todo mientras se prueba.
+- **Límite:** `demoShortcuts()` exige que **no** haya `DATABASE_URL`; con datos reales el doble factor sigue obligatorio
+  y el atajo no responde. Las pruebas de punta a punta corren el flujo completo en un servidor y los atajos en otro.
+
 ## D-19. El repositorio es `fbvenezuela/Gestionapp` y la app vive en `app-freddy-bernal/`
 - **Qué:** el prompt proponía `fb-operaciones-360`; Juan creó este repositorio y subió aquí la carpeta. En Vercel, el
   «Root Directory» del proyecto es `app-freddy-bernal`.
