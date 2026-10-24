@@ -31,6 +31,20 @@ export const env = {
     monthlyCapUsd: Number(process.env.AI_MONTHLY_CAP_USD ?? '20'),
   },
   publishingEnabled: flag('PUBLISHING_ENABLED'),
+  // Phone notifications (Web Push). Keys are optional: without them they are derived
+  // from SESSION_SECRET (src/lib/push). PUSH_ENABLED=false turns them off.
+  push: {
+    enabled: process.env.PUSH_ENABLED !== 'false',
+    publicKey: process.env.VAPID_PUBLIC_KEY ?? '',
+    privateKey: process.env.VAPID_PRIVATE_KEY ?? '',
+    subject: process.env.VAPID_SUBJECT ?? 'mailto:avisos@operaciones360.invalid',
+  },
+  // Team assistant (docs/ASISTENTE.md). ASISTENTE_MODELOS = "provider:model,provider:model";
+  // empty = demo brain without AI. Provider keys are read by name (GEMINI_API_KEY, ...).
+  assistant: {
+    enabled: process.env.ASISTENTE_ENABLED !== 'false',
+    models: process.env.ASISTENTE_MODELOS ?? '',
+  },
   cronSecret: process.env.CRON_SECRET ?? '',
   uploadChunkMb: Number(process.env.UPLOAD_CHUNK_MB ?? '4'),
 };
