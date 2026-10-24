@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { DateTime } from 'luxon';
 import { registerSpontaneous } from '@/lib/actions/publications';
@@ -13,11 +14,48 @@ import { TZ } from '@/lib/time';
 
 const NETWORKS = ['instagram', 'tiktok', 'facebook', 'x', 'threads', 'youtube'] as const;
 
+// What the day and time fields say, checked. An empty day (cleared, or half typed like
+// "23/10/aaaa": the browser reports '') is an error, never read as today: what is saved is what is seen.
+export function checkWhen(date: string, time: string, now: DateTime = DateTime.now()) {
+  const today = now.setZone(TZ).toISODate()!;
+  // Without a time, "now" is only right if it went out today; another day needs its time.
+  const needsTime = !!date && date !== today && !time;
+  // A typo in the year ("0026", "20266") is caught here: only the last two years, never a future day.
+  const minDate = now.setZone(TZ).minus({ years: 2 }).toISODate()!;
+  const day = DateTime.fromISO(date, { zone: TZ });
+  const dateError = !date
+    ? 'Pon el día en que salió.'
+    : !day.isValid
+      ? 'Revisa el día: la fecha no es válida.'
+      : date > today
+        ? 'Ese día todavía no ha llegado.'
+        : date < minDate
+          ? 'Revisa el año: solo se registran publicaciones de los últimos dos años.'
+          : undefined;
+  const at = date && time ? DateTime.fromISO(`${date}T${time}`, { zone: TZ }) : null;
+  const timeError = needsTime
+    ? 'Pon la hora: no salió hoy.'
+    : at && !at.isValid
+      ? 'Revisa la hora.'
+      : at && !dateError && at > now
+        ? 'Esa hora todavía no ha llegado.'
+        : undefined;
+  return { today, minDate, dateError, timeError, at };
+}
+
 export function SpontaneousForm() {
   const router = useRouter();
   const { run, pending } = useAction();
-  const { value: f, setValue: setF, clear } = useDraft('spontaneous', { network: 'instagram', title: '', url: '', date: DateTime.now().setZone(TZ).toISODate()!, time: '' });
+  const today = DateTime.now().setZone(TZ).toISODate()!;
+  const { value: f, setValue: setF, restored, clear } = useDraft('spontaneous', { network: 'instagram', title: '', url: '', date: today, time: '' });
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value });
+  // A draft from another day (or with the day left empty) and nothing else typed starts again on today.
+  useEffect(() => {
+    if (restored && (!f.date || f.date < today) && !f.title && !f.url && !f.time) setF({ ...f, date: today });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restored]);
+  const date = f.date;
+  const { minDate, dateError, timeError, at } = checkWhen(date, f.time);
 
   return (
     <Card>
@@ -33,19 +71,23 @@ export function SpontaneousForm() {
         <Field label="¿De qué se trató?" htmlFor="sp-title" hint="Corto. Ej.: Video del jefe recorriendo la vía" className="sm:col-span-2">
           <Input id="sp-title" value={f.title} maxLength={140} onChange={set('title')} />
         </Field>
-        <Field label="Día en que salió" htmlFor="sp-date"><Input id="sp-date" type="date" value={f.date} onChange={set('date')} /></Field>
-        <Field label="Hora en que salió (Táchira)" htmlFor="sp-time" hint="Vacía = ahora."><Input id="sp-time" type="time" value={f.time} onChange={set('time')} /></Field>
+        <Field label="Día en que salió" htmlFor="sp-date" error={dateError}>
+          <Input id="sp-date" type="date" value={f.date} min={minDate} max={today} onChange={set('date')} />
+        </Field>
+        <Field label="Hora en que salió (Táchira)" htmlFor="sp-time" hint={date === today ? 'Vacía = ahora.' : 'Obligatoria si no salió hoy.'} error={timeError}>
+          <Input id="sp-time" type="time" value={f.time} required={date !== today} onChange={set('time')} />
+        </Field>
         <p className="text-sm text-text-2 sm:col-span-2">No pasa por aprobación porque ya salió. Desde aquí no se publica nada.</p>
         <div className="sm:col-span-2">
           <Button
-            disabled={pending}
+            disabled={pending || !!dateError || !!timeError}
             onClick={() =>
               run(
                 () => registerSpontaneous({
                   network: f.network,
                   title: f.title,
                   url: f.url,
-                  publishedAt: f.date && f.time ? DateTime.fromISO(`${f.date}T${f.time}`, { zone: TZ }).toUTC().toISO() : null,
+                  publishedAt: at ? at.toUTC().toISO() : null,
                 }),
                 { success: 'Registrada.', refresh: false, onOk: (r) => { if (r.ok) { clear(); router.push(`/publicar/${r.data!.id}`); } } },
               )

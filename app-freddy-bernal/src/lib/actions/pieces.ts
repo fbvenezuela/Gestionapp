@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { act, UserError } from './run';
 import { notify, usersWithRole } from '../notify';
 import { brand } from '../client-config';
-import { buildCopies, copyLength, type CopyOptions, type CopySet } from '../domain/copies';
+import { buildCopies, copyLength, inventedNumbers, overLimits, type CopyOptions, type CopySet } from '../domain/copies';
 import { LEVELS, type Level } from '../domain/review';
 import type { Sql } from '../db/core';
 import { aiAvailable, aiCopies, AiUnavailable } from '../ai';
@@ -190,6 +190,18 @@ export async function generateCopies(raw: unknown) {
     try {
       set = await aiCopies(input, f, b, opts, userId);
       by = 'ai';
+      // Rule 7 also for the AI: a figure that is not in the brief (the chosen closing,
+      // e.g. a phone, counts as known), or a text over a network's limit, and the
+      // template is used instead.
+      const invented = inventedNumbers(set, input, opts.closing.text ?? '');
+      const over = overLimits(set);
+      if (invented.length || over.length) {
+        set = buildCopies(input, f, b, opts);
+        by = 'template';
+        note = invented.length
+          ? `La IA puso cifras que no están en la ficha (${invented.join(', ')}); se usó la plantilla.`
+          : `La IA se pasó del largo (${over.join(', ')}); se usó la plantilla.`;
+      }
     } catch (e) {
       set = buildCopies(input, f, b, opts);
       note = e instanceof AiUnavailable ? e.message : 'La IA no respondió; se usó la plantilla.';

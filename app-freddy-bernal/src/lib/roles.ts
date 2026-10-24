@@ -53,8 +53,13 @@ export const NAV: NavItem[] = [
 
 export function navFor(roles: Role[]) {
   const visible = NAV.filter((n) => n.roles.some((r) => roles.includes(r)));
-  const mobile = visible.filter((n) => n.mobile?.some((r) => roles.includes(r))).slice(0, 5);
-  return { visible, mobile };
+  const flagged = visible.filter((n) => n.mobile?.some((r) => roles.includes(r)));
+  // Phone bar: up to 5 slots. If anything does not fit, the 5th slot becomes «Más»
+  // with the rest, so every page in the menu can be reached from the phone.
+  const fits = flagged.length === visible.length && flagged.length <= 5;
+  const mobile = fits ? flagged : flagged.slice(0, 4);
+  const more = visible.filter((n) => !mobile.includes(n));
+  return { visible, mobile, more };
 }
 
 export function homeFor(roles: Role[]): string {

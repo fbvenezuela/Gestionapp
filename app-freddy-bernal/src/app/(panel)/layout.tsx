@@ -19,7 +19,7 @@ const CREATE: { href: string; label: string; roles: Role[] }[] = [
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const s = await requireSession();
   const roles = menuRoles(s);
-  const { visible, mobile } = navFor(roles);
+  const { visible, mobile, more } = navFor(roles);
   const unread = await db(s, async (sql) => (await sql.one<{ n: number }>(`select count(*)::int as n from public.notifications where read_at is null`))!.n);
   const create = CREATE.filter((c) => c.roles.some((r) => roles.includes(r)));
 
@@ -99,7 +99,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           {children}
         </main>
       </div>
-      <BottomNav items={mobile} />
+      <BottomNav items={mobile} more={more} />
     </div>
   );
 }
