@@ -152,7 +152,7 @@ test('el panel: administración abre las ocho pestañas; otro rol no entra', asy
   // «Cómo va»: the chain test in demo answers with the demo brain.
   await tabs.getByRole('link', { name: 'Cómo va' }).click();
   await page.getByRole('button', { name: 'Probar la cadena' }).click();
-  await expect(page.getByText('Cerebro de demostración')).toBeVisible();
+  await expect(page.getByText('Cerebro de demostración', { exact: true })).toBeVisible();
   await noSerious(page);
 
   await page.context().clearCookies();
