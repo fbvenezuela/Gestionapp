@@ -81,3 +81,18 @@ Actualizado: 23/10/2026. La plataforma interna ya está construida en modo demos
 - #21: publicación manual validada; las APIs de cada red, en fase 2.
 - Nuevo — #26: los límites de video de cada red están cargados de la documentación pública, marcados «verificar»
   (Ajustes → Reglas por red → «Guardar y marcar verificado»).
+
+## Llegó el Diagnóstico Digital 360 (24/10/2026)
+Resumen y lo que sirve: `docs/DIAGNOSTICO-360.md` (el ZIP no se subió al repositorio: es confidencial).
+- **#1 Branding — llegó parcial.** Paleta: Naranja #FE5A03, Naranja claro #FD943C, Oliva #7F8630, Negro #111111,
+  Blanco #FFFFFF, Amarillo #FFD380; Montserrat (máx. dos pesos por pieza); logo «FREDDY / Bernal / GOBERNADOR» solo en
+  imagen (4 versiones). Aplicado a los colores (D-21). **Falta:** logo en vector (SVG/AI/PDF), láminas 31–38 del PDF
+  *Estrategia_Identidad_Freddy_Bernal_Integrada* (resguardo, tamaños, pesos), logo de Reporte Bernal 2.0 sin azul y saber
+  si «F BERNAL» es otra marca.
+- **#2 Prompt de imagen — no vino.** El diagnóstico respalda «solo luz y nitidez» y marca como alto riesgo generar
+  imágenes sintéticas de personas o hechos.
+- **#13 Fórmulas — llegaron propuestas** del diagnóstico (gancho-bloques-acción, dato primero, denuncia-acción-resultado,
+  cifra única, cita del jefe, historia con protagonista). Hillary decide cuáles.
+- **#23 Igor** — ¿es quien opera TCPRO-5 (escucha de medios en `kunawaro.alwaysdata.net`)? No se integra hasta saberlo.
+- **Nuevo #27:** las 9 preguntas de `docs/DIAGNOSTICO-360.md` (color principal, logo, horarios por red, hashtags,
+  primera persona, cierres, fórmulas, semáforo de aprobación, TCPRO-5).

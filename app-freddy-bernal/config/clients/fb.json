@@ -370,7 +370,7 @@
     {
      "key": "benefit",
      "label": "Beneficio",
-     "hint": "Qué gana la gente en su día a día."
+     "hint": "Qué gana la gente en su día a día: una cifra a la vez, con su fuente."
     }
    ]
   },
@@ -404,7 +404,7 @@
     {
      "key": "attention",
      "label": "Atención",
-     "hint": "Un dato fuerte o una pregunta."
+     "hint": "Un dato fuerte o una escena, en los primeros 100 caracteres. Nunca «En el marco de…» ni «Siguiendo el legado de…»."
     },
     {
      "key": "interest",

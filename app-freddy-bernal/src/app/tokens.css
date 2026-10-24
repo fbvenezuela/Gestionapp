@@ -1,6 +1,9 @@
-/* Design tokens. PROVISIONAL colors from the Stitch model (diseno/stitch/operaciones_360/DESIGN.md)
-   until the "F BERNAL" brand manual arrives. Changing the brand = changing this file
-   (and the email copy in emails/layout.tsx). Nothing else. */
+/* Design tokens. Palette from the brand strategy ("Estrategia de marca", láminas 33, 35–38), received
+   24/10/2026 in the Diagnóstico Digital 360 package: Naranja #FE5A03, Naranja claro #FD943C, Oliva #7F8630,
+   Negro #111111, Blanco #FFFFFF, Amarillo #FFD380; Montserrat. Blue is excluded from the brand.
+   Text on brand fills is always #111111 (white on orange/olive fails AA). Still PROVISIONAL until the client
+   approves the manual and sends the vector logo (docs/PENDIENTES.md #1, docs/DECISIONES.md D-21).
+   Changing the brand = changing this file (and the email copy in emails/layout.tsx). Nothing else. */
 
 :root {
   --c-bg: #f7f7f5;          /* alabastro */
@@ -15,7 +18,7 @@
   --c-accent-soft: #fff1e8;
   --c-on-accent: #111111;   /* dark text on orange: AA contrast (white on #FE5A03 is only 3:1) */
   --c-accent-ink: #b33d00;  /* orange for text on light backgrounds (AA) */
-  --c-slate: #182a32;
+  --c-slate: #111111;      /* brand Negro (was a bluish slate; the brand excludes blue) */
   --c-on-slate: #f1f1ef;
   --c-olive: #7f8630;
   --c-ok: #047857;
@@ -26,7 +29,7 @@
   --c-danger-soft: #fdecec;
   --c-info: #1d4ed8;
   --c-info-soft: #eaf1fe;
-  --c-focus: #fd943c;
+  --c-focus: #c94700;      /* focus ring: 3:1+ on the page background (Naranja claro #FD943C is only 2.07:1) */
   color-scheme: light;
 }
 
@@ -44,7 +47,7 @@
     --c-accent-soft: #3a1f10;
     --c-on-accent: #160800;
     --c-accent-ink: #ff8a4c;
-    --c-slate: #0b1418;
+    --c-slate: #0b0b0b;
     --c-on-slate: #f1f1ef;
     --c-olive: #b4bb5c;
     --c-ok: #34d399;
@@ -73,7 +76,7 @@
   --c-accent-soft: #3a1f10;
   --c-on-accent: #160800;
   --c-accent-ink: #ff8a4c;
-  --c-slate: #0b1418;
+  --c-slate: #0b0b0b;
   --c-on-slate: #f1f1ef;
   --c-olive: #b4bb5c;
   --c-ok: #34d399;

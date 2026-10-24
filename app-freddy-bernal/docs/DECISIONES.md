@@ -91,6 +91,21 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 ## D-18. Next 16 «proxy» solo refresca la sesión
 - **Qué:** `src/proxy.ts` no decide permisos. Las páginas llaman a `requireSession()` y la base aplica RLS.
 
+## D-21. Paleta desde la estrategia de marca (provisional) — **Confirmar con Hillary**
+- **Qué:** se quitó el azul del panel (`--c-slate` #182a32 → #111111, el Negro de la marca) y el anillo de foco pasa a
+  #c94700 (4,5:1 sobre el fondo; el Naranja claro #FD943C daba 2,07:1 y no cumplía AA). Naranja #FE5A03, oliva #7F8630
+  y negro #111111 ya coincidían con los tokens. Montserrat ya era la letra.
+- **Por qué:** llegó la paleta en el Diagnóstico Digital 360 (24/10); la lámina 33 excluye el azul.
+- **Falta:** decidir si el color principal es oliva o naranja y recibir el logo en vector (ver `docs/DIAGNOSTICO-360.md`).
+- **Cómo se cambia:** `src/app/tokens.css` y `emails/layout.tsx`.
+
+## D-22. Reglas de redacción medidas, aplicadas sin esperar
+- **Qué:** la IA nunca abre con «En el marco de», «Siguiendo el legado de», «Bajo la orientación de», «Seguimos
+  trabajando» ni «Seguimos brindando»; las pistas de AIDA (atención) y FAB (beneficio) piden gancho en 100 caracteres y
+  una cifra a la vez con su fuente.
+- **Por qué:** es la corrección de mayor impacto medido en el diagnóstico (m10) y solo quita opciones.
+- **Ojo:** las fórmulas se siembran con «no sobrescribir»: si ya se sembró `fb-dev`, el cambio se hace en Ajustes.
+
 ## D-20. Atajos de prueba en la demostración (entrar con un toque, sin doble factor)
 - **Qué:** con la base de demostración, los usuarios de prueba (`@demo.test`) entran con un toque y su sesión cuenta
   como verificada con doble factor. Se apaga con `DEMO_SHORTCUTS=false`.

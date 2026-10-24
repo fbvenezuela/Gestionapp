@@ -10,7 +10,7 @@ export const emailColors = {
   text: '#111111',
   muted: '#666660',
   accent: '#FE5A03',
-  slate: '#182A32',
+  slate: '#111111',
 };
 
 export function EmailLayout({ preview, appName, children }: { preview: string; appName: string; children: ReactNode }) {

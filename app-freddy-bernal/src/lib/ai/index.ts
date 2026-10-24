@@ -59,6 +59,7 @@ export async function aiCopies(input: CopyInput, formula: Formula, brand: CopyBr
     '- Usa SOLO los datos y cifras que vienen en la ficha. No inventes números, nombres, fechas ni lugares. Si falta un dato que la fórmula necesita, no lo rellenes: anótalo en "missing".',
     '- No incluyas fecha ni hora del evento.',
     `- El largo abre con "${brand.greeting}" o con un emoji y un dato fuerte de la ficha, y cierra con "${brand.closings.join('" o "')}".`,
+    '- Nunca abras con fórmulas institucionales: «En el marco de», «Siguiendo el legado de», «Bajo la orientación de», «Seguimos trabajando» ni «Seguimos brindando». La primera línea es el hecho, la escena o el dato.',
     '- Tres versiones con la misma fórmula: "long" (Instagram, TikTok y Facebook, máximo 2200 caracteres), "medium" (Threads, máximo 500 caracteres, termina con una pregunta corta), "short" (X, máximo 260 caracteres contando los hashtags; incluye 2 o 3 hashtags).',
     `- Hashtags base: ${brand.hashtags.join(' ')}.`,
     '- Tono de alguien con criterio, ideas y proyectos. Sin exagerar ni prometer lo que la ficha no dice.',
