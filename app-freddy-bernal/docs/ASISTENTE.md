@@ -72,6 +72,7 @@ Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: 
   vacía**; `looksLikeText`); redes del servidor (si dice que avisó y no avisó, avisa el servidor o cambia la frase);
   degradado honesto («No pude consultar bien ahora mismo. Ya avisé al equipo.») con `degraded = true`.
 - `local.ts` — cerebro de demostración sin IA (mismas entradas y salidas).
+- Cada turno tiene un límite de 40 s; después de la primera vuelta, la cadena arranca desde el eslabón que respondió.
 - `index.ts` — `handleTurn(session, { question, conversationId })` → `{ answer, scope, model, ms, degraded, did:
   [{ tool, error? }], goTo: { href, label } | null, conversationId }`. Guarda **después** de responder; si guardar falla,
   se escribe en el log y la respuesta sale igual.

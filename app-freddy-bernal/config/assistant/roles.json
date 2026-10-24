@@ -1,0 +1,40 @@
+{
+  "$comment": "El «oficio» de cada rol para el asistente: qué lleva, qué pantallas usa, qué no es de su trabajo y a quién mandarlo. NO da ni quita permisos (eso lo decide la base de datos); solo cambia de qué se le habla. «sugeridas» son preguntas de ejemplo para la ventana. Huecos: [JEFE], [APP].",
+  "roles": {
+    "admin": {
+      "label": "Administración",
+      "oficio": "Administración maneja el equipo, los permisos y los ajustes (Ajustes: Equipo, categorías, fórmulas, horarios, reglas por red, marca, Buzón y Registro de cambios) y puede hacer todo lo de Redes. Nunca aprueba piezas ni tweets: eso es de supervisión (verde y amarillo) y de [JEFE] (rojo).",
+      "sugeridas": ["¿Qué tengo pendiente?", "¿Cómo invito a alguien nuevo?", "¿Quién aprueba una pieza en rojo?", "Marca mis avisos como leídos"]
+    },
+    "boss": {
+      "label": "Jefe",
+      "oficio": "[JEFE] decide qué eventos se hacen (Política: calificar de 1 a 10, aceptar o rechazar), se prepara con «Lo que voy a decir» y aprueba solo las piezas en rojo (Por aprobar, con la lista de chequeo). Lo verde y amarillo y los tweets los aprueba supervisión; crear eventos o cambiar la ficha es de Despacho.",
+      "sugeridas": ["¿Qué me toca aprobar?", "¿Cómo apruebo una pieza en rojo?", "¿Cómo va una pieza?", "¿Dónde veo cómo nos va?"]
+    },
+    "dispatch": {
+      "label": "Despacho",
+      "oficio": "Despacho arma la agenda (Agenda y «Crear» → Nuevo evento), completa la ficha técnica de cada evento, asigna quién graba y marca el evento como realizado. No ve piezas, copies, tweets ni resultados, y no decide por [JEFE].",
+      "sugeridas": ["¿Qué fichas tengo incompletas?", "¿Cómo asigno a quien graba?", "¿Cómo marco un evento como realizado?", "¿Qué lleva una ficha técnica?"]
+    },
+    "secretary": {
+      "label": "Secretaría",
+      "oficio": "Secretaría propone eventos («Crear» → Nuevo evento) y sigue en Hoy si [JEFE] los aceptó. No ve eventos de otras personas, ni la fecha, hora o dirección después de enviar la propuesta. Si hay que corregir una propuesta, le avisa a Despacho.",
+      "sugeridas": ["¿Cómo propongo un evento?", "¿Ya aceptaron mi propuesta?", "¿Cómo corrijo algo que propuse?"]
+    },
+    "social": {
+      "label": "Redes",
+      "oficio": "Redes convierte cada evento en piezas: storyboard, material, video final, copies (fórmula, voz y cierre), mandar a aprobar con su color, publicar a mano, tweets de la semana y resultados. Nunca ve la fecha, la hora ni la dirección de los eventos, y no aprueba: eso es de supervisión y de [JEFE].",
+      "sugeridas": ["¿Qué tengo pendiente?", "¿Cuántos días de tweets quedan?", "¿A qué hora publico en TikTok?", "¿Por qué no me deja publicar esta pieza?"]
+    },
+    "supervisor": {
+      "label": "Supervisión",
+      "oficio": "Supervisión revisa que nada salga sin aprobación: aprueba las piezas verdes y amarillas y los tweets (Por aprobar), pide cambios con comentario y puede subir una pieza a rojo. Las rojas las aprueba [JEFE]. No ve la agenda con fecha ni crea piezas o publicaciones.",
+      "sugeridas": ["¿Qué tengo por aprobar?", "¿Cómo apruebo las verdes de una vez?", "¿Qué reviso antes de aprobar?", "¿Cómo pido una frase a [JEFE]?"]
+    },
+    "camera": {
+      "label": "Grabación",
+      "oficio": "Grabación graba los eventos que le asignaron y sube el material crudo ordenado por casilla (jefe hablando, dron, apoyo, otros) en «Mis eventos». No ve eventos ajenos, piezas, tweets ni publicaciones, y no edita la ficha ni el storyboard.",
+      "sugeridas": ["¿Qué tengo pendiente?", "¿Cómo subo el material?", "¿Qué pasa si se va la señal subiendo un video?", "¿Cuánto puede durar un video para TikTok?"]
+    }
+  }
+}

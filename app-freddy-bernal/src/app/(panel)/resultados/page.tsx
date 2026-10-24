@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ExternalLink } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
 import { PageHeader, EmptyState, Stat } from '@/components/ui/page';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { NETWORK_LABEL } from '@/lib/data/labels';
 import { bestTimes, MIN_POINTS } from '@/lib/domain/best-times';
 import { dt, fmtDateTime } from '@/lib/time';
 import { CsvImport } from './csv-import';
+import { PubTitle } from './pub-title';
 
 export const metadata = { title: 'Resultados' };
 
@@ -88,36 +90,73 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
 
       <h2 className="mb-2 text-lg font-bold">Por publicación</h2>
       {rows.length ? (
-        <Card className="mb-6">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
-              <thead className="bg-surface-2 text-left">
-                <tr>{['Publicación', 'Red', 'Hora', 'Vistas', 'Alcance', 'Interacción'].map((h) => <th key={h} className="px-3 py-2 font-semibold">{h}</th>)}</tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.id} className="border-t border-border">
-                    <td className="px-3 py-2">
-                      <Link href={canLoad ? `/publicar/${r.id}` : '#'} className="font-semibold hover:underline">{r.title}</Link>
-                      {r.republish_of ? <span className="ml-1 text-xs text-text-2">(republicación)</span> : null}
-                      {r.url ? <a href={r.url} target="_blank" rel="noreferrer" className="ml-2 text-xs text-accent-ink">link</a> : null}
-                    </td>
-                    <td className="px-3 py-2">{NETWORK_LABEL[r.network]} · {r.format}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">{fmtDateTime(r.published_at)}</td>
-                    <td className="px-3 py-2 tabular">{r.views != null ? nf.format(r.views) : <span className="text-muted">sin cargar</span>}</td>
-                    <td className="px-3 py-2 tabular">{r.reach != null ? nf.format(r.reach) : '—'}</td>
-                    <td className="px-3 py-2 tabular">{r.views != null ? `${nf.format(inter(r))} (${r.likes ?? 0} ♥ · ${r.comments ?? 0} 💬 · ${r.shares ?? 0} ↗ · ${r.saves ?? 0} 🔖)` : '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        <>
+          {/* Phone (< 640 px): one card per publication. */}
+          <ul className="mb-6 flex flex-col gap-3 sm:hidden">
+            {rows.map((r) => (
+              <li key={r.id}>
+                <Card className="flex flex-col gap-2 p-4">
+                  <div className="min-w-0">
+                    <PubTitle r={r} canLoad={canLoad} card />
+                    {r.republish_of ? <span className="text-xs text-text-2">(republicación)</span> : null}
+                    <p className="text-sm text-text-2">{NETWORK_LABEL[r.network]} · {r.format} · {fmtDateTime(r.published_at)}</p>
+                  </div>
+                  {r.views != null ? (
+                    <>
+                      <dl className="grid grid-cols-3 gap-2 text-sm">
+                        <div><dt className="text-text-2">Vistas</dt><dd className="font-semibold tabular">{nf.format(r.views)}</dd></div>
+                        <div><dt className="text-text-2">Alcance</dt><dd className="font-semibold tabular">{r.reach != null ? nf.format(r.reach) : '—'}</dd></div>
+                        <div><dt className="text-text-2">Interacción</dt><dd className="font-semibold tabular">{nf.format(inter(r))}</dd></div>
+                      </dl>
+                      <p className="text-xs text-text-2">{r.likes ?? 0} me gusta · {r.comments ?? 0} comentarios · {r.shares ?? 0} compartidos · {r.saves ?? 0} guardados</p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted">Sin números cargados.</p>
+                  )}
+                  {canLoad && r.url ? <ExternalPubLink url={r.url} /> : null}
+                </Card>
+              </li>
+            ))}
+          </ul>
+          <Card className="mb-6 hidden sm:block">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead className="bg-surface-2 text-left">
+                  <tr>{['Publicación', 'Red', 'Hora', 'Vistas', 'Alcance', 'Interacción'].map((h) => <th key={h} className="px-3 py-2 font-semibold">{h}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {rows.map((r) => (
+                    <tr key={r.id} className="border-t border-border">
+                      <td className="px-3 py-2">
+                        <PubTitle r={r} canLoad={canLoad} />
+                        {r.republish_of ? <span className="ml-1 text-xs text-text-2">(republicación)</span> : null}
+                        {canLoad && r.url ? <a href={r.url} target="_blank" rel="noreferrer" className="ml-2 text-xs text-accent-ink">link</a> : null}
+                      </td>
+                      <td className="px-3 py-2">{NETWORK_LABEL[r.network]} · {r.format}</td>
+                      <td className="px-3 py-2 whitespace-nowrap">{fmtDateTime(r.published_at)}</td>
+                      <td className="px-3 py-2 tabular">{r.views != null ? nf.format(r.views) : <span className="text-muted">sin cargar</span>}</td>
+                      <td className="px-3 py-2 tabular">{r.reach != null ? nf.format(r.reach) : '—'}</td>
+                      <td className="px-3 py-2 tabular">{r.views != null ? `${nf.format(inter(r))} (${r.likes ?? 0} ♥ · ${r.comments ?? 0} 💬 · ${r.shares ?? 0} ↗ · ${r.saves ?? 0} 🔖)` : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </>
       ) : (
         <EmptyState title="No hay publicaciones en este periodo." />
       )}
       {canLoad ? <CsvImport /> : null}
       <p className="mt-4 text-sm text-text-2">Los me gusta y comentarios miden el alcance del contenido, no el apoyo político.</p>
     </>
+  );
+}
+
+function ExternalPubLink({ url }: { url: string }) {
+  return (
+    <a href={url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 w-fit items-center gap-1 text-sm font-semibold text-accent-ink">
+      Ver en la red <ExternalLink className="h-4 w-4" aria-hidden />
+    </a>
   );
 }

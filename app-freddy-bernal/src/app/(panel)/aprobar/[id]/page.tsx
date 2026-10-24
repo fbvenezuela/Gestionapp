@@ -4,20 +4,25 @@ import { getPiece, fmtSecond } from '@/lib/data/pieces';
 import { PageHeader } from '@/components/ui/page';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
-import { LENGTH_GROUP, PIECE_KIND, PIECE_STATUS } from '@/lib/data/labels';
-import { LIMITS } from '@/lib/domain/copies';
+import { LENGTH_GROUP, NETWORK_LABEL, PIECE_KIND, PIECE_STATUS } from '@/lib/data/labels';
 import { fmtDateTime } from '@/lib/time';
 import { getDeadlines } from '@/lib/data/review';
 import { LEVELS, reviewClock } from '@/lib/domain/review';
 import { ReviewRoom, LevelPicker } from './review-room';
+import { copyPreview, type SpecRow } from '@/lib/domain/copy-preview';
 
 export const metadata = { title: 'Revisión' };
 
 export default async function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
   const s = await requireRole('supervisor', 'admin', 'boss');
   const { id } = await params;
-  const { p, deadlines } = await db(s, async (sql) => ({ p: await getPiece(sql, id), deadlines: await getDeadlines(sql) }));
+  const { p, deadlines, specs } = await db(s, async (sql) => ({
+    p: await getPiece(sql, id),
+    deadlines: await getDeadlines(sql),
+    specs: await sql.query<SpecRow>(`select network, label, copy_max_chars, length_group from public.network_specs order by network`),
+  }));
   if (!p) notFound();
+  const preview = copyPreview(p.copies, specs);
   const current = p.versions[0];
   const isSup = s.roles.includes('supervisor');
   const isBoss = s.roles.includes('boss');
@@ -49,16 +54,33 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
             media={current?.media_asset_id ? { id: current.media_asset_id, mime: current.mime ?? '' } : null}
           />
           <Card>
-            <CardHeader title="Copies" />
-            <CardBody className="grid gap-4 xl:grid-cols-3">
-              {(['long', 'medium', 'short'] as const).map((g) => {
-                const c = p.copies.find((x) => x.length_group === g);
+            <CardHeader title="Copies: cómo saldrá" subtitle="Cada copy con las redes que lo usan y el máximo de letras de cada una." />
+            <CardBody className="grid gap-5 xl:grid-cols-3">
+              {preview.map((g) => {
+                const overAny = g.networks.some((n) => n.over > 0) || (g.networks.length === 0 && g.length > g.limit);
                 return (
-                  <div key={g}>
-                    <p className="font-semibold">{LENGTH_GROUP[g].label} <span className="text-sm font-normal text-text-2">({LENGTH_GROUP[g].networks})</span></p>
-                    <p className="font-mono text-xs text-text-2">{c?.char_count ?? 0}/{LIMITS[g]}</p>
-                    <p className="mt-1 whitespace-pre-wrap text-[15px]">{c?.body || <span className="text-muted">Sin copy</span>}</p>
-                  </div>
+                  <section key={g.group} aria-labelledby={`copy-${g.group}`} className="flex min-w-0 flex-col gap-2">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <h3 id={`copy-${g.group}`} className="font-semibold">{LENGTH_GROUP[g.group].label}</h3>
+                      <span className={`font-mono text-sm tabular ${overAny ? 'font-bold text-danger' : 'text-text-2'}`}>{g.length} letras</span>
+                    </div>
+                    <ul className="flex flex-wrap gap-1.5" aria-label={`Redes que usan el copy ${LENGTH_GROUP[g.group].label.toLowerCase()}`}>
+                      {g.networks.length ? (
+                        g.networks.map((n) => (
+                          <li key={n.network}>
+                            <Chip tone={n.over ? 'danger' : 'neutral'}>
+                              {n.label || NETWORK_LABEL[n.network]}: {n.over ? `se pasa por ${n.over}` : `hasta ${n.max}`}
+                            </Chip>
+                          </li>
+                        ))
+                      ) : (
+                        <li className="text-sm text-text-2">{LENGTH_GROUP[g.group].networks} · hasta {g.limit}</li>
+                      )}
+                    </ul>
+                    <p className="whitespace-pre-wrap rounded-[var(--radius-control)] border border-border bg-surface-2 p-3 text-[15px]">
+                      {g.body || <span className="text-muted">Sin copy</span>}
+                    </p>
+                  </section>
                 );
               })}
             </CardBody>

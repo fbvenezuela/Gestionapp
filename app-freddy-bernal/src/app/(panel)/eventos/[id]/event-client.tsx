@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { DateTime } from 'luxon';
 import { CheckCircle2, XCircle } from 'lucide-react';
-import { assignCamera, bossDecide, markDone, setWorkStatus, updateBrief, updateEvent, updateSchedule } from '@/lib/actions/events';
+import { assignCamera, bossDecide, markDone, setWorkStatus, updateBrief, updateEvent, updateProposal, updateSchedule } from '@/lib/actions/events';
 import { useAction } from '@/lib/hooks/use-action';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input, Select, Textarea } from '@/components/ui/field';
 import { Sheet } from '@/components/ui/sheet';
@@ -18,9 +19,11 @@ import { TZ } from '@/lib/time';
 
 export function BossPanel({ id, priority, decision }: { id: string; priority: number | null; decision: string }) {
   const { run, pending } = useAction();
+  const { confirm, dialog } = useConfirm();
   const [p, setP] = useState<number | null>(priority);
   return (
     <Card className="mb-4">
+      {dialog}
       <CardHeader title="Tu decisión" subtitle="Califica de 1 a 10 qué tan importante es y acepta o rechaza." />
       <CardBody className="flex flex-col gap-4">
         <div className="grid grid-cols-5 gap-2 sm:grid-cols-10" role="radiogroup" aria-label="Importancia de 1 a 10">
@@ -41,7 +44,15 @@ export function BossPanel({ id, priority, decision }: { id: string; priority: nu
           <Button size="lg" disabled={pending} onClick={() => run(() => bossDecide({ id, priority: p, decision: 'accepted' }), { success: 'Evento aceptado.' })} variant={decision === 'accepted' ? 'primary' : 'secondary'}>
             <CheckCircle2 className="h-5 w-5" aria-hidden /> Aceptar
           </Button>
-          <Button size="lg" disabled={pending} variant="danger" onClick={() => confirm('¿Rechazar este evento?') && run(() => bossDecide({ id, priority: p, decision: 'rejected' }), { success: 'Evento rechazado.' })}>
+          <Button
+            size="lg"
+            disabled={pending}
+            variant="danger"
+            onClick={async () => {
+              const ok = await confirm({ title: '¿Rechazar este evento?', body: 'Le avisamos a quien lo propuso y al despacho.', confirmLabel: 'Rechazar', tone: 'danger' });
+              if (ok) run(() => bossDecide({ id, priority: p, decision: 'rejected' }), { success: 'Evento rechazado.' });
+            }}
+          >
             <XCircle className="h-5 w-5" aria-hidden /> Rechazar
           </Button>
         </div>
@@ -136,6 +147,43 @@ export function EventEditor({ ev, categories, municipalities }: { ev: EventFull;
         <Button type="submit" disabled={pending}>Guardar</Button>
       </form>
     </Sheet>
+  );
+}
+
+// Secretaría corrects her own proposal while the boss has not decided. Only what the
+// database lets her change: no date, exact place, brief or urgency (despacho handles those).
+export function ProposalEditor({ ev, categories, municipalities }: { ev: EventFull; categories: CategoryOption[]; municipalities: string[] }) {
+  const { run, pending } = useAction();
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState({ title: ev.title, placeName: ev.place_name, municipality: ev.municipality, summary: ev.summary, categoryId: ev.category_id ?? '' });
+  const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
+  return (
+    <Card>
+      <CardHeader title="Tu propuesta" subtitle="Puedes corregirla mientras el jefe no decida." />
+      <CardBody>
+        <Sheet
+          open={open}
+          onOpenChange={setOpen}
+          title="Corregir mi propuesta"
+          description="La fecha, la dirección exacta y la ficha técnica las cambia el despacho."
+          trigger={<Button variant="secondary" className="w-full">Corregir mi propuesta</Button>}
+        >
+          <form className="flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); run(() => updateProposal({ id: ev.id, ...f }), { success: 'Propuesta corregida.', onOk: () => setOpen(false) }); }}>
+            <Field label="Título" htmlFor="pt" hint="Corto y claro."><Input id="pt" value={f.title} onChange={set('title')} maxLength={140} required /></Field>
+            <Field label="A dónde se va" htmlFor="pp" hint="El nombre del sitio"><Input id="pp" value={f.placeName} onChange={set('placeName')} /></Field>
+            <Field label="Municipio" htmlFor="pm">
+              <Select id="pm" value={f.municipality} onChange={set('municipality')}>
+                <option value="">Elegir…</option>
+                {municipalities.map((m) => <option key={m}>{m}</option>)}
+              </Select>
+            </Field>
+            <Field label="De qué se trata" htmlFor="ps"><Textarea id="ps" rows={3} value={f.summary} onChange={set('summary')} /></Field>
+            <Field label="Categoría" htmlFor="pc"><CategorySelect id="pc" categories={categories} value={f.categoryId} onChange={set('categoryId')} /></Field>
+            <Button type="submit" disabled={pending}>{pending ? 'Guardando…' : 'Guardar cambios'}</Button>
+          </form>
+        </Sheet>
+      </CardBody>
+    </Card>
   );
 }
 

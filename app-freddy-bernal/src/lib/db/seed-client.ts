@@ -1,10 +1,14 @@
 import type { Sql } from './core';
 import { getClientConfig, networkSpecsSeed, type CategorySeed } from '../client-config';
+import { seedAssistant } from '../assistant/seed';
 
 // Upserts the client configuration (categories, formulas, settings, network rules).
 // Safe to run on production: it is configuration, not test data. Idempotent.
 export async function seedClient(sql: Sql, brandKey?: string) {
   const cfg = getClientConfig(brandKey);
+  // The assistant's automatic fichas refresh on every change to settings, categories,
+  // formulas and network rules; while loading, hold that and refresh once at the end.
+  await sql.query(`select set_config('app.assistant_skip_refresh', 'on', true)`);
 
   const settings: Record<string, unknown> = {
     'app.timezone': cfg.timezone,
@@ -52,6 +56,12 @@ export async function seedClient(sql: Sql, brandKey?: string) {
       [s.network, s.label, JSON.stringify(s.formats), s.copy_max_chars, s.length_group, s.notes, s.source_url],
     );
   }
+
+  // Assistant: guide fichas and factory scripts (config/assistant), «no pisar».
+  await seedAssistant(sql);
+  await sql.query(`select set_config('app.assistant_skip_refresh', '', true)`);
+  // Own error handler, like the triggers: the assistant failing to catch up never blocks the seed.
+  await sql.query(`do $$ begin perform public.assistant_refresh(); exception when others then raise warning 'El asistente no pudo ponerse al día: %', sqlerrm; end $$`);
 }
 
 async function upsertCategory(sql: Sql, kind: string, parent: string | null, name: string, emoji: string | null, sort: number) {

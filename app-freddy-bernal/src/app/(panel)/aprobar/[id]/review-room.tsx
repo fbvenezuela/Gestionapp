@@ -10,6 +10,8 @@ import { Card, CardBody } from '@/components/ui/card';
 import { Field, Select, Textarea } from '@/components/ui/field';
 import { fmtSecond } from '@/lib/data/pieces';
 import { LEVELS, type Level } from '@/lib/domain/review';
+import { cn } from '@/lib/cn';
+import { QUICK_REASONS, hasReason, toggleReason } from '@/lib/domain/review-reasons';
 
 // Quick check before approving, on the phone (from the diagnosis' approval flow).
 const CHECKS = ['Cada cifra tiene su fuente', 'No dice fecha ni hora del evento', 'Se ve y se oye bien (subtítulos, sonido)', 'Los tres copies están revisados'];
@@ -31,7 +33,13 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
   const router = useRouter();
   const { run, pending } = useAction();
   const video = useRef<HTMLVideoElement>(null);
-  const [comment, setComment] = useState('');
+  const textRef = useRef<HTMLTextAreaElement>(null);
+  const [comment, setCommentRaw] = useState('');
+  const [error, setError] = useState('');
+  const setComment = (v: string) => {
+    setCommentRaw(v);
+    if (v.trim()) setError('');
+  };
   const [mode, setMode] = useState<'comment' | 'voice'>('comment');
   const [atSecond, setAtSecond] = useState<number | null>(null);
   const [checked, setChecked] = useState<boolean[]>(CHECKS.map(() => false));
@@ -71,9 +79,35 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
           label={mode === 'comment' ? 'Qué hay que cambiar (o un comentario)' : 'Qué frase tiene que mandar el jefe por audio'}
           htmlFor="rv-text"
           hint={isVideo ? (atSecond !== null ? `En el segundo ${fmtSecond(atSecond)} del video. Pausa el video para cambiarlo.` : 'Pausa el video donde está lo que comentas para anotar el segundo.') : undefined}
+          error={mode === 'comment' && error ? error : undefined}
         >
-          <Textarea id="rv-text" rows={3} value={comment} onChange={(e) => setComment(e.target.value)} />
+          <Textarea ref={textRef} id="rv-text" rows={3} value={comment} aria-invalid={mode === 'comment' && error ? true : undefined} aria-describedby={mode === 'comment' ? 'rv-reasons-hint' : undefined} onChange={(e) => setComment(e.target.value)} />
         </Field>
+
+        {mode === 'comment' ? (
+          <div role="group" aria-labelledby="rv-reasons-hint" className="-mt-2 flex flex-col gap-2">
+            <p id="rv-reasons-hint" className="text-sm text-text-2">Motivos rápidos: toca para agregarlos al comentario (otra vez para quitarlos).</p>
+            <div className="flex flex-wrap gap-2">
+              {QUICK_REASONS.map((r) => {
+                const on = hasReason(comment, r);
+                return (
+                  <button
+                    key={r}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setComment(toggleReason(comment, r))}
+                    className={cn(
+                      'min-h-11 rounded-full border px-3.5 text-sm font-semibold',
+                      on ? 'border-accent bg-accent-soft text-accent-ink' : 'border-border bg-surface text-text-2 hover:bg-surface-2',
+                    )}
+                  >
+                    {r}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
 
         {mode === 'voice' ? (
           <Button type="button" variant="secondary" disabled={pending || !comment.trim()} onClick={() => run(() => requestVoiceLine({ pieceId, phrase: comment, atSecond }), { success: 'Pedido anotado. Redes le pide el audio al jefe.', onOk: () => setComment('') })}>
@@ -105,7 +139,11 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
                 variant="danger"
                 disabled={pending}
                 onClick={async () => {
-                  if (!comment.trim()) return alert('Escribe qué hay que cambiar.');
+                  if (!comment.trim()) {
+                    setError('Escribe qué hay que cambiar o toca un motivo rápido.');
+                    textRef.current?.focus();
+                    return;
+                  }
                   const text = atSecond !== null ? `[${fmtSecond(atSecond)}] ${comment}` : comment;
                   const r = await run(() => reviewPiece({ pieceId, decision: 'changes_requested', comment: text, revision }), { success: 'Se pidieron los cambios.', refresh: false });
                   if (r?.ok) router.push('/aprobar');

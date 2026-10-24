@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
 import { PageHeader, EmptyState } from '@/components/ui/page';
+import { Tip } from '@/components/ui/tip';
 import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { PIECE_KIND } from '@/lib/data/labels';
@@ -39,6 +40,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
               : 'Supervisión aprueba verdes y amarillas; el jefe, las rojas.'
         }
       />
+      <Tip id="aprobar">Las verdes se pueden aprobar juntas; las rojas las aprueba el jefe.</Tip>
       <div className="mb-4 flex gap-1" role="tablist">
         <Link role="tab" aria-selected={!isTweets} href="/aprobar" className={cn('min-h-10 rounded-full px-4 py-2 text-sm font-semibold', !isTweets ? 'bg-slate text-on-slate' : 'border border-border bg-surface text-text-2')}>
           Piezas ({data.pieces.length})

@@ -4,7 +4,16 @@ import { z } from 'zod';
 import { DateTime } from 'luxon';
 import { act, UserError } from './run';
 import { TZ } from '../time';
-import { notify } from '../notify';
+import { notify, usersWithRole } from '../notify';
+import {
+  correctedEventNotice,
+  decisionNotice,
+  newEventNotice,
+  noticeEventTitle,
+  noticeRecipients,
+  noticeTitleChanged,
+  type AgendaNotice,
+} from '@/lib/domain/agenda-notices';
 
 const text = (max: number) => z.string().trim().max(max).default('');
 
@@ -40,6 +49,17 @@ const eventSchema = z.object({
   ...briefShape,
 });
 
+// Agenda notices go out AFTER the transaction (notify() opens its own system connection).
+async function sendAgendaNotice(n: AgendaNotice, recipients: () => Promise<string[]>) {
+  try {
+    const userIds = await recipients();
+    if (userIds.length) await notify({ userIds, kind: n.kind, title: n.title, body: n.body, link: n.link, key: n.key });
+  } catch (e) {
+    // The change is already saved: a failed notice must not turn it into an error.
+    console.warn('[notify] agenda:', (e as Error).message);
+  }
+}
+
 function toRange(date: string, time: string, durationMin: number) {
   const start = DateTime.fromISO(`${date}T${time}`, { zone: TZ });
   if (!start.isValid) throw new UserError('La fecha u hora no es válida.');
@@ -71,13 +91,55 @@ export async function createEvent(raw: unknown) {
        values ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [ev!.id, i.workDescription, i.ledBy, i.inCharge, i.achievements, i.keyFacts, i.protocol, i.notes],
     );
-    if (i.cameraUserId && !s.roles.includes('secretary')) {
+    const assignCam = !!i.cameraUserId && !s.roles.includes('secretary');
+    if (assignCam) {
       await sql.query(`insert into public.event_assignments (event_id, user_id, duty) values ($1, $2, 'camera')`, [ev!.id, i.cameraUserId]);
     }
-    return { id: ev!.id, cameraUserId: i.cameraUserId, title: i.title };
+    return { id: ev!.id, cameraUserId: assignCam ? i.cameraUserId : null, title: i.title, actorId: s.userId };
   }, { revalidate: ['/agenda', '/hoy'] }).then(async (r) => {
     if (r.ok && r.data?.cameraUserId) {
-      await notify({ userIds: [r.data.cameraUserId], kind: 'event_assigned', title: 'Te asignaron un evento', body: r.data.title, link: `/eventos/${r.data.id}`, key: `assigned:${r.data.id}`, email: true });
+      // This one is also emailed: only the title, scrubbed of anything like a date (rule 4).
+      await notify({ userIds: [r.data.cameraUserId], kind: 'event_assigned', title: 'Te asignaron un evento', body: noticeEventTitle(r.data.title), link: `/eventos/${r.data.id}`, key: `assigned:${r.data.id}`, email: true });
+    }
+    if (r.ok && r.data) {
+      // Proposed by secretaría or created by despacho/admin: the boss decides, despacho follows.
+      const { actorId } = r.data;
+      await sendAgendaNotice(newEventNotice(r.data), async () =>
+        noticeRecipients([...(await usersWithRole('boss')), ...(await usersWithRole('dispatch'))], actorId),
+      );
+    }
+    return r;
+  });
+}
+
+// Secretaría fixes her own proposal while the boss has not decided. Only the columns the
+// database lets her touch (guard_event_update): no date, place details, brief or urgency.
+const proposalSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().trim().min(3, 'Escribe un título.').max(140, 'Máximo 140 caracteres.'),
+  placeName: text(200),
+  municipality: text(100),
+  summary: text(1000),
+  categoryId: z.string().uuid().nullable().or(z.literal('')).transform((v) => v || null),
+});
+
+export async function updateProposal(raw: unknown) {
+  return act(proposalSchema, raw, async (sql, i, s) => {
+    const before = await sql.one<{ title: string }>(`select title from public.events where id = $1`, [i.id]);
+    const r = await sql.query(
+      `update public.events set title = $2, place_name = $3, municipality = $4, summary = $5, category_id = $6
+        where id = $1 and created_by = auth.uid() and boss_decision = 'pending' and deleted_at is null returning id`,
+      [i.id, i.title, i.placeName, i.municipality, i.summary, i.categoryId],
+    );
+    if (!r.length || !before) throw new UserError('Ya no se puede cambiar: el jefe ya decidió.');
+    return { id: i.id, title: i.title, retitled: noticeTitleChanged(before.title, i.title), actorId: s.userId };
+  }, { revalidate: ['/agenda', '/eventos', '/hoy'] }).then(async (r) => {
+    if (r.ok && r.data?.retitled) {
+      // The boss decides by the notice: he must see the corrected title, not the old one.
+      const { actorId } = r.data;
+      await sendAgendaNotice(correctedEventNotice(r.data, new Date().toISOString().slice(0, 19)), async () =>
+        noticeRecipients([...(await usersWithRole('boss')), ...(await usersWithRole('dispatch'))], actorId),
+      );
     }
     return r;
   });
@@ -132,12 +194,29 @@ export async function bossDecide(raw: unknown) {
   return act(
     z.object({ id: z.string().uuid(), priority: z.coerce.number().int().min(1).max(10).nullable(), decision: z.enum(['pending', 'accepted', 'rejected']) }),
     raw,
-    async (sql, i) => {
+    async (sql, i, s) => {
+      // The database lets admin and despacho change any column; deciding is the boss's alone.
+      if (!s.roles.includes('boss')) throw new UserError('Solo el jefe decide.');
+      const before = await sql.one<{ boss_decision: string; title: string; created_by: string | null }>(
+        `select boss_decision, title, created_by from public.events where id = $1`,
+        [i.id],
+      );
       const r = await sql.query(`update public.events set priority = $2, boss_decision = $3 where id = $1 returning id`, [i.id, i.priority, i.decision]);
-      if (!r.length) throw new UserError('No autorizado.');
+      if (!r.length || !before) throw new UserError('No autorizado.');
+      return { changed: before.boss_decision !== i.decision, title: before.title, createdBy: before.created_by, actorId: s.userId };
     },
     { revalidate: ['/agenda', '/eventos', '/jefe'] },
-  );
+  ).then(async (r) => {
+    const i = raw as { id: string; decision: string };
+    if (r.ok && r.data?.changed && (i.decision === 'accepted' || i.decision === 'rejected')) {
+      // Whoever proposed it and despacho learn the decision (never the date or place).
+      const { createdBy, actorId, title } = r.data;
+      await sendAgendaNotice(decisionNotice({ id: i.id, title }, i.decision, new Date().toISOString().slice(0, 16)), async () =>
+        noticeRecipients([createdBy, ...(await usersWithRole('dispatch'))], actorId),
+      );
+    }
+    return r;
+  });
 }
 
 export async function setWorkStatus(raw: unknown) {
@@ -169,7 +248,7 @@ export async function assignCamera(raw: unknown) {
   }, { revalidate: ['/eventos'] }).then(async (r) => {
     if (r.ok && r.data) {
       const i = raw as { id: string };
-      await notify({ userIds: [r.data.notifyUser], kind: 'event_assigned', title: 'Te asignaron un evento', body: r.data.title, link: `/eventos/${i.id}`, key: `assigned:${i.id}`, email: true });
+      await notify({ userIds: [r.data.notifyUser], kind: 'event_assigned', title: 'Te asignaron un evento', body: noticeEventTitle(r.data.title), link: `/eventos/${i.id}`, key: `assigned:${i.id}`, email: true });
     }
     return r;
   });

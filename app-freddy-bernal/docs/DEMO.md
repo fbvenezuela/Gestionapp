@@ -18,6 +18,16 @@ con Google Authenticator), pon `DEMO_SHORTCUTS=false` en Vercel. Con datos reale
 | Secretaría | `secretaria@demo.test` | Propone un evento: solo ve los suyos |
 | Administración | `admin@demo.test` | **Ajustes** → Equipo (invitar, roles, cerrar sesiones), categorías, fórmulas, horarios de tweets, reglas de video por red, buzón de correos y registro de cambios. «Ver como…» arriba cambia los menús (no los permisos) |
 
+## Lo nuevo para probar
+- **360, el asistente:** el botón redondo abajo a la derecha, en cualquier pantalla y con cualquier rol. Prueba «¿cómo te
+  llamas?», «¿qué tengo pendiente?», «¿cuándo es mejor publicar en TikTok?» y «quiero hablar con alguien» (a
+  Administración le llega el aviso). Sin IA: contesta en modo demostración. Administración lo enseña en Ajustes → Asistente.
+- **Avisos al teléfono:** Mi perfil → «Activar avisos» → «Probar aviso». En iPhone, primero agrega la app a la pantalla
+  de inicio. También ahí: horas de silencio y resumen diario por correo (queda en el buzón).
+- **Modo sol:** menú de la cuenta (arriba a la derecha) → «Modo sol».
+- **Secretaría** corrige su propuesta desde el evento mientras el jefe no decide; al jefe le llega el aviso.
+- **Administración:** en Equipo ve quién tiene doble factor y lo puede reiniciar; en el material, «Quitar» lo subido por error.
+
 ## Para mostrar la seguridad
 - Con redes abierto en un teléfono y el jefe en otro: redes nunca ve la hora; el jefe sí.
 - Redes no puede aprobar: el botón no está, y aunque lo intente por la API, la base lo rechaza.

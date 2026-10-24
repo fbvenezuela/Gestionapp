@@ -13,7 +13,9 @@ Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en españo
   piezas con versiones; copies en tres largos con 9 fórmulas, voz y cierre por pieza (plantilla o IA); aprobación con
   semáforo (verde/amarillo supervisión, rojo el jefe, plazos y lista de chequeo; D-23); tweets de la semana desde
   documento (2–3 al día); publicación manual validada por red con mejores horas; registro de lo que publica el jefe por
-  su cuenta; resultados (manual, CSV, «¿a qué hora nos va mejor?»); vista del jefe; ajustes; buzón; registro de cambios.
+  su cuenta; resultados (manual, CSV, «¿a qué hora nos va mejor?»); vista del jefe; ajustes; buzón; registro de cambios;
+  avisos al teléfono (Web Push, D-25); asistente del equipo «360» (`docs/ASISTENTE.md`, D-26, sin IA hasta el OK legal);
+  mejoras de uso (D-27: «Más», modo sol, consejos, pantallas en vivo, diálogo propio).
 - Marca: oliva como color principal (D-21). Diagnóstico Digital 360 resumido en `docs/DIAGNOSTICO-360.md` (el ZIP es
   confidencial y no está en el repositorio).
 - Pruebas: Vitest (unidad + RLS) y Playwright a 360 px con axe. CI en `.github/workflows/ci.yml`.

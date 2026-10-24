@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
 import { PageHeader, EmptyState } from '@/components/ui/page';
+import { Tip } from '@/components/ui/tip';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
@@ -41,6 +42,7 @@ export default async function PublishPage() {
             <LinkButton href="/publicar/nueva"><Plus className="h-4 w-4" aria-hidden /> Nueva publicación</LinkButton>
           </div>
         } />
+      <Tip id="publicar">Abre una publicación para ver si cumple con cada red antes de subirla.</Tip>
       {data.ready.length ? (
         <Card className="mb-5">
           <CardHeader title="Aprobadas y sin publicar" />

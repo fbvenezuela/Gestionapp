@@ -1,4 +1,4 @@
-import { Button, Heading, Text } from '@react-email/components';
+import { Button, Heading, Section, Text } from '@react-email/components';
 import { EmailLayout, emailColors } from './layout';
 
 // Rule 4: no template ever includes an event's date or time.
@@ -36,6 +36,27 @@ export function NoticeEmail({ appName, title, body, url, cta }: { appName: strin
         <Text key={i} style={p}>{line}</Text>
       ))}
       {url ? <Button href={url} style={btn}>{cta ?? 'Abrir'}</Button> : null}
+    </EmailLayout>
+  );
+}
+
+// Daily digest: counts and titles only (never an event's date, time or place).
+export function DigestEmail({ appName, name, sections, url }: { appName: string; name?: string; sections: { line: string; titles: string[]; more: number }[]; url: string }) {
+  const li = { ...p, margin: '2px 0 2px 12px' } as const;
+  return (
+    <EmailLayout preview={sections.map((s) => s.line).join(' · ')} appName={appName}>
+      <Heading style={h}>Hola{name ? `, ${name}` : ''}: esto espera por ti</Heading>
+      {sections.map((s, i) => (
+        <Section key={i} style={{ margin: '12px 0' }}>
+          <Text style={{ ...p, fontWeight: 700, margin: '0 0 4px' }}>{s.line}</Text>
+          {s.titles.map((t, j) => (
+            <Text key={j} style={li}>• {t}</Text>
+          ))}
+          {s.more ? <Text style={{ ...li, color: emailColors.muted }}>y {s.more} más</Text> : null}
+        </Section>
+      ))}
+      <Button href={url} style={btn}>Abrir «Hoy»</Button>
+      <Text style={{ ...p, color: emailColors.muted, fontSize: 13 }}>Llega una vez al día. Lo apagas en tu perfil.</Text>
     </EmailLayout>
   );
 }

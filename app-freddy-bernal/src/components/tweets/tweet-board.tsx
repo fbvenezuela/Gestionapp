@@ -22,9 +22,10 @@ export type BoardTweet = {
 
 const local = (iso: string) => DateTime.fromJSDate(new Date(iso)).setZone(TZ).setLocale('es');
 
-// Week board: one column per day. Drag a tweet to another day to move it (keeps the
-// hour); or open it to change the hour, add the reference image, copy it or mark it
-// as published by hand.
+// Week board: one column per day. Tap a tweet (finger or mouse) to change its day or hour, add
+// the reference image, copy it or mark it as published by hand. On a computer it can also be
+// dragged to another day (keeps the hour); dragging does not work with a finger, so the tap is
+// the main way and every target is at least 44 px.
 export function TweetBoard({ tweets, canEdit }: { tweets: BoardTweet[]; canEdit: boolean }) {
   const { run, pending } = useAction();
   const [open, setOpen] = useState<BoardTweet | null>(null);
@@ -73,7 +74,8 @@ export function TweetBoard({ tweets, canEdit }: { tweets: BoardTweet[]; canEdit:
                       }}
                       onDragEnd={() => setDrag(null)}
                       onClick={() => setOpen(t)}
-                      className={cn('w-full rounded-[var(--radius-control)] border border-border bg-surface p-2 text-left hover:border-accent', t.status === 'skipped' && 'opacity-50')}
+                      aria-haspopup="dialog"
+                      className={cn('min-h-11 w-full rounded-[var(--radius-control)] border border-border bg-surface p-2 text-left hover:border-accent', t.status === 'skipped' && 'opacity-50')}
                     >
                       <span className="flex items-center justify-between gap-2">
                         <span className="font-mono text-sm font-semibold">{local(t.scheduled_at!).toFormat('h:mm a')}</span>
@@ -95,7 +97,7 @@ export function TweetBoard({ tweets, canEdit }: { tweets: BoardTweet[]; canEdit:
           <section className="w-[280px] shrink-0 rounded-[var(--radius-card)] border border-dashed border-border p-2">
             <h3 className="px-1 pb-2 text-sm font-bold">Sin hora</h3>
             {noTime.map((t) => (
-              <button key={t.id} type="button" onClick={() => setOpen(t)} className="mb-2 w-full rounded-[var(--radius-control)] border border-border bg-surface p-2 text-left text-sm">{t.body}</button>
+              <button key={t.id} type="button" onClick={() => setOpen(t)} aria-haspopup="dialog" className="mb-2 min-h-11 w-full rounded-[var(--radius-control)] border border-border bg-surface p-2 text-left text-sm hover:border-accent">{t.body}</button>
             ))}
           </section>
         ) : null}
@@ -120,10 +122,11 @@ function TweetSheet({ t, canEdit, pending, onClose, run }: { t: BoardTweet; canE
         <Button type="button" variant="secondary" onClick={() => navigator.clipboard.writeText(t.body).then(() => toast.success('Copiado. Pégalo en X.'))}>
           <Copy className="h-4 w-4" aria-hidden /> Copiar texto
         </Button>
-        {t.image_asset_id ? <a className="text-sm font-semibold text-accent-ink" href={`/api/media/${t.image_asset_id}`}>Descargar la imagen de referencia</a> : null}
+        {t.image_asset_id ? <a className="inline-flex min-h-11 items-center text-sm font-semibold text-accent-ink" href={`/api/media/${t.image_asset_id}`}>Descargar la imagen de referencia</a> : null}
 
         {canEdit && !done ? (
           <>
+            <p className="text-sm text-text-2">Cambia el día o la hora y toca «Cambiar día y hora».</p>
             <div className="grid grid-cols-2 gap-2">
               <label className="flex flex-col gap-1 text-sm font-semibold">Día<Input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
               <label className="flex flex-col gap-1 text-sm font-semibold">Hora<Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></label>
@@ -147,7 +150,7 @@ function TweetSheet({ t, canEdit, pending, onClose, run }: { t: BoardTweet; canE
           </div>
         ) : null}
         {done && t.published_url ? (
-          <a href={t.published_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold text-accent-ink">Ver en X <ExternalLink className="h-4 w-4" aria-hidden /></a>
+          <a href={t.published_url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1 font-semibold text-accent-ink">Ver en X <ExternalLink className="h-4 w-4" aria-hidden /></a>
         ) : null}
         {canEdit && !done && t.status !== 'skipped' ? (
           <Button type="button" variant="ghost" disabled={pending} onClick={() => run(() => skipTweet({ id: t.id }), { success: 'Tweet saltado.', onOk: onClose })}>

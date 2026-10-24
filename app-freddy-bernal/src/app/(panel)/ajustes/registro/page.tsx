@@ -6,6 +6,7 @@ import { fmtDateTime } from '@/lib/time';
 export const metadata = { title: 'Registro de cambios' };
 
 const TABLE: Record<string, string> = {
+  two_factor: 'Doble factor',
   events: 'Evento', event_schedule: 'Fecha y lugar', event_brief: 'Ficha técnica', event_assignments: 'Asignación',
   storyboards: 'Storyboard', storyboard_blocks: 'Bloque de storyboard', media_assets: 'Material', pieces: 'Pieza',
   piece_versions: 'Versión de pieza', copies: 'Copy', reviews: 'Revisión', review_comments: 'Comentario',
@@ -13,7 +14,7 @@ const TABLE: Record<string, string> = {
   publication_metrics: 'Resultados', profiles: 'Persona', user_roles: 'Rol', invitations: 'Invitación',
   app_settings: 'Ajuste', categories: 'Categoría', copy_formulas: 'Fórmula', network_specs: 'Reglas de red',
 };
-const ACTION: Record<string, string> = { insert: 'creó', update: 'cambió', delete: 'quitó', soft_delete: 'borró' };
+const ACTION: Record<string, string> = { insert: 'creó', update: 'cambió', delete: 'quitó', soft_delete: 'borró', mfa_reset: 'reinició' };
 
 export default async function AuditPage({ searchParams }: { searchParams: Promise<{ antes?: string }> }) {
   const s = await requireRole('admin');

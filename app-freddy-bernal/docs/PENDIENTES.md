@@ -110,3 +110,13 @@ Resumen y lo que sirve: `docs/DIAGNOSTICO-360.md` (el ZIP no se subió al reposi
   el jefe; sin respuesta no se aprueba. Lo que el jefe publica por su cuenta se **registra después**.
 - **#23 Igor:** hizo un programa de investigación de datos que **se conectará más adelante** (fuente de datos para
   fichas, tweets y copies). Pendiente: qué datos entrega, en qué formato y cómo se accede. TCPRO-5 sigue sin integrarse.
+
+## Nuevo (24/10/2026 noche): avisos al teléfono y asistente 360
+- **Tarea cada 5 minutos (gratis):** al conectar Supabase, en el panel → Vault crear dos secretos: `app_url` (la dirección
+  de la app) y `cron_secret` (el mismo `CRON_SECRET` de Vercel), y activar las extensiones `pg_cron` y `pg_net`. La
+  migración `20261025000800_push.sql` programa la tarea sola si existen.
+- **Asistente 360 con IA:** necesita el OK legal y elegir proveedores. Mientras, funciona sin IA (modo demostración).
+- **Avisos al teléfono:** funcionan ya en la demo para quien los active en su teléfono. Con datos reales, conviene
+  poner `VAPID_PUBLIC_KEY` y `VAPID_PRIVATE_KEY` propias en Vercel (te digo cómo generarlas) y un `VAPID_SUBJECT` con el
+  correo del dominio.
+

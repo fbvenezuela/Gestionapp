@@ -6,6 +6,7 @@ import { env } from '../env';
 import { withSystem } from '../db';
 import { MEDIA_KIND } from '../data/labels';
 import { notify, usersWithRole } from '../notify';
+import { MEDIA_LOCK, mediaLockSql, type MediaLock } from '@/lib/domain/media-lock';
 
 const KINDS = ['boss', 'drone', 'broll', 'other', 'final', 'cover', 'editable', 'voice_line', 'evidence', 'tweet_image'] as const;
 
@@ -96,9 +97,15 @@ export async function failUpload(raw: unknown) {
   });
 }
 
+// Removes something uploaded by mistake (soft delete: the row stays, audited). The database
+// only lets admin set deleted_at; here we also refuse files that are under review, approved,
+// published or received as the boss's voice line (media-lock.ts).
 export async function removeMedia(raw: unknown) {
-  return act(z.object({ id: z.string().uuid() }), raw, async (sql, i) => {
-    const r = await sql.query(`update public.media_assets set deleted_at = now() where id = $1 returning id`, [i.id]);
-    if (!r.length) throw new UserError('No autorizado.');
+  return act(z.object({ id: z.string().uuid() }), raw, async (sql, i, s) => {
+    if (!s.roles.includes('admin')) throw new UserError('Solo administración puede quitar archivos.');
+    const lock = await sql.one<{ lock: MediaLock | null }>(`select ${mediaLockSql('$1::uuid')} as lock`, [i.id]);
+    if (lock?.lock) throw new UserError(MEDIA_LOCK[lock.lock]?.error ?? 'No se puede quitar este archivo.');
+    const r = await sql.query(`update public.media_assets set deleted_at = now() where id = $1 and deleted_at is null returning id`, [i.id]);
+    if (!r.length) throw new UserError('Ese archivo ya no está.');
   }, { revalidate: ['/eventos', '/biblioteca'] });
 }

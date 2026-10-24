@@ -23,7 +23,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es-VE" className={montserrat.variable}>
+    <html lang="es-VE" className={montserrat.variable} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
         <OfflineBanner />
         {children}

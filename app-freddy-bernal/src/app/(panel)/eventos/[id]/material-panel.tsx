@@ -4,8 +4,11 @@ import { Chip } from '@/components/ui/chip';
 import { Uploader } from '@/components/media/uploader';
 import { DownloadAll } from '@/components/media/download-all';
 import { MEDIA_KIND } from '@/lib/data/labels';
+import { RemoveMedia } from './remove-media';
+import { mediaLockChip } from '@/lib/domain/media-lock';
 
-type Media = { id: string; kind: string; label: string; size_bytes: number; duration_s: number | null; width: number | null; height: number | null; status: string; mime: string };
+// lock = why it cannot be removed (media-lock.ts), or null.
+type Media = { id: string; kind: string; label: string; size_bytes: number; duration_s: number | null; width: number | null; height: number | null; status: string; mime: string; lock?: string | null };
 
 const RAW: { kind: string; hint: string }[] = [
   { kind: 'boss', hint: 'Lo que dice el jefe a cámara' },
@@ -23,7 +26,7 @@ function dur(s: number | null) {
   return `${m}:${String(Math.round(s % 60)).padStart(2, '0')}`;
 }
 
-export function MaterialPanel({ eventId, media, canUpload }: { eventId: string; eventCode: string; media: Media[]; canUpload: boolean }) {
+export function MaterialPanel({ eventId, media, canUpload, canRemove = false }: { eventId: string; eventCode: string; media: Media[]; canUpload: boolean; canRemove?: boolean }) {
   const ready = media.filter((m) => m.status === 'ready');
   return (
     <div className="flex flex-col gap-4">
@@ -41,7 +44,7 @@ export function MaterialPanel({ eventId, media, canUpload }: { eventId: string; 
           <Card key={r.kind}>
             <CardHeader title={MEDIA_KIND[r.kind]} subtitle={r.hint} action={list.length ? <Chip tone="ok">{list.length}</Chip> : <Chip>Vacío</Chip>} />
             <div className="flex flex-col gap-2 p-4">
-              {list.map((m) => <MediaRow key={m.id} m={m} />)}
+              {list.map((m) => <MediaRow key={m.id} m={m} canRemove={canRemove} />)}
               {canUpload ? <Uploader eventId={eventId} kind={r.kind} label={`Subir ${MEDIA_KIND[r.kind].toLowerCase()}`} accept="video/*,image/*,audio/*" compact={list.length > 0} /> : null}
               {!list.length && !canUpload ? <p className="text-[15px] text-text-2">Todavía no hay archivos.</p> : null}
             </div>
@@ -52,7 +55,7 @@ export function MaterialPanel({ eventId, media, canUpload }: { eventId: string; 
         <Card>
           <CardHeader title="Finales y portadas" />
           <div className="flex flex-col gap-2 p-4">
-            {media.filter((m) => !RAW.some((r) => r.kind === m.kind)).map((m) => <MediaRow key={m.id} m={m} />)}
+            {media.filter((m) => !RAW.some((r) => r.kind === m.kind)).map((m) => <MediaRow key={m.id} m={m} canRemove={canRemove} />)}
           </div>
         </Card>
       ) : null}
@@ -60,10 +63,10 @@ export function MaterialPanel({ eventId, media, canUpload }: { eventId: string; 
   );
 }
 
-function MediaRow({ m }: { m: Media }) {
+function MediaRow({ m, canRemove }: { m: Media; canRemove: boolean }) {
   const Icon = m.mime.startsWith('image/') ? ImageIcon : Film;
   return (
-    <div className="flex items-center gap-3 rounded-[var(--radius-control)] border border-border px-3 py-2">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[var(--radius-control)] border border-border px-3 py-2">
       <Icon className="h-5 w-5 shrink-0 text-text-2" aria-hidden />
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold">{m.label}</p>
@@ -78,6 +81,7 @@ function MediaRow({ m }: { m: Media }) {
       ) : (
         <Chip tone={m.status === 'failed' ? 'danger' : 'warn'}>{m.status === 'failed' ? 'Incompleto' : 'Subiendo'}</Chip>
       )}
+      {canRemove ? (mediaLockChip(m.lock) ? <Chip tone="ok">{mediaLockChip(m.lock)}</Chip> : <RemoveMedia id={m.id} label={m.label} />) : null}
     </div>
   );
 }

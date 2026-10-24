@@ -160,3 +160,38 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 - **Por qué:** Juan: primera persona «no todos, depende de lo que hagamos»; «Por amor al Táchira» «no siempre».
 - **Fórmulas nuevas:** GBA y DATO piden un destino en el cierre; CITA usa una frase textual del storyboard (sin cifras:
   las cifras van en «Datos y cifras» con su fuente) y nunca la inventa.
+
+## D-25. Avisos al teléfono gratis (Web Push), con horas de silencio
+- **Qué:** quien quiere, toca «Activar avisos» en Mi perfil y su teléfono recibe los avisos aunque la app esté cerrada.
+  En iPhone solo con la app agregada a la pantalla de inicio (iOS 16.4+); la app explica los pasos. Sin costo: no hace
+  falta cuenta de Apple ni Firebase. Las claves se derivan de `SESSION_SECRET` si no se ponen `VAPID_*`.
+- **Reglas:** el texto nunca lleva fecha, hora ni lugar (se limpia antes de enviar); horas de silencio por persona (por
+  defecto 21:00–07:00) salvo los críticos; como mucho uno por tipo cada 10 minutos; al salir de la app, ese teléfono
+  deja de recibir; a quien se desactiva se le borran sus teléfonos. `PUSH_ENABLED=false` los apaga.
+- **Resumen diario por correo** para quien lo marque en Mi perfil (solo conteos y títulos, sin fechas).
+- **Tarea cada 5 minutos sin pagar:** `pg_cron` + `pg_net` en Supabase llaman `/api/cron/tick`; la dirección y la clave
+  salen de Vault (`app_url`, `cron_secret`), nunca de la migración. En Vercel Hobby sigue el aviso diario.
+
+## D-26. El asistente del equipo «360»
+- **Qué:** un chat en todas las pantallas, adaptado del manual del asistente Cemi (ver `docs/ASISTENTE.md`). Solo para el
+  equipo; contesta con lo que cada quien puede ver (la base decide), nunca con la agenda del jefe, y quita fechas, horas,
+  correos y teléfonos de lo que se le escribe. Herramientas por rol en tres niveles: consulta, prepara (lo confirma
+  administración) y hace (con deshacer). «Hablar con alguien» avisa de verdad a administración.
+- **Sin IA por ahora:** con `ASISTENTE_MODELOS` vacío contesta el cerebro de demostración (guiones y fichas). Para usar
+  un modelo: OK legal (sanciones), cadena de proveedores distintos con API compatible con OpenAI (Gemini, Groq, OpenAI,
+  OpenRouter, Mistral). Anthropic no (no da servicio en Venezuela).
+- **Panel:** Ajustes → Asistente (solo administración): lo que sabe, cómo contesta (con probador), conversaciones, cómo
+  va, lo que preguntan, por confirmar, lo que hizo y ajustes (nombre, cara y presentación).
+- **Nombre:** «360» (Juan, 24/10/2026).
+
+## D-27. Mejoras de uso sin costo (24/10/2026)
+- Barra del teléfono con «Más»; «Modo sol» (alto contraste) en el menú de la cuenta; un consejo corto la primera vez en
+  cada pantalla; pantallas que se actualizan solas (Realtime con Supabase, cada 60 s en la demo, nunca mientras alguien
+  escribe); motivos rápidos al pedir cambios y vista de cómo saldrá cada copy; resultados en tarjetas en el teléfono; aviso
+  «Esa pantalla no es de tu rol» en vez de un salto sin explicación; tweets: «toca para cambiar el día o la hora».
+- Secretaría corrige su propuesta mientras el jefe no decide; avisos al jefe y a despacho de cada evento nuevo, y a quien
+  lo propuso cuando el jefe decide (sin fecha ni lugar en el texto). Solo el jefe decide (también en el servidor).
+- Administración puede quitar material subido por error (no si está en una pieza aprobada, en revisión o publicada) y,
+  en Equipo, ve quién tiene doble factor y lo reinicia si alguien pierde el teléfono (queda en el registro).
+- Las confirmaciones usan el diálogo de la app, no las ventanitas del navegador.
+

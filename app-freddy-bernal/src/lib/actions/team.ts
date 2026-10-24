@@ -85,3 +85,56 @@ export async function revokeInvitation(raw: unknown) {
     await sql.query(`update public.invitations set revoked_at = now() where id = $1 and accepted_at is null`, [input.id]);
   }, { revalidate: ['/ajustes/equipo'] });
 }
+
+// Someone lost or changed their phone: admin removes their two-factor so they enroll again at
+// the next sign-in. Their open sessions are closed too (whoever has the old phone stays out).
+export async function resetTwoFactor(raw: unknown) {
+  return act(userSchema, raw, async (sql, input, s) => {
+    if (!s.roles.includes('admin')) throw new UserError('Solo administración puede hacer esto.');
+    if (input.userId === s.userId) throw new UserError('Tu propio doble factor lo reinicia otra persona de administración.');
+    const ok = await sql.one<{ ok: boolean }>(`select public.has_role('admin') and public.mfa_ok() as ok`);
+    if (!ok?.ok) throw new UserError('No autorizado.');
+    const r = await sql.one<{ email: string }>(
+      `update public.profiles set sessions_revoked_at = now() where id = $1 and deleted_at is null returning email`,
+      [input.userId],
+    );
+    if (!r) throw new UserError('No se encontró a esa persona.');
+    return { actorId: s.userId, email: r.email };
+  }, { revalidate: ['/ajustes/equipo'] }).then(async (res) => {
+    if (!res.ok || !res.data) return res;
+    const { userId } = userSchema.parse(raw);
+    const { actorId, email } = res.data;
+    try {
+      const removed = env.dataMode === 'demo' ? await removeDemoFactors(userId) : await removeSupabaseFactors(userId);
+      // Auth factors live outside the audited tables: leave an explicit note in the audit trail.
+      await withSystem((sql) =>
+        sql.query(`insert into public.audit_log (actor_id, table_name, row_id, action, new_data) values ($1, 'two_factor', $2, 'mfa_reset', $3::text::jsonb)`, [
+          actorId,
+          userId,
+          JSON.stringify({ email, factors_removed: removed, sessions_closed: true }),
+        ]),
+      );
+    } catch (e) {
+      console.error('[mfa reset]', (e as Error).message);
+      return { ok: false as const, error: 'No se pudo reiniciar el doble factor. Sus sesiones sí quedaron cerradas; vuelve a intentar.' };
+    }
+    return { ok: true as const, message: 'Listo. La próxima vez que entre, tendrá que activar el doble factor otra vez.' };
+  });
+}
+
+async function removeDemoFactors(userId: string): Promise<number> {
+  return withSystem(async (sql) => (await sql.query(`delete from demo_auth.totp_factors where user_id = $1 returning user_id`, [userId])).length);
+}
+
+// Supabase Auth admin API with the service key (server only).
+async function removeSupabaseFactors(userId: string): Promise<number> {
+  const { supabaseAdmin } = await import('../supabase/server');
+  const mfa = supabaseAdmin().auth.admin.mfa;
+  const { data, error } = await mfa.listFactors({ userId });
+  if (error) throw error;
+  for (const f of data?.factors ?? []) {
+    const { error: e } = await mfa.deleteFactor({ id: f.id, userId });
+    if (e) throw e;
+  }
+  return data?.factors.length ?? 0;
+}

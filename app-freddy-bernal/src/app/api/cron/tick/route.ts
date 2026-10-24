@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { DateTime } from 'luxon';
 import { withSystem } from '@/lib/db';
 import { env } from '@/lib/env';
 import { notify, usersWithRole } from '@/lib/notify';
@@ -6,20 +7,43 @@ import { tweetStock } from '@/lib/data/tweets';
 import { publisherFor } from '@/lib/publish';
 import { getDeadlines, piecesInReview } from '@/lib/data/review';
 import { LEVELS, reviewClock } from '@/lib/domain/review';
+import { DIGEST_HOUR, runDailyDigest } from '@/lib/push/digest-run';
+import { assistantHealthCheck } from '@/lib/assistant';
 
-// Scheduled work. Called by Vercel Cron (see vercel.json) or by Supabase pg_cron +
-// pg_net with the CRON_SECRET bearer. Safe to call often: every notice is idempotent.
+// Scheduled work. Called by Vercel Cron (see vercel.json, daily) and/or by Supabase pg_cron +
+// pg_net every 5 minutes (migration 20261025000800_push.sql) with the CRON_SECRET bearer.
+// Safe to call often: a lease keeps two ticks from overlapping, every notice has an
+// idempotency key, daily work is claimed once per local day and escalations are marked.
 export async function GET(req: NextRequest) {
   if (!env.cronSecret || req.headers.get('authorization') !== `Bearer ${env.cronSecret}`) {
     return new NextResponse('No autorizado', { status: 401 });
   }
-  const day = new Date().toISOString().slice(0, 10);
+  const lease = await withSystem((sql) =>
+    sql.one<{ name: string }>(
+      `insert into public.cron_leases (name, until) values ('tick', now() + interval '4 minutes')
+       on conflict (name) do update set until = excluded.until where public.cron_leases.until < now()
+       returning name`,
+    ),
+  );
+  if (!lease) return NextResponse.json({ busy: true });
+  try {
+    return NextResponse.json(await tick());
+  } finally {
+    await withSystem((sql) => sql.query(`update public.cron_leases set until = now() where name = 'tick'`));
+  }
+}
+
+async function tick() {
+  const local = DateTime.now().setZone(env.appTz);
+  const day = local.toISODate();
+  const morning = local.hour >= DIGEST_HOUR;
   const out: Record<string, unknown> = {};
 
-  // 1) Tweets running out (5-6 days left): once a day, in the app and by email.
+  // 1) Tweets running out (5-6 days left): once a (local) day, from the morning on, in the app
+  // and by email.
   const stock = await withSystem((sql) => tweetStock(sql));
   out.tweetDaysLeft = stock.daysLeft;
-  if (stock.lowStock) {
+  if (stock.lowStock && morning) {
     const social = await usersWithRole('social');
     await notify({ userIds: social, kind: 'tweets_low_stock', title: stock.daysLeft ? `Quedan ${stock.daysLeft} días de tweets programados` : 'No quedan tweets programados', body: 'Prepara la tanda de la semana.', link: '/tweets/nueva', key: `tweets-low:${day}`, email: true });
   }
@@ -73,5 +97,11 @@ export async function GET(req: NextRequest) {
     }
   }
   out.lateReviews = late.length;
-  return NextResponse.json(out);
+
+  // 4) Daily digest by email for whoever turned it on in Perfil.
+  out.digest = await runDailyDigest();
+
+  // 5) Assistant health: too many degraded answers in the last hour → one notice to admin.
+  out.assistant = await assistantHealthCheck().catch((e) => ({ error: String((e as Error).message ?? e) }));
+  return out;
 }

@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, MapPin, Plus } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
 import { canSeeSchedule } from '@/lib/roles';
 import { PageHeader, EmptyState } from '@/components/ui/page';
+import { Tip } from '@/components/ui/tip';
 import { LinkButton, buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
@@ -48,6 +49,7 @@ async function Calendar({ s, sp, canCreate }: { s: Awaited<ReturnType<typeof req
   return (
     <>
       <PageHeader title="Agenda" subtitle="Hora del Táchira" actions={canCreate ? <LinkButton href="/agenda/nuevo"><Plus className="h-4 w-4" aria-hidden /> Nuevo evento</LinkButton> : undefined} />
+      <Tip id="agenda">Toca un evento para ver su ficha; arriba cambias entre día, semana y mes.</Tip>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-1">
           <Link href={`/agenda?vista=${view}&fecha=${prev}`} className={buttonVariants({ variant: 'secondary', size: 'icon' })} aria-label="Anterior"><ChevronLeft className="h-5 w-5" aria-hidden /></Link>
@@ -85,6 +87,7 @@ async function CameraList({ s }: { s: Awaited<ReturnType<typeof requireRole>> })
   return (
     <>
       <PageHeader title="Mis eventos" subtitle="Los eventos que te tocan grabar." />
+      <Tip id="agenda-grabacion">Toca un evento para subir lo que grabaste, por partes.</Tip>
       {rows.length === 0 ? (
         <EmptyState title="No tienes eventos asignados todavía." />
       ) : (
@@ -122,6 +125,7 @@ async function TeamList({ s, canCreate }: { s: Awaited<ReturnType<typeof require
   return (
     <>
       <PageHeader title={s.roles.includes('secretary') ? 'Mis eventos' : 'Eventos'} subtitle="Hacia dónde va y de qué se trata. Ordenados por lo que hace falta." actions={canCreate ? <LinkButton href="/agenda/nuevo"><Plus className="h-4 w-4" aria-hidden /> Proponer evento</LinkButton> : undefined} />
+      <Tip id="agenda-equipo">Toca un evento para ver de qué se trata y qué falta.</Tip>
       {rows.length === 0 ? (
         <EmptyState title="Todavía no hay eventos." />
       ) : (

@@ -5,7 +5,8 @@ import { redirect } from 'next/navigation';
 import { demoShortcuts, env } from '../env';
 import { withSystem, withUser, type Claims, type Sql } from '../db';
 import { DEMO_COOKIE, readSession } from './cookie';
-import { ROLES, type Role } from '../roles';
+import { ROLES, homeFor, type Role } from '../roles';
+import { noPermissionUrl } from '../../components/shell/no-permission';
 
 export type Session = {
   userId: string;
@@ -89,9 +90,11 @@ export async function requireSession(): Promise<Session> {
   return s;
 }
 
+// A screen that is not for the person's role sends them to their own home (the boss has no
+// Hoy) with a polite note: ?sin-permiso=1 (see components/shell/no-permission-banner.tsx).
 export async function requireRole(...allowed: Role[]): Promise<Session> {
   const s = await requireSession();
-  if (!s.roles.some((r) => allowed.includes(r))) redirect('/hoy');
+  if (!s.roles.some((r) => allowed.includes(r))) redirect(noPermissionUrl(homeFor(s.roles)));
   return s;
 }
 

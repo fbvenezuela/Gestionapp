@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronRight, Users, Tags, PenLine, Clock, Video, Palette, Inbox, History } from 'lucide-react';
+import { ChevronRight, Users, Tags, PenLine, Clock, Video, Palette, Inbox, History, Bot } from 'lucide-react';
 import { requireRole } from '@/lib/auth/session';
 import { PageHeader } from '@/components/ui/page';
 import { Card } from '@/components/ui/card';
@@ -13,6 +13,7 @@ const ITEMS = [
   { href: '/ajustes/horarios', label: 'Horarios de tweets', detail: 'Franjas y cuántos por día', icon: Clock },
   { href: '/ajustes/redes', label: 'Reglas por red', detail: 'Duración, medidas y peso de video de cada red', icon: Video },
   { href: '/ajustes/marca', label: 'Marca', detail: 'Nombre, colores y logos', icon: Palette },
+  { href: '/ajustes/asistente', label: 'Asistente', detail: 'Lo que sabe, cómo contesta y cómo le va', icon: Bot },
   { href: '/ajustes/buzon', label: 'Buzón de correos', detail: 'Los correos que la plataforma generó', icon: Inbox },
   { href: '/ajustes/registro', label: 'Registro de cambios', detail: 'Quién cambió qué y cuándo', icon: History },
 ];

@@ -5,6 +5,7 @@ import { canSeeSchedule, type Role } from '@/lib/roles';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { PageHeader, Stat, EmptyState } from '@/components/ui/page';
+import { Tip } from '@/components/ui/tip';
 import { fmtTime, today } from '@/lib/time';
 import { tweetStock } from '@/lib/data/tweets';
 import { getDeadlines, piecesInReview } from '@/lib/data/review';
@@ -127,6 +128,7 @@ export default async function TodayPage() {
   return (
     <>
       <PageHeader title={`Hola, ${first}`} subtitle={t0.toFormat("cccc d 'de' LLLL")} />
+      <Tip id="hoy">Aquí está lo que espera por ti; lo de «Trancado» está parado y necesita una mano.</Tip>
 
       {data.stats.length ? (
         <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { generateCopies, saveCopy } from '@/lib/actions/pieces';
 import { useAction } from '@/lib/hooks/use-action';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input, Select, Textarea } from '@/components/ui/field';
 import { LENGTH_GROUP } from '@/lib/data/labels';
@@ -28,6 +29,7 @@ export function CopiesEditor({
   closings: string[]; voice: Voice; closing: Closing | null; approved: boolean;
 }) {
   const { run, pending } = useAction();
+  const { confirm, dialog } = useConfirm();
   const [voice, setVoice] = useState<Voice>(savedVoice);
   const [closingSel, setClosingSel] = useState(closingValue(savedClosing, closings));
   const [destination, setDestination] = useState(savedClosing?.kind === 'destination' ? savedClosing.text ?? '' : '');
@@ -44,6 +46,7 @@ export function CopiesEditor({
   return (
     <Card>
       <CardHeader title="Copies" subtitle="La misma fórmula en tres largos. Solo usan cifras de la ficha." />
+      {dialog}
       <CardBody className="flex flex-col gap-4">
         <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Fórmula" htmlFor="copy-formula">
@@ -74,8 +77,16 @@ export function CopiesEditor({
           <Button
             type="button"
             disabled={pending || !formulaId}
-            onClick={() => {
-              if (Object.values(texts).some(Boolean) && !confirm(approved ? 'Esto reemplaza los copies y la pieza vuelve a revisión. ¿Seguir?' : 'Esto reemplaza los copies actuales. ¿Seguir?')) return;
+            onClick={async () => {
+              if (
+                Object.values(texts).some(Boolean) &&
+                !(await confirm({
+                  title: '¿Reemplazar los copies?',
+                  body: approved ? 'Se borran los tres copies actuales y la pieza vuelve a revisión.' : 'Se borran los tres copies actuales y se escriben de nuevo desde la ficha.',
+                  confirmLabel: 'Reemplazar',
+                }))
+              )
+                return;
               run(() => generateCopies({ pieceId, formulaId, voice, closing }), {
                 onOk: (r) => {
                   if (!r.ok) return;

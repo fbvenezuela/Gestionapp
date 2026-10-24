@@ -30,8 +30,8 @@ export function NewEventForm({ categories, municipalities, cameras, isSecretary 
       className="flex flex-col gap-5"
       onSubmit={(e) => {
         e.preventDefault();
-        run(() => createEvent({ ...f, allowOverlap }), {
-          success: 'Evento guardado.',
+        run(() => createEvent({ ...f, allowOverlap: isSecretary ? false : allowOverlap }), {
+          success: isSecretary ? 'Propuesta enviada. Te avisamos cuando el jefe decida.' : 'Evento guardado.',
           refresh: false,
           onOk: (r) => {
             clear();
@@ -73,7 +73,14 @@ export function NewEventForm({ categories, municipalities, cameras, isSecretary 
       </Card>
 
       <Card>
-        <CardHeader title="Fecha, hora y lugar exacto" subtitle="Privado: solo lo ven el jefe, el despacho, administración y quien graba el evento." />
+        <CardHeader
+          title="Fecha, hora y lugar exacto"
+          subtitle={
+            isSecretary
+              ? 'Privado: solo lo ven el jefe, el despacho, administración y quien graba. Después de enviar ya no lo verás; si cambia, avísale al despacho.'
+              : 'Privado: solo lo ven el jefe, el despacho, administración y quien graba el evento.'
+          }
+        />
         <div className="grid gap-4 p-4 sm:grid-cols-3">
           <Field label="Fecha" htmlFor="date">
             <Input id="date" type="date" required value={f.date} onChange={set('date')} />
@@ -97,10 +104,15 @@ export function NewEventForm({ categories, municipalities, cameras, isSecretary 
           <Field label="Contactos del sitio" htmlFor="contacts" className="sm:col-span-3">
             <Textarea id="contacts" rows={2} value={f.siteContacts} onChange={set('siteContacts')} />
           </Field>
-          <label className="flex items-center gap-2 text-[15px] sm:col-span-3">
-            <input type="checkbox" className="h-5 w-5 accent-accent" checked={allowOverlap} onChange={(e) => setAllowOverlap(e.target.checked)} />
-            Guardar aunque choque con otro evento
-          </label>
+          {isSecretary ? (
+            // Secretaría cannot see other events' dates, so she cannot judge a clash: despacho does.
+            <p className="text-sm text-text-2 sm:col-span-3">El despacho revisa si choca con otro evento.</p>
+          ) : (
+            <label className="flex min-h-11 items-center gap-2 text-[15px] sm:col-span-3">
+              <input type="checkbox" className="h-5 w-5 accent-accent" checked={allowOverlap} onChange={(e) => setAllowOverlap(e.target.checked)} />
+              Guardar aunque choque con otro evento
+            </label>
+          )}
         </div>
       </Card>
 

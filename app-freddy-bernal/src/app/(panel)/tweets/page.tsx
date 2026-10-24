@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { AlertTriangle, Plus } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
 import { PageHeader, EmptyState, Stat } from '@/components/ui/page';
+import { Tip } from '@/components/ui/tip';
 import { Card, CardHeader } from '@/components/ui/card';
 import { LinkButton } from '@/components/ui/button';
 import { TweetBoard, type BoardTweet } from '@/components/tweets/tweet-board';
@@ -29,7 +30,12 @@ export default async function TweetsPage() {
   }));
   return (
     <>
-      <PageHeader title="Tweets" subtitle="La semana repartida por horas. Arrastra un tweet a otro día para moverlo." actions={canEdit ? <LinkButton href="/tweets/nueva"><Plus className="h-4 w-4" aria-hidden /> Tweets de la semana</LinkButton> : undefined} />
+      <PageHeader title="Tweets" subtitle={canEdit ? 'La semana repartida por horas. Toca un tweet para cambiar el día o la hora.' : 'La semana repartida por horas.'} actions={canEdit ? <LinkButton href="/tweets/nueva"><Plus className="h-4 w-4" aria-hidden /> Tweets de la semana</LinkButton> : undefined} />
+      {canEdit ? (
+        <Tip id="tweets">Toca un tweet para cambiarle el día o la hora, copiarlo o marcarlo como publicado.</Tip>
+      ) : (
+        <Tip id="tweets-ver">Toca un tweet para leerlo completo; los que faltan por aprobar están en «Por aprobar».</Tip>
+      )}
       {data.stock.lowStock ? (
         <div className="mb-4 flex items-start gap-3 rounded-[var(--radius-card)] border border-warn/40 bg-warn-soft p-4" role="alert">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warn" aria-hidden />

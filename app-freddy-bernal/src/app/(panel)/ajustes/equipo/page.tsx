@@ -5,6 +5,7 @@ import { Chip } from '@/components/ui/chip';
 import { ROLE_LABEL, type Role } from '@/lib/roles';
 import { fmtDateTime } from '@/lib/time';
 import { InviteForm, MemberActions, RevokeInvite } from './team-client';
+import { twoFactorUsers } from '@/lib/data/two-factor';
 
 export const metadata = { title: 'Equipo' };
 
@@ -21,6 +22,8 @@ export default async function TeamPage() {
     );
     return { members, invites };
   });
+  // After db(), never inside it.
+  const twoFactor = await twoFactorUsers(data.members.map((m) => m.id));
 
   return (
     <>
@@ -41,9 +44,17 @@ export default async function TeamPage() {
                       <Chip key={r} tone="info">{ROLE_LABEL[r]}</Chip>
                     ))}
                     {!m.roles?.length ? <Chip tone="warn">Sin rol</Chip> : null}
+                    {twoFactor ? (twoFactor.has(m.id) ? <Chip tone="ok">Doble factor activo</Chip> : <Chip>Sin doble factor</Chip>) : null}
                   </div>
                 </div>
-                <MemberActions userId={m.id} roles={m.roles ?? []} active={m.active} isSelf={m.id === s.userId} />
+                <MemberActions
+                  userId={m.id}
+                  name={m.full_name || m.email}
+                  roles={m.roles ?? []}
+                  active={m.active}
+                  isSelf={m.id === s.userId}
+                  twoFactor={twoFactor ? twoFactor.has(m.id) : null}
+                />
               </li>
             ))}
           </ul>

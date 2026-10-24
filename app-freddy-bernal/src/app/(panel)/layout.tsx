@@ -1,12 +1,16 @@
 import Link from 'next/link';
-import { Bell, Plus, Search, LogOut, UserRound } from 'lucide-react';
+import { Bell, Plus, Search, UserRound } from 'lucide-react';
 import { requireSession, menuRoles, db } from '@/lib/auth/session';
 import { navFor, ROLE_LABEL, type Role } from '@/lib/roles';
 import { brand } from '@/lib/client-config';
 import { isDemo } from '@/lib/env';
-import { signOut } from '@/lib/auth/actions';
 import { SideNav, BottomNav } from '@/components/shell/nav';
 import { ViewAs } from '@/components/shell/view-as';
+import { SunModeScript, SunModeToggle } from '@/components/shell/sun-mode';
+import { LiveRefresh } from '@/components/shell/live-refresh';
+import { NoPermissionBanner } from '@/components/shell/no-permission-banner';
+import { SignOutButton } from '@/components/shell/sign-out-button';
+import { AssistantMount } from '@/components/assistant/assistant-mount';
 import { buttonVariants } from '@/components/ui/button';
 
 const CREATE: { href: string; label: string; roles: Role[] }[] = [
@@ -25,6 +29,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[248px_1fr]">
+      <SunModeScript />
+      <LiveRefresh />
       <aside className="sticky top-0 hidden h-dvh flex-col gap-4 overflow-y-auto border-r border-border bg-surface p-4 lg:flex">
         <Link href="/" className="flex items-center gap-2 px-1">
           <span className="grid h-9 w-9 place-items-center rounded-[var(--radius-control)] bg-accent font-bold text-on-accent">{brand.logoText}</span>
@@ -76,16 +82,13 @@ export default async function PanelLayout({ children }: { children: React.ReactN
               <summary className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'list-none [&::-webkit-details-marker]:hidden cursor-pointer' })} aria-label="Mi cuenta">
                 <UserRound className="h-5 w-5" aria-hidden />
               </summary>
-              <div className="absolute right-0 z-30 mt-2 w-60 rounded-[var(--radius-card)] border border-border bg-surface p-1 shadow-lg">
+              <div className="absolute right-0 z-30 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-[var(--radius-card)] border border-border bg-surface p-1 shadow-lg">
                 <p className="px-3 pt-2 text-sm font-semibold">{s.name}</p>
                 <p className="px-3 pb-2 text-xs text-text-2">{s.email}</p>
                 {s.roles.includes('admin') ? <div className="px-3 pb-2 md:hidden"><ViewAs current={s.viewAs} /></div> : null}
                 <Link href="/perfil" className="flex min-h-11 items-center rounded-[var(--radius-control)] px-3 text-[15px] hover:bg-surface-2">Mi perfil y avisos</Link>
-                <form action={signOut}>
-                  <button type="submit" className="flex min-h-11 w-full items-center gap-2 rounded-[var(--radius-control)] px-3 text-left text-[15px] hover:bg-surface-2">
-                    <LogOut className="h-4 w-4" aria-hidden /> Salir
-                  </button>
-                </form>
+                <SunModeToggle />
+                <SignOutButton />
               </div>
             </details>
           </div>
@@ -96,8 +99,10 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           </div>
         ) : null}
         <main id="contenido" className="safe-bottom mx-auto w-full max-w-6xl flex-1 px-4 pt-5">
+          <NoPermissionBanner />
           {children}
         </main>
+        <AssistantMount />
       </div>
       <BottomNav items={mobile} more={more} />
     </div>

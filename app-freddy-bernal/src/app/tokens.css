@@ -91,3 +91,95 @@
   --c-focus: #d4da7f;
   color-scheme: dark;
 }
+
+/* «Modo sol» (sun mode): for reading outdoors, chosen per device in the account menu
+   (src/components/shell/sun-mode.tsx sets data-contrast='high' on <html>). Every text color is
+   at least 7:1 on the backgrounds it sits on (tests/unit/ui-sun-mode.test.ts checks it), borders
+   are strong and the base font is a bit larger. In light, primary fills are a dark olive with
+   white text (10:1) so buttons and bars stand out in the sun. Slate (selected tabs and pills) is
+   the opposite of the page: black on white in light, white on black in dark, so the active state
+   never melts into the background. Keep the light block first: the
+   dark blocks below are more specific and must win when the phone is in dark mode. */
+:root[data-contrast='high'] {
+  --c-bg: #ffffff;
+  --c-surface: #ffffff;
+  --c-surface-2: #efefec;
+  --c-border: #5c5b57;
+  --c-text: #000000;
+  --c-text-2: #262624;
+  --c-muted: #363632;
+  --c-accent: #3f4318;
+  --c-accent-hover: #4d521f;
+  --c-accent-soft: #eef0dc;
+  --c-on-accent: #ffffff;
+  --c-accent-ink: #3f4318;
+  --c-slate: #000000;
+  --c-on-slate: #ffffff;
+  --c-olive: #3f4318;
+  --c-ok: #03543d;
+  --c-ok-soft: #e3f5ec;
+  --c-warn: #6e3500;
+  --c-warn-soft: #fdf0dc;
+  --c-danger: #8a1010;
+  --c-danger-soft: #fce8e8;
+  --c-info: #11368f;
+  --c-info-soft: #e6eefd;
+  --c-focus: #000000;
+  font-size: 112.5%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-contrast='high']:not([data-theme='light']) {
+    --c-bg: #000000;
+    --c-surface: #0b0d0c;
+    --c-surface-2: #1a1d1b;
+    --c-border: #a3a29c;
+    --c-text: #ffffff;
+    --c-text-2: #e8e8e4;
+    --c-muted: #d2d1cc;
+    --c-accent: #d4da7f;
+    --c-accent-hover: #e0e59a;
+    --c-accent-soft: #22260e;
+    --c-on-accent: #000000;
+    --c-accent-ink: #e0e597;
+    --c-slate: #ffffff;
+    --c-on-slate: #000000;
+    --c-olive: #d4da7f;
+    --c-ok: #6ee7b7;
+    --c-ok-soft: #052e22;
+    --c-warn: #fcd34d;
+    --c-warn-soft: #2e2205;
+    --c-danger: #fca5a5;
+    --c-danger-soft: #3a0d0d;
+    --c-info: #93c5fd;
+    --c-info-soft: #0b1f3d;
+    --c-focus: #ffffff;
+  }
+}
+
+:root[data-contrast='high'][data-theme='dark'] {
+  --c-bg: #000000;
+  --c-surface: #0b0d0c;
+  --c-surface-2: #1a1d1b;
+  --c-border: #a3a29c;
+  --c-text: #ffffff;
+  --c-text-2: #e8e8e4;
+  --c-muted: #d2d1cc;
+  --c-accent: #d4da7f;
+  --c-accent-hover: #e0e59a;
+  --c-accent-soft: #22260e;
+  --c-on-accent: #000000;
+  --c-accent-ink: #e0e597;
+  --c-slate: #ffffff;
+  --c-on-slate: #000000;
+  --c-olive: #d4da7f;
+  --c-ok: #6ee7b7;
+  --c-ok-soft: #052e22;
+  --c-warn: #fcd34d;
+  --c-warn-soft: #2e2205;
+  --c-danger: #fca5a5;
+  --c-danger-soft: #3a0d0d;
+  --c-info: #93c5fd;
+  --c-info-soft: #0b1f3d;
+  --c-focus: #ffffff;
+}

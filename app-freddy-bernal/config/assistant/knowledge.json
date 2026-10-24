@@ -1,0 +1,525 @@
+{
+ "$comment": "Fichas de la guía por rol («cómo se hace X»), para el asistente. Nada del cliente aquí: los datos de la marca salen de Ajustes en tiempo de ejecución (ficha automática auto:marca). roles = a quién se le ofrece (null = a todos); no da permisos. Se siembran con «no pisar»: si el equipo edita una, pasa a origen equipo y la siembra no la toca.",
+ "knowledge": [
+  {
+   "key": "entrar",
+   "roles": null,
+   "title": "Cómo se entra a la plataforma",
+   "body": "Administración te invita con tu correo y tu rol, y te llega un correo de invitación. En «Entrar» escribes tu correo y te llega un código de 6 números: no hay contraseñas. La primera vez, si tu rol lo pide, activas el doble factor con una app autenticadora (por ejemplo Google Authenticator) y desde ahí lo usas al entrar. Si no llega el código: revisa spam y que el correo esté bien escrito; si sigue sin llegar, avisa a administración.",
+   "tags": [
+    "entrar",
+    "codigo",
+    "acceso"
+   ]
+  },
+  {
+   "key": "doble-factor",
+   "roles": null,
+   "title": "Doble factor",
+   "body": "El doble factor es obligatorio para el jefe, Despacho, Supervisión y Administración. Sin él la plataforma no muestra la agenda ni deja aprobar. Redes, Grabación y Secretaría entran solo con el código del correo. Si alguien pierde el teléfono, administración le cierra las sesiones (Ajustes → Equipo) y le ayuda a activar el doble factor de nuevo.",
+   "tags": [
+    "doble factor",
+    "seguridad",
+    "autenticador"
+   ]
+  },
+  {
+   "key": "telefono",
+   "roles": null,
+   "title": "La plataforma en el teléfono",
+   "body": "Abajo están las opciones principales y «Más» con el resto. Arriba: buscar, la campana de avisos, «Crear» (según tu rol) y tu cuenta. Para usarla como app: en el navegador del teléfono, «Agregar a la pantalla de inicio». En iPhone los avisos al teléfono solo llegan con la app agregada a la pantalla de inicio. Los avisos se activan en Mi perfil.",
+   "tags": [
+    "telefono",
+    "instalar",
+    "app",
+    "avisos"
+   ]
+  },
+  {
+   "key": "dictar",
+   "roles": null,
+   "title": "Dictar en vez de escribir",
+   "body": "En los campos largos (ficha, storyboard, comentarios) se puede dictar con el micrófono del teclado del teléfono (iPhone o Gboard). Después conviene revisar nombres y cifras antes de guardar.",
+   "tags": [
+    "dictar",
+    "voz",
+    "microfono"
+   ]
+  },
+  {
+   "key": "roles",
+   "roles": null,
+   "title": "Quién hace qué (resumen de roles)",
+   "body": "Jefe: decide los eventos, se prepara para cada acto y aprueba lo sensible (rojo). Despacho: arma la agenda, las fichas técnicas y asigna quién graba. Secretaría: propone eventos. Redes: storyboard, piezas, copies, tweets, publicar y resultados. Supervisión: aprueba piezas verdes y amarillas y los tweets. Grabación: graba y sube el material crudo de sus eventos. Administración: equipo, permisos y ajustes, y puede hacer todo lo de Redes, pero nunca aprueba.",
+   "tags": [
+    "roles",
+    "permisos",
+    "quien"
+   ]
+  },
+  {
+   "key": "agenda-privada",
+   "roles": null,
+   "title": "La agenda del jefe es privada",
+   "body": "La fecha, la hora, la dirección exacta, cómo llegar y los contactos de cada evento son información de seguridad. Solo los ven el jefe, Despacho, Administración y quien graba (solo sus eventos asignados). Redes, Supervisión y Secretaría nunca los ven; Redes ve solo el día cuando el evento ya pasó. Lo impide la base de datos, no solo la pantalla. El asistente no tiene la agenda y nunca la da: el que la necesite y tenga permiso la ve en la Agenda. Tampoco se escribe en avisos ni correos.",
+   "tags": [
+    "agenda",
+    "seguridad",
+    "fecha",
+    "hora",
+    "direccion"
+   ]
+  },
+  {
+   "key": "permisos",
+   "roles": null,
+   "title": "Tabla de permisos",
+   "body": "Ver la agenda con fecha y hora: jefe, Despacho y Administración; Grabación solo sus eventos. Crear y editar eventos y fichas: Despacho y Administración (Secretaría propone). Aceptar, rechazar y calificar eventos: solo el jefe. Asignar quién graba: Despacho, Redes y Administración. Armar el storyboard: Redes y Administración (los demás lo leen). Subir material crudo: Redes, Administración y Grabación en sus eventos. Crear piezas, copies y mandar a aprobar: Redes y Administración. Aprobar verdes y amarillas y los tweets: Supervisión. Aprobar rojas: el jefe. Pedir cambios: Supervisión y el jefe. Publicar a mano y cargar métricas: Redes y Administración. Ver resultados: jefe, Redes, Supervisión y Administración. Biblioteca: Despacho, Redes, Supervisión y Administración. Invitar personas, roles y ajustes: Administración.",
+   "tags": [
+    "permisos",
+    "quien puede"
+   ]
+  },
+  {
+   "key": "no-tengo-permiso",
+   "roles": null,
+   "title": "Cuando una pantalla no te deja entrar",
+   "body": "Si abres una pantalla que no es de tu rol, la plataforma te devuelve a Hoy. No es una falla: cada rol ve solo lo suyo. Si de verdad la necesitas para tu trabajo, pídeselo a administración.",
+   "tags": [
+    "permisos",
+    "hoy",
+    "no puedo"
+   ]
+  },
+  {
+   "key": "avisos",
+   "roles": null,
+   "title": "Los avisos",
+   "body": "La campana de arriba muestra tus avisos: asignaciones, cambios pedidos, piezas por aprobar, plazos vencidos, tweets que se acaban. Tocar un aviso abre lo que corresponde; nunca aprueba nada por sí solo. «Marcar todo como leído» los limpia. Las preferencias de correo están en Mi perfil. Ningún aviso lleva fecha, hora ni lugar de un evento.",
+   "tags": [
+    "avisos",
+    "notificaciones",
+    "campana"
+   ]
+  },
+  {
+   "key": "semaforo-reglas",
+   "roles": null,
+   "title": "Reglas del semáforo de aprobación",
+   "body": "Quien manda una pieza a aprobar elige el color. Supervisión, el jefe o administración pueden cambiarlo. Verde (rutina) y amarillo (normal) los aprueba supervisión; rojo (sensible: política, crisis, aclaratorias) solo el jefe. La falta de respuesta no es aprobación: si vence el plazo la pieza sigue sin aprobar, sale en «Trancado» y se avisa de nuevo; nunca sale sola. Lo que sale es exactamente lo aprobado: si cambia el video o un copy, vuelve a revisión, y si cambió mientras alguien la revisaba, esa aprobación se rechaza y hay que abrirla de nuevo. Si una pieza aprobada por supervisión se sube a rojo, vuelve a revisión para el jefe. Una pieza en rojo solo baja con el jefe o administración. Lo que el jefe publica por su cuenta no pasa por aprobación (ya salió): Redes lo registra después con su link.",
+   "tags": [
+    "aprobar",
+    "semaforo",
+    "rojo",
+    "amarillo",
+    "verde",
+    "color",
+    "nivel"
+   ]
+  },
+  {
+   "key": "rol-jefe",
+   "roles": [
+    "boss",
+    "admin"
+   ],
+   "title": "Qué hace el jefe en la plataforma",
+   "body": "Inicio: «Te toca aprobar» (piezas en rojo con su reloj) y dos botones, Política y Digital. Menú: Inicio, Agenda, Por aprobar, Resultados y Digital. Puede aprobar las piezas en rojo después de marcar la lista de 4 chequeos, pedir cambios o comentar cualquier pieza anotando el segundo exacto del video, cambiar el nivel de una pieza (incluso sacarla del rojo), calificar cada evento de 1 a 10 y aceptarlo o rechazarlo (Política o la ficha del evento), leer «Lo que voy a decir» en letra grande (modo lectura), ver la agenda completa y marcar un evento como realizado, y ver lo publicado y cómo nos va (Digital y Resultados). No aprueba verdes, amarillas ni tweets (son de supervisión), no crea eventos ni cambia la ficha (es de Despacho) y no sube material, crea piezas ni publica.",
+   "tags": [
+    "jefe",
+    "rol"
+   ]
+  },
+  {
+   "key": "como-aprobar-rojo",
+   "roles": [
+    "boss",
+    "admin",
+    "supervisor"
+   ],
+   "title": "Cómo aprueba el jefe una pieza en rojo",
+   "body": "Las piezas en rojo las aprueba solo el jefe; supervisión puede pedir cambios. En Inicio, en el recuadro «Te toca aprobar», o en Por aprobar: abrir la pieza, ver el video y los copies, marcar la lista de chequeo y tocar Aprobar. Si algo no va, pedir cambios con un comentario (se puede anotar el segundo del video). Si no responde, la pieza no sale.",
+   "tags": [
+    "aprobar",
+    "rojo",
+    "jefe"
+   ]
+  },
+  {
+   "key": "calificar-eventos",
+   "roles": [
+    "boss",
+    "admin",
+    "dispatch",
+    "secretary"
+   ],
+   "title": "Calificar, aceptar o rechazar eventos",
+   "body": "En Política (desde Inicio) el jefe ve los eventos que esperan su decisión: los califica de 1 a 10 y los acepta o rechaza. También se puede desde la ficha del evento. Solo el jefe decide; Despacho no puede hacerlo en su nombre.",
+   "tags": [
+    "politica",
+    "eventos",
+    "decidir"
+   ]
+  },
+  {
+   "key": "modo-lectura",
+   "roles": [
+    "boss",
+    "admin",
+    "social",
+    "dispatch"
+   ],
+   "title": "Lo que voy a decir (modo lectura)",
+   "body": "En la ficha de cada evento está «Lo que voy a decir»: el texto del storyboard en letra grande para leerlo antes del acto, como un apuntador. Lo arma Redes en el storyboard.",
+   "tags": [
+    "lectura",
+    "discurso",
+    "storyboard"
+   ]
+  },
+  {
+   "key": "rol-despacho",
+   "roles": [
+    "dispatch",
+    "admin"
+   ],
+   "title": "Qué hace Despacho en la plataforma",
+   "body": "Para qué: llevar la agenda del jefe y que cada evento tenga su ficha técnica completa, para que Redes y Grabación puedan trabajar. Inicio: Hoy con los eventos del día, fichas incompletas y cuántos esperan la decisión del jefe. Menú: Hoy, Agenda y Biblioteca; «Crear» → Nuevo evento. Puede crear eventos con fecha, hora, duración, dirección, cómo llegar, contactos y ficha técnica (avisa si choca con otro), ver la agenda en calendario (día, semana o mes), cambiar fecha, lugar o ficha, asignar o quitar a quien graba, marcar el evento como realizado y ver y descargar el material. No ve piezas, copies, tweets, publicaciones ni resultados, no sube material ni edita el storyboard, no borra eventos (solo Administración) y no decide por el jefe.",
+   "tags": [
+    "despacho",
+    "rol"
+   ]
+  },
+  {
+   "key": "ficha-tecnica",
+   "roles": [
+    "dispatch",
+    "admin",
+    "secretary",
+    "social",
+    "supervisor"
+   ],
+   "title": "Qué lleva la ficha técnica",
+   "body": "La ficha técnica de un evento lleva: de qué se trata la obra o el acto, quién lo dirige, quién está a cargo, los logros, las cifras clave con su fuente y el protocolo (cómo va el acto). Mientras más completa, mejores copies y storyboard: la plantilla de copies nunca inventa cifras, así que lo que falta en la ficha falta en el copy. En Hoy, Despacho ve las fichas incompletas.",
+   "tags": [
+    "ficha",
+    "evento",
+    "cifras"
+   ]
+  },
+  {
+   "key": "nuevo-evento",
+   "roles": [
+    "dispatch",
+    "admin",
+    "secretary"
+   ],
+   "title": "Cómo se crea un evento",
+   "body": "Para crear o proponer un evento: «Crear» (arriba) → Nuevo evento. Se llenan título, lugar, municipio, de qué se trata, la parte privada (fecha, hora, duración, dirección, cómo llegar, contactos) y la ficha técnica. Despacho y Administración crean eventos; Secretaría los propone y el jefe decide. La parte privada solo la ven el jefe, Despacho, Administración y quien graba.",
+   "tags": [
+    "evento",
+    "crear",
+    "proponer"
+   ]
+  },
+  {
+   "key": "asignar-grabacion",
+   "roles": [
+    "dispatch",
+    "admin",
+    "social"
+   ],
+   "title": "Cómo se asigna quién graba",
+   "body": "En la ficha del evento, en «Quién graba», se elige a la persona; también al crear el evento. A esa persona le llega un aviso (y un correo). Para cambiarla, se quita y se asigna otra. Asignan Despacho, Redes y Administración.",
+   "tags": [
+    "grabacion",
+    "asignar"
+   ]
+  },
+  {
+   "key": "marcar-realizado",
+   "roles": [
+    "dispatch",
+    "admin",
+    "boss",
+    "camera"
+   ],
+   "title": "Marcar un evento como realizado",
+   "body": "Cuando el evento ya pasó, el jefe, Despacho, Administración o quien lo grabó lo marcan como realizado desde su ficha. Así el material queda en la Biblioteca con su día y Redes ve solo ese día (nunca la hora). No se puede marcar un evento que todavía no ha pasado.",
+   "tags": [
+    "realizado",
+    "biblioteca"
+   ]
+  },
+  {
+   "key": "rol-secretaria",
+   "roles": [
+    "secretary",
+    "admin"
+   ],
+   "title": "Qué hace Secretaría en la plataforma",
+   "body": "Para qué: proponer eventos para que el jefe decida. Inicio: Hoy con sus propuestas y si están esperando, aceptadas o rechazadas. Menú: Hoy y «Mis eventos»; «Crear» → Proponer un evento. Puede proponer un evento con título, lugar, municipio, de qué se trata, la parte privada y la ficha técnica, ver el estado de lo que propuso y ver la ficha y el storyboard de sus propios eventos. No ve eventos de otras personas, no ve la fecha, la hora ni la dirección después de enviar la propuesta (ni siquiera de lo suyo), no asigna quién graba y no ve material, piezas ni tweets. Si hay que corregir algo que propuso, le avisa a Despacho para que lo corrija: Secretaría no tiene botón para cambiar una propuesta ya enviada.",
+   "tags": [
+    "secretaria",
+    "rol",
+    "proponer"
+   ]
+  },
+  {
+   "key": "rol-redes",
+   "roles": [
+    "social",
+    "admin"
+   ],
+   "title": "Qué hace Redes en la plataforma",
+   "body": "Para qué: convertir cada evento en piezas para las redes: storyboard, video final, copies, aprobación, publicación y resultados. Inicio: Hoy con cambios pedidos, eventos sin storyboard, material que llegó, piezas listas para publicar, días de tweets y lo trancado. Menú: Hoy, Eventos, Piezas, Tweets y «Más» (Publicar, Resultados, Biblioteca). «Crear»: pieza, tweets, publicación. No ve la fecha, la hora ni la dirección de los eventos, no aprueba piezas ni tweets, no publica nada no aprobado (ni con un copy o portada distintos a los aprobados), no baja el nivel de una pieza después de la primera revisión y no reemplaza archivos (se sube una versión nueva).",
+   "tags": [
+    "redes",
+    "rol"
+   ]
+  },
+  {
+   "key": "storyboard",
+   "roles": [
+    "social",
+    "admin",
+    "camera",
+    "dispatch",
+    "boss"
+   ],
+   "title": "Cómo se arma el storyboard",
+   "body": "En la ficha del evento, pestaña Storyboard: «Lo que va a decir el jefe» y los bloques, cada uno con plano, ángulo, la frase del jefe, las tomas de apoyo y un dato con su fuente. Lo arman Redes y Administración; el resto lo lee. Conviene armarlo para los eventos que el jefe ya aceptó.",
+   "tags": [
+    "storyboard",
+    "evento"
+   ]
+  },
+  {
+   "key": "crear-pieza",
+   "roles": [
+    "social",
+    "admin"
+   ],
+   "title": "Cómo se crea una pieza",
+   "body": "«Crear» → Nueva pieza (o desde el material del evento). Se elige el tipo, el título y la categoría, y se sube el video final y la portada. Cada archivo nuevo es una versión: un archivo subido no se reemplaza. Luego se escriben los copies y se manda a aprobar eligiendo verde, amarillo o rojo. Si piden cambios, se corrige y se sube una versión nueva: vuelve sola a revisión.",
+   "tags": [
+    "pieza",
+    "crear",
+    "version"
+   ]
+  },
+  {
+   "key": "copies",
+   "roles": [
+    "social",
+    "admin",
+    "supervisor"
+   ],
+   "title": "Cómo se escriben los copies",
+   "body": "En la pieza, pestaña Copies: se elige la fórmula (hay 9), la voz (la del jefe o institucional) y el cierre, y salen tres largos: largo (Instagram, TikTok y Facebook), medio (Threads) y corto (X). La plantilla nunca inventa cifras: usa lo que trae la ficha técnica y marca lo que falta. Cambiar un copy de una pieza aprobada la devuelve a revisión.",
+   "tags": [
+    "copies",
+    "formula",
+    "voz",
+    "cierre"
+   ]
+  },
+  {
+   "key": "tweets-semana",
+   "roles": [
+    "social",
+    "admin",
+    "supervisor"
+   ],
+   "title": "Tweets de la semana",
+   "body": "En Tweets → nueva tanda: se pega o se sube el documento de la semana, la plataforma separa los tweets, marca repetidos y largos y los reparte 2 o 3 por día en las franjas guardadas. Supervisión los aprueba; ya aprobados, Redes los programa. Cuando quedan pocos días de tweets programados, la plataforma avisa a Redes. Para mover un tweet, se toca y se cambia día y hora (arrastrar no funciona con el dedo).",
+   "tags": [
+    "tweets",
+    "semana",
+    "tanda"
+   ]
+  },
+  {
+   "key": "publicar",
+   "roles": [
+    "social",
+    "admin"
+   ],
+   "title": "Cómo se publica a mano",
+   "body": "En Publicar → nueva publicación: se eligen la pieza aprobada y las redes. La plataforma revisa duración, medidas, peso y largo del copy de cada red y muestra las mejores horas. Se descarga el paquete, se publica en la red y se marca «Ya lo publiqué» con el link. Solo se publica lo aprobado, tal cual se aprobó: si cambió el video o un copy, la pieza vuelve a revisión y lo programado vuelve a borrador. La publicación automática está apagada en esta fase.",
+   "tags": [
+    "publicar",
+    "link",
+    "paquete"
+   ]
+  },
+  {
+   "key": "no-puedo-publicar",
+   "roles": [
+    "social",
+    "admin"
+   ],
+   "title": "Por qué no deja publicar una pieza",
+   "body": "Las causas: la pieza no está aprobada (o volvió a revisión porque cambió el video o un copy), el copy o la portada no son los aprobados, o el video no cumple las reglas de esa red (duración, formato, medidas, peso o largo del copy). La pantalla de Publicar dice en rojo qué falla en cada red.",
+   "tags": [
+    "publicar",
+    "error",
+    "aprobada"
+   ]
+  },
+  {
+   "key": "publicacion-jefe",
+   "roles": [
+    "social",
+    "admin"
+   ],
+   "title": "Registrar lo que el jefe publicó por su cuenta",
+   "body": "En Publicar → «Lo que publicó el jefe»: se anota la red, un título y el link de lo que el jefe subió por su cuenta, para que cuente en Resultados. No pasa por aprobación porque ya salió y la plataforma nunca lo envía.",
+   "tags": [
+    "publicar",
+    "jefe",
+    "espontanea"
+   ]
+  },
+  {
+   "key": "resultados",
+   "roles": [
+    "admin",
+    "social",
+    "supervisor",
+    "boss"
+   ],
+   "title": "Resultados y métricas",
+   "body": "En Resultados se cargan las métricas de cada publicación a mano o con el CSV de la red, y se ve «¿A qué hora nos va mejor?»: compara vistas e interacción por red y franja horaria. Con pocos datos lo dice. Nunca interpreta apoyo político. Lo ven el jefe, Redes, Supervisión y Administración.",
+   "tags": [
+    "resultados",
+    "metricas",
+    "csv"
+   ]
+  },
+  {
+   "key": "rol-supervision",
+   "roles": [
+    "supervisor",
+    "admin"
+   ],
+   "title": "Qué hace Supervisión en la plataforma",
+   "body": "Para qué: que nada salga sin revisión. Aprueba las piezas verdes y amarillas y los tweets; en las rojas puede pedir cambios, pero las aprueba el jefe. Inicio: Hoy con piezas por aprobar y su reloj, tweets que esperan y lo vencido. Menú: Hoy, Por aprobar, Resultados y «Más» (Tweets, Biblioteca). No aprueba piezas en rojo ni las saca del rojo, no ve la agenda con fecha y hora, no crea ni edita piezas, copies o publicaciones y no aprueba sin doble factor.",
+   "tags": [
+    "supervision",
+    "rol"
+   ]
+  },
+  {
+   "key": "como-aprobar",
+   "roles": [
+    "supervisor",
+    "admin",
+    "boss"
+   ],
+   "title": "Cómo aprueba Supervisión y qué revisar antes",
+   "body": "En Por aprobar las piezas salen agrupadas por color, con el video, los tres copies y el historial. Las verdes se aprueban todas juntas, de una vez, con el botón «Aprobar las…» del grupo verde (las que cambiaron mientras tanto se saltan). Antes de aprobar una pieza sola, se revisa con la lista: cifras con fuente, sin fecha ni hora, se ve y se oye bien, copies revisados. Para pedir cambios: un comentario, anotando el segundo del video si hace falta. Una pieza delicada se puede subir a rojo; también se puede «Pedir frase al jefe». Los tweets se aprueban marcándolos en su pestaña.",
+   "tags": [
+    "aprobar",
+    "supervision",
+    "lista",
+    "revisar",
+    "chequeo"
+   ]
+  },
+  {
+   "key": "frase-jefe",
+   "roles": [
+    "supervisor",
+    "social",
+    "admin",
+    "boss"
+   ],
+   "title": "Pedir una frase al jefe",
+   "body": "Si a una pieza le falta una frase del jefe, Supervisión, Redes o Administración la piden desde la pieza con «Pedir frase al jefe»: se anota el segundo del video y la frase que hace falta. El jefe graba el audio y lo sube; mientras tanto, en Hoy de Redes sale «Esperando frase del jefe».",
+   "tags": [
+    "frase",
+    "jefe",
+    "audio",
+    "voz"
+   ]
+  },
+  {
+   "key": "rol-grabacion",
+   "roles": [
+    "camera",
+    "admin"
+   ],
+   "title": "Qué hace Grabación en la plataforma",
+   "body": "Para qué: grabar los eventos asignados y subir el material ordenado. Inicio: Hoy con sus eventos y los pasados sin material («Sube el material»). Menú: Hoy y «Mis eventos». Ve solo los eventos que le asignaron, con su parte privada; lee la ficha y el storyboard para saber qué tomas hacen falta; sube el material crudo; descarga el material de sus eventos y marca el evento como realizado. No ve eventos que no le asignaron, no sube finales ni portadas ni sube a eventos ajenos, no ve piezas, tweets ni publicaciones y no edita ficha, fecha ni storyboard.",
+   "tags": [
+    "grabacion",
+    "rol"
+   ]
+  },
+  {
+   "key": "subir-material",
+   "roles": [
+    "camera",
+    "social",
+    "admin"
+   ],
+   "title": "Cómo se sube el material crudo",
+   "body": "Abrir el evento (Mis eventos o Agenda), pestaña Material, y subir cada archivo en su casilla: jefe hablando, dron, tomas de apoyo u otros. Si se va la señal, la subida sigue sola al volver. Un archivo subido no se reemplaza: si hubo un error, se sube el correcto y se avisa a Redes; quitar el equivocado lo hace administración. Después, marcar el evento como realizado.",
+   "tags": [
+    "material",
+    "subir",
+    "señal"
+   ]
+  },
+  {
+   "key": "rol-administracion",
+   "roles": [
+    "admin"
+   ],
+   "title": "Qué hace Administración en la plataforma",
+   "body": "Para qué: manejar el equipo, los permisos y los ajustes. Puede hacer todo lo de Redes, pero nunca aprueba. Inicio: Hoy, con lo de Redes y lo trancado. Menú: Hoy, Agenda, Piezas y «Más» (Por aprobar, Tweets, Publicar, Resultados, Biblioteca, Ajustes). No aprueba piezas ni tweets ni pide cambios con decisión formal (solo comenta), no edita ni borra el registro de cambios y no enciende la publicación automática.",
+   "tags": [
+    "administracion",
+    "rol"
+   ]
+  },
+  {
+   "key": "invitar",
+   "roles": [
+    "admin"
+   ],
+   "title": "Cómo se invita a alguien",
+   "body": "Ajustes → Equipo: escribir el correo, el nombre y el rol, y tocar Invitar. A la persona le llega un correo con la invitación. En Equipo también se agregan o quitan roles, se cierran las sesiones de alguien (por ejemplo si perdió el teléfono) y se desactiva a quien ya no está.",
+   "tags": [
+    "invitar",
+    "equipo",
+    "roles"
+   ]
+  },
+  {
+   "key": "ajustes",
+   "roles": [
+    "admin"
+   ],
+   "title": "Qué se cambia en Ajustes",
+   "body": "Ajustes (solo Administración): Equipo, Categorías, Fórmulas de copies, Horarios de tweets y mejores horas, Reglas de video por red, Marca (textos, saludo, cierres y hashtags), Buzón (todos los correos que generó la plataforma; con datos de prueba no sale ninguno), Registro de cambios (quién hizo qué) y el Asistente (lo que sabe, cómo contesta y su nombre). «Ver como…» muestra los menús de otro rol para revisar, sin cambiar permisos.",
+   "tags": [
+    "ajustes",
+    "configuracion"
+   ]
+  },
+  {
+   "key": "asistente-panel",
+   "roles": [
+    "admin"
+   ],
+   "title": "El panel del asistente",
+   "body": "En Ajustes → Asistente, Administración ve lo que sabe el asistente (fichas), cómo contesta (guiones, con un probador que no gasta turnos), las conversaciones, cómo va (respuestas degradadas, errores, tiempos), lo que pregunta la gente, lo que dejó por confirmar, lo que hizo (con deshacer) y su nombre, cara y presentación. Las fichas automáticas avisan antes de editarse: si se editan, pasan a ser del equipo y ya no se actualizan solas.",
+   "tags": [
+    "asistente",
+    "panel"
+   ]
+  }
+ ]
+}

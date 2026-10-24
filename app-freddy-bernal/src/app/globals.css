@@ -52,6 +52,11 @@ body {
   outline-offset: 2px;
 }
 
+/* «Modo sol»: colors and the larger base font come from tokens.css; here only a thicker focus ring. */
+:root[data-contrast='high'] :focus-visible {
+  outline-width: 4px;
+}
+
 /* Inputs at 16px so iOS does not zoom. */
 input,
 select,
