@@ -21,6 +21,12 @@
   "logoText": "FB",
   "themeColor": "#7F8630"
  },
+ "assistant": {
+  "name": "360",
+  "emoji": "💬",
+  "intro": "Soy 360, el asistente del equipo. Te ayudo a encontrar las cosas en la plataforma y a saber qué te toca.",
+  "$name_source": "Juan, 24/10/2026"
+ },
  "timezone": "America/Caracas",
  "municipalities": [
   "Andrés Bello",

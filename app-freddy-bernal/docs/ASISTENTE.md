@@ -18,7 +18,8 @@ repositorio). Se toman la máquina y las reglas; nada del negocio de Cemi. Este 
   con la API de chat compatible con OpenAI. **Anthropic no** (no da servicio en Venezuela desde el 12/11/2026). Encender
   solo con el OK legal (sanciones, ver la guía en PDF). Sin cadena → **cerebro de demostración** sin IA (`local.ts`):
   contesta con guiones y fichas y usa las herramientas por palabras clave; la respuesta lleva `modelo: 'local'`.
-- **El nombre del asistente lo decide Juan** (Ajustes → Asistente). Mientras, «Asistente».
+- **Se llama «360»** (decidió Juan, 24/10/2026). Nombre, emoji y presentación por defecto en `config/clients/fb.json` →
+  `assistant`; se cambian en Ajustes → Asistente sin desplegar.
 
 ## Datos (migración `20261025000900_assistant.sql`)
 Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: solo el servidor las toca.
