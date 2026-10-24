@@ -5,7 +5,7 @@ import { EmailLayout, emailColors } from './layout';
 
 const h = { color: emailColors.text, fontSize: 20, fontWeight: 700, margin: '16px 0 8px' } as const;
 const p = { color: emailColors.text, fontSize: 15, lineHeight: '22px' } as const;
-const btn = { backgroundColor: emailColors.accent, color: '#FFFFFF', borderRadius: 8, padding: '12px 20px', fontWeight: 600, fontSize: 15 } as const;
+const btn = { backgroundColor: emailColors.accent, color: emailColors.text, borderRadius: 8, padding: '12px 20px', fontWeight: 600, fontSize: 15 } as const;
 
 export function InviteEmail({ appName, name, roleLabel, url }: { appName: string; name: string; roleLabel: string; url: string }) {
   return (

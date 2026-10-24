@@ -94,5 +94,6 @@ Resumen y lo que sirve: `docs/DIAGNOSTICO-360.md` (el ZIP no se subió al reposi
 - **#13 Fórmulas — llegaron propuestas** del diagnóstico (gancho-bloques-acción, dato primero, denuncia-acción-resultado,
   cifra única, cita del jefe, historia con protagonista). Hillary decide cuáles.
 - **#23 Igor** — ¿es quien opera TCPRO-5 (escucha de medios en `kunawaro.alwaysdata.net`)? No se integra hasta saberlo.
-- **Nuevo #27:** las 9 preguntas de `docs/DIAGNOSTICO-360.md` (color principal, logo, horarios por red, hashtags,
+- **Color principal: oliva** (decidido por Juan, 24/10; D-21).
+- **Nuevo #27:** las preguntas que quedan en `docs/DIAGNOSTICO-360.md` (logo, horarios por red, hashtags,
   primera persona, cierres, fórmulas, semáforo de aprobación, TCPRO-5).

@@ -1,8 +1,9 @@
 /* Design tokens. Palette from the brand strategy ("Estrategia de marca", láminas 33, 35–38), received
    24/10/2026 in the Diagnóstico Digital 360 package: Naranja #FE5A03, Naranja claro #FD943C, Oliva #7F8630,
    Negro #111111, Blanco #FFFFFF, Amarillo #FFD380; Montserrat. Blue is excluded from the brand.
-   Text on brand fills is always #111111 (white on orange/olive fails AA). Still PROVISIONAL until the client
-   approves the manual and sends the vector logo (docs/PENDIENTES.md #1, docs/DECISIONES.md D-21).
+   PRIMARY = Oliva (Juan, 24/10/2026; the brand's newer olive variant). Orange is no longer used in the UI.
+   Text on brand fills is always #111111 (white on olive is 3.92:1 and fails AA). Still PROVISIONAL until the
+   client approves the manual and sends the vector logo (docs/PENDIENTES.md #1, docs/DECISIONES.md D-21).
    Changing the brand = changing this file (and the email copy in emails/layout.tsx). Nothing else. */
 
 :root {
@@ -13,11 +14,11 @@
   --c-text: #111111;
   --c-text-2: #666660;
   --c-muted: #686762;       /* darker than the model's #8E8D88 to pass AA on white and alabaster */
-  --c-accent: #fe5a03;
-  --c-accent-hover: #e04f00;
-  --c-accent-soft: #fff1e8;
-  --c-on-accent: #111111;   /* dark text on orange: AA contrast (white on #FE5A03 is only 3:1) */
-  --c-accent-ink: #b33d00;  /* orange for text on light backgrounds (AA) */
+  --c-accent: #7f8630;      /* brand Oliva: primary actions and active items */
+  --c-accent-hover: #8c9339;
+  --c-accent-soft: #f0f2e0;
+  --c-on-accent: #111111;   /* 4.82:1 on Oliva (white would be 3.92:1, fails AA) */
+  --c-accent-ink: #5f6524;  /* olive for text on light backgrounds: 5.8:1 on the page */
   --c-slate: #111111;      /* brand Negro (was a bluish slate; the brand excludes blue) */
   --c-on-slate: #f1f1ef;
   --c-olive: #7f8630;
@@ -29,7 +30,7 @@
   --c-danger-soft: #fdecec;
   --c-info: #1d4ed8;
   --c-info-soft: #eaf1fe;
-  --c-focus: #c94700;      /* focus ring: 3:1+ on the page background (Naranja claro #FD943C is only 2.07:1) */
+  --c-focus: #5f6524;      /* focus ring: 5.8:1 on the page background */
   color-scheme: light;
 }
 
@@ -42,11 +43,11 @@
     --c-text: #f1f1ef;
     --c-text-2: #b9b8b2;
     --c-muted: #9a9993;
-    --c-accent: #ff6a1a;
-    --c-accent-hover: #ff8340;
-    --c-accent-soft: #3a1f10;
-    --c-on-accent: #160800;
-    --c-accent-ink: #ff8a4c;
+    --c-accent: #b4bb5c;
+    --c-accent-hover: #c5cc6e;
+    --c-accent-soft: #262b14;
+    --c-on-accent: #111111;
+    --c-accent-ink: #c5cc6e;
     --c-slate: #0b0b0b;
     --c-on-slate: #f1f1ef;
     --c-olive: #b4bb5c;
@@ -58,7 +59,7 @@
     --c-danger-soft: #331717;
     --c-info: #60a5fa;
     --c-info-soft: #13223a;
-    --c-focus: #fd943c;
+    --c-focus: #d4da7f;
     color-scheme: dark;
   }
 }
@@ -71,11 +72,11 @@
   --c-text: #f1f1ef;
   --c-text-2: #b9b8b2;
   --c-muted: #9a9993;
-  --c-accent: #ff6a1a;
-  --c-accent-hover: #ff8340;
-  --c-accent-soft: #3a1f10;
-  --c-on-accent: #160800;
-  --c-accent-ink: #ff8a4c;
+  --c-accent: #b4bb5c;
+  --c-accent-hover: #c5cc6e;
+  --c-accent-soft: #262b14;
+  --c-on-accent: #111111;
+  --c-accent-ink: #c5cc6e;
   --c-slate: #0b0b0b;
   --c-on-slate: #f1f1ef;
   --c-olive: #b4bb5c;
@@ -87,6 +88,6 @@
   --c-danger-soft: #331717;
   --c-info: #60a5fa;
   --c-info-soft: #13223a;
-  --c-focus: #fd943c;
+  --c-focus: #d4da7f;
   color-scheme: dark;
 }

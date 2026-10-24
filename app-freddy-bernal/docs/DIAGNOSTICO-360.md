@@ -15,11 +15,11 @@ se aplica sin que lo apruebe Hillary (ver «Preguntas» al final). Ninguna cifra
 **Falta** el manual de identidad visual (láminas 31–38 del PDF *Estrategia_Identidad_Freddy_Bernal_Integrada*: logo,
 resguardo, tamaños, pesos): el ZIP «solo código» no trae PDF ni imágenes.
 
-## Marca (aplicado a `src/app/tokens.css`, sigue provisional)
+## Marca (aplicada a `src/app/tokens.css`: oliva como color principal)
 - Paleta: Naranja `#FE5A03`, Naranja claro `#FD943C`, Oliva `#7F8630`, Negro `#111111`, Blanco `#FFFFFF`, Amarillo
   `#FFD380`. Letra: **Montserrat** (Arial de respaldo), máximo dos pesos por pieza gráfica. **El azul queda fuera.**
 - Variante oliva más nueva: 55 % oliva, 25 % blanco, 15 % negro, 5 % amarillo. La naranja figura como «color dominante»
-  en la versión anterior. → Pregunta 1.
+  en la versión anterior. **Decidido: oliva es el color principal** (Juan, 24/10; D-21).
 - Logo: «FREDDY / Bernal / GOBERNADOR» en 4 versiones (oliva/blanco, blanco/oliva, negro/blanco, blanco/negro), solo
   como imagen. No aparece «F BERNAL». → Pregunta 2.
 - Contraste (WCAG AA): el texto sobre naranja, oliva o amarillo va en **negro**. Blanco sobre naranja (3,14:1) u oliva
@@ -65,7 +65,7 @@ resguardo, tamaños, pesos): el ZIP «solo código» no trae PDF ni imágenes.
 - El código, el HTML y el esquema del paquete: solo se toman ideas, reescritas.
 
 ## Preguntas para Hillary (en `docs/PENDIENTES.md`)
-1. ¿Color principal oliva (la variante nueva) o naranja?
+1. ~~¿Color principal oliva o naranja?~~ **Oliva** (Juan, 24/10). Aplicado.
 2. ¿El logo «FREDDY / Bernal / GOBERNADOR» es el aprobado? Mandarlo en vector, con las láminas 31–38.
 3. ¿Horarios por red del diagnóstico (TikTok de noche, X 2–3 al día) o los actuales (4–5 tweets al día)?
 4. ¿`#Tachira` o `#Táchira`? ¿Se agrega `#Venezuela`?

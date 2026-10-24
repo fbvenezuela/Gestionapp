@@ -1,5 +1,9 @@
 # El diseño: cómo usar el modelo de Stitch
 
+> **24/10/2026:** los colores ya no son los del modelo. Llegó la paleta de la marca y el **oliva `#7F8630` es el color
+> principal** (naranja fuera de la interfaz, sin azul). Donde abajo dice «naranja» o «pizarra», hoy es oliva y negro.
+> Detalle en `docs/DECISIONES.md` D-21 y `src/app/tokens.css`.
+
 Actualizado: 22/10/2026. El modelo visual está en `diseno/stitch/`: 23 pantallas exportadas de Google Stitch, cada una
 con `screen.png` (la captura) y `code.html` (HTML con Tailwind por CDN), más `diseno/stitch/operaciones_360/DESIGN.md`
 (colores, letras, espacios y componentes). Se llama «FB · Operaciones 360».

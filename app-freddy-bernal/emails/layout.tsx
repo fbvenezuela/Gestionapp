@@ -9,7 +9,7 @@ export const emailColors = {
   border: '#E9E8E4',
   text: '#111111',
   muted: '#666660',
-  accent: '#FE5A03',
+  accent: '#7F8630',
   slate: '#111111',
 };
 

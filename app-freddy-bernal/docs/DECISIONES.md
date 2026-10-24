@@ -49,11 +49,11 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 ## D-09. Un rol «redes», un usuario por persona
 - **Por qué:** saber quién hizo qué y el doble factor de cada una (PENDIENTES #19). — **Confirmar**.
 
-## D-10. Botones naranjas con texto oscuro
-- **Qué:** el naranja `#FE5A03` se mantiene; el texto encima es casi negro y el naranja de textos es más oscuro
-  (`--c-accent-ink`).
-- **Por qué:** blanco sobre ese naranja da contraste 3:1 y no pasa AA; al sol se lee mal.
-- **Cómo se cambia:** `src/app/tokens.css` cuando llegue el manual de marca.
+## D-10. Texto oscuro sobre el color de la marca
+- **Qué:** sobre el color principal (antes naranja, ahora oliva, ver D-21) el texto va casi negro (#111111), y para
+  textos en ese color se usa un tono más oscuro (`--c-accent-ink`).
+- **Por qué:** blanco sobre naranja da 3,1:1 y sobre oliva 3,9:1: no pasan AA y al sol se leen mal.
+- **Cómo se cambia:** `src/app/tokens.css`.
 
 ## D-11. Publicación manual en la fase 1
 - **Qué:** se valida el video por red, se descarga el paquete y se marca «Ya lo publiqué» con link y captura.
@@ -91,12 +91,15 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 ## D-18. Next 16 «proxy» solo refresca la sesión
 - **Qué:** `src/proxy.ts` no decide permisos. Las páginas llaman a `requireSession()` y la base aplica RLS.
 
-## D-21. Paleta desde la estrategia de marca (provisional) — **Confirmar con Hillary**
+## D-21. Paleta desde la estrategia de marca, con el **oliva como color principal**
 - **Qué:** se quitó el azul del panel (`--c-slate` #182a32 → #111111, el Negro de la marca) y el anillo de foco pasa a
   #c94700 (4,5:1 sobre el fondo; el Naranja claro #FD943C daba 2,07:1 y no cumplía AA). Naranja #FE5A03, oliva #7F8630
   y negro #111111 ya coincidían con los tokens. Montserrat ya era la letra.
 - **Por qué:** llegó la paleta en el Diagnóstico Digital 360 (24/10); la lámina 33 excluye el azul.
-- **Falta:** decidir si el color principal es oliva o naranja y recibir el logo en vector (ver `docs/DIAGNOSTICO-360.md`).
+- **Color principal: oliva** (Juan, 24/10/2026), la variante nueva de la marca. Botones y lo activo en #7F8630 con
+  texto #111111 (4,8:1); textos en oliva #5F6524 (5,8:1); foco #5F6524. En modo oscuro, oliva claro #B4BB5C. El naranja
+  ya no se usa en la interfaz. Íconos de la app: «FB» en blanco sobre oliva (como el logo «blanco sobre oliva»).
+- **Falta:** el logo en vector (ver `docs/DIAGNOSTICO-360.md`).
 - **Cómo se cambia:** `src/app/tokens.css` y `emails/layout.tsx`.
 
 ## D-22. Reglas de redacción medidas, aplicadas sin esperar
