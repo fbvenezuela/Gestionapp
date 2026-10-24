@@ -202,7 +202,7 @@ export async function seedDemo(sql: Sql, tz = 'America/Caracas'): Promise<Record
   const copiesP1: [string, string][] = [
     ['long', '¡Saludos, Táchira! 👋 Entregamos la cancha techada de El Mirador: 600 m² con techo y piso nuevo. Ahora los clubes juveniles entrenan con lluvia o con sol, y la comunidad tiene un espacio para sus actividades. Unas 1.200 personas se benefician. 💛 Por amor al Táchira.'],
     ['medium', 'Entregamos la cancha techada de El Mirador 🏀 600 m² para que los clubes juveniles entrenen con lluvia o con sol. Unas 1.200 personas se benefician. Seguimos trabajando. ¿Juegas aquí? Cuéntame 👇'],
-    ['short', '🏀 Cancha techada de El Mirador: 600 m² para los clubes juveniles y la comunidad. Unas 1.200 personas beneficiadas. Seguimos trabajando 👇 #Táchira #FreddyBernal'],
+    ['short', '🏀 Cancha techada de El Mirador: 600 m² para los clubes juveniles y la comunidad. Unas 1.200 personas beneficiadas. Seguimos trabajando 👇 #Tachira #FreddyBernal'],
   ];
   for (const [g, body] of copiesP1) {
     await sql.query(`insert into public.copies (piece_id, formula_id, length_group, body, char_count, generated_by, updated_by) values ($1, $2, $3, $4, $5, 'template', $6)`, [
@@ -210,6 +210,25 @@ export async function seedDemo(sql: Sql, tz = 'America/Caracas'): Promise<Record
     ]);
   }
   await sql.query(`update public.pieces set status = 'in_review' where id in ($1, $2)`, [p1, p2]);
+  await sql.query(`update public.pieces set sent_to_review_at = now() - interval '20 minutes' where id = $1`, [p2]);
+
+  // A sensitive piece (rojo): only the boss approves it.
+  const p4 = (await sql.one<{ id: string }>(
+    `insert into public.pieces (kind, title, category_id, status, current_version, review_level, created_by) values ('video', 'Aclaratoria sobre el servicio de agua (demo)', $1, 'draft', 1, 'rojo', $2) returning id`,
+    [await cat('Agua potable'), ids.social],
+  ))!.id;
+  await sql.query(`insert into public.piece_versions (piece_id, version, media_asset_id, created_by) values ($1, 1, $2, $3)`, [p4, final2, ids.social]);
+  for (const [g, body] of [
+    ['long', '¡Saludos, Táchira! 👋 Les explico qué pasa con el servicio de agua en la zona de prueba y qué estamos haciendo. 💛 Por amor al Táchira.'],
+    ['medium', 'Qué pasa con el servicio de agua en la zona de prueba y qué estamos haciendo. Seguimos trabajando.'],
+    ['short', 'Qué pasa con el agua en la zona de prueba y qué estamos haciendo. #Tachira #FreddyBernal'],
+  ] as const) {
+    await sql.query(`insert into public.copies (piece_id, formula_id, length_group, body, char_count, generated_by, updated_by) values ($1, $2, $3, $4, $5, 'manual', $6)`, [
+      p4, fab!.id, g, body, [...body].length, ids.social,
+    ]);
+  }
+  await sql.query(`update public.pieces set status = 'in_review' where id = $1`, [p4]);
+  await sql.query(`update public.pieces set sent_to_review_at = now() - interval '12 minutes' where id = $1`, [p4]);
 
   // Supervisor approves p1 through the only allowed path.
   await sql.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub: ids.supervisor, aal: 'aal2', role: 'authenticated' })]);
@@ -240,6 +259,17 @@ export async function seedDemo(sql: Sql, tz = 'America/Caracas'): Promise<Record
       [r!.id, views, Math.round(views * 0.8), likes, Math.round(likes / 8), Math.round(likes / 10), Math.round(likes / 12), ids.social],
     );
   }
+
+  // Something the boss posted himself, recorded afterwards by the team (D-23).
+  const sp = await sql.one<{ id: string }>(
+    `insert into public.publications (origin, title, network, format, status, mode, url, published_at, created_by)
+     values ('boss_spontaneous', 'Video del jefe recorriendo una vía (demo)', 'tiktok', 'post', 'published', 'manual', $1, $2, $3) returning id`,
+    [`https://example.com/demo/tiktok/${crypto.randomUUID().slice(0, 8)}`, at(-1, 22, 40), ids.social],
+  );
+  await sql.query(
+    `insert into public.publication_metrics (publication_id, views, likes, comments, shares, saves, source, created_by) values ($1, 12400, 980, 85, 140, 60, 'manual', $2)`,
+    [sp!.id, ids.social],
+  );
 
   // A weekly tweets batch: some approved and scheduled, some draft.
   const batch = await sql.one<{ id: string }>(

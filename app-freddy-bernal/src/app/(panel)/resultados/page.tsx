@@ -21,8 +21,9 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
   const canLoad = s.roles.some((r) => r === 'admin' || r === 'social');
   const rows = await db(s, (sql) =>
     sql.query<Row>(
-      `select x.id, p.title, x.network, x.format, x.published_at, x.url, x.republish_of, m.views, m.reach, m.likes, m.comments, m.shares, m.saves
-         from public.publications x join public.pieces p on p.id = x.piece_id
+      `select x.id, coalesce(p.title, x.title || ' (la publicó el jefe)') as title, x.network, x.format, x.published_at, x.url, x.republish_of,
+              m.views, m.reach, m.likes, m.comments, m.shares, m.saves
+         from public.publications x left join public.pieces p on p.id = x.piece_id
          left join lateral (select * from public.publication_metrics pm where pm.publication_id = x.id order by pm.captured_at desc limit 1) m on true
         where x.status = 'published' and x.deleted_at is null and x.published_at > now() - make_interval(days => $1)
         order by x.published_at desc`,

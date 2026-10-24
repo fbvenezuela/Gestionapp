@@ -4,6 +4,8 @@ import { env } from '@/lib/env';
 import { notify, usersWithRole } from '@/lib/notify';
 import { tweetStock } from '@/lib/data/tweets';
 import { publisherFor } from '@/lib/publish';
+import { getDeadlines, piecesInReview } from '@/lib/data/review';
+import { LEVELS, reviewClock } from '@/lib/domain/review';
 
 // Scheduled work. Called by Vercel Cron (see vercel.json) or by Supabase pg_cron +
 // pg_net with the CRON_SECRET bearer. Safe to call often: every notice is idempotent.
@@ -44,5 +46,31 @@ export async function GET(req: NextRequest) {
     }
   }
   out.duePublications = due.length;
+
+  // 3) Reviews past their deadline: a second notice, once. No answer is NOT approval.
+  const late = await withSystem(async (sql) => {
+    const deadlines = await getDeadlines(sql);
+    const rows = await sql.query<{ id: string; escalated: boolean }>(`select id, review_escalated_at is not null as escalated from public.pieces where status = 'in_review' and deleted_at is null`);
+    const fresh = new Set(rows.filter((r) => !r.escalated).map((r) => r.id));
+    const list = (await piecesInReview(sql)).filter((p) => fresh.has(p.id) && reviewClock(p.review_level, p.sent_to_review_at, deadlines).overdue);
+    for (const p of list) await sql.query(`update public.pieces set review_escalated_at = now() where id = $1`, [p.id]);
+    return list;
+  });
+  if (late.length) {
+    const [sup, boss, admin] = [await usersWithRole('supervisor'), await usersWithRole('boss'), await usersWithRole('admin')];
+    for (const p of late) {
+      const red = p.review_level === 'rojo';
+      await notify({
+        userIds: [...new Set([...sup, ...(red ? boss : admin)])],
+        kind: 'review_overdue',
+        title: `Venció el plazo: «${p.title}» sigue sin aprobar`,
+        body: `Nivel ${LEVELS[p.review_level].label.toLowerCase()}: la aprueba ${LEVELS[p.review_level].who}. No sale hasta que alguien decida.`,
+        link: `/aprobar/${p.id}`,
+        key: `review-late:${p.id}:${p.sent_to_review_at}`,
+        email: true,
+      });
+    }
+  }
+  out.lateReviews = late.length;
   return NextResponse.json(out);
 }

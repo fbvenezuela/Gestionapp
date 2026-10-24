@@ -13,10 +13,12 @@ export async function seedClient(sql: Sql, brandKey?: string) {
     'tweets.slots': cfg.tweetSlots,
     'tweets.per_day': cfg.tweetsPerDay,
     'tweets.low_stock_days': cfg.tweetLowStockDays,
+    'review.deadlines_min': cfg.reviewDeadlinesMin,
     'security.mfa_roles': cfg.mfaRoles,
     'publishing.enabled': false,
     'upload.max_mb': cfg.uploadMaxMb,
     'publishing.default_collaborators': cfg.defaultCollaborators,
+    'publishing.windows': cfg.publishingWindows,
   };
   for (const [key, value] of Object.entries(settings)) {
     await sql.query(

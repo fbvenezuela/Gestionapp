@@ -11,12 +11,13 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input, Select } from '@/components/ui/field';
 import type { NetworkCheck } from '@/lib/data/publish';
 import { NETWORK_LABEL } from '@/lib/data/labels';
+import { windowHint, windowWarnings, type PublishingWindows } from '@/lib/domain/publishing-windows';
 import { TZ, fmtDateTime } from '@/lib/time';
 import { cn } from '@/lib/cn';
 
 export function NewPublication({
-  approved, pieceId, pieceTitle, pieceStatus, checks, collaborators, republishOf, pastPubs,
-}: { approved: { id: string; title: string }[]; pieceId: string; pieceTitle: string; pieceStatus: string; checks: NetworkCheck[]; collaborators: string[]; republishOf: string | null; pastPubs: { id: string; network: string; published_at: string | null }[] }) {
+  approved, pieceId, pieceTitle, pieceStatus, checks, collaborators, windows, republishOf, pastPubs,
+}: { approved: { id: string; title: string }[]; pieceId: string; pieceTitle: string; pieceStatus: string; checks: NetworkCheck[]; collaborators: string[]; windows: PublishingWindows; republishOf: string | null; pastPubs: { id: string; network: string; published_at: string | null }[] }) {
   const router = useRouter();
   const { run, pending } = useAction();
   const [selected, setSelected] = useState<Record<string, string>>({});
@@ -43,6 +44,8 @@ export function NewPublication({
 
   const chosen = checks.filter((c) => selected[c.network]);
   const blocking = chosen.some((c) => c.issues.some((i) => i.level === 'error'));
+  const at = time ? DateTime.fromISO(`${date}T${time}`, { zone: TZ }) : null;
+  const timing = at?.isValid ? chosen.flatMap((c) => windowWarnings(c.label, windows[c.network], at)) : [];
 
   return (
     <div className="flex flex-col gap-4">
@@ -72,6 +75,7 @@ export function NewPublication({
                     {c.issues.map((i, k) => <li key={k} className={cn('text-sm', i.level === 'error' ? 'text-danger' : 'text-warn')}>{i.text}</li>)}
                   </ul>
                 ) : <p className="pl-8 text-sm text-ok">Todo bien para {c.label}.</p>}
+                {windowHint(windows[c.network]) ? <p className="pl-8 text-sm text-text-2">🕒 {windowHint(windows[c.network])}</p> : null}
                 {on && c.copy ? <details className="mt-2 pl-8 text-sm"><summary className="cursor-pointer text-text-2">Ver el copy que va</summary><p className="mt-1 whitespace-pre-wrap">{c.copy}</p></details> : null}
               </li>
             );
@@ -83,6 +87,11 @@ export function NewPublication({
         <CardBody className="grid gap-4 sm:grid-cols-2">
           <Field label="Día" htmlFor="pd"><Input id="pd" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
           <Field label="Hora (Táchira)" htmlFor="pt" hint="Déjala vacía para guardarla como borrador."><Input id="pt" type="time" value={time} onChange={(e) => setTime(e.target.value)} /></Field>
+          {timing.length ? (
+            <ul className="flex flex-col gap-1 sm:col-span-2" aria-live="polite">
+              {timing.map((t) => <li key={t} className="flex items-start gap-2 text-sm text-warn"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />{t}</li>)}
+            </ul>
+          ) : null}
           <Field label="Colaboradores a invitar" htmlFor="pc" hint="Separados por coma. Ej.: @gobernacion, @otro_gobernador" className="sm:col-span-2">
             <Input id="pc" value={collabs} onChange={(e) => setCollabs(e.target.value)} />
           </Field>

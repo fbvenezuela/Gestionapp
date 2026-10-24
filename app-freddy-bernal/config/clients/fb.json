@@ -13,8 +13,9 @@
    "Por amor al Táchira"
   ],
   "hashtags": [
-   "#Táchira",
-   "#FreddyBernal"
+   "#Tachira",
+   "#FreddyBernal",
+   "#Venezuela"
   ],
   "programName": "Reporte Bernal 2.0",
   "logoText": "FB",
@@ -422,35 +423,165 @@
      "hint": "Qué puede hacer quien lee: comentar, compartir, ir."
     }
    ]
+  },
+  {
+   "code": "GBA",
+   "name": "Gancho, bloques y acción",
+   "description": "Engancha en 100 caracteres, cuenta en 2 o 3 bloques cortos y cierra con algo que la gente pueda hacer.",
+   "steps": [
+    {
+     "key": "hook",
+     "label": "Gancho",
+     "hint": "Dato, escena, exclamación o confidencia en menos de 100 caracteres."
+    },
+    {
+     "key": "blocks",
+     "label": "Bloques",
+     "hint": "2 o 3 bloques cortos separados por salto de línea."
+    },
+    {
+     "key": "action",
+     "label": "Acción",
+     "hint": "Acción concreta con destino real (enlace, teléfono o dirección)."
+    }
+   ]
+  },
+  {
+   "code": "DATO",
+   "name": "Dato primero (pensada para X)",
+   "description": "El dato o la escena arriba, quién lo hizo abajo y un destino al cierre.",
+   "steps": [
+    {
+     "key": "fact",
+     "label": "Dato",
+     "hint": "El dato o la escena en la primera línea, con su fuente."
+    },
+    {
+     "key": "attribution",
+     "label": "Atribución",
+     "hint": "Quién lo hizo, en la última línea."
+    },
+    {
+     "key": "destination",
+     "label": "Destino",
+     "hint": "Enlace, teléfono o dirección."
+    }
+   ]
+  },
+  {
+   "code": "DAR",
+   "name": "Denuncia, acción y resultado",
+   "description": "Lo que reportó la gente, lo que se hizo y cómo quedó.",
+   "steps": [
+    {
+     "key": "complaint",
+     "label": "Denuncia",
+     "hint": "Lo que reportó la gente, sin nombres."
+    },
+    {
+     "key": "action_taken",
+     "label": "Acción",
+     "hint": "Lo que se hizo y quién."
+    },
+    {
+     "key": "result",
+     "label": "Resultado",
+     "hint": "Cómo quedó, con el dato o la foto del después."
+    }
+   ]
+  },
+  {
+   "code": "CIFRA",
+   "name": "Cifra única",
+   "description": "Una sola cifra, la más fuerte, traducida a la vida diaria.",
+   "steps": [
+    {
+     "key": "figure",
+     "label": "Cifra",
+     "hint": "Una sola cifra con su fuente."
+    },
+    {
+     "key": "meaning",
+     "label": "Qué significa",
+     "hint": "Qué cambia en la vida diaria de la gente."
+    },
+    {
+     "key": "punch",
+     "label": "Remate",
+     "hint": "Frase corta y memorable."
+    }
+   ]
+  },
+  {
+   "code": "CITA",
+   "name": "Cita del jefe",
+   "description": "Una frase textual del jefe, el contexto y el dato que la respalda.",
+   "steps": [
+    {
+     "key": "quote",
+     "label": "Cita",
+     "hint": "Frase textual del jefe (del storyboard o de lo que dijo)."
+    },
+    {
+     "key": "context",
+     "label": "Contexto",
+     "hint": "Dónde y por qué lo dijo."
+    },
+    {
+     "key": "backing",
+     "label": "Respaldo",
+     "hint": "El dato que la sostiene, con fuente."
+    }
+   ]
+  },
+  {
+   "code": "HIST",
+   "name": "Historia con protagonista",
+   "description": "El protagonista es la gente: qué le pasaba y qué cambió.",
+   "steps": [
+    {
+     "key": "protagonist",
+     "label": "Protagonista",
+     "hint": "La persona o la comunidad y su situación (con su permiso)."
+    },
+    {
+     "key": "change",
+     "label": "Qué cambió",
+     "hint": "Lo que cambió para ella con la obra o el acto."
+    },
+    {
+     "key": "proof",
+     "label": "Prueba",
+     "hint": "El dato que lo muestra, con fuente."
+    }
+   ]
   }
  ],
  "tweetSlots": [
   {
-   "from": "07:00",
-   "to": "09:00"
+   "from": "08:00",
+   "to": "10:00"
   },
   {
-   "from": "11:30",
-   "to": "13:30"
-  },
-  {
-   "from": "16:30",
-   "to": "18:30"
+   "from": "12:00",
+   "to": "14:00"
   },
   {
    "from": "19:00",
-   "to": "20:30"
-  },
-  {
-   "from": "20:30",
-   "to": "22:00"
+   "to": "21:00"
   }
  ],
  "tweetsPerDay": {
-  "min": 4,
-  "max": 5
+  "min": 2,
+  "max": 3
  },
  "tweetLowStockDays": 6,
+ "reviewDeadlinesMin": {
+  "verde": 1440,
+  "amarillo": 60,
+  "rojo": 30
+ },
+ "$review_source": "Semáforo del Diagnóstico Digital 360 (Plan de gestión). Decidido por Juan el 24/10/2026: verde lo aprueba supervisión (varias a la vez), amarillo supervisión en 60 min, rojo el jefe en 30 min. Sin respuesta no hay aprobación.",
  "mfaRoles": [
   "admin",
   "boss",
@@ -460,5 +591,136 @@
   "aid_operator"
  ],
  "uploadMaxMb": 10240,
- "defaultCollaborators": []
+ "defaultCollaborators": [],
+ "$schedules_source": "Diagnóstico Digital 360 (m06, m13), aprobado por Juan el 24/10/2026: X 2–3 al día; TikTok de noche.",
+ "publishingWindows": {
+  "tiktok": {
+   "best": [
+    {
+     "from": "22:00",
+     "to": "23:59"
+    },
+    {
+     "from": "07:00",
+     "to": "11:59"
+    }
+   ],
+   "avoid": [
+    {
+     "from": "12:00",
+     "to": "16:59"
+    }
+   ],
+   "bestDays": [
+    4,
+    3,
+    7
+   ],
+   "avoidDays": [
+    2,
+    6
+   ],
+   "note": "Lo medido: de noche (22:00–23:59) rinde más; la tarde (12:00–16:59) es la peor franja."
+  },
+  "instagram": {
+   "best": [
+    {
+     "from": "12:00",
+     "to": "14:00"
+    },
+    {
+     "from": "19:00",
+     "to": "21:00"
+    }
+   ],
+   "avoid": [],
+   "bestDays": [
+    4,
+    3
+   ],
+   "avoidDays": [
+    6
+   ],
+   "note": "Mediodía y noche. Probar 2 publicaciones al día en vez de 3."
+  },
+  "facebook": {
+   "best": [
+    {
+     "from": "12:00",
+     "to": "14:00"
+    },
+    {
+     "from": "19:00",
+     "to": "21:00"
+    }
+   ],
+   "avoid": [],
+   "bestDays": [
+    4
+   ],
+   "avoidDays": [
+    6
+   ],
+   "note": "1 o 2 publicaciones al día."
+  },
+  "threads": {
+   "best": [
+    {
+     "from": "12:00",
+     "to": "14:00"
+    },
+    {
+     "from": "19:00",
+     "to": "21:00"
+    }
+   ],
+   "avoid": [],
+   "bestDays": [
+    4
+   ],
+   "avoidDays": [
+    6
+   ],
+   "note": ""
+  },
+  "x": {
+   "best": [
+    {
+     "from": "08:00",
+     "to": "10:00"
+    },
+    {
+     "from": "12:00",
+     "to": "14:00"
+    },
+    {
+     "from": "19:00",
+     "to": "21:00"
+    }
+   ],
+   "avoid": [],
+   "bestDays": [
+    1,
+    4
+   ],
+   "avoidDays": [
+    6
+   ],
+   "note": "2 o 3 al día; reforzar el lunes. Cerrar con destino (enlace, teléfono o dirección)."
+  },
+  "youtube": {
+   "best": [
+    {
+     "from": "18:00",
+     "to": "21:00"
+    }
+   ],
+   "avoid": [],
+   "bestDays": [
+    4
+   ],
+   "avoidDays": [],
+   "note": "1 episodio a la semana."
+  }
+ }
 }

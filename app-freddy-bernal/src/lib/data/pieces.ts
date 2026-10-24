@@ -3,6 +3,8 @@ import type { Sql } from '../db/core';
 export type PieceFull = {
   id: string; title: string; kind: string; status: string; current_version: number; approved_version: number | null;
   event_id: string | null; event_title: string | null; category_name: string | null; approved_by_name: string | null; approved_at: string | null;
+  review_level: 'verde' | 'amarillo' | 'rojo'; sent_to_review_at: string | null; copy_voice: 'boss' | 'institutional';
+  copy_closing: { kind: 'brand' | 'question' | 'destination' | 'none'; text?: string } | null;
   versions: { version: number; media_asset_id: string | null; cover_asset_id: string | null; notes: string; created_at: string; mime: string | null; duration_s: number | null; width: number | null; height: number | null; fps: number | null; video_codec: string | null; audio_codec: string | null; size_bytes: number | null }[];
   copies: { length_group: 'long' | 'medium' | 'short'; body: string; char_count: number; generated_by: string; formula_id: string | null }[];
   reviews: { decision: string; comment: string; version: number; created_at: string; reviewer: string }[];
@@ -14,7 +16,8 @@ export type PieceFull = {
 export async function getPiece(sql: Sql, id: string): Promise<PieceFull | null> {
   const p = await sql.one<Omit<PieceFull, 'versions' | 'copies' | 'reviews' | 'comments' | 'voice' | 'publications'>>(
     `select p.id, p.title, p.kind, p.status, p.current_version, p.approved_version, p.event_id, e.title as event_title, c.name as category_name,
-            coalesce(nullif(ap.full_name, ''), ap.email) as approved_by_name, p.approved_at
+            coalesce(nullif(ap.full_name, ''), ap.email) as approved_by_name, p.approved_at,
+            p.review_level, p.sent_to_review_at, p.copy_voice, p.copy_closing
        from public.pieces p left join public.events e on e.id = p.event_id left join public.categories c on c.id = p.category_id
        left join public.profiles ap on ap.id = p.approved_by
       where p.id = $1 and p.deleted_at is null`,

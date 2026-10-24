@@ -10,7 +10,7 @@ import { fmtDateTime, fmtDay, dt, ms } from '@/lib/time';
 
 export const metadata = { title: 'Publicar' };
 
-type Pub = { id: string; network: string; format: string; status: string; scheduled_at: string | null; published_at: string | null; title: string; failure_reason: string | null; republish_of: string | null };
+type Pub = { id: string; network: string; format: string; status: string; scheduled_at: string | null; published_at: string | null; title: string; failure_reason: string | null; republish_of: string | null; origin: string };
 
 export default async function PublishPage() {
   const s = await requireRole('admin', 'social');
@@ -20,8 +20,8 @@ export default async function PublishPage() {
          and not exists (select 1 from public.publications x where x.piece_id = p.id and x.deleted_at is null) order by p.approved_at desc limit 20`,
     ),
     pubs: await sql.query<Pub>(
-      `select x.id, x.network, x.format, x.status, x.scheduled_at, x.published_at, p.title, x.failure_reason, x.republish_of
-         from public.publications x join public.pieces p on p.id = x.piece_id
+      `select x.id, x.network, x.format, x.status, x.scheduled_at, x.published_at, coalesce(p.title, x.title) as title, x.failure_reason, x.republish_of, x.origin
+         from public.publications x left join public.pieces p on p.id = x.piece_id
         where x.deleted_at is null and (x.status in ('draft', 'scheduled', 'failed') or x.published_at > now() - interval '14 days')
         order by coalesce(x.scheduled_at, x.published_at, x.created_at) desc limit 200`,
     ),
@@ -35,7 +35,12 @@ export default async function PublishPage() {
   }
   return (
     <>
-      <PageHeader title="Publicar" subtitle="Calendario de publicaciones por red. Por ahora se publica a mano: descarga el paquete y marca «Ya lo publiqué»." actions={<LinkButton href="/publicar/nueva"><Plus className="h-4 w-4" aria-hidden /> Nueva publicación</LinkButton>} />
+      <PageHeader title="Publicar" subtitle="Calendario de publicaciones por red. Por ahora se publica a mano: descarga el paquete y marca «Ya lo publiqué»." actions={
+          <div className="flex flex-wrap gap-2">
+            <LinkButton variant="secondary" href="/publicar/espontanea">Registrar lo que publicó el jefe</LinkButton>
+            <LinkButton href="/publicar/nueva"><Plus className="h-4 w-4" aria-hidden /> Nueva publicación</LinkButton>
+          </div>
+        } />
       {data.ready.length ? (
         <Card className="mb-5">
           <CardHeader title="Aprobadas y sin publicar" />
@@ -81,7 +86,7 @@ function PubRow({ p }: { p: Pub }) {
         <span className="w-20 shrink-0 font-mono text-sm font-semibold">{p.scheduled_at || p.published_at ? fmtDateTime(p.published_at ?? p.scheduled_at).split(', ').pop() : '—'}</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold">{p.title}</span>
-          <span className="block text-sm text-text-2">{NETWORK_LABEL[p.network]} · {p.format}{p.republish_of ? ' · republicación' : ''}{p.failure_reason ? ` · ${p.failure_reason}` : ''}</span>
+          <span className="block text-sm text-text-2">{NETWORK_LABEL[p.network]} · {p.origin === 'boss_spontaneous' ? 'la publicó el jefe' : p.format}{p.republish_of ? ' · republicación' : ''}{p.failure_reason ? ` · ${p.failure_reason}` : ''}</span>
         </span>
         <Chip tone={PUB_STATUS[p.status]?.tone}>{PUB_STATUS[p.status]?.label}</Chip>
       </Link>

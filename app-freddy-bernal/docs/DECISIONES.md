@@ -34,12 +34,12 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 - **Qué:** `mark_event_done` copia el día (sin hora) a `events.done_on`. Así el material entra al registro por día.
 - **Quién puede:** administración, despacho, el jefe y quien grabó.
 
-## D-07. Solo supervisión aprueba (ni administración)
-- **Qué:** aprobar piezas y tweets es exclusivo del rol `supervisor`, con doble factor. Una versión nueva vuelve a
-  revisión; editar un tweet aprobado lo devuelve a borrador.
+## D-07. Aprueba supervisión; lo rojo, el jefe (ni administración) — ver D-23
+- **Qué:** aprobar piezas verdes y amarillas y los tweets es de `supervisor`; las piezas en **rojo** las aprueba el
+  **jefe**. Siempre con doble factor y por `review_piece`. Administración nunca aprueba. Una versión nueva o un copy
+  cambiado vuelve a revisión; editar un tweet aprobado lo devuelve a borrador.
 - **Por qué:** «Nada se publica sin aprobación» y así queda claro quién aprobó. Si Fernando no está, administración le
-  da el rol a otra persona (queda en el registro). — **Confirmar** si Fernando aprueba todo o solo lo político
-  (PENDIENTES 2.4).
+  da el rol a otra persona (queda en el registro).
 
 ## D-08. Doble factor obligatorio para administración, jefe, despacho y supervisión
 - **Qué:** lista en el ajuste `security.mfa_roles` (también operadores de denuncias y ayudas, fase 3). Sin `aal2`, la
@@ -79,10 +79,13 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 - **Por qué:** es la más cercana a Venezuela entre las comunes (`us-east-1` / `iad1`). Las funciones de Vercel van en la
   misma región que la base (`preferredRegion` o ajuste del proyecto).
 
-## D-16. Tweets: 4 o 5 por día, en 5 franjas
-- **Qué:** franjas 7–9, 11:30–13:30, 16:30–18:30, 19–20:30, 20:30–22 (hora del Táchira); alterna 5 y 4 por día;
-  nunca dos en la misma hora ni minutos en :00. Aviso con 6 días o menos. — **Confirmar** con Hillary (PENDIENTES 2.7).
-- **Cómo se cambia:** Ajustes > Horarios de tweets.
+## D-16. Tweets: 2 o 3 por día, en 3 franjas (del diagnóstico)
+- **Qué:** franjas 8–10, 12–14 y 19–21 (hora del Táchira); alterna 3 y 2 por día y, con 2, usa la primera y la última
+  franja (mañana y noche); nunca dos en la misma hora ni minutos en :00. Aviso con 6 días o menos. Aprobado por Juan
+  (24/10) con los horarios del Diagnóstico 360; antes eran 4 o 5 en 5 franjas.
+- **Mejores horas por red** (`publishingWindows` → ajuste `publishing.windows`): se muestran al programar y avisan si la
+  hora o el día rinden mal (TikTok: 22–24 y 7–12; evitar 12–17 y el sábado). Solo avisan, no bloquean.
+- **Cómo se cambia:** Ajustes > Horarios de tweets (las franjas); las mejores horas, en `config/clients/fb.json`.
 
 ## D-17. Copies sin IA por defecto
 - **Qué:** con `AI_ENABLED=false` los copies salen de la ficha con una plantilla por fórmula, sin inventar cifras, y
@@ -120,3 +123,29 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 - **Qué:** el prompt proponía `fb-operaciones-360`; Juan creó este repositorio y subió aquí la carpeta. En Vercel, el
   «Root Directory» del proyecto es `app-freddy-bernal`.
 - **Cómo se cambia:** se puede renombrar el repositorio en GitHub sin tocar el código.
+
+## D-23. Semáforo de aprobación y lo que publica el jefe por su cuenta
+- **Qué:** quien manda una pieza a aprobar elige el nivel:
+  - **Verde** (rutina): la aprueba supervisión, en el día; puede aprobar todas las verdes de una vez.
+  - **Amarillo** (normal, por defecto): la aprueba supervisión; plazo 60 minutos.
+  - **Rojo** (sensible: política, crisis, aclaratorias): **solo el jefe** la aprueba; plazo 30 minutos. Le aparece en
+    su inicio («Te toca aprobar») y le llega un correo. Supervisión puede pedir cambios, no aprobarla.
+- **La falta de respuesta no es aprobación:** al vencer el plazo la pieza sigue sin aprobar, sale en «Trancado» y se
+  avisa otra vez (supervisión y administración; en rojo, también el jefe). Nunca se publica sola.
+- **Lista de chequeo** antes de aprobar (cifras con fuente, sin fecha ni hora, se ve y se oye bien, copies revisados).
+- **Quién cambia el nivel:** supervisión, el jefe o administración. Una pieza en rojo solo baja con el jefe o
+  administración. Todo en la base (`guard_piece_status`, `review_piece`, `set_review_level`) y en el registro.
+- **Lo espontáneo del jefe** (un video que subió él): no pasa por aprobación porque ya salió. Redes lo **registra
+  después** con su link en Publicar → «Registrar lo que publicó el jefe», para que cuente en resultados. La base solo
+  acepta esos registros ya publicados, con link, sin pieza y nunca por API.
+- **Por qué:** Juan dijo «lo que consideres mejor» (24/10). El semáforo viene del Plan del diagnóstico; se mantiene
+  «nada se publica sin aprobación» (regla del prompt).
+- **Plazos:** `reviewDeadlinesMin` en `config/clients/fb.json` (ajuste `review.deadlines_min`).
+
+## D-24. Voz y cierre se eligen por pieza
+- **Qué:** en el editor de copies, además de la fórmula, se elige la **voz** (el jefe en primera persona, que abre con su
+  saludo, o institucional, que abre con el hecho) y el **cierre** («Seguimos trabajando», «Por amor al Táchira»,
+  pregunta a la comunidad, acción con destino o sin cierre). Se guarda en la pieza y lo respeta la plantilla y la IA.
+- **Por qué:** Juan: primera persona «no todos, depende de lo que hagamos»; «Por amor al Táchira» «no siempre».
+- **Fórmulas nuevas:** GBA y DATO piden un destino en el cierre; CITA usa una frase textual del storyboard (sin cifras:
+  las cifras van en «Datos y cifras» con su fuente) y nunca la inventa.

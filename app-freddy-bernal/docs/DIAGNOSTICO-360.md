@@ -3,7 +3,7 @@
 Recibido el 24/10/2026: ZIP «Diagnostico_Digital_360_v71_Solo_Codigo» (sitio de ChatGPT Sites, versión 71, corte
 septiembre 2026, hecho por B360 / Publitag). **No se copió al repositorio**: es confidencial, trae datos personales y
 un mapa de actores políticos. Aquí queda solo lo útil para operar, marcado como **propuesta** del diagnóstico: nada
-se aplica sin que lo apruebe Hillary (ver «Preguntas» al final). Ninguna cifra de aquí se usa como dato en un copy.
+se aplicó sin decisión explícita (ver «Preguntas» al final: Juan las respondió el 24/10). Ninguna cifra de aquí se usa como dato en un copy.
 
 ## Qué trae el paquete
 1. **Diagnóstico de 21 módulos** (m01–m21) con datos medidos por red: textos, rendimiento, oratoria, audiencias, KPI.
@@ -21,7 +21,7 @@ resguardo, tamaños, pesos): el ZIP «solo código» no trae PDF ni imágenes.
 - Variante oliva más nueva: 55 % oliva, 25 % blanco, 15 % negro, 5 % amarillo. La naranja figura como «color dominante»
   en la versión anterior. **Decidido: oliva es el color principal** (Juan, 24/10; D-21).
 - Logo: «FREDDY / Bernal / GOBERNADOR» en 4 versiones (oliva/blanco, blanco/oliva, negro/blanco, blanco/negro), solo
-  como imagen. No aparece «F BERNAL». → Pregunta 2.
+  como imagen. No aparece «F BERNAL». → Aprobado (Juan, 24/10); falta el vector.
 - Contraste (WCAG AA): el texto sobre naranja, oliva o amarillo va en **negro**. Blanco sobre naranja (3,14:1) u oliva
   (3,92:1) no pasa; amarillo sobre naranja u oliva y naranja sobre oliva tampoco, ni en letra grande.
 
@@ -31,12 +31,13 @@ resguardo, tamaños, pesos): el ZIP «solo código» no trae PDF ni imágenes.
   (la corrección de mayor impacto medido). «Seguimos trabajando» sirve como cierre, no como apertura.
   → Ya está en la regla de la IA y en las pistas de las fórmulas.
 - 2 o 3 bloques cortos; cerrar con una acción con destino real (enlace, dirección, teléfono). Las preguntas abiertas sin
-  moderación se volvieron buzón de quejas. → Pregunta 6.
-- Voz en **primera persona**, nada de tercera persona tipo boletín. → Pregunta 5.
+  moderación se volvieron buzón de quejas. → El cierre se elige por pieza (D-24).
+- Voz en **primera persona**, nada de tercera persona tipo boletín. → Se elige por pieza (D-24).
 - Cada cifra con su fuente («dato sin fuente = dato que no sale»), como ya exige la plataforma.
-- Hashtags: un set fijo de 3–5 de marca + 2–3 de descubrimiento; las cuentas usan `#Tachira` sin acento. → Pregunta 4.
+- Hashtags: un set fijo de 3–5 de marca + 2–3 de descubrimiento; las cuentas usan `#Tachira` sin acento. → Aplicado
+  (`#Tachira #FreddyBernal #Venezuela`).
 - Fórmulas propuestas (PENDIENTES #13): gancho-bloques-acción, dato primero (X), denuncia-acción-resultado, cifra única,
-  cita del jefe, historia con protagonista. → Pregunta 7.
+  cita del jefe, historia con protagonista. → Agregadas las seis.
 
 ## Ideas por módulo (para siguientes fases)
 - **Agenda:** hitos T−72 h aviso, T−48 h ficha, T−24 h confirmación, T0 cobertura, T+3 h publicación, T+24 h medición;
@@ -47,9 +48,9 @@ resguardo, tamaños, pesos): el ZIP «solo código» no trae PDF ni imágenes.
 - **Material:** marca de «toma prioritaria», validación técnica (sonido, foco, luz, encuadre) con veredicto. **No** se
   adopta el nombre de archivo `AAAA-MM-DD_evento…` del Plan: filtra fechas (regla 4, D-13).
 - **Aprobación:** semáforo (verde rutinario preaprobado, amarillo en 60 min, rojo del cliente en 30 min); «la falta de
-  respuesta no es aprobación»; lista de chequeo en teléfono antes de aprobar. → Pregunta 8.
+  respuesta no es aprobación»; lista de chequeo en teléfono antes de aprobar. → Aplicado (D-23), con la lista de chequeo.
 - **Publicar:** chequeos sin API (subtítulos, zonas seguras 9:16/1:1/16:9, nada de recorte automático desde 16:9).
-  TikTok rinde mejor 22:00–23:59 y 07:00–11:59; jueves el mejor día, sábado el peor. → Pregunta 3.
+  TikTok rinde mejor 22:00–23:59 y 07:00–11:59; jueves el mejor día, sábado el peor. → Aviso al programar.
 - **Resultados:** revisar a las 48 h y consolidar a los 7 días; comparar ventanas iguales; pesar guardados y
   compartidos sobre me gusta; vista por día de la semana. Las metas de m21 son propuesta, no resultados.
 - **Vista del jefe / trazabilidad:** «El Marcador» de compromisos (Cumplido, En ejecución, Pendiente, En evaluación).
@@ -58,19 +59,21 @@ resguardo, tamaños, pesos): el ZIP «solo código» no trae PDF ni imágenes.
 ## Lo que NO se integra
 - **TCPRO-5**: confía en una cabecera que fuera de ChatGPT Sites cualquiera puede falsificar; el proveedor
   (`kunawaro.alwaysdata.net`) es desconocido y tiene llamadas pagas; el proyecto autorizado es de demostración (sin
-  datos de Freddy). Si se quiere escucha de medios en fase 2: contrato, precio y acuerdo de datos primero. → Pregunta 9.
+  datos de Freddy). Si se quiere escucha de medios en fase 2: contrato, precio y acuerdo de datos primero.
 - El **juego de actores** (mapa político), datos personales (familia, cuentas de ciudadanos, peticiones), nombres de
   personal y presupuestos: nada de eso entra a la plataforma, a las semillas ni a la IA.
 - Ideas doctrinales y líneas sobre negociaciones: no van al prompt de la IA sin decisión explícita del cliente.
 - El código, el HTML y el esquema del paquete: solo se toman ideas, reescritas.
 
-## Preguntas para Hillary (en `docs/PENDIENTES.md`)
-1. ~~¿Color principal oliva o naranja?~~ **Oliva** (Juan, 24/10). Aplicado.
-2. ¿El logo «FREDDY / Bernal / GOBERNADOR» es el aprobado? Mandarlo en vector, con las láminas 31–38.
-3. ¿Horarios por red del diagnóstico (TikTok de noche, X 2–3 al día) o los actuales (4–5 tweets al día)?
-4. ¿`#Tachira` o `#Táchira`? ¿Se agrega `#Venezuela`?
-5. ¿Todos los copies en primera persona del gobernador?
-6. ¿Se quita el cierre «¿Qué opinas? Cuéntanos 👇» y se pone «Por amor al Táchira» como cierre principal?
-7. ¿Qué fórmulas nuevas se agregan?
-8. ¿Fernando aprueba todo o se usa el semáforo? ¿Los videos espontáneos del jefe salen sin aprobación (choca con D-07)?
-9. ¿Quién es Igor / el operador de TCPRO-5 y si se quiere escucha de medios en fase 2?
+## Preguntas (respondidas por Juan el 24/10/2026)
+1. ~~¿Color principal oliva o naranja?~~ **Oliva.** Aplicado (D-21).
+2. ~~¿El logo «FREDDY / Bernal / GOBERNADOR» es el aprobado?~~ **Sí.** Falta el vector y las láminas 31–38.
+3. ~~¿Horarios del diagnóstico o 4–5 tweets al día?~~ **Los del diagnóstico:** X 2–3 al día; mejores horas por red como
+   aviso al programar (`publishingWindows` en `config/clients/fb.json`). D-16.
+4. ~~¿`#Tachira` o `#Táchira`? ¿`#Venezuela`?~~ **`#Tachira`** y se agrega **`#Venezuela`**.
+5. ~~¿Todo en primera persona?~~ **No todos:** se elige por pieza (D-24).
+6. ~~¿«Por amor al Táchira» como cierre principal?~~ **No siempre:** se elige por pieza (D-24).
+7. ~~¿Qué fórmulas se agregan?~~ **Todas** (GBA, DATO, DAR, CIFRA, CITA, HIST).
+8. ~~¿Fernando aprueba todo o semáforo? ¿Espontáneos del jefe?~~ **Semáforo** y los espontáneos se registran después
+   (D-23).
+9. ~~¿Quién es Igor?~~ Hizo un **programa de investigación de datos** que se conectará después. TCPRO-5 no se integra.

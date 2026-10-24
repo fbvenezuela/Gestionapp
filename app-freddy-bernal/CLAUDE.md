@@ -5,15 +5,18 @@
 Lee primero `PROMPT-APP-FREDDY-BERNAL.md` (reglas que no se rompen, §4) y `docs/IDEA.md`. Juan habla español de
 Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en español; el código en inglés.
 
-## Estado (23/10/2026)
+## Estado (24/10/2026)
 - **Fase 0 y Fase 1 construidas**, en modo demostración (base en memoria con datos inventados). Faltan las cuentas
   (Supabase, Vercel, Resend) para pasar a datos reales: ver `README.md` y `docs/PENDIENTES.md`.
 - Módulos: entrar por invitación + código + TOTP; Hoy por rol; agenda (calendario para jefe/despacho, lista sin fecha
   para redes); ficha del evento con ficha técnica, storyboard y modo lectura; material por partes; biblioteca por día;
-  piezas con versiones; copies FAB/PAS/AIDA en tres largos (plantilla o IA); aprobación de supervisión (comentario por
-  segundo, pedir frase al jefe); tweets de la semana desde documento; publicación manual validada por red;
-  resultados (manual, CSV, «¿a qué hora nos va mejor?»); vista del jefe; ajustes; buzón de correos; registro de cambios.
-- Pruebas: 55 de Vitest (31 de RLS) y 19 de Playwright a 360 px con axe. CI en `.github/workflows/ci.yml`.
+  piezas con versiones; copies en tres largos con 9 fórmulas, voz y cierre por pieza (plantilla o IA); aprobación con
+  semáforo (verde/amarillo supervisión, rojo el jefe, plazos y lista de chequeo; D-23); tweets de la semana desde
+  documento (2–3 al día); publicación manual validada por red con mejores horas; registro de lo que publica el jefe por
+  su cuenta; resultados (manual, CSV, «¿a qué hora nos va mejor?»); vista del jefe; ajustes; buzón; registro de cambios.
+- Marca: oliva como color principal (D-21). Diagnóstico Digital 360 resumido en `docs/DIAGNOSTICO-360.md` (el ZIP es
+  confidencial y no está en el repositorio).
+- Pruebas: Vitest (unidad + RLS) y Playwright a 360 px con axe. CI en `.github/workflows/ci.yml`.
 
 ## Cómo está armado (lo esencial)
 - **Datos:** `src/lib/db`. Toda consulta de una persona va por `db(session, sql => …)` / `withUser`, que corre como el

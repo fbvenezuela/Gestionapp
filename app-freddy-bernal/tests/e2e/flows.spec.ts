@@ -93,13 +93,45 @@ test('redes no puede publicar lo que no está aprobado', async ({ page }) => {
   expect(options).not.toContain('Jornada de salud escolar');
 });
 
-test('supervisión aprueba la pieza', async ({ page }) => {
+async function approveWithChecklist(page: Page) {
+  const approve = page.getByRole('button', { name: /Marca la lista para aprobar|^Aprobar$/ });
+  await expect(approve).toBeDisabled();
+  for (const box of await page.getByRole('group', { name: 'Antes de aprobar' }).getByRole('checkbox').all()) await box.check();
+  await page.getByRole('button', { name: 'Aprobar', exact: true }).click();
+  await expect(page).toHaveURL(/\/aprobar$/);
+}
+
+test('supervisión aprueba la pieza, con la lista de chequeo', async ({ page }) => {
   await loginAs(page, 'supervision@demo.test');
   await page.goto('/aprobar');
+  await expect(page.getByText(/aprueba el jefe/).first()).toBeVisible();
   await axe(page);
   await page.getByRole('link', { name: /Jornada de salud escolar/ }).click();
-  await page.getByRole('button', { name: 'Aprobar' }).click();
-  await expect(page).toHaveURL(/\/aprobar$/);
+  await approveWithChecklist(page);
+});
+
+test('en rojo, supervisión no ve el botón de aprobar', async ({ page }) => {
+  await loginAs(page, 'supervision@demo.test');
+  await page.goto('/aprobar');
+  await page.getByRole('link', { name: /Aclaratoria sobre el servicio de agua/ }).click();
+  await expect(page.getByText('Está en rojo: la aprueba el jefe.', { exact: false })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Aprobar/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Pedir cambios' })).toBeVisible();
+});
+
+test('redes registra un video que el jefe publicó por su cuenta', async ({ page }) => {
+  await loginAs(page, 'redes@demo.test');
+  await page.goto('/publicar');
+  await page.getByRole('link', { name: 'Registrar lo que publicó el jefe' }).click();
+  await page.getByLabel('Red').selectOption('tiktok');
+  await page.getByLabel('Link de la publicación').fill('https://example.com/demo/tt/espontaneo');
+  await page.getByLabel('¿De qué se trató?').fill('Video del jefe en la feria (prueba)');
+  await axe(page);
+  await page.getByRole('button', { name: 'Registrar' }).click();
+  await expect(page.getByText('Espontánea del jefe')).toBeVisible();
+  await page.getByLabel('Vistas').fill('900');
+  await page.getByRole('button', { name: 'Guardar resultados' }).click();
+  await expect(page.getByText('Resultados guardados.')).toBeVisible();
 });
 
 test('redes publica a mano con validación por red y link', async ({ page }) => {
@@ -163,4 +195,9 @@ test('el jefe entra con doble factor, ve Política y Digital y decide un evento'
   await page.getByRole('radio', { name: '8' }).click();
   await page.getByRole('button', { name: 'Aceptar' }).click();
   await expect(page.getByText('Evento aceptado.')).toBeVisible();
+  // Red pieces wait for him on his home screen; he approves them.
+  await page.goto('/jefe');
+  await expect(page.getByRole('heading', { name: 'Te toca aprobar' })).toBeVisible();
+  await page.getByRole('link', { name: /Aclaratoria sobre el servicio de agua/ }).click();
+  await approveWithChecklist(page);
 });

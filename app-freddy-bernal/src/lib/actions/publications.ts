@@ -6,6 +6,8 @@ import { loadPublishContext, validateFor } from '../data/publish';
 
 const uuid = z.string().uuid();
 const NETWORKS = ['instagram', 'facebook', 'tiktok', 'threads', 'x', 'youtube'] as const;
+// Links are shown as clickable evidence: only http(s).
+const postUrl = z.string().trim().url('Pega el link de la publicación.').max(500).refine((u) => /^https?:\/\//i.test(u), 'El link tiene que empezar con https://');
 
 export async function createPublications(raw: unknown) {
   return act(
@@ -42,7 +44,7 @@ export async function createPublications(raw: unknown) {
 
 export async function markPublished(raw: unknown) {
   return act(
-    z.object({ id: uuid, url: z.string().url('Pega el link de la publicación.').max(500), evidenceId: uuid.nullable().default(null), publishedAt: z.string().datetime({ offset: true }).nullable().default(null) }),
+    z.object({ id: uuid, url: postUrl, evidenceId: uuid.nullable().default(null), publishedAt: z.string().datetime({ offset: true }).nullable().default(null) }),
     raw,
     async (sql, i) => {
       const r = await sql.one<{ piece_id: string; event_id: string | null }>(
@@ -67,4 +69,28 @@ export async function reschedule(raw: unknown) {
   return act(z.object({ id: uuid, scheduledAt: z.string().datetime({ offset: true }) }), raw, async (sql, i) => {
     await sql.query(`update public.publications set scheduled_at = $2, status = 'scheduled', failure_reason = null where id = $1 and status <> 'published'`, [i.id, i.scheduledAt]);
   }, { revalidate: ['/publicar'] });
+}
+
+// The boss published something himself (a spontaneous video, a story). The team records
+// it afterwards with its link so it counts in results. Nothing is sent from here.
+export async function registerSpontaneous(raw: unknown) {
+  return act(
+    z.object({
+      network: z.enum(NETWORKS),
+      title: z.string().trim().min(3, 'Escribe de qué se trató.').max(140),
+      url: postUrl,
+      publishedAt: z.string().datetime({ offset: true }).nullable().default(null),
+    }),
+    raw,
+    async (sql, i) => {
+      if (i.publishedAt && new Date(i.publishedAt).getTime() > Date.now() + 5 * 60_000) throw new UserError('La fecha no puede ser futura: se registra lo que ya salió.');
+      const r = await sql.one<{ id: string }>(
+        `insert into public.publications (origin, title, network, format, status, mode, url, published_at)
+         values ('boss_spontaneous', $1, $2, 'post', 'published', 'manual', $3, coalesce($4::timestamptz, now())) returning id`,
+        [i.title, i.network, i.url, i.publishedAt],
+      );
+      return { id: r!.id };
+    },
+    { revalidate: ['/publicar', '/resultados', '/jefe'] },
+  );
 }

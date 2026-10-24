@@ -97,3 +97,16 @@ Resumen y lo que sirve: `docs/DIAGNOSTICO-360.md` (el ZIP no se subió al reposi
 - **Color principal: oliva** (decidido por Juan, 24/10; D-21).
 - **Nuevo #27:** las preguntas que quedan en `docs/DIAGNOSTICO-360.md` (logo, horarios por red, hashtags,
   primera persona, cierres, fórmulas, semáforo de aprobación, TCPRO-5).
+
+## Respuestas de Juan a las preguntas del diagnóstico (24/10/2026) — aplicadas
+- **#1 Logo:** el «FREDDY / Bernal / GOBERNADOR» **es el aprobado**. **Falta el vector** (SVG/AI/PDF) y las láminas 31–38.
+- **2.7 Tweets:** se usan los horarios del diagnóstico: **2 o 3 tweets al día** en mañana (8–10), mediodía (12–14) y noche
+  (19–21); con 2, mañana y noche. Mejores horas por red como aviso al programar (TikTok de noche). D-16 actualizada.
+- **Hashtags:** `#Tachira` (sin acento) y se agrega `#Venezuela`.
+- **Primera persona y cierre:** «no todos» y «no siempre»: se elige **por pieza** (voz del jefe o institucional; cierre de
+  la marca, pregunta, destino o sin cierre). D-24.
+- **#13 Fórmulas:** se agregaron **las seis** del diagnóstico (GBA, DATO, DAR, CIFRA, CITA, HIST). Quedan nueve.
+- **2.4 Aprobación:** «lo que consideres mejor» → **semáforo** (D-23): verde y amarillo los aprueba supervisión, rojo
+  el jefe; sin respuesta no se aprueba. Lo que el jefe publica por su cuenta se **registra después**.
+- **#23 Igor:** hizo un programa de investigación de datos que **se conectará más adelante** (fuente de datos para
+  fichas, tweets y copies). Pendiente: qué datos entrega, en qué formato y cómo se accede. TCPRO-5 sigue sin integrarse.

@@ -165,9 +165,12 @@ export function distribute(
 
   while (out.length < count && guard++ < 400) {
     const target = Math.min(slots.length, dayIndex % 2 === 0 ? opts.perDay.max : opts.perDay.min);
-    // Spread `target` picks evenly across the available slots.
+    // Spread `target` picks across the slots, always using the first and the last
+    // (with 2 a day over morning/noon/night: morning and night).
     const picks: Slot[] = [];
-    for (let k = 0; k < target; k++) picks.push(slots[Math.floor((k * slots.length) / target)]);
+    const n = slots.length;
+    if (target === 1) picks.push(slots[Math.floor((n - 1) / 2)]);
+    else for (let k = 0; k < target; k++) picks.push(slots[Math.round((k * (n - 1)) / (target - 1))]);
     const usedHours = new Set<number>();
     const usedMinutes = new Set<number>();
     for (const slot of picks) {

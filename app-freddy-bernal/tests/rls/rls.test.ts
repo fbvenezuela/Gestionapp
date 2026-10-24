@@ -103,7 +103,7 @@ describe('regla de fecha y hora: redes nunca ve la agenda', () => {
 
 describe('aprobación: nada se publica sin supervisión', () => {
   const pieceIn = (status: string) =>
-    t.system((sql) => sql.one<{ id: string }>(`select id from public.pieces where status = $1 limit 1`, [status]));
+    t.system((sql) => sql.one<{ id: string }>(`select id from public.pieces where status = $1 and review_level <> 'rojo' order by created_at limit 1`, [status]));
 
   it('redes no puede aprobar una pieza', async () => {
     const p = (await pieceIn('in_review'))!.id;
@@ -170,6 +170,90 @@ describe('aprobación: nada se publica sin supervisión', () => {
     );
     expect(r!.status).toBe('draft');
     expect(r!.approved_at).toBeNull();
+  });
+});
+
+describe('semáforo de aprobación', () => {
+  const red = () => t.system((sql) => sql.one<{ id: string }>(`select id from public.pieces where review_level = 'rojo' and status = 'in_review' limit 1`));
+  const draftWithFile = async (level = 'amarillo') => {
+    const id = (await t.as('social', (sql) => sql.one<{ id: string }>(`insert into public.pieces (kind, title, review_level) values ('video', 'Pieza del semáforo', $1) returning id`, [level])))!.id;
+    await t.as('social', (sql) => sql.query(`insert into public.piece_versions (piece_id, version) values ($1, 1)`, [id]));
+    await t.as('social', (sql) => sql.query(`update public.pieces set current_version = 1 where id = $1`, [id]));
+    return id;
+  };
+
+  it('en rojo, supervisión no aprueba pero sí pide cambios; el jefe aprueba', async () => {
+    const p = (await red())!.id;
+    await fails(t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'approved')`, [p])));
+    await t.as('boss', (sql) => sql.query(`select public.review_piece($1, 'approved', 'Va')`, [p]));
+    const r = await t.system((sql) => sql.one<{ status: string; approved_by: string }>(`select status, approved_by from public.pieces where id = $1`, [p]));
+    expect(r).toMatchObject({ status: 'approved', approved_by: t.ids.boss });
+    await t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'changes_requested', 'Falta un dato')`, [p]));
+  });
+
+  it('el jefe no aprueba lo amarillo ni sin doble factor', async () => {
+    const p = await draftWithFile();
+    await t.as('social', (sql) => sql.query(`update public.pieces set status = 'in_review' where id = $1`, [p]));
+    await fails(t.as('boss', (sql) => sql.query(`select public.review_piece($1, 'approved')`, [p])));
+    await t.as('boss', (sql) => sql.query(`select public.set_review_level($1, 'rojo')`, [p]));
+    await fails(t.as('boss', (sql) => sql.query(`select public.review_piece($1, 'approved')`, [p]), 'aal1'));
+  });
+
+  it('no se aprueba un borrador que no se mandó a revisión', async () => {
+    const p = await draftWithFile();
+    await fails(t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'approved')`, [p])));
+  });
+
+  it('redes no baja el nivel de una pieza en revisión ni la saca del rojo', async () => {
+    const p = await draftWithFile('rojo');
+    await fails(t.as('social', (sql) => sql.query(`update public.pieces set review_level = 'amarillo' where id = $1`, [p])));
+    await t.as('social', (sql) => sql.query(`update public.pieces set status = 'in_review' where id = $1`, [p]));
+    await fails(t.as('supervisor', (sql) => sql.query(`select public.set_review_level($1, 'verde')`, [p])));
+    await fails(t.as('social', (sql) => sql.query(`select public.set_review_level($1, 'verde')`, [p])));
+    await t.as('admin', (sql) => sql.query(`select public.set_review_level($1, 'amarillo')`, [p]));
+    await t.as('supervisor', (sql) => sql.query(`select public.set_review_level($1, 'verde')`, [p]));
+  });
+
+  it('el reloj de revisión lo pone la base, no la persona', async () => {
+    const p = await draftWithFile();
+    const r = await t.as('social', (sql) =>
+      sql.one<{ sent_to_review_at: Date | null }>(`update public.pieces set status = 'in_review', sent_to_review_at = now() - interval '5 days' where id = $1 returning sent_to_review_at`, [p]),
+    );
+    expect(Date.now() - new Date(r!.sent_to_review_at!).getTime()).toBeLessThan(60_000);
+  });
+
+  it('cambiar el copy de una pieza aprobada la devuelve a revisión', async () => {
+    const p = await draftWithFile();
+    await t.as('social', (sql) => sql.query(`insert into public.copies (piece_id, length_group, body) values ($1, 'short', 'Copy aprobado.')`, [p]));
+    await t.as('social', (sql) => sql.query(`update public.pieces set status = 'in_review' where id = $1`, [p]));
+    await t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'approved')`, [p]));
+    await t.as('social', (sql) => sql.query(`update public.copies set body = body || ' Editado.' where piece_id = $1 and length_group = 'short'`, [p]));
+    const r = await t.system((sql) => sql.one<{ status: string }>(`select status from public.pieces where id = $1`, [p]));
+    expect(r!.status).toBe('in_review');
+  });
+});
+
+describe('publicaciones espontáneas del jefe', () => {
+  it('se registran después, publicadas, con link y sin pieza', async () => {
+    const r = await t.as('social', (sql) =>
+      sql.one<{ published_at: Date | null }>(
+        `insert into public.publications (origin, title, network, status, url) values ('boss_spontaneous', 'Video del jefe en la vía (demo)', 'tiktok', 'published', 'https://example.com/demo/tt/1') returning published_at`,
+      ),
+    );
+    expect(r!.published_at).not.toBeNull();
+  });
+  it('sin link, programadas o con pieza no se aceptan', async () => {
+    await fails(t.as('social', (sql) => sql.query(`insert into public.publications (origin, title, network, status) values ('boss_spontaneous', 'Sin link', 'x', 'published')`)));
+    await fails(t.as('social', (sql) => sql.query(`insert into public.publications (origin, title, network, status, scheduled_at) values ('boss_spontaneous', 'Programada', 'x', 'scheduled', now())`)));
+    await fails(t.as('social', (sql) => sql.query(`insert into public.publications (origin, title, network, status, url, mode) values ('boss_spontaneous', 'Por API', 'x', 'published', 'https://example.com/a', 'api')`)));
+    const draft = await t.system((sql) => sql.one<{ id: string }>(`select id from public.pieces where status = 'draft' limit 1`));
+    await fails(t.as('social', (sql) => sql.query(`insert into public.publications (origin, piece_id, title, network, status, url) values ('boss_spontaneous', $1, 'Con pieza', 'x', 'published', 'https://example.com/b')`, [draft!.id])));
+  });
+  it('una publicación del equipo sigue necesitando pieza aprobada', async () => {
+    await fails(t.as('social', (sql) => sql.query(`insert into public.publications (network, status, url) values ('x', 'published', 'https://example.com/c')`)));
+  });
+  it('quien graba no registra publicaciones', async () => {
+    await fails(t.as('camera', (sql) => sql.query(`insert into public.publications (origin, title, network, status, url) values ('boss_spontaneous', 'Intento', 'x', 'published', 'https://example.com/d')`)));
   });
 });
 

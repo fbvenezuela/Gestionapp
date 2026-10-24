@@ -7,25 +7,44 @@ import { Chip } from '@/components/ui/chip';
 import { LENGTH_GROUP, PIECE_KIND, PIECE_STATUS } from '@/lib/data/labels';
 import { LIMITS } from '@/lib/domain/copies';
 import { fmtDateTime } from '@/lib/time';
-import { ReviewRoom } from './review-room';
+import { getDeadlines } from '@/lib/data/review';
+import { LEVELS, reviewClock } from '@/lib/domain/review';
+import { ReviewRoom, LevelPicker } from './review-room';
 
 export const metadata = { title: 'Revisión' };
 
 export default async function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
-  const s = await requireRole('supervisor', 'admin');
+  const s = await requireRole('supervisor', 'admin', 'boss');
   const { id } = await params;
-  const p = await db(s, (sql) => getPiece(sql, id));
+  const { p, deadlines } = await db(s, async (sql) => ({ p: await getPiece(sql, id), deadlines: await getDeadlines(sql) }));
   if (!p) notFound();
   const current = p.versions[0];
+  const isSup = s.roles.includes('supervisor');
+  const isBoss = s.roles.includes('boss');
+  const inReview = p.status === 'in_review';
+  const red = p.review_level === 'rojo';
+  const clock = inReview ? reviewClock(p.review_level, p.sent_to_review_at, deadlines) : null;
+  // Out of red only with the boss or admin (the database enforces the same).
+  const canLevel = inReview && (isSup || isBoss || s.roles.includes('admin'));
+  const canLower = !red || isBoss || s.roles.includes('admin');
   return (
     <>
       <PageHeader back={{ href: '/aprobar', label: 'Por aprobar' }} title={p.title} subtitle={[PIECE_KIND[p.kind], p.event_title, `versión ${p.current_version}`].filter(Boolean).join(' · ')} />
-      <div className="mb-4"><Chip tone={PIECE_STATUS[p.status]?.tone}>{PIECE_STATUS[p.status]?.label}</Chip></div>
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <Chip tone={PIECE_STATUS[p.status]?.tone}>{PIECE_STATUS[p.status]?.label}</Chip>
+        <Chip tone={LEVELS[p.review_level].tone}>{LEVELS[p.review_level].label}: aprueba {LEVELS[p.review_level].who}</Chip>
+        {clock?.text ? <Chip tone={clock.overdue ? 'danger' : 'neutral'}>{clock.text}</Chip> : null}
+        {canLevel ? <LevelPicker pieceId={p.id} level={p.review_level} canLower={canLower} /> : null}
+      </div>
+      {clock?.overdue ? <p className="mb-4 text-sm text-danger">Venció el plazo y sigue sin aprobar. No sale hasta que {LEVELS[p.review_level].who} decida.</p> : null}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="flex flex-col gap-4">
           <ReviewRoom
             pieceId={p.id}
-            canDecide={s.roles.includes('supervisor') && p.status === 'in_review'}
+            canApprove={inReview && (red ? isBoss : isSup)}
+            canRequestChanges={inReview && (isSup || isBoss)}
+            canAskVoice={isSup || s.roles.includes('admin')}
+            note={inReview && red && !isBoss ? 'Está en rojo: la aprueba el jefe. Tú puedes pedir cambios o comentar.' : inReview && !red && isBoss && !isSup ? 'La aprueba supervisión. Tú puedes pedir cambios o comentar.' : ''}
             media={current?.media_asset_id ? { id: current.media_asset_id, mime: current.mime ?? '' } : null}
           />
           <Card>

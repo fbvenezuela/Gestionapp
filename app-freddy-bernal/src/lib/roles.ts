@@ -41,7 +41,7 @@ export const NAV: NavItem[] = [
   { href: '/jefe', label: 'Inicio', icon: 'home', roles: ['boss'], mobile: ['boss'] },
   { href: '/hoy', label: 'Hoy', icon: 'sun', roles: ['admin', 'dispatch', 'secretary', 'social', 'supervisor', 'camera'], mobile: ['admin', 'dispatch', 'secretary', 'social', 'supervisor', 'camera'] },
   { href: '/agenda', label: 'Agenda', icon: 'calendar', roles: ['admin', 'boss', 'dispatch', 'secretary', 'social', 'camera'], mobile: ['admin', 'boss', 'dispatch', 'secretary', 'social', 'camera'] },
-  { href: '/aprobar', label: 'Por aprobar', icon: 'check', roles: ['supervisor', 'admin'], mobile: ['supervisor'] },
+  { href: '/aprobar', label: 'Por aprobar', icon: 'check', roles: ['supervisor', 'admin', 'boss'], mobile: ['supervisor', 'boss'] },
   { href: '/piezas', label: 'Piezas', icon: 'film', roles: ['admin', 'social'], mobile: ['admin', 'social'] },
   { href: '/tweets', label: 'Tweets', icon: 'message', roles: ['admin', 'social', 'supervisor'], mobile: ['social'] },
   { href: '/publicar', label: 'Publicar', icon: 'send', roles: ['admin', 'social'], mobile: ['social'] },

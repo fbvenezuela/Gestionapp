@@ -86,6 +86,29 @@ describe('distribute', () => {
   });
 });
 
+describe('distribute con 2 o 3 por día (diagnóstico)', () => {
+  const slots = [
+    { from: '08:00', to: '10:00' },
+    { from: '12:00', to: '14:00' },
+    { from: '19:00', to: '21:00' },
+  ];
+  const start = DateTime.fromISO('2026-10-26T06:00', { zone: TZ });
+  const times = distribute(10, { start, slots, perDay: { min: 2, max: 3 }, tz: TZ, seed: 7 });
+  const byDay = new Map<string, DateTime[]>();
+  for (const t of times) {
+    const d = DateTime.fromISO(t).setZone(TZ);
+    byDay.set(d.toISODate()!, [...(byDay.get(d.toISODate()!) ?? []), d]);
+  }
+  it('alterna 3 y 2 por día', () => {
+    expect([...byDay.values()].map((l) => l.length)).toEqual([3, 2, 3, 2]);
+  });
+  it('los días de 2 usan mañana y noche', () => {
+    const two = [...byDay.values()][1].map((d) => d.hour).sort((a, b) => a - b);
+    expect(two[0]).toBeLessThan(10);
+    expect(two[1]).toBeGreaterThanOrEqual(19);
+  });
+});
+
 describe('daysOfStock', () => {
   const now = DateTime.fromISO('2026-10-26T10:00', { zone: TZ });
   it('cuenta los días hasta el último tweet', () => {

@@ -17,15 +17,17 @@ export default async function PublicationPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const data = await db(s, async (sql) => {
     const p = await sql.one<{
-      id: string; piece_id: string; network: string; format: string; copy_body: string; cover_asset_id: string | null; collaborators: string[];
+      id: string; piece_id: string | null; origin: string; network: string; format: string; copy_body: string; cover_asset_id: string | null; collaborators: string[];
       scheduled_at: string | null; published_at: string | null; url: string | null; evidence_asset_id: string | null; republish_of: string | null;
       status: string; failure_reason: string | null; validation: { level: string; text: string }[] | null; title: string; current_version: number;
     }>(
-      `select x.*, p.title, p.current_version from public.publications x join public.pieces p on p.id = x.piece_id where x.id = $1 and x.deleted_at is null`,
+      `select x.*, coalesce(p.title, x.title) as title, p.current_version from public.publications x left join public.pieces p on p.id = x.piece_id where x.id = $1 and x.deleted_at is null`,
       [id],
     );
     if (!p) return null;
-    const media = await sql.one<{ media_asset_id: string | null }>(`select media_asset_id from public.piece_versions where piece_id = $1 and version = $2`, [p.piece_id, p.current_version]);
+    const media = p.piece_id
+      ? await sql.one<{ media_asset_id: string | null }>(`select media_asset_id from public.piece_versions where piece_id = $1 and version = $2`, [p.piece_id, p.current_version])
+      : null;
     const metrics = await sql.query<{ captured_at: string; views: number | null; reach: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null; source: string }>(
       `select captured_at, views, reach, likes, comments, shares, saves, source from public.publication_metrics where publication_id = $1 order by captured_at desc`,
       [id],
@@ -34,24 +36,25 @@ export default async function PublicationPage({ params }: { params: Promise<{ id
   });
   if (!data) notFound();
   const { p } = data;
+  const spontaneous = p.origin === 'boss_spontaneous';
   return (
     <>
       <PageHeader
         back={{ href: '/publicar', label: 'Publicar' }}
         title={`${NETWORK_LABEL[p.network]} · ${p.title}`}
-        subtitle={`${p.format}${p.republish_of ? ' · republicación' : ''}`}
-        actions={p.status === 'published' ? <LinkButton variant="secondary" href={`/publicar/nueva?pieza=${p.piece_id}&republica=${p.id}`}>Republicar</LinkButton> : undefined}
+        subtitle={spontaneous ? 'La publicó el jefe; el equipo la registró después' : `${p.format}${p.republish_of ? ' · republicación' : ''}`}
+        actions={p.status === 'published' && p.piece_id ? <LinkButton variant="secondary" href={`/publicar/nueva?pieza=${p.piece_id}&republica=${p.id}`}>Republicar</LinkButton> : undefined}
       />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Chip tone={PUB_STATUS[p.status]?.tone}>{PUB_STATUS[p.status]?.label}</Chip>
         {p.scheduled_at ? <Chip>Programada: {fmtDateTime(p.scheduled_at)}</Chip> : null}
         {p.published_at ? <Chip tone="ok">Publicada: {fmtDateTime(p.published_at)}</Chip> : null}
-        <Link href={`/piezas/${p.piece_id}`} className="text-sm font-semibold text-accent-ink">Ver pieza</Link>
+        {p.piece_id ? <Link href={`/piezas/${p.piece_id}`} className="text-sm font-semibold text-accent-ink">Ver pieza</Link> : <Chip tone="info">Espontánea del jefe</Chip>}
       </div>
       {p.failure_reason ? <p className="mb-4 rounded-[var(--radius-control)] bg-danger-soft p-3 text-danger">Falló: {p.failure_reason}</p> : null}
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="flex flex-col gap-4">
-          <Package mediaId={data.mediaId} coverId={p.cover_asset_id} copy={p.copy_body} collaborators={p.collaborators} network={NETWORK_LABEL[p.network]} title={p.title} />
+          {spontaneous ? null : <Package mediaId={data.mediaId} coverId={p.cover_asset_id} copy={p.copy_body} collaborators={p.collaborators} network={NETWORK_LABEL[p.network]} title={p.title} />}
           {p.validation?.length ? (
             <Card>
               <CardHeader title="Avisos de la revisión del video" />

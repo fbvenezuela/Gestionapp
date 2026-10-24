@@ -14,14 +14,14 @@ export default async function BossDigital() {
   const s = await requireRole('boss', 'admin');
   const data = await db(s, async (sql) => ({
     published: await sql.query<{ id: string; title: string; network: string; published_at: string; url: string | null; views: number | null }>(
-      `select x.id, p.title, x.network, x.published_at, x.url,
+      `select x.id, coalesce(p.title, x.title) as title, x.network, x.published_at, x.url,
               (select m.views from public.publication_metrics m where m.publication_id = x.id order by m.captured_at desc limit 1) as views
-         from public.publications x join public.pieces p on p.id = x.piece_id
-        where x.status = 'published' and x.published_at > now() - interval '7 days' order by x.published_at desc limit 20`,
+         from public.publications x left join public.pieces p on p.id = x.piece_id
+        where x.status = 'published' and x.deleted_at is null and x.published_at > now() - interval '7 days' order by x.published_at desc limit 20`,
     ),
     coming: await sql.query<{ id: string; title: string; network: string; scheduled_at: string }>(
       `select x.id, p.title, x.network, x.scheduled_at from public.publications x join public.pieces p on p.id = x.piece_id
-        where x.status = 'scheduled' and x.scheduled_at > now() order by x.scheduled_at limit 10`,
+        where x.status = 'scheduled' and x.deleted_at is null and x.scheduled_at > now() order by x.scheduled_at limit 10`,
     ),
     inReview: (await sql.one<{ n: number }>(`select count(*)::int as n from public.pieces where status = 'in_review' and deleted_at is null`))!.n,
   }));

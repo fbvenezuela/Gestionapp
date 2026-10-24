@@ -77,7 +77,7 @@ const batchSchema = z.object({
 export async function createBatch(raw: unknown) {
   return act(batchSchema, raw, async (sql, i) => {
     const slots = (await sql.one<{ value: Slot[] }>(`select value from public.app_settings where key = 'tweets.slots'`))?.value ?? [];
-    const perDay = (await sql.one<{ value: { min: number; max: number } }>(`select value from public.app_settings where key = 'tweets.per_day'`))?.value ?? { min: 4, max: 5 };
+    const perDay = (await sql.one<{ value: { min: number; max: number } }>(`select value from public.app_settings where key = 'tweets.per_day'`))?.value ?? { min: 2, max: 3 };
     const taken = (await sql.query<{ scheduled_at: string }>(`select scheduled_at from public.tweets where scheduled_at > now() and status <> 'skipped' and deleted_at is null`)).map((r) =>
       new Date(r.scheduled_at).toISOString(),
     );
@@ -178,7 +178,7 @@ export async function markTweetPublished(raw: unknown) {
 export async function redistributeBatch(raw: unknown) {
   return act(z.object({ batchId: uuid }), raw, async (sql, i) => {
     const slots = (await sql.one<{ value: Slot[] }>(`select value from public.app_settings where key = 'tweets.slots'`))?.value ?? [];
-    const perDay = (await sql.one<{ value: { min: number; max: number } }>(`select value from public.app_settings where key = 'tweets.per_day'`))?.value ?? { min: 4, max: 5 };
+    const perDay = (await sql.one<{ value: { min: number; max: number } }>(`select value from public.app_settings where key = 'tweets.per_day'`))?.value ?? { min: 2, max: 3 };
     const pending = await sql.query<{ id: string }>(`select id from public.tweets where batch_id = $1 and status in ('draft', 'approved', 'scheduled') and deleted_at is null order by position`, [i.batchId]);
     const taken = (await sql.query<{ scheduled_at: string }>(
       `select scheduled_at from public.tweets where scheduled_at > now() and batch_id <> $1 and status <> 'skipped' and deleted_at is null`,

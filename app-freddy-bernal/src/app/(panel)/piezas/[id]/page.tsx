@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { requireRole, db } from '@/lib/auth/session';
 import { getPiece, fmtSecond } from '@/lib/data/pieces';
 import { PageHeader } from '@/components/ui/page';
+import { brand } from '@/lib/client-config';
+import { LEVELS } from '@/lib/domain/review';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
@@ -20,6 +22,7 @@ export default async function PiecePage({ params }: { params: Promise<{ id: stri
   const data = await db(s, async (sql) => ({
     piece: await getPiece(sql, id),
     formulas: await sql.query<{ id: string; code: string; name: string; description: string }>(`select id, code, name, description from public.copy_formulas where active and deleted_at is null order by sort`),
+    closings: (await sql.one<{ value: { closings?: string[] } }>(`select value from public.app_settings where key = 'brand'`))?.value?.closings,
   }));
   const p = data.piece;
   if (!p) notFound();
@@ -33,12 +36,13 @@ export default async function PiecePage({ params }: { params: Promise<{ id: stri
         title={p.title}
         subtitle={[PIECE_KIND[p.kind], p.event_title, p.category_name].filter(Boolean).join(' · ')}
         actions={
-          p.status === 'approved' ? <LinkButton href={`/publicar/nueva?pieza=${p.id}`}>Publicar</LinkButton> : p.status === 'draft' || p.status === 'changes_requested' ? <SendToReview pieceId={p.id} /> : undefined
+          p.status === 'approved' ? <LinkButton href={`/publicar/nueva?pieza=${p.id}`}>Publicar</LinkButton> : p.status === 'draft' || p.status === 'changes_requested' ? <SendToReview pieceId={p.id} level={p.review_level} /> : undefined
         }
       />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Chip tone={PIECE_STATUS[p.status]?.tone}>{PIECE_STATUS[p.status]?.label}</Chip>
         <Chip>Versión {p.current_version || '—'}</Chip>
+        <Chip tone={LEVELS[p.review_level].tone}>{LEVELS[p.review_level].label}: aprueba {LEVELS[p.review_level].who}</Chip>
         {p.approved_by_name ? <Chip tone="ok">Aprobó {p.approved_by_name} · {fmtDateTime(p.approved_at)}</Chip> : null}
         {p.event_id ? <Link href={`/eventos/${p.event_id}`} className="text-sm font-semibold text-accent-ink">Ver evento</Link> : null}
       </div>
@@ -46,7 +50,7 @@ export default async function PiecePage({ params }: { params: Promise<{ id: stri
       {lastChanges ? (
         <Card className="mb-4 border-danger/40 bg-danger-soft">
           <CardBody>
-            <p className="font-semibold text-danger">Supervisión pidió cambios</p>
+            <p className="font-semibold text-danger">Pidieron cambios</p>
             <p className="mt-1 whitespace-pre-wrap text-[15px]">{lastChanges.comment}</p>
             <p className="mt-1 text-sm text-text-2">{lastChanges.reviewer} · {fmtDateTime(lastChanges.created_at)}</p>
           </CardBody>
@@ -55,7 +59,15 @@ export default async function PiecePage({ params }: { params: Promise<{ id: stri
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="flex flex-col gap-4">
-          <CopiesEditor pieceId={p.id} copies={p.copies} formulas={data.formulas} />
+          <CopiesEditor
+            pieceId={p.id}
+            copies={p.copies}
+            formulas={data.formulas}
+            closings={data.closings?.length ? data.closings : brand.closings}
+            voice={p.copy_voice}
+            closing={p.copy_closing}
+            approved={p.status === 'approved'}
+          />
         </div>
         <div className="flex flex-col gap-4">
           <Card>

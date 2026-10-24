@@ -1,6 +1,7 @@
 import type { Sql } from '../db/core';
 import { checkVideo, copyIssue, type FormatRule, type Issue } from '../domain/video-rules';
 import { copyLength } from '../domain/copies';
+import type { PublishingWindows } from '../domain/publishing-windows';
 
 type Spec = { network: string; label: string; formats: Record<string, FormatRule>; copy_max_chars: number; length_group: 'long' | 'medium' | 'short' };
 
@@ -23,7 +24,8 @@ export async function loadPublishContext(sql: Sql, pieceId: string) {
   const copies = await sql.query<{ length_group: 'long' | 'medium' | 'short'; body: string }>(`select length_group, body from public.copies where piece_id = $1`, [pieceId]);
   const specs = await sql.query<Spec>(`select network, label, formats, copy_max_chars, length_group from public.network_specs order by network`);
   const collaborators = (await sql.one<{ value: string[] }>(`select value from public.app_settings where key = 'publishing.default_collaborators'`))?.value ?? [];
-  return { piece, version, media, copies, specs, collaborators };
+  const windows = (await sql.one<{ value: PublishingWindows }>(`select value from public.app_settings where key = 'publishing.windows'`))?.value ?? {};
+  return { piece, version, media, copies, specs, collaborators, windows };
 }
 
 export type NetworkCheck = { network: string; label: string; format: string; formats: string[]; issues: Issue[]; copy: string };

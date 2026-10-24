@@ -7,6 +7,8 @@ import { Chip } from '@/components/ui/chip';
 import { PageHeader, Stat, EmptyState } from '@/components/ui/page';
 import { fmtTime, today } from '@/lib/time';
 import { tweetStock } from '@/lib/data/tweets';
+import { getDeadlines, piecesInReview } from '@/lib/data/review';
+import { LEVELS, reviewClock } from '@/lib/domain/review';
 
 export const metadata = { title: 'Hoy' };
 
@@ -66,12 +68,24 @@ export default async function TodayPage() {
       stats.push({ label: 'Días de tweets', value: stock.daysLeft, tone: stock.lowStock ? 'danger' : undefined, hint: 'programados' });
     }
 
+    // Review clock: past the deadline the piece is still NOT approved; it shows as stuck.
+    const inReview = has('social', 'admin', 'supervisor') ? await piecesInReview(sql, 50) : [];
+    const deadlines = await getDeadlines(sql);
+    const overdue = inReview.filter((p) => reviewClock(p.review_level, p.sent_to_review_at, deadlines).overdue);
+    for (const p of overdue) {
+      const c = reviewClock(p.review_level, p.sent_to_review_at, deadlines);
+      blocked.push({ href: has('supervisor') ? `/aprobar/${p.id}` : `/piezas/${p.id}`, title: p.title, detail: `Sin aprobar: ${c.text.toLowerCase()} (${LEVELS[p.review_level].label.toLowerCase()}, aprueba ${LEVELS[p.review_level].who})`, tone: 'danger' });
+    }
+
     if (has('supervisor')) {
-      const pend = await sql.query<{ id: string; title: string }>(`select id, title from public.pieces where status = 'in_review' and deleted_at is null order by updated_at limit 20`);
-      for (const p of pend) waiting.push({ href: `/aprobar/${p.id}`, title: p.title, detail: 'Pieza por aprobar', tone: 'warn', tag: 'Aprobar' });
+      const pend = inReview.filter((p) => !overdue.includes(p));
+      for (const p of pend) {
+        const c = reviewClock(p.review_level, p.sent_to_review_at, deadlines);
+        waiting.push({ href: `/aprobar/${p.id}`, title: p.title, detail: p.review_level === 'rojo' ? `En rojo: la aprueba el jefe · ${c.text.toLowerCase()}` : `Por aprobar · ${c.text.toLowerCase()}`, tone: p.review_level === 'rojo' ? 'danger' : 'warn', tag: LEVELS[p.review_level].label });
+      }
       const tw = await sql.one<{ n: number }>(`select count(*)::int as n from public.tweets where status = 'draft' and deleted_at is null`);
       if (tw!.n) waiting.push({ href: '/aprobar?tab=tweets', title: `${tw!.n} tweets por aprobar`, tone: 'warn', tag: 'Tweets' });
-      stats.push({ label: 'Piezas por aprobar', value: pend.length, tone: pend.length ? 'accent' : undefined });
+      stats.push({ label: 'Piezas por aprobar', value: inReview.length, tone: overdue.length ? 'danger' : inReview.length ? 'accent' : undefined });
       stats.push({ label: 'Tweets por aprobar', value: tw!.n, tone: tw!.n ? 'accent' : undefined });
     }
 

@@ -7,7 +7,7 @@ import { brand } from './client-config';
 import { sendEmail } from './email/send';
 
 // Kinds that cannot be turned off (they block someone's work).
-const CRITICAL = new Set(['changes_requested', 'publish_failed', 'tweets_low_stock', 'event_assigned']);
+const CRITICAL = new Set(['changes_requested', 'publish_failed', 'tweets_low_stock', 'event_assigned', 'review_red', 'review_overdue']);
 
 export type Notice = {
   userIds: string[];

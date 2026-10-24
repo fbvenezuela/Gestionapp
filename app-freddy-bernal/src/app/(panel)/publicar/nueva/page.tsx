@@ -35,6 +35,7 @@ export default async function NewPublicationPage({ searchParams }: { searchParam
         pieceStatus={data.ctx?.piece.status ?? ''}
         checks={checks}
         collaborators={data.ctx?.collaborators ?? []}
+        windows={data.ctx?.windows ?? {}}
         republishOf={data.prev?.id ?? null}
         pastPubs={data.pastPubs}
       />

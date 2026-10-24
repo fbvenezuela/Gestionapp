@@ -5,14 +5,30 @@ import { Send } from 'lucide-react';
 import { addVersion, attachVoiceLine, sendToReview } from '@/lib/actions/pieces';
 import { useAction } from '@/lib/hooks/use-action';
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/field';
+import { LEVELS, type Level } from '@/lib/domain/review';
 import { Uploader } from '@/components/media/uploader';
 
-export function SendToReview({ pieceId }: { pieceId: string }) {
+const LEVEL_OPTIONS: { value: Level; text: string }[] = [
+  { value: 'verde', text: '🟢 Verde: rutina' },
+  { value: 'amarillo', text: '🟡 Amarillo: normal, 60 min' },
+  { value: 'rojo', text: '🔴 Rojo: sensible, la aprueba el jefe' },
+];
+
+export function SendToReview({ pieceId, level: saved }: { pieceId: string; level: Level }) {
   const { run, pending } = useAction();
+  const [level, setLevel] = useState<Level>(saved);
+  // A red piece stays red unless the boss or admin lower it (the database enforces it).
+  const options = saved === 'rojo' ? LEVEL_OPTIONS.filter((o) => o.value === 'rojo') : LEVEL_OPTIONS;
   return (
-    <Button disabled={pending} onClick={() => run(() => sendToReview({ pieceId }), { success: 'Enviada a supervisión.' })}>
-      <Send className="h-4 w-4" aria-hidden /> Enviar a aprobación
-    </Button>
+    <div className="flex flex-wrap items-center gap-2">
+      <Select aria-label="Nivel de aprobación" title={LEVELS[level].hint} value={level} onChange={(e) => setLevel(e.target.value as Level)} className="w-auto">
+        {options.map((o) => <option key={o.value} value={o.value}>{o.text}</option>)}
+      </Select>
+      <Button disabled={pending} onClick={() => run(() => sendToReview({ pieceId, level }), { success: level === 'rojo' ? 'Enviada al jefe y a supervisión.' : 'Enviada a supervisión.' })}>
+        <Send className="h-4 w-4" aria-hidden /> Enviar a aprobación
+      </Button>
+    </div>
   );
 }
 
