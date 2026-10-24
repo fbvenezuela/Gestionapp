@@ -101,8 +101,11 @@ export function LoginForm({ demoUsers, quick }: { demoUsers: DemoUser[] | null; 
                     }}
                     className="flex min-h-11 w-full items-center justify-between gap-2 rounded-[var(--radius-control)] border border-border px-3 text-left text-sm hover:bg-surface-2 disabled:opacity-60"
                   >
-                    <span className="font-semibold">{u.label}</span>
-                    <span className="truncate text-text-2">{quick ? 'Entrar →' : u.email}</span>
+                    <span className="min-w-0">
+                      <span className="block font-semibold">{u.label}</span>
+                      {quick ? <span className="block truncate text-text-2">{u.name} · {u.email}</span> : null}
+                    </span>
+                    <span className="shrink-0 truncate text-text-2">{quick ? 'Entrar →' : u.email}</span>
                   </button>
                 </li>
               ))}

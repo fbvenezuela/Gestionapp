@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import path from 'node:path';
-import { loginAs } from './helpers';
+import { login, loginAs, passMfa } from './helpers';
 
 // End-to-end at 360 px against the demo (in-memory) database. Runs in order: each
 // step builds on the previous one, like a real day of work.
@@ -149,7 +149,12 @@ test('administración invita a una persona y el correo queda en el buzón de pru
 });
 
 test('el jefe entra con doble factor, ve Política y Digital y decide un evento', async ({ page }) => {
-  await loginAs(page, 'jefe@demo.test');
+  await login(page, 'jefe@demo.test');
+  // Strict server (DEMO_SHORTCUTS=false): 2FA must be asked before anything else.
+  await page.waitForURL('**/doble-factor');
+  await page.goto('/agenda');
+  await expect(page).toHaveURL(/doble-factor/);
+  await passMfa(page, 'jefe@demo.test');
   await expect(page.getByRole('link', { name: /Política Agenda/ })).toBeVisible();
   await expect(page.getByRole('link', { name: /Digital Lo publicado/ })).toBeVisible();
   await axe(page);
