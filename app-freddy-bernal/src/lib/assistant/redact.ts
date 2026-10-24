@@ -3,6 +3,8 @@
 // addresses become placeholders, so an event's date, time or place typed by mistake never
 // leaves the server.
 
+import { stripDateTime } from '../push/text';
+
 const MONTHS_FULL = 'enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre';
 const MONTHS_SHORT = 'ene|feb|mar|abr|may|jun|jul|ago|sept|sep|oct|nov|dic';
 // A month, whole or short ("nov", "nov.", "dic"), never the start of another word ("marca", "dice").
@@ -37,6 +39,8 @@ const UNIT_AFTER = new RegExp(
 );
 const NOT_DATE_BEFORE = /(?:versi[oó]n|v|pasos?|nivel|cap[ií]tulo|p[aá]gina|p[aá]g\.?|puntos?|formato|proporci[oó]n|relaci[oó]n|ratio|aspecto|tama[ñn]o|escala)\s*$/i;
 const DATE_ARTICLE_BEFORE = /(?:\b(?:el|del|al|para|hasta|desde)|d[ií]a)\s+$/i;
+// «a las 10.11», «10.11 am» or «7.10 hrs» is a time of day (the rules for times take it).
+const TIME_AFTER = new RegExp(String.raw`^\s*(?:${MERIDIEM}|(?:h|hs|hrs?)(?![a-záéíóúñ]))`, 'i');
 const numericDate: Replacer = (m: string, ...rest: unknown[]) => {
   const { offset, whole } = where(rest);
   const [d, mo, y] = rest as [string, string, string | undefined];
@@ -46,6 +50,7 @@ const numericDate: Replacer = (m: string, ...rest: unknown[]) => {
   if (y) return '[fecha]';
   const before = whole.slice(Math.max(0, offset - 16), offset);
   const after = whole.slice(offset + m.length, offset + m.length + 14);
+  if (m.includes('.') && (/\blas?\s+$/i.test(before) || TIME_AFTER.test(after))) return m;
   if (UNIT_AFTER.test(after) || NOT_DATE_BEFORE.test(before)) return m;
   if (m === '24/7' && !DATE_ARTICLE_BEFORE.test(before)) return m;
   return '[fecha]';
@@ -72,12 +77,14 @@ const START = String.raw`(?<![\p{L}\d])`;
 const END = String.raw`(?![\p{L}\d])`;
 // «15-B» or «15B» (not «10K», a race).
 const NUMBER = String.raw`\d+(?:-?[a-jl-zA-JL-Z])?${END}`;
-const NUMBER_MARK = String.raw`(?:(?:[nN](?:[°º]|[rR][oO]\.?|[oO]\.)|[nN][uú]mero|#)\s*)?`;
+const MARK = String.raw`(?:[nN](?:[°º]|[rR][oO]\.?|[oO]\.)|[nN][uú]mero|#)`;
+const NUMBER_MARK = String.raw`(?:${MARK}\s*)?`;
 const NAME = String.raw`(?:(?:de|del|la|las|los|el|a|al)\s+)*(?!${NOT_PLACE}${END})\p{Lu}\p{L}*(?:\s+(?:(?:de|del|la|las|los|el|y)\s+)*\p{Lu}\p{L}*)*`;
 const PLACE_RULES: RegExp[] = [
-  // «calle 3», «carrera 5 con calle 7», «casa N° 12-34», «casa 15-B», «km 8», «entre carreras 3 y 4».
+  // «calle 3», «carrera 5 con calle 7», «casa N° 12-34», «casa 15-B», «km 8», «entre carreras 3 y 4»,
+  // «Calle 7 N° 4-23» (the house number goes with its street).
   new RegExp(
-    String.raw`${START}${WITH_NUMBER}\s*${NUMBER_MARK}${NUMBER}(?:\s*(?:con|y|entre|esquina(?:\s+con)?|esq\.?|[-/#])\s*(?:(?:${words('calles calle carreras carrera avenidas avenida')}|${words('av cra')}\.?)\s*)?${NUMBER})*`,
+    String.raw`${START}${WITH_NUMBER}\s*${NUMBER_MARK}${NUMBER}(?:\s*(?:con|y|entre|esquina(?:\s+con)?|esq\.?|[-/#]|,?\s*${MARK})\s*(?:(?:${words('calles calle carreras carrera avenidas avenida')}|${words('av cra')}\.?)\s*)?${NUMBER})*`,
     'gu',
   ),
   // «av. Libertador», «sector El Mirador», «vía a San Cristóbal», «urbanización Los Pinos».
@@ -93,17 +100,21 @@ const RULES: [RegExp, Replacer, Kind][] = [
   [new RegExp(String.raw`\b(?:(?:${WEEKDAYS})\s+)?\d{1,2}(?:\s+de\s+|\s*[-/.]\s*|\s+)${MONTH}(?:,?\s+(?:de|del)\s+\d{2,4}|\s*[-/.]\s*\d{2,4}|\s+\d{4})?`, 'gi'), '[fecha]', 'date'],
   // "noviembre 3", "dic 24", "dic. 24".
   [new RegExp(String.raw`\b${MONTH}\s*\d{1,2}\b`, 'gi'), '[fecha]', 'date'],
-  // Weekday followed by a day number: "el lunes 3".
-  [new RegExp(String.raw`\b(?:${WEEKDAYS})\s+\d{1,2}\b`, 'gi'), '[fecha]', 'date'],
+  // Weekday followed by a day number: "el lunes 3", "lunes 3/11" (the month goes with it).
+  [new RegExp(String.raw`\b(?:${WEEKDAYS})\s+\d{1,2}(?:\s*[/.-]\s*\d{1,2}(?:\s*[/.-]\s*\d{2,4})?)?\b`, 'gi'), '[fecha]', 'date'],
   // ISO dates and numeric dates: 2026-10-24, 24/10, 24-10-2026, 24.10.26. Never a piece of a
   // longer chain of digit groups ("0414-555-12-34" is a phone number, caught whole below).
   [/(?<!\d[/.-]?)\b\d{4}-\d{1,2}-\d{1,2}\b(?![/.-]\d)/g, '[fecha]', 'date'],
   [/(?<!\d[/.-]?)\b(\d{1,2})[/.-](\d{1,2})(?:[/.-](\d{2,4}))?\b(?![/.-]\d)/g, numericDate, 'date'],
-  // Times: 10:30, 10:30 a. m., 3 p. m., 3pm, 15 hrs, "las 10 y media", "cuatro de la tarde",
-  // "a las cinco", "sobre las 7", "tipo 3", "al mediodía".
+  // Times: 10:30, 10:30 a. m., 3 p. m., 3pm, 15 hrs, 8h, 19.30 hrs, "las 10 y media", "cuatro de la
+  // tarde", "a las cinco", "sobre las 7", "tipo 3", "al mediodía". With a dot or a comma only next to
+  // «las», am/pm or h/hrs («a las 9.30», «9.00 am», «7.30h»): «versión 1.20» or «1.91:1» are not
+  // times. «24 h» after «en», «por», «tienen»… is how long, not when («tienen 24 h para subir»).
   [new RegExp(String.raw`\b\d{1,2}[:h]\d{2}(?:\s*${MERIDIEM})?`, 'gi'), timeOrRatio, 'when'],
-  [new RegExp(String.raw`\b\d{1,2}\s*${MERIDIEM}`, 'gi'), '[hora]', 'when'],
-  [/\b\d{1,2}\s*hrs?\b/gi, '[hora]', 'when'],
+  [/\b\d{1,2}[.,]\d{2}\s*(?:h|hs|hrs?)\b(?![.:]?\d)/gi, '[hora]', 'when'],
+  [new RegExp(String.raw`\b(las?\s+)\d{1,2}[.,]\d{2}(?!\d)(?:\s*${MERIDIEM})?`, 'gi'), '$1[hora]', 'when'],
+  [new RegExp(String.raw`\b\d{1,2}(?:[.,]\d{2})?\s*${MERIDIEM}`, 'gi'), '[hora]', 'when'],
+  [/(?<!\b(?:en|por|cada|durante|unas?|tienen|tiene|tienes|hace|pr[oó]ximas|primeras|[uú]ltimas)\s+)\b\d{1,2}\s*(?:h|hs|hrs?)\b(?![.:,]?\d)/gi, '[hora]', 'when'],
   [new RegExp(String.raw`\b${HOUR}\s+(?:y\s+(?:media|cuarto)(?:\s+${PART_OF_DAY})?|${PART_OF_DAY})${NOT_LETTER}`, 'gi'), '[hora]', 'when'],
   [new RegExp(String.raw`\b(a|desde|hasta|sobre|tipo|para)\s+(las?\s+)?${HOUR}(?:\s+y\s+(?:\d{1,2}|media|cuarto))?${NOT_LETTER}(?!\s*(?:[/.,:]\d))`, 'gi'), timeAfter, 'when'],
   // "de las dos a las cuatro": only as a range ("cuál de las dos" is not a time).
@@ -137,14 +148,24 @@ export function redact(text: string): string {
 }
 
 /**
- * redact() on every string inside a value (objects and arrays walked, keys kept): what a tool
- * returns, before it goes to an AI provider. With keepTimes, times of day stay (the best hours
- * to publish are not the agenda); dates, addresses and contacts go all the same.
+ * redact() and then the phone's guard (stripDateTime) as a second lock: for what the platform wrote
+ * and may quote an event title in as it is (a tool's result, an earlier answer of the demo brain).
+ * A way of writing a date or time that the rules above miss («Toma 9.30»), a weekday, «hoy» or
+ * «mañana» goes too.
+ */
+export function redactQuoted(text: string): string {
+  return stripDateTime(redact(text));
+}
+
+/**
+ * redactQuoted() on every string inside a value (objects and arrays walked, keys kept): what a tool
+ * returns, before it goes to an AI provider. With keepTimes, times of day stay (the best hours to
+ * publish are not the agenda) and only the rules above run: dates, addresses and contacts go all the same.
  */
 export function redactDeep(value: unknown, o: { keepTimes?: boolean } = {}): unknown {
-  const kinds: Kind[] = o.keepTimes ? ['contact', 'date', 'place'] : ['contact', 'date', 'when', 'place'];
+  const scrub = (s: string) => (o.keepTimes ? apply(s, ['contact', 'date', 'place']) : redactQuoted(s));
   const walk = (v: unknown): unknown => {
-    if (typeof v === 'string') return apply(v, kinds);
+    if (typeof v === 'string') return scrub(v);
     if (v instanceof Date) return '[fecha]';
     if (Array.isArray(v)) return v.map(walk);
     if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));

@@ -97,14 +97,20 @@ async function tick() {
   return out;
 }
 
-// A piece is marked only after its notice went out (the notice key makes a repeat harmless), so a
-// failure never loses a «Venció el plazo»: the next tick tries that piece again.
+// A piece is marked only after its notice went out (the notice key makes a repeat harmless, and a
+// repeat still sends the emails a failed try left out), so a failure never loses a «Venció el
+// plazo»: the next tick tries that piece again. Only the round that was notified is marked.
 async function escalateLateReviews(): Promise<number> {
   const late = await withSystem(async (sql) => {
     const deadlines = await getDeadlines(sql);
-    const rows = await sql.query<{ id: string; escalated: boolean }>(`select id, review_escalated_at is not null as escalated from public.pieces where status = 'in_review' and deleted_at is null`);
-    const fresh = new Set(rows.filter((r) => !r.escalated).map((r) => r.id));
-    return (await piecesInReview(sql)).filter((p) => fresh.has(p.id) && reviewClock(p.review_level, p.sent_to_review_at, deadlines).overdue);
+    // The round as exact text: a Date drops the microseconds and would never match again.
+    const rows = await sql.query<{ id: string; round: string | null }>(
+      `select id, sent_to_review_at::text as round from public.pieces where status = 'in_review' and deleted_at is null and review_escalated_at is null`,
+    );
+    const round = new Map(rows.map((r) => [r.id, r.round]));
+    return (await piecesInReview(sql))
+      .filter((p) => round.has(p.id) && reviewClock(p.review_level, p.sent_to_review_at, deadlines).overdue)
+      .map((p) => ({ ...p, round: round.get(p.id) ?? null }));
   });
   if (!late.length) return 0;
   const [sup, boss, admin] = [await usersWithRole('supervisor'), await usersWithRole('boss'), await usersWithRole('admin')];
@@ -121,7 +127,11 @@ async function escalateLateReviews(): Promise<number> {
         key: `review-late:${p.id}:${p.sent_to_review_at}`,
         email: true,
       });
-      await withSystem((sql) => sql.query(`update public.pieces set review_escalated_at = now() where id = $1`, [p.id]));
+      // If the piece left review and came back while the notice went out, its new round is not
+      // marked: that one gets its own notice when it runs late.
+      await withSystem((sql) =>
+        sql.query(`update public.pieces set review_escalated_at = now() where id = $1 and status = 'in_review' and sent_to_review_at is not distinct from $2::timestamptz`, [p.id, p.round]),
+      );
     } catch (e) {
       failed.push(`${p.id}: ${errorText(e)}`);
     }

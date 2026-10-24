@@ -39,10 +39,19 @@ export { escalate } from './escalate';
 
 export const MAX_QUESTION = 1500;
 export const TEAM_ROLES: Role[] = INVITABLE_ROLES;
-// The most a model turn can spend (3 rounds and the corrective one, each with the whole prompt):
-// reserved against the month's cap before asking, settled with the real numbers after.
-const RESERVE_TOKENS_IN = 4 * 4_000;
-const RESERVE_TOKENS_OUT = 4 * MAX_TOKENS;
+// What a model turn may spend, reserved against the month's cap before asking and settled with the
+// real numbers after. Each of its calls (3 rounds and the corrective one) resends the system prompt
+// with the tool specs, the whole thread and the tool results so far. The thread is measured when the
+// turn opens; the prompt (about 14.000 characters, fichas capped at 5.000) and the tool results (up
+// to 4 per round, resent in the later calls) get a generous allowance. Still an estimate, on the safe
+// side: 3 characters per token.
+const MODEL_CALLS = 4;
+const PROMPT_CHARS = 18_000;
+const TOOL_RESULT_CHARS = 30_000;
+const RESERVE_TOKENS_OUT = MODEL_CALLS * MAX_TOKENS;
+export function reserveTokensIn(threadChars: number): number {
+  return Math.ceil((MODEL_CALLS * (PROMPT_CHARS + threadChars) + TOOL_RESULT_CHARS) / 3);
+}
 
 export type TurnInput = { question: string; conversationId?: string | null };
 export type TurnResult = {
@@ -88,10 +97,16 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
 
   // The conversation, the hour's count and the question, in one short transaction BEFORE the
   // brain (escalating needs the conversation; parallel requests see the question). With a model
-  // chain, the turn's most possible cost is reserved against the month's cap in that same step.
+  // chain, the turn's estimated cost (at the dearest link, for this thread) is reserved against the
+  // month's cap in that same step.
   const chain = deps.chain ?? parseChain(env.assistant.models);
   const reserve: Reserve | null = chain.length
-    ? { provider: chain[0].provider, model: chain[0].raw, costUsd: Math.max(...chain.map((l) => estimateCost(l.raw, RESERVE_TOKENS_IN, RESERVE_TOKENS_OUT))), capUsd: env.ai.monthlyCapUsd }
+    ? {
+        provider: chain[0].provider,
+        model: chain[0].raw,
+        capUsd: env.ai.monthlyCapUsd,
+        costFor: (threadChars) => Math.max(...chain.map((l) => estimateCost(l.raw, reserveTokensIn(threadChars), RESERVE_TOKENS_OUT))),
+      }
     : null;
   const basics = await openTurn(session.userId, input.conversationId, question, reserve).catch((e) => {
     console.error('[asistente] no se pudo abrir el turno:', (e as Error).message);

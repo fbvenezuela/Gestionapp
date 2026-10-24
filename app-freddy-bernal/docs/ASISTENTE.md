@@ -12,8 +12,13 @@ repositorio). Se toman la máquina y las reglas; nada del negocio de Cemi. Este 
   **Nunca** se anida `withSystem` dentro de `withUser`.
 - **Lo que nunca va al modelo:** la agenda del jefe (`event_schedule`: fecha, hora, dirección, cómo llegar, contactos),
   ni siquiera para quien sí la puede ver; datos de ciudadanos (no existen en fases 1–2; los roles de la fase 3 no usan el
-  asistente); claves. Lo que escribe la persona pasa por `redact()` (correos, teléfonos, horas y fechas → `[correo]`,
-  `[numero]`, `[hora]`, `[fecha]`) antes de ir al proveedor y antes de guardarse en «Lo que preguntan».
+  asistente); claves. Lo que escribe la persona pasa por `redact()` (correos, teléfonos, horas, fechas y direcciones →
+  `[correo]`, `[numero]`, `[hora]`, `[fecha]`, `[direccion]`) antes de ir al proveedor y antes de guardarse en la
+  conversación y en «Lo que preguntan». Lo que devuelve cada herramienta (un título de evento puede traer la hora o la
+  dirección) se limpia antes de ir al proveedor: `redactDeep()` en cada texto y, de segundo candado, el mismo filtro de
+  los avisos al teléfono (`stripDateTime`). Las mejores horas para publicar conservan sus horas, no sus fechas. El hilo
+  que se le manda al modelo también va redactado, y las respuestas anteriores (el cerebro de demostración cita los
+  títulos tal cual, «Toma 9.30») pasan además por ese segundo candado.
 - **Proveedores:** cadena en `ASISTENTE_MODELOS` = `proveedor:modelo,proveedor:modelo` (mejor de casas distintas), todos
   con la API de chat compatible con OpenAI. **Anthropic no** (no da servicio en Venezuela desde el 12/11/2026). Encender
   solo con el OK legal (sanciones, ver la guía en PDF). Sin cadena → **cerebro de demostración** sin IA (`local.ts`):
@@ -74,11 +79,18 @@ Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: 
 - `local.ts` — cerebro de demostración sin IA (mismas entradas y salidas).
 - Cada turno tiene un límite de 40 s; después de la primera vuelta, la cadena arranca desde el eslabón que respondió.
 - `index.ts` — `handleTurn(session, { question, conversationId })` → `{ answer, scope, model, ms, degraded, did:
-  [{ tool, error? }], goTo: { href, label } | null, conversationId }`. Guarda **después** de responder; si guardar falla,
-  se escribe en el log y la respuesta sale igual.
+  [{ tool, error? }], goTo: { href, label } | null, conversationId }`. Antes del cerebro abre el turno (`openTurn`: una
+  transacción corta, con candado por persona): la conversación, la cuenta de la hora y la pregunta redactada se guardan
+  **al empezar**, así los pedidos en paralelo la ven y un turno que falla después igual cuenta. Solo la respuesta se
+  guarda **después**; si guardar falla, se escribe en el log y la respuesta sale igual. Si el turno no se pudo abrir, no
+  se llama al modelo de pago: contesta el cerebro de demostración.
 - Topes: pregunta 1.500 caracteres; respuesta 700 tokens; hilo 24 mensajes (no se recorta para ahorrar); 40 mensajes
-  por persona y hora; el gasto cuenta en `ai_usage` (`feature = 'assistant'`) contra `AI_MONTHLY_CAP_USD`. Al pasar un
-  tope, contesta como el asistente («Llevamos un buen rato…»), no como avería. Temperatura 0,6 (0,5 en la vuelta correctiva).
+  por persona y hora; el gasto cuenta en `ai_usage` (`feature = 'assistant'`) contra `AI_MONTHLY_CAP_USD`. Cada turno
+  con modelo deja, al abrirse, una reserva en `ai_usage`: lo que se estima que gastará, al precio del eslabón más caro y
+  según el largo del hilo (cada vuelta reenvía el hilo entero). Al guardar se cambia por lo que gastó de verdad, o se
+  borra si no gastó nada. El tope del mes falla cerrado: si ya se pasó (contando las reservas en curso) o no se pudo
+  leer el gasto, no se llama al modelo y contesta el cerebro de demostración. Al pasar el tope por hora, contesta como el
+  asistente («Llevamos un buen rato…»), no como avería. Temperatura 0,6 (0,5 en la vuelta correctiva).
 - `escalate(conversationId, motivo)` — `notify()` a administración (y a supervisión si el motivo es de aprobación) con
   enlace a la conversación en el panel; no repite en 6 horas.
 - Salud: en `/api/cron/tick`, si en la última hora más del 20 % de las respuestas salieron degradadas, aviso a

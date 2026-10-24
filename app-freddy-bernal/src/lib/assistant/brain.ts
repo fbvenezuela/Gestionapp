@@ -2,7 +2,7 @@ import 'server-only';
 import { ROLE_LABEL, type Role } from '../roles';
 import { PERSONA, ROLE_BRIEFS, type AssistantProfile } from './config';
 import { chat, type ChatMessage, type ChatOptions, type Link } from './providers';
-import { hasDate, hasDateOrTime, redact, redactDeep } from './redact';
+import { hasDate, hasDateOrTime, redact, redactDeep, redactQuoted } from './redact';
 import { fillHuecos, plain, sentences, HUECO, type Huecos } from './text';
 import { runTool, toSpecs, type Tool, type ToolCtx, type ToolRun } from './tools';
 
@@ -237,9 +237,11 @@ const EVENT_WORDS = new RegExp(
   String.raw`\b(eventos?|actos?|actividad|actividades|agenda|jornadas?|entregas?|reunion|reuniones|recorridos?|inauguracion|inauguraciones|visitas?|ferias?|asambleas?|urbanismos?|caravanas?|cabildos?|conversatorios?|foros?|juramentacion|rueda de prensa|(?:el|un|del|al|ese|este|los|unos) (?:encuentros?|operativos?))\b`,
 );
 // The place or the contacts of something («en lugar de», «sitio web» or «dirección de correo» are not).
-const PLACE_WORDS = String.raw`direccion(?! (?:de )?(?:correo|email|electronica))|como llego|como llegar|como se llega|por donde se entra|(?<!en |primer |segundo )lugar|ubicacion|sitio(?! web)|(?<!como )contactos?|telefono (?:de|del|para)|numero de telefono|con quien hablo|a quien llamo|a quien busco|quien me recibe`;
+// «Por dónde se entra» only with somewhere to go into: alone or «a la plataforma», it asks how to log in.
+const PLACE_WORDS = String.raw`direccion(?! (?:de )?(?:correo|email|electronica))|como llego|como llegar|como se llega|por donde se entra(?= al? (?!(?:la )?(?:plataforma|app|aplicacion|sistema)\b))|en que parte (?:queda|quedan|es)|quedan? (?:lejos|cerca)|(?<!en |primer |segundo )lugar|ubicacion|sitio(?! web)|(?<!como )contactos?|telefono (?:de|del|para)|numero de telefono|con quien hablo|a quien llamo|a quien busco|quien me recibe`;
 const DAYS = String.raw`hoy|manana|pasado manana|esta semana|la semana|proxima semana|fin de semana|lunes|martes|miercoles|jueves|viernes|sabado|domingo`;
-const ASK_WORDS = String.raw`cuando|a que hora|que hora|hora|que dia|que fecha|fecha|donde|por donde|${PLACE_WORDS}`;
+// The place phrases first: the longest one is taken (and stripped) whole, «por donde se entra a…» too.
+const ASK_WORDS = String.raw`${PLACE_WORDS}|cuando|a que hora|que hora|hora|que dia|que fecha|fecha|donde|por donde`;
 // Asked as a schedule: when, at what time, which day, where, how to get there, whom to call; or
 // «¿qué hay / hay algo…?» with a day. A day alone («¿qué hago hoy?») is not.
 const SCHEDULE = new RegExp(
@@ -248,6 +250,10 @@ const SCHEDULE = new RegExp(
 const WHEN_WHERE_WORDS = String.raw`\b(?:${ASK_WORDS}|dia|${DAYS}|proximos?|proximas?|vienen)\b`;
 const WHEN_WHERE = new RegExp(`${SCHEDULE.source}|${WHEN_WHERE_WORDS}`);
 const PLACE = new RegExp(String.raw`\b(?:${PLACE_WORDS})\b`);
+// How to get somewhere («¿cómo hago para llegar a la feria?», «¿cómo se va pa' la feria?», «… hasta
+// la feria?»). It is the agenda only next to an event («para llegar a más gente» is not); «se va a
+// publicar» is the future.
+const ROUTE = /\b(?:para llegar|llegar al?|se va (?:al|pal|pa|hasta|(?:a|para) (?:la|el|los|las|lo)))\b/;
 // «¿Dónde subo el material?», «¿dónde se cambia la contraseña?» or «¿cuándo hay que grabar con dron?»
 // ask for a screen or a step, not for a place or a time («¿dónde se encuentra…?», «¿cuándo abre…?» do).
 const DOING = new RegExp(
@@ -291,9 +297,14 @@ export function asksPlace(question: string): boolean {
   return PLACE.test(asked(question));
 }
 
-/** The question without its when/where words: what is left may name an event («la feria»). */
+/** Asks how to get somewhere (it is the agenda only about an event). */
+export function asksRoute(question: string): boolean {
+  return ROUTE.test(asked(question));
+}
+
+/** The question without its when/where (and way-there) words: what is left may name an event («la feria»). */
 export function withoutWhenWhere(question: string): string {
-  return plain(question).replace(new RegExp(WHEN_WHERE_WORDS, 'g'), ' ').replace(/\s+/g, ' ').trim();
+  return plain(question).replace(new RegExp(WHEN_WHERE_WORDS, 'g'), ' ').replace(new RegExp(ROUTE.source, 'g'), ' ').replace(/\s+/g, ' ').trim();
 }
 
 // «¿A qué hora publico el video del acto en TikTok?» asks for the best hours to publish, not
@@ -352,8 +363,9 @@ export type ModelTurnInput = {
 export async function modelTurn(i: ModelTurnInput): Promise<BrainOutput> {
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt(i.ctx, i.tools, i.question) },
-    // The thread is scrubbed too: an earlier answer of the demo brain may quote an event title as it is.
-    ...i.ctx.history.map((h): ChatMessage => (h.who === 'persona' ? { role: 'user', content: redact(h.body) } : { role: 'assistant', content: redact(h.body) })),
+    // The thread is scrubbed too. An earlier answer of the demo brain may quote an event title as it
+    // is («Toma 9.30»): earlier answers get the second lock, like a tool's result.
+    ...i.ctx.history.map((h): ChatMessage => (h.who === 'persona' ? { role: 'user', content: redact(h.body) } : { role: 'assistant', content: redactQuoted(h.body) })),
     { role: 'user', content: i.question },
   ];
   const specs = toSpecs(i.tools);

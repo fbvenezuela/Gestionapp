@@ -171,6 +171,14 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 - **Resumen diario por correo** para quien lo marque en Mi perfil (solo conteos y títulos, sin fechas).
 - **Tarea cada 5 minutos sin pagar:** `pg_cron` + `pg_net` en Supabase llaman `/api/cron/tick`; la dirección y la clave
   salen de Vault (`app_url`, `cron_secret`), nunca de la migración. En Vercel Hobby sigue el aviso diario.
+  Cada paso de la tarea va por su cuenta: si uno falla, los demás corren igual y el próximo turno lo vuelve a intentar.
+  Un aviso que se reintenta nunca repite el correo (lo impide la clave del buzón de salida) ni vuelve a sonar en el
+  teléfono, pero sí manda los correos que faltaron. «Venció el plazo» se marca después de avisar y solo en esa ronda de
+  revisión.
+- **Cerrar sesiones:** «Cerrar sus sesiones», «Reiniciar doble factor» y desactivar a alguien también borran sus sesiones
+  de Supabase (`auth.sessions`: el token de renovación deja de servir) y sus teléfonos suscritos (disparador en la base,
+  migración `20261025001000_revoke_push.sql`). El rol de `DATABASE_URL` necesita SELECT y DELETE sobre `auth.sessions`
+  (por confirmar en `fb-dev`).
 
 ## D-26. El asistente del equipo «360»
 - **Qué:** un chat en todas las pantallas, adaptado del manual del asistente Cemi (ver `docs/ASISTENTE.md`). Solo para el

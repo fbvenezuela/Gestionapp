@@ -1,7 +1,7 @@
 // Output filter (§10), server nets (§11) and redact(): pure functions.
 import { describe, it, expect } from 'vitest';
-import { filterOutput, looksLikeText, promisesNotice, breaksAgendaRule, asksAboutPublishing, aboutEvents, asksSchedule, asksWhenWhere, toolMessage, pickFichas, type Ficha } from '@/lib/assistant/brain';
-import { redact, redactDeep, hasDateOrTime, hasDate } from '@/lib/assistant/redact';
+import { filterOutput, looksLikeText, promisesNotice, breaksAgendaRule, asksAboutPublishing, aboutEvents, asksPlace, asksRoute, asksSchedule, asksWhenWhere, toolMessage, pickFichas, withoutWhenWhere, type Ficha } from '@/lib/assistant/brain';
+import { redact, redactDeep, redactQuoted, hasDateOrTime, hasDate } from '@/lib/assistant/redact';
 import { fillHuecos } from '@/lib/assistant/text';
 
 describe('filtro de salida', () => {
@@ -111,6 +111,28 @@ describe('redes del servidor', () => {
     expect(asksWhenWhere('¿cuál es la dirección del [direccion]?')).toBe(true);
   });
 
+  it('dónde queda o cómo se llega, dicho de otras formas', () => {
+    for (const q of ['¿en qué parte queda la cancha techada?', '¿en qué parte es la feria?', '¿la feria queda lejos?']) {
+      expect(asksPlace(q) && asksSchedule(q), q).toBe(true);
+    }
+    // The way there is the agenda only next to an event (the demo brain checks that).
+    for (const q of ['¿cómo hago para llegar a la feria?', '¿cómo se va a la feria?', '¿cómo se va al urbanismo?', '¿para llegar a la feria qué agarro?', "¿Cómo se va pa' la feria?", '¿Cómo se va pal acto de la cancha?', '¿Cómo se va hasta la feria?']) {
+      expect(asksRoute(q), q).toBe(true);
+      expect(asksSchedule(q), q).toBe(false);
+    }
+    // «Se va a + verb» is the future, not a way there («para llegar a más gente» is one, but names no event).
+    for (const q of ['¿Cuándo se va a publicar la pieza?', '¿Qué pasa si se va la señal?', '¿Cuánto tarda en llegar el aviso?']) {
+      expect(asksRoute(q), q).toBe(false);
+    }
+    expect(aboutEvents('¿Cómo hacemos para llegar a más gente?')).toBe(false);
+    expect(asksSchedule('¿En qué parte del proceso va la feria?')).toBe(false);
+    // «Por dónde se entra a…» goes whole (what is left names the event); alone or to the platform, it is how to log in.
+    expect(withoutWhenWhere('¿por dónde se entra a lo de la cancha?')).toBe('a lo de la cancha');
+    expect(withoutWhenWhere('¿Por dónde se entra?')).toBe('se entra');
+    expect(withoutWhenWhere('¿Por dónde se entra a la plataforma?')).toBe('se entra a la plataforma');
+    expect(withoutWhenWhere('¿cómo hago para llegar a la feria?')).toBe('como hago a la feria');
+  });
+
   it('preguntado como agenda (cuándo, dónde, a quién llamo, qué hay un día) y no solo un día nombrado', () => {
     for (const q of ['¿a qué hora sale Kevin?', '¿qué hay el domingo?', '¿hay algo el sábado?', '¿lo de los emprendedores es en la mañana o en la tarde?', 'pásame la dirección de lo de la plaza central', '¿a quién llamo para lo de los productores?']) {
       expect(asksSchedule(q), q).toBe(true);
@@ -171,6 +193,27 @@ describe('redact: lo que escribe la persona, antes del proveedor y de guardarse'
     expect(redact('de las dos a las cuatro')).toBe('de las [hora] a las [hora]');
     expect(redact('a las 7 y 30')).toBe('a las [hora]');
     expect(redact('es al mediodía')).toBe('es [hora]');
+    // With a dot, an «h» or a weekday and a numeric date (typed into an event title, for example).
+    expect(redact('Visita escuela Zamorano a las 9.30')).toBe('Visita escuela Zamorano a las [hora]');
+    expect(redact('desde las 9.30 hasta las 11.00')).toBe('desde las [hora] hasta las [hora]');
+    expect(redact('empieza 9.00 am')).toBe('empieza [hora]');
+    expect(redact('el 3/11 a las 10.30 p. m.')).toBe('el [fecha] a las [hora]');
+    expect(redact('a las 10.11')).toBe('a las [hora]');
+    expect(redact('Acto cancha Zamorano el sábado 8h')).toBe('Acto cancha Zamorano el sábado [hora]');
+    expect(redact('llegamos 7 hs')).toBe('llegamos [hora]');
+    expect(redact('Jornada Zamorano lunes 3/11 7:00')).toBe('Jornada Zamorano [fecha] [hora]');
+    // The minutes go with the hour before h / hs / hrs, and a comma counts like the dot.
+    expect(redact('Visita Zamorano 19.30 hrs')).toBe('Visita Zamorano [hora]');
+    expect(redact('Toma Zamorano 9.30 hs')).toBe('Toma Zamorano [hora]');
+    expect(redact('Acto Zamorano 7.30h')).toBe('Acto Zamorano [hora]');
+    expect(redact('Acto Zamorano 7.10 hrs')).toBe('Acto Zamorano [hora]');
+    expect(redact('Caravana a las 9,30')).toBe('Caravana a las [hora]');
+    expect(redact('de 8h a 12h')).toBe('de [hora] a [hora]');
+    for (const t of ['a las 9.30', '9.00 am', 'sábado 8h', 'lunes 3/11 7:00', '19.30 hrs', '9.30 hs', '7.30h']) expect(hasDateOrTime(t), t).toBe(true);
+    // How long is not when: «tienen 24 h para subir», «en 2 h», «cada 2 h».
+    for (const t of ['tienen 24 h para subir el material', 'suban el material en 2 h', 'cada 2 h', 'Son 1,200 personas']) expect(redact(t), t).toBe(t);
+    // A dot alone is not a time: versions, ratios, sizes, thousands.
+    for (const t of ['versión 1.20', 'en 1.91:1', 'Son 1.200 personas', 'video en 4K a 60fps']) expect(redact(t), t).toBe(t);
     // Abbreviations never eat other words.
     expect(redact('la marca dice que mayor es mejor')).toBe('la marca dice que mayor es mejor');
     expect(redact('¿cuál de las dos fórmulas uso?')).toBe('¿cuál de las dos fórmulas uso?');
@@ -189,6 +232,10 @@ describe('redact: lo que escribe la persona, antes del proveedor y de guardarse'
     expect(redact('sector la ermita, barrio el carmen')).toBe('[direccion], [direccion]');
     expect(redact('entre carreras 3 y 4, casa nro. 15-B')).toBe('entre [direccion], [direccion]');
     expect(redact('por la vía al Llano, en la Quinta La Esperanza')).toBe('por la [direccion], en la [direccion]');
+    // The house number after N° / nro goes with its street.
+    expect(redact('es en la Calle 7 N° 4-23, barrio Obrero')).toBe('es en la [direccion], [direccion]');
+    expect(redact('es en la calle 7 nro 4-23')).toBe('es en la [direccion]');
+    expect(redact('calle 7, N° 4')).toBe('[direccion]');
   });
 
   it('una palabra de calle sin nombre ni número no se tapa', () => {
@@ -247,6 +294,26 @@ describe('lo que devuelve una herramienta, antes del proveedor', () => {
     for (const leak of ['jueves 30', '9:00', 'calle 3', '0414']) expect(sent).not.toContain(leak);
     expect(JSON.parse(sent)).toEqual({ eventos: [{ titulo: 'Visita escuela Zamorano [fecha] a las [hora], [direccion]', piezas: 2 }], nota: 'Llamar al [numero]' });
     expect(toolMessage({ tool: 'estado_pieza', ok: false, error: 'No existe «el 3/11 a las 10:30»' })).toBe(JSON.stringify({ error: 'No existe «el [fecha] a las [hora]»' }));
+  });
+
+  it('los títulos con la hora escrita de otras formas tampoco pasan, y lo que redact() no ve lo quita el candado del teléfono', () => {
+    const titles = ['Visita escuela Zamorano a las 9.30', 'Acto cancha Zamorano el sábado 8h', 'Jornada Zamorano lunes 3/11 7:00', 'Toma Zamorano 9.30', 'Caravana Zamorano mañana 9.00 am', 'Visita Zamorano 19.30 hrs', 'Toma Zamorano 9.30 hs', 'Acto Zamorano 7.30h'];
+    const sent = toolMessage({ tool: 'buscar_evento', ok: true, result: { eventos: titles.map((titulo) => ({ titulo, piezas: 0 })) } });
+    for (const leak of ['9.30', '19.', '9.', '7.', '8h', '3/11', '7:00', '9.00', 'sábado', 'lunes', 'mañana', ' am', 'hrs', ' hs']) expect(sent, leak).not.toContain(leak);
+    expect(JSON.parse(sent).eventos.map((e: { titulo: string }) => e.titulo)).toEqual([
+      'Visita escuela Zamorano a las [hora]',
+      'Acto cancha Zamorano el [hora]',
+      'Jornada Zamorano [fecha] [hora]',
+      'Toma Zamorano', // «9.30» alone: redact() leaves it, stripDateTime takes it
+      'Caravana Zamorano [hora]',
+      'Visita Zamorano [hora]',
+      'Toma Zamorano [hora]',
+      'Acto Zamorano [hora]',
+    ]);
+    // Without that second lock, the alone «9.30» would have gone out.
+    expect(redact('Toma Zamorano 9.30')).toBe('Toma Zamorano 9.30');
+    // An earlier answer of the demo brain that quotes such a title gets the same lock.
+    expect(redactQuoted('El evento «Toma aérea Tariba 9.30» está en «Ficha».')).toBe('El evento «Toma aérea Tariba» está en «Ficha».');
   });
 
   it('las mejores horas para publicar conservan sus horas; las fechas y direcciones no', () => {

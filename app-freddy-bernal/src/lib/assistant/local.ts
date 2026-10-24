@@ -1,5 +1,5 @@
 import 'server-only';
-import { AGENDA_FALLBACK, aboutEvents, asksAboutPublishing, asksPlace, asksSchedule, asksWhenWhere, eventAt, keyWords, pickFichas, stem, withoutWhenWhere, type BrainOutput, type ChosenScript, type TurnContext } from './brain';
+import { AGENDA_FALLBACK, aboutEvents, asksAboutPublishing, asksPlace, asksRoute, asksSchedule, asksWhenWhere, eventAt, keyWords, pickFichas, stem, withoutWhenWhere, type BrainOutput, type ChosenScript, type TurnContext } from './brain';
 import { hasDateOrTime } from './redact';
 import { canOpen, screenFor, screensIn } from './screens';
 import { contract, fillHuecos, plain, sentences, HUECO } from './text';
@@ -37,13 +37,46 @@ const ROLE_WORDS: [RegExp, string][] = [
 ];
 
 // What's pending for me.
-const PENDING = /\b(pendiente|pendientes|que tengo|que me toca|por hacer|que hay para hoy|que hay hoy|atrasad\w*|incomplet\w*|propuestas?|aceptaron|rechazaron)\b/;
+const PENDING = /\b(pendiente|pendientes|que tengo|que me toca|por hacer|que hay que hacer|que hay para hoy|que hay hoy|que tenemos (?:para )?hoy|atrasad\w*|incomplet\w*|propuestas?|aceptaron|rechazaron)\b/;
 // A work product: «¿cuándo aprueban la pieza del puente?» asks about the piece, not the event.
 const WORK = /\b(piezas?|videos?|material|materiales|copy|copies|storyboard|fotos?|tomas|reels?|publica\w*|tweets?|tuits?|tanda)\b/;
 // Things of the platform: a when or a where about them is a how-to, not the agenda.
 const PLATFORM = new RegExp(
   String.raw`${WORK.source}|\b(avisos?|campana|contrasena|clave|codigo|ajustes|pantalla|pestana|boton|menu|panel|biblioteca|resultados|metricas|perfil|formulas?|semaforo|plazos?|version|archivos?|enlace|link|plantilla|dron|vertical|horizontal|formato|microfono|app|aplicacion|asistente|buscador)\b`,
 );
+// The person's own things or a call for help: «¿cómo cambio mi número de teléfono?», «¿a quién
+// llamo si tengo un problema?», «¿cuál es el teléfono de soporte?» are not the agenda. Only those
+// phrases: «¿qué hay el domingo? Quiero hacer mi plan» or «… necesito ayuda» still is.
+const SELF = /\bmis? (?:numero|telefono|celular|correo|cuenta|clave|contrasena|perfil|acceso|usuario|codigo|pendientes|tareas)\b|\b(?:telefono|numero|correo) de (?:soporte|administracion)\b|\bsoporte\b|\bsi (?:tengo|hay|me sale) (?:un |algun )?(?:problemas?|error|falla)\b|\bque hay que hacer\b/;
+// On the way there, a goal («llegar a más gente», «a la meta», «a tiempo») is not a place.
+const GOAL = /\b(?:gente|personas|seguidores|publico|audiencia|alcance|metas?|vistas|likes|comunidad|usuarios|tiempo|temprano)\b/;
+// «Lo de la cancha»: an event by another name (whoever can't see it gets no title match).
+const LO_DE = /\blo del?\b/;
+// A deadline for the team in a notice: what the team does, then «antes de / hasta / para / a más
+// tardar las [hora]» in the same clause («suban el material de la feria antes de las [hora]»). The
+// event's own hour is not one: nothing for the team before it («la feria es el martes hasta las…»,
+// «está pautada para las…»), or the event's verb in between («suban todo, la feria es hasta las…»).
+// Matched on the notice folded (lower case, no accents), «[hora]» kept.
+// The team's verb as said to the team («suban», «revisan»), or «hay / tienen que» + its infinitive:
+// a bare infinitive can be the event's («la feria va a terminar antes de las…»).
+const TEAM_DOES = String.raw`(?:suban|suben|manden|mandan|envien|envian|revisen|revisan|carguen|cargan|aprueben|aprueban|publiquen|publican)(?:lo|la|los|las)?|entreguen|terminen|editen|corrijan|completen|tengan|(?:hay|tienen|tenemos|deben|debemos) (?:que )?(?:subir|mandar|enviar|revisar|cargar|aprobar|publicar|entregar|terminar|editar|corregir|completar|tener)`;
+const EVENT_VERB = 'es|son|sera|seria|empiezan?|comienzan?|arrancan?|terminan?|dura|abre|cierra|sale|queda|quedo|pautad[ao]s?|movio|cambio|va|van';
+const DEADLINE = new RegExp(String.raw`(?=antes de|hasta|para|a mas tardar)(?<=\b(?:${TEAM_DOES})\b(?:(?!\b(?:${EVENT_VERB})\b)[^.;!?])*)\b(?:antes de|hasta|para|a mas tardar(?: a)?)\s+las?\s+\[hora\]`, 'g');
+const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+// A day or a «within» next to the event («la feria es el martes», «la feria de mañana», «quedó para
+// el sábado», «es en 2 h») is when it is; next to the team's work («hoy suben el material…», «suban
+// hoy…») it is not.
+const DAY = /\b(?:hoy|pasado manana|manana|lunes|martes|miercoles|jueves|viernes|sabado|domingo|esta (?:noche|tarde)|fin de semana|(?:en|dentro de) (?:\d{1,3}|una|dos|tres|media) (?:h|hs|hrs?|horas?|minutos?))\b/g;
+const EVENT_VERB_WORD = new RegExp(String.raw`\b(?:${EVENT_VERB})\b`);
+function eventDay(text: string): boolean {
+  const t = plain(text);
+  return [...t.matchAll(DAY)].some((m) => {
+    const before = t.slice(0, m.index).split(' ').filter(Boolean).slice(-3).join(' ');
+    return EVENT_VERB_WORD.test(before) || eventAt(before) >= 0;
+  });
+}
+// «¿Con quién hablo?» alone, maybe with a greeting or a «perdón»: it asks for the assistant's name.
+const NAME_ONLY = /^(?:(?:hola|buenas|buenos dias|buenas tardes|buenas noches|epa|disculpa|disculpe|perdon|perdone|oye|oiga) )*con quien hablo(?: yo)?(?: (?:perdon|disculpa|disculpe|por favor))?$/;
 
 const BUILTIN: Record<string, string[]> = {
   'quien-eres': [
@@ -168,12 +201,16 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // their own list («¿qué me toca grabar el viernes?», step 7), nor a work product named before the
   // event («¿dónde está el material de la feria?») unless it asks for the place or the contacts.
   const whenWhere = asksWhenWhere(i.question) && !publishing;
-  const ownWork = !howTo && PENDING.test(q) && !asksSchedule(i.question);
-  const asking = whenWhere && !noticeToGroup && !ownWork;
+  // The way there («¿cómo hago para llegar a…?») is asked like a where, but only an event makes it the agenda.
+  const route = asksRoute(i.question) && !publishing;
+  const ownWork = !howTo && PENDING.test(q) && !asksSchedule(i.question) && !route;
+  const asking = (whenWhere || route) && !noticeToGroup && !ownWork;
   const rest = withoutWhenWhere(typed);
   const lookup = asking && rest && offered('buscar_evento') ? await runTool('buscar_evento', { texto: rest }, i.tools, i.toolCtx) : null;
   const evs = lookup?.ok ? (((lookup.result as R | undefined)?.eventos as R[] | undefined) ?? []) : [];
   const eventFrom = eventAt(i.question);
+  // On the way there, «lo de la cancha» names an event too (whoever can't see it gets no title match).
+  const named = eventFrom >= 0 || evs.length > 0 || (route && LO_DE.test(q));
   const workFrom = WORK.exec(q)?.index ?? -1;
   const aboutWork = workFrom >= 0 && (eventFrom < 0 || workFrom < eventFrom);
   // The refusal first, then what can be said, and the open question (if any) at the end.
@@ -182,7 +219,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     const question = parts.at(-1)?.endsWith('?') ? parts.pop()! : '';
     return done([...parts, extra, question].filter(Boolean).join(' '));
   };
-  if (asking && (eventFrom >= 0 || evs.length) && (!aboutWork || asksPlace(i.question))) {
+  if (asking && named && (!aboutWork || asksPlace(i.question))) {
     if (lookup) calls.push(lookup);
     return refuse(evs.length === 1 ? `Del evento «${evs[0].titulo}» te puedo decir que su trabajo está en «${evs[0].trabajo}».` : '');
   }
@@ -202,9 +239,11 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     if (!rol) return done('¿A quién va el aviso? Puede ser un rol (Redes, Supervisión, Despacho, Grabación, Secretaría) o todo el equipo.');
     const m = /\bque\s+(.+)$/i.exec(i.question);
     const texto = (m?.[1] ?? i.question).trim();
-    // About an event, it can't say when, where or whom to call (it arrives redacted: «[hora]»). A
-    // deadline for the team («antes de las 3 pm») is not the agenda: it goes, redacted.
-    if (aboutEvents(texto) && (/\[(fecha|hora|numero|correo)\]|\b(en|es) (la |el )?\[direccion\]/.test(texto) || asksPlace(texto))) {
+    // About an event, it can't say when, where or whom to call (it arrives redacted: «[hora]»), nor
+    // the event's day. A deadline for the team («suban el material antes de las 3 pm», «revisen…
+    // hasta las 5») is not the agenda: it goes, redacted. The event's own hour does not.
+    const untimed = fold(texto).replace(DEADLINE, ' ');
+    if (aboutEvents(texto) && (/\[(fecha|hora|numero|correo)\]|\b(en|es) (la |el )?\[direccion\]/.test(untimed) || asksPlace(texto) || eventDay(untimed))) {
       return done('Un aviso no puede llevar la fecha, la hora, el lugar ni los contactos de un evento: eso solo se ve en la Agenda. Dímelo sin eso y lo preparo.');
     }
     const r = await call('preparar_aviso', { rol, texto });
@@ -216,7 +255,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // 5. Name / 6. bot.
   // «¿Cómo se llama la pantalla…?» is not about the assistant: only «cómo se llama» + el asistente/usted.
   // «¿Con quién hablo?» alone asks for its name; «¿con quién hablo en la entrega…?» is a contact (step 2).
-  if (/\b(como te llamas|como se llama (el asistente|la asistente|este asistente|usted|el bot)|como te (puedo |debo )?(llamo|llamar|digo|decir)|que nombre tienes|cual es tu nombre|tu nombre|quien eres|quien sos|quien es usted|como te dicen|tienes nombre|presentate)\b/.test(q) || /^((hola|buenas|epa) )?con quien hablo( yo)?$/.test(q)) {
+  if (/\b(como te llamas|como se llama (el asistente|la asistente|este asistente|usted|el bot)|como te (puedo |debo )?(llamo|llamar|digo|decir)|que nombre tienes|cual es tu nombre|tu nombre|quien eres|quien sos|quien es usted|como te dicen|tienes nombre|presentate)\b/.test(q) || NAME_ONLY.test(q)) {
     const opts = variants('quien-eres').filter((v) => v.includes(i.ctx.profile.name));
     return done(pick(opts.length ? opts : BUILTIN['quien-eres'].map(fill)));
   }
@@ -298,12 +337,17 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   if (/\b(gracias|chao|nos vemos|hasta luego)\b/.test(q) && q.length < 40) return done(pick(variants('gracias')));
   if (/\b(chiste|politica|opinas|elecciones|partido|tarea|deberes|poema)\b/.test(q)) return done(pick(variants('fuera-de-tema')));
 
-  // 14b. Asked as a schedule («¿a qué hora sale Kevin?», «¿qué hay el domingo?») and nothing above
-  // knew the subject (an event this person can't see): the agenda answer, never a loose ficha (a
-  // list of categories, deadlines) next to it. Unless it names a screen, a thing of the platform
-  // («¿dónde queda el copy?») or a ficha's topic by its title or tags.
+  // 14b. Asked as a schedule («¿a qué hora sale Kevin?», «¿qué hay el domingo?») or the way somewhere
+  // that is not a goal («¿cómo hago para llegar a la plaza central?»), and nothing above knew the
+  // subject (an event this person can't see): the agenda answer, never a loose ficha (a list of
+  // categories, deadlines) next to it. Unless it names a screen, a thing of the platform («¿dónde
+  // queda el copy?»), the person's own things or a call for help (SELF, but not «lo de…»), or a
+  // ficha's topic by its title or tags.
+  const self = SELF.test(q) && !LO_DE.test(q);
+  const way = route && !GOAL.test(q);
   const topic = whenWhere ? withoutWhenWhere(i.question) : i.question;
-  if (whenWhere && asksSchedule(i.question) && !screensIn(q).length && !PLATFORM.test(q) && !namesTopic(i.ctx.knowledge ?? [], topic)) return refuse();
+  const subject = way ? withoutWhenWhere(i.question) : topic;
+  if (((whenWhere && asksSchedule(i.question)) || way) && !self && !screensIn(q).length && !PLATFORM.test(q) && !namesTopic(i.ctx.knowledge ?? [], subject)) return refuse();
 
   // 15. A ficha that answers it (how something is done, per role). Chosen by what is asked, not by
   // its when or where words; and in a when/where turn, never one with hours or dates (the best

@@ -28,8 +28,8 @@ async function conversationFor(sql: Sql, userId: string, conversationId: string 
 }
 
 export type Brand = { appName?: string; shortName?: string; bossLabel?: string };
-/** A model turn's reservation against the month's AI cap (the most a turn can cost). */
-export type Reserve = { provider: string; model: string; costUsd: number; capUsd: number };
+/** A model turn's reservation against the month's AI cap: its estimated cost for a thread of so many characters. */
+export type Reserve = { provider: string; model: string; capUsd: number; costFor: (threadChars: number) => number };
 
 const MONTH_SPEND = `select coalesce(sum(cost_usd), 0) as s from public.ai_usage where at >= date_trunc('month', now())`;
 
@@ -38,7 +38,8 @@ const MONTH_SPEND = `select coalesce(sum(cost_usd), 0) as s from public.ai_usage
  * conversation, the hour's count, the context, and the (redacted) question saved right away, so
  * parallel requests see it and a turn that fails later still counts. With a model chain and room
  * under the month's cap (the turns still in flight count, by their reservation), a reservation
- * goes into ai_usage; saveTurn settles it with the real numbers. The transaction is never held
+ * (the turn's estimated cost, sized by this thread) goes into ai_usage; saveTurn settles it with
+ * the real numbers. The transaction is never held
  * across the model call (the demo database runs one transaction at a time).
  */
 export async function openTurn(userId: string, requested: string | null | undefined, question: string, reserve: Reserve | null) {
@@ -67,9 +68,11 @@ export async function openTurn(userId: string, requested: string | null | undefi
       await sql.query(`select pg_advisory_xact_lock(hashtext('assistant:month'))`);
       const spent = Number((await sql.one<{ s: string }>(MONTH_SPEND))?.s ?? 0);
       if (spent < reserve.capUsd) {
+        // Every call of the turn resends the whole thread: the history and this question.
+        const threadChars = question.length + history.reduce((n, h) => n + h.body.length, 0);
         const row = await sql.one<{ id: string }>(
           `insert into public.ai_usage (user_id, feature, provider, model, cost_usd) values ($1, 'assistant', $2, $3, $4) returning id`,
-          [userId, reserve.provider, reserve.model, reserve.costUsd.toFixed(4)],
+          [userId, reserve.provider, reserve.model, reserve.costFor(threadChars).toFixed(4)],
         );
         usageId = row!.id;
       }

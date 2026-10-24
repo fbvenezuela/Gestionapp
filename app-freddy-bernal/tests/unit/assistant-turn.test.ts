@@ -7,7 +7,7 @@ import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import type { Role } from '@/lib/roles';
 import { handleTurn, toApi } from '@/lib/assistant';
 import { PROMISE_FALLBACK, DEGRADED_TEXT, AGENDA_FALLBACK } from '@/lib/assistant/brain';
-import { parseChain } from '@/lib/assistant/providers';
+import { estimateCost, parseChain } from '@/lib/assistant/providers';
 import { TOOLS, runTool } from '@/lib/assistant/tools';
 import { escalate } from '@/lib/assistant/escalate';
 import { FACTORY_SCRIPTS, defaultProfile } from '@/lib/assistant/config';
@@ -283,6 +283,22 @@ describe('cerebro de demostración (sin IA)', () => {
       [['secretary'], '¿cuándo toca lo de la cancha?'],
       [['camera'], '¿qué día toca lo del puente?'],
       [['camera'], '¿a quién llamo para lo de los productores?'],
+      // How to get there or where it is, said other ways (Secretaría doesn't see the feria: its event word is enough).
+      [['social2', 'supervisor', 'secretary'], '¿cómo hago para llegar a la feria?'],
+      [['social2', 'supervisor'], '¿cómo se va a la feria?'],
+      [['social2', 'supervisor'], '¿en qué parte queda la cancha techada?'],
+      [['secretary', 'camera'], '¿por dónde se entra a lo de la cancha?'],
+      [['secretary', 'camera'], '¿cómo hago para llegar a lo de los productores?'],
+      [['social2', 'secretary'], "¿Cómo se va pa' la feria?"],
+      [['social2', 'secretary'], '¿Cómo se va hasta la feria?'],
+      [['social2'], '¿Cómo se va pal acto de la cancha?'],
+      // To a place this person can't tie to an event: still the way there, not a ficha.
+      [['secretary'], '¿Cómo hago para llegar a la plaza central?'],
+      // A closing about their own plan or a call for help doesn't make it their own thing.
+      [['secretary', 'camera'], '¿Qué hay el domingo? Quiero hacer mi plan'],
+      [['camera'], '¿A qué hora sale Kevin? Es para mi plan'],
+      [['secretary'], '¿Dónde queda la plaza central? Necesito ayuda'],
+      [['secretary'], '¿Dónde queda la cancha techada? Es para mi reporte'],
     ];
     for (const [keys, q] of cases) {
       for (const key of keys) {
@@ -324,6 +340,20 @@ describe('cerebro de demostración (sin IA)', () => {
       expect(r.answer, q).not.toMatch(/no lo manejo|no la tengo/);
       expect(r.answer, q).not.toMatch(/\d{1,2}:\d{2}/); // no hours next to a «¿cuándo…?»
     }
+    // The same words about the platform, the audience or the future are not the way to an event.
+    expect((await ask('admin', '¿Por dónde se entra?')).answer).toMatch(/En «Entrar»/);
+    expect((await ask('dispatch', '¿Por dónde se entra a la plataforma?')).answer).toMatch(/En «Entrar»/);
+    expect((await ask('admin', '¿Cuándo se va a publicar la pieza del puente?')).answer).toMatch(/^La pieza «Avance del puente La Quebrada» está/);
+    for (const [key, q] of [
+      ['boss', '¿Cómo hacemos para llegar a más gente?'],
+      ['social', '¿Cómo hago para llegar a 1000 seguidores?'],
+      ['social', '¿Cómo hago para llegar a mis pendientes?'],
+      ['social', '¿Esto se va a la biblioteca o a Drive?'],
+      ['boss', '¿En qué parte queda el botón de publicar?'],
+      ['dispatch', '¿Qué hago si se va la señal?'],
+    ] as [DemoUserKey, string][]) {
+      expect((await ask(key, q)).answer, q).not.toMatch(/no lo manejo|no la tengo/);
+    }
     // Their own list, with a day named.
     const rec = await ask('camera', '¿Qué me toca grabar el viernes?');
     expect(rec.did).toEqual([{ tool: 'mis_pendientes' }]);
@@ -336,6 +366,42 @@ describe('cerebro de demostración (sin IA)', () => {
     const dated = await ask('admin', 'Mándales un aviso a redes de que la feria es el martes 27 a las 4 pm');
     expect(dated.did).toEqual([]);
     expect(dated.answer).toMatch(/no puede llevar la fecha, la hora/);
+    // A deadline for the material of an event is the team's, not the event's hour: prepared, redacted.
+    for (const q of [
+      'Mándales un aviso a redes de que suban el material de la feria antes de las 3 pm',
+      'Mándales un aviso a redes de que suban el material de la feria hasta las 5 pm',
+      'Mándales un aviso a redes de que suban el material de la feria a más tardar a las 4 pm',
+      'Mándales un aviso a redes de que tengan el material de la feria para las 2 pm',
+      'Mándales un aviso a redes de que hay que subir las fotos de la feria antes de las 3 pm',
+    ]) {
+      const r = await ask('admin', q);
+      expect(r.did, q).toEqual([{ tool: 'preparar_aviso' }]);
+      const draft = await withSystem((sql) => sql.one<{ body: string }>(`select body from public.assistant_drafts where conversation_id = $1`, [r.conversationId]));
+      expect(draft!.body, q).toMatch(/las \[hora\]$/);
+    }
+    // How long the team has is not an hour.
+    expect((await ask('admin', 'Mándales un aviso a redes de que tienen 24 h para subir el material de la feria')).did).toEqual([{ tool: 'preparar_aviso' }]);
+    // The event's own hour or day, however it is said, is not a deadline: with nothing for the team
+    // before it, or the event's verb in between.
+    for (const q of [
+      'la feria es hasta las 4 pm',
+      'la feria empieza a las 4 pm',
+      'la feria es el martes hasta las 4 pm',
+      'la feria es mañana hasta las 4 pm',
+      'la feria está pautada para las 4 pm',
+      'la feria quedó para las 4 pm',
+      'la feria se movió para las 4 pm',
+      'la feria va hasta las 4 pm',
+      'para las 4 pm es la feria',
+      'la feria va a terminar antes de las 5 pm',
+      'suban todo, la feria es hasta las 4 pm',
+      'la feria es el martes',
+      'la feria de mañana necesita fotos',
+    ]) {
+      const r = await ask('admin', `Mándales un aviso a redes de que ${q}`);
+      expect(r.did, q).toEqual([]);
+      expect(r.answer, q).toMatch(/no puede llevar la fecha, la hora/);
+    }
     // A place in an event's title: masked before it is stored, still found by the demo brain.
     const ev = await withSystem((sql) => sql.one<{ id: string }>(`insert into public.events (title, boss_decision, created_by) values ('Entrega de bombonas en el barrio San Carlos', 'accepted', $1) returning id`, [ADMIN_ID]));
     try {
@@ -345,6 +411,42 @@ describe('cerebro de demostración (sin IA)', () => {
       expect(q!.body).toBe('¿cómo va el evento del [direccion]?');
     } finally {
       await withSystem((sql) => sql.query(`update public.events set deleted_at = now() where id = $1`, [ev!.id]));
+    }
+  });
+
+  it('lo suyo, el soporte, lo que hay que hacer hoy o «¿con quién hablo, perdón?» no son la agenda', async () => {
+    const ask = async (key: DemoUserKey, question: string) => {
+      const r = await handleTurn(sessionOf(key), { question }, LOCAL);
+      expect(r.model, `${key}: ${question}`).toBe('local');
+      return r;
+    };
+    for (const q of ['¿Cómo cambio mi número de teléfono?', '¿Cuál es el teléfono de soporte?', '¿Cuál es el número de teléfono de administración?', '¿A quién llamo si tengo un problema?']) {
+      const r = await ask('social2', q);
+      expect(r.answer, q).not.toMatch(/no lo manejo|no la tengo/);
+    }
+    // What to do today is their own list.
+    for (const [key, q] of [
+      ['social2', '¿Qué hay que hacer hoy?'],
+      ['camera', '¿Qué hay que hacer hoy?'],
+      ['social2', '¿Qué tenemos hoy?'],
+    ] as [DemoUserKey, string][]) {
+      const r = await ask(key, q);
+      expect(r.did, q).toEqual([{ tool: 'mis_pendientes' }]);
+      expect(r.answer, q).toMatch(/^Tienes \d+ pendientes?|^No tienes nada pendiente/);
+    }
+    // A polite word before or after still asks for its name.
+    for (const [key, q] of [
+      ['social2', '¿Con quién hablo, perdón?'],
+      ['social2', 'Disculpa, ¿con quién hablo?'],
+      ['boss', 'Buenas tardes, ¿con quién hablo?'],
+    ] as [DemoUserKey, string][]) {
+      expect((await ask(key, q)).answer, q).toContain(defaultProfile().name);
+    }
+    // The same words about an event are still the agenda.
+    for (const q of ['¿a quién llamo si tengo un problema en la feria?', '¿qué tenemos hoy en la feria?', '¿cuál es el número de teléfono de la persona de la feria?']) {
+      const r = await ask('admin', q);
+      expect(r.answer, q).toMatch(/no lo manejo|no la tengo/);
+      assertNoAgenda(r.answer);
     }
   });
 
@@ -469,6 +571,86 @@ describe('con modelo (proveedor falso)', () => {
     } finally {
       await withSystem((sql) => sql.query(`update public.events set deleted_at = now() where id = $1`, [ev!.id]));
     }
+  });
+
+  it('la hora escrita de otras formas en un título («a las 9.30», «9.00 am», «sábado 8h», «lunes 3/11 7:00») tampoco llega', async () => {
+    const titles = ['Visita escuela Zamorano a las 9.30', 'Acto cancha Zamorano el sábado 8h', 'Jornada Zamorano lunes 3/11 7:00', 'Caravana Zamorano 9.00 am', 'Toma aérea Zamorano 9.30', 'Visita Pirineos 19.30 hrs', 'Toma Pirineos 9.30 hs', 'Acto Pirineos 7.30h'];
+    const ids = await withSystem(async (sql) => {
+      const out: string[] = [];
+      for (const t of titles) out.push((await sql.one<{ id: string }>(`insert into public.events (title, boss_decision, created_by) values ($1, 'accepted', $2) returning id`, [t, ADMIN_ID]))!.id);
+      return out;
+    });
+    try {
+      const p = fakeProvider((n) => (n === 1 ? callTool('buscar_evento', { texto: 'Zamorano' }) : say('Encontré varias cosas de Zamorano. ¿Cuál es?')));
+      const r = await handleTurn(sessionOf('boss'), { question: '¿Cómo va lo de Zamorano?' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+      expect(r.did).toEqual([{ tool: 'buscar_evento' }]);
+      const tool = (p.seen[1].body.messages as { role: string; content: string }[]).find((m) => m.role === 'tool')!;
+      const got = (JSON.parse(tool.content).eventos as { titulo: string }[]).map((e) => e.titulo).sort();
+      // «9.30» alone gets past redact(); the phone's guard takes it (and the weekday).
+      expect(got).toEqual(['Acto cancha Zamorano el [hora]', 'Caravana Zamorano [hora]', 'Jornada Zamorano [fecha] [hora]', 'Toma aérea Zamorano', 'Visita escuela Zamorano a las [hora]']);
+      const sent = JSON.stringify(p.seen);
+      for (const leak of ['9.30', '8h', '3/11', '7:00', '9.00', 'sábado', 'lunes']) expect(sent, leak).not.toContain(leak);
+      // The minutes before h / hs / hrs go with their hour.
+      const q = fakeProvider((n) => (n === 1 ? callTool('buscar_evento', { texto: 'Pirineos' }) : say('Encontré varias cosas de Pirineos. ¿Cuál es?')));
+      await handleTurn(sessionOf('boss'), { question: '¿Cómo va lo de Pirineos?' }, { chain: CHAIN, chatOptions: { fetchImpl: q.fetchImpl } });
+      const tool2 = (q.seen[1].body.messages as { role: string; content: string }[]).find((m) => m.role === 'tool')!;
+      expect((JSON.parse(tool2.content).eventos as { titulo: string }[]).map((e) => e.titulo).sort()).toEqual(['Acto Pirineos [hora]', 'Toma Pirineos [hora]', 'Visita Pirineos [hora]']);
+      for (const leak of ['9.30', '7.30', 'hrs']) expect(JSON.stringify(q.seen), leak).not.toContain(leak);
+    } finally {
+      await withSystem((sql) => sql.query(`update public.events set deleted_at = now() where id = any($1::uuid[])`, [ids]));
+    }
+  });
+
+  it('una respuesta anterior del cerebro de demostración que cita un título con la hora («9.30») no llega al proveedor', async () => {
+    const ev = await withSystem((sql) => sql.one<{ id: string }>(`insert into public.events (title, boss_decision, created_by) values ('Toma aérea Tariba 9.30', 'accepted', $1) returning id`, [ADMIN_ID]));
+    try {
+      // The month's cap (or a failed reservation) made the demo brain answer: it quotes the title as it is.
+      const first = await handleTurn(sessionOf('social'), { question: '¿Cómo va el evento de Tariba?' }, LOCAL);
+      expect(first.answer).toMatch(/^El evento «Toma aérea Tariba 9\.30» está en/);
+      const p = fakeProvider(() => say('Va en ficha. ¿Algo más?'));
+      const r = await handleTurn(sessionOf('social'), { question: '¿Y qué falta?', conversationId: first.conversationId }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+      expect(r.model).toBe('groq:llama-3.3-70b');
+      const thread = (p.seen[0].body.messages as { role: string; content: string }[]).filter((m) => m.role === 'assistant');
+      expect(thread.map((m) => m.content)).toContain('El evento «Toma aérea Tariba» está en «Ficha» (decisión del jefe: aceptado). Todavía no tiene material y 0 piezas.');
+      expect(JSON.stringify(p.seen)).not.toContain('9.30');
+    } finally {
+      await withSystem((sql) => sql.query(`update public.events set deleted_at = now() where id = $1`, [ev!.id]));
+    }
+  });
+
+  it('la reserva del mes alcanza para un turno con el hilo largo (cada vuelta reenvía el hilo entero)', async () => {
+    const s = sessionOf('dispatch');
+    const long = 'Necesito ayuda con la pieza del puente y el copy para Instagram, porque el video vertical quedó largo y no sé qué fórmula usar ni qué voz poner. '.repeat(11).slice(0, 1500);
+    const conv = await withSystem(async (sql) => {
+      const c = await sql.one<{ id: string }>(`insert into public.assistant_conversations (user_id, title) values ($1, 'hilo largo') returning id`, [s.userId]);
+      for (let i = 0; i < 12; i++) {
+        await sql.query(`insert into public.assistant_messages (conversation_id, who, body, created_at) values ($1, 'persona', $2, clock_timestamp())`, [c!.id, long]);
+        await sql.query(`insert into public.assistant_messages (conversation_id, who, body, created_at) values ($1, 'asistente', $2, clock_timestamp())`, [c!.id, 'En la pieza, pestaña Copies: eliges la fórmula, la voz y el cierre.']);
+      }
+      return c!.id;
+    });
+    // The provider reports what it really got (3 characters per token): two rounds of 4 tools, then the answer.
+    let reserved = 0;
+    let tokensIn = 0;
+    let tokensOut = 0;
+    const four = (n: number) => ['mejores_horas', 'reglas_de_video', 'mis_pendientes', 'buscar_evento'].map((name) => ({ id: `${name}-${n}`, type: 'function', function: { name, arguments: name === 'buscar_evento' ? '{"texto":"entrega"}' : '{}' } }));
+    const fetchImpl = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body ?? '{}'));
+      if (!reserved) {
+        const row = await withSystem((sql) => sql.one<{ c: string }>(`select cost_usd as c from public.ai_usage where user_id = $1 and input_tokens = 0 and output_tokens = 0`, [s.userId]));
+        reserved = Number(row!.c);
+      }
+      const usage = { prompt_tokens: Math.ceil((JSON.stringify(body.messages).length + JSON.stringify(body.tools ?? []).length) / 3), completion_tokens: 60 };
+      tokensIn += usage.prompt_tokens;
+      tokensOut += usage.completion_tokens;
+      const message = fetchImpl.mock.calls.length <= 2 ? { content: '', tool_calls: four(fetchImpl.mock.calls.length) } : { content: 'Listo: revisa la pestaña Copies de la pieza.' };
+      return new Response(JSON.stringify({ choices: [{ message }], usage }), { status: 200, headers: { 'content-type': 'application/json' } });
+    }) as unknown as typeof fetch & { mock: { calls: unknown[] } };
+    const r = await handleTurn(s, { question: '¿Cómo publico un reel?', conversationId: conv }, { chain: CHAIN, chatOptions: { fetchImpl } });
+    expect(r.model).toBe('groq:llama-3.3-70b');
+    expect(fetchImpl.mock.calls).toHaveLength(3);
+    expect(tokensIn).toBeGreaterThan(30_000); // the thread went three times
+    expect(reserved).toBeGreaterThanOrEqual(Number(estimateCost('llama-3.3-70b', tokensIn, tokensOut).toFixed(4)));
   });
 
   it('el tope por hora no se salta con pedidos en paralelo: la pregunta cuenta antes del modelo, aunque el turno falle', async () => {

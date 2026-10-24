@@ -6,12 +6,21 @@ import { NextRequest } from 'next/server';
 import type { Notice } from '@/lib/notify';
 import { makeTestDb, type TestDb } from '../rls/setup';
 
-const h = vi.hoisted(() => ({ notices: [] as unknown[], failTitle: '', failStock: false, digest: 0, health: 0 }));
+const h = vi.hoisted(() => ({
+  notices: [] as unknown[],
+  failTitle: '',
+  failStock: false,
+  digest: 0,
+  health: 0,
+  // Runs while a notice "goes out" (what the team does in the meantime).
+  during: null as null | ((n: { link?: string }) => Promise<void>),
+}));
 
 vi.mock('@/lib/notify', async (orig) => ({
   ...(await orig<typeof import('@/lib/notify')>()),
-  notify: vi.fn(async (n: { title: string }) => {
+  notify: vi.fn(async (n: { title: string; link?: string }) => {
     if (h.failTitle && n.title.includes(h.failTitle)) throw new Error('connection reset');
+    if (h.during) await h.during(n);
     h.notices.push(n);
   }),
 }));
@@ -69,6 +78,7 @@ beforeEach(() => {
   h.failStock = false;
   h.digest = 0;
   h.health = 0;
+  h.during = null;
 });
 
 const tick = async () => {
@@ -115,5 +125,45 @@ describe('cron tick', () => {
     expect(second.status).toBe(200);
     expect(overdue().filter((l) => late.some((id) => l === `/aprobar/${id}`))).toEqual([`/aprobar/${late[1]}`]);
     expect(await marked()).toEqual(new Set(late));
+  });
+
+  it('si la pieza sale de revisión y vuelve mientras sale el aviso, la ronda nueva no queda marcada y tiene su propio aviso', async () => {
+    const id = await t.system(async (sql) => {
+      const p = await sql.one<{ id: string }>(
+        `insert into public.pieces (kind, title, status, current_version, review_level, created_by) values ('video', 'Pieza que vuelve (demo)', 'in_review', 1, 'verde', $1) returning id`,
+        [t.ids.social],
+      );
+      await sql.query(`update public.pieces set sent_to_review_at = now() - interval '4 days' where id = $1`, [p!.id]);
+      return p!.id;
+    });
+    const piece = () =>
+      t.system((sql) =>
+        sql.one<{ status: string; fresh: boolean; escalated: boolean }>(
+          `select status, sent_to_review_at > now() - interval '1 hour' as fresh, review_escalated_at is not null as escalated from public.pieces where id = $1`,
+          [id],
+        ),
+      );
+    // Supervision asks for changes and Redes uploads a new version before the mark lands.
+    h.during = async (n) => {
+      if (n.link !== `/aprobar/${id}`) return;
+      h.during = null;
+      await t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'changes_requested', 'Ajusta el audio.')`, [id]));
+      await t.as('social', (sql) => sql.query(`update public.pieces set current_version = current_version + 1 where id = $1`, [id]));
+    };
+    const first = await tick();
+    expect(first.body.lateReviews).toBe(1);
+    expect(overdue()).toEqual([`/aprobar/${id}`]);
+    expect(await piece()).toEqual({ status: 'in_review', fresh: true, escalated: false });
+
+    // The new round runs late too: it gets its own notice and only then is marked (microseconds, as
+    // real Postgres stores them: the mark must still find the round).
+    await t.system((sql) => sql.query(`update public.pieces set sent_to_review_at = now() - interval '5 days' - interval '7 microseconds' where id = $1`, [id]));
+    h.notices.length = 0;
+    const second = await tick();
+    expect(second.body.lateReviews).toBe(1);
+    expect(overdue()).toEqual([`/aprobar/${id}`]);
+    expect((await piece())!.escalated).toBe(true);
+    h.notices.length = 0;
+    expect((await tick()).body.lateReviews).toBe(0);
   });
 });
