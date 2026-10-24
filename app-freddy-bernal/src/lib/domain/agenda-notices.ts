@@ -32,10 +32,16 @@ export function newEventNotice(ev: { id: string; title: string }): AgendaNotice 
 }
 
 // Secretaría corrected the title of her proposal before the boss decided: the boss and
-// despacho get the notice again with the new title. `stamp` makes it a new notice (the first
-// one keeps its own key); the same correction sent twice in the same second is one notice.
+// despacho get a notice with the new title. It says it is a correction, so Avisos does not
+// read as two events to decide. Same kind as the first one (the same switch in Mi perfil turns
+// both off). `stamp` makes it a new notice (the first one keeps its own key); the same
+// correction sent twice in the same second is one notice.
 export function correctedEventNotice(ev: { id: string; title: string }, stamp: string): AgendaNotice {
-  return { ...newEventNotice(ev), key: `event_new:${ev.id}:${stamp}` };
+  return {
+    ...newEventNotice(ev),
+    title: withTitle('Corrigieron el evento por decidir', 'Corrigieron un evento por decidir', ev.title),
+    key: `event_new:${ev.id}:${stamp}`,
+  };
 }
 
 // Only a change the boss would notice in the notice text (the title, as it goes out) is worth

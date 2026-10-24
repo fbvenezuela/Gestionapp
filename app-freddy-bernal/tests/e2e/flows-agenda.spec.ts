@@ -36,7 +36,7 @@ test('el jefe recibe el aviso y rechaza con el diálogo de la app', async ({ pag
   });
   await loginAs(page, 'jefe@demo.test');
   await page.goto('/avisos');
-  await page.getByText(`Hay un evento nuevo por decidir: ${FIXED}`).click();
+  await page.getByText(`Corrigieron el evento por decidir: ${FIXED}`).click();
   await expect(page.getByRole('heading', { name: FIXED })).toBeVisible();
   await page.getByRole('button', { name: 'Rechazar' }).click();
   const dialog = page.getByRole('dialog');

@@ -29,7 +29,9 @@ Actualizado: 23/10/2026. Qué se hizo para blindar la plataforma y qué falta.
 6. **Claves:** solo en variables de entorno. La de servicio de Supabase nunca va al navegador. `.env*` está en
    `.gitignore`; la CI corre gitleaks en cada cambio.
 7. **Archivos privados:** se descargan con URLs firmadas de 5 minutos, después de comprobar el permiso de la persona.
-   Las fotos se recomprimen en el teléfono (eso borra la ubicación GPS del archivo).
+   Toda foto se recomprime en el teléfono antes de subir, aunque sea pequeña: eso borra la ubicación GPS del archivo.
+   Si el teléfono no puede abrirla (por ejemplo HEIC en Android), no se sube y se pide pasarla a JPG. Los videos
+   no se tocan: la ubicación de la cámara se apaga en los teléfonos del equipo.
 8. **Cabeceras:** HSTS, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`. El sitio no se
    indexa (`robots: noindex`).
 9. **Nada sale sin permiso:** correos en modo buzón (`EMAIL_MODE=outbox`), nunca a direcciones `.test`, y en las

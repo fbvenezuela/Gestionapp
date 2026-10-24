@@ -65,7 +65,7 @@ export default async function BossHome() {
           <span>
             <span className="block text-3xl font-bold">Digital</span>
             <span className="mt-1 block text-lg">Lo publicado, lo que viene y cómo nos va</span>
-            <span className="mt-3 block text-base">{counts.published} publicaciones esta semana</span>
+            <span className="mt-3 block text-base">{counts.published} {counts.published === 1 ? 'publicación' : 'publicaciones'} esta semana</span>
           </span>
         </Link>
       </div>

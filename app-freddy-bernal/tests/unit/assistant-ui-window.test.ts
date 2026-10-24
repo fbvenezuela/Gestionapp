@@ -25,6 +25,7 @@ import {
   writeThread,
   type SessionKV,
 } from '@/components/assistant/core';
+import { stickyBox } from '@/components/assistant/assistant-widget';
 import { MAX_QUESTION as SERVER_MAX } from '@/lib/assistant';
 import { DEGRADED_TEXT, DEGRADED_UNNOTIFIED } from '@/lib/assistant/brain';
 
@@ -192,12 +193,54 @@ describe('el botón', () => {
       ]),
     ).toBe(231);
   });
+
+  // /agenda/nuevo at 360 × 760: «Enviar propuesta» is a 56 px bar, sticky 80 px from the bottom.
+  // The button rests 76 px up (over the bottom bar), 48 px tall, and keeps 12 px from a bar.
+  const VH = 760;
+  const bar = (top: number) => stickyBox('sticky', '80px', { top, bottom: top + 56 }, VH, 76);
+
+  it('sobre la barra pegada abajo, mientras se llena el formulario', () => {
+    expect(liftFrom([bar(VH - 80 - 56)])).toBe(136); // the button rests 148 px up: clear of the bar
+  });
+
+  it('sube con la barra cuando se suelta, y baja a su sitio cuando la barra queda más arriba', () => {
+    // While the bar rises over the button's resting spot, the button rides on it, without jumps.
+    expect(liftFrom([bar(VH - 100 - 56)])).toBe(156);
+    expect(liftFrom([bar(VH - 129 - 56)])).toBe(185);
+    // At the end of the page the bar rests 136 px from the bottom (main's padding + the spacer),
+    // clear of the button's resting spot (76 + 48 + 12): the button goes back down, under the
+    // bar, and covers neither the bar nor the field above it. Also with sub-pixel scrolling.
+    expect(liftFrom([bar(VH - 136 - 56)])).toBe(0);
+    expect(liftFrom([bar(VH - 135.75 - 56)])).toBe(0);
+    // A short form: the bar rests far up the screen and the button stays down, in the empty room.
+    expect(liftFrom([bar(VH - 310 - 56)])).toBe(0);
+  });
+
+  it('en la compu igual: 24 px de base y la barra pegada a 16 px', () => {
+    const desk = (above: number) => stickyBox('sticky', '16px', { top: 1000 - above - 56, bottom: 1000 - above }, 1000, 24);
+    expect(liftFrom([desk(16)])).toBe(72);
+    expect(liftFrom([desk(96)])).toBe(0); // resting: main's 2rem + the spacer
+  });
+
+  it('una barra que ya subió, fuera de la pantalla o pegada arriba no cuenta', () => {
+    expect(liftFrom([bar(200)])).toBe(0);
+    expect(liftFrom([bar(VH + 10)])).toBe(0);
+    expect(liftFrom([bar(-100)])).toBe(0);
+    expect(liftFrom([stickyBox('sticky', 'auto', { top: 600, bottom: 700 }, VH, 76)])).toBe(0);
+    expect(liftFrom([stickyBox('static', '80px', { top: 600, bottom: 656 }, VH, 76)])).toBe(0);
+  });
 });
 
 describe('reglas del código de la ventana', () => {
   const widget = fs.readFileSync('src/components/assistant/assistant-widget.tsx', 'utf8');
   const mount = fs.readFileSync('src/components/assistant/assistant-mount.tsx', 'utf8');
   const all = fs.readdirSync('src/components/assistant').map((f) => fs.readFileSync(`src/components/assistant/${f}`, 'utf8')).join('\n');
+
+  it('la altura del botón se recalcula al desplazar la página, como mucho una vez por cuadro', () => {
+    expect(widget).toMatch(/addEventListener\('scroll', schedule, \{ passive: true \}\)/);
+    expect(widget).toMatch(/if \(!frame\) frame = requestAnimationFrame\(update\)/);
+    expect(widget).toContain("removeEventListener('scroll', schedule)");
+  });
 
   it('no lee datos de nadie: solo llama a /api/asistente', () => {
     const fetches = widget.match(/fetch\(([^,)]+)/g) ?? [];

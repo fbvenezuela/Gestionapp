@@ -23,6 +23,7 @@ import {
   splitList,
   tabHref,
   testSchema,
+  toolLabel,
   withNameHole,
 } from '@/components/assistant/panel-core';
 import { variantsOf } from '@/lib/assistant/local';
@@ -140,13 +141,32 @@ describe('cómo se leen las cosas', () => {
     expect(fmtMs(2340)).toBe('2,3 s');
   });
 
-  it('las claves: solo nombres, nunca valores', () => {
+  it('las claves: en palabras simples, nunca valores ni nombres de la configuración del servidor', () => {
     const base = { provider: 'groq', keyEnv: 'GROQ_API_KEY', present: true, prefixOk: true, spaces: false, similar: [], known: true };
-    expect(keyStatus(base)).toEqual({ tone: 'ok', text: 'GROQ_API_KEY está puesta.' });
-    expect(keyStatus({ ...base, present: false, prefixOk: null, similar: ['GROQ_KEY'] }).text).toBe('Falta GROQ_API_KEY. Hay nombres parecidos: GROQ_KEY.');
-    expect(keyStatus({ ...base, spaces: true }).tone).toBe('warn');
+    expect(keyStatus(base)).toEqual({ tone: 'ok', text: 'La clave de Groq está puesta.' });
+    expect(keyStatus({ ...base, present: false, prefixOk: null }).text).toBe('La clave de Groq no está puesta.');
+    expect(keyStatus({ ...base, present: false, prefixOk: null, similar: ['GROQ_KEY'] }).text).toBe('La clave de Groq no está puesta. Hay una con un nombre parecido: revisa cómo se escribió.');
+    expect(keyStatus({ ...base, present: false, prefixOk: null, similar: ['GROQ_KEY', 'GROQ_TOKEN'] }).text).toContain('Hay 2 con nombres parecidos');
+    expect(keyStatus({ ...base, spaces: true })).toEqual({ tone: 'warn', text: 'La clave de Groq tiene espacios al principio o al final.' });
     expect(keyStatus({ ...base, prefixOk: false }).tone).toBe('warn');
+    expect(keyStatus({ ...base, provider: 'openai', keyEnv: 'OPENAI_API_KEY' }).text).toBe('La clave de OpenAI está puesta.');
     expect(keyStatus({ ...base, known: false, provider: 'anthropic' }).tone).toBe('danger');
+    for (const k of [base, { ...base, present: false, similar: ['GROQ_KEY'] }, { ...base, spaces: true }, { ...base, prefixOk: false }]) {
+      expect(keyStatus(k).text).not.toMatch(/[A-Z]+_[A-Z_]+/);
+    }
+  });
+
+  it('lo que consultó para contestar, con palabras y no con el nombre interno', () => {
+    expect(toolLabel('buscar_evento')).toBe('Buscó un evento');
+    expect(toolLabel('mis_pendientes')).toBe('Buscó los pendientes');
+    expect(toolLabel('avisar_al_equipo')).toBe('Avisó al equipo');
+    expect(toolLabel('algo_nuevo')).toBe('Algo nuevo');
+    expect(toolLabel(undefined)).toBe('Otra consulta');
+    // Every tool the assistant has gets its own words.
+    const tools = [...fs.readFileSync('src/lib/assistant/tools.ts', 'utf8').matchAll(/^\s+name: '([a-z_]+)',$/gm)].map((m) => m[1]);
+    expect(tools.length).toBeGreaterThan(5);
+    for (const t of tools) expect(toolLabel(t), t).not.toContain('_');
+    for (const t of tools) expect(toolLabel(t), t).not.toBe(t.replaceAll('_', ' ').replace(/^./, (c) => c.toUpperCase()));
   });
 });
 
@@ -177,6 +197,24 @@ describe('reglas de las páginas del panel', () => {
     const exported = [...a.matchAll(/^export\s+(\S+)\s+(\S+)/gm)].map((m) => `${m[1]} ${m[2]}`);
     expect(exported.length).toBeGreaterThan(10);
     for (const e of exported) expect(e).toMatch(/^async function/);
+  });
+
+  it('sin términos de programador: ni nombres de la configuración, ni «tokens», ni nombres de herramientas', () => {
+    const sections = src('sections.tsx');
+    expect(sections).not.toContain('ASISTENTE_MODELOS');
+    expect(sections).not.toMatch(/tokens['`]|"Tokens"|tokens`/);
+    expect(sections).not.toMatch(/^\s*\{t\.tool\}\s*$/m);
+    expect(sections).toContain('{toolLabel(t.tool)}');
+    expect(sections).not.toContain('Degradada');
+  });
+
+  it('el día se escribe con mayúscula solo al principio («Sábado 24 de oct»)', () => {
+    expect(src('sections.tsx')).not.toMatch(/\bcapitalize\b/);
+  });
+
+  it('en el teléfono, la pestaña abierta se trae a la vista', () => {
+    expect(src('page.tsx')).toMatch(/<TabStrip current=\{tab\}/);
+    expect(src('tab-strip.tsx')).toContain('[aria-current="page"]');
   });
 
   it('la tarjeta «Asistente» está en Ajustes', () => {

@@ -172,6 +172,28 @@ const ACTION_LABEL: Record<string, string> = {
   preparar_aviso: 'Preparó un aviso',
 };
 
+// What the assistant looked up to answer (src/lib/assistant/tools.ts), in plain words: the
+// panel never shows the internal names.
+const LOOKUP_LABEL: Record<string, string> = {
+  mis_pendientes: 'Buscó los pendientes',
+  estado_pieza: 'Buscó cómo va una pieza',
+  dias_de_tweets: 'Contó los días de tweets',
+  mejores_horas: 'Buscó las mejores horas',
+  reglas_de_video: 'Buscó las reglas de video',
+  buscar_evento: 'Buscó un evento',
+};
+
+const plainName = (name: string) => {
+  const t = name.replaceAll('_', ' ').trim();
+  return t ? `${t[0].toUpperCase()}${t.slice(1)}` : 'Otra consulta';
+};
+
+/** A tool the assistant used, as the panel shows it. */
+export function toolLabel(tool: string | null | undefined): string {
+  const t = tool ?? '';
+  return LOOKUP_LABEL[t] ?? ACTION_LABEL[t] ?? plainName(t);
+}
+
 export function actionLabel(action: string, detail?: Record<string, unknown> | null): string {
   const base = ACTION_LABEL[action] ?? action.replaceAll('_', ' ');
   const result = (detail?.result ?? {}) as Record<string, unknown>;
@@ -197,13 +219,20 @@ export const ORIGIN_LABEL: Record<string, string> = {
 
 export type KeyInfo = { provider: string; keyEnv: string; present: boolean; prefixOk: boolean | null; spaces: boolean; similar: string[]; known: boolean };
 
-/** What the panel says about a provider key: names only, never a value. */
+const PROVIDER_NAME: Record<string, string> = { gemini: 'Gemini', groq: 'Groq', openai: 'OpenAI', openrouter: 'OpenRouter', mistral: 'Mistral' };
+
+/** What the panel says about a provider key, in plain words: never a value, nor the name of
+ *  the server setting (docs/ASISTENTE.md has those for whoever sets the keys up). */
 export function keyStatus(k: KeyInfo): { tone: 'ok' | 'warn' | 'danger'; text: string } {
   if (!k.known) return { tone: 'danger', text: `«${k.provider}» no es un proveedor conocido.` };
-  if (!k.present) return { tone: 'danger', text: k.similar.length ? `Falta ${k.keyEnv}. Hay nombres parecidos: ${k.similar.join(', ')}.` : `Falta ${k.keyEnv}.` };
-  if (k.spaces) return { tone: 'warn', text: `${k.keyEnv} tiene espacios al principio o al final.` };
-  if (k.prefixOk === false) return { tone: 'warn', text: `${k.keyEnv} no empieza como debería: ¿se pegó a medias?` };
-  return { tone: 'ok', text: `${k.keyEnv} está puesta.` };
+  const key = `La clave de ${PROVIDER_NAME[k.provider] ?? k.provider}`;
+  if (!k.present) {
+    const similar = k.similar.length === 1 ? ' Hay una con un nombre parecido: revisa cómo se escribió.' : k.similar.length ? ` Hay ${k.similar.length} con nombres parecidos: revisa cómo se escribieron.` : '';
+    return { tone: 'danger', text: `${key} no está puesta.${similar}` };
+  }
+  if (k.spaces) return { tone: 'warn', text: `${key} tiene espacios al principio o al final.` };
+  if (k.prefixOk === false) return { tone: 'warn', text: `${key} no empieza como debería: ¿se pegó a medias?` };
+  return { tone: 'ok', text: `${key} está puesta.` };
 }
 
 export function fmtMs(v: number | null | undefined): string {

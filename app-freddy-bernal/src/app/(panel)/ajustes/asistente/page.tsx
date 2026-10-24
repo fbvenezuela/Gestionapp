@@ -5,6 +5,7 @@ import { cn } from '@/lib/cn';
 import { PageHeader } from '@/components/ui/page';
 import { TABS, parseTab, tabHref } from '@/components/assistant/panel-core';
 import { ActionsTab, ConversationsTab, DraftsTab, HealthTab, HeardTab, KnowledgeTab, ProfileTab, ScriptsTab, type SP } from './sections';
+import { TabStrip } from './tab-strip';
 
 export const metadata = { title: 'Asistente' };
 
@@ -21,7 +22,7 @@ export default async function AssistantPanelPage({ searchParams }: { searchParam
     <>
       <PageHeader title="Asistente" subtitle="Lo que sabe, cómo contesta y cómo le va. Solo administración lo ve." back={{ href: '/ajustes', label: 'Ajustes' }} />
       <nav aria-label="Secciones del asistente" className="mb-5">
-        <ul className="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+        <TabStrip current={tab} className="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
           {TABS.map((t) => {
             const active = t.key === tab;
             return (
@@ -45,7 +46,7 @@ export default async function AssistantPanelPage({ searchParams }: { searchParam
               </li>
             );
           })}
-        </ul>
+        </TabStrip>
       </nav>
 
       <section aria-labelledby="asistente-tab">

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { loginAs } from './helpers';
 
@@ -23,6 +23,47 @@ for (const [email, pages] of Object.entries(ROLES)) {
       const serious = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${p} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 2).join(' | ')}`);
       expect(serious, p).toEqual([]);
     }
+  });
+}
+
+// At 360 px the home of each role does not scroll sideways (the demo's long titles truncate)
+// and every label of the phone bar fits in its cell, also in «Modo sol», which enlarges text.
+const HOMES: Record<string, string> = {
+  'admin@demo.test': '/hoy',
+  'jefe@demo.test': '/jefe',
+  'despacho@demo.test': '/hoy',
+  'supervision@demo.test': '/hoy',
+  'grabacion@demo.test': '/hoy',
+  'secretaria@demo.test': '/hoy',
+  'redes@demo.test': '/hoy',
+};
+
+async function fitsThePhone(page: Page, where: string) {
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  const r = await page.evaluate(() => {
+    const cut = [...document.querySelectorAll<HTMLElement>('nav[aria-label="Menú"] li')].flatMap((li) => {
+      const label = li.querySelector<HTMLElement>(':is(a, summary) > span:last-child');
+      if (!label) return [];
+      const a = label.getBoundingClientRect();
+      const cell = li.getBoundingClientRect();
+      return label.scrollWidth > label.clientWidth || a.left < cell.left - 0.5 || a.right > cell.right + 0.5 ? [label.textContent ?? ''] : [];
+    });
+    return { width: document.documentElement.scrollWidth, cut };
+  });
+  expect(r.width, `${where}: se desplaza hacia los lados`).toBeLessThanOrEqual(page.viewportSize()!.width);
+  expect(r.cut, `${where}: etiquetas cortadas en la barra`).toEqual([]);
+}
+
+for (const [email, home] of Object.entries(HOMES)) {
+  test(`el inicio de ${email} cabe en el teléfono, también en «Modo sol»`, async ({ page }) => {
+    await loginAs(page, email);
+    await page.goto(home);
+    await fitsThePhone(page, home);
+    // «Modo sol» lives in this phone's storage (src/components/shell/sun-mode-core.ts).
+    await page.evaluate(() => localStorage.setItem('fb:sun', '1'));
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-contrast', 'high');
+    await fitsThePhone(page, `${home} (modo sol)`);
   });
 }
 

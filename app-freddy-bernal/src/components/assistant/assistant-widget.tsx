@@ -28,6 +28,7 @@ import {
   threadKey,
   writeThread,
   type SessionKV,
+  type StickyBox,
   type Thread,
 } from './core';
 
@@ -59,15 +60,41 @@ function subscribeThread(cb: () => void) {
 }
 
 // How high the page's sticky bottom bars reach («Guardar» in forms), so the button sits above
-// them. Measured after the DOM changes (one frame later) and kept here: reading layout on every
-// render would be wasteful.
+// them. Measured after the DOM changes, on scroll and on resize (at most once a frame) and kept
+// here: reading layout on every render would be wasteful.
 let liftValue = 0;
 
+// The button's own box, as its CSS below has it: h-12, 12 px over a bar, and its resting spot
+// (`--asst-base`: 76 px up on a phone, over the bottom bar, and 24 px from lg up).
+const BUTTON_H = 48;
+const BUTTON_GAP = 12;
+
+/**
+ * A bar as liftFrom() reads it, from where it really is on the screen: stuck at the bottom, or
+ * rising with the page at the end of the form (there the button rides on top of it instead of
+ * covering its buttons). It counts only while it reaches the button's resting spot: once it
+ * rests higher up, the button goes back down below it, where it covers no field. Half the gap
+ * is enough room: at the end of the page the bar rests a whole gap above the button (main's
+ * padding + the spacer), and scrolling in fractions of a pixel must not tip it back.
+ */
+export function stickyBox(position: string, cssBottom: string, rect: { top: number; bottom: number }, viewport: number, base: number): StickyBox {
+  const above = viewport - rect.bottom; // from the bottom of the screen to the bar's lower edge
+  const height = rect.bottom - rect.top;
+  return {
+    position,
+    // Only bars stuck to the bottom: one stuck to the top has bottom 'auto' and stays out.
+    bottom: Number.isFinite(Number.parseFloat(cssBottom)) ? `${above}px` : cssBottom,
+    height,
+    visible: height > 0 && rect.top < viewport - base && above < base + BUTTON_H + BUTTON_GAP / 2,
+  };
+}
+
 function readLift(): number {
+  const vh = window.innerHeight;
+  const base = window.matchMedia('(min-width: 1024px)').matches ? 24 : 76;
   const boxes = Array.from(document.querySelectorAll<HTMLElement>('main .sticky')).map((el) => {
     const cs = getComputedStyle(el);
-    const h = el.getBoundingClientRect().height;
-    return { position: cs.position, bottom: cs.bottom, height: h, visible: h > 0 };
+    return stickyBox(cs.position, cs.bottom, el.getBoundingClientRect(), vh, base);
   });
   return liftFrom(boxes);
 }
@@ -75,6 +102,7 @@ function readLift(): number {
 function subscribeLift(cb: () => void) {
   let frame = 0;
   const update = () => {
+    frame = 0;
     const v = readLift();
     if (v !== liftValue) {
       liftValue = v;
@@ -82,17 +110,18 @@ function subscribeLift(cb: () => void) {
     }
   };
   const schedule = () => {
-    cancelAnimationFrame(frame);
-    frame = requestAnimationFrame(update);
+    if (!frame) frame = requestAnimationFrame(update);
   };
   const mo = new MutationObserver(schedule);
   mo.observe(document.body, { childList: true, subtree: true });
   window.addEventListener('resize', schedule);
+  window.addEventListener('scroll', schedule, { passive: true });
   schedule();
   return () => {
     cancelAnimationFrame(frame);
     mo.disconnect();
     window.removeEventListener('resize', schedule);
+    window.removeEventListener('scroll', schedule);
   };
 }
 

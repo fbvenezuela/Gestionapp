@@ -138,14 +138,16 @@ export default async function TodayPage() {
         </div>
       ) : null}
 
+      {/* min-w-0 on each column: a grid item grows to fit its longest title otherwise, and the
+          page scrolls sideways on a phone instead of truncating it. */}
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-        <div className="flex flex-col gap-5">
+        <div className="flex min-w-0 flex-col gap-5">
           <Card>
             <CardHeader title="Lo que espera por mí" subtitle={data.waiting.length ? `${data.waiting.length} pendientes` : undefined} />
             {data.waiting.length ? <ItemList items={data.waiting} /> : <div className="p-4"><EmptyState icon={<Inbox className="h-8 w-8" />} title="Nada pendiente. ¡Bien!" /></div>}
           </Card>
         </div>
-        <div className="flex flex-col gap-5">
+        <div className="flex min-w-0 flex-col gap-5">
           {sched ? (
             <Card>
               <CardHeader title="Hoy en la agenda" action={<Link href="/agenda" className="text-sm font-semibold text-accent-ink">Ver agenda</Link>} />
@@ -156,7 +158,7 @@ export default async function TodayPage() {
                       <Link href={`/eventos/${e.id}`} className="flex gap-3 px-4 py-3 hover:bg-surface-2">
                         <span className="w-16 shrink-0 font-mono text-sm font-semibold tabular">{fmtTime(e.starts_at)}</span>
                         <span className="min-w-0 border-l-2 border-accent pl-3">
-                          <span className="block font-semibold">{e.title}</span>
+                          <span className="block font-semibold [overflow-wrap:anywhere]">{e.title}</span>
                           <span className="block text-sm text-text-2">{e.place_name}</span>
                         </span>
                       </Link>

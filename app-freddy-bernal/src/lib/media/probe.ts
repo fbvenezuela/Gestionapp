@@ -99,19 +99,28 @@ function videoElementProbe(file: File): Promise<Partial<Probe>> {
   });
 }
 
-// Shrinks photos before upload (slow data in Táchira). Videos are never re-encoded here.
+export const UNCLEANABLE_PHOTO = 'Esta foto no se puede limpiar en este teléfono y podría llevar la ubicación. Pásala a JPG y vuelve a subirla.';
+
+const PHOTO_EXT: Record<string, string> = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' };
+
+// Every photo is re-encoded before upload, even a small one: that is what drops EXIF,
+// including the GPS location. It also shrinks it (slow data in Táchira). A photo the
+// browser cannot decode (e.g. HEIC on Android) is refused rather than sent with its EXIF.
+// GIF and SVG carry no camera location and pass as they are. Videos are never re-encoded here.
 export async function compressImage(file: File, maxSide = 2560, quality = 0.85): Promise<File> {
-  if (!file.type.startsWith('image/') || file.type === 'image/gif') return file;
+  if (!file.type.startsWith('image/') || file.type === 'image/gif' || file.type === 'image/svg+xml') return file;
   const bitmap = await createImageBitmap(file).catch(() => null);
-  if (!bitmap) return file;
+  if (!bitmap) throw new Error(UNCLEANABLE_PHOTO);
   const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
-  if (scale === 1 && file.size < 1_500_000) return file;
   const canvas = document.createElement('canvas');
   canvas.width = Math.round(bitmap.width * scale);
   canvas.height = Math.round(bitmap.height * scale);
   canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', quality));
-  if (!blob || blob.size >= file.size) return file;
-  // Re-encoding also drops EXIF (including GPS location).
-  return new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' });
+  // PNG and WebP keep their format (transparency); everything else becomes JPEG.
+  const want = file.type === 'image/png' || file.type === 'image/webp' ? file.type : 'image/jpeg';
+  const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, want, quality));
+  if (!blob) throw new Error(UNCLEANABLE_PHOTO);
+  // A browser that cannot encode WebP hands back PNG: name the file after what it got.
+  const type = PHOTO_EXT[blob.type] ? blob.type : want;
+  return new File([blob], file.name.replace(/\.\w+$/, '') + PHOTO_EXT[type], { type });
 }

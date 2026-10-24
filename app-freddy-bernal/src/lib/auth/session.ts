@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { demoShortcuts, env } from '../env';
 import { withSystem, withUser, type Claims, type Sql } from '../db';
 import { DEMO_COOKIE, readSession } from './cookie';
+import { revokedSession } from './revoke';
 import { ROLES, homeFor, type Role } from '../roles';
 import { noPermissionUrl } from '../../components/shell/no-permission';
 
@@ -21,6 +22,8 @@ export type Session = {
   viewAs: Role | null;
 };
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 async function readClaims(): Promise<Claims | null> {
   if (env.dataMode === 'demo') {
     const store = await cookies();
@@ -33,7 +36,7 @@ async function readClaims(): Promise<Claims | null> {
       ),
     );
     if (!revoked || !revoked.active) return null;
-    if (revoked.revoked && new Date(revoked.revoked).getTime() > p.iat * 1000) return null;
+    if (revokedSession(revoked.revoked, p.iat, null)) return null;
     // Testing shortcuts (demo data only): every demo session counts as 2FA-verified.
     return { sub: p.uid, aal: demoShortcuts() ? 'aal2' : p.aal, session_id: p.sid, role: 'authenticated' };
   }
@@ -42,14 +45,19 @@ async function readClaims(): Promise<Claims | null> {
   const { data } = await supabase.auth.getClaims();
   const c = data?.claims as (Claims & { iat?: number }) | undefined;
   if (!c?.sub) return null;
+  // One query: the person's state and when this token's Auth session began, so a token renewed
+  // after «Cerrar sus sesiones» (fresh iat, same old session) stays out.
+  const sid = c.session_id && UUID.test(c.session_id) ? c.session_id : null;
   const st = await withSystem((sql) =>
-    sql.one<{ revoked: string | null; active: boolean }>(
-      `select sessions_revoked_at as revoked, active and deleted_at is null as active from public.profiles where id = $1`,
-      [c.sub],
+    sql.one<{ revoked: Date | string | null; active: boolean; started: Date | string | null }>(
+      `select p.sessions_revoked_at as revoked, p.active and p.deleted_at is null as active,
+              (select s.created_at from auth.sessions s where s.id = $2::uuid) as started
+         from public.profiles p where p.id = $1`,
+      [c.sub, sid],
     ),
   );
   if (!st || !st.active) return null;
-  if (st.revoked && c.iat && new Date(st.revoked).getTime() > c.iat * 1000) return null;
+  if (revokedSession(st.revoked, c.iat, st.started)) return null;
   return { sub: c.sub, email: c.email, aal: (c.aal as 'aal1' | 'aal2') ?? 'aal1', session_id: c.session_id, role: 'authenticated' };
 }
 

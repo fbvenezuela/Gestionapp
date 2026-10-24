@@ -94,7 +94,7 @@ describe('updateProposal: el jefe ve el título corregido', () => {
     expect(r.ok).toBe(true);
     const [n, ...rest] = sent('event_new');
     expect(rest).toHaveLength(0);
-    expect(n.title).toBe('Hay un evento nuevo por decidir: Visita corregida a la biblioteca');
+    expect(n.title).toBe('Corrigieron el evento por decidir: Visita corregida a la biblioteca');
     expect(n.key).not.toBe(`event_new:${id}`); // not swallowed by the first notice's key
     expect(n.key.startsWith(`event_new:${id}:`)).toBe(true);
     expect(new Set(n.userIds)).toEqual(new Set([t.ids.boss, t.ids.dispatch]));

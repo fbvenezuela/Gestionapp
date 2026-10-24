@@ -1,7 +1,7 @@
 // Output filter (§10), server nets (§11) and redact(): pure functions.
 import { describe, it, expect } from 'vitest';
-import { filterOutput, looksLikeText, promisesNotice, breaksAgendaRule, asksAboutPublishing, pickFichas, type Ficha } from '@/lib/assistant/brain';
-import { redact, hasDateOrTime, hasDate } from '@/lib/assistant/redact';
+import { filterOutput, looksLikeText, promisesNotice, breaksAgendaRule, asksAboutPublishing, aboutEvents, asksSchedule, asksWhenWhere, toolMessage, pickFichas, type Ficha } from '@/lib/assistant/brain';
+import { redact, redactDeep, hasDateOrTime, hasDate } from '@/lib/assistant/redact';
 import { fillHuecos } from '@/lib/assistant/text';
 
 describe('filtro de salida', () => {
@@ -79,6 +79,47 @@ describe('redes del servidor', () => {
     expect(breaksAgendaRule('A las cinco y media.', '¿a qué hora sale el jefe al acto?')).toBe(true);
   });
 
+  it('preguntas de cuándo, dónde o cómo llegar a un evento, aunque no digan «evento»', () => {
+    for (const q of [
+      '¿a qué hora es la feria de emprendedores?',
+      '¿dónde queda la feria de emprendedores?',
+      '¿cómo llego al urbanismo Nuevo Amanecer?',
+      '¿con quién hablo en la entrega de viviendas?',
+      '¿a qué hora graba Kevin?',
+      '¿dónde es el encuentro con los productores?',
+      '¿cuándo es la asamblea?',
+      '¿qué eventos hay mañana?',
+    ]) {
+      expect(aboutEvents(q) && asksWhenWhere(q), q).toBe(true);
+    }
+    // A step or a screen, not a place; a verb, not an event.
+    expect(asksWhenWhere('¿Dónde subo el material de la feria?')).toBe(false);
+    expect(asksWhenWhere('¿Dónde encuentro las mejores horas?')).toBe(false);
+    expect(aboutEvents('¿Dónde encuentro las mejores horas?')).toBe(false);
+    expect(aboutEvents('¿Qué hace Grabación?')).toBe(false);
+    expect(aboutEvents('¿Cómo grabo en vertical?')).toBe(false);
+    expect(aboutEvents('¿El sistema está operativo?')).toBe(false);
+    // How-tos: «hay que grabar», «grabo en vertical», «se cambia», «se guarda».
+    expect(aboutEvents('¿Cuándo hay que grabar con dron?')).toBe(false);
+    expect(aboutEvents('¿Cuándo grabo en vertical y cuándo en horizontal?')).toBe(false);
+    expect(asksWhenWhere('¿Dónde es que se cambia la contraseña?')).toBe(false);
+    expect(asksWhenWhere('¿Dónde se guarda la grabación?')).toBe(false);
+    expect(aboutEvents('¿Dónde se encuentra la feria?') && asksWhenWhere('¿Dónde se encuentra la feria?')).toBe(true);
+    expect(asksWhenWhere('¿Cuándo abre la feria?')).toBe(true);
+    // «[direccion]» is what redact() left of a place name, not a question about an address.
+    expect(asksWhenWhere('¿cómo va el evento del [direccion]?')).toBe(false);
+    expect(asksWhenWhere('¿cuál es la dirección del [direccion]?')).toBe(true);
+  });
+
+  it('preguntado como agenda (cuándo, dónde, a quién llamo, qué hay un día) y no solo un día nombrado', () => {
+    for (const q of ['¿a qué hora sale Kevin?', '¿qué hay el domingo?', '¿hay algo el sábado?', '¿lo de los emprendedores es en la mañana o en la tarde?', 'pásame la dirección de lo de la plaza central', '¿a quién llamo para lo de los productores?']) {
+      expect(asksSchedule(q), q).toBe(true);
+    }
+    for (const q of ['¿Qué hago hoy?', '¿Qué me toca grabar el viernes?', '¿Cómo instalo la app en el teléfono?', '¿Puedo subir fotos en lugar de video?', '¿Dónde cambio la dirección de correo?']) {
+      expect(asksSchedule(q), q).toBe(false);
+    }
+  });
+
   it('qué cuenta como pregunta de publicar', () => {
     expect(asksAboutPublishing('¿A qué hora publico en TikTok el video del evento de la cancha?')).toBe(true);
     expect(asksAboutPublishing('¿A qué hora sale el video del acto en Instagram?')).toBe(true);
@@ -136,6 +177,44 @@ describe('redact: lo que escribe la persona, antes del proveedor y de guardarse'
     expect(redact('para 3 redes')).toBe('para 3 redes');
   });
 
+  it('direcciones: calle, carrera, avenida, sector, urbanización, km, casa N°… → [direccion]', () => {
+    expect(redact('el acto de viviendas es el martes 27 a las 4:00 pm en la calle 3, llamar al 0414-1234567')).toBe(
+      'el acto de viviendas es el [fecha] a las [hora] en la [direccion], llamar al [numero]',
+    );
+    expect(redact('Calle 3 con carrera 5, sector El Mirador')).toBe('[direccion], [direccion]');
+    expect(redact('Carrera 5 con calle 7, casa N° 12')).toBe('[direccion], [direccion]');
+    expect(redact('en la av. Libertador frente a la plaza')).toBe('en la [direccion] frente a la plaza');
+    expect(redact('urbanización Los Pinos, edificio Pirámide, piso 2')).toBe('[direccion], [direccion], [direccion]');
+    expect(redact('vía a San Cristóbal km 8')).toBe('[direccion] [direccion]');
+    expect(redact('sector la ermita, barrio el carmen')).toBe('[direccion], [direccion]');
+    expect(redact('entre carreras 3 y 4, casa nro. 15-B')).toBe('entre [direccion], [direccion]');
+    expect(redact('por la vía al Llano, en la Quinta La Esperanza')).toBe('por la [direccion], en la [direccion]');
+  });
+
+  it('una palabra de calle sin nombre ni número no se tapa', () => {
+    for (const t of [
+      'la vía de publicar es Instagram',
+      '¿Qué vía uso para mandar el video?',
+      'el sector salud pide piezas',
+      'salimos a la calle a grabar',
+      'la casa comunal Alto Verde',
+      'el piso de arriba',
+      'a 5 km del pueblo',
+      'envía 3 fotos',
+      'Entrega de viviendas en el urbanismo Nuevo Amanecer',
+      'Feria de emprendedores en la plaza central',
+      // A network or an app after «vía», a field after «sector», a race, an ordinal, a sentence end.
+      '¿Lo mando vía WhatsApp?',
+      'Publícalo vía Facebook',
+      'el sector Salud pide piezas',
+      'corrió la Carrera 10K',
+      'Quinta Versión del copy',
+      'Salimos a la calle. Mañana subo el material',
+    ]) {
+      expect(redact(t), t).toBe(t);
+    }
+  });
+
   it('un teléfono por grupos sale ENTERO (la regla de fechas no se come el final)', () => {
     expect(redact('el contacto en sitio es 0414-555-12-34')).toBe('el contacto en sitio es [numero]');
     expect(redact('contacto: 0414.555.12.34')).toBe('contacto: [numero]');
@@ -158,6 +237,22 @@ describe('redact: lo que escribe la persona, antes del proveedor y de guardarse'
     expect(hasDateOrTime('quedan 6 días')).toBe(false);
     expect(hasDate('plazo de 60 minutos a las 10:30')).toBe(false);
     expect(hasDate('el 24/10')).toBe(true);
+  });
+});
+
+describe('lo que devuelve una herramienta, antes del proveedor', () => {
+  it('cada texto pasa por redact(), en objetos y listas (un título puede traer fecha, hora o dirección)', () => {
+    const run = { tool: 'buscar_evento', ok: true, result: { eventos: [{ titulo: 'Visita escuela Zamorano jueves 30 a las 9:00 am, calle 3', piezas: 2 }], nota: 'Llamar al 0414-1234567' } };
+    const sent = toolMessage(run);
+    for (const leak of ['jueves 30', '9:00', 'calle 3', '0414']) expect(sent).not.toContain(leak);
+    expect(JSON.parse(sent)).toEqual({ eventos: [{ titulo: 'Visita escuela Zamorano [fecha] a las [hora], [direccion]', piezas: 2 }], nota: 'Llamar al [numero]' });
+    expect(toolMessage({ tool: 'estado_pieza', ok: false, error: 'No existe «el 3/11 a las 10:30»' })).toBe(JSON.stringify({ error: 'No existe «el [fecha] a las [hora]»' }));
+  });
+
+  it('las mejores horas para publicar conservan sus horas; las fechas y direcciones no', () => {
+    const run = { tool: 'mejores_horas', ok: true, result: { redes: [{ red: 'Instagram', consejo: 'Mejor 6:00 p. m.–9:00 p. m. · jueves.', nota: 'desde el 3/11, calle 3' }] } };
+    expect(JSON.parse(toolMessage(run))).toEqual({ redes: [{ red: 'Instagram', consejo: 'Mejor 6:00 p. m.–9:00 p. m. · jueves.', nota: 'desde el [fecha], [direccion]' }] });
+    expect(redactDeep(new Date())).toBe('[fecha]');
   });
 });
 

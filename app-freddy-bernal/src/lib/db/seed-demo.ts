@@ -209,6 +209,17 @@ export async function seedDemo(sql: Sql, tz = 'America/Caracas'): Promise<Record
       p1, fab!.id, g, body, [...body].length, ids.social,
     ]);
   }
+  // p2 goes to review like any piece: with its three copies (sendToReview refuses it without them).
+  const cifra = await sql.one<{ id: string }>(`select id from public.copy_formulas where code = 'CIFRA'`);
+  for (const [g, body] of [
+    ['long', '¡Saludos, Táchira! 👋 Seguimos con la rehabilitación del puente La Quebrada: el avance ya llega al 60 %. Cuando terminemos vuelve a pasar la carga pesada y los productores sacan su cosecha sin dar la vuelta larga. 💛 Por amor al Táchira.'],
+    ['medium', 'El puente La Quebrada ya va por el 60 % 🚧 Pronto vuelve a pasar la carga pesada y la cosecha sale sin dar la vuelta larga. Seguimos trabajando. ¿Pasas por aquí? Cuéntame 👇'],
+    ['short', '🚧 Puente La Quebrada: ya va por el 60 %. Pronto vuelve a pasar la carga pesada. Seguimos trabajando 👇 #Tachira'],
+  ] as const) {
+    await sql.query(`insert into public.copies (piece_id, formula_id, length_group, body, char_count, generated_by, updated_by) values ($1, $2, $3, $4, $5, 'template', $6)`, [
+      p2, cifra?.id ?? fab!.id, g, body, [...body].length, ids.social,
+    ]);
+  }
   await sql.query(`update public.pieces set status = 'in_review' where id in ($1, $2)`, [p1, p2]);
   await sql.query(`update public.pieces set sent_to_review_at = now() - interval '20 minutes' where id = $1`, [p2]);
 

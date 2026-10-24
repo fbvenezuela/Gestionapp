@@ -2,7 +2,7 @@ import 'server-only';
 import { ROLE_LABEL, type Role } from '../roles';
 import { PERSONA, ROLE_BRIEFS, type AssistantProfile } from './config';
 import { chat, type ChatMessage, type ChatOptions, type Link } from './providers';
-import { hasDate, hasDateOrTime } from './redact';
+import { hasDate, hasDateOrTime, redact, redactDeep } from './redact';
 import { fillHuecos, plain, sentences, HUECO, type Huecos } from './text';
 import { runTool, toSpecs, type Tool, type ToolCtx, type ToolRun } from './tools';
 
@@ -53,15 +53,20 @@ const ROLE_FICHA: Partial<Record<Role, string>> = {
   supervisor: 'guia:rol-supervision',
   camera: 'guia:rol-grabacion',
 };
-const COMMON = new Set('como para esta este estos todo todos pero cuando donde tiene tengo puedo quiero hacer hace sale salen cual cuales sobre desde hasta porque entonces ahora algo alguien solo bien dime saber'.split(' '));
+const COMMON = new Set('como para esta este estos todo todos pero cuando donde queda quedan tiene tengo puedo quiero hacer hace sale salen cual cuales sobre desde hasta porque entonces ahora algo alguien solo bien dime saber'.split(' '));
 
 /** Crude Spanish stem, enough to match «invito» with «invita» or «propongo» with «proponer». */
 export function stem(w: string): string {
   return w.length <= 4 ? w.slice(0, 3) : w.length <= 6 ? w.slice(0, 4) : w.slice(0, 5);
 }
 
+/** The words of a text that say something (4+ letters, not the common ones). */
+export function keyWords(text: string): string[] {
+  return plain(text).split(' ').filter((w) => w.length >= 4 && !COMMON.has(w));
+}
+
 export function pickFichas(all: Ficha[], text: string, roles: Role[], max = 6, withMust = true): Ficha[] {
-  const stems = [...new Set(plain(text).split(' ').filter((w) => w.length >= 4 && !COMMON.has(w)).map(stem))];
+  const stems = [...new Set(keyWords(text).map(stem))];
   const must = withMust ? all.filter((f) => f.key === 'guia:agenda-privada' || roles.some((r) => ROLE_FICHA[r] === f.key)) : [];
   const docs = all.map((f) => ({ f, title: ` ${plain(f.title)}`, tags: ` ${plain(f.tags.join(' '))}`, body: ` ${plain(f.body)}` }));
   // Rare words weigh more: «señal» says more than «video», which half the fichas mention.
@@ -227,17 +232,68 @@ export function promisesNotice(text: string): boolean {
   return sentences(text).some((s) => !/[¿?]/.test(s) && PROMISE.test(s));
 }
 
-const EVENT_WORDS = /\b(evento|eventos|acto|actos|actividad|agenda|jornada|entrega|reunion|recorrido|inauguracion|visita)\b/;
-const WHEN_WHERE = /\b(cuando|que hora|a que hora|hora|donde|direccion|como llego|como llegar|fecha|dia|contacto|contactos|lugar|ubicacion|sitio)\b/;
+// «Encuentro» and «operativo» are also «I find» and «working»: only with an article they are events.
+const EVENT_WORDS = new RegExp(
+  String.raw`\b(eventos?|actos?|actividad|actividades|agenda|jornadas?|entregas?|reunion|reuniones|recorridos?|inauguracion|inauguraciones|visitas?|ferias?|asambleas?|urbanismos?|caravanas?|cabildos?|conversatorios?|foros?|juramentacion|rueda de prensa|(?:el|un|del|al|ese|este|los|unos) (?:encuentros?|operativos?))\b`,
+);
+// The place or the contacts of something («en lugar de», «sitio web» or «dirección de correo» are not).
+const PLACE_WORDS = String.raw`direccion(?! (?:de )?(?:correo|email|electronica))|como llego|como llegar|como se llega|por donde se entra|(?<!en |primer |segundo )lugar|ubicacion|sitio(?! web)|(?<!como )contactos?|telefono (?:de|del|para)|numero de telefono|con quien hablo|a quien llamo|a quien busco|quien me recibe`;
+const DAYS = String.raw`hoy|manana|pasado manana|esta semana|la semana|proxima semana|fin de semana|lunes|martes|miercoles|jueves|viernes|sabado|domingo`;
+const ASK_WORDS = String.raw`cuando|a que hora|que hora|hora|que dia|que fecha|fecha|donde|por donde|${PLACE_WORDS}`;
+// Asked as a schedule: when, at what time, which day, where, how to get there, whom to call; or
+// «¿qué hay / hay algo…?» with a day. A day alone («¿qué hago hoy?») is not.
+const SCHEDULE = new RegExp(
+  String.raw`\b(?:${ASK_WORDS})\b|\b(?:que hay|hay algo|hay eventos?|que tiene|que tienen|que tenemos)\b.*\b(?:${DAYS})\b|\b(?:es|son|sera|seria) (?:en|de|por) la (?:manana|tarde|noche)\b`,
+);
+const WHEN_WHERE_WORDS = String.raw`\b(?:${ASK_WORDS}|dia|${DAYS}|proximos?|proximas?|vienen)\b`;
+const WHEN_WHERE = new RegExp(`${SCHEDULE.source}|${WHEN_WHERE_WORDS}`);
+const PLACE = new RegExp(String.raw`\b(?:${PLACE_WORDS})\b`);
+// «¿Dónde subo el material?», «¿dónde se cambia la contraseña?» or «¿cuándo hay que grabar con dron?»
+// ask for a screen or a step, not for a place or a time («¿dónde se encuentra…?», «¿cuándo abre…?» do).
+const DOING = new RegExp(
+  String.raw`\b(?:donde|cuando) (?:es que )?(?:se |lo |la |los |las |me |te )?(?:subo|sube|subimos|cargo|carga|pongo|pone|veo|reviso|revisa|apruebo|aprueba|edito|edita|descargo|descarga|busco|busca|encuentro|consigo|consigue|guardo|guarda|escribo|escribe|anoto|anota|marco|marca|cambio|cambia|creo|crea|armo|arma|propongo|propone|mando|manda|envio|envia|activo|activa|configuro|configura|invito|invita|pido|pide|elijo|elige|asigno|asigna|pego|pega|abro)\b|\bcuando (?:hay que|se debe|debo|debemos|conviene|se usa|uso|usamos)\b`,
+  'g',
+);
+// Who records, when: «¿a qué hora graba Kevin?» is the agenda even without an event word; «¿cuándo
+// grabo en vertical?» is a how-to.
+const WHEN_SUBJECT = /\b(evento|acto|jefe|graba|graban|grabamos|grabara|grabaran|grabaremos|grabando|grabacion|(?:toca|va a|van a|vamos a) grabar)\b/;
+
+// What the person asked, for these checks: the «[direccion]» placeholder is what redact() left of a
+// place name («el evento del barrio San Carlos»), not the word «dirección», and the steps go.
+function asked(question: string): string {
+  return plain(question.replace(/\[direccion\]/gi, ' ')).replace(DOING, ' ');
+}
+
+/** Where the question first names an event (an event word; or who records or the boss, when it asks when or where), or -1. */
+export function eventAt(question: string): number {
+  const q = plain(question);
+  const at = [EVENT_WORDS.exec(q)?.index, asksWhenWhere(question) ? WHEN_SUBJECT.exec(q)?.index : undefined].filter((n): n is number => n !== undefined);
+  return at.length ? Math.min(...at) : -1;
+}
 
 /** Is this turn about an event (so a date or time in the answer breaks the agenda rule)? */
 export function aboutEvents(question: string, calls: ToolRun[] = []): boolean {
-  const q = plain(question);
-  return calls.some((c) => c.tool === 'buscar_evento') || EVENT_WORDS.test(q) || (WHEN_WHERE.test(q) && /\b(evento|acto|jefe)\b/.test(q));
+  return calls.some((c) => c.tool === 'buscar_evento') || eventAt(question) >= 0;
 }
 
+/** Any when or where in it, a day included («¿qué eventos hay mañana?»). */
 export function asksWhenWhere(question: string): boolean {
-  return WHEN_WHERE.test(plain(question));
+  return WHEN_WHERE.test(asked(question));
+}
+
+/** Asked as a schedule (when, what time, where, how to get there, whom to call), not just a day named. */
+export function asksSchedule(question: string): boolean {
+  return SCHEDULE.test(asked(question));
+}
+
+/** Asks for the place or the contacts of something. */
+export function asksPlace(question: string): boolean {
+  return PLACE.test(asked(question));
+}
+
+/** The question without its when/where words: what is left may name an event («la feria»). */
+export function withoutWhenWhere(question: string): string {
+  return plain(question).replace(new RegExp(WHEN_WHERE_WORDS, 'g'), ' ').replace(/\s+/g, ' ').trim();
 }
 
 // «¿A qué hora publico el video del acto en TikTok?» asks for the best hours to publish, not
@@ -275,6 +331,15 @@ export function breaksAgendaRule(answer: string, question: string, calls: ToolRu
 // ---------------------------------------------------------------------------
 // The model path: chain + tool loop (max 4 calls per round, 3 rounds, the last without tools).
 // ---------------------------------------------------------------------------
+/**
+ * What a tool returned, as it goes to the provider: every string scrubbed here, in one place, so
+ * a new tool is covered too (an event title can carry a date, a time or an address typed into
+ * it). The best-hours tools keep their times of day; dates, addresses and contacts go from all.
+ */
+export function toolMessage(run: ToolRun): string {
+  return JSON.stringify(redactDeep(run.ok ? run.result ?? null : { error: run.error }, { keepTimes: PUBLISH_TOOLS.has(run.tool) }));
+}
+
 export type ModelTurnInput = {
   ctx: TurnContext;
   question: string; // already redacted
@@ -287,7 +352,8 @@ export type ModelTurnInput = {
 export async function modelTurn(i: ModelTurnInput): Promise<BrainOutput> {
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt(i.ctx, i.tools, i.question) },
-    ...i.ctx.history.map((h): ChatMessage => (h.who === 'persona' ? { role: 'user', content: h.body } : { role: 'assistant', content: h.body })),
+    // The thread is scrubbed too: an earlier answer of the demo brain may quote an event title as it is.
+    ...i.ctx.history.map((h): ChatMessage => (h.who === 'persona' ? { role: 'user', content: redact(h.body) } : { role: 'assistant', content: redact(h.body) })),
     { role: 'user', content: i.question },
   ];
   const specs = toSpecs(i.tools);
@@ -333,7 +399,7 @@ export async function modelTurn(i: ModelTurnInput): Promise<BrainOutput> {
       const run = await runTool(c.function.name, c.function.arguments, i.tools, i.toolCtx);
       calls.push(run);
       // The error goes back as it is: hidden, the model would invent that it worked.
-      messages.push({ role: 'tool', tool_call_id: c.id, content: JSON.stringify(run.ok ? run.result ?? null : { error: run.error }) });
+      messages.push({ role: 'tool', tool_call_id: c.id, content: toolMessage(run) });
     }
   }
 

@@ -6,6 +6,7 @@ import { MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import type { NavItem } from '@/lib/roles';
 import { NAV_ICONS } from './nav-icons';
+import { MenuDetails } from './menu-details';
 
 function isActive(pathname: string, href: string) {
   if (href === '/jefe') return pathname === '/jefe' || pathname.startsWith('/jefe/politica');
@@ -43,6 +44,9 @@ export function BottomNav({ items, more = [] }: { items: NavItem[]; more?: NavIt
   if (items.length === 0 && more.length === 0) return null;
   const cols = items.length + (more.length ? 1 : 0);
   const moreActive = more.some((it) => isActive(pathname, it.href));
+  // Five columns leave 72 px each on a 360 px phone. A fixed 11 px fits «Por aprobar» and
+  // «Resultados» there, also in «Modo sol» (it enlarges rem-based text), so labels never overlap.
+  const text = cols >= 5 ? 'text-[11px] tracking-tight' : 'text-xs';
   return (
     <nav
       aria-label="Menú"
@@ -57,10 +61,11 @@ export function BottomNav({ items, more = [] }: { items: NavItem[]; more?: NavIt
               <Link
                 href={it.href}
                 aria-current={active ? 'page' : undefined}
-                className={cn('flex min-h-16 flex-col items-center justify-center gap-0.5 text-xs font-semibold', active ? 'text-accent-ink' : 'text-text-2')}
+                className={cn('flex min-h-16 flex-col items-center justify-center gap-0.5 font-semibold', text, active ? 'text-accent-ink' : 'text-text-2')}
               >
                 {Icon ? <Icon className="h-6 w-6" aria-hidden /> : null}
-                <span className="truncate px-1">{it.label}</span>
+                {/* As wide as the cell: in a centered column the label would grow past it. */}
+                <span className="block w-full truncate px-0.5 text-center">{it.label}</span>
               </Link>
             </li>
           );
@@ -68,10 +73,11 @@ export function BottomNav({ items, more = [] }: { items: NavItem[]; more?: NavIt
         {more.length ? (
           <li>
             {/* key on the path: the panel closes after choosing a page */}
-            <details key={pathname} className="group relative h-full">
+            <MenuDetails key={pathname} className="group relative h-full">
               <summary
                 className={cn(
-                  'flex min-h-16 cursor-pointer list-none flex-col items-center justify-center gap-0.5 text-xs font-semibold [&::-webkit-details-marker]:hidden',
+                  'flex min-h-16 cursor-pointer list-none flex-col items-center justify-center gap-0.5 font-semibold [&::-webkit-details-marker]:hidden',
+                  text,
                   moreActive ? 'text-accent-ink' : 'text-text-2',
                 )}
               >
@@ -95,7 +101,7 @@ export function BottomNav({ items, more = [] }: { items: NavItem[]; more?: NavIt
                   );
                 })}
               </div>
-            </details>
+            </MenuDetails>
           </li>
         ) : null}
       </ul>

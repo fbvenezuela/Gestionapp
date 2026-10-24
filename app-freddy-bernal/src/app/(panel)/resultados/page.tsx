@@ -63,7 +63,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
         <div className="mb-6 grid gap-3 md:grid-cols-2">
           {best.map((b) => (
             <Card key={b.network}>
-              <CardHeader title={NETWORK_LABEL[b.network]} subtitle={`${b.total} publicaciones`} action={b.enoughData ? null : <Chip tone="warn">Todavía pocos datos</Chip>} />
+              <CardHeader title={NETWORK_LABEL[b.network]} subtitle={`${b.total} ${b.total === 1 ? 'publicación' : 'publicaciones'}`} action={b.enoughData ? null : <Chip tone="warn">Todavía pocos datos</Chip>} />
               <CardBody className="flex flex-col gap-2">
                 {b.best ? (
                   <p className="text-[15px]">

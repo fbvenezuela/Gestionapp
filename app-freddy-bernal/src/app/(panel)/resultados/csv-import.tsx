@@ -22,8 +22,8 @@ export function CsvImport() {
           run(() => importMetricsCsv({ csv }), {
             onOk: (r) => {
               if (!r.ok) return;
-              toast.success(`Se cargaron ${r.data!.matched} publicaciones.`);
-              if (r.data!.unmatchedCount) toast.warning(`${r.data!.unmatchedCount} links no coinciden con ninguna publicación.`);
+              toast.success(`Se cargaron ${r.data!.matched} ${r.data!.matched === 1 ? 'publicación' : 'publicaciones'}.`);
+              if (r.data!.unmatchedCount) toast.warning(r.data!.unmatchedCount === 1 ? '1 link no coincide con ninguna publicación.' : `${r.data!.unmatchedCount} links no coinciden con ninguna publicación.`);
             },
           });
           e.target.value = '';

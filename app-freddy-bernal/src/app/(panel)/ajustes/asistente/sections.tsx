@@ -21,6 +21,7 @@ import {
   pageParam,
   pairAnswers,
   tabHref,
+  toolLabel,
   type TabKey,
 } from '@/components/assistant/panel-core';
 import { KnowledgeBoard } from './knowledge-board';
@@ -254,14 +255,14 @@ async function ConversationDetail({ s, id }: { s: Session; id: string }) {
                 <>
                   <p className="text-xs text-text-2">
                     {m.model === 'local' ? 'Demostración, sin IA' : m.model ?? 'sin modelo'} · {fmtMs(m.ms)}
-                    {m.tokens_in || m.tokens_out ? ` · ${m.tokens_in ?? 0} + ${m.tokens_out ?? 0} tokens` : ''} · {fmtDateTime(m.created_at)}
+                    {m.tokens_in || m.tokens_out ? ` · uso de IA: ${((m.tokens_in ?? 0) + (m.tokens_out ?? 0)).toLocaleString('es-VE')}` : ''} · {fmtDateTime(m.created_at)}
                   </p>
                   {tools.length || m.degraded || m.error || goTo?.href ? (
                     <div className="flex max-w-full flex-wrap gap-1.5">
-                      {m.degraded ? <Chip tone="danger">Degradada</Chip> : null}
+                      {m.degraded ? <Chip tone="danger">Con problemas</Chip> : null}
                       {tools.map((t, i) => (
                         <Chip key={`${t.tool}-${i}`} tone={t.ok === false || t.error ? 'danger' : 'ok'}>
-                          {t.tool}
+                          {toolLabel(t.tool)}
                           {t.error ? ': falló' : ''}
                         </Chip>
                       ))}
@@ -296,7 +297,7 @@ export async function HealthTab({ s }: { s: Session }) {
         <CardHeader title="Claves de los proveedores" subtitle="Solo se dice si existen. Los valores nunca se muestran." />
         <CardBody>
           {h.demo ? (
-            <p className="text-[15px] text-text-2">No hay cadena de modelos (ASISTENTE_MODELOS vacío): contesta el cerebro de demostración, sin IA y sin gasto.</p>
+            <p className="text-[15px] text-text-2">Sin IA conectada: contesta el modo demostración, con guiones y fichas, sin gasto.</p>
           ) : (
             <ul className="flex flex-col gap-2">
               <li className="text-sm text-text-2">Cadena: {h.chain.join(' → ')}</li>
@@ -324,14 +325,14 @@ export async function HealthTab({ s }: { s: Session }) {
           <ul className="divide-y divide-border">
             {h.days.map((d) => (
               <li key={d.day} className="px-4 py-3">
-                <p className="font-semibold capitalize">{fmtDay(d.day, "cccc d 'de' LLL")}</p>
+                <p className="font-semibold first-letter:uppercase">{fmtDay(d.day, "cccc d 'de' LLL")}</p>
                 <dl className="mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm sm:grid-cols-4">
                   <Pair k="Conversaciones" v={d.conversations} />
                   <Pair k="Preguntas" v={d.questions} />
                   <Pair k="Con problemas" v={d.degraded} bad={d.degraded > 0} />
                   <Pair k="Errores" v={d.errors} bad={d.errors > 0} />
                   <Pair k="Tiempo medio" v={fmtMs(d.avg_ms)} />
-                  <Pair k="Tokens" v={(d.tokens_in + d.tokens_out).toLocaleString('es-VE')} />
+                  <Pair k="Uso de IA" v={(d.tokens_in + d.tokens_out).toLocaleString('es-VE')} />
                 </dl>
               </li>
             ))}

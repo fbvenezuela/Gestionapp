@@ -1,6 +1,7 @@
 import 'server-only';
-import { AGENDA_FALLBACK, aboutEvents, asksAboutPublishing, asksWhenWhere, pickFichas, stem, type BrainOutput, type ChosenScript, type TurnContext } from './brain';
-import { canOpen } from './screens';
+import { AGENDA_FALLBACK, aboutEvents, asksAboutPublishing, asksPlace, asksSchedule, asksWhenWhere, eventAt, keyWords, pickFichas, stem, withoutWhenWhere, type BrainOutput, type ChosenScript, type TurnContext } from './brain';
+import { hasDateOrTime } from './redact';
+import { canOpen, screenFor, screensIn } from './screens';
 import { contract, fillHuecos, plain, sentences, HUECO } from './text';
 import { runTool, type Tool, type ToolCtx, type ToolRun } from './tools';
 
@@ -8,7 +9,10 @@ import { runTool, type Tool, type ToolCtx, type ToolRun } from './tools';
 // brain: it answers with the scripts and fichas, and uses the same tools — through the same
 // runner, so the same row rules apply — chosen by keywords. Its answers say model 'local'.
 
-export type LocalInput = { ctx: TurnContext; question: string; tools: Tool[]; toolCtx: ToolCtx };
+// `question` is redacted, like everywhere else. `typed` is what the person wrote, only for this
+// brain's own lookups (run as the person, never stored, never sent out): a place name in an event's
+// title («barrio San Carlos») would otherwise be lost to «[direccion]».
+export type LocalInput = { ctx: TurnContext; question: string; typed?: string; tools: Tool[]; toolCtx: ToolCtx };
 
 type R = Record<string, unknown>;
 
@@ -31,6 +35,15 @@ const ROLE_WORDS: [RegExp, string][] = [
   [/\b(administracion|admin)\b/, 'admin'],
   [/\b(jefe)\b/, 'boss'],
 ];
+
+// What's pending for me.
+const PENDING = /\b(pendiente|pendientes|que tengo|que me toca|por hacer|que hay para hoy|que hay hoy|atrasad\w*|incomplet\w*|propuestas?|aceptaron|rechazaron)\b/;
+// A work product: «¿cuándo aprueban la pieza del puente?» asks about the piece, not the event.
+const WORK = /\b(piezas?|videos?|material|materiales|copy|copies|storyboard|fotos?|tomas|reels?|publica\w*|tweets?|tuits?|tanda)\b/;
+// Things of the platform: a when or a where about them is a how-to, not the agenda.
+const PLATFORM = new RegExp(
+  String.raw`${WORK.source}|\b(avisos?|campana|contrasena|clave|codigo|ajustes|pantalla|pestana|boton|menu|panel|biblioteca|resultados|metricas|perfil|formulas?|semaforo|plazos?|version|archivos?|enlace|link|plantilla|dron|vertical|horizontal|formato|microfono|app|aplicacion|asistente|buscador)\b`,
+);
 
 const BUILTIN: Record<string, string[]> = {
   'quien-eres': [
@@ -67,8 +80,22 @@ function list(items: string[]) {
   return items.length > 1 ? `${items.slice(0, -1).join(', ')} y ${items.at(-1)}` : items[0] ?? '';
 }
 
+// Same root: five letters in common, or the same short word («plazo» is not «plaza»).
+function sameRoot(a: string, b: string) {
+  let k = 0;
+  while (k < a.length && a[k] === b[k]) k++;
+  return k >= 5 || (k === a.length && k === b.length);
+}
+
+/** A ficha's title or tags name a word of the text that says something: the question is about the platform. */
+function namesTopic(fichas: { title: string; tags: string[] }[], text: string): boolean {
+  const asked = keyWords(text);
+  return fichas.some((f) => plain(`${f.title} ${f.tags.join(' ')}`).split(' ').some((t) => asked.some((w) => sameRoot(w, t))));
+}
+
 export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const q = plain(i.question);
+  const typed = i.typed ?? i.question;
   const calls: ToolRun[] = [];
   const fill = (t: string) => fillHuecos(t, i.ctx.huecos);
   const offered = (name: string) => i.tools.some((t) => t.name === name);
@@ -135,19 +162,29 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     );
   }
 
-  // 2. Date, time or place of an event: never. At most, how the work is going.
-  if (aboutEvents(i.question) && asksWhenWhere(i.question) && !publishing) {
-    let extra = '';
-    if (offered('buscar_evento')) {
-      const r = await call('buscar_evento', { texto: i.question });
-      const evs = ((r.result as R | undefined)?.eventos as R[] | undefined) ?? [];
-      if (r.ok && evs.length === 1) extra = `Del evento «${evs[0].titulo}» te puedo decir que su trabajo está en «${evs[0].trabajo}».`;
-    }
-    const base = pick(variants('agenda-privada')) || AGENDA_FALLBACK;
-    // The refusal first, then what can be said, and the open question (if any) at the end.
-    const parts = sentences(base);
+  // 2. Date, time, place or contacts of an event: never. At most, how the work is going. It is
+  // about an event when it says so (an event word) or when it names one this person can see (the
+  // titles, looked up as the person: the row rules decide). Not a notice to prepare (step 4), nor
+  // their own list («¿qué me toca grabar el viernes?», step 7), nor a work product named before the
+  // event («¿dónde está el material de la feria?») unless it asks for the place or the contacts.
+  const whenWhere = asksWhenWhere(i.question) && !publishing;
+  const ownWork = !howTo && PENDING.test(q) && !asksSchedule(i.question);
+  const asking = whenWhere && !noticeToGroup && !ownWork;
+  const rest = withoutWhenWhere(typed);
+  const lookup = asking && rest && offered('buscar_evento') ? await runTool('buscar_evento', { texto: rest }, i.tools, i.toolCtx) : null;
+  const evs = lookup?.ok ? (((lookup.result as R | undefined)?.eventos as R[] | undefined) ?? []) : [];
+  const eventFrom = eventAt(i.question);
+  const workFrom = WORK.exec(q)?.index ?? -1;
+  const aboutWork = workFrom >= 0 && (eventFrom < 0 || workFrom < eventFrom);
+  // The refusal first, then what can be said, and the open question (if any) at the end.
+  const refuse = (extra = '') => {
+    const parts = sentences(pick(variants('agenda-privada')) || AGENDA_FALLBACK);
     const question = parts.at(-1)?.endsWith('?') ? parts.pop()! : '';
     return done([...parts, extra, question].filter(Boolean).join(' '));
+  };
+  if (asking && (eventFrom >= 0 || evs.length) && (!aboutWork || asksPlace(i.question))) {
+    if (lookup) calls.push(lookup);
+    return refuse(evs.length === 1 ? `Del evento «${evs[0].titulo}» te puedo decir que su trabajo está en «${evs[0].trabajo}».` : '');
   }
 
   // 3. Mark my notices as read (level «hace», recorded and undoable).
@@ -164,7 +201,13 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     const rol = ROLE_WORDS.find(([re]) => re.test(q))?.[1];
     if (!rol) return done('¿A quién va el aviso? Puede ser un rol (Redes, Supervisión, Despacho, Grabación, Secretaría) o todo el equipo.');
     const m = /\bque\s+(.+)$/i.exec(i.question);
-    const r = await call('preparar_aviso', { rol, texto: (m?.[1] ?? i.question).trim() });
+    const texto = (m?.[1] ?? i.question).trim();
+    // About an event, it can't say when, where or whom to call (it arrives redacted: «[hora]»). A
+    // deadline for the team («antes de las 3 pm») is not the agenda: it goes, redacted.
+    if (aboutEvents(texto) && (/\[(fecha|hora|numero|correo)\]|\b(en|es) (la |el )?\[direccion\]/.test(texto) || asksPlace(texto))) {
+      return done('Un aviso no puede llevar la fecha, la hora, el lugar ni los contactos de un evento: eso solo se ve en la Agenda. Dímelo sin eso y lo preparo.');
+    }
+    const r = await call('preparar_aviso', { rol, texto });
     if (!r.ok) return done(`No pude prepararlo: ${r.error}`);
     const res = r.result as R;
     return done(`Te dejé el aviso preparado para ${res.para} (${count(Number(res.personas ?? 0), 'persona', 'personas')}). No sale hasta que administración lo confirme en Ajustes → Asistente.`);
@@ -172,33 +215,36 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
 
   // 5. Name / 6. bot.
   // «¿Cómo se llama la pantalla…?» is not about the assistant: only «cómo se llama» + el asistente/usted.
-  if (/\b(como te llamas|como se llama (el asistente|la asistente|este asistente|usted|el bot)|como te (puedo |debo )?(llamo|llamar|digo|decir)|que nombre tienes|cual es tu nombre|tu nombre|quien eres|quien sos|quien es usted|como te dicen|tienes nombre|con quien hablo|presentate)\b/.test(q)) {
+  // «¿Con quién hablo?» alone asks for its name; «¿con quién hablo en la entrega…?» is a contact (step 2).
+  if (/\b(como te llamas|como se llama (el asistente|la asistente|este asistente|usted|el bot)|como te (puedo |debo )?(llamo|llamar|digo|decir)|que nombre tienes|cual es tu nombre|tu nombre|quien eres|quien sos|quien es usted|como te dicen|tienes nombre|presentate)\b/.test(q) || /^((hola|buenas|epa) )?con quien hablo( yo)?$/.test(q)) {
     const opts = variants('quien-eres').filter((v) => v.includes(i.ctx.profile.name));
     return done(pick(opts.length ? opts : BUILTIN['quien-eres'].map(fill)));
   }
   if (/\beres (un |una )?(bot|robot|ia|maquina|inteligencia artificial|humano|humana|persona|real)\b/.test(q)) return done(pick(variants('eres-bot')));
 
   // 7. What's pending for me.
-  if (!howTo && /\b(pendiente|pendientes|que tengo|que me toca|por hacer|que hay para hoy|que hay hoy|atrasad\w*|incomplet\w*|propuestas?|aceptaron|rechazaron)\b/.test(q)) {
+  if (!howTo && PENDING.test(q)) {
     const r = await call('mis_pendientes');
     if (!r.ok) return done(`No pude revisar tus pendientes: ${r.error}`);
     const res = r.result as { total: number; pendientes: { que: string; titulo: string }[]; avisos_sin_leer: number };
     const unread = res.avisos_sin_leer ? ` Además tienes ${count(res.avisos_sin_leer, 'aviso', 'avisos')} sin leer.` : '';
+    // The person's own home screen, by its label in the menu (the boss's is «Inicio», not «Hoy»).
+    const home = (r.goTo && screenFor(r.goTo)?.label) || 'Hoy';
     if (!res.total && /\b(propuestas?|aceptaron|rechazaron)\b/.test(q)) {
-      return done(`No tienes propuestas esperando. Cuando propongas un evento, en Hoy ves si ${i.ctx.huecos.boss} lo aceptó o lo rechazó.${unread}`);
+      return done(`No tienes propuestas esperando. Cuando propongas un evento, en ${home} ves si ${i.ctx.huecos.boss} lo aceptó o lo rechazó.${unread}`);
     }
     if (!res.total) return done(`No tienes nada pendiente ahora mismo. ¡Bien ahí!${unread}`);
     const top = res.pendientes.slice(0, 3).map((p) => `${p.que.toLowerCase()}: «${p.titulo}»`);
-    return done(`Tienes ${count(res.total, 'pendiente', 'pendientes')}. Lo primero: ${list(top)}.${unread} Todo eso está en Hoy.`);
+    return done(`Tienes ${count(res.total, 'pendiente', 'pendientes')}. Lo primero: ${list(top)}.${unread} Todo eso está en ${home}.`);
   }
 
   // 8. How a piece is going (only for whoever is offered the tool; the database decides the rest).
   const aboutPiece = !howTo && (/\b(pieza|piezas)\b/.test(q) || (/\b(como va|en que va|estado de|ya (la )?aprobaron|esta aprobad\w*)\b/.test(q) && !aboutEvents(i.question)));
   if (aboutPiece) {
     if (!offered('estado_pieza')) return done('Las piezas no las veo desde tu rol. Si necesitas algo de una, pregúntale a Redes.');
-    const quoted = /[«"“]([^»"”]+)[»"”]/.exec(i.question)?.[1];
-    const after = /\bpieza\s+(?:de(?:l)?\s+|sobre\s+)?(.+)$/i.exec(i.question)?.[1];
-    const r = await call('estado_pieza', { titulo: (quoted ?? after ?? i.question).replace(/[¿?¡!]/g, '').trim() });
+    const quoted = /[«"“]([^»"”]+)[»"”]/.exec(typed)?.[1];
+    const after = /\bpieza\s+(?:de(?:l)?\s+|sobre\s+)?(.+)$/i.exec(typed)?.[1];
+    const r = await call('estado_pieza', { titulo: (quoted ?? after ?? typed).replace(/[¿?¡!]/g, '').trim() });
     if (!r.ok) return done(`No pude buscarla: ${r.error}`);
     if ((r.result as R).falta) return done('¿Cuál pieza? Dime una palabra del título y te digo cómo va.');
     const ps = ((r.result as R).piezas as R[]) ?? [];
@@ -237,7 +283,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
 
   // 12. How an event is going (never its date, time or place).
   if (!howTo && aboutEvents(i.question) && offered('buscar_evento')) {
-    const r = await call('buscar_evento', { texto: i.question });
+    const r = await call('buscar_evento', { texto: typed });
     if (!r.ok) return done(`No pude buscarlo: ${r.error}`);
     if ((r.result as R).falta) return done('¿Cuál evento? Dime una palabra del título y te digo en qué va.');
     const evs = ((r.result as R).eventos as R[]) ?? [];
@@ -252,12 +298,22 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   if (/\b(gracias|chao|nos vemos|hasta luego)\b/.test(q) && q.length < 40) return done(pick(variants('gracias')));
   if (/\b(chiste|politica|opinas|elecciones|partido|tarea|deberes|poema)\b/.test(q)) return done(pick(variants('fuera-de-tema')));
 
-  // 15. A ficha that answers it (how something is done, per role).
-  const ficha = i.ctx.knowledge ? pickFichas(i.ctx.knowledge, i.question, i.ctx.roles, 1, false)[0] : undefined;
+  // 14b. Asked as a schedule («¿a qué hora sale Kevin?», «¿qué hay el domingo?») and nothing above
+  // knew the subject (an event this person can't see): the agenda answer, never a loose ficha (a
+  // list of categories, deadlines) next to it. Unless it names a screen, a thing of the platform
+  // («¿dónde queda el copy?») or a ficha's topic by its title or tags.
+  const topic = whenWhere ? withoutWhenWhere(i.question) : i.question;
+  if (whenWhere && asksSchedule(i.question) && !screensIn(q).length && !PLATFORM.test(q) && !namesTopic(i.ctx.knowledge ?? [], topic)) return refuse();
+
+  // 15. A ficha that answers it (how something is done, per role). Chosen by what is asked, not by
+  // its when or where words; and in a when/where turn, never one with hours or dates (the best
+  // hours, the tweet slots): next to that question they read as the event's.
+  const pool = whenWhere ? i.ctx.knowledge?.filter((f) => !hasDateOrTime(fill(f.body))) : i.ctx.knowledge;
+  const ficha = pool ? pickFichas(pool, topic, i.ctx.roles, 1, false)[0] : undefined;
   if (ficha) {
     // The sentence that best answers the question, and the one after it.
     const ss = sentences(fill(ficha.body));
-    const stems = plain(i.question).split(' ').filter((w) => w.length >= 4).map(stem);
+    const stems = plain(topic).split(' ').filter((w) => w.length >= 4).map(stem);
     const negated = /\b(no|nunca|sin)\b/.test(q);
     const score = (t: string) => stems.filter((st) => ` ${plain(t)}`.includes(` ${st}`)).length + (negated && /\b(no|nunca|sin)\b/.test(plain(t)) ? 1 : 0);
     let best = 0;

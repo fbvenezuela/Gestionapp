@@ -78,9 +78,14 @@ describe('textos de los avisos de la agenda', () => {
 });
 
 describe('propuesta corregida', () => {
-  it('es el mismo aviso con el título nuevo y una clave propia (no se la traga la del primero)', () => {
+  it('dice que es una corrección (no otro evento nuevo), con el título nuevo y una clave propia', () => {
     const n = correctedEventNotice({ id: ID, title: 'Visita corregida a la biblioteca' }, '2026-10-24T10:00:05');
-    expect(n.title).toBe('Hay un evento nuevo por decidir: Visita corregida a la biblioteca');
+    expect(n.title).toBe('Corrigieron el evento por decidir: Visita corregida a la biblioteca');
+    expect(n.title).not.toBe(newEventNotice({ id: ID, title: 'Visita corregida a la biblioteca' }).title);
+    expect(n.kind).toBe('event_new'); // the same switch in Mi perfil turns both off
+    expect(n.link).toBe(`/eventos/${ID}`);
+    expect(n.body).toBe('');
+    expect(correctedEventNotice({ id: ID, title: '28/10 9:30' }, 's').title).toBe('Corrigieron un evento por decidir');
     expect(n.key).toBe(`event_new:${ID}:2026-10-24T10:00:05`);
     expect(n.key).not.toBe(newEventNotice({ id: ID, title: 'x' }).key);
     expect(looksLikeDateTime(texts(correctedEventNotice({ id: ID, title: 'Visita el 28/10 a las 9' }, 's')))).toBe(false);

@@ -45,4 +45,10 @@ describe('resultados: título de cada publicación', () => {
     expect(code).toContain('<PubTitle r={r} canLoad={canLoad} card />');
     expect(code).toContain('<PubTitle r={r} canLoad={canLoad} />');
   });
+
+  it('«1 publicación», no «1 publicaciones»', () => {
+    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/(panel)/resultados/page.tsx'), 'utf8');
+    expect(code).not.toMatch(/\$\{b\.total\} publicaciones/);
+    expect(code).toContain("b.total === 1 ? 'publicación' : 'publicaciones'");
+  });
 });

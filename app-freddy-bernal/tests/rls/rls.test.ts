@@ -130,7 +130,14 @@ describe('aprobación: nada se publica sin supervisión', () => {
     const p = (await pieceIn('in_review'))!.id;
     await t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'approved', 'ok')`, [p]));
     const r = await t.as('social', (sql) =>
-      sql.query(`insert into public.publications (piece_id, network, status, url) values ($1, 'instagram', 'published', 'https://example.com/p') returning id`, [p]),
+      // The publication carries the approved Instagram copy, as the real flow does.
+      sql.query(
+        `insert into public.publications (piece_id, network, status, url, copy_body)
+         values ($1, 'instagram', 'published', 'https://example.com/p',
+                 (select c.body from public.copies c join public.network_specs s on s.length_group = c.length_group where c.piece_id = $1 and s.network = 'instagram'))
+         returning id`,
+        [p],
+      ),
     );
     expect(r).toHaveLength(1);
   });

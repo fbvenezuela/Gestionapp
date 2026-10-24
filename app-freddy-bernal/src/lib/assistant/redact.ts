@@ -1,6 +1,7 @@
 // What a person writes passes through here BEFORE it goes to an AI provider and before it
-// is stored ("Lo que preguntan", the conversation). Emails, phone numbers, times and dates
-// become placeholders, so an event's date or time typed by mistake never leaves the server.
+// is stored ("Lo que preguntan", the conversation). Emails, phone numbers, times, dates and
+// addresses become placeholders, so an event's date, time or place typed by mistake never
+// leaves the server.
 
 const MONTHS_FULL = 'enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre';
 const MONTHS_SHORT = 'ene|feb|mar|abr|may|jun|jul|ago|sept|sep|oct|nov|dic';
@@ -50,7 +51,40 @@ const numericDate: Replacer = (m: string, ...rest: unknown[]) => {
   return '[fecha]';
 };
 
-type Kind = 'contact' | 'when' | 'date';
+type Kind = 'contact' | 'when' | 'date' | 'place';
+
+// Addresses: a street word followed by a number or a Name («calle 3», «carrera 5 con calle 7»,
+// «av. Libertador», «sector La Ermita», «casa N° 12», «km 8», «piso 2»). A street word alone or
+// before an ordinary word («la vía de publicar», «el sector salud», «la casa comunal») stays, and so
+// do «vía WhatsApp» (only «vía a/al/hacia…» is a road) and «el sector Salud». Only abbreviations take
+// a period («av. Libertador»): «la calle. Mañana…» is a sentence end.
+// Street words match in any case; the Name needs its capital (no «i» flag: it would fold \p{Lu}).
+const ci = (w: string) =>
+  w.replace(/[a-z]/g, (c) => `[${c}${c.toUpperCase()}${({ a: 'áÁ', e: 'éÉ', i: 'íÍ', o: 'óÓ', u: 'úÚ' } as Record<string, string>)[c] ?? ''}]`);
+const words = (list: string) => `(?:${list.split(' ').map(ci).join('|')})`;
+const ABBR = String.raw`${words('avda av cra urb edif apto km')}\.?`;
+const WITH_NUMBER = String.raw`(?:${words('calles calle carreras carrera avenidas avenida transversal diagonal vereda pasaje callejon prolongacion autopista carretera troncal via sector urbanizacion barrio edificio torre quinta local apartamento piso manzana parcela casa kilometro')}|${ABBR})`;
+const WITH_NAME = String.raw`(?:${words('calle carrera avenida transversal vereda pasaje callejon prolongacion autopista carretera troncal sector urbanizacion barrio caserio aldea residencias edificio')}|${words('avda av cra urb edif')}\.?|${words('via')}\s+${words('a al hacia para')})`;
+const WITH_ARTICLE = String.raw`(?:${words('sector barrio urbanizacion caserio aldea avenida residencias quinta')}|${words('avda av urb')}\.?)`;
+// Capitalized words that follow a street word without being a place: networks, apps, fields.
+const NOT_PLACE = words('whatsapp instagram facebook tiktok telegram drive youtube threads twitter gmail zoom meet salud educacion publico publica privado privada comercio cultura deporte deportes turismo agricola electrico social productivo version');
+const START = String.raw`(?<![\p{L}\d])`;
+const END = String.raw`(?![\p{L}\d])`;
+// «15-B» or «15B» (not «10K», a race).
+const NUMBER = String.raw`\d+(?:-?[a-jl-zA-JL-Z])?${END}`;
+const NUMBER_MARK = String.raw`(?:(?:[nN](?:[°º]|[rR][oO]\.?|[oO]\.)|[nN][uú]mero|#)\s*)?`;
+const NAME = String.raw`(?:(?:de|del|la|las|los|el|a|al)\s+)*(?!${NOT_PLACE}${END})\p{Lu}\p{L}*(?:\s+(?:(?:de|del|la|las|los|el|y)\s+)*\p{Lu}\p{L}*)*`;
+const PLACE_RULES: RegExp[] = [
+  // «calle 3», «carrera 5 con calle 7», «casa N° 12-34», «casa 15-B», «km 8», «entre carreras 3 y 4».
+  new RegExp(
+    String.raw`${START}${WITH_NUMBER}\s*${NUMBER_MARK}${NUMBER}(?:\s*(?:con|y|entre|esquina(?:\s+con)?|esq\.?|[-/#])\s*(?:(?:${words('calles calle carreras carrera avenidas avenida')}|${words('av cra')}\.?)\s*)?${NUMBER})*`,
+    'gu',
+  ),
+  // «av. Libertador», «sector El Mirador», «vía a San Cristóbal», «urbanización Los Pinos».
+  new RegExp(String.raw`${START}${WITH_NAME}\s+${NAME}`, 'gu'),
+  // Written in lower case, with its article: «sector la ermita», «barrio el carmen», «quinta La Esperanza».
+  new RegExp(String.raw`${START}${WITH_ARTICLE}\s+(?:[lL]a|[eE]l|[lL]os|[lL]as|[sS]an|[sS]anta|[sS]anto)\s+\p{L}+${END}`, 'gu'),
+];
 
 const RULES: [RegExp, Replacer, Kind][] = [
   // Emails.
@@ -78,6 +112,7 @@ const RULES: [RegExp, Replacer, Kind][] = [
   [/\b(?:al\s+)?(?:mediod[ií]a|medianoche)(?![a-záéíóúñ])/gi, '[hora]', 'when'],
   // Phone numbers: 0414-1234567, +58 414 123 45 67, (0276) 555 1234, 0414-555-12-34.
   [/\+?\d[\d ().-]{7,}\d/g, '[numero]', 'contact'],
+  ...PLACE_RULES.map((re): [RegExp, Replacer, Kind] => [re, '[direccion]', 'place']),
 ];
 
 // "a las 5" → "a las [hora]", "tipo cinco" → "tipo [hora]". Without "la(s)" only "tipo" counts:
@@ -98,7 +133,24 @@ function apply(text: string, kinds: Kind[]): string {
 }
 
 export function redact(text: string): string {
-  return apply(text, ['contact', 'date', 'when']);
+  return apply(text, ['contact', 'date', 'when', 'place']);
+}
+
+/**
+ * redact() on every string inside a value (objects and arrays walked, keys kept): what a tool
+ * returns, before it goes to an AI provider. With keepTimes, times of day stay (the best hours
+ * to publish are not the agenda); dates, addresses and contacts go all the same.
+ */
+export function redactDeep(value: unknown, o: { keepTimes?: boolean } = {}): unknown {
+  const kinds: Kind[] = o.keepTimes ? ['contact', 'date', 'place'] : ['contact', 'date', 'when', 'place'];
+  const walk = (v: unknown): unknown => {
+    if (typeof v === 'string') return apply(v, kinds);
+    if (v instanceof Date) return '[fecha]';
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
+    return v;
+  };
+  return walk(value);
 }
 
 /** True when the text carries something that looks like a date or a time of day. */
@@ -111,7 +163,7 @@ export function hasDate(text: string): boolean {
   return apply(text, ['date']) !== String(text ?? '');
 }
 
-/** True when redact() would change something (the text carried a time, date, email or phone). */
+/** True when redact() would change something (the text carried a time, date, email, phone or address). */
 export function hasSensitive(text: string): boolean {
   return redact(text) !== String(text ?? '');
 }

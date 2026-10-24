@@ -6,6 +6,7 @@ import { InviteEmail } from '@emails/templates';
 import { act, UserError } from './run';
 import { env } from '../env';
 import { withSystem } from '../db';
+import { endAuthSessions } from '../auth/revoke';
 import { brand } from '../client-config';
 import { sendEmail } from '../email/send';
 import { INVITABLE_ROLES, ROLE_LABEL, type Role } from '../roles';
@@ -66,18 +67,40 @@ export async function setRole(raw: unknown) {
 
 const userSchema = z.object({ userId: z.string().uuid() });
 
+// The database also drops their phones' notices (migration 20261025001000_revoke_push.sql).
 export async function revokeSessions(raw: unknown) {
-  return act(userSchema, raw, async (sql, input) => {
+  const res = await act(userSchema, raw, async (sql, input) => {
     const r = await sql.query(`update public.profiles set sessions_revoked_at = now() where id = $1 returning id`, [input.userId]);
     if (!r.length) throw new UserError('No autorizado.');
   }, { revalidate: ['/ajustes/equipo'] });
+  if (!res.ok) return res;
+  return (await endSessionsAfter(userSchema.parse(raw).userId)) ?? res;
 }
 
+const activeSchema = userSchema.extend({ active: z.boolean() });
+
 export async function setActive(raw: unknown) {
-  return act(userSchema.extend({ active: z.boolean() }), raw, async (sql, input, s) => {
+  const res = await act(activeSchema, raw, async (sql, input, s) => {
     if (input.userId === s.userId) throw new UserError('No puedes desactivarte a ti mismo.');
-    await sql.query(`update public.profiles set active = $2, sessions_revoked_at = case when $2 then sessions_revoked_at else now() end where id = $1`, [input.userId, input.active]);
+    // RLS lets only admin change someone else: 0 rows means no, and then no Auth step either.
+    const r = await sql.query(`update public.profiles set active = $2, sessions_revoked_at = case when $2 then sessions_revoked_at else now() end where id = $1 returning id`, [input.userId, input.active]);
+    if (!r.length) throw new UserError('No autorizado.');
   }, { revalidate: ['/ajustes/equipo'] });
+  if (!res.ok) return res;
+  const input = activeSchema.parse(raw);
+  return input.active ? res : ((await endSessionsAfter(input.userId)) ?? res);
+}
+
+// After act() has returned (never inside it): also end their sign-in sessions in Supabase Auth,
+// so a renewed token on the old phone cannot bring them back. Returns an error result, or null.
+async function endSessionsAfter(userId: string) {
+  try {
+    await endAuthSessions(userId);
+    return null;
+  } catch (e) {
+    console.error('[sessions]', (e as Error).message);
+    return { ok: false as const, error: 'No se pudieron cerrar todas sus sesiones. Vuelve a intentar.' };
+  }
 }
 
 export async function revokeInvitation(raw: unknown) {
@@ -105,13 +128,15 @@ export async function resetTwoFactor(raw: unknown) {
     const { userId } = userSchema.parse(raw);
     const { actorId, email } = res.data;
     try {
+      // First the sign-in sessions (their refresh tokens die with them), then the factors.
+      const ended = await endAuthSessions(userId);
       const removed = env.dataMode === 'demo' ? await removeDemoFactors(userId) : await removeSupabaseFactors(userId);
       // Auth factors live outside the audited tables: leave an explicit note in the audit trail.
       await withSystem((sql) =>
         sql.query(`insert into public.audit_log (actor_id, table_name, row_id, action, new_data) values ($1, 'two_factor', $2, 'mfa_reset', $3::text::jsonb)`, [
           actorId,
           userId,
-          JSON.stringify({ email, factors_removed: removed, sessions_closed: true }),
+          JSON.stringify({ email, factors_removed: removed, sessions_closed: true, auth_sessions_ended: ended }),
         ]),
       );
     } catch (e) {

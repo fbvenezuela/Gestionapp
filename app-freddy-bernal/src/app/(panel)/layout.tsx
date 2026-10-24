@@ -10,6 +10,7 @@ import { SunModeScript, SunModeToggle } from '@/components/shell/sun-mode';
 import { LiveRefresh } from '@/components/shell/live-refresh';
 import { NoPermissionBanner } from '@/components/shell/no-permission-banner';
 import { SignOutButton } from '@/components/shell/sign-out-button';
+import { MenuDetails } from '@/components/shell/menu-details';
 import { AssistantMount } from '@/components/assistant/assistant-mount';
 import { buttonVariants } from '@/components/ui/button';
 
@@ -60,7 +61,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
               <Search className="h-5 w-5" aria-hidden />
             </Link>
             {create.length > 0 ? (
-              <details className="relative">
+              <MenuDetails className="relative">
                 <summary className={buttonVariants({ size: 'sm', className: 'list-none [&::-webkit-details-marker]:hidden cursor-pointer' })}>
                   <Plus className="h-4 w-4" aria-hidden /> <span className="hidden sm:inline">Crear</span>
                   <span className="sr-only sm:hidden">Crear</span>
@@ -72,13 +73,13 @@ export default async function PanelLayout({ children }: { children: React.ReactN
                     </Link>
                   ))}
                 </div>
-              </details>
+              </MenuDetails>
             ) : null}
             <Link href="/avisos" className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'relative' })} aria-label={unread ? `Avisos: ${unread} sin leer` : 'Avisos'}>
               <Bell className="h-5 w-5" aria-hidden />
               {unread ? <span className="absolute right-1.5 top-1.5 grid min-w-5 place-items-center rounded-full bg-danger px-1 text-[11px] font-bold text-on-accent">{unread}</span> : null}
             </Link>
-            <details className="relative">
+            <MenuDetails className="relative">
               <summary className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'list-none [&::-webkit-details-marker]:hidden cursor-pointer' })} aria-label="Mi cuenta">
                 <UserRound className="h-5 w-5" aria-hidden />
               </summary>
@@ -90,7 +91,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
                 <SunModeToggle />
                 <SignOutButton />
               </div>
-            </details>
+            </MenuDetails>
           </div>
         </header>
         {s.viewAs ? (

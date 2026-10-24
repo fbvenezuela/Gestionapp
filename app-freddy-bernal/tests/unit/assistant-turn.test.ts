@@ -234,6 +234,129 @@ describe('cerebro de demostración (sin IA)', () => {
     expect(sup.goTo).toBeNull();
   });
 
+  it('cuándo, dónde, cómo llegar, con quién hablo o a qué hora graba: la negativa de la agenda y nada más', async () => {
+    const questions = [
+      '¿a qué hora es la feria de emprendedores?',
+      '¿dónde queda la feria de emprendedores?',
+      '¿cómo llego al urbanismo Nuevo Amanecer?',
+      '¿con quién hablo en la entrega de viviendas?',
+      '¿a qué hora graba Kevin?',
+      '¿qué día es la entrega de viviendas?',
+      '¿qué eventos hay mañana?',
+      '¿qué eventos tiene el jefe el martes?',
+      // No event word: the title says it (or, for whom can't see that event, the way it is asked).
+      '¿dónde queda la cancha techada de El Mirador?',
+      '¿cuándo es lo de los productores de café?',
+    ];
+    for (const key of ['social2', 'supervisor', 'secretary'] as DemoUserKey[]) {
+      for (const q of questions) {
+        const r = await handleTurn(sessionOf(key), { question: q }, LOCAL);
+        const who = `${key}: ${q}`;
+        expect(r.answer, who).toMatch(/no lo manejo|no la tengo/);
+        expect(r.answer, who).not.toMatch(/\d{1,2}:\d{2}|\d\s*[ap]\.?\s?m\b|–/); // no hours of any kind next to it
+        expect(r.answer, who).not.toMatch(/Me llamo|Gestión y obras|Categorías/);
+        expect(r.did.map((d) => d.tool), who).not.toContain('mejores_horas');
+        assertNoAgenda(r.answer);
+      }
+    }
+    // Alone, «¿con quién hablo?» asks for its name; a step, a deadline or approvals keep their answers.
+    const name = await handleTurn(sessionOf('social2'), { question: '¿Con quién hablo?' }, LOCAL);
+    expect(name.answer).toContain(defaultProfile().name);
+    for (const q of ['¿Dónde subo el material de la feria?', '¿Cuándo es el plazo de aprobación?', '¿Qué me toca aprobar hoy?']) {
+      const r = await handleTurn(sessionOf('social2'), { question: q }, LOCAL);
+      expect(r.answer, q).not.toMatch(/no lo manejo|no la tengo/);
+    }
+  });
+
+  it('preguntada como agenda, sin palabra de evento o por un evento que no ve: la negativa, nunca una ficha suelta', async () => {
+    const cases: [DemoUserKey[], string][] = [
+      [['social2', 'boss'], '¿a qué hora sale Kevin?'],
+      [['supervisor', 'admin'], '¿a qué hora llega Mariela?'],
+      [['social2', 'boss'], '¿qué hay el domingo?'],
+      [['supervisor'], '¿hay algo el sábado?'],
+      // Secretaría and Grabación don't see these events: the way it is asked is enough.
+      [['secretary', 'camera'], '¿cuándo entregan las viviendas?'],
+      [['secretary'], '¿lo de los emprendedores es en la mañana o en la tarde?'],
+      [['secretary'], '¿cuándo va Mariela a la escuela?'],
+      [['secretary', 'camera'], '¿en qué sitio se hace lo de los productores?'],
+      [['secretary', 'camera'], 'pásame la dirección de lo de la plaza central'],
+      [['secretary'], '¿cuándo toca lo de la cancha?'],
+      [['camera'], '¿qué día toca lo del puente?'],
+      [['camera'], '¿a quién llamo para lo de los productores?'],
+    ];
+    for (const [keys, q] of cases) {
+      for (const key of keys) {
+        const r = await handleTurn(sessionOf(key), { question: q }, LOCAL);
+        const who = `${key}: ${q}`;
+        expect(r.model, who).toBe('local');
+        expect(r.answer, who).toMatch(/no lo manejo|no la tengo/);
+        expect(r.answer, who).not.toMatch(/\d{1,2}:\d{2}|–|Mejores días|peor rinden|Gestión y obras|plazo|Tocar un aviso|Despacho:/);
+        expect(r.did.map((d) => d.tool), who).not.toContain('mejores_horas');
+        assertNoAgenda(r.answer);
+      }
+    }
+  });
+
+  it('lo que no es la agenda sigue con su respuesta: la pieza, cómo se hace, lo suyo, los avisos y el evento por su lugar', async () => {
+    const ask = async (key: DemoUserKey, question: string) => {
+      const r = await handleTurn(sessionOf(key), { question }, LOCAL);
+      expect(r.model, `${key}: ${question}`).toBe('local');
+      return r;
+    };
+    // A piece is named after its event: asking when it is approved or goes out is about the piece.
+    for (const key of ['social', 'supervisor'] as DemoUserKey[]) {
+      expect((await ask(key, '¿Cuándo aprueban la pieza del puente?')).answer).toMatch(/^La pieza «Avance del puente La Quebrada» está por aprobar/);
+    }
+    expect((await ask('social', '¿Hoy sale la pieza de la cancha?')).answer).toMatch(/^La pieza «Cancha techada de El Mirador» está/);
+    // How-tos and screens.
+    expect((await ask('supervisor', '¿Dónde queda el copy?')).answer).toMatch(/pestaña Copies/);
+    expect((await ask('secretary', '¿Dónde es que se cambia la contraseña?')).answer).toMatch(/En «Entrar»/);
+    expect((await ask('admin', '¿Dónde está el material de la feria?')).answer).toMatch(/pestaña Material/);
+    for (const [key, q] of [
+      ['supervisor', '¿Dónde queda Ajustes?'],
+      ['camera', '¿Cuándo hay que grabar con dron?'],
+      ['camera', '¿Dónde se guarda la grabación?'],
+      ['social', '¿Cuándo grabo en vertical y cuándo en horizontal?'],
+      ['social', '¿Cuándo llega el material de la cancha?'],
+      ['supervisor', '¿Cuándo se publica lo de la cancha?'],
+    ] as [DemoUserKey, string][]) {
+      const r = await ask(key, q);
+      expect(r.answer, q).not.toMatch(/no lo manejo|no la tengo/);
+      expect(r.answer, q).not.toMatch(/\d{1,2}:\d{2}/); // no hours next to a «¿cuándo…?»
+    }
+    // Their own list, with a day named.
+    const rec = await ask('camera', '¿Qué me toca grabar el viernes?');
+    expect(rec.did).toEqual([{ tool: 'mis_pendientes' }]);
+    expect(rec.answer).toMatch(/^Tienes 1 pendiente/);
+    expect((await ask('secretary', '¿Ya me aceptaron la propuesta del evento del viernes?')).did).toEqual([{ tool: 'mis_pendientes' }]);
+    // A notice to a group is prepared (or sent to whom prepares them), unless it carries a date or a time.
+    const notice = await ask('admin', 'Mándales un aviso a redes de que hoy suben el material de la entrega');
+    expect(notice.did).toEqual([{ tool: 'preparar_aviso' }]);
+    expect((await ask('dispatch', 'Mándale un aviso a grabación de que mañana suban el material del puente')).answer).toMatch(/los preparan administración o supervisión/);
+    const dated = await ask('admin', 'Mándales un aviso a redes de que la feria es el martes 27 a las 4 pm');
+    expect(dated.did).toEqual([]);
+    expect(dated.answer).toMatch(/no puede llevar la fecha, la hora/);
+    // A place in an event's title: masked before it is stored, still found by the demo brain.
+    const ev = await withSystem((sql) => sql.one<{ id: string }>(`insert into public.events (title, boss_decision, created_by) values ('Entrega de bombonas en el barrio San Carlos', 'accepted', $1) returning id`, [ADMIN_ID]));
+    try {
+      const r = await ask('social', '¿cómo va el evento del barrio San Carlos?');
+      expect(r.answer).toMatch(/^El evento «Entrega de bombonas en el barrio San Carlos» está en/);
+      const q = await withSystem((sql) => sql.one<{ body: string }>(`select body from public.assistant_messages where conversation_id = $1 and who = 'persona'`, [r.conversationId]));
+      expect(q!.body).toBe('¿cómo va el evento del [direccion]?');
+    } finally {
+      await withSystem((sql) => sql.query(`update public.events set deleted_at = now() where id = $1`, [ev!.id]));
+    }
+  });
+
+  it('«¿qué tengo pendiente?» nombra la pantalla de inicio de cada rol (la del jefe es «Inicio»)', async () => {
+    const boss = await handleTurn(sessionOf('boss'), { question: '¿Qué tengo pendiente?' }, LOCAL);
+    expect(boss.answer).toMatch(/Todo eso está en Inicio\.$/);
+    expect(boss.answer).not.toMatch(/\bHoy\b/);
+    expect(boss.goTo).toEqual({ href: '/jefe', label: 'Inicio' });
+    const social = await handleTurn(sessionOf('social'), { question: '¿Qué tengo pendiente?' }, LOCAL);
+    expect(social.answer).toMatch(/Todo eso está en Hoy\.$/);
+  });
+
   it('pasado el tope por hora, contesta como el asistente (no como avería)', async () => {
     const s = sessionOf('secretary');
     const first = await handleTurn(s, { question: 'hola' }, LOCAL);
@@ -328,6 +451,63 @@ describe('con modelo (proveedor falso)', () => {
     const q = fakeProvider(() => say('El recorrido es el 3 de nov a las cuatro de la tarde.'));
     const r2 = await handleTurn(sessionOf('dispatch'), { question: '¿cuándo es el recorrido del puente?' }, { chain: CHAIN, chatOptions: { fetchImpl: q.fetchImpl } });
     expect(r2.answer).toBe(AGENDA_FALLBACK);
+  });
+
+  it('un título con fecha, hora o dirección no llega al proveedor (ni por la herramienta ni por el hilo)', async () => {
+    const title = 'Visita escuela Zamorano jueves 30 a las 9:00 am, calle 3';
+    const ev = await withSystem((sql) => sql.one<{ id: string }>(`insert into public.events (title, boss_decision, created_by) values ($1, 'accepted', $2) returning id`, [title, ADMIN_ID]));
+    try {
+      // An earlier answer of the demo brain quoted the title as it is (it is in the thread).
+      const first = await handleTurn(sessionOf('social'), { question: 'hola' }, LOCAL);
+      await withSystem((sql) => sql.query(`insert into public.assistant_messages (conversation_id, who, body) values ($1, 'asistente', $2)`, [first.conversationId, `Lo primero: falta el storyboard: «${title}».`]));
+      const p = fakeProvider((n) => (n === 1 ? callTool('buscar_evento', { texto: 'escuela Zamorano' }) : say('La visita a la escuela Zamorano va en ficha. ¿Algo más?')));
+      const r = await handleTurn(sessionOf('social'), { question: '¿Cómo va lo de la escuela Zamorano?', conversationId: first.conversationId }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+      expect(r.did).toEqual([{ tool: 'buscar_evento' }]);
+      const sent = JSON.stringify(p.seen);
+      expect(JSON.stringify(p.seen[1].body.messages)).toContain('Visita escuela Zamorano [fecha] a las [hora], [direccion]');
+      for (const leak of ['jueves 30', '9:00', 'calle 3']) expect(sent).not.toContain(leak);
+    } finally {
+      await withSystem((sql) => sql.query(`update public.events set deleted_at = now() where id = $1`, [ev!.id]));
+    }
+  });
+
+  it('el tope por hora no se salta con pedidos en paralelo: la pregunta cuenta antes del modelo, aunque el turno falle', async () => {
+    const s = sessionOf('camera2');
+    // 38 questions in the last hour: room for 2 more.
+    await withSystem(async (sql) => {
+      const c = await sql.one<{ id: string }>(`insert into public.assistant_conversations (user_id, title) values ($1, 'relleno') returning id`, [s.userId]);
+      for (let i = 0; i < 38; i++) await sql.query(`insert into public.assistant_messages (conversation_id, who, body) values ($1, 'persona', 'relleno de prueba')`, [c!.id]);
+    });
+    // The provider fails: those turns end degraded, and still count.
+    const p = fakeProvider(() => ({ error: { message: 'boom' } }), 500);
+    const quiet = async () => ({ alreadyNotified: false, to: [] });
+    const rs = await Promise.all(Array.from({ length: 5 }, () => handleTurn(s, { question: 'revisa mis cosas' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl }, escalate: quiet })));
+    expect(p.seen).toHaveLength(2);
+    expect(rs.filter((r) => r.model === 'tope')).toHaveLength(3);
+    expect(rs.filter((r) => r.degraded)).toHaveLength(2);
+    const next = await handleTurn(s, { question: 'revisa mis cosas' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl }, escalate: quiet });
+    expect(next.model).toBe('tope');
+    expect(p.seen).toHaveLength(2);
+  });
+
+  it('el tope de gasto del mes tampoco: cada turno con modelo reserva su gasto antes de preguntar', async () => {
+    const { env } = await import('@/lib/env');
+    const cap = env.ai.monthlyCapUsd;
+    const spent = await withSystem((sql) => sql.one<{ s: string }>(`select coalesce(sum(cost_usd), 0) as s from public.ai_usage where at >= date_trunc('month', now())`));
+    env.ai.monthlyCapUsd = Number(spent!.s) + 0.00005; // room for one turn only
+    try {
+      const p = fakeProvider(() => say('Revisa tu pantalla de inicio, ahí está todo.'));
+      const rs = await Promise.all((['admin', 'dispatch', 'supervisor', 'camera'] as DemoUserKey[]).map((k) => handleTurn(sessionOf(k), { question: 'revisa mis cosas' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } })));
+      expect(p.seen).toHaveLength(1);
+      expect(rs.filter((r) => r.model === 'groq:llama-3.3-70b')).toHaveLength(1);
+      expect(rs.filter((r) => r.model === 'local')).toHaveLength(3); // over the cap: the demo brain, never a breakdown
+      expect(rs.every((r) => !r.degraded)).toBe(true);
+    } finally {
+      env.ai.monthlyCapUsd = cap;
+    }
+    // The reservation became the real spend; none is left behind.
+    const left = await withSystem((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.ai_usage where feature = 'assistant' and input_tokens = 0 and output_tokens = 0`));
+    expect(left!.n).toBe(0);
   });
 
   it('máximo 3 vueltas: la última va sin herramientas', async () => {

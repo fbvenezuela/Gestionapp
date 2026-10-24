@@ -75,6 +75,20 @@ describe('push_subscriptions: cada quien con lo suyo', () => {
     }
   });
 
+  it('al cerrar sus sesiones (teléfono perdido o reinicio del doble factor) se borran sus teléfonos', async () => {
+    const count = (uid: string) => t.system((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.push_subscriptions where user_id = $1`, [uid]));
+    await t.as('social2', (sql) => sql.query(`select public.save_push_subscription($1, $2, $3, '')`, [ep('lost-phone'), KEY, AUTH]));
+    await t.as('secretary', (sql) => sql.query(`select public.save_push_subscription($1, $2, $3, '')`, [ep('other-phone'), KEY, AUTH]));
+    expect((await count(t.ids.social2))!.n).toBe(1);
+    // The same update «Cerrar sus sesiones» and «Reiniciar doble factor» make.
+    await t.as('admin', (sql) => sql.query(`update public.profiles set sessions_revoked_at = now() where id = $1`, [t.ids.social2]));
+    expect((await count(t.ids.social2))!.n).toBe(0);
+    expect((await count(t.ids.secretary))!.n).toBe(1);
+    // Signing in again on a phone works as usual.
+    await t.as('social2', (sql) => sql.query(`select public.save_push_subscription($1, $2, $3, '')`, [ep('new-phone'), KEY, AUTH]));
+    expect((await count(t.ids.social2))!.n).toBe(1);
+  });
+
   it('solo direcciones https', async () => {
     await expect(t.as('social', (sql) => sql.query(`select public.save_push_subscription($1, $2, $3, '')`, ['http://10.0.0.1/x', KEY, AUTH]))).rejects.toThrow();
   });

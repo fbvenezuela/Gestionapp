@@ -68,20 +68,24 @@ function MediaRow({ m, canRemove }: { m: Media; canRemove: boolean }) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[var(--radius-control)] border border-border px-3 py-2">
       <Icon className="h-5 w-5 shrink-0 text-text-2" aria-hidden />
-      <div className="min-w-0 flex-1">
+      {/* The name asks for 11rem: on a phone the actions drop to their own line instead of
+          squeezing it to a few letters. */}
+      <div className="min-w-0 flex-[1_1_11rem]">
         <p className="truncate font-semibold">{m.label}</p>
         <p className="text-sm text-text-2">
           {[size(m.size_bytes), dur(m.duration_s), m.width && m.height ? `${m.width}×${m.height}` : ''].filter(Boolean).join(' · ')}
         </p>
       </div>
-      {m.status === 'ready' ? (
-        <a href={`/api/media/${m.id}`} className="grid h-11 w-11 place-items-center rounded-[var(--radius-control)] hover:bg-surface-2" aria-label={`Descargar ${m.label}`}>
-          <Download className="h-5 w-5" aria-hidden />
-        </a>
-      ) : (
-        <Chip tone={m.status === 'failed' ? 'danger' : 'warn'}>{m.status === 'failed' ? 'Incompleto' : 'Subiendo'}</Chip>
-      )}
-      {canRemove ? (mediaLockChip(m.lock) ? <Chip tone="ok">{mediaLockChip(m.lock)}</Chip> : <RemoveMedia id={m.id} label={m.label} />) : null}
+      <div className="ml-auto flex items-center gap-2">
+        {m.status === 'ready' ? (
+          <a href={`/api/media/${m.id}`} className="grid h-11 w-11 place-items-center rounded-[var(--radius-control)] hover:bg-surface-2" aria-label={`Descargar ${m.label}`}>
+            <Download className="h-5 w-5" aria-hidden />
+          </a>
+        ) : (
+          <Chip tone={m.status === 'failed' ? 'danger' : 'warn'}>{m.status === 'failed' ? 'Incompleto' : 'Subiendo'}</Chip>
+        )}
+        {canRemove ? (mediaLockChip(m.lock) ? <Chip tone="ok">{mediaLockChip(m.lock)}</Chip> : <RemoveMedia id={m.id} label={m.label} />) : null}
+      </div>
     </div>
   );
 }

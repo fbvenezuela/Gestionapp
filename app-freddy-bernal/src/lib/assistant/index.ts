@@ -9,6 +9,7 @@ import {
   DEGRADED_TEXT,
   DEGRADED_UNNOTIFIED,
   LIMIT_TEXT,
+  MAX_TOKENS,
   PROMISE_FALLBACK,
   breaksAgendaRule,
   filterOutput,
@@ -21,10 +22,10 @@ import {
 import { defaultProfile } from './config';
 import { escalate as realEscalate } from './escalate';
 import { localTurn } from './local';
-import { parseChain, type ChatOptions, type Link } from './providers';
+import { estimateCost, parseChain, type ChatOptions, type Link } from './providers';
 import { redact } from './redact';
 import { pickGoTo, type GoTo } from './screens';
-import { MESSAGES_PER_HOUR, ensureConversation, loadBasics, loadKnowledge, loadScripts, monthSpend, noteHeard, saveTurn } from './store';
+import { MESSAGES_PER_HOUR, loadKnowledge, loadScripts, noteHeard, openTurn, saveTurn, type Reserve } from './store';
 import { firstName } from './text';
 import { toolsFor, type EscalateFn, type ToolRun } from './tools';
 
@@ -32,10 +33,16 @@ export { escalate } from './escalate';
 
 // One turn of the team assistant (manual §2, adapted): who asks → limits → context →
 // thread → scripts → brain (model chain or the demo brain) → filter → server nets → save
-// AFTER answering → answer. People's data is only read by the tools, as the person.
+// AFTER answering → answer. People's data is only read by the tools, as the person. The
+// question itself is counted BEFORE the brain (openTurn), so parallel requests can't slip past
+// the limits.
 
 export const MAX_QUESTION = 1500;
 export const TEAM_ROLES: Role[] = INVITABLE_ROLES;
+// The most a model turn can spend (3 rounds and the corrective one, each with the whole prompt):
+// reserved against the month's cap before asking, settled with the real numbers after.
+const RESERVE_TOKENS_IN = 4 * 4_000;
+const RESERVE_TOKENS_OUT = 4 * MAX_TOKENS;
 
 export type TurnInput = { question: string; conversationId?: string | null };
 export type TurnResult = {
@@ -79,18 +86,18 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   const finish = (r: Omit<TurnResult, 'ms' | 'scope'>): TurnResult => ({ ...r, scope: 'equipo', ms: Date.now() - t0 });
   if (!question) return finish({ answer: '¿Qué necesitas? Escríbeme tu pregunta.', model: 'local', degraded: false, did: [], goTo: null, conversationId: input.conversationId ?? null });
 
-  // The conversation is opened first (escalating needs it); messages are saved at the end.
-  let conversationId: string | null = null;
-  try {
-    conversationId = await ensureConversation(session.userId, input.conversationId, question);
-  } catch (e) {
-    console.error('[asistente] no se pudo abrir la conversación:', (e as Error).message);
-  }
-
-  const basics = await loadBasics(session.userId, conversationId).catch((e) => {
-    console.error('[asistente] no se pudo leer el contexto:', (e as Error).message);
+  // The conversation, the hour's count and the question, in one short transaction BEFORE the
+  // brain (escalating needs the conversation; parallel requests see the question). With a model
+  // chain, the turn's most possible cost is reserved against the month's cap in that same step.
+  const chain = deps.chain ?? parseChain(env.assistant.models);
+  const reserve: Reserve | null = chain.length
+    ? { provider: chain[0].provider, model: chain[0].raw, costUsd: Math.max(...chain.map((l) => estimateCost(l.raw, RESERVE_TOKENS_IN, RESERVE_TOKENS_OUT))), capUsd: env.ai.monthlyCapUsd }
+    : null;
+  const basics = await openTurn(session.userId, input.conversationId, question, reserve).catch((e) => {
+    console.error('[asistente] no se pudo abrir el turno:', (e as Error).message);
     return null;
   });
+  const conversationId = basics?.conversationId ?? null;
   const profile = basics?.profile;
   const history = basics?.history ?? [];
   const save = async (t: { answer: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; error: string | null; degraded: boolean; calls: ToolRun[]; goTo: GoTo | null }) => {
@@ -101,6 +108,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
         conversationId,
         userId: session.userId,
         question,
+        usageId: basics?.usageId ?? null,
         answer: t.answer,
         model: t.model,
         provider: t.provider,
@@ -139,13 +147,9 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   };
   await noteHeard(question, roles[0] ?? null);
 
-  const chain = deps.chain ?? parseChain(env.assistant.models);
-  let useModel = chain.length > 0;
-  if (useModel) {
-    // Over the monthly AI cap the demo brain answers (it costs nothing): never a breakdown.
-    const spent = await monthSpend().catch(() => 0);
-    if (spent >= env.ai.monthlyCapUsd) useModel = false;
-  }
+  // Only a turn with its reservation asks the model. Over the monthly AI cap (or if the turn could
+  // not be counted) the demo brain answers (it costs nothing): never a breakdown.
+  const useModel = !!basics?.usageId;
   const tools = toolsFor(roles, !!conversationId);
   const toolCtx = { session, conversationId, escalate: escalateFn };
 
@@ -154,7 +158,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   try {
     out = useModel
       ? await modelTurn({ ctx, question, tools, toolCtx, chain, chatOptions: deps.chatOptions })
-      : await localTurn({ ctx, question, tools, toolCtx });
+      : await localTurn({ ctx, question, typed: raw, tools, toolCtx });
   } catch (e) {
     error = String((e as Error)?.message ?? e).slice(0, 1000);
     const partial = (e as { partial?: BrainOutput }).partial;
