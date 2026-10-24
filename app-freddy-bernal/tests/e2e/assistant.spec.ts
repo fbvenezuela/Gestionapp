@@ -43,7 +43,8 @@ test('la ventana: pregunta, contesta, lleva a la pantalla, sigue al cambiar de p
   await btn.click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
-  await expect(btn).toHaveAttribute('aria-expanded', 'true');
+  // The modal dialog hides everything behind it from assistive tech, the launcher included.
+  await expect(page.getByRole('button', { name: /asistente del equipo/, includeHidden: true })).toHaveAttribute('aria-expanded', 'true');
   await expect(dialog.getByText('No escribas aquí fechas, horas ni direcciones de la agenda.')).toBeVisible();
   await expect(dialog.getByLabel(/Tu pregunta/)).toHaveAttribute('maxlength', '1500');
   await expect(dialog.getByRole('button', { name: 'Enviar' })).toBeDisabled();
@@ -145,7 +146,7 @@ test('el panel: administración abre las ocho pestañas; otro rol no entra', asy
   // «Cómo contesta»: the tester shows which scripts it would use, without spending a turn.
   await tabs.getByRole('link', { name: 'Cómo contesta' }).click();
   await page.getByLabel('La pregunta').fill('¿cómo te llamas?');
-  await page.getByRole('button', { name: 'Probar' }).click();
+  await page.getByRole('button', { name: 'Probar', exact: true }).click();
   await expect(page.getByText('Usaría estos guiones:')).toBeVisible();
 
   // «Cómo va»: the chain test in demo answers with the demo brain.

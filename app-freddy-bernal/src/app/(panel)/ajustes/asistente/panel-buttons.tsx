@@ -71,7 +71,9 @@ export function ProbeChain() {
           <PlugZap className="h-4 w-4" aria-hidden /> {pending ? 'Probando…' : 'Probar la cadena'}
         </Button>
         {rows ? (
-          <ul className="flex flex-col gap-2" role="status">
+          // role="status" on its own wrapper: on the <ul> it would erase the list for screen readers.
+          <div role="status">
+          <ul className="flex flex-col gap-2">
             {rows.map((r) => (
               <li key={r.link} className="rounded-[var(--radius-control)] border border-border p-3 text-[15px]">
                 <div className="flex flex-wrap items-center gap-2">
@@ -84,6 +86,7 @@ export function ProbeChain() {
               </li>
             ))}
           </ul>
+          </div>
         ) : null}
       </CardBody>
     </Card>

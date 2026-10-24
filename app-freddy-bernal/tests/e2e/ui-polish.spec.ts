@@ -62,7 +62,8 @@ test('pedir cambios: motivos rápidos y aviso sin ventanas del navegador', async
   });
   await loginAs(page, 'supervision@demo.test');
   await page.goto('/aprobar');
-  await page.getByRole('link', { name: /Aclaratoria sobre el servicio de agua/ }).click();
+  // An amarillo piece that no other spec approves (the red one is approved by the boss in flows.spec).
+  await page.getByRole('link', { name: /Avance del puente La Quebrada/ }).click();
   await page.getByRole('button', { name: 'Pedir cambios' }).click();
   await expect(page.getByRole('alert').filter({ hasText: 'Escribe qué hay que cambiar' })).toBeVisible();
   expect(nativeDialog).toBe(false);
