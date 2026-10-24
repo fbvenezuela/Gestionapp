@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input, Textarea } from '@/components/ui/field';
 import { EmptyState } from '@/components/ui/page';
+import { DICTATE_HINT } from '@/lib/data/labels';
 
 type Block = { id?: string; shot: string; angle: string; bossLine: string; broll: string; fact: string; factSource: string };
 type DbBlock = { id: string; shot: string; angle: string; boss_line: string; broll: string; fact: string; fact_source: string };
@@ -57,6 +58,7 @@ export function StoryboardEditor({ eventId, canEdit, speech, blocks, facts }: { 
         <CardHeader title="Lo que va a decir" subtitle="El texto que el jefe lee en su iPad (modo lectura)." />
         <CardBody>
           <Textarea aria-label="Lo que va a decir" rows={6} value={value.speech} onChange={(e) => setValue({ ...value, speech: e.target.value })} placeholder="¡Saludos, Táchira! Hoy estamos en…" />
+          <p className="mt-1.5 text-sm text-text-2">{DICTATE_HINT}</p>
         </CardBody>
       </Card>
 

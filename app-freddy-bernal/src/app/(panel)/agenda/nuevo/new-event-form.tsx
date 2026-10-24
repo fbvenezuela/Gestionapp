@@ -10,6 +10,7 @@ import { Card, CardHeader } from '@/components/ui/card';
 import { Field, Input, Select, Textarea } from '@/components/ui/field';
 import { CategorySelect } from '@/components/ui/category-select';
 import type { CategoryOption } from '@/lib/data/common';
+import { DICTATE_HINT } from '@/lib/data/labels';
 
 const EMPTY = {
   title: '', placeName: '', municipality: '', summary: '', categoryId: '', urgency: '2', cameraUserId: '',
@@ -106,7 +107,7 @@ export function NewEventForm({ categories, municipalities, cameras, isSecretary 
       <Card>
         <CardHeader title="Ficha técnica" subtitle="Con esto se arma el storyboard y los copies. Solo cifras confirmadas." />
         <div className="grid gap-4 p-4 sm:grid-cols-2">
-          <Field label="De qué es la obra o el acto" htmlFor="work" className="sm:col-span-2">
+          <Field label="De qué es la obra o el acto" htmlFor="work" hint={DICTATE_HINT} className="sm:col-span-2">
             <Textarea id="work" rows={2} value={f.workDescription} onChange={set('workDescription')} />
           </Field>
           <Field label="Quién la dirige" htmlFor="led">
@@ -115,10 +116,10 @@ export function NewEventForm({ categories, municipalities, cameras, isSecretary 
           <Field label="Quién es el encargado" htmlFor="charge">
             <Input id="charge" value={f.inCharge} onChange={set('inCharge')} />
           </Field>
-          <Field label="Qué se está logrando" htmlFor="ach" className="sm:col-span-2">
+          <Field label="Qué se está logrando" htmlFor="ach" hint={DICTATE_HINT} className="sm:col-span-2">
             <Textarea id="ach" rows={2} value={f.achievements} onChange={set('achievements')} />
           </Field>
-          <Field label="Datos y cifras (con su fuente)" htmlFor="facts" hint="Ej.: 600 m² de techo (Dirección de obras). Los copies solo usan estas cifras." className="sm:col-span-2">
+          <Field label="Datos y cifras (con su fuente)" htmlFor="facts" hint="Una por línea. Ej.: 600 m² de techo (Dirección de obras). Los copies solo usan estas cifras." className="sm:col-span-2">
             <Textarea id="facts" rows={3} value={f.keyFacts} onChange={set('keyFacts')} />
           </Field>
           <Field label="Protocolo" htmlFor="prot" className="sm:col-span-2">

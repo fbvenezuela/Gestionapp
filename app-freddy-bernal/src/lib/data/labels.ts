@@ -74,3 +74,6 @@ export const LENGTH_GROUP: Record<string, { label: string; networks: string }> =
   medium: { label: 'Medio', networks: 'Threads' },
   short: { label: 'Corto', networks: 'X' },
 };
+
+// Long fields: the phone keyboard's microphone dictates (on the device in many cases) and needs nothing from us.
+export const DICTATE_HINT = 'Puedes dictar: toca el micrófono del teclado.';

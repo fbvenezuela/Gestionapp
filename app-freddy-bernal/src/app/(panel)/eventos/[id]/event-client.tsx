@@ -12,7 +12,7 @@ import { Sheet } from '@/components/ui/sheet';
 import { CategorySelect } from '@/components/ui/category-select';
 import type { CategoryOption } from '@/lib/data/common';
 import type { EventFull } from '@/lib/data/events';
-import { WORK_STATUS } from '@/lib/data/labels';
+import { DICTATE_HINT, WORK_STATUS } from '@/lib/data/labels';
 import { cn } from '@/lib/cn';
 import { TZ } from '@/lib/time';
 
@@ -97,11 +97,11 @@ export function BriefEditor({ id, brief }: { id: string; brief: EventFull['brief
   return (
     <Sheet open={open} onOpenChange={setOpen} title="Ficha técnica" trigger={<Button variant="secondary" size="sm">Editar</Button>}>
       <form className="flex flex-col gap-3" onSubmit={(ev) => { ev.preventDefault(); run(() => updateBrief({ id, ...f }), { success: 'Ficha guardada.', onOk: () => setOpen(false) }); }}>
-        <Field label="De qué es la obra o el acto" htmlFor="bw"><Textarea id="bw" rows={2} value={f.workDescription} onChange={set('workDescription')} /></Field>
+        <Field label="De qué es la obra o el acto" htmlFor="bw" hint={DICTATE_HINT}><Textarea id="bw" rows={2} value={f.workDescription} onChange={set('workDescription')} /></Field>
         <Field label="Quién la dirige" htmlFor="bl"><Input id="bl" value={f.ledBy} onChange={set('ledBy')} /></Field>
         <Field label="Encargado" htmlFor="bi"><Input id="bi" value={f.inCharge} onChange={set('inCharge')} /></Field>
-        <Field label="Qué se está logrando" htmlFor="ba"><Textarea id="ba" rows={2} value={f.achievements} onChange={set('achievements')} /></Field>
-        <Field label="Datos y cifras (con su fuente)" htmlFor="bk"><Textarea id="bk" rows={3} value={f.keyFacts} onChange={set('keyFacts')} /></Field>
+        <Field label="Qué se está logrando" htmlFor="ba" hint={DICTATE_HINT}><Textarea id="ba" rows={2} value={f.achievements} onChange={set('achievements')} /></Field>
+        <Field label="Datos y cifras (con su fuente)" htmlFor="bk" hint="Una por línea, con su fuente entre paréntesis."><Textarea id="bk" rows={3} value={f.keyFacts} onChange={set('keyFacts')} /></Field>
         <Field label="Protocolo" htmlFor="bp"><Textarea id="bp" rows={2} value={f.protocol} onChange={set('protocol')} /></Field>
         <Field label="Notas" htmlFor="bn"><Textarea id="bn" rows={2} value={f.notes} onChange={set('notes')} /></Field>
         <Button type="submit" disabled={pending}>Guardar ficha</Button>
