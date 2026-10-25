@@ -14,7 +14,8 @@ contraseñas del equipo, no en el repositorio ni en un chat.
 | Meta for Developers | Publicar en Instagram, Facebook, Threads | | | | | | | |
 | X Developer | Publicar tweets | | | | | | | |
 | TikTok for Developers | Publicar en TikTok | | | | | | | |
-| Google Cloud | YouTube y Drive | | | | | | | |
+| Google Cloud | Drive y Picker (`DRIVE.md`); luego YouTube | la cuenta de Google **del cliente** (la misma de Drive) | proyecto `fb-operaciones-360` | gratis | | | | app «Operaciones 360» publicada («In production»), solo `drive.file`, sin logo; cliente OAuth tipo web + clave del Picker restringida |
+| Google Drive | Carpeta «FB Operaciones 360» con el material | la cuenta de Google **del cliente** (dueña de la carpeta) | | gratis, 15 GB (compartidos con su Gmail y Fotos) | | | | la conecta Administración en Ajustes → Google Drive; nada compartido «con el enlace». El script de importación entra con esta misma cuenta |
 | Cloudflare (Turnstile) | Antispam de los formularios públicos | | | | | | | |
 | Dominio / DNS | La web del gobernador | lo tiene Pedro Poller | | | | | | |
 

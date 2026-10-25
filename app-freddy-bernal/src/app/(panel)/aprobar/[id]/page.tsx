@@ -51,7 +51,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
             canRequestChanges={inReview && (isSup || isBoss)}
             canAskVoice={isSup || s.roles.includes('admin')}
             note={inReview && red && !isBoss ? 'Está en rojo: la aprueba el jefe. Tú puedes pedir cambios o comentar.' : inReview && !red && isBoss && !isSup ? 'La aprueba supervisión. Tú puedes pedir cambios o comentar.' : ''}
-            media={current?.media_asset_id ? { id: current.media_asset_id, mime: current.mime ?? '' } : null}
+            media={current?.media_asset_id ? { id: current.media_asset_id, mime: current.mime ?? '', drive: current.bucket === 'drive' } : null}
           />
           <Card>
             <CardHeader title="Copies: cómo saldrá" subtitle="Cada copy con las redes que lo usan y el máximo de letras de cada una." />

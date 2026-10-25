@@ -4,7 +4,7 @@ import { loginAs } from './helpers';
 
 // Every page of every role opens without errors and without serious accessibility issues.
 const ROLES: Record<string, string[]> = {
-  'admin@demo.test': ['/hoy', '/agenda', '/agenda?vista=mes', '/agenda?vista=dia', '/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca', '/aprobar', '/aprobar?tab=tweets', '/ajustes', '/ajustes/equipo', '/ajustes/categorias', '/ajustes/formulas', '/ajustes/horarios', '/ajustes/redes', '/ajustes/marca', '/ajustes/buzon', '/ajustes/registro', '/avisos', '/perfil', '/buscar?q=puente', '/agenda/nuevo', '/piezas/nueva', '/tweets/nueva', '/publicar/nueva', '/publicar/espontanea'],
+  'admin@demo.test': ['/hoy', '/agenda', '/agenda?vista=mes', '/agenda?vista=dia', '/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca', '/aprobar', '/aprobar?tab=tweets', '/ajustes', '/ajustes/equipo', '/ajustes/categorias', '/ajustes/formulas', '/ajustes/horarios', '/ajustes/redes', '/ajustes/marca', '/ajustes/drive', '/ajustes/buzon', '/ajustes/registro', '/avisos', '/perfil', '/buscar?q=puente', '/agenda/nuevo', '/piezas/nueva', '/tweets/nueva', '/publicar/nueva', '/publicar/espontanea'],
   'jefe@demo.test': ['/jefe', '/jefe/politica', '/jefe/digital', '/agenda', '/resultados', '/aprobar'],
   'despacho@demo.test': ['/hoy', '/agenda', '/biblioteca'],
   'supervision@demo.test': ['/hoy', '/aprobar', '/tweets', '/resultados'],

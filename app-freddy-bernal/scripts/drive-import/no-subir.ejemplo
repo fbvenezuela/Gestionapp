@@ -1,0 +1,6 @@
+# Lista de lo que NO se sube a Drive (docs/DRIVE.md, paso D).
+# Cópiala dentro de la carpeta de los videos con el nombre .no-subir y escribe un nombre por línea.
+# * = cualquier cosa. No importan las mayúsculas, los acentos, los guiones, los signos ni los espacios.
+# Además, nunca se sube un archivo cuyo nombre (o el de una carpeta donde esté) empiece con NO-SUBIR,
+# ni lo que diga config/clients/fb.json → drive.importExclude. Revisa siempre «Se quedan fuera» con --prueba.
+*sabados felices*

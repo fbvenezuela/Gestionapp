@@ -16,7 +16,8 @@ export type TestDb = {
 // database is created per run. Never point it at production.
 async function postgresBackend(url: string): Promise<Backend> {
   const admin = postgres(url, { max: 1, onnotice: () => {} });
-  const name = `fb_rls_${Date.now()}`;
+  // The RLS files start in parallel: the time alone can repeat within the same millisecond.
+  const name = `fb_rls_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   await admin.unsafe(`create database ${name}`);
   await admin.end();
   const u = new URL(url);

@@ -17,8 +17,9 @@ export default async function TweetsPage() {
   const data = await db(s, async (sql) => ({
     stock: await tweetStock(sql),
     tweets: await sql.query<BoardTweet>(
-      `select t.id, t.body, t.weighted_length, t.scheduled_at, t.status, c.name as category, t.image_asset_id, t.published_url
-         from public.tweets t left join public.categories c on c.id = t.category_id
+      `select t.id, t.body, t.weighted_length, t.scheduled_at, t.status, c.name as category, t.image_asset_id, t.published_url,
+              i.bucket as image_bucket, i.size_bytes as image_size
+         from public.tweets t left join public.categories c on c.id = t.category_id left join public.media_assets i on i.id = t.image_asset_id
         where t.deleted_at is null and t.scheduled_at >= date_trunc('day', now()) - interval '1 day' and t.scheduled_at < now() + interval '21 days'
         order by t.scheduled_at`,
     ),

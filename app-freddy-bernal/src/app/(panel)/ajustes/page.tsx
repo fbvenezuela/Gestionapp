@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { ChevronRight, Users, Tags, PenLine, Clock, Video, Palette, Inbox, History, Bot } from 'lucide-react';
+import { ChevronRight, Users, Tags, PenLine, Clock, Video, Palette, Inbox, History, Bot, HardDrive } from 'lucide-react';
 import { requireRole } from '@/lib/auth/session';
+import { storageProvider } from '@/lib/storage/provider';
 import { PageHeader } from '@/components/ui/page';
 import { Card } from '@/components/ui/card';
 
@@ -18,14 +19,18 @@ const ITEMS = [
   { href: '/ajustes/registro', label: 'Registro de cambios', detail: 'Quién cambió qué y cuándo', icon: History },
 ];
 
+// Only when files go to Drive (STORAGE_PROVIDER=drive); otherwise Ajustes stays as it was.
+const DRIVE_ITEM = { href: '/ajustes/drive', label: 'Google Drive', detail: 'Dónde se guardan los videos, conexión y prueba', icon: HardDrive };
+
 export default async function SettingsPage() {
   await requireRole('admin');
+  const items = storageProvider() === 'drive' ? [...ITEMS.slice(0, 6), DRIVE_ITEM, ...ITEMS.slice(6)] : ITEMS;
   return (
     <>
       <PageHeader title="Ajustes" />
       <Card>
         <ul className="divide-y divide-border">
-          {ITEMS.map(({ href, label, detail, icon: Icon }) => (
+          {items.map(({ href, label, detail, icon: Icon }) => (
             <li key={href}>
               <Link href={href} className="flex min-h-16 items-center gap-3 px-4 py-3 hover:bg-surface-2">
                 <Icon className="h-5 w-5 shrink-0 text-text-2" aria-hidden />

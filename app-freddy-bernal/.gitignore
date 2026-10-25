@@ -18,3 +18,7 @@ tests/fixtures/large/
 .DS_Store
 *.log
 public/mediainfo/
+# Import script (scripts/drive-import): state, upload sessions and the list of originals. Never in git.
+.drive-import/
+scripts/drive-import/*.json
+scripts/drive-import/.no-subir

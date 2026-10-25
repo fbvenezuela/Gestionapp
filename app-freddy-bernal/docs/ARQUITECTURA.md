@@ -1,6 +1,6 @@
 # Arquitectura
 
-Actualizado: 23/10/2026.
+Actualizado: 25/10/2026.
 
 ## Piezas
 - **Next.js 16 (App Router), React 19, TypeScript estricto, Tailwind 4.** Server Components para leer y server
@@ -12,6 +12,8 @@ Actualizado: 23/10/2026.
 - **Supabase Auth** (correo + código de 6 dígitos, TOTP), **Storage** (subida TUS por partes), **Realtime** (listo en
   la publicación; la UI se refresca al actuar).
 - **Resend + React Email** (`emails/`), siempre pasando por la tabla `outbox`.
+- **Google Drive del cliente** para el material, solo con `STORAGE_PROVIDER=drive` (ver «Subidas y dónde vive el
+  video» y `DRIVE.md`). Sin la variable, todo como antes.
 - **Vercel** (prueba por PR, producción en `main`) y **GitHub Actions**.
 
 ## Estructura de carpetas
@@ -22,14 +24,14 @@ app-freddy-bernal/
 ├── emails/                 # Plantillas de correo
 ├── diseno/stitch/          # Modelo visual (referencia, no se ejecuta)
 ├── public/                 # PWA: sw.js, offline.html, iconos; mediainfo (se copia al instalar)
-├── scripts/                # Cargar la configuración del cliente y crear el primer admin
+├── scripts/                # Cargar la configuración del cliente, crear el primer admin, importar videos a Drive (drive-import/)
 ├── supabase/
 │   ├── migrations/         # SQL versionado (lo que va a Supabase)
 │   └── shim/               # Solo demo/pruebas: esquema auth falso y tablas de login demo
 ├── src/
 │   ├── app/(auth)/         # Entrar, doble factor, sin acceso
 │   ├── app/(panel)/        # Hoy, agenda, eventos, piezas, aprobar, tweets, publicar, resultados, biblioteca, jefe, ajustes
-│   ├── app/api/            # Descarga firmada, subida demo (TUS), cron
+│   ├── app/api/            # Descarga firmada (y por tramos desde Drive), miniaturas, subida demo (TUS), Drive (conexión, partes por la plataforma), cron
 │   ├── components/         # UI (tokens), shell, agenda, media, tweets
 │   └── lib/                # db, auth, actions (server actions), data (lecturas), domain (lógica pura), ai, publish, email
 └── tests/                  # unit (Vitest), rls (Vitest), e2e (Playwright 360 px + axe)
@@ -47,6 +49,7 @@ app-freddy-bernal/
 | Publicación | `publications` (con `republish_of`, `collaborators`, `validation`), `publication_metrics` (fotos en el tiempo), `network_specs` | Trigger `guard_publication` |
 | Avisos | `notifications`, `outbox`, `jobs`, `ai_usage` | Escritos por el servidor |
 | Auditoría | `audit_log` | Solo se agrega; trigger en todas las tablas de negocio |
+| Google Drive | `drive_connection`, `drive_folders`, `media_drive`, `media_thumbs`, `drive_transfer`; función `drive_status()` | Solo el servidor (RLS activo, sin políticas, sin permisos para los roles de la API). Un archivo de Drive es una fila normal de `media_assets` con `bucket = 'drive'` |
 
 Índices en las columnas de búsqueda y orden (estado, fechas, claves foráneas). Borrado: columna `deleted_at` y
 trigger `guard_soft_delete` (solo administración).
@@ -103,9 +106,44 @@ Funciones: `has_role`, `has_any_role`, `is_staff`, `is_content_team` (admin, red
   Storage enlazadas a `media_assets` (la regla de asignación vale también para los archivos).
 - Descarga: `/api/media/[id]` comprueba el permiso con RLS y redirige a una URL firmada de 5 minutos.
 
+### Con Google Drive (`STORAGE_PROVIDER=drive`, `DRIVE.md`, D-28)
+- **Conexión:** Administración (con doble factor) conecta una vez en Ajustes → Google Drive (OAuth web con PKCE, solo
+  `drive.file`). El permiso de renovación se guarda **cifrado** (AES-256-GCM) en `drive_connection`; el token de acceso
+  vive solo en la memoria del servidor (`src/lib/storage/drive/connection.ts`). Cliente REST propio sobre `fetch`, sin
+  librerías de Google.
+- **Subir:** `createUpload` crea la fila con RLS (`bucket = 'drive'`) y, **después** de esa transacción, el servidor abre
+  una subida reanudable en `<carpeta raíz>/<Tipo>/<código del evento>` con el `Origin` de la página. El navegador recibe
+  **solo** la URL de esa subida (nunca un token) y manda partes de 4 MiB directo a Google (`src/lib/media/drive-upload.ts`:
+  pausa, sigue al volver la señal, retoma tras recargar). «Ya terminé» comprueba en Google tamaño, tipo y marca privada.
+  Con `DRIVE_UPLOAD_MODE=proxy`, las partes (1 MiB) pasan por `/api/drive/upload/[id]`.
+- **Ver y descargar:** `/api/media/[id]` hace primero la misma consulta con RLS; solo si la fila es visible lee el id de
+  Drive (sistema) y trae el archivo con `Range`, **4 MiB por respuesta**, para que el video se pueda adelantar sin pasar el
+  límite de 300 s de Vercel. «Descargar» de un archivo de Drive pide tramos seguidos y los guarda en el teléfono (OPFS si
+  hay; si no, en memoria) hasta tener el archivo (`src/lib/media/chunk-download.ts`): un video de 180 MB baja aunque la
+  línea sea lenta o se corte. Todos los botones de descarga de un archivo de Drive van así (`DownloadLink`), y sin
+  `Range` el servidor solo da entero un archivo de hasta 32 MiB. Tope mensual de lo servido
+  (`DRIVE_TRANSFER_CAP_GB`): cada respuesta aparta sus bytes antes de mandar (una actualización condicional en
+  `drive_transfer`) y devuelve lo no enviado al terminar; además, una parte diaria por persona
+  (`drive_transfer_person`, un cuarto del tope; Administración aparte). Si un reproductor no carga un archivo de
+  Drive, la página pide el primer byte para mostrar el motivo.
+- **Miniaturas:** `/api/media/[id]/thumb` (mismo permiso), copiadas de Drive a `media_thumbs`; nunca un enlace de Google
+  en la página.
+- **Elegir de Drive** (solo Administración): el Google Picker corre en su navegador con un token de una hora de
+  `drive.file`; devuelve solo ids y el servidor lee lo demás de Drive. Las fotos elegidas se guardan limpias (copia sin
+  EXIF/GPS). Después, el navegador de Administración lee el formato de los videos (MediaInfo por tramos de
+  `/api/media/[id]`) y la plataforma llena solo lo que faltaba (`saveDriveProbe`).
+- **Importar lo del Mac:** `npm run drive:import` (`scripts/drive-import/`) sube una carpeta a `<carpeta raíz>/Importado`
+  con el mismo cliente OAuth y la misma cuenta; Biblioteca → «Traer lo nuevo de Drive» las registra como «Archivo 001».
+- **Nombres** (regla 4): carpeta = tipo + código del evento; archivo = código + nombre de la plataforma. Nunca fecha, hora,
+  lugar ni el nombre original.
+- **Fallas:** permiso vencido, Drive lleno, archivo borrado o Drive lento → mensaje corto para quien usa la app y un aviso
+  a Administración (`drive_down`, `drive_quota`, `drive_missing`). Las filas que ya estaban en Supabase siguen abriendo:
+  cada fila se sirve según su `bucket`.
+
 ## Tareas programadas
 - `/api/cron/tick` (con `CRON_SECRET`): aviso de tweets por acabarse (una vez al día) y publicaciones vencidas
-  (recordatorio en modo manual; en modo API, publica con el adaptador).
+  (recordatorio en modo manual; en modo API, publica con el adaptador). Con Drive, además, marca como fallidas las
+  subidas abandonadas hace más de 8 días (Google cierra la subida a la semana).
 - Vercel Cron diario (`vercel.json`). Para cada 5 minutos: `pg_cron` + `pg_net` en Supabase:
   ```sql
   select cron.schedule('fb-tick', '*/5 * * * *', $$
@@ -121,4 +159,4 @@ Funciones: `has_role`, `has_any_role`, `is_staff`, `is_content_team` (admin, red
 | Publicar | `src/lib/publish` | `manual` y `simulated`; Meta/X/TikTok/YouTube cuando aprueben |
 | Correo | `src/lib/email` | Resend; modo buzón por defecto |
 | Métricas | `src/lib/actions/results.ts` | Manual y CSV; APIs en fase 2 |
-| Drive del cliente | — | Fase 2 (cuenta de servicio con la carpeta compartida) |
+| Drive del cliente | `src/lib/storage/drive`, `scripts/drive-import` | Lista detrás de `STORAGE_PROVIDER=drive` (OAuth con la cuenta del cliente, `drive.file`); `DRIVE_FAKE=1` para probar sin Google |

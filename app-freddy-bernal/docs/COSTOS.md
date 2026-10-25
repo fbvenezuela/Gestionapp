@@ -1,6 +1,6 @@
 # Costos: herramientas y cuentas
 
-Actualizado: 23/10/2026. Lo paga el cliente (Hillary lo pidió). Los precios vienen de páginas públicas y guías de
+Actualizado: 25/10/2026. Lo paga el cliente (Hillary lo pidió). Los precios vienen de páginas públicas y guías de
 2026; **todo dice «verificar»** porque cambian seguido y algunas fuentes no coinciden. Antes de pagar, se mira la
 página oficial de cada servicio. Montos en dólares, por mes.
 
@@ -27,10 +27,21 @@ página oficial de cada servicio. Montos en dólares, por mes.
 | Meta (Instagram, Facebook, Threads) | Publicar solos | Sin costo por uso; pide app de desarrollador, verificación del negocio y revisión de permisos (semanas) | Opcional (fase 2) |
 | TikTok | Publicar solo | Sin costo; hasta que auditen la app, lo publicado sale privado | Opcional (fase 2) |
 | YouTube Data API | Subir videos | Sin costo; la subida gasta mucha cuota diaria | Opcional (fase 2) |
-| Google Cloud (Drive) | Leer la carpeta del cliente | Sin costo para este uso | Opcional (fase 2) |
+| Google Drive + Google Cloud | Guardar el material en el Drive del cliente (`DRIVE.md`) | **0**: 15 GB gratis por cuenta; las APIs de Drive y del Picker no cobran por este uso | Opcional (`STORAGE_PROVIDER=drive`). Ver «El material en Google Drive» abajo |
 | Metricool | Solo leer métricas, si se decide | Depende del plan (verificar si incluye API) | Opcional |
 | Cloudflare Turnstile | Antispam de la web pública | Gratis | Sí en fase 3, sin costo |
 | Mapas (teselas) | Mapa de reportes (fase 3) | Proveedores con plan gratis para poco tráfico (MapTiler, Stadia; verificar) | Fase 3 |
+
+## El material en Google Drive (25/10/2026)
+
+| Qué | Cuánto | Nota |
+|---|---|---|
+| Espacio | **15 GB gratis** por cuenta de Google, **compartidos** con el Gmail y las Fotos de esa cuenta | Hoy el material son **2,3 GB** (videos del grupo de redes, hasta 180 MB cada uno) |
+| ¿Cuándo se llena? | Con unos **3 GB nuevos al mes** (estimado: unos 15–20 videos de 150–200 MB), los 12,7 GB que quedan alcanzan para **unos 4 meses**; menos si el Gmail o las Fotos de esa cuenta ya ocupan espacio | Ajustes → Google Drive → «Probar» muestra cuánto se usa y avisa al pasar el 80 % |
+| Si se llena | Google One 100 GB es de pago (unos 2 al mes, **verificar** en one.google.com) | Solo con el OK de Juan. Otra salida gratis: bajar a un disco los finales viejos ya publicados |
+| APIs de Google (Drive, Picker) | 0 | Gratis con límites amplios (12.000 consultas por minuto). La app de Google queda «En producción» sin verificación porque solo usa `drive.file` |
+| Transferencia de Vercel | Hobby incluye unos **10 GB al mes** de transferencia desde el servidor y **pausa todo el proyecto** si se pasa | Ver, adelantar y descargar videos de Drive pasa por la plataforma (para revisar permisos). Por eso hay un tope de **7 GB al mes** (`DRIVE_TRANSFER_CAP_GB`): unos 35–45 videos de 180 MB vistos o bajados por mes. Cada persona puede usar al día hasta la cuarta parte (1,75 GB), para que una sola cuenta no lo gaste todo; Administración no tiene tope diario. Al llegar al tope del mes, ver o descargar de Drive se pausa hasta el mes siguiente (subir sigue). Con **Vercel Pro** (ya recomendado arriba; incluye mucha más transferencia, verificar cuánta en vercel.com/pricing) se pone `0` y no hay tope |
+| Subir | 0 de Vercel | El video va del teléfono directo a Google. Solo con `DRIVE_UPLOAD_MODE=proxy` (si Google no lo deja directo y Juan da el OK) las subidas también gastan transferencia de Vercel |
 
 ## Cuánto cuesta blindar la seguridad (lo pidió Hillary)
 
@@ -57,3 +68,6 @@ una revisión externa antes de abrir la web al público.
 - Resend: resend.com/pricing.
 - X API: developer.x.com (pago por uso, 2026).
 - Anthropic: precios de la API en platform.claude.com.
+- Google: espacio gratis (support.google.com/docs/answer/9312312), límites de la API de Drive
+  (developers.google.com/workspace/drive/api/guides/limits), Google One (one.google.com).
+- Vercel: límites de funciones y de transferencia (vercel.com/docs/limits).

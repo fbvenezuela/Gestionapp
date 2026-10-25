@@ -65,6 +65,8 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
   Tope configurable (`upload.max_mb`, 10 GB por defecto).
 - **Por qué:** PENDIENTES #18 recomienda la plataforma para el video y el Drive solo para leer. Si las descargas
   cuestan mucho, se cambia a Cloudflare R2 detrás de la misma ruta de descarga.
+- **Actualizado (25/10):** con `STORAGE_PROVIDER=drive` los archivos nuevos van al Google Drive del cliente (D-28). Sin
+  la variable, esto sigue igual.
 
 ## D-13. Nombres de archivo sin fecha
 - **Qué:** las rutas son `<evento>/<uuid>.<ext>` y la descarga se llama `<código>-<tipo>-<n>.<ext>`. No se guarda el
@@ -207,3 +209,38 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
   en Equipo, ve quién tiene doble factor y lo reinicia si alguien pierde el teléfono (queda en el registro).
 - Las confirmaciones usan el diálogo de la app, no las ventanitas del navegador.
 
+## D-28. El material en el Google Drive del cliente (25/10/2026)
+- **Qué:** con `STORAGE_PROVIDER=drive`, los videos, fotos y archivos nuevos se guardan en una carpeta del Google Drive
+  del cliente («FB Operaciones 360», con `Videos`, `Fotos`, `Portadas`, `Audios`, `Documentos` y una carpeta por código
+  de evento). Lo que ya estaba en Supabase sigue sirviéndose desde ahí: cada fila dice dónde vive (`bucket`).
+- **Cómo se conecta:** OAuth con la cuenta del cliente y **solo** el permiso `drive.file` (no sensible: sin revisión de
+  Google); la app de Google se publica «En producción» para que el permiso no se venza a los 7 días. Administración
+  conecta una vez en Ajustes → Google Drive; el permiso se guarda cifrado y nunca va al navegador. Cliente REST propio
+  sobre `fetch` (sin librerías nuevas).
+- **Permisos:** manda el de la plataforma (RLS sobre `media_assets`, igual que antes). El navegador de quien no es
+  Administración nunca recibe un permiso de Google: sube y descarga por la plataforma. «Elegir de Drive» (Google
+  Picker) es solo para Administración, con un token de una hora de `drive.file`.
+- **Subir:** el servidor abre la subida reanudable y el navegador manda las partes directo a Google (nunca por Vercel,
+  que limita el tamaño de lo que recibe). Si con la cuenta real Google no lo dejara, `DRIVE_UPLOAD_MODE=proxy` las pasa
+  por la plataforma (gasta transferencia: necesita el OK de Juan).
+- **Ver y descargar:** `/api/media/[id]` revisa el permiso y trae el archivo por tramos de 4 MiB (el video se adelanta);
+  «Descargar» junta los tramos en el teléfono y sigue sola si se corta, porque Vercel corta cada respuesta a los 300 s y
+  un video de 180 MB en una línea lenta tarda más (también «Video» y «Portada» en Publicar, la portada y el audio de la
+  pieza y la imagen de un tweet; sin tramos, el servidor no da entero un archivo de más de 32 MiB). Tope mensual de
+  transferencia (`DRIVE_TRANSFER_CAP_GB`, 7 GB) para que Vercel Hobby no pause el proyecto: se aparta antes de mandar
+  (varios pedidos a la vez no lo pasan) y cada persona tiene una parte diaria (un cuarto del tope; Administración
+  aparte), para que una sola cuenta no apague los videos de todos. No hay botón para «subir el tope este mes»: eso
+  quitaría justo la protección contra la pausa de Vercel; con Vercel Pro se cambia la variable.
+- **El material del Mac:** script `npm run drive:import` (mismo cliente OAuth y misma cuenta, para que la plataforma vea
+  los archivos), que se reanuda, no repite y deja fuera lo que diga la lista (`drive.importExclude`: el video de Sábados
+  Felices que el equipo mandó bajar el 24/10; `NO-SUBIR-…`; `.no-subir`). Biblioteca → «Traer lo nuevo de Drive» los
+  registra.
+- **Por qué:** es gratis (15 GB), el equipo ya usa Drive y el material de hoy (2,3 GB, archivos de hasta 180 MB) no cabe
+  en el repositorio ni en el plan gratis de Supabase. Se descartó una cuenta de servicio (no tiene espacio propio en un
+  Drive personal) y compartir carpetas «con el enlace» (saltaría los permisos por evento).
+- **Lo que no se pudo como pedía el encargo:** Drive no da códecs ni cuadros por segundo (los lee el navegador de
+  Administración después de elegir o importar); elegir una carpeta entera en el Picker no da acceso a sus archivos (se
+  eligen uno por uno, o se usa el script); `DRIVE_ROOT_FOLDER_ID` no sirve con `drive.file` (la plataforma crea su
+  carpeta y guarda el id en la base).
+- **Cómo se cambia:** vaciar `STORAGE_PROVIDER` vuelve a Supabase para lo nuevo (lo de Drive sigue abriendo mientras
+  Drive esté conectado). Pasos y variables: `DRIVE.md`.

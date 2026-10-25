@@ -6,9 +6,13 @@ import { withUser } from '@/lib/db';
 import { isDemo } from '@/lib/env';
 import { demoFilePath } from '@/lib/storage/demo-store';
 
+// Drive files stream through here (ranged, 4 MiB at most per answer): allow the longest run.
+export const maxDuration = 300;
+
 // Downloads a private file. RLS decides whether the person may read the row; the file
 // is then served through a short-lived signed URL (5 minutes). File names never carry
-// a date: <event code>-<label>.<ext>.
+// a date: <event code>-<label>.<ext>. Drive rows (bucket 'drive') are streamed from Google
+// with Range support, only after that same check (src/lib/storage/drive/serve.ts).
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const s = await getSession();
@@ -24,6 +28,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const ext = row.storage_path.split('.').pop();
   const name = `${row.code ?? 'pieza'}-${row.label}`.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9-]+/g, '-') + `.${ext}`;
   const inline = req.nextUrl.searchParams.get('ver') === '1';
+
+  if (row.bucket === 'drive') {
+    const { serveDriveMedia } = await import('@/lib/storage/drive/serve');
+    return serveDriveMedia(req, { id, label: row.label, mime: row.mime, code: row.code, storage_path: row.storage_path }, inline, {
+      userId: s.userId,
+      admin: s.roles.includes('admin'),
+    });
+  }
 
   if (isDemo()) {
     const file = demoFilePath(row.storage_path);
