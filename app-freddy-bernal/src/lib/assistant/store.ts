@@ -94,7 +94,7 @@ export async function loadKnowledge(roles: Role[]): Promise<Ficha[] | null> {
   try {
     return await withSystem((sql) =>
       sql.query<Ficha>(
-        `select key, title, body, tags from public.assistant_knowledge
+        `select key, title, body, tags, origin from public.assistant_knowledge
           where active and (roles is null or roles && $1::public.app_role[]) order by origin desc, title`,
         [`{${roles.join(',')}}`],
       ),
@@ -105,16 +105,18 @@ export async function loadKnowledge(roles: Role[]): Promise<Ficha[] | null> {
   }
 }
 
-/** The scripts for this question and the person's two previous ones (counts usage). */
+/** The scripts for this question and the person's two previous ones (counts usage), with who wrote
+ * them (the team's and the ones saved from a conversation are scrubbed again in the prompt). */
 export async function loadScripts(text: string, roles: Role[], count = true): Promise<ChosenScript[]> {
   try {
     return await withSystem(async (sql) =>
       (
-        await sql.query<{ script_key: string | null; script_topic: string; script_text: string; script_always: boolean }>(
-          `select * from public.assistant_scripts_for($1, $2::public.app_role[], 3, $3)`,
+        await sql.query<{ script_key: string | null; script_topic: string; script_text: string; script_always: boolean; script_origin: string | null }>(
+          `select f.*, (select s.origin from public.assistant_scripts s where s.id = f.script_id) as script_origin
+             from public.assistant_scripts_for($1, $2::public.app_role[], 3, $3) f`,
           [text, `{${roles.join(',')}}`, count],
         )
-      ).map((s) => ({ key: s.script_key, topic: s.script_topic, script: s.script_text, always: s.script_always })),
+      ).map((s) => ({ key: s.script_key, topic: s.script_topic, script: s.script_text, always: s.script_always, origin: s.script_origin ?? undefined })),
     );
   } catch (e) {
     console.error('[asistente] no se pudieron elegir los guiones:', (e as Error).message);

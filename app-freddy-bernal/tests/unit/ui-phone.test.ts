@@ -1,20 +1,15 @@
-// The panel at 360 px: menus that close like menus, a phone bar whose labels fit, and lists
-// that truncate long titles instead of pushing the page sideways (tests/e2e checks the pixels).
+// The «Más», «Crear» and «Mi cuenta» menus close like menus (menu-core.ts). What the phone shows
+// (labels that fit, no sideways scroll, menus used in the header) is checked on real pixels by
+// tests/e2e/pages.spec.ts and tests/e2e/ui-polish.spec.ts, not by reading the source here.
 import { describe, it, expect } from 'vitest';
-import fs from 'node:fs';
-import { dismissMenu, type MenuDoc } from '@/components/shell/menu-core';
-
-const read = (f: string) => fs.readFileSync(f, 'utf8');
+import { dismissMenu, type MenuDoc, type MenuEl } from '@/components/shell/menu-core';
 
 type Handler = (e: never) => void;
 
 function fakeDom() {
   const listeners = new Map<string, Handler>();
   const body = { name: 'body' };
-  const summary = { focused: 0, focus() { this.focused++; } };
-  const inside = { name: 'item' };
   const outside = { name: 'page' };
-  const menu = { open: false, contains: (n: unknown) => n === inside || n === summary, querySelector: () => summary };
   const doc = {
     body,
     activeElement: body as unknown,
@@ -24,85 +19,109 @@ function fakeDom() {
     },
   };
   const fire = (type: 'pointerdown' | 'keydown', e: object) => (listeners.get(type) as ((e: object) => void) | undefined)?.(e);
-  return { listeners, menu, doc: doc as unknown as MenuDoc & { activeElement: unknown }, fire, summary, inside, outside };
+  return { listeners, doc: doc as unknown as MenuDoc & { activeElement: unknown }, fire, outside };
+}
+
+// A <details>: setting `open` fires «toggle», as the browser does.
+function fakeMenu() {
+  const own = new Map<string, Handler>();
+  const summary = { focused: 0, focus() { this.focused++; } };
+  const inside = { name: 'item' };
+  let open = false;
+  const menu = {
+    get open() { return open; },
+    set open(v: boolean) {
+      const changed = v !== open;
+      open = v;
+      if (changed) (own.get('toggle') as (() => void) | undefined)?.();
+    },
+    contains: (n: unknown) => n === inside || n === summary,
+    querySelector: () => summary,
+    addEventListener: (type: string, fn: Handler) => own.set(type, fn),
+    removeEventListener: (type: string, fn: Handler) => {
+      if (own.get(type) === fn) own.delete(type);
+    },
+  };
+  const focusOut = (relatedTarget: unknown) => (own.get('focusout') as ((e: object) => void) | undefined)?.({ relatedTarget });
+  return { menu: menu as MenuEl, own, summary, inside, focusOut };
 }
 
 describe('menús «Más», «Crear» y «Mi cuenta»', () => {
   it('un toque afuera los cierra; adentro, no', () => {
     const d = fakeDom();
-    dismissMenu(d.menu, d.doc);
-    d.menu.open = true;
-    d.fire('pointerdown', { target: d.inside });
-    expect(d.menu.open).toBe(true);
+    const m = fakeMenu();
+    dismissMenu(m.menu, d.doc, new Set());
+    m.menu.open = true;
+    d.fire('pointerdown', { target: m.inside });
+    expect(m.menu.open).toBe(true);
     d.fire('pointerdown', { target: d.outside });
-    expect(d.menu.open).toBe(false);
+    expect(m.menu.open).toBe(false);
   });
 
   it('Escape los cierra y devuelve el foco al botón del menú', () => {
     const d = fakeDom();
-    dismissMenu(d.menu, d.doc);
-    d.menu.open = true;
-    d.doc.activeElement = d.inside;
+    const m = fakeMenu();
+    dismissMenu(m.menu, d.doc, new Set());
+    m.menu.open = true;
+    d.doc.activeElement = m.inside;
     d.fire('keydown', { key: 'Enter' });
-    expect(d.menu.open).toBe(true);
+    expect(m.menu.open).toBe(true);
     d.fire('keydown', { key: 'Escape' });
-    expect(d.menu.open).toBe(false);
-    expect(d.summary.focused).toBe(1);
+    expect(m.menu.open).toBe(false);
+    expect(m.summary.focused).toBe(1);
     // Closed already: another Escape does nothing.
     d.fire('keydown', { key: 'Escape' });
-    expect(d.summary.focused).toBe(1);
+    expect(m.summary.focused).toBe(1);
   });
 
   it('un Escape con el foco en otra parte (un diálogo) no es del menú', () => {
     const d = fakeDom();
-    dismissMenu(d.menu, d.doc);
-    d.menu.open = true;
+    const m = fakeMenu();
+    dismissMenu(m.menu, d.doc, new Set());
+    m.menu.open = true;
     d.doc.activeElement = d.outside;
     d.fire('keydown', { key: 'Escape' });
-    expect(d.menu.open).toBe(true);
+    expect(m.menu.open).toBe(true);
   });
 
-  it('al desmontar deja de escuchar', () => {
+  it('con el teclado: Tab fuera del menú lo cierra; moverse adentro, no', () => {
     const d = fakeDom();
-    const stop = dismissMenu(d.menu, d.doc);
+    const m = fakeMenu();
+    dismissMenu(m.menu, d.doc, new Set());
+    m.menu.open = true;
+    m.focusOut(m.inside);
+    expect(m.menu.open).toBe(true);
+    // The focus went nowhere (another window): it stays open.
+    m.focusOut(null);
+    expect(m.menu.open).toBe(true);
+    m.focusOut(d.outside);
+    expect(m.menu.open).toBe(false);
+  });
+
+  it('abrir uno cierra los demás (nunca dos paneles encimados)', () => {
+    const d = fakeDom();
+    const group = new Set<MenuEl>();
+    const create = fakeMenu();
+    const account = fakeMenu();
+    dismissMenu(create.menu, d.doc, group);
+    dismissMenu(account.menu, d.doc, group);
+    create.menu.open = true;
+    account.menu.open = true;
+    expect([create.menu.open, account.menu.open]).toEqual([false, true]);
+    create.menu.open = true;
+    expect([create.menu.open, account.menu.open]).toEqual([true, false]);
+  });
+
+  it('al desmontar deja de escuchar y sale del grupo', () => {
+    const d = fakeDom();
+    const m = fakeMenu();
+    const group = new Set<MenuEl>();
+    const stop = dismissMenu(m.menu, d.doc, group);
     expect([...d.listeners.keys()].sort()).toEqual(['keydown', 'pointerdown']);
+    expect([...m.own.keys()].sort()).toEqual(['focusout', 'toggle']);
     stop();
     expect(d.listeners.size).toBe(0);
-  });
-
-  it('«Más», «Crear» y «Mi cuenta» usan el menú que se cierra solo', () => {
-    expect(read('src/components/shell/nav.tsx')).toMatch(/<MenuDetails key=\{pathname\}/);
-    const layout = read('src/app/(panel)/layout.tsx');
-    expect(layout).toMatch(/<MenuDetails className="relative">\s*<summary[^>]*aria-label="Mi cuenta"/);
-    expect(layout).toMatch(/<MenuDetails className="relative">\s*<summary[^>]*>\s*<Plus /);
-    expect(layout).not.toContain('<details');
-  });
-
-  it('elegir una opción también lo cierra: el encabezado no cambia al cambiar de página', () => {
-    expect(read('src/components/shell/menu-details.tsx')).toMatch(/closest\('a\[href\]'\)\) e\.currentTarget\.open = false/);
-  });
-});
-
-describe('barra del teléfono', () => {
-  const nav = read('src/components/shell/nav.tsx');
-
-  it('cada etiqueta mide lo que su casilla (no se monta sobre la vecina)', () => {
-    expect(nav).toContain('<span className="block w-full truncate px-0.5 text-center">{it.label}</span>');
-  });
-
-  it('con cinco casillas la letra es fija de 11 px, también en «Modo sol»', () => {
-    expect(nav).toMatch(/cols >= 5 \? 'text-\[11px\] tracking-tight' : 'text-xs'/);
-  });
-});
-
-describe('listas que no empujan la página hacia los lados', () => {
-  it('Hoy: las dos columnas pueden encogerse, así los títulos largos se cortan', () => {
-    expect(read('src/app/(panel)/hoy/page.tsx').match(/<div className="flex min-w-0 flex-col gap-5">/g)).toHaveLength(2);
-  });
-
-  it('Material: el nombre pide 11rem y los botones bajan a su línea', () => {
-    const m = read('src/app/(panel)/eventos/[id]/material-panel.tsx');
-    expect(m).toContain('<div className="min-w-0 flex-[1_1_11rem]">');
-    expect(m).toContain('<div className="ml-auto flex items-center gap-2">');
+    expect(m.own.size).toBe(0);
+    expect(group.size).toBe(0);
   });
 });

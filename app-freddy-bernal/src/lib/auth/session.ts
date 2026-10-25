@@ -45,20 +45,33 @@ async function readClaims(): Promise<Claims | null> {
   const { data } = await supabase.auth.getClaims();
   const c = data?.claims as (Claims & { iat?: number }) | undefined;
   if (!c?.sub) return null;
-  // One query: the person's state and when this token's Auth session began, so a token renewed
-  // after «Cerrar sus sesiones» (fresh iat, same old session) stays out.
-  const sid = c.session_id && UUID.test(c.session_id) ? c.session_id : null;
-  const st = await withSystem((sql) =>
-    sql.one<{ revoked: Date | string | null; active: boolean; started: Date | string | null }>(
-      `select p.sessions_revoked_at as revoked, p.active and p.deleted_at is null as active,
-              (select s.created_at from auth.sessions s where s.id = $2::uuid) as started
-         from public.profiles p where p.id = $1`,
-      [c.sub, sid],
-    ),
-  );
+  const st = await personState(c.sub, c.session_id && UUID.test(c.session_id) ? c.session_id : null);
   if (!st || !st.active) return null;
   if (revokedSession(st.revoked, c.iat, st.started)) return null;
   return { sub: c.sub, email: c.email, aal: (c.aal as 'aal1' | 'aal2') ?? 'aal1', session_id: c.session_id, role: 'authenticated' };
+}
+
+type PersonState = { revoked: Date | string | null; active: boolean; started: Date | string | null };
+const STATE = `select p.sessions_revoked_at as revoked, p.active and p.deleted_at is null as active`;
+
+// One query: the person's state and when this token's Auth session began, so a token renewed
+// after «Cerrar sus sesiones» (fresh iat, same old session) stays out. The start comes from a
+// SECURITY DEFINER function (migration 20261025001100_session_started.sql). If that lookup fails
+// (a missing grant, the migration not applied yet), this request is decided by the token's iat,
+// as before the lookup existed, and the error is logged: never an outage, and never a token the
+// iat check would refuse.
+async function personState(userId: string, sessionId: string | null): Promise<PersonState | null> {
+  const plain = () =>
+    withSystem((sql) => sql.one<PersonState>(`${STATE}, null::timestamptz as started from public.profiles p where p.id = $1`, [userId]));
+  if (!sessionId) return plain();
+  try {
+    return await withSystem((sql) =>
+      sql.one<PersonState>(`${STATE}, public.auth_session_started($2::uuid) as started from public.profiles p where p.id = $1`, [userId, sessionId]),
+    );
+  } catch (e) {
+    console.error('[session] session start lookup failed, deciding by the token time:', (e as Error).message);
+    return plain();
+  }
 }
 
 export const getSession = cache(async (): Promise<Session | null> => {

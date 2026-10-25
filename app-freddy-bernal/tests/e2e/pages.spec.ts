@@ -26,8 +26,9 @@ for (const [email, pages] of Object.entries(ROLES)) {
   });
 }
 
-// At 360 px the home of each role does not scroll sideways (the demo's long titles truncate)
-// and every label of the phone bar fits in its cell, also in «Modo sol», which enlarges text.
+// At 360 px the home of each role does not scroll sideways (the demo's long titles wrap), every
+// label of the phone bar fits in its cell and no deadline («vence en …») is cut, also in «Modo
+// sol», which enlarges text.
 const HOMES: Record<string, string> = {
   'admin@demo.test': '/hoy',
   'jefe@demo.test': '/jefe',
@@ -48,10 +49,14 @@ async function fitsThePhone(page: Page, where: string) {
       const cell = li.getBoundingClientRect();
       return label.scrollWidth > label.clientWidth || a.left < cell.left - 0.5 || a.right > cell.right + 0.5 ? [label.textContent ?? ''] : [];
     });
-    return { width: document.documentElement.scrollWidth, cut };
+    const deadlines = [...document.querySelectorAll<HTMLElement>('main li span')]
+      .filter((el) => el.children.length === 0 && /vence en|venció/.test(el.textContent ?? ''))
+      .flatMap((el) => (el.scrollWidth > el.clientWidth + 0.5 || el.scrollHeight > el.clientHeight + 1 ? [el.textContent ?? ''] : []));
+    return { width: document.documentElement.scrollWidth, cut, deadlines };
   });
   expect(r.width, `${where}: se desplaza hacia los lados`).toBeLessThanOrEqual(page.viewportSize()!.width);
   expect(r.cut, `${where}: etiquetas cortadas en la barra`).toEqual([]);
+  expect(r.deadlines, `${where}: plazos cortados`).toEqual([]);
 }
 
 for (const [email, home] of Object.entries(HOMES)) {

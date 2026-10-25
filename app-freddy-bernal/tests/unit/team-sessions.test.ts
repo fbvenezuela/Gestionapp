@@ -2,7 +2,7 @@
 // notices (lost phone). The actions run for real against the in-memory database; the session
 // is mocked. The demo shim has no auth.sessions: first we check that the step is a no-op there,
 // then we add the two Supabase Auth tables (same shape and cascade) and check what goes.
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
 import type { Session } from '@/lib/auth/session';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import { makeTestDb, type TestDb } from '../rls/setup';
@@ -132,6 +132,55 @@ describe('cerrar sesiones', () => {
     expect(await left('social2')).toEqual({ sessions: 1, tokens: 1, phones: 1 });
     const off = await t.system((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.profiles where id in ($1, $2) and not active`, [t.ids.boss, t.ids.social2]));
     expect(off?.n).toBe(0);
+  });
+});
+
+// Supabase refuses the delete (a missing grant, a newer GoTrue): a real error from the database.
+describe('si no se pueden borrar las sesiones de Supabase', () => {
+  const PARTIAL = 'Listo. No se pudieron borrar sus sesiones en Supabase, pero la app ya no las acepta.';
+  const revokedAt = () => t.system((sql) => sql.one<{ at: Date | null }>(`select sessions_revoked_at as at from public.profiles where id = $1`, [t.ids.social2]));
+
+  beforeAll(async () => {
+    await t.backend.exec(`
+      create function auth.refuse_delete() returns trigger language plpgsql as $$
+      begin raise exception 'permission denied for table sessions' using errcode = '42501'; end $$;
+      create trigger sessions_refuse_delete before delete on auth.sessions for each row execute function auth.refuse_delete();`);
+  });
+  afterAll(() => t.backend.exec(`drop trigger sessions_refuse_delete on auth.sessions`));
+  afterEach(() => vi.restoreAllMocks());
+
+  it('«Reiniciar doble factor» igual quita el doble factor y anota el error', async () => {
+    await signedInPhone('social2', 'stuck');
+    await t.system((sql) => sql.query(`insert into demo_auth.totp_factors (user_id, secret, verified) values ($1, 'SECRETODEPRUEBA', true) on conflict do nothing`, [t.ids.social2]));
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    as('admin');
+    expect(await team.resetTwoFactor({ userId: t.ids.social2 })).toEqual({
+      ok: true,
+      message: 'Listo. La próxima vez que entre, tendrá que activar el doble factor otra vez. No se pudieron borrar sus sesiones en Supabase, pero la app ya no las acepta.',
+    });
+    const factors = await t.system((sql) => sql.one<{ n: number }>(`select count(*)::int as n from demo_auth.totp_factors where user_id = $1`, [t.ids.social2]));
+    expect(factors?.n).toBe(0);
+    const audit = await t.system((sql) =>
+      sql.one<{ new_data: Record<string, unknown> }>(`select new_data from public.audit_log where table_name = 'two_factor' and row_id = $1 order by id desc limit 1`, [t.ids.social2]),
+    );
+    expect(audit?.new_data).toMatchObject({ factors_removed: 1, sessions_closed: true, auth_sessions_ended: null, auth_sessions_error: 'permission denied for table sessions' });
+    expect((await revokedAt())?.at).not.toBeNull();
+  });
+
+  it('«Cerrar sus sesiones» y desactivar dicen que sí se hizo, con la aclaración', async () => {
+    await signedInPhone('social2', 'stuck-2');
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    as('admin');
+    await t.system((sql) => sql.query(`update public.profiles set sessions_revoked_at = null where id = $1`, [t.ids.social2]));
+    expect(await team.revokeSessions({ userId: t.ids.social2 })).toEqual({ ok: true, data: undefined, message: PARTIAL });
+    expect((await revokedAt())?.at).not.toBeNull();
+    try {
+      expect(await team.setActive({ userId: t.ids.social2, active: false })).toEqual({ ok: true, data: undefined, message: PARTIAL });
+      const off = await t.system((sql) => sql.one<{ active: boolean }>(`select active from public.profiles where id = $1`, [t.ids.social2]));
+      expect(off?.active).toBe(false);
+    } finally {
+      expect(await team.setActive({ userId: t.ids.social2, active: true })).toEqual({ ok: true, data: undefined });
+    }
   });
 });
 

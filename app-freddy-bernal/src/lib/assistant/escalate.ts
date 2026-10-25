@@ -1,13 +1,15 @@
 import 'server-only';
 import { withSystem } from '../db';
 import { notify, usersWithRole } from '../notify';
-import { redact } from './redact';
+import { redactForTeam } from './redact';
 
 // «Aviso al equipo» for real (manual §11): an in-app notice (and the email copy, which stays
 // in the outbox unless EMAIL_MODE=send) to administration — and to supervision when it is
 // about approvals — with a link to the conversation in the panel. Not repeated within 6
 // hours for the same conversation. The texts never carry dates, times or places: the reason
-// is redacted. Uses withSystem only; never call it from inside db(session, …).
+// (a model may write it, with the real titles back in it) gets every rule, a place said by its
+// name too, and the phone's guard, before anyone sees it. Uses withSystem only; never call it from
+// inside db(session, …).
 
 export const ESCALATION_KIND = 'assistant_escalation';
 const REPEAT_HOURS = 6;
@@ -18,7 +20,7 @@ export function panelLink(conversationId: string) {
 }
 
 export async function escalate(conversationId: string, reason: string): Promise<{ alreadyNotified: boolean; to: string[] }> {
-  const motivo = redact(String(reason ?? '').trim()).slice(0, 300) || 'Pidió hablar con alguien del equipo.';
+  const motivo = redactForTeam(String(reason ?? '').trim()).slice(0, 300) || 'Pidió hablar con alguien del equipo.';
   const conv = await withSystem((sql) =>
     sql.one<{ id: string; name: string; repeated: boolean }>(
       `select c.id, coalesce(nullif(p.full_name, ''), p.email, 'Alguien del equipo') as name,

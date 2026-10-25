@@ -2,6 +2,8 @@
 // with the same migrations. The session and notify() are mocked: we check who gets each
 // notice (never the person who acted), the role guards and what ends up in the database.
 import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
+import { DateTime } from 'luxon';
+import { TZ } from '@/lib/time';
 import type { Session } from '@/lib/auth/session';
 import type { Notice } from '@/lib/notify';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
@@ -44,6 +46,7 @@ function as(key: DemoUserKey) {
   } satisfies Session;
 }
 
+const DATED = 'El título no lleva fecha ni hora: eso va en sus campos.';
 const notices = () => h.notices as Notice[];
 const sent = (kind: string) => notices().filter((n) => n.kind === kind);
 const later = () => new Date(Date.now() + 40 * 86400_000).toISOString().slice(0, 10);
@@ -68,19 +71,94 @@ describe('createEvent: avisos al proponer o crear', () => {
     for (const secret of ['Calle inventada', 'plaza de prueba', '1234567', '10:00', 'Cancha inventada']) expect(out).not.toContain(secret);
   });
 
-  it('despacho crea con cámara: el aviso (también por correo) a quien graba no lleva la fecha escrita en el título', async () => {
+  it('despacho crea con cámara: el aviso (también por correo) a quien graba lleva solo el título', async () => {
     as('dispatch');
-    const r = await events.createEvent(newEvent('Inauguración del puente el 28/10 a las 9:30', { cameraUserId: t.ids.camera }));
+    // A date typed into the title is refused (its fields are for that): no event, no notice.
+    expect(await events.createEvent(newEvent('Inauguración del puente el 28/10 a las 9:30', { cameraUserId: t.ids.camera }))).toEqual({ ok: false, error: DATED });
+    expect(notices()).toHaveLength(0);
+    const r = await events.createEvent(newEvent('Inauguración del puente', { cameraUserId: t.ids.camera }));
     expect(r.ok).toBe(true);
     const [a] = sent('event_assigned');
     expect(a.userIds).toEqual([t.ids.camera]);
     expect(a.email).toBe(true);
     expect(a.body).toContain('Inauguración del puente');
-    expect(`${a.title} ${a.body}`).not.toMatch(/28\/10|9:30/);
     expect(looksLikeDateTime(`${a.title} ${a.body}`)).toBe(false);
     const [n] = sent('event_new');
     expect(n.userIds).toEqual([t.ids.boss]); // despacho created it: no notice to herself
-    expect(n.title).not.toMatch(/28\/10|9:30/);
+  });
+});
+
+describe('el título de un evento no lleva fecha ni hora', () => {
+  const titled = (title: string) => t.system((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.events where title = $1`, [title]));
+  const WED = '2027-03-10'; // a Wednesday: no title below names it, unless the test says so
+  const SUN = '2027-03-14';
+  const on = (title: string, date: string) => newEvent(title, { date });
+  const idOf = (r: unknown) => (r as { data: { id: string } }).data.id;
+  const placeHint = (name: string) => `${DATED} Si «${name}» es el nombre del sitio, ponlo en «A dónde se va».`;
+
+  it('al crear: se rechaza cualquier hora y día de la semana, aunque siga una palabra en -s o un nombre', async () => {
+    as('secretary');
+    for (const title of [
+      'Acto en la plaza el 28/10', 'Inauguración a las 9:30 am', 'Acto del sábado', 'Acto a las nueve de la noche', 'Acto Domingo 25', 'Acto 28/10/2027',
+      'Rueda de prensa a las 10 antes del acto', 'Acto a las 3 después del almuerzo', 'Misa a las 9 tras la procesión', 'Llegada a las ocho después de la misa',
+      'Encuentro a las 4 todos juntos', 'Jornada de 8 a 12 todos invitados', 'Inauguración a las 11 pues hay lluvia', 'Acto a las 3 hrs', 'Acto a las 21h', 'Acto 21 hrs',
+      'Misa de las 7', 'Acto a la una', 'Acto al mediodía', 'Rueda de prensa hoy', 'Acto a las 3 llegamos todos',
+      'Inauguración Viernes', 'Gran Acto Sábado en la plaza', 'Rueda de Prensa Lunes', 'Jornada Médica Domingo', 'Inauguración el viernes', 'Domingo de Ramos en la catedral',
+    ]) {
+      expect(await events.createEvent(on(title, WED)), title).toEqual({ ok: false, error: DATED });
+      expect((await titled(title))?.n, title).toBe(0);
+    }
+  });
+
+  it('al crear: los sitios con nombre de fecha y los números que no son hora pasan; la fecha del propio evento no', async () => {
+    as('secretary');
+    for (const title of [
+      'Barrio 23 de Enero: entrega de mercados', 'Visita a la Escuela 12 de Octubre', 'Avenida 19 de Abril: asfaltado', 'Sector 4 de Mayo', 'Liceo 5 de Julio',
+      'Urbanización 12 de Octubre', 'Inauguración de la UBCH 24 de Julio', 'Farmacia 24h en Rubio', 'Concierto Joven 3.0', 'Congreso 2.0 de comunicadores',
+      'Mañana Deportiva en Táriba', 'Encuentro en la Noche de Talentos', 'Inauguración del ambulatorio', 'Jornada de salud 2026', 'Entrega de útiles a las 3 escuelas',
+      'Torneo de las siete parroquias', 'Torneo infantil de 8 a 12 años', 'Visita a Santo Domingo', 'Escuela Domingo Savio: entrega de pupitres', 'Entrega de 1.200 bolsas',
+      'Farmacia abierta las 24 horas',
+    ]) {
+      expect((await events.createEvent(on(title, WED))).ok, title).toBe(true);
+    }
+    // The same names on the event's own day would say the date: refused, with a hint for the place.
+    expect(await events.createEvent(on('Barrio 10 de Marzo: entrega de mercados', WED))).toEqual({ ok: false, error: placeHint('10 de Marzo') });
+    expect(await events.createEvent(on('Escuela Domingo Savio: entrega', SUN))).toEqual({ ok: false, error: placeHint('Domingo Savio') });
+    expect((await events.createEvent(on('Visita a Santo Domingo', SUN))).ok).toBe(true);
+    for (const title of ['Visita al ambulatorio 10/3', 'Acto del 10']) expect(await events.createEvent(on(title, WED)), title).toEqual({ ok: false, error: DATED });
+    const tomorrow = DateTime.now().setZone(TZ).plus({ days: 1 }).toISODate()!;
+    expect(await events.createEvent(on('Rueda de prensa mañana', tomorrow))).toEqual({ ok: false, error: DATED });
+  });
+
+  it('al corregir la propuesta (secretaría) y al editar el evento (despacho)', async () => {
+    as('secretary');
+    const id = idOf(await events.createEvent(on('Visita de prueba al ambulatorio', WED)));
+    const base = { id, placeName: '', municipality: '', summary: '', categoryId: '' };
+    expect(await events.updateProposal({ ...base, title: 'Visita al ambulatorio el lunes a las 8' })).toEqual({ ok: false, error: DATED });
+    // She cannot see the date: she cannot add one either, the event's or another (the answer would tell her which).
+    for (const title of ['Visita al ambulatorio 10 de marzo', 'Visita al ambulatorio 11 de marzo']) {
+      expect(await events.updateProposal({ ...base, title }), title).toEqual({ ok: false, error: placeHint(title.slice(-11)) });
+    }
+    as('dispatch');
+    expect(await events.updateEvent({ ...base, title: 'Visita al ambulatorio 10/3', urgency: 2 })).toEqual({ ok: false, error: DATED });
+    const ev = await t.system((sql) => sql.one<{ title: string }>(`select title from public.events where id = $1`, [id]));
+    expect(ev?.title).toBe('Visita de prueba al ambulatorio');
+    expect((await events.updateEvent({ ...base, title: 'Visita al ambulatorio nuevo', urgency: 2 })).ok).toBe(true);
+    // Despacho sees the date: a place named after another day is fine.
+    expect((await events.updateEvent({ ...base, title: 'Visita al ambulatorio del Sector 4 de Mayo', urgency: 3 })).ok).toBe(true);
+  });
+
+  it('un sitio con nombre de fecha no bloquea corregir ni editar, y no se puede mover el evento a ese día', async () => {
+    as('secretary');
+    const title = 'Barrio 23 de Enero: entrega de mercados';
+    const id = idOf(await events.createEvent(on(title, WED)));
+    const base = { id, placeName: 'Barrio 23 de Enero', municipality: '', categoryId: '' };
+    expect((await events.updateProposal({ ...base, title: `${title} y útiles`, summary: 'Con útiles' })).ok).toBe(true);
+    as('dispatch');
+    expect((await events.updateEvent({ ...base, title: `${title} y útiles`, summary: 'Con útiles', urgency: 3 })).ok).toBe(true);
+    const sched = { id, time: '10:00', durationMin: 60, exactAddress: 'Calle inventada 123', directions: '', siteContacts: '' };
+    expect(await events.updateSchedule({ ...sched, date: '2028-01-23' })).toEqual({ ok: false, error: 'El título dice esa fecha: cámbialo primero.' });
+    expect((await events.updateSchedule({ ...sched, date: '2028-01-24' })).ok).toBe(true);
   });
 });
 

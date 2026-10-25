@@ -12,6 +12,15 @@ if (!email || !DATABASE_URL || !NEXT_PUBLIC_SUPABASE_URL || !SUPABASE_SERVICE_RO
   process.exit(1);
 }
 const sql = postgres(DATABASE_URL, { prepare: false, max: 1 });
+// «Cerrar sus sesiones» deletes the person's Supabase Auth sessions, and every request reads when
+// its session began (D-25). The app degrades without these grants; warn now so they get fixed.
+const [g] = await sql<{ del: boolean | null; fn: boolean | null }[]>`
+  select case when to_regclass('auth.sessions') is null then null else has_table_privilege(current_user, 'auth.sessions', 'DELETE') end as del,
+         case when to_regprocedure('public.auth_session_started(uuid)') is null then null
+              else has_function_privilege(current_user, 'public.auth_session_started(uuid)', 'EXECUTE') end as fn`;
+if (g.del === false) console.warn('Ojo: el rol de DATABASE_URL no puede borrar en auth.sessions. «Cerrar sus sesiones» no cerrará las de Supabase.');
+if (g.fn === null) console.warn('Ojo: falta la migración 20261025001100_session_started.sql.');
+if (g.fn === false) console.warn('Ojo: el rol de DATABASE_URL no puede usar public.auth_session_started. Dale EXECUTE.');
 await sql`insert into public.invitations (email, full_name, roles) values (${email.toLowerCase()}, ${name}, '{admin}')`;
 const admin = createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const { error } = await admin.auth.admin.createUser({ email, email_confirm: true, user_metadata: { full_name: name } });

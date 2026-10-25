@@ -2,8 +2,10 @@ import 'server-only';
 import { ROLE_LABEL, type Role } from '../roles';
 import { PERSONA, ROLE_BRIEFS, type AssistantProfile } from './config';
 import { chat, type ChatMessage, type ChatOptions, type Link } from './providers';
-import { hasDate, hasDateOrTime, redact, redactDeep, redactQuoted } from './redact';
+import { namesEvent, scrubTeamFicha, scrubTeamScript } from './guard';
+import { carriesWhen, hasDate, hasPlaceOrContact, redact, redactDeep, redactEventSpeech, redactLandmarks, redactQuoted } from './redact';
 import { fillHuecos, plain, sentences, HUECO, type Huecos } from './text';
+import { ANY_TOKEN, NO_TITLES, Placeholders, type TitleSet } from './titles';
 import { runTool, toSpecs, type Tool, type ToolCtx, type ToolRun } from './tools';
 
 // The brain (manual §7, §8, §10, §11): the system prompt in layers, the tool loop, the
@@ -24,8 +26,9 @@ const MAX_CALLS = 4;
 /** The whole model turn fits inside the window's wait (REQUEST_TIMEOUT_MS = 45 s in the window). */
 export const TURN_BUDGET_MS = 40_000;
 
-export type Ficha = { key: string | null; title: string; body: string; tags: string[] };
-export type ChosenScript = { key: string | null; topic: string; script: string; always: boolean };
+// origin: 'plataforma' or 'equipo' for a ficha; 'fabrica', 'equipo' or 'conversacion' for a script.
+export type Ficha = { key: string | null; title: string; body: string; tags: string[]; origin?: string };
+export type ChosenScript = { key: string | null; topic: string; script: string; always: boolean; origin?: string };
 export type HistoryMsg = { who: 'persona' | 'asistente'; body: string };
 
 export type TurnContext = {
@@ -38,7 +41,9 @@ export type TurnContext = {
   history: HistoryMsg[];
 };
 
-export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[] };
+// restore: on the model path, `text` carries the placeholders of the titles (titles.ts); this puts the
+// real names back for the person, after the filter and the nets have looked at the placeholders.
+export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[]; restore?: (t: string) => string };
 
 // ---------------------------------------------------------------------------
 // Which fichas go into this turn: the relevant ones, not all of them (a turn should weigh
@@ -89,8 +94,17 @@ export function pickFichas(all: Ficha[], text: string, roles: Role[], max = 6, w
 // ---------------------------------------------------------------------------
 // The system prompt, layer by layer. What is critical is repeated at the end.
 // ---------------------------------------------------------------------------
-export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string): string {
+export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string, ph: Placeholders = new Placeholders(NO_TITLES)): string {
   const f = (t: string) => fillHuecos(t, ctx.huecos);
+  // What the team wrote (a ficha of theirs, a script of theirs or saved from a conversation) gets the
+  // titles as placeholders and is scrubbed again here, whatever got past the checks when it was
+  // saved; a team ficha is judged whole (its title can name the event its body gives the hour of).
+  // Factory scripts and platform fichas keep their wording (the tweet slots, the best hours).
+  const ficha = (x: Ficha): [string, string] => {
+    const [title, body] = [ph.mask(f(x.title)), ph.mask(f(x.body))];
+    return x.origin === 'equipo' ? scrubTeamFicha(title, body, ph.titles) : [title, body];
+  };
+  const script = (x: ChosenScript, t: string) => (x.origin === 'fabrica' ? ph.mask(f(t)) : scrubTeamScript(ph.mask(f(t))));
   const name = ctx.profile.name;
   const L: string[] = [];
 
@@ -116,6 +130,7 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string):
   L.push('- Si devuelve un error o nada, dilo con palabras normales; no lo escondas ni inventes un resultado.');
   L.push('- Las que preparan algo no lo mandan: di a cuántas personas iría y que falta que administración lo confirme.');
   L.push(`- Herramientas que tienes ahora: ${tools.map((t) => t.name).join(', ') || 'ninguna'}. Si piden algo que ninguna hace, dilo y ofrece avisar a administración.`);
+  L.push('- Los nombres de los eventos, de las piezas y de los lugares te llegan como marcas: [[E1]], [[P1]], [[L1]]. Para nombrar uno, escribe su marca tal cual, con los dos corchetes: la plataforma pone el nombre real. No son huecos: no los rellenes, no inventes marcas ni adivines qué nombre hay detrás.');
 
   // 3. The job, per role. It gives or takes no permission: the platform decides that.
   L.push('', '## A QUIÉN ATIENDES');
@@ -135,7 +150,8 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string):
     if (!picked.length) L.push('No hay fichas sobre esto. Si te preguntan algo que no está aquí ni en una herramienta, dilo sin inventar.');
     let used = 0;
     for (const x of picked) {
-      const line = `- ${f(x.title)}: ${f(x.body)}`;
+      const [title, body] = ficha(x);
+      const line = `- ${title}: ${body}`;
       if (used + line.length > 5000) break;
       used += line.length;
       L.push(line);
@@ -150,7 +166,7 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string):
   if (ctx.scripts.length) {
     L.push('', '## ASÍ CONTESTAS');
     L.push('Ejemplos escritos por el equipo. No los copies letra por letra: son el tono y el fondo. Elige entre las variantes, mezcla, acorta. Nunca la misma frase dos veces en una conversación. Lo que va entre corchetes se rellena con el dato real (de las fichas o de una herramienta) o se calla. Cuando un ejemplo diga [usa …], llama a esa herramienta de verdad.');
-    for (const s of ctx.scripts) L.push(`### ${s.topic}${s.always ? ' (siempre)' : ''}`, f(s.script));
+    for (const s of ctx.scripts) L.push(`### ${script(s, s.topic)}${s.always ? ' (siempre)' : ''}`, script(s, s.script));
   }
 
   // 7. The last thing read weighs most.
@@ -159,6 +175,7 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string):
   L.push('- Nunca das fecha, hora, dirección, cómo llegar ni contactos de un evento: no los tienes. Si los piden, se ven en la Agenda, solo para quien tiene permiso.');
   L.push('- Nunca dices que avisaste sin haber llamado a avisar_al_equipo.');
   L.push('- Si un dato no está en las fichas ni en lo que devolvió una herramienta, no lo inventes.');
+  L.push('- Las marcas como [[E1]] se copian tal cual.');
   L.push('- Una o dos frases, texto plano, sin markdown.');
   return L.join('\n');
 }
@@ -193,7 +210,8 @@ export function filterOutput(t: string, assistantName?: string): string {
   // A copied script line: "[ASISTENTE]: …" or "Name: …".
   const prefixes = ['\\[ASISTENTE\\]', 'Asistente', ...(assistantName ? [assistantName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')] : [])];
   x = x.replace(new RegExp(`^(?:${prefixes.join('|')})\\s*:\\s*`, 'i'), '');
-  const steps = [(s: string) => REVEALING.test(s), (s: string) => HUECO.test(s)];
+  // A title's placeholder («[[E1]]») is not an unfilled hueco: it becomes the real name later.
+  const steps = [(s: string) => REVEALING.test(s), (s: string) => HUECO.test(s.replace(ANY_TOKEN, ''))];
   for (const bad of steps) {
     const y = dropSentences(x, bad);
     if (y) x = y;
@@ -330,13 +348,38 @@ export function publishingTurn(question: string, calls: ToolRun[] = []): boolean
   return calls.some((c) => c.tool === 'mejores_horas' || c.tool === 'dias_de_tweets') || asksAboutPublishing(question);
 }
 
+// An event place's placeholder: a where.
+const PLACE_TOKEN = /\[{1,2}\s*[Ll]\s*\d{1,4}\s*\]{1,2}/;
+
 /**
- * An answer about events that carries a date or a time breaks the agenda rule. In a turn about
- * publishing, times are the best hours (allowed) but a date still breaks it.
+ * An answer about events that carries a date, a time, a day (also «hoy», «mañana» or «temprano»), a
+ * place or a contact breaks the agenda rule, in any way of writing them that is detected. In a turn
+ * about publishing, times and weekdays are the best hours and days (allowed) but a date or a place
+ * still breaks it. A title's placeholder is not a when (an event place's placeholder is a where);
+ * ratios («4/5»), «Hoy» the screen and how long something takes don't count.
  */
 export function breaksAgendaRule(answer: string, question: string, calls: ToolRun[] = []): boolean {
   if (!aboutEvents(question, calls)) return false;
-  return publishingTurn(question, calls) ? hasDate(answer) : hasDateOrTime(answer);
+  if (PLACE_TOKEN.test(answer)) return true;
+  const t = String(answer ?? '').replace(ANY_TOKEN, 'el evento');
+  if (hasPlaceOrContact(t)) return true;
+  return publishingTurn(question, calls) ? hasDate(t) : carriesWhen(t);
+}
+
+/**
+ * The person's question as it is stored and sent to a provider (already through redact()). A landmark
+ * with its name or its adjective («frente a la alcaldía de Táriba», «la cancha techada de El Mirador»)
+ * is a place in any question and goes (on the model path a title the person typed is already a
+ * placeholder by then). About an event (an event word, a title's placeholder, or a title or event
+ * place this person can see, whole or by a name in it: `titles`), how-to or not, places said by name
+ * go too («en Pueblo Nuevo»), and so do its days and parts of the day («la toma de pasado mañana»),
+ * except a day said for the person's own work («mañana subo el material») and the days of a question
+ * about publishing. Otherwise days are ordinary words («¿qué tengo hoy?») and stay.
+ */
+export function guardQuestion(question: string, titles: TitleSet = NO_TITLES): string {
+  const q = String(question ?? '');
+  if (!namesEvent(q, titles)) return redactLandmarks(q);
+  return redactEventSpeech(q, { when: !asksAboutPublishing(q) });
 }
 
 // ---------------------------------------------------------------------------
@@ -344,29 +387,39 @@ export function breaksAgendaRule(answer: string, question: string, calls: ToolRu
 // ---------------------------------------------------------------------------
 /**
  * What a tool returned, as it goes to the provider: every string scrubbed here, in one place, so
- * a new tool is covered too (an event title can carry a date, a time or an address typed into
- * it). The best-hours tools keep their times of day; dates, addresses and contacts go from all.
+ * a new tool is covered too. The titles the person can see become placeholders first (an event
+ * title can carry a date, a time or an address typed into it in any form); then every string is
+ * redacted. The best-hours tools keep their times of day; dates, addresses and contacts go from all.
  */
-export function toolMessage(run: ToolRun): string {
-  return JSON.stringify(redactDeep(run.ok ? run.result ?? null : { error: run.error }, { keepTimes: PUBLISH_TOOLS.has(run.tool) }));
+export function toolMessage(run: ToolRun, ph?: Placeholders): string {
+  const value = run.ok ? run.result ?? null : { error: run.error };
+  return JSON.stringify(redactDeep(ph ? ph.maskDeep(value) : value, { keepTimes: PUBLISH_TOOLS.has(run.tool) }));
 }
 
 export type ModelTurnInput = {
   ctx: TurnContext;
-  question: string; // already redacted
+  question: string; // as stored: already redacted (redact + guardQuestion)
+  typed?: string; // what the person wrote: sent with the titles as placeholders, then the same locks
   tools: Tool[];
   toolCtx: ToolCtx;
   chain: Link[];
   chatOptions?: Partial<ChatOptions>;
+  titles?: TitleSet; // what this person can see, read as the person (titles.ts loadTitles)
 };
 
 export async function modelTurn(i: ModelTurnInput): Promise<BrainOutput> {
+  // One set of placeholders for the whole turn: the same title is the same «[[E1]]» everywhere.
+  const titles = i.titles ?? NO_TITLES;
+  const ph = new Placeholders(titles);
+  // What the person typed, now and earlier: a title or an event's place they type goes as its
+  // placeholder too (masked before the redaction, so it is recognised whole), then the stored locks.
+  const asked = (t: string) => guardQuestion(redact(ph.mask(t)), titles);
   const messages: ChatMessage[] = [
-    { role: 'system', content: systemPrompt(i.ctx, i.tools, i.question) },
-    // The thread is scrubbed too. An earlier answer of the demo brain may quote an event title as it
-    // is («Toma 9.30»): earlier answers get the second lock, like a tool's result.
-    ...i.ctx.history.map((h): ChatMessage => (h.who === 'persona' ? { role: 'user', content: redact(h.body) } : { role: 'assistant', content: redactQuoted(h.body) })),
-    { role: 'user', content: i.question },
+    { role: 'system', content: systemPrompt(i.ctx, i.tools, i.question, ph) },
+    // The thread is scrubbed too. Earlier answers quote titles as they are («Toma 9.30»): those go as
+    // placeholders, and the rest of the answer gets the second lock, like a tool's result.
+    ...i.ctx.history.map((h): ChatMessage => (h.who === 'persona' ? { role: 'user', content: asked(h.body) } : { role: 'assistant', content: redactQuoted(ph.mask(h.body)) })),
+    { role: 'user', content: asked(i.typed ?? i.question) },
   ];
   const specs = toSpecs(i.tools);
   const calls: ToolRun[] = [];
@@ -408,10 +461,11 @@ export async function modelTurn(i: ModelTurnInput): Promise<BrainOutput> {
     const batch = r.toolCalls.slice(0, MAX_CALLS);
     messages.push({ role: 'assistant', content: r.text || null, tool_calls: batch });
     for (const c of batch) {
-      const run = await runTool(c.function.name, c.function.arguments, i.tools, i.toolCtx);
+      // A lookup by a placeholder («[[E1]]») runs with the real title; what comes back is masked again.
+      const run = await runTool(c.function.name, ph.restoreArgs(c.function.arguments), i.tools, i.toolCtx);
       calls.push(run);
       // The error goes back as it is: hidden, the model would invent that it worked.
-      messages.push({ role: 'tool', tool_call_id: c.id, content: toolMessage(run) });
+      messages.push({ role: 'tool', tool_call_id: c.id, content: toolMessage(run, ph) });
     }
   }
 
@@ -426,5 +480,7 @@ export async function modelTurn(i: ModelTurnInput): Promise<BrainOutput> {
       text = AGENDA_FALLBACK;
     }
   }
-  return { text, model, provider, tokensIn, tokensOut, calls };
+  // Asked when or where an event is: the titles come back without their own date, time or place.
+  const scrub = aboutEvents(i.question, calls) && !publishingTurn(i.question, calls) && (asksWhenWhere(i.question) || asksRoute(i.question));
+  return { text, model, provider, tokensIn, tokensOut, calls, restore: (t) => ph.restore(t, { scrub }) };
 }

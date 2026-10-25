@@ -161,14 +161,17 @@ export async function seedDemo(sql: Sql, tz = 'America/Caracas'): Promise<Record
     }
   }
 
-  // Material (demo rows, no real files behind them).
+  // Material (demo rows, no real files behind them). An explicit null is kept (an image has no
+  // duration, fps or codecs); only a missing key takes the video default.
   const media = async (eventId: string | null, kind: string, label: string, by: string, extra: Partial<Record<string, unknown>> = {}) => {
-    const path = `${eventId ?? kind}/${crypto.randomUUID()}.mp4`;
+    const pick = (key: string, fallback: unknown) => (key in extra ? extra[key] : fallback);
+    const mime = pick('mime', 'video/mp4');
+    const path = `${eventId ?? kind}/${crypto.randomUUID()}${mime === 'image/jpeg' ? '.jpg' : '.mp4'}`;
     const r = await sql.one<{ id: string }>(
       `insert into public.media_assets (event_id, kind, storage_path, label, mime, size_bytes, duration_s, width, height, fps, video_codec, audio_codec, status, uploaded_by)
        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'ready', $13) returning id`,
-      [eventId, kind, path, label, extra.mime ?? 'video/mp4', extra.size ?? 250_000_000, extra.duration ?? 95, extra.width ?? 1080,
-        extra.height ?? 1920, extra.fps ?? 30, extra.vcodec ?? 'avc', extra.acodec ?? 'aac', by],
+      [eventId, kind, path, label, mime, pick('size', 250_000_000), pick('duration', 95), pick('width', 1080),
+        pick('height', 1920), pick('fps', 30), pick('vcodec', 'avc'), pick('acodec', 'aac'), by],
     );
     return r!.id;
   };

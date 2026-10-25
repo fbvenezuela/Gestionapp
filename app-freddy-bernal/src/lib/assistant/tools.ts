@@ -9,8 +9,10 @@ import { BOSS_DECISION, NETWORK_LABEL, PIECE_STATUS, WORK_STATUS } from '../data
 import { windowHint, type PublishingWindows } from '../domain/publishing-windows';
 import { bestTimes } from '../domain/best-times';
 import { dt } from '../time';
+import { noticeIssues, noticeRefusal } from './guard';
 import { redact } from './redact';
 import { plain } from './text';
+import { loadTitles } from './titles';
 import type { ToolSpec } from './providers';
 
 // What the assistant can DO (manual §8). «La carta no es la cerradura»: `roles` only says to
@@ -329,7 +331,7 @@ export const TOOLS: Tool[] = [
   {
     name: 'preparar_aviso',
     description:
-      'Deja PREPARADO un aviso para todo un rol (o para todo el equipo). No lo manda: queda pendiente hasta que administración lo confirme en el panel. Di a cuántas personas iría y que falta la confirmación. Sin fechas, horas ni lugares en el texto.',
+      'Deja PREPARADO un aviso para todo un rol (o para todo el equipo). No lo manda: queda pendiente hasta que administración lo confirme en el panel. Di a cuántas personas iría y que falta la confirmación. Sin fechas, horas, días, lugares ni contactos de ningún evento: si los trae, no se prepara.',
     parameters: {
       rol: { type: 'string', description: 'A quién va: un rol del equipo, o «todos».', enum: [...INVITABLE_ROLES, 'todos'] },
       texto: { type: 'string', description: 'El aviso, corto y claro, como lo leerá la gente.' },
@@ -341,7 +343,12 @@ export const TOOLS: Tool[] = [
     entity: 'assistant_drafts',
     async run(a, ctx) {
       const rol = String(a.rol);
-      const body = redact(String(a.texto ?? '')).trim().slice(0, 500);
+      const texto = String(a.texto ?? '');
+      // Rule 4, in code for both brains (the prompt is only a preference): a notice about an event
+      // (an event word or a title this person can see) never carries its date, time, day, place or contacts.
+      const issues = noticeIssues(texto, (await loadTitles(ctx.session)).events);
+      if (issues.length) throw new ToolError(noticeRefusal(issues));
+      const body = redact(texto).trim().slice(0, 500);
       if (body.length < 3) throw new ToolError('Falta el texto del aviso.');
       const people = new Set<string>();
       for (const r of rol === 'todos' ? INVITABLE_ROLES : [rol]) for (const id of await usersWithRole(r)) people.add(id);

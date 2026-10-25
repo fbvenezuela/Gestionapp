@@ -67,6 +67,12 @@ export async function setRole(raw: unknown) {
 
 const userSchema = z.object({ userId: z.string().uuid() });
 
+// The Auth step runs after the profile change is committed (sessions_revoked_at set), and the app
+// already refuses their old sessions (readClaims checks when each one began): a failed Auth delete
+// is a partial success, not an error that would make the admin think nothing happened.
+const AUTH_NOT_ENDED = 'No se pudieron borrar sus sesiones en Supabase, pero la app ya no las acepta.';
+const partial = <T extends { ok: true }>(res: T) => ({ ...res, message: `Listo. ${AUTH_NOT_ENDED}` });
+
 // The database also drops their phones' notices (migration 20261025001000_revoke_push.sql).
 export async function revokeSessions(raw: unknown) {
   const res = await act(userSchema, raw, async (sql, input) => {
@@ -74,7 +80,7 @@ export async function revokeSessions(raw: unknown) {
     if (!r.length) throw new UserError('No autorizado.');
   }, { revalidate: ['/ajustes/equipo'] });
   if (!res.ok) return res;
-  return (await endSessionsAfter(userSchema.parse(raw).userId)) ?? res;
+  return (await endSessionsAfter(userSchema.parse(raw).userId)).error ? partial(res) : res;
 }
 
 const activeSchema = userSchema.extend({ active: z.boolean() });
@@ -88,18 +94,18 @@ export async function setActive(raw: unknown) {
   }, { revalidate: ['/ajustes/equipo'] });
   if (!res.ok) return res;
   const input = activeSchema.parse(raw);
-  return input.active ? res : ((await endSessionsAfter(input.userId)) ?? res);
+  return !input.active && (await endSessionsAfter(input.userId)).error ? partial(res) : res;
 }
 
 // After act() has returned (never inside it): also end their sign-in sessions in Supabase Auth,
-// so a renewed token on the old phone cannot bring them back. Returns an error result, or null.
-async function endSessionsAfter(userId: string) {
+// so a renewed token on the old phone cannot bring them back. Never throws.
+async function endSessionsAfter(userId: string): Promise<{ ended: number | null; error: string | null }> {
   try {
-    await endAuthSessions(userId);
-    return null;
+    return { ended: await endAuthSessions(userId), error: null };
   } catch (e) {
-    console.error('[sessions]', (e as Error).message);
-    return { ok: false as const, error: 'No se pudieron cerrar todas sus sesiones. Vuelve a intentar.' };
+    const error = (e as Error).message.slice(0, 300);
+    console.error('[sessions]', error);
+    return { ended: null, error };
   }
 }
 
@@ -127,23 +133,31 @@ export async function resetTwoFactor(raw: unknown) {
     if (!res.ok || !res.data) return res;
     const { userId } = userSchema.parse(raw);
     const { actorId, email } = res.data;
+    // Two independent steps: the factors go even when deleting the Auth sessions fails (else whoever
+    // lost the phone could never be reset, every retry failing the same way).
+    const { ended, error: authError } = await endSessionsAfter(userId);
+    let removed: number;
     try {
-      // First the sign-in sessions (their refresh tokens die with them), then the factors.
-      const ended = await endAuthSessions(userId);
-      const removed = env.dataMode === 'demo' ? await removeDemoFactors(userId) : await removeSupabaseFactors(userId);
+      removed = env.dataMode === 'demo' ? await removeDemoFactors(userId) : await removeSupabaseFactors(userId);
+    } catch (e) {
+      console.error('[mfa reset]', (e as Error).message);
+      return { ok: false as const, error: 'No se pudo quitar el doble factor. Sus sesiones sí quedaron cerradas; vuelve a intentar.' };
+    }
+    try {
       // Auth factors live outside the audited tables: leave an explicit note in the audit trail.
       await withSystem((sql) =>
         sql.query(`insert into public.audit_log (actor_id, table_name, row_id, action, new_data) values ($1, 'two_factor', $2, 'mfa_reset', $3::text::jsonb)`, [
           actorId,
           userId,
-          JSON.stringify({ email, factors_removed: removed, sessions_closed: true, auth_sessions_ended: ended }),
+          JSON.stringify({ email, factors_removed: removed, sessions_closed: true, auth_sessions_ended: ended, auth_sessions_error: authError }),
         ]),
       );
     } catch (e) {
-      console.error('[mfa reset]', (e as Error).message);
-      return { ok: false as const, error: 'No se pudo reiniciar el doble factor. Sus sesiones sí quedaron cerradas; vuelve a intentar.' };
+      // The reset already happened: say so, and leave the missing note in the server log.
+      console.error('[mfa reset] audit:', (e as Error).message);
     }
-    return { ok: true as const, message: 'Listo. La próxima vez que entre, tendrá que activar el doble factor otra vez.' };
+    const done = 'Listo. La próxima vez que entre, tendrá que activar el doble factor otra vez.';
+    return { ok: true as const, message: authError ? `${done} ${AUTH_NOT_ENDED}` : done };
   });
 }
 

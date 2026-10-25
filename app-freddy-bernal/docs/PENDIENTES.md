@@ -120,3 +120,7 @@ Resumen y lo que sirve: `docs/DIAGNOSTICO-360.md` (el ZIP no se subió al reposi
   poner `VAPID_PUBLIC_KEY` y `VAPID_PRIVATE_KEY` propias en Vercel (te digo cómo generarlas) y un `VAPID_SUBJECT` con el
   correo del dominio.
 
+
+## Nuevo (25/10/2026)
+- **Correos que Resend rechazó:** quedan «failed» en Ajustes → Buzón y nadie los reenvía solos. Falta un reenvío con la misma clave en la tarea de cada 5 minutos.
+- **Permisos en `fb-dev`:** confirmar que el rol de `DATABASE_URL` puede borrar en `auth.sessions` (`npm run db:first-admin` avisa si no).

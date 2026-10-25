@@ -3,7 +3,8 @@
 import { z } from 'zod';
 import { DateTime } from 'luxon';
 import { act, UserError } from './run';
-import { TZ } from '../time';
+import { TZ, dt } from '../time';
+import type { Sql } from '../db';
 import { notify, usersWithRole } from '../notify';
 import {
   correctedEventNotice,
@@ -16,6 +17,125 @@ import {
 } from '@/lib/domain/agenda-notices';
 
 const text = (max: number) => z.string().trim().max(max).default('');
+
+// Event titles reach every role (Redes and Supervisión too), the notices and the phones: they never
+// carry the event's when, which has its own fields (rule 4). Two kinds of check:
+// - always refused, because they can only be a when: a clock time (9:30, 3 pm, 21 hrs, nueve de la
+//   noche, mediodía), «la una», «las N» and «de N a M» unless something counted follows («a las 3
+//   escuelas», «de 8 a 12 años»), a weekday, hoy, pasado mañana, esta noche, and a date with its year
+//   or after «el» (el 28/10);
+// - refused when it is the event's own date: «23 de enero», «23/1», «el 23», «mañana», and «Domingo»
+//   followed by a name (Escuela Domingo Savio) on a Sunday. A place named after a date («Barrio 23 de
+//   Enero») passes on any other day. Whoever cannot see the event's date cannot add a new one either:
+//   checking it against the date would tell them the date.
+const DATED = 'El título no lleva fecha ni hora: eso va en sus campos.';
+const HOUR = String.raw`(?:0?[1-9]|1\d|2[0-3]|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce)`;
+const MIN = String.raw`(?:[:.][0-5]\d)?`;
+const NUM_END = String.raw`(?:h|hs|hrs)?(?![\p{L}\d]|[.,]\d)`;
+const ALWAYS: RegExp[] = [
+  /(?<![\d.,:/])(?:[01]?\d|2[0-3])\s?[:h]\s?[0-5]\d(?![\d.,:])/iu,
+  /(?<![\d.,])(?:(?:[01]?\d|2[0-3])\.[0-5]\d|(?:[01]\d|2[0-3])[0-5]\d)\s?(?:h|hs|hrs?|horas)(?!\p{L})/iu,
+  /(?<!(?:^|\P{L})(?:de|por|durante|cada|en|unas|unos)\s+)(?<![\p{L}\d.,])(?:1[3-9]|2[0-3])\s?(?:h|hs|hrs?|horas)(?!\p{L})/iu,
+  /(?<![\p{L}\d.,])(?:[01]?\d|2[0-3])(?:[:.h][0-5]\d)?\s?[ap]\.?\s?m\.?(?!\p{L})/iu,
+  new RegExp(String.raw`(?<![\p{L}\d.,])${HOUR}${MIN}\s+(?:y\s+(?:media|cuarto)|en\s+punto|(?:de|en|por)\s+la\s+(?:mañana|tarde|noche|madrugada))(?!\p{L})`, 'iu'),
+  /(?<!\p{L})(?:mediod[ií]a|medianoche|hoy|pasado\s+mañana|est[ae]\s+(?:noche|tarde|mañana))(?!\p{L})/iu,
+  /(?<!\p{L})(?:lun|mar|mi[eé]|jue|vie|s[aá]b|dom)\.?\s?(?:0?[1-9]|[12]\d|3[01])(?!\d)/iu,
+  /(?<![\d.,/-])(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}\s?([/.-])\s?\d{1,2}\s?\1\s?(?:\d{4}|\d{2}))(?!\d)/u,
+];
+// «las 3» is an hour unless what follows is counted. What can follow an hour without being counted
+// are the language's function words ending in -s (a closed class), verbs in -mos and the hour's own words.
+const NOT_COUNTED = new Set(
+  ('antes después despues tras pues mientras entonces además ademas apenas jamás jamas quizás quizas detrás detras atrás atras ' +
+    'más mas menos todos todas ambos ambas unos unas los las les nos sus mis tus estos estas esos esas aquellos aquellas ' +
+    'otros otras varios varias algunos algunas muchos muchas pocos pocas demás demas nosotros nosotras ustedes ellos ellas ' +
+    'mismos mismas nuestros nuestras juntos juntas horas hrs hs exactas pasadas puntuales').split(' '),
+);
+const counted = (rest: string) => {
+  const w = /^\s+(\p{L}+)/u.exec(rest)?.[1]?.toLowerCase();
+  return !!w && w.endsWith('s') && !w.endsWith('mos') && !NOT_COUNTED.has(w);
+};
+const HOUR_SAID = new RegExp(String.raw`(?<!\p{L})(?:la\s+(?:0?1|una)|(las)\s+${HOUR}|(de)\s+(?:las\s+)?${HOUR}${MIN}\s+a\s+(?:las\s+)?${HOUR})${MIN}${NUM_END}`, 'giu');
+const WEEKDAY = /(?<!\p{L})(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bados?|domingos?)(?!\p{L})/giu;
+// «Domingo» is also a name: Santo Domingo always, Domingo Savio unless the event is on a Sunday.
+const SANTO_BEFORE = /(?<!\p{L})(?:santo|sto\.)\s+$/iu;
+const NAME_AFTER = /^\s+(?!(?:De|Del|La|Las|El|Los|Y|En|A|Al)(?!\p{L}))\p{Lu}\p{Ll}/u;
+
+function alwaysWhen(t: string): boolean {
+  if (ALWAYS.some((re) => re.test(t))) return true;
+  for (const m of t.matchAll(HOUR_SAID)) if (!((m[1] || m[2]) && counted(t.slice(m.index + m[0].length)))) return true;
+  for (const m of t.matchAll(WEEKDAY)) {
+    const sunday = /^domingo$/i.test(m[0]);
+    if (sunday && SANTO_BEFORE.test(t.slice(0, m.index))) continue;
+    if (m[0] === 'Domingo' && NAME_AFTER.test(t.slice(m.index + m[0].length))) continue;
+    return true;
+  }
+  return dateMentions(t).some((d) => d.always);
+}
+
+// A date a title names: `on` says whether it is a given day, `key` compares it with another title's.
+type DateMention = { text: string; key: string; on: (d: DateTime) => boolean; always: boolean; name: boolean };
+const MONTH = 'ene(?:ro)?|feb(?:rero)?|mar(?:zo)?|abr(?:il)?|may(?:o)?|jun(?:io)?|jul(?:io)?|ago(?:sto)?|sep(?:t(?:iembre)?)?|set(?:iembre)?|oct(?:ubre)?|nov(?:iembre)?|dic(?:iembre)?';
+const MONTH_NO: Record<string, number> = { ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6, jul: 7, ago: 8, sep: 9, set: 9, oct: 10, nov: 11, dic: 12 };
+const DAY = '(0?[1-9]|[12]\\d|3[01])';
+const DAY_MONTH = new RegExp(String.raw`(?<![\p{L}\d.,])${DAY}(?:ro|ero|°|º)?\s+(?:de\s+)?(${MONTH})\.?(?!\p{L})`, 'giu');
+const NUMERIC = new RegExp(String.raw`(?<![\d.,/-])${DAY}\s?([/-])\s?(0?[1-9]|1[0-2])(?![\d]|[.,/-]\d)`, 'gu');
+const DAY_ONLY = new RegExp(String.raw`(?<!\p{L})(?:(?:el|del|al)\s+(?:d[ií]a\s+)?|d[ií]a\s+)${DAY}(?![\p{L}\d%°º]|\s?[/.-]\s?\d|\s+(?:de\s+)?(?:${MONTH})\.?(?!\p{L}))`, 'giu');
+const TOMORROW = /(?<!\p{L})mañana(?!\p{L})/giu;
+const NOUN_BEFORE = /(?<!\p{L})(?:la|una|un|el|cada|toda|esa|aquella|de|en|por|buena|media|esta|pasado)\s+$/iu;
+const DATE_ARTICLE = /(?<!\p{L})(?:el|del|al|d[ií]a)\s+$/iu;
+const SUNDAY_NAME = /(?<!\p{L})Domingo(?!\p{L})/gu;
+
+const dayMonth = (text: string, day: number, month: number, always = false, name = false): DateMention => ({
+  text, key: `${day}/${month}`, on: (d) => d.day === day && d.month === month, always, name,
+});
+
+// «mañana» counts only as the day after today: not as a noun (la mañana, Mañana Deportiva) nor in
+// «pasado mañana» / «esta mañana» (always refused).
+function dateMentions(t: string): DateMention[] {
+  const out: DateMention[] = [];
+  for (const m of t.matchAll(DAY_MONTH)) out.push(dayMonth(m[0].trim(), +m[1], MONTH_NO[m[2].slice(0, 3).toLowerCase()], false, true));
+  for (const m of t.matchAll(NUMERIC)) out.push(dayMonth(m[0], +m[1], +m[3], DATE_ARTICLE.test(t.slice(0, m.index))));
+  for (const m of t.matchAll(DAY_ONLY)) out.push({ text: m[0], key: m[1].replace(/^0/, ''), on: (d) => d.day === +m[1], always: false, name: false });
+  for (const m of t.matchAll(TOMORROW)) {
+    if (NOUN_BEFORE.test(t.slice(0, m.index)) || /^\s+(?:de\s|\p{Lu})/u.test(t.slice(m.index + m[0].length))) continue;
+    const d = DateTime.now().setZone(TZ).plus({ days: 1 });
+    out.push(dayMonth(m[0], d.day, d.month));
+  }
+  for (const m of t.matchAll(SUNDAY_NAME)) {
+    if (SANTO_BEFORE.test(t.slice(0, m.index)) || !NAME_AFTER.test(t.slice(m.index + m[0].length))) continue;
+    const name = /^Domingo\s+\p{L}+/u.exec(t.slice(m.index))?.[0] ?? m[0];
+    out.push({ text: name, key: 'domingo', on: (d) => d.weekday === 7, always: false, name: true });
+  }
+  return out;
+}
+
+// A title naming the event's own date, or (when that date is hidden from the person) a date its
+// stored title did not already name.
+function datedTitle(title: string, own: DateTime | null, before = ''): DateMention | undefined {
+  const named = dateMentions(title);
+  if (own) return named.find((d) => d.on(own));
+  const had = new Set(dateMentions(before).map((d) => d.key));
+  return named.find((d) => !had.has(d.key));
+}
+
+const datedMessage = (d: DateMention) => (d.name ? `${DATED} Si «${d.text}» es el nombre del sitio, ponlo en «A dónde se va».` : DATED);
+
+async function refuseDatedTitle(sql: Sql, id: string, title: string) {
+  const ev = await sql.one<{ title: string; starts_at: string | Date | null }>(
+    `select e.title, sc.starts_at from public.events e left join public.event_schedule sc on sc.event_id = e.id where e.id = $1`,
+    [id],
+  );
+  // The schedule row comes back only to whoever may see the date (RLS).
+  const hit = datedTitle(title, dt(ev?.starts_at), ev?.title ?? '');
+  if (hit) throw new UserError(datedMessage(hit));
+}
+
+const titleField = z
+  .string()
+  .trim()
+  .min(3, 'Escribe un título.')
+  .max(140, 'Máximo 140 caracteres.')
+  .refine((t) => !alwaysWhen(t), DATED);
 
 const scheduleShape = {
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Elige la fecha.'),
@@ -37,7 +157,7 @@ const briefShape = {
 };
 
 const eventSchema = z.object({
-  title: z.string().trim().min(3, 'Escribe un título.').max(140, 'Máximo 140 caracteres.'),
+  title: titleField,
   placeName: text(200),
   municipality: text(100),
   summary: text(1000),
@@ -69,6 +189,8 @@ function toRange(date: string, time: string, durationMin: number) {
 export async function createEvent(raw: unknown) {
   return act(eventSchema, raw, async (sql, i, s) => {
     const { starts, ends } = toRange(i.date, i.time, i.durationMin);
+    const dated = datedTitle(i.title, DateTime.fromISO(i.date, { zone: TZ }));
+    if (dated) throw new UserError(datedMessage(dated));
     if (!i.allowOverlap) {
       const clash = await sql.one<{ title: string }>(
         `select e.title from public.event_schedule sc join public.events e on e.id = sc.event_id
@@ -116,7 +238,7 @@ export async function createEvent(raw: unknown) {
 // database lets her touch (guard_event_update): no date, place details, brief or urgency.
 const proposalSchema = z.object({
   id: z.string().uuid(),
-  title: z.string().trim().min(3, 'Escribe un título.').max(140, 'Máximo 140 caracteres.'),
+  title: titleField,
   placeName: text(200),
   municipality: text(100),
   summary: text(1000),
@@ -126,6 +248,7 @@ const proposalSchema = z.object({
 export async function updateProposal(raw: unknown) {
   return act(proposalSchema, raw, async (sql, i, s) => {
     const before = await sql.one<{ title: string }>(`select title from public.events where id = $1`, [i.id]);
+    await refuseDatedTitle(sql, i.id, i.title);
     const r = await sql.query(
       `update public.events set title = $2, place_name = $3, municipality = $4, summary = $5, category_id = $6
         where id = $1 and created_by = auth.uid() and boss_decision = 'pending' and deleted_at is null returning id`,
@@ -147,7 +270,7 @@ export async function updateProposal(raw: unknown) {
 
 const updateEventSchema = z.object({
   id: z.string().uuid(),
-  title: z.string().trim().min(3).max(140),
+  title: titleField,
   placeName: text(200),
   municipality: text(100),
   summary: text(1000),
@@ -157,6 +280,7 @@ const updateEventSchema = z.object({
 
 export async function updateEvent(raw: unknown) {
   return act(updateEventSchema, raw, async (sql, i) => {
+    await refuseDatedTitle(sql, i.id, i.title);
     const r = await sql.query(
       `update public.events set title = $2, place_name = $3, municipality = $4, summary = $5, category_id = $6, urgency = $7 where id = $1 returning id`,
       [i.id, i.title, i.placeName, i.municipality, i.summary, i.categoryId, i.urgency],
@@ -168,6 +292,9 @@ export async function updateEvent(raw: unknown) {
 export async function updateSchedule(raw: unknown) {
   return act(z.object({ id: z.string().uuid(), ...scheduleShape }), raw, async (sql, i) => {
     const { starts, ends } = toRange(i.date, i.time, i.durationMin);
+    // Moving the event onto a date its title names would put that date in the title.
+    const ev = await sql.one<{ title: string }>(`select title from public.events where id = $1`, [i.id]);
+    if (ev && datedTitle(ev.title, DateTime.fromISO(i.date, { zone: TZ }))) throw new UserError('El título dice esa fecha: cámbialo primero.');
     const r = await sql.query(
       `update public.event_schedule set starts_at = $2, ends_at = $3, exact_address = $4, directions = $5, site_contacts = $6 where event_id = $1 returning event_id`,
       [i.id, starts, ends, i.exactAddress, i.directions, i.siteContacts],

@@ -555,19 +555,24 @@ describe('con modelo (proveedor falso)', () => {
     expect(r2.answer).toBe(AGENDA_FALLBACK);
   });
 
-  it('un título con fecha, hora o dirección no llega al proveedor (ni por la herramienta ni por el hilo)', async () => {
+  it('un título con fecha, hora o dirección no llega al proveedor (ni por la herramienta ni por el hilo): va como «[[E1]]» y la persona ve el título', async () => {
     const title = 'Visita escuela Zamorano jueves 30 a las 9:00 am, calle 3';
     const ev = await withSystem((sql) => sql.one<{ id: string }>(`insert into public.events (title, boss_decision, created_by) values ($1, 'accepted', $2) returning id`, [title, ADMIN_ID]));
     try {
       // An earlier answer of the demo brain quoted the title as it is (it is in the thread).
       const first = await handleTurn(sessionOf('social'), { question: 'hola' }, LOCAL);
       await withSystem((sql) => sql.query(`insert into public.assistant_messages (conversation_id, who, body) values ($1, 'asistente', $2)`, [first.conversationId, `Lo primero: falta el storyboard: «${title}».`]));
-      const p = fakeProvider((n) => (n === 1 ? callTool('buscar_evento', { texto: 'escuela Zamorano' }) : say('La visita a la escuela Zamorano va en ficha. ¿Algo más?')));
+      const p = fakeProvider((n) => (n === 1 ? callTool('buscar_evento', { texto: 'escuela Zamorano' }) : say('El evento «[[E1]]» va en ficha. ¿Algo más?')));
       const r = await handleTurn(sessionOf('social'), { question: '¿Cómo va lo de la escuela Zamorano?', conversationId: first.conversationId }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
       expect(r.did).toEqual([{ tool: 'buscar_evento' }]);
       const sent = JSON.stringify(p.seen);
-      expect(JSON.stringify(p.seen[1].body.messages)).toContain('Visita escuela Zamorano [fecha] a las [hora], [direccion]');
-      for (const leak of ['jueves 30', '9:00', 'calle 3']) expect(sent).not.toContain(leak);
+      const msgs = p.seen[1].body.messages as { role: string; content: string | null }[];
+      expect(msgs.find((m) => m.role === 'tool')!.content).toContain('"titulo":"[[E1]]"');
+      expect(msgs.filter((m) => m.role === 'assistant').map((m) => m.content)).toContain('Lo primero: falta el storyboard: «[[E1]]».');
+      // «las 9:00», not «9:00»: the platform's best-hours ficha says «19:00–21:00».
+      for (const leak of ['jueves 30', 'las 9:00', 'calle 3', 'Visita escuela Zamorano']) expect(sent).not.toContain(leak);
+      // The person can see that title: it comes back in the answer, never the placeholder.
+      expect(r.answer).toBe(`El evento «${title}» va en ficha. ¿Algo más?`);
     } finally {
       await withSystem((sql) => sql.query(`update public.events set deleted_at = now() where id = $1`, [ev!.id]));
     }
@@ -586,15 +591,15 @@ describe('con modelo (proveedor falso)', () => {
       expect(r.did).toEqual([{ tool: 'buscar_evento' }]);
       const tool = (p.seen[1].body.messages as { role: string; content: string }[]).find((m) => m.role === 'tool')!;
       const got = (JSON.parse(tool.content).eventos as { titulo: string }[]).map((e) => e.titulo).sort();
-      // «9.30» alone gets past redact(); the phone's guard takes it (and the weekday).
-      expect(got).toEqual(['Acto cancha Zamorano el [hora]', 'Caravana Zamorano [hora]', 'Jornada Zamorano [fecha] [hora]', 'Toma aérea Zamorano', 'Visita escuela Zamorano a las [hora]']);
+      // Each title travels as its placeholder, whatever way of writing the hour it carries.
+      expect(got).toEqual(['[[E1]]', '[[E2]]', '[[E3]]', '[[E4]]', '[[E5]]']);
       const sent = JSON.stringify(p.seen);
       for (const leak of ['9.30', '8h', '3/11', '7:00', '9.00', 'sábado', 'lunes']) expect(sent, leak).not.toContain(leak);
       // The minutes before h / hs / hrs go with their hour.
       const q = fakeProvider((n) => (n === 1 ? callTool('buscar_evento', { texto: 'Pirineos' }) : say('Encontré varias cosas de Pirineos. ¿Cuál es?')));
       await handleTurn(sessionOf('boss'), { question: '¿Cómo va lo de Pirineos?' }, { chain: CHAIN, chatOptions: { fetchImpl: q.fetchImpl } });
       const tool2 = (q.seen[1].body.messages as { role: string; content: string }[]).find((m) => m.role === 'tool')!;
-      expect((JSON.parse(tool2.content).eventos as { titulo: string }[]).map((e) => e.titulo).sort()).toEqual(['Acto Pirineos [hora]', 'Toma Pirineos [hora]', 'Visita Pirineos [hora]']);
+      expect((JSON.parse(tool2.content).eventos as { titulo: string }[]).map((e) => e.titulo).sort()).toEqual(['[[E1]]', '[[E2]]', '[[E3]]']);
       for (const leak of ['9.30', '7.30', 'hrs']) expect(JSON.stringify(q.seen), leak).not.toContain(leak);
     } finally {
       await withSystem((sql) => sql.query(`update public.events set deleted_at = now() where id = any($1::uuid[])`, [ids]));
@@ -611,7 +616,7 @@ describe('con modelo (proveedor falso)', () => {
       const r = await handleTurn(sessionOf('social'), { question: '¿Y qué falta?', conversationId: first.conversationId }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
       expect(r.model).toBe('groq:llama-3.3-70b');
       const thread = (p.seen[0].body.messages as { role: string; content: string }[]).filter((m) => m.role === 'assistant');
-      expect(thread.map((m) => m.content)).toContain('El evento «Toma aérea Tariba» está en «Ficha» (decisión del jefe: aceptado). Todavía no tiene material y 0 piezas.');
+      expect(thread.map((m) => m.content)).toContain('El evento «[[E1]]» está en «Ficha» (decisión del jefe: aceptado). Todavía no tiene material y 0 piezas.');
       expect(JSON.stringify(p.seen)).not.toContain('9.30');
     } finally {
       await withSystem((sql) => sql.query(`update public.events set deleted_at = now() where id = $1`, [ev!.id]));

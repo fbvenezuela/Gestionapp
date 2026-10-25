@@ -44,7 +44,7 @@ export function NewEventForm({ categories, municipalities, cameras, isSecretary 
       <Card>
         <CardHeader title="El evento" />
         <div className="grid gap-4 p-4 sm:grid-cols-2">
-          <Field label="Título" htmlFor="title" hint="Corto y claro. Ej.: Entrega de la cancha techada de El Mirador" className="sm:col-span-2">
+          <Field label="Título" htmlFor="title" hint="Corto y claro, sin fecha ni hora. Ej.: Entrega de la cancha techada de El Mirador" className="sm:col-span-2">
             <Input id="title" required maxLength={140} value={f.title} onChange={set('title')} />
           </Field>
           <Field label="A dónde se va" htmlFor="place" hint="El nombre del sitio (lo ve todo el equipo)">

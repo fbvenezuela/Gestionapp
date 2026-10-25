@@ -22,4 +22,17 @@ describe('datos de la demostración', () => {
     expect(rows.map((r) => r.title)).toContain('Avance del puente La Quebrada');
     for (const r of rows) expect([...r.groups].sort(), r.title).toEqual(['long', 'medium', 'short']);
   });
+
+  it('una imagen no tiene duración, fps ni códecs (la portada no muestra «1:35»)', async () => {
+    const images = await t.system((sql) =>
+      sql.query<{ label: string; duration_s: number | null; fps: number | null; video_codec: string | null; audio_codec: string | null; storage_path: string }>(
+        `select label, duration_s, fps, video_codec, audio_codec, storage_path from public.media_assets where mime like 'image/%'`,
+      ),
+    );
+    expect(images.map((m) => m.label)).toContain('Portada v1');
+    for (const m of images) {
+      expect([m.duration_s, m.fps, m.video_codec, m.audio_codec], m.label).toEqual([null, null, null, null]);
+      expect(m.storage_path, m.label).toMatch(/\.jpg$/);
+    }
+  });
 });

@@ -18,6 +18,7 @@ import {
   fmtUsd,
   idParam,
   keyStatus,
+  modelLabel,
   pageParam,
   pairAnswers,
   tabHref,
@@ -185,7 +186,7 @@ export async function ConversationsTab({ s, sp }: { s: Session; sp: SP }) {
                       {c.degraded ? <Chip tone="danger">{c.degraded} con problemas</Chip> : null}
                       {c.errors ? <Chip tone="danger">{c.errors} {c.errors === 1 ? 'error' : 'errores'}</Chip> : null}
                       {c.models.map((m) => (
-                        <Chip key={m} tone="neutral">{m === 'local' ? 'demostración' : m}</Chip>
+                        <Chip key={m} tone="neutral">{modelLabel(m)}</Chip>
                       ))}
                     </span>
                   </span>
@@ -254,7 +255,7 @@ async function ConversationDetail({ s, id }: { s: Session; id: string }) {
               {m.who === 'asistente' ? (
                 <>
                   <p className="text-xs text-text-2">
-                    {m.model === 'local' ? 'Demostración, sin IA' : m.model ?? 'sin modelo'} · {fmtMs(m.ms)}
+                    {modelLabel(m.model)} · {fmtMs(m.ms)}
                     {m.tokens_in || m.tokens_out ? ` · uso de IA: ${((m.tokens_in ?? 0) + (m.tokens_out ?? 0)).toLocaleString('es-VE')}` : ''} · {fmtDateTime(m.created_at)}
                   </p>
                   {tools.length || m.degraded || m.error || goTo?.href ? (
@@ -348,7 +349,7 @@ export async function HealthTab({ s }: { s: Session }) {
           <ul className="divide-y divide-border">
             {h.byModel.map((m) => (
               <li key={m.model} className="px-4 py-3">
-                <p className="font-semibold [overflow-wrap:anywhere]">{m.model === 'local' ? 'Demostración (sin IA)' : m.model}</p>
+                <p className="font-semibold [overflow-wrap:anywhere]">{modelLabel(m.model)}</p>
                 <dl className="mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm sm:grid-cols-4">
                   <Pair k="Respuestas" v={m.answers} />
                   <Pair k="Errores" v={m.errors} bad={m.errors > 0} />

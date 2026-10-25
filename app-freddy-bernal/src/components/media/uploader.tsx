@@ -34,6 +34,12 @@ export function Uploader({
   const scope = `${eventId ?? 'none'}:${kind}`;
 
   const patch = (key: string, p: Partial<Item>) => setItems((list) => list.map((i) => (i.key === key ? { ...i, ...p } : i)));
+  // Files are prepared one at a time (a 12 MP photo decodes to ~48 MB); the uploads themselves
+  // run side by side once ready.
+  const queue = useRef<Promise<void>>(Promise.resolve());
+  const seq = useRef(0);
+  // Taken off the list while still waiting for its turn: it is never uploaded.
+  const dropped = useRef(new Set<string>());
 
   // When the signal comes back, restart anything that was waiting.
   useEffect(() => {
@@ -45,12 +51,18 @@ export function Uploader({
     return () => window.removeEventListener('online', onOnline);
   }, []);
 
-  async function start(original: File) {
-    const key = `${original.name}-${original.size}-${Date.now()}`;
+  function enqueue(original: File) {
+    const key = `${original.name}-${original.size}-${++seq.current}`;
     setItems((l) => [...l, { key, name: original.name, size: original.size, progress: 0, state: 'preparing' }]);
+    queue.current = queue.current.then(() => start(key, original));
+  }
+
+  async function start(key: string, original: File) {
+    if (dropped.current.has(key)) return;
     try {
       const file = await compressImage(original);
       const probe = await probeFile(file);
+      if (dropped.current.has(key)) return;
       const ext = (file.name.split('.').pop() || 'bin').slice(0, 5);
       let ticket: UploadTicket | null = null;
       try {
@@ -121,7 +133,7 @@ export function Uploader({
         className="sr-only"
         aria-label={label}
         onChange={(e) => {
-          for (const f of Array.from(e.target.files ?? [])) start(f);
+          for (const f of Array.from(e.target.files ?? [])) enqueue(f);
           e.target.value = '';
         }}
       />
@@ -153,6 +165,7 @@ export function Uploader({
             {i.state !== 'uploading' ? (
               <Button variant="ghost" size="icon" aria-label="Quitar de la lista" onClick={() => {
                 if (i.mediaId && i.state !== 'paused') failUpload({ id: i.mediaId });
+                dropped.current.add(i.key);
                 setItems((l) => l.filter((x) => x.key !== i.key));
               }}><X className="h-4 w-4" /></Button>
             ) : null}

@@ -150,6 +150,29 @@ test('«Más», «Mi cuenta» y «Crear» se cierran con un toque afuera, con Es
   await expect(create).not.toHaveAttribute('open');
 });
 
+test('con el teclado, un menú se cierra al salir de él, y abrir uno cierra el otro', async ({ page }) => {
+  await loginAs(page, 'redes@demo.test');
+  await page.goto('/hoy');
+  const create = page.locator('header details').filter({ has: page.getByText('Crear', { exact: true }) });
+  const account = page.locator('header details').filter({ has: page.getByLabel('Mi cuenta') });
+  await create.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(create).toHaveAttribute('open', '');
+  // Tab through its items and on to the next control: it closes by itself.
+  for (let i = 0; i < 12 && (await create.getAttribute('open')) !== null; i++) await page.keyboard.press('Tab');
+  await expect(create).not.toHaveAttribute('open');
+  // From «Crear» straight to «Mi cuenta»: never two panels at once.
+  await create.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await page.getByLabel('Mi cuenta').focus();
+  await page.keyboard.press('Enter');
+  await expect(account).toHaveAttribute('open', '');
+  await expect(create).not.toHaveAttribute('open');
+  // Opened by any other means (a script, an assistive tool): the other one still closes.
+  await create.evaluate((d: HTMLDetailsElement) => { d.open = true; });
+  await expect(account).not.toHaveAttribute('open');
+});
+
 test('el botón de 360 nunca tapa «Enviar propuesta»: pegada abajo ni al final del formulario', async ({ page }) => {
   await loginAs(page, 'secretaria@demo.test');
   await page.goto('/agenda/nuevo');

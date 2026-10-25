@@ -13,6 +13,7 @@ import {
   PROMISE_FALLBACK,
   breaksAgendaRule,
   filterOutput,
+  guardQuestion,
   looksLikeText,
   modelTurn,
   promisesNotice,
@@ -27,6 +28,7 @@ import { redact } from './redact';
 import { pickGoTo, type GoTo } from './screens';
 import { MESSAGES_PER_HOUR, loadKnowledge, loadScripts, noteHeard, openTurn, saveTurn, type Reserve } from './store';
 import { firstName } from './text';
+import { NO_TITLES, Placeholders, loadTitles, titlesIn, type TitleSet } from './titles';
 import { toolsFor, type EscalateFn, type ToolRun } from './tools';
 
 export { escalate } from './escalate';
@@ -91,15 +93,30 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   const escalateFn: EscalateFn = deps.escalate ?? realEscalate;
   const roles = session.roles.filter((r) => TEAM_ROLES.includes(r));
   const raw = String(input.question ?? '').trim().slice(0, MAX_QUESTION);
-  const question = redact(raw);
+  // `routing` is only for the demo brain's own choices (never stored, never sent).
+  const routing = redact(raw);
   const finish = (r: Omit<TurnResult, 'ms' | 'scope'>): TurnResult => ({ ...r, scope: 'equipo', ms: Date.now() - t0 });
-  if (!question) return finish({ answer: '¿Qué necesitas? Escríbeme tu pregunta.', model: 'local', degraded: false, did: [], goTo: null, conversationId: input.conversationId ?? null });
+  if (!routing) return finish({ answer: '¿Qué necesitas? Escríbeme tu pregunta.', model: 'local', degraded: false, did: [], goTo: null, conversationId: input.conversationId ?? null });
+
+  // With a model chain, the titles this person can see are read first, once, AS THE PERSON: a
+  // question that names an event by its title is guarded like one with an event word, and on the
+  // model path every title goes to the provider only as a placeholder. If they can't be read, no
+  // model turn (the demo brain answers).
+  const chain = deps.chain ?? parseChain(env.assistant.models);
+  const titles: TitleSet | null = chain.length
+    ? await loadTitles(session).catch((e) => {
+        console.error('[asistente] no se pudieron leer los títulos:', (e as Error).message);
+        return null;
+      })
+    : null;
+  // `question` is what is stored, goes to «Lo que preguntan» and to a provider: about an event, its
+  // places and days go too.
+  const question = guardQuestion(routing, titles ?? NO_TITLES);
 
   // The conversation, the hour's count and the question, in one short transaction BEFORE the
   // brain (escalating needs the conversation; parallel requests see the question). With a model
   // chain, the turn's estimated cost (at the dearest link, for this thread) is reserved against the
   // month's cap in that same step.
-  const chain = deps.chain ?? parseChain(env.assistant.models);
   const reserve: Reserve | null = chain.length
     ? {
         provider: chain[0].provider,
@@ -162,9 +179,10 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   };
   await noteHeard(question, roles[0] ?? null);
 
-  // Only a turn with its reservation asks the model. Over the monthly AI cap (or if the turn could
-  // not be counted) the demo brain answers (it costs nothing): never a breakdown.
-  const useModel = !!basics?.usageId;
+  // Only a turn with its reservation and the titles asks the model. Over the monthly AI cap (or if the
+  // turn could not be counted, or the titles not read) the demo brain answers (it costs nothing):
+  // never a breakdown (the reservation is released when saving).
+  const useModel = !!basics?.usageId && !!titles;
   const tools = toolsFor(roles, !!conversationId);
   const toolCtx = { session, conversationId, escalate: escalateFn };
 
@@ -172,8 +190,8 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   let error: string | null = null;
   try {
     out = useModel
-      ? await modelTurn({ ctx, question, tools, toolCtx, chain, chatOptions: deps.chatOptions })
-      : await localTurn({ ctx, question, typed: raw, tools, toolCtx });
+      ? await modelTurn({ ctx, question, typed: raw, tools, toolCtx, chain, chatOptions: deps.chatOptions, titles: titles ?? undefined })
+      : await localTurn({ ctx, question: routing, typed: raw, tools, toolCtx });
   } catch (e) {
     error = String((e as Error)?.message ?? e).slice(0, 1000);
     const partial = (e as { partial?: BrainOutput }).partial;
@@ -181,9 +199,12 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     console.error('[asistente] sin respuesta:', error);
   }
 
+  // On the model path the answer still carries the titles' placeholders: the filter and the nets look
+  // at it like that (a title the person can see is not a when), and the names come back at the end.
+  const shown = (t: string) => (out.restore ? out.restore(t) : t);
   let answer = out.text ? filterOutput(out.text, name) : '';
   let degraded = false;
-  if (!answer || !looksLikeText(answer)) {
+  if (!answer || !looksLikeText(shown(answer))) {
     // Honest degraded answer, marked, and the team is told (if telling fails, we don't say we did).
     degraded = true;
     error = error ?? (answer ? `respuesta que no parece texto: ${answer.slice(0, 80)}` : 'respuesta vacía');
@@ -197,8 +218,11 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
       }
     }
   } else {
-    // The agenda rule, once more in code: an answer about events never carries a date or time.
-    if (breaksAgendaRule(answer, question, out.calls)) answer = AGENDA_FALLBACK;
+    // The agenda rule, once more in code: an answer about events never carries a date, time, day,
+    // place or contact. The demo brain quotes the titles it looked up as they are (the person can see
+    // them): those are masked for this check, like the model's placeholders.
+    const checked = out.restore ? answer : new Placeholders({ events: titlesIn(out.calls), pieces: [], places: [] }).mask(answer);
+    if (breaksAgendaRule(checked, question, out.calls)) answer = AGENDA_FALLBACK;
     // The promise net: says it told the team but avisar_al_equipo did not succeed → the server
     // tells them; if that fails too, the sentence changes (promising and not keeping is worse).
     const told = out.calls.some((c) => c.tool === 'avisar_al_equipo' && c.ok);
@@ -217,6 +241,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     }
   }
 
+  if (!degraded) answer = shown(answer);
   const goTo = degraded
     ? null
     : pickGoTo(session.roles, { toolHrefs: out.calls.filter((c) => c.ok).map((c) => c.goTo).reverse(), answer, question });

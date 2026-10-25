@@ -1,5 +1,7 @@
 'use client';
 
+import { PHOTO_MIME, sniffPhoto, stripPhotoMetadata } from './photo-meta';
+
 // Reads a video/image file IN THE BROWSER (nothing is uploaded) to get duration,
 // size, fps, codecs and weight. Used before uploading and to validate per network.
 export type Probe = {
@@ -100,27 +102,62 @@ function videoElementProbe(file: File): Promise<Partial<Probe>> {
 }
 
 export const UNCLEANABLE_PHOTO = 'Esta foto no se puede limpiar en este teléfono y podría llevar la ubicación. Pásala a JPG y vuelve a subirla.';
+// A JPEG, PNG or WebP the browser should open but could not: almost always memory.
+export const PHOTO_BUSY = 'No se pudo preparar la foto. Si subiste varias, intenta con menos a la vez.';
 
 const PHOTO_EXT: Record<string, string> = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' };
 
-// Every photo is re-encoded before upload, even a small one: that is what drops EXIF,
-// including the GPS location. It also shrinks it (slow data in Táchira). A photo the
-// browser cannot decode (e.g. HEIC on Android) is refused rather than sent with its EXIF.
-// GIF and SVG carry no camera location and pass as they are. Videos are never re-encoded here.
+// No photo leaves the phone with its EXIF (GPS location), XMP or text metadata. The photo is
+// recognized by its bytes, not by File.type (empty for a file without an extension or an unknown
+// one). JPEG, PNG and WebP lose their metadata without re-encoding (photo-meta.ts): same pixels.
+// They are re-encoded only when larger than maxSide, and then the smaller clean result is kept.
+// HEIC and anything that cannot be parsed are re-encoded; one the browser cannot open either is
+// refused rather than sent with its EXIF. GIF and SVG carry no camera location and pass as they
+// are, and so do videos (never re-encoded here) and files that are not photos. The result keeps
+// the original lastModified, so a resumed upload has the same fingerprint (tus).
 export async function compressImage(file: File, maxSide = 2560, quality = 0.85): Promise<File> {
-  if (!file.type.startsWith('image/') || file.type === 'image/gif' || file.type === 'image/svg+xml') return file;
-  const bitmap = await createImageBitmap(file).catch(() => null);
-  if (!bitmap) throw new Error(UNCLEANABLE_PHOTO);
-  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  // PNG and WebP keep their format (transparency); everything else becomes JPEG.
-  const want = file.type === 'image/png' || file.type === 'image/webp' ? file.type : 'image/jpeg';
-  const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, want, quality));
-  if (!blob) throw new Error(UNCLEANABLE_PHOTO);
+  const declared = file.type.toLowerCase();
+  if (/^(video|audio)\//.test(declared) || declared === 'image/gif' || declared === 'image/svg+xml') return file;
+  const kind = sniffPhoto(new Uint8Array(await file.slice(0, 64).arrayBuffer()));
+  if (!kind && !declared.startsWith('image/')) return file;
+  const mime = kind ? PHOTO_MIME[kind] : declared;
+  const stripped = kind ? stripPhotoMetadata(kind, new Uint8Array(await file.arrayBuffer())) : null;
+  if (stripped && !stripped.changed && Math.max(stripped.width, stripped.height) <= maxSide && file.type === mime) return file;
+  let best: Blob | null = stripped ? new Blob([stripped.bytes], { type: mime }) : null;
+  if (!stripped || Math.max(stripped.width, stripped.height) > maxSide) {
+    // PNG and WebP keep their format (transparency); everything else becomes JPEG.
+    const want = mime === 'image/png' || mime === 'image/webp' ? mime : 'image/jpeg';
+    const native = kind === 'jpeg' || kind === 'png' || kind === 'webp';
+    const encoded = await reencode(file, want, maxSide, quality, native ? PHOTO_BUSY : UNCLEANABLE_PHOTO).catch((e) => {
+      if (!best) throw e;
+      return null; // too big but clean: better big than not at all
+    });
+    if (encoded && (!best || encoded.size < best.size)) best = encoded;
+  }
   // A browser that cannot encode WebP hands back PNG: name the file after what it got.
-  const type = PHOTO_EXT[blob.type] ? blob.type : want;
-  return new File([blob], file.name.replace(/\.\w+$/, '') + PHOTO_EXT[type], { type });
+  const type = PHOTO_EXT[best!.type] ? best!.type : 'image/jpeg';
+  return new File([best!], file.name.replace(/\.\w+$/, '') + PHOTO_EXT[type], { type, lastModified: file.lastModified });
+}
+
+// Decodes (rotation applied), scales down to maxSide and encodes. The bitmap and the canvas are
+// released right away: phones run out of canvas memory quickly.
+async function reencode(src: Blob, want: string, maxSide: number, quality: number, failure: string): Promise<Blob> {
+  const bitmap = await createImageBitmap(src).catch(() => null);
+  if (!bitmap) throw new Error(failure);
+  const canvas = document.createElement('canvas');
+  try {
+    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error(PHOTO_BUSY);
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, want, quality));
+    if (!blob) throw new Error(failure);
+    return blob;
+  } finally {
+    bitmap.close();
+    canvas.width = 0;
+    canvas.height = 0;
+  }
 }

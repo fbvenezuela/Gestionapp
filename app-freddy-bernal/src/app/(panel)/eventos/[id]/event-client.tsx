@@ -169,7 +169,7 @@ export function ProposalEditor({ ev, categories, municipalities }: { ev: EventFu
           trigger={<Button variant="secondary" className="w-full">Corregir mi propuesta</Button>}
         >
           <form className="flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); run(() => updateProposal({ id: ev.id, ...f }), { success: 'Propuesta corregida.', onOk: () => setOpen(false) }); }}>
-            <Field label="Título" htmlFor="pt" hint="Corto y claro."><Input id="pt" value={f.title} onChange={set('title')} maxLength={140} required /></Field>
+            <Field label="Título" htmlFor="pt" hint="Corto y claro, sin fecha ni hora."><Input id="pt" value={f.title} onChange={set('title')} maxLength={140} required /></Field>
             <Field label="A dónde se va" htmlFor="pp" hint="El nombre del sitio"><Input id="pp" value={f.placeName} onChange={set('placeName')} /></Field>
             <Field label="Municipio" htmlFor="pm">
               <Select id="pm" value={f.municipality} onChange={set('municipality')}>

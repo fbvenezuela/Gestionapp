@@ -235,6 +235,14 @@ export function keyStatus(k: KeyInfo): { tone: 'ok' | 'warn' | 'danger'; text: s
   return { tone: 'ok', text: `${key} está puesta.` };
 }
 
+/** Who answered, as the panel shows it: never an internal name («local», «tope»). */
+export function modelLabel(model: string | null | undefined): string {
+  if (model === 'local') return 'Demostración (sin IA)';
+  if (model === 'tope') return 'Límite por hora';
+  if (model === 'ninguno') return 'Sin respuesta';
+  return model || 'Sin modelo';
+}
+
 export function fmtMs(v: number | null | undefined): string {
   if (v == null) return '—';
   return v < 1000 ? `${Math.round(v)} ms` : `${(v / 1000).toFixed(1).replace('.', ',')} s`;

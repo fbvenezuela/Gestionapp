@@ -292,7 +292,8 @@ describe('lo que devuelve una herramienta, antes del proveedor', () => {
     const run = { tool: 'buscar_evento', ok: true, result: { eventos: [{ titulo: 'Visita escuela Zamorano jueves 30 a las 9:00 am, calle 3', piezas: 2 }], nota: 'Llamar al 0414-1234567' } };
     const sent = toolMessage(run);
     for (const leak of ['jueves 30', '9:00', 'calle 3', '0414']) expect(sent).not.toContain(leak);
-    expect(JSON.parse(sent)).toEqual({ eventos: [{ titulo: 'Visita escuela Zamorano [fecha] a las [hora], [direccion]', piezas: 2 }], nota: 'Llamar al [numero]' });
+    // «escuela Zamorano» is a landmark with its name: a place, like the street.
+    expect(JSON.parse(sent)).toEqual({ eventos: [{ titulo: 'Visita [direccion] [fecha] a las [hora], [direccion]', piezas: 2 }], nota: 'Llamar al [numero]' });
     expect(toolMessage({ tool: 'estado_pieza', ok: false, error: 'No existe «el 3/11 a las 10:30»' })).toBe(JSON.stringify({ error: 'No existe «el [fecha] a las [hora]»' }));
   });
 
@@ -301,8 +302,8 @@ describe('lo que devuelve una herramienta, antes del proveedor', () => {
     const sent = toolMessage({ tool: 'buscar_evento', ok: true, result: { eventos: titles.map((titulo) => ({ titulo, piezas: 0 })) } });
     for (const leak of ['9.30', '19.', '9.', '7.', '8h', '3/11', '7:00', '9.00', 'sábado', 'lunes', 'mañana', ' am', 'hrs', ' hs']) expect(sent, leak).not.toContain(leak);
     expect(JSON.parse(sent).eventos.map((e: { titulo: string }) => e.titulo)).toEqual([
-      'Visita escuela Zamorano a las [hora]',
-      'Acto cancha Zamorano el [hora]',
+      'Visita [direccion] a las [hora]',
+      'Acto [direccion] el [hora]',
       'Jornada Zamorano [fecha] [hora]',
       'Toma Zamorano', // «9.30» alone: redact() leaves it, stripDateTime takes it
       'Caravana Zamorano [hora]',

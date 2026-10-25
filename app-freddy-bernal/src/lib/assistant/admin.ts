@@ -6,8 +6,10 @@ import { notify, usersWithRole } from '../notify';
 import { INVITABLE_ROLES, ROLES, ROLE_LABEL, type Role } from '../roles';
 import { mergeProfile, type AssistantProfile } from './config';
 import { chat, estimateCost, keyDiagnostics, parseChain, type KeyDiagnosis } from './providers';
+import { DATES_MESSAGE, listOf, noticeIssues, teachingProblem } from './guard';
 import { hasDate, redact } from './redact';
 import { variantsOf } from './local';
+import { loadTitles } from './titles';
 import { toolByName } from './tools';
 
 // Server functions for Ajustes → Asistente (the panel). Plain functions, not server
@@ -45,7 +47,13 @@ function strings(v: unknown, max = 30): string[] {
 const pgArray = (xs: string[]) => `{${xs.map((s) => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`).join(',')}}`;
 // What the assistant knows goes to the AI provider: never a date (the boss's agenda).
 function noDates(...parts: string[]) {
-  if (parts.some((p) => hasDate(p))) throw new AssistantAdminError('Quita las fechas: lo que sabe el asistente va al proveedor de IA y la agenda nunca sale de aquí.');
+  if (parts.some((p) => hasDate(p))) throw new AssistantAdminError(DATES_MESSAGE);
+}
+// Fichas and scripts: no date, phone, email or address, and next to an event no time or day of any
+// kind. An event is also one named by a title the admin can see (read as the admin, RLS).
+async function teachable(s: Session, o: { said: string[]; asked?: string[]; whole?: boolean }) {
+  const problem = teachingProblem({ ...o, titles: (await loadTitles(s)).events });
+  if (problem) throw new AssistantAdminError(problem);
 }
 
 // ---------------------------------------------------------------------------
@@ -75,7 +83,8 @@ export async function saveKnowledge(s: Session, input: { id?: string | null; tit
   assertAdmin(s);
   const title = text(input.title, 'el título', 1, 200);
   const body = text(input.body, 'el texto', 1, 6000);
-  noDates(title, body);
+  // A ficha is judged whole: its title can name the event its body gives the day or the hour of.
+  await teachable(s, { said: [title, body], whole: true });
   const roles = rolesOrNull(input.roles);
   const tags = strings(input.tags);
   return withSystem(async (sql) => {
@@ -144,7 +153,7 @@ export async function saveScript(
   const script = text(input.script, 'el guion', 1, 6000);
   if (!variantsOf(script).length) throw new AssistantAdminError('El guion necesita al menos una línea que empiece por «[ASISTENTE]:».');
   const notes = typeof input.notes === 'string' ? input.notes.trim().slice(0, 1000) : null;
-  noDates(topic, script, notes ?? '');
+  await teachable(s, { said: [script, notes ?? ''], asked: [topic] });
   const triggers = strings(input.triggers, 40);
   const roles = rolesOrNull(input.roles);
   return withSystem(async (sql) => {
@@ -287,7 +296,8 @@ export async function listDrafts(s: Session, status: 'pendiente' | 'confirmado' 
   );
 }
 
-/** Confirm: claims the draft first (no double send), then sends. If sending fails, it goes back to pending. */
+/** Confirm: claims the draft first (no double send), checks it again, then sends. If the check or the
+ * sending fails, it goes back to pending and administración is told why, in plain words. */
 export async function confirmDraft(s: Session, id: string) {
   assertAdmin(s);
   const d = await withSystem((sql) =>
@@ -306,7 +316,13 @@ export async function confirmDraft(s: Session, id: string) {
       if (!(INVITABLE_ROLES as string[]).includes(r)) throw new AssistantAdminError('El rol del aviso no es válido.');
       for (const u of await usersWithRole(r)) people.add(u);
     }
-    // Rule 4: never a date, time or place in a notice (redacted again before sending).
+    // Rule 4, checked again with the same check both brains use (a draft may come from before it, or
+    // name an event by a title the admin sees): no day, hour, place or contact beyond a team deadline.
+    // The text is redacted again before sending.
+    const issues = noticeIssues(d.body, (await loadTitles(s)).events);
+    if (issues.length) {
+      throw new AssistantAdminError(`No se mandó: el aviso trae ${listOf(issues)}, y eso solo va en la Agenda. Descártalo y pide otro sin eso.`);
+    }
     await notify({ userIds: [...people], kind: 'assistant_notice', title: 'Aviso del equipo', body: redact(d.body), key: `assistant-draft:${d.id}` });
     await withSystem((sql) =>
       sql.query(`update public.assistant_drafts set result = $2::text::jsonb where id = $1`, [d.id, JSON.stringify({ enviados: people.size, a: role === 'todos' ? 'todo el equipo' : ROLE_LABEL[role as Role] })]),
@@ -394,11 +410,12 @@ export async function healthStats(s: Session, f: { days?: number } = {}): Promis
         group by 1 order by 1 desc`,
       [days, env.appTz],
     );
+    // Answers cut by the hourly limit are saved as model 'tope': their own row, last (the panel calls it «Límite por hora»).
     const byModel = await sql.query<HealthStats['byModel'][number]>(
       `select coalesce(model, 'ninguno') as model, count(*)::int as answers, count(*) filter (where error is not null)::int as errors,
               count(*) filter (where degraded)::int as degraded, round(avg(ms))::int as avg_ms
          from public.assistant_messages where who = 'asistente' and created_at > now() - make_interval(days => $1)
-        group by 1 order by answers desc`,
+        group by 1 order by (coalesce(model, 'ninguno') = 'tope'), answers desc`,
       [days],
     );
     const hour = await sql.one<{ answers: number; degraded: number }>(

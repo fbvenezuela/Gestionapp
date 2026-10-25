@@ -139,11 +139,11 @@ export default async function TodayPage() {
       ) : null}
 
       {/* min-w-0 on each column: a grid item grows to fit its longest title otherwise, and the
-          page scrolls sideways on a phone instead of truncating it. */}
+          page scrolls sideways on a phone instead of wrapping it. */}
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <div className="flex min-w-0 flex-col gap-5">
           <Card>
-            <CardHeader title="Lo que espera por mí" subtitle={data.waiting.length ? `${data.waiting.length} pendientes` : undefined} />
+            <CardHeader title="Lo que espera por mí" subtitle={data.waiting.length ? `${data.waiting.length} ${data.waiting.length === 1 ? 'pendiente' : 'pendientes'}` : undefined} />
             {data.waiting.length ? <ItemList items={data.waiting} /> : <div className="p-4"><EmptyState icon={<Inbox className="h-8 w-8" />} title="Nada pendiente. ¡Bien!" /></div>}
           </Card>
         </div>
@@ -180,6 +180,8 @@ export default async function TodayPage() {
   );
 }
 
+// On a phone the title takes up to two lines, the detail (where the deadline is, «vence en …»)
+// wraps instead of being cut, and the chip goes on its own line below; from sm up, it sits on the right.
 function ItemList({ items, icon }: { items: Item[]; icon?: boolean }) {
   return (
     <ul className="divide-y divide-border">
@@ -187,11 +189,13 @@ function ItemList({ items, icon }: { items: Item[]; icon?: boolean }) {
         <li key={i}>
           <Link href={it.href} className="flex min-h-14 items-center gap-3 px-4 py-3 hover:bg-surface-2">
             {icon ? <AlertTriangle className="h-5 w-5 shrink-0 text-warn" aria-hidden /> : <Clock className="h-5 w-5 shrink-0 text-muted" aria-hidden />}
-            <span className="min-w-0 flex-1">
-              <span className="block truncate font-semibold">{it.title}</span>
-              {it.detail ? <span className="block truncate text-sm text-text-2">{it.detail}</span> : null}
+            <span className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+              <span className="min-w-0 sm:flex-1">
+                <span className="line-clamp-2 font-semibold [overflow-wrap:anywhere]">{it.title}</span>
+                {it.detail ? <span className="line-clamp-3 text-sm text-text-2 [overflow-wrap:anywhere]">{it.detail}</span> : null}
+              </span>
+              {it.tag ? <Chip tone={it.tone} className="shrink-0 self-start sm:self-center">{it.tag}</Chip> : null}
             </span>
-            {it.tag ? <Chip tone={it.tone}>{it.tag}</Chip> : null}
             <ChevronRight className="h-4 w-4 shrink-0 text-muted" aria-hidden />
           </Link>
         </li>

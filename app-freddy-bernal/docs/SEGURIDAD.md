@@ -1,6 +1,6 @@
 # Seguridad (primera versión)
 
-Actualizado: 23/10/2026. Qué se hizo para blindar la plataforma y qué falta.
+Actualizado: 25/10/2026. Qué se hizo para blindar la plataforma y qué falta.
 
 ## Lo que ya está
 1. **RLS en todas las tablas.** Cada consulta de una persona corre con su rol y su sesión (`set local role
@@ -19,6 +19,11 @@ Actualizado: 23/10/2026. Qué se hizo para blindar la plataforma y qué falta.
    - tiempo real: `event_schedule` no está en la publicación de Realtime;
    - búsquedas: corren con los permisos de la persona y no buscan en fechas ni direcciones;
    - correos y avisos: nunca llevan fecha ni hora de un evento;
+   - títulos de eventos: no se guardan con una hora («a las 9», «3 pm», «a las 10 antes del acto»), un día de la
+     semana, «hoy» ni una fecha con año; la fecha del propio evento tampoco («28 de octubre», «28/10», «el 28»,
+     «mañana»). Una cantidad («a las 3 escuelas») sí pasa, y un sitio con nombre de fecha («Barrio 23 de Enero»)
+     también, salvo si el evento es ese mismo día; el evento tampoco se puede mover a ese día. Quien no ve la fecha
+     (Secretaría) no puede agregar al título una fecha nueva: comprobarla contra la del evento le diría cuál es;
    - archivos: rutas con uuid, sin fecha ni nombre original;
    - registros: el servidor no imprime datos de la agenda.
 4. **Auditoría** por trigger en cada cambio (quién, qué, cuándo, antes y después), en una tabla en la que solo se
@@ -29,9 +34,12 @@ Actualizado: 23/10/2026. Qué se hizo para blindar la plataforma y qué falta.
 6. **Claves:** solo en variables de entorno. La de servicio de Supabase nunca va al navegador. `.env*` está en
    `.gitignore`; la CI corre gitleaks en cada cambio.
 7. **Archivos privados:** se descargan con URLs firmadas de 5 minutos, después de comprobar el permiso de la persona.
-   Toda foto se recomprime en el teléfono antes de subir, aunque sea pequeña: eso borra la ubicación GPS del archivo.
-   Si el teléfono no puede abrirla (por ejemplo HEIC en Android), no se sube y se pide pasarla a JPG. Los videos
-   no se tocan: la ubicación de la cámara se apaga en los teléfonos del equipo.
+   Toda foto se limpia en el teléfono antes de subir, aunque sea pequeña o venga sin tipo (se reconoce por sus
+   bytes): sale sin EXIF (ubicación GPS, cámara, fecha), XMP ni textos. JPEG, PNG y WebP se limpian sin
+   recomprimir (mismos píxeles, nunca más pesada; solo queda el giro de la foto); solo se recomprime la que pasa de
+   2560 px, y se queda la versión limpia más liviana. HEIC se recomprime a JPG; si el teléfono no puede abrirla
+   (por ejemplo HEIC en Android), no se sube y se pide pasarla a JPG. Las fotos se preparan de una en una. Los
+   videos no se tocan: la ubicación de la cámara se apaga en los teléfonos del equipo.
 8. **Cabeceras:** HSTS, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`. El sitio no se
    indexa (`robots: noindex`).
 9. **Nada sale sin permiso:** correos en modo buzón (`EMAIL_MODE=outbox`), nunca a direcciones `.test`, y en las

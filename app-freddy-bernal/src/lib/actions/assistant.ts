@@ -4,6 +4,9 @@ import type { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { requireSession, type Session } from '../auth/session';
 import * as admin from '../assistant/admin';
+import { guardQuestion } from '../assistant/brain';
+import { redact, redactQuoted } from '../assistant/redact';
+import { loadTitles, withTitleHoles } from '../assistant/titles';
 import {
   PANEL_PATH,
   exampleSchema,
@@ -104,7 +107,12 @@ export async function saveAnswerAsExample(raw: unknown) {
     if (!pair || !pair.question.trim()) throw new admin.AssistantAdminError('No encontré esa respuesta con su pregunta.');
     if (pair.answer.degraded || pair.answer.error) throw new admin.AssistantAdminError('Esa respuesta salió con problemas: mejor usa «Corregir».');
     const { name } = await admin.getProfile(s);
-    const draft = scriptFromAnswer(pair.question, pair.answer.body, name);
+    // The answer quotes titles as they are and the script goes to the AI provider in every matching
+    // turn: titles become «[titulo]» (the scripts' data hueco) and the rest gets every lock.
+    const titles = await loadTitles(s);
+    const answer = redactQuoted(withTitleHoles(pair.answer.body, titles));
+    const question = guardQuestion(redact(withTitleHoles(pair.question, titles)), titles);
+    const draft = scriptFromAnswer(question, answer, name);
     return admin.saveScript(s, { ...draft, notes: 'Guardado con «Así se contesta».', fromConversation: true });
   });
 }

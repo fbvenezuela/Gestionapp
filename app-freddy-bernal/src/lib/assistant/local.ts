@@ -1,6 +1,7 @@
 import 'server-only';
 import { AGENDA_FALLBACK, aboutEvents, asksAboutPublishing, asksPlace, asksRoute, asksSchedule, asksWhenWhere, eventAt, keyWords, pickFichas, stem, withoutWhenWhere, type BrainOutput, type ChosenScript, type TurnContext } from './brain';
-import { hasDateOrTime } from './redact';
+import { noticeIssues } from './guard';
+import { hasDateOrTime, safeTitle } from './redact';
 import { canOpen, screenFor, screensIn } from './screens';
 import { contract, fillHuecos, plain, sentences, HUECO } from './text';
 import { runTool, type Tool, type ToolCtx, type ToolRun } from './tools';
@@ -52,29 +53,22 @@ const SELF = /\bmis? (?:numero|telefono|celular|correo|cuenta|clave|contrasena|p
 const GOAL = /\b(?:gente|personas|seguidores|publico|audiencia|alcance|metas?|vistas|likes|comunidad|usuarios|tiempo|temprano)\b/;
 // «Lo de la cancha»: an event by another name (whoever can't see it gets no title match).
 const LO_DE = /\blo del?\b/;
-// A deadline for the team in a notice: what the team does, then «antes de / hasta / para / a más
-// tardar las [hora]» in the same clause («suban el material de la feria antes de las [hora]»). The
-// event's own hour is not one: nothing for the team before it («la feria es el martes hasta las…»,
-// «está pautada para las…»), or the event's verb in between («suban todo, la feria es hasta las…»).
-// Matched on the notice folded (lower case, no accents), «[hora]» kept.
-// The team's verb as said to the team («suban», «revisan»), or «hay / tienen que» + its infinitive:
-// a bare infinitive can be the event's («la feria va a terminar antes de las…»).
-const TEAM_DOES = String.raw`(?:suban|suben|manden|mandan|envien|envian|revisen|revisan|carguen|cargan|aprueben|aprueban|publiquen|publican)(?:lo|la|los|las)?|entreguen|terminen|editen|corrijan|completen|tengan|(?:hay|tienen|tenemos|deben|debemos) (?:que )?(?:subir|mandar|enviar|revisar|cargar|aprobar|publicar|entregar|terminar|editar|corregir|completar|tener)`;
-const EVENT_VERB = 'es|son|sera|seria|empiezan?|comienzan?|arrancan?|terminan?|dura|abre|cierra|sale|queda|quedo|pautad[ao]s?|movio|cambio|va|van';
-const DEADLINE = new RegExp(String.raw`(?=antes de|hasta|para|a mas tardar)(?<=\b(?:${TEAM_DOES})\b(?:(?!\b(?:${EVENT_VERB})\b)[^.;!?])*)\b(?:antes de|hasta|para|a mas tardar(?: a)?)\s+las?\s+\[hora\]`, 'g');
-const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-// A day or a «within» next to the event («la feria es el martes», «la feria de mañana», «quedó para
-// el sábado», «es en 2 h») is when it is; next to the team's work («hoy suben el material…», «suban
-// hoy…») it is not.
-const DAY = /\b(?:hoy|pasado manana|manana|lunes|martes|miercoles|jueves|viernes|sabado|domingo|esta (?:noche|tarde)|fin de semana|(?:en|dentro de) (?:\d{1,3}|una|dos|tres|media) (?:h|hs|hrs?|horas?|minutos?))\b/g;
-const EVENT_VERB_WORD = new RegExp(String.raw`\b(?:${EVENT_VERB})\b`);
-function eventDay(text: string): boolean {
-  const t = plain(text);
-  return [...t.matchAll(DAY)].some((m) => {
-    const before = t.slice(0, m.index).split(' ').filter(Boolean).slice(-3).join(' ');
-    return EVENT_VERB_WORD.test(before) || eventAt(before) >= 0;
-  });
-}
+// A call for help, not the agenda: «¿cuál es el teléfono de soporte?», «¿a quién llamo?» (alone or «…si
+// tengo un problema»), «tengo un problema», «me sale un error». «¿A quién llamo en la feria?» or «…para
+// lo de los productores?» is an event's contact: the agenda's answer.
+// A problem or an error is the app's only when nothing else owns it: alone, or with the app, logging in
+// or uploading («tengo una falla con la app», «me sale un error al subir»). «Hay un error en el copy» or
+// «un problema con la pieza» is the content's: the fichas answer it.
+const TROUBLE = String.raw`(?:tengo|tenemos|hay|me sale|me salio|me da|me dio|tuve) (?:un |una |algun |alguna )?(?:problemas?|fallas?|errores|error)`;
+const APP_TROUBLE = String.raw`${TROUBLE}(?:$| (?:con|en) (?:la |el |mi )?(?:app|aplicacion|plataforma|pagina|sistema|web|asistente|cuenta|clave|contrasena|codigo|acceso|sesion|conexion|internet)\b| (?:al|cuando|para) (?:entrar|iniciar|ingresar|abrir|subir|cargar|guardar|descargar|entro|inicio|ingreso|abro|subo|cargo|guardo|descargo)\b| (?:que|tecnico|raro)\b| (?:a quien|que hago|me ayudas)\b)`;
+const SUPPORT = new RegExp(String.raw`\b(?:soporte|mesa de ayuda)\b|\b(?:telefono|numero|correo|contacto) de (?:soporte|ayuda|administracion)\b|^(?:y )?a quien (?:llamo|le escribo|le aviso|acudo|le pregunto)$|\ba quien (?:llamo|le escribo|le aviso|acudo|le pregunto) (?:si|cuando)\b|\b${APP_TROUBLE}`);
+// Uploading a video, a photo or the material: only Grabación, Redes and administración do it.
+const UPLOAD = /\b(?:como|donde|quien|quienes) (?:se )?(?:sube|subo|suben|subimos|cargo|carga|cargan|subir|cargar)\b|\b(?:subir|cargar) (?:un |el |la |los |las )?(?:videos?|fotos?|material)\b/;
+const UPLOAD_WHAT = /\b(?:videos?|fotos?|material|materiales|grabacion|archivos?|tomas)\b/;
+const UPLOADERS = new Set(['admin', 'social', 'camera']);
+// «Sí», «dale», «avísale» right after 360 offered to tell administración.
+const YES = /^(?:si|claro|dale|ok|okey|okay|por favor|hazlo|avisale|avisales|avisa|si por favor|si avisale|si dale|si claro|porfa)(?: (?:por favor|porfa|gracias))?$/;
+const OFFERED = /\b(?:quieres que le avise|le aviso)\b[^?¿]*\?\s*$/i;
 // «¿Con quién hablo?» alone, maybe with a greeting or a «perdón»: it asks for the assistant's name.
 const NAME_ONLY = /^(?:(?:hola|buenas|buenos dias|buenas tardes|buenas noches|epa|disculpa|disculpe|perdon|perdone|oye|oiga) )*con quien hablo(?: yo)?(?: (?:perdon|disculpa|disculpe|por favor))?$/;
 
@@ -165,6 +159,14 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const agendaScreen = /\b(donde (esta|veo|encuentro|queda|abro|reviso)|como (entro|llego|abro|veo|encuentro|reviso)( a)?|ir a|abre|abreme) (la |mi |tu )?agenda\b/.test(q);
   const noticeToGroup = /\b(manda|mandale|mandales|envia|enviale|enviales|prepara|preparale)\b.*\baviso\b|\bavisale(s)? a (redes|supervision|despacho|grabacion|secretaria|todos|administracion)\b/.test(q);
 
+  // 0. «Sí» to the offer just made («¿Quieres que le avise a administración?»): told for real, then said.
+  const lastSaid = i.ctx.history.filter((h) => h.who === 'asistente').at(-1)?.body ?? '';
+  if (YES.test(q) && OFFERED.test(lastSaid) && offered('avisar_al_equipo')) {
+    const r = await call('avisar_al_equipo', { motivo: 'Aceptó que el asistente le avisara a administración.' });
+    if (r.ok) return done(pick(variants('hablar-persona')));
+    return done('Ahora no consigo avisar al equipo por aquí. Escríbele directo a administración, por favor.');
+  }
+
   // 1. A person, please: notice for real, then say so.
   if (/\b(hablar con (alguien|una persona|un humano|administracion|el equipo|alguien del equipo)|quiero (una persona|un humano|hablar con)|pasame con|necesito (a alguien|una persona|ayuda de alguien|hablar con)|que me (llame|escriba) alguien|llamar a alguien)\b/.test(q)) {
     if (offered('avisar_al_equipo')) {
@@ -221,7 +223,23 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   };
   if (asking && named && (!aboutWork || asksPlace(i.question))) {
     if (lookup) calls.push(lookup);
-    return refuse(evs.length === 1 ? `Del evento «${evs[0].titulo}» te puedo decir que su trabajo está en «${evs[0].trabajo}».` : '');
+    // Never the title as it is next to the refusal: typed into it, its hour or place would answer the question.
+    const shown = evs.length === 1 ? safeTitle(String(evs[0].titulo ?? '')) : '';
+    return refuse(evs.length === 1 ? `${shown ? `Del evento «${shown}»` : 'De ese evento'} te puedo decir que su trabajo está en «${evs[0].trabajo}».` : '');
+  }
+
+  // 2c. Support: there is no support phone; if something fails, administración is told (on a «sí»).
+  // Before the fichas and the scripts chosen with the earlier questions, which would answer the topic before.
+  if (SUPPORT.test(q)) {
+    return done(pick([
+      'No hay teléfono de soporte en la plataforma; si algo falla, le aviso a administración. ¿Quieres que le avise?',
+      'No hay teléfono de soporte en la plataforma; si algo falla, le aviso a administración. ¿Le aviso de una vez?',
+    ]));
+  }
+
+  // 2d. Uploading, asked by a role that does not upload: who does it and where.
+  if (UPLOAD.test(q) && UPLOAD_WHAT.test(q) && !i.ctx.roles.some((r) => UPLOADERS.has(r))) {
+    return done('Los videos y las fotos los suben Grabación o Redes, en la pestaña Material del evento. Desde tu rol no se sube material: si tienes un archivo, pásaselo a Redes.');
   }
 
   // 3. Mark my notices as read (level «hace», recorded and undoable).
@@ -239,12 +257,11 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     if (!rol) return done('¿A quién va el aviso? Puede ser un rol (Redes, Supervisión, Despacho, Grabación, Secretaría) o todo el equipo.');
     const m = /\bque\s+(.+)$/i.exec(i.question);
     const texto = (m?.[1] ?? i.question).trim();
-    // About an event, it can't say when, where or whom to call (it arrives redacted: «[hora]»), nor
-    // the event's day. A deadline for the team («suban el material antes de las 3 pm», «revisen…
-    // hasta las 5») is not the agenda: it goes, redacted. The event's own hour does not.
-    const untimed = fold(texto).replace(DEADLINE, ' ');
-    if (aboutEvents(texto) && (/\[(fecha|hora|numero|correo)\]|\b(en|es) (la |el )?\[direccion\]/.test(untimed) || asksPlace(texto) || eventDay(untimed))) {
-      return done('Un aviso no puede llevar la fecha, la hora, el lugar ni los contactos de un evento: eso solo se ve en la Agenda. Dímelo sin eso y lo preparo.');
+    // It can't say a day, an hour, a place or whom to call, in any way of writing them (the same check
+    // as the tool's and as administración's when confirming). A deadline for the team («suban el
+    // material antes de las 3 pm», «hoy suben…») is not the agenda: it goes, redacted.
+    if (noticeIssues(texto).length) {
+      return done('Un aviso no puede llevar la fecha, la hora, el día, el lugar ni los contactos de un evento: eso solo va en la Agenda. Un plazo para el trabajo del equipo sí puede ir. Dímelo así y lo preparo.');
     }
     const r = await call('preparar_aviso', { rol, texto });
     if (!r.ok) return done(`No pude prepararlo: ${r.error}`);

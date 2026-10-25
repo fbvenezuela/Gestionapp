@@ -24,8 +24,10 @@ export type Notice = {
 // strips anything that looks like one).
 // Safe to call again with the same key (the cron retries a step that failed): the in-app notice is
 // stored once, the phone rings only for notices stored by this call, and the emails go to everyone
-// on the notice who has none yet, so a call that failed halfway through its emails is completed
-// without repeating any (the outbox key is the guard).
+// on the notice who has no outbox row yet, so a call that failed halfway through its emails (before
+// storing them) is completed without repeating any (the outbox key is the guard). An email that is
+// stored but that Resend refused stays 'failed' in the outbox: nothing resends it yet
+// (docs/PENDIENTES.md).
 export async function notify(n: Notice) {
   const { fresh, mail } = await withSystem(async (sql) => {
     const fresh: { id: string; prefs: Record<string, unknown> }[] = [];

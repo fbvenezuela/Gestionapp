@@ -3,8 +3,9 @@
 import { useEffect, useRef, type ComponentProps } from 'react';
 import { dismissMenu } from './menu-core';
 
-// A <details> menu that also closes on a tap outside it and on Escape (menu-core.ts), and when
-// an item is chosen: the header stays in place when the page changes, so it would stay open.
+// A <details> menu that also closes on a tap outside it, on Escape, when the focus leaves it and
+// when another menu opens (menu-core.ts), and when an item is chosen: the header stays in place
+// when the page changes, so it would stay open.
 export function MenuDetails(props: Omit<ComponentProps<'details'>, 'ref' | 'onClick'>) {
   const ref = useRef<HTMLDetailsElement>(null);
   useEffect(() => (ref.current ? dismissMenu(ref.current, document) : undefined), []);

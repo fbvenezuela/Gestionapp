@@ -173,12 +173,16 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
   salen de Vault (`app_url`, `cron_secret`), nunca de la migración. En Vercel Hobby sigue el aviso diario.
   Cada paso de la tarea va por su cuenta: si uno falla, los demás corren igual y el próximo turno lo vuelve a intentar.
   Un aviso que se reintenta nunca repite el correo (lo impide la clave del buzón de salida) ni vuelve a sonar en el
-  teléfono, pero sí manda los correos que faltaron. «Venció el plazo» se marca después de avisar y solo en esa ronda de
-  revisión.
+  teléfono, pero sí manda los correos que faltaron por una falla antes de guardarlos en el buzón. Un correo guardado
+  que Resend rechazó queda «failed» en el buzón y por ahora nadie lo reenvía (`PENDIENTES.md`). «Venció el plazo» se
+  marca después de avisar y solo en esa ronda de revisión.
 - **Cerrar sesiones:** «Cerrar sus sesiones», «Reiniciar doble factor» y desactivar a alguien también borran sus sesiones
   de Supabase (`auth.sessions`: el token de renovación deja de servir) y sus teléfonos suscritos (disparador en la base,
-  migración `20261025001000_revoke_push.sql`). El rol de `DATABASE_URL` necesita SELECT y DELETE sobre `auth.sessions`
-  (por confirmar en `fb-dev`).
+  migración `20261025001000_revoke_push.sql`). Cada pedido mira cuándo empezó su sesión con una función de la base
+  (`public.auth_session_started`, migración `20261025001100_session_started.sql`, corre con los permisos de quien
+  aplica las migraciones). Si esa consulta falla, decide la hora del token y lo anota en el registro del servidor:
+  nunca se cae el sitio. Borrar las sesiones necesita DELETE sobre `auth.sessions` (por confirmar en `fb-dev`; `npm run
+  db:first-admin` avisa si falta); si falla, el cambio queda hecho, el doble factor se quita igual y la app lo dice.
 
 ## D-26. El asistente del equipo «360»
 - **Qué:** un chat en todas las pantallas, adaptado del manual del asistente Cemi (ver `docs/ASISTENTE.md`). Solo para el
