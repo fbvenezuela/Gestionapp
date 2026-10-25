@@ -4,6 +4,8 @@
 //     a deadline for the work; one that names none keeps its days and deadlines, with their real time.
 // R4: Supervisión never reads an event's details in an «aviso al equipo».
 // R5: a placeholder never reaches a person raw. S6: the app checking the content is not «support».
+// Round 5: a distinctive word of a visible title names its event (S1); «a» + a Name is a place (S4); the
+// rare placeholder shapes (S6).
 // Demo database (PGlite, invented data); only the session, Next's cache and the provider are faked.
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import fs from 'node:fs';
@@ -24,6 +26,7 @@ const { handleTurn } = await import('@/lib/assistant');
 const { withSystem } = await import('@/lib/db');
 const { parseChain } = await import('@/lib/assistant/providers');
 const { EVENT_NAMED_MESSAGE, EVENT_WHEN_MESSAGE, noticeIssues, scrubTeamFicha, teachingProblem } = await import('@/lib/assistant/guard');
+const { eventIsSubject } = await import('@/lib/assistant/events');
 const { escalate } = await import('@/lib/assistant/escalate');
 const { Placeholders, stripTokens } = await import('@/lib/assistant/titles');
 const { filterOutput } = await import('@/lib/assistant/brain');
@@ -320,5 +323,144 @@ describe('S6: un error de la app sobre el contenido no es soporte', () => {
     const SUPPORT = /No hay teléfono de soporte/;
     expect((await handleTurn(sessionOf('social'), { question: 'me salió un error que dice que el copy es muy largo' }, LOCAL)).answer).not.toMatch(SUPPORT);
     expect((await handleTurn(sessionOf('social'), { question: 'tengo un problema que no me deja entrar' }, LOCAL)).answer).toMatch(SUPPORT);
+  });
+});
+
+describe('ronda 5, S1: una palabra propia de un título visible nombra su evento', () => {
+  const titles = {
+    events: ['Entrega de la cancha techada de El Mirador', 'Recorrido por la rehabilitación del puente La Quebrada', 'Jornada de salud en la escuela Los Andes', 'Entrega de viviendas en el urbanismo Nuevo Amanecer', 'Feria de emprendedores en la plaza central'],
+    pieces: [],
+    places: ['Cancha comunal El Mirador', 'Puente La Quebrada', 'Escuela Los Andes', 'Urbanismo Nuevo Amanecer', 'Plaza central'],
+  };
+
+  it('también como lo que pasa: «la cancha es…», «el puente arranca…» (sin palabras de tiempo nuevas)', () => {
+    expect(eventIsSubject('La cancha es en semana santa; lleven toldo.', titles)).toBe(true);
+    expect(eventIsSubject('El puente arranca al rato.', titles)).toBe(true);
+    expect(eventIsSubject('Arranca la cancha.', titles)).toBe(true);
+    // Not after «de»: the material of the cancha is the work; and only for whoever can see that title.
+    expect(eventIsSubject('Las fotos de la cancha son buenas.', titles)).toBe(false);
+    expect(eventIsSubject('La cancha es en semana santa.')).toBe(false);
+  });
+
+  it('R2: no se enseña (ficha y guion del equipo)', async () => {
+    for (const k of [
+      { title: 'Cancha', body: 'La cancha es en semana santa; lleven toldo y chalecos.' },
+      { title: 'Viviendas', body: 'Las viviendas son el día de la madre; lleven el dron.' },
+    ]) await expect(admin.saveKnowledge(A, k), k.title).rejects.toThrow(EVENT_NAMED_MESSAGE);
+    await expect(admin.saveScript(A, { topic: 'Qué llevo', script: '[ASISTENTE]: La cancha es en semana santa, lleva el dron.' })).rejects.toThrow(EVENT_NAMED_MESSAGE);
+    expect(teachingProblem({ said: ['El puente arranca al rato.'], titles })).toBe(EVENT_NAMED_MESSAGE);
+  });
+
+  it('R3: el aviso que lo nombra así no dice nada del evento; ni el cerebro de demostración ni el modelo lo preparan', async () => {
+    for (const t of ['la cancha es en semana santa, tengan el material listo', 'el puente arranca al rato, tengan las cámaras cargadas', 'las viviendas son el día de la madre, suban las fotos']) {
+      expect(noticeIssues(t, titles), t).toContain('datos del evento');
+      const r = await handleTurn(A, { question: `prepara un aviso a redes que ${t}` }, LOCAL);
+      expect(r.did, t).toEqual([]);
+      expect(await draftsOf(r.conversationId), t).toEqual([]);
+    }
+    const p = provider((n) => (n === 1 ? callTool('preparar_aviso', { rol: 'social', texto: 'La cancha es en semana santa: tengan el material listo.' }) : say('No lo pude preparar.')));
+    const r = await handleTurn(sessionOf('supervisor'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+    expect(r.did).toEqual([{ tool: 'preparar_aviso', error: expect.stringMatching(/^Ese aviso trae datos del evento/) }]);
+    // A team instruction that names it so still goes («de la cancha» alone is a landmark, a place: «del puente» is not).
+    expect(noticeIssues('suban las fotos del puente antes de las 3 pm', titles)).toEqual([]);
+  });
+
+  it('R4: a Supervisión le llega «necesita ayuda con un evento»', async () => {
+    const conv = async (key: DemoUserKey) => (await handleTurn(sessionOf(key), { question: 'hola' }, LOCAL)).conversationId!;
+    for (const motivo of ['Dice que la cancha arranca al rato y la pieza no está aprobada', 'Quiere que revisen la pieza; el puente es en semana santa']) {
+      await escalate(await conv('social'), motivo);
+      expect((await lastNotice('supervisor', 'assistant_escalation'))!.body, motivo).toBe('Daniela Pernía necesita ayuda con un evento.');
+    }
+  });
+});
+
+describe('ronda 6, V1: la palabra propia de un título hecha más chiquita o más grande también lo nombra', () => {
+  const titles = {
+    events: ['Entrega de la cancha techada de El Mirador', 'Recorrido por la rehabilitación del puente La Quebrada', 'Jornada de salud en la escuela Los Andes', 'Entrega de viviendas en el urbanismo Nuevo Amanecer'],
+    pieces: [],
+    places: ['Cancha comunal El Mirador', 'Puente La Quebrada', 'Escuela Los Andes', 'Urbanismo Nuevo Amanecer'],
+  };
+
+  it('R2: no se enseña (ficha y guion)', async () => {
+    for (const k of [
+      { title: 'Canchita', body: 'La canchita es en semana santa; lleven toldo y chalecos.' },
+      { title: 'Puentecito', body: 'El puentecito arranca al rato; lleven chalecos.' },
+      { title: 'Toldo', body: 'La escuelita es el día de la madre; lleven toldo.' },
+    ]) await expect(admin.saveKnowledge(A, k), k.title).rejects.toThrow(EVENT_NAMED_MESSAGE);
+    await expect(admin.saveScript(A, { topic: 'Qué llevo', script: '[ASISTENTE]: La canchita es en semana santa, lleva el dron y los chalecos.' })).rejects.toThrow(EVENT_NAMED_MESSAGE);
+    expect(eventIsSubject('El puentecito arranca al rato.', titles)).toBe(true);
+    expect(eventIsSubject('Arranca la canchita.', titles)).toBe(true);
+  });
+
+  it('R3: el aviso no sale por ningún camino; uno que solo pide algo al equipo sí', async () => {
+    const said = ['la canchita es en semana santa, tengan el material listo', 'tengan las cámaras cargadas, el puentecito arranca al rato', 'la escuelita es el día de la madre, suban las fotos'];
+    for (const t of said) {
+      expect(noticeIssues(t, titles), t).toContain('datos del evento');
+      const r = await handleTurn(A, { question: `prepara un aviso a redes que ${t}` }, LOCAL);
+      expect(r.did, t).toEqual([]);
+      expect(await draftsOf(r.conversationId), t).toEqual([]);
+      const d = (await makeDraft(t))!;
+      expect(await actions.confirmAssistantDraft({ id: d.id }), t).toMatchObject({ ok: false, error: expect.stringMatching(/^No se mandó: el aviso trae /) });
+    }
+    const p = provider((n) => (n === 1 ? callTool('preparar_aviso', { rol: 'social', texto: 'La canchita es en semana santa: tengan el material listo.' }) : say('No lo pude preparar.')));
+    const r = await handleTurn(sessionOf('supervisor'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+    expect(r.did).toEqual([{ tool: 'preparar_aviso', error: expect.stringMatching(/^Ese aviso trae datos del evento/) }]);
+    // Its own word, made smaller, is the event's name in the instruction.
+    expect(noticeIssues('suban las fotos del puentecito antes de las 3 pm', titles)).toEqual([]);
+  });
+
+  it('R4: a Supervisión le llega «necesita ayuda con un evento»', async () => {
+    const conv = async () => (await handleTurn(sessionOf('social'), { question: 'hola' }, LOCAL)).conversationId!;
+    for (const motivo of ['La pieza de la canchita no está aprobada y arranca al rato', 'La pieza del puentecito: es en semana santa', 'La pieza no está aprobada y la escuelita es el día de la madre']) {
+      await escalate(await conv(), motivo);
+      expect((await lastNotice('supervisor', 'assistant_escalation'))!.body, motivo).toBe('Daniela Pernía necesita ayuda con un evento.');
+    }
+  });
+});
+
+describe('ronda 5, S4: «a» + un nombre es un lugar; en un aviso con evento, solo las palabras del título que nombra', () => {
+  const titles = { events: ['Feria de emprendedores en la plaza central', 'Jornada de salud en la escuela Los Andes'], pieces: [], places: ['Plaza central', 'Escuela Los Andes'], people: ['kevin', 'sanchez', 'daniela'] };
+
+  it('en el aviso', () => {
+    expect(noticeIssues('mañana lleven el dron a Táriba', titles)).toEqual(['el día', 'el lugar', 'datos del evento']);
+    // Someone of the team is no place.
+    expect(noticeIssues('manden las fotos a Kevin', titles)).toEqual([]);
+    expect(noticeIssues('manden el video del recorrido a Supervisión', titles)).toEqual([]);
+    // An hour something happens at is not a deadline; the work handed in at an hour is.
+    expect(noticeIssues('a las 6 lleven el dron', titles)).toEqual(['la hora']);
+    expect(noticeIssues('suban el material a las 3 pm', titles)).toEqual([]);
+    // Every sentence that names an event asks the team for something; a lone number word is an hour.
+    expect(noticeIssues('Suban las fotos de la feria. Escuela.', titles)).toContain('datos del evento');
+    expect(noticeIssues('Suban las fotos de la feria, ocho.', titles)).toContain('datos del evento');
+    expect(noticeIssues('revisen los copies de cuatro piezas de la feria', titles)).toEqual([]);
+    // The words of a title it does name still go.
+    expect(noticeIssues('suban las fotos de la jornada de salud', titles)).toEqual([]);
+  });
+
+  it('en el motivo de un aviso al equipo: Supervisión no lo lee y administración lee «[direccion]»', async () => {
+    const conv = (await handleTurn(sessionOf('social2'), { question: 'hola' }, LOCAL)).conversationId!;
+    await escalate(conv, 'Pide que revisen la pieza antes de llevar el dron a Táriba');
+    expect((await lastNotice('supervisor', 'assistant_escalation'))!.body).toBe('Yorman Chacón necesita ayuda con un evento.');
+    const forAdmin = (await lastNotice('admin', 'assistant_escalation'))!.body;
+    expect(forAdmin).not.toContain('Táriba');
+    expect(forAdmin).toContain('a [direccion]');
+  });
+});
+
+describe('ronda 5, S6: las formas raras de una marca tampoco llegan crudas', () => {
+  it('corchetes anchos, un corchete de más, sin abrir', () => {
+    const ph = new Placeholders({ events: ['Feria de Pirineos'], pieces: [], places: [] });
+    ph.mask('la Feria de Pirineos');
+    for (const [t, restored, stripped] of [
+      ['Ver ［［E1］］', 'Ver «Feria de Pirineos»', 'Ver ese evento'],
+      ['Ver [[E１]]', 'Ver «Feria de Pirineos»', 'Ver ese evento'],
+      ['Ver [[E1]]]', 'Ver «Feria de Pirineos»', 'Ver ese evento'],
+      ['Ver [[[E1]]]', 'Ver «Feria de Pirineos»', 'Ver ese evento'],
+      ['Ver E1]]', 'Ver ese evento', 'Ver ese evento'],
+      ['Ver ［L2］', 'Ver ese lugar', 'Ver ese lugar'],
+    ]) {
+      expect(ph.restore(t), t).toBe(restored);
+      expect(stripTokens(t), t).toBe(stripped);
+    }
   });
 });

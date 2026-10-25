@@ -30,17 +30,30 @@ tiene las herramientas de eventos y la negativa de la agenda. No se reserva gast
   dice a Supervisión al avisar al equipo. Antes lee las abreviaturas como palabras («kndo», «onde», «lo d la»). Habla de
   un evento si trae: una palabra de evento («la feria», «el acto», «la agenda»), también con una letra de más, de menos,
   cambiada o trocada («feira», «evnto»); un evento en particular: un título que esa persona ve, entero, por un nombre
-  suyo («Tariba»), por una tira de palabras con mayúscula («Alto Verde», aunque cada una sea común) o por dos palabras
-  suyas seguidas («toma aérea», «zona alta»), o «lo de…» algo que no es de la plataforma ni de un rol («lo de la
-  cancha», «lo del puente», lo vea o no); el lugar de un evento que ve, entero, por un nombre suyo («La Quebrada») o por
-  su tira de mayúsculas («Alto Verde» de «Casa comunal Alto Verde»); una marca (`[[E1]]`, `[[L1]]`, `[titulo]`); el jefe
-  (por su rol, su nombre o su cargo, sacados de la configuración del cliente) o alguien que graba («Kevin graba…», «me
-  toca grabar…»); una pregunta de cuándo, dónde, cómo llegar, a quién llamar, cuánto falta («¿cuántos días faltan
-  para…?») o si sigue en pie («¿se suspendió…?») (no de cuándo publicar, ni un paso: «¿dónde subo el material?»); o forma
-  de agenda sin nombrar nada: una fecha, hora o
-  dirección escrita (lo que dejó `redact()`), una dirección o un lugar por referencia, o un día u hora que no es de su
-  propio trabajo junto a algo que pasa o se mueve («es», «arranca», «sale», «salimos», «queda», «será»…), a grabar o
-  a un lugar por su nombre («salimos pasado mañana temprano desde Pueblo Nuevo»). En una **pregunta**, además, basta un
+  suyo («Tariba»), por una tira de palabras con mayúscula («Alto Verde», aunque cada una sea común), por dos palabras
+  suyas seguidas («toma aérea», «zona alta») o por **una palabra propia** suya (ronda 5: de 5 letras o más, que no sea
+  común en nombres de lugares, palabra de evento, del trabajo o de la plataforma, de un rol, de tiempo ni de pregunta:
+  «la cancha», «el puente», «las viviendas», «la escuela», también en singular o plural y, ronda 6, hecha más chiquita o
+  más grande: «la canchita», «el puentecito», «la escuelita»), o «lo de…» algo que no es de la plataforma ni de un rol
+  («lo de la cancha», «lo del puente», «lo de la sesión», lo vea o no); el lugar de un evento que ve, entero,
+  por un nombre suyo («La Quebrada») o por su tira de mayúsculas («Alto Verde» de «Casa comunal Alto Verde»); una marca
+  (`[[E1]]`, `[[L1]]`, `[titulo]`); el jefe (por su rol, su nombre o su cargo, sacados de la configuración del cliente)
+  o alguien que graba («Kevin graba…», «me toca grabar…»); una pregunta de cuándo, dónde, cómo llegar, a quién llamar,
+  cuánto falta («¿cuántos días faltan para…?», «cuanto falta pa…») o si sigue en pie («¿se suspendió…?») (no de cuándo
+  publicar, ni un paso: «¿dónde subo el material?», «¿dónde dejo un comentario?», ni de una cosa de la plataforma:
+  «¿dónde está la biblioteca?», «¿cuándo vence el plazo?», «¿cuándo llega el correo de invitación?»). Lo de la
+  plataforma, ronda 6: con un verbo de dónde está algo («está», «queda», «se ve», «aparece») o el de una regla antes de
+  lo suyo («vence el plazo», «llega el correo», «es el plazo»), nunca con uno de algo que pasa en medio («¿a qué hora es
+  la sesión?», «¿a qué hora voy a la sesión?», «¿a qué hora sale Kevin con copies?» son de la agenda); una sesión, una
+  campaña, un registro o un panel solo con lo que los hace pantalla («el registro de cambios», «la campana de avisos»,
+  «mi sesión»); y cada frase se juzga sola («¿Dónde está la biblioteca? ¿Y a qué hora llega la comitiva?» es de un
+  evento). O forma de agenda sin nombrar nada: una fecha,
+  hora o dirección escrita (lo que dejó `redact()`), una dirección o un lugar por referencia, un sitio por su nombre
+  después de «a» si no es alguien del equipo («¿qué llevo a Táriba?»; «a Kevin» no: los nombres del equipo se leen
+  con los títulos), o un día u hora que no es de su propio trabajo junto a algo que pasa o se mueve («es», «arranca»,
+  «sale», «salimos», «queda», «será»…), a grabar o a un lugar por su nombre («salimos pasado mañana temprano desde
+  Pueblo Nuevo»). Así lo que el vocabulario de tiempo no conoce («la cancha es en semana santa», «el puente arranca
+  ahorita») igual es de un evento, sin agregar palabras de tiempo. En una **pregunta**, además, basta un
   día o una hora que no sea de su propio trabajo ni de publicar («¿qué llevo el sábado?», «¿qué tengo hoy?»). Un aviso y
   una ficha se juzgan sin eso: sus días son del equipo mientras no nombren un evento. Se inclina al sí: lo que solo
   parece de un evento cuesta una respuesta sin IA, nunca una fuga.
@@ -55,8 +68,12 @@ tiene las herramientas de eventos y la negativa de la agenda. No se reserva gast
   contacto, y un sitio dicho con su nombre después de cualquier palabra («en el hotel Tamá», «del galpón de Los Pinos»)
   es un lugar.
 - **Cómo se hace, no cómo va:** en el cerebro de demostración, una pregunta sobre eventos en general («¿qué tomas hago en
-  un acto?», «¿cómo veo los eventos pasados?») o «¿cómo + verbo…?» (menos «¿cómo va / quedó / salió…?») la contestan
-  las fichas; la búsqueda de un evento es para uno («¿cómo va lo de la cancha?»).
+  un acto?», «¿cómo veo los eventos pasados?», «¿qué pasa si dos eventos chocan?») o «¿cómo + verbo…?» (menos «¿cómo va
+  / quedó / salió…?») la contestan las fichas; la búsqueda de un evento es para uno («¿cómo va lo de la cancha?»). En
+  un turno sobre un evento, el título que nombra es el nombre del evento, no el tema («¿cómo hago un copy para la
+  jornada de salud?» es del copy). Si no pregunta cómo se hace ni nombra el trabajo (pieza, video, copy…), una ficha
+  solo contesta si responde bien (el doble de lo normal); si no, la negativa de la agenda, nunca una ficha suelta
+  («¿hay barro en Nuevo Amanecer?», «el gobernador viene a la cancha, ¿qué llevo?»).
 - Solo los turnos que **no** hablan de un evento usan el modelo (cómo se hace algo, lo suyo, publicar, tweets, reglas de
   video, charla), y conservan todas las capas de abajo. Si el modelo igual trae un evento (busca uno o lo nombra en su
   respuesta), la red de salida lo trata como respuesta sobre un evento.
@@ -71,7 +88,8 @@ regla de arriba, estas capas quedan de segunda línea.
   El prompt le dice al modelo que copie las marcas tal cual. Al contestar, las marcas vuelven a ser el título real (entre
   «»), que la persona puede ver; si preguntó cuándo o dónde es un evento, el título vuelve sin su hora, fecha ni lugar.
   Una marca que el modelo cambia (`[E1]`, `[[ e1 ]]`) se arregla; una inventada se vuelve «ese evento»; un lugar siempre
-  vuelve como «ese lugar». Nunca se muestra una marca cruda (tampoco una cortada al final, «… [[E1»). Si el modelo busca
+  vuelve como «ese lugar». Nunca se muestra una marca cruda (tampoco una cortada al final, «… [[E1», ni escrita con corchetes o cifras anchas,
+  «［［E1］］», con un corchete de más, «[[[E1]]]», o sin abrir, «E1]]»). Si el modelo busca
   por una marca, la herramienta corre con el título real; una marca que no existe le llega a la herramienta como «ese
   evento», «esa pieza» o «ese lugar» (así un aviso al equipo nunca lleva `[[E7]]`). Lo que **escribe la persona** (la pregunta y sus preguntas anteriores del hilo) también va con marcas: si
   teclea un título o el lugar de un evento que ve, al proveedor le llega `[[E1]]` o `[[L1]]` (lo guardado queda sin marcas).
@@ -95,9 +113,10 @@ regla de arriba, estas capas quedan de segunda línea.
 - **Guiones y fichas** (`guard.ts` `teachingProblem`). Las fichas y los guiones del equipo son para **cómo trabaja el
   equipo, nunca para un evento**. Al guardarlos se rechaza: una fecha, un teléfono, un correo o una dirección (también un
   lugar por referencia con su nombre); un evento en particular (un título que administración ve, entero, por un nombre
-  suyo, su tira de mayúsculas o dos palabras suyas seguidas; el lugar de un evento, también por su tira de mayúsculas,
-  «Alto Verde»; una marca; «lo de la cancha»; o un evento que pasa o que hay: «la caravana sale…», «el acto de entrega
-  arranca…», «en noviembre hay feria», sea lo que sea lo que sigue): «Quita el evento…»; la forma de la agenda en una
+  suyo, su tira de mayúsculas, dos palabras suyas seguidas o una palabra propia suya, «la cancha», «la canchita»; el lugar de un
+  evento, también por su tira de mayúsculas, «Alto Verde»; una marca; «lo de la cancha»; o un evento que pasa o que
+  hay: «la caravana sale…», «el acto de entrega arranca…», «la cancha es…», «en noviembre hay feria», sea lo que sea lo
+  que sigue): «Quita el evento…»; la forma de la agenda en una
   frase de lo que dice 360 (un día u hora con algo que pasa, a grabar o un lugar por su nombre: «nos vamos de madrugada
   desde la gobernación»), salvo que sea de publicar; junto a un evento (las menciones del detector), cualquier hora o
   día; y **un día con una hora en cualquier parte** («Lo del sábado» + «arranca a las 8»), salvo que sea de publicar
@@ -118,16 +137,21 @@ regla de arriba, estas capas quedan de segunda línea.
   - **Si no nombra un evento** (el detector), sus días y plazos son del equipo y quedan como se dijeron: «suban el
     material antes de las 3 pm», «tienen hasta las 5 pm…», «manden las fotos esta tarde». Se guarda y se manda con su
     hora real (sin «[hora]»); solo se quitan contactos y direcciones. Solo no pasa un día con una hora que no sea un
-    plazo («el sábado a las 6, lleven baterías» es la agenda de alguien).
+    plazo («el sábado a las 6, lleven baterías» es la agenda de alguien), ni una hora a la que pasa algo («a las 6
+    lleven el dron»; «suban el material a las 3» es un plazo), ni un sitio después de «a» que no sea alguien del equipo
+    («mañana lleven el dron a Táriba»; «manden las fotos a Kevin» sí va).
   - **Si nombra un evento**, solo va como **pedido al equipo** («suban…», «revisen…», «editen…», «tengan…», «hay / tienen
     que» + verbo) y no dice nada del evento. Se mira **cada palabra del aviso**, en todas sus frases, antes y después
     del evento, dejando fuera **un plazo para el trabajo** («suban el material de la feria antes de las 3 pm», «tienen
     hasta el mediodía», «hoy suben…»): solo pueden ir los verbos del equipo, el trabajo y sus equipos (fotos, video,
-    copies, cámaras, baterías…), las palabras de evento y las de sus títulos (el título lo ven todos los roles), el
-    jefe, los roles, las palabras pequeñas y unas pocas de prisa o de cortesía. Cualquier otra palabra dice algo del
-    evento y el aviso no va: «este finde hay feria», «Tamá: la feria», «noviembre trae feria», «la feria es…», «… a Alto
-    Verde». Tampoco va el lugar de un evento por su nombre fuera de un título dicho entero, ni un día, hora o contacto
-    que quede. Prepararse para el evento («tengan las cámaras listas antes de las 7») es su hora, no un plazo. Lo que no
+    copies, cámaras, baterías…), las palabras de evento y las de **los títulos que el aviso nombra** (no las de todos
+    los que ve quien lo prepara), el jefe, los roles, las palabras pequeñas y unas pocas de prisa o de cortesía; un
+    número en letras solo antes de lo que cuenta («las cuatro piezas»; «…, ocho.» es una hora). Cualquier otra palabra
+    dice algo del evento y el aviso no va: «este finde hay feria», «Tamá: la feria», «noviembre trae feria», «la feria
+    es…», «la cancha es en semana santa…», «la canchita es en semana santa…», «el puentecito arranca al rato», «… a
+    Alto Verde». Cada frase que nombra el evento le pide algo al equipo
+    («Suban las fotos de la feria. Escuela.» no va). Tampoco va el lugar de un evento por su nombre fuera de un título
+    dicho entero, ni un día, hora o contacto que quede. Prepararse para el evento («tengan las cámaras listas antes de las 7») es su hora, no un plazo. Lo que no
     pasa sale como «datos del evento».
   - Si al confirmar no pasa, no sale, queda pendiente y el panel dice qué trae («No se mandó: el aviso trae el día y
     datos del evento…»). El diálogo de confirmar le recuerda a administración: «Revisa que no diga el día, la hora ni el
@@ -176,14 +200,20 @@ Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: 
   cada `run` consulta con `db(session, …)` y la base decide. Solo pasan los parámetros declarados; los de identidad los
   pone el servidor. Máximo 4 llamadas por vuelta y 3 vueltas; la última sin herramientas. Lo que escribe se anota en
   `assistant_actions` en un solo sitio.
-  Herramientas iniciales: `mis_pendientes` (cuenta, todos), `estado_pieza(titulo)` (cuenta, equipo de contenido),
+  Herramientas iniciales: `mis_pendientes` (cuenta, todos), `eventos_por_decidir` (cuenta, jefe, administración y
+  despacho: los eventos que esperan la decisión del jefe, sin fecha, hora ni lugar; su botón es Política para el jefe),
+  `estado_pieza(titulo)` (cuenta, equipo de contenido),
   `dias_de_tweets` (cuenta, equipo de contenido), `mejores_horas(red)` y `reglas_de_video(red)` (cuenta, todos),
   `buscar_evento(texto)` (cuenta, quien vea eventos; **nunca** lee `event_schedule`), `preparar_aviso(rol, texto)`
   (prepara, admin y supervisión: borrador que confirma administración), `marcar_avisos_leidos` (hace, todos; deshacer =
   volver a no leídos), `avisar_al_equipo(motivo)` (siempre; el servidor pone la conversación).
-- `screens.ts` — destinos del botón «Ir a…»: `{ href, label, roles, phrases }`, con los roles **copiados del control
-  de acceso de cada página** (una prueba compara con `requireRole` del código). Exige una frase, no una palabra suelta.
-  Si se usó una herramienta, manda su destino. Nunca un botón a una pantalla que esa persona no puede abrir: mejor `null`.
+- `screens.ts` — destinos del botón «Ir a…»: `{ href, label, roles, phrases, nav, about }`, con los roles **copiados
+  del control de acceso de cada página** (una prueba compara con `requireRole` del código). Exige una frase, no una
+  palabra suelta; solo en una pregunta de «¿dónde está…?», «¿dónde apruebo?», «¿cómo edito…?», «llévame a…» basta una
+  palabra suya (`nav`: «biblioteca», «buzón», «registro», «semáforo»…). Gana una que esa persona puede abrir, luego una
+  que no sea general (Avisos, Hoy, Buscar, Mi perfil), luego la primera que se nombra. Si se usó una
+  herramienta, manda su destino; una respuesta que nombra varias pantallas (la lista de Ajustes) no pone botón. Nunca
+  un botón a una pantalla que esa persona no puede abrir: mejor `null`.
 - `brain.ts` — guion del sistema por capas (oficio con nombre → cómo usar las herramientas → encargo del rol → datos y
   fichas → lo de quien pregunta → «ASÍ CONTESTAS» con los guiones elegidos; lo crítico se repite al final); filtro de
   salida (bytes de control, markdown, frases que delatan al modelo, partiendo por frases; **nunca deja la respuesta
@@ -196,6 +226,38 @@ Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: 
   fichas y sobre el tema de la pregunta anterior. Un error o un problema **del contenido** («hay un error en el copy»,
   «un problema con la pieza», «un error en un tweet publicado», «me salió un error que dice que el copy es muy largo»)
   no es soporte: lo contestan las fichas. «¿Cómo subo un video?» desde un rol que no sube: lo suben Grabación o Redes, en la pestaña Material del evento.
+  Ronda 5, para que sirva en las preguntas de todos los días (una tabla de más de 15 por rol, también dictadas sin
+  tildes, en `tests/unit/assistant-ordinary.test.ts`): después de la negativa de la agenda, «¿dónde está X?» va a la
+  pantalla con su «Ir a» (primero una que esa persona puede abrir: «¿dónde veo lo que se publicó?» es Digital para el
+  jefe; una general, como Avisos, cede ante otra que también nombra: «… los avisos que dejó preparados el asistente» es
+  Asistente; si ninguna es suya, dice que no es de su rol); «¿cuántos / qué eventos tengo por calificar?», «¿qué eventos
+  esperan mi decisión?» van a `eventos_por_decidir`; «¿cuántas piezas tengo por aprobar?» a sus pendientes; «¿qué
+  puedo hacer yo?» a la ficha de su rol; «¿puedo…?» primero a la frase de la ficha de su rol que lo dice («No ve
+  piezas…»); «¿cuándo grabo la cancha?» (un paso suyo en un evento) es la agenda; «¿cómo cambio la fecha de un
+  evento?», «¿cómo duplico / cancelo un evento?» van a las fichas de cómo se hace. Ronda 6: el camino al lugar de un
+  evento que ve («¿cómo llego a Alto Verde?», también si una palabra del lugar es de una ficha: «verde») y «¿qué tan
+  lejos / a cuánto queda…?» son la agenda; «¿qué tengo que revisar / poner / llenar…?» es un cómo se hace («¿qué tengo
+  que hacer (hoy)?» sigue siendo su lista); los días de tweets solo para «¿cuántos días / tweets quedan, faltan,
+  esperan?» («¿quién aprueba los tweets?» va a las fichas); el estado de una pieza solo si pregunta cómo va, trae el
+  título entre comillas o dice «la pieza de…»; «¿cómo cambio el lugar / la dirección de un evento?» (o «del evento»
+  sin nombrar uno) es un cómo se hace; «mi número», «mi teléfono» no son un dónde («Mi perfil»); las reglas de video
+  también para «¿cuánto puede pesar…?» y «¿cuántos caracteres… en X?». Las fichas se eligen
+  (`brain.ts` `scoreFichas`) por cada palabra de la pregunta en el mejor sitio de la ficha (título 3, etiquetas 2,
+  cuerpo 1) por lo rara que es; las palabras de eventos en general, de la plataforma o de un problema («error») valen
+  un tercio y el contenido («el copy», «el video») uno y medio; los verbos que cambian de raíz se leen como uno
+  («apruebo» / «aprobar», «pido» / «pedir», «propuesta» / «proponer»), igual que un gerundio («subiendo» / «subir») y
+  dos formas de decir lo mismo («aplicación» / «app», «celular» / «teléfono»); una palabra cuenta si empieza igual y
+  comparte las tres cuartas partes de la más corta («cuanto» no es «cuando», «instalo» no es «instagram», «internet» no
+  es «intercambio»), y una de 4 letras no se confunde con otra más larga («logo» no es «logros»); las palabras de
+  pregunta o de relleno no cuentan («cuánto», «puede», «tener», «significa», «poner»); las fichas automáticas de datos
+  (fórmulas, categorías, reglas por red, mejores horas) valen un tercio si la pregunta no nombra lo suyo; en «¿cómo hago
+  / armo un…?», a empate gana la ficha que dice «crear»; luego por cuánto de la pregunta tiene la ficha: una palabra que
+  ninguna ficha tiene cuenta en contra (la mitad si es el verbo del cómo). De la ficha sale la frase con más palabras de
+  la pregunta; a empate, la de la palabra más rara («¿una pieza puede tener varias versiones?» → la de las versiones), y
+  en un «¿dónde…?», la que dice dónde («En la pieza, pestaña Copies…»). Por debajo de 2 puntos o de un tercio de la
+  pregunta, 360 dice «No estoy seguro de eso y no quiero darte un dato malo. ¿Quieres que le avise a administración
+  para que te ayuden?» (con un «sí», avisa de verdad). Un guion de fábrica solo contesta si la pregunta dijo uno de
+  sus disparadores entero, y nunca con la negativa de la agenda para lo que no es la agenda.
 - `events.ts` — el detector compartido («¿habla de un evento?») y las lecturas de la pregunta (cuándo, dónde, cómo
   llegar, publicar). `titles.ts` — las marcas de los títulos (`Placeholders`) y su lectura como la persona. `guard.ts` —
   las revisiones de avisos, guiones y fichas.
@@ -218,7 +280,8 @@ Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: 
   enlace a la conversación en el panel; no repite en 6 horas. El motivo lo puede escribir el modelo (con los títulos
   reales de vuelta): pierde cualquier marca que quede (también una abierta, «[[E1»), el lugar de un evento por su nombre
   o su tira de mayúsculas («la pieza de Alto Verde» → «la pieza de ese lugar»), y pasa por todas las reglas, los lugares
-  dichos por su nombre y el filtro de los avisos al teléfono. Si el motivo habla de un evento (el detector, contra todos
+  dichos por su nombre (también después de «a» si no es alguien del equipo: «a Táriba» → «a [direccion]») y el filtro
+  de los avisos al teléfono. Si el motivo habla de un evento (el detector, contra todos
   los títulos y lugares), a supervisión solo le llega «… necesita ayuda con un evento»; administración recibe el motivo
   limpio.
 - Salud: en `/api/cron/tick`, si en la última hora más del 20 % de las respuestas salieron degradadas, aviso a

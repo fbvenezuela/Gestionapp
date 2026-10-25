@@ -111,12 +111,12 @@ export async function loadScripts(text: string, roles: Role[], count = true): Pr
   try {
     return await withSystem(async (sql) =>
       (
-        await sql.query<{ script_key: string | null; script_topic: string; script_text: string; script_always: boolean; script_origin: string | null }>(
+        await sql.query<{ script_key: string | null; script_topic: string; script_text: string; script_always: boolean; script_points: number; script_origin: string | null }>(
           `select f.*, (select s.origin from public.assistant_scripts s where s.id = f.script_id) as script_origin
              from public.assistant_scripts_for($1, $2::public.app_role[], 3, $3) f`,
           [text, `{${roles.join(',')}}`, count],
         )
-      ).map((s) => ({ key: s.script_key, topic: s.script_topic, script: s.script_text, always: s.script_always, origin: s.script_origin ?? undefined })),
+      ).map((s) => ({ key: s.script_key, topic: s.script_topic, script: s.script_text, always: s.script_always, origin: s.script_origin ?? undefined, points: Number(s.script_points ?? 0) })),
     );
   } catch (e) {
     console.error('[asistente] no se pudieron elegir los guiones:', (e as Error).message);

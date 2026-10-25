@@ -1,8 +1,8 @@
 import 'server-only';
 import { brand } from '../client-config';
-import { carriesEventWhen, hasPlace, hasPlaceByName, hasPlaceName } from './redact';
+import { carriesEventWhen, hasPlace, hasPlaceByName, hasPlaceName, redactPlacesAfterA } from './redact';
 import { plain } from './text';
-import { NO_TITLES, namesTitle, type TitleSet } from './titles';
+import { NO_TITLES, ORDINARY, namesTitle, titleIndex, type TitleSet } from './titles';
 
 // Is this about an event? One detector for every place that asks (docs/ASISTENTE.md «Lo que habla de
 // un evento lo contesta 360 sin IA»): which brain answers a turn, how much of a question is masked,
@@ -50,14 +50,81 @@ export function spoken(text: string): string {
 // A work product or a thing of the platform: «lo del copy», «¿dónde queda el material?» are not an event.
 export const WORK = /\b(piezas?|videos?|material|materiales|copy|copies|storyboard|fotos?|tomas|reels?|publica\w*|tweets?|tuits?|tanda)\b/;
 export const PLATFORM = new RegExp(
-  String.raw`${WORK.source}|\b(avisos?|campana|contrasena|clave|codigo|ajustes|pantalla|pestana|boton|menu|panel|biblioteca|resultados|metricas|perfil|formulas?|semaforo|plazos?|version|archivos?|enlace|link|plantilla|dron|vertical|horizontal|formato|microfono|app|aplicacion|asistente|buscador)\b`,
+  String.raw`${WORK.source}|\b(avisos?|campanas?|contrasenas?|claves?|codigos?|ajustes|pantallas?|pestanas?|boton|botones|menu|panel|biblioteca|resultados|metricas|perfil|formulas?|semaforo|plazos?|version|versiones|archivos?|enlaces?|links?|plantillas?|dron|vertical|horizontal|formatos?|microfono|app|aplicacion|asistente|buscador|registro|buzon|categorias?|invitacion|invitaciones|correos?|notificaciones|sesion|sesiones|permisos?|fichas?)\b`,
 );
+// Words of the platform that are often on the agenda too (a sesión, a campaña, a registro, a panel, with
+// what they are of: «la sesión de fotos»): the platform's only with what makes them the screen («el
+// registro de cambios», «la campana de avisos», «mi sesión», «el panel del asistente»).
+const SESSION_VERB = 'cerrar|cierro|cierra|cierran|cerre|cerraron|iniciar|inicio|inicia';
+const AGENDA_THINGS = new RegExp(String.raw`\b(?<!\b(?:mi|mis|tu|tus|su|sus|${SESSION_VERB}) |\b(?:${SESSION_VERB}) (?:la|las|mi|mis|su|sus) )(?:sesion|sesiones)\b(?: de [a-z]+)?|\b(?:campanas?|registros?|panel|paneles)\b(?! (?:de cambios|del asistente|de avisos|de arriba|de la app))(?: de [a-z]+)?`, 'g');
+const AGENDA_THING_WORD = /^(?:sesion|sesiones|campanas?|registros?|panel|paneles)$/;
+/** The text without the agenda-ish words of the platform that nothing ties to a screen. */
+export function withoutAgendaThings(text: string): string {
+  return spoken(text).replace(AGENDA_THINGS, ' ');
+}
+/** It names a thing of the platform (a sesión, a campaña, a registro or a panel only with what makes them the screen). */
+export function namesPlatform(text: string): boolean {
+  return PLATFORM.test(withoutAgendaThings(text));
+}
 // «Lo de la cancha», «lo del puente», «lo d Tariba»: an event by another name, whoever can see it or not.
-// Not a thing of the platform («lo del copy»), a role's («lo de Redes»), the person's own («lo de mi
-// clave») nor the huecos a saved script leaves («lo de [titulo]», «lo de el lugar»: «lugar» asks where).
+// Not a thing of the platform («lo del copy»; «lo de la sesión» can be one), a role's («lo de Redes»), the
+// person's own («lo de mi clave») nor the huecos a saved script leaves («lo de [titulo]», «lo de el
+// lugar»: «lugar» asks where).
 const LO_DE = /\blo del? (?:(?:la|el|los|las) )?([a-z0-9]+)/g;
 const NOT_AN_EVENT_AFTER = /^(?:mi|mis|tu|tus|su|sus|nuestro|nuestra|que|siempre|arriba|abajo|antes|nuevo|como|cuanto|cada|redes|supervision|despacho|grabacion|secretaria|administracion|admin|equipo|titulo|lugar)$/;
-const namesByLoDe = (p: string) => [...p.matchAll(LO_DE)].some((m) => !NOT_AN_EVENT_AFTER.test(m[1]) && !PLATFORM.test(m[1]));
+const namesByLoDe = (p: string) => [...p.matchAll(LO_DE)].some((m) => !NOT_AN_EVENT_AFTER.test(m[1]) && (!PLATFORM.test(m[1]) || AGENDA_THING_WORD.test(m[1])));
+// A word of a visible title that points to that event alone («la cancha», «el puente», «las viviendas»,
+// «la escuela»): a content word of 5+ letters that is not an ordinary word of place names, an event's
+// kind (judged as an event word), a work or platform word, a role, a goal, a time or a question word.
+// Said alone, as the subject of something happening too («la cancha es…»), it names that event.
+const NOT_DISTINCT = new Set(
+  'redes supervision despacho grabacion secretaria administracion equipo semana semanas manana tarde noche lunes martes miercoles jueves viernes sabado domingo enero febrero marzo abril mayo junio julio agosto septiembre setiembre octubre noviembre diciembre entre hasta desde hacia durante contra cuando donde porque todos todas nuestro nuestra'.split(' '),
+);
+// A distinctive word's root, without its plural and its last vowel (cancha → canch, puente → puent,
+// viviendas → viviend), for the forms people make of it: «la canchita», «el puentecito», «la escuelita»,
+// «la canchota» (a word that is the root plus a diminutive or an augmentative ending).
+const rootOf = (w: string) => w.replace(/(?:es|s)$/, '').replace(/[aeo]$/, '');
+const DERIVED = /(?:ec|c)?(?:it|ic|ill)[oa]s?$|ot[ea]s?$/;
+type Distinct = Set<string> & { roots?: Set<string> };
+const distinctCache = new WeakMap<string[], Distinct>();
+export function distinctTitleWords(titles: string[]): Distinct {
+  if (!Array.isArray(titles) || !titles.length) return new Set();
+  let out = distinctCache.get(titles);
+  if (!out) {
+    out = new Set([...titleIndex(titles).words].filter((w) => w.length >= 5 && !ORDINARY.has(w) && !NOT_DISTINCT.has(w) && !EVENT_WORDS.test(w) && !PLATFORM.test(w) && !GOAL.test(w) && !/^(?:encuentros?|operativos?)$/.test(w))) as Distinct;
+    out.roots = new Set([...out].map(rootOf).filter((r) => r.length >= 4));
+    distinctCache.set(titles, out);
+  }
+  return out;
+}
+// The same word in the singular or the plural («vivienda» for «viviendas», «productor» for «productores»),
+// or made smaller or bigger («canchita», «puentecito», «escuelita»).
+const isDistinct = (w: string, d: Distinct) =>
+  w.length >= 5 &&
+  (d.has(w) || d.has(`${w}s`) || d.has(`${w}es`) || (w.endsWith('s') && d.has(w.slice(0, -1))) || (w.endsWith('es') && d.has(w.slice(0, -2))) || (w.length >= 6 && DERIVED.test(w) && !!d.roots?.has(w.replace(DERIVED, ''))));
+const namesByWord = (p: string, titles: string[]) => {
+  const d = distinctTitleWords(titles);
+  return d.size > 0 && p.split(' ').some((w) => isDistinct(w, d));
+};
+
+/**
+ * The words (folded, without the little ones) of the titles a text names: whole, by a name or a run of
+ * capitals in one, by two of its words in a row or by a distinctive word of it. What a notice that names
+ * an event may repeat of it, and what is the event's name in a question, not its topic.
+ */
+export function namedTitleWords(text: string, titles: string[]): Set<string> {
+  const p = spoken(text);
+  const words = new Set<string>();
+  for (const t of Array.isArray(titles) ? titles : []) {
+    const one = [t];
+    if (!namesTitle(text, one, { byName: true, words: true }) && !namesByWord(p, one)) continue;
+    for (const w of titleIndex(one).words) words.add(w);
+    // And the forms of its words the text made («la canchita»).
+    const d = distinctTitleWords(one);
+    for (const w of p.split(' ')) if (isDistinct(w, d)) words.add(w);
+  }
+  return words;
+}
 // An event's or an event place's placeholder («[[E1]]», «[[L1]]»), also as a model may alter it, and
 // the scripts' title hueco («[titulo]», what «Así se contesta» leaves of a title).
 export const EVENT_TOKEN = /\[{1,2}\s*[EeLl]\s*\d{1,4}\s*\]{1,2}|\[titulo\]/;
@@ -72,12 +139,47 @@ export const OCCURRENCE = new RegExp(String.raw`\b(?:${OCCURRENCE_WORDS.join('|'
 const RECORDING = /\bgrab[a-z]*\b/;
 // Publishing: its days and hours are the best hours, not an event's («los tweets salen a las 9»).
 const PUBLISHING_TOPIC = /\b(tweets?|tuits?|publica\w*|publico|publique\w*|posteo|reels?|historias|stories|instagram|insta|facebook|tiktok|threads|twitter|youtube|redes|mejor(?:es)? horas?|franjas?)\b/;
+// A where, a when or a way whose subject is a thing of the platform («¿dónde está la biblioteca?», «¿dónde
+// se ve el semáforo?», «¿cuándo vence el plazo?», «¿cuándo le llega el correo de invitación?», «¿a qué hora
+// se cierra la semana de tweets?», «¿esto se va a la biblioteca?») asks for a screen or a rule, not for the
+// agenda: alone it is no event (with an event, a title or a place it already is one). Only right after the
+// question, with a verb of where a thing is («está», «queda», «se ve»…) or a rule's verb before what it is
+// for («vence el plazo», «llega el correo»), never a verb of something happening in between: «¿a qué hora
+// es la sesión?», «¿a qué hora voy a la sesión?» and «¿a qué hora sale Kevin con copies?» ask for someone's
+// agenda. A word that is often on the agenda too (a sesión, a campaña, a registro, a panel) counts only
+// with what makes it the screen («el registro de cambios», «la campana de avisos», «mi sesión»).
+const SCREEN_THINGS = String.raw`biblioteca|ajustes|pantallas?|pestanas?|boton|botones|menu|resultados|metricas|perfil|formulas?|semaforo|plazos?|version|versiones|archivos?|enlaces?|links?|plantillas?|app|aplicacion|asistente|buscador|buzon|categorias?|invitacion|invitaciones|correos?|notificaciones|permisos?|avisos?|contrasena|clave|codigo|tweets?|tuits?|tanda|copies|copy|fichas?|storyboard|piezas?|publicaciones?|registro de cambios|historial de cambios|campana de (?:avisos|arriba)|campanita|panel del asistente`;
+const WHERE_VERB = 'esta|estan|queda|quedan|ve|ven|aparece|aparecen|encuentro|encuentra|veo|consigo';
+const RULE_VERB = 'vence|vencen|cierra|cierran|abre|abren|llega|llegan';
+const RULE_THINGS = String.raw`plazos?|correos?|invitacion|invitaciones|codigos?|tweets?|tuits?|tanda|semana|avisos?|notificaciones`;
+const NOT_HAPPENING = `(?!(?:${OCCURRENCE_WORDS.join('|')}|va|van)\\b)`;
+const ABOUT_THE_PLATFORM = new RegExp(
+  String.raw`\b(?:donde|cuando|a que hora|que dia|en que parte|en que lugar) (?:(?:se|le|me|te|nos|les) )?(?:(?:(?:${WHERE_VERB}) )?(?:(?:el|la|los|las|mi|mis|tu|tus|su|sus|un|una) )?(?:${NOT_HAPPENING}[a-z]+ ){0,2}(?:${SCREEN_THINGS})|(?:${RULE_VERB}|es|son) (?:(?:el|la|los|las|mi|mis|tu|tus|su|sus) )?(?:${RULE_THINGS})|(?:${WHERE_VERB}) (?:mi|mis|tu|tus|su|sus) sesion(?:es)?)\b|\b(?:se va|se van|llegar|llego|llega|llegan) (?:a|al|para|pa|pal|hasta) (?:(?:la|el|los|las|mi|mis) )?(?:${SCREEN_THINGS})\b`,
+);
+// Each sentence and what «y» joins, judged alone: a where about the platform does not clear a when about
+// the agenda next to it («¿Dónde está la biblioteca? ¿Y a qué hora llega la comitiva?»).
+const CLAUSES = /[.;:!?¿¡\n]+|\s+y\s+/i;
+const asksAny = (t: string) => {
+  const p = spoken(t);
+  return asksSchedule(t) || STILL_ON.test(p) || (asksRoute(t) && !GOAL.test(p));
+};
+/** Every part of the text that asks when, where or the way is about a thing of the platform. */
+function onlyAboutThePlatform(t: string): boolean {
+  let any = false;
+  for (const c of t.split(CLAUSES)) {
+    if (!c.trim() || !asksAny(c)) continue;
+    if (!ABOUT_THE_PLATFORM.test(spoken(c))) return false;
+    any = true;
+  }
+  return any;
+}
 // On the way there, a goal («llegar a más gente», «a la meta», «a tiempo») is not a place.
 export const GOAL = /\b(?:gente|personas|seguidores|publico|audiencia|alcance|metas?|vistas|likes|comunidad|usuarios|tiempo|temprano)\b/;
 
-// The place or the contacts of something («en lugar de», «sitio web» or «dirección de correo» are not).
+// The place or the contacts of something («en lugar de», «sitio web» or «dirección de correo» are not),
+// and how far it is («¿qué tan lejos queda…?», «¿a cuánto queda…?»).
 // «Por dónde se entra» only with somewhere to go into: alone or «a la plataforma», it asks how to log in.
-const PLACE_WORDS = String.raw`direccion(?! (?:de )?(?:correo|email|electronica))|como llego|como llegar|como se llega|por donde se entra(?= al? (?!(?:la )?(?:plataforma|app|aplicacion|sistema)\b))|en que parte (?:queda|quedan|es)|quedan? (?:lejos|cerca)|(?<!en |primer |segundo )lugar|ubicacion|sitio(?! web)|(?<!como )contactos?|telefono (?:de|del|para)|numero de telefono|con quien hablo|a quien llamo|a quien busco|quien me recibe`;
+const PLACE_WORDS = String.raw`direccion(?! (?:de )?(?:correo|email|electronica))|como llego|como llegar|como se llega|por donde se entra(?= al? (?!(?:la )?(?:plataforma|app|aplicacion|sistema)\b))|en que parte (?:queda|quedan|es)|quedan? (?:lejos|cerca)|que tan (?:lejos|cerca)|a cuanto (?:queda|quedan)|estan? (?:lejos|cerca)|(?<!en |primer |segundo )lugar|ubicacion|sitio(?! web)|(?<!como )contactos?|telefono (?:de|del|para)|numero de telefono|con quien hablo|a quien llamo|a quien busco|quien me recibe`;
 const DAYS = String.raw`hoy|manana|pasado manana|esta semana|la semana|proxima semana|fin de semana|lunes|martes|miercoles|jueves|viernes|sabado|domingo`;
 // The place phrases first: the longest one is taken (and stripped) whole, «por donde se entra a…» too.
 const ASK_WORDS = String.raw`${PLACE_WORDS}|cuando|a que hora|que hora|hora|que dia|que fecha|fecha|donde|por donde`;
@@ -85,7 +187,7 @@ const ASK_WORDS = String.raw`${PLACE_WORDS}|cuando|a que hora|que hora|hora|que 
 // «¿qué hay / hay algo…?» with a day. A day alone («¿qué hago hoy?») is not.
 // How long until it («¿cuántos días faltan para…?»): a when. Whether it still holds («¿se suspendió?»,
 // «¿sigue en pie?»): about an event, but the demo brain answers it with how the event is going.
-const UNTIL_ASK = String.raw`cuantos? (?:dias? )?faltan? para|cuanto falta para|falta mucho para`;
+const UNTIL_ASK = String.raw`cuantos? (?:dias? )?faltan? (?:para|pa|pal)|cuanto falta (?:para|pa|pal)|falta mucho (?:para|pa|pal)`;
 const STILL_ON = /\b(?:se (?:suspendio|suspende|cancelo|cancela|pospuso|pospone|aplazo|aplaza)|sigue en pie)\b/;
 const SCHEDULE = new RegExp(
   String.raw`\b(?:${ASK_WORDS}|${UNTIL_ASK})\b|\b(?:que hay|hay algo|hay eventos?|que tiene|que tienen|que tenemos)\b.*\b(?:${DAYS})\b|\b(?:es|son|sera|seria) (?:en|de|por) la (?:manana|tarde|noche)\b`,
@@ -101,7 +203,7 @@ const ROUTE = /\b(?:para llegar|llegar al?|se va (?:al|pal|pa|hasta|(?:a|para) (
 // «¿cuándo hay que grabar con dron?» ask for a screen or a step, not for a place or a time («¿dónde se
 // encuentra…?», «¿cuándo abre…?» do).
 const DOING = new RegExp(
-  String.raw`\b(?:donde|cuando) (?:es que )?(?:se |lo |la |los |las |me |te )?(?:subo|sube|subimos|cargo|carga|pongo|pone|veo|reviso|revisa|apruebo|aprueba|edito|edita|descargo|descarga|busco|busca|encuentro|consigo|consigue|guardo|guarda|escribo|escribe|anoto|anota|marco|marca|cambio|cambia|creo|crea|armo|arma|propongo|propone|mando|manda|envio|envia|activo|activa|configuro|configura|invito|invita|pido|pide|elijo|elige|asigno|asigna|pego|pega|abro|grabo)\b|\bcuando (?:hay que|se debe|debo|debemos|conviene|se usa|uso|usamos)\b`,
+  String.raw`\b(?:donde|cuando) (?:es que )?(?:se |lo |la |los |las |me |te )?(?:subo|sube|subimos|cargo|carga|pongo|pone|veo|reviso|revisa|apruebo|aprueba|edito|edita|descargo|descarga|busco|busca|encuentro|consigo|consigue|guardo|guarda|escribo|escribe|anoto|anota|marco|marca|cambio|cambia|creo|crea|armo|arma|propongo|propone|mando|manda|envio|envia|activo|activa|configuro|configura|invito|invita|pido|pide|elijo|elige|asigno|asigna|pego|pega|abro|grabo|dejo|deja|comento|comenta)\b|\bcuando (?:hay que|se debe|debo|debemos|conviene|se usa|uso|usamos)\b`,
   'g',
 );
 // Who records, when: «¿a qué hora graba Kevin?» is the agenda even without an event word; «¿cuándo
@@ -166,6 +268,26 @@ export function asksAboutPublishing(question: string): boolean {
   return PUBLISH_ME.test(q) || BEST_TIME.test(q) || ((PUBLISH_ANY.test(q) || BEST_WORDS.test(q)) && NETWORK.test(q)) || (BEST_WORDS.test(q) && /\bpublic/.test(q));
 }
 
+// «a» + a Name is a place («lleven el dron a Táriba», «¿qué llevo a Táriba?») unless the Name is someone
+// of the team («a Kevin», the boss). Without the team's names (`titles.people`), every Name is a place.
+const peopleCache = new WeakMap<string[], Set<string>>();
+function personTest(titles: TitleSet): (w: string) => boolean {
+  const list = Array.isArray(titles?.people) ? titles.people : [];
+  let people = peopleCache.get(list);
+  if (!people) peopleCache.set(list, (people = new Set(list)));
+  const known = people;
+  return (w) => known.has(plain(w)) || BOSS_NAMES.includes(plain(w));
+}
+/** Somewhere said as «a» + a Name that is not someone of the team. */
+export function placeAfterA(text: string, titles: TitleSet = NO_TITLES): boolean {
+  const t = String(text ?? '');
+  return redactPlacesAfterA(t, personTest(titles)) !== t;
+}
+/** «a» + a Name that is not someone of the team, as «a [direccion]». */
+export function redactPlaceAfterA(text: string, titles: TitleSet = NO_TITLES): string {
+  return redactPlacesAfterA(String(text ?? ''), personTest(titles));
+}
+
 // ---------------------------------------------------------------------------
 // The detector.
 // ---------------------------------------------------------------------------
@@ -173,19 +295,20 @@ export function asksAboutPublishing(question: string): boolean {
  * What makes a text about an event:
  * - `word`: an event word, also typed with one letter off («la feria», «el acto», «la agenda», «feira»);
  * - `title`: a particular event: a title this person can see, whole, by a name in it («Tariba»), by a run
- *   of its capitalised words or by two of its words in a row («toma aérea»); or «lo de…» something that
- *   is not a thing of the platform («lo de la cancha», «lo d Tariba»), whoever can see it or not;
+ *   of its capitalised words, by two of its words in a row («toma aérea») or by one distinctive word of
+ *   it («la cancha», «el puente», «las viviendas»); or «lo de…» something that is not a thing of the
+ *   platform («lo de la cancha», «lo d Tariba»), whoever can see it or not;
  * - `place`: an event's place this person can see, whole, by a name in it («La Quebrada») or by the run
  *   of its capitalised words («Alto Verde»);
  * - `token`: an event's or a place's placeholder, or the scripts' «[titulo]»;
  * - `subject`: the boss (by his role, his name or his title) or someone recording («Kevin graba…»);
  * - `ask`: asked when, where, how to get there, whom to call, how long until it or whether it still
- *   holds (not when to publish, not a step);
+ *   holds (not when to publish, not a step, not about a thing of the platform: «¿dónde está la biblioteca?»);
  * - `agenda`: shaped like the agenda without naming anything: a date, an hour or an address the person
  *   typed (what redact() left of it), an address or a landmark, somewhere by its Name («pa Alto Verde»,
- *   «en el hotel Tamá»), a bare landmark with something happening («es en la cancha»), or a day or an
- *   hour that is not their own work next to something happening or moving, to recording or to a place
- *   («salimos pasado mañana temprano desde la plaza»);
+ *   «en el hotel Tamá», «a Táriba» when Táriba is no one of the team), a bare landmark with something
+ *   happening («es en la cancha»), or a day or an hour that is not their own work next to something
+ *   happening or moving, to recording or to a place («salimos pasado mañana temprano desde la plaza»);
  * - `when`: in a question, any day or hour that is not their own work nor about publishing («¿qué llevo
  *   el sábado?»). A notice is judged without it: its days are the team's unless it names an event.
  * The shorthand is read as words first («kndo», «onde», «lo d la»).
@@ -197,18 +320,18 @@ export function eventSignals(text: string, titles: TitleSet = NO_TITLES): Set<Ev
   const p = spoken(t);
   const out = new Set<EventSignal>();
   if (EVENT_WORDS.test(p) || typedEventWord(p)) out.add('word');
-  if (namesTitle(p, titles.events, { byName: true, words: true }) || namesByLoDe(p)) out.add('title');
+  if (namesTitle(p, titles.events, { byName: true, words: true }) || namesByWord(p, titles.events) || namesByLoDe(p)) out.add('title');
   if (namesTitle(p, titles.places, { byName: true })) out.add('place');
   if (EVENT_TOKEN.test(t)) out.add('token');
   if (SUBJECT.test(p)) out.add('subject');
   const publishing = asksAboutPublishing(t);
-  if ((asksSchedule(t) || STILL_ON.test(p) || (asksRoute(t) && !GOAL.test(p))) && !publishing) out.add('ask');
+  if (asksAny(t) && !publishing && !onlyAboutThePlatform(t)) out.add('ask');
   if (AGENDA_MARK.test(t) || hasPlace(t)) out.add('agenda');
   else if (!publishing && !PUBLISHING_TOPIC.test(p)) {
     const when = carriesEventWhen(t);
     const named = hasPlaceName(t);
     if (when) out.add('when');
-    if (hasPlaceByName(t) || (when && (OCCURRENCE.test(p) || RECORDING.test(p) || named)) || (named && OCCURRENCE.test(p))) out.add('agenda');
+    if (hasPlaceByName(t) || placeAfterA(t, titles) || (when && (OCCURRENCE.test(p) || RECORDING.test(p) || named)) || (named && OCCURRENCE.test(p))) out.add('agenda');
   }
   return out;
 }
@@ -269,15 +392,18 @@ const INVERTED = /^(?:arranca|arrancan|arrancara|empieza|empiezan|empezara|comie
 const THERE_IS = /^(?:hay|habra|habia|hubo|toca|tocara|trae|traera)$/;
 const DEMONSTRATIVE = new Set('este esta ese esa otro otra'.split(' '));
 
-export function eventIsSubject(text: string): boolean {
+/** With `titles` (what the person can see), a distinctive word of a title counts as the event too («la cancha es…», «el puente arranca…»). */
+export function eventIsSubject(text: string, titles: TitleSet | string[] = NO_TITLES): boolean {
   const t = String(text ?? '').replace(/\[titulo\]/g, ' ').replace(/\[{1,2}\s*[EeLl]\s*\d{1,4}\s*\]{1,2}/g, ' zzevento ');
-  return t.split(/[.;:!?¡¿\n]+/).some((c) => subjectIn(spoken(c).split(' ').filter(Boolean)));
+  const d = distinctTitleWords(Array.isArray(titles) ? titles : titles?.events ?? []);
+  const isEvent = (w: string) => EVENT_TOKEN_WORD.test(w) || isDistinct(w, d);
+  return t.split(/[.;:!?¡¿\n]+/).some((c) => subjectIn(spoken(c).split(' ').filter(Boolean), isEvent));
 }
 
-function subjectIn(ws: string[]): boolean {
+function subjectIn(ws: string[], isEvent: (w: string) => boolean): boolean {
   const verbAt = (j: number) => OCCURRENCE_WORD.test(ws[j] ?? '') || (ws[j] === 'se' && /^(?:hace|hacen|hara|haran|movio|cambio|mudo|paso|corrio|adelanto|atraso|reprogramo|suspendio|cancelo|pospuso|aplazo)$/.test(ws[j + 1] ?? ''));
   for (let k = 0; k < ws.length; k++) {
-    if (EVENT_TOKEN_WORD.test(ws[k])) {
+    if (isEvent(ws[k])) {
       const [w1, w2] = [ws[k - 1] ?? '', ws[k - 2] ?? ''];
       if (THERE_IS.test(w1) || (DEMONSTRATIVE.has(w1) && THERE_IS.test(w2) && w2 !== 'toca')) return true;
       let b = k - 1;
@@ -294,7 +420,7 @@ function subjectIn(ws: string[]): boolean {
       if (verbAt(j)) return true;
     } else if (INVERTED.test(ws[k])) {
       const j = DETS.has(ws[k + 1] ?? '') ? k + 2 : k + 1;
-      if (EVENT_TOKEN_WORD.test(ws[j] ?? '')) return true;
+      if (isEvent(ws[j] ?? '')) return true;
     }
   }
   return false;

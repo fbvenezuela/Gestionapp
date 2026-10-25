@@ -154,6 +154,24 @@ export const TOOLS: Tool[] = [
     },
   },
   {
+    name: 'eventos_por_decidir',
+    description:
+      'Los eventos que esperan la decisión del jefe (calificar de 1 a 10, aceptar o rechazar): cuántos y cuáles. Úsala cuando pregunten cuántos o qué eventos faltan por calificar o decidir. Nunca da fecha, hora ni lugar.',
+    parameters: {},
+    required: [],
+    fromServer: [],
+    roles: ['boss', 'admin', 'dispatch'],
+    level: 'cuenta',
+    async run(_a, ctx) {
+      const s = ctx.session;
+      const rows = await db(s, (sql) => sql.query<{ title: string }>(`select title from public.events where boss_decision = 'pending' and deleted_at is null order by created_at limit 50`));
+      return {
+        result: { total: rows.length, eventos: rows.slice(0, 8).map((r) => ({ titulo: r.title })) },
+        goTo: has(s, 'boss', 'admin') ? '/jefe/politica' : '/hoy',
+      };
+    },
+  },
+  {
     name: 'estado_pieza',
     description:
       'Cómo va una pieza (video, portada…) buscándola por palabras de su título: estado, color del semáforo, versión y si ya se publicó. Si devuelve varias, pregunta cuál. No aprueba ni cambia nada.',

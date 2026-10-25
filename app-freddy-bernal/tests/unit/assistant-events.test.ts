@@ -131,6 +131,44 @@ const ABOUT_AN_EVENT = [
   'Con los de la zona alta arrancamos de madrugada.',
   'Nos vamos de madrugada desde la gobernación.',
   'En el hotel Tamá hay buena luz a las 5.',
+  // Round 5, S1: one distinctive word of a visible title names its event, also as the subject of
+  // something happening; the when that no time word knows («semana santa», «ahorita») goes with it.
+  'la cancha es en semana santa, ¿qué llevo?',
+  'la cancha arranca ahorita, ¿qué plano hago primero?',
+  '¿cuándo grabo la cancha?',
+  '¿cuándo grabo en la escuela?',
+  '¿la cancha está lejos?',
+  'cuanto falta pa la cancha',
+  'a k ora es la cancha',
+  'las viviendas son el día de la madre, ¿qué copy les hago?',
+  'el puente quedó para después de carnaval, ¿qué le falta a la ficha?',
+  // …and so does a piece named by its event («la pieza de la cancha»): 360 looks the piece up.
+  '¿cómo va la pieza de la cancha?',
+  // S4: «a» + a Name that is no one of the team is a place.
+  '¿qué llevo a Táriba?',
+  // Round 6, V1: a distinctive word made smaller or bigger («la canchita», «el puentecito»).
+  'la canchita es en semana santa, ¿qué llevo?',
+  'la canchita arranca ahorita, ¿qué plano hago primero?',
+  'el puentecito quedó para después de carnaval, ¿qué le falta a la ficha?',
+  'la escuelita es el día de la madre, ¿qué copy hago?',
+  'las viviendita son al rato',
+  'la canchota es después de carnaval',
+  // V2: a when or a where about something that is also on the agenda (a sesión, a campaña, a registro, a
+  // panel), with a verb of something happening, or next to a question about the platform.
+  '¿A qué hora es la sesión?',
+  '¿Dónde es la sesión de fotos?',
+  '¿A qué hora voy a la sesión?',
+  '¿Cuándo es la campaña?',
+  '¿Dónde es el registro?',
+  'donde es el panel',
+  '¿A qué hora es la sesión del concejo?',
+  '¿Dónde es la sesión solemne?',
+  '¿Dónde es la presentación del registro?',
+  '¿A qué hora sale Kevin con copies?',
+  '¿A qué hora es la pieza?',
+  '¿Dónde está la biblioteca? ¿Y a qué hora llega la comitiva?',
+  '¿Dónde queda la plantilla? y la comitiva ¿a qué hora llega?',
+  '¿dónde está la biblioteca y a qué hora llega la comitiva?',
 ];
 
 const NOT_ABOUT_AN_EVENT = [
@@ -157,7 +195,7 @@ const NOT_ABOUT_AN_EVENT = [
   '¿Cómo hacemos para llegar a más gente?',
   '¿cómo apruebo una pieza?',
   '¿qué color le pongo a la pieza?',
-  '¿cómo va la pieza de la cancha?',
+  '¿cómo va la pieza?',
   'mañana subo el material, ¿cómo lo subo?',
   'hoy hay que editar el video',
   'el video queda mejor en vertical',
@@ -177,6 +215,24 @@ const NOT_ABOUT_AN_EVENT = [
   '¿cómo entrego el material?',
   '¿cuántas vistas tuvo el reel?',
   '¿cómo pongo el logo en la portada?',
+  // Round 5, S2: a where or a when about a thing of the platform asks for a screen or a rule.
+  '¿Dónde está la biblioteca?',
+  '¿Dónde está el registro de cambios?',
+  '¿Dónde está el botón de aprobar?',
+  '¿Dónde quedan las plantillas de copies?',
+  '¿Dónde se ve el semáforo?',
+  '¿Cuándo vence el plazo para aprobar?',
+  '¿Cuándo le llega el correo de invitación?',
+  '¿A qué hora se cierra la semana de tweets?',
+  '¿Dónde queda el buzón?',
+  'donde estan los ajustes',
+  // Round 6: the platform things that are also on the agenda count with what makes them the screen.
+  '¿Dónde está la campana de avisos?',
+  '¿Dónde veo mi sesión?',
+  '¿Dónde está el panel del asistente?',
+  '¿Esto se va a la biblioteca?',
+  '¿Dónde está la biblioteca? ¿Y dónde quedan las plantillas?',
+  '¿Cuándo llega la invitación?',
 ];
 
 // Round 4b, R3: notices that named an event and said something of it before it, or in another clause.
@@ -216,6 +272,19 @@ describe('el detector compartido (events.ts)', () => {
     // What names an event still does, as a notice too.
     for (const t of ABOUT_AN_EVENT.slice(0, 32)) expect(aboutEvent(t, TITLES, { when: false }), t).toBe(true);
     for (const t of NOTICES_ABOUT_AN_EVENT) expect(aboutEvent(t, TITLES, { when: false }), t).toBe(true);
+  });
+
+  it('«a» + un nombre: un lugar, salvo que sea alguien del equipo (round 5, S4)', () => {
+    const withPeople = { ...TITLES, people: ['kevin', 'sanchez', 'daniela'] };
+    expect(aboutEvent('¿le mando el video a Kevin?', withPeople)).toBe(false);
+    expect(aboutEvent('¿Cómo le paso el material a Daniela?', withPeople)).toBe(false);
+    expect([...eventSignals('¿qué llevo a Táriba?', withPeople)]).toContain('agenda');
+    // A where or a when about someone, with a thing of the platform in it, still asks for an agenda.
+    expect(aboutEvent('¿a qué hora sale Kevin con el dron?', withPeople)).toBe(true);
+    expect(aboutEvent('¿a qué hora sale Kevin con los copies?', withPeople)).toBe(true);
+    // A screen or a network is not a place either.
+    expect(aboutEvent('¿Cómo entro a Digital?', withPeople)).toBe(false);
+    expect(aboutEvent('¿Lo subo a Drive?', withPeople)).toBe(false);
   });
 
   it('un lugar por su tira de mayúsculas, aunque cada palabra sea común, y se tapa como lugar', () => {
@@ -332,6 +401,52 @@ describe('con cadena de modelos: lo que habla de un evento nunca llega al provee
       const r = await handleTurn(sessionOf(key), { question: q }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
       expect(p.fetchImpl, `${key}: ${q}`).not.toHaveBeenCalled();
       expect(r.model, `${key}: ${q}`).toBe('local');
+    }
+  });
+
+  it('ronda 5: una palabra propia de un título que ve no llega al proveedor; un dónde o un cuándo de la plataforma sí', async () => {
+    const asks: [DemoUserKey, string][] = [
+      ['camera', 'la cancha es en semana santa, ¿qué llevo?'],
+      ['camera', 'la cancha arranca ahorita, ¿qué plano hago primero?'],
+      ['camera', '¿cuándo grabo la cancha?'],
+      ['camera', '¿cuándo grabo en la escuela?'],
+      ['camera', '¿la cancha está lejos?'],
+      ['camera', 'cuanto falta pa la cancha'],
+      ['camera', 'a k ora es la cancha'],
+      ['camera', '¿qué llevo a Táriba?'],
+      ['social', 'las viviendas son el día de la madre, ¿qué copy les hago?'],
+      ['dispatch', 'el puente quedó para después de carnaval, ¿qué le falta a la ficha?'],
+      // Round 6: a diminutive of a distinctive word, and a when about something that is also on the agenda.
+      ['camera', 'la canchita es en semana santa, ¿qué llevo?'],
+      ['camera', 'la canchita arranca ahorita, ¿qué plano hago primero?'],
+      ['dispatch', 'el puentecito quedó para después de carnaval, ¿qué le falta a la ficha?'],
+      ['social', 'la escuelita es el día de la madre, ¿qué copy hago?'],
+      ['camera', '¿A qué hora es la sesión?'],
+      ['camera', '¿Cuándo es la campaña?'],
+      ['supervisor', '¿Dónde es la sesión solemne?'],
+      ['camera', '¿A qué hora sale Kevin con copies?'],
+      ['social', '¿Dónde está la biblioteca? ¿Y a qué hora llega la comitiva?'],
+      ['social', '¿Dónde queda la plantilla? y la comitiva ¿a qué hora llega?'],
+    ];
+    for (const [key, q] of asks) {
+      const p = fakeProvider('No debería llegar aquí.');
+      const r = await handleTurn(sessionOf(key), { question: q }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+      expect(p.fetchImpl, `${key}: ${q}`).not.toHaveBeenCalled();
+      expect(r.model, `${key}: ${q}`).toBe('local');
+    }
+    for (const [key, q] of [
+      ['admin', '¿Dónde está la biblioteca?'],
+      ['admin', '¿Dónde está el registro de cambios?'],
+      ['supervisor', '¿Dónde está el botón de aprobar?'],
+      ['supervisor', '¿Cuándo vence el plazo para aprobar?'],
+      ['admin', '¿Cuándo le llega el correo de invitación?'],
+      ['social', '¿Dónde quedan las plantillas de copies?'],
+      ['social', '¿Le mando el video a Kevin?'],
+    ] as [DemoUserKey, string][]) {
+      const p = fakeProvider('Así se hace.');
+      const r = await handleTurn(sessionOf(key), { question: q }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+      expect(p.fetchImpl, `${key}: ${q}`).toHaveBeenCalled();
+      expect(r.model, `${key}: ${q}`).toBe('groq:llama-3.3-70b');
     }
   });
 

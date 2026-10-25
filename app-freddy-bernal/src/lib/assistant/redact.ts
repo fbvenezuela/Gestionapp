@@ -187,7 +187,7 @@ const LANDMARK_RULES: [RegExp, Replacer][] = [
 // a role or «mi…» («en Instagram», «en Material», «en la Agenda», «para Redes», «desde Mi perfil»). Too
 // broad for ordinary text: only on a question about an event, a notice about one, team material about
 // one in the prompt and what a model asks to tell the team.
-const NOT_NAMED = words('instagram facebook tiktok threads twitter youtube whatsapp telegram drive gmail zoom meet agenda hoy inicio material piezas pieza aprobar por_aprobar ajustes avisos biblioteca resultados copies storyboard ficha tweets publicar buzon equipo perfil asistente registro politica eventos mis_eventos crear mas redes supervision despacho grabacion secretaria administracion mi mis canva capcut photoshop premiere lightroom google chrome excel word wetransfer meta');
+const NOT_NAMED = words('instagram facebook tiktok threads twitter youtube whatsapp telegram drive gmail zoom meet agenda hoy inicio material piezas pieza aprobar por_aprobar ajustes avisos biblioteca resultados copies storyboard ficha tweets publicar buzon equipo perfil asistente registro politica digital categorias formulas horarios marca buscar nuevo_evento nueva_pieza nueva_publicacion nueva_tanda eventos mis_eventos crear mas redes supervision despacho grabacion secretaria administracion mi mis canva capcut photoshop premiere lightroom google chrome excel word wetransfer meta');
 // The things of the platform a Name can follow without being a place («en la pestaña Material»).
 const NOT_PLACE_NOUN = words('pestana pestaña pantalla menu boton seccion red redes cuenta grupo canal carpeta opcion campo casilla lista formato plantilla formula pieza video copy app aplicacion plataforma enlace link perfil ficha rol jefe senor señor gobernador doctor doctora licenciado licenciada profesor profesora companero companera compañero compañera hermano hermana');
 const NAMED_RULES: RegExp[] = [
@@ -195,6 +195,9 @@ const NAMED_RULES: RegExp[] = [
   // Any kind of place with its Name: «en el hotel Tamá», «en el club Demócrata», «del galpón de Los Pinos».
   new RegExp(String.raw`${START}(${words('en desde hasta por hacia de del al a')}\s+(?:${words('la el los las un una')}\s+)?)(?!${NOT_PLACE_NOUN}${END})\p{Ll}{3,}\s+(?:(?:de|del)\s+)?(?:(?:la|el|los|las)\s+)?(?!${NOT_NAMED}${END})\p{Lu}\p{L}{2,}(?:\s+(?:(?:de|del|la|las|los|el|y)\s+)*\p{Lu}\p{L}*)*`, 'gu'),
 ];
+// «a» + a Name («lleven el dron a Táriba»): the named rule leaves it out, for «a Kevin». Only the callers
+// that know the team's names use it (redactPlacesAfterA): a Name that is someone of the team stays.
+const TO_NAME = new RegExp(String.raw`${START}(${ci('a')}\s+(?:${words('la el los las')}\s+)?)((?!${NOT_NAMED}${END})\p{Lu}\p{L}+(?:\s+(?:(?:de|del|la|las|los|el|y)\s+)*\p{Lu}\p{L}*)*)`, 'gu');
 // Bare: a landmark with a name or an adjective after it is the landmark rules' (whole). «La pieza de la
 // cancha» is a piece: alone it is not a place by its name.
 const BARE_RULE = new RegExp(String.raw`${START}(${words('en desde hasta de del al a por')}\s+(?:${words('la el los las')}\s+)?)${LANDMARK}(?!\s+(?:${LANDMARK_ADJ}|(?:de\s+|del\s+)?(?:(?:de|del|la|las|los|el)\s+)*\p{Lu}))${END}`, 'gu');
@@ -390,6 +393,11 @@ export function hasPlaceName(text: string): boolean {
 /** A place said by its Name («pa Alto Verde», «en el hotel Tamá»), not a bare landmark («de la cancha»). */
 export function hasPlaceByName(text: string): boolean {
   return apply(text, ['named']) !== String(text ?? '');
+}
+
+/** «a» + a Name as «a [direccion]», unless `isPerson` says the Name (its first word) is someone of the team («a Kevin»). */
+export function redactPlacesAfterA(text: string, isPerson: (firstWord: string) => boolean = () => false): string {
+  return String(text ?? '').replace(TO_NAME, (m: string, lead: string, name: string) => (isPerson(name.split(/\s+/)[0]) ? m : `${lead}[direccion]`));
 }
 
 /**

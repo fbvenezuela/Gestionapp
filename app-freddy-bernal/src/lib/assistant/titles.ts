@@ -10,7 +10,8 @@ import { plain } from './text';
 // told to keep the placeholders as written, and after it answers they become the real titles again
 // in the text the person sees. Category, municipality and status still go as they are.
 
-export type TitleSet = { events: string[]; pieces: string[]; places: string[] };
+// people: the words of the team's names (folded), so «a Kevin» is someone and «a Táriba» a place.
+export type TitleSet = { events: string[]; pieces: string[]; places: string[]; people?: string[] };
 export const NO_TITLES: TitleSet = { events: [], pieces: [], places: [] };
 
 type Kind = 'E' | 'P' | 'L';
@@ -20,15 +21,21 @@ const CAP = 3000;
 // Shorter names (an empty place, «Acto») are ordinary words, left to the redaction rules.
 const MIN_LENGTH: Record<Kind, number> = { E: 4, P: 4, L: 6 };
 
-/** The event titles, piece titles and event place names this person can see (RLS). */
+/** The event titles, piece titles and event place names this person can see (RLS), and the team's names. */
 export async function loadTitles(s: Session): Promise<TitleSet> {
   return db(s, async (sql) => {
     const events = await sql.query<{ title: string; place_name: string }>(
       `select title, place_name from public.events where deleted_at is null order by created_at desc limit ${CAP}`,
     );
     const pieces = await sql.query<{ title: string }>(`select title from public.pieces where deleted_at is null order by updated_at desc limit ${CAP}`);
-    return { events: events.map((r) => r.title), pieces: pieces.map((r) => r.title), places: events.map((r) => r.place_name) };
+    const people = await sql.query<{ full_name: string }>(`select full_name from public.profiles where deleted_at is null limit ${CAP}`);
+    return { events: events.map((r) => r.title), pieces: pieces.map((r) => r.title), places: events.map((r) => r.place_name), people: peopleWords(people.map((r) => r.full_name)) };
   });
+}
+
+/** The words of the team's names, folded like plain() («Kevin Sánchez» → kevin, sanchez). */
+export function peopleWords(names: string[]): string[] {
+  return [...new Set(names.flatMap((n) => plain(n).split(' ')).filter((w) => w.length >= 3))];
 }
 
 /** The titles a tool returned in this turn (any `titulo`), for the demo brain's answers. */
@@ -51,7 +58,7 @@ export function titlesIn(calls: { result?: unknown }[]): string[] {
 // one («Tariba» in «Toma aérea Tariba», «Pirineos» in «Feria de Pirineos»). The first word is the
 // event's kind in most titles («Toma», «Feria»), and those are judged as event words. The ordinary
 // words that place names carry («Pueblo Nuevo», «Zona Alta») say nothing alone.
-const ORDINARY = new Set('nuevo nueva nuevos nuevas viejo vieja alto alta altos bajo baja bajos grande gran santa santo mayor central norte oeste verde blanco blanca negro negra real sector barrio pueblo plaza calle avenida zona parte casa'.split(' '));
+export const ORDINARY = new Set('nuevo nueva nuevos nuevas viejo vieja alto alta altos bajo baja bajos grande gran santa santo mayor central norte oeste verde blanco blanca negro negra real sector barrio pueblo plaza calle avenida zona parte casa'.split(' '));
 // The little words between a title's words («Feria de emprendedores en la plaza…»).
 const LINKS = new Set('de del la el los las lo en y o a al por con para un una sin sobre'.split(' '));
 const contentWords = (t: string) => plain(t).split(' ').filter((w) => w && !LINKS.has(w));
@@ -132,9 +139,17 @@ const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/
 
 // A placeholder is written «[[E1]]» (event), «[[P1]]» (piece) or «[[L1]]» (place). As a model may give
 // it back: one or two brackets, spaces, lower case, with or without «».
-const LOOSE_TOKEN = /(«\s*)?\[{1,2}\s*([EPLepl])\s*(\d{1,4})\s*\]{1,2}(\s*»)?/g;
+// A third bracket on either side («[[E1]]]», «[[[E1]]]») goes with it.
+const LOOSE_TOKEN = /(«\s*)?\[{1,3}\s*([EPLepl])\s*(\d{1,4})\s*\]{1,3}(\s*»)?/g;
 /** Any placeholder, also an altered one, for checks that must ignore them. */
-export const ANY_TOKEN = /\[{1,2}\s*[EPLepl]\s*\d{1,4}\s*\]{1,2}/g;
+export const ANY_TOKEN = /\[{1,3}\s*[EPLepl]\s*\d{1,4}\s*\]{1,3}/g;
+// A placeholder written with full-width brackets, letters or digits («［［E1］］», «[[E１]]»): read as one.
+const WIDE_TOKEN = /[\[［]{1,3}\s*[EPLeplＥＰＬｅｐｌ]\s*[0-9０-９]{1,4}\s*[\]］]{0,3}/g;
+const narrow = (s: string) => s.replace(WIDE_TOKEN, (m) => m.replace(/[［］Ｅ-Ｌｅ-ｌＰｐ０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0)));
+// What may be left after the replacements: a placeholder with no opening bracket («E1]]») and any
+// full-width bracket.
+const TAIL_TOKEN = /(?<![\p{L}\p{N}])([EPLepl])\s*\d{1,4}\s*\]{1,2}/gu;
+const tidy = (s: string) => s.replace(TAIL_TOKEN, (_m, k: string) => FALLBACK[k.toUpperCase() as Kind]).replace(/[［］]/g, '');
 // What is left of something that looked like a placeholder: never shown.
 const STRAY = /\[\[[^\]\n]{0,24}\]\]/g;
 // A placeholder cut off at the end of the text («… [[E1»): never shown either. One left open in the
@@ -160,13 +175,13 @@ const FALLBACK: Record<Kind, string> = { E: 'ese evento', P: 'esa pieza', L: 'es
 
 /** Any placeholder left in a text (made, altered, invented or cut off) as plain words, never raw. */
 export function stripTokens(text: string): string {
-  return dropCutToken(
-    String(text ?? '')
-      .replace(LOOSE_TOKEN, (_m, _open, k: string) => FALLBACK[k.toUpperCase() as Kind])
-      .replace(STRAY, 'eso'),
-  )
-    .replace(OPEN_TOKEN, (_m, k: string) => FALLBACK[k.toUpperCase() as Kind])
-    .replace(/[ \t]{2,}/g, ' ');
+  return tidy(
+    dropCutToken(
+      narrow(String(text ?? ''))
+        .replace(LOOSE_TOKEN, (_m, _open, k: string) => FALLBACK[k.toUpperCase() as Kind])
+        .replace(STRAY, 'eso'),
+    ).replace(OPEN_TOKEN, (_m, k: string) => FALLBACK[k.toUpperCase() as Kind]),
+  ).replace(/[ \t]{2,}/g, ' ');
 }
 
 export class Placeholders {
@@ -233,18 +248,18 @@ export class Placeholders {
    * lugar». A placeholder the model invented, broke or left half is never shown raw.
    */
   restore(text: string, o: { scrub?: boolean } = {}): string {
-    return dropCutToken(
-      String(text ?? '')
-        .replace(LOOSE_TOKEN, (_m, _open, k: string, n: string) => {
-          const kind = k.toUpperCase() as Kind;
-          const hit = this.byToken.get(`${kind}${Number(n)}`);
-          const shown = !hit || kind === 'L' ? '' : o.scrub ? safeTitle(hit.text) : hit.text;
-          return shown ? `«${shown}»` : FALLBACK[kind];
-        })
-        .replace(STRAY, 'eso'),
-    )
-      .replace(OPEN_TOKEN, (_m, k: string) => FALLBACK[k.toUpperCase() as Kind])
-      .replace(/[ \t]{2,}/g, ' ');
+    return tidy(
+      dropCutToken(
+        narrow(String(text ?? ''))
+          .replace(LOOSE_TOKEN, (_m, _open, k: string, n: string) => {
+            const kind = k.toUpperCase() as Kind;
+            const hit = this.byToken.get(`${kind}${Number(n)}`);
+            const shown = !hit || kind === 'L' ? '' : o.scrub ? safeTitle(hit.text) : hit.text;
+            return shown ? `«${shown}»` : FALLBACK[kind];
+          })
+          .replace(STRAY, 'eso'),
+      ).replace(OPEN_TOKEN, (_m, k: string) => FALLBACK[k.toUpperCase() as Kind]),
+    ).replace(/[ \t]{2,}/g, ' ');
   }
 
   /**
@@ -253,11 +268,13 @@ export class Placeholders {
    */
   restoreArgs(raw: unknown): unknown {
     const put = (s: string) =>
-      dropCutToken(
-        s
-          .replace(LOOSE_TOKEN, (_m, _open, k: string, n: string) => this.byToken.get(`${k.toUpperCase()}${Number(n)}`)?.text ?? FALLBACK[k.toUpperCase() as Kind])
-          .replace(STRAY, 'eso'),
-      ).replace(OPEN_TOKEN, (_m, k: string) => FALLBACK[k.toUpperCase() as Kind]);
+      tidy(
+        dropCutToken(
+          narrow(s)
+            .replace(LOOSE_TOKEN, (_m, _open, k: string, n: string) => this.byToken.get(`${k.toUpperCase()}${Number(n)}`)?.text ?? FALLBACK[k.toUpperCase() as Kind])
+            .replace(STRAY, 'eso'),
+        ).replace(OPEN_TOKEN, (_m, k: string) => FALLBACK[k.toUpperCase() as Kind]),
+      );
     const walk = (v: unknown): unknown =>
       typeof v === 'string' ? put(v) : Array.isArray(v) ? v.map(walk) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)])) : v;
     if (typeof raw !== 'string') return walk(raw);

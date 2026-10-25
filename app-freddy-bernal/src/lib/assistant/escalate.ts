@@ -1,17 +1,17 @@
 import 'server-only';
 import { withSystem } from '../db';
 import { notify, usersWithRole } from '../notify';
-import { aboutEvent } from './events';
+import { aboutEvent, redactPlaceAfterA } from './events';
 import { redactForTeam } from './redact';
-import { Placeholders, stripTokens, type TitleSet } from './titles';
+import { Placeholders, peopleWords, stripTokens, type TitleSet } from './titles';
 
 // «Aviso al equipo» for real (manual §11): an in-app notice (and the email copy, which stays
 // in the outbox unless EMAIL_MODE=send) to administration — and to supervision when it is
 // about approvals — with a link to the conversation in the panel. Not repeated within 6
 // hours for the same conversation. The texts never carry dates, times or places: the reason
 // (a model may write it, with the real titles back in it) loses any placeholder left and any event
-// place by its name («ese lugar»), then gets every rule, a place said by its name too, and the phone's
-// guard. If the reason is about an event (the
+// place by its name («ese lugar»), then gets every rule, a place said by its name too (also «a Táriba»,
+// when Táriba is no one of the team), and the phone's guard. If the reason is about an event (the
 // shared detector, against every event title and place), Supervisión only reads «Necesita ayuda con un
 // evento»; administración gets the scrubbed reason. Uses withSystem only; never call it from inside
 // db(session, …).
@@ -21,12 +21,14 @@ const REPEAT_HOURS = 6;
 const ABOUT_APPROVALS = /aprob|revisi|sem[aá]foro|\brojo\b|amarill|cambios pedidos|pieza/i;
 export const EVENT_MOTIVO = 'necesita ayuda con un evento.';
 
-// Every event title and place (to check and to hide: nothing of it is shown or sent).
+// Every event title and place (to check and to hide: nothing of it is shown or sent), and the team's
+// names («a Kevin» is someone; «a Táriba», a place).
 async function allTitles(): Promise<TitleSet> {
-  const rows = await withSystem((sql) =>
-    sql.query<{ title: string; place_name: string }>(`select title, place_name from public.events where deleted_at is null order by created_at desc limit 3000`),
-  );
-  return { events: rows.map((r) => r.title), pieces: [], places: rows.map((r) => r.place_name) };
+  return withSystem(async (sql) => {
+    const rows = await sql.query<{ title: string; place_name: string }>(`select title, place_name from public.events where deleted_at is null order by created_at desc limit 3000`);
+    const people = await sql.query<{ full_name: string }>(`select full_name from public.profiles where deleted_at is null limit 3000`);
+    return { events: rows.map((r) => r.title), pieces: [], places: rows.map((r) => r.place_name), people: peopleWords(people.map((r) => r.full_name)) };
+  });
 }
 
 export function panelLink(conversationId: string) {
@@ -37,7 +39,7 @@ export async function escalate(conversationId: string, reason: string): Promise<
   const titles = await allTitles();
   const said = stripTokens(String(reason ?? '').trim());
   // An event's place by its name («la pieza de Alto Verde») is «ese lugar» for administración too.
-  const motivo = redactForTeam(stripTokens(new Placeholders({ events: [], pieces: [], places: titles.places }).mask(said))).slice(0, 300) || 'Pidió hablar con alguien del equipo.';
+  const motivo = redactForTeam(redactPlaceAfterA(stripTokens(new Placeholders({ events: [], pieces: [], places: titles.places }).mask(said)), titles)).slice(0, 300) || 'Pidió hablar con alguien del equipo.';
   const conv = await withSystem((sql) =>
     sql.one<{ id: string; name: string; repeated: boolean }>(
       `select c.id, coalesce(nullif(p.full_name, ''), p.email, 'Alguien del equipo') as name,

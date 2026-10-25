@@ -254,7 +254,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   if (!degraded) answer = shown(answer);
   const goTo = degraded
     ? null
-    : pickGoTo(session.roles, { toolHrefs: out.calls.filter((c) => c.ok).map((c) => c.goTo).reverse(), answer, question });
+    : pickGoTo(session.roles, { toolHrefs: [out.goTo, ...out.calls.filter((c) => c.ok).map((c) => c.goTo).reverse()], answer, question });
   const model = degraded && !out.model ? 'ninguno' : out.model || 'local';
   await save({ answer, model, provider: out.provider, tokensIn: out.tokensIn, tokensOut: out.tokensOut, error, degraded, calls: out.calls, goTo });
   return finish({

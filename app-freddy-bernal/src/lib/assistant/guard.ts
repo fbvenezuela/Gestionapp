@@ -1,9 +1,9 @@
 import 'server-only';
 import { looksLikeDateTime } from '../push/text';
-import { BOSS_NAMES, aboutEvent, asksPlace, eventIsSubject, eventSignals, mentionsEvent, type EventSignal } from './events';
+import { BOSS_NAMES, aboutEvent, asksPlace, eventIsSubject, eventSignals, mentionsEvent, namedTitleWords, placeAfterA, type EventSignal } from './events';
 import { carriesDay, carriesHour, carriesWhen, hasDate, hasDateOrTime, hasPlaceName, hasPlaceOrContact, neutralForChecks, redactForTeam, redactKeepTimes, redactQuoted, redactStrict } from './redact';
 import { plain, sentences } from './text';
-import { ANY_TOKEN, NO_TITLES, Placeholders, titleIndex, type TitleSet } from './titles';
+import { ANY_TOKEN, NO_TITLES, Placeholders, type TitleSet } from './titles';
 
 // What 360 prepares (a notice to a whole role) and what it is taught (scripts and fichas, which go to
 // the AI provider): never an event's date, time, day, place or contacts. One place, used by both
@@ -60,6 +60,8 @@ const ANY_DEADLINE = new RegExp(
   String.raw`(?<=\b(?:${TEAM_LEAD})\b[^.;!?]*)\b(?:antes del?|hasta(?: el)?|para(?: el)?|a mas tardar(?: el| a)?)\s+(?:(?:las?\s+)?\[(?:hora|fecha)\]|(?:${DAY})\b)|\b(?:tienen|tenemos|tienes)\s+hasta(?:\s+(?:el|las?))?\s+(?:\[(?:hora|fecha)\]|(?:${DAY})\b)`,
   'g',
 );
+// The work handed in at an hour («suban el material a las 3»): a deadline too.
+const DELIVER_AT = new RegExp(String.raw`(?<=\b(?:${DELIVER})\b[^.;!?]*)\ba\s+las?\s+\[hora\]`, 'g');
 const DAY_LEFT = new RegExp(String.raw`\b(?:${DAY})\b`);
 const DAY_WORDS = new RegExp(String.raw`\b(?:${DAY})\b`, 'g');
 const CONTACT_ASK = /\b(?:contactos?|telefono|numero|llamo|hablo|busco|recibe)\b/;
@@ -76,12 +78,22 @@ const HELPERS = /\b(?:(?:hay|tienen|tenemos|deben|debemos|necesitamos) (?:que|pa
 const EVENT_WORD = /^(?:eventos?|actos?|actividad|actividades|agenda|jornadas?|entregas?|reunion|reuniones|recorridos?|inauguracion|inauguraciones|visitas?|ferias?|asambleas?|urbanismos?|caravanas?|cabildos?|conversatorios?|foros?|juramentacion|encuentros?|operativos?)$/;
 const TOKEN_WORD = 'zzevento';
 
+// A number word is a count only before what it counts («las tres piezas»); alone it is an hour
+// («Suban las fotos de la feria, ocho.»).
+const COUNT_WORD = new Set('dos tres cuatro cinco seis siete ocho nueve diez'.split(' '));
+
 /** A word of the notice (folded, a deadline left out) that is not the team's instruction: it says something of the event. */
-function saysMoreThanTheWork(t: string, titles: TitleSet): boolean {
-  const ev = titleIndex(titles.events);
-  const allowed = (w: string) => SMALL.has(w) || WORK.has(w) || FILLER.has(w) || TEAM_WORD.test(w) || EVENT_WORD.test(w) || w === TOKEN_WORD || ev.words.has(w) || BOSS_NAMES.includes(w);
-  return t.replace(HELPERS, ' ').split(/[^a-z0-9]+/).filter(Boolean).some((w) => !allowed(w));
+function saysMoreThanTheWork(t: string, named: Set<string>): boolean {
+  const allowed = (w: string) => SMALL.has(w) || WORK.has(w) || FILLER.has(w) || TEAM_WORD.test(w) || EVENT_WORD.test(w) || w === TOKEN_WORD || named.has(w) || BOSS_NAMES.includes(w);
+  const ws = t.replace(HELPERS, ' ').split(/[^a-z0-9]+/).filter(Boolean);
+  return ws.some((w, k) => !allowed(w) || (COUNT_WORD.has(w) && !WORK.has(ws[k + 1] ?? '')));
 }
+
+// A sentence of a notice that names an event and asks the team for nothing says something of it
+// («Suban las fotos de la feria. Escuela.»). A title as a heading before a colon is the same sentence.
+const NOTICE_SENTENCES = /[.;!?\n]+/;
+// «A las 6 lleven el dron»: an hour something happens at, not a deadline (unless it is for the work handed in).
+const AT_HOUR = /\ba\s+las?\s+\[hora\]/;
 
 export type NoticeIssue = 'la fecha' | 'el día' | 'la hora' | 'el lugar' | 'los contactos' | 'datos del evento';
 /** A notice to a whole role is short; longer text is refused before any check runs on it. */
@@ -102,7 +114,7 @@ export function noticeIssues(text: string, titlesIn: TitleSet | string[] = NO_TI
   if (/\[direccion\]/.test(strict)) issues.add('el lugar');
   if (!event) {
     // A place by its name or a landmark is someone's agenda («lleven toldo a la casa comunal»).
-    if (hasPlaceName(raw)) issues.add('el lugar');
+    if (hasPlaceName(raw) || placeAfterA(raw, titles)) issues.add('el lugar');
     // No event named: a day alone or an hour alone is the team's («cambien su contraseña esta semana»,
     // «manden las fotos esta tarde», «antes de las 3 pm»). A day with an hour, past any deadline, is
     // someone's agenda («el sábado a las 6, lleven baterías»).
@@ -112,11 +124,16 @@ export function noticeIssues(text: string, titlesIn: TitleSet | string[] = NO_TI
       issues.add(/\[fecha\]/.test(left) ? 'la fecha' : 'el día');
       issues.add('la hora');
     }
+    // An hour something happens at («a las 6 lleven el dron»), not a deadline nor the work handed in at it.
+    if (AT_HOUR.test(left.replace(DELIVER_AT, ' ')) && !PUBLISHING.test(plain(raw))) issues.add('la hora');
   } else {
     if (!TEAM_INSTRUCTION.test(fold(raw))) issues.add('datos del evento');
-    // Every word, a deadline left out (a title's own words are fine; an hour typed into one is not).
+    // Each sentence that names the event asks the team for something.
+    if (raw.split(NOTICE_SENTENCES).some((c) => c.trim() && mentionsEvent(c, titles) && !TEAM_INSTRUCTION.test(fold(c)))) issues.add('datos del evento');
+    // Every word, a deadline left out (the words of the titles it names are fine, not every title the
+    // person can see: «Suban las fotos de la feria. Escuela.»; an hour typed into one is not).
     const t = fold(strict).replace(DEADLINE, ' ').replace(TEAM_DAY, ' ');
-    if (saysMoreThanTheWork(t, titles)) issues.add('datos del evento');
+    if (saysMoreThanTheWork(t, namedTitleWords(raw, titles.events))) issues.add('datos del evento');
     // An event's place by its name, outside a title said whole («… a Alto Verde», «de La Quebrada»).
     if (eventSignals(new Placeholders({ events: titles.events, pieces: [], places: [] }).mask(raw), titles).has('place')) issues.add('el lugar');
     if (/\[fecha\]/.test(t)) issues.add('la fecha');
@@ -124,7 +141,7 @@ export function noticeIssues(text: string, titlesIn: TitleSet | string[] = NO_TI
     if (DAY_LEFT.test(t)) issues.add('el día');
     // Whatever the rules above missed and the phone's guard sees («Toma 9.30»).
     if (looksLikeDateTime(t.replace(DAY_WORDS, ' '))) issues.add('la hora');
-    if (hasPlaceName(raw)) issues.add('el lugar');
+    if (hasPlaceName(raw) || placeAfterA(raw, titles)) issues.add('el lugar');
     if (asksPlace(raw)) issues.add(CONTACT_ASK.test(plain(raw)) ? 'los contactos' : 'el lugar');
     // A number left that is not a count, a deadline or a placeholder: «la feria arranca 8».
     if (/\d/.test(t.replace(/\[[a-z]+\]/g, ' '))) issues.add('la hora');
@@ -208,7 +225,7 @@ export function teachingProblem(o: { said: string[]; asked?: string[]; titles?: 
     return g.has('agenda') && g.has('when');
   };
   if (!PUBLISHING.test(plain(said)) && knows.some((l) => sentences(l).some(agendaShape))) return EVENT_NAMED_MESSAGE;
-  if (namesOne(said, set) || asks.some((a) => namesOne(a, set)) || eventIsSubject(said)) return EVENT_NAMED_MESSAGE;
+  if (namesOne(said, set) || asks.some((a) => namesOne(a, set)) || eventIsSubject(said, set)) return EVENT_NAMED_MESSAGE;
   return null;
 }
 

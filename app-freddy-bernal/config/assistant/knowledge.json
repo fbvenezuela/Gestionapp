@@ -9,7 +9,9 @@
    "tags": [
     "entrar",
     "codigo",
-    "acceso"
+    "acceso",
+    "contrasena",
+    "clave"
    ]
   },
   {
@@ -33,6 +35,19 @@
     "instalar",
     "app",
     "avisos"
+   ]
+  },
+  {
+   "key": "mi-perfil",
+   "roles": null,
+   "title": "Mi perfil: nombre, teléfono y avisos",
+   "body": "En Mi perfil (el menú de tu cuenta, arriba a la derecha) cambias tu nombre, tu número de teléfono, qué avisos te llegan por correo y al teléfono y las horas de silencio; ahí también activas los avisos en este teléfono. El correo con el que entras no se cambia ahí: si hace falta, pídeselo a administración.",
+   "tags": [
+    "perfil",
+    "nombre",
+    "numero",
+    "telefono",
+    "cuenta"
    ]
   },
   {
@@ -106,7 +121,7 @@
    "key": "semaforo-reglas",
    "roles": null,
    "title": "Reglas del semáforo de aprobación",
-   "body": "Quien manda una pieza a aprobar elige el color. Supervisión, el jefe o administración pueden cambiarlo. Verde (rutina) y amarillo (normal) los aprueba supervisión; rojo (sensible: política, crisis, aclaratorias) solo el jefe. La falta de respuesta no es aprobación: si vence el plazo la pieza sigue sin aprobar, sale en «Trancado» y se avisa de nuevo; nunca sale sola. Lo que sale es exactamente lo aprobado: si cambia el video o un copy, vuelve a revisión, y si cambió mientras alguien la revisaba, esa aprobación se rechaza y hay que abrirla de nuevo. Si una pieza aprobada por supervisión se sube a rojo, vuelve a revisión para el jefe. Una pieza en rojo solo baja con el jefe o administración. Lo que el jefe publica por su cuenta no pasa por aprobación (ya salió): Redes lo registra después con su link.",
+   "body": "Las piezas verdes y amarillas las aprueba supervisión; las rojas, solo el jefe. Quien manda una pieza a aprobar elige el color: verde si es rutina, amarillo si es lo normal y rojo si es sensible (política, crisis, aclaratorias). Supervisión, el jefe o administración pueden cambiarlo. La falta de respuesta no es aprobación: si no se aprueba a tiempo y vence el plazo, la pieza sigue sin aprobar, sale en «Trancado» y se avisa de nuevo; nunca sale sola. Lo que sale es exactamente lo aprobado: si cambia el video o un copy, vuelve a revisión, y si cambió mientras alguien la revisaba, esa aprobación se rechaza y hay que abrirla de nuevo. Si una pieza aprobada por supervisión se sube a rojo, vuelve a revisión para el jefe. Una pieza en rojo solo baja con el jefe o administración. Lo que el jefe publica por su cuenta no pasa por aprobación (ya salió): Redes lo registra después con su link.",
    "tags": [
     "aprobar",
     "semaforo",
@@ -114,7 +129,10 @@
     "amarillo",
     "verde",
     "color",
-    "nivel"
+    "nivel",
+    "plazo",
+    "tiempo",
+    "trancado"
    ]
   },
   {
@@ -158,7 +176,11 @@
    "tags": [
     "politica",
     "eventos",
-    "decidir"
+    "decidir",
+    "propuestas",
+    "aceptar",
+    "rechazar",
+    "calificar"
    ]
   },
   {
@@ -204,7 +226,8 @@
    "tags": [
     "ficha",
     "evento",
-    "cifras"
+    "cifras",
+    "llenar"
    ]
   },
   {
@@ -220,6 +243,25 @@
     "evento",
     "crear",
     "proponer"
+   ]
+  },
+  {
+   "key": "cambiar-evento",
+   "roles": [
+    "dispatch",
+    "admin",
+    "boss",
+    "secretary"
+   ],
+   "title": "Cambiar, cancelar o duplicar un evento",
+   "body": "Despacho y Administración cambian el título, el lugar, la fecha y la ficha técnica desde la ficha del evento. No hay botón para duplicar un evento: se crea otro en «Crear» → Nuevo evento. Tampoco hay botón para cancelarlo ni para borrarlo: si un evento ya no conviene, el jefe lo rechaza en Política o en su ficha, y si hay que quitarlo, Despacho le avisa a Administración. Secretaría no cambia una propuesta ya enviada: le avisa a Despacho.",
+   "tags": [
+    "cambiar",
+    "cancelar",
+    "duplicar",
+    "borrar",
+    "suspender",
+    "editar"
    ]
   },
   {
@@ -245,10 +287,11 @@
     "camera"
    ],
    "title": "Marcar un evento como realizado",
-   "body": "Cuando el evento ya pasó, el jefe, Despacho, Administración o quien lo grabó lo marcan como realizado desde su ficha. Así el material queda en la Biblioteca con su día y Redes ve solo ese día (nunca la hora). No se puede marcar un evento que todavía no ha pasado.",
+   "body": "Cuando el evento ya pasó, el jefe, Despacho, Administración o quien lo grabó lo marcan como realizado desde su ficha. Así el material queda en la Biblioteca con su día y Redes ve solo ese día (nunca la hora). No se puede marcar un evento antes de que ocurra.",
    "tags": [
     "realizado",
-    "biblioteca"
+    "biblioteca",
+    "pasados"
    ]
   },
   {
@@ -291,7 +334,9 @@
    "body": "En la ficha del evento, pestaña Storyboard: «Lo que va a decir el jefe» y los bloques, cada uno con plano, ángulo, la frase del jefe, las tomas de apoyo y un dato con su fuente. Lo arman Redes y Administración; el resto lo lee. Conviene armarlo para los eventos que el jefe ya aceptó.",
    "tags": [
     "storyboard",
-    "evento"
+    "evento",
+    "tomas",
+    "planos"
    ]
   },
   {
@@ -321,7 +366,9 @@
     "copies",
     "formula",
     "voz",
-    "cierre"
+    "cierre",
+    "plantilla",
+    "corregir"
    ]
   },
   {
@@ -418,13 +465,17 @@
     "boss"
    ],
    "title": "Cómo aprueba Supervisión y qué revisar antes",
-   "body": "En Por aprobar las piezas salen agrupadas por color, con el video, los tres copies y el historial. Las verdes se aprueban todas juntas, de una vez, con el botón «Aprobar las…» del grupo verde (las que cambiaron mientras tanto se saltan). Antes de aprobar una pieza sola, se revisa con la lista: cifras con fuente, sin fecha ni hora, se ve y se oye bien, copies revisados. Para pedir cambios: un comentario, anotando el segundo del video si hace falta. Una pieza delicada se puede subir a rojo; también se puede «Pedir frase al jefe». Los tweets se aprueban marcándolos en su pestaña.",
+   "body": "En Por aprobar las piezas salen agrupadas por color, con el video, los tres copies y el historial. Las verdes se aprueban todas juntas, de una vez, con el botón «Aprobar las…» del grupo verde (las que cambiaron mientras tanto se saltan). Antes de aprobar una pieza sola, se revisa con la lista: cifras con fuente, sin fecha ni hora, se ve y se oye bien, copies revisados. Si trae un error o algo no va, se piden cambios con un comentario, anotando el segundo del video si hace falta. Una pieza delicada se puede subir a rojo; también se puede «Pedir frase al jefe». Los tweets se aprueban marcándolos en su pestaña.",
    "tags": [
     "aprobar",
     "supervision",
     "lista",
     "revisar",
-    "chequeo"
+    "chequeo",
+    "cambios",
+    "error",
+    "verde",
+    "amarillo"
    ]
   },
   {
@@ -465,11 +516,15 @@
     "admin"
    ],
    "title": "Cómo se sube el material crudo",
-   "body": "Abrir el evento (Mis eventos o Agenda), pestaña Material, y subir cada archivo en su casilla: jefe hablando, dron, tomas de apoyo u otros. Si se va la señal, la subida sigue sola al volver. Un archivo subido no se reemplaza: si hubo un error, se sube el correcto y se avisa a Redes; quitar el equivocado lo hace administración. Después, marcar el evento como realizado.",
+   "body": "Abrir el evento (Mis eventos o Agenda), pestaña Material, y subir cada archivo en su casilla: jefe hablando, dron, tomas de apoyo u otros. Si se va la señal o el internet, la subida sigue sola al volver. Un archivo subido no se reemplaza: si hubo un error, se sube el correcto y se avisa a Redes; quitar el equivocado lo hace administración. Después, marcar el evento como realizado.",
    "tags": [
     "material",
     "subir",
-    "señal"
+    "señal",
+    "videos",
+    "fotos",
+    "internet",
+    "conexion"
    ]
   },
   {
@@ -490,11 +545,14 @@
     "admin"
    ],
    "title": "Cómo se invita a alguien",
-   "body": "Ajustes → Equipo: escribir el correo, el nombre y el rol, y tocar Invitar. A la persona le llega un correo con la invitación. En Equipo también se agregan o quitan roles, se cierran las sesiones de alguien (por ejemplo si perdió el teléfono) y se desactiva a quien ya no está.",
+   "body": "Ajustes → Equipo: escribir el correo, el nombre y el rol, y tocar Invitar. A la persona le llega un correo con la invitación. En Equipo también se cambian los roles de alguien (se agregan o se quitan), se cierran sus sesiones (por ejemplo si perdió el teléfono) y se desactiva a quien ya no está: así pierde el acceso.",
    "tags": [
     "invitar",
     "equipo",
-    "roles"
+    "roles",
+    "acceso",
+    "desactivar",
+    "sesiones"
    ]
   },
   {

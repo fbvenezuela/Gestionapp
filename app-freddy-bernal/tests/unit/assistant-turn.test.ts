@@ -638,7 +638,8 @@ describe('con modelo (proveedor falso)', () => {
 
   it('la reserva del mes alcanza para un turno con el hilo largo (cada vuelta reenvía el hilo entero)', async () => {
     const s = sessionOf('dispatch');
-    const long = 'Necesito ayuda con la pieza del puente y el copy para Instagram, porque el video vertical quedó largo y no sé qué fórmula usar ni qué voz poner. '.repeat(11).slice(0, 1500);
+    // No event in it (round 5: a distinctive word of a visible title, «el puente», names its event and keeps the thread with 360).
+    const long = 'Necesito ayuda con la pieza nueva y el copy para Instagram, porque el video vertical quedó largo y no sé qué fórmula usar ni qué voz poner. '.repeat(11).slice(0, 1500);
     const conv = await withSystem(async (sql) => {
       const c = await sql.one<{ id: string }>(`insert into public.assistant_conversations (user_id, title) values ($1, 'hilo largo') returning id`, [s.userId]);
       for (let i = 0; i < 12; i++) {
@@ -772,7 +773,8 @@ describe('con modelo (proveedor falso)', () => {
 
   it('una herramienta que no está en su carta no se ejecuta (y el error vuelve al modelo)', async () => {
     const p = fakeProvider((n) => (n === 1 ? callTool('estado_pieza', { titulo: 'Cancha' }) : say('No tengo cómo ver eso desde tu rol.')));
-    const r = await handleTurn(sessionOf('camera'), { question: '¿cómo va la pieza de la cancha?' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+    // Not «la pieza de la cancha»: Grabación sees that event, and naming it keeps the turn with 360 (round 5).
+    const r = await handleTurn(sessionOf('camera'), { question: '¿cómo va mi pieza?' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
     expect(r.did).toEqual([{ tool: 'estado_pieza', error: 'Esa herramienta no existe.' }]);
     expect(JSON.stringify(p.seen[1].body.messages)).toContain('Esa herramienta no existe.');
   });

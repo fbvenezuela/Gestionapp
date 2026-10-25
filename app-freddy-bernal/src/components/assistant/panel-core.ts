@@ -176,6 +176,7 @@ const ACTION_LABEL: Record<string, string> = {
 // panel never shows the internal names.
 const LOOKUP_LABEL: Record<string, string> = {
   mis_pendientes: 'Buscó los pendientes',
+  eventos_por_decidir: 'Buscó los eventos por decidir',
   estado_pieza: 'Buscó cómo va una pieza',
   dias_de_tweets: 'Contó los días de tweets',
   mejores_horas: 'Buscó las mejores horas',

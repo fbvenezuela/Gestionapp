@@ -2,7 +2,7 @@ import 'server-only';
 import { ROLE_LABEL, type Role } from '../roles';
 import { PERSONA, ROLE_BRIEFS, type AssistantProfile } from './config';
 import { chat, type ChatMessage, type ChatOptions, type Link } from './providers';
-import { aboutEvent, asksAboutPublishing, asksRoute, asksWhenWhere, eventThread, mentionsEvent } from './events';
+import { EVENT_NOUNS, aboutEvent, asksAboutPublishing, asksRoute, asksWhenWhere, eventThread, mentionsEvent } from './events';
 import { scrubTeamFicha, scrubTeamScript } from './guard';
 import { carriesWhen, hasDate, hasPlaceOrContact, redact, redactDeep, redactEventSpeech, redactLandmarks, redactQuoted } from './redact';
 import { fillHuecos, plain, sentences, HUECO, type Huecos } from './text';
@@ -32,7 +32,8 @@ export const TURN_BUDGET_MS = 40_000;
 
 // origin: 'plataforma' or 'equipo' for a ficha; 'fabrica', 'equipo' or 'conversacion' for a script.
 export type Ficha = { key: string | null; title: string; body: string; tags: string[]; origin?: string };
-export type ChosenScript = { key: string | null; topic: string; script: string; always: boolean; origin?: string };
+// points: how well it matched (3 per whole trigger said, 1 per word of 4+ letters; assistant_scripts_for).
+export type ChosenScript = { key: string | null; topic: string; script: string; always: boolean; origin?: string; points?: number };
 export type HistoryMsg = { who: 'persona' | 'asistente'; body: string };
 
 export type TurnContext = {
@@ -47,7 +48,8 @@ export type TurnContext = {
 
 // restore: on the model path, `text` carries the placeholders of the titles (titles.ts); this puts the
 // real names back for the person, after the filter and the nets have looked at the placeholders.
-export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[]; restore?: (t: string) => string };
+// goTo: a screen the demo brain points to without a tool («¿dónde está la biblioteca?»).
+export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[]; restore?: (t: string) => string; goTo?: string };
 
 // ---------------------------------------------------------------------------
 // Which fichas go into this turn: the relevant ones, not all of them (a turn should weigh
@@ -62,37 +64,162 @@ const ROLE_FICHA: Partial<Record<Role, string>> = {
   supervisor: 'guia:rol-supervision',
   camera: 'guia:rol-grabacion',
 };
-const COMMON = new Set('como para esta este estos todo todos pero cuando donde queda quedan tiene tengo puedo quiero hacer hace sale salen cual cuales sobre desde hasta porque entonces ahora algo alguien solo bien dime saber'.split(' '));
+const COMMON = new Set(
+  ('como para esta este estos todo todos pero cuando donde queda quedan tiene tengo puedo quiero hacer hace sale salen cual cuales sobre desde hasta porque entonces ahora algo alguien solo bien dime saber ' +
+    'hago hice haga necesito debo deberia dice dicen dijo pasa paso salio pongo favor porfa ayuda ayudame cosa cosas mucho mucha muy usted ustedes ' +
+    // Questions and fillers (round 6): «¿cuánto puede pesar…?» is about the weight, «¿qué significa…?» about what follows.
+    'cuanto cuanta cuantos cuantas puede pueden podria tener tienen significa dejo poner pone ponen').split(' '),
+);
+// Short words that still say what is asked («¿cómo cambio el rol?», «la red», «el CSV»).
+const SHORT = new Set(['rol', 'red', 'csv', 'app']);
+// Words that name the platform, events in general or trouble: they say little of what is asked («¿cómo
+// duplico un evento?» is about duplicating, «hay un error en el copy» about the copy). They count, but at a third.
+const GENERIC_WORDS = new Set(['plataforma', 'app', 'aplicacion', 'sistema', 'pagina', 'error', 'errores', 'problema', 'problemas', 'falla', 'fallas']);
+const EVENT_NOUN = new RegExp(`^(?:${EVENT_NOUNS})$`);
+const isGeneric = (w: string) => GENERIC_WORDS.has(w) || EVENT_NOUN.test(w);
+// The content a question is about (S5, ronda 5): «el copy es muy largo» is about the copy, not «largo».
+const OBJECTS = new Set(['copy', 'copies', 'video', 'videos', 'pieza', 'piezas', 'tweet', 'tweets', 'foto', 'fotos', 'material', 'storyboard', 'portada', 'reel', 'reels', 'ficha']);
 
 /** Crude Spanish stem, enough to match «invito» with «invita» or «propongo» with «proponer». */
 export function stem(w: string): string {
   return w.length <= 4 ? w.slice(0, 3) : w.length <= 6 ? w.slice(0, 4) : w.slice(0, 5);
 }
 
-/** The words of a text that say something (4+ letters, not the common ones). */
+// The verbs whose root changes («apruebo» / «aprobar», «pido» / «pedir», «propuesta» / «proponer»), read as one.
+const ROOTS: [RegExp, string][] = [
+  [/\baprueb/g, 'aprob'],
+  [/\bpid(?=o\b|e\b|en\b|an\b|io\b|ieron\b)/g, 'ped'],
+  [/\bcierr/g, 'cerr'],
+  [/\bpierd/g, 'perd'],
+  [/\bmuev/g, 'mov'],
+  [/\bvuelv/g, 'volv'],
+  [/\bencuentr/g, 'encontr'],
+  [/\bmuestr/g, 'mostr'],
+  [/\bprueb/g, 'prob'],
+  [/\bcorrij/g, 'correg'],
+  [/\b(?:propuest|propus|propong)/g, 'propon'],
+  // «correo» is not «corregir» (the same first letters).
+  [/\bcorreos?\b/g, 'mail'],
+  // The same thing said two ways («la aplicación» / «la app», «el celular» / «el teléfono»).
+  [/\baplicacion(?:es)?\b/g, 'app'],
+  [/\bcelular(?:es)?\b/g, 'telefono'],
+  // A gerund as its verb («subiendo» / «subir», «grabando» / «grabar»; not «cuando»).
+  [/\b([a-z]{3,})iendo\b/g, '$1i'],
+  [/\b([a-z]{3,})ando\b/g, '$1a'],
+];
+/** plain(), with the verbs whose root changes written with one root. */
+export function canon(text: string): string {
+  return ROOTS.reduce((t, [re, to]) => t.replace(re, to), plain(text));
+}
+
+/**
+ * Whether a text (folded with canon(), with a space before it) has a word of the question: a word that
+ * starts with its stem and shares with it at least three quarters of the shorter of the two («invito» /
+ * «invitar», «piezas» / «pieza», but «cuanto» is not «cuando», «instalo» is not «instagram» and «internet»
+ * is not «intercambio»); a 4-letter word only with its 4th letter or, if that is a vowel, another vowel
+ * («copy» / «copies», «subo» / «subir», but «logo» is not «logros» and «dice» is not «dictar»).
+ */
+export function hasWord(text: string, w: string): boolean {
+  if (w.length !== 4) {
+    const s = ` ${stem(w)}`;
+    for (let at = text.indexOf(s); at >= 0; at = text.indexOf(s, at + 1)) {
+      const end = text.indexOf(' ', at + 1);
+      const u = text.slice(at + 1, end < 0 ? text.length : end);
+      let k = 0;
+      while (k < u.length && k < w.length && u[k] === w[k]) k++;
+      if (k >= Math.ceil(0.75 * Math.min(u.length, w.length))) return true;
+    }
+    return false;
+  }
+  const vowel = /[aeiouy]/.test(w[3]);
+  for (let at = text.indexOf(` ${w.slice(0, 3)}`); at >= 0; at = text.indexOf(` ${w.slice(0, 3)}`, at + 1)) {
+    const next = text[at + 4] ?? '';
+    if (next === w[3] || (vowel && /[aeiouy]/.test(next))) return true;
+  }
+  return false;
+}
+
+/** The words of a text that say something (4+ letters, not the common ones; a few short ones too). */
 export function keyWords(text: string): string[] {
-  return plain(text).split(' ').filter((w) => w.length >= 4 && !COMMON.has(w));
+  return canon(text).split(' ').filter((w) => (w.length >= 4 || SHORT.has(w)) && !COMMON.has(w));
+}
+
+// The platform's data fichas (formulas, categories, video rules per network, best hours) answer when the
+// question names what they are about (one of their tags or title words, as said): «¿cómo instalo la
+// app?» is not about Instagram's rules. Otherwise they count at a third.
+const DATA_FICHA = /^auto:(?:formula|categorias|red|horas)/;
+const NOT_A_NAME = new Set(['copies', 'copy', 'video', 'videos', 'publicar', 'reglas', 'mejores', 'horas', 'fichas']);
+function namesItsObject(f: Ficha, asked: Set<string>): boolean {
+  const own = [...plain(f.title).split(' '), ...f.tags.flatMap((t) => plain(t).split(' '))].filter((w) => w.length >= 3 && !NOT_A_NAME.has(w));
+  return own.some((w) => asked.has(w) || asked.has(`${w}s`) || asked.has(`${w}es`) || (w.endsWith('s') && asked.has(w.slice(0, -1))));
+}
+// «¿Cómo hago / armo un evento?» asks how one is created: on a tie, the ficha that says «crear» goes first.
+const MAKE = /\bcomo (?:(?:se|lo|la|los|las|le|les|me|te|nos) )*(?:hago|hacer|hace|hacemos|armo|armar|arma|monto|montar)\b/;
+export const makesOne = (text: string) => MAKE.test(plain(text));
+
+// cover: how much of the question (by weight) the ficha has, 0 to 1.
+export type ScoredFicha = { f: Ficha; n: number; cover: number };
+/**
+ * How well each ficha answers a text. Per word of the question, the best place it shows up in a ficha
+ * (title 3, tags 2, body 1), times how rare it is among the fichas; the words of events in general count
+ * at a third and the content asked about («el copy») at one and a half. Then by how much of the question
+ * the ficha covers: a word no ficha has («¿cómo duplico…?») counts against every ficha, so a match on
+ * «evento» alone stays weak. Two words in a row as asked add to it; on a tie, a guide ficha (how it is
+ * done) goes before the platform's data ones.
+ */
+export function scoreFichas(all: Ficha[], text: string): ScoredFicha[] {
+  // One entry per root: «apruebo» and «aprobar» are the same word here.
+  const words = [...new Map(keyWords(text).map((w) => [stem(w), w])).values()];
+  const docs = all.map((f) => ({ f, title: ` ${canon(f.title)}`, tags: ` ${canon(f.tags.join(' '))}`, body: ` ${canon(f.body)}` }));
+  const bias = (w: string) => (isGeneric(w) ? 1 / 3 : OBJECTS.has(w) ? 1.5 : 1);
+  // The verb of a how-to («¿cómo lo corrijo?»): a verb no ficha has says less than a thing no ficha has
+  // («¿cómo cambio el logo?»).
+  const verb = /\bcomo (?:(?:se|lo|la|los|las|le|les|me|te|nos) )*([a-z]+)/.exec(canon(text))?.[1];
+  // Rare words weigh more: «señal» says more than «video», which half the fichas mention. A word no
+  // ficha has weighs as the rarest (half for the verb of a how-to), for the coverage only.
+  const weight = new Map(
+    words.map((w) => {
+      const df = docs.filter((d) => hasWord(d.title, w) || hasWord(d.tags, w) || hasWord(d.body, w)).length;
+      const unknown = Math.log(1 + docs.length) * (w === verb ? 0.5 : 1);
+      return [w, { w: df ? Math.log(1 + docs.length / df) * bias(w) : 0, cover: (df ? Math.log(1 + docs.length / df) : unknown) * bias(w) }];
+    }),
+  );
+  const total = words.reduce((n, w) => n + (weight.get(w)?.cover ?? 0), 0);
+  // Two words of the question in a row, as asked («las verdes», «de una vez», «subir a rojo»).
+  const asked = canon(text).split(' ').filter(Boolean);
+  const keys = new Set(words);
+  const pairs = asked.slice(1).flatMap((w, k) => (keys.has(w) || keys.has(asked[k]) ? [` ${asked[k]} ${stem(w)}`] : []));
+  const said = new Set(plain(text).split(' '));
+  const make = makesOne(text);
+  return docs
+    .map((d) => {
+      let n = 0;
+      let covered = 0;
+      for (const w of words) {
+        const field = hasWord(d.title, w) ? 3 : hasWord(d.tags, w) ? 2 : hasWord(d.body, w) ? 1 : 0;
+        if (!field) continue;
+        n += field * (weight.get(w)?.w ?? 0);
+        covered += weight.get(w)?.cover ?? 0;
+      }
+      if (n) n += 1.2 * pairs.filter((x) => d.title.includes(x) || d.tags.includes(x) || d.body.includes(x)).length;
+      const guide = d.f.key?.startsWith('guia:') ? 1.05 : 1;
+      const data = DATA_FICHA.test(d.f.key ?? '') && !namesItsObject(d.f, said) ? 1 / 3 : 1;
+      const creates = make && d.title.includes(' crea') ? 1.1 : 1;
+      const cover = total ? covered / total : 0;
+      return { f: d.f, n: n * (0.4 + 0.6 * cover) * guide * data * creates, cover };
+    })
+    .sort((a, b) => b.n - a.n);
 }
 
 export function pickFichas(all: Ficha[], text: string, roles: Role[], max = 6, withMust = true): Ficha[] {
-  const stems = [...new Set(keyWords(text).map(stem))];
   const must = withMust ? all.filter((f) => f.key === 'guia:agenda-privada' || roles.some((r) => ROLE_FICHA[r] === f.key)) : [];
-  const docs = all.map((f) => ({ f, title: ` ${plain(f.title)}`, tags: ` ${plain(f.tags.join(' '))}`, body: ` ${plain(f.body)}` }));
-  // Rare words weigh more: «señal» says more than «video», which half the fichas mention.
-  const weight = new Map(stems.map((s) => {
-    const df = docs.filter((d) => d.title.includes(` ${s}`) || d.tags.includes(` ${s}`) || d.body.includes(` ${s}`)).length;
-    return [s, df ? Math.log(1 + docs.length / df) : 0];
-  }));
-  const scored = docs
-    .filter((d) => !must.includes(d.f))
-    .map((d) => {
-      let n = 0;
-      for (const s of stems) n += ((d.title.includes(` ${s}`) ? 3 : 0) + (d.tags.includes(` ${s}`) ? 2 : 0) + (d.body.includes(` ${s}`) ? 1 : 0)) * (weight.get(s) ?? 0);
-      return { f: d.f, n };
-    })
-    .filter((x) => x.n >= 2)
-    .sort((a, b) => b.n - a.n);
+  const scored = scoreFichas(all, text).filter((x) => !must.includes(x.f) && x.n >= 2);
   return [...must, ...scored.slice(0, max).map((x) => x.f)];
+}
+
+/** The key of the person's role ficha (for «¿puedo…?» and «¿qué hago yo aquí?»). */
+export function roleFichaKeys(roles: Role[]): string[] {
+  return roles.map((r) => ROLE_FICHA[r]).filter((k): k is string => !!k);
 }
 
 // ---------------------------------------------------------------------------
