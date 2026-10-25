@@ -7,7 +7,7 @@ import { DRIVE_MESSAGE, DRIVE_STATUS, DriveError, TOO_BIG_MESSAGE } from './erro
 import { servedAs } from './mime';
 import { extOf, mediaFileName } from './names';
 import { FULL_MAX, parseContentRange, parseRange, planRange, sliceStream, SKIP_LIMIT } from './range';
-import { addTransfer, budgetReached, personShareReached, reserveTransfer, settleTransfer, transferCapBytes, transferMonth } from './transfer';
+import { budgetReached, personShareReached, reserveTransfer, settleTransfer, transferCapBytes, transferMonth } from './transfer';
 
 // The Drive branch of /api/media/[id]. The caller has ALREADY run the person's own query (RLS)
 // and got the row back: nothing here runs, and Google is never called, for a row the person
@@ -156,9 +156,17 @@ export async function serveDriveMedia(req: Request, row: MediaRow, wantInline: b
 
 const THUMB_HEADERS = { ...MEDIA_HEADERS, 'Cache-Control': 'private, max-age=86400' };
 
-/** /api/media/[id]/thumb for a Drive row (already checked with RLS by the caller). 404 = show the icon. */
-export async function serveDriveThumb(mediaId: string): Promise<Response> {
+/**
+ * /api/media/[id]/thumb for a Drive row (already checked with RLS by the caller). 404 = show the icon.
+ * A thumbnail counts like any other answer: its bytes are reserved first, against the month's cap
+ * and the person's share for today (Administración aside). When that is refused the icon shows.
+ */
+export async function serveDriveThumb(mediaId: string, viewer: Viewer): Promise<Response> {
   const none = () => new Response(null, { status: 404, headers: MEDIA_HEADERS });
+  const send = async (mime: string, b: Uint8Array<ArrayBuffer>) => {
+    if (!(await reserveTransfer(b.length, viewer.admin ? null : viewer.userId)).ok) return none();
+    return new Response(b, { status: 200, headers: { ...THUMB_HEADERS, 'Content-Type': mime, 'Content-Length': String(b.length) } });
+  };
   const info = await withSystem((sql) =>
     sql.one<{ file_id: string; mime: string | null; bytes: Uint8Array | null; used: string | number }>(
       `select d.file_id, t.mime, t.bytes, coalesce((select x.bytes from public.drive_transfer x where x.month = $2), 0) as used
@@ -168,11 +176,7 @@ export async function serveDriveThumb(mediaId: string): Promise<Response> {
     ),
   );
   if (!info) return none();
-  if (info.bytes && info.mime) {
-    const b = new Uint8Array(info.bytes);
-    afterResponse(addTransfer(b.length));
-    return new Response(b, { status: 200, headers: { ...THUMB_HEADERS, 'Content-Type': info.mime, 'Content-Length': String(b.length) } });
-  }
+  if (info.bytes && info.mime) return send(info.mime, new Uint8Array(info.bytes));
   if (Number(info.used) >= transferCapBytes()) return none();
   try {
     const th = await withDrive(async (t) => {
@@ -181,6 +185,7 @@ export async function serveDriveThumb(mediaId: string): Promise<Response> {
     });
     // Video thumbnails can take a while to exist: a miss is not stored, the next view tries again.
     if (!th) return none();
+    // Kept even when this answer is refused below: the next view needs no call to Google.
     await withSystem((sql) =>
       sql.query(
         `insert into public.media_thumbs (media_id, mime, bytes) values ($1, $2, $3)
@@ -188,8 +193,7 @@ export async function serveDriveThumb(mediaId: string): Promise<Response> {
         [mediaId, th.mime, Buffer.from(th.bytes)],
       ),
     );
-    afterResponse(addTransfer(th.bytes.length));
-    return new Response(new Uint8Array(th.bytes), { status: 200, headers: { ...THUMB_HEADERS, 'Content-Type': th.mime, 'Content-Length': String(th.bytes.length) } });
+    return await send(th.mime, new Uint8Array(th.bytes));
   } catch {
     return none();
   }

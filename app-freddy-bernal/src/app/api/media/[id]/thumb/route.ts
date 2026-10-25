@@ -5,7 +5,8 @@ import { withUser } from '@/lib/db';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Small picture of a Drive file for Biblioteca. Same check as the download (RLS on the row),
-// then a copy kept in the database. 404 = no thumbnail: the page shows the icon.
+// then a copy kept in the database, counted like the download (month's cap and the person's
+// share). 404 = no thumbnail: the page shows the icon.
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const s = await getSession();
@@ -16,5 +17,5 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   );
   if (!row || row.bucket !== 'drive') return new NextResponse(null, { status: 404 });
   const { serveDriveThumb } = await import('@/lib/storage/drive/serve');
-  return serveDriveThumb(id);
+  return serveDriveThumb(id, { userId: s.userId, admin: s.roles.includes('admin') });
 }

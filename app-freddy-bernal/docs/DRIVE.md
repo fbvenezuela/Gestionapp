@@ -146,15 +146,17 @@ recomiendo el script.
 ## Lo que hay que saber
 - **Espacio:** 15 GB gratis por cuenta, **compartidos** con el Gmail y las Fotos de esa cuenta. Hoy son 2,3 GB de
   videos. «Probar» muestra el espacio y avisa al pasar el 80 %. Ver `COSTOS.md`.
-- **Transferencia de Vercel:** ver, adelantar y descargar pasa por la plataforma (así se revisan los permisos). Vercel
-  Hobby incluye unos 10 GB al mes y pausa el proyecto si se pasa; por eso hay un tope de 7 GB al mes
-  (`DRIVE_TRANSFER_CAP_GB`). Cada pedido aparta sus bytes **antes** de mandar nada y devuelve lo que no mandó, así
-  que ni varios a la vez ni una descarga cortada lo pasan. Al llegar, Administración recibe un aviso y ver o
-  descargar de Drive queda en pausa hasta el mes siguiente; subir sigue. Con Vercel Pro se pone `0`.
+- **Transferencia de Vercel:** ver, adelantar y descargar pasa por la plataforma (así se revisan los permisos), y
+  también las miniaturas de Biblioteca. Vercel Hobby incluye unos 10 GB al mes y pausa el proyecto si se pasa; por eso
+  hay un tope de 7 GB al mes (`DRIVE_TRANSFER_CAP_GB`). Cada pedido aparta sus bytes **antes** de mandar nada y
+  devuelve lo que no mandó, así que ni varios a la vez ni una descarga cortada lo pasan. Al llegar, Administración
+  recibe un aviso y ver o descargar de Drive queda en pausa hasta el mes siguiente (las miniaturas muestran el ícono);
+  subir directo sigue. Con Vercel Pro se pone `0`.
 - **Tope por persona:** cada persona puede usar al día hasta la cuarta parte del tope del mes (con 7 GB, 1,75 GB:
   unos 9 videos de 180 MB). Así una sola cuenta no deja sin videos a todos por el resto del mes. Al pasarlo, esa
   persona ve «Ya usaste tu cupo de hoy…» y Administración recibe un aviso; al día siguiente sigue. Administración no
-  tiene tope diario: si alguien lo necesita ya, Administración lo baja y se lo pasa.
+  tiene tope diario: si alguien lo necesita ya, Administración lo baja y se lo pasa. Las miniaturas cuentan igual:
+  pasado el cupo, sale el ícono (sin aviso).
 - **Descargar va siempre por partes:** los botones «Descargar», «Video», «Portada», «Audio recibido» y la imagen de
   un tweet bajan los archivos de Drive por partes. Un archivo de Drive de más de 32 MB nunca sale entero en una sola
   respuesta (se cortaría a los 300 s en una línea lenta): pedido de otra forma, la plataforma contesta «descárgalo
@@ -162,7 +164,9 @@ recomiendo el script.
 - **Subir directo:** el servidor abre la subida en Drive y el teléfono manda las partes directo a Google. Google lo
   documenta para Cloud Storage y otros lo midieron con Drive, pero para Drive no está escrito: con la cuenta real lo
   confirma «Probar» (último paso). Si dijera que no, la salida es `DRIVE_UPLOAD_MODE=proxy` (las partes pasan por
-  Vercel y gastan su transferencia), solo con tu OK.
+  Vercel y gastan su transferencia), solo con tu OK. Con `proxy`, cada parte cuenta para el tope del mes y para el
+  cupo del día de quien sube (Administración no tiene tope diario); una parte que no llega entera, o que Google no
+  recibe, no cuenta.
 - **«Elegir de Drive» es solo para Administración.** Le da a su navegador un permiso de Google de una hora, solo
   `drive.file`. El resto del equipo nunca recibe un permiso de Google.
 - **Versiones de prueba de Vercel:** «Conectar Drive» y el Picker funcionan solo en producción y en tu Mac

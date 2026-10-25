@@ -12,7 +12,7 @@ import { makeTestDb, type TestDb } from '../rls/setup';
 import { resetFakeDrive, type FakeDrive } from '@/lib/storage/drive/fake';
 import { driveTiming } from '@/lib/storage/drive/http';
 import { forgetAccessToken } from '@/lib/storage/drive/connection';
-import { DRIVE_MESSAGE, TOO_BIG_MESSAGE } from '@/lib/storage/drive/errors';
+import { DRIVE_MESSAGE, TOO_BIG_MESSAGE, UPLOAD_SHARE_MESSAGE } from '@/lib/storage/drive/errors';
 import { looksLikeDateTime } from '@/lib/push/text';
 import { SECRET, contains, jpegWithGps, heicHead } from './fixtures/photos';
 
@@ -374,6 +374,82 @@ describe('subir a Drive', () => {
     expect(await used()).toBe(before + data.length);
     expect(await media.finishUpload({ id: tk.id })).toMatchObject({ ok: true });
   });
+
+  it('por la plataforma: una parte incompleta, una subida vencida o Google caído no gastan el tope', async () => {
+    h.uploadMode = 'proxy';
+    const data = bytes(2 * MB, 11);
+    const tk = await upload('camera', data);
+    const put = (body: Uint8Array<ArrayBuffer> | null, range: string, headers: Record<string, string> = {}) =>
+      proxyRoute.PUT(new NextRequest(`http://localhost:3000${tk.endpoint}`, { method: 'PUT', headers: { 'content-range': range, ...headers }, body: body ?? undefined }), { params: Promise.resolve({ id: tk.id }) });
+    const first = `bytes 0-${MB - 1}/${data.length}`;
+    const second = `bytes ${MB}-${2 * MB - 1}/${data.length}`;
+    const before = await used();
+    const calls = fake.calls('uploadChunk').length;
+    // Says 1 MiB, sends 1 byte (or says so up front): refused, nothing counted, Google not called.
+    for (let i = 0; i < 5; i++) {
+      const r = await put(new Uint8Array([1]), first);
+      expect(r.status).toBe(400);
+      expect(await r.text()).toBe('Parte incompleta.');
+    }
+    expect((await put(new Uint8Array([1]), first, { 'content-length': '1' })).status).toBe(400);
+    expect(await used()).toBe(before);
+    expect(fake.calls('uploadChunk').length).toBe(calls);
+    // Google slow or unreachable: the part is given back.
+    fake.fail('uploadChunk', 503, 'backendError');
+    expect((await put(data.subarray(0, MB), first)).status).toBe(503);
+    fake.fail('uploadChunk', 0);
+    expect((await put(data.subarray(0, MB), first)).status).toBe(503);
+    expect(await used()).toBe(before);
+    // Taken: counted.
+    expect(await (await put(data.subarray(0, MB), first)).json()).toEqual({ done: false, received: MB });
+    expect(await used()).toBe(before + MB);
+    // Google forgot the session: given back.
+    const sid = [...fake.sessions.values()].find((x) => x.meta.appProperties?.mediaId === tk.id)!.sid;
+    fake.sessions.delete(sid);
+    const gone = await put(data.subarray(MB), second);
+    expect(gone.status).toBe(410);
+    expect(await gone.text()).toBe('La subida venció; vuelve a elegir el archivo.');
+    expect(await used()).toBe(before + MB);
+    // The sealed URL is gone: refused before anything is counted.
+    await t.system((sql) => sql.query(`update public.media_drive set upload_url_enc = null where media_id = $1`, [tk.id]));
+    const chunks = fake.calls('uploadChunk').length;
+    for (let i = 0; i < 3; i++) expect((await put(data.subarray(MB), second)).status).toBe(410);
+    expect(await used()).toBe(before + MB);
+    expect(fake.calls('uploadChunk').length).toBe(chunks);
+  });
+
+  it('por la plataforma: al subir también cuenta la parte del día de cada persona (Administración no tiene)', async () => {
+    await t.system(async (sql) => {
+      await sql.query(`update public.drive_transfer set bytes = 0`);
+      await sql.query(`delete from public.drive_transfer_person`);
+    });
+    h.uploadMode = 'proxy';
+    // A quarter of the cap a day: one 1 MiB part and 100 bytes more.
+    h.capGb = (4 * (MB + 100)) / 1024 ** 3;
+    const send = (tk: Ticket, body: Uint8Array<ArrayBuffer>, range: string) =>
+      proxyRoute.PUT(new NextRequest(`http://localhost:3000${tk.endpoint}`, { method: 'PUT', headers: { 'content-range': range }, body }), { params: Promise.resolve({ id: tk.id }) });
+    const data = bytes(MB + 512 * 1024, 13);
+    const tk = await upload('camera', data);
+    const rest = `bytes ${MB}-${data.length - 1}/${data.length}`;
+    expect(await (await send(tk, data.subarray(0, MB), `bytes 0-${MB - 1}/${data.length}`)).json()).toEqual({ done: false, received: MB });
+    const no = await send(tk, data.subarray(MB), rest);
+    expect(no.status).toBe(429);
+    expect(await no.text()).toBe(UPLOAD_SHARE_MESSAGE);
+    expect(await used()).toBe(MB);
+    expect(Number((await sys<{ bytes: string }>(`select bytes from public.drive_transfer_person where user_id = $1`, [t.ids.camera]))!.bytes)).toBe(MB);
+    const [n] = notices('drive_share');
+    expect(n.userIds).toEqual([t.ids.admin]);
+    expect(n.body).toContain(DEMO_USERS.find((u) => u.key === 'camera')!.name);
+    expect(n.body).toContain('subida');
+    expect(notices('drive_quota')).toHaveLength(0);
+    // Administración goes on (only the month's cap counts for it).
+    const own = bytes(MB + 512 * 1024, 14);
+    const at = await upload('admin', own);
+    expect(await (await send(at, own.subarray(0, MB), `bytes 0-${MB - 1}/${own.length}`)).json()).toEqual({ done: false, received: MB });
+    expect(await (await send(at, own.subarray(MB), `bytes ${MB}-${own.length - 1}/${own.length}`)).json()).toEqual({ done: true, received: own.length });
+    expect(await used()).toBe(MB + own.length);
+    expect(await sys(`select 1 from public.drive_transfer_person where user_id = $1`, [t.ids.admin])).toBeNull();
+  });
 });
 
 describe('ver y descargar desde Drive (/api/media/[id])', () => {
@@ -600,6 +676,63 @@ describe('ver y descargar desde Drive (/api/media/[id])', () => {
     const b = await th();
     expect(b.status).toBe(200);
     expect(fake.calls('thumb').length).toBe(calls);
+  });
+
+  it('miniatura: cuenta para el tope del mes y la parte de la persona; si no alcanza, sale el ícono', async () => {
+    await t.system(async (sql) => {
+      await sql.query(`update public.drive_transfer set bytes = 0`);
+      await sql.query(`delete from public.drive_transfer_person`);
+    });
+    const th = (mid: string) => thumbRoute.GET(new NextRequest(`http://localhost:3000/api/media/${mid}/thumb`), { params: Promise.resolve({ id: mid }) });
+    const mine = async (key: DemoUserKey) => Number((await sys<{ bytes: string }>(`select bytes from public.drive_transfer_person where user_id = $1`, [t.ids[key]]))?.bytes ?? 0);
+    const statuses = async (mid: string, times: number) => {
+      const out: number[] = [];
+      for (let i = 0; i < times; i++) {
+        const r = await th(mid);
+        out.push(r.status);
+        await r.arrayBuffer();
+      }
+      return out;
+    };
+    as('social');
+    const a = await th(id);
+    expect(a.status).toBe(200);
+    const len = (await a.arrayBuffer()).byteLength;
+    expect(len).toBeGreaterThan(0);
+    expect(await used()).toBe(len);
+    expect(await mine('social')).toBe(len);
+
+    // A quarter of the cap a day: three thumbnails. The rest of the loop gets the icon, uncounted.
+    h.capGb = (12 * len) / 1024 ** 3;
+    expect(await statuses(id, 10)).toEqual([200, 200, ...Array(8).fill(404)]);
+    expect(await used()).toBe(3 * len);
+    expect(await mine('social')).toBe(3 * len);
+
+    // A thumbnail not saved yet: copied from Drive once and kept, but this answer is refused too.
+    const photoId = await insertDriveRow('image/jpeg', 'jpg', bytes(500, 3));
+    const calls = fake.calls('thumb').length;
+    expect(await statuses(photoId, 1)).toEqual([404]);
+    expect(fake.calls('thumb').length).toBe(calls + 1);
+    expect(await sys(`select 1 from public.media_thumbs where media_id = $1`, [photoId])).not.toBeNull();
+    expect(await used()).toBe(3 * len);
+
+    // Administración has no daily share; it comes from the database without asking Drive again.
+    as('admin');
+    expect(await statuses(photoId, 1)).toEqual([200]);
+    expect(fake.calls('thumb').length).toBe(calls + 1);
+    expect(await used()).toBe(4 * len);
+    expect(await sys(`select 1 from public.drive_transfer_person where user_id = $1`, [t.ids.admin])).toBeNull();
+
+    // The month's cap: thumbnails never push the count past it, for anyone.
+    h.capGb = (5 * len) / 1024 ** 3;
+    as('supervisor');
+    expect(await statuses(id, 5)).toEqual([200, 404, 404, 404, 404]);
+    as('admin');
+    expect(await statuses(id, 3)).toEqual([404, 404, 404]);
+    expect(await used()).toBe(5 * len);
+    // The icon is enough: no notices for a thumbnail.
+    expect(notices('drive_share')).toHaveLength(0);
+    expect(notices('drive_quota')).toHaveLength(0);
   });
 
   it('archivo borrado en Drive: 410 con mensaje claro y un aviso a Administración (sin nombres de Drive)', async () => {

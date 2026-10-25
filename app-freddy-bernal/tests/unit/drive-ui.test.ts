@@ -165,6 +165,16 @@ describe('subir directo a Drive desde el navegador', () => {
     expect(() => readAnswer(true, { status: 503, range: null, body: 'Este mes ya se usó todo el cupo.' }, 5e6)).toThrow('Este mes ya se usó todo el cupo.');
     expect(() => readAnswer(true, { status: 503, range: null, body: '{"error":{"message":"x"}}' }, 5e6)).toThrow('Drive está lento');
     expect(() => readAnswer(true, { status: 401, range: null, body: '' }, 5e6)).toThrow('Entra de nuevo.');
+    // The person's share for today is used up: a final answer with the platform's sentence, not a retry.
+    let share: unknown;
+    try {
+      readAnswer(true, { status: 429, range: null, body: 'Ya usaste tu cupo de hoy de Drive.' }, 5e6);
+    } catch (e) {
+      share = e;
+    }
+    expect(share).toBeInstanceOf(DriveUploadError);
+    expect((share as DriveUploadError).fatal).toBe(true);
+    expect((share as DriveUploadError).message).toBe('Ya usaste tu cupo de hoy de Drive.');
   });
 });
 

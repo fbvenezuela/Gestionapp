@@ -24,6 +24,9 @@ export const DRIVE_MESSAGE: Record<DriveErrorCode, string> = {
   refused: 'Drive no aceptó el archivo. Intenta otra vez o avísale a Administración.',
 };
 
+// A proxied upload chunk (DRIVE_UPLOAD_MODE=proxy) past the person's share for today.
+export const UPLOAD_SHARE_MESSAGE = 'Ya usaste tu cupo de hoy de Drive. Sigue mañana, o pásale el archivo a Administración.';
+
 // A request with no Range for a file past FULL_MAX (range.ts): only the platform's own «Descargar»
 // (by pieces) gets it.
 export const TOO_BIG_MESSAGE = 'Este archivo es grande: descárgalo con el botón «Descargar» de la plataforma.';

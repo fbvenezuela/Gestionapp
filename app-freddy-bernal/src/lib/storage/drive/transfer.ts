@@ -39,7 +39,7 @@ export async function transferUsed(): Promise<number> {
 
 type Personal = { userId: string; day: string } | null;
 
-/** Counts bytes with no check (thumbnails, or an answer that turned out longer than reserved). */
+/** Counts bytes with no check (an answer that turned out longer than reserved). */
 export async function addTransfer(bytes: number, personal: Personal = null, month = transferMonth()) {
   if (!(bytes > 0)) return;
   const n = Math.floor(bytes);
@@ -135,12 +135,16 @@ export async function budgetReached() {
 }
 
 /** Tells Administración once a day per person that someone used up their daily share. */
-export async function personShareReached(userId: string) {
+export async function personShareReached(userId: string, on: 'view' | 'upload' = 'view') {
   const who = await withSystem((sql) => sql.one<{ name: string }>(`select nullif(full_name, '') as name from public.profiles where id = $1`, [userId]));
+  const name = who?.name ?? 'Una persona del equipo';
   await noticeAdmins({
     kind: 'drive_share',
     title: 'Alguien llegó a su tope de Drive de hoy',
-    body: `${who?.name ?? 'Una persona del equipo'} ya usó su parte de hoy para ver y descargar de Drive; mañana sigue. Si lo necesita ya, bájalo tú y pásaselo.`,
+    body:
+      on === 'upload'
+        ? `${name} ya usó su parte de hoy de Drive y su subida quedó en pausa; mañana sigue. Si urge, que te pase el archivo y súbelo tú.`
+        : `${name} ya usó su parte de hoy para ver y descargar de Drive; mañana sigue. Si lo necesita ya, bájalo tú y pásaselo.`,
     key: `drive_share:${transferDay()}:${userId}`,
   });
 }

@@ -14,7 +14,7 @@ export type PutResult = { status: number; range: string | null; body: string };
 export type PutInit = { contentRange: string; body: Blob | null; signal: AbortSignal; onProgress?: (sentInChunk: number) => void };
 export type Transport = (url: string, init: PutInit) => Promise<PutResult>;
 
-export type DriveUploadErrorCode = 'expired' | 'refused' | 'blocked' | 'auth' | 'network' | 'busy';
+export type DriveUploadErrorCode = 'expired' | 'refused' | 'blocked' | 'auth' | 'network' | 'busy' | 'share';
 
 export const DRIVE_UPLOAD_MESSAGE: Record<DriveUploadErrorCode, string> = {
   expired: 'La subida venció; vuelve a elegir el archivo.',
@@ -23,6 +23,7 @@ export const DRIVE_UPLOAD_MESSAGE: Record<DriveUploadErrorCode, string> = {
   auth: 'Entra de nuevo.',
   network: 'Se cortó la subida. Toca «Seguir» para continuar.',
   busy: 'Drive está lento; intenta en un momento.',
+  share: 'Ya usaste tu cupo de hoy de Drive. Sigue mañana, o pásale el archivo a Administración.',
 };
 
 export class DriveUploadError extends Error {
@@ -32,7 +33,7 @@ export class DriveUploadError extends Error {
   constructor(code: DriveUploadErrorCode, message = DRIVE_UPLOAD_MESSAGE[code]) {
     super(message);
     this.code = code;
-    this.fatal = code === 'expired' || code === 'refused' || code === 'blocked' || code === 'auth';
+    this.fatal = code === 'expired' || code === 'refused' || code === 'blocked' || code === 'auth' || code === 'share';
   }
 }
 
@@ -82,6 +83,8 @@ export function readAnswer(proxy: boolean, r: PutResult, total: number): Step {
     if (r.status === 410 || r.status === 404) throw new DriveUploadError('expired');
     if (r.status === 401) throw new DriveUploadError('auth');
     if (r.status === 400 || r.status === 413) throw new DriveUploadError('refused');
+    // The person's share for today is used up: retrying would only wait in vain until tomorrow.
+    if (r.status === 429) throw new DriveUploadError('share', short(r.body) || DRIVE_UPLOAD_MESSAGE.share);
     // 503 (Drive slow, or this month's transfer cap): the platform's own short text.
     throw new DriveUploadError('busy', short(r.body) || DRIVE_UPLOAD_MESSAGE.busy);
   }
