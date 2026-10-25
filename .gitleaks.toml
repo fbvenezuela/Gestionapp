@@ -4,5 +4,6 @@ useDefault = true
 
 [allowlist]
 description = "Demo-only values with no real access"
-regexes = ['''demo-only-not-a-secret-change-me''']
+# Fake push-subscription «auth» value used only by the tests (no real subscription behind it).
+regexes = ['''demo-only-not-a-secret-change-me''', '''tBHItJI5svbpez7KI4CCXg''']
 paths = ['''app-freddy-bernal/diseno/.*''', '''app-freddy-bernal/package-lock\.json''']

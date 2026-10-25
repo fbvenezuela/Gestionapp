@@ -24,6 +24,9 @@ export default defineConfig({
     locale: 'es-VE',
     timezoneId: 'America/Caracas',
     launchOptions: process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : undefined,
+    // Full Chromium in headless mode, not the headless shell: the shell has no Push API, so the
+    // phone-notifications card would not show its «Activar avisos» state in CI.
+    channel: process.env.PW_CHROMIUM_PATH ? undefined : 'chromium',
   },
   projects: [
     { name: 'mobile-360', testIgnore: /demo-shortcuts\.spec\.ts/, use: mobile },
