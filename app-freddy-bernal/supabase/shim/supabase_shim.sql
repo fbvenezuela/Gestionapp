@@ -1,10 +1,12 @@
 -- Minimal stand-in for what a Supabase project already has (auth schema, API roles).
 -- Used ONLY by the in-memory demo database (PGlite) and by the RLS tests.
 -- Never run this against a real Supabase project.
+-- Roles belong to the whole server: on a real Postgres the RLS test files run in parallel, each in
+-- its own database, so two of them can try to create the same role at once.
 do $$ begin
-  if not exists (select from pg_roles where rolname = 'anon') then create role anon nologin; end if;
-  if not exists (select from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if;
-  if not exists (select from pg_roles where rolname = 'service_role') then create role service_role nologin bypassrls; end if;
+  begin create role anon nologin; exception when duplicate_object or unique_violation then null; end;
+  begin create role authenticated nologin; exception when duplicate_object or unique_violation then null; end;
+  begin create role service_role nologin bypassrls; exception when duplicate_object or unique_violation then null; end;
 end $$;
 
 create schema if not exists auth;
