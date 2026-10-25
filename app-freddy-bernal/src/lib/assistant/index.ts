@@ -22,6 +22,7 @@ import {
 } from './brain';
 import { defaultProfile } from './config';
 import { escalate as realEscalate } from './escalate';
+import { aboutEvent, eventThread } from './events';
 import { localTurn } from './local';
 import { estimateCost, parseChain, type ChatOptions, type Link } from './providers';
 import { redact } from './redact';
@@ -111,13 +112,18 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     : null;
   // `question` is what is stored, goes to «Lo que preguntan» and to a provider: about an event, its
   // places and days go too.
-  const question = guardQuestion(routing, titles ?? NO_TITLES);
+  const seen = titles ?? NO_TITLES;
+  const question = guardQuestion(routing, seen);
+  // Lo que habla de un evento lo contesta 360 sin IA: a turn about an event (the shared detector,
+  // events.ts, on what was typed) never goes to a provider, even with a model chain. The demo brain has
+  // the event tools and the agenda refusal. Nothing is reserved for it.
+  const eventTurn = aboutEvent(raw, seen) || aboutEvent(routing, seen);
 
   // The conversation, the hour's count and the question, in one short transaction BEFORE the
   // brain (escalating needs the conversation; parallel requests see the question). With a model
   // chain, the turn's estimated cost (at the dearest link, for this thread) is reserved against the
   // month's cap in that same step.
-  const reserve: Reserve | null = chain.length
+  const reserve: Reserve | null = chain.length && !eventTurn
     ? {
         provider: chain[0].provider,
         model: chain[0].raw,
@@ -174,15 +180,19 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     roles,
     personName: session.name,
     knowledge: await loadKnowledge(roles),
-    scripts: await loadScripts([question, ...history.filter((h) => h.who === 'persona').slice(-2).map((h) => h.body)].join(' '), roles),
+    // Chosen by what was asked (the words the masking took count too; nothing of it is stored or sent).
+    scripts: await loadScripts([routing, ...history.filter((h) => h.who === 'persona').slice(-2).map((h) => h.body)].join(' '), roles),
     history,
   };
   await noteHeard(question, roles[0] ?? null);
 
-  // Only a turn with its reservation and the titles asks the model. Over the monthly AI cap (or if the
-  // turn could not be counted, or the titles not read) the demo brain answers (it costs nothing):
-  // never a breakdown (the reservation is released when saving).
-  const useModel = !!basics?.usageId && !!titles;
+  // Only a turn with its reservation and the titles asks the model, and never one about an event: this
+  // question, or one that goes on with a thread about one («¿y a qué hora?», «¿y quién la cubre?» after
+  // «¿cómo va la feria?»; events.ts eventThread). Over
+  // the monthly AI cap (or if the turn could not be counted, or the titles not read) the demo brain
+  // answers (it costs nothing): never a breakdown (the reservation is released when saving).
+  const thread = eventThread([...history.filter((h) => h.who === 'persona').map((h) => h.body), question], seen);
+  const useModel = !!basics?.usageId && !!titles && !eventTurn && !thread.at(-1);
   const tools = toolsFor(roles, !!conversationId);
   const toolCtx = { session, conversationId, escalate: escalateFn };
 
@@ -222,7 +232,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     // place or contact. The demo brain quotes the titles it looked up as they are (the person can see
     // them): those are masked for this check, like the model's placeholders.
     const checked = out.restore ? answer : new Placeholders({ events: titlesIn(out.calls), pieces: [], places: [] }).mask(answer);
-    if (breaksAgendaRule(checked, question, out.calls)) answer = AGENDA_FALLBACK;
+    if (breaksAgendaRule(checked, question, out.calls, seen, { answerToo: !!out.restore })) answer = AGENDA_FALLBACK;
     // The promise net: says it told the team but avisar_al_equipo did not succeed → the server
     // tells them; if that fails too, the sentence changes (promising and not keeping is worse).
     const told = out.calls.some((c) => c.tool === 'avisar_al_equipo' && c.ok);

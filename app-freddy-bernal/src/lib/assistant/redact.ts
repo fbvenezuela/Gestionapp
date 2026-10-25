@@ -17,6 +17,10 @@ const HOUR_WORDS = 'una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|do
 const HOUR = String.raw`(?:\d{1,2}|${HOUR_WORDS})`;
 // Days of the month written as words or as ordinals: «primero», «tres», «1ro», «1°».
 const DAY_WORDS = 'primero|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|diecis[ée]is|diecisiete|dieciocho|diecinueve|veinte|veintiuno|veintid[óo]s|veintitr[ée]s|veinticuatro|veinticinco|veintis[ée]is|veintisiete|veintiocho|veintinueve|treinta(?:\\s+y\\s+uno)?';
+// A day of the month spelled out after «el» (not «uno»: «el uno» is «the one»).
+const SPELLED_DAYS = 'primero|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|diecis[ée]is|diecisiete|dieciocho|diecinueve|veinte|veintiuno|veintid[óo]s|veintitr[ée]s|veinticuatro|veinticinco|veintis[ée]is|veintisiete|veintiocho|veintinueve|treinta(?:\\s+y\\s+uno)?';
+// A phone number said digit by digit («cero cuatro uno cuatro, cinco cinco cinco…»): seven or more.
+const DIGIT_WORD = String.raw`(?:cero|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|\d)`;
 const PART_OF_DAY = String.raw`de\s+la\s+(?:mañana|tarde|noche|madrugada)`;
 // "a. m." / "p.m." / "pm" / "am" (with or without dots and spaces).
 const MERIDIEM = String.raw`[ap]\.?\s?m\.?(?![a-záéíóúñ])`;
@@ -115,7 +119,7 @@ const theDay: Replacer = (m: string, ...rest: unknown[]) => {
   return `${lead} [fecha]`;
 };
 
-type Kind = 'contact' | 'when' | 'date' | 'place' | 'loose' | 'landmark' | 'named' | 'relative' | 'days';
+type Kind = 'contact' | 'when' | 'date' | 'place' | 'loose' | 'landmark' | 'named' | 'bare' | 'relative' | 'days';
 
 // Addresses: a street word followed by a number or a Name («calle 3», «carrera 5 con calle 7»,
 // «av. Libertador», «sector La Ermita», «casa N° 12», «km 8», «piso 2»). A street word alone or
@@ -178,15 +182,22 @@ const LANDMARK_RULES: [RegExp, Replacer][] = [
 ];
 
 // Somewhere said only by its name or by a bare landmark, after a word that says where: «en la Hacienda El
-// Trapiche», «desde Pueblo Nuevo», «hasta San Cristóbal», «sale de la plaza», «en la escuela». Not a
-// network, an app or a screen («en Instagram», «en Material», «en la Agenda»). Too broad for ordinary
-// text: only on a question about an event, a notice about one and what a model asks to tell the team.
-const NOT_NAMED = words('instagram facebook tiktok threads twitter youtube whatsapp telegram drive gmail zoom meet agenda hoy inicio material piezas pieza aprobar por_aprobar ajustes avisos biblioteca resultados copies storyboard ficha tweets publicar buzon equipo perfil asistente registro politica eventos mis_eventos crear mas');
+// Trapiche», «desde Pueblo Nuevo», «hasta San Cristóbal», «pa Alto Verde», «sale de la plaza», «en la
+// escuela»; or by any kind of place with its name («en el hotel Tamá»). Not a network, an app, a screen,
+// a role or «mi…» («en Instagram», «en Material», «en la Agenda», «para Redes», «desde Mi perfil»). Too
+// broad for ordinary text: only on a question about an event, a notice about one, team material about
+// one in the prompt and what a model asks to tell the team.
+const NOT_NAMED = words('instagram facebook tiktok threads twitter youtube whatsapp telegram drive gmail zoom meet agenda hoy inicio material piezas pieza aprobar por_aprobar ajustes avisos biblioteca resultados copies storyboard ficha tweets publicar buzon equipo perfil asistente registro politica eventos mis_eventos crear mas redes supervision despacho grabacion secretaria administracion mi mis canva capcut photoshop premiere lightroom google chrome excel word wetransfer meta');
+// The things of the platform a Name can follow without being a place («en la pestaña Material»).
+const NOT_PLACE_NOUN = words('pestana pestaña pantalla menu boton seccion red redes cuenta grupo canal carpeta opcion campo casilla lista formato plantilla formula pieza video copy app aplicacion plataforma enlace link perfil ficha rol jefe senor señor gobernador doctor doctora licenciado licenciada profesor profesora companero companera compañero compañera hermano hermana');
 const NAMED_RULES: RegExp[] = [
-  new RegExp(String.raw`${START}(${words('en desde hasta')}\s+(?:${words('la el los las')}\s+)?)(?!${NOT_NAMED}${END})\p{Lu}\p{L}*(?:\s+(?:(?:de|del|la|las|los|el|y)\s+)*\p{Lu}\p{L}*)*`, 'gu'),
-  // Bare: a landmark with a name or an adjective after it is the landmark rules' (whole).
-  new RegExp(String.raw`${START}(${words('en desde hasta de del al a por')}\s+(?:${words('la el los las')}\s+)?)${LANDMARK}(?!\s+(?:${LANDMARK_ADJ}|(?:de\s+|del\s+)?(?:(?:de|del|la|las|los|el)\s+)*\p{Lu}))${END}`, 'gu'),
+  new RegExp(String.raw`${START}(${words('en desde hasta por hacia para pa pal al')}\s+(?:${words('la el los las')}\s+)?)(?!${NOT_NAMED}${END})\p{Lu}\p{L}+(?:\s+(?:(?:de|del|la|las|los|el|y)\s+)*\p{Lu}\p{L}*)*`, 'gu'),
+  // Any kind of place with its Name: «en el hotel Tamá», «en el club Demócrata», «del galpón de Los Pinos».
+  new RegExp(String.raw`${START}(${words('en desde hasta por hacia de del al a')}\s+(?:${words('la el los las un una')}\s+)?)(?!${NOT_PLACE_NOUN}${END})\p{Ll}{3,}\s+(?:(?:de|del)\s+)?(?:(?:la|el|los|las)\s+)?(?!${NOT_NAMED}${END})\p{Lu}\p{L}{2,}(?:\s+(?:(?:de|del|la|las|los|el|y)\s+)*\p{Lu}\p{L}*)*`, 'gu'),
 ];
+// Bare: a landmark with a name or an adjective after it is the landmark rules' (whole). «La pieza de la
+// cancha» is a piece: alone it is not a place by its name.
+const BARE_RULE = new RegExp(String.raw`${START}(${words('en desde hasta de del al a por')}\s+(?:${words('la el los las')}\s+)?)${LANDMARK}(?!\s+(?:${LANDMARK_ADJ}|(?:de\s+|del\s+)?(?:(?:de|del|la|las|los|el)\s+)*\p{Lu}))${END}`, 'gu');
 
 const RULES: [RegExp, Replacer, Kind][] = [
   // Emails, also without a dot after the @ («juan@localhost») and spelled out («juan arroba gmail punto com»).
@@ -246,6 +257,7 @@ const RULES: [RegExp, Replacer, Kind][] = [
   // Phone numbers: 0414-1234567, +58 414 123 45 67, (0276) 555 1234, 0414-555-12-34; and local
   // ones of 7 digits (356-1234), never before a count («1500000 vistas»).
   [/\+?\d[\d ().-]{7,}\d/g, '[numero]', 'contact'],
+  [new RegExp(String.raw`\b(?:${DIGIT_WORD}[\s,.-]+){6,}${DIGIT_WORD}(?![a-záéíóúñ\d])`, 'gi'), '[numero]', 'contact'],
   [/(?<![\d.,+-])\b\d{3}[-. ]?\d{4}\b(?![.,-]?\d)/g, (m: string, ...rest: unknown[]) => (isAmount(afterOf(m, rest)) ? m : '[numero]'), 'contact'],
   ...PLACE_RULES.map((re): [RegExp, Replacer, Kind] => [re, '[direccion]', 'place']),
   // Only on what the platform wrote (a tool's result, an earlier answer, a script) or on a
@@ -255,6 +267,7 @@ const RULES: [RegExp, Replacer, Kind][] = [
   [/\b(el|del)\s+(?:[1-9]|[12]\d|3[01])\b(?![.,:/-]?\d)/gi, theDay, 'loose'],
   ...LANDMARK_RULES.map(([re, to]): [RegExp, Replacer, Kind] => [re, to, 'landmark']),
   ...NAMED_RULES.map((re): [RegExp, Replacer, Kind] => [re, '$1[direccion]', 'named']),
+  [BARE_RULE, '$1[direccion]', 'bare'],
   // Parts of the day and relative days that stripDateTime does not take: «fin de semana», «la
   // semana que viene», «por la tarde», «temprano», «a primera hora».
   [/\b(?:el\s+|este\s+)?fin(?:es)?\s+de\s+semana(?![a-záéíóúñ])/gi, '[fecha]', 'relative'],
@@ -262,8 +275,20 @@ const RULES: [RegExp, Replacer, Kind][] = [
   [new RegExp(String.raw`\b(?:(?:el|este)\s+)?(?:pr[oó]ximo|otro)\s+(?:${WEEKDAYS})(?![a-záéíóúñ])`, 'gi'), '[fecha]', 'relative'],
   // «en dos días», «dentro de 3 semanas», «en un mes»: when, not how long («tienen 2 días para…» is how long).
   [/\b(?:en|dentro\s+de)\s+(?:\d{1,3}|un|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|quince|veinte|unos|unas|pocos|pocas)\s+(?:d[ií]as?|semanas?|mes|meses)(?![a-záéíóúñ])/gi, '[fecha]', 'relative'],
-  [/\b(?:(?:por|en|a)\s+la\s+(?:mañana|tarde|noche|madrugada)|de\s+(?:noche|madrugada))(?![a-záéíóúñ])/gi, '[hora]', 'relative'],
+  [/\b(?:(?:por|en|a)\s+la\s+(?:mañana|tarde|noche|madrugada)|de\s+(?:tarde|noche|madrugada))(?![a-záéíóúñ])/gi, '[hora]', 'relative'],
   [/\b(?:(?:bien|muy|m[aá]s)\s+)?tempran(?:o|ito)(?![a-záéíóúñ])|\b(?:a|de)\s+primera\s+hora(?![a-záéíóúñ])|\ba\s+[uú]ltima\s+hora(?![a-záéíóúñ])|\bal\s+(?:amanecer|anochecer|atardecer)(?![a-záéíóúñ])/gi, '[hora]', 'relative'],
+  // The way people say a day or an hour without naming it: «el finde», «en la mañanita», «después del
+  // almuerzo», a month alone («en noviembre»), «el mes que viene», «a fin de mes», «en un par de días», a
+  // day of the month spelled out («el veinticuatro», not «el primero de la lista»). One place for every
+  // check that asks «does this carry a when?» (carriesWhen, carriesDay, carriesHour), for redactQuoted
+  // and for the masking of a question about an event.
+  [/\b(?:(?:el|este|ese|otro|pr[oó]ximo|cada)\s+)?findes?(?![a-záéíóúñ])/gi, '[fecha]', 'relative'],
+  [/\b(?:(?:en|por|a|de|desde)\s+la\s+)?(?:ma[ñn]anita|tardecita|nochecita|madrugadita)(?![a-záéíóúñ])/gi, '[hora]', 'relative'],
+  [/\b(?:despu[eé]s|antes|luego)\s+del?\s+(?:almuerzo|desayuno|cena|almorzar|desayunar|cenar)(?![a-záéíóúñ])|\ba\s+la\s+hora\s+del?\s+(?:almuerzo|desayuno|cena)(?![a-záéíóúñ])/gi, '[hora]', 'relative'],
+  [new RegExp(String.raw`\b(?:${MONTHS_FULL})(?![a-záéíóúñ])`, 'gi'), '[fecha]', 'relative'],
+  [/\b(?:el\s+)?(?:mes|año)\s+(?:que\s+viene|entrante|pr[oó]ximo)(?![a-záéíóúñ])|\b(?:el\s+)?(?:pr[oó]ximo|otro)\s+(?:mes|año)(?![a-záéíóúñ])|\b(?:a\s+)?(?:fin(?:es)?|principios?|mediados|finales)\s+del?\s+(?:mes|año)(?![a-záéíóúñ])|\beste\s+(?:mes|año)(?![a-záéíóúñ])/gi, '[fecha]', 'relative'],
+  [/\b(?:en|dentro\s+de)\s+(?:un\s+)?par\s+de\s+(?:d[ií]as|semanas|meses)(?![a-záéíóúñ])/gi, '[fecha]', 'relative'],
+  [new RegExp(String.raw`\b(el|del|al|para\s+el|hasta\s+el|desde\s+el)\s+(?:${SPELLED_DAYS})(?![a-záéíóúñ])(?!\s+(?:de\s+(?:la|las|los|el)\b|que\b|en\s+(?:la|el|llegar)\b|por\s+ciento|veces|horas|minutos|segundos|d[ií]as|semanas|meses|piezas|videos|fotos|tweets))`, 'gi'), '$1 [fecha]', 'relative'],
   // Days said as words: only on a question about an event (they are ordinary words otherwise:
   // «¿qué tengo hoy?», «mañana subo el material»).
   [new RegExp(String.raw`\b(?:(?:el|este|esta)\s+)?(?:pr[oó]ximo\s+|otro\s+)?(?:${WEEKDAYS})(?![a-záéíóúñ])(?:\s+que\s+viene)?`, 'gi'), '[fecha]', 'days'],
@@ -336,6 +361,11 @@ function keepOwnWorkDays(text: string, run: (t: string) => string): string {
   return run(marked).replace(KEPT, (_m, n: string) => kept[n.length - 1] ?? '');
 }
 
+/** The text with the days said for the person's own work («mañana subo el material») taken out. */
+function withoutOwnWorkDays(text: string): string {
+  return String(text ?? '').replace(OWN_WORK_DAY, ' pronto ');
+}
+
 /**
  * The words of a question about an event that say where it is (a landmark, a place by its name) and,
  * unless it asks about publishing (`when: false`), when it is (its days, its parts of the day, «0930»,
@@ -343,7 +373,7 @@ function keepOwnWorkDays(text: string, run: (t: string) => string): string {
  * guardQuestion() calls it when the question names an event, how-to or not.
  */
 export function redactEventSpeech(text: string, o: { when?: boolean } = {}): string {
-  const kinds: Kind[] = o.when === false ? ['landmark', 'named'] : ['loose', 'landmark', 'named', 'relative', 'days'];
+  const kinds: Kind[] = o.when === false ? ['landmark', 'named', 'bare'] : ['loose', 'landmark', 'named', 'bare', 'relative', 'days'];
   return keepOwnWorkDays(String(text ?? ''), (t) => apply(t, kinds));
 }
 
@@ -354,6 +384,11 @@ export function redactLandmarks(text: string): string {
 
 /** A place said by its name or by a bare landmark after a word that says where («en Pueblo Nuevo», «desde la plaza»). */
 export function hasPlaceName(text: string): boolean {
+  return apply(text, ['named', 'bare']) !== String(text ?? '');
+}
+
+/** A place said by its Name («pa Alto Verde», «en el hotel Tamá»), not a bare landmark («de la cancha»). */
+export function hasPlaceByName(text: string): boolean {
   return apply(text, ['named']) !== String(text ?? '');
 }
 
@@ -362,7 +397,7 @@ export function hasPlaceName(text: string): boolean {
  * place said by its name too, and the second lock. Nothing of the agenda reaches Supervisión that way.
  */
 export function redactForTeam(text: string): string {
-  return apply(redactQuoted(text), ['named']);
+  return apply(redactQuoted(text), ['named', 'bare']);
 }
 
 /**
@@ -395,6 +430,19 @@ export function hasDateOrTime(text: string): boolean {
 /** True when the text carries something that looks like a date (times of day don't count). */
 export function hasDate(text: string): boolean {
   return apply(text, ['date']) !== String(text ?? '');
+}
+
+/** An address or a landmark with its name or adjective (no contacts, no place said only by its name). */
+export function hasPlace(text: string): boolean {
+  return apply(text, ['place', 'landmark']) !== String(text ?? '');
+}
+
+/**
+ * What a prepared notice keeps when it is stored and sent: contacts and addresses go (a second lock:
+ * the check refuses them first); a team deadline keeps its real time («antes de las 3 pm»).
+ */
+export function redactContacts(text: string): string {
+  return apply(text, ['contact', 'place', 'landmark']);
 }
 
 /** True when redact() would change something (the text carried a time, date, email, phone or address). */
@@ -437,6 +485,23 @@ export function neutralForChecks(text: string): string {
 export function carriesWhen(text: string): boolean {
   const t = neutralForChecks(text);
   return apply(t, ['date', 'when', 'loose', 'relative', 'days']) !== t || looksLikeDateTime(t);
+}
+
+/** A when that is not a day said for the person's own work («mañana subo el material»); a phone number is not one. */
+export function carriesEventWhen(text: string): boolean {
+  return carriesWhen(withoutOwnWorkDays(apply(text, ['contact'])));
+}
+
+/** A day: a date, a weekday, «hoy», «mañana», «en dos días», «el fin de semana», «el 3». */
+export function carriesDay(text: string): boolean {
+  const t = neutralForChecks(text);
+  return /\[fecha\]/.test(apply(t, ['date', 'relative', 'days'])) || /\b(?:el|del)\s+(?:[1-9]|[12]\d|3[01])\b(?![.,:/-]?\d)/i.test(t);
+}
+
+/** An hour or a part of the day, written in any of the ways the rules see («a las 8», «9 30», «temprano»). */
+export function carriesHour(text: string): boolean {
+  const t = neutralForChecks(text);
+  return /\[hora\]/.test(apply(t, ['when', 'relative', 'days'])) || /(?<![\d.,:/])\b(?:[01]?\d|2[0-3])\s[0-5]\d\b(?![.,:/]?\d)|(?<![\d.,:/-])\b0\d[0-5]\d\b(?![.,:/-]?\d)/.test(t);
 }
 
 const PLACEHOLDER_RUN = /[\s,;:·-]*(?:\b(?:a|al|el|la|los|las|lo|en|de|del|desde|hasta|para|entre|y|o|por|frente|lado|cerca|junto|detr[aá]s|delante)\s+){0,5}\[(?:fecha|hora|direccion|numero|correo)\]/giu;

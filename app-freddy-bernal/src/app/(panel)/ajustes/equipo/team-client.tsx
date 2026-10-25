@@ -66,7 +66,11 @@ export function MemberActions({ userId, name, roles, active, isSelf, twoFactor }
               {ROLE_LABEL[r]}
             </label>
           ))}
-          <Button variant="secondary" size="sm" className="min-h-11" disabled={pending} onClick={() => run(() => revokeSessions({ userId }), { success: 'Sesiones cerradas.' })}>
+          <Button variant="secondary" size="sm" className="min-h-11" disabled={pending} onClick={() => run(async () => {
+            // The action's own message (a partial success) wins; a plain success gets this one.
+            const r = await revokeSessions({ userId });
+            return r.ok && !r.message ? { ...r, message: 'Sesiones cerradas.' } : r;
+          })}>
             Cerrar sus sesiones
           </Button>
           {!isSelf && twoFactor !== false ? (

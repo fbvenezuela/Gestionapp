@@ -104,6 +104,8 @@ describe('el título de un evento no lleva fecha ni hora', () => {
       'Encuentro a las 4 todos juntos', 'Jornada de 8 a 12 todos invitados', 'Inauguración a las 11 pues hay lluvia', 'Acto a las 3 hrs', 'Acto a las 21h', 'Acto 21 hrs',
       'Misa de las 7', 'Acto a la una', 'Acto al mediodía', 'Rueda de prensa hoy', 'Acto a las 3 llegamos todos',
       'Inauguración Viernes', 'Gran Acto Sábado en la plaza', 'Rueda de Prensa Lunes', 'Jornada Médica Domingo', 'Inauguración el viernes', 'Domingo de Ramos en la catedral',
+      'Rueda de prensa a las 12m', 'Jornada de 8 a 12m', 'Jornada médica 8-12', 'Rueda de prensa entre 9 y 10', 'Acto 12 m.', 'Almuerzo 12m con productores',
+      'Jornada 8 a 12', `Acto el 15 de marzo de ${DateTime.now().setZone(TZ).year + 1}`,
     ]) {
       expect(await events.createEvent(on(title, WED)), title).toEqual({ ok: false, error: DATED });
       expect((await titled(title))?.n, title).toBe(0);
@@ -117,7 +119,9 @@ describe('el título de un evento no lleva fecha ni hora', () => {
       'Urbanización 12 de Octubre', 'Inauguración de la UBCH 24 de Julio', 'Farmacia 24h en Rubio', 'Concierto Joven 3.0', 'Congreso 2.0 de comunicadores',
       'Mañana Deportiva en Táriba', 'Encuentro en la Noche de Talentos', 'Inauguración del ambulatorio', 'Jornada de salud 2026', 'Entrega de útiles a las 3 escuelas',
       'Torneo de las siete parroquias', 'Torneo infantil de 8 a 12 años', 'Visita a Santo Domingo', 'Escuela Domingo Savio: entrega de pupitres', 'Entrega de 1.200 bolsas',
-      'Farmacia abierta las 24 horas',
+      'Farmacia abierta las 24 horas', 'Urbanización 23 de Enero', 'Plaza 19 de Abril', 'Visita al 23 de Enero', 'Charla para grupos de entre 8 y 10 personas',
+      // A past year is a commemoration and a big number a count, not the event's year.
+      'Acto conmemorativo del 19 de abril de 1810', 'Barrio 23 de Enero, 1500 bolsas', 'Liceo 5 de Julio 1200 alumnos',
     ]) {
       expect((await events.createEvent(on(title, WED))).ok, title).toBe(true);
     }
@@ -125,9 +129,22 @@ describe('el título de un evento no lleva fecha ni hora', () => {
     expect(await events.createEvent(on('Barrio 10 de Marzo: entrega de mercados', WED))).toEqual({ ok: false, error: placeHint('10 de Marzo') });
     expect(await events.createEvent(on('Escuela Domingo Savio: entrega', SUN))).toEqual({ ok: false, error: placeHint('Domingo Savio') });
     expect((await events.createEvent(on('Visita a Santo Domingo', SUN))).ok).toBe(true);
-    for (const title of ['Visita al ambulatorio 10/3', 'Acto del 10']) expect(await events.createEvent(on(title, WED)), title).toEqual({ ok: false, error: DATED });
+    for (const title of ['Visita al ambulatorio 10/3', 'Acto del 10', 'Inauguración marzo 10']) {
+      expect(await events.createEvent(on(title, WED)), title).toEqual({ ok: false, error: DATED });
+    }
+    expect(await events.createEvent(on('Acto 1.º de marzo', '2027-03-01'))).toEqual({ ok: false, error: placeHint('1.º de marzo') });
+    // Every day of a list or span is a date, the first one too: Redes never reads it.
+    const spans = ['Jornada de vacunación 8 al 12 de marzo', 'Jornada de vacunación los días 8 y 9 de marzo', 'Feria del 6 al 10 de marzo'];
+    for (const title of spans) expect(await events.createEvent(on(title, '2027-03-08')), title).toEqual({ ok: false, error: DATED });
+    // «mañana» on the eve, in any case; «Mañana» + a name gets the place hint, like «Domingo Savio».
     const tomorrow = DateTime.now().setZone(TZ).plus({ days: 1 }).toISODate()!;
-    expect(await events.createEvent(on('Rueda de prensa mañana', tomorrow))).toEqual({ ok: false, error: DATED });
+    for (const title of ['Rueda de prensa mañana', 'Rueda De Prensa Mañana En La Gobernación']) {
+      expect(await events.createEvent(on(title, tomorrow)), title).toEqual({ ok: false, error: DATED });
+    }
+    expect(await events.createEvent(on('Mañana Inauguración del puente', tomorrow))).toEqual({ ok: false, error: placeHint('Mañana Inauguración') });
+    for (const title of ['Inauguración marzo 10', 'Acto 1.º de marzo', 'Rueda De Prensa Mañana En La Gobernación', 'Mañana Inauguración del puente', ...spans]) {
+      expect((await titled(title))?.n, title).toBe(0);
+    }
   });
 
   it('al corregir la propuesta (secretaría) y al editar el evento (despacho)', async () => {

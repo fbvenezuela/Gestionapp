@@ -2,11 +2,15 @@ import 'server-only';
 import { ROLE_LABEL, type Role } from '../roles';
 import { PERSONA, ROLE_BRIEFS, type AssistantProfile } from './config';
 import { chat, type ChatMessage, type ChatOptions, type Link } from './providers';
-import { namesEvent, scrubTeamFicha, scrubTeamScript } from './guard';
+import { aboutEvent, asksAboutPublishing, asksRoute, asksWhenWhere, eventThread, mentionsEvent } from './events';
+import { scrubTeamFicha, scrubTeamScript } from './guard';
 import { carriesWhen, hasDate, hasPlaceOrContact, redact, redactDeep, redactEventSpeech, redactLandmarks, redactQuoted } from './redact';
 import { fillHuecos, plain, sentences, HUECO, type Huecos } from './text';
 import { ANY_TOKEN, NO_TITLES, Placeholders, type TitleSet } from './titles';
 import { runTool, toSpecs, type Tool, type ToolCtx, type ToolRun } from './tools';
+
+// The readings of a question (when, where, how to get there, publishing) live with the shared detector.
+export { asksAboutPublishing, asksPlace, asksRoute, asksSchedule, asksWhenWhere, eventAt, withoutWhenWhere } from './events';
 
 // The brain (manual §7, §8, §10, §11): the system prompt in layers, the tool loop, the
 // output filter and the server's nets. The prompt is a preference; the filter and the nets
@@ -104,7 +108,7 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string, 
     const [title, body] = [ph.mask(f(x.title)), ph.mask(f(x.body))];
     return x.origin === 'equipo' ? scrubTeamFicha(title, body, ph.titles) : [title, body];
   };
-  const script = (x: ChosenScript, t: string) => (x.origin === 'fabrica' ? ph.mask(f(t)) : scrubTeamScript(ph.mask(f(t))));
+  const script = (x: ChosenScript, t: string) => (x.origin === 'fabrica' ? ph.mask(f(t)) : scrubTeamScript(ph.mask(f(t)), ph.titles));
   const name = ctx.profile.name;
   const L: string[] = [];
 
@@ -250,93 +254,9 @@ export function promisesNotice(text: string): boolean {
   return sentences(text).some((s) => !/[¿?]/.test(s) && PROMISE.test(s));
 }
 
-// «Encuentro» and «operativo» are also «I find» and «working»: only with an article they are events.
-const EVENT_WORDS = new RegExp(
-  String.raw`\b(eventos?|actos?|actividad|actividades|agenda|jornadas?|entregas?|reunion|reuniones|recorridos?|inauguracion|inauguraciones|visitas?|ferias?|asambleas?|urbanismos?|caravanas?|cabildos?|conversatorios?|foros?|juramentacion|rueda de prensa|(?:el|un|del|al|ese|este|los|unos) (?:encuentros?|operativos?))\b`,
-);
-// The place or the contacts of something («en lugar de», «sitio web» or «dirección de correo» are not).
-// «Por dónde se entra» only with somewhere to go into: alone or «a la plataforma», it asks how to log in.
-const PLACE_WORDS = String.raw`direccion(?! (?:de )?(?:correo|email|electronica))|como llego|como llegar|como se llega|por donde se entra(?= al? (?!(?:la )?(?:plataforma|app|aplicacion|sistema)\b))|en que parte (?:queda|quedan|es)|quedan? (?:lejos|cerca)|(?<!en |primer |segundo )lugar|ubicacion|sitio(?! web)|(?<!como )contactos?|telefono (?:de|del|para)|numero de telefono|con quien hablo|a quien llamo|a quien busco|quien me recibe`;
-const DAYS = String.raw`hoy|manana|pasado manana|esta semana|la semana|proxima semana|fin de semana|lunes|martes|miercoles|jueves|viernes|sabado|domingo`;
-// The place phrases first: the longest one is taken (and stripped) whole, «por donde se entra a…» too.
-const ASK_WORDS = String.raw`${PLACE_WORDS}|cuando|a que hora|que hora|hora|que dia|que fecha|fecha|donde|por donde`;
-// Asked as a schedule: when, at what time, which day, where, how to get there, whom to call; or
-// «¿qué hay / hay algo…?» with a day. A day alone («¿qué hago hoy?») is not.
-const SCHEDULE = new RegExp(
-  String.raw`\b(?:${ASK_WORDS})\b|\b(?:que hay|hay algo|hay eventos?|que tiene|que tienen|que tenemos)\b.*\b(?:${DAYS})\b|\b(?:es|son|sera|seria) (?:en|de|por) la (?:manana|tarde|noche)\b`,
-);
-const WHEN_WHERE_WORDS = String.raw`\b(?:${ASK_WORDS}|dia|${DAYS}|proximos?|proximas?|vienen)\b`;
-const WHEN_WHERE = new RegExp(`${SCHEDULE.source}|${WHEN_WHERE_WORDS}`);
-const PLACE = new RegExp(String.raw`\b(?:${PLACE_WORDS})\b`);
-// How to get somewhere («¿cómo hago para llegar a la feria?», «¿cómo se va pa' la feria?», «… hasta
-// la feria?»). It is the agenda only next to an event («para llegar a más gente» is not); «se va a
-// publicar» is the future.
-const ROUTE = /\b(?:para llegar|llegar al?|se va (?:al|pal|pa|hasta|(?:a|para) (?:la|el|los|las|lo)))\b/;
-// «¿Dónde subo el material?», «¿dónde se cambia la contraseña?» or «¿cuándo hay que grabar con dron?»
-// ask for a screen or a step, not for a place or a time («¿dónde se encuentra…?», «¿cuándo abre…?» do).
-const DOING = new RegExp(
-  String.raw`\b(?:donde|cuando) (?:es que )?(?:se |lo |la |los |las |me |te )?(?:subo|sube|subimos|cargo|carga|pongo|pone|veo|reviso|revisa|apruebo|aprueba|edito|edita|descargo|descarga|busco|busca|encuentro|consigo|consigue|guardo|guarda|escribo|escribe|anoto|anota|marco|marca|cambio|cambia|creo|crea|armo|arma|propongo|propone|mando|manda|envio|envia|activo|activa|configuro|configura|invito|invita|pido|pide|elijo|elige|asigno|asigna|pego|pega|abro)\b|\bcuando (?:hay que|se debe|debo|debemos|conviene|se usa|uso|usamos)\b`,
-  'g',
-);
-// Who records, when: «¿a qué hora graba Kevin?» is the agenda even without an event word; «¿cuándo
-// grabo en vertical?» is a how-to.
-const WHEN_SUBJECT = /\b(evento|acto|jefe|graba|graban|grabamos|grabara|grabaran|grabaremos|grabando|grabacion|(?:toca|va a|van a|vamos a) grabar)\b/;
-
-// What the person asked, for these checks: the «[direccion]» placeholder is what redact() left of a
-// place name («el evento del barrio San Carlos»), not the word «dirección», and the steps go.
-function asked(question: string): string {
-  return plain(question.replace(/\[direccion\]/gi, ' ')).replace(DOING, ' ');
-}
-
-/** Where the question first names an event (an event word; or who records or the boss, when it asks when or where), or -1. */
-export function eventAt(question: string): number {
-  const q = plain(question);
-  const at = [EVENT_WORDS.exec(q)?.index, asksWhenWhere(question) ? WHEN_SUBJECT.exec(q)?.index : undefined].filter((n): n is number => n !== undefined);
-  return at.length ? Math.min(...at) : -1;
-}
-
-/** Is this turn about an event (so a date or time in the answer breaks the agenda rule)? */
-export function aboutEvents(question: string, calls: ToolRun[] = []): boolean {
-  return calls.some((c) => c.tool === 'buscar_evento') || eventAt(question) >= 0;
-}
-
-/** Any when or where in it, a day included («¿qué eventos hay mañana?»). */
-export function asksWhenWhere(question: string): boolean {
-  return WHEN_WHERE.test(asked(question));
-}
-
-/** Asked as a schedule (when, what time, where, how to get there, whom to call), not just a day named. */
-export function asksSchedule(question: string): boolean {
-  return SCHEDULE.test(asked(question));
-}
-
-/** Asks for the place or the contacts of something. */
-export function asksPlace(question: string): boolean {
-  return PLACE.test(asked(question));
-}
-
-/** Asks how to get somewhere (it is the agenda only about an event). */
-export function asksRoute(question: string): boolean {
-  return ROUTE.test(asked(question));
-}
-
-/** The question without its when/where (and way-there) words: what is left may name an event («la feria»). */
-export function withoutWhenWhere(question: string): string {
-  return plain(question).replace(new RegExp(WHEN_WHERE_WORDS, 'g'), ' ').replace(new RegExp(ROUTE.source, 'g'), ' ').replace(/\s+/g, ' ').trim();
-}
-
-// «¿A qué hora publico el video del acto en TikTok?» asks for the best hours to publish, not
-// for the agenda. «publico» (I publish) says it alone; «sale», «subir»… need a network named.
-const PUBLISH_ME = /\b(publico|publicamos|lo publico|la publico|posteo|posteamos|tuiteo)\b/;
-const PUBLISH_ANY = /\b(publicar|publicarlo|publicarla|publica|publicas|publiquemos|subo|subir|subirlo|subirla|subimos|sale|salga|postear)\b/;
-const NETWORK = /\b(instagram|insta|ig|reel|reels|facebook|fb|tiktok|tik tok|threads|twitter|tweet|tweets|tuit|tuits|x|youtube|yt|redes)\b/;
-const BEST_TIME = /\b(horario para publicar|hora de publicar|horas de publicar|nos va mejor)\b/;
-const BEST_WORDS = /\bmejor(es)? (hora|horas|horario|dia|dias)\b/;
-
-/** The question is about when or where to publish (best hours, a network), not about an event's schedule. */
-export function asksAboutPublishing(question: string): boolean {
-  const q = plain(question);
-  return PUBLISH_ME.test(q) || BEST_TIME.test(q) || ((PUBLISH_ANY.test(q) || BEST_WORDS.test(q)) && NETWORK.test(q)) || (BEST_WORDS.test(q) && /\bpublic/.test(q));
+/** Is this turn about an event (so a date or time in the answer breaks the agenda rule)? An event lookup, or the question by the shared detector (events.ts). */
+export function aboutEvents(question: string, calls: ToolRun[] = [], titles: TitleSet = NO_TITLES): boolean {
+  return calls.some((c) => c.tool === 'buscar_evento') || aboutEvent(question, titles);
 }
 
 // Tools whose answers carry publishing hours or days, never an event's.
@@ -353,13 +273,15 @@ const PLACE_TOKEN = /\[{1,2}\s*[Ll]\s*\d{1,4}\s*\]{1,2}/;
 
 /**
  * An answer about events that carries a date, a time, a day (also «hoy», «mañana» or «temprano»), a
- * place or a contact breaks the agenda rule, in any way of writing them that is detected. In a turn
- * about publishing, times and weekdays are the best hours and days (allowed) but a date or a place
- * still breaks it. A title's placeholder is not a when (an event place's placeholder is a where);
- * ratios («4/5»), «Hoy» the screen and how long something takes don't count.
+ * place or a contact breaks the agenda rule, in any way of writing them that is detected. About events:
+ * the question (the shared detector, events.ts), an event lookup, or, with `answerToo` (what a model
+ * wrote), an answer that names an event itself (an event word, a title's placeholder, the boss or who
+ * records). In a turn about publishing, times and weekdays are the best hours and days (allowed) but a
+ * date or a place still breaks it. A title's placeholder is not a when (an event place's placeholder is
+ * a where); ratios («4/5»), «Hoy» the screen and how long something takes don't count.
  */
-export function breaksAgendaRule(answer: string, question: string, calls: ToolRun[] = []): boolean {
-  if (!aboutEvents(question, calls)) return false;
+export function breaksAgendaRule(answer: string, question: string, calls: ToolRun[] = [], titles: TitleSet = NO_TITLES, o: { answerToo?: boolean } = {}): boolean {
+  if (!aboutEvents(question, calls, titles) && !(o.answerToo && mentionsEvent(answer, titles))) return false;
   if (PLACE_TOKEN.test(answer)) return true;
   const t = String(answer ?? '').replace(ANY_TOKEN, 'el evento');
   if (hasPlaceOrContact(t)) return true;
@@ -370,15 +292,15 @@ export function breaksAgendaRule(answer: string, question: string, calls: ToolRu
  * The person's question as it is stored and sent to a provider (already through redact()). A landmark
  * with its name or its adjective («frente a la alcaldía de Táriba», «la cancha techada de El Mirador»)
  * is a place in any question and goes (on the model path a title the person typed is already a
- * placeholder by then). About an event (an event word, a title's placeholder, or a title or event
- * place this person can see, whole or by a name in it: `titles`), how-to or not, places said by name
- * go too («en Pueblo Nuevo»), and so do its days and parts of the day («la toma de pasado mañana»),
- * except a day said for the person's own work («mañana subo el material») and the days of a question
- * about publishing. Otherwise days are ordinary words («¿qué tengo hoy?») and stay.
+ * placeholder by then). About an event (the shared detector, events.ts, without its bare «a day or an
+ * hour» signal), how-to or not, places said by name go too («en Pueblo Nuevo»), and so do its days and
+ * parts of the day («la toma de pasado mañana»), except a day said for the person's own work («mañana
+ * subo el material») and the days of a question about publishing. Otherwise days are ordinary words
+ * («¿qué tengo hoy?») and stay: such a question is answered by 360 and left out of any later thread.
  */
 export function guardQuestion(question: string, titles: TitleSet = NO_TITLES): string {
   const q = String(question ?? '');
-  if (!namesEvent(q, titles)) return redactLandmarks(q);
+  if (!aboutEvent(q, titles, { when: false })) return redactLandmarks(q);
   return redactEventSpeech(q, { when: !asksAboutPublishing(q) });
 }
 
@@ -414,11 +336,19 @@ export async function modelTurn(i: ModelTurnInput): Promise<BrainOutput> {
   // What the person typed, now and earlier: a title or an event's place they type goes as its
   // placeholder too (masked before the redaction, so it is recognised whole), then the stored locks.
   const asked = (t: string) => guardQuestion(redact(ph.mask(t)), titles);
+  // What was said about an event stays with 360: an earlier question about one (the shared detector),
+  // one that went on with it, and the answers to them are left out of the thread the provider sees.
+  const withEvent = eventThread(i.ctx.history.filter((h) => h.who === 'persona').map((h) => h.body), titles);
+  let k = -1;
+  const thread = i.ctx.history.filter((h) => {
+    if (h.who === 'persona') k++;
+    return !withEvent[k];
+  });
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt(i.ctx, i.tools, i.question, ph) },
     // The thread is scrubbed too. Earlier answers quote titles as they are («Toma 9.30»): those go as
     // placeholders, and the rest of the answer gets the second lock, like a tool's result.
-    ...i.ctx.history.map((h): ChatMessage => (h.who === 'persona' ? { role: 'user', content: asked(h.body) } : { role: 'assistant', content: redactQuoted(ph.mask(h.body)) })),
+    ...thread.map((h): ChatMessage => (h.who === 'persona' ? { role: 'user', content: asked(h.body) } : { role: 'assistant', content: redactQuoted(ph.mask(h.body)) })),
     { role: 'user', content: asked(i.typed ?? i.question) },
   ];
   const specs = toSpecs(i.tools);
@@ -470,17 +400,17 @@ export async function modelTurn(i: ModelTurnInput): Promise<BrainOutput> {
   }
 
   // Corrective round (lower temperature, no tools): an answer about events with a date or time.
-  if (text && breaksAgendaRule(text, i.question, calls)) {
+  if (text && breaksAgendaRule(text, i.question, calls, titles, { answerToo: true })) {
     messages.push({ role: 'assistant', content: text });
     messages.push({ role: 'user', content: 'No me des fecha, hora ni lugar de ningún evento: tú no tienes la agenda. Contéstame de nuevo sin eso.' });
     try {
       const r = await ask(false, CORRECTIVE_TEMPERATURE);
-      text = r.text && !breaksAgendaRule(r.text, i.question, calls) ? r.text : AGENDA_FALLBACK;
+      text = r.text && !breaksAgendaRule(r.text, i.question, calls, titles, { answerToo: true }) ? r.text : AGENDA_FALLBACK;
     } catch {
       text = AGENDA_FALLBACK;
     }
   }
   // Asked when or where an event is: the titles come back without their own date, time or place.
-  const scrub = aboutEvents(i.question, calls) && !publishingTurn(i.question, calls) && (asksWhenWhere(i.question) || asksRoute(i.question));
+  const scrub = aboutEvents(i.question, calls, titles) && !publishingTurn(i.question, calls) && (asksWhenWhere(i.question) || asksRoute(i.question));
   return { text, model, provider, tokensIn, tokensOut, calls, restore: (t) => ph.restore(t, { scrub }) };
 }

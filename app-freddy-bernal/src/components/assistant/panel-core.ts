@@ -209,6 +209,8 @@ export function draftTarget(target: { role?: unknown } | null | undefined): stri
 }
 
 export const DRAFT_STATUS: Record<string, string> = { pendiente: 'Pendiente', confirmado: 'Confirmado', descartado: 'Descartado' };
+/** What administración is reminded of before a prepared notice goes out (the check is the server's; this is the person's). */
+export const NOTICE_REMINDER = 'Revisa que no diga el día, la hora ni el lugar de un evento.';
 
 export const ORIGIN_LABEL: Record<string, string> = {
   plataforma: 'Automática',

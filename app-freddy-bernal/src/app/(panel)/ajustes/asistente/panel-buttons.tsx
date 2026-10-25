@@ -10,7 +10,7 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { Field, Input, Textarea } from '@/components/ui/field';
 import { faceOf } from '@/components/assistant/core';
-import { fmtMs } from '@/components/assistant/panel-core';
+import { NOTICE_REMINDER, fmtMs } from '@/components/assistant/panel-core';
 import { neutralIntro } from '@/lib/assistant/text';
 
 // Small client pieces of the panel: confirm or discard a prepared notice, undo what the
@@ -25,7 +25,13 @@ export function DraftActions({ id, to }: { id: string; to: string }) {
       <Button
         disabled={pending}
         onClick={async () => {
-          if (!(await confirm({ title: `¿Mandar este aviso a ${to}?`, body: 'Les llega en los avisos de la plataforma. No se puede retirar.', confirmLabel: 'Mandar' }))) return;
+          const body = (
+            <>
+              <p>Les llega en los avisos de la plataforma. No se puede retirar.</p>
+              <p className="mt-2 font-medium text-text">{NOTICE_REMINDER}</p>
+            </>
+          );
+          if (!(await confirm({ title: `¿Mandar este aviso a ${to}?`, body, confirmLabel: 'Mandar' }))) return;
           await run(() => confirmAssistantDraft({ id }), { success: 'Aviso enviado.' });
         }}
       >

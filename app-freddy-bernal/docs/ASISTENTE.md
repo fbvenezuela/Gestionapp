@@ -21,8 +21,49 @@ repositorio). Se toman la máquina y las reglas; nada del negocio de Cemi. Este 
 - **Se llama «360»** (decidió Juan, 24/10/2026). Nombre, emoji y presentación por defecto en `config/clients/fb.json` →
   `assistant`; se cambian en Ajustes → Asistente sin desplegar.
 
+## Lo que habla de un evento lo contesta 360 sin IA
+La regla de fondo (ronda 4): en vez de buscar cada forma de escribir una fecha, una hora o un lugar, **un turno que
+habla de un evento nunca va al proveedor**, aunque haya cadena de modelos. Lo contesta el cerebro de demostración, que
+tiene las herramientas de eventos y la negativa de la agenda. No se reserva gasto para ese turno.
+- **Un solo detector** (`events.ts`, `aboutEvent` / `eventSignals`), el mismo en todas partes: qué cerebro contesta,
+  cuánto se tapa de la pregunta (`guardQuestion`), la red de salida, los avisos, las fichas y guiones, y lo que se le
+  dice a Supervisión al avisar al equipo. Antes lee las abreviaturas como palabras («kndo», «onde», «lo d la»). Habla de
+  un evento si trae: una palabra de evento («la feria», «el acto», «la agenda»), también con una letra de más, de menos,
+  cambiada o trocada («feira», «evnto»); un evento en particular: un título que esa persona ve, entero, por un nombre
+  suyo («Tariba»), por una tira de palabras con mayúscula («Alto Verde», aunque cada una sea común) o por dos palabras
+  suyas seguidas («toma aérea», «zona alta»), o «lo de…» algo que no es de la plataforma ni de un rol («lo de la
+  cancha», «lo del puente», lo vea o no); el lugar de un evento que ve, entero, por un nombre suyo («La Quebrada») o por
+  su tira de mayúsculas («Alto Verde» de «Casa comunal Alto Verde»); una marca (`[[E1]]`, `[[L1]]`, `[titulo]`); el jefe
+  (por su rol, su nombre o su cargo, sacados de la configuración del cliente) o alguien que graba («Kevin graba…», «me
+  toca grabar…»); una pregunta de cuándo, dónde, cómo llegar, a quién llamar, cuánto falta («¿cuántos días faltan
+  para…?») o si sigue en pie («¿se suspendió…?») (no de cuándo publicar, ni un paso: «¿dónde subo el material?»); o forma
+  de agenda sin nombrar nada: una fecha, hora o
+  dirección escrita (lo que dejó `redact()`), una dirección o un lugar por referencia, o un día u hora que no es de su
+  propio trabajo junto a algo que pasa o se mueve («es», «arranca», «sale», «salimos», «queda», «será»…), a grabar o
+  a un lugar por su nombre («salimos pasado mañana temprano desde Pueblo Nuevo»). En una **pregunta**, además, basta un
+  día o una hora que no sea de su propio trabajo ni de publicar («¿qué llevo el sábado?», «¿qué tengo hoy?»). Un aviso y
+  una ficha se juzgan sin eso: sus días son del equipo mientras no nombren un evento. Se inclina al sí: lo que solo
+  parece de un evento cuesta una respuesta sin IA, nunca una fuga.
+- **También la que sigue:** una pregunta que sigue un hilo sobre un evento también la contesta 360: empieza con «y»,
+  «pero», «bueno»…, apunta atrás («eso», «allá», «ese video») o son pocas palabras («¿cómo va la feria?» → «¿y a quién
+  le escribo?» → «¿y llevo el dron?»). Una que se sostiene sola («¿cómo hago un copy?») vuelve al modelo, y en el hilo
+  que ve el proveedor no van las preguntas del evento ni las que lo siguieron, ni sus respuestas.
+- **Las mismas palabras de tiempo para todo** (`redact.ts`, una sola lista): además de horas, fechas y días, «el finde»,
+  «en la mañanita», «por la tardecita», «después del almuerzo», un mes solo («en noviembre»), «el mes que viene», «a fin
+  de mes», «en un par de días» y un día del mes en letras («el veinticuatro»). Las usan el detector, el filtro de lo que
+  se le enseña, los avisos y la limpieza del prompt. Un teléfono dicho cifra por cifra («cero cuatro uno cuatro…») es un
+  contacto, y un sitio dicho con su nombre después de cualquier palabra («en el hotel Tamá», «del galpón de Los Pinos»)
+  es un lugar.
+- **Cómo se hace, no cómo va:** en el cerebro de demostración, una pregunta sobre eventos en general («¿qué tomas hago en
+  un acto?», «¿cómo veo los eventos pasados?») o «¿cómo + verbo…?» (menos «¿cómo va / quedó / salió…?») la contestan
+  las fichas; la búsqueda de un evento es para uno («¿cómo va lo de la cancha?»).
+- Solo los turnos que **no** hablan de un evento usan el modelo (cómo se hace algo, lo suyo, publicar, tweets, reglas de
+  video, charla), y conservan todas las capas de abajo. Si el modelo igual trae un evento (busca uno o lo nombra en su
+  respuesta), la red de salida lo trata como respuesta sobre un evento.
+
 ## Lo que nunca sale (marcas, limpieza y revisiones)
-Hoy no hay IA (sin `ASISTENTE_MODELOS` hasta el OK legal), pero esto ya funciona para el día que se encienda.
+Hoy no hay IA (sin `ASISTENTE_MODELOS` hasta el OK legal), pero esto ya funciona para el día que se encienda. Con la
+regla de arriba, estas capas quedan de segunda línea.
 - **Títulos como marcas** (`titles.ts`). En cada turno con modelo se leen una vez, **como la persona** (RLS), los títulos
   de los eventos y piezas que ella ve y el lugar de cada evento. Antes de ir al proveedor, cada uno se cambia por una marca
   fija para ese turno: `[[E1]]` (evento), `[[P1]]` (pieza), `[[L1]]` (lugar). Pasa en lo que devuelve cada herramienta, en
@@ -30,8 +71,9 @@ Hoy no hay IA (sin `ASISTENTE_MODELOS` hasta el OK legal), pero esto ya funciona
   El prompt le dice al modelo que copie las marcas tal cual. Al contestar, las marcas vuelven a ser el título real (entre
   «»), que la persona puede ver; si preguntó cuándo o dónde es un evento, el título vuelve sin su hora, fecha ni lugar.
   Una marca que el modelo cambia (`[E1]`, `[[ e1 ]]`) se arregla; una inventada se vuelve «ese evento»; un lugar siempre
-  vuelve como «ese lugar». Nunca se muestra una marca cruda. Si el modelo busca por una marca, la herramienta corre con el
-  título real. Lo que **escribe la persona** (la pregunta y sus preguntas anteriores del hilo) también va con marcas: si
+  vuelve como «ese lugar». Nunca se muestra una marca cruda (tampoco una cortada al final, «… [[E1»). Si el modelo busca
+  por una marca, la herramienta corre con el título real; una marca que no existe le llega a la herramienta como «ese
+  evento», «esa pieza» o «ese lugar» (así un aviso al equipo nunca lleva `[[E7]]`). Lo que **escribe la persona** (la pregunta y sus preguntas anteriores del hilo) también va con marcas: si
   teclea un título o el lugar de un evento que ve, al proveedor le llega `[[E1]]` o `[[L1]]` (lo guardado queda sin marcas).
   Con cadena de modelos, los títulos se leen antes de guardar la pregunta. Si no se pueden leer, ese turno no va al
   modelo: contesta el cerebro de demostración.
@@ -40,37 +82,58 @@ Hoy no hay IA (sin `ASISTENTE_MODELOS` hasta el OK legal), pero esto ya funciona
   —también «1ro de noviembre», «tres de noviembre», «el día 3», «3 del 11», «20261103», fechas ISO con hora— y direcciones)
   antes de guardarse y de ir al proveedor; también «1ro nov», «el día primero», «9 menos cuarto» y «8 y pico». Un lugar por
   referencia con su nombre o su adjetivo («frente a la alcaldía de Táriba», «la cancha techada de El Mirador», «la plaza
-  central», «qta.», «C.C.», «parroquia…») se tapa en **cualquier** pregunta. **Si la pregunta es sobre un evento** (una
-  palabra de evento, una marca, o un título o lugar que la persona ve, entero o por un nombre suyo: «lo de Tariba»), sea de
-  «cómo se hace» o no, se tapan además los lugares dichos por su nombre («en Pueblo Nuevo», «en la Hacienda El
+  central», «qta.», «C.C.», «parroquia…») se tapa en **cualquier** pregunta. **Si la pregunta es sobre un evento** (el
+  detector de arriba: una palabra de evento, una marca, un título o lugar que la persona ve —«lo de Tariba»—, quién
+  graba, una pregunta de cuándo o dónde…), sea de «cómo se hace» o no, se tapan además los lugares dichos por su nombre («en Pueblo Nuevo», «en la Hacienda El
   Trapiche») y los días y partes del día («mañana», «el sábado», «en dos días», «tempranito», «de noche»), menos el día de
   su propio trabajo («mañana subo el material», «¿lo publico el sábado?») y los días de una pregunta de publicar. En
-  cualquier otra pregunta los días son palabras normales («¿qué tengo hoy?») y quedan. Lo que escribió la
+  cualquier otra pregunta los días son palabras normales y quedan en lo guardado («¿qué tengo hoy?»): esa pregunta la
+  contesta 360 y no entra en el hilo de un turno con modelo. Lo que escribió la
   plataforma (resultados de herramientas, respuestas anteriores, guiones del equipo) pasa por todas las reglas y, de
   segundo candado, por el filtro de los avisos al teléfono (`stripDateTime`). «Hoy» la pantalla no cuenta como día, y
   4/5, 9/16, 16/9 o 1/1 junto a formato o portada son proporciones, no fechas.
-- **Guiones y fichas** (`guard.ts`). Al guardarlos se rechaza lo que trae una fecha, un teléfono, un correo o una
-  dirección (también un lugar por referencia con su nombre). Un evento es una palabra de evento, un título que
-  administración ve (entero o por un nombre suyo), quien graba («Kevin graba…») o el jefe. Una **ficha se juzga entera**:
-  si el título o cualquier frase nombra un evento, no puede llevar ninguna hora ni día en ninguna parte («Feria de
-  Pirineos» + «Arranca el sábado a las 8»). Un guion se juzga frase por frase (en lo que pregunta la persona de un ejemplo
-  solo cuenta una fecha u hora escrita). Las horas solas sí se aceptan (franjas de tweets, mejores horas).
-  «Así se contesta» guarda la respuesta con los títulos como `«[titulo]»` y limpia. En el prompt, por si algo pasó antes,
-  los guiones del equipo y de conversaciones se limpian otra vez del todo; una ficha del equipo que nombra un evento en
-  cualquier parte (también por la marca de un título) se limpia del todo, título y cuerpo, y una que no nombra ninguno
-  pierde fechas, direcciones y contactos pero guarda sus horas. Las de fábrica y las automáticas quedan igual.
-- **Avisos preparados** (`guard.ts` `noticeIssues`). Una sola revisión para los dos cerebros, dentro de `preparar_aviso`
-  y otra vez cuando administración confirma. Un aviso va a todo un rol y no es donde va la agenda: **diga lo que diga**,
-  no lleva día («hoy», «el sábado», «en dos días»), hora (también «8 y pico», «tempranito», «de noche»), fecha, lugar por
-  referencia (después de cualquier palabra: «sale de la plaza Bolívar», «en plaza Bolívar», «encuentro: plaza Bolívar»)
-  ni contactos. Solo se acepta lo del trabajo del equipo: un plazo («suban el material antes de las 3 pm», «… antes del
-  viernes») o un día pegado a su verbo («hoy suben…», «suban hoy…», «mañana hay que subir…»). Si además es sobre un evento
-  (palabra de evento, un título que esa persona ve —entero o por un nombre suyo—, el jefe o quien graba), tampoco lleva un
-  lugar dicho por su nombre («en Pueblo Nuevo», «en la Hacienda El Trapiche»), un sitio solo («desde la plaza») ni un
-  número suelto («arranca 8»). Se acepta que un aviso normal con un día («hoy cierra la tanda de tweets») tenga que
-  decirse de otra forma. Si al confirmar no pasa, no sale, queda pendiente y el panel dice qué trae («No se mandó: el
-  aviso trae el día y el lugar…»).
-- **Red de salida** (`brain.ts` `breaksAgendaRule`). Una respuesta sobre un evento que trae fecha, hora, día («hoy»,
+- **Guiones y fichas** (`guard.ts` `teachingProblem`). Las fichas y los guiones del equipo son para **cómo trabaja el
+  equipo, nunca para un evento**. Al guardarlos se rechaza: una fecha, un teléfono, un correo o una dirección (también un
+  lugar por referencia con su nombre); un evento en particular (un título que administración ve, entero, por un nombre
+  suyo, su tira de mayúsculas o dos palabras suyas seguidas; el lugar de un evento, también por su tira de mayúsculas,
+  «Alto Verde»; una marca; «lo de la cancha»; o un evento que pasa o que hay: «la caravana sale…», «el acto de entrega
+  arranca…», «en noviembre hay feria», sea lo que sea lo que sigue): «Quita el evento…»; la forma de la agenda en una
+  frase de lo que dice 360 (un día u hora con algo que pasa, a grabar o un lugar por su nombre: «nos vamos de madrugada
+  desde la gobernación»), salvo que sea de publicar; junto a un evento (las menciones del detector), cualquier hora o
+  día; y **un día con una hora en cualquier parte** («Lo del sábado» + «arranca a las 8»), salvo que sea de publicar
+  (tweets, mejores horas, una red). Una ficha se juzga entera (título y cuerpo); un guion,
+  frase por frase en lo que dice 360 y entero para el día con hora. En lo que pregunta la persona de un ejemplo solo
+  cuentan una fecha u hora escrita y un evento en particular. Hablar de eventos en general sí («cómo se crea un evento»):
+  el material de fábrica pasa tal cual. «Así se contesta» guarda la respuesta y la pregunta con los títulos, y los
+  nombres de un título, como `[titulo]` («lo de Tariba» → «lo de [titulo]»), y limpia; si igual nombra un evento, no se
+  guarda. En el prompt, por si algo pasó antes (con las mismas palabras de tiempo y con los lugares de los eventos como
+  marcas, «Alto Verde» → `[[L1]]`), los guiones del equipo y de conversaciones se limpian otra vez del todo; una ficha
+  del equipo que trae un día se limpia del todo, título y cuerpo; lo del equipo que habla de un evento (el detector)
+  pierde además un sitio dicho por su nombre («en el hotel Tamá»); una ficha sin evento ni día pierde fechas,
+  direcciones y contactos pero guarda sus horas. Las de fábrica y las automáticas quedan igual.
+- **Avisos preparados** (`guard.ts` `noticeIssues`). Una sola revisión para los dos cerebros, dentro de
+  `preparar_aviso` y otra vez cuando administración confirma, con los títulos que ve quien lo prepara. Un aviso va a
+  todo un rol y no es donde va la agenda:
+  - **Nunca** lleva contactos ni direcciones.
+  - **Si no nombra un evento** (el detector), sus días y plazos son del equipo y quedan como se dijeron: «suban el
+    material antes de las 3 pm», «tienen hasta las 5 pm…», «manden las fotos esta tarde». Se guarda y se manda con su
+    hora real (sin «[hora]»); solo se quitan contactos y direcciones. Solo no pasa un día con una hora que no sea un
+    plazo («el sábado a las 6, lleven baterías» es la agenda de alguien).
+  - **Si nombra un evento**, solo va como **pedido al equipo** («suban…», «revisen…», «editen…», «tengan…», «hay / tienen
+    que» + verbo) y no dice nada del evento. Se mira **cada palabra del aviso**, en todas sus frases, antes y después
+    del evento, dejando fuera **un plazo para el trabajo** («suban el material de la feria antes de las 3 pm», «tienen
+    hasta el mediodía», «hoy suben…»): solo pueden ir los verbos del equipo, el trabajo y sus equipos (fotos, video,
+    copies, cámaras, baterías…), las palabras de evento y las de sus títulos (el título lo ven todos los roles), el
+    jefe, los roles, las palabras pequeñas y unas pocas de prisa o de cortesía. Cualquier otra palabra dice algo del
+    evento y el aviso no va: «este finde hay feria», «Tamá: la feria», «noviembre trae feria», «la feria es…», «… a Alto
+    Verde». Tampoco va el lugar de un evento por su nombre fuera de un título dicho entero, ni un día, hora o contacto
+    que quede. Prepararse para el evento («tengan las cámaras listas antes de las 7») es su hora, no un plazo. Lo que no
+    pasa sale como «datos del evento».
+  - Si al confirmar no pasa, no sale, queda pendiente y el panel dice qué trae («No se mandó: el aviso trae el día y
+    datos del evento…»). El diálogo de confirmar le recuerda a administración: «Revisa que no diga el día, la hora ni el
+    lugar de un evento.»
+- **Red de salida** (`brain.ts` `breaksAgendaRule`). Una respuesta sobre un evento (la pregunta según el detector, una
+  búsqueda de evento o, si la escribió el modelo, una respuesta que nombra un evento) que trae fecha, hora, día («hoy»,
   «mañana», «el martes»), parte del día, lugar o contacto, de cualquier forma que se detecte, va a la vuelta correctiva y,
   si insiste, se cambia por la frase de la agenda. En una pregunta de publicar, las horas y los días de la semana son las
   mejores horas (se permiten), una fecha o un lugar no. Se acepta que un plazo de trabajo dicho con hora junto a un
@@ -131,12 +194,15 @@ Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: 
   «tengo un problema / una falla / un error» (solo, o con la app, al entrar o al subir): «No hay teléfono de soporte en la
   plataforma; si algo falla, le aviso a administración» y ofrece avisar (con un «sí», avisa de verdad); gana sobre las
   fichas y sobre el tema de la pregunta anterior. Un error o un problema **del contenido** («hay un error en el copy»,
-  «un problema con la pieza», «un error en un tweet publicado») no es soporte: lo contestan las fichas. «¿Cómo subo un video?» desde un rol que no sube: lo suben Grabación o Redes, en la pestaña Material del evento.
-- `titles.ts` — las marcas de los títulos (`Placeholders`) y su lectura como la persona. `guard.ts` — las revisiones de
-  avisos, guiones y fichas.
+  «un problema con la pieza», «un error en un tweet publicado», «me salió un error que dice que el copy es muy largo»)
+  no es soporte: lo contestan las fichas. «¿Cómo subo un video?» desde un rol que no sube: lo suben Grabación o Redes, en la pestaña Material del evento.
+- `events.ts` — el detector compartido («¿habla de un evento?») y las lecturas de la pregunta (cuándo, dónde, cómo
+  llegar, publicar). `titles.ts` — las marcas de los títulos (`Placeholders`) y su lectura como la persona. `guard.ts` —
+  las revisiones de avisos, guiones y fichas.
 - Cada turno tiene un límite de 40 s; después de la primera vuelta, la cadena arranca desde el eslabón que respondió.
 - `index.ts` — `handleTurn(session, { question, conversationId })` → `{ answer, scope, model, ms, degraded, did:
-  [{ tool, error? }], goTo: { href, label } | null, conversationId }`. Antes del cerebro abre el turno (`openTurn`: una
+  [{ tool, error? }], goTo: { href, label } | null, conversationId }`. Con cadena, decide el cerebro con el detector
+  (ver «Lo que habla de un evento lo contesta 360 sin IA»). Antes del cerebro abre el turno (`openTurn`: una
   transacción corta, con candado por persona): la conversación, la cuenta de la hora y la pregunta redactada se guardan
   **al empezar**, así los pedidos en paralelo la ven y un turno que falla después igual cuenta. Solo la respuesta se
   guarda **después**; si guardar falla, se escribe en el log y la respuesta sale igual. Si el turno no se pudo abrir, no
@@ -150,8 +216,11 @@ Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: 
   asistente («Llevamos un buen rato…»), no como avería. Temperatura 0,6 (0,5 en la vuelta correctiva).
 - `escalate(conversationId, motivo)` — `notify()` a administración (y a supervisión si el motivo es de aprobación) con
   enlace a la conversación en el panel; no repite en 6 horas. El motivo lo puede escribir el modelo (con los títulos
-  reales de vuelta): antes de que nadie lo vea pasa por todas las reglas, los lugares dichos por su nombre y el filtro de
-  los avisos al teléfono, así a supervisión no le llega ni el día ni el lugar de un evento.
+  reales de vuelta): pierde cualquier marca que quede (también una abierta, «[[E1»), el lugar de un evento por su nombre
+  o su tira de mayúsculas («la pieza de Alto Verde» → «la pieza de ese lugar»), y pasa por todas las reglas, los lugares
+  dichos por su nombre y el filtro de los avisos al teléfono. Si el motivo habla de un evento (el detector, contra todos
+  los títulos y lugares), a supervisión solo le llega «… necesita ayuda con un evento»; administración recibe el motivo
+  limpio.
 - Salud: en `/api/cron/tick`, si en la última hora más del 20 % de las respuestas salieron degradadas, aviso a
   administración, como mucho cada 6 horas.
 

@@ -15,9 +15,10 @@ export async function act<I, T>(
   fn: (sql: Sql, input: I, s: Session) => Promise<T>,
   opts: { revalidate?: string[] } = {},
 ): Promise<Result<T>> {
+  // Session first: nobody who is not signed in gets their input parsed or checked.
+  const s = await requireSession();
   const parsed = schema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Revisa los datos.' };
-  const s = await requireSession();
   try {
     const data = await withUser(s.claims, (sql) => fn(sql, parsed.data, s));
     for (const p of opts.revalidate ?? []) revalidatePath(p, 'layout');

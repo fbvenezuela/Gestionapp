@@ -80,7 +80,8 @@ describe('títulos de eventos: al proveedor solo como marcas', () => {
         const first = chunk.slice(0, 4).map((k): [string, unknown] => ['buscar_evento', { texto: code(k) }]);
         const second = chunk.slice(4).map((k): [string, unknown] => ['buscar_evento', { texto: code(k) }]);
         const p = fakeProvider((n) => (n === 1 ? callTools(first) : n === 2 && second.length ? callTools(second) : say('El evento «[[E1]]» va en ficha. ¿Algo más?')));
-        const r = await handleTurn(sessionOf('admin'), { question: '¿Cómo van esos eventos?' }, model(p.fetchImpl));
+        // Asked about nothing in particular (a question about an event never reaches the model).
+        const r = await handleTurn(sessionOf('admin'), { question: 'revisa esto, porfa' }, model(p.fetchImpl));
         expect(r.model).toBe('groq:llama-3.3-70b');
         // What the platform sent (the model's own tool arguments, «Kqaab», are its words, not the platform's).
         const sent = JSON.stringify(p.seen.map((b) => b.messages.map((m) => m.content)));
@@ -149,31 +150,34 @@ describe('títulos de eventos: al proveedor solo como marcas', () => {
     const title = 'Toma aérea Tariba 9.30 frente a la plaza Bolívar';
     const [ev] = await addEvents([title]);
     try {
-      const first = await handleTurn(sessionOf('social'), { question: '¿Cómo va el evento de Tariba?' }, LOCAL);
-      expect(first.answer).toContain(`«${title}»`); // the demo brain quotes it (the person can see it)
+      // An earlier answer quoted it (the person can see it); the question now is about nothing in particular.
+      const first = await handleTurn(sessionOf('social'), { question: 'hola' }, LOCAL);
+      await withSystem((sql) => sql.query(`insert into public.assistant_messages (conversation_id, who, body) values ($1, 'asistente', $2)`, [first.conversationId, `Lo primero: falta el storyboard de «${title}».`]));
       // The model looks it up by its placeholder: the tool runs with the real title.
       const p = fakeProvider((n) => (n === 1 ? callTools([['buscar_evento', { texto: '[[E1]]' }]]) : say('Va en ficha: [E1], [[ e1 ]] y [[E7]]. [[X]]')));
-      const r = await handleTurn(sessionOf('social'), { question: '¿Y qué falta?', conversationId: first.conversationId }, model(p.fetchImpl));
+      const r = await handleTurn(sessionOf('social'), { question: 'revisa eso, porfa', conversationId: first.conversationId }, model(p.fetchImpl));
       const tool = p.seen[1].messages.find((m) => m.role === 'tool')!;
       expect(JSON.parse(tool.content!).encontrados).toBe(1);
       // A sentence left with something that only looks like a placeholder goes whole (the filter's hueco rule).
       expect(r.answer).toBe(`Va en ficha: «${title}», «${title}» y ese evento.`);
       expect(r.answer).not.toMatch(/\[|\]/);
-      // Only the person's own words name the place of the title; nothing the platform sent does.
-      expect(JSON.stringify(p.seen.map((b) => b.messages.filter((m) => m.role !== 'user').map((m) => m.content)))).not.toContain('Tariba');
-      for (const leak of ['9.30', 'plaza Bolívar']) expect(JSON.stringify(p.seen)).not.toContain(leak);
+      for (const leak of ['Tariba', '9.30', 'plaza Bolívar']) expect(JSON.stringify(p.seen), leak).not.toContain(leak);
     } finally {
       await dropEvents([ev]);
     }
   });
 
-  it('si preguntan cuándo o dónde, el título vuelve sin su hora ni su lugar', async () => {
+  it('si preguntan cuándo o dónde, contesta 360 sin IA y el título vuelve sin su hora ni su lugar', async () => {
     const title = 'Toma aérea Tariba 9.30 frente a la plaza Bolívar';
     const [ev] = await addEvents([title]);
     try {
-      const p = fakeProvider((n) => (n === 1 ? callTools([['buscar_evento', { texto: 'Tariba' }]]) : say('Eso no lo tengo; del evento «[[E1]]» te digo que va en ficha.')));
+      const p = fakeProvider(() => say('No debería llegar aquí.'));
       const r = await handleTurn(sessionOf('social'), { question: '¿A qué hora es la toma aérea de Tariba?' }, model(p.fetchImpl));
-      expect(r.answer).toBe('Eso no lo tengo; del evento «Toma aérea Tariba» te digo que va en ficha.');
+      expect(p.seen).toHaveLength(0);
+      expect(r.model).toBe('local');
+      expect(r.answer).toMatch(/no lo manejo|no la tengo/);
+      expect(r.answer).toContain('«Toma aérea Tariba»');
+      expect(r.answer).not.toContain(title);
     } finally {
       await dropEvents([ev]);
     }
@@ -202,20 +206,30 @@ describe('la red de salida (S6, S8) y la pregunta (S5, P3)', () => {
       'Es a las nueve.', 'Es de 7 a 9.', 'Llama al 356-1234.', 'Es en la qta. Las Flores.', 'Es el fin de semana.',
     ];
     for (const a of bad) {
+      // Asked about the event: the rule holds whatever the answer says.
       expect(breaksAgendaRule(a, '¿a qué hora es el recorrido del puente?'), a).toBe(true);
-      const p = fakeProvider(() => say(a));
-      const r = await handleTurn(sessionOf('dispatch'), { question: '¿a qué hora es el recorrido del puente?' }, model(p.fetchImpl));
+      // Asked about nothing in particular, a model's answer that names an event is held to it too.
+      expect(breaksAgendaRule(`Del recorrido del puente: ${a}`, 'revisa mis cosas', [], undefined, { answerToo: true }), a).toBe(true);
+      const p = fakeProvider(() => say(`Del recorrido del puente: ${a}`));
+      const r = await handleTurn(sessionOf('dispatch'), { question: 'revisa mis cosas' }, model(p.fetchImpl));
       expect(r.answer, a).toBe(AGENDA_FALLBACK);
     }
+    // The event question itself never reaches the model.
+    const p = fakeProvider(() => say('No debería llegar aquí.'));
+    const r = await handleTurn(sessionOf('dispatch'), { question: '¿a qué hora es el recorrido del puente?' }, model(p.fetchImpl));
+    expect(p.seen).toHaveLength(0);
+    expect(r.answer).toMatch(/no lo manejo|no la tengo/);
     // «Hoy» the screen, a ratio or how long something takes are not a when.
     expect(breaksAgendaRule('Todo eso está en Hoy.', '¿qué eventos tengo pendientes?')).toBe(false);
     expect(breaksAgendaRule('Tienen 24 h para subir el material del acto.', '¿cuánto tiempo hay para el material del acto?')).toBe(false);
+    // An answer that names no event, to a question about none, keeps its hours (a tweet slot).
+    expect(breaksAgendaRule('Los tweets salen a las 9:00.', 'revisa mis cosas', [], undefined, { answerToo: true })).toBe(false);
   });
 
   it('«4/5» en una pregunta de formato es una proporción, no una fecha (S8)', async () => {
     const p = fakeProvider(() => say('Sí, 4/5 va bien para la portada en Instagram.'));
-    const r = await handleTurn(sessionOf('social'), { question: '¿Qué formato uso para la portada del evento, 4/5?' }, model(p.fetchImpl));
-    expect(p.seen[0].messages.at(-1)!.content).toBe('¿Qué formato uso para la portada del evento, 4/5?');
+    const r = await handleTurn(sessionOf('social'), { question: '¿Qué formato uso para la portada, 4/5?' }, model(p.fetchImpl));
+    expect(p.seen[0].messages.at(-1)!.content).toBe('¿Qué formato uso para la portada, 4/5?');
     expect(r.answer).toBe('Sí, 4/5 va bien para la portada en Instagram.');
     expect(redact('el 4/5 hay acto')).toBe('el [fecha] hay acto');
   });
@@ -231,9 +245,11 @@ describe('la red de salida (S6, S8) y la pregunta (S5, P3)', () => {
       ['la feria es en la Plaza Bolívar de San Cristóbal', 'la feria es en la [direccion]'],
     ];
     for (const [typed, expected] of cases) {
+      // About an event: 360 answers it without AI; what is stored loses its days, hours and places.
       const p = fakeProvider(() => say('Revisa la ficha del evento. ¿Algo más?'));
       const r = await handleTurn(sessionOf('dispatch'), { question: typed }, model(p.fetchImpl));
-      expect(p.seen[0].messages.at(-1)!.content, typed).toBe(expected);
+      expect(p.seen, typed).toHaveLength(0);
+      expect(guardQuestion(redact(typed)), typed).toBe(expected);
       const stored = await withSystem((sql) => sql.one<{ body: string }>(`select body from public.assistant_messages where conversation_id = $1 and who = 'persona'`, [r.conversationId]));
       expect(stored!.body, typed).toBe(expected);
     }
@@ -247,38 +263,39 @@ describe('la red de salida (S6, S8) y la pregunta (S5, P3)', () => {
     expect(guardQuestion(redact('¿qué tomas hago frente a la alcaldía de Táriba?'))).toBe('¿qué tomas hago [direccion]?');
   });
 
-  it('la pregunta que nombra un evento (palabra, título o un nombre de un título), de cómo se hace o no, va sin sus lugares ni días; lo que escribe de un título o un lugar, como marca (ronda 3)', async () => {
+  it('la pregunta que nombra un evento (palabra, título o un nombre de un título), de cómo se hace o no, la contesta 360; se guarda sin sus lugares ni días y no vuelve en el hilo (ronda 3)', async () => {
     const ids = await addEvents(['Toma aérea Tariba', 'Feria de Pirineos', 'Toma aérea Tariba 9 30 frente a la plaza Bolívar']);
-    // [who, typed, sent (exact, or a pattern where a placeholder's number depends on the prompt), stored]
-    const cases: [DemoUserKey, string, string | RegExp, string][] = [
-      ['camera', '¿qué tomas hago en la feria frente a la plaza Bolívar?', '¿qué tomas hago en la feria [direccion]?', '¿qué tomas hago en la feria [direccion]?'],
-      ['camera', '¿puedo grabar la feria del sábado en la cancha techada de Táriba?', '¿puedo grabar la feria del [fecha] en la [direccion]?', '¿puedo grabar la feria del [fecha] en la [direccion]?'],
-      ['camera', '¿qué planos hago en la visita de mañana en el Liceo Simón Bolívar?', '¿qué planos hago en la visita de [fecha] en el [direccion]?', '¿qué planos hago en la visita de [fecha] en el [direccion]?'],
-      ['camera', '¿qué falta del acto en la Hacienda El Trapiche?', '¿qué falta del acto en la [direccion]?', '¿qué falta del acto en la [direccion]?'],
-      ['camera', '¿cómo va la visita en Pueblo Nuevo de Táriba, la del 1ro nov?', '¿cómo va la visita en [direccion], la del [fecha]?', '¿cómo va la visita en [direccion], la del [fecha]?'],
+    // [who, typed, stored]
+    const cases: [DemoUserKey, string, string][] = [
+      ['camera', '¿qué tomas hago en la feria frente a la plaza Bolívar?', '¿qué tomas hago en la feria [direccion]?'],
+      ['camera', '¿puedo grabar la feria del sábado en la cancha techada de Táriba?', '¿puedo grabar la feria del [fecha] en la [direccion]?'],
+      ['camera', '¿qué planos hago en la visita de mañana en el Liceo Simón Bolívar?', '¿qué planos hago en la visita de [fecha] en el [direccion]?'],
+      ['camera', '¿qué falta del acto en la Hacienda El Trapiche?', '¿qué falta del acto en la [direccion]?'],
+      ['camera', '¿cómo va la visita en Pueblo Nuevo de Táriba, la del 1ro nov?', '¿cómo va la visita en [direccion], la del [fecha]?'],
       // Named by a word of a title the person can see, with no event word.
-      ['social', 'lo de Tariba es pasado mañana frente a la plaza Bolívar, ¿qué falta?', 'lo de Tariba es [fecha] [direccion], ¿qué falta?', 'lo de Tariba es [fecha] [direccion], ¿qué falta?'],
-      ['social', 'Pirineos es el sábado en la escuela Los Andes, ¿cómo va?', /^Pirineos es \[fecha\] en la \[\[L\d+\]\], ¿cómo va\?$/, 'Pirineos es [fecha] en la [direccion], ¿cómo va?'],
-      ['social', '¿qué tomas hago en la toma aérea de pasado mañana frente a la alcaldía de Táriba?', '¿qué tomas hago en la toma aérea de [fecha] [direccion]?', '¿qué tomas hago en la toma aérea de [fecha] [direccion]?'],
+      ['social', 'lo de Tariba es pasado mañana frente a la plaza Bolívar, ¿qué falta?', 'lo de Tariba es [fecha] [direccion], ¿qué falta?'],
+      ['social', 'Pirineos es el sábado en la escuela Los Andes, ¿cómo va?', 'Pirineos es [fecha] en la [direccion], ¿cómo va?'],
+      ['social', '¿qué tomas hago en la toma aérea de pasado mañana frente a la alcaldía de Táriba?', '¿qué tomas hago en la toma aérea de [fecha] [direccion]?'],
       // A title typed whole (one of them the demo's own event and its place).
-      ['social', '¿cómo subo el video de la Toma aérea Tariba 9 30 frente a la plaza Bolívar?', /^¿cómo subo el video de la \[\[E\d+\]\]\?$/, '¿cómo subo el video de la Toma aérea Tariba [hora] [direccion]?'],
-      ['social', '¿cómo va la Feria de emprendedores en la plaza central?', /^¿cómo va la \[\[E\d+\]\]\?$/, '¿cómo va la Feria de emprendedores en la [direccion]?'],
+      ['social', '¿cómo subo el video de la Toma aérea Tariba 9 30 frente a la plaza Bolívar?', '¿cómo subo el video de la Toma aérea Tariba [hora] [direccion]?'],
+      ['social', '¿cómo va la Feria de emprendedores en la plaza central?', '¿cómo va la Feria de emprendedores en la [direccion]?'],
     ];
-    const LEAKS = ['plaza Bolívar', 'Bolívar', 'sábado', 'mañana', 'Hacienda', 'Trapiche', 'Pueblo Nuevo', '1ro nov', 'Liceo', 'cancha techada', 'Los Andes', 'plaza central', 'alcaldía', '9 30'];
+    const LEAKS = ['plaza Bolívar', 'Bolívar', 'sábado', 'mañana', 'Hacienda', 'Trapiche', 'Pueblo Nuevo', '1ro nov', 'Liceo', 'cancha techada', 'Los Andes', 'plaza central', 'alcaldía', '9 30', 'Tariba', 'Pirineos', 'feria', 'Feria'];
     try {
-      for (const [key, typed, sent, stored] of cases) {
+      for (const [key, typed, stored] of cases) {
         const p = fakeProvider(() => say('Revisa la ficha del evento. ¿Algo más?'));
         const r = await handleTurn(sessionOf(key), { question: typed }, model(p.fetchImpl));
-        expect(r.model, typed).toBe('groq:llama-3.3-70b');
-        const last = p.seen[0].messages.at(-1)!.content!;
-        if (typeof sent === 'string') expect(last, typed).toBe(sent);
-        else expect(last, typed).toMatch(sent);
+        expect(r.model, typed).toBe('local');
         const body = await withSystem((sql) => sql.one<{ body: string }>(`select body from public.assistant_messages where conversation_id = $1 and who = 'persona'`, [r.conversationId]));
         expect(body!.body, typed).toBe(stored);
-        // The next turn: what the person typed before goes in the thread the same way.
-        const q = fakeProvider(() => say('De nada. ¿Algo más?'));
-        await handleTurn(sessionOf(key), { question: 'gracias', conversationId: r.conversationId }, model(q.fetchImpl));
-        const thread = JSON.stringify(q.seen[0].messages.filter((m) => m.role === 'user').map((m) => m.content));
+        // The next question goes on with one about an event: 360's too. The one after stands alone and
+        // goes to the model, without the questions about the event (nor their answers) in the thread.
+        await handleTurn(sessionOf(key), { question: 'gracias', conversationId: r.conversationId }, model(p.fetchImpl));
+        const q = fakeProvider(() => say('Claro. ¿Algo más?'));
+        const next = await handleTurn(sessionOf(key), { question: '¿cómo hago un copy?', conversationId: r.conversationId }, model(q.fetchImpl));
+        expect(next.model, typed).toBe('groq:llama-3.3-70b');
+        expect(p.seen, typed).toHaveLength(0);
+        const thread = JSON.stringify(q.seen[0].messages.filter((m) => m.role !== 'system').map((m) => m.content));
         for (const leak of LEAKS) expect(thread, `${typed}: ${leak}`).not.toContain(leak);
       }
     } finally {

@@ -19,11 +19,15 @@ Actualizado: 25/10/2026. Qué se hizo para blindar la plataforma y qué falta.
    - tiempo real: `event_schedule` no está en la publicación de Realtime;
    - búsquedas: corren con los permisos de la persona y no buscan en fechas ni direcciones;
    - correos y avisos: nunca llevan fecha ni hora de un evento;
-   - títulos de eventos: no se guardan con una hora («a las 9», «3 pm», «a las 10 antes del acto»), un día de la
-     semana, «hoy» ni una fecha con año; la fecha del propio evento tampoco («28 de octubre», «28/10», «el 28»,
-     «mañana»). Una cantidad («a las 3 escuelas») sí pasa, y un sitio con nombre de fecha («Barrio 23 de Enero»)
-     también, salvo si el evento es ese mismo día; el evento tampoco se puede mover a ese día. Quien no ve la fecha
-     (Secretaría) no puede agregar al título una fecha nueva: comprobarla contra la del evento le diría cuál es;
+   - títulos de eventos (`src/lib/domain/event-title.ts`): no se guardan con una hora («a las 9», «3 pm», «12m»,
+     «a las 10 antes del acto», «de 8 a 12», «8-12», «entre 9 y 10»), un día de la semana, «hoy», una fecha en
+     números con año («28/10/2027») ni una escrita con el año pasado, este o uno de los dos siguientes («28 de
+     octubre de 2027»); la fecha del propio evento tampoco, ni una lista o un tramo de días que la incluya («28 de octubre»,
+     «octubre 28», «28/10», «28-oct», «el 28», «1.º de mayo», «mañana», «del 26 al 30 de octubre», «los días 27 y
+     28»). Una cantidad («a las 3 escuelas», «de 8 a 12 años», «23 de Enero, 1500 bolsas») sí pasa, y un nombre o una
+     conmemoración con fecha («Barrio 23 de Enero», «Escuela Domingo Savio», «Mañana Deportiva», «19 de abril de
+     1810») también, salvo si el evento es ese mismo día; el evento tampoco se puede mover a ese día. Quien no ve la
+     fecha (Secretaría) no puede agregar al título una fecha nueva: comprobarla contra la del evento le diría cuál es;
    - archivos: rutas con uuid, sin fecha ni nombre original;
    - registros: el servidor no imprime datos de la agenda.
 4. **Auditoría** por trigger en cada cambio (quién, qué, cuándo, antes y después), en una tabla en la que solo se
@@ -46,8 +50,10 @@ Actualizado: 25/10/2026. Qué se hizo para blindar la plataforma y qué falta.
    versiones de prueba solo a `@resend.dev`. Publicación real apagada (`PUBLISHING_ENABLED=false`).
 10. **IA:** solo en el servidor, con tope de gasto y registro de uso. El texto de la ficha se le pasa como
     información, no como instrucciones. Nunca recibe datos de ciudadanos.
-11. **Entradas validadas** con zod en cada acción del servidor. Los links de los tweets se revisan solo si son
-    públicos (sin IPs ni nombres internos).
+11. **Entradas validadas** con zod en cada acción del servidor, siempre después de comprobar la sesión: quien no entró
+    no hace correr ninguna revisión. Los links de los tweets se revisan solo si son públicos (sin IPs ni nombres
+    internos). Los patrones que leen texto libre (títulos, preguntas a 360, avisos, fichas) tienen un largo máximo y
+    una prueba que los corre con textos largos armados para trabarlos (`tests/unit/text-speed.test.ts`).
 
 ## Lo que falta (antes de producción)
 - Configurar en Supabase: SMTP de Resend, plantilla del correo con `{{ .Token }}`, expiración de sesión,

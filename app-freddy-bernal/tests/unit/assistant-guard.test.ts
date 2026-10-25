@@ -63,20 +63,21 @@ const userOf = (key: DemoUserKey) => DEMO_USERS.find((u) => u.key === key)!.id;
 
 describe('avisos preparados por 360 (S3): la misma revisión en los dos cerebros y al confirmar', () => {
   it('la revisión compartida ve la fecha, el día, la hora, el lugar y los contactos, escritos como sea', () => {
-    expect(noticeIssues('Equipo: la feria de Pirineos es pasado mañana al lado de la plaza Bolívar, lleguen temprano.')).toEqual(['el día', 'la hora', 'el lugar']);
-    expect(noticeIssues('Acto del 1ro de noviembre, de 7 a 9, qta. Las Flores. Contacto 3561234.')).toEqual(['la fecha', 'la hora', 'el lugar', 'los contactos']);
-    expect(noticeIssues('la feria de Pirineos: 9,30, al lado de la plaza Bolívar')).toEqual(['la hora', 'el lugar']);
-    expect(noticeIssues('la caravana del 1ro de noviembre sale de la parroquia La Concordia')).toEqual(['la fecha', 'el lugar']);
+    const D = 'datos del evento';
+    expect(noticeIssues('Equipo: la feria de Pirineos es pasado mañana al lado de la plaza Bolívar, lleguen temprano.')).toEqual(['el día', 'la hora', 'el lugar', D]);
+    expect(noticeIssues('Acto del 1ro de noviembre, de 7 a 9, qta. Las Flores. Contacto 3561234.')).toEqual(['la fecha', 'la hora', 'el lugar', 'los contactos', D]);
+    expect(noticeIssues('la feria de Pirineos: 9,30, al lado de la plaza Bolívar')).toEqual(['la hora', 'el lugar', D]);
+    expect(noticeIssues('la caravana del 1ro de noviembre sale de la parroquia La Concordia')).toEqual(['la fecha', 'el lugar', D]);
     // Naming the event by its place says where it is.
-    expect(noticeIssues('el acto de la plaza Bolívar arranca 12 m')).toEqual(['la hora', 'el lugar']);
-    // A notice goes to a whole role: an hour, a day or a landmark is refused with or without an event word.
-    expect(noticeIssues('la toma Tariba es 9.30')).toEqual(['la hora']);
-    expect(noticeIssues('revisen la Toma aérea Tariba 9.30', ['Toma aérea Tariba 9.30'])).toEqual(['la hora']);
-    expect(noticeIssues('hoy cierra la tanda de tweets')).toEqual(['el día']);
-    // A place by its name only counts in a notice about an event: an event word, the boss, who records,
-    // or a title this person can see, whole or by a name in it («Tariba» for «Toma aérea Tariba»).
-    expect(noticeIssues('Equipo: lo de Tariba es en Pueblo Nuevo')).toEqual([]);
-    expect(noticeIssues('Equipo: lo de Tariba es en Pueblo Nuevo', ['Toma aérea Tariba'])).toEqual(['el lugar']);
+    expect(noticeIssues('el acto de la plaza Bolívar arranca 12 m')).toEqual(['la hora', 'el lugar', D]);
+    // About an event, with or without an event word (an hour with something happening is one).
+    expect(noticeIssues('la toma Tariba es 9.30')).toEqual(['la hora', D]);
+    expect(noticeIssues('revisen la Toma aérea Tariba 9.30', ['Toma aérea Tariba 9.30'])).toEqual(['la hora', D]);
+    // A notice that names no event keeps its days: they are the team's (round 4).
+    expect(noticeIssues('hoy cierra la tanda de tweets')).toEqual([]);
+    // A place by its name with something happening is an event's, whoever names it.
+    expect(noticeIssues('Equipo: lo de Tariba es en Pueblo Nuevo')).toEqual(['el lugar', D]);
+    expect(noticeIssues('Equipo: lo de Tariba es en Pueblo Nuevo', ['Toma aérea Tariba'])).toEqual(['el lugar', D]);
     // Every way of writing it that got through (round 3): assistant-notices.test.ts.
     // A deadline or a day for the team's work is not the event's; nor is an ordinary notice, a count or a network.
     for (const ok of [
@@ -92,8 +93,8 @@ describe('avisos preparados por 360 (S3): la misma revisión en los dos cerebros
       'revisen los copies en Instagram del acto',
     ]) expect(noticeIssues(ok), ok).toEqual([]);
     // …but only right next to the team's verb: the event's day around it still counts.
-    expect(noticeIssues('suban hoy, la feria es mañana')).toEqual(['el día']);
-    expect(noticeIssues('la feria de mañana suban fotos')).toEqual(['el día']);
+    expect(noticeIssues('suban hoy, la feria es mañana')).toEqual(['el día', D]);
+    expect(noticeIssues('la feria de mañana suban fotos')).toEqual(['el día', D]);
   });
 
   it('cerebro de demostración: no prepara ninguno de los avisos que se colaban', async () => {
@@ -140,8 +141,8 @@ describe('avisos preparados por 360 (S3): la misma revisión en los dos cerebros
       withSystem((sql) => sql.one<{ id: string }>(`insert into public.assistant_drafts (kind, created_by, summary, body, target) values ('aviso', $1, 'Aviso para Redes', $2, '{"role":"social"}'::jsonb) returning id`, [ADMIN_ID, body]));
     const before = await withSystem((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.notifications where kind = 'assistant_notice'`));
     for (const [body, what] of [
-      ['Equipo: la feria de Pirineos es pasado mañana al lado de la plaza Bolívar, lleguen temprano.', 'el día, la hora y el lugar'],
-      ['Acto del 1ro de noviembre, de 7 a 9, qta. Las Flores. Contacto 3561234.', 'la fecha, la hora, el lugar y los contactos'],
+      ['Equipo: la feria de Pirineos es pasado mañana al lado de la plaza Bolívar, lleguen temprano.', 'el día, la hora, el lugar y datos del evento'],
+      ['Acto del 1ro de noviembre, de 7 a 9, qta. Las Flores. Contacto 3561234.', 'la fecha, la hora, el lugar, los contactos y datos del evento'],
     ] as const) {
       const d = (await make(body))!;
       const r = await actions.confirmAssistantDraft({ id: d.id });
@@ -208,7 +209,8 @@ describe('lo que se le enseña (S2, S9): guiones y fichas', () => {
       return out;
     });
     try {
-      for (const q of ['zqxficha ¿qué hay que llevar a la feria de Pirineos?', 'zqxficha ¿qué hay que llevar con el dron a Tariba?']) {
+      // Asked about nothing in particular (a question about an event is 360's, without AI).
+      for (const q of ['zqxficha ¿qué hay que llevar?', 'zqxficha ¿qué llevo con el dron?']) {
         const p = fakeProvider(() => say('Lleva lo de la ficha. ¿Algo más?'));
         await handleTurn(sessionOf('social'), { question: q }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
         const system = p.seen[0].messages[0].content!;
@@ -239,7 +241,8 @@ describe('lo que se le enseña (S2, S9): guiones y fichas', () => {
       expect(r).toMatchObject({ ok: true, data: { origin: 'conversacion' } });
       const saved = (await admin.listScripts(A)).find((x) => x.id === (r as { data: { id: string } }).data.id)!;
       expect(saved.script).toContain('El evento «[titulo]» está en «Ficha»');
-      for (const leak of ['9.30', 'plaza Bolívar', 'Toma aérea']) expect(saved.script).not.toContain(leak);
+      // The question named it by a word of its title: that goes too (a script is never about one event).
+      for (const leak of ['9.30', 'plaza Bolívar', 'Toma aérea', 'Tariba']) expect(`${saved.topic} ${saved.script}`).not.toContain(leak);
     } finally {
       await dropEvent(id);
     }
@@ -314,17 +317,19 @@ describe('cerebro de demostración: la negativa sin la hora del título (S4) y e
   });
 });
 
-describe('aviso al equipo: el motivo que escribe el modelo (ronda 3)', () => {
-  it('a Supervisión (y a administración) no le llegan el día ni el lugar que el modelo puso en el motivo', async () => {
+describe('aviso al equipo: el motivo que escribe el modelo (rondas 3 y 4)', () => {
+  it('a Supervisión le llega «necesita ayuda con un evento»; a administración, el motivo sin el día ni el lugar', async () => {
     const motivo = 'No puede subir la pieza de la feria de pasado mañana frente a la plaza Bolívar, en la Hacienda El Trapiche, el 1ro nov.';
     const p = fakeProvider((n) => (n === 1 ? callTool('avisar_al_equipo', { motivo }) : say('Listo, ya le avisé al equipo.')));
-    const r = await handleTurn(sessionOf('camera'), { question: '¿cómo subo la pieza de la feria de pasado mañana frente a la plaza Bolívar? no me deja' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+    // Asked about nothing in particular (a question about an event never reaches the model).
+    const r = await handleTurn(sessionOf('camera'), { question: 'no me deja subir la pieza, ayuda' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+    expect(r.model).toBe('groq:llama-3.3-70b');
     expect(r.did).toEqual([{ tool: 'avisar_al_equipo' }]);
-    for (const key of ['supervisor', 'admin'] as DemoUserKey[]) {
-      const n = await withSystem((sql) => sql.one<{ body: string }>(`select body from public.notifications where user_id = $1 and kind = 'assistant_escalation' order by created_at desc limit 1`, [userOf(key)]));
-      expect(n!.body, key).toMatch(/necesita ayuda: No puede subir la pieza de la feria/);
-      for (const leak of ['pasado mañana', 'plaza Bolívar', 'Bolívar', 'Hacienda', 'Trapiche', '1ro nov']) expect(n!.body, `${key}: ${leak}`).not.toContain(leak);
-    }
+    const last = (key: DemoUserKey) => withSystem((sql) => sql.one<{ body: string }>(`select body from public.notifications where user_id = $1 and kind = 'assistant_escalation' order by created_at desc limit 1`, [userOf(key)]));
+    const admin = (await last('admin'))!.body;
+    expect(admin).toMatch(/necesita ayuda: No puede subir la pieza de la feria/);
+    expect((await last('supervisor'))!.body).toBe('Kevin Sánchez necesita ayuda con un evento.');
+    for (const leak of ['pasado mañana', 'plaza Bolívar', 'Bolívar', 'Hacienda', 'Trapiche', '1ro nov']) expect(admin, leak).not.toContain(leak);
   });
 });
 

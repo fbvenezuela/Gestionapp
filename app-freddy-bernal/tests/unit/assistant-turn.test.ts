@@ -174,7 +174,8 @@ describe('cerebro de demostración (sin IA)', () => {
     expect(r.did).toContainEqual({ tool: 'preparar_aviso' });
     const d = await withSystem((sql) => sql.one<{ id: string; body: string; status: string }>(`select id, body, status from public.assistant_drafts order by created_at desc limit 1`));
     expect(d!.status).toBe('pendiente');
-    expect(d!.body).not.toMatch(/3 pm/); // never a time in a notice
+    // A deadline for the team's work keeps its real time (no «[hora]» for the people who read it).
+    expect(d!.body).toBe('revisen los copies antes de las 3 pm');
     const { confirmDraft } = await import('@/lib/assistant/admin');
     await expect(confirmDraft(sessionOf('supervisor'), d!.id)).rejects.toThrow(/administración/);
     const sent = await confirmDraft(sessionOf('admin'), d!.id);
@@ -366,7 +367,7 @@ describe('cerebro de demostración (sin IA)', () => {
     const dated = await ask('admin', 'Mándales un aviso a redes de que la feria es el martes 27 a las 4 pm');
     expect(dated.did).toEqual([]);
     expect(dated.answer).toMatch(/no puede llevar la fecha, la hora/);
-    // A deadline for the material of an event is the team's, not the event's hour: prepared, redacted.
+    // A deadline for the material of an event is the team's, not the event's hour: prepared as it was said.
     for (const q of [
       'Mándales un aviso a redes de que suban el material de la feria antes de las 3 pm',
       'Mándales un aviso a redes de que suban el material de la feria hasta las 5 pm',
@@ -377,7 +378,8 @@ describe('cerebro de demostración (sin IA)', () => {
       const r = await ask('admin', q);
       expect(r.did, q).toEqual([{ tool: 'preparar_aviso' }]);
       const draft = await withSystem((sql) => sql.one<{ body: string }>(`select body from public.assistant_drafts where conversation_id = $1`, [r.conversationId]));
-      expect(draft!.body, q).toMatch(/las \[hora\]$/);
+      // Stored as it was said: the deadline keeps its real time.
+      expect(draft!.body, q).toMatch(/ \d pm$/);
     }
     // How long the team has is not an hour.
     expect((await ask('admin', 'Mándales un aviso a redes de que tienen 24 h para subir el material de la feria')).did).toEqual([{ tool: 'preparar_aviso' }]);
@@ -517,16 +519,16 @@ describe('con modelo (proveedor falso)', () => {
   });
 
   it('las herramientas corren como la persona y nada de la agenda llega al proveedor', async () => {
-    const p = fakeProvider((n) => (n === 1 ? callTool('buscar_evento', { texto: 'jornada de salud Los Andes', p_user_id: 'x' }) : say('La jornada va en por grabar. ¿Algo más?')));
-    const r = await handleTurn(sessionOf('admin'), { question: '¿Cómo va la jornada de salud? mi cel es 0414-1234567, avísame a las 10:30' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+    // Not about an event: the model answers, and looks an event up anyway (its result is masked).
+    const p = fakeProvider((n) => (n === 1 ? callTool('buscar_evento', { texto: 'jornada de salud Los Andes', p_user_id: 'x' }) : say('Va en por grabar. ¿Algo más?')));
+    const r = await handleTurn(sessionOf('admin'), { question: 'revisa mis cosas, mi cel es 0414-1234567' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+    expect(r.model).toBe('groq:llama-3.3-70b');
     expect(r.did).toEqual([{ tool: 'buscar_evento' }]);
     expect(r.goTo?.href).toMatch(/^\/eventos\//);
     const sent = JSON.stringify(p.seen);
     for (const s of secrets) expect(sent).not.toContain(s);
     expect(sent).not.toContain('0414-1234567');
-    expect(sent).not.toContain('10:30');
     expect(sent).toContain('[numero]');
-    expect(sent).toContain('[hora]');
     // The second request carries the tool result; the last round never offers tools.
     expect(p.seen[0].body.tools).toBeDefined();
     expect(p.seen[0].body.temperature).toBe(0.6);
@@ -536,23 +538,28 @@ describe('con modelo (proveedor falso)', () => {
     expect(heard!.text).not.toContain('0414');
   });
 
-  it('fechas y horas escritas «a la venezolana» tampoco llegan al proveedor ni se guardan', async () => {
+  it('lo que habla de un evento lo contesta 360 sin IA: el proveedor ni se entera, y la pregunta se guarda sin la fecha', async () => {
     const typed = 'El recorrido del puente es el 3 de nov a las cuatro de la tarde. ¿Qué falta? Contacto 0414-555-12-34';
     const p = fakeProvider(() => say('Revisa la ficha técnica en el evento. ¿Algo más?'));
     const r = await handleTurn(sessionOf('dispatch'), { question: typed }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
     expect(r.degraded).toBe(false);
-    const sent = JSON.stringify(p.seen);
-    for (const leak of ['3 de nov', 'cuatro de la tarde', '0414', '555-']) expect(sent).not.toContain(leak);
-    expect(sent).toContain('el [fecha] a las [hora]');
+    expect(r.model).toBe('local');
+    expect(p.seen).toHaveLength(0);
     const stored = await withSystem((sql) => sql.query<{ body: string }>(`select body from public.assistant_messages where conversation_id = $1`, [r.conversationId]));
     for (const m of stored) for (const leak of ['3 de nov', 'cuatro de la tarde', '0414']) expect(m.body).not.toContain(leak);
     const heard = await withSystem((sql) => sql.query<{ text: string }>(`select text from public.assistant_heard where text like 'El recorrido del puente%'`));
     expect(heard.length).toBeGreaterThan(0);
     for (const h of heard) expect(h.text).not.toMatch(/3 de nov|cuatro de la tarde|0414/);
-    // And the model saying it back is caught at the exit.
-    const q = fakeProvider(() => say('El recorrido es el 3 de nov a las cuatro de la tarde.'));
+    // Nothing is reserved against the month's cap for it.
+    const reserved = await withSystem((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.ai_usage where user_id = $1 and input_tokens = 0`, [sessionOf('dispatch').userId]));
+    expect(reserved!.n).toBe(0);
+    // An hour typed in an ordinary request, or the question that follows one about an event, goes the same way.
+    const q = fakeProvider(() => say('Va bien. ¿Algo más?'));
     const r2 = await handleTurn(sessionOf('dispatch'), { question: '¿cuándo es el recorrido del puente?' }, { chain: CHAIN, chatOptions: { fetchImpl: q.fetchImpl } });
-    expect(r2.answer).toBe(AGENDA_FALLBACK);
+    expect(r2.answer).toMatch(/no lo manejo|no la tengo/);
+    expect((await handleTurn(sessionOf('dispatch'), { question: '¿y qué falta?', conversationId: r2.conversationId }, { chain: CHAIN, chatOptions: { fetchImpl: q.fetchImpl } })).model).toBe('local');
+    expect((await handleTurn(sessionOf('dispatch'), { question: 'revisa mis cosas a las 10:30' }, { chain: CHAIN, chatOptions: { fetchImpl: q.fetchImpl } })).model).toBe('local');
+    expect(q.seen).toHaveLength(0);
   });
 
   it('un título con fecha, hora o dirección no llega al proveedor (ni por la herramienta ni por el hilo): va como «[[E1]]» y la persona ve el título', async () => {
@@ -562,8 +569,9 @@ describe('con modelo (proveedor falso)', () => {
       // An earlier answer of the demo brain quoted the title as it is (it is in the thread).
       const first = await handleTurn(sessionOf('social'), { question: 'hola' }, LOCAL);
       await withSystem((sql) => sql.query(`insert into public.assistant_messages (conversation_id, who, body) values ($1, 'asistente', $2)`, [first.conversationId, `Lo primero: falta el storyboard: «${title}».`]));
+      // Asked about nothing in particular, the model looks the event up anyway.
       const p = fakeProvider((n) => (n === 1 ? callTool('buscar_evento', { texto: 'escuela Zamorano' }) : say('El evento «[[E1]]» va en ficha. ¿Algo más?')));
-      const r = await handleTurn(sessionOf('social'), { question: '¿Cómo va lo de la escuela Zamorano?', conversationId: first.conversationId }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+      const r = await handleTurn(sessionOf('social'), { question: 'revisa eso, porfa', conversationId: first.conversationId }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
       expect(r.did).toEqual([{ tool: 'buscar_evento' }]);
       const sent = JSON.stringify(p.seen);
       const msgs = p.seen[1].body.messages as { role: string; content: string | null }[];
@@ -586,8 +594,8 @@ describe('con modelo (proveedor falso)', () => {
       return out;
     });
     try {
-      const p = fakeProvider((n) => (n === 1 ? callTool('buscar_evento', { texto: 'Zamorano' }) : say('Encontré varias cosas de Zamorano. ¿Cuál es?')));
-      const r = await handleTurn(sessionOf('boss'), { question: '¿Cómo va lo de Zamorano?' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+      const p = fakeProvider((n) => (n === 1 ? callTool('buscar_evento', { texto: 'Zamorano' }) : say('Encontré varias cosas. ¿Cuál es?')));
+      const r = await handleTurn(sessionOf('boss'), { question: 'revisa eso, porfa' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
       expect(r.did).toEqual([{ tool: 'buscar_evento' }]);
       const tool = (p.seen[1].body.messages as { role: string; content: string }[]).find((m) => m.role === 'tool')!;
       const got = (JSON.parse(tool.content).eventos as { titulo: string }[]).map((e) => e.titulo).sort();
@@ -596,8 +604,8 @@ describe('con modelo (proveedor falso)', () => {
       const sent = JSON.stringify(p.seen);
       for (const leak of ['9.30', '8h', '3/11', '7:00', '9.00', 'sábado', 'lunes']) expect(sent, leak).not.toContain(leak);
       // The minutes before h / hs / hrs go with their hour.
-      const q = fakeProvider((n) => (n === 1 ? callTool('buscar_evento', { texto: 'Pirineos' }) : say('Encontré varias cosas de Pirineos. ¿Cuál es?')));
-      await handleTurn(sessionOf('boss'), { question: '¿Cómo va lo de Pirineos?' }, { chain: CHAIN, chatOptions: { fetchImpl: q.fetchImpl } });
+      const q = fakeProvider((n) => (n === 1 ? callTool('buscar_evento', { texto: 'Pirineos' }) : say('Encontré varias cosas. ¿Cuál es?')));
+      await handleTurn(sessionOf('boss'), { question: 'revisa lo otro, porfa' }, { chain: CHAIN, chatOptions: { fetchImpl: q.fetchImpl } });
       const tool2 = (q.seen[1].body.messages as { role: string; content: string }[]).find((m) => m.role === 'tool')!;
       expect((JSON.parse(tool2.content).eventos as { titulo: string }[]).map((e) => e.titulo).sort()).toEqual(['[[E1]]', '[[E2]]', '[[E3]]']);
       for (const leak of ['9.30', '7.30', 'hrs']) expect(JSON.stringify(q.seen), leak).not.toContain(leak);
@@ -609,15 +617,20 @@ describe('con modelo (proveedor falso)', () => {
   it('una respuesta anterior del cerebro de demostración que cita un título con la hora («9.30») no llega al proveedor', async () => {
     const ev = await withSystem((sql) => sql.one<{ id: string }>(`insert into public.events (title, boss_decision, created_by) values ('Toma aérea Tariba 9.30', 'accepted', $1) returning id`, [ADMIN_ID]));
     try {
-      // The month's cap (or a failed reservation) made the demo brain answer: it quotes the title as it is.
-      const first = await handleTurn(sessionOf('social'), { question: '¿Cómo va el evento de Tariba?' }, LOCAL);
+      const first = await handleTurn(sessionOf('social2'), { question: '¿Cómo va el evento de Tariba?' }, LOCAL);
       expect(first.answer).toMatch(/^El evento «Toma aérea Tariba 9\.30» está en/);
       const p = fakeProvider(() => say('Va en ficha. ¿Algo más?'));
-      const r = await handleTurn(sessionOf('social'), { question: '¿Y qué falta?', conversationId: first.conversationId }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+      // Right after a question about an event, the next one is still 360's («¿y qué falta?»)…
+      const next = await handleTurn(sessionOf('social2'), { question: '¿Y qué falta?', conversationId: first.conversationId }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+      expect(next.model).toBe('local');
+      expect(p.seen).toHaveLength(0);
+      // …and one that stands alone goes to the model, without the questions about the event (the first,
+      // and the one that went on with it) or their answers.
+      const r = await handleTurn(sessionOf('social2'), { question: '¿cómo armo un copy?', conversationId: first.conversationId }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
       expect(r.model).toBe('groq:llama-3.3-70b');
-      const thread = (p.seen[0].body.messages as { role: string; content: string }[]).filter((m) => m.role === 'assistant');
-      expect(thread.map((m) => m.content)).toContain('El evento «[[E1]]» está en «Ficha» (decisión del jefe: aceptado). Todavía no tiene material y 0 piezas.');
-      expect(JSON.stringify(p.seen)).not.toContain('9.30');
+      const thread = (p.seen[0].body.messages as { role: string; content: string }[]).filter((m) => m.role !== 'system').map((m) => m.content);
+      expect(thread).toEqual(['¿cómo armo un copy?']);
+      for (const leak of ['9.30', 'Tariba', 'evento']) expect(JSON.stringify(thread), leak).not.toContain(leak);
     } finally {
       await withSystem((sql) => sql.query(`update public.events set deleted_at = now() where id = $1`, [ev!.id]));
     }
@@ -726,12 +739,19 @@ describe('con modelo (proveedor falso)', () => {
     expect(n!.n).toBe(0);
   });
 
-  it('las mejores horas no se cambian por la negativa de la agenda aunque nombre el evento', async () => {
+  it('las mejores horas no se cambian por la negativa de la agenda (y nombrando el evento las da 360)', async () => {
     const p = fakeProvider((n) => (n === 1 ? callTool('mejores_horas', { red: 'instagram' }) : say('En Instagram rinde más de 6:00 p. m. a 9:00 p. m., jueves y miércoles.')));
-    const r = await handleTurn(sessionOf('social'), { question: '¿A qué hora publico el video de la entrega de viviendas en Instagram?' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+    const r = await handleTurn(sessionOf('social2'), { question: '¿A qué hora publico en Instagram?' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+    expect(r.model).toBe('groq:llama-3.3-70b');
     expect(r.answer).toContain('6:00 p. m.');
     expect(r.answer).not.toBe(AGENDA_FALLBACK);
     expect(p.seen).toHaveLength(2); // no corrective round
+    const q = fakeProvider(() => say('No debería llegar aquí.'));
+    const e = await handleTurn(sessionOf('social2'), { question: '¿A qué hora publico el video de la entrega de viviendas en Instagram?' }, { chain: CHAIN, chatOptions: { fetchImpl: q.fetchImpl } });
+    expect(e.model).toBe('local');
+    expect(e.did).toEqual([{ tool: 'mejores_horas' }]);
+    expect(e.answer).not.toBe(AGENDA_FALLBACK);
+    expect(q.seen).toHaveLength(0);
   });
 
   it('las vueltas siguientes empiezan por el eslabón que contestó (el caído no se repite)', async () => {
@@ -758,14 +778,15 @@ describe('con modelo (proveedor falso)', () => {
   });
 
   it('vuelta correctiva (temperatura 0,5, sin herramientas) si contesta una fecha u hora de un evento', async () => {
+    // Asked about nothing in particular, the model brings an event's hour anyway: its answer is held to the rule.
     const p = fakeProvider((n) => (n === 1 ? say('El recorrido es a las 2:00 pm en el puente.') : say('Eso no lo tengo: se ve en la Agenda.')));
-    const r = await handleTurn(sessionOf('dispatch'), { question: '¿a qué hora es el recorrido del puente?' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+    const r = await handleTurn(sessionOf('dispatch'), { question: 'revisa mis cosas' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
     expect(p.seen).toHaveLength(2);
     expect(p.seen[1].body.temperature).toBe(0.5);
     expect(p.seen[1].body.tools).toBeUndefined();
     expect(r.answer).toBe('Eso no lo tengo: se ve en la Agenda.');
-    const q = fakeProvider(() => say('Es a las 9:00 am, en serio.'));
-    const r2 = await handleTurn(sessionOf('dispatch'), { question: '¿a qué hora es el recorrido del puente?' }, { chain: CHAIN, chatOptions: { fetchImpl: q.fetchImpl } });
+    const q = fakeProvider(() => say('El acto es a las 9:00 am, en serio.'));
+    const r2 = await handleTurn(sessionOf('dispatch'), { question: 'revisa mis cosas' }, { chain: CHAIN, chatOptions: { fetchImpl: q.fetchImpl } });
     expect(r2.answer).toBe(AGENDA_FALLBACK);
   });
 

@@ -9,8 +9,8 @@ import { BOSS_DECISION, NETWORK_LABEL, PIECE_STATUS, WORK_STATUS } from '../data
 import { windowHint, type PublishingWindows } from '../domain/publishing-windows';
 import { bestTimes } from '../domain/best-times';
 import { dt } from '../time';
-import { noticeIssues, noticeRefusal } from './guard';
-import { redact } from './redact';
+import { NOTICE_MAX, NOTICE_TOO_LONG, noticeIssues, noticeRefusal } from './guard';
+import { redact, redactContacts } from './redact';
 import { plain } from './text';
 import { loadTitles } from './titles';
 import type { ToolSpec } from './providers';
@@ -344,11 +344,14 @@ export const TOOLS: Tool[] = [
     async run(a, ctx) {
       const rol = String(a.rol);
       const texto = String(a.texto ?? '');
-      // Rule 4, in code for both brains (the prompt is only a preference): a notice about an event
-      // (an event word or a title this person can see) never carries its date, time, day, place or contacts.
-      const issues = noticeIssues(texto, (await loadTitles(ctx.session)).events);
+      if (texto.length > NOTICE_MAX) throw new ToolError(NOTICE_TOO_LONG);
+      // Rule 4, in code for both brains (the prompt is only a preference): no contacts or address; a
+      // notice that names an event (the shared detector, with the titles this person can see) only asks
+      // the team for something, saying nothing of the event but a deadline for the work. What goes is
+      // stored as it was said (a deadline keeps its time), without contacts or addresses.
+      const issues = noticeIssues(texto, await loadTitles(ctx.session));
       if (issues.length) throw new ToolError(noticeRefusal(issues));
-      const body = redact(texto).trim().slice(0, 500);
+      const body = redactContacts(texto).trim().slice(0, NOTICE_MAX);
       if (body.length < 3) throw new ToolError('Falta el texto del aviso.');
       const people = new Set<string>();
       for (const r of rol === 'todos' ? INVITABLE_ROLES : [rol]) for (const id of await usersWithRole(r)) people.add(id);

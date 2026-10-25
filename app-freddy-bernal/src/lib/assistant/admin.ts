@@ -7,7 +7,7 @@ import { INVITABLE_ROLES, ROLES, ROLE_LABEL, type Role } from '../roles';
 import { mergeProfile, type AssistantProfile } from './config';
 import { chat, estimateCost, keyDiagnostics, parseChain, type KeyDiagnosis } from './providers';
 import { DATES_MESSAGE, listOf, noticeIssues, teachingProblem } from './guard';
-import { hasDate, redact } from './redact';
+import { hasDate, redact, redactContacts } from './redact';
 import { variantsOf } from './local';
 import { loadTitles } from './titles';
 import { toolByName } from './tools';
@@ -49,10 +49,11 @@ const pgArray = (xs: string[]) => `{${xs.map((s) => `"${s.replace(/\\/g, '\\\\')
 function noDates(...parts: string[]) {
   if (parts.some((p) => hasDate(p))) throw new AssistantAdminError(DATES_MESSAGE);
 }
-// Fichas and scripts: no date, phone, email or address, and next to an event no time or day of any
-// kind. An event is also one named by a title the admin can see (read as the admin, RLS).
+// Fichas and scripts are for how the team works, never one event (teachingProblem): no date, phone,
+// email or address, no particular event and no time or day next to one. An event is also one named by
+// a title or a place the admin can see (read as the admin, RLS).
 async function teachable(s: Session, o: { said: string[]; asked?: string[]; whole?: boolean }) {
-  const problem = teachingProblem({ ...o, titles: (await loadTitles(s)).events });
+  const problem = teachingProblem({ ...o, titles: await loadTitles(s) });
   if (problem) throw new AssistantAdminError(problem);
 }
 
@@ -317,13 +318,14 @@ export async function confirmDraft(s: Session, id: string) {
       for (const u of await usersWithRole(r)) people.add(u);
     }
     // Rule 4, checked again with the same check both brains use (a draft may come from before it, or
-    // name an event by a title the admin sees): no day, hour, place or contact beyond a team deadline.
-    // The text is redacted again before sending.
-    const issues = noticeIssues(d.body, (await loadTitles(s)).events);
+    // name an event by a title the admin sees): no contacts or address; about an event, only a team
+    // instruction with nothing of the event but a deadline for the work. Contacts and addresses are
+    // taken out again before sending; a deadline keeps its real time.
+    const issues = noticeIssues(d.body, await loadTitles(s));
     if (issues.length) {
       throw new AssistantAdminError(`No se mandó: el aviso trae ${listOf(issues)}, y eso solo va en la Agenda. Descártalo y pide otro sin eso.`);
     }
-    await notify({ userIds: [...people], kind: 'assistant_notice', title: 'Aviso del equipo', body: redact(d.body), key: `assistant-draft:${d.id}` });
+    await notify({ userIds: [...people], kind: 'assistant_notice', title: 'Aviso del equipo', body: redactContacts(d.body), key: `assistant-draft:${d.id}` });
     await withSystem((sql) =>
       sql.query(`update public.assistant_drafts set result = $2::text::jsonb where id = $1`, [d.id, JSON.stringify({ enviados: people.size, a: role === 'todos' ? 'todo el equipo' : ROLE_LABEL[role as Role] })]),
     );

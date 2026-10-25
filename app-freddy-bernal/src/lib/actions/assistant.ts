@@ -108,10 +108,11 @@ export async function saveAnswerAsExample(raw: unknown) {
     if (pair.answer.degraded || pair.answer.error) throw new admin.AssistantAdminError('Esa respuesta salió con problemas: mejor usa «Corregir».');
     const { name } = await admin.getProfile(s);
     // The answer quotes titles as they are and the script goes to the AI provider in every matching
-    // turn: titles become «[titulo]» (the scripts' data hueco) and the rest gets every lock.
+    // turn: titles, and the names in them, become «[titulo]» (the scripts' data hueco) and the rest gets
+    // every lock. What still names one event is refused by saveScript (a script is never about one).
     const titles = await loadTitles(s);
-    const answer = redactQuoted(withTitleHoles(pair.answer.body, titles));
-    const question = guardQuestion(redact(withTitleHoles(pair.question, titles)), titles);
+    const answer = redactQuoted(withTitleHoles(pair.answer.body, titles, { names: true }));
+    const question = guardQuestion(redact(withTitleHoles(pair.question, titles, { names: true })), titles);
     const draft = scriptFromAnswer(question, answer, name);
     return admin.saveScript(s, { ...draft, notes: 'Guardado con «Así se contesta».', fromConversation: true });
   });

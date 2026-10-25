@@ -54,32 +54,35 @@ const statusOf = async (id: string) => (await withSystem((sql) => sql.one<{ stat
 const noticesSent = async () => (await withSystem((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.notifications where kind = 'assistant_notice'`)))!.n;
 
 // What got through: relative days, loose hours, a landmark after any word or with no article, a place
-// by its name, an ordinal date, the boss or who records, no event word at all.
+// by its name, an ordinal date, the boss or who records, no event word at all. Each also says something
+// about the event itself (round 4): «datos del evento».
+const D = 'datos del evento';
 const LEAKY_NOTICES: [string, string[]][] = [
-  ['el acto de Rubio es en dos días', ['la fecha']],
-  ['la caravana sale de la plaza Bolívar', ['el lugar']],
-  ['Tariba es mañana 9 am frente a la plaza Bolívar', ['el día', 'la hora', 'el lugar']],
-  ['la feria arranca 8 y pico', ['la hora']],
-  ['el recorrido sale tempranito', ['la hora']],
-  ['concentración de la caravana en plaza Bolívar', ['el lugar']],
-  ['la feria es en plaza Bolívar', ['el lugar']],
-  ['punto de encuentro de la caravana: plaza Bolívar', ['el lugar']],
-  ['la entrega es en el urbanismo Nuevo Amanecer', ['el lugar']],
-  ['Equipo: la feria es el 1ro nov.', ['la fecha']],
-  ['Equipo: el acto es el 1ro nov, suban todo.', ['la fecha']],
-  ['Equipo: el jefe estará el sábado en Pueblo Nuevo.', ['el día', 'el lugar']],
-  ['Equipo: el acto es en la Hacienda El Trapiche.', ['el lugar']],
-  ['Equipo: la caravana sale desde la plaza Bolívar, suban fotos.', ['el lugar']],
-  ['Equipo: salimos a grabar pasado mañana temprano desde la plaza Bolívar, lleven baterías.', ['el día', 'la hora', 'el lugar']],
-  ['la jornada se hace el sábado', ['el día']],
-  ['la jornada se mudó al sábado', ['el día']],
-  ['la feria arranca 9 menos cuarto', ['la hora']],
-  ['la feria es en 3 días', ['la fecha']],
-  ['la feria es dentro de dos días', ['la fecha']],
-  ['la feria es el día primero', ['la fecha']],
-  ['la feria es de noche', ['la hora']],
-  ['la feria es el 1° nov', ['la fecha']],
-  ['la feria arranca 8', ['la hora']],
+  ['el acto de Rubio es en dos días', ['la fecha', D]],
+  ['la caravana sale de la plaza Bolívar', ['el lugar', D]],
+  ['Tariba es mañana 9 am frente a la plaza Bolívar', ['el día', 'la hora', 'el lugar', D]],
+  ['la feria arranca 8 y pico', ['la hora', D]],
+  ['el recorrido sale tempranito', ['la hora', D]],
+  ['concentración de la caravana en plaza Bolívar', ['el lugar', D]],
+  ['la feria es en plaza Bolívar', ['el lugar', D]],
+  ['punto de encuentro de la caravana: plaza Bolívar', ['el lugar', D]],
+  ['la entrega es en el urbanismo Nuevo Amanecer', ['el lugar', D]],
+  ['Equipo: la feria es el 1ro nov.', ['la fecha', D]],
+  ['Equipo: el acto es el 1ro nov, suban todo.', ['la fecha', D]],
+  ['Equipo: el jefe estará el sábado en Pueblo Nuevo.', ['el día', 'el lugar', D]],
+  ['Equipo: el acto es en la Hacienda El Trapiche.', ['el lugar', D]],
+  ['Equipo: la caravana sale desde la plaza Bolívar, suban fotos.', ['el lugar', D]],
+  // Shaped like the agenda (a day and an hour with a place): judged as one that names an event.
+  ['Equipo: salimos a grabar pasado mañana temprano desde la plaza Bolívar, lleven baterías.', ['el día', 'la hora', 'el lugar', D]],
+  ['la jornada se hace el sábado', ['el día', D]],
+  ['la jornada se mudó al sábado', ['el día', D]],
+  ['la feria arranca 9 menos cuarto', ['la hora', D]],
+  ['la feria es en 3 días', ['la fecha', D]],
+  ['la feria es dentro de dos días', ['la fecha', D]],
+  ['la feria es el día primero', ['la fecha', D]],
+  ['la feria es de noche', ['la hora', D]],
+  ['la feria es el 1° nov', ['la fecha', D]],
+  ['la feria arranca 8', ['la hora', D]],
 ];
 
 describe('avisos a todo un rol: lo que se colaba (ronda 3)', () => {
