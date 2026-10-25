@@ -10,7 +10,7 @@ import { plain } from './text';
 // told to keep the placeholders as written, and after it answers they become the real titles again
 // in the text the person sees. Category, municipality and status still go as they are.
 
-// people: the words of the team's names (folded), so «a Kevin» is someone and «a Táriba» a place.
+// people: the team's first names (folded), so «a Kevin» is someone and «a Táriba» a place.
 export type TitleSet = { events: string[]; pieces: string[]; places: string[]; people?: string[] };
 export const NO_TITLES: TitleSet = { events: [], pieces: [], places: [] };
 
@@ -33,9 +33,12 @@ export async function loadTitles(s: Session): Promise<TitleSet> {
   });
 }
 
-/** The words of the team's names, folded like plain() («Kevin Sánchez» → kevin, sanchez). */
+/**
+ * The team's first names, folded like plain() («Kevin Sánchez» → kevin): people say «a Kevin». Not their
+ * surnames: many are also places of the state («Juan Rubio», «María Cárdenas»), and «a Rubio» is a place.
+ */
 export function peopleWords(names: string[]): string[] {
-  return [...new Set(names.flatMap((n) => plain(n).split(' ')).filter((w) => w.length >= 3))];
+  return [...new Set(names.map((n) => plain(n).split(' ')[0] ?? '').filter((w) => w.length >= 3))];
 }
 
 /** The titles a tool returned in this turn (any `titulo`), for the demo brain's answers. */
@@ -61,11 +64,10 @@ export function titlesIn(calls: { result?: unknown }[]): string[] {
 export const ORDINARY = new Set('nuevo nueva nuevos nuevas viejo vieja alto alta altos bajo baja bajos grande gran santa santo mayor central norte oeste verde blanco blanca negro negra real sector barrio pueblo plaza calle avenida zona parte casa'.split(' '));
 // The little words between a title's words («Feria de emprendedores en la plaza…»).
 const LINKS = new Set('de del la el los las lo en y o a al por con para un una sin sobre'.split(' '));
-const contentWords = (t: string) => plain(t).split(' ').filter((w) => w && !LINKS.has(w));
+const contentWordsOfPlain = (p: string) => p.split(' ').filter((w) => w && !LINKS.has(w));
 // Two words of a title one after the other (the little words between them skipped), both of 4+
 // letters: «toma aerea» for «Toma aérea Tariba», «jornada salud», «zona alta».
-function pairsOf(t: string): string[] {
-  const ws = contentWords(t);
+function pairsIn(ws: string[]): string[] {
   const out: string[] = [];
   for (let k = 1; k < ws.length; k++) {
     const [a, b] = [ws[k - 1], ws[k]];
@@ -95,23 +97,108 @@ export function runsOf(t: string): string[] {
   flush();
   return out;
 }
-// Read once per list (a turn checks its question and its whole thread against the same titles).
-const indexCache = new WeakMap<string[], { whole: string[]; names: Set<string>; pairs: Set<string>; words: Set<string>; runs: string[] }>();
-function indexOf(titles: string[]) {
-  let ix = indexCache.get(titles);
-  if (!ix) {
-    ix = { whole: titles.map((t) => plain(t)).filter((t) => t.length >= 6), names: new Set<string>(), pairs: new Set<string>(), words: new Set<string>(), runs: [] };
-    const runs = new Set<string>();
-    for (const t of titles) {
-      for (const w of String(t ?? '').split(/[^\p{L}\p{N}]+/u).slice(1)) if (/^\p{Lu}\p{L}{3,}$/u.test(w) && !ORDINARY.has(plain(w))) ix.names.add(plain(w));
-      for (const p of pairsOf(String(t ?? ''))) ix.pairs.add(p);
-      for (const w of contentWords(String(t ?? ''))) if (!/\d/.test(w)) ix.words.add(w);
-      for (const r of runsOf(String(t ?? ''))) if (plain(r).length >= 6) runs.add(plain(r));
-    }
-    ix.runs = [...runs];
-    indexCache.set(titles, ix);
+
+export type TitleIndex = {
+  names: ReadonlyMap<string, number[]>;
+  pairs: ReadonlyMap<string, number[]>;
+  words: ReadonlyMap<string, number[]>;
+  /** The words (folded, without the little ones) of the title at this place in the list. */
+  wordsOf: (k: number) => readonly string[];
+};
+const EMPTY: TitleIndex = { names: new Map(), pairs: new Map(), words: new Map(), wordsOf: () => [] };
+const longestWord = (p: string) => p.split(' ').reduce((a, b) => (b.length > a.length ? b : a), '');
+
+// What one title says, read once per title: every turn loads the titles again (new lists, the same
+// titles), and a check reads them all. Whole (folded, 6+ letters), its names, its word pairs, its words
+// (without the little ones and numbers), its capitalised runs (folded, 6+ letters, and as written).
+// Each folded name or title is looked for only where the text has its longest word (`at`). For the
+// placeholders: the title trimmed, and it and its runs as the finder (below) looks for them.
+type Found = { text: string; at: string };
+type TitleInfo = { whole: Found | null; names: string[]; pairs: string[]; words: string[]; runs: Found[]; trimmed: string; name: Name; written: { text: string; name: Name }[] };
+const INFO_CAP = 20_000;
+const infoCache = new Map<string, TitleInfo>();
+function infoOf(raw: unknown): TitleInfo {
+  const t = String(raw ?? '');
+  let info = infoCache.get(t);
+  if (!info) {
+    const p = plain(t);
+    const ws = contentWordsOfPlain(p);
+    const written = runsOf(t);
+    const trimmed = t.trim();
+    info = {
+      whole: p.length >= 6 ? { text: p, at: longestWord(p) } : null,
+      names: [...new Set(t.split(/[^\p{L}\p{N}]+/u).slice(1).filter((w) => /^\p{Lu}\p{L}{3,}$/u.test(w)).map((w) => plain(w)).filter((w) => !ORDINARY.has(w)))],
+      pairs: pairsIn(ws),
+      words: [...new Set(ws.filter((w) => !/\d/.test(w)))],
+      runs: [...new Set(written.map((r) => plain(r)).filter((r) => r.length >= 6))].map((r) => ({ text: r, at: longestWord(r) })),
+      trimmed,
+      name: nameOf(trimmed),
+      written: written.map((r) => ({ text: r, name: nameOf(r) })),
+    };
+    if (infoCache.size >= INFO_CAP) infoCache.clear();
+    infoCache.set(t, info);
   }
+  return info;
+}
+const push = <V>(m: Map<string, V[]>, k: string, v: V) => {
+  const a = m.get(k);
+  if (a) a.push(v);
+  else m.set(k, [v]);
+};
+
+// Read once per list (a turn checks its question and its whole thread against the same titles): each
+// thing that names a title, to the titles (their places in the list) it names. Every turn reads the
+// lists again, so the last few are also kept by what they say.
+type Index = { info: TitleInfo[]; whole: Map<string, number[]>; names: Map<string, number[]>; pairs: Map<string, number[]>; words: Map<string, number[]>; runs: Map<string, [string, number][]>; view: TitleIndex };
+const indexCache = new WeakMap<string[], Index>();
+const RECENT_LISTS = 12;
+// A short list (the titles a tool returned) is cheap to read again: it does not push a long one out.
+const KEEP_FROM = 50;
+const recentIndexes = new Map<string, Index>();
+function buildIndex(titles: string[]): Index {
+  const ix: Index = { info: [], whole: new Map(), names: new Map(), pairs: new Map(), words: new Map(), runs: new Map(), view: EMPTY };
+  for (let k = 0; k < titles.length; k++) {
+    const info = infoOf(titles[k]);
+    ix.info.push(info);
+    if (info.whole) push(ix.whole, info.whole.at, k);
+    for (const n of info.names) push(ix.names, n, k);
+    for (const p of info.pairs) push(ix.pairs, p, k);
+    for (const w of info.words) push(ix.words, w, k);
+    for (const r of info.runs) push(ix.runs, r.at, [r.text, k]);
+  }
+  ix.view = { names: ix.names, pairs: ix.pairs, words: ix.words, wordsOf: (k) => ix.info[k]?.words ?? [] };
   return ix;
+}
+function indexOf(titles: string[]): Index {
+  let ix = indexCache.get(titles);
+  if (ix) return ix;
+  if (titles.length < KEEP_FROM) ix = buildIndex(titles);
+  else {
+    // A title never holds a NUL (the database refuses it).
+    const key = titles.map((t) => String(t ?? '')).join('\u0000');
+    ix = recentIndexes.get(key) ?? buildIndex(titles);
+    recentIndexes.delete(key);
+    recentIndexes.set(key, ix);
+    if (recentIndexes.size > RECENT_LISTS) recentIndexes.delete(recentIndexes.keys().next().value!);
+  }
+  indexCache.set(titles, ix);
+  return ix;
+}
+
+type NameOptions = { byName?: boolean; words?: boolean };
+// The titles a folded text names (their places in the list); with `first`, only whether one does.
+function namedIn(p: string, ix: Index, o: NameOptions, first: boolean): number[] {
+  const out: number[] = [];
+  const padded = ` ${p} `;
+  const ws = [...new Set(p.split(' '))];
+  const hit = (k: number) => out.push(k) > 0 && first;
+  for (const w of ws) for (const k of ix.whole.get(w) ?? []) if (padded.includes(` ${ix.info[k].whole!.text} `) && hit(k)) return out;
+  if (o.byName) {
+    for (const w of ws) if (w.length >= 4) for (const k of ix.names.get(w) ?? []) if (hit(k)) return out;
+    for (const w of ws) for (const [r, k] of ix.runs.get(w) ?? []) if (padded.includes(` ${r} `) && hit(k)) return out;
+  }
+  if (o.words) for (const x of pairsIn(contentWordsOfPlain(p))) for (const k of ix.pairs.get(x) ?? []) if (hit(k)) return out;
+  return out;
 }
 
 /**
@@ -119,23 +206,122 @@ function indexOf(titles: string[]) {
  * («Tariba») or a run of its capitalised words («Alto Verde»); with `words`, also by two of its words in
  * a row («toma aérea»).
  */
-export function namesTitle(text: string, titles: string[], o: { byName?: boolean; words?: boolean } = {}): boolean {
-  if (!titles.length) return false;
-  const ix = indexOf(titles);
-  const p = ` ${plain(text)} `;
-  if (ix.whole.some((t) => p.includes(` ${t} `))) return true;
-  if (o.byName && (p.split(' ').some((w) => w.length >= 4 && ix.names.has(w)) || ix.runs.some((r) => p.includes(` ${r} `)))) return true;
-  return !!o.words && pairsOf(text).some((x) => ix.pairs.has(x));
+export function namesTitle(text: string, titles: string[], o: NameOptions = {}): boolean {
+  if (!Array.isArray(titles) || !titles.length) return false;
+  return namedIn(plain(text), indexOf(titles), o, true).length > 0;
 }
 
-const EMPTY = { names: new Set<string>(), pairs: new Set<string>(), words: new Set<string>(), runs: [] as string[] };
-/** The names, word pairs, words (without the little ones) and capitalised runs of these titles, folded like plain(). */
-export function titleIndex(titles: string[]): { names: Set<string>; pairs: Set<string>; words: Set<string>; runs: string[] } {
-  return titles.length ? indexOf(titles) : EMPTY;
+/** Which of these titles the text names, as namesTitle() reads it (their places in the list, maybe repeated). */
+export function titlesNamed(text: string, titles: string[], o: NameOptions = {}): number[] {
+  if (!Array.isArray(titles) || !titles.length) return [];
+  return namedIn(plain(text), indexOf(titles), o, false);
+}
+
+/** The names, word pairs and words (without the little ones) of these titles, folded like plain(), each to the titles that have it. The same object for the same titles. */
+export function titleIndex(titles: string[]): TitleIndex {
+  return Array.isArray(titles) && titles.length ? indexOf(titles).view : EMPTY;
+}
+
+// Finding the known names in a text, as one pattern of them all would (whole, any case, any run of
+// spaces between their words, not inside a longer word; the longest first where two start together),
+// without one: thousands of names in one pattern took seconds to build. Each name is tried only where
+// the text has its first word (or, for a name that starts with neither a letter nor a digit, after
+// anything that is not one).
+const LETTER_OR_DIGIT = /[\p{L}\p{N}]/u;
+const LEADING_WORD = /^[\p{L}\p{N}]+/u;
+const ENDS_IN_LETTER_OR_DIGIT = /[\p{L}\p{N}]$/u;
+const SPACE = /\s/;
+// Folded the same way whatever case it was typed in («STRAẞE», «straße»).
+const fold = (s: string) => s.toLowerCase().toUpperCase().toLowerCase();
+function sameLetter(a: number, b: number): boolean {
+  if (a < 128 && b < 128) return (a ^ b) === 32 && (a | 32) >= 97 && (a | 32) <= 122;
+  const [x, y] = [String.fromCodePoint(a), String.fromCodePoint(b)];
+  return x.toLowerCase() === y.toLowerCase() || x.toUpperCase() === y.toUpperCase();
+}
+const letterOrDigitAt = (s: string, at: number) => at < s.length && LETTER_OR_DIGIT.test(String.fromCodePoint(s.codePointAt(at)!));
+const afterLetterOrDigit = (s: string, at: number) => at > 0 && ENDS_IN_LETTER_OR_DIGIT.test(s.slice(Math.max(0, at - 2), at));
+// Where `name` (folded with norm(): one space between words) ends if it starts at `at`, or -1.
+function endOf(s: string, at: number, name: string): number {
+  let a = at;
+  for (let b = 0; b < name.length; ) {
+    if (name[b] === ' ') {
+      const from = a;
+      while (a < s.length && SPACE.test(s[a])) a++;
+      if (a === from) return -1;
+      b++;
+      continue;
+    }
+    if (a >= s.length) return -1;
+    const [nc, tc] = [name.codePointAt(b)!, s.codePointAt(a)!];
+    if (nc !== tc && !sameLetter(nc, tc)) return -1;
+    a += tc > 0xffff ? 2 : 1;
+    b += nc > 0xffff ? 2 : 1;
+  }
+  return letterOrDigitAt(s, a) ? -1 : a;
+}
+// A name folded with norm(), and its first word as the finder looks it up ('' when it starts otherwise).
+type Name = { name: string; lead: string };
+function nameOf(text: string): Name {
+  const name = norm(text);
+  const w = LEADING_WORD.exec(name)?.[0];
+  return { name, lead: w ? fold(w) : '' };
+}
+type Finder = (text: string, to: (found: string) => string) => string;
+/** Replaces every one of these names (folded with norm()) found in a text, as described above. */
+export function nameReplacer(names: string[]): Finder {
+  return finderOf((Array.isArray(names) ? names : []).filter((n) => typeof n === 'string' && n).map(nameOf));
+}
+function finderOf(names: Name[]): Finder {
+  const byWord = new Map<string, string[]>();
+  const other: string[] = [];
+  for (const n of names) {
+    if (n.lead) push(byWord, n.lead, n.name);
+    else other.push(n.name);
+  }
+  const longest = (a: string, b: string) => b.length - a.length;
+  for (const list of byWord.values()) list.sort(longest);
+  other.sort(longest);
+  const first = (s: string, at: number, list: string[] | undefined) => {
+    for (const n of list ?? []) {
+      const end = endOf(s, at, n);
+      if (end >= 0) return end;
+    }
+    return -1;
+  };
+  return (text, to) => {
+    const s = String(text ?? '');
+    const word = /[\p{L}\p{N}]+/gu;
+    let out = '';
+    let done = 0;
+    let at = 0;
+    const take = (from: number, end: number) => {
+      out += s.slice(done, from) + to(s.slice(from, end));
+      done = at = end;
+    };
+    scan: while (at < s.length) {
+      word.lastIndex = at;
+      const m = word.exec(s);
+      const next = m ? m.index : s.length;
+      if (other.length) {
+        for (let j = at; j < next; j += s.codePointAt(j)! > 0xffff ? 2 : 1) {
+          if (afterLetterOrDigit(s, j)) continue;
+          const end = first(s, j, other);
+          if (end >= 0) {
+            take(j, end);
+            continue scan;
+          }
+        }
+      }
+      if (!m) break;
+      const end = first(s, m.index, byWord.get(fold(m[0])));
+      if (end >= 0) take(m.index, end);
+      else at = m.index + m[0].length;
+    }
+    return done ? out + s.slice(done) : s;
+  };
 }
 
 const norm = (s: string) => s.trim().replace(/\s+/g, ' ').toLowerCase();
-const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
 
 // A placeholder is written «[[E1]]» (event), «[[P1]]» (piece) or «[[L1]]» (place). As a model may give
 // it back: one or two brackets, spaces, lower case, with or without «».
@@ -184,10 +370,44 @@ export function stripTokens(text: string): string {
   ).replace(/[ \t]{2,}/g, ' ');
 }
 
+// What a set of titles makes known (each name's kind, as written, and the finder), read once per lists:
+// every turn makes new placeholders with the same titles.
+type Known = { kindOf: Map<string, Kind>; original: Map<string, string>; find: Finder | null };
+const NO_LIST = {};
+const knownCache = new WeakMap<object, WeakMap<object, WeakMap<object, Known>>>();
+function knownFor(set: TitleSet): Known {
+  const ixs = [set.events, set.pieces, set.places].map((l) => (Array.isArray(l) && l.length ? indexOf(l) : null));
+  const [e, p, l] = ixs.map((ix) => ix ?? NO_LIST);
+  let byPieces = knownCache.get(e);
+  if (!byPieces) knownCache.set(e, (byPieces = new WeakMap()));
+  let byPlaces = byPieces.get(p);
+  if (!byPlaces) byPieces.set(p, (byPlaces = new WeakMap()));
+  let known = byPlaces.get(l);
+  if (!known) {
+    const k: Known = { kindOf: new Map(), original: new Map(), find: null };
+    const names: Name[] = [];
+    const add = (kind: Kind, text: string, n: Name) => {
+      // An event's title wins over a piece or a place with the same name.
+      if (text.length < MIN_LENGTH[kind] || k.kindOf.has(n.name)) return;
+      k.kindOf.set(n.name, kind);
+      k.original.set(n.name, text);
+      names.push(n);
+    };
+    KIND_ORDER.forEach((kind, at) => {
+      for (const info of ixs[at]?.info ?? []) add(kind, info.trimmed, info.name);
+    });
+    // A place by the run of capitalised words in its name («Alto Verde» of «Casa comunal Alto Verde»).
+    for (const info of ixs[2]?.info ?? []) for (const r of info.written) add('L', r.text, r.name);
+    k.find = names.length ? finderOf(names) : null;
+    byPlaces.set(l, (known = k));
+  }
+  return known;
+}
+
 export class Placeholders {
-  private readonly re: RegExp | null;
-  private readonly kindOf = new Map<string, Kind>();
-  private readonly original = new Map<string, string>();
+  private readonly find: Finder | null;
+  private readonly kindOf: Map<string, Kind>;
+  private readonly original: Map<string, string>;
   private readonly tokenOf = new Map<string, string>();
   private readonly byToken = new Map<string, { kind: Kind; text: string }>();
   private readonly count: Record<Kind, number> = { E: 0, P: 0, L: 0 };
@@ -196,19 +416,7 @@ export class Placeholders {
 
   constructor(set: TitleSet = NO_TITLES) {
     this.titles = set;
-    const lists: Record<Kind, string[]> = { E: set.events, P: set.pieces, L: set.places };
-    const add = (kind: Kind, text: string) => {
-      const key = norm(text);
-      // An event's title wins over a piece or a place with the same name.
-      if (text.length < MIN_LENGTH[kind] || this.kindOf.has(key)) return;
-      this.kindOf.set(key, kind);
-      this.original.set(key, text);
-    };
-    for (const kind of KIND_ORDER) for (const raw of lists[kind] ?? []) add(kind, String(raw ?? '').trim());
-    // A place by the run of capitalised words in its name («Alto Verde» of «Casa comunal Alto Verde»).
-    for (const raw of set.places ?? []) for (const r of runsOf(String(raw ?? ''))) add('L', r);
-    const keys = [...this.kindOf.keys()].sort((a, b) => b.length - a.length);
-    this.re = keys.length ? new RegExp(`(?<![\\p{L}\\p{N}])(?:${keys.map(escape).join('|')})(?![\\p{L}\\p{N}])`, 'giu') : null;
+    ({ kindOf: this.kindOf, original: this.original, find: this.find } = knownFor(set ?? NO_TITLES));
   }
 
   /** How many names it knows. */
@@ -231,7 +439,7 @@ export class Placeholders {
   /** Every known name in the text becomes its placeholder (the same one all turn long). */
   mask(text: string): string {
     const s = String(text ?? '');
-    return this.re ? s.replace(this.re, (m) => this.tokenFor(m)) : s;
+    return this.find ? this.find(s, (m) => this.tokenFor(m)) : s;
   }
 
   /** mask() on every string inside a value (a tool's result), keys kept. */

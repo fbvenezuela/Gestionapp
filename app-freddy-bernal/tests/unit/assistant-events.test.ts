@@ -169,6 +169,39 @@ const ABOUT_AN_EVENT = [
   '¿Dónde está la biblioteca? ¿Y a qué hora llega la comitiva?',
   '¿Dónde queda la plantilla? y la comitiva ¿a qué hora llega?',
   '¿dónde está la biblioteca y a qué hora llega la comitiva?',
+  // Round 7, A1: a distinctive word by its root and a short ending: «-sito», «-itico», «-ón», the other
+  // gender («techado» for «techada», «productoras» for «productores»).
+  'el puentesito es en semana santa, ¿qué llevo?',
+  'el puentesito arranca ahorita, que plano hago',
+  'la canchitica es en semana santa, ¿qué llevo?',
+  'la escuelitica es el día de la madre, ¿qué copy hago?',
+  'el canchón es en semana santa, ¿qué llevo?',
+  'el techado es en semana santa, que llevo',
+  'los productorcitos son después de carnaval, que llevo',
+  'las productoras son el día de la madre',
+  // A7: a 4-letter word of a title as the subject of something happening.
+  'el café es en semana santa, que copy hago',
+  // A2: a when about the agenda next to a where about the platform, however they are joined; «mi sesión de
+  // fotos», someone «con» something, «es» before what is not a deadline.
+  'donde esta la biblioteca a que hora llega la comitiva',
+  '¿Dónde está la biblioteca, a qué hora llega la comitiva?',
+  '¿Dónde está la biblioteca o a qué hora llega la comitiva?',
+  'donde queda la plantilla pero a que hora llega la comitiva',
+  '¿a qué hora cierra la tanda, la comitiva cuándo llega?',
+  '¿dónde queda mi sesión de fotos?',
+  '¿dónde está mi sesión de grabación?',
+  '¿dónde está Kevin con copies?',
+  '¿a qué hora es la invitación del alcalde?',
+  '¿dónde es la invitación del alcalde?',
+  '¿cuándo es la semana de la juventud?',
+  // Round 8, A1: a 4-letter word of a title made smaller, as the subject («café» → «cafecito»).
+  'el cafecito es en semana santa, que copy hago',
+  // A2: a part with no question word of its own takes the one before it («a qué hora … y llega…»).
+  '¿a qué hora cierra la tanda y llega la comitiva?',
+  '¿dónde están la biblioteca y la comitiva?',
+  '¿cuándo vence el plazo y llega la comitiva?',
+  '¿cuándo vence el plazo, y sale la comitiva?',
+  '¿dónde está la biblioteca o la comitiva?',
 ];
 
 const NOT_ABOUT_AN_EVENT = [
@@ -233,6 +266,23 @@ const NOT_ABOUT_AN_EVENT = [
   '¿Esto se va a la biblioteca?',
   '¿Dónde está la biblioteca? ¿Y dónde quedan las plantillas?',
   '¿Cuándo llega la invitación?',
+  // Round 7: still the platform's, and no form of a title word («saludos» is not «salud», «viviendo» is no
+  // «vivienda», «santa» of «semana santa» says nothing alone).
+  '¿Cuándo es el plazo para aprobar?',
+  '¿Dónde está la lista de tweets?',
+  '¿Dónde quedan las plantillas? ¿Y cuándo vence el plazo?',
+  'Saludos, ¿cómo subo un video?',
+  'lo estamos viviendo, ¿cómo hago un copy?',
+  // A 4-letter word of a title that is the work («Toma aérea Tariba»): «la toma» is a shot.
+  'la toma es vertical si es para reels',
+  // Round 8: what goes on with a where of the platform is the platform's too («dónde el botón»), and a part
+  // that is a question of its own or says nothing of anything does not take its question word.
+  '¿Dónde está la biblioteca y el botón de aprobar?',
+  '¿Dónde quedan las plantillas o el registro de cambios?',
+  '¿Cuándo vence el plazo y qué pasa si no llego?',
+  '¿Dónde está la biblioteca y cómo la uso?',
+  '¿Dónde está la biblioteca, que no la veo?',
+  'un cafecito y seguimos, ¿cómo hago un copy?',
 ];
 
 // Round 4b, R3: notices that named an event and said something of it before it, or in another clause.
@@ -272,6 +322,22 @@ describe('el detector compartido (events.ts)', () => {
     // What names an event still does, as a notice too.
     for (const t of ABOUT_AN_EVENT.slice(0, 32)) expect(aboutEvent(t, TITLES, { when: false }), t).toBe(true);
     for (const t of NOTICES_ABOUT_AN_EVENT) expect(aboutEvent(t, TITLES, { when: false }), t).toBe(true);
+  });
+
+  it('una forma de una palabra propia: su raíz y una terminación corta, nunca una palabra común (ronda 7, A1)', () => {
+    const named = (t: string, events: string[]) => eventSignals(t, { events, pieces: [], places: [] }).has('title');
+    const titles = ['Entrega de la cancha techada de El Mirador', 'Reunión con productores de café', 'Fiesta de los Santos Reyes', 'Entrega de viviendas', 'Jornada de salud'];
+    for (const t of ['el puentesito', 'los puentesitos', 'la canchitica', 'el canchón', 'las canchonas', 'el canchazo', 'el techado', 'las techadas', 'la productora', 'los productorcitos', 'la viviendita']) {
+      expect(named(t, [...titles, 'Recorrido por el puente La Quebrada']), t).toBe(true);
+    }
+    // Not a form of them: an ordinary word («santa» of «semana santa», for «Santos»), a gerund («viviendo»),
+    // «-o» after a word that ends in a consonant («saludo» for «salud»), a longer ending («canchero»).
+    for (const t of ['en semana santa', 'lo estamos viviendo', 'saludos al equipo', 'un saludo', 'el canchero']) expect(named(t, titles), t).toBe(false);
+    // Round 8: the root spelled as it sounds made smaller (c → qu, g → gu, z → c; «-io», «-ia» without the i).
+    const spelled = ['Visita a la finca cafetalera de Queniquea', 'Visita a la bodega comunal de Pregonero', 'Entrega del banco de leche', 'Reinauguración del estadio', 'Inauguración de la fábrica de bloques', 'Entrega de la farmacia popular', 'Recorrido por el muro del lápiz'];
+    for (const t of ['la finquita', 'las finquitas', 'la bodeguita', 'el banquito', 'el banquillo', 'el estadito', 'la fabriquita', 'la farmacita', 'el lapicito']) expect(named(t, spelled), t).toBe(true);
+    // That spelling takes only those endings: «el estado», «el banquero», «la bodeguera» are other words.
+    for (const t of ['el estado del material', 'el banquero', 'la bodeguera', 'el finquero']) expect(named(t, spelled), t).toBe(false);
   });
 
   it('«a» + un nombre: un lugar, salvo que sea alguien del equipo (round 5, S4)', () => {
@@ -404,7 +470,7 @@ describe('con cadena de modelos: lo que habla de un evento nunca llega al provee
     }
   });
 
-  it('ronda 5: una palabra propia de un título que ve no llega al proveedor; un dónde o un cuándo de la plataforma sí', async () => {
+  it('rondas 5 a 7: una palabra propia de un título que ve (o una forma suya) no llega al proveedor; un dónde o un cuándo de la plataforma sí', async () => {
     const asks: [DemoUserKey, string][] = [
       ['camera', 'la cancha es en semana santa, ¿qué llevo?'],
       ['camera', 'la cancha arranca ahorita, ¿qué plano hago primero?'],
@@ -427,6 +493,28 @@ describe('con cadena de modelos: lo que habla de un evento nunca llega al provee
       ['camera', '¿A qué hora sale Kevin con copies?'],
       ['social', '¿Dónde está la biblioteca? ¿Y a qué hora llega la comitiva?'],
       ['social', '¿Dónde queda la plantilla? y la comitiva ¿a qué hora llega?'],
+      // Round 7: «-sito», «-itico», «-ón», the other gender, a 4-letter word as the subject, and a when
+      // next to a where of the platform with a comma, «o», «pero» or nothing between them.
+      ['camera2', 'el puentesito es en semana santa, ¿qué llevo?'],
+      ['camera2', 'el puentesito arranca ahorita, que plano hago'],
+      ['camera', 'la canchitica es en semana santa, ¿qué llevo?'],
+      ['camera', 'el canchón es en semana santa, ¿qué llevo?'],
+      ['camera', 'el techado es en semana santa, que llevo'],
+      ['social', 'la escuelitica es el día de la madre, ¿qué copy hago?'],
+      ['social', 'el café es en semana santa, que copy hago'],
+      ['social', 'donde esta la biblioteca a que hora llega la comitiva'],
+      ['social', '¿Dónde está la biblioteca, a qué hora llega la comitiva?'],
+      ['social', '¿Dónde está la biblioteca o a qué hora llega la comitiva?'],
+      ['social', 'donde queda la plantilla pero a que hora llega la comitiva'],
+      ['social', '¿a qué hora cierra la tanda, la comitiva cuándo llega?'],
+      ['camera', '¿dónde queda mi sesión de fotos?'],
+      ['camera', '¿dónde está Kevin con copies?'],
+      ['social', '¿a qué hora es la invitación del alcalde?'],
+      ['social', '¿cuándo es la semana de la juventud?'],
+      // Round 8: the question word of the part before, across «y».
+      ['social', '¿a qué hora cierra la tanda y llega la comitiva?'],
+      ['social', '¿dónde están la biblioteca y la comitiva?'],
+      ['social', '¿cuándo vence el plazo y llega la comitiva?'],
     ];
     for (const [key, q] of asks) {
       const p = fakeProvider('No debería llegar aquí.');
@@ -435,6 +523,7 @@ describe('con cadena de modelos: lo que habla de un evento nunca llega al provee
       expect(r.model, `${key}: ${q}`).toBe('local');
     }
     for (const [key, q] of [
+      ['supervisor', '¿Cuándo es el plazo para aprobar?'],
       ['admin', '¿Dónde está la biblioteca?'],
       ['admin', '¿Dónde está el registro de cambios?'],
       ['supervisor', '¿Dónde está el botón de aprobar?'],
@@ -442,6 +531,8 @@ describe('con cadena de modelos: lo que habla de un evento nunca llega al provee
       ['admin', '¿Cuándo le llega el correo de invitación?'],
       ['social', '¿Dónde quedan las plantillas de copies?'],
       ['social', '¿Le mando el video a Kevin?'],
+      ['supervisor', '¿Dónde está la biblioteca y el botón de aprobar?'],
+      ['supervisor', '¿Cuándo vence el plazo y qué pasa si no llego?'],
     ] as [DemoUserKey, string][]) {
       const p = fakeProvider('Así se hace.');
       const r = await handleTurn(sessionOf(key), { question: q }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });

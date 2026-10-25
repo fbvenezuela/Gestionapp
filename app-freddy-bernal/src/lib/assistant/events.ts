@@ -2,7 +2,7 @@ import 'server-only';
 import { brand } from '../client-config';
 import { carriesEventWhen, hasPlace, hasPlaceByName, hasPlaceName, redactPlacesAfterA } from './redact';
 import { plain } from './text';
-import { NO_TITLES, ORDINARY, namesTitle, titleIndex, type TitleSet } from './titles';
+import { NO_TITLES, ORDINARY, namesTitle, titleIndex, titlesNamed, type TitleIndex, type TitleSet } from './titles';
 
 // Is this about an event? One detector for every place that asks (docs/ASISTENTE.md «Lo que habla de
 // un evento lo contesta 360 sin IA»): which brain answers a turn, how much of a question is masked,
@@ -43,9 +43,10 @@ const SHORTHAND: [RegExp, string][] = [
   [/\bd\b/g, 'de'],
   [/\bxq\b/g, 'porque'],
 ];
+const spokenFolded = (p: string) => SHORTHAND.reduce((t, [re, to]) => t.replace(re, to), p);
 /** plain(), with the shorthand read as the words it stands for. */
 export function spoken(text: string): string {
-  return SHORTHAND.reduce((t, [re, to]) => t.replace(re, to), plain(text));
+  return spokenFolded(plain(text));
 }
 // A work product or a thing of the platform: «lo del copy», «¿dónde queda el material?» are not an event.
 export const WORK = /\b(piezas?|videos?|material|materiales|copy|copies|storyboard|fotos?|tomas|reels?|publica\w*|tweets?|tuits?|tanda)\b/;
@@ -55,8 +56,9 @@ export const PLATFORM = new RegExp(
 // Words of the platform that are often on the agenda too (a sesión, a campaña, a registro, a panel, with
 // what they are of: «la sesión de fotos»): the platform's only with what makes them the screen («el
 // registro de cambios», «la campana de avisos», «mi sesión», «el panel del asistente»).
+// «Mi sesión de fotos» is on the agenda: the login session is never «de» something.
 const SESSION_VERB = 'cerrar|cierro|cierra|cierran|cerre|cerraron|iniciar|inicio|inicia';
-const AGENDA_THINGS = new RegExp(String.raw`\b(?<!\b(?:mi|mis|tu|tus|su|sus|${SESSION_VERB}) |\b(?:${SESSION_VERB}) (?:la|las|mi|mis|su|sus) )(?:sesion|sesiones)\b(?: de [a-z]+)?|\b(?:campanas?|registros?|panel|paneles)\b(?! (?:de cambios|del asistente|de avisos|de arriba|de la app))(?: de [a-z]+)?`, 'g');
+const AGENDA_THINGS = new RegExp(String.raw`\b(?<!\b(?:${SESSION_VERB}) |\b(?:${SESSION_VERB}) (?:la|las|mi|mis|su|sus) )(?:(?:sesion|sesiones) de [a-z]+|(?<!\b(?:mi|mis|tu|tus|su|sus) )(?:sesion|sesiones)\b)|\b(?:campanas?|registros?|panel|paneles)\b(?! (?:de cambios|del asistente|de avisos|de arriba|de la app))(?: de [a-z]+)?`, 'g');
 const AGENDA_THING_WORD = /^(?:sesion|sesiones|campanas?|registros?|panel|paneles)$/;
 /** The text without the agenda-ish words of the platform that nothing ties to a screen. */
 export function withoutAgendaThings(text: string): string {
@@ -80,49 +82,160 @@ const namesByLoDe = (p: string) => [...p.matchAll(LO_DE)].some((m) => !NOT_AN_EV
 const NOT_DISTINCT = new Set(
   'redes supervision despacho grabacion secretaria administracion equipo semana semanas manana tarde noche lunes martes miercoles jueves viernes sabado domingo enero febrero marzo abril mayo junio julio agosto septiembre setiembre octubre noviembre diciembre entre hasta desde hacia durante contra cuando donde porque todos todas nuestro nuestra'.split(' '),
 );
-// A distinctive word's root, without its plural and its last vowel (cancha → canch, puente → puent,
-// viviendas → viviend), for the forms people make of it: «la canchita», «el puentecito», «la escuelita»,
-// «la canchota» (a word that is the root plus a diminutive or an augmentative ending).
-const rootOf = (w: string) => w.replace(/(?:es|s)$/, '').replace(/[aeo]$/, '');
-const DERIVED = /(?:ec|c)?(?:it|ic|ill)[oa]s?$|ot[ea]s?$/;
-type Distinct = Set<string> & { roots?: Set<string> };
-const distinctCache = new WeakMap<string[], Distinct>();
+const isDistinctWord = (w: string) =>
+  w.length >= 5 && !ORDINARY.has(w) && !NOT_DISTINCT.has(w) && !EVENT_WORDS.test(w) && !PLATFORM.test(w) && !GOAL.test(w) && !/^(?:encuentros?|operativos?)$/.test(w);
+// A 4-letter word of a title («café», «obra») counts only as the subject of something happening («el
+// café es en semana santa»), and not one that is said of anything («esta», «todo», «hora») nor the work
+// («la toma es vertical»).
+const NOT_SHORT = new Set('como esta este esto todo toda cada pero ante tras hace solo bien sera aqui alla hora dias ayer anos mesa toma post clip logo'.split(' '));
+const isShortWord = (w: string) => w.length === 4 && !NOT_SHORT.has(w) && !ORDINARY.has(w) && !NOT_DISTINCT.has(w) && !EVENT_WORDS.test(w) && !PLATFORM.test(w) && !GOAL.test(w);
+// The forms people make of a distinctive word: its root (without its plural and its last vowel: cancha
+// → canch, puente → puent, viviendas → viviend, productores → productor) and a short ending. Made
+// smaller or bigger, as anyone says or types it («canchita», «puentecito», «puentesito», «canchitica»,
+// «productorcito», «canchón», «canchota», «canchazo»); and the other gender: after a root that lost its
+// vowel, «-o» or «-a» («techado» for «techada»), after one that ends in a consonant only «-a»
+// («productora»; «saludo» is not «salud»). A gerund is no other gender («viviendo», «haciendo»).
+const SIZE_ENDING = String.raw`(?:e?[cs])?(?:it|ic|ill)(?:it|ic)?[oa]s?|on(?:[ae]s?|es)?|ot[ea]s?|az[oa]s?`;
+const SIZE = new RegExp(`^(?:${SIZE_ENDING})$`);
+const AFTER_VOWEL_ROOT = new RegExp(`^(?:[ao]s?|${SIZE_ENDING})$`);
+const AFTER_CONSONANT_ROOT = new RegExp(`^(?:as?|${SIZE_ENDING})$`);
+// Only made smaller, for a 4-letter word (below): «cafecito», «obrita».
+const SMALL = /^(?:e?[cs])?(?:it|ic)(?:it|ic)?[oa]s?$/;
+const GENDER = /^[ao]s?$/;
+const GERUND = /ndos?$/;
+// The longest ending above.
+const MAX_ENDING = 9;
+// Made smaller or bigger, the root is spelled as it sounds: after «-ca», «-co», «-ga», «-go» the c is qu
+// and the g gu («finca» → «finquita», «banco» → «banquito», «fábrica» → «fabriquita», «bodega» →
+// «bodeguita»), a z is a c («terraza» → «terracita», «lápiz» → «lapicito»), and «-io», «-ia» lose the i
+// («estadio» → «estadito», «farmacia» → «farmacita»). That spelling takes only those endings.
+function spelledRoot(root: string, lost: string): string {
+  if (root.endsWith('z')) return `${root.slice(0, -1)}c`;
+  if (lost !== 'a' && lost !== 'o') return '';
+  if (root.endsWith('c')) return `${root.slice(0, -1)}qu`;
+  if (root.endsWith('g')) return `${root}u`;
+  if (root.endsWith('i') && root.length >= 5) return root.slice(0, -1);
+  return '';
+}
+// Per list of titles: each distinctive word, and each root (as written and as spelled made smaller), to
+// the titles (their places in the list) that have it; the 4-letter words apart, with their roots.
+type Distinct = {
+  words: Map<string, number[]>;
+  vowelRoots: Map<string, number[]>;
+  consonantRoots: Map<string, number[]>;
+  spelledRoots: Map<string, number[]>;
+  short: Set<string>;
+  shortRoots: Set<string>;
+};
+const NO_DISTINCT: Distinct = { words: new Map(), vowelRoots: new Map(), consonantRoots: new Map(), spelledRoots: new Map(), short: new Set(), shortRoots: new Set() };
+// Kept per index of the titles (the same object for the same titles, turn after turn).
+const distinctCache = new WeakMap<TitleIndex, Distinct>();
+// What a word of a title is for these checks, worked out once per word: distinctive, a 4-letter one, its
+// root (4+ letters, or none), whether the root lost a vowel, and the root as spelled made smaller. A
+// 4-letter word's roots are the word and the word without its last vowel, each also so spelled
+// («cafe» for «cafecito», «obr» for «obrita», «poc» for «pocito»).
+type WordKind = { distinct: boolean; short: boolean; root: string; vowel: boolean; spelled: string; shortRoots: string[] };
+const wordKinds = new Map<string, WordKind>();
+function wordKind(w: string): WordKind {
+  let k = wordKinds.get(w);
+  if (!k) {
+    const bare = w.replace(/(?:es|s)$/, '');
+    const root = bare.replace(/[aeo]$/, '');
+    const lost = root === bare ? '' : bare.slice(-1);
+    const short = isShortWord(w);
+    const spelled = root.length >= 4 ? spelledRoot(root, lost) : '';
+    const small = short ? [w, root, spelledRoot(root, lost)].filter((r) => r.length >= 3) : [];
+    k = { distinct: isDistinctWord(w), short, root: root.length >= 4 ? root : '', vowel: !!lost, spelled: spelled.length >= 4 ? spelled : '', shortRoots: small };
+    if (wordKinds.size >= 50_000) wordKinds.clear();
+    wordKinds.set(w, k);
+  }
+  return k;
+}
+const addTo = (m: Map<string, number[]>, k: string, ks: number[]) => {
+  const a = m.get(k);
+  if (a) a.push(...ks);
+  else m.set(k, [...ks]);
+};
 export function distinctTitleWords(titles: string[]): Distinct {
-  if (!Array.isArray(titles) || !titles.length) return new Set();
-  let out = distinctCache.get(titles);
-  if (!out) {
-    out = new Set([...titleIndex(titles).words].filter((w) => w.length >= 5 && !ORDINARY.has(w) && !NOT_DISTINCT.has(w) && !EVENT_WORDS.test(w) && !PLATFORM.test(w) && !GOAL.test(w) && !/^(?:encuentros?|operativos?)$/.test(w))) as Distinct;
-    out.roots = new Set([...out].map(rootOf).filter((r) => r.length >= 4));
-    distinctCache.set(titles, out);
+  if (!Array.isArray(titles) || !titles.length) return NO_DISTINCT;
+  const ix = titleIndex(titles);
+  let d = distinctCache.get(ix);
+  if (!d) {
+    d = { words: new Map(), vowelRoots: new Map(), consonantRoots: new Map(), spelledRoots: new Map(), short: new Set(), shortRoots: new Set() };
+    for (const [w, ks] of ix.words) {
+      const k = wordKind(w);
+      if (k.short) {
+        d.short.add(w);
+        for (const r of k.shortRoots) d.shortRoots.add(r);
+      }
+      if (!k.distinct) continue;
+      d.words.set(w, ks);
+      if (k.root) addTo(k.vowel ? d.vowelRoots : d.consonantRoots, k.root, ks);
+      if (k.spelled) addTo(d.spelledRoots, k.spelled, ks);
+    }
+    distinctCache.set(ix, d);
+  }
+  return d;
+}
+const NONE: number[] = [];
+// The titles a word of the text names by one of their distinctive words: the same word in the singular
+// or the plural («vivienda» for «viviendas», «productor» for «productores»), or a form of it (above).
+// An ordinary word never does («santa» of «semana santa» is no form of «Santos»).
+function distinctHits(w: string, d: Distinct, first = false): number[] {
+  if (w.length < 5 || ORDINARY.has(w) || NOT_DISTINCT.has(w)) return NONE;
+  const out: number[] = [];
+  const add = (ks: number[] | undefined) => {
+    if (ks) out.push(...ks);
+    return first && out.length > 0;
+  };
+  if (add(d.words.get(w)) || add(d.words.get(`${w}s`)) || add(d.words.get(`${w}es`))) return out;
+  if (w.endsWith('s') && add(d.words.get(w.slice(0, -1)))) return out;
+  if (w.endsWith('es') && add(d.words.get(w.slice(0, -2)))) return out;
+  for (let n = Math.max(4, w.length - MAX_ENDING); n < w.length; n++) {
+    const [root, rest] = [w.slice(0, n), w.slice(n)];
+    const vowel = d.vowelRoots.get(root);
+    if (vowel && AFTER_VOWEL_ROOT.test(rest) && !(GENDER.test(rest) && GERUND.test(w)) && add(vowel)) return out;
+    const consonant = d.consonantRoots.get(root);
+    if (consonant && AFTER_CONSONANT_ROOT.test(rest) && add(consonant)) return out;
+    const spelled = d.spelledRoots.get(root);
+    if (spelled && SIZE.test(rest) && add(spelled)) return out;
   }
   return out;
 }
-// The same word in the singular or the plural («vivienda» for «viviendas», «productor» for «productores»),
-// or made smaller or bigger («canchita», «puentecito», «escuelita»).
-const isDistinct = (w: string, d: Distinct) =>
-  w.length >= 5 &&
-  (d.has(w) || d.has(`${w}s`) || d.has(`${w}es`) || (w.endsWith('s') && d.has(w.slice(0, -1))) || (w.endsWith('es') && d.has(w.slice(0, -2))) || (w.length >= 6 && DERIVED.test(w) && !!d.roots?.has(w.replace(DERIVED, ''))));
+// A 4-letter word of a title, or it made smaller («el cafecito», «la obrita»).
+function isShortForm(w: string, d: Distinct): boolean {
+  if (d.short.has(w)) return true;
+  if (w.length < 6 || !d.shortRoots.size || ORDINARY.has(w) || NOT_DISTINCT.has(w)) return false;
+  for (let n = 3; n <= 4; n++) if (d.shortRoots.has(w.slice(0, n)) && SMALL.test(w.slice(n))) return true;
+  return false;
+}
+const isDistinct = (w: string, d: Distinct) => distinctHits(w, d, true).length > 0;
 const namesByWord = (p: string, titles: string[]) => {
   const d = distinctTitleWords(titles);
-  return d.size > 0 && p.split(' ').some((w) => isDistinct(w, d));
+  return d.words.size > 0 && p.split(' ').some((w) => isDistinct(w, d));
 };
 
 /**
  * The words (folded, without the little ones) of the titles a text names: whole, by a name or a run of
- * capitals in one, by two of its words in a row or by a distinctive word of it. What a notice that names
- * an event may repeat of it, and what is the event's name in a question, not its topic.
+ * capitals in one, by two of its words in a row or by a distinctive word of it, and the forms of those
+ * words the text made («la canchita»). What a notice that names an event may repeat of it, and what is
+ * the event's name in a question, not its topic. The text is folded once and looked up in an index of
+ * the titles (read once per list), never title by title.
  */
 export function namedTitleWords(text: string, titles: string[]): Set<string> {
-  const p = spoken(text);
   const words = new Set<string>();
-  for (const t of Array.isArray(titles) ? titles : []) {
-    const one = [t];
-    if (!namesTitle(text, one, { byName: true, words: true }) && !namesByWord(p, one)) continue;
-    for (const w of titleIndex(one).words) words.add(w);
-    // And the forms of its words the text made («la canchita»).
-    const d = distinctTitleWords(one);
-    for (const w of p.split(' ')) if (isDistinct(w, d)) words.add(w);
+  if (!Array.isArray(titles) || !titles.length) return words;
+  const folded = plain(text);
+  const named = new Set(titlesNamed(folded, titles, { byName: true, words: true }));
+  const d = distinctTitleWords(titles);
+  for (const w of new Set(spokenFolded(folded).split(' '))) {
+    const hits = distinctHits(w, d);
+    if (!hits.length) continue;
+    words.add(w);
+    for (const k of hits) named.add(k);
   }
+  const ix = titleIndex(titles);
+  for (const k of named) for (const w of ix.wordsOf(k)) words.add(w);
   return words;
 }
 // An event's or an event place's placeholder («[[E1]]», «[[L1]]»), also as a model may alter it, and
@@ -153,12 +266,27 @@ const WHERE_VERB = 'esta|estan|queda|quedan|ve|ven|aparece|aparecen|encuentro|en
 const RULE_VERB = 'vence|vencen|cierra|cierran|abre|abren|llega|llegan';
 const RULE_THINGS = String.raw`plazos?|correos?|invitacion|invitaciones|codigos?|tweets?|tuits?|tanda|semana|avisos?|notificaciones`;
 const NOT_HAPPENING = `(?!(?:${OCCURRENCE_WORDS.join('|')}|va|van)\\b)`;
+// Between the question and the thing, a word or two («la lista de tweets»), not who it is with
+// («¿dónde está Kevin con copies?» asks for Kevin). «Es» or «son» only before a deadline («¿cuándo es el
+// plazo?»; «¿a qué hora es la invitación del alcalde?» is the agenda). The login session never is «de
+// fotos» or «de grabación».
 const ABOUT_THE_PLATFORM = new RegExp(
-  String.raw`\b(?:donde|cuando|a que hora|que dia|en que parte|en que lugar) (?:(?:se|le|me|te|nos|les) )?(?:(?:(?:${WHERE_VERB}) )?(?:(?:el|la|los|las|mi|mis|tu|tus|su|sus|un|una) )?(?:${NOT_HAPPENING}[a-z]+ ){0,2}(?:${SCREEN_THINGS})|(?:${RULE_VERB}|es|son) (?:(?:el|la|los|las|mi|mis|tu|tus|su|sus) )?(?:${RULE_THINGS})|(?:${WHERE_VERB}) (?:mi|mis|tu|tus|su|sus) sesion(?:es)?)\b|\b(?:se va|se van|llegar|llego|llega|llegan) (?:a|al|para|pa|pal|hasta) (?:(?:la|el|los|las|mi|mis) )?(?:${SCREEN_THINGS})\b`,
+  String.raw`\b(?:donde|cuando|a que hora|que dia|en que parte|en que lugar) (?:(?:se|le|me|te|nos|les) )?(?:(?:(?:${WHERE_VERB}) )?(?:(?:el|la|los|las|mi|mis|tu|tus|su|sus|un|una) )?(?:${NOT_HAPPENING}(?!con\b)[a-z]+ ){0,2}(?:${SCREEN_THINGS})|(?:${RULE_VERB}) (?:(?:el|la|los|las|mi|mis|tu|tus|su|sus) )?(?:${RULE_THINGS})|(?:es|son) (?:(?:el|la|los|las|mi|mis|tu|tus|su|sus) )?plazos?|(?:${WHERE_VERB}) (?:mi|mis|tu|tus|su|sus) sesion(?:es)?(?! de\b))\b|\b(?:se va|se van|llegar|llego|llega|llegan) (?:a|al|para|pa|pal|hasta) (?:(?:la|el|los|las|mi|mis) )?(?:${SCREEN_THINGS})\b`,
 );
-// Each sentence and what «y» joins, judged alone: a where about the platform does not clear a when about
-// the agenda next to it («¿Dónde está la biblioteca? ¿Y a qué hora llega la comitiva?»).
-const CLAUSES = /[.;:!?¿¡\n]+|\s+y\s+/i;
+const ABOUT_THE_PLATFORM_ALL = new RegExp(ABOUT_THE_PLATFORM.source, 'g');
+// Each sentence and what «y», «o», «pero» or a comma join, judged alone, and in each what is left once the
+// platform's part is taken out: a where about the platform does not clear a when about the agenda next to
+// it («¿Dónde está la biblioteca? ¿Y a qué hora llega la comitiva?», «… la biblioteca, a qué hora
+// llega…», «… o a qué hora…», «… pero a qué hora…», or dictated with no commas at all). A part with no
+// question word of its own that goes on with the question before it takes that one's question word, if
+// something happens in it or it starts with a subject of its own: «¿a qué hora cierra la tanda y llega la
+// comitiva?» is judged as «a qué hora llega la comitiva», «¿dónde están la biblioteca y la comitiva?» as
+// «dónde la comitiva» (and «¿dónde está la biblioteca y el botón?» as «dónde el botón»: the platform's).
+// Not «…, que no la veo», nor a question of its own («… y qué pasa si no llego?», «… y cómo la uso?»).
+const CLAUSES = /([.;:!?¿¡\n]+|,|\s+(?:y|e|o|u|ni|pero)\s+)/i;
+const SENTENCE_END = /[.;:!?¿¡\n]/;
+const OWN_SUBJECT = /^(?:el|la|los|las|un|una|unos|unas|mi|mis|tu|tus|su|sus|este|esta|estos|estas|ese|esa|esos|esas)\b/;
+const OWN_QUESTION = /^(?:que|como|quien|quienes|cual|cuales|cuant[oa]s?|por que|para que|porque|si)\b/;
 const asksAny = (t: string) => {
   const p = spoken(t);
   return asksSchedule(t) || STILL_ON.test(p) || (asksRoute(t) && !GOAL.test(p));
@@ -166,9 +294,17 @@ const asksAny = (t: string) => {
 /** Every part of the text that asks when, where or the way is about a thing of the platform. */
 function onlyAboutThePlatform(t: string): boolean {
   let any = false;
-  for (const c of t.split(CLAUSES)) {
-    if (!c.trim() || !asksAny(c)) continue;
-    if (!ABOUT_THE_PLATFORM.test(spoken(c))) return false;
+  // The question word of the last part that asked, in this sentence.
+  let asking = '';
+  const parts = t.split(CLAUSES);
+  for (let k = 0; k < parts.length; k += 2) {
+    if (k > 0 && SENTENCE_END.test(parts[k - 1])) asking = '';
+    let p = spoken(parts[k]);
+    if (!p) continue;
+    if (asksAny(p)) asking = ASK_WORD.exec(p)?.[0] ?? '';
+    else if (asking && !OWN_QUESTION.test(p) && (OCCURRENCE.test(p) || OWN_SUBJECT.test(p)) && asksAny(`${asking} ${p}`)) p = `${asking} ${p}`;
+    else continue;
+    if (!ABOUT_THE_PLATFORM.test(p) || asksAny(p.replace(ABOUT_THE_PLATFORM_ALL, ' '))) return false;
     any = true;
   }
   return any;
@@ -192,6 +328,8 @@ const STILL_ON = /\b(?:se (?:suspendio|suspende|cancelo|cancela|pospuso|pospone|
 const SCHEDULE = new RegExp(
   String.raw`\b(?:${ASK_WORDS}|${UNTIL_ASK})\b|\b(?:que hay|hay algo|hay eventos?|que tiene|que tienen|que tenemos)\b.*\b(?:${DAYS})\b|\b(?:es|son|sera|seria) (?:en|de|por) la (?:manana|tarde|noche)\b`,
 );
+// The question word a part asks with («a que hora», «donde»…), for the part that goes on with it.
+const ASK_WORD = new RegExp(String.raw`\b(?:${ASK_WORDS}|${UNTIL_ASK})\b`);
 const WHEN_WHERE_WORDS = String.raw`\b(?:${ASK_WORDS}|dia|${DAYS}|proximos?|proximas?|vienen)\b`;
 const WHEN_WHERE = new RegExp(`${SCHEDULE.source}|${WHEN_WHERE_WORDS}`);
 const PLACE = new RegExp(String.raw`\b(?:${PLACE_WORDS})\b`);
@@ -296,8 +434,10 @@ export function redactPlaceAfterA(text: string, titles: TitleSet = NO_TITLES): s
  * - `word`: an event word, also typed with one letter off («la feria», «el acto», «la agenda», «feira»);
  * - `title`: a particular event: a title this person can see, whole, by a name in it («Tariba»), by a run
  *   of its capitalised words, by two of its words in a row («toma aérea») or by one distinctive word of
- *   it («la cancha», «el puente», «las viviendas»); or «lo de…» something that is not a thing of the
- *   platform («lo de la cancha», «lo d Tariba»), whoever can see it or not;
+ *   it, also made smaller or bigger or of the other gender («la cancha», «el puentesito», «las
+ *   viviendas», «el techado»), or by a 4-letter word of it as the subject of something happening («el
+ *   café es…»); or «lo de…» something that is not a thing of the platform («lo de la cancha», «lo d
+ *   Tariba»), whoever can see it or not;
  * - `place`: an event's place this person can see, whole, by a name in it («La Quebrada») or by the run
  *   of its capitalised words («Alto Verde»);
  * - `token`: an event's or a place's placeholder, or the scripts' «[titulo]»;
@@ -320,7 +460,7 @@ export function eventSignals(text: string, titles: TitleSet = NO_TITLES): Set<Ev
   const p = spoken(t);
   const out = new Set<EventSignal>();
   if (EVENT_WORDS.test(p) || typedEventWord(p)) out.add('word');
-  if (namesTitle(p, titles.events, { byName: true, words: true }) || namesByWord(p, titles.events) || namesByLoDe(p)) out.add('title');
+  if (namesTitle(p, titles.events, { byName: true, words: true }) || namesByWord(p, titles.events) || namesByLoDe(p) || shortWordIsSubject(t, titles.events)) out.add('title');
   if (namesTitle(p, titles.places, { byName: true })) out.add('place');
   if (EVENT_TOKEN.test(t)) out.add('token');
   if (SUBJECT.test(p)) out.add('subject');
@@ -392,12 +532,18 @@ const INVERTED = /^(?:arranca|arrancan|arrancara|empieza|empiezan|empezara|comie
 const THERE_IS = /^(?:hay|habra|habia|hubo|toca|tocara|trae|traera)$/;
 const DEMONSTRATIVE = new Set('este esta ese esa otro otra'.split(' '));
 
-/** With `titles` (what the person can see), a distinctive word of a title counts as the event too («la cancha es…», «el puente arranca…»). */
+/** With `titles` (what the person can see), a distinctive word of a title counts as the event too («la cancha es…», «el puente arranca…»), and here a 4-letter one too («el café es…»). */
 export function eventIsSubject(text: string, titles: TitleSet | string[] = NO_TITLES): boolean {
   const t = String(text ?? '').replace(/\[titulo\]/g, ' ').replace(/\[{1,2}\s*[EeLl]\s*\d{1,4}\s*\]{1,2}/g, ' zzevento ');
   const d = distinctTitleWords(Array.isArray(titles) ? titles : titles?.events ?? []);
-  const isEvent = (w: string) => EVENT_TOKEN_WORD.test(w) || isDistinct(w, d);
+  const isEvent = (w: string) => EVENT_TOKEN_WORD.test(w) || isDistinct(w, d) || isShortForm(w, d);
   return t.split(/[.;:!?¡¿\n]+/).some((c) => subjectIn(spoken(c).split(' ').filter(Boolean), isEvent));
+}
+
+// A 4-letter word of a visible title as the subject of something happening («el café es en semana santa»).
+function shortWordIsSubject(text: string, titles: string[]): boolean {
+  const d = distinctTitleWords(titles);
+  return d.short.size > 0 && text.split(/[.;:!?¡¿\n]+/).some((c) => subjectIn(spoken(c).split(' ').filter(Boolean), (w) => isShortForm(w, d)));
 }
 
 function subjectIn(ws: string[], isEvent: (w: string) => boolean): boolean {

@@ -353,8 +353,10 @@ function protectRatios(text: string): string {
 const WORK_VERB = String.raw`(?:sub(?:o|e|en|an|imos|ir)|mand(?:o|a|an|en|amos|ar)|envi(?:o|a|an|en|amos|ar)|env[ií](?:o|a|an|en)|revis(?:o|a|an|en|amos|ar)|carg(?:o|a|an|amos|ar)|carguen|aprueb(?:o|a|an|en)|aprob(?:amos|ar)|public(?:o|a|an|amos|ar)|publiquen|edit(?:o|a|an|en|amos|ar)|corrij(?:o|a|an)|correg(?:imos|ir))(?:lo|la|los|las)?`;
 const OWN_DAY = String.raw`(?:pasado\s+ma[ñn]ana|ma[ñn]ana|hoy|esta\s+(?:noche|tarde)|(?:el\s+)?(?:${WEEKDAYS}))`;
 const HELPER = String.raw`(?:(?:hay|tengo|tienes|tiene|tenemos|tienen|debo|debes|debe|debemos|deben|puedo|puedes|puede|podemos|pueden|voy\s+a|vas\s+a|va\s+a|vamos\s+a|van\s+a)\s+(?:que\s+)?)?`;
+// The day is looked for first: a look back over a run of spaces at every place of a long blank text
+// took seconds.
 const OWN_WORK_DAY = new RegExp(
-  String.raw`(?<![\p{L}])(?<!(?:\bde|\bdel|\bla)\s+)${OWN_DAY}(?=\s+(?:mismo\s+)?(?:(?:lo|la|los|las|le|les|me|se)\s+)?${HELPER}${WORK_VERB}(?![\p{L}]))|(?<=(?<![\p{L}])${WORK_VERB}\s+)${OWN_DAY}(?![\p{L}])`,
+  String.raw`(?<![\p{L}])(?=${OWN_DAY})(?:(?<!(?:\bde|\bdel|\bla)\s+)${OWN_DAY}(?=\s+(?:mismo\s+)?(?:(?:lo|la|los|las|le|les|me|se)\s+)?${HELPER}${WORK_VERB}(?![\p{L}]))|(?<=(?<![\p{L}])${WORK_VERB}\s+)${OWN_DAY}(?![\p{L}]))`,
   'giu',
 );
 const KEPT = /\uE000(\uE001+)\uE002/g;

@@ -68,7 +68,9 @@ const COMMON = new Set(
   ('como para esta este estos todo todos pero cuando donde queda quedan tiene tengo puedo quiero hacer hace sale salen cual cuales sobre desde hasta porque entonces ahora algo alguien solo bien dime saber ' +
     'hago hice haga necesito debo deberia dice dicen dijo pasa paso salio pongo favor porfa ayuda ayudame cosa cosas mucho mucha muy usted ustedes ' +
     // Questions and fillers (round 6): «¿cuánto puede pesar…?» is about the weight, «¿qué significa…?» about what follows.
-    'cuanto cuanta cuantos cuantas puede pueden podria tener tienen significa dejo poner pone ponen').split(' '),
+    'cuanto cuanta cuantos cuantas puede pueden podria tener tienen significa dejo poner pone ponen ' +
+    // «¿Qué llevo a la cancha?» is about what to bring there, which no ficha says («ningún aviso lleva…»).
+    'lleva llevo llevas llevan llevamos lleven llevar').split(' '),
 );
 // Short words that still say what is asked («¿cómo cambio el rol?», «la red», «el CSV»).
 const SHORT = new Set(['rol', 'red', 'csv', 'app']);
@@ -157,8 +159,9 @@ function namesItsObject(f: Ficha, asked: Set<string>): boolean {
 const MAKE = /\bcomo (?:(?:se|lo|la|los|las|le|les|me|te|nos) )*(?:hago|hacer|hace|hacemos|armo|armar|arma|monto|montar)\b/;
 export const makesOne = (text: string) => MAKE.test(plain(text));
 
-// cover: how much of the question (by weight) the ficha has, 0 to 1.
-export type ScoredFicha = { f: Ficha; n: number; cover: number };
+// cover: how much of the question (by weight) the ficha has, 0 to 1; words: how many words of the
+// question it has; titled: one of them is in its title or its tags.
+export type ScoredFicha = { f: Ficha; n: number; cover: number; words: number; titled: boolean };
 /**
  * How well each ficha answers a text. Per word of the question, the best place it shows up in a ficha
  * (title 3, tags 2, body 1), times how rare it is among the fichas; the words of events in general count
@@ -195,18 +198,22 @@ export function scoreFichas(all: Ficha[], text: string): ScoredFicha[] {
     .map((d) => {
       let n = 0;
       let covered = 0;
+      let found = 0;
+      let titled = false;
       for (const w of words) {
         const field = hasWord(d.title, w) ? 3 : hasWord(d.tags, w) ? 2 : hasWord(d.body, w) ? 1 : 0;
         if (!field) continue;
         n += field * (weight.get(w)?.w ?? 0);
         covered += weight.get(w)?.cover ?? 0;
+        found++;
+        titled ||= field > 1;
       }
       if (n) n += 1.2 * pairs.filter((x) => d.title.includes(x) || d.tags.includes(x) || d.body.includes(x)).length;
       const guide = d.f.key?.startsWith('guia:') ? 1.05 : 1;
       const data = DATA_FICHA.test(d.f.key ?? '') && !namesItsObject(d.f, said) ? 1 / 3 : 1;
       const creates = make && d.title.includes(' crea') ? 1.1 : 1;
       const cover = total ? covered / total : 0;
-      return { f: d.f, n: n * (0.4 + 0.6 * cover) * guide * data * creates, cover };
+      return { f: d.f, n: n * (0.4 + 0.6 * cover) * guide * data * creates, cover, words: found, titled };
     })
     .sort((a, b) => b.n - a.n);
 }

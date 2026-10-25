@@ -62,6 +62,11 @@ const ANY_DEADLINE = new RegExp(
 );
 // The work handed in at an hour («suban el material a las 3»): a deadline too.
 const DELIVER_AT = new RegExp(String.raw`(?<=\b(?:${DELIVER})\b[^.;!?]*)\ba\s+las?\s+\[hora\]`, 'g');
+// Soon («al rato», «ya mismo», «dentro de poco»): next to an event it is when the event is, unless it is
+// for what the team hands in («suban las fotos al rato»), like a deadline.
+const SOON = String.raw`al rato|al ratico|en un rato|en un ratico|dentro de un rato|dentro de poco|en un momento|ya mismo|ahora mismo|ahorita`;
+const TEAM_SOON = new RegExp(String.raw`\b(?=${SOON})(?<=\b(?:${DELIVER})\b(?:(?!\b(?:${EVENT_VERB})\b)[^.;!?])*)(?:${SOON})\b`, 'g');
+const SOON_LEFT = new RegExp(String.raw`\b(?:${SOON})\b`);
 const DAY_LEFT = new RegExp(String.raw`\b(?:${DAY})\b`);
 const DAY_WORDS = new RegExp(String.raw`\b(?:${DAY})\b`, 'g');
 const CONTACT_ASK = /\b(?:contactos?|telefono|numero|llamo|hablo|busco|recibe)\b/;
@@ -132,13 +137,14 @@ export function noticeIssues(text: string, titlesIn: TitleSet | string[] = NO_TI
     if (raw.split(NOTICE_SENTENCES).some((c) => c.trim() && mentionsEvent(c, titles) && !TEAM_INSTRUCTION.test(fold(c)))) issues.add('datos del evento');
     // Every word, a deadline left out (the words of the titles it names are fine, not every title the
     // person can see: «Suban las fotos de la feria. Escuela.»; an hour typed into one is not).
-    const t = fold(strict).replace(DEADLINE, ' ').replace(TEAM_DAY, ' ');
+    const t = fold(strict).replace(DEADLINE, ' ').replace(TEAM_DAY, ' ').replace(TEAM_SOON, ' ');
     if (saysMoreThanTheWork(t, namedTitleWords(raw, titles.events))) issues.add('datos del evento');
     // An event's place by its name, outside a title said whole («… a Alto Verde», «de La Quebrada»).
     if (eventSignals(new Placeholders({ events: titles.events, pieces: [], places: [] }).mask(raw), titles).has('place')) issues.add('el lugar');
     if (/\[fecha\]/.test(t)) issues.add('la fecha');
     if (/\[hora\]/.test(t)) issues.add('la hora');
     if (DAY_LEFT.test(t)) issues.add('el día');
+    if (SOON_LEFT.test(t)) issues.add('la hora');
     // Whatever the rules above missed and the phone's guard sees («Toma 9.30»).
     if (looksLikeDateTime(t.replace(DAY_WORDS, ' '))) issues.add('la hora');
     if (hasPlaceName(raw) || placeAfterA(raw, titles)) issues.add('el lugar');

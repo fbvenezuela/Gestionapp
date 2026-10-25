@@ -219,6 +219,19 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿A qué hora es la sesión?', A],
     ['¿Dónde es la sesión de fotos?', A],
     ['¿Cuándo es la campaña?', A],
+    // Round 7: other forms of its word; what to bring is in no ficha («Ningún aviso lleva…» is not an
+    // answer), so next to an event it is the agenda's answer, and in general 360 is not sure.
+    ['la canchitica es en semana santa, ¿qué llevo?', A],
+    ['el canchón es en semana santa, ¿qué llevo?', A],
+    ['el techado es en semana santa, que llevo', A],
+    ['¿qué llevo a la cancha?', A],
+    ['¿dónde queda mi sesión de fotos?', A],
+    ['¿qué tengo que llevar a un acto?', { unsure: true }],
+  ],
+  camera2: [
+    ['el puentesito es en semana santa, ¿qué llevo?', A],
+    ['el puentesito arranca ahorita, que plano hago', A],
+    ['que tengo que llevar al puente', { unsure: true }],
   ],
   social2: [
     // About an event, a loose ficha never answers it (it used to get the list of categories).
@@ -226,6 +239,9 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     // The event's name is not the topic: the copy is (and nothing of the event in the answer).
     ['las viviendas son el día de la madre, ¿qué copy les hago?', { has: /pestaña Copies/ }],
     ['como hago un copy para la jornada de salud', { has: /pestaña Copies/ }],
+    ['la escuelitica es el día de la madre, ¿qué copy hago?', { has: /pestaña Copies/ }],
+    // Round 7: «es» before something that is not a deadline asks for the agenda.
+    ['¿a qué hora es la invitación del alcalde?', A],
   ],
 };
 

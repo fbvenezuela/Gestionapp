@@ -34,7 +34,13 @@ tiene las herramientas de eventos y la negativa de la agenda. No se reserva gast
   suyas seguidas («toma aérea», «zona alta») o por **una palabra propia** suya (ronda 5: de 5 letras o más, que no sea
   común en nombres de lugares, palabra de evento, del trabajo o de la plataforma, de un rol, de tiempo ni de pregunta:
   «la cancha», «el puente», «las viviendas», «la escuela», también en singular o plural y, ronda 6, hecha más chiquita o
-  más grande: «la canchita», «el puentecito», «la escuelita»), o «lo de…» algo que no es de la plataforma ni de un rol
+  más grande: «la canchita», «el puentecito», «la escuelita»; ronda 7, por su raíz y una terminación corta: «el
+  puentesito», «la canchitica», «el canchón», y el otro género, «el techado» por «techada», «las productoras» por
+  «productores»; después de una consonante solo «-a» («saludo» no es «salud»), un gerundio no («viviendo») y una
+  palabra común nunca («santa» de «semana santa»); ronda 8, con la raíz escrita como suena al achicarla: «la finquita»,
+  «la bodeguita», «el banquito», «la fabriquita», «el estadito» (y esa raíz solo con «-ito», «-ón», «-ote»…: «el estado»
+  no es «estadio»); una de 4 letras solo como sujeto de algo que pasa, «el café es en semana santa», también achicada,
+  «el cafecito es…», y no una del trabajo: «la toma es vertical»), o «lo de…» algo que no es de la plataforma ni de un rol
   («lo de la cancha», «lo del puente», «lo de la sesión», lo vea o no); el lugar de un evento que ve, entero,
   por un nombre suyo («La Quebrada») o por su tira de mayúsculas («Alto Verde» de «Casa comunal Alto Verde»); una marca
   (`[[E1]]`, `[[L1]]`, `[titulo]`); el jefe (por su rol, su nombre o su cargo, sacados de la configuración del cliente)
@@ -47,10 +53,19 @@ tiene las herramientas de eventos y la negativa de la agenda. No se reserva gast
   la sesión?», «¿a qué hora voy a la sesión?», «¿a qué hora sale Kevin con copies?» son de la agenda); una sesión, una
   campaña, un registro o un panel solo con lo que los hace pantalla («el registro de cambios», «la campana de avisos»,
   «mi sesión»); y cada frase se juzga sola («¿Dónde está la biblioteca? ¿Y a qué hora llega la comitiva?» es de un
-  evento). O forma de agenda sin nombrar nada: una fecha,
+  evento). Ronda 7: de cada frase se quita lo de la plataforma y se mira si lo que queda pregunta cuándo, dónde o el
+  camino, así una pregunta de la agenda junto a una de la plataforma es de un evento («¿Dónde está la biblioteca, a qué
+  hora llega la comitiva?», con «o», con «pero» o dictada sin comas). Ronda 8: lo que sigue después de «y», «o», «pero» o
+  una coma sin palabra de pregunta propia toma la de antes, si algo pasa en ello o empieza con su propio sujeto: «¿a qué
+  hora cierra la tanda y llega la comitiva?» se lee «a qué hora llega la comitiva», «¿dónde están la biblioteca y la
+  comitiva?» como «dónde la comitiva» (las dos de un evento), y «¿dónde está la biblioteca y el botón de aprobar?» como
+  «dónde el botón» (de la plataforma); no lo que es otra pregunta («… y qué pasa si no llego?») ni «…, que no la veo»; «es» o «son» solo antes de
+  un plazo («¿a qué hora es la invitación del alcalde?», «¿cuándo es la semana de la juventud?» son de la agenda); «mi
+  sesión de fotos» es de la agenda (la sesión de entrar nunca es «de» algo); «¿dónde está Kevin con copies?» pregunta
+  por Kevin. O forma de agenda sin nombrar nada: una fecha,
   hora o dirección escrita (lo que dejó `redact()`), una dirección o un lugar por referencia, un sitio por su nombre
   después de «a» si no es alguien del equipo («¿qué llevo a Táriba?»; «a Kevin» no: los nombres del equipo se leen
-  con los títulos), o un día u hora que no es de su propio trabajo junto a algo que pasa o se mueve («es», «arranca»,
+  con los títulos, solo el nombre y no el apellido, porque muchos apellidos son lugares: «a Rubio» es un sitio), o un día u hora que no es de su propio trabajo junto a algo que pasa o se mueve («es», «arranca»,
   «sale», «salimos», «queda», «será»…), a grabar o a un lugar por su nombre («salimos pasado mañana temprano desde
   Pueblo Nuevo»). Así lo que el vocabulario de tiempo no conoce («la cancha es en semana santa», «el puente arranca
   ahorita») igual es de un evento, sin agregar palabras de tiempo. En una **pregunta**, además, basta un
@@ -149,7 +164,10 @@ regla de arriba, estas capas quedan de segunda línea.
     número en letras solo antes de lo que cuenta («las cuatro piezas»; «…, ocho.» es una hora). Cualquier otra palabra
     dice algo del evento y el aviso no va: «este finde hay feria», «Tamá: la feria», «noviembre trae feria», «la feria
     es…», «la cancha es en semana santa…», «la canchita es en semana santa…», «el puentecito arranca al rato», «… a
-    Alto Verde». Cada frase que nombra el evento le pide algo al equipo
+    Alto Verde», y ronda 7, «el puentesito es…», «el canchón arranca…», «el techado es…» (ronda 8, «la finquita es…»,
+    «el banquito arranca…»). «Al rato», «ya mismo»,
+    «dentro de poco» o «ahorita» junto al evento dicen cuándo es («tengan todo listo para la cancha al rato» no va); para
+    lo que se entrega son un plazo («suban las fotos del puente al rato» sí). Cada frase que nombra el evento le pide algo al equipo
     («Suban las fotos de la feria. Escuela.» no va). Tampoco va el lugar de un evento por su nombre fuera de un título
     dicho entero, ni un día, hora o contacto que quede. Prepararse para el evento («tengan las cámaras listas antes de las 7») es su hora, no un plazo. Lo que no
     pasa sale como «datos del evento».
@@ -249,7 +267,10 @@ Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: 
   dos formas de decir lo mismo («aplicación» / «app», «celular» / «teléfono»); una palabra cuenta si empieza igual y
   comparte las tres cuartas partes de la más corta («cuanto» no es «cuando», «instalo» no es «instagram», «internet» no
   es «intercambio»), y una de 4 letras no se confunde con otra más larga («logo» no es «logros»); las palabras de
-  pregunta o de relleno no cuentan («cuánto», «puede», «tener», «significa», «poner»); las fichas automáticas de datos
+  pregunta o de relleno no cuentan («cuánto», «puede», «tener», «significa», «poner»), ni «llevar» (ronda 7: ninguna
+  ficha dice qué llevar a un evento; «¿qué llevo a la cancha?» es la agenda y «¿qué tengo que llevar a un acto?», «No
+  estoy seguro…»); junto a un evento, una sola palabra de la pregunta que está en el texto de una ficha pero no en su
+  título ni sus etiquetas no basta para contestar con ella; las fichas automáticas de datos
   (fórmulas, categorías, reglas por red, mejores horas) valen un tercio si la pregunta no nombra lo suyo; en «¿cómo hago
   / armo un…?», a empate gana la ficha que dice «crear»; luego por cuánto de la pregunta tiene la ficha: una palabra que
   ninguna ficha tiene cuenta en contra (la mitad si es el verbo del cómo). De la ficha sale la frase con más palabras de
@@ -261,6 +282,12 @@ Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: 
 - `events.ts` — el detector compartido («¿habla de un evento?») y las lecturas de la pregunta (cuándo, dónde, cómo
   llegar, publicar). `titles.ts` — las marcas de los títulos (`Placeholders`) y su lectura como la persona. `guard.ts` —
   las revisiones de avisos, guiones y fichas.
+- **Rápido con muchos títulos** (ronda 7): una persona puede ver hasta 3000 eventos y sus lugares, y cada revisión los
+  usa. Cada título se lee una vez (y la lista entera, mientras no cambie, aunque cada turno la cargue de nuevo); las
+  revisiones buscan en un índice (palabra, raíz, nombre, par de palabras → títulos), nunca título por título; las
+  marcas se buscan por la primera palabra de cada nombre, sin un patrón con todos (con miles tardaba segundos). Con
+  3000 títulos, 3000 lugares y una pregunta de 1.500 caracteres, cada revisión tarda menos de 50 ms
+  (`tests/unit/text-speed.test.ts`), y ningún patrón se traba con un texto largo en blanco.
 - Cada turno tiene un límite de 40 s; después de la primera vuelta, la cadena arranca desde el eslabón que respondió.
 - `index.ts` — `handleTurn(session, { question, conversationId })` → `{ answer, scope, model, ms, degraded, did:
   [{ tool, error? }], goTo: { href, label } | null, conversationId }`. Con cadena, decide el cerebro con el detector

@@ -12,7 +12,7 @@ import { handleTurn } from '@/lib/assistant';
 import { AGENDA_FALLBACK, breaksAgendaRule, filterOutput, guardQuestion } from '@/lib/assistant/brain';
 import { parseChain } from '@/lib/assistant/providers';
 import { redact, redactQuoted, safeTitle } from '@/lib/assistant/redact';
-import { Placeholders, withTitleHoles } from '@/lib/assistant/titles';
+import { Placeholders, nameReplacer, withTitleHoles } from '@/lib/assistant/titles';
 
 function sessionOf(key: DemoUserKey): Session {
   const u = DEMO_USERS.find((x) => x.key === key)!;
@@ -195,6 +195,29 @@ describe('títulos de eventos: al proveedor solo como marcas', () => {
     expect(filterOutput('El evento «[[E1]]» va en ficha.')).toBe('El evento «[[E1]]» va en ficha.');
     // «Así se contesta»: the titles become the scripts' data hueco.
     expect(withTitleHoles('El evento «Feria de Pirineos 9.30» va.', { events: ['Feria de Pirineos 9.30'], pieces: [], places: [] })).toBe('El evento «[titulo]» va.');
+  });
+
+  it('sin un patrón con todos los nombres (tardaba segundos con miles): encuentra lo mismo que ese patrón', () => {
+    // The names as Placeholders keeps them (norm(): one space between words, lower case), some that start
+    // with neither a letter nor a digit, some inside others.
+    const names = ['feria de pirineos', 'feria de pirineos 9.30', 'toma aérea tariba', 'casa comunal alto verde', 'alto verde', '«expo» táchira', '(demo) jornada de salud', 'jornada de salud', 'reunión con productores de café', 'café', 'straße', 'ñandú', 'el mirador', 'mirador del sur', 'k-pop fest', '3er festival', 'año nuevo 2027', 'jornada'];
+    const escape = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+    const oracle = new RegExp(`(?<![\\p{L}\\p{N}])(?:${[...names].sort((a, b) => b.length - a.length).map(escape).join('|')})(?![\\p{L}\\p{N}])`, 'giu');
+    const find = nameReplacer(names);
+    const PIECES = ['Feria de Pirineos', 'FERIA  DE\tPIRINEOS 9.30', 'feria de pirineos9', 'Toma Aérea Tariba', 'toma aerea tariba', 'Casa comunal Alto  Verde', 'alto verde', 'Alto Verdeño', '«Expo» Táchira', '«expo»táchira', '(Demo) Jornada de Salud', 'Jornada', 'jornadas', 'Reunión con productores de CAFÉ', 'Café', 'cafés', 'STRAẞE', 'Straße', 'Ñandú', 'El Mirador', 'Mirador del Sur', 'K-Pop Fest', 'k-pop festival', '3er Festival', 'Año Nuevo 2027', 'año nuevo 20270', 'x', ' ', '  ', '\u00a0', ', ', '. ', '¿', '?', '«', '»', '(', ')', '-', 'a', 'de', '9', 'Ñ', '😀', '𝐀'];
+    let seed = 7;
+    const rand = (n: number) => ((seed = (seed * 1103515245 + 12345) % 2147483648), seed % n);
+    const mark = (m: string) => `<${m}>`;
+    let found = 0;
+    for (let k = 0; k < 3000; k++) {
+      const text = Array.from({ length: 1 + rand(12) }, () => PIECES[rand(PIECES.length)]).join(rand(3) ? ' ' : '');
+      const want = text.replace(oracle, mark);
+      expect(find(text, mark), JSON.stringify(text)).toBe(want);
+      if (want !== text) found++;
+    }
+    expect(found).toBeGreaterThan(1500);
+    expect(find('nada que ver', mark)).toBe('nada que ver');
+    expect(nameReplacer([])('Feria de Pirineos', mark)).toBe('Feria de Pirineos');
   });
 });
 

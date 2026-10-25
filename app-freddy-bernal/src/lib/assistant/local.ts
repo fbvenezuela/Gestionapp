@@ -476,7 +476,9 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const seen = await titles();
   const way = route && !GOAL.test(q);
   const whenless = whenWhere ? withoutWhenWhere(i.question) : i.question;
-  const placeWords = new Set([...namedTitleWords(typed, seen.places), ...namedTitleWords(typed, seen.events)]);
+  // Read once for the turn: the words of the event titles it names are also the event's name below.
+  const titleWords = namedTitleWords(typed, seen.events);
+  const placeWords = new Set([...namedTitleWords(typed, seen.places), ...titleWords]);
   const subject = plain(way ? withoutWhenWhere(i.question) : whenless).split(' ').filter((w) => !placeWords.has(w)).join(' ');
   if (((whenWhere && asksSchedule(i.question)) || way) && !self && !screensIn(withoutAgendaThings(q)).length && !namesPlatform(q) && !namesTopic(i.ctx.knowledge ?? [], withoutAgendaThings(subject))) return refuse();
 
@@ -486,7 +488,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // otherwise 360 gives the agenda's answer (step 17), never a loose ficha («¿hay barro en…?»). A work
   // product named with it is what is asked.
   const eventTurn = aboutEvent(typed, seen) || aboutEvent(i.question, seen);
-  const eventName = eventTurn ? namedTitleWords(typed, seen.events) : new Set<string>();
+  const eventName = eventTurn ? titleWords : new Set<string>();
   const topic = eventName.size ? plain(whenless).split(' ').filter((w) => !eventName.has(w)).join(' ') : whenless;
   // The work named with it («¿cuándo se publica lo de la cancha?», «¿qué copy le hago?») is the topic.
   const strict = eventTurn && !eventHowTo && !WORK.test(q);
@@ -538,10 +540,12 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     if (a && a.hits >= Math.max(1, Math.ceil(words.length / 2))) return done(a.text);
   }
   // A weak match is a guess: below MIN_FICHA_SCORE or MIN_FICHA_COVER (twice that next to an event that
-  // is not a how-to), 360 says it is not sure (step 17).
+  // is not a how-to), or, next to an event, one word of the question found only in a ficha's text, never
+  // in its title or tags («… ¿qué llevo?» and «Ningún aviso lleva…»): 360 says it is not sure (step 17).
   const pool = whenWhere ? i.ctx.knowledge?.filter((f) => !hasDateOrTime(fill(f.body))) : i.ctx.knowledge;
   const top = pool ? scoreFichas(pool, topic)[0] : undefined;
-  if (top && top.n >= MIN_FICHA_SCORE * (strict ? 1.5 : 1) && top.cover >= MIN_FICHA_COVER * (strict ? 2 : 1)) return done(answerFrom(top.f.body).text);
+  const loose = eventTurn && !!top && top.words === 1 && !top.titled;
+  if (top && !loose && top.n >= MIN_FICHA_SCORE * (strict ? 1.5 : 1) && top.cover >= MIN_FICHA_COVER * (strict ? 2 : 1)) return done(answerFrom(top.f.body).text);
 
   // 16. The best chosen script with a variant that needs no data, only when the question said one of its
   // triggers whole (a word in common is a guess). Never the agenda's refusal for a question that is not
