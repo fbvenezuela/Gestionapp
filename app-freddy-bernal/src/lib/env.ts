@@ -47,6 +47,32 @@ export const env = {
   },
   cronSecret: process.env.CRON_SECRET ?? '',
   uploadChunkMb: Number(process.env.UPLOAD_CHUNK_MB ?? '4'),
+  // Where NEW files go (docs/DRIVE.md). Empty = as today (Supabase Storage, or the temp disk in
+  // the demo). 'drive' = the client's Google Drive. Read it through storageProvider()
+  // (src/lib/storage/provider.ts), which never turns Drive on for the demo by accident.
+  storage: {
+    provider: process.env.STORAGE_PROVIDER ?? '',
+  },
+  // Google OAuth web client and Picker key (server only; the Picker key reaches only an admin's
+  // browser, through an admin-only action).
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID ?? '',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+    projectNumber: process.env.GOOGLE_PROJECT_NUMBER ?? '',
+    pickerApiKey: process.env.GOOGLE_PICKER_API_KEY ?? '',
+  },
+  drive: {
+    // 32 random bytes in base64 for the sealed Drive grant. Empty = derived from SESSION_SECRET.
+    tokenKey: process.env.DRIVE_TOKEN_KEY ?? '',
+    // 'proxy' sends upload chunks through the platform (counts against Vercel's transfer).
+    // Anything else = straight from the browser to Google.
+    uploadMode: (process.env.DRIVE_UPLOAD_MODE === 'proxy' ? 'proxy' : 'direct') as 'direct' | 'proxy',
+    // In-memory fake Drive. Only honoured with the demo database (no DATABASE_URL).
+    fake: flag('DRIVE_FAKE'),
+    // Monthly cap (GB) on Drive bytes the platform serves or relays. Vercel Hobby includes about
+    // 10 GB of origin transfer and pauses the project past it. 0 = no cap (Pro).
+    transferCapGb: Number(process.env.DRIVE_TRANSFER_CAP_GB ?? '7'),
+  },
 };
 
 export function isDemo() {

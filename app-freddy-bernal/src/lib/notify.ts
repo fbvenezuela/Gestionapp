@@ -8,7 +8,7 @@ import { sendEmail } from './email/send';
 import { pushNotice } from './push/deliver';
 
 // Kinds that cannot be turned off (they block someone's work).
-const CRITICAL = new Set(['changes_requested', 'publish_failed', 'tweets_low_stock', 'event_assigned', 'review_red', 'review_overdue', 'assistant_escalation', 'assistant_health']);
+const CRITICAL = new Set(['changes_requested', 'publish_failed', 'tweets_low_stock', 'event_assigned', 'review_red', 'review_overdue', 'assistant_escalation', 'assistant_health', 'drive_down', 'drive_quota']);
 
 export type Notice = {
   userIds: string[];

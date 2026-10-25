@@ -9,6 +9,7 @@ import { getDeadlines, piecesInReview } from '@/lib/data/review';
 import { LEVELS, reviewClock } from '@/lib/domain/review';
 import { DIGEST_HOUR, runDailyDigest } from '@/lib/push/digest-run';
 import { assistantHealthCheck } from '@/lib/assistant';
+import { storageProvider } from '@/lib/storage/provider';
 
 // Scheduled work. Called by Vercel Cron (see vercel.json, daily) and/or by Supabase pg_cron +
 // pg_net every 5 minutes (migration 20261025000800_push.sql) with the CRON_SECRET bearer.
@@ -94,6 +95,26 @@ async function tick() {
 
   // 5) Assistant health: too many degraded answers in the last hour → one notice to admin.
   await step('assistant', () => assistantHealthCheck());
+
+  // 6) Drive uploads abandoned for more than 8 days: Google drops a resumable session after a
+  // week (an unfinished session never becomes a file), so the row fails and its sealed URL goes.
+  if (storageProvider() === 'drive') {
+    await step('driveStaleUploads', () =>
+      withSystem(async (sql) =>
+        (await sql.query(
+          `with stale as (
+             update public.media_assets m set status = 'failed' from public.media_drive d
+              where d.media_id = m.id and m.bucket = 'drive' and m.status = 'uploading' and m.created_at < now() - interval '8 days'
+             returning m.id)
+           update public.media_drive set upload_url_enc = null where media_id in (select id from stale) returning media_id`,
+        )).length,
+      ),
+    );
+    // Per-person daily Drive counts are only needed for today: a week is kept, the rest goes.
+    await step('driveTransferDays', () =>
+      withSystem(async (sql) => (await sql.query(`delete from public.drive_transfer_person where day < current_date - 7 returning day`)).length),
+    );
+  }
   return out;
 }
 

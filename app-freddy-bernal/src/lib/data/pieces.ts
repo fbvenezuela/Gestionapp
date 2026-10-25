@@ -5,11 +5,12 @@ export type PieceFull = {
   event_id: string | null; event_title: string | null; category_name: string | null; approved_by_name: string | null; approved_at: string | null;
   review_level: 'verde' | 'amarillo' | 'rojo'; sent_to_review_at: string | null; revision: number; copy_voice: 'boss' | 'institutional';
   copy_closing: { kind: 'brand' | 'question' | 'destination' | 'none'; text?: string } | null;
-  versions: { version: number; media_asset_id: string | null; cover_asset_id: string | null; notes: string; created_at: string; mime: string | null; duration_s: number | null; width: number | null; height: number | null; fps: number | null; video_codec: string | null; audio_codec: string | null; size_bytes: number | null }[];
+  versions: { version: number; media_asset_id: string | null; cover_asset_id: string | null; notes: string; created_at: string; mime: string | null; duration_s: number | null; width: number | null; height: number | null; fps: number | null; video_codec: string | null; audio_codec: string | null; size_bytes: number | null;
+    bucket: string | null; cover_bucket: string | null; cover_size: number | null; cover_label: string | null }[];
   copies: { length_group: 'long' | 'medium' | 'short'; body: string; char_count: number; generated_by: string; formula_id: string | null }[];
   reviews: { decision: string; comment: string; version: number; created_at: string; reviewer: string }[];
   comments: { id: string; body: string; at_second: number | null; version: number; created_at: string; author: string }[];
-  voice: { id: string; phrase: string; at_second: number | null; status: string; audio_asset_id: string | null }[];
+  voice: { id: string; phrase: string; at_second: number | null; status: string; audio_asset_id: string | null; audio_bucket: string | null; audio_size: number | null; audio_label: string | null }[];
   publications: { id: string; network: string; status: string; url: string | null; published_at: string | null; scheduled_at: string | null }[];
 };
 
@@ -25,8 +26,10 @@ export async function getPiece(sql: Sql, id: string): Promise<PieceFull | null> 
   );
   if (!p) return null;
   const versions = await sql.query<PieceFull['versions'][number]>(
-    `select v.version, v.media_asset_id, v.cover_asset_id, v.notes, v.created_at, m.mime, m.duration_s, m.width, m.height, m.fps, m.video_codec, m.audio_codec, m.size_bytes
-       from public.piece_versions v left join public.media_assets m on m.id = v.media_asset_id where v.piece_id = $1 order by v.version desc`,
+    `select v.version, v.media_asset_id, v.cover_asset_id, v.notes, v.created_at, m.mime, m.duration_s, m.width, m.height, m.fps, m.video_codec, m.audio_codec, m.size_bytes,
+            m.bucket, c.bucket as cover_bucket, c.size_bytes as cover_size, c.label as cover_label
+       from public.piece_versions v left join public.media_assets m on m.id = v.media_asset_id left join public.media_assets c on c.id = v.cover_asset_id
+      where v.piece_id = $1 order by v.version desc`,
     [id],
   );
   const copies = await sql.query<PieceFull['copies'][number]>(`select length_group, body, char_count, generated_by, formula_id from public.copies where piece_id = $1`, [id]);
@@ -41,7 +44,9 @@ export async function getPiece(sql: Sql, id: string): Promise<PieceFull | null> 
     [id],
   );
   const voice = await sql.query<PieceFull['voice'][number]>(
-    `select id, phrase, at_second, status, audio_asset_id from public.voice_line_requests where piece_id = $1 and status <> 'cancelled' order by created_at desc`,
+    `select r.id, r.phrase, r.at_second, r.status, r.audio_asset_id, a.bucket as audio_bucket, a.size_bytes as audio_size, a.label as audio_label
+       from public.voice_line_requests r left join public.media_assets a on a.id = r.audio_asset_id
+      where r.piece_id = $1 and r.status <> 'cancelled' order by r.created_at desc`,
     [id],
   );
   const publications = await sql.query<PieceFull['publications'][number]>(

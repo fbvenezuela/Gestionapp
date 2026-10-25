@@ -8,7 +8,7 @@ import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
 import { NETWORK_LABEL, PUB_STATUS } from '@/lib/data/labels';
 import { fmtDateTime } from '@/lib/time';
-import { Package, PublishedForm, FailForm, MetricsForm } from './publication-client';
+import { Package, PublishedForm, FailForm, MetricsForm, type PackageFile } from './publication-client';
 
 export const metadata = { title: 'Publicación' };
 
@@ -28,11 +28,21 @@ export default async function PublicationPage({ params }: { params: Promise<{ id
     const media = p.piece_id
       ? await sql.one<{ media_asset_id: string | null }>(`select media_asset_id from public.piece_versions where piece_id = $1 and version = $2`, [p.piece_id, p.approved_version ?? p.current_version])
       : null;
+    // What «Descargar» needs: files kept in Drive go by pieces.
+    const ids = [media?.media_asset_id, p.cover_asset_id].filter((x): x is string => !!x);
+    const files = ids.length
+      ? await sql.query<{ id: string; bucket: string; size_bytes: string | number; label: string }>(`select id, bucket, size_bytes, label from public.media_assets where id = any($1::uuid[])`, [ids])
+      : [];
     const metrics = await sql.query<{ captured_at: string; views: number | null; reach: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null; source: string }>(
       `select captured_at, views, reach, likes, comments, shares, saves, source from public.publication_metrics where publication_id = $1 order by captured_at desc`,
       [id],
     );
-    return { p, mediaId: media?.media_asset_id ?? null, metrics };
+    const file = (fid: string | null | undefined): PackageFile | null => {
+      if (!fid) return null;
+      const f = files.find((x) => x.id === fid);
+      return { id: fid, label: f?.label ?? '', size: Number(f?.size_bytes ?? 0), drive: f?.bucket === 'drive' };
+    };
+    return { p, video: file(media?.media_asset_id), cover: file(p.cover_asset_id), metrics };
   });
   if (!data) notFound();
   const { p } = data;
@@ -54,7 +64,7 @@ export default async function PublicationPage({ params }: { params: Promise<{ id
       {p.failure_reason ? <p className="mb-4 rounded-[var(--radius-control)] bg-danger-soft p-3 text-danger">Falló: {p.failure_reason}</p> : null}
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="flex flex-col gap-4">
-          {spontaneous ? null : <Package mediaId={data.mediaId} coverId={p.cover_asset_id} copy={p.copy_body} collaborators={p.collaborators} network={NETWORK_LABEL[p.network]} title={p.title} />}
+          {spontaneous ? null : <Package video={data.video} cover={data.cover} copy={p.copy_body} collaborators={p.collaborators} network={NETWORK_LABEL[p.network]} title={p.title} />}
           {p.validation?.length ? (
             <Card>
               <CardHeader title="Avisos de la revisión del video" />

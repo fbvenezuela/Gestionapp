@@ -50,6 +50,8 @@ Actualizado: 23/10/2026. La plataforma interna ya está construida en modo demos
     - Un almacenamiento sin costo de salida (por ejemplo Cloudflare R2): barato para descargar mucho.
     Recomendado: el video en la plataforma (Supabase o R2) y el Drive solo para leer y ordenar lo que ya existe.
     (Por ahora: Supabase Storage con subida por partes y un tope de tamaño configurable.)
+    **25/10:** Juan pidió Drive. Está hecho detrás de `STORAGE_PROVIDER=drive` (D-28). Falta que Juan haga los pasos
+    A–D de `DRIVE.md` (Google Cloud, variables en Vercel, conectar y probar, subir lo del Mac).
 19. **«Un solo perfil» para redes.** Recomendado: un solo **rol** (las cuatro ven y hacen lo mismo) pero **un usuario
     por persona**, para saber quién hizo qué y para el doble factor. Confirmar con Hillary. (Por ahora: así.)
 20. **Reportes cercanos sin mostrar los de otros** (§11.1 de `IDEA.md`). Recomendado: solo «ya hay N reportes de esto a

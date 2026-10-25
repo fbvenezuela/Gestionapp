@@ -15,6 +15,7 @@ import { BossPanel, BriefEditor, CameraAssign, EventEditor, MarkDone, ProposalEd
 import { StoryboardEditor } from './storyboard-editor';
 import { MaterialPanel } from './material-panel';
 import { mediaLockSql } from '@/lib/domain/media-lock';
+import { driveUi } from '@/lib/data/drive';
 
 export const metadata = { title: 'Evento' };
 
@@ -33,8 +34,8 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   const data = await db(s, async (sql) => {
     const ev = await getEvent(sql, id);
     if (!ev) return null;
-    const media = await sql.query<{ id: string; kind: string; label: string; size_bytes: number; duration_s: number | null; width: number | null; height: number | null; status: string; mime: string; lock: string | null }>(
-      `select m.id, m.kind, m.label, m.size_bytes, m.duration_s, m.width, m.height, m.status, m.mime,
+    const media = await sql.query<{ id: string; kind: string; label: string; size_bytes: number; duration_s: number | null; width: number | null; height: number | null; status: string; mime: string; bucket: string; lock: string | null }>(
+      `select m.id, m.kind, m.label, m.size_bytes, m.duration_s, m.width, m.height, m.status, m.mime, m.bucket,
               ${mediaLockSql('m.id')} as lock
          from public.media_assets m where m.event_id = $1 and m.deleted_at is null order by m.kind, m.created_at`,
       [id],
@@ -67,6 +68,8 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   // Secretaría only proposes: storyboard, material and pieces are not her work.
   const visibleTabs = onlySecretary ? TABS.filter((t) => t.key === 'ficha') : TABS.filter((t) => t.key !== 'piezas' || has('admin', 'social', 'supervisor', 'boss'));
   const past = ev.schedule ? new Date(ev.schedule.starts_at) < new Date() : false;
+  // Its own short query, after (never inside) the one above.
+  const drive = tab === 'material' ? await driveUi(s) : null;
 
   return (
     <>
@@ -189,7 +192,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
         <StoryboardEditor eventId={ev.id} canEdit={canBoard} speech={ev.storyboard?.speech ?? ''} blocks={ev.blocks} facts={ev.brief?.key_facts ?? ''} />
       ) : null}
 
-      {tab === 'material' ? <MaterialPanel eventId={ev.id} eventCode={ev.code} media={data.media} canUpload={canUpload} canRemove={has('admin')} /> : null}
+      {tab === 'material' ? <MaterialPanel eventId={ev.id} eventCode={ev.code} media={data.media} canUpload={canUpload} canRemove={has('admin')} canPick={!!drive?.picker} /> : null}
 
       {tab === 'piezas' ? (
         <Card>

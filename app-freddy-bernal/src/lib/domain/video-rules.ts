@@ -84,6 +84,13 @@ export function checkVideo(network: string, formatName: string, rule: FormatRule
   if (m.sizeBytes != null && rule.max_size_mb && m.sizeBytes > rule.max_size_mb * 1024 * 1024) {
     say('error', `pesa ${(m.sizeBytes / 1024 / 1024).toFixed(0)} MB y el máximo es ${rule.max_size_mb} MB. Expórtalo con menos peso.`);
   }
+  // Neither codec nor fps known: the file was never read (a video picked from Google Drive gives
+  // only duration and size, or the phone could not read it). Say so once, instead of «no tiene
+  // audio» or nothing at all.
+  const unread = !m.isImage && m.videoCodec == null && m.fps == null;
+  if (unread && (rule.video_codecs?.length || rule.audio_codecs?.length || rule.min_fps || rule.max_fps)) {
+    say('warn', 'no se pudo leer el formato del video (códec y cuadros por segundo). Revísalo a mano.');
+  }
   if (!m.isImage && m.fps != null) {
     if (rule.max_fps && m.fps > rule.max_fps + 0.5) say('error', `tiene ${Math.round(m.fps)} cuadros por segundo y el máximo es ${rule.max_fps}.`);
     if (rule.min_fps && m.fps < rule.min_fps - 0.5) say('error', `tiene ${Math.round(m.fps)} cuadros por segundo y el mínimo es ${rule.min_fps}.`);
@@ -91,7 +98,7 @@ export function checkVideo(network: string, formatName: string, rule: FormatRule
   if (!m.isImage && m.videoCodec && rule.video_codecs?.length && !codecMatch(m.videoCodec, rule.video_codecs)) {
     say('error', `el formato del video (${m.videoCodec.toUpperCase()}) no lo acepta. Exporta en H.264.`);
   }
-  if (!m.isImage && rule.audio_codecs?.length) {
+  if (!m.isImage && !unread && rule.audio_codecs?.length) {
     if (!m.audioCodec) say('warn', 'el video no tiene audio.');
     else if (!codecMatch(m.audioCodec, rule.audio_codecs)) say('error', `el audio (${m.audioCodec.toUpperCase()}) no lo acepta. Exporta el audio en AAC.`);
   }

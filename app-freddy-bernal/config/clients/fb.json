@@ -597,6 +597,11 @@
   "aid_operator"
  ],
  "uploadMaxMb": 10240,
+ "drive": {
+  "rootFolderName": "FB Operaciones 360",
+  "$importExclude_source": "El equipo pidió bajar el video de Sábados Felices el 24/10/2026: el script de importación lo deja fuera (se escriba junto, con guiones o con #); igual hay que revisar «Se quedan fuera» con --prueba.",
+  "importExclude": ["*sabados felices*"]
+ },
  "defaultCollaborators": [],
  "$schedules_source": "Diagnóstico Digital 360 (m06, m13), aprobado por Juan el 24/10/2026: X 2–3 al día; TikTok de noche.",
  "publishingWindows": {

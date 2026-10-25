@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/field';
 import { LEVELS, type Level } from '@/lib/domain/review';
 import { Uploader } from '@/components/media/uploader';
+import { DrivePicker } from '@/components/media/drive-picker';
 
 const LEVEL_OPTIONS: { value: Level; text: string }[] = [
   { value: 'verde', text: '🟢 Verde: rutina' },
@@ -34,10 +35,13 @@ export function SendToReview({ pieceId, level: saved, locked }: { pieceId: strin
   );
 }
 
-export function VersionUpload({ pieceId, eventId, kind }: { pieceId: string; eventId: string | null; kind: string }) {
+// canPick = «Elegir de Drive» too (Administración, with Drive connected): one file, kept as the new version.
+export function VersionUpload({ pieceId, eventId, kind, canPick = false }: { pieceId: string; eventId: string | null; kind: string; canPick?: boolean }) {
   const { run } = useAction();
   const [, setN] = useState(0);
   const isImage = kind === 'cover' || kind === 'photo' || kind === 'carousel';
+  const newVersion = (id: string) => run(() => addVersion({ pieceId, mediaId: id, coverId: null }), { success: 'Nueva versión guardada.', onOk: () => setN((x) => x + 1) });
+  const newCover = (id: string) => run(() => addVersion({ pieceId, mediaId: null, coverId: id, notes: 'Portada nueva' }), { success: 'Portada guardada.' });
   return (
     <div className="flex flex-col gap-2">
       <Uploader
@@ -48,8 +52,9 @@ export function VersionUpload({ pieceId, eventId, kind }: { pieceId: string; eve
         label={isImage ? 'Subir imagen final (nueva versión)' : 'Subir video final (nueva versión)'}
         hint="Si ya estaba aprobada, vuelve a revisión."
         compact
-        onUploaded={(a) => run(() => addVersion({ pieceId, mediaId: a.id, coverId: null }), { success: 'Nueva versión guardada.', onOk: () => setN((x) => x + 1) })}
+        onUploaded={(a) => newVersion(a.id)}
       />
+      {canPick ? <DrivePicker eventId={eventId} kind={isImage ? 'cover' : 'final'} multiple={false} label={isImage ? 'Elegir la imagen de Drive' : 'Elegir el video de Drive'} compact onPicked={(a) => newVersion(a.id)} /> : null}
       {!isImage ? (
         <Uploader
           eventId={eventId}
@@ -58,9 +63,10 @@ export function VersionUpload({ pieceId, eventId, kind }: { pieceId: string; eve
           accept="image/*"
           label="Subir portada"
           compact
-          onUploaded={(a) => run(() => addVersion({ pieceId, mediaId: null, coverId: a.id, notes: 'Portada nueva' }), { success: 'Portada guardada.' })}
+          onUploaded={(a) => newCover(a.id)}
         />
       ) : null}
+      {!isImage && canPick ? <DrivePicker eventId={eventId} kind="cover" multiple={false} label="Elegir la portada de Drive" compact onPicked={(a) => newCover(a.id)} /> : null}
     </div>
   );
 }

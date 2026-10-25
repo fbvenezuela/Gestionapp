@@ -50,7 +50,40 @@ Actualizado: 25/10/2026. Qué se hizo para blindar la plataforma y qué falta.
    versiones de prueba solo a `@resend.dev`. Publicación real apagada (`PUBLISHING_ENABLED=false`).
 10. **IA:** solo en el servidor, con tope de gasto y registro de uso. El texto de la ficha se le pasa como
     información, no como instrucciones. Nunca recibe datos de ciudadanos.
-11. **Entradas validadas** con zod en cada acción del servidor, siempre después de comprobar la sesión: quien no entró
+11. **Google Drive** (solo con `STORAGE_PROVIDER=drive`; `DRIVE.md`, D-28):
+    - **El permiso de la plataforma manda.** `/api/media/[id]`, las miniaturas y la subida por la plataforma hacen
+      primero la consulta de la persona con RLS; si no ve la fila, Google ni se llama (probado: el registro del Drive
+      falso queda vacío para grabación sin asignar, secretaría y sin doble factor).
+    - **Nada público:** ningún archivo queda como «cualquiera con el enlace»; todo pasa por la plataforma. Ninguna
+      página lleva un enlace de Google.
+    - **El permiso de Google** (token de renovación) se guarda cifrado con AES-256-GCM, atado a su fila; la clave está
+      fuera de la base (`DRIVE_TOKEN_KEY`, o derivada de `SESSION_SECRET`). Las tablas de Drive tienen RLS sin
+      políticas y ningún rol de la API las lee; `drive_status()` solo responde a administración con doble factor y
+      nunca devuelve el token ni ids de Drive. Ni el token ni los ids de Drive llegan al navegador, a Realtime ni a los
+      registros (una prueba revisa que no salgan en los logs). La conexión y sus cambios quedan en el registro, sin el
+      token.
+    - **Solo `drive.file`:** la plataforma solo ve lo que ella creó y lo que Administración eligió.
+    - **«Elegir de Drive» es solo para Administración con doble factor:** su navegador recibe un token de Google de una
+      hora (solo `drive.file`) y la **clave del Picker**. Esa clave no es secreta (está restringida a la API del Picker
+      y a los dominios de la plataforma), pero rompe la letra de «ninguna clave en el navegador»: es la excepción.
+      Nadie más recibe nunca un permiso de Google.
+    - **Subidas:** el navegador solo recibe la URL de su propia subida (sirve para ese archivo y ese tamaño, una semana),
+      guardada en ese teléfono como el boleto de las subidas de siempre. Al terminar, el servidor comprueba en Google
+      tamaño, tipo y marca, y borra la URL guardada. Nunca se guarda en Drive una página, un SVG ni un script; se sirven
+      en línea solo videos, fotos y audios comunes, aislados (`sandbox`, `nosniff`).
+    - **Abuso del tope de transferencia:** cada respuesta aparta sus bytes antes de mandar (varias a la vez no pasan el
+      tope del mes) y cada persona tiene una parte diaria (un cuarto del tope), así que quien ve un solo archivo no puede
+      dejar a todo el equipo sin videos repitiendo pedidos. Administración recibe un aviso cuando alguien llega a su
+      parte. Las cuentas por persona viven en `drive_transfer_person`, cerrada como las demás tablas de Drive.
+    - **Fotos elegidas de Drive:** se limpian en el servidor (sin GPS ni cámara) y se guarda la copia limpia; HEIC no
+      se acepta. Nunca se le piden a Drive el nombre del archivo ni la fecha o el lugar de una foto.
+    - **Nombres:** carpetas y archivos llevan tipo, código del evento y nombre de la plataforma; nunca fecha, hora,
+      lugar ni el nombre original (probado).
+    - **Script de importación:** se niega a usar una carpeta dentro del repositorio; su estado y la lista de originales
+      quedan en la carpeta del Mac (`.drive-import/`, también en `.gitignore`); nunca escribe ni imprime el permiso.
+    - **Nada sale sin permiso:** conectar, desconectar y quitar el permiso los hace solo Administración; «Desconectar»
+      no le escribe a Google.
+12. **Entradas validadas** con zod en cada acción del servidor, siempre después de comprobar la sesión: quien no entró
     no hace correr ninguna revisión. Los links de los tweets se revisan solo si son públicos (sin IPs ni nombres
     internos). Los patrones que leen texto libre (títulos, preguntas a 360, avisos, fichas) tienen un largo máximo y
     una prueba que los corre con textos largos armados para trabarlos (`tests/unit/text-speed.test.ts`).
@@ -65,3 +98,7 @@ Actualizado: 25/10/2026. Qué se hizo para blindar la plataforma y qué falta.
 - Fase 3: cifrado de datos de denuncias y ayudas, Turnstile, límites por IP, aviso de privacidad y tiempo de
   retención. PITR y revisión externa (ver `COSTOS.md`).
 - Doble factor también para redes y grabación antes de abrir la web.
+- Drive: probar con la cuenta real (paso C de `DRIVE.md`) que Google acepta las partes directas del teléfono y los
+  tramos (`Range`); la plataforma tiene respuesta para ambos casos, pero eso no se puede probar sin la cuenta.
+- Si algún día se agrega una política de contenido (CSP): permitir `apis.google.com` (script), `docs.google.com`
+  (marco del Picker) y `www.googleapis.com` (subidas).

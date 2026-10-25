@@ -34,23 +34,66 @@ export async function probeFile(file: File): Promise<Probe> {
     const mi = await mediaInfoFactory({ format: 'object', locateFile: () => '/mediainfo/MediaInfoModule.wasm' });
     const result = await mi.analyzeData(file.size, async (size: number, offset: number) => new Uint8Array(await file.slice(offset, offset + size).arrayBuffer()));
     mi.close();
-    const tracks = (result.media?.track ?? []) as unknown as Track[];
-    const g = tracks.find((t) => t['@type'] === 'General');
-    const v = tracks.find((t) => t['@type'] === 'Video');
-    const a = tracks.find((t) => t['@type'] === 'Audio');
-    return {
-      ...base,
-      durationS: num(g?.Duration) ?? num(v?.Duration),
-      width: num(v?.Width),
-      height: num(v?.Height),
-      fps: num(v?.FrameRate),
-      videoCodec: v ? String(v.Format ?? '').toLowerCase() || null : null,
-      audioCodec: a ? String(a.Format ?? '').toLowerCase() || null : null,
-      hasAudio: !!a,
-    };
+    return fromTracks(base, result);
   } catch {
     // Fallback: the browser's own video element gives at least duration and size.
     return { ...base, ...(await videoElementProbe(file).catch(() => ({}))) };
+  }
+}
+
+function fromTracks(base: Probe, result: { media?: { track?: unknown[] } }): Probe {
+  const tracks = (result.media?.track ?? []) as unknown as Track[];
+  const g = tracks.find((t) => t['@type'] === 'General');
+  const v = tracks.find((t) => t['@type'] === 'Video');
+  const a = tracks.find((t) => t['@type'] === 'Audio');
+  return {
+    ...base,
+    durationS: num(g?.Duration) ?? num(v?.Duration),
+    width: num(v?.Width),
+    height: num(v?.Height),
+    fps: num(v?.FrameRate),
+    videoCodec: v ? String(v.Format ?? '').toLowerCase() || null : null,
+    audioCodec: a ? String(a.Format ?? '').toLowerCase() || null : null,
+    hasAudio: !!a,
+  };
+}
+
+// A video already in Drive (picked or imported): MediaInfo reads only the parts it needs (the
+// header and the index) through the platform's own ranged download, never from Google directly.
+const REMOTE_READ_MAX = 32 * 1024 * 1024;
+
+export async function probeRemote(url: string, size: number, mime: string): Promise<Probe | null> {
+  const base: Probe = { durationS: null, width: null, height: null, fps: null, videoCodec: null, audioCodec: null, hasAudio: false, sizeBytes: size, mime };
+  if (!mime.startsWith('video/') || !(size > 0)) return null;
+  let read = 0;
+  try {
+    const mediaInfoFactory = await loadMediaInfo();
+    const mi = await mediaInfoFactory({ format: 'object', locateFile: () => '/mediainfo/MediaInfoModule.wasm' });
+    try {
+      const result = await mi.analyzeData(size, async (want: number, offset: number) => {
+        const out = new Uint8Array(Math.max(0, Math.min(want, size - offset)));
+        let got = 0;
+        while (got < out.length) {
+          if (read >= REMOTE_READ_MAX) throw new Error('too much');
+          const res = await fetch(url, { headers: { Range: `bytes=${offset + got}-${offset + out.length - 1}` }, cache: 'no-store' });
+          if (res.status !== 206) {
+            await res.body?.cancel().catch(() => {});
+            throw new Error(`http ${res.status}`);
+          }
+          const buf = new Uint8Array(await res.arrayBuffer());
+          if (!buf.length) break;
+          out.set(buf.subarray(0, out.length - got), got);
+          got += buf.length;
+          read += buf.length;
+        }
+        return out.subarray(0, got);
+      });
+      return fromTracks(base, result);
+    } finally {
+      mi.close();
+    }
+  } catch {
+    return null;
   }
 }
 

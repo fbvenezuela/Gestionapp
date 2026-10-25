@@ -11,6 +11,7 @@ import { Field, Select, Textarea } from '@/components/ui/field';
 import { fmtSecond } from '@/lib/data/pieces';
 import { LEVELS, type Level } from '@/lib/domain/review';
 import { cn } from '@/lib/cn';
+import { MediaFailure, useMediaFailure } from '@/components/media/media-preview';
 import { QUICK_REASONS, hasReason, toggleReason } from '@/lib/domain/review-reasons';
 
 // Quick check before approving, on the phone (from the diagnosis' approval flow).
@@ -28,7 +29,7 @@ export function LevelPicker({ pieceId, level, canLower }: { pieceId: string; lev
 }
 
 export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, canAskVoice, note, media }: {
-  pieceId: string; revision: number; canApprove: boolean; canRequestChanges: boolean; canAskVoice: boolean; note: string; media: { id: string; mime: string } | null;
+  pieceId: string; revision: number; canApprove: boolean; canRequestChanges: boolean; canAskVoice: boolean; note: string; media: { id: string; mime: string; drive?: boolean } | null;
 }) {
   const router = useRouter();
   const { run, pending } = useAction();
@@ -45,6 +46,8 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
   const [checked, setChecked] = useState<boolean[]>(CHECKS.map(() => false));
   const allChecked = checked.every(Boolean);
   const isVideo = media && !media.mime.startsWith('image/');
+  const src = media ? `/api/media/${media.id}?ver=1` : '';
+  const { message: failure, attempt, watch, onError, retry } = useMediaFailure(src, media?.mime ?? '', !!media?.drive);
 
   const grabTime = () => {
     if (video.current) setAtSecond(Math.floor(video.current.currentTime));
@@ -53,12 +56,27 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
   return (
     <Card>
       <CardBody className="flex flex-col gap-4">
-        {media ? (
+        {media && failure ? (
+          <MediaFailure message={failure} onRetry={retry} />
+        ) : media ? (
           isVideo ? (
-            <video ref={video} src={`/api/media/${media.id}?ver=1`} controls playsInline preload="metadata" className="max-h-[60vh] w-full rounded-[var(--radius-control)] bg-slate" onPause={grabTime} />
+            <video
+              key={attempt}
+              ref={(el) => {
+                video.current = el;
+                watch(el);
+              }}
+              src={src}
+              controls
+              playsInline
+              preload="metadata"
+              className="max-h-[60vh] w-full rounded-[var(--radius-control)] bg-slate"
+              onPause={grabTime}
+              onError={onError}
+            />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={`/api/media/${media.id}?ver=1`} alt="Pieza a revisar" className="max-h-[60vh] w-full rounded-[var(--radius-control)] bg-slate object-contain" />
+            <img key={attempt} ref={watch} src={src} alt="Pieza a revisar" onError={onError} className="max-h-[60vh] w-full rounded-[var(--radius-control)] bg-slate object-contain" />
           )
         ) : (
           <p className="rounded-[var(--radius-control)] bg-surface-2 p-6 text-center text-text-2">Esta pieza no tiene archivo todavía.</p>

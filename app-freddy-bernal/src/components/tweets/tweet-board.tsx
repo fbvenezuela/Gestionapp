@@ -11,6 +11,7 @@ import { Chip } from '@/components/ui/chip';
 import { Input } from '@/components/ui/field';
 import { Sheet } from '@/components/ui/sheet';
 import { Uploader } from '@/components/media/uploader';
+import { DownloadLink } from '@/components/media/drive-download';
 import { TWEET_STATUS } from '@/lib/data/labels';
 import { TZ, ms } from '@/lib/time';
 import { cn } from '@/lib/cn';
@@ -18,6 +19,8 @@ import { cn } from '@/lib/cn';
 export type BoardTweet = {
   id: string; body: string; weighted_length: number; scheduled_at: string | null; status: string; category: string | null;
   image_asset_id: string | null; published_url: string | null;
+  // Where the reference image is kept: one in Drive downloads by pieces.
+  image_bucket: string | null; image_size: number | string | null;
 };
 
 const local = (iso: string) => DateTime.fromJSDate(new Date(iso)).setZone(TZ).setLocale('es');
@@ -122,7 +125,11 @@ function TweetSheet({ t, canEdit, pending, onClose, run }: { t: BoardTweet; canE
         <Button type="button" variant="secondary" onClick={() => navigator.clipboard.writeText(t.body).then(() => toast.success('Copiado. Pégalo en X.'))}>
           <Copy className="h-4 w-4" aria-hidden /> Copiar texto
         </Button>
-        {t.image_asset_id ? <a className="inline-flex min-h-11 items-center text-sm font-semibold text-accent-ink" href={`/api/media/${t.image_asset_id}`}>Descargar la imagen de referencia</a> : null}
+        {t.image_asset_id ? (
+          <DownloadLink file={{ id: t.image_asset_id, label: 'Imagen de referencia', size: Number(t.image_size ?? 0) }} drive={t.image_bucket === 'drive'} className="inline-flex min-h-11 items-center text-left text-sm font-semibold text-accent-ink">
+            Descargar la imagen de referencia
+          </DownloadLink>
+        ) : null}
 
         {canEdit && !done ? (
           <>

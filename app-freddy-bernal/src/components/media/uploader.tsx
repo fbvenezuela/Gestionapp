@@ -7,11 +7,15 @@ import { Pause, Play, UploadCloud, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { createUpload, failUpload, finishUpload, type UploadTicket } from '@/lib/actions/media';
 import { compressImage, probeFile, type Probe } from '@/lib/media/probe';
+import { DriveUpload, RETRY_DELAYS } from '@/lib/media/drive-upload';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 
-type Item = { key: string; name: string; size: number; progress: number; state: 'preparing' | 'uploading' | 'paused' | 'waiting' | 'done' | 'error'; error?: string; upload?: TusUpload; mediaId?: string };
+// The two uploaders share start() (also resumes) and abort() (pauses).
+type Resumable = { start(): void; abort(): void };
+// forget: drops the saved ticket (Drive only), so choosing the file again starts a new upload.
+type Item = { key: string; name: string; size: number; progress: number; state: 'preparing' | 'uploading' | 'paused' | 'waiting' | 'done' | 'error'; error?: string; upload?: Resumable; mediaId?: string; forget?: () => void };
 
 export type UploadedAsset = { id: string; probe: Probe };
 
@@ -77,6 +81,45 @@ export function Uploader({
         } catch {}
       }
       const t = ticket;
+      const forget = () => {
+        try {
+          localStorage.removeItem(ticketKey(scope, original));
+        } catch {}
+      };
+      const finish = async () => {
+        const r = await finishUpload({ id: t.id });
+        forget();
+        if (!r.ok) return patch(key, { state: 'error', error: r.error });
+        patch(key, { state: 'done', progress: 1 });
+        onUploaded?.({ id: t.id, probe });
+        router.refresh();
+      };
+      if (t.mode === 'drive') {
+        // Google Drive: chunks go straight to the session the server opened (no token here).
+        const upload = new DriveUpload(file, {
+          endpoint: t.endpoint,
+          chunkSize: t.chunkSize,
+          retryDelays: RETRY_DELAYS,
+          onProgress: (sent, total) => patch(key, { progress: total ? sent / total : 0, state: 'uploading' }),
+          onShouldRetry: () => {
+            if (!navigator.onLine) patch(key, { state: 'waiting' });
+          },
+          onError: (err) => {
+            if (err.code === 'expired' || err.code === 'refused') {
+              // The session is gone: this file has to start over with a new one.
+              forget();
+              failUpload({ id: t.id });
+              return patch(key, { state: 'error', error: err.message, upload: undefined });
+            }
+            if (err.code === 'network' && !navigator.onLine) return patch(key, { state: 'waiting' });
+            patch(key, { state: 'error', error: err.message });
+          },
+          onSuccess: () => void finish(),
+        });
+        patch(key, { upload, state: 'uploading', mediaId: t.id, forget });
+        upload.start();
+        return;
+      }
       const sb = t.mode === 'supabase' ? supabaseBrowser() : null;
       const upload = new TusUpload(file, {
         endpoint: t.endpoint,
@@ -102,16 +145,7 @@ export function Uploader({
           patch(key, { state: 'error', error: 'Se cortó la subida. Toca «Seguir» para continuar.' });
           console.error(err);
         },
-        onSuccess: async () => {
-          const r = await finishUpload({ id: t.id });
-          try {
-            localStorage.removeItem(ticketKey(scope, original));
-          } catch {}
-          if (!r.ok) return patch(key, { state: 'error', error: r.error });
-          patch(key, { state: 'done', progress: 1 });
-          onUploaded?.({ id: t.id, probe });
-          router.refresh();
-        },
+        onSuccess: () => finish(),
       });
       patch(key, { upload, state: 'uploading', mediaId: t.id });
       const previous = await upload.findPreviousUploads();
@@ -164,7 +198,11 @@ export function Uploader({
             ) : null}
             {i.state !== 'uploading' ? (
               <Button variant="ghost" size="icon" aria-label="Quitar de la lista" onClick={() => {
-                if (i.mediaId && i.state !== 'paused') failUpload({ id: i.mediaId });
+                if (i.mediaId && i.state !== 'paused') {
+                  // The row is marked failed: with Drive its saved ticket would lead nowhere.
+                  i.forget?.();
+                  failUpload({ id: i.mediaId });
+                }
                 dropped.current.add(i.key);
                 setItems((l) => l.filter((x) => x.key !== i.key));
               }}><X className="h-4 w-4" /></Button>

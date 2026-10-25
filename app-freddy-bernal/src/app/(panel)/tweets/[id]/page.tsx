@@ -15,8 +15,10 @@ export default async function BatchPage({ params }: { params: Promise<{ id: stri
     const batch = await sql.one<{ id: string; title: string; source_name: string }>(`select id, title, source_name from public.tweet_batches where id = $1 and deleted_at is null`, [id]);
     if (!batch) return null;
     const tweets = await sql.query<BoardTweet & { category_id: string | null; position: number }>(
-      `select t.id, t.body, t.weighted_length, t.scheduled_at, t.status, c.name as category, t.category_id, t.image_asset_id, t.published_url, t.position
-         from public.tweets t left join public.categories c on c.id = t.category_id where t.batch_id = $1 and t.deleted_at is null order by t.position`,
+      `select t.id, t.body, t.weighted_length, t.scheduled_at, t.status, c.name as category, t.category_id, t.image_asset_id, t.published_url, t.position,
+              i.bucket as image_bucket, i.size_bytes as image_size
+         from public.tweets t left join public.categories c on c.id = t.category_id left join public.media_assets i on i.id = t.image_asset_id
+        where t.batch_id = $1 and t.deleted_at is null order by t.position`,
       [id],
     );
     return { batch, tweets, categories: canEdit ? await contentCategories(sql) : [] };

@@ -10,16 +10,21 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input } from '@/components/ui/field';
 import { Uploader } from '@/components/media/uploader';
+import { DownloadLink } from '@/components/media/drive-download';
 
-export function Package({ mediaId, coverId, copy, collaborators, network, title }: { mediaId: string | null; coverId: string | null; copy: string; collaborators: string[]; network: string; title: string }) {
+export type PackageFile = { id: string; label: string; size: number; drive: boolean };
+
+const FILE_BUTTON = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-control)] border border-border px-3 font-semibold hover:bg-surface-2';
+
+export function Package({ video, cover, copy, collaborators, network, title }: { video: PackageFile | null; cover: PackageFile | null; copy: string; collaborators: string[]; network: string; title: string }) {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   return (
     <Card>
       <CardHeader title="Paquete para publicar" subtitle={`Todo lo que necesitas para subirlo a ${network}.`} />
       <CardBody className="flex flex-col gap-3">
         <div className="grid gap-2 sm:grid-cols-3">
-          {mediaId ? <a href={`/api/media/${mediaId}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-control)] border border-border px-3 font-semibold hover:bg-surface-2"><Download className="h-4 w-4" aria-hidden /> Video</a> : null}
-          {coverId ? <a href={`/api/media/${coverId}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-control)] border border-border px-3 font-semibold hover:bg-surface-2"><Download className="h-4 w-4" aria-hidden /> Portada</a> : null}
+          {video ? <DownloadLink file={{ ...video, label: video.label || 'Video' }} drive={video.drive} icon className={FILE_BUTTON}>Video</DownloadLink> : null}
+          {cover ? <DownloadLink file={{ ...cover, label: cover.label || 'Portada' }} drive={cover.drive} icon className={FILE_BUTTON}>Portada</DownloadLink> : null}
           <Button variant="secondary" onClick={() => {
             const blob = new Blob([copy], { type: 'text/plain;charset=utf-8' });
             const a = document.createElement('a');

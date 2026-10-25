@@ -11,8 +11,10 @@ import { LinkButton } from '@/components/ui/button';
 import { PIECE_KIND, PIECE_STATUS, NETWORK_LABEL, PUB_STATUS } from '@/lib/data/labels';
 import { fmtDateTime, ms } from '@/lib/time';
 import { MediaPreview } from '@/components/media/media-preview';
+import { DownloadLink } from '@/components/media/drive-download';
 import { CopiesEditor } from './copies-editor';
 import { VersionUpload, SendToReview, VoiceLineUpload } from './piece-client';
+import { driveUi } from '@/lib/data/drive';
 
 export const metadata = { title: 'Pieza' };
 
@@ -26,6 +28,7 @@ export default async function PiecePage({ params }: { params: Promise<{ id: stri
   }));
   const p = data.piece;
   if (!p) notFound();
+  const drive = await driveUi(s);
   const current = p.versions[0];
   const lastChanges = p.reviews.find((r) => r.decision === 'changes_requested' && r.version === p.current_version);
 
@@ -73,11 +76,17 @@ export default async function PiecePage({ params }: { params: Promise<{ id: stri
           <Card>
             <CardHeader title="Archivo final" subtitle={current ? `Versión ${current.version}` : 'Todavía no hay archivo'} />
             <CardBody className="flex flex-col gap-3">
-              {current?.media_asset_id ? <MediaPreview id={current.media_asset_id} mime={current.mime ?? ''} /> : null}
+              {current?.media_asset_id ? <MediaPreview id={current.media_asset_id} mime={current.mime ?? ''} drive={current.bucket === 'drive'} /> : null}
               {current?.cover_asset_id ? (
-                <a href={`/api/media/${current.cover_asset_id}`} className="text-sm font-semibold text-accent-ink">Descargar portada</a>
+                <DownloadLink
+                  file={{ id: current.cover_asset_id, label: current.cover_label || 'Portada', size: Number(current.cover_size ?? 0) }}
+                  drive={current.cover_bucket === 'drive'}
+                  className="text-left text-sm font-semibold text-accent-ink"
+                >
+                  Descargar portada
+                </DownloadLink>
               ) : null}
-              <VersionUpload pieceId={p.id} eventId={p.event_id} kind={p.kind} />
+              <VersionUpload pieceId={p.id} eventId={p.event_id} kind={p.kind} canPick={drive.picker} />
             </CardBody>
           </Card>
 
@@ -89,7 +98,13 @@ export default async function PiecePage({ params }: { params: Promise<{ id: stri
                   <li key={v.id} className="flex flex-col gap-2 px-4 py-3">
                     <p className="text-[15px]">«{v.phrase}» {v.at_second !== null ? <span className="font-mono text-sm text-text-2">en {fmtSecond(v.at_second)}</span> : null}</p>
                     {v.audio_asset_id ? (
-                      <a href={`/api/media/${v.audio_asset_id}`} className="text-sm font-semibold text-ok">Audio recibido · descargar</a>
+                      <DownloadLink
+                        file={{ id: v.audio_asset_id, label: v.audio_label || 'Audio', size: Number(v.audio_size ?? 0) }}
+                        drive={v.audio_bucket === 'drive'}
+                        className="text-left text-sm font-semibold text-ok"
+                      >
+                        Audio recibido · descargar
+                      </DownloadLink>
                     ) : (
                       <VoiceLineUpload requestId={v.id} eventId={p.event_id} />
                     )}
