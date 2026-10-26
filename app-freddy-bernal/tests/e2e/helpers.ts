@@ -22,18 +22,21 @@ export async function login(page: Page, email: string) {
   const inbox = page.getByText(/Tu código para entrar: \d{6}/).first();
   await expect(inbox).toBeVisible({ timeout: 20_000 });
   const code = (await inbox.textContent())!.match(/\d{6}/)![0];
-  await page.getByLabel('Código de 6 números').fill(code);
+  await page.getByLabel('Código del correo').fill(code);
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await page.waitForURL((u) => !u.pathname.startsWith('/entrar'), { timeout: 20_000 });
 }
 
-// Demo TOTP: reads the secret shown on the 2FA page and computes the current code.
+// Demo TOTP: the first time, taps «Mostrar el código QR», reads the secret shown under the QR and
+// computes the current code. Later logins only ask for the code.
 export async function passMfa(page: Page, email: string) {
   await page.waitForURL((u) => u.pathname !== '/' && !u.pathname.startsWith('/entrar'), { timeout: 20_000 });
   if (!page.url().includes('/doble-factor')) return;
   const secrets = readSecrets();
   let secret = secrets[email];
-  if (await page.getByText('¿No puedes escanear? Escribe esta clave').count()) {
+  const showQr = page.getByRole('button', { name: 'Mostrar el código QR' });
+  if (await showQr.count()) {
+    await showQr.click();
     await page.getByText('¿No puedes escanear? Escribe esta clave').click();
     secret = (await page.locator('code').first().textContent())!.trim();
     fs.mkdirSync(path.dirname(SECRETS), { recursive: true });

@@ -7,7 +7,7 @@ contraseñas del equipo, no en el repositorio ni en un chat.
 | Servicio | Para qué | Cuenta / correo | Organización o equipo | Plan | Administradores | Doble factor | Abierta el | Notas |
 |---|---|---|---|---|---|---|---|---|
 | GitHub | Código (repositorio privado) | | fbvenezuela (repositorio `Gestionapp`) | | | | | confirmar que sea privado |
-| Supabase | Base de datos, usuarios, archivos, tiempo real | | | | | | | proyecto de prueba y de producción |
+| Supabase | Base de datos, usuarios, archivos, tiempo real | | organización «fbvenezuela's Org» | gratis | | | 26/10/2026 | proyecto «fb-dev», región us-east-1 (EE. UU. Este); es el que va a usar producción (por ahora no hay `fb-prod`). Las claves y la contraseña de la base van solo en Vercel y en el gestor de contraseñas |
 | Vercel | Versiones de prueba y producción | | | | | | | conectado al repositorio |
 | Resend | Correos del equipo | | | | | | | dominio verificado: |
 | Proveedor de IA | Copies, análisis | | | | | | | límite de gasto mensual: |

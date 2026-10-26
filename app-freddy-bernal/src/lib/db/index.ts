@@ -2,6 +2,7 @@ import 'server-only';
 import postgres from 'postgres';
 import { env } from '../env';
 import { asSystem, asUser, type Backend, type Claims, type Row, type Sql } from './core';
+import { pgTls } from './ssl';
 
 export type { Sql, Claims } from './core';
 
@@ -9,8 +10,8 @@ type Globals = { __fbBackend?: Promise<Backend> };
 const g = globalThis as unknown as Globals;
 
 function postgresBackend(url: string): Backend {
-  // Supabase transaction pooler: no prepared statements.
-  const client = postgres(url, { prepare: false, max: 5, idle_timeout: 20, connect_timeout: 10 });
+  // Supabase transaction pooler: no prepared statements. TLS unless the database is local (./ssl.ts).
+  const client = postgres(url, { ...pgTls(url), prepare: false, max: 5, idle_timeout: 20, connect_timeout: 10 });
   const wrap = (tx: postgres.TransactionSql): Sql => ({
     async query<T = Row>(text: string, params: unknown[] = []) {
       return (await tx.unsafe(text, params as postgres.ParameterOrJSON<never>[])) as unknown as T[];

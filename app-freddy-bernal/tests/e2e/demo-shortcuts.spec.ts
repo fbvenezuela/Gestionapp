@@ -32,7 +32,7 @@ test('el formulario con código sigue funcionando y no pide doble factor', async
   await page.getByRole('button', { name: 'Mandarme el código' }).click();
   const inbox = page.getByText(/Tu código para entrar: \d{6}/).first();
   await expect(inbox).toBeVisible({ timeout: 20_000 });
-  await page.getByLabel('Código de 6 números').fill((await inbox.textContent())!.match(/\d{6}/)![0]);
+  await page.getByLabel('Código del correo').fill((await inbox.textContent())!.match(/\d{6}/)![0]);
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await page.waitForURL('**/hoy');
 });

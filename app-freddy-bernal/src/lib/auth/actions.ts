@@ -4,19 +4,21 @@ import crypto from 'node:crypto';
 import { createElement } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import QRCode from 'qrcode';
 import { z } from 'zod';
 import { LoginCodeEmail } from '@emails/templates';
 import { demoShortcuts, env } from '../env';
 import { withSystem } from '../db';
 import { brand } from '../client-config';
 import { sendEmail } from '../email/send';
+import { emailCodeSchema, totpCodeSchema } from './codes';
 import { DEMO_COOKIE, SESSION_HOURS, hashCode, readSession, signSession } from './cookie';
+import { getSession } from './session';
 import { newTotpSecret, otpauthUrl, verifyTotp } from './totp';
 
 export type ActionState = { ok?: boolean; error?: string; info?: string; data?: Record<string, string> };
 
 const emailSchema = z.string().trim().toLowerCase().email('Escribe un correo válido.');
-const codeSchema = z.string().trim().regex(/^\d{6}$/, 'El código tiene 6 números.');
 
 const cookieOpts = {
   httpOnly: true,
@@ -27,7 +29,7 @@ const cookieOpts = {
 };
 
 // Same answer whether or not the email exists, so nobody can probe who is invited.
-const SENT = 'Si tu correo está invitado, te llegó un código de 6 números. Revisa también la carpeta de spam.';
+const SENT = 'Si tu correo está invitado, te llegó un código. Revisa también la carpeta de spam.';
 
 export async function requestCode(_: ActionState, form: FormData): Promise<ActionState> {
   const parsed = emailSchema.safeParse(form.get('email'));
@@ -67,7 +69,7 @@ export async function requestCode(_: ActionState, form: FormData): Promise<Actio
 
 export async function verifyCode(_: ActionState, form: FormData): Promise<ActionState> {
   const email = emailSchema.safeParse(form.get('email'));
-  const code = codeSchema.safeParse(form.get('code'));
+  const code = emailCodeSchema.safeParse(form.get('code'));
   if (!email.success) return { error: email.error.issues[0].message };
   if (!code.success) return { error: code.error.issues[0].message };
 
@@ -131,39 +133,47 @@ export async function signOut() {
 // ---------------------------------------------------------------------------
 // Two-factor (TOTP)
 // ---------------------------------------------------------------------------
-export type MfaStatus = { enrolled: boolean; secret?: string; uri?: string; factorId?: string; qr?: string };
+export type MfaSetup = { error?: string; enrolled?: boolean; factorId?: string; secret?: string; qr?: string };
 
-async function demoUid(): Promise<string | null> {
-  return readSession((await cookies()).get(DEMO_COOKIE)?.value)?.uid ?? null;
-}
+const NOT_READY = 'No se pudo preparar el código QR. Espera un momento y vuelve a intentar.';
 
-export async function mfaStart(): Promise<MfaStatus> {
+const qrFor = (uri: string) => QRCode.toDataURL(uri, { margin: 1, width: 220 });
+
+// The «Mostrar el código QR» button on /doble-factor: drops half-finished enrollments and starts
+// a new one, so only the QR now on screen works. The page itself never enrolls (src/lib/auth/mfa.ts).
+// A verified factor is never touched: then it only answers enrolled and the page asks for the code.
+export async function mfaEnroll(): Promise<MfaSetup> {
+  const s = await getSession();
+  if (!s) redirect('/entrar');
+  if (s.mfaOk) redirect('/');
+
   if (env.dataMode === 'demo') {
-    const uid = await demoUid();
-    if (!uid) redirect('/entrar');
-    return withSystem(async (sql) => {
-      const f = await sql.one<{ secret: string; verified: boolean }>(`select secret, verified from demo_auth.totp_factors where user_id = $1`, [uid]);
-      if (f?.verified) return { enrolled: true };
-      const secret = f?.secret ?? newTotpSecret();
-      if (!f) await sql.query(`insert into demo_auth.totp_factors (user_id, secret) values ($1, $2)`, [uid, secret]);
-      const email = (await sql.one<{ email: string }>(`select email from public.profiles where id = $1`, [uid]))!.email;
-      return { enrolled: false, secret, uri: otpauthUrl(secret, email, brand.shortName) };
+    // Demo keeps one secret per person until it is verified (as it always did).
+    const secret = await withSystem(async (sql) => {
+      const f = await sql.one<{ secret: string; verified: boolean }>(`select secret, verified from demo_auth.totp_factors where user_id = $1`, [s.userId]);
+      if (f?.verified) return null;
+      if (f) return f.secret;
+      const fresh = newTotpSecret();
+      await sql.query(`insert into demo_auth.totp_factors (user_id, secret) values ($1, $2)`, [s.userId, fresh]);
+      return fresh;
     });
+    if (!secret) return { enrolled: true };
+    return { secret, qr: await qrFor(otpauthUrl(secret, s.email, brand.shortName)) };
   }
+
   const { supabaseServer } = await import('../supabase/server');
   const supabase = await supabaseServer();
-  const { data: factors } = await supabase.auth.mfa.listFactors();
-  const verified = factors?.totp?.find((f) => f.status === 'verified');
-  if (verified) return { enrolled: true, factorId: verified.id };
-  // Clean half-finished enrollments, then start a new one.
-  for (const f of factors?.all ?? []) if (f.status !== 'verified') await supabase.auth.mfa.unenroll({ factorId: f.id });
+  const { data: factors, error: listError } = await supabase.auth.mfa.listFactors();
+  if (listError || !factors) return { error: NOT_READY };
+  if (factors.totp.some((f) => f.status === 'verified')) return { enrolled: true };
+  for (const f of factors.all) if (f.status !== 'verified') await supabase.auth.mfa.unenroll({ factorId: f.id });
   const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: `Teléfono ${new Date().toISOString().slice(0, 10)}` });
-  if (error || !data) throw new Error('No se pudo iniciar el doble factor.');
-  return { enrolled: false, factorId: data.id, secret: data.totp.secret, uri: data.totp.uri, qr: data.totp.qr_code };
+  if (error || !data) return { error: NOT_READY };
+  return { factorId: data.id, secret: data.totp.secret, qr: await qrFor(data.totp.uri) };
 }
 
 export async function mfaVerify(_: ActionState, form: FormData): Promise<ActionState> {
-  const code = codeSchema.safeParse(form.get('code'));
+  const code = totpCodeSchema.safeParse(form.get('code'));
   if (!code.success) return { error: code.error.issues[0].message };
 
   if (env.dataMode === 'demo') {

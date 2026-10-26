@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState, useTransition } from 'react';
 import { Mail, KeyRound, Inbox } from 'lucide-react';
 import { demoQuickLogin, requestCode, verifyCode, type ActionState } from '@/lib/auth/actions';
+import { EMAIL_CODE } from '@/lib/auth/code-format';
 import { demoInbox } from '@/lib/auth/demo-inbox';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
@@ -31,7 +32,7 @@ export function LoginForm({ demoUsers, quick }: { demoUsers: DemoUser[] | null; 
           {step === 'email' ? (
             <form action={reqAction} className="flex flex-col gap-4">
               <h1 className="text-xl font-bold">Entrar</h1>
-              <p className="text-[15px] text-text-2">Escribe tu correo y te mandamos un código de 6 números. No hay contraseña.</p>
+              <p className="text-[15px] text-text-2">Escribe tu correo y te mandamos un código. No hay contraseña.</p>
               <Field label="Correo" htmlFor="email" error={reqState.error}>
                 <Input id="email" name="email" type="email" inputMode="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nombre@correo.com" />
               </Field>
@@ -44,8 +45,8 @@ export function LoginForm({ demoUsers, quick }: { demoUsers: DemoUser[] | null; 
               <h1 className="text-xl font-bold">Escribe el código</h1>
               <p className="text-[15px] text-text-2" role="status">{reqState.info}</p>
               <input type="hidden" name="email" value={sentTo} />
-              <Field label="Código de 6 números" htmlFor="code" error={verState.error}>
-                <Input id="code" name="code" inputMode="numeric" autoComplete="one-time-code" pattern="\d{6}" maxLength={6} required autoFocus className="text-center font-mono text-2xl tracking-[0.4em]" />
+              <Field label="Código del correo" htmlFor="code" error={verState.error}>
+                <Input id="code" name="code" inputMode="numeric" autoComplete="one-time-code" pattern={EMAIL_CODE.pattern} maxLength={EMAIL_CODE.max} required autoFocus className="text-center font-mono text-2xl tracking-[0.25em]" />
               </Field>
               <Button type="submit" size="lg" disabled={verPending}>
                 <KeyRound className="h-5 w-5" aria-hidden /> {verPending ? 'Entrando…' : 'Entrar'}

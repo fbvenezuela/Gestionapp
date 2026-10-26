@@ -5,7 +5,7 @@
    "key": "entrar",
    "roles": null,
    "title": "Cómo se entra a la plataforma",
-   "body": "Administración te invita con tu correo y tu rol, y te llega un correo de invitación. En «Entrar» escribes tu correo y te llega un código de 6 números: no hay contraseñas. La primera vez, si tu rol lo pide, activas el doble factor con una app autenticadora (por ejemplo Google Authenticator) y desde ahí lo usas al entrar. Si no llega el código: revisa spam y que el correo esté bien escrito; si sigue sin llegar, avisa a administración.",
+   "body": "Administración te invita con tu correo y tu rol, y te llega un correo de invitación. En «Entrar» escribes tu correo y te llega un código: no hay contraseñas. La primera vez, si tu rol lo pide, activas el doble factor con una app autenticadora (por ejemplo Google Authenticator) y desde ahí lo usas al entrar. Si no llega el código: revisa spam y que el correo esté bien escrito; si sigue sin llegar, avisa a administración.",
    "tags": [
     "entrar",
     "codigo",

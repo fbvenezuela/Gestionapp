@@ -12,7 +12,7 @@ export function InviteEmail({ appName, name, roleLabel, url }: { appName: string
     <EmailLayout preview={`Te invitaron a ${appName}`} appName={appName}>
       <Heading style={h}>Hola{name ? `, ${name}` : ''}</Heading>
       <Text style={p}>Te invitaron a {appName} como <b>{roleLabel}</b>.</Text>
-      <Text style={p}>Para entrar escribe tu correo y te llegará un código de 6 dígitos. No hay contraseña que recordar.</Text>
+      <Text style={p}>Para entrar escribe tu correo y te llegará un código. No hay contraseña que recordar.</Text>
       <Button href={url} style={btn}>Entrar</Button>
     </EmailLayout>
   );

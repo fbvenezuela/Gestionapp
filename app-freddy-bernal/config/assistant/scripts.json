@@ -402,7 +402,7 @@
     "perdi el telefono"
    ],
    "always": false,
-   "script": "Persona: no me llega el codigo\n[ASISTENTE]: Revisa spam y que el correo esté bien escrito; el código es de 6 números y llega en uno o dos minutos. Si no aparece, le aviso a administración.\n[ASISTENTE]: Para entrar escribes tu correo y te llega un código; algunos roles además usan el autenticador. ¿En qué paso te quedaste?\nSi dice «perdí el teléfono» → [ASISTENTE]: Avísale ya a administración para que cierre tus sesiones y te ayude con el doble factor. ¿Le aviso yo?",
+   "script": "Persona: no me llega el codigo\n[ASISTENTE]: Revisa spam y que el correo esté bien escrito; el código llega en uno o dos minutos. Si no aparece, le aviso a administración.\n[ASISTENTE]: Para entrar escribes tu correo y te llega un código; algunos roles además usan el autenticador. ¿En qué paso te quedaste?\nSi dice «perdí el teléfono» → [ASISTENTE]: Avísale ya a administración para que cierre tus sesiones y te ayude con el doble factor. ¿Le aviso yo?",
    "notes": "Nunca pide el código ni claves."
   },
   {
