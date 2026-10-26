@@ -20,7 +20,7 @@ migraciones sin preguntar. Lee primero `CLAUDE.md`, `AGENTS.md` y `PROMPT-APP-FR
 - Proyecto de Supabase **`fb-dev`** (organización «fbvenezuela's Org», región us-east-1, Postgres 17, plan gratis).
   Búscalo con `list_projects` por el nombre. Hay otro proyecto vacío en Oregon, «fbvenezuela's Project», que se creó
   solo: Juan lo borra desde el panel cuando quiera (no lo borres tú).
-- **Migraciones aplicadas** hasta `20261026001300_harden_helpers.sql`, en orden, empezando por
+- **Migraciones aplicadas** hasta `20261026001400_functions_closed_to_anon.sql`, en orden, empezando por
   `20261023000000_hosted_defaults.sql` (quita los privilegios que Supabase da por defecto a `anon`/`authenticated`;
   tenía que ir primero, con la base vacía). El historial `supabase_migrations.schema_migrations` tiene las versiones
   de los archivos, así que `supabase db push` y `list_migrations` coinciden con el repositorio.
@@ -42,27 +42,17 @@ revisa con `list_migrations`.
 
 ## Lo que falta, en orden
 
-### 1. Tú (Claude), con el conector
-1. Aplica `supabase/migrations/20261026001400_functions_closed_to_anon.sql` con `apply_migration`
-   (`name: functions_closed_to_anon`) y corrige su versión a `20261026001400` como arriba.
-2. `get_advisors` de seguridad. Lo esperado: solo «RLS Enabled No Policy» (a propósito: son tablas que solo usa el
-   servidor) y avisos de funciones SECURITY DEFINER que usa `authenticated` (a propósito: las políticas las
-   necesitan). Ya no debe salir nada para `anon`.
-3. Código (con pruebas, lint y typecheck; luego push a la rama y a `main`):
-   - El código de entrada por correo: aceptar de 6 a 10 números (Supabase puede mandar 8). Un esquema aparte del de
-     doble factor, que sigue en 6. `src/lib/auth/actions.ts` y `src/app/(auth)/entrar/login-form.tsx`.
-   - TLS por defecto con Supabase: en `src/lib/db/index.ts`, `ssl: 'require'` cuando hay `DATABASE_URL`, salvo que la
-     URL diga otra cosa.
-   - `/doble-factor` vuelve a inscribir el factor cada vez que la página se dibuja: si se recarga después de
-     escanear, el código ya no coincide. Inscribir solo con un botón (acción del servidor), nunca al abrir la página.
-   - `scripts/create-first-admin.mts`: sale con 0 aunque falle, imprime el correo y no evita invitaciones repetidas.
-     Arréglalo o dilo en el README.
-   - `README.md` §Conectar las cuentas y `.env.example`: el panel ya no tiene «Settings > API». Ahora es el botón
-     **Connect** (cadenas de conexión) y **Settings > API Keys** (claves `sb_publishable_…` y `sb_secret_…`, que van
-     en `NEXT_PUBLIC_SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` sin cambiar los nombres). El SMTP propio va
-     **antes** que la plantilla. Las sesiones con tiempo límite son de Pro. En el plan gratis cada archivo tiene un
-     máximo de 50 MB, así que el video va por Drive.
-   - `docs/CUENTAS.md`: anota Supabase (`fb-dev`, organización, plan gratis), sin claves.
+### 1. Tú (Claude), con el conector: hecho el 26/10
+- `20261026001400_functions_closed_to_anon.sql` aplicada (versión corregida en el historial): `anon` ya no ejecuta
+  ninguna función de `public`. Lo que queda en `get_advisors` es a propósito: «RLS Enabled No Policy» (tablas que
+  solo usa el servidor) y funciones SECURITY DEFINER que usa `authenticated` (las políticas las necesitan).
+- Código: el código del correo acepta de 6 a 10 números (el del doble factor sigue en 6); TLS por defecto hacia la
+  base (`src/lib/db/ssl.ts`); `/doble-factor` ya no reinscribe al recargar (botón «Mostrar el código QR»);
+  `scripts/create-first-admin.mts` seguro para repetir y sin mostrar el correo; README, `.env.example` y
+  `docs/CUENTAS.md` al día.
+- Nota: las fichas del asistente en `fb-dev` se cargaron antes de cambiar el texto «6 números». Con el largo del
+  código en 6 siguen siendo ciertas; si se quiere el texto nuevo, volver a cargar la configuración (la carga solo
+  cambia las fichas de fábrica que nadie editó).
 
 ### 2. Juan, en el panel de Supabase (guíalo paso a paso, una parte a la vez)
 1. **Correo propio (SMTP), lo primero.** Los proyectos gratis nuevos no pueden cambiar la plantilla con el correo de
