@@ -1,4 +1,5 @@
 import { brand } from '@/lib/client-config';
+import { LegalLinks } from '@/components/legal-links';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
       </div>
       {children}
+      <LegalLinks />
     </main>
   );
 }

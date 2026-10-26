@@ -17,6 +17,8 @@ export const env = {
   sessionSecret: process.env.SESSION_SECRET ?? '',
   appUrl: process.env.APP_URL ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'),
   appTz: process.env.APP_TZ ?? 'America/Caracas',
+  // Shown on the public privacy and terms pages (Google asks for them to publish the OAuth app).
+  contactEmail: process.env.CONTACT_EMAIL ?? '',
   brand: process.env.APP_BRAND ?? 'fb',
   email: {
     mode: (process.env.EMAIL_MODE === 'send' ? 'send' : 'outbox') as 'outbox' | 'send',
