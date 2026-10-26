@@ -28,7 +28,14 @@ Si en algún paso Google pide **tarjeta**, «enviar a verificación» o algo que
 1. Entra a console.cloud.google.com → **Crear proyecto** → nombre `fb-operaciones-360`.
 2. **APIs y servicios → Biblioteca:** activa **Google Drive API** y **Google Picker API**.
 3. **Google Auth Platform** (pantalla de consentimiento):
-   - **Branding:** nombre «Operaciones 360» y el correo de soporte. **Sin logo**: el logo pide verificar la marca.
+   - **Branding (Información de la marca):**
+     - nombre **«FB · Operaciones 360»** (igual que en la página) y el correo de soporte; **sin logo** (el logo pide
+       verificar la marca);
+     - página principal: `https://<dominio>/acerca` (no la raíz: la raíz lleva a entrar);
+     - política de privacidad: `https://<dominio>/privacidad`; condiciones: `https://<dominio>/condiciones`;
+     - dominios autorizados: `<dominio>`. Si Google pide verificar el dominio, en search.google.com/search-console
+       agrega la propiedad `https://<dominio>`, elige «Etiqueta HTML», copia solo el código del `content` y ponlo en
+       Vercel como `GOOGLE_SITE_VERIFICATION`; Redeploy y toca «Verificar».
    - **Audience (público):** tipo **External**.
    - **Data access:** agrega **solo** `https://www.googleapis.com/auth/drive.file`.
    - Vuelve a **Audience** → **«Publish app»** → tiene que decir **«In production»**. Así el permiso no se vence a
@@ -58,6 +65,8 @@ Marca solo *Production* (desmarca *Preview* y *Development*): así la demo publi
 | `GOOGLE_PICKER_API_KEY` | la clave del paso A.5 (restringida; solo llega al navegador de Administración) | baja |
 | `DRIVE_TOKEN_KEY` | recomendado: 32 bytes al azar. En tu Mac: `openssl rand -base64 32` y pegas el resultado | **sí** |
 | `APP_URL` | la dirección de producción, `https://<dominio>` (la de las redirecciones) | no |
+| `CONTACT_EMAIL` | el correo de contacto que muestran /privacidad y /condiciones (el de soporte del paso A.3) | no |
+| `GOOGLE_SITE_VERIFICATION` | solo si Google pide verificar el dominio (paso A.3) | no |
 | `DRIVE_TRANSFER_CAP_GB` | `7` con Vercel Hobby; `0` (sin tope) con Vercel Pro | no |
 | `DRIVE_UPLOAD_MODE` | vacío. `proxy` solo si «Probar» lo pide **y** das el OK (gasta transferencia de Vercel) | no |
 

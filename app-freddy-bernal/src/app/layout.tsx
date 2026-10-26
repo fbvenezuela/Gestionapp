@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   description: 'Plataforma interna del equipo: agenda, material, piezas, aprobación y publicaciones.',
   robots: { index: false, follow: false },
   appleWebApp: { capable: true, title: brand.shortName, statusBarStyle: 'default' },
+  // Google Search Console proves the domain is ours when Google asks it to publish the OAuth app (docs/DRIVE.md).
+  ...(process.env.GOOGLE_SITE_VERIFICATION ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } } : {}),
 };
 
 export const viewport: Viewport = {

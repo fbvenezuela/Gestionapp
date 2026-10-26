@@ -11,7 +11,7 @@ export default function Terms() {
       <h1>Condiciones de uso</h1>
       <p className="text-sm text-text-2">Actualizadas el 26 de octubre de 2026.</p>
       <ul>
-        <li>{brand.appName} es de uso interno del equipo de comunicaciones del {brand.clientTitle}. Se entra solo por invitación.</li>
+        <li>{brand.appName} es de uso interno de un equipo de comunicaciones. Se entra solo por invitación.</li>
         <li>Cada persona cuida su acceso: no comparte su cuenta ni sus códigos.</li>
         <li>El contenido es del cliente. La plataforma no publica nada por su cuenta: cada publicación la hace una persona del equipo.</li>
         <li>Administración puede suspender el acceso de quien no respete estas condiciones o las reglas del equipo.</li>
@@ -21,7 +21,7 @@ export default function Terms() {
         </li>
       </ul>
       <p>
-        Contacto: {contact ? <a href={`mailto:${contact}`}>{contact}</a> : 'el correo de soporte que aparece en la pantalla de permiso de Google'}.
+        Contacto: {contact ? <a href={`mailto:${contact}`}>{contact}</a> : 'Administración de la plataforma'}.
       </p>
     </>
   );
