@@ -44,8 +44,9 @@ Usuarios demo en `docs/DEMO.md`. En demo, `DEMO_SHORTCUTS` (activo por defecto) 
 factor; con `DATABASE_URL` nunca se activa. Playwright levanta dos servidores: 3100 estricto y 3101 con atajos.
 
 ## Qué falta (siguiente sesión)
-1. Conectar `fb-dev` (Supabase) y desplegar la versión de prueba en Vercel con datos reales; probar las políticas de
-   Storage y el flujo de Auth real (OTP, TOTP) contra Supabase.
+1. `fb-dev` (Supabase, gratis) ya tiene las migraciones y la configuración del cliente (26/10). Falta lo de
+   `docs/PROMPT-SUPABASE.md`: una migración más, arreglos de código, los pasos de Juan en el panel (SMTP primero),
+   las variables en Vercel y la primera entrada (OTP, TOTP, Drive).
 2. Fase 2: publicación automática (Meta, X, TikTok, YouTube), métricas por API, análisis con IA, Drive del cliente,
    reporte semanal en PDF, Realtime en «Hoy» y colas.
 3. Fase 3: web pública (indicadores, trazabilidad, obras, reportes con mapa, denuncias, ayudas, SEO).

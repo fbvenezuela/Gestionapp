@@ -49,9 +49,9 @@ describe('privilegios en un Supabase real (default privileges de la plataforma)'
     expect(hosted).toEqual(shim);
   }, 60_000);
 
-  it('anon no toca ninguna tabla y nadie puede truncar ni agregar triggers', async () => {
+  it('anon no toca ninguna tabla ni función, y nadie puede truncar ni agregar triggers', async () => {
     const hosted = await apiPrivileges(true);
-    expect(hosted.filter((p) => p.startsWith('anon ') && !p.includes(' EXECUTE '))).toEqual([]);
+    expect(hosted.filter((p) => p.startsWith('anon '))).toEqual([]);
     expect(hosted.filter((p) => / (TRUNCATE|TRIGGER|REFERENCES|MAINTAIN) /.test(p))).toEqual([]);
     expect(hosted.filter((p) => p.includes('wire_standard_triggers'))).toEqual([]);
   }, 60_000);
