@@ -22,3 +22,6 @@ public/mediainfo/
 .drive-import/
 scripts/drive-import/*.json
 scripts/drive-import/.no-subir
+
+# Google OAuth client files (client_secret_*.json): never in git. The values go to Vercel / .env.local.
+client_secret*.json
