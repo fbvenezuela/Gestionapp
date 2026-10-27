@@ -7,7 +7,7 @@ import { municipalities, parishes } from '@/lib/data/common';
 import { OBRA_STAGE, PRIORITIES, PRIORITY, REPORT_STATUS, REPORT_STATUSES, REPORT_TYPE, REPORT_TYPES } from '@/lib/data/ficha-labels';
 import { BOSS_DECISION } from '@/lib/data/labels';
 import { emptyCounters, mergeCounters } from '@/lib/domain/report-status';
-import { municipalityFromSlug, municipalitySlug, parishOptions } from '@/lib/domain/territory';
+import { municipalityFromSlug, municipalitySlug, parishKey, parishOptions } from '@/lib/domain/territory';
 import { PageHeader, Stat, EmptyState } from '@/components/ui/page';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
@@ -80,7 +80,7 @@ export default async function MunicipioPage({ params, searchParams }: { params: 
             </li>
             {choice.options.map((p) => (
               <li key={p}>
-                <ParishLink href={`${here}?parroquia=${encodeURIComponent(p)}`} active={f.parroquia === p}>{p}</ParishLink>
+                <ParishLink href={`${here}?parroquia=${encodeURIComponent(p)}`} active={!!f.parroquia && parishKey(f.parroquia) === parishKey(p)}>{p}</ParishLink>
               </li>
             ))}
           </ul>

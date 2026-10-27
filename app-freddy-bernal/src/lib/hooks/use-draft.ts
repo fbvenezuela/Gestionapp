@@ -1,45 +1,81 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'react';
 
 // Keeps what someone is typing in the phone (localStorage) until it is sent, so a
-// power cut or lost signal never loses work. `clear()` after a successful save.
-export function useDraft<T>(key: string, initial: T) {
+// power cut or lost signal never loses work. `clear()` after a successful save (and on «Cancelar»).
+//   * Nothing is written until the person really changes something: opening a form and leaving keeps no draft
+//     (a draft of the starting values would later hide someone else's newer save).
+//   * A saved draft equal to the starting values is thrown away, not restored.
+//   * `restore(saved)` lets a form decide what of a saved draft still applies (null = nothing): the fichas keep only
+//     the changed fields and compare them with the server's current values (src/lib/domain/ficha-draft.ts).
+export function useDraft<T>(key: string, initial: T, opts: { restore?: (saved: unknown) => T | null } = {}) {
   const storageKey = `draft:${key}`;
   const [value, setValue] = useState<T>(initial);
   const [restored, setRestored] = useState(false);
-  const loaded = useRef(false);
+  const dirty = useRef(false);
+  const start = useRef(initial);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey);
       if (raw) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring a saved draft once on mount
-        setValue({ ...initial, ...JSON.parse(raw) });
-        setRestored(true);
+        const parsed: unknown = JSON.parse(raw);
+        const next = opts.restore ? opts.restore(parsed) : ({ ...start.current, ...(parsed as object) } as T);
+        if (next === null || sameJson(next, start.current)) {
+          localStorage.removeItem(storageKey);
+        } else {
+          // Restoring a saved draft once on mount.
+          setValue(next);
+          setRestored(true);
+        }
       }
     } catch {
-      /* storage unavailable: work without drafts */
+      /* storage unavailable or a broken draft: work without it */
     }
-    loaded.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
 
   useEffect(() => {
-    if (!loaded.current) return;
+    if (!dirty.current) return;
     try {
-      localStorage.setItem(storageKey, JSON.stringify(value));
+      if (sameJson(value, start.current)) localStorage.removeItem(storageKey);
+      else localStorage.setItem(storageKey, JSON.stringify(value));
     } catch {
       /* full or unavailable */
     }
   }, [storageKey, value]);
 
+  // A real change by the person: from now on it is kept in the phone.
+  const update = useCallback((next: SetStateAction<T>) => {
+    dirty.current = true;
+    setValue(next);
+  }, []);
+
   const clear = useCallback(() => {
+    dirty.current = false;
     try {
       localStorage.removeItem(storageKey);
     } catch {}
     setRestored(false);
   }, [storageKey]);
 
-  return { value, setValue, restored, clear };
+  return { value, setValue: update, restored, clear };
+}
+
+// The same data, whatever the order of the keys.
+export function sameJson(a: unknown, b: unknown): boolean {
+  return stable(a) === stable(b);
+}
+
+function stable(x: unknown): string {
+  if (Array.isArray(x)) return `[${x.map(stable).join(',')}]`;
+  if (x && typeof x === 'object') {
+    return `{${Object.keys(x)
+      .filter((k) => (x as Record<string, unknown>)[k] !== undefined)
+      .sort()
+      .map((k) => `${JSON.stringify(k)}:${stable((x as Record<string, unknown>)[k])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(x) ?? 'null';
 }

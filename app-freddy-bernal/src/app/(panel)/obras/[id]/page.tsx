@@ -59,6 +59,7 @@ export default async function ObraPage({ params, searchParams }: { params: Promi
           kind="obra"
           id={id}
           rev={ficha.rev}
+          privRev={priv?.rev ?? null}
           stage={ficha.stage}
           initial={toFormValues(OBRA_FIELDS, ficha, priv)}
           initialMarks={marks}

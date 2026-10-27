@@ -2,12 +2,12 @@
 
 import { z } from 'zod';
 import { act, UserError, type Result } from './run';
-import { formValuesSchema, marksSchema, parseFicha, writeFicha, writePrivate } from './schemas';
+import { contactsSchema, formValuesSchema, keepOthersContacts, marksSchema, parseFicha, writeFicha, writePrivate } from './schemas';
 import { notify, usersWithRole } from '../notify';
 import { dialogBrand } from '../data/fichas';
 import { OBRA_FIELDS, missingFields, missingMessage } from '@/lib/domain/ficha-fields';
 import { noticeRecipients, toScheduleNotice, type AgendaNotice } from '@/lib/domain/agenda-notices';
-import { buildObraDialog, dialogInput, dialogUnknownNumbers } from '@/lib/domain/obra-dialog';
+import { buildObraDialog, dialogContactProblem, dialogInput, dialogUnknownNumbers } from '@/lib/domain/obra-dialog';
 import type { Role } from '../roles';
 
 // The obra ficha (§4.1): the Director del IVT fills it before the boss's visit, WITHOUT a date. «Guardar y avisar»
@@ -37,6 +37,7 @@ const saveSchema = z.object({
   // person is told (last one wins, nothing is lost).
   rev: z.coerce.number().int().min(1).optional(),
   submit: z.boolean().default(false),
+  ...contactsSchema,
   values: formValuesSchema,
   marks: marksSchema,
 });
@@ -46,11 +47,14 @@ export async function saveObraFicha(raw: unknown) {
     // The contacts need 2FA (obra_ficha_private, mfa_ok()); without it they are neither asked nor written.
     const canPrivate = s.mfaOk && s.roles.some((r) => OBRA_ROLES.includes(r));
     const defs = canPrivate ? OBRA_FIELDS : OBRA_FIELDS.filter((d) => !d.private);
-    const p = parseFicha(defs, i.values, i.marks);
     const before = i.id
       ? await sql.one<{ stage: string; rev: number }>(`select stage, rev from public.obra_fichas where id = $1 and deleted_at is null`, [i.id])
       : null;
     if (i.id && !before) throw new UserError('No encontramos esta ficha, o tu rol no la puede cambiar.');
+    const contacts = canPrivate && i.id
+      ? await keepOthersContacts(sql, 'obra_fichas', i.id, defs, i.values, i.marks, i.privRev, i.privChanged)
+      : { values: i.values, marks: i.marks, moved: false };
+    const p = parseFicha(defs, contacts.values, contacts.marks);
     if (before && ['scheduled', 'done', 'archived'].includes(before.stage) && i.submit) throw new UserError('Esta ficha ya no está en borrador.');
     // Ready = «Guardar y avisar», or any later save of a ficha that already went out: every field answered.
     // (A draft or an archived ficha saves with whatever it has.)
@@ -70,12 +74,15 @@ export async function saveObraFicha(raw: unknown) {
     const message = [
       becameReady ? 'Guardada. Le avisamos al jefe y al despacho: «Por ponerle fecha».' : before ? 'Cambios guardados.' : 'Borrador guardado. Nadie recibe aviso todavía.',
       overwrote ? 'Ojo: alguien la cambió mientras escribías. Quedó lo tuyo; lo anterior está en la historia.' : '',
+      contacts.moved ? 'Ojo: alguien cambió los contactos mientras escribías. Guardamos solo los que tú cambiaste; los demás quedaron como los dejó esa persona.' : '',
     ].filter(Boolean).join(' ');
-    return { id: saved.id, code: saved.code, message, notice: becameReady ? { title: String(p.main.name), municipality: String(p.main.municipality) } : null, actorId: s.userId };
+    // The ficha's rev marks this send: a retry of the same save is one notice, a real new send (archived, back to
+    // draft and sent again) is another.
+    return { id: saved.id, code: saved.code, message, notice: becameReady ? { title: String(p.main.name), municipality: String(p.main.municipality), stamp: String(saved.rev) } : null, actorId: s.userId };
   }, { revalidate: REVALIDATE }).then(async (r) => {
     if (r.ok && r.data?.notice) {
       const { id, notice, actorId } = r.data;
-      await sendNotice(toScheduleNotice({ kind: 'obra', id, title: notice.title, municipality: notice.municipality }), async () =>
+      await sendNotice(toScheduleNotice({ kind: 'obra', id, title: notice.title, municipality: notice.municipality }, notice.stamp), async () =>
         noticeRecipients([...(await usersWithRole('boss')), ...(await usersWithRole('dispatch'))], actorId),
       );
     }
@@ -86,12 +93,17 @@ export async function saveObraFicha(raw: unknown) {
 // «Lo que voy a decir»: the text shown (from the template, or edited before saving) goes into the ficha. It is
 // 'template' when untouched, 'manual' when edited. A figure that is not in the ficha is a warning, never a block.
 export async function saveObraDialog(raw: unknown) {
-  return act(z.object({ id: uuid, text: z.string().max(6000, 'Máximo 6000 caracteres.') }), raw, async (sql, i) => {
+  return act(z.object({ id: uuid, text: z.string().max(6000, 'Máximo 6000 caracteres.') }), raw, async (sql, i, s) => {
     const f = await sql.one<Record<string, unknown>>(`select * from public.obra_fichas where id = $1 and deleted_at is null`, [i.id]);
     if (!f) throw new UserError('No encontramos esta ficha.');
     const brand = await dialogBrand(sql);
     const input = dialogInput(f);
     const text = i.text.replace(/\r\n/g, '\n').trim();
+    // Redes and Grabación read this text: no contact of the ficha and nothing that looks like a phone. The contacts
+    // are read as this person (2FA; without it the database gives none and only the phone check runs).
+    const priv = s.mfaOk ? await sql.one<Record<string, unknown>>(`select * from public.obra_ficha_private where id = $1`, [i.id]) : null;
+    const problem = text ? dialogContactProblem(text, input, brand, priv) : null;
+    if (problem) throw new UserError(problem);
     const by = !text ? null : text === buildObraDialog(input, brand).text ? 'template' : 'manual';
     const r = await sql.one(`update public.obra_fichas set fab_dialog = $2, fab_generated_by = $3 where id = $1 and deleted_at is null returning id`, [i.id, text, by]);
     if (!r) throw new UserError('No tienes permiso para cambiar esta ficha.');

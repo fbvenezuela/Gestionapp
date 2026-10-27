@@ -5,13 +5,13 @@ import { Uploader } from '@/components/media/uploader';
 import { DownloadAll } from '@/components/media/download-all';
 import { DrivePicker } from '@/components/media/drive-picker';
 import { DriveDownload } from '@/components/media/drive-download';
-import { DriveThumb } from '@/components/media/drive-thumb';
+import { MediaThumb } from '@/components/media/media-thumb';
 import { MEDIA_KIND } from '@/lib/data/labels';
 import { RemoveMedia } from './remove-media';
 import { mediaLockChip } from '@/lib/domain/media-lock';
 
 // lock = why it cannot be removed (media-lock.ts), or null.
-// bucket 'drive' = kept in Google Drive (STORAGE_PROVIDER=drive): thumbnail and downloads in pieces.
+// bucket 'drive' = kept in Google Drive (STORAGE_PROVIDER=drive): downloads in pieces. Thumbnails for every storage.
 type Media = { id: string; kind: string; label: string; size_bytes: number; duration_s: number | null; width: number | null; height: number | null; status: string; mime: string; bucket?: string; lock?: string | null };
 
 const RAW: { kind: string; hint: string }[] = [
@@ -74,12 +74,14 @@ export function MaterialPanel({ eventId, media, canUpload, canRemove = false, ca
   );
 }
 
-function MediaRow({ m, canRemove }: { m: Media; canRemove: boolean }) {
+// The small picture made in the phone at upload time (any storage) or Drive's; the type icon when there is none.
+export function MediaRow({ m, canRemove }: { m: Media; canRemove: boolean }) {
   const Icon = m.mime.startsWith('image/') ? ImageIcon : Film;
   const drive = m.bucket === 'drive';
+  const pictured = m.status === 'ready' && (m.mime.startsWith('image/') || m.mime.startsWith('video/') || drive);
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[var(--radius-control)] border border-border px-3 py-2">
-      {drive && m.status === 'ready' ? <DriveThumb id={m.id} mime={m.mime} /> : <Icon className="h-5 w-5 shrink-0 text-text-2" aria-hidden />}
+      {pictured ? <MediaThumb ids={[m.id]} mime={m.mime} /> : <Icon className="h-5 w-5 shrink-0 text-text-2" aria-hidden />}
       {/* The name asks for 11rem: on a phone the actions drop to their own line instead of
           squeezing it to a few letters. */}
       <div className="min-w-0 flex-[1_1_11rem]">

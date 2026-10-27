@@ -3,7 +3,7 @@
 // here is invented.
 import { describe, it, expect } from 'vitest';
 import { DateTime } from 'luxon';
-import { DIALOG_KEYS, buildObraDialog, dialogInput, dialogUnknownNumbers, obraDialogSources, type ObraDialogInput } from '@/lib/domain/obra-dialog';
+import { DIALOG_KEYS, buildObraDialog, dialogContactProblem, dialogInput, dialogPhones, dialogUnknownNumbers, obraDialogSources, type ObraDialogInput } from '@/lib/domain/obra-dialog';
 import { unknownNumbers } from '@/lib/domain/copies';
 import { OBRA_FIELDS } from '@/lib/domain/ficha-fields';
 
@@ -198,5 +198,42 @@ describe('nunca inventa cifras', () => {
     const f = base();
     expect(dialogUnknownNumbers('Ya vamos en 75 % de avance.', f, BRAND)).toEqual(['75']);
     expect(obraDialogSources(f, BRAND)).toContain('5 de marzo de 2027');
+  });
+});
+
+// «Lo que voy a decir» lo leen Redes y Grabación: a text edited by hand never carries a contact or a phone.
+describe('sin contactos ni teléfonos', () => {
+  const PRIV = { reporter_name: 'Vecina que denunció (demo)', liaison_name: 'Enlace comunitario (demo)', representative: '', engineer_phone: '0000-0000101', liaison_phone: '0000-0000102' };
+
+  it('la plantilla nunca choca con la regla: 200 fichas inventadas y la de ejemplo', () => {
+    const r = rng(20261028);
+    for (let i = 0; i < 200; i++) {
+      const f = randomFicha(r);
+      const d = buildObraDialog(f, BRAND);
+      expect(dialogContactProblem(d.text, f, BRAND, PRIV), `ficha ${i}: ${d.text}`).toBeNull();
+    }
+    expect(dialogContactProblem(buildObraDialog(base(), BRAND).text, base(), BRAND, PRIV)).toBeNull();
+  });
+
+  it('un nombre o un teléfono de los contactos se rechaza, con el nombre del campo y sin importar mayúsculas', () => {
+    expect(dialogContactProblem('Gracias a la vecina que denunció (demo).', base(), BRAND, PRIV)).toContain('«Quién hizo el reporte o la denuncia»');
+    expect(dialogContactProblem('Saludos al ENLACE COMUNITARIO (DEMO).', base(), BRAND, PRIV)).toContain('«Nombre del enlace comunitario»');
+    expect(dialogContactProblem('Llamen al 0000-0000102.', base(), BRAND, PRIV)).toContain('«Teléfono del enlace comunitario»');
+    // A name that is also in the main part (which Redes already reads) is not a leak.
+    const f = base({ communities: 'el sector del Enlace comunitario (demo)' });
+    expect(dialogContactProblem('Saludos al Enlace comunitario (demo).', f, BRAND, PRIV)).toBeNull();
+    // Without 2FA the contacts are not read: the phone check still runs.
+    expect(dialogContactProblem('Llamen al 0000-0000102.', base(), BRAND, null)).toContain('parece un teléfono (0000-0000102)');
+  });
+
+  it('lo que parece un teléfono: 7 números o más con guiones, espacios, paréntesis o +; no las cifras de la ficha ni una fecha', () => {
+    const f = base();
+    expect(dialogPhones('Llamen al 0414-1234567 o al (0276) 555-1234, o al +58 414 123 4567.', f, BRAND)).toEqual(['0414-1234567', '(0276) 555-1234', '+58 414 123 4567']);
+    expect(dialogPhones('Escriban al 04141234567.', f, BRAND)).toEqual(['04141234567']);
+    expect(dialogPhones('La inversión es de 1.500.000 bolívares; son 1.200 personas, 300 familias y 80 m de puente.', f, BRAND)).toEqual([]);
+    expect(dialogPhones('La inversión es de 1500000 bolívares.', f, BRAND)).toEqual([]);
+    expect(dialogPhones('Lo entregamos el 2027-03-05, como se dijo.', f, BRAND)).toEqual([]);
+    expect(dialogPhones('Son 1200 300 familias.', f, BRAND)).toEqual([]);
+    expect(dialogPhones('Van 123 456 7890.', f, BRAND)).toEqual(['123 456 7890']);
   });
 });

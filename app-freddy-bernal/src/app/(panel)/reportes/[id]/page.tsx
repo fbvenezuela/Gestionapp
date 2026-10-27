@@ -59,6 +59,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
           kind="report"
           id={id}
           rev={report.rev}
+          privRev={priv?.rev ?? null}
           wantsAgenda={report.wants_agenda}
           initial={toFormValues(REPORT_FIELDS, report, priv)}
           initialMarks={marks}
@@ -106,11 +107,12 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
           <div className="min-w-0">
             <p className="label-caps">Agenda del jefe</p>
             <p className="mt-1 text-[15px] text-text-2">
-              {event
-                ? event.starts_at
-                  ? `Ya tiene fecha: ${fmtDateTime(event.starts_at)} (${event.code}).`
-                  : 'Ya tiene fecha. La ven el jefe y el despacho en la agenda.'
-                : report.wants_agenda
+              {event?.starts_at
+                ? `Ya tiene fecha: ${fmtDateTime(event.starts_at)} (${event.code}).`
+                : event || data.scheduled
+                  ? // Política never reads the event nor its date: the database only says that there is one.
+                    'Ya tiene fecha. La ven el jefe y el despacho en la agenda.'
+                  : report.wants_agenda
                   ? 'Va a la agenda: por ponerle fecha. La pone el jefe (o el despacho).'
                   : 'No va a la agenda: queda en el registro del municipio.'}
             </p>

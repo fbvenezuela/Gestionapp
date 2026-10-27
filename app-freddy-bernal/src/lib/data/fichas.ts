@@ -82,13 +82,19 @@ export async function getReport(sql: Sql, id: string) {
   );
   if (!report) return null;
   const priv = await sql.one<ReportPrivate>(`select * from public.community_report_private where id = $1`, [id]);
-  return { report, priv, history: await history(sql, 'community_report_id', id), event: await linkedEvent(sql, 'community_report_id', id) };
+  // «Ya tiene fecha» without the date, for whoever cannot read the event (política): yes or no, from the database.
+  const scheduled = !!(await sql.one<{ x: boolean }>(`select public.report_has_live_event($1) as x`, [id]))?.x;
+  return { report, priv, history: await history(sql, 'community_report_id', id), event: await linkedEvent(sql, 'community_report_id', id), scheduled };
 }
 
 export type ObraListItem = {
   id: string; code: string; stage: ObraStage; name: string; municipality: string; parish: string; sector: string;
   progress_pct: number | null; work_state: string | null; updated_at: string | Date; created_by_name: string | null;
 };
+
+// Parishes are free text until the official list arrives: «Parroquia Demo Uno» and «parroquia  demo uno» are the
+// same parish (the chips and the field group them the same way: domain/territory.ts parishKey).
+const PARISH_KEY = (v: string) => `lower(regexp_replace(btrim(${v}), '\\s+', ' ', 'g'))`;
 
 export async function listObraFichas(sql: Sql, f: { municipality?: string; stage?: string; parish?: string; archived?: boolean } = {}): Promise<ObraListItem[]> {
   return sql.query<ObraListItem>(
@@ -97,7 +103,7 @@ export async function listObraFichas(sql: Sql, f: { municipality?: string; stage
       where f.deleted_at is null
         and ($1::text is null or f.municipality = $1)
         and ($2::text is null or f.stage = $2)
-        and ($3::text is null or f.parish = $3)
+        and ($3::text is null or ${PARISH_KEY('f.parish')} = ${PARISH_KEY('$3::text')})
         and ($4::boolean or $2::text is not null or f.stage <> 'archived')
       order by case f.stage when 'to_schedule' then 0 when 'draft' then 1 when 'scheduled' then 2 when 'done' then 3 else 4 end, f.updated_at desc
       limit 300`,
@@ -112,22 +118,23 @@ export type ReportListItem = {
 };
 
 // Overdue first (the most late on top), then by the date of the activity (when this person may see it) or of the
-// report, newest first.
+// report, newest first. A report with no follow-up date is not overdue (false, never NULL: NULL sorts first).
+const OVERDUE = `coalesce(r.follow_up_due < $1::date and r.status not in ('finished', 'suspended'), false)`;
 export async function listReports(sql: Sql, todayIso: string, f: ReportFilters = {}, limit = 200): Promise<ReportListItem[]> {
   return sql.query<ReportListItem>(
     `select r.id, r.code, r.title, r.type, r.status, r.priority, r.municipality, r.parish, r.community, r.follow_up_due, r.reported_at,
             coalesce(pr.activity_at, r.reported_at) as "when", r.wants_agenda,
-            (r.follow_up_due < $1::date and r.status not in ('finished', 'suspended')) as overdue
+            ${OVERDUE} as overdue
        from public.community_reports r left join public.community_report_private pr on pr.id = r.id
       where r.deleted_at is null
         and ($2::text is null or r.municipality = $2)
-        and ($3::text is null or r.parish = $3)
+        and ($3::text is null or ${PARISH_KEY('r.parish')} = ${PARISH_KEY('$3::text')})
         and ($4::text is null or r.type = $4)
         and ($5::text is null or r.status = $5)
         and ($6::text is null or r.priority = $6)
-        and (not $7::boolean or (r.follow_up_due < $1::date and r.status not in ('finished', 'suspended')))
-      order by (r.follow_up_due < $1::date and r.status not in ('finished', 'suspended')) desc,
-               case when r.follow_up_due < $1::date and r.status not in ('finished', 'suspended') then r.follow_up_due end asc,
+        and (not $7::boolean or ${OVERDUE})
+      order by ${OVERDUE} desc,
+               case when ${OVERDUE} then r.follow_up_due end asc,
                coalesce(pr.activity_at, r.reported_at) desc
       limit $8`,
     [todayIso, f.municipality || null, f.parish || null, f.type || null, f.status || null, f.priority || null, !!f.overdue, limit],

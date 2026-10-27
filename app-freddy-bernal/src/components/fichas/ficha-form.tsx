@@ -12,17 +12,22 @@ import { Card } from '@/components/ui/card';
 import { FichaField } from './ficha-field';
 import { FichaGroup } from './ficha-group';
 import type { Mark } from '@/lib/data/ficha-labels';
-import { FIELDS, GROUPS, groupProgress, missingFields, missingMessage, type FichaKind, type FormValues, type Marks } from '@/lib/domain/ficha-fields';
+import { FIELDS, GROUPS, fieldLabel, groupProgress, missingFields, missingMessage, type FichaKind, type FormValues, type Marks } from '@/lib/domain/ficha-fields';
+import { EMPTY_DRAFT, draftConflicts, draftValues, editMark, editValue, editWantsAgenda, restoreDraft, revToSend, type DraftBase, type FichaDraft } from '@/lib/domain/ficha-draft';
 import { parishOptions, type ParishMap } from '@/lib/domain/territory';
 
 // The form of a ficha (obra or community report), group by group. What is typed is kept in the phone (useDraft)
-// until it is saved, so a cut of signal loses nothing; the contacts (third-party names and phones) are NOT kept
-// there. Obra: «Guardar y avisar al jefe» (every field answered; the boss and despacho get «Por ponerle fecha») or
-// «Guardar borrador» (no notice). Report: «¿Va a la agenda del jefe?» decides whether that notice goes.
+// until it is saved, so a cut of signal loses nothing: only the fields this person changed, compared with the
+// server's values when the form opens again (src/lib/domain/ficha-draft.ts). The contacts (third-party names and
+// phones) are NOT kept there; only which of them this person changed is sent, so a contact someone else saved in
+// the meantime is not wiped. Obra: «Guardar y avisar al jefe» (every field answered; the boss and despacho get «Por
+// ponerle fecha») or «Guardar borrador» (no notice). Report: «¿Va a la agenda del jefe?» decides whether that
+// notice goes.
 type Props = {
   kind: FichaKind;
   id?: string;
   rev?: number;
+  privRev?: number | null; // the contacts' version (null: none saved yet)
   stage?: string; // obra
   wantsAgenda?: boolean | null; // report: null = new (on by default for type «Evento»)
   initial: FormValues;
@@ -34,44 +39,61 @@ type Props = {
   cancelHref: string;
 };
 
-type Draft = { values: FormValues; marks: Marks; wantsAgenda: boolean | null };
-
 export function FichaForm(p: Props) {
   const router = useRouter();
   const { run, pending } = useAction();
   const defs = useMemo(() => FIELDS[p.kind].filter((d) => p.canPrivate || !d.private), [p.kind, p.canPrivate]);
   const pick = (v: FormValues, priv: boolean) => Object.fromEntries(defs.filter((d) => !!d.private === priv).map((d) => [d.key, v[d.key] ?? '']));
+  const isNew = !p.id;
+  const privateKeys = new Set(defs.filter((d) => d.private).map((d) => d.key));
+  const pickMarks = (m: Marks, priv: boolean) => Object.fromEntries(Object.entries(m).filter(([k]) => privateKeys.has(k) === priv)) as Marks;
+  // What the server says now (the main part only: the contacts never go to the phone).
+  const base: DraftBase = { values: pick(p.initial, false), marks: pickMarks(p.initialMarks, false), wantsAgenda: p.wantsAgenda ?? null, rev: p.rev ?? null };
   const draftKey = `ficha:${p.kind}:${p.id ?? 'nueva'}`;
-  const { value: draft, setValue: setDraft, restored, clear } = useDraft<Draft>(draftKey, {
-    values: pick(p.initial, false),
-    marks: p.initialMarks,
-    wantsAgenda: p.wantsAgenda ?? null,
+  const { value: draft, setValue: setDraft, restored, clear } = useDraft<FichaDraft>(draftKey, EMPTY_DRAFT, {
+    restore: (saved) => restoreDraft(saved, base, isNew),
   });
+  const shown = draftValues(draft, base);
   const [priv, setPriv] = useState<FormValues>(() => pick(p.initial, true));
-  const values: FormValues = { ...draft.values, ...priv };
-  const marks = draft.marks;
+  const [privMarks, setPrivMarks] = useState<Marks>(() => pickMarks(p.initialMarks, true));
+  const values: FormValues = { ...shown.values, ...priv };
+  const marks: Marks = { ...shown.marks, ...privMarks };
+  const conflicts = isNew ? [] : draftConflicts(draft, base);
 
   const setValue = (key: string, v: string, isPrivate: boolean) => {
     if (isPrivate) setPriv((x) => ({ ...x, [key]: v }));
-    else setDraft((d) => ({ ...d, values: { ...d.values, [key]: v } }));
+    else setDraft((d) => editValue(d, base, key, v));
   };
-  const setMark = (key: string, m: Mark | undefined) =>
-    setDraft((d) => {
-      const next = { ...d.marks };
-      if (m) next[key] = m;
-      else delete next[key];
-      return { ...d, marks: next };
-    });
+  const setMark = (key: string, m: Mark | undefined, isPrivate: boolean) => {
+    if (isPrivate) {
+      setPrivMarks((x) => {
+        const next = { ...x };
+        if (m) next[key] = m;
+        else delete next[key];
+        return next;
+      });
+    } else setDraft((d) => editMark(d, base, key, m));
+  };
 
   const missing = missingFields(defs, values, marks);
-  const isNew = !p.id;
   const obraDraft = p.kind === 'obra' && (isNew || p.stage === 'draft');
   // Report: «¿Va a la agenda?» on by default for a new «Evento», until someone touches it.
-  const wants = p.kind === 'report' ? (draft.wantsAgenda ?? (isNew ? values.type === 'event' : false)) : false;
+  const wants = p.kind === 'report' ? (shown.wantsAgenda ?? (isNew ? values.type === 'event' : false)) : false;
   const notifies = p.kind === 'report' ? wants && (isNew || !p.wantsAgenda) : obraDraft;
 
+  // The contacts this person changed (only those are written when someone else saved contacts in the meantime).
+  const initialPriv = pick(p.initial, true);
+  const initialPrivMarks = pickMarks(p.initialMarks, true);
+  const privChanged = [...privateKeys].filter((k) => (priv[k] ?? '') !== (initialPriv[k] ?? '') || privMarks[k] !== initialPrivMarks[k]);
+
   const save = (submit: boolean) => {
-    const payload = { id: p.id, rev: p.rev, values, marks };
+    const payload = {
+      id: p.id,
+      rev: revToSend(draft, base),
+      ...(p.canPrivate && p.id ? { privRev: p.privRev ?? 0, privChanged } : {}),
+      values,
+      marks,
+    };
     run(() => (p.kind === 'obra' ? saveObraFicha({ ...payload, submit }) : saveReport({ ...payload, wantsAgenda: wants })), {
       onOk: (r) => {
         clear();
@@ -96,6 +118,12 @@ export function FichaForm(p: Props) {
           Recuperamos lo que estabas escribiendo en este teléfono.
         </p>
       ) : null}
+      {conflicts.length ? (
+        <p className="rounded-[var(--radius-control)] bg-warn-soft px-3 py-2 text-sm text-warn" role="status">
+          Ojo: alguien cambió {conflicts.map((k) => `«${fieldLabel(p.kind, k)}»`).join(', ')} después de que empezaste. Si guardas, queda lo tuyo y lo
+          anterior queda en la historia.
+        </p>
+      ) : null}
       {!p.canPrivate ? (
         <p className="rounded-[var(--radius-control)] bg-warn-soft px-3 py-2 text-sm text-warn" role="status">
           Los contactos (nombres y teléfonos) piden el doble factor: entra con tu código para verlos y llenarlos.
@@ -116,7 +144,7 @@ export function FichaForm(p: Props) {
                     value={values[d.key] ?? ''}
                     mark={marks[d.key]}
                     onChange={(v) => setValue(d.key, v, !!d.private)}
-                    onMark={(m) => setMark(d.key, m)}
+                    onMark={(m) => setMark(d.key, m, !!d.private)}
                     municipalities={p.municipalities}
                     parishes={d.type === 'parish' ? parishesFor(values.municipality ?? '') : undefined}
                   />
@@ -141,7 +169,7 @@ export function FichaForm(p: Props) {
               type="checkbox"
               role="switch"
               checked={wants}
-              onChange={(e) => setDraft((d) => ({ ...d, wantsAgenda: e.target.checked }))}
+              onChange={(e) => setDraft((d) => editWantsAgenda(d, base, e.target.checked))}
               className="h-5 w-5 accent-accent"
             />
             ¿Va a la agenda del jefe?
@@ -179,7 +207,7 @@ export function FichaForm(p: Props) {
               )}
             </Button>
           )}
-          <LinkButton variant="ghost" href={p.cancelHref}>
+          <LinkButton variant="ghost" href={p.cancelHref} onClick={clear}>
             Cancelar
           </LinkButton>
         </div>

@@ -67,10 +67,12 @@ export function decisionNotice(ev: { id: string; title: string }, decision: Boss
 // «Por ponerle fecha» (the client's words, §4.1 and §4.2): the IVT saved an obra ficha as ready, or política a community
 // report that goes to the boss's agenda. The boss and despacho put the date. The only agenda notice that carries the
 // municipality, as asked: there is no date yet to leak, and it goes only to the boss and despacho. Never a date, a
-// time, an address, a phone or a reporter's name (both texts are scrubbed). Once per ficha (the key).
+// time, an address, a phone or a reporter's name (both texts are scrubbed). Once per send: `stamp` is the ficha's rev
+// after the save that sent it, so a retry of that save is one notice and a real second send (an obra archived,
+// brought back and sent again; a report whose «¿Va a la agenda?» was turned off and on) is another.
 export type FichaRef = { kind: 'obra' | 'report'; id: string; title: string; municipality: string };
 
-export function toScheduleNotice(f: FichaRef): AgendaNotice {
+export function toScheduleNotice(f: FichaRef, stamp: string): AgendaNotice {
   const title = noticeEventTitle(f.title);
   const place = noticeEventTitle(f.municipality);
   const what = f.kind === 'obra' ? 'una obra' : 'un reporte';
@@ -79,7 +81,7 @@ export function toScheduleNotice(f: FichaRef): AgendaNotice {
     title: title ? `Por ponerle fecha: ${title}${place ? ` (${place})` : ''}` : `Por ponerle fecha: ${what}${place ? ` en ${place}` : ''}`,
     body: '',
     link: f.kind === 'obra' ? `/obras/${f.id}` : `/reportes/${f.id}`,
-    key: `to_schedule:${f.kind}:${f.id}`,
+    key: `to_schedule:${f.kind}:${f.id}:${stamp}`,
   };
 }
 

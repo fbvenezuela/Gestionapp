@@ -125,3 +125,84 @@ test('redes no entra a los municipios ni a un reporte comunitario, ni con el enl
   // Not in the menu either.
   await expect(page.getByRole('link', { name: 'Municipios' })).toHaveCount(0);
 });
+
+// What the phone keeps of a ficha (useDraft + domain/ficha-draft.ts): opening «Editar» and leaving keeps nothing, so
+// someone else's later save is never reverted by an old copy; a field both changed brings back the person's text
+// with the «Ojo» warning before and after saving; a ?municipio= preset wins over an old new-form draft.
+test('borradores en el teléfono: abrir y salir no deja nada, y el cambio de otra persona no se pierde', async ({ page, browser }) => {
+  const drafts = () => page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('draft:')));
+  await loginAs(page, 'ivt@demo.test');
+  await page.goto('/obras/nueva');
+  await page.getByLabel('Nombre de la obra (obligatorio)').fill('Ficha de borradores de prueba (demo)');
+  await page.getByLabel('Municipio (obligatorio)').selectOption('Torbes');
+  await page.getByRole('button', { name: 'Guardar borrador' }).click();
+  await expect(page).toHaveURL(/\/obras\/[0-9a-f-]{36}$/);
+  const ficha = new URL(page.url()).pathname;
+  expect(await drafts()).toEqual([]);
+
+  // Open «Editar» and tap «Cancelar»: nothing stays in the phone.
+  await page.goto(`${ficha}?editar=1`);
+  await expect(page.getByLabel('Ingeniero responsable', { exact: true })).toHaveValue('');
+  await page.getByRole('link', { name: 'Cancelar' }).click();
+  await expect(page).toHaveURL(new RegExp(`${ficha}$`));
+  expect(await drafts()).toEqual([]);
+
+  // Despacho, on its own phone, changes «Ingeniero responsable».
+  const other = await browser.newContext({ baseURL: test.info().project.use.baseURL, viewport: { width: 360, height: 760 }, locale: 'es-VE', timezoneId: 'America/Caracas' });
+  const despacho = await other.newPage();
+  await loginAs(despacho, 'despacho@demo.test');
+  const editAs = async (p: Page, label: string, value: string) => {
+    await p.goto(`${ficha}?editar=1`);
+    await p.getByLabel(label, { exact: true }).fill(value);
+    await p.getByRole('button', { name: 'Guardar borrador' }).click();
+    await expect(p).toHaveURL(new RegExp(`${ficha}$`));
+  };
+  await editAs(despacho, 'Ingeniero responsable', 'Ing. de despacho (demo)');
+
+  // The IVT opens «Editar» again: no old copy, despacho's value is there.
+  await page.goto(`${ficha}?editar=1`);
+  await expect(page.getByLabel('Ingeniero responsable', { exact: true })).toHaveValue('Ing. de despacho (demo)');
+  await expect(page.getByText('Recuperamos lo que estabas escribiendo en este teléfono.')).toHaveCount(0);
+
+  // The IVT types «Sector» and leaves without saving; despacho saves another «Sector».
+  await page.getByLabel('Sector', { exact: true }).fill('Sector de la IVT (demo)');
+  await expect.poll(drafts).toHaveLength(1);
+  await page.goto(ficha);
+  await editAs(despacho, 'Sector', 'Sector de despacho (demo)');
+  await other.close();
+
+  // Back in «Editar»: the IVT's text comes back, with the warning; despacho's engineer stays.
+  await page.goto(`${ficha}?editar=1`);
+  await expect(page.getByText('Recuperamos lo que estabas escribiendo en este teléfono.')).toBeVisible();
+  await expect(page.getByText(/Ojo: alguien cambió «Sector» después de que empezaste/)).toBeVisible();
+  await expect(page.getByLabel('Sector', { exact: true })).toHaveValue('Sector de la IVT (demo)');
+  await expect(page.getByLabel('Ingeniero responsable', { exact: true })).toHaveValue('Ing. de despacho (demo)');
+  await noSerious(page, '/obras/[id]?editar=1 con borrador');
+  await page.getByRole('button', { name: 'Guardar borrador' }).click();
+  await expect(page.getByText(/Ojo: alguien la cambió mientras escribías/)).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`${ficha}$`));
+  await expect(page.getByText('Ing. de despacho (demo)')).toBeVisible();
+  await expect(page.getByText('Sector de la IVT (demo)').first()).toBeVisible();
+  expect(await drafts()).toEqual([]);
+});
+
+test('ficha comunitaria nueva: el municipio del enlace gana sobre un borrador viejo', async ({ page }) => {
+  await loginAs(page, 'politica@demo.test');
+  await page.goto('/reportes/nuevo?municipio=Torbes');
+  await expect(page.getByLabel('Municipio (obligatorio)')).toHaveValue('Torbes');
+  await page.getByRole('link', { name: 'Cancelar' }).click();
+  await expect(page).toHaveURL(/\/municipios\/torbes$/);
+  await page.goto('/reportes/nuevo?municipio=Jun%C3%ADn');
+  await expect(page.getByLabel('Municipio (obligatorio)')).toHaveValue('Junín');
+  await expect(page.getByText('Recuperamos lo que estabas escribiendo en este teléfono.')).toHaveCount(0);
+});
+
+test('política: el reporte que ya tiene visita dice «Ya tiene fecha», sin la fecha', async ({ page }) => {
+  await loginAs(page, 'politica@demo.test');
+  await page.goto('/municipios/san-cristobal');
+  await page.getByRole('link', { name: /Jornada de salud en la escuela Los Andes \(demo\)/ }).first().click();
+  await expect(page).toHaveURL(/\/reportes\/[0-9a-f-]{36}$/);
+  await expect(page.getByText('Ya tiene fecha. La ven el jefe y el despacho en la agenda.')).toBeVisible();
+  await expect(page.getByText(/Va a la agenda: por ponerle fecha/)).toHaveCount(0);
+  await expect(page.locator('main a[href^="/eventos/"]')).toHaveCount(0);
+});

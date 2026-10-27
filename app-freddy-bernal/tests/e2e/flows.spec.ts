@@ -118,6 +118,17 @@ test('el jefe ve en su inicio todo lo que espera su aprobación: rojo, amarillo,
   await axe(page);
 });
 
+test('el jefe sube material en el evento, como Redes («el jefe hace lo de Redes»)', async ({ page }) => {
+  await loginAs(page, 'jefe@demo.test');
+  await page.goto('/obras');
+  await page.getByRole('link', { name: /Rehabilitación del puente La Quebrada/ }).click();
+  const ev = await page.getByRole('link', { name: /^Ver el evento E-\d+$/ }).getAttribute('href');
+  expect(ev).toMatch(/^\/eventos\/[0-9a-f-]{36}$/);
+  await page.goto(`${ev}?tab=material`);
+  await expect(page.getByLabel('Subir jefe hablando')).toHaveCount(1);
+  await axe(page);
+});
+
 test('el jefe aprueba todas las verdes de un toque', async ({ page }) => {
   let nativeDialog = false;
   page.on('dialog', (d) => {

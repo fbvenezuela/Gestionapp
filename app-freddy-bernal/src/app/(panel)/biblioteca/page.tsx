@@ -8,6 +8,7 @@ import { Chip } from '@/components/ui/chip';
 import { DownloadAll } from '@/components/media/download-all';
 import { DriveDownload } from '@/components/media/drive-download';
 import { DriveThumb } from '@/components/media/drive-thumb';
+import { MediaThumb } from '@/components/media/media-thumb';
 import { DrivePicker } from '@/components/media/drive-picker';
 import { DriveImportScan } from '@/components/media/drive-import-scan';
 import { MEDIA_KIND } from '@/lib/data/labels';
@@ -104,13 +105,14 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
               <div className="grid gap-3 md:grid-cols-2">
                 {list.map((r) => {
                   const counts = (kind: string[]) => r.media.filter((m) => kind.includes(m.kind)).length;
-                  const thumbs = r.media.filter((m) => m.bucket === 'drive').slice(0, 4);
+                  // The pictures made at upload time (any storage) or Drive's; a file without one shows its icon.
+                  const thumbs = r.media.filter((m) => /^(image|video)\//.test(m.mime) || m.bucket === 'drive').slice(0, 4);
                   return (
                     <Card key={r.event_id} className="flex flex-col gap-3 p-4">
                       <Link href={`/eventos/${r.event_id}?tab=material`} className="font-semibold hover:underline">{r.title}</Link>
                       {thumbs.length ? (
                         <div className="flex gap-2" aria-hidden>
-                          {thumbs.map((m) => <DriveThumb key={m.id} id={m.id} mime={m.mime} className="h-14 w-14" />)}
+                          {thumbs.map((m) => <MediaThumb key={m.id} ids={[m.id]} mime={m.mime} className="h-14 w-14" />)}
                         </div>
                       ) : null}
                       <div className="flex flex-wrap gap-1.5">

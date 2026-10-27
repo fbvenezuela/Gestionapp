@@ -31,6 +31,12 @@ export function normalizeParish(s: string): string {
   return (s ?? '').trim().replace(/\s+/g, ' ');
 }
 
+// One parish whatever its spelling («La  Concordia», «la concordia»): how the chips group them and how the lists
+// filter by them (src/lib/data/fichas.ts PARISH_KEY does the same in SQL).
+export function parishKey(s: string): string {
+  return normalizeParish(s).toLocaleLowerCase('es');
+}
+
 // The official list of that municipality, [] while there is none.
 export function parishesFor(map: ParishMap | null | undefined, municipality: string): string[] {
   const list = map?.[municipality];
@@ -45,7 +51,7 @@ export function parishOptions(map: ParishMap | null | undefined, municipality: s
   const seen = new Map<string, string>();
   for (const u of used) {
     const p = normalizeParish(u);
-    if (p && !seen.has(p.toLocaleLowerCase('es'))) seen.set(p.toLocaleLowerCase('es'), p);
+    if (p && !seen.has(parishKey(p))) seen.set(parishKey(p), p);
   }
   return { strict: false, options: [...seen.values()].sort((a, b) => a.localeCompare(b, 'es')) };
 }

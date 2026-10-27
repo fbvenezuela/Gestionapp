@@ -60,7 +60,8 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   const { ev } = data;
   const canEdit = has('admin', 'dispatch');
   const canBoard = has('admin', 'social');
-  const canUpload = has('admin', 'social') || (has('camera') && ev.cameras.some((c) => c.user_id === s.userId));
+  // The boss «hace lo de Redes» (he uploads finals, covers and material like Redes; media_insert lets him).
+  const canUpload = has('admin', 'social', 'boss') || (has('camera') && ev.cameras.some((c) => c.user_id === s.userId));
   const tab = TABS.find((t) => t.key === rawTab)?.key ?? (has('camera') && !has('admin', 'boss') ? 'material' : 'ficha');
   const visibleTabs = TABS.filter((t) => t.key !== 'piezas' || has('admin', 'social', 'boss'));
   const past = ev.schedule ? new Date(ev.schedule.starts_at) < new Date() : false;

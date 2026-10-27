@@ -107,7 +107,7 @@ describe('ficha de obra: «Guardar y avisar» → «Por ponerle fecha»', () => 
     expect(notice.userIds).not.toContain(t.ids.ivt);
     expect(notice.title).toBe(`Por ponerle fecha: ${values.name} (Junín)`);
     expect(notice.link).toBe(`/obras/${id}`);
-    expect(notice.key).toBe(`to_schedule:obra:${id}`);
+    expect(notice.key).toBe(`to_schedule:obra:${id}:1`);
     expect(looksLikeDateTime(`${notice.title} ${notice.body ?? ''}`)).toBe(false);
     const out = JSON.stringify(notices());
     for (const secret of ['0000-0000901', '0000-0000902', 'Vecina que denunció', 'Enlace de prueba', '2027-02-01', '2026-11-15', 'reductores']) expect(out).not.toContain(secret);
@@ -292,5 +292,163 @@ describe('reporte comunitario', () => {
       ok: false,
       error: '«Enlace al material (fotos, videos o documentos)»: el enlace empieza con https://',
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Fixes of the review of wave B.
+// ---------------------------------------------------------------------------
+describe('parroquias en texto libre: una sola parroquia aunque se escriba distinto', () => {
+  const T0 = '2026-10-27';
+  const rep = (title: string, parish: string, follow_up_due = '', reported_at = '2026-10-20T09:00') => ({
+    values: {
+      title, type: 'incident', municipality: 'Ayacucho', parish, community: 'Sector de prueba (demo)', reported_at,
+      status: 'pending', follow_up_due, description: 'Revisión de prueba.',
+    },
+    marks: {},
+    wantsAgenda: false,
+  });
+
+  it('el filtro por parroquia trae todas las formas de escribirla, también las vencidas, y lo vencido va primero', async () => {
+    const { listReports, listObraFichas, municipalityTimeline } = await import('@/lib/data/fichas');
+    as('politics');
+    const id = async (p: Promise<unknown>) => ((await p) as { data: { id: string } }).data.id;
+    const a = await id(reports.saveReport(rep('Jornada de revisión en la cancha (demo)', 'Parroquia Demo Uno')));
+    const b = await id(reports.saveReport(rep('Fuga de agua de revisión (demo)', 'PARROQUIA  demo uno', '2026-10-01')));
+    const other = await id(reports.saveReport(rep('Reporte de otra parroquia (demo)', 'Parroquia Demo Dos')));
+    for (const typed of ['Parroquia Demo Uno', 'parroquia demo uno', '  PARROQUIA DEMO UNO ']) {
+      const rows = await t.as('politics', (sql) => listReports(sql, T0, { municipality: 'Ayacucho', parish: typed }));
+      expect(rows.map((r) => r.id), typed).toEqual([b, a]);
+      expect(rows.map((r) => r.overdue)).toEqual([true, false]);
+      expect(rows.map((r) => r.id)).not.toContain(other);
+    }
+    const line = await t.as('politics', (sql) => municipalityTimeline(sql, 'Ayacucho', T0, { parish: 'parroquia demo uno' }));
+    expect(line.map((x) => x.id)).toEqual([b, a]);
+    // The same for the obras of the IVT.
+    as('ivt');
+    const o1 = await id(obras.saveObraFicha({ submit: false, values: { name: 'Obra de parroquia uno (demo)', municipality: 'Ayacucho', parish: 'Parroquia Demo Uno' }, marks: {} }));
+    const o2 = await id(obras.saveObraFicha({ submit: false, values: { name: 'Obra de parroquia uno bis (demo)', municipality: 'Ayacucho', parish: 'parroquia demo UNO' }, marks: {} }));
+    const found = await t.as('ivt', (sql) => listObraFichas(sql, { municipality: 'Ayacucho', parish: 'PARROQUIA DEMO UNO' }));
+    expect(new Set(found.map((r) => r.id))).toEqual(new Set([o1, o2]));
+  });
+
+  it('un reporte sin fecha de seguimiento no es «vencido» ni sale antes de los vencidos', async () => {
+    const { listReports } = await import('@/lib/data/fichas');
+    as('politics');
+    const late = ((await reports.saveReport(rep('Vencida de orden (demo)', 'Parroquia Orden (demo)', '2026-09-01'))) as { data: { id: string } }).data.id;
+    // Newer than the overdue one, and with no follow-up date: it used to sort first (NULL).
+    const none = ((await reports.saveReport(rep('Sin seguimiento de orden (demo)', 'Parroquia Orden (demo)', '', '2026-10-26T09:00'))) as { data: { id: string } }).data.id;
+    const rows = await t.as('politics', (sql) => listReports(sql, T0, { municipality: 'Ayacucho', parish: 'Parroquia Orden (demo)' }));
+    expect(rows.map((r) => [r.id, r.overdue])).toEqual([[late, true], [none, false]]);
+  });
+});
+
+describe('«Por ponerle fecha» se manda otra vez cuando de verdad se manda otra vez', () => {
+  it('una obra archivada, sacada del archivo y mandada de nuevo avisa otra vez (con otra clave)', async () => {
+    as('ivt');
+    const { values, marks } = fullObra();
+    const id = ((await obras.saveObraFicha({ submit: true, values, marks })) as { data: { id: string } }).data.id;
+    expect((await obras.archiveObraFicha({ id, archive: true, note: 'Se pospone (demo).' })).ok).toBe(true);
+    expect((await obras.archiveObraFicha({ id, archive: false })).ok).toBe(true);
+    const again = await obras.saveObraFicha({ id, submit: true, values, marks });
+    expect(again).toMatchObject({ ok: true, message: 'Guardada. Le avisamos al jefe y al despacho: «Por ponerle fecha».' });
+    const keys = sent('to_schedule').map((n) => n.key);
+    expect(keys).toHaveLength(2);
+    expect(new Set(keys).size).toBe(2);
+    for (const k of keys) expect(k).toMatch(new RegExp(`^to_schedule:obra:${id}:\\d+$`));
+  });
+
+  it('un reporte con «¿Va a la agenda?» apagado y prendido otra vez avisa otra vez', async () => {
+    as('politics');
+    const values = { title: `Reporte de reenvío ${++n} (demo)`, type: 'event', municipality: 'Torbes', reported_at: '2026-10-27T09:00', status: 'planned' };
+    const id = ((await reports.saveReport({ values, marks: {}, wantsAgenda: true })) as { data: { id: string } }).data.id;
+    expect((await reports.saveReport({ id, values, marks: {}, wantsAgenda: false })).ok).toBe(true);
+    expect((await reports.saveReport({ id, values, marks: {}, wantsAgenda: true })).ok).toBe(true);
+    const keys = sent('to_schedule').map((x) => x.key);
+    expect(keys).toHaveLength(2);
+    expect(new Set(keys).size).toBe(2);
+  });
+});
+
+describe('contactos: lo que otra persona guardó mientras yo escribía no se borra', () => {
+  it('el despacho cambia un teléfono; el IVT, con el formulario viejo abierto, guarda otro campo: el teléfono se queda y se le avisa', async () => {
+    as('ivt');
+    const { values, marks } = fullObra();
+    const id = ((await obras.saveObraFicha({ submit: true, values, marks })) as { data: { id: string } }).data.id;
+    const privRev = async () => (await t.system((sql) => sql.one<{ rev: number }>(`select rev from public.obra_ficha_private where id = $1`, [id])))!.rev;
+    const opened = await privRev();
+    // Despacho saves a new phone for the liaison.
+    as('dispatch');
+    const d = await obras.saveObraFicha({ id, submit: false, privRev: opened, privChanged: ['liaison_phone'], values: { ...values, liaison_phone: '0000-9999999' }, marks });
+    expect(d).toMatchObject({ ok: true, message: 'Cambios guardados.' });
+    // The IVT (form opened before) changes only «Sector».
+    as('ivt');
+    const r = await obras.saveObraFicha({ id, submit: false, privRev: opened, privChanged: [], values: { ...values, sector: 'Sector cambiado (demo)' }, marks });
+    expect(r.ok).toBe(true);
+    expect((r as { message: string }).message).toContain('Ojo: alguien cambió los contactos mientras escribías.');
+    const row = await t.system((sql) => sql.one(`select f.sector, p.liaison_phone, p.engineer_phone from public.obra_fichas f join public.obra_ficha_private p on p.id = f.id where f.id = $1`, [id]));
+    expect(row).toEqual({ sector: 'Sector cambiado (demo)', liaison_phone: '0000-9999999', engineer_phone: '0000-0000901' });
+    // A contact the IVT did change is written; the rest stays as despacho left it.
+    const r2 = await obras.saveObraFicha({ id, submit: false, privRev: opened, privChanged: ['engineer_phone'], values: { ...values, engineer_phone: '0000-0000999' }, marks });
+    expect(r2.ok).toBe(true);
+    expect(await t.system((sql) => sql.one(`select liaison_phone, engineer_phone from public.obra_ficha_private where id = $1`, [id]))).toEqual({
+      liaison_phone: '0000-9999999',
+      engineer_phone: '0000-0000999',
+    });
+    // With the current version, nothing is said.
+    const r3 = await obras.saveObraFicha({ id, submit: false, privRev: await privRev(), privChanged: [], values: { ...values, liaison_phone: '0000-9999999', engineer_phone: '0000-0000999' }, marks });
+    expect((r3 as { message: string }).message).toBe('Cambios guardados.');
+  });
+
+  it('en el reporte comunitario, lo mismo', async () => {
+    as('politics');
+    const values = { title: `Reporte de contactos ${++n} (demo)`, type: 'incident', municipality: 'Torbes', reported_at: '2026-10-27T09:00', status: 'planned', reporter_name: 'Vocera de prueba (demo)', reporter_phone: '0000-0000921' };
+    const id = ((await reports.saveReport({ values, marks: {}, wantsAgenda: false })) as { data: { id: string } }).data.id;
+    as('dispatch');
+    expect((await reports.saveReport({ id, privRev: 1, privChanged: ['reporter_phone'], values: { ...values, reporter_phone: '0000-0000922' }, marks: {}, wantsAgenda: false })).ok).toBe(true);
+    as('politics');
+    const r = await reports.saveReport({ id, privRev: 1, privChanged: [], values: { ...values, community: 'Sector nuevo (demo)' }, marks: {}, wantsAgenda: false });
+    expect((r as { message: string }).message).toContain('Ojo: alguien cambió los contactos');
+    expect(await t.system((sql) => sql.one(`select reporter_phone from public.community_report_private where id = $1`, [id]))).toEqual({ reporter_phone: '0000-0000922' });
+  });
+});
+
+describe('«Lo que voy a decir» no lleva contactos ni teléfonos', () => {
+  it('se rechaza con el nombre de un contacto de la ficha o con algo que parece un teléfono; nada queda guardado', async () => {
+    as('ivt');
+    const { values, marks } = fullObra();
+    const id = ((await obras.saveObraFicha({ submit: true, values, marks })) as { data: { id: string } }).data.id;
+    const before = await t.system((sql) => sql.one(`select fab_dialog from public.obra_fichas where id = $1`, [id]));
+    const name = await obras.saveObraDialog({ id, text: 'Saludos. Gracias a Enlace de prueba (demo) por acompañarnos.' });
+    expect(name).toEqual({
+      ok: false,
+      error: 'No se guardó: «Lo que voy a decir» lo leen Redes y Grabación, y tiene un dato de los contactos de la ficha («Nombre del enlace comunitario»). Quítalo y guarda otra vez.',
+    });
+    const phone = await obras.saveObraDialog({ id, text: 'Saludos. Para más información llamen al 0414 555 1234.' });
+    expect(phone).toEqual({
+      ok: false,
+      error: 'No se guardó: «Lo que voy a decir» lo leen Redes y Grabación, y tiene algo que parece un teléfono (0414 555 1234). Quítalo y guarda otra vez.',
+    });
+    const own = await obras.saveObraDialog({ id, text: 'Saludos. El teléfono del enlace es 0000-0000902.' });
+    expect(own.ok).toBe(false);
+    expect(await t.system((sql) => sql.one(`select fab_dialog from public.obra_fichas where id = $1`, [id]))).toEqual(before);
+    // The figures of the ficha itself are not phones: «1.500.000» of the investment goes through.
+    const ok = await obras.saveObraDialog({ id, text: 'Saludos. La inversión es de 1.500.000 bolívares y son 1.200 personas.' });
+    expect(ok.ok).toBe(true);
+  });
+});
+
+describe('«Ya tiene fecha» para política', () => {
+  it('política no lee el evento de su reporte, pero la base le dice que ya tiene fecha', async () => {
+    const { getReport } = await import('@/lib/data/fichas');
+    const linked = (await t.system((sql) => sql.one<{ id: string }>(`select community_report_id as id from public.events where community_report_id is not null order by code limit 1`)))!.id;
+    const forPolitics = await t.as('politics', (sql) => getReport(sql, linked));
+    expect(forPolitics!.event).toBeNull();
+    expect(forPolitics!.scheduled).toBe(true);
+    const forBoss = await t.as('boss', (sql) => getReport(sql, linked));
+    expect(forBoss!.event?.starts_at).toBeTruthy();
+    expect(forBoss!.scheduled).toBe(true);
+    const plain = (await t.system((sql) => sql.one<{ id: string }>(`select r.id from public.community_reports r where not exists (select 1 from public.events e where e.community_report_id = r.id) limit 1`)))!.id;
+    expect((await t.as('politics', (sql) => getReport(sql, plain)))!.scheduled).toBe(false);
   });
 });

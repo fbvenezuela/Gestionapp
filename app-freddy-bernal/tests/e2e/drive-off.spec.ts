@@ -2,8 +2,15 @@ import { test, expect, type Page } from '@playwright/test';
 import { loginAs } from './helpers';
 
 // With STORAGE_PROVIDER empty (the published demo) nothing of Google Drive shows: no Ajustes item,
-// no «Elegir de Drive», no thumbnails or «Archivo» section in Biblioteca. At 360 px, as the rest.
+// no «Elegir de Drive», no «Archivo» section in Biblioteca. Thumbnails are the platform's for every storage (made in
+// the phone at upload time): a file without one shows its icon, never a broken picture. At 360 px, as the rest.
 test.skip(process.env.STORAGE_PROVIDER === 'drive', 'Solo con STORAGE_PROVIDER vacío (la demo).');
+
+async function noBrokenThumbs(page: Page, where: string) {
+  const broken = () =>
+    page.evaluate(() => [...document.querySelectorAll<HTMLImageElement>('img[src$="/thumb"]')].filter((i) => i.complete && i.naturalWidth === 0).length);
+  await expect.poll(broken, { message: `${where}: miniatura rota` }).toBe(0);
+}
 
 async function noSideScroll(page: Page, where: string) {
   const w = await page.evaluate(() => document.documentElement.scrollWidth);
@@ -27,13 +34,13 @@ test('la demo sin Drive: Ajustes, el material y la Biblioteca quedan como antes'
   await page.goto(`${href!.split('?')[0]}?tab=material`);
   await expect(page.getByRole('heading', { name: 'Jefe hablando' })).toBeVisible();
   await expect(page.getByRole('button', { name: /Elegir de Drive/ })).toHaveCount(0);
-  await expect(page.locator('img[src$="/thumb"]')).toHaveCount(0);
+  await noBrokenThumbs(page, 'material');
   await noSideScroll(page, 'material');
 
   await page.goto('/biblioteca');
   await expect(page.getByRole('heading', { name: 'Biblioteca' })).toBeVisible();
   await expect(page.getByRole('button', { name: /Elegir de Drive|Traer lo nuevo de Drive/ })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: /Archivo \(sin evento\)/ })).toHaveCount(0);
-  await expect(page.locator('img[src$="/thumb"]')).toHaveCount(0);
+  await noBrokenThumbs(page, '/biblioteca');
   await noSideScroll(page, '/biblioteca');
 });

@@ -6,7 +6,7 @@ import type { Sql } from '../db';
 import { TZ } from '../time';
 import { DATED, MAX_TITLE, alwaysWhen } from '@/lib/domain/event-title';
 import { MARKS } from '@/lib/data/ficha-labels';
-import { cleanMarks, clearMarked, fromLocalDateTime, type FieldDef, type FormValues, type Marks } from '@/lib/domain/ficha-fields';
+import { cleanMarks, clearMarked, fromLocalDateTime, toFormValues, type FieldDef, type FormValues, type Marks } from '@/lib/domain/ficha-fields';
 import { normalizeParish } from '@/lib/domain/territory';
 
 // Input shapes shared by several server actions. NOT a 'use server' file: those may export only actions.
@@ -49,6 +49,14 @@ export const marksSchema = z.record(z.string().regex(/^[a-z][a-z0-9_]{0,59}$/), 
 export const formValuesSchema = z.record(z.string().max(60), z.union([z.string().max(10_000), z.number(), z.null()])).default({});
 
 export const PHONE = /^[0-9+() .-]*$/;
+
+// The contacts' concurrency (obra_ficha_private / community_report_private): the version this person's form
+// started from (0 = none saved yet) and which contact fields they changed. Optional: a save without them writes
+// every contact as before.
+export const contactsSchema = {
+  privRev: z.coerce.number().int().min(0).optional(),
+  privChanged: z.array(z.string().regex(/^[a-z][a-z0-9_]{0,59}$/)).max(100).optional(),
+};
 
 const asText = z.preprocess((v) => (v === null || v === undefined ? '' : typeof v === 'number' ? String(v) : v), z.string());
 
@@ -180,4 +188,34 @@ export async function writePrivate(sql: Sql, table: FichaTable, id: string, row:
         params,
       );
   if (!r) throw new UserError('No pudimos guardar los contactos: hace falta el doble factor.');
+}
+
+// Someone saved the contacts while this person's form was open (their rev moved): keep that person's values for
+// every contact this person did not change, so a phone saved in between is not wiped (the history keeps only the
+// field names of the contacts, so it could not be brought back). Returns the values and marks to save, and whether
+// the contacts had moved.
+export async function keepOthersContacts(
+  sql: Sql,
+  table: FichaTable,
+  id: string,
+  defs: FieldDef[],
+  values: Record<string, unknown>,
+  marks: Record<string, unknown>,
+  privRev: number | undefined,
+  changed: string[] | undefined,
+): Promise<{ values: Record<string, unknown>; marks: Record<string, unknown>; moved: boolean }> {
+  if (privRev === undefined || !changed) return { values, marks, moved: false };
+  const cur = await sql.one<Record<string, unknown>>(`select * from public.${PRIVATE_OF[table]} where id = $1`, [id]);
+  if ((cur ? Number(cur.rev) : 0) === privRev) return { values, marks, moved: false };
+  const untouched = defs.filter((d) => d.private && !changed.includes(d.key));
+  const fresh = toFormValues(untouched, cur);
+  const curMarks = (cur?.marks ?? {}) as Record<string, unknown>;
+  const v = { ...values };
+  const m = { ...marks };
+  for (const d of untouched) {
+    v[d.key] = fresh[d.key];
+    if (curMarks[d.key]) m[d.key] = curMarks[d.key];
+    else delete m[d.key];
+  }
+  return { values: v, marks: m, moved: true };
 }

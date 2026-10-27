@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { act, UserError, type Result } from './run';
-import { formValuesSchema, marksSchema, parseFicha, writeFicha, writePrivate } from './schemas';
+import { contactsSchema, formValuesSchema, keepOthersContacts, marksSchema, parseFicha, writeFicha, writePrivate } from './schemas';
 import { notify, usersWithRole } from '../notify';
 import { REPORT_FIELDS } from '@/lib/domain/ficha-fields';
 import { isClosed } from '@/lib/domain/report-status';
@@ -34,6 +34,7 @@ const saveSchema = z.object({
   id: uuid.optional(),
   rev: z.coerce.number().int().min(1).optional(),
   wantsAgenda: z.boolean().default(false),
+  ...contactsSchema,
   values: formValuesSchema,
   marks: marksSchema,
 });
@@ -42,11 +43,14 @@ export async function saveReport(raw: unknown) {
   return act(saveSchema, raw, async (sql, i, s) => {
     const canPrivate = s.mfaOk && s.roles.some((r) => REPORT_ROLES.includes(r));
     const defs = canPrivate ? REPORT_FIELDS : REPORT_FIELDS.filter((d) => !d.private);
-    const p = parseFicha(defs, i.values, i.marks);
     const before = i.id
       ? await sql.one<{ wants_agenda: boolean; rev: number }>(`select wants_agenda, rev from public.community_reports where id = $1 and deleted_at is null`, [i.id])
       : null;
     if (i.id && !before) throw new UserError('No encontramos este reporte, o tu rol no lo puede cambiar.');
+    const contacts = canPrivate && i.id
+      ? await keepOthersContacts(sql, 'community_reports', i.id, defs, i.values, i.marks, i.privRev, i.privChanged)
+      : { values: i.values, marks: i.marks, moved: false };
+    const p = parseFicha(defs, contacts.values, contacts.marks);
     const saved = await writeFicha(sql, 'community_reports', i.id ?? null, { ...p.main, wants_agenda: i.wantsAgenda }, p.marks.main);
     if (!saved) throw new UserError('No tienes permiso para cambiar este reporte.');
     if (canPrivate) await writePrivate(sql, 'community_reports', saved.id, p.priv, p.marks.priv);
@@ -56,12 +60,14 @@ export async function saveReport(raw: unknown) {
     const message = [
       toAgenda ? 'Guardado. Le avisamos al jefe y al despacho: «Por ponerle fecha».' : before ? 'Cambios guardados.' : 'Reporte guardado en el registro.',
       overwrote ? 'Ojo: alguien lo cambió mientras escribías. Quedó lo tuyo; lo anterior está en la historia.' : '',
+      contacts.moved ? 'Ojo: alguien cambió los contactos mientras escribías. Guardamos solo los que tú cambiaste; los demás quedaron como los dejó esa persona.' : '',
     ].filter(Boolean).join(' ');
-    return { id: saved.id, code: saved.code, message, notice: toAgenda ? { title: String(p.main.title), municipality: String(p.main.municipality) } : null, actorId: s.userId };
+    // The report's rev marks this send: switched off and on again is a new notice; a retry of the same save is not.
+    return { id: saved.id, code: saved.code, message, notice: toAgenda ? { title: String(p.main.title), municipality: String(p.main.municipality), stamp: String(saved.rev) } : null, actorId: s.userId };
   }, { revalidate: REVALIDATE }).then(async (r) => {
     if (r.ok && r.data?.notice) {
       const { id, notice, actorId } = r.data;
-      await sendNotice(toScheduleNotice({ kind: 'report', id, title: notice.title, municipality: notice.municipality }), async () =>
+      await sendNotice(toScheduleNotice({ kind: 'report', id, title: notice.title, municipality: notice.municipality }, notice.stamp), async () =>
         noticeRecipients([...(await usersWithRole('boss')), ...(await usersWithRole('dispatch'))], actorId),
       );
     }
