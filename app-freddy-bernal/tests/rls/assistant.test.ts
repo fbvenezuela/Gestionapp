@@ -18,7 +18,7 @@ beforeAll(async () => {
 });
 
 const TABLES = ['assistant_knowledge', 'assistant_scripts', 'assistant_conversations', 'assistant_messages', 'assistant_heard', 'assistant_drafts', 'assistant_actions'];
-const WHO = ['admin', 'boss', 'dispatch', 'secretary', 'social', 'supervisor', 'camera'] as const;
+const WHO = ['admin', 'boss', 'dispatch', 'politics', 'ivt', 'social', 'camera'] as const;
 
 describe('tablas del asistente: solo el servidor', () => {
   it('RLS encendido y sin ninguna política', async () => {

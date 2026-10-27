@@ -14,32 +14,32 @@ const ep = (s: string) => `https://fcm.googleapis.com/fcm/send/${s}`;
 describe('push_subscriptions: cada quien con lo suyo', () => {
   it('cada persona guarda y ve solo sus teléfonos', async () => {
     await t.as('social', (sql) => sql.query(`select public.save_push_subscription($1, $2, $3, 'test')`, [ep('social-1'), KEY, AUTH]));
-    await t.as('supervisor', (sql) => sql.query(`insert into public.push_subscriptions (endpoint, p256dh, auth) values ($1, $2, $3)`, [ep('sup-1'), KEY, AUTH]));
+    await t.as('politics', (sql) => sql.query(`insert into public.push_subscriptions (endpoint, p256dh, auth) values ($1, $2, $3)`, [ep('pol-1'), KEY, AUTH]));
     const mine = await t.as('social', (sql) => sql.query<{ endpoint: string }>(`select endpoint from public.push_subscriptions`));
     expect(mine.map((r) => r.endpoint)).toEqual([ep('social-1')]);
-    const sup = await t.as('supervisor', (sql) => sql.query<{ endpoint: string }>(`select endpoint from public.push_subscriptions`));
-    expect(sup.map((r) => r.endpoint)).toEqual([ep('sup-1')]);
+    const pol = await t.as('politics', (sql) => sql.query<{ endpoint: string }>(`select endpoint from public.push_subscriptions`));
+    expect(pol.map((r) => r.endpoint)).toEqual([ep('pol-1')]);
   });
 
   it('nadie ve los de otro, ni siquiera administración', async () => {
     const admin = await t.as('admin', (sql) => sql.query(`select * from public.push_subscriptions`));
     expect(admin).toHaveLength(0);
-    const n = await t.as('social', (sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.push_subscriptions where user_id = $1`, [t.ids.supervisor]));
+    const n = await t.as('social', (sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.push_subscriptions where user_id = $1`, [t.ids.politics]));
     expect(n!.n).toBe(0);
   });
 
   it('nadie borra los de otro', async () => {
-    const del = await t.as('social', (sql) => sql.query(`delete from public.push_subscriptions where endpoint = $1 returning id`, [ep('sup-1')]));
+    const del = await t.as('social', (sql) => sql.query(`delete from public.push_subscriptions where endpoint = $1 returning id`, [ep('pol-1')]));
     expect(del).toHaveLength(0);
     const adminDel = await t.as('admin', (sql) => sql.query(`delete from public.push_subscriptions returning id`));
     expect(adminDel).toHaveLength(0);
-    const still = await t.system((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.push_subscriptions where endpoint = $1`, [ep('sup-1')]));
+    const still = await t.system((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.push_subscriptions where endpoint = $1`, [ep('pol-1')]));
     expect(still!.n).toBe(1);
   });
 
   it('nadie inserta a nombre de otro ni edita filas', async () => {
     await expect(
-      t.as('social', (sql) => sql.query(`insert into public.push_subscriptions (user_id, endpoint, p256dh, auth) values ($1, $2, $3, $4)`, [t.ids.supervisor, ep('fake'), KEY, AUTH])),
+      t.as('social', (sql) => sql.query(`insert into public.push_subscriptions (user_id, endpoint, p256dh, auth) values ($1, $2, $3, $4)`, [t.ids.politics, ep('fake'), KEY, AUTH])),
     ).rejects.toThrow();
     await expect(t.as('social', (sql) => sql.query(`update public.push_subscriptions set failed_count = 0`))).rejects.toThrow();
   });
@@ -78,12 +78,12 @@ describe('push_subscriptions: cada quien con lo suyo', () => {
   it('al cerrar sus sesiones (teléfono perdido o reinicio del doble factor) se borran sus teléfonos', async () => {
     const count = (uid: string) => t.system((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.push_subscriptions where user_id = $1`, [uid]));
     await t.as('social2', (sql) => sql.query(`select public.save_push_subscription($1, $2, $3, '')`, [ep('lost-phone'), KEY, AUTH]));
-    await t.as('secretary', (sql) => sql.query(`select public.save_push_subscription($1, $2, $3, '')`, [ep('other-phone'), KEY, AUTH]));
+    await t.as('ivt', (sql) => sql.query(`select public.save_push_subscription($1, $2, $3, '')`, [ep('other-phone'), KEY, AUTH]));
     expect((await count(t.ids.social2))!.n).toBe(1);
     // The same update «Cerrar sus sesiones» and «Reiniciar doble factor» make.
     await t.as('admin', (sql) => sql.query(`update public.profiles set sessions_revoked_at = now() where id = $1`, [t.ids.social2]));
     expect((await count(t.ids.social2))!.n).toBe(0);
-    expect((await count(t.ids.secretary))!.n).toBe(1);
+    expect((await count(t.ids.ivt))!.n).toBe(1);
     // Signing in again on a phone works as usual.
     await t.as('social2', (sql) => sql.query(`select public.save_push_subscription($1, $2, $3, '')`, [ep('new-phone'), KEY, AUTH]));
     expect((await count(t.ids.social2))!.n).toBe(1);

@@ -9,7 +9,7 @@ import type { DemoUserKey } from '@/lib/db/seed-demo';
 
 let t: TestDb;
 let mediaId: string;
-const WHO: DemoUserKey[] = ['admin', 'boss', 'dispatch', 'social', 'social2', 'supervisor', 'camera', 'camera2', 'secretary'];
+const WHO: DemoUserKey[] = ['admin', 'boss', 'dispatch', 'politics', 'ivt', 'social', 'social2', 'camera', 'camera2'];
 const TABLES = ['drive_connection', 'drive_folders', 'media_drive', 'media_thumbs', 'drive_transfer', 'drive_transfer_person'];
 const SEALED = 'v1.abcdef12.aXY.Y3Q.dGFn';
 
@@ -117,10 +117,10 @@ describe('registro de cambios de la conexión', () => {
 });
 
 describe('material en Drive (bucket drive): las mismas reglas de siempre', () => {
-  it('lo ven quienes ven su evento; grabación sin asignar y secretaría no', async () => {
+  it('lo ven quienes ven su evento; grabación sin asignar, política e IVT no', async () => {
     const see = (who: DemoUserKey) => t.as(who, (sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.media_assets where id = $1`, [mediaId]));
-    for (const who of ['admin', 'social', 'supervisor'] as DemoUserKey[]) expect((await see(who))!.n, who).toBe(1);
-    expect((await see('secretary'))!.n).toBe(0);
+    for (const who of ['admin', 'social', 'boss'] as DemoUserKey[]) expect((await see(who))!.n, who).toBe(1);
+    for (const who of ['politics', 'ivt'] as DemoUserKey[]) expect((await see(who))!.n, who).toBe(0);
     const assigned = await t.system((sql) => sql.query<{ user_id: string }>(`select user_id from public.event_assignments a join public.media_assets m on m.event_id = a.event_id where m.id = $1`, [mediaId]));
     const camOut = (['camera', 'camera2'] as DemoUserKey[]).find((c) => !assigned.some((a) => a.user_id === t.ids[c]));
     if (camOut) expect((await see(camOut))!.n).toBe(0);

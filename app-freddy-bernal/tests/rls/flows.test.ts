@@ -1,5 +1,5 @@
-// RLS tests for the workflow gaps: secretaría fixes her own proposal, only admin removes
-// material (never an approved file), and the two-factor reset leaves its note in the audit trail.
+// RLS tests for the workflow gaps: only admin removes material (never an approved file), and the
+// two-factor reset leaves its note in the audit trail.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { makeTestDb, type TestDb } from './setup';
 import { mediaLockSql } from '@/lib/domain/media-lock';
@@ -13,68 +13,6 @@ const fails = async (p: Promise<unknown>, msg?: RegExp) => {
   if (msg) await expect(p).rejects.toThrow(msg);
   else await expect(p).rejects.toThrow();
 };
-
-// The exact statement of updateProposal (src/lib/actions/events.ts).
-const PROPOSAL_UPDATE = `update public.events set title = $2, place_name = $3, municipality = $4, summary = $5, category_id = $6
-  where id = $1 and created_by = auth.uid() and boss_decision = 'pending' and deleted_at is null returning id`;
-
-async function propose(title: string) {
-  return t.as('secretary', async (sql) => {
-    const ev = await sql.one<{ id: string }>(
-      `insert into public.events (title, place_name, municipality, summary, created_by) values ($1, 'Sitio inventado', 'Cárdenas', 'Propuesta de prueba', auth.uid()) returning id`,
-      [title],
-    );
-    await sql.query(`insert into public.event_schedule (event_id, starts_at, ends_at, exact_address) values ($1, now() + interval '3 days', now() + interval '3 days 1 hour', 'Calle inventada 1')`, [ev!.id]);
-    return ev!.id;
-  });
-}
-
-describe('secretaría corrige su propia propuesta mientras el jefe no decide', () => {
-  it('cambia título, sitio, municipio, resumen y categoría de su propuesta pendiente', async () => {
-    const id = await propose('Visita a la escuela de prueba');
-    const cat = await t.system((sql) => sql.one<{ id: string }>(`select id from public.categories where kind = 'content' and parent_id is not null limit 1`));
-    const r = await t.as('secretary', (sql) => sql.query(PROPOSAL_UPDATE, [id, 'Visita corregida a la escuela', 'Otro sitio', 'Junín', 'Nuevo resumen', cat!.id]));
-    expect(r).toHaveLength(1);
-    const ev = await t.system((sql) => sql.one<{ title: string; category_id: string }>(`select title, category_id from public.events where id = $1`, [id]));
-    expect(ev).toMatchObject({ title: 'Visita corregida a la escuela', category_id: cat!.id });
-  });
-
-  it('no puede tocar urgencia, prioridad, decisión ni estado de trabajo', async () => {
-    const id = await propose('Propuesta para columnas prohibidas');
-    for (const set of [`urgency = 1`, `priority = 9`, `boss_decision = 'accepted'`, `work_status = 'editing'`, `done_on = current_date`]) {
-      await fails(t.as('secretary', (sql) => sql.query(`update public.events set ${set} where id = $1`, [id])), /No puedes cambiar estos datos del evento/);
-    }
-  });
-
-  it('no puede cambiar la fecha, el lugar exacto ni la ficha (ni siquiera los ve)', async () => {
-    const id = await propose('Propuesta sin agenda visible');
-    const sch = await t.as('secretary', (sql) => sql.query(`update public.event_schedule set exact_address = 'otra' where event_id = $1 returning event_id`, [id]));
-    expect(sch).toHaveLength(0);
-    const seen = await t.as('secretary', (sql) => sql.query(`select * from public.event_schedule where event_id = $1`, [id]));
-    expect(seen).toHaveLength(0);
-    const brief = await t.as('secretary', (sql) => sql.query(`update public.event_brief set notes = 'x' where event_id = $1 returning event_id`, [id]));
-    expect(brief).toHaveLength(0);
-  });
-
-  it('no puede cambiar eventos de otros', async () => {
-    const other = await t.system((sql) => sql.one<{ id: string }>(`select id from public.events where created_by = $1 and boss_decision = 'pending' limit 1`, [t.ids.dispatch]));
-    const r = await t.as('secretary', (sql) => sql.query(PROPOSAL_UPDATE, [other!.id, 'Título ajeno', '', '', '', null]));
-    expect(r).toHaveLength(0);
-    const raw = await t.as('secretary', (sql) => sql.query(`update public.events set title = 'Título ajeno' where id = $1 returning id`, [other!.id]));
-    expect(raw).toHaveLength(0);
-  });
-
-  it('cuando el jefe decide, ya no puede cambiarla', async () => {
-    const id = await propose('Propuesta que el jefe acepta');
-    await t.as('boss', (sql) => sql.query(`update public.events set boss_decision = 'accepted', priority = 7 where id = $1`, [id]));
-    const r = await t.as('secretary', (sql) => sql.query(PROPOSAL_UPDATE, [id, 'Cambio tardío', '', '', '', null]));
-    expect(r).toHaveLength(0);
-    await fails(t.as('secretary', (sql) => sql.query(`update public.events set title = 'Cambio tardío' where id = $1`, [id])), /No puedes cambiar/);
-    // She still sees her proposal (and the decision), without the date.
-    const ev = await t.as('secretary', (sql) => sql.one<{ boss_decision: string }>(`select boss_decision from public.events where id = $1`, [id]));
-    expect(ev?.boss_decision).toBe('accepted');
-  });
-});
 
 describe('quitar material subido por error: solo administración', () => {
   const rawClip = () =>
@@ -90,9 +28,9 @@ describe('quitar material subido por error: solo administración', () => {
     await fails(t.as('camera', (sql) => sql.query(`update public.media_assets set deleted_at = now() where id = $1`, [m.id])), /Solo un administrador/);
   });
 
-  it('supervisión y secretaría ni siquiera llegan a la fila', async () => {
+  it('el director de política y el del IVT ni siquiera llegan a la fila', async () => {
     const m = (await rawClip())!;
-    for (const who of ['supervisor', 'secretary'] as const) {
+    for (const who of ['politics', 'ivt'] as const) {
       const r = await t.as(who, (sql) => sql.query(`update public.media_assets set deleted_at = now() where id = $1 returning id`, [m.id]));
       expect(r).toHaveLength(0);
     }
@@ -131,7 +69,7 @@ describe('quitar material subido por error: solo administración', () => {
 const lockOf = async (id: string) => (await t.as('admin', (sql) => sql.one<{ lock: string | null }>(`select ${mediaLockSql('$1::uuid')} as lock`, [id])))!.lock;
 
 describe('lo que está en revisión, publicado o grabado por el jefe tampoco se quita', () => {
-  it('el video de una pieza en revisión queda bloqueado (si se quitara, supervisión aprobaría algo sin archivo)', async () => {
+  it('el video de una pieza en revisión queda bloqueado (si se quitara, el jefe aprobaría algo sin archivo)', async () => {
     const v = await t.system((sql) =>
       sql.one<{ media_asset_id: string }>(
         `select v.media_asset_id from public.piece_versions v join public.pieces p on p.id = v.piece_id
@@ -153,7 +91,7 @@ describe('lo que está en revisión, publicado o grabado por el jefe tampoco se 
         ),
       ))!.id;
     const ask = () =>
-      t.as('supervisor', (sql) => sql.one<{ id: string }>(`insert into public.voice_line_requests (piece_id, phrase) values ($1, 'Frase de prueba') returning id`, [piece!.id]));
+      t.as('social', (sql) => sql.one<{ id: string }>(`insert into public.voice_line_requests (piece_id, phrase) values ($1, 'Frase de prueba') returning id`, [piece!.id]));
     const kept = await audio();
     const req = await ask();
     await t.as('boss', (sql) => sql.query(`update public.voice_line_requests set status = 'received', audio_asset_id = $2 where id = $1`, [req!.id, kept]));
@@ -174,7 +112,7 @@ describe('lo que está en revisión, publicado o grabado por el jefe tampoco se 
       ),
     ))!;
     expect(await lockOf(p1.media_asset_id)).toBe('published');
-    // Redes sube la versión 2 (como addVersion) y supervisión pide cambios: approved_version queda vacío.
+    // Redes sube la versión 2 (como addVersion) y el jefe pide cambios: approved_version queda vacío.
     await t.as('social', async (sql) => {
       const m = await sql.one<{ id: string }>(
         `insert into public.media_assets (event_id, kind, bucket, storage_path, label, mime, size_bytes, status, uploaded_by)
@@ -185,7 +123,7 @@ describe('lo que está en revisión, publicado o grabado por el jefe tampoco se 
       await sql.query(`insert into public.piece_versions (piece_id, version, media_asset_id, cover_asset_id) values ($1, $2, $3, $4)`, [p1.id, cur!.current_version + 1, m!.id, p1.cover_asset_id]);
       await sql.query(`update public.pieces set current_version = $2 where id = $1`, [p1.id, cur!.current_version + 1]);
     });
-    await t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'changes_requested', 'Cambia el cierre, por favor.')`, [p1.id]));
+    await t.as('boss', (sql) => sql.query(`select public.review_piece($1, 'changes_requested', 'Cambia el cierre, por favor.')`, [p1.id]));
     const after = await t.system((sql) => sql.one<{ status: string; approved_version: number | null }>(`select status, approved_version from public.pieces where id = $1`, [p1.id]));
     expect(after).toEqual({ status: 'changes_requested', approved_version: null });
     expect(await lockOf(p1.media_asset_id)).toBe('published');
@@ -208,9 +146,9 @@ describe('lo que está en revisión, publicado o grabado por el jefe tampoco se 
     expect(await lockOf(r.v1)).toBeNull(); // a draft: social may still replace it
     await t.as('social', (sql) => sql.query(`update public.pieces set status = 'in_review' where id = $1`, [r.piece]));
     expect(await lockOf(r.v1)).toBe('in_review');
-    await t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'approved', 'Bien.')`, [r.piece]));
+    await t.as('boss', (sql) => sql.query(`select public.review_piece($1, 'approved', 'Bien.')`, [r.piece]));
     expect(await lockOf(r.v1)).toBe('approved');
-    await t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'changes_requested', 'Mejor otra toma.')`, [r.piece]));
+    await t.as('boss', (sql) => sql.query(`select public.review_piece($1, 'changes_requested', 'Mejor otra toma.')`, [r.piece]));
     expect(await lockOf(r.v1)).toBeNull();
   });
 });
