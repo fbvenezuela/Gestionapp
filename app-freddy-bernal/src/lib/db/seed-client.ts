@@ -14,6 +14,7 @@ export async function seedClient(sql: Sql, brandKey?: string) {
     'app.timezone': cfg.timezone,
     'brand': cfg.brand,
     'municipalities': cfg.municipalities,
+    'parishes': parishesSetting(cfg.parishes),
     'tweets.slots': cfg.tweetSlots,
     'tweets.per_day': cfg.tweetsPerDay,
     'tweets.low_stock_days': cfg.tweetLowStockDays,
@@ -62,6 +63,14 @@ export async function seedClient(sql: Sql, brandKey?: string) {
   await sql.query(`select set_config('app.assistant_skip_refresh', '', true)`);
   // Own error handler, like the triggers: the assistant failing to catch up never blocks the seed.
   await sql.query(`do $$ begin perform public.assistant_refresh(); exception when others then raise warning 'El asistente no pudo ponerse al día: %', sqlerrm; end $$`);
+}
+
+// {"<municipality>": ["<parish>", …]} without the notes for people ("$source"…), which stay in the config file.
+// Empty until the official list arrives; meanwhile the parish is free text (check_territory, 20261027001700_fichas.sql).
+export function parishesSetting(map: Record<string, unknown>): Record<string, string[]> {
+  return Object.fromEntries(
+    Object.entries(map).filter((e): e is [string, string[]] => !e[0].startsWith('$') && Array.isArray(e[1]) && e[1].every((x) => typeof x === 'string')),
+  );
 }
 
 async function upsertCategory(sql: Sql, kind: string, parent: string | null, name: string, emoji: string | null, sort: number) {

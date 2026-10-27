@@ -59,6 +59,9 @@
   "Torbes",
   "Uribante"
  ],
+ "parishes": {
+  "$source": "Pendiente (27/10/2026): la lista oficial de las 66 parroquias por municipio (la que usa el equipo de política con los voceros, o la del INE). No se inventan: mientras un municipio no tenga su lista, la parroquia se escribe a mano. Formato: \"Municipio\": [\"Parroquia\", …], con el nombre del municipio igual a la lista de arriba."
+ },
  "categories": {
   "content": [
    {
