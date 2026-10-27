@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { createUpload, failUpload, finishUpload, type UploadTicket } from '@/lib/actions/media';
 import { compressImage, probeFile, type Probe } from '@/lib/media/probe';
 import { DriveUpload, RETRY_DELAYS } from '@/lib/media/drive-upload';
+import { makeThumb } from '@/lib/media/thumbnail';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
@@ -28,14 +29,21 @@ const ticketKey = (scope: string, f: File) => `upload:${scope}:${f.name}:${f.siz
 /**
  * Resumable uploads: the file goes in chunks; if the signal drops it waits and goes on
  * by itself; if the page is closed, choosing the same file again continues where it was.
+ * Where it goes: an event (eventId), an obra ficha (obraFichaId), a community report (reportId),
+ * or nothing (piece versions, screenshots, tweet images). At most one; the server and the database check it.
+ * Photos and videos also get a small picture, made here while they upload (best effort).
  */
 export function Uploader({
-  eventId, kind, label, hint, accept = 'video/*', multiple = true, onUploaded, compact,
-}: { eventId: string | null; kind: string; label: string; hint?: string; accept?: string; multiple?: boolean; onUploaded?: (a: UploadedAsset) => void; compact?: boolean }) {
+  eventId = null, obraFichaId = null, reportId = null, kind, label, hint, accept = 'video/*', multiple = true, onUploaded, compact,
+}: {
+  eventId?: string | null; obraFichaId?: string | null; reportId?: string | null; kind: string; label: string; hint?: string; accept?: string;
+  multiple?: boolean; onUploaded?: (a: UploadedAsset) => void; compact?: boolean;
+}) {
   const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const scope = `${eventId ?? 'none'}:${kind}`;
+  // Where a saved ticket belongs (an event's key stays as it was, so an upload cut before an update still resumes).
+  const scope = obraFichaId ? `obra:${obraFichaId}:${kind}` : reportId ? `report:${reportId}:${kind}` : `${eventId ?? 'none'}:${kind}`;
 
   const patch = (key: string, p: Partial<Item>) => setItems((list) => list.map((i) => (i.key === key ? { ...i, ...p } : i)));
   // Files are prepared one at a time (a 12 MP photo decodes to ~48 MB); the uploads themselves
@@ -67,13 +75,15 @@ export function Uploader({
       const file = await compressImage(original);
       const probe = await probeFile(file);
       if (dropped.current.has(key)) return;
+      // Made alongside the upload (never awaited before it starts); finish() waits for it, 8 s at most.
+      const thumb = makeThumb(file);
       const ext = (file.name.split('.').pop() || 'bin').slice(0, 5);
       let ticket: UploadTicket | null = null;
       try {
         ticket = JSON.parse(localStorage.getItem(ticketKey(scope, original)) ?? 'null');
       } catch {}
       if (!ticket) {
-        const r = await createUpload({ eventId, kind, mime: file.type || 'application/octet-stream', sizeBytes: file.size, ext, probe });
+        const r = await createUpload({ eventId, obraFichaId, reportId, kind, mime: file.type || 'application/octet-stream', sizeBytes: file.size, ext, probe });
         if (!r.ok) throw new Error(r.error);
         ticket = r.data!;
         try {
@@ -87,7 +97,7 @@ export function Uploader({
         } catch {}
       };
       const finish = async () => {
-        const r = await finishUpload({ id: t.id });
+        const r = await finishUpload({ id: t.id, thumb: await thumb });
         forget();
         if (!r.ok) return patch(key, { state: 'error', error: r.error });
         patch(key, { state: 'done', progress: 1 });
@@ -127,7 +137,8 @@ export function Uploader({
         retryDelays: [0, 2000, 5000, 10000, 20000, 30000, 60000, 60000, 120000, 120000, 300000],
         removeFingerprintOnSuccess: true,
         storeFingerprintForResuming: true,
-        metadata: { mediaId: t.id, bucketName: t.bucket, objectName: t.path, contentType: file.type || 'application/octet-stream', cacheControl: '3600' },
+        // The type the server stored the row with (an empty one filled from the extension, a page kept as a download).
+        metadata: { mediaId: t.id, bucketName: t.bucket, objectName: t.path, contentType: t.mime || file.type || 'application/octet-stream', cacheControl: '3600' },
         headers: t.mode === 'supabase' ? { 'x-upsert': 'true' } : {},
         onBeforeRequest: async (req) => {
           if (t.mode === 'supabase') {

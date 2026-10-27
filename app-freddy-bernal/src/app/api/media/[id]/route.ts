@@ -11,7 +11,7 @@ export const maxDuration = 300;
 
 // Downloads a private file. RLS decides whether the person may read the row; the file
 // is then served through a short-lived signed URL (5 minutes). File names never carry
-// a date: <event code>-<label>.<ext>. Drive rows (bucket 'drive') are streamed from Google
+// a date: <event, obra or report code>-<label>.<ext>. Drive rows (bucket 'drive') are streamed from Google
 // with Range support, only after that same check (src/lib/storage/drive/serve.ts).
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -19,7 +19,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!s || !s.mfaOk) return new NextResponse('Entra de nuevo.', { status: 401 });
   const row = await withUser(s.claims, (sql) =>
     sql.one<{ bucket: string; storage_path: string; label: string; mime: string; code: string | null }>(
-      `select m.bucket, m.storage_path, m.label, m.mime, e.code from public.media_assets m left join public.events e on e.id = m.event_id
+      // The name starts with the parent's code: E-0042 (event), O-0001 (obra ficha), R-0001 (report).
+      `select m.bucket, m.storage_path, m.label, m.mime, coalesce(e.code, f.code, r.code) as code
+         from public.media_assets m
+         left join public.events e on e.id = m.event_id
+         left join public.obra_fichas f on f.id = m.obra_ficha_id
+         left join public.community_reports r on r.id = m.community_report_id
         where m.id = $1 and m.deleted_at is null and m.status = 'ready'`,
       [id],
     ),

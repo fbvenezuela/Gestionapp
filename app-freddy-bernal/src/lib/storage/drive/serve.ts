@@ -8,18 +8,14 @@ import { servedAs } from './mime';
 import { extOf, mediaFileName } from './names';
 import { FULL_MAX, parseContentRange, parseRange, planRange, sliceStream, SKIP_LIMIT } from './range';
 import { budgetReached, personShareReached, reserveTransfer, settleTransfer, transferCapBytes, transferMonth } from './transfer';
+import { noThumb, SANDBOX_HEADERS, storedThumb, thumbResponse } from '../thumbs';
 
 // The Drive branch of /api/media/[id]. The caller has ALREADY run the person's own query (RLS)
 // and got the row back: nothing here runs, and Google is never called, for a row the person
 // cannot see. Files come from the platform's own origin, so every answer is sandboxed: no script
 // runs even if a file claims to be a page, and only plain media types are shown inline.
 
-export const MEDIA_HEADERS: Record<string, string> = {
-  'Cache-Control': 'private, no-store',
-  'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; sandbox",
-  'Cross-Origin-Resource-Policy': 'same-origin',
-  'X-Content-Type-Options': 'nosniff',
-};
+export const MEDIA_HEADERS: Record<string, string> = { 'Cache-Control': 'private, no-store', ...SANDBOX_HEADERS };
 
 export type MediaRow = { id: string; label: string; mime: string; code: string | null; storage_path: string };
 
@@ -154,29 +150,41 @@ export async function serveDriveMedia(req: Request, row: MediaRow, wantInline: b
   return new Response(sliceStream(res.body, { skip, take, onEnd: settle }), { status: 206, headers });
 }
 
-const THUMB_HEADERS = { ...MEDIA_HEADERS, 'Cache-Control': 'private, max-age=86400' };
+// A Drive file's thumbnail counts like any other Drive answer: its bytes are reserved first, against the month's cap
+// and the person's share for today (Administración aside). Refused = the icon.
+async function sendThumb(mime: string, b: Uint8Array<ArrayBuffer>, viewer: Viewer): Promise<Response> {
+  if (!(await reserveTransfer(b.length, viewer.admin ? null : viewer.userId)).ok) return noThumb();
+  return thumbResponse(mime, b);
+}
 
 /**
- * /api/media/[id]/thumb for a Drive row (already checked with RLS by the caller). 404 = show the icon.
- * A thumbnail counts like any other answer: its bytes are reserved first, against the month's cap
- * and the person's share for today (Administración aside). When that is refused the icon shows.
+ * The thumbnail kept for a Drive row (made by the uploader's browser, or copied from Drive before), counted against
+ * the cap. The caller has ALREADY read the row with the person's RLS. null = none kept. Rows in other buckets are
+ * served by the route straight from src/lib/storage/thumbs.ts (no Drive module, nothing counted).
+ */
+export async function serveStoredThumb(mediaId: string, viewer: Viewer): Promise<Response | null> {
+  const t = await storedThumb(mediaId);
+  return t ? sendThumb(t.mime, t.bytes, viewer) : null;
+}
+
+/**
+ * /api/media/[id]/thumb for a Drive row (already checked with RLS by the caller): the kept copy, or the one Drive
+ * makes (copied once into media_thumbs). 404 = show the icon.
  */
 export async function serveDriveThumb(mediaId: string, viewer: Viewer): Promise<Response> {
-  const none = () => new Response(null, { status: 404, headers: MEDIA_HEADERS });
-  const send = async (mime: string, b: Uint8Array<ArrayBuffer>) => {
-    if (!(await reserveTransfer(b.length, viewer.admin ? null : viewer.userId)).ok) return none();
-    return new Response(b, { status: 200, headers: { ...THUMB_HEADERS, 'Content-Type': mime, 'Content-Length': String(b.length) } });
-  };
+  const none = noThumb;
+  const send = (mime: string, b: Uint8Array<ArrayBuffer>) => sendThumb(mime, b, viewer);
+  const stored = await serveStoredThumb(mediaId, viewer);
+  if (stored) return stored;
   const info = await withSystem((sql) =>
-    sql.one<{ file_id: string; mime: string | null; bytes: Uint8Array | null; used: string | number }>(
-      `select d.file_id, t.mime, t.bytes, coalesce((select x.bytes from public.drive_transfer x where x.month = $2), 0) as used
-         from public.media_drive d left join public.media_thumbs t on t.media_id = d.media_id
+    sql.one<{ file_id: string; used: string | number }>(
+      `select d.file_id, coalesce((select x.bytes from public.drive_transfer x where x.month = $2), 0) as used
+         from public.media_drive d
         where d.media_id = $1 and d.upload_url_enc is null`,
       [mediaId, transferMonth()],
     ),
   );
   if (!info) return none();
-  if (info.bytes && info.mime) return send(info.mime, new Uint8Array(info.bytes));
   if (Number(info.used) >= transferCapBytes()) return none();
   try {
     const th = await withDrive(async (t) => {
@@ -185,11 +193,12 @@ export async function serveDriveThumb(mediaId: string, viewer: Viewer): Promise<
     });
     // Video thumbnails can take a while to exist: a miss is not stored, the next view tries again.
     if (!th) return none();
-    // Kept even when this answer is refused below: the next view needs no call to Google.
+    // Kept even when this answer is refused below: the next view needs no call to Google. Insert only: one kept
+    // meanwhile (the uploader's own, or a view at the same time) stays.
     await withSystem((sql) =>
       sql.query(
         `insert into public.media_thumbs (media_id, mime, bytes) values ($1, $2, $3)
-         on conflict (media_id) do update set mime = excluded.mime, bytes = excluded.bytes, fetched_at = now()`,
+         on conflict (media_id) do nothing`,
         [mediaId, th.mime, Buffer.from(th.bytes)],
       ),
     );

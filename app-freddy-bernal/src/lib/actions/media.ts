@@ -9,13 +9,26 @@ import { db } from '../auth/session';
 import { MEDIA_KIND } from '../data/labels';
 import { notify, usersWithRole } from '../notify';
 import { MEDIA_LOCK, mediaLockSql, type MediaLock } from '@/lib/domain/media-lock';
+import { kindTargetError, MEDIA_KINDS, RAW_KINDS, storageMime, targetOf, type TargetKind } from '@/lib/domain/media-mime';
+import { THUMB_MAX_BASE64 } from '@/lib/domain/thumb';
 import { storageProvider } from '../storage/provider';
 import type { StartUpload } from '../storage/drive/upload';
 
-const KINDS = ['boss', 'drone', 'broll', 'other', 'final', 'cover', 'editable', 'voice_line', 'evidence', 'tweet_image'] as const;
+// The fifteen kinds of media_assets_kind_check (20261027001900_media_handoff.sql).
+const KINDS = MEDIA_KINDS;
+
+// Where the file goes: at most one of an event, an obra ficha or a community report (none: piece versions,
+// screenshots, tweet images). The database refuses anything else too (media_assets_one_parent, *_parent_kinds).
+const PARENT_COLUMN: Record<Exclude<TargetKind, 'none'>, { column: string; codeFrom: string }> = {
+  event: { column: 'event_id', codeFrom: 'public.events' },
+  obra: { column: 'obra_ficha_id', codeFrom: 'public.obra_fichas' },
+  report: { column: 'community_report_id', codeFrom: 'public.community_reports' },
+};
 
 const createSchema = z.object({
-  eventId: z.string().uuid().nullable(),
+  eventId: z.string().uuid().nullish(),
+  obraFichaId: z.string().uuid().nullish(),
+  reportId: z.string().uuid().nullish(),
   kind: z.enum(KINDS),
   mime: z.string().max(100),
   sizeBytes: z.number().int().positive(),
@@ -31,10 +44,14 @@ const createSchema = z.object({
     })
     .partial()
     .default({}),
+}).superRefine((i, ctx) => {
+  const error = kindTargetError(i.kind, targetOf(i));
+  if (error) ctx.addIssue({ code: 'custom', message: error });
 });
 
 // mode 'drive' (STORAGE_PROVIDER=drive): endpoint is Google's resumable session URL for this one
 // file (or /api/drive/upload/<id> with DRIVE_UPLOAD_MODE=proxy); no token is ever handed out.
+// mime: the type the file is stored with (the browser sends it as the upload's content type).
 export type UploadTicket = {
   id: string;
   bucket: string;
@@ -43,6 +60,7 @@ export type UploadTicket = {
   chunkSize: number;
   token: string | null;
   mode: 'demo' | 'supabase' | 'drive';
+  mime?: string;
 };
 
 // Step 1: create the media row (RLS decides whether this person may upload here),
@@ -50,42 +68,42 @@ export type UploadTicket = {
 export async function createUpload(raw: unknown): Promise<Result<UploadTicket>> {
   const drive = storageProvider() === 'drive';
   const res = await act(createSchema, raw, async (sql, i): Promise<UploadTicket | { drive: Omit<StartUpload, 'origin'> }> => {
-    let mime = i.mime;
-    if (drive) {
-      // Drive files are served from our own origin: never a page, a script or an SVG.
-      const { driveMime } = await import('../storage/drive/mime');
-      const c = driveMime(i.kind, i.mime, i.ext);
-      if (!c.ok) throw new UserError(c.error);
-      mime = c.mime;
-    }
+    // Every provider: an empty type takes the extension's (a PDF from Android). Drive files and the new kinds
+    // (storyboard, ficha photos) must match their kind; elsewhere a page, script or SVG is kept as a plain download.
+    const c = storageMime(i.kind, i.mime, i.ext, drive);
+    if (!c.ok) throw new UserError(c.error);
+    const mime = c.mime;
     const maxMb = Number((await sql.one<{ value: number }>(`select value from public.app_settings where key = 'upload.max_mb'`))?.value ?? 10240);
     if (i.sizeBytes > maxMb * 1024 * 1024) throw new UserError(`El archivo pesa más de ${Math.round(maxMb / 1024)} GB, el máximo permitido.`);
-    const n = i.eventId
-      ? (await sql.one<{ n: number }>(`select count(*)::int + 1 as n from public.media_assets where event_id = $1 and kind = $2`, [i.eventId, i.kind]))!.n
+    const target = targetOf(i)!;
+    const parent = target.kind === 'none' ? null : PARENT_COLUMN[target.kind];
+    const n = parent
+      ? (await sql.one<{ n: number }>(`select count(*)::int + 1 as n from public.media_assets where ${parent.column} = $1 and kind = $2`, [target.id, i.kind]))!.n
       : 1;
     // Never a date or the original file name in the path (rule 4).
-    const path = `${i.eventId ?? i.kind}/${crypto.randomUUID()}.${i.ext}`;
+    const path = `${target.id ?? i.kind}/${crypto.randomUUID()}.${i.ext}`;
     const bucket = drive ? 'drive' : i.kind === 'cover' ? 'covers' : 'material';
     const label = `${MEDIA_KIND[i.kind]} ${n}`;
     const row = await sql.one<{ id: string }>(
-      `insert into public.media_assets (event_id, kind, bucket, storage_path, label, mime, size_bytes, duration_s, width, height, fps, video_codec, audio_codec, status, uploaded_by)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'uploading', auth.uid()) returning id`,
-      [i.eventId, i.kind, bucket, path, label, mime, i.sizeBytes, i.probe.durationS ?? null, i.probe.width ?? null,
-        i.probe.height ?? null, i.probe.fps ?? null, i.probe.videoCodec ?? null, i.probe.audioCodec ?? null],
+      `insert into public.media_assets (event_id, obra_ficha_id, community_report_id, kind, bucket, storage_path, label, mime, size_bytes,
+                                        duration_s, width, height, fps, video_codec, audio_codec, status, uploaded_by)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'uploading', auth.uid()) returning id`,
+      [i.eventId ?? null, i.obraFichaId ?? null, i.reportId ?? null, i.kind, bucket, path, label, mime, i.sizeBytes, i.probe.durationS ?? null,
+        i.probe.width ?? null, i.probe.height ?? null, i.probe.fps ?? null, i.probe.videoCodec ?? null, i.probe.audioCodec ?? null],
     );
-    if (!row) throw new UserError('No puedes subir material a este evento.');
+    if (!row) throw new UserError('No puedes subir material aquí.');
     if (drive) {
-      // Google is called after this transaction ends, never inside it.
-      const ev = i.eventId ? await sql.one<{ code: string }>(`select code from public.events where id = $1`, [i.eventId]) : null;
-      return { drive: { mediaId: row.id, path, kind: i.kind, eventCode: ev?.code ?? null, label, ext: i.ext, mime, size: i.sizeBytes } };
+      // Google is called after this transaction ends, never inside it. The folder is the parent's code.
+      const code = parent ? await sql.one<{ code: string }>(`select code from ${parent.codeFrom} where id = $1`, [target.id]) : null;
+      return { drive: { mediaId: row.id, path, kind: i.kind, eventCode: code?.code ?? null, label, ext: i.ext, mime, size: i.sizeBytes } };
     }
     if (env.dataMode === 'demo') {
-      return { id: row.id, bucket, path, endpoint: '/api/demo-upload', chunkSize: env.uploadChunkMb * 1024 * 1024, token: null, mode: 'demo' };
+      return { id: row.id, bucket, path, endpoint: '/api/demo-upload', chunkSize: env.uploadChunkMb * 1024 * 1024, token: null, mode: 'demo', mime };
     }
     const { supabaseServer } = await import('../supabase/server');
     const { data } = await (await supabaseServer()).auth.getSession();
     // Supabase resumable uploads require 6 MB chunks.
-    return { id: row.id, bucket, path, endpoint: `${env.supabaseUrl}/storage/v1/upload/resumable`, chunkSize: 6 * 1024 * 1024, token: data.session?.access_token ?? null, mode: 'supabase' };
+    return { id: row.id, bucket, path, endpoint: `${env.supabaseUrl}/storage/v1/upload/resumable`, chunkSize: 6 * 1024 * 1024, token: data.session?.access_token ?? null, mode: 'supabase', mime };
   });
   if (!res.ok || !res.data || !('drive' in res.data)) return res as Result<UploadTicket>;
   const { startDriveUpload, pageOrigin } = await import('../storage/drive/upload');
@@ -102,11 +120,19 @@ export async function createUpload(raw: unknown): Promise<Result<UploadTicket>> 
 type Finished = { event_id: string | null; kind: string };
 
 // Step 2: the browser says the upload ended. With Drive, Google must have the whole file first.
+// thumb: the small JPEG the browser made (base64, best effort). A bad one is dropped, never blocks the finish.
 export async function finishUpload(raw: unknown) {
-  const schema = z.object({ id: z.string().uuid() });
-  const revalidate = ['/eventos', '/biblioteca'];
+  const schema = z.object({ id: z.string().uuid(), thumb: z.string().max(THUMB_MAX_BASE64).nullish().catch(null) });
+  const revalidate = ['/eventos', '/biblioteca', '/obras', '/reportes'];
+  // Who finished it and their thumbnail, kept for the step after the person's own (never nested in it).
+  type Keep = { id: string; by: string; thumb: string };
+  let keep: Keep | null = null;
+  const remember = (i: { id: string; thumb?: string | null }, by: string) => {
+    keep = i.thumb ? { id: i.id, by, thumb: i.thumb } : null;
+  };
   const done: Promise<Result<Finished>> = storageProvider() !== 'drive'
-    ? act(schema, raw, async (sql, i) => {
+    ? act(schema, raw, async (sql, i, s) => {
+        remember(i, s.userId);
         const r = await sql.one<Finished>(
           `update public.media_assets set status = 'ready' where id = $1 and uploaded_by = auth.uid() and bucket <> 'drive' returning event_id, kind`,
           [i.id],
@@ -115,6 +141,7 @@ export async function finishUpload(raw: unknown) {
         return r;
       }, { revalidate })
     : actOutside(schema, raw, async (i, s) => {
+        remember(i, s.userId);
         const row = await db(s, (sql) =>
           sql.one<{ bucket: string; status: string; size_bytes: string | number; mime: string; event_id: string | null; kind: string }>(
             `select bucket, status, size_bytes, mime, event_id, kind from public.media_assets where id = $1 and uploaded_by = auth.uid()`,
@@ -140,7 +167,17 @@ export async function finishUpload(raw: unknown) {
         return r;
       }, { revalidate });
   return done.then(async (res) => {
-    if (res.ok && res.data?.event_id && ['boss', 'drone', 'broll', 'other'].includes(res.data.kind)) {
+    const k = keep as Keep | null;
+    if (res.ok && k) {
+      // After the person's step ended (RLS said the file is theirs and finished): insert only, system connection.
+      try {
+        const { storeThumb } = await import('../storage/thumbs');
+        await storeThumb(k.id, k.by, k.thumb);
+      } catch (e) {
+        console.error('[upload] thumb:', (e as Error).message);
+      }
+    }
+    if (res.ok && res.data?.event_id && (RAW_KINDS as readonly string[]).includes(res.data.kind)) {
       const eventId = res.data.event_id;
       const title = await withSystem(async (sql) => {
         await sql.query(`update public.events set work_status = 'material' where id = $1 and work_status in ('brief', 'storyboard', 'recording')`, [eventId]);
@@ -170,5 +207,5 @@ export async function removeMedia(raw: unknown) {
     if (lock?.lock) throw new UserError(MEDIA_LOCK[lock.lock]?.error ?? 'No se puede quitar este archivo.');
     const r = await sql.query(`update public.media_assets set deleted_at = now() where id = $1 and deleted_at is null returning id`, [i.id]);
     if (!r.length) throw new UserError('Ese archivo ya no está.');
-  }, { revalidate: ['/eventos', '/biblioteca'] });
+  }, { revalidate: ['/eventos', '/biblioteca', '/obras', '/reportes'] });
 }

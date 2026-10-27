@@ -117,8 +117,9 @@ describe('con STORAGE_PROVIDER vacío todo sigue igual', () => {
     const r = await media.createUpload({ eventId: ev.id, kind: 'boss', mime: 'video/mp4', sizeBytes: 2048, ext: 'mp4', probe: { durationS: 4 } });
     expect(r).toMatchObject({ ok: true });
     const tk = (r as { data: Record<string, unknown> }).data;
-    expect(Object.keys(tk).sort()).toEqual(['bucket', 'chunkSize', 'endpoint', 'id', 'mode', 'path', 'token']);
-    expect(tk).toMatchObject({ bucket: 'material', endpoint: '/api/demo-upload', chunkSize: 4 * 1024 * 1024, token: null, mode: 'demo' });
+    // mime: the type the row was stored with, sent as the upload's content type (20261027001900, media handoff).
+    expect(Object.keys(tk).sort()).toEqual(['bucket', 'chunkSize', 'endpoint', 'id', 'mime', 'mode', 'path', 'token']);
+    expect(tk).toMatchObject({ bucket: 'material', endpoint: '/api/demo-upload', chunkSize: 4 * 1024 * 1024, token: null, mode: 'demo', mime: 'video/mp4' });
     expect(tk.path).toMatch(new RegExp(`^${ev.id}/[0-9a-f-]{36}\\.mp4$`));
     as('social');
     const cover = await media.createUpload({ eventId: null, kind: 'cover', mime: 'image/jpeg', sizeBytes: 100, ext: 'jpg', probe: {} });

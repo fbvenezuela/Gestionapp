@@ -188,8 +188,9 @@ test('redes publica a mano con validación por red y link', async ({ page }) => 
 });
 
 // The boss works on Redes' screens too: marking a piece of an event as published moves the event (the database
-// let only Redes do it before), and he is not offered the screenshot upload he cannot do yet.
-test('el jefe publica a mano la pieza de un evento y la marca publicada', async ({ page }) => {
+// let only Redes do it before), and he uploads the screenshot like Redes (20261027001900_media_handoff.sql). Its
+// small picture is made in the browser while it uploads and kept: /api/media/<id>/thumb gives a JPEG.
+test('el jefe publica a mano la pieza de un evento, sube la captura y la marca publicada', async ({ page }) => {
   await loginAs(page, 'jefe@demo.test');
   await page.goto('/publicar/nueva');
   await page.getByLabel('¿Qué pieza vas a publicar?').selectOption({ label: 'Cancha techada de El Mirador' });
@@ -197,7 +198,17 @@ test('el jefe publica a mano la pieza de un evento y la marca publicada', async 
   await page.getByRole('checkbox').first().check();
   await page.getByRole('button', { name: /Guardar como borrador|Programar/ }).click();
   await expect(page.getByText('Paquete para publicar')).toBeVisible();
-  await expect(page.locator('main input[type="file"]')).toHaveCount(0);
+  const finished = page.waitForRequest((r) => r.method() === 'POST' && /"thumb":"\/9j\//.test(r.postData() ?? ''), { timeout: 30_000 });
+  await page.getByLabel('Subir captura').setInputFiles(fixture('cover.jpg'));
+  await expect(page.getByText('Captura subida.')).toBeVisible({ timeout: 30_000 });
+  const id = /"id":"([0-9a-f-]{36})"/.exec((await finished).postData() ?? '')?.[1];
+  expect(id).toBeTruthy();
+  const thumb = await page.request.get(`/api/media/${id}/thumb`);
+  expect(thumb.status()).toBe(200);
+  expect(thumb.headers()['content-type']).toBe('image/jpeg');
+  const bytes = await thumb.body();
+  expect([bytes[0], bytes[1], bytes[bytes.length - 2], bytes[bytes.length - 1]]).toEqual([0xff, 0xd8, 0xff, 0xd9]);
+  expect(bytes.length).toBeLessThanOrEqual(262_144);
   await page.getByLabel('Link de la publicación').fill('https://example.com/demo/jefe/456');
   await page.getByRole('button', { name: 'Ya lo publiqué' }).click();
   await expect(page.getByText('¡Listo! Marcada como publicada.')).toBeVisible();
