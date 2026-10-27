@@ -7,7 +7,7 @@ export type Level = 'verde' | 'amarillo' | 'rojo';
 export type Deadlines = Record<Level, number>; // minutes
 
 export const LEVELS: Record<Level, { label: string; who: string; hint: string; tone: Tone }> = {
-// Every level is approved by the boss (Hillary, 27/10/2026); the level sets the deadline and lets the greens go
+// Every level is approved by the boss (cambios del 27/10/2026); the level sets the deadline and lets the greens go
 // all at once.
   verde: { label: 'Verde', who: 'el jefe', hint: 'Rutina. El jefe las aprueba todas de una vez, en el día.', tone: 'ok' },
   amarillo: { label: 'Amarillo', who: 'el jefe', hint: 'Normal. El jefe la revisa en 60 minutos.', tone: 'warn' },

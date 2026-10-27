@@ -101,6 +101,23 @@ async function approveWithChecklist(page: Page) {
   await expect(page).toHaveURL(/\/aprobar$/);
 }
 
+test('el jefe ve en su inicio todo lo que espera su aprobación: rojo, amarillo, verde y tweets', async ({ page }) => {
+  await loginAs(page, 'jefe@demo.test');
+  await page.goto('/jefe');
+  const block = page.getByRole('region', { name: 'Te toca aprobar' });
+  await expect(block).toBeVisible();
+  await expect(block.getByRole('heading', { name: /^Rojo\s+\d+ piezas?$/ })).toBeVisible();
+  await expect(block.getByRole('heading', { name: /^Amarillo\s+\d+ piezas?$/ })).toBeVisible();
+  await expect(block.getByRole('heading', { name: /^Verde\s+2 piezas$/ })).toBeVisible();
+  await expect(block.getByRole('link', { name: /Aclaratoria sobre el servicio de agua/ })).toBeVisible();
+  await expect(block.getByRole('link', { name: /Avance del puente La Quebrada/ })).toBeVisible();
+  await expect(block.getByRole('link', { name: /Saludo semanal a los clubes deportivos/ })).toBeVisible();
+  await expect(block.getByRole('button', { name: /^Aprobar todas las verdes \(2\)$/ })).toBeVisible();
+  await expect(block.getByRole('link', { name: /^\d+ tweets? por aprobar$/ })).toHaveAttribute('href', '/aprobar?tab=tweets');
+  await expect(page.getByText('Piezas en rojo: solo salen con tu aprobación')).toHaveCount(0);
+  await axe(page);
+});
+
 test('el jefe aprueba todas las verdes de un toque', async ({ page }) => {
   let nativeDialog = false;
   page.on('dialog', (d) => {
@@ -168,6 +185,24 @@ test('redes publica a mano con validación por red y link', async ({ page }) => 
   await page.getByLabel('Me gusta').fill('120');
   await page.getByRole('button', { name: 'Guardar resultados' }).click();
   await expect(page.getByText('Resultados guardados.')).toBeVisible();
+});
+
+// The boss works on Redes' screens too: marking a piece of an event as published moves the event (the database
+// let only Redes do it before), and he is not offered the screenshot upload he cannot do yet.
+test('el jefe publica a mano la pieza de un evento y la marca publicada', async ({ page }) => {
+  await loginAs(page, 'jefe@demo.test');
+  await page.goto('/publicar/nueva');
+  await page.getByLabel('¿Qué pieza vas a publicar?').selectOption({ label: 'Cancha techada de El Mirador' });
+  await expect(page.getByText('Elige las redes. Las que tienen problemas dicen qué arreglar.')).toBeVisible();
+  await page.getByRole('checkbox').first().check();
+  await page.getByRole('button', { name: /Guardar como borrador|Programar/ }).click();
+  await expect(page.getByText('Paquete para publicar')).toBeVisible();
+  await expect(page.locator('main input[type="file"]')).toHaveCount(0);
+  await page.getByLabel('Link de la publicación').fill('https://example.com/demo/jefe/456');
+  await page.getByRole('button', { name: 'Ya lo publiqué' }).click();
+  await expect(page.getByText('¡Listo! Marcada como publicada.')).toBeVisible();
+  await expect(page.getByText('No puedes cambiar estos datos del evento.')).toHaveCount(0);
+  await expect(page.getByText('Evidencia')).toBeVisible();
 });
 
 test('tweets de la semana: se separan, se validan y se reparten', async ({ page }) => {

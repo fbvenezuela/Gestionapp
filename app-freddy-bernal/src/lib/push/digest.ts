@@ -1,4 +1,5 @@
 import { stripDateTime } from './text';
+import { homeFor, type Role } from '../roles';
 
 // Daily digest by email: what waits for each person, by role. Counts and titles ONLY — never
 // an event's date, time or place (titles go through the same guard as pushes).
@@ -62,6 +63,13 @@ export function buildDigest(roles: readonly string[], d: DigestData): Digest | n
 
   if (!sections.length) return null;
   return { subject: total === 1 ? 'Tu resumen: 1 cosa espera por ti' : `Tu resumen: ${total} cosas esperan por ti`, total, sections };
+}
+
+// Where the email's button goes: the boss to «Por aprobar» when a piece or a tweet waits for his approval (his home
+// lists them too, but this is one tap shorter); everyone else to their own home screen.
+export function digestPath(roles: readonly string[], d: DigestData): string {
+  if (roles.includes('boss') && (d.inReview.length > 0 || d.tweetsToApprove > 0)) return '/aprobar';
+  return homeFor(roles as Role[]);
 }
 
 // Plain text of a digest (used by tests and as a quick preview).

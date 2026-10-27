@@ -154,6 +154,11 @@ describe('se retiran Secretaría y Supervisión política sin perder historia', 
     expect(ev).toEqual({ created_by: ID.secretary, deleted_at: null });
   });
 
+  // Spec §2: what Secretaría proposed reads «propuesto por Despacho». The column arrives with
+  // 20261027001800_shared_agenda.sql (events.origin default 'dispatch'); then this becomes a real check:
+  // origin = 'dispatch' while created_by keeps the real author, and the screens read origin, never created_by.
+  it.todo('lo que propuso Secretaría se lee «propuesto por Despacho» (events.origin = dispatch)');
+
   it('lo que aprobó Supervisión queda con su autor, y el jefe y Redes ven su nombre', async () => {
     const p = await sys((sql) => sql.one<{ status: string; approved_by: string }>(`select status, approved_by from public.pieces where id = $1`, [legacy.piece]));
     expect(p).toEqual({ status: 'approved', approved_by: ID.supervisor });

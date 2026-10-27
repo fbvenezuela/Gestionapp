@@ -72,7 +72,7 @@ export async function addVersion(raw: unknown) {
       const back = after && after.status === 'in_review' && (p.status === 'approved' || p.status === 'changes_requested');
       return { version: v, reopened: back ? { id: after.id, title: after.title, level: after.review_level } : null };
     },
-    { revalidate: ['/piezas', '/aprobar', '/hoy'] },
+    { revalidate: ['/piezas', '/aprobar', '/hoy', '/jefe'] },
   ).then(async (r) => {
     if (r.ok && r.data!.reopened) await notifyReviewers(r.data!.reopened.id, r.data!.reopened.title, r.data!.reopened.level, `Versión nueva (${r.data!.version})`);
     return r;
@@ -124,7 +124,7 @@ export async function approveGreen(raw: unknown) {
     const ok = rows.filter((p) => seen.get(p.id) === p.revision);
     for (const p of ok) await sql.query(`select public.review_piece($1, 'approved', '', $2)`, [p.id, p.revision]);
     return { n: ok.length, skipped: i.pieces.length - ok.length };
-  }, { revalidate: ['/aprobar', '/piezas', '/hoy'] }).then(async (r) => {
+  }, { revalidate: ['/aprobar', '/piezas', '/hoy', '/jefe'] }).then(async (r) => {
     if (r.ok && r.data!.n) {
       await notify({ userIds: await usersWithRole('social'), kind: 'piece_approved', title: `Aprobadas ${r.data!.n} piezas verdes`, body: 'Ya se pueden publicar.', link: '/publicar/nueva', key: `green:${Date.now()}` });
     }

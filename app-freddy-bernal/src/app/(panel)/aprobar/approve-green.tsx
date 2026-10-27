@@ -6,7 +6,7 @@ import { approveGreen } from '@/lib/actions/pieces';
 import { useAction } from '@/lib/hooks/use-action';
 import { Button } from '@/components/ui/button';
 
-// Green = routine: the boss approves all of them in one tap (Hillary, 27/10/2026). Each one still goes through
+// Green = routine: the boss approves all of them in one tap (cambios del 27/10/2026). Each one still goes through
 // review_piece, and a piece that changed since this list loaded is skipped, never approved blind.
 export function ApproveGreen({ pieces }: { pieces: { id: string; revision: number }[] }) {
   const { run, pending } = useAction();

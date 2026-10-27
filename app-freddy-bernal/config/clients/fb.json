@@ -587,7 +587,7 @@
   "amarillo": 60,
   "rojo": 30
  },
- "$review_source": "Semáforo del Diagnóstico Digital 360 (Plan de gestión), decidido por Juan el 24/10/2026. Desde el 27/10/2026 (Hillary, seis roles) todo lo aprueba el jefe: verde en el día (todas las verdes de una vez), amarillo en 60 min, rojo en 30 min, y los tweets. Sin respuesta no hay aprobación.",
+ "$review_source": "Semáforo del Diagnóstico Digital 360 (Plan de gestión), decidido por Juan el 24/10/2026. Desde el 27/10/2026 (seis roles) todo lo aprueba el jefe: verde en el día (todas las verdes de una vez), amarillo en 60 min, rojo en 30 min, y los tweets. Sin respuesta no hay aprobación.",
  "mfaRoles": [
   "admin",
   "boss",

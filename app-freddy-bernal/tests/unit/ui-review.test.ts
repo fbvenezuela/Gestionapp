@@ -87,7 +87,7 @@ describe('sin ventanas nativas del navegador', () => {
     }
   });
 
-  it('«Aprobar todas las verdes» es un solo toque: sin diálogo de confirmación (Hillary, 27/10)', () => {
+  it('«Aprobar todas las verdes» es un solo toque: sin diálogo de confirmación (cambios del 27/10)', () => {
     const code = fs.readFileSync(path.join(process.cwd(), 'src/app/(panel)/aprobar/approve-green.tsx'), 'utf8');
     expect(code).not.toContain('useConfirm');
     expect(code).toContain('Aprobar todas las verdes (');

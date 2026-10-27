@@ -9,7 +9,7 @@ import { brand } from '../client-config';
 import { sendEmail } from '../email/send';
 import { tweetStock } from '../data/tweets';
 import { piecesInReview } from '../data/review';
-import { buildDigest, type DigestData } from './digest';
+import { buildDigest, digestPath, type DigestData } from './digest';
 
 // Local hour from which the day's digest may go (Vercel's daily cron runs at 07:00 Caracas).
 export const DIGEST_HOUR = 7;
@@ -77,7 +77,7 @@ export async function runDailyDigest(now = new Date()): Promise<{ claimed: numbe
         to: person.email,
         subject: dg.subject,
         template: 'digest',
-        element: createElement(DigestEmail, { appName: brand.appName, name: person.full_name.split(' ')[0], sections: dg.sections, url: `${env.appUrl}/hoy` }),
+        element: createElement(DigestEmail, { appName: brand.appName, name: person.full_name.split(' ')[0], sections: dg.sections, url: `${env.appUrl}${digestPath(person.roles ?? [], data)}` }),
         idempotencyKey: `digest:${person.id}:${day}`,
       });
       if (r.stored) sent++;

@@ -336,3 +336,82 @@ describe('removeMedia', () => {
     expect((await media.removeMedia({ id: m!.id }))).toEqual({ ok: false, error: 'Ese archivo ya no está.' });
   });
 });
+
+// The boss works on Redes' screens. «Crear pieza» and «Ya lo publiqué» move the event's work_status in the same
+// transaction: the database must let him (guard_event_update), or the whole action rolls back.
+describe('el jefe en las pantallas de Redes: el evento avanza con su pieza', () => {
+  const newEvent = (title: string, workStatus: string) =>
+    t.system(async (sql) => (await sql.one<{ id: string }>(`insert into public.events (title, boss_decision, work_status) values ($1, 'accepted', $2) returning id`, [title, workStatus]))!.id);
+  const workStatus = async (id: string) => (await t.system((sql) => sql.one<{ work_status: string }>(`select work_status from public.events where id = $1`, [id])))!.work_status;
+
+  it('«Crear pieza» de un evento con material o grabando: la pieza queda y el evento pasa a edición', async () => {
+    const pieces = await import('@/lib/actions/pieces');
+    as('boss');
+    for (const st of ['material', 'recording']) {
+      const ev = await newEvent(`Evento en ${st} (prueba)`, st);
+      const r = await pieces.createPiece({ eventId: ev, kind: 'video', title: `Pieza del jefe (${st})`, categoryId: '' });
+      expect(r, st).toMatchObject({ ok: true });
+      expect(await workStatus(ev), st).toBe('editing');
+    }
+  });
+
+  it('«Ya lo publiqué» de una pieza con evento: queda publicada y el evento también', async () => {
+    const [pieces, pubs] = [await import('@/lib/actions/pieces'), await import('@/lib/actions/publications')];
+    const ev = await newEvent('Evento para publicar (prueba)', 'editing');
+    const piece = await t.as('social', async (sql) => {
+      const id = (await sql.one<{ id: string }>(`insert into public.pieces (event_id, kind, title, review_level) values ($1, 'video', 'Pieza con evento para publicar', 'verde') returning id`, [ev]))!.id;
+      await sql.query(`insert into public.piece_versions (piece_id, version) values ($1, 1)`, [id]);
+      await sql.query(`update public.pieces set current_version = 1 where id = $1`, [id]);
+      await sql.query(`insert into public.copies (piece_id, length_group, body) values ($1, 'long', 'Copy largo de prueba.')`, [id]);
+      await sql.query(`update public.pieces set status = 'in_review' where id = $1`, [id]);
+      return (await sql.one<{ id: string; revision: number }>(`select id, revision from public.pieces where id = $1`, [id]))!;
+    });
+    as('boss');
+    expect(await pieces.approveGreen({ pieces: [piece] })).toMatchObject({ ok: true, data: { n: 1 } });
+    const pub = (await t.as('boss', (sql) => sql.one<{ id: string }>(`insert into public.publications (piece_id, network, copy_body, status) values ($1, 'instagram', 'Copy largo de prueba.', 'draft') returning id`, [piece.id])))!.id;
+    const r = await pubs.markPublished({ id: pub, url: 'https://example.com/demo/jefe/1' });
+    expect(r).toEqual({ ok: true, data: undefined });
+    const p = await t.system((sql) => sql.one<{ status: string }>(`select status from public.publications where id = $1`, [pub]));
+    expect(p!.status).toBe('published');
+    expect(await workStatus(ev)).toBe('published');
+  });
+});
+
+// The boss approves the tweets he read, not a text Redes changed while the list was open.
+describe('approveTweets: solo lo que vio el jefe', () => {
+  it('aprueba los que vio y se salta el que Redes cambió mientras tanto', async () => {
+    const tweets = await import('@/lib/actions/tweets');
+    const ids = await t.as('social', async (sql) => {
+      const batch = (await sql.one<{ id: string }>(`insert into public.tweet_batches (title) values ('Tanda que el jefe lee') returning id`))!.id;
+      const out: string[] = [];
+      for (const [k, body] of ['Texto que el jefe vio, uno.', 'Texto que el jefe vio, dos.'].entries()) {
+        out.push((await sql.one<{ id: string }>(`insert into public.tweets (batch_id, position, body) values ($1, $2, $3) returning id`, [batch, k, body]))!.id);
+      }
+      return out;
+    });
+    const seen = [{ id: ids[0], body: 'Texto que el jefe vio, uno.' }, { id: ids[1], body: 'Texto que el jefe vio, dos.' }];
+    await t.as('social', (sql) => sql.query(`update public.tweets set body = 'Texto cambiado después.' where id = $1`, [ids[1]]));
+    as('boss');
+    expect(await tweets.approveTweets({ tweets: seen })).toEqual({ ok: true, data: { n: 1, skipped: 1 } });
+    const rows = await t.system((sql) => sql.query<{ id: string; status: string; body: string }>(`select id, status, body from public.tweets where id = any($1::uuid[]) order by position`, [ids]));
+    expect(rows).toEqual([
+      { id: ids[0], status: 'approved', body: 'Texto que el jefe vio, uno.' },
+      { id: ids[1], status: 'draft', body: 'Texto cambiado después.' },
+    ]);
+  });
+
+  it('nadie más los aprueba', async () => {
+    const tweets = await import('@/lib/actions/tweets');
+    const tw = await t.as('social', async (sql) => {
+      const batch = (await sql.one<{ id: string }>(`insert into public.tweet_batches (title) values ('Tanda que solo aprueba el jefe') returning id`))!.id;
+      return (await sql.one<{ id: string; body: string }>(`insert into public.tweets (batch_id, position, body) values ($1, 0, 'Tweet que solo aprueba el jefe.') returning id, body`, [batch]))!;
+    });
+    for (const who of ['admin', 'social', 'dispatch'] as const) {
+      as(who);
+      const r = await tweets.approveTweets({ tweets: [tw] });
+      expect(r.ok ? r.data!.n : 0, who).toBe(0);
+    }
+    const row = await t.system((sql) => sql.one<{ status: string }>(`select status from public.tweets where id = $1`, [tw.id]));
+    expect(row!.status).toBe('draft');
+  });
+});

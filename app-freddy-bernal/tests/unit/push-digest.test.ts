@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render } from '@react-email/render';
 import { createElement } from 'react';
 import { DigestEmail } from '@emails/templates';
-import { buildDigest, digestText, type DigestData } from '@/lib/push/digest';
+import { buildDigest, digestPath, digestText, type DigestData } from '@/lib/push/digest';
 import { looksLikeDateTime } from '@/lib/push/text';
 
 const data: DigestData = {
@@ -30,6 +30,15 @@ describe('resumen diario por correo', () => {
     expect(disp.sections[0].titles).toHaveLength(5);
     expect(disp.sections[0].more).toBe(2);
     expect(disp.subject).toBe('Tu resumen: 7 cosas esperan por ti');
+  });
+
+  it('el botón lleva al jefe a «Por aprobar» cuando algo espera su aprobación; a los demás, a su inicio', () => {
+    const none: DigestData = { ...data, inReview: [], tweetsToApprove: 0 };
+    expect(digestPath(['boss'], data)).toBe('/aprobar');
+    expect(digestPath(['boss'], { ...none, tweetsToApprove: 3 })).toBe('/aprobar');
+    expect(digestPath(['boss'], { ...none, inReview: [data.inReview[1]] })).toBe('/aprobar');
+    expect(digestPath(['boss'], none)).toBe('/jefe');
+    for (const roles of [['social'], ['dispatch'], ['admin'], ['camera']]) expect(digestPath(roles, data), roles.join()).toBe('/hoy');
   });
 
   it('sin pendientes no hay correo', () => {

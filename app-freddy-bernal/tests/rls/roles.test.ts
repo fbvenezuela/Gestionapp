@@ -1,4 +1,4 @@
-// Six roles (Hillary, 27/10/2026): jefe, despacho, política, IVT, grabación y redes, plus Administración as the
+// Six roles (cambios del 27/10/2026): jefe, despacho, política, IVT, grabación y redes, plus Administración as the
 // technical role. Only those can be given; the boss approves everything through public.can_approve(); the boss does
 // what Redes does. Every «no puede» is tried against the database.
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -29,6 +29,9 @@ async function inReview(level: 'verde' | 'amarillo' | 'rojo', who: DemoUserKey =
 }
 const pieceStatus = async (id: string) =>
   (await t.system((sql) => sql.one<{ status: string; approved_by: string | null }>(`select status, approved_by from public.pieces where id = $1`, [id])))!;
+const mfaList = async () => (await t.system((sql) => sql.one<{ value: string[] }>(`select value from public.app_settings where key = 'security.mfa_roles'`)))!.value;
+const setMfaList = (value: unknown) =>
+  t.system((sql) => sql.query(`update public.app_settings set value = $1::text::jsonb where key = 'security.mfa_roles'`, [JSON.stringify(value)]));
 
 describe('solo se dan los seis roles y Administración', () => {
   it('administración no da un rol retirado ni uno de la fase 3; la base tampoco lo acepta del sistema', async () => {
@@ -144,6 +147,69 @@ describe('el jefe aprueba todo (public.can_approve())', () => {
     await fails(t.as('boss', (sql) => sql.query(`select public.set_review_level($1, 'rojo')`, [p]), 'aal1'));
   });
 
+  it('el doble factor del jefe no depende de la lista que se edita: sin él no aprueba aunque la lista no lo nombre', async () => {
+    const p = await inReview('rojo');
+    const tw = await t.as('social', async (sql) => {
+      const b = await sql.one<{ id: string }>(`insert into public.tweet_batches (title) values ('Tanda sin doble factor') returning id`);
+      return (await sql.one<{ id: string }>(`insert into public.tweets (batch_id, position, body) values ($1, 0, 'Tweet de prueba sin doble factor.') returning id`, [b!.id]))!.id;
+    });
+    const saved = await mfaList();
+    try {
+      // What only the system can do now (a migration, a seed): a list without the boss, and then an empty one.
+      for (const value of [['dispatch'], []]) {
+        await setMfaList(value);
+        expect((await t.as('boss', (sql) => sql.one<{ ok: boolean }>(`select public.can_approve() as ok`), 'aal1'))!.ok, JSON.stringify(value)).toBe(false);
+        await fails(t.as('boss', (sql) => sql.query(`select public.review_piece($1, 'approved')`, [p]), 'aal1'), /Solo el jefe aprueba/);
+        await fails(t.as('boss', (sql) => sql.query(`update public.tweets set status = 'approved', approved_by = auth.uid(), approved_at = now() where id = $1`, [tw]), 'aal1'), /Solo el jefe aprueba tweets/);
+      }
+      // Even with the list empty, admin who gives himself the boss's role on a first-factor session does not approve.
+      await t.as('admin', (sql) => sql.query(`insert into public.user_roles (user_id, role) values (auth.uid(), 'boss')`), 'aal1');
+      await fails(t.as('admin', (sql) => sql.query(`select public.review_piece($1, 'approved')`, [p]), 'aal1'), /Solo el jefe aprueba/);
+    } finally {
+      await t.system((sql) => sql.query(`delete from public.user_roles where user_id = $1 and role = 'boss'`, [t.ids.admin]));
+      await setMfaList(saved);
+    }
+    expect(await pieceStatus(p)).toEqual({ status: 'in_review', approved_by: null });
+  });
+
+  it('administración sin doble factor no cambia la lista del doble factor ni ningún ajuste, ni se da el rol de jefe', async () => {
+    const saved = await mfaList();
+    try {
+      for (const value of [['dispatch'], []]) {
+        const r = await t.as('admin', (sql) => sql.query(`update public.app_settings set value = $1::text::jsonb where key = 'security.mfa_roles' returning key`, [JSON.stringify(value)]), 'aal1');
+        expect(r, JSON.stringify(value)).toHaveLength(0);
+      }
+      expect(await mfaList()).toEqual(saved);
+      expect(await t.as('admin', (sql) => sql.query(`update public.app_settings set value = '5' where key = 'tweets.low_stock_days' returning key`), 'aal1')).toHaveLength(0);
+      await fails(t.as('admin', (sql) => sql.query(`insert into public.app_settings (key, value) values ('prueba.sin_doble_factor', '1')`), 'aal1'));
+      await fails(t.as('admin', (sql) => sql.query(`insert into public.user_roles (user_id, role) values (auth.uid(), 'boss')`), 'aal1'));
+    } finally {
+      await setMfaList(saved);
+      await t.system((sql) => sql.query(`delete from public.user_roles where user_id = $1 and role = 'boss'`, [t.ids.admin]));
+    }
+    // With 2FA, settings still work as before.
+    expect(await t.as('admin', (sql) => sql.query(`update public.app_settings set value = value where key = 'tweets.low_stock_days' returning key`))).toHaveLength(1);
+  });
+
+  it('con doble factor, administración no saca de la lista a administración ni al jefe, ni la renombra', async () => {
+    const saved = await mfaList();
+    for (const value of [['dispatch'], [], ['admin', 'dispatch'], ['boss'], { admin: true, boss: true }, 'admin boss', ['admin', 'boss', 7]]) {
+      await fails(
+        t.as('admin', (sql) => sql.query(`update public.app_settings set value = $1::text::jsonb where key = 'security.mfa_roles'`, [JSON.stringify(value)])),
+        /siempre lo usan administración y el jefe/,
+      );
+    }
+    await fails(t.as('admin', (sql) => sql.query(`update public.app_settings set key = 'security.mfa_roles_vieja' where key = 'security.mfa_roles'`)), /no se renombra/);
+    expect(await mfaList()).toEqual(saved);
+    // Adding a role to the list is fine.
+    try {
+      await t.as('admin', (sql) => sql.query(`update public.app_settings set value = value || '["camera"]'::jsonb where key = 'security.mfa_roles'`));
+      expect(await mfaList()).toContain('camera');
+    } finally {
+      await setMfaList(saved);
+    }
+  });
+
   it('los tweets los aprueba el jefe; nadie más, y sin doble factor tampoco', async () => {
     const tw = await t.as('social', async (sql) => {
       const b = await sql.one<{ id: string }>(`insert into public.tweet_batches (title) values ('Tanda del jefe') returning id`);
@@ -191,6 +257,27 @@ describe('el jefe hace lo de Redes', () => {
     await t.as('boss', (sql) => sql.query(`insert into public.publication_metrics (publication_id, views, source) values ($1, 100, 'manual')`, [x!.id]));
     const m = await t.system((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.publication_metrics where publication_id = $1`, [x!.id]));
     expect(m!.n).toBe(1);
+  });
+
+  it('crea la pieza de un evento con material y marca publicado: el evento avanza como cuando lo hace Redes', async () => {
+    const ev = (await t.system((sql) =>
+      sql.one<{ id: string }>(`insert into public.events (title, boss_decision, work_status) values ('Evento con material (prueba)', 'accepted', 'material') returning id`),
+    ))!.id;
+    const workStatus = async () => (await t.system((sql) => sql.one<{ work_status: string }>(`select work_status from public.events where id = $1`, [ev])))!.work_status;
+    // What «Crear pieza» does for an event in 'material' or 'recording'.
+    await t.as('boss', async (sql) => {
+      await sql.query(`insert into public.pieces (event_id, kind, title) values ($1, 'video', 'Pieza del evento con material')`, [ev]);
+      await sql.query(`update public.events set work_status = 'editing' where id = $1 and work_status in ('material', 'recording')`, [ev]);
+    });
+    expect(await workStatus()).toBe('editing');
+    // What «Ya lo publiqué» does when the piece belongs to an event; and the urgency, as Redes.
+    await t.as('boss', (sql) => sql.query(`update public.events set work_status = 'published', urgency = 1 where id = $1`, [ev]));
+    expect(await workStatus()).toBe('published');
+    // Política and IVT still change nothing of an event.
+    for (const who of ['politics', 'ivt'] as const) {
+      expect(await t.as(who, (sql) => sql.query(`update public.events set work_status = 'brief' where id = $1 returning id`, [ev])), who).toHaveLength(0);
+    }
+    expect(await workStatus()).toBe('published');
   });
 
   it('ve todo el contenido, como Redes; política e IVT no ven nada de contenido', async () => {

@@ -70,12 +70,26 @@ export default async function TodayPage() {
     }
 
     // Review clock: past the deadline the piece is still NOT approved; it shows as stuck.
-    const inReview = has('social', 'admin') ? await piecesInReview(sql, 50) : [];
+    const inReview = has('social', 'admin', 'boss') ? await piecesInReview(sql, 50) : [];
     const deadlines = await getDeadlines(sql);
     const overdue = inReview.filter((p) => reviewClock(p.review_level, p.sent_to_review_at, deadlines).overdue);
     for (const p of overdue) {
       const c = reviewClock(p.review_level, p.sent_to_review_at, deadlines);
       blocked.push({ href: has('boss') ? `/aprobar/${p.id}` : `/piezas/${p.id}`, title: p.title, detail: `Sin aprobar: ${c.text.toLowerCase()} (${LEVELS[p.review_level].label.toLowerCase()}, aprueba ${LEVELS[p.review_level].who})`, tone: 'danger' });
+    }
+
+    // The boss approves every level and the tweets (public.can_approve()); his home (/jefe) shows the same.
+    if (has('boss')) {
+      for (const p of inReview) {
+        const c = reviewClock(p.review_level, p.sent_to_review_at, deadlines);
+        waiting.push({ href: `/aprobar/${p.id}`, title: p.title, detail: `Por aprobar${c.text ? ` · ${c.text.toLowerCase()}` : ''}`, tone: p.review_level === 'rojo' ? 'danger' : p.review_level === 'amarillo' ? 'warn' : 'ok', tag: LEVELS[p.review_level].label });
+      }
+      const tw = (await sql.one<{ n: number }>(`select count(*)::int as n from public.tweets where status = 'draft' and deleted_at is null`))!.n;
+      if (tw) waiting.push({ href: '/aprobar?tab=tweets', title: `${tw} ${tw === 1 ? 'tweet por aprobar' : 'tweets por aprobar'}`, tone: 'warn', tag: 'Tweets' });
+      stats.unshift(
+        { label: 'Piezas por aprobar', value: inReview.length, tone: overdue.length ? 'danger' : inReview.length ? 'accent' : undefined },
+        { label: 'Tweets por aprobar', value: tw, tone: tw ? 'accent' : undefined },
+      );
     }
 
     if (has('dispatch')) {

@@ -96,7 +96,7 @@ export async function createBatch(raw: unknown) {
       );
     }
     return { id: b!.id, count: i.tweets.length };
-  }, { revalidate: ['/tweets', '/aprobar', '/hoy'] }).then(async (r) => {
+  }, { revalidate: ['/tweets', '/aprobar', '/hoy', '/jefe'] }).then(async (r) => {
     if (r.ok) {
       // Tweets are approved by the boss (public.can_approve()).
       await notify({ userIds: await usersWithRole('boss'), kind: 'review_pending', title: `${r.data!.count} tweets por aprobar`, link: '/aprobar?tab=tweets', key: `batch:${r.data!.id}`, email: true });
@@ -146,15 +146,20 @@ export async function skipTweet(raw: unknown) {
   }, { revalidate: ['/tweets', '/aprobar'] });
 }
 
-// The boss approves (all ids at once). The database refuses anyone else (guard_tweet → can_approve()).
+// The boss approves many at once. The database refuses anyone else (guard_tweet → can_approve()). Only what he saw:
+// each tweet goes with the text on his screen, and one whose text changed since the list loaded is skipped, never
+// approved blind (like approveGreen with the piece's revision).
 export async function approveTweets(raw: unknown) {
-  return act(z.object({ ids: z.array(uuid).min(1).max(400) }), raw, async (sql, i) => {
+  return act(z.object({ tweets: z.array(z.object({ id: uuid, body: z.string().max(4000) })).min(1).max(400) }), raw, async (sql, i) => {
     const r = await sql.query(
-      `update public.tweets set status = 'approved', approved_by = auth.uid(), approved_at = now() where id = any($1::uuid[]) and status = 'draft' returning id`,
-      [i.ids],
+      `update public.tweets t set status = 'approved', approved_by = auth.uid(), approved_at = now()
+         from jsonb_to_recordset($1::text::jsonb) as seen(id uuid, body text)
+        where t.id = seen.id and t.body = seen.body and t.status = 'draft' and t.deleted_at is null
+        returning t.id`,
+      [JSON.stringify(i.tweets)],
     );
-    return { n: r.length };
-  }, { revalidate: ['/tweets', '/aprobar', '/hoy'] });
+    return { n: r.length, skipped: i.tweets.length - r.length };
+  }, { revalidate: ['/tweets', '/aprobar', '/hoy', '/jefe'] });
 }
 
 // "Programar": approved tweets get scheduled. With the X API connected and publishing

@@ -7,6 +7,7 @@ import { useAction } from '@/lib/hooks/use-action';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { fmtDateTime } from '@/lib/time';
+import { approvedToast } from '@/components/tweets/approved-toast';
 
 type T = { id: string; body: string; weighted_length: number; scheduled_at: string | null; category: string | null; batch: string };
 
@@ -24,7 +25,7 @@ export function TweetApprovals({ tweets, canApprove }: { tweets: T[]; canApprove
       {canApprove ? (
         <div className="sticky top-16 z-10 flex items-center gap-2 rounded-[var(--radius-card)] border border-border bg-surface p-3">
           <span className="text-sm text-text-2">{sel.size} de {tweets.length} marcados. Desmarca los que no van.</span>
-          <Button className="ml-auto" disabled={pending || !sel.size} onClick={() => run(() => approveTweets({ ids: [...sel] }), { success: 'Tweets aprobados.' })}>
+          <Button className="ml-auto" disabled={pending || !sel.size} onClick={() => run(() => approveTweets({ tweets: tweets.filter((t) => sel.has(t.id)).map((t) => ({ id: t.id, body: t.body })) }), { onOk: approvedToast })}>
             <CheckCheck className="h-4 w-4" aria-hidden /> Aprobar marcados
           </Button>
         </div>

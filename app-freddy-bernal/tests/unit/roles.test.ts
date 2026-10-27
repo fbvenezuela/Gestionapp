@@ -1,6 +1,8 @@
-// The six roles in the code (Hillary, 27/10/2026): the TypeScript lists mirror the database enum, the team is
+// The six roles in the code (cambios del 27/10/2026): the TypeScript lists mirror the database enum, the team is
 // exactly six, Administración is apart, the retired roles are gone from every menu, and the demo has a button for
 // each team role.
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { createMemoryDb } from '@/lib/db/pglite';
 import {
@@ -21,6 +23,32 @@ import {
 } from '@/lib/roles';
 import { DEMO_USERS } from '@/lib/db/seed-demo';
 import { getClientConfig } from '@/lib/client-config';
+
+// Real people of the client's team are named only in the docs: never in the code, the seeds, the tests or the config.
+// Built from pieces so this file does not match itself. Applied migrations are not scanned (they are never edited).
+const REAL_NAMES = new RegExp(`(?<!\\p{L})(?:${['Wil' + 'liam', '[ÁA]n' + 'gel', 'Hil' + 'lary'].join('|')})(?!\\p{L})`, 'iu');
+const TEXT_FILE = /\.(?:ts|tsx|mts|mjs|js|json|sql|css)$/;
+function textFiles(dir: string): string[] {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
+    const p = path.join(dir, d.name);
+    return d.isDirectory() ? textFiles(p) : TEXT_FILE.test(d.name) ? [p] : [];
+  });
+}
+
+describe('nombres de personas reales', () => {
+  it('no aparecen en el código, los datos de prueba, las pruebas ni la configuración', () => {
+    const bad = ['src', 'tests', 'config', 'scripts', 'emails', path.join('supabase', 'shim'), path.join('supabase', 'tests')]
+      .flatMap(textFiles)
+      .flatMap((f) => fs.readFileSync(f, 'utf8').split('\n').map((l, i) => ({ f, i: i + 1, l })))
+      .filter(({ l }) => REAL_NAMES.test(l))
+      .map(({ f, i, l }) => `${f}:${i}: ${l.trim().slice(0, 100)}`);
+    expect(bad).toEqual([]);
+    // The guard itself works.
+    expect('Aprobado por Hil' + 'lary').toMatch(REAL_NAMES);
+    expect('Los Ángeles').not.toMatch(REAL_NAMES);
+  });
+});
 
 describe('los roles del código son los de la base', () => {
   it('ROLES es el enum app_role, en el mismo orden', async () => {
@@ -109,7 +137,7 @@ describe('doble factor y demostración', () => {
     expect(DEMO_USERS.find((u) => u.key === 'ivt')).toMatchObject({ id: '00000000-0000-4000-8000-000000000011', email: 'ivt@demo.test', label: 'Director del IVT' });
     for (const u of DEMO_USERS) {
       expect(u.email, u.key).toMatch(/@demo\.test$/);
-      expect(u.name, u.key).not.toMatch(/William|[ÁA]ngel|Hillary/i);
+      expect(u.name, u.key).not.toMatch(REAL_NAMES);
     }
     expect(new Set(DEMO_USERS.map((u) => u.id)).size).toBe(DEMO_USERS.length);
   });

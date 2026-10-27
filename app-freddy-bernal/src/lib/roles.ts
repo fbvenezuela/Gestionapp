@@ -36,7 +36,7 @@ export const ROLE_LABEL: Record<Role, string> = {
   aid_operator: 'Operador de ayudas',
 };
 
-// The team (Hillary, 27/10/2026): six roles, «más nada». The lists in «Ver como…», the guides and the assistant.
+// The team (cambios del 27/10/2026): six roles, «más nada». The lists in «Ver como…», the guides and the assistant.
 export const TEAM_ROLES = ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'] as const satisfies readonly Role[];
 // What admin can give: the team plus Administración, the technical role (never in team lists or guides). The
 // database refuses anything else (user_roles_assignable, guard_invitation_roles).

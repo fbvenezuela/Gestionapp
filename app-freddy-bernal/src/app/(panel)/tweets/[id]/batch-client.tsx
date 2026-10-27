@@ -12,8 +12,10 @@ import { CategorySelect } from '@/components/ui/category-select';
 import type { CategoryOption } from '@/lib/data/common';
 import { TWEET_STATUS } from '@/lib/data/labels';
 import { tweetLength, X_MAX } from '@/lib/domain/tweets';
+import { approvedToast } from '@/components/tweets/approved-toast';
 
-export function BatchActions({ batchId, counts, draftIds, canApprove, canEdit }: { batchId: string; counts: { draft: number; approved: number; scheduled: number }; draftIds: string[]; canApprove: boolean; canEdit: boolean }) {
+// drafts: the text on screen goes with each id, so a tweet changed since the page loaded is not approved blind.
+export function BatchActions({ batchId, counts, drafts, canApprove, canEdit }: { batchId: string; counts: { draft: number; approved: number; scheduled: number }; drafts: { id: string; body: string }[]; canApprove: boolean; canEdit: boolean }) {
   const { run, pending } = useAction();
   return (
     <Card className="mb-4">
@@ -25,7 +27,7 @@ export function BatchActions({ batchId, counts, draftIds, canApprove, canEdit }:
         </div>
         <div className="flex flex-wrap gap-2 sm:ml-auto">
           {canApprove && counts.draft ? (
-            <Button disabled={pending} onClick={() => run(() => approveTweets({ ids: draftIds }), { success: 'Tweets aprobados.' })}>
+            <Button disabled={pending} onClick={() => run(() => approveTweets({ tweets: drafts }), { onOk: approvedToast })}>
               <CheckCheck className="h-4 w-4" aria-hidden /> Aprobar los {counts.draft}
             </Button>
           ) : null}

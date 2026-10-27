@@ -33,7 +33,7 @@ export default async function BatchPage({ params }: { params: Promise<{ id: stri
   return (
     <>
       <PageHeader title={data.batch.title} subtitle={data.batch.source_name ? `Desde ${data.batch.source_name}` : undefined} back={{ href: '/tweets', label: 'Tweets' }} />
-      <BatchActions batchId={id} counts={counts} draftIds={data.tweets.filter((t) => t.status === 'draft').map((t) => t.id)} canApprove={data.canApprove} canEdit={canEdit} />
+      <BatchActions batchId={id} counts={counts} drafts={data.tweets.filter((t) => t.status === 'draft').map((t) => ({ id: t.id, body: t.body }))} canApprove={data.canApprove} canEdit={canEdit} />
       <div className="mb-6"><TweetBoard tweets={data.tweets} canEdit={canEdit} /></div>
       {canEdit ? <BatchEditor tweets={data.tweets} categories={data.categories} /> : null}
     </>

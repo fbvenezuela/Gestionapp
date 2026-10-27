@@ -14,6 +14,8 @@ export const metadata = { title: 'Publicación' };
 
 export default async function PublicationPage({ params }: { params: Promise<{ id: string }> }) {
   const s = await requireRole('admin', 'social', 'boss');
+  // The boss does what Redes does; uploading the evidence waits for his media permission (media_handoff).
+  const canUpload = s.roles.some((r) => r === 'admin' || r === 'social');
   const { id } = await params;
   const data = await db(s, async (sql) => {
     const p = await sql.one<{
@@ -75,7 +77,7 @@ export default async function PublicationPage({ params }: { params: Promise<{ id
         <div className="flex flex-col gap-4">
           {p.status !== 'published' ? (
             <>
-              <PublishedForm id={p.id} />
+              <PublishedForm id={p.id} canUpload={canUpload} />
               <FailForm id={p.id} />
             </>
           ) : (

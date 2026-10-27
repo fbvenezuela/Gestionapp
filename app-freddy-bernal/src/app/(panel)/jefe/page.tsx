@@ -1,10 +1,13 @@
 import Link from 'next/link';
-import { Landmark, ShieldAlert, Sparkles } from 'lucide-react';
+import { ChevronRight, Landmark, MessageSquare, ShieldAlert, Sparkles } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
+import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
-import { getDeadlines, piecesInReview } from '@/lib/data/review';
-import { reviewClock } from '@/lib/domain/review';
+import { canApprove, getDeadlines, piecesInReview } from '@/lib/data/review';
+import { LEVELS, LEVEL_ORDER, reviewClock } from '@/lib/domain/review';
+import { cn } from '@/lib/cn';
 import { today } from '@/lib/time';
+import { ApproveGreen } from '../aprobar/approve-green';
 
 export const metadata = { title: 'Inicio' };
 
@@ -19,35 +22,76 @@ export default async function BossHome() {
     ))!.n,
     pending: (await sql.one<{ n: number }>(`select count(*)::int as n from public.events where boss_decision = 'pending' and deleted_at is null`))!.n,
     published: (await sql.one<{ n: number }>(`select count(*)::int as n from public.publications where status = 'published' and published_at > now() - interval '7 days'`))!.n,
-    red: (await piecesInReview(sql)).filter((p) => p.review_level === 'rojo'),
+    // The boss approves every level and the tweets (public.can_approve()): all of it waits for him here.
+    review: await piecesInReview(sql),
+    tweets: (await sql.one<{ n: number }>(`select count(*)::int as n from public.tweets where status = 'draft' and deleted_at is null`))!.n,
     deadlines: await getDeadlines(sql),
+    canApprove: await canApprove(sql),
   }));
+  const boss = s.roles.includes('boss');
+  const greens = counts.review.filter((p) => p.review_level === 'verde');
+  const anyRed = counts.review.some((p) => p.review_level === 'rojo');
+  const SHOWN = 5;
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 py-4">
       <div>
         <h1 className="text-3xl font-bold sm:text-4xl">Buen día</h1>
         <p className="mt-1 text-lg first-letter:uppercase text-text-2">{t0.toFormat("cccc d 'de' LLLL")}</p>
       </div>
-      {counts.red.length ? (
-        <section aria-labelledby="red-title" className="rounded-[var(--radius-card)] border-2 border-danger bg-danger-soft p-4">
-          <h2 id="red-title" className="flex items-center gap-2 text-xl font-bold text-danger">
-            <ShieldAlert className="h-6 w-6" aria-hidden /> {s.roles.includes('boss') ? 'Te toca aprobar' : 'Esperan al jefe'}
+      {counts.review.length || counts.tweets ? (
+        <Card aria-labelledby="approve-title" role="region" className={cn('p-4', anyRed && 'border-2 border-danger bg-danger-soft')}>
+          <h2 id="approve-title" className={cn('flex items-center gap-2 text-xl font-bold', anyRed && 'text-danger')}>
+            <ShieldAlert className="h-6 w-6" aria-hidden /> {boss ? 'Te toca aprobar' : 'Esperan al jefe'}
           </h2>
-          <p className="mt-1 text-text-2">Piezas en rojo: solo salen con tu aprobación. Si no respondes, no salen.</p>
-          <ul className="mt-3 flex flex-col gap-2">
-            {counts.red.map((p) => {
-              const clock = reviewClock(p.review_level, p.sent_to_review_at, counts.deadlines);
-              return (
-                <li key={p.id}>
-                  <Link href={`/aprobar/${p.id}`} className="flex min-h-14 items-center gap-3 rounded-[var(--radius-control)] bg-surface px-4 py-3 text-lg font-semibold hover:bg-surface-2">
-                    <span className="min-w-0 flex-1">{p.title}</span>
-                    {clock.text ? <Chip tone={clock.overdue ? 'danger' : 'warn'}>{clock.text}</Chip> : null}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+          <p className="mt-1 text-text-2">
+            {boss
+              ? 'Nada sale sin tu aprobación: verdes, amarillas, rojas y tweets. Si no respondes, no sale.'
+              : 'Todo lo aprueba el jefe: verdes, amarillas, rojas y tweets.'}
+          </p>
+          {counts.canApprove && greens.length ? (
+            <div className="mt-3 flex">
+              <ApproveGreen pieces={greens.map((p) => ({ id: p.id, revision: p.revision }))} />
+            </div>
+          ) : null}
+          {LEVEL_ORDER.map((lvl) => {
+            const list = counts.review.filter((p) => p.review_level === lvl);
+            if (!list.length) return null;
+            return (
+              <div key={lvl} className="mt-4">
+                <h3 className="flex items-center gap-2 text-base font-semibold">
+                  <Chip tone={LEVELS[lvl].tone}>{LEVELS[lvl].label}</Chip> {list.length} {list.length === 1 ? 'pieza' : 'piezas'}
+                </h3>
+                <ul className="mt-2 flex flex-col gap-2">
+                  {list.slice(0, SHOWN).map((p) => {
+                    const clock = reviewClock(p.review_level, p.sent_to_review_at, counts.deadlines);
+                    return (
+                      <li key={p.id}>
+                        <Link href={`/aprobar/${p.id}`} className="flex min-h-14 items-center gap-3 rounded-[var(--radius-control)] border border-border bg-surface px-4 py-3 text-lg font-semibold hover:bg-surface-2">
+                          <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{p.title}</span>
+                          {clock.text ? <Chip tone={clock.overdue ? 'danger' : 'warn'}>{clock.text}</Chip> : null}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {list.length > SHOWN ? <p className="mt-1 text-sm text-text-2">y {list.length - SHOWN} más en «Por aprobar».</p> : null}
+              </div>
+            );
+          })}
+          <div className="mt-4 flex flex-col gap-2">
+            {counts.tweets ? (
+              <Link href="/aprobar?tab=tweets" className="flex min-h-14 items-center gap-3 rounded-[var(--radius-control)] border border-border bg-surface px-4 py-3 text-lg font-semibold hover:bg-surface-2">
+                <MessageSquare className="h-5 w-5 shrink-0" aria-hidden />
+                <span className="min-w-0 flex-1">{counts.tweets} {counts.tweets === 1 ? 'tweet por aprobar' : 'tweets por aprobar'}</span>
+                <ChevronRight className="h-5 w-5 shrink-0" aria-hidden />
+              </Link>
+            ) : null}
+            <Link href="/aprobar" className="flex min-h-12 items-center gap-2 rounded-[var(--radius-control)] border border-border bg-surface px-4 py-2 font-semibold hover:bg-surface-2">
+              <span className="flex-1">Ver todo en «Por aprobar»</span>
+              <ChevronRight className="h-5 w-5 shrink-0" aria-hidden />
+            </Link>
+          </div>
+        </Card>
       ) : null}
       <div className="grid gap-4 md:grid-cols-2">
         <Link href="/jefe/politica" className="flex min-h-56 flex-col justify-between rounded-[var(--radius-card)] bg-slate p-6 text-on-slate shadow-sm hover:opacity-95">
