@@ -1,0 +1,2 @@
+# Git worktrees that Claude Code agents create while they work (never part of the project)
+.claude/worktrees/
