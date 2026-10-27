@@ -4,7 +4,9 @@
    PRIMARY = Oliva (Juan, 24/10/2026; the brand's newer olive variant). Orange is no longer used in the UI.
    Text on brand fills is always #111111 (white on olive is 3.92:1 and fails AA). Still PROVISIONAL until the
    client approves the manual and sends the vector logo (docs/PENDIENTES.md #1, docs/DECISIONES.md D-21).
-   Changing the brand = changing this file (and the email copy in emails/layout.tsx). Nothing else. */
+   Changing the brand = changing this file (and the email copy in emails/layout.tsx). Nothing else.
+   The glass tokens (--c-bg-tint-*, --c-glass*, --glass-*) are derived from the same palette (pale oliva
+   and amarillo glows, white or dark glass), keep AA with a margin and are solid in «Modo sol». */
 
 :root {
   --c-bg: #f7f7f5;          /* alabastro */
@@ -31,6 +33,21 @@
   --c-info: #1d4ed8;
   --c-info-soft: #eaf1fe;
   --c-focus: #5f6524;      /* focus ring: 5.8:1 on the page background */
+  /* Glass (docs/DISENO.md «Cara glass»). The page gradient (body::before in globals.css) goes from
+     --c-bg to two pale glows of the brand, oliva and amarillo. They stay this pale on purpose: --c-warn
+     is only 4.6:1 on them, so a stronger glow would break AA. Translucent surfaces are white with alpha:
+     cards only have the fixed gradient behind them (and no blur); bars, menus and sheets can have
+     anything scrolling behind, even black, so they are nearly opaque. tests/unit/ui-glass.test.ts
+     checks every text color against the worst case. */
+  --c-bg-tint-1: #f4f8d8;   /* olive glow */
+  --c-bg-tint-2: #fff5e3;   /* amarillo glow */
+  --c-glass: rgba(255, 255, 255, 0.6);        /* cards */
+  --c-glass-bar: rgba(255, 255, 255, 0.9);    /* top bar, phone bar, menus */
+  --c-glass-sheet: rgba(255, 255, 255, 0.96); /* side panels and dialogs */
+  --c-glass-border: rgba(255, 255, 255, 0.7); /* the light 1 px edge */
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --glass-shadow: 0 1px 2px rgba(17, 17, 17, 0.04), 0 8px 24px -12px rgba(17, 17, 17, 0.12);
+  --glass-shadow-pop: 0 2px 8px rgba(17, 17, 17, 0.06), 0 24px 48px -16px rgba(17, 17, 17, 0.22);
   color-scheme: light;
 }
 
@@ -60,6 +77,15 @@
     --c-info: #60a5fa;
     --c-info-soft: #13223a;
     --c-focus: #d4da7f;
+    --c-bg-tint-1: #1e2317;
+    --c-bg-tint-2: #1f211a;
+    --c-glass: rgba(26, 32, 30, 0.7);
+    --c-glass-bar: rgba(26, 32, 30, 0.92);
+    --c-glass-sheet: rgba(26, 32, 30, 0.96);
+    --c-glass-border: rgba(255, 255, 255, 0.08);
+    --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+    --glass-shadow-pop: 0 2px 8px rgba(0, 0, 0, 0.4), 0 24px 48px -16px rgba(0, 0, 0, 0.6);
     color-scheme: dark;
   }
 }
@@ -89,6 +115,15 @@
   --c-info: #60a5fa;
   --c-info-soft: #13223a;
   --c-focus: #d4da7f;
+  --c-bg-tint-1: #1e2317;
+  --c-bg-tint-2: #1f211a;
+  --c-glass: rgba(26, 32, 30, 0.7);
+  --c-glass-bar: rgba(26, 32, 30, 0.92);
+  --c-glass-sheet: rgba(26, 32, 30, 0.96);
+  --c-glass-border: rgba(255, 255, 255, 0.08);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  --glass-shadow-pop: 0 2px 8px rgba(0, 0, 0, 0.4), 0 24px 48px -16px rgba(0, 0, 0, 0.6);
   color-scheme: dark;
 }
 
@@ -125,6 +160,16 @@
   --c-info: #11368f;
   --c-info-soft: #e6eefd;
   --c-focus: #000000;
+  /* No glass in «Modo sol»: solid surfaces, no gradient and no shadows (globals.css also skips the
+     translucent rules here). */
+  --c-bg-tint-1: #ffffff;
+  --c-bg-tint-2: #ffffff;
+  --c-glass: #ffffff;
+  --c-glass-bar: #ffffff;
+  --c-glass-sheet: #ffffff;
+  --c-glass-border: #5c5b57;
+  --glass-shadow: none;
+  --glass-shadow-pop: none;
   font-size: 112.5%;
 }
 
@@ -154,6 +199,14 @@
     --c-info: #93c5fd;
     --c-info-soft: #0b1f3d;
     --c-focus: #ffffff;
+    --c-bg-tint-1: #000000;
+    --c-bg-tint-2: #000000;
+    --c-glass: #0b0d0c;
+    --c-glass-bar: #0b0d0c;
+    --c-glass-sheet: #0b0d0c;
+    --c-glass-border: #a3a29c;
+    --glass-shadow: none;
+    --glass-shadow-pop: none;
   }
 }
 
@@ -182,4 +235,12 @@
   --c-info: #93c5fd;
   --c-info-soft: #0b1f3d;
   --c-focus: #ffffff;
+  --c-bg-tint-1: #000000;
+  --c-bg-tint-2: #000000;
+  --c-glass: #0b0d0c;
+  --c-glass-bar: #0b0d0c;
+  --c-glass-sheet: #0b0d0c;
+  --c-glass-border: #a3a29c;
+  --glass-shadow: none;
+  --glass-shadow-pop: none;
 }

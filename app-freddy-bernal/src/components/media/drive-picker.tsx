@@ -8,6 +8,7 @@ import { drivePickerConfig, registerDriveFile, saveDriveProbe } from '@/lib/acti
 import { pickedIds, pickerMimeTypes, pickProgress, pickSummary } from '@/lib/media/drive-picker-core';
 import { probeRemote } from '@/lib/media/probe';
 import { Button } from '@/components/ui/button';
+import { dialogPanelClass } from '@/components/ui/confirm-dialog';
 import { cn } from '@/lib/cn';
 
 // «Elegir de Drive»: only rendered for Administración with Drive connected. The Google Picker
@@ -168,7 +169,7 @@ export function DrivePicker({
           ref={dialog}
           aria-labelledby={titleId}
           onClose={() => setFakeCfg(false)}
-          className="m-auto w-[min(92vw,26rem)] rounded-[var(--radius-card)] border border-border bg-surface p-5 text-text shadow-lg backdrop:bg-slate/60"
+          className={dialogPanelClass}
         >
           <form
             method="dialog"

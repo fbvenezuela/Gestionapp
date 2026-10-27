@@ -7,6 +7,7 @@ import { cn } from '@/lib/cn';
 import type { NavItem } from '@/lib/roles';
 import { NAV_ICONS } from './nav-icons';
 import { MenuDetails } from './menu-details';
+import { menuPanelClass } from '@/components/ui/menu-panel';
 
 function isActive(pathname: string, href: string) {
   if (href === '/jefe') return pathname === '/jefe' || pathname.startsWith('/jefe/politica');
@@ -50,7 +51,7 @@ export function BottomNav({ items, more = [] }: { items: NavItem[]; more?: NavIt
   return (
     <nav
       aria-label="Menú"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-border glass-bar pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <ul className="grid" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
         {items.map((it) => {
@@ -84,7 +85,7 @@ export function BottomNav({ items, more = [] }: { items: NavItem[]; more?: NavIt
                 <MoreHorizontal className="h-6 w-6" aria-hidden />
                 <span>Más</span>
               </summary>
-              <div className="absolute bottom-full right-1 mb-2 w-56 rounded-[var(--radius-card)] border border-border bg-surface p-1 shadow-lg">
+              <div className={cn(menuPanelClass, 'absolute bottom-full right-1 mb-2 w-56')}>
                 {more.map((it) => {
                   const Icon = NAV_ICONS[it.icon];
                   const active = isActive(pathname, it.href);

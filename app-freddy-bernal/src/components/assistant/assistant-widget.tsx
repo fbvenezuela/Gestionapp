@@ -227,7 +227,7 @@ export function AssistantWidget({ userId, profile, suggestions }: AssistantWidge
           data-assistant-button=""
           style={{ '--asst-lift': `${lift}px` } as CSSProperties}
           className={cn(
-            'fixed right-3 z-20 flex h-12 items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1 pr-3 text-text shadow-lg hover:bg-surface-2',
+            'glass-pop fixed right-3 z-20 flex h-12 items-center gap-2 rounded-full py-1 pl-1 pr-3 text-text hover:bg-surface-2',
             // Above the phone's bottom bar (64 px + safe area) and above sticky action bars.
             '[--asst-base:calc(env(safe-area-inset-bottom)_+_76px)] bottom-[max(var(--asst-base),calc(var(--asst-lift)_+_12px))]',
             'lg:right-6 lg:[--asst-base:24px]',
@@ -243,7 +243,7 @@ export function AssistantWidget({ userId, profile, suggestions }: AssistantWidge
       </Dialog.Trigger>
 
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-slate/50" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-slate/50 glass-overlay" />
         <Dialog.Content
           onOpenAutoFocus={(e) => {
             if (window.matchMedia('(min-width: 640px)').matches) {
@@ -251,7 +251,7 @@ export function AssistantWidget({ userId, profile, suggestions }: AssistantWidge
               input.current?.focus();
             }
           }}
-          className="fixed inset-0 z-50 flex h-dvh flex-col bg-surface text-text shadow-xl sm:left-auto sm:w-[420px] sm:border-l sm:border-border"
+          className="glass-sheet fixed inset-0 z-50 flex h-dvh flex-col border-0 text-text sm:left-auto sm:w-[420px] sm:border-l sm:border-border"
         >
           <header className="flex items-center gap-3 border-b border-border py-2 pl-4 pr-2">
             <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent text-lg font-bold leading-none text-on-accent">

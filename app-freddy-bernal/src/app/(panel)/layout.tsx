@@ -13,6 +13,8 @@ import { SignOutButton } from '@/components/shell/sign-out-button';
 import { MenuDetails } from '@/components/shell/menu-details';
 import { AssistantMount } from '@/components/assistant/assistant-mount';
 import { buttonVariants } from '@/components/ui/button';
+import { menuPanelClass } from '@/components/ui/menu-panel';
+import { cn } from '@/lib/cn';
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const s = await requireSession();
@@ -25,7 +27,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
     <div className="min-h-dvh lg:grid lg:grid-cols-[248px_1fr]">
       <SunModeScript />
       <LiveRefresh />
-      <aside className="sticky top-0 hidden h-dvh flex-col gap-4 overflow-y-auto border-r border-border bg-surface p-4 lg:flex">
+      <aside className="sticky top-0 hidden h-dvh flex-col gap-4 overflow-y-auto glass-card rounded-none border-0 border-r border-border shadow-none p-4 lg:flex">
         <Link href="/" className="flex items-center gap-2 px-1">
           <span className="grid h-9 w-9 place-items-center rounded-[var(--radius-control)] bg-accent font-bold text-on-accent">{brand.logoText}</span>
           <span className="text-[15px] font-bold leading-tight">{brand.shortName}</span>
@@ -39,7 +41,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-2 border-b border-border bg-surface/95 px-4 backdrop-blur">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-2 border-b border-border glass-bar px-4">
           <Link href="/" className="flex items-center gap-2 lg:hidden">
             <span className="grid h-9 w-9 place-items-center rounded-[var(--radius-control)] bg-accent font-bold text-on-accent">{brand.logoText}</span>
             <span className="sr-only">{brand.appName}</span>
@@ -59,7 +61,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
                   <Plus className="h-4 w-4" aria-hidden /> <span className="hidden sm:inline">Crear</span>
                   <span className="sr-only sm:hidden">Crear</span>
                 </summary>
-                <div className="absolute right-0 z-30 mt-2 w-56 rounded-[var(--radius-card)] border border-border bg-surface p-1 shadow-lg">
+                <div className={cn(menuPanelClass, 'absolute right-0 z-30 mt-2 w-56')}>
                   {create.map((c) => (
                     <Link key={c.href} href={c.href} className="flex min-h-11 items-center rounded-[var(--radius-control)] px-3 text-[15px] hover:bg-surface-2">
                       {c.label}
@@ -76,7 +78,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
               <summary className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'list-none [&::-webkit-details-marker]:hidden cursor-pointer' })} aria-label="Mi cuenta">
                 <UserRound className="h-5 w-5" aria-hidden />
               </summary>
-              <div className="absolute right-0 z-30 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-[var(--radius-card)] border border-border bg-surface p-1 shadow-lg">
+              <div className={cn(menuPanelClass, 'absolute right-0 z-30 mt-2 w-72 max-w-[calc(100vw-2rem)]')}>
                 <p className="px-3 pt-2 text-sm font-semibold">{s.name}</p>
                 <p className="px-3 pb-2 text-xs text-text-2">{s.email}</p>
                 {s.roles.includes('admin') ? <div className="px-3 pb-2 md:hidden"><ViewAs current={s.viewAs} /></div> : null}
@@ -92,7 +94,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             Estás viendo los menús de <b>{ROLE_LABEL[s.viewAs]}</b>. Tus permisos no cambian.
           </div>
         ) : null}
-        <main id="contenido" className="safe-bottom mx-auto w-full max-w-6xl flex-1 px-4 pt-5">
+        <main id="contenido" className="safe-bottom mx-auto w-full max-w-6xl flex-1 px-4 pt-6">
           <NoPermissionBanner />
           {children}
         </main>

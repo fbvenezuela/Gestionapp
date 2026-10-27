@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Button } from './button';
 
+// The panel of every native <dialog> of the app (this one and the Drive picker's). The blur behind it
+// comes from dialog.glass-sheet::backdrop in globals.css.
+export const dialogPanelClass = 'm-auto w-[min(92vw,26rem)] rounded-[var(--radius-card)] glass-sheet p-5 text-text backdrop:bg-slate/60';
+
 // The app's own confirmation (instead of the browser's confirm/alert, which look bad on a
 // phone and are easy to tap by mistake). Native <dialog>: Escape closes, focus stays inside.
 //   const { confirm, dialog } = useConfirm();
@@ -35,7 +39,7 @@ export function useConfirm() {
         e.preventDefault();
         close(false);
       }}
-      className="m-auto w-[min(92vw,26rem)] rounded-[var(--radius-card)] border border-border bg-surface p-5 text-text shadow-lg backdrop:bg-slate/60"
+      className={dialogPanelClass}
     >
       <h2 id={titleId} className="text-lg font-semibold">{state.opts.title}</h2>
       {state.opts.body ? <div className="mt-2 text-[15px] text-text-2">{state.opts.body}</div> : null}
