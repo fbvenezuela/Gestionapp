@@ -1,10 +1,22 @@
 import { test, expect } from '@playwright/test';
 
 // Demo server with testing shortcuts ON: one tap per role, no code, no 2FA.
+test('los botones son los seis roles del equipo y Administración; ya no Secretaría ni Supervisión', async ({ page }) => {
+  await page.goto('/entrar');
+  for (const label of ['El jefe', 'Director de despacho', 'Director de política', 'Director del IVT', 'Grabación', 'Redes', 'Administración']) {
+    await expect(page.getByRole('button', { name: new RegExp(`^Entrar como ${label}`) }).first(), label).toBeVisible();
+  }
+  for (const gone of ['Secretaría', 'Supervisión']) {
+    await expect(page.getByRole('button', { name: new RegExp(`^Entrar como ${gone}`) }), gone).toHaveCount(0);
+    await expect(page.getByText(gone)).toHaveCount(0);
+  }
+});
+
 test('un toque por rol, sin código ni doble factor', async ({ page }) => {
   for (const [label, home, heading] of [
     ['El jefe', '/jefe', /Buen día/],
-    ['Supervisión política', '/hoy', /Hola, Gustavo/],
+    ['Director de política', '/hoy', /Hola, Elio/],
+    ['Director del IVT', '/hoy', /Hola, Fabián/],
     ['Administración', '/hoy', /Hola, Carla/],
     ['Redes', '/hoy', /Hola, (Daniela|Yorman)/],
   ] as const) {

@@ -2,7 +2,7 @@
 // R2: the team's fichas and scripts are for how the team works, never about one event.
 // R3: a notice that names an event only asks the team for something and says nothing of the event but
 //     a deadline for the work; one that names none keeps its days and deadlines, with their real time.
-// R4: Supervisión never reads an event's details in an «aviso al equipo».
+// R4: an «aviso al equipo» goes to administración only (since 27/10/2026), with the event scrubbed out.
 // R5: a placeholder never reaches a person raw. S6: the app checking the content is not «support».
 // Round 5: a distinctive word of a visible title names its event (S1); «a» + a Name is a place (S4); the
 // rare placeholder shapes (S6).
@@ -215,7 +215,7 @@ describe('R3: un aviso que nombra un evento solo le pide algo al equipo', () => 
       'suban hoy las fotos de la jornada',
       'suban el material del puente antes de las 3 pm',
       'hay que subir las fotos de la entrega',
-      'manden el video del recorrido a Supervisión',
+      'manden el video del recorrido a Despacho',
       'lleven el dron y las baterías a la feria',
       'recuerden pedir la frase al jefe para el video del acto',
       'revisen los 3 copies de la feria',
@@ -231,7 +231,7 @@ describe('R3: un aviso que nombra un evento solo le pide algo al equipo', () => 
     }
     for (const t of EVENT_NOTICES) {
       const p = provider((n) => (n === 1 ? callTool('preparar_aviso', { rol: 'social', texto: t }) : say('No lo pude preparar.')));
-      const r = await handleTurn(sessionOf('supervisor'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+      const r = await handleTurn(sessionOf('boss'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
       expect(r.did, t).toEqual([{ tool: 'preparar_aviso', error: expect.stringMatching(/^Ese aviso trae .*solo va en la Agenda/) }]);
       expect(await draftsOf(r.conversationId), t).toEqual([]);
     }
@@ -270,24 +270,21 @@ describe('R3: un aviso que nombra un evento solo le pide algo al equipo', () => 
   });
 });
 
-describe('R4: a Supervisión nunca le llegan los datos de un evento en un aviso al equipo', () => {
-  it('si el motivo habla de un evento, Supervisión lee «necesita ayuda con un evento»; administración, el motivo limpio', async () => {
+describe('R4: el aviso al equipo va solo a administración, con el evento limpio', () => {
+  it('administración lee el motivo limpio; el jefe no recibe nada, ni de aprobaciones', async () => {
     const conv = async (key: DemoUserKey) => (await handleTurn(sessionOf(key), { question: 'hola' }, LOCAL)).conversationId!;
-    await escalate(await conv('social'), 'No le aprueban la pieza de lo de Pirineos del finde en el hotel Tamá.');
-    expect((await lastNotice('supervisor', 'assistant_escalation'))!.body).toBe('Daniela Pernía necesita ayuda con un evento.');
+    expect((await escalate(await conv('social'), 'No le aprueban la pieza de lo de Pirineos del finde en el hotel Tamá.')).to).toEqual(['administración']);
     expect((await lastNotice('admin', 'assistant_escalation'))!.body).toMatch(/^Daniela Pernía necesita ayuda: No le aprueban la pieza de lo de Pirineos/);
     // By a placeholder the model invented, too.
     await escalate(await conv('social2'), 'No le aprueban la pieza de [[E9]].');
-    expect((await lastNotice('supervisor', 'assistant_escalation'))!.body).toBe('Yorman Chacón necesita ayuda con un evento.');
     expect((await lastNotice('admin', 'assistant_escalation'))!.body).toBe('Yorman Chacón necesita ayuda: No le aprueban la pieza de ese evento.');
-    // An event's place by the run of its capitalised words: Supervisión reads nothing of it, and
-    // administración reads «ese lugar».
+    // An event's place by the run of its capitalised words: administración reads «ese lugar».
     await escalate(await conv('social'), 'Quiere que revisen la pieza de Alto Verde antes de que salga');
-    expect((await lastNotice('supervisor', 'assistant_escalation'))!.body).toBe('Daniela Pernía necesita ayuda con un evento.');
     expect((await lastNotice('admin', 'assistant_escalation'))!.body).toBe('Daniela Pernía necesita ayuda: Quiere que revisen la pieza de ese lugar antes de que salga');
-    // About an approval and no event: Supervisión reads it as it is.
+    // About an approval and no event: administración reads it as it is; the boss gets no assistant noise.
     await escalate(await conv('camera'), 'No le aprueban la pieza: el copy está muy largo.');
-    expect((await lastNotice('supervisor', 'assistant_escalation'))!.body).toBe('Kevin Sánchez necesita ayuda: No le aprueban la pieza: el copy está muy largo.');
+    expect((await lastNotice('admin', 'assistant_escalation'))!.body).toBe('Kevin Sánchez necesita ayuda: No le aprueban la pieza: el copy está muy largo.');
+    for (const key of ['boss', 'dispatch', 'social', 'politics'] as DemoUserKey[]) expect(await lastNotice(key, 'assistant_escalation'), key).toBeNull();
   });
 });
 
@@ -312,7 +309,7 @@ describe('R5: una marca nunca le llega cruda a una persona', () => {
     expect(r.did).toEqual([{ tool: 'avisar_al_equipo' }]);
     expect((await lastNotice('admin', 'assistant_escalation'))!.body).toBe('Daniela Pernía necesita ayuda: Pregunta por ese evento y por ese lugar.');
     const q = provider((n) => (n === 1 ? callTool('preparar_aviso', { rol: 'social', texto: 'Revisen el material de [[E7]].' }) : say('Listo, quedó preparado.')));
-    const t = await handleTurn(sessionOf('supervisor'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: q.fetchImpl } });
+    const t = await handleTurn(sessionOf('boss'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: q.fetchImpl } });
     expect(t.did).toEqual([{ tool: 'preparar_aviso' }]);
     expect((await draftsOf(t.conversationId)).map((d) => d.body)).toEqual(['Revisen el material de ese evento.']);
   });
@@ -359,17 +356,18 @@ describe('ronda 5, S1: una palabra propia de un título visible nombra su evento
       expect(await draftsOf(r.conversationId), t).toEqual([]);
     }
     const p = provider((n) => (n === 1 ? callTool('preparar_aviso', { rol: 'social', texto: 'La cancha es en semana santa: tengan el material listo.' }) : say('No lo pude preparar.')));
-    const r = await handleTurn(sessionOf('supervisor'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+    const r = await handleTurn(sessionOf('boss'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
     expect(r.did).toEqual([{ tool: 'preparar_aviso', error: expect.stringMatching(/^Ese aviso trae datos del evento/) }]);
     // A team instruction that names it so still goes («de la cancha» alone is a landmark, a place: «del puente» is not).
     expect(noticeIssues('suban las fotos del puente antes de las 3 pm', titles)).toEqual([]);
   });
 
-  it('R4: a Supervisión le llega «necesita ayuda con un evento»', async () => {
+  it('R4: va solo a administración (que sí ve la agenda); el jefe no recibe nada', async () => {
     const conv = async (key: DemoUserKey) => (await handleTurn(sessionOf(key), { question: 'hola' }, LOCAL)).conversationId!;
     for (const motivo of ['Dice que la cancha arranca al rato y la pieza no está aprobada', 'Quiere que revisen la pieza; el puente es en semana santa']) {
-      await escalate(await conv('social'), motivo);
-      expect((await lastNotice('supervisor', 'assistant_escalation'))!.body, motivo).toBe('Daniela Pernía necesita ayuda con un evento.');
+      expect((await escalate(await conv('social'), motivo)).to, motivo).toEqual(['administración']);
+      expect((await lastNotice('admin', 'assistant_escalation'))!.body, motivo).toMatch(/^Daniela Pernía necesita ayuda: /);
+      expect(await lastNotice('boss', 'assistant_escalation'), motivo).toBeNull();
     }
   });
 });
@@ -403,17 +401,18 @@ describe('ronda 6, V1: la palabra propia de un título hecha más chiquita o má
       expect(await actions.confirmAssistantDraft({ id: d.id }), t).toMatchObject({ ok: false, error: expect.stringMatching(/^No se mandó: el aviso trae /) });
     }
     const p = provider((n) => (n === 1 ? callTool('preparar_aviso', { rol: 'social', texto: 'La canchita es en semana santa: tengan el material listo.' }) : say('No lo pude preparar.')));
-    const r = await handleTurn(sessionOf('supervisor'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+    const r = await handleTurn(sessionOf('boss'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
     expect(r.did).toEqual([{ tool: 'preparar_aviso', error: expect.stringMatching(/^Ese aviso trae datos del evento/) }]);
     // Its own word, made smaller, is the event's name in the instruction.
     expect(noticeIssues('suban las fotos del puentecito antes de las 3 pm', titles)).toEqual([]);
   });
 
-  it('R4: a Supervisión le llega «necesita ayuda con un evento»', async () => {
+  it('R4: va solo a administración (que sí ve la agenda); el jefe no recibe nada', async () => {
     const conv = async () => (await handleTurn(sessionOf('social'), { question: 'hola' }, LOCAL)).conversationId!;
     for (const motivo of ['La pieza de la canchita no está aprobada y arranca al rato', 'La pieza del puentecito: es en semana santa', 'La pieza no está aprobada y la escuelita es el día de la madre']) {
-      await escalate(await conv(), motivo);
-      expect((await lastNotice('supervisor', 'assistant_escalation'))!.body, motivo).toBe('Daniela Pernía necesita ayuda con un evento.');
+      expect((await escalate(await conv(), motivo)).to, motivo).toEqual(['administración']);
+      expect((await lastNotice('admin', 'assistant_escalation'))!.body, motivo).toMatch(/^Daniela Pernía necesita ayuda: /);
+      expect(await lastNotice('boss', 'assistant_escalation'), motivo).toBeNull();
     }
   });
 });
@@ -489,13 +488,13 @@ describe('ronda 7, A1: la palabra propia por su raíz («-sito», «-itico», «
       expect(await actions.confirmAssistantDraft({ id: d.id }), t).toMatchObject({ ok: false, error: expect.stringMatching(/^No se mandó: el aviso trae /) });
     }
     const p = provider((n) => (n === 1 ? callTool('preparar_aviso', { rol: 'social', texto: 'El puentesito es en semana santa: tengan el material listo.' }) : say('No lo pude preparar.')));
-    const r = await handleTurn(sessionOf('supervisor'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+    const r = await handleTurn(sessionOf('boss'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
     expect(r.did).toEqual([{ tool: 'preparar_aviso', error: expect.stringMatching(/^Ese aviso trae datos del evento/) }]);
     // Its own word, in another form, is the event's name in the instruction.
     expect(noticeIssues('suban las fotos del puentesito antes de las 3 pm', titles)).toEqual([]);
   });
 
-  it('R4: a Supervisión le llega «necesita ayuda con un evento»', async () => {
+  it('R4: va solo a administración (que sí ve la agenda); el jefe no recibe nada', async () => {
     const conv = async () => (await handleTurn(sessionOf('social'), { question: 'hola' }, LOCAL)).conversationId!;
     for (const motivo of [
       'La pieza del puentesito no está aprobada y arranca al rato',
@@ -507,8 +506,9 @@ describe('ronda 7, A1: la palabra propia por su raíz («-sito», «-itico», «
       'La pieza del banquito no está aprobada y es en semana santa',
       'La pieza no está aprobada y el estadito es en semana santa',
     ]) {
-      await escalate(await conv(), motivo);
-      expect((await lastNotice('supervisor', 'assistant_escalation'))!.body, motivo).toBe('Daniela Pernía necesita ayuda con un evento.');
+      expect((await escalate(await conv(), motivo)).to, motivo).toEqual(['administración']);
+      expect((await lastNotice('admin', 'assistant_escalation'))!.body, motivo).toMatch(/^Daniela Pernía necesita ayuda: /);
+      expect(await lastNotice('boss', 'assistant_escalation'), motivo).toBeNull();
     }
   });
 });
@@ -541,7 +541,7 @@ describe('ronda 5, S4: «a» + un nombre es un lugar; en un aviso con evento, so
     expect(noticeIssues('mañana lleven el dron a Táriba', titles)).toEqual(['el día', 'el lugar', 'datos del evento']);
     // Someone of the team is no place.
     expect(noticeIssues('manden las fotos a Kevin', titles)).toEqual([]);
-    expect(noticeIssues('manden el video del recorrido a Supervisión', titles)).toEqual([]);
+    expect(noticeIssues('manden el video del recorrido a Despacho', titles)).toEqual([]);
     // An hour something happens at is not a deadline; the work handed in at an hour is.
     expect(noticeIssues('a las 6 lleven el dron', titles)).toEqual(['la hora']);
     expect(noticeIssues('suban el material a las 3 pm', titles)).toEqual([]);
@@ -553,10 +553,10 @@ describe('ronda 5, S4: «a» + un nombre es un lugar; en un aviso con evento, so
     expect(noticeIssues('suban las fotos de la jornada de salud', titles)).toEqual([]);
   });
 
-  it('en el motivo de un aviso al equipo: Supervisión no lo lee y administración lee «[direccion]»', async () => {
+  it('en el motivo de un aviso al equipo: solo administración lo lee, con «[direccion]»', async () => {
     const conv = (await handleTurn(sessionOf('social2'), { question: 'hola' }, LOCAL)).conversationId!;
     await escalate(conv, 'Pide que revisen la pieza antes de llevar el dron a Táriba');
-    expect((await lastNotice('supervisor', 'assistant_escalation'))!.body).toBe('Yorman Chacón necesita ayuda con un evento.');
+    expect(await lastNotice('boss', 'assistant_escalation')).toBeNull();
     const forAdmin = (await lastNotice('admin', 'assistant_escalation'))!.body;
     expect(forAdmin).not.toContain('Táriba');
     expect(forAdmin).toContain('a [direccion]');

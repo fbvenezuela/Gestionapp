@@ -416,10 +416,10 @@ describe('con cadena de modelos: lo que habla de un evento nunca llega al provee
         ['camera', '¿cómo grabo el recorrido que sale en la mañanita del puente La Quebrada?'],
         ['camera', 'salimos pasado mañana temprano desde Pueblo Nuevo, ¿qué llevo?'],
         ['camera', '¿Qué me toca grabar el viernes?'],
-        ['supervisor', 'el acto arranca en 2 horas, ¿qué hago?'],
-        ['supervisor', '¿dónde queda?'],
+        ['boss', 'el acto arranca en 2 horas, ¿qué hago?'],
+        ['boss', '¿dónde queda?'],
         ['dispatch', '¿qué llevo a la feria de pasado mañana en el club Demócrata?'],
-        ['secretary', '¿cómo propongo un evento?'],
+        ['politics', '¿cómo propongo un evento?'],
         ['boss', 'Pregunta por [[E7]]'],
       ];
       for (const [key, q] of asks) {
@@ -434,7 +434,7 @@ describe('con cadena de modelos: lo que habla de un evento nunca llega al provee
       const left = await withSystem((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.ai_usage where feature = 'assistant'`));
       expect(left!.n).toBe(0);
       // A how-to goes to the model (and keeps every masking layer).
-      for (const [key, q] of [['social', '¿cómo hago un copy?'], ['camera', '¿Cómo grabo en vertical?'], ['supervisor', '¿cómo apruebo una pieza?']] as [DemoUserKey, string][]) {
+      for (const [key, q] of [['social', '¿cómo hago un copy?'], ['camera', '¿Cómo grabo en vertical?'], ['boss', '¿cómo apruebo una pieza?']] as [DemoUserKey, string][]) {
         const p = fakeProvider('Así se hace: en la pieza, pestaña Copies.');
         const r = await handleTurn(sessionOf(key), { question: q }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
         expect(p.fetchImpl, `${key}: ${q}`).toHaveBeenCalled();
@@ -456,7 +456,7 @@ describe('con cadena de modelos: lo que habla de un evento nunca llega al provee
       ['camera', '¿cuántos días faltan para lo del puente?'],
       ['social', '¿como va la feira?'],
       ['social', '¿el evnto de la cancha?'],
-      ['supervisor', `¿el señor ${BOSS_FIRST} va a ir?`],
+      ['boss', `¿el señor ${BOSS_FIRST} va a ir?`],
       ['dispatch', 'lo de Alto Verde quedó para noviembre, ¿qué le falta a la ficha?'],
       ['dispatch', '¿qué llevo pa Alto Verde?'],
       ['camera', '¿qué llevo pa Alto Verde el finde?'],
@@ -489,7 +489,7 @@ describe('con cadena de modelos: lo que habla de un evento nunca llega al provee
       ['social', 'la escuelita es el día de la madre, ¿qué copy hago?'],
       ['camera', '¿A qué hora es la sesión?'],
       ['camera', '¿Cuándo es la campaña?'],
-      ['supervisor', '¿Dónde es la sesión solemne?'],
+      ['boss', '¿Dónde es la sesión solemne?'],
       ['camera', '¿A qué hora sale Kevin con copies?'],
       ['social', '¿Dónde está la biblioteca? ¿Y a qué hora llega la comitiva?'],
       ['social', '¿Dónde queda la plantilla? y la comitiva ¿a qué hora llega?'],
@@ -523,16 +523,16 @@ describe('con cadena de modelos: lo que habla de un evento nunca llega al provee
       expect(r.model, `${key}: ${q}`).toBe('local');
     }
     for (const [key, q] of [
-      ['supervisor', '¿Cuándo es el plazo para aprobar?'],
+      ['boss', '¿Cuándo es el plazo para aprobar?'],
       ['admin', '¿Dónde está la biblioteca?'],
       ['admin', '¿Dónde está el registro de cambios?'],
-      ['supervisor', '¿Dónde está el botón de aprobar?'],
-      ['supervisor', '¿Cuándo vence el plazo para aprobar?'],
+      ['boss', '¿Dónde está el botón de aprobar?'],
+      ['boss', '¿Cuándo vence el plazo para aprobar?'],
       ['admin', '¿Cuándo le llega el correo de invitación?'],
       ['social', '¿Dónde quedan las plantillas de copies?'],
       ['social', '¿Le mando el video a Kevin?'],
-      ['supervisor', '¿Dónde está la biblioteca y el botón de aprobar?'],
-      ['supervisor', '¿Cuándo vence el plazo y qué pasa si no llego?'],
+      ['boss', '¿Dónde está la biblioteca y el botón de aprobar?'],
+      ['boss', '¿Cuándo vence el plazo y qué pasa si no llego?'],
     ] as [DemoUserKey, string][]) {
       const p = fakeProvider('Así se hace.');
       const r = await handleTurn(sessionOf(key), { question: q }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
@@ -554,7 +554,7 @@ describe('con cadena de modelos: lo que habla de un evento nunca llega al provee
       ['camera', '¿Qué tomas hago en un acto?'],
       ['camera', '¿Qué llevo a un recorrido?'],
       ['camera', '¿Cómo grabo una entrega?'],
-      ['supervisor', '¿Qué reviso en el video de un acto?'],
+      ['boss', '¿Qué reviso en el video de un acto?'],
       ['admin', '¿Cómo veo los eventos pasados?'],
     ];
     for (const [key, q] of asks) {

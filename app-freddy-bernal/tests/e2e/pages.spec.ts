@@ -5,11 +5,12 @@ import { loginAs } from './helpers';
 // Every page of every role opens without errors and without serious accessibility issues.
 const ROLES: Record<string, string[]> = {
   'admin@demo.test': ['/hoy', '/agenda', '/agenda?vista=mes', '/agenda?vista=dia', '/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca', '/aprobar', '/aprobar?tab=tweets', '/ajustes', '/ajustes/equipo', '/ajustes/categorias', '/ajustes/formulas', '/ajustes/horarios', '/ajustes/redes', '/ajustes/marca', '/ajustes/drive', '/ajustes/buzon', '/ajustes/registro', '/avisos', '/perfil', '/buscar?q=puente', '/agenda/nuevo', '/piezas/nueva', '/tweets/nueva', '/publicar/nueva', '/publicar/espontanea'],
-  'jefe@demo.test': ['/jefe', '/jefe/politica', '/jefe/digital', '/agenda', '/resultados', '/aprobar'],
-  'despacho@demo.test': ['/hoy', '/agenda', '/biblioteca'],
-  'supervision@demo.test': ['/hoy', '/aprobar', '/tweets', '/resultados'],
+  // The boss «tiene todo, hasta lo de redes»: the Redes screens open for him too.
+  'jefe@demo.test': ['/jefe', '/jefe/politica', '/jefe/digital', '/agenda', '/resultados', '/aprobar', '/aprobar?tab=tweets', '/piezas', '/piezas/nueva', '/tweets', '/tweets/nueva', '/publicar', '/publicar/nueva', '/biblioteca'],
+  'despacho@demo.test': ['/hoy', '/agenda', '/agenda/nuevo', '/biblioteca'],
+  'politica@demo.test': ['/hoy', '/avisos', '/perfil'],
+  'ivt@demo.test': ['/hoy', '/avisos', '/perfil'],
   'grabacion@demo.test': ['/hoy', '/agenda'],
-  'secretaria@demo.test': ['/hoy', '/agenda', '/agenda/nuevo'],
 };
 
 for (const [email, pages] of Object.entries(ROLES)) {
@@ -33,9 +34,9 @@ const HOMES: Record<string, string> = {
   'admin@demo.test': '/hoy',
   'jefe@demo.test': '/jefe',
   'despacho@demo.test': '/hoy',
-  'supervision@demo.test': '/hoy',
+  'politica@demo.test': '/hoy',
+  'ivt@demo.test': '/hoy',
   'grabacion@demo.test': '/hoy',
-  'secretaria@demo.test': '/hoy',
   'redes@demo.test': '/hoy',
 };
 

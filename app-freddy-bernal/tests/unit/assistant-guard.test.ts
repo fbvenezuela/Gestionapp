@@ -116,7 +116,7 @@ describe('avisos preparados por 360 (S3): la misma revisión en los dos cerebros
     const id = await addEvent('Toma aérea Tariba 9.30');
     try {
       for (const texto of ['Equipo: la feria de Pirineos es pasado mañana al lado de la plaza Bolívar, lleguen temprano.', 'Acto del 1ro de noviembre, de 7 a 9, qta. Las Flores. Contacto 3561234.', 'Revisen el material de [[E1]].']) {
-        const first = await handleTurn(sessionOf('supervisor'), { question: 'hola' }, LOCAL);
+        const first = await handleTurn(sessionOf('boss'), { question: 'hola' }, LOCAL);
         await withSystem((sql) => sql.query(`insert into public.assistant_messages (conversation_id, who, body) values ($1, 'asistente', 'El evento «Toma aérea Tariba 9.30» va en ficha.')`, [first.conversationId]));
         const seen: { messages: { role: string; content: string | null }[] }[] = [];
         const fetchImpl = vi.fn(async (_u: unknown, init?: RequestInit) => {
@@ -126,7 +126,7 @@ describe('avisos preparados por 360 (S3): la misma revisión en los dos cerebros
             : { content: 'No lo pude preparar: el aviso no puede llevar eso.' };
           return new Response(JSON.stringify({ choices: [{ message }], usage: { prompt_tokens: 10, completion_tokens: 5 } }), { status: 200 });
         }) as unknown as typeof fetch;
-        const r = await handleTurn(sessionOf('supervisor'), { question: 'prepara un aviso a redes', conversationId: first.conversationId }, { chain: CHAIN, chatOptions: { fetchImpl } });
+        const r = await handleTurn(sessionOf('boss'), { question: 'prepara un aviso a redes', conversationId: first.conversationId }, { chain: CHAIN, chatOptions: { fetchImpl } });
         expect(r.did, texto).toEqual([{ tool: 'preparar_aviso', error: expect.stringMatching(/^Ese aviso trae /) }]);
         expect(seen[1].messages.find((m) => m.role === 'tool')!.content, texto).toMatch(/solo va en la Agenda/);
         expect(await draftsOf(r.conversationId), texto).toEqual([]);
@@ -250,7 +250,7 @@ describe('lo que se le enseña (S2, S9): guiones y fichas', () => {
 });
 
 describe('cerebro de demostración: la negativa sin la hora del título (S4) y el soporte (S10)', () => {
-  it('a Redes y Supervisión: la negativa nombra el evento sin su hora, fecha ni lugar', async () => {
+  it('a Redes y al jefe: la negativa nombra el evento sin su hora, fecha ni lugar', async () => {
     const cases: [string, string, string][] = [
       ['Toma aérea Tariba 9.30', '¿A qué hora es la toma aérea de Tariba?', 'Toma aérea Tariba'],
       ['Caravana Colón 9,30', '¿Cuándo sale la caravana de Colón?', 'Caravana Colón'],
@@ -260,7 +260,7 @@ describe('cerebro de demostración: la negativa sin la hora del título (S4) y e
     for (const [title, q, shown] of cases) {
       const id = await addEvent(title);
       try {
-        for (const key of ['social', 'supervisor'] as DemoUserKey[]) {
+        for (const key of ['social', 'boss'] as DemoUserKey[]) {
           const r = await handleTurn(sessionOf(key), { question: q }, LOCAL);
           expect(r.answer, `${key}: ${q}`).toMatch(/no lo manejo|no la tengo/);
           expect(r.answer, `${key}: ${q}`).toContain(`«${shown}»`);
@@ -275,7 +275,7 @@ describe('cerebro de demostración: la negativa sin la hora del título (S4) y e
   it('soporte: no hay teléfono; se ofrece avisar a administración (primera pregunta y después de otra)', async () => {
     const SUPPORT = /^No hay teléfono de soporte en la plataforma; si algo falla, le aviso a administración\. ¿/;
     const asks = ['¿cuál es el teléfono de soporte?', '¿cuál es el número de soporte?', '¿a quién llamo?', '¿a quién llamo si tengo un problema?', 'tengo una falla con la app', 'me sale un error al subir'];
-    for (const key of ['social', 'secretary', 'supervisor', 'admin'] as DemoUserKey[]) {
+    for (const key of ['social', 'politics', 'ivt', 'admin'] as DemoUserKey[]) {
       for (const q of asks) {
         const fresh = await handleTurn(sessionOf(key), { question: q }, LOCAL);
         expect(fresh.answer, `${key}: ${q}`).toMatch(SUPPORT);
@@ -294,10 +294,9 @@ describe('cerebro de demostración: la negativa sin la hora del título (S4) y e
   it('un error o un problema en el contenido no es soporte: contestan las fichas (S10, ronda 3)', async () => {
     const SUPPORT = /No hay teléfono de soporte/;
     const ask = (key: DemoUserKey, q: string) => handleTurn(sessionOf(key), { question: q }, LOCAL);
-    expect((await ask('supervisor', 'hay un error en el copy, ¿cómo lo corrijo?')).answer).toMatch(/^En la pieza, pestaña Copies/);
+    expect((await ask('boss', 'hay un error en el copy, ¿cómo lo corrijo?')).answer).toMatch(/^En la pieza, pestaña Copies/);
     expect((await ask('social', '¿qué hago si hay un error en el copy de una pieza aprobada?')).answer).toMatch(/^Las causas: la pieza no está aprobada/);
-    expect((await ask('secretary', 'hay un error en el copy, ¿cómo lo corrijo?')).answer).toMatch(/le avisa a Despacho para que lo corrija/);
-    for (const key of ['social', 'secretary', 'supervisor', 'admin'] as DemoUserKey[]) {
+    for (const key of ['social', 'politics', 'ivt', 'boss', 'admin'] as DemoUserKey[]) {
       for (const q of ['tengo un problema con el copy de la pieza, ¿qué hago?', '¿qué pasa si hay un error en un tweet publicado?']) {
         expect((await ask(key, q)).answer, `${key}: ${q}`).not.toMatch(SUPPORT);
       }
@@ -305,7 +304,7 @@ describe('cerebro de demostración: la negativa sin la hora del título (S4) y e
   });
 
   it('«¿cómo subo un video?» desde un rol que no sube: quién sube y dónde', async () => {
-    for (const key of ['secretary', 'dispatch', 'supervisor', 'boss'] as DemoUserKey[]) {
+    for (const key of ['politics', 'ivt', 'dispatch', 'boss'] as DemoUserKey[]) {
       const r = await handleTurn(sessionOf(key), { question: '¿cómo subo un video?' }, LOCAL);
       expect(r.answer, key).toMatch(/^Los videos y las fotos los suben Grabación o Redes, en la pestaña Material del evento\./);
     }
@@ -318,7 +317,7 @@ describe('cerebro de demostración: la negativa sin la hora del título (S4) y e
 });
 
 describe('aviso al equipo: el motivo que escribe el modelo (rondas 3 y 4)', () => {
-  it('a Supervisión le llega «necesita ayuda con un evento»; a administración, el motivo sin el día ni el lugar', async () => {
+  it('solo a administración, con el motivo sin el día ni el lugar; al jefe no le llega', async () => {
     const motivo = 'No puede subir la pieza de la feria de pasado mañana frente a la plaza Bolívar, en la Hacienda El Trapiche, el 1ro nov.';
     const p = fakeProvider((n) => (n === 1 ? callTool('avisar_al_equipo', { motivo }) : say('Listo, ya le avisé al equipo.')));
     // Asked about nothing in particular (a question about an event never reaches the model).
@@ -328,7 +327,7 @@ describe('aviso al equipo: el motivo que escribe el modelo (rondas 3 y 4)', () =
     const last = (key: DemoUserKey) => withSystem((sql) => sql.one<{ body: string }>(`select body from public.notifications where user_id = $1 and kind = 'assistant_escalation' order by created_at desc limit 1`, [userOf(key)]));
     const admin = (await last('admin'))!.body;
     expect(admin).toMatch(/necesita ayuda: No puede subir la pieza de la feria/);
-    expect((await last('supervisor'))!.body).toBe('Kevin Sánchez necesita ayuda con un evento.');
+    expect(await last('boss')).toBeNull();
     for (const leak of ['pasado mañana', 'plaza Bolívar', 'Bolívar', 'Hacienda', 'Trapiche', '1ro nov']) expect(admin, leak).not.toContain(leak);
   });
 });
@@ -338,7 +337,7 @@ describe('el panel no muestra nombres internos (S11)', () => {
     expect(modelLabel('tope')).toBe('Límite por hora');
     expect(modelLabel('local')).toBe('Demostración (sin IA)');
     expect(modelLabel('groq:llama-3.3-70b')).toBe('groq:llama-3.3-70b');
-    const s = sessionOf('secretary');
+    const s = sessionOf('ivt');
     const first = await handleTurn(s, { question: 'hola' }, LOCAL);
     await withSystem(async (sql) => {
       for (let i = 0; i < 40; i++) await sql.query(`insert into public.assistant_messages (conversation_id, who, body) values ($1, 'persona', 'relleno de prueba')`, [first.conversationId]);

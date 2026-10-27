@@ -83,7 +83,7 @@ test('redes crea la pieza, sube el final, escribe los copies y la manda a aproba
   await page.waitForLoadState('networkidle');
   await expect(page.getByLabel('Largo')).toHaveValue(/Saludos, Táchira/);
   await page.getByRole('button', { name: 'Enviar a aprobación' }).click();
-  await expect(page.getByText('Enviada a supervisión.')).toBeVisible();
+  await expect(page.getByText('Enviada al jefe para aprobar.')).toBeVisible();
 });
 
 test('redes no puede publicar lo que no está aprobado', async ({ page }) => {
@@ -101,22 +101,41 @@ async function approveWithChecklist(page: Page) {
   await expect(page).toHaveURL(/\/aprobar$/);
 }
 
-test('supervisión aprueba la pieza, con la lista de chequeo', async ({ page }) => {
-  await loginAs(page, 'supervision@demo.test');
+test('el jefe aprueba todas las verdes de un toque', async ({ page }) => {
+  let nativeDialog = false;
+  page.on('dialog', (d) => {
+    nativeDialog = true;
+    void d.dismiss();
+  });
+  await loginAs(page, 'jefe@demo.test');
   await page.goto('/aprobar');
   await expect(page.getByText(/aprueba el jefe/).first()).toBeVisible();
   await axe(page);
+  const greens = page.getByRole('button', { name: /^Aprobar todas las verdes \(2\)$/ });
+  await expect(greens).toBeVisible();
+  await greens.click();
+  await expect(page.getByText('Aprobadas 2 verdes.')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Aprobar todas las verdes/ })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /Saludo semanal a los clubes deportivos/ })).toHaveCount(0);
+  expect(nativeDialog).toBe(false);
+});
+
+test('el jefe aprueba la amarilla, con la lista de chequeo', async ({ page }) => {
+  await loginAs(page, 'jefe@demo.test');
+  await page.goto('/aprobar');
   await page.getByRole('link', { name: /Jornada de salud escolar/ }).click();
+  await expect(page.getByText(/Amarillo: aprueba el jefe/)).toBeVisible();
   await approveWithChecklist(page);
 });
 
-test('en rojo, supervisión no ve el botón de aprobar', async ({ page }) => {
-  await loginAs(page, 'supervision@demo.test');
+test('administración ve lo que espera aprobación, pero no aprueba', async ({ page }) => {
+  await loginAs(page, 'admin@demo.test');
   await page.goto('/aprobar');
+  await expect(page.getByRole('button', { name: /Aprobar todas las verdes/ })).toHaveCount(0);
   await page.getByRole('link', { name: /Aclaratoria sobre el servicio de agua/ }).click();
-  await expect(page.getByText('Está en rojo: la aprueba el jefe.', { exact: false })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Aprobar/ })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Pedir cambios' })).toBeVisible();
+  await expect(page.getByText('La aprueba el jefe. Tú puedes cambiar el nivel o comentar.')).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Aprobar$|Marca la lista para aprobar/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Pedir cambios' })).toHaveCount(0);
 });
 
 test('redes registra un video que el jefe publicó por su cuenta', async ({ page }) => {

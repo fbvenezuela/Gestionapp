@@ -77,6 +77,6 @@ describe('consejos en las pantallas', () => {
       expect(t.text.trim().endsWith('.'), t.id).toBe(true);
       expect(t.text.replace(/«[^»]*»/g, '').split(/[.!?]\s/).length, t.id).toBe(1);
     }
-    expect(tips.find((t) => t.id === 'aprobar')?.text).toBe('Las verdes se pueden aprobar juntas; las rojas las aprueba el jefe.');
+    expect(tips.find((t) => t.id === 'aprobar')?.text).toBe('Las verdes se aprueban todas juntas con un toque; las amarillas y las rojas, una por una con su lista.');
   });
 });

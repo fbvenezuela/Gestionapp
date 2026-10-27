@@ -1,4 +1,4 @@
-# Recorrido de demostración (viernes 23/10)
+# Recorrido de demostración (seis roles desde el 27/10)
 
 **Link:** el de la versión de prueba de Vercel (ver `README.md`, «Publicar la demostración»). En local:
 `npm run build && npm start` → http://localhost:3000.
@@ -10,12 +10,12 @@ con Google Authenticator), pon `DEMO_SHORTCUTS=false` en Vercel. Con datos reale
 | Rol | Correo | Qué tocar |
 |---|---|---|
 | Redes | `redes@demo.test` | **Agenda**: los eventos salen en lista, sin fecha ni hora. Abre «Entrega de viviendas…» → **Storyboard** → agrega un bloque → Guardar. **Piezas** → «Jornada de salud escolar» → sube un video → elige **fórmula, voz y cierre** → «Escribir desde la ficha» → mira los tres largos con su contador → elige el **nivel** (verde, amarillo o rojo) → «Enviar a aprobación». **Tweets** → «Tweets de la semana» → pega o sube un .docx → «Separar» → mira repetidos y largos → «Repartir en la semana» |
-| Supervisión | `supervision@demo.test` | **Por aprobar**: las piezas salen por color con su plazo. Abre una → pausa el video y escribe un comentario → marca la lista «Antes de aprobar» → «Aprobar» o «Pedir cambios». La roja («Aclaratoria sobre el servicio de agua») no la puede aprobar: es del jefe. Pestaña **Tweets** → «Aprobar marcados». Prueba «Pedir frase al jefe» |
 | Redes (otra vez) | `redes@demo.test` | **Publicar** → la pieza aprobada → elige redes (cada una dice si el video sirve y qué arreglar) → paquete → pon una hora: avisa si es mala para esa red → paquete → pega un link → «Ya lo publiqué» → carga vistas y me gusta. «Registrar lo que publicó el jefe» para un video que subió él. **Resultados** → «¿A qué hora nos va mejor?» |
-| Jefe | `jefe@demo.test` | Arriba, **«Te toca aprobar»**: la pieza en rojo → lista → «Aprobar». Dos botones grandes: **Política** (eventos de la semana, «Lo que voy a decir» en letra grande, calificar 1–10 y aceptar) y **Digital** |
+| Jefe | `jefe@demo.test` | **Todo lo aprueba él.** **Por aprobar**: «Aprobar todas las verdes (2)» de un toque; abre «Avance del puente La Quebrada» (amarilla) → pausa el video y comenta si quiere → marca la lista «Antes de aprobar» → «Aprobar» o «Pedir cambios»; la roja («Aclaratoria sobre el servicio de agua») igual. Pestaña **Tweets** → «Aprobar marcados». En **Inicio**, dos botones grandes: **Política** (eventos de la semana, «Lo que voy a decir» en letra grande, calificar 1–10 y aceptar) y **Digital**. En «Más» tiene las pantallas de Redes: Piezas, Tweets, Publicar, Resultados y Biblioteca |
 | Despacho | `despacho@demo.test` | **Agenda** en calendario (día, semana, mes) → «Nuevo evento» con la ficha técnica. Avisa si choca con otro |
 | Grabación | `grabacion@demo.test` | **Mis eventos** (con fecha y lugar: los suyos) → «Jornada de salud…» → sube «Jefe hablando». Corta el wifi a la mitad: sigue sola al volver |
-| Secretaría | `secretaria@demo.test` | Propone un evento: solo ve los suyos |
+| Director de política | `politica@demo.test` | Entra a **Hoy**. No ve fechas, agenda ni contenido: su pantalla de eventos y avances por municipio llega con las fichas |
+| Director del IVT | `ivt@demo.test` | Entra a **Hoy**. No pone fecha ni hora: su pantalla de fichas de obra llega con las fichas |
 | Administración | `admin@demo.test` | **Ajustes** → Equipo (invitar, roles, cerrar sesiones), categorías, fórmulas, horarios de tweets, reglas de video por red, buzón de correos y registro de cambios. «Ver como…» arriba cambia los menús (no los permisos) |
 
 ## Lo nuevo para probar
@@ -25,7 +25,8 @@ con Google Authenticator), pon `DEMO_SHORTCUTS=false` en Vercel. Con datos reale
 - **Avisos al teléfono:** Mi perfil → «Activar avisos» → «Probar aviso». En iPhone, primero agrega la app a la pantalla
   de inicio. También ahí: horas de silencio y resumen diario por correo (queda en el buzón).
 - **Modo sol:** menú de la cuenta (arriba a la derecha) → «Modo sol».
-- **Secretaría** corrige su propuesta desde el evento mientras el jefe no decide; al jefe le llega el aviso.
+- **Seis roles:** jefe, director de despacho, director de política, director del IVT, grabación y redes. Secretaría y
+  Supervisión ya no están (lo que aprobó Supervisión sigue en el registro con su autor). Administración es el rol técnico.
 - **Administración:** en Equipo ve quién tiene doble factor y lo puede reiniciar; en el material, «Quitar» lo subido por error.
 
 ## Para mostrar la seguridad

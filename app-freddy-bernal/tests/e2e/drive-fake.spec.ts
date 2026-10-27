@@ -87,7 +87,7 @@ test('una subida que falla y se quita de la lista: al elegir el mismo archivo em
 
 test('quien no ve ese material tampoco lo saca de Drive', async ({ page }) => {
   expect(mediaId).not.toBe('');
-  for (const email of ['secretaria@demo.test', 'grabacion2@demo.test']) {
+  for (const email of ['politica@demo.test', 'grabacion2@demo.test']) {
     await loginAs(page, email);
     const s = await page.evaluate(async (id) => (await fetch(`/api/media/${id}`, { headers: { Range: 'bytes=0-1' } })).status, mediaId);
     expect(s, email).toBe(404);

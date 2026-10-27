@@ -6,6 +6,7 @@ import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import type { Role } from '@/lib/roles';
 import { handleTurn } from '@/lib/assistant';
 import { defaultProfile, mergeProfile, suggestedQuestions } from '@/lib/assistant/config';
+import { contract } from '@/lib/assistant/text';
 
 function sessionOf(key: DemoUserKey): Session {
   const u = DEMO_USERS.find((x) => x.key === key)!;
@@ -33,7 +34,8 @@ const EXPECTED: Record<Role & DemoUserKey, Record<string, Expect>> = {
   },
   boss: {
     '¿Qué me toca aprobar?': { tool: 'mis_pendientes', has: /pendiente|aprobar/ },
-    '¿Cómo apruebo una pieza en rojo?': { has: /lista de chequeo|Aprobar/ },
+    // The bulk approval, never «one by one».
+    '¿Cómo apruebo todas las verdes de una vez?': { has: /verdes se aprueban todas juntas, con un toque/, not: /una por una/ },
     '¿Cómo va una pieza?': { tool: 'estado_pieza', has: /¿Cuál pieza\?/ },
     '¿Dónde veo cómo nos va?': { has: /Resultados/ },
   },
@@ -43,23 +45,23 @@ const EXPECTED: Record<Role & DemoUserKey, Record<string, Expect>> = {
     '¿Cómo marco un evento como realizado?': { has: /realizado/ },
     '¿Qué lleva una ficha técnica?': { has: /protocolo|cifras/ },
   },
-  secretary: {
-    '¿Cómo propongo un evento?': { has: /Crear.*Nuevo evento/ },
-    '¿Ya aceptaron mi propuesta?': { tool: 'mis_pendientes', has: /propuesta|acept/i, not: /Bien ahí/ },
-    '¿Cómo corrijo algo que propuse?': { has: /Despacho/ },
+  politics: {
+    '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
+    '¿Qué puedo hacer en la plataforma?': { has: /eventos y avances comunitarios/ },
+    '¿Quién decide si se hace un evento?': { has: /Jefe: tiene todo/ },
+    '¿Qué es el doble factor?': { has: /director de política/ },
+  },
+  ivt: {
+    '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
+    '¿Qué puedo hacer en la plataforma?': { has: /ficha de cada obra/ },
+    '¿Puedo ver la agenda?': { has: /no está en tu menú/ },
+    '¿Qué es el doble factor?': { has: /director del IVT/ },
   },
   social: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
     '¿Cuántos días de tweets quedan?': { tool: 'dias_de_tweets', has: /tweets/ },
     '¿A qué hora publico en TikTok?': { tool: 'mejores_horas', has: /TikTok/ },
     '¿Por qué no me deja publicar esta pieza?': { has: /aprobada|reglas/ },
-  },
-  supervisor: {
-    '¿Qué tengo por aprobar?': { tool: 'mis_pendientes', has: /aprobar|pendiente/ },
-    // The bulk approval, never «one by one».
-    '¿Cómo apruebo las verdes de una vez?': { has: /verdes se aprueban todas juntas/, not: /una por una/ },
-    '¿Qué reviso antes de aprobar?': { has: /lista: cifras con fuente/ },
-    '¿Cómo pido una frase al jefe?': { has: /Pedir frase al jefe/ },
   },
   camera: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
@@ -91,7 +93,7 @@ describe('preguntas sugeridas por rol (cerebro de demostración)', () => {
     for (const r of Object.keys(EXPECTED) as Role[]) {
       for (const q of suggestedQuestions([r], 'el jefe')) expect(q).not.toMatch(/\b[Aa] el\b|\b[Dd]e el\b/);
     }
-    expect(suggestedQuestions(['supervisor'], 'el jefe')).toContain('¿Cómo pido una frase al jefe?');
+    expect(contract('¿Cómo pido una frase a el jefe?')).toBe('¿Cómo pido una frase al jefe?');
   });
 });
 

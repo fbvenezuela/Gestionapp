@@ -47,7 +47,7 @@ describe('POST /api/asistente', () => {
     expect((await POST(req({ pregunta: 'hola' }))).status).toBe(401);
     state.session = session([]);
     expect((await POST(req({ pregunta: 'hola' }))).status).toBe(403);
-    state.session = session(['supervisor'], false);
+    state.session = session(['politics'], false);
     expect((await POST(req({ pregunta: 'hola' }))).status).toBe(403);
     state.session = session(['complaints_operator']);
     expect((await POST(req({ pregunta: 'hola' }))).status).toBe(403);

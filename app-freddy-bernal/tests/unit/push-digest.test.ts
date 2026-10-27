@@ -18,11 +18,11 @@ const data: DigestData = {
 
 describe('resumen diario por correo', () => {
   it('cada rol ve solo lo suyo', () => {
-    const sup = buildDigest(['supervisor'], data)!;
-    expect(sup.sections.map((s) => s.line)).toEqual(['2 piezas por aprobar', '12 tweets por aprobar']);
+    // The boss approves everything: every piece in review (how many are red) and the tweets.
     const boss = buildDigest(['boss'], data)!;
-    expect(boss.sections.map((s) => s.line)).toEqual(['1 pieza en rojo espera por ti']);
-    expect(boss.sections[0].titles).toEqual(['Aclaratoria sobre el servicio de agua']);
+    expect(boss.sections.map((s) => s.line)).toEqual(['2 piezas por aprobar (1 en rojo)', '12 tweets por aprobar']);
+    expect(boss.sections[0].titles).toEqual(['Video de la cancha techada', 'Aclaratoria sobre el servicio de agua']);
+    expect(buildDigest(['boss'], { ...data, inReview: [data.inReview[0]] })!.sections[0].line).toBe('1 pieza por aprobar');
     const social = buildDigest(['social'], data)!;
     expect(social.sections.map((s) => s.line)).toEqual(['2 piezas con cambios pedidos', 'Quedan 4 días de tweets programados']);
     const disp = buildDigest(['dispatch'], data)!;
@@ -34,13 +34,12 @@ describe('resumen diario por correo', () => {
 
   it('sin pendientes no hay correo', () => {
     const empty: DigestData = { inReview: [], tweetsToApprove: 0, changesRequested: [], tweetStock: { daysLeft: 20, low: false }, eventsWithoutBrief: [] };
-    expect(buildDigest(['social', 'supervisor', 'dispatch', 'boss'], empty)).toBeNull();
-    expect(buildDigest(['camera'], data)).toBeNull();
-    expect(buildDigest(['secretary'], data)).toBeNull();
+    expect(buildDigest(['social', 'dispatch', 'boss'], empty)).toBeNull();
+    for (const roles of [['camera'], ['politics'], ['ivt']]) expect(buildDigest(roles, data), roles[0]).toBeNull();
   });
 
   it('nunca lleva fechas ni horas, ni en los títulos', async () => {
-    for (const roles of [['supervisor'], ['social'], ['dispatch'], ['admin'], ['boss']]) {
+    for (const roles of [['social'], ['dispatch'], ['admin'], ['boss']]) {
       const dg = buildDigest(roles, data)!;
       const text = digestText(dg);
       expect(looksLikeDateTime(text.replace(/Quedan \d+ días de tweets programados/, '')), text).toBe(false);

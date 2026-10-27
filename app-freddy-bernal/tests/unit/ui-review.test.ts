@@ -83,8 +83,14 @@ describe('sin ventanas nativas del navegador', () => {
       const code = fs.readFileSync(path.join(process.cwd(), f), 'utf8');
       // The native ones take a string; useConfirm's confirm takes an options object.
       expect(code, f).not.toMatch(/(^|[^.\w])(window\.)?(confirm|alert)\(\s*['"`]/m);
-      if (!f.endsWith('review-room.tsx')) expect(code, f).toContain('useConfirm()');
+      if (f.endsWith('copies-editor.tsx')) expect(code, f).toContain('useConfirm()');
     }
+  });
+
+  it('«Aprobar todas las verdes» es un solo toque: sin diálogo de confirmación (Hillary, 27/10)', () => {
+    const code = fs.readFileSync(path.join(process.cwd(), 'src/app/(panel)/aprobar/approve-green.tsx'), 'utf8');
+    expect(code).not.toContain('useConfirm');
+    expect(code).toContain('Aprobar todas las verdes (');
   });
 });
 

@@ -116,7 +116,7 @@ describe('archivos que no se quitan', () => {
 
 describe('a quién le llega', () => {
   it('sin repetidos y sin quien hizo el cambio', () => {
-    expect(noticeRecipients(['boss', 'dispatch', 'dispatch', null, undefined, 'secretary'], 'secretary')).toEqual(['boss', 'dispatch']);
+    expect(noticeRecipients(['boss', 'dispatch', 'dispatch', null, undefined, 'admin'], 'admin')).toEqual(['boss', 'dispatch']);
     expect(noticeRecipients(['creator', 'dispatch'], 'boss')).toEqual(['creator', 'dispatch']);
     expect(noticeRecipients(['dispatch'], 'dispatch')).toEqual([]);
   });

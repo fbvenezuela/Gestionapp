@@ -54,7 +54,7 @@ describe('al abrir Mi perfil, el teléfono queda a nombre de quien entró', () =
   });
 
   it('teléfono compartido: B entra y la fila deja de ser de A; repetir no escribe nada', async () => {
-    await t.as('supervisor', (sql) => sql.query(`select public.save_push_subscription($1, $2, $3, '')`, [EP, KEY, AUTH]));
+    await t.as('politics', (sql) => sql.query(`select public.save_push_subscription($1, $2, $3, '')`, [EP, KEY, AUTH]));
     state.session = sessionOf('camera');
     expect(await sync(input)).toEqual({ ok: true, data: { changed: true } });
     expect((await owner()).map((r) => r.user_id)).toEqual([t.ids.camera]);
@@ -76,7 +76,7 @@ describe('al abrir Mi perfil, el teléfono queda a nombre de quien entró', () =
   });
 
   it('«Probar aviso» de A ya no encuentra el teléfono que pasó a B', async () => {
-    state.session = sessionOf('supervisor');
+    state.session = sessionOf('politics');
     const r = await sendTestPush();
     expect(r).toEqual({ ok: false, error: 'Este teléfono todavía no tiene los avisos activos.' });
   });

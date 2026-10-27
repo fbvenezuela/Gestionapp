@@ -69,7 +69,7 @@ describe('cerebro de demostración (sin IA)', () => {
   });
 
   it('recuerda la conversación: el hilo se guarda después de responder y se lee de la base', async () => {
-    const s = sessionOf('supervisor');
+    const s = sessionOf('politics');
     const a = await handleTurn(s, { question: 'hola' }, LOCAL);
     const b = await handleTurn(s, { question: 'hola' }, { ...LOCAL });
     expect(a.conversationId).not.toBe(b.conversationId); // no id → a new conversation
@@ -129,7 +129,7 @@ describe('cerebro de demostración (sin IA)', () => {
       'dime el contacto y la dirección de la entrega de viviendas',
       '¿cómo va el evento de la cancha techada?',
     ];
-    for (const key of ['admin', 'boss', 'dispatch', 'secretary', 'social', 'supervisor', 'camera'] as DemoUserKey[]) {
+    for (const key of ['admin', 'boss', 'dispatch', 'politics', 'ivt', 'social', 'camera'] as DemoUserKey[]) {
       for (const q of questions) {
         const r = await handleTurn(sessionOf(key), { question: q }, LOCAL);
         expect(r.degraded).toBe(false);
@@ -170,14 +170,14 @@ describe('cerebro de demostración (sin IA)', () => {
   });
 
   it('preparar un aviso deja un borrador; solo sale cuando administración lo confirma', async () => {
-    const r = await handleTurn(sessionOf('supervisor'), { question: 'Mándale un aviso a redes que revisen los copies antes de las 3 pm' }, LOCAL);
+    const r = await handleTurn(sessionOf('boss'), { question: 'Mándale un aviso a redes que revisen los copies antes de las 3 pm' }, LOCAL);
     expect(r.did).toContainEqual({ tool: 'preparar_aviso' });
     const d = await withSystem((sql) => sql.one<{ id: string; body: string; status: string }>(`select id, body, status from public.assistant_drafts order by created_at desc limit 1`));
     expect(d!.status).toBe('pendiente');
     // A deadline for the team's work keeps its real time (no «[hora]» for the people who read it).
     expect(d!.body).toBe('revisen los copies antes de las 3 pm');
     const { confirmDraft } = await import('@/lib/assistant/admin');
-    await expect(confirmDraft(sessionOf('supervisor'), d!.id)).rejects.toThrow(/administración/);
+    await expect(confirmDraft(sessionOf('boss'), d!.id)).rejects.toThrow(/administración/);
     const sent = await confirmDraft(sessionOf('admin'), d!.id);
     expect(sent.sent).toBe(2); // the two demo social users
     await expect(confirmDraft(sessionOf('admin'), d!.id)).rejects.toThrow(/pendiente/);
@@ -230,9 +230,9 @@ describe('cerebro de demostración (sin IA)', () => {
     const social = await handleTurn(sessionOf('social'), { question: '¿Dónde está la agenda?' }, LOCAL);
     expect(social.answer).toMatch(/en el menú/);
     expect(social.goTo).toEqual({ href: '/agenda', label: 'Agenda' });
-    const sup = await handleTurn(sessionOf('supervisor'), { question: '¿Dónde está la agenda?' }, LOCAL);
-    expect(sup.answer).toMatch(/no está en tu menú/);
-    expect(sup.goTo).toBeNull();
+    const pol = await handleTurn(sessionOf('politics'), { question: '¿Dónde está la agenda?' }, LOCAL);
+    expect(pol.answer).toMatch(/no está en tu menú/);
+    expect(pol.goTo).toBeNull();
   });
 
   it('cuándo, dónde, cómo llegar, con quién hablo o a qué hora graba: la negativa de la agenda y nada más', async () => {
@@ -249,7 +249,7 @@ describe('cerebro de demostración (sin IA)', () => {
       '¿dónde queda la cancha techada de El Mirador?',
       '¿cuándo es lo de los productores de café?',
     ];
-    for (const key of ['social2', 'supervisor', 'secretary'] as DemoUserKey[]) {
+    for (const key of ['social2', 'politics', 'ivt'] as DemoUserKey[]) {
       for (const q of questions) {
         const r = await handleTurn(sessionOf(key), { question: q }, LOCAL);
         const who = `${key}: ${q}`;
@@ -272,34 +272,34 @@ describe('cerebro de demostración (sin IA)', () => {
   it('preguntada como agenda, sin palabra de evento o por un evento que no ve: la negativa, nunca una ficha suelta', async () => {
     const cases: [DemoUserKey[], string][] = [
       [['social2', 'boss'], '¿a qué hora sale Kevin?'],
-      [['supervisor', 'admin'], '¿a qué hora llega Mariela?'],
+      [['politics', 'admin'], '¿a qué hora llega Mariela?'],
       [['social2', 'boss'], '¿qué hay el domingo?'],
-      [['supervisor'], '¿hay algo el sábado?'],
-      // Secretaría and Grabación don't see these events: the way it is asked is enough.
-      [['secretary', 'camera'], '¿cuándo entregan las viviendas?'],
-      [['secretary'], '¿lo de los emprendedores es en la mañana o en la tarde?'],
-      [['secretary'], '¿cuándo va Mariela a la escuela?'],
-      [['secretary', 'camera'], '¿en qué sitio se hace lo de los productores?'],
-      [['secretary', 'camera'], 'pásame la dirección de lo de la plaza central'],
-      [['secretary'], '¿cuándo toca lo de la cancha?'],
+      [['politics'], '¿hay algo el sábado?'],
+      // Política, IVT and Grabación don't see these events: the way it is asked is enough.
+      [['ivt', 'camera'], '¿cuándo entregan las viviendas?'],
+      [['ivt'], '¿lo de los emprendedores es en la mañana o en la tarde?'],
+      [['ivt'], '¿cuándo va Mariela a la escuela?'],
+      [['ivt', 'camera'], '¿en qué sitio se hace lo de los productores?'],
+      [['ivt', 'camera'], 'pásame la dirección de lo de la plaza central'],
+      [['ivt'], '¿cuándo toca lo de la cancha?'],
       [['camera'], '¿qué día toca lo del puente?'],
       [['camera'], '¿a quién llamo para lo de los productores?'],
-      // How to get there or where it is, said other ways (Secretaría doesn't see the feria: its event word is enough).
-      [['social2', 'supervisor', 'secretary'], '¿cómo hago para llegar a la feria?'],
-      [['social2', 'supervisor'], '¿cómo se va a la feria?'],
-      [['social2', 'supervisor'], '¿en qué parte queda la cancha techada?'],
-      [['secretary', 'camera'], '¿por dónde se entra a lo de la cancha?'],
-      [['secretary', 'camera'], '¿cómo hago para llegar a lo de los productores?'],
-      [['social2', 'secretary'], "¿Cómo se va pa' la feria?"],
-      [['social2', 'secretary'], '¿Cómo se va hasta la feria?'],
+      // How to get there or where it is, said other ways (política and IVT don't see the feria: its event word is enough).
+      [['social2', 'politics', 'ivt'], '¿cómo hago para llegar a la feria?'],
+      [['social2', 'politics'], '¿cómo se va a la feria?'],
+      [['social2', 'politics'], '¿en qué parte queda la cancha techada?'],
+      [['ivt', 'camera'], '¿por dónde se entra a lo de la cancha?'],
+      [['ivt', 'camera'], '¿cómo hago para llegar a lo de los productores?'],
+      [['social2', 'ivt'], "¿Cómo se va pa' la feria?"],
+      [['social2', 'ivt'], '¿Cómo se va hasta la feria?'],
       [['social2'], '¿Cómo se va pal acto de la cancha?'],
       // To a place this person can't tie to an event: still the way there, not a ficha.
-      [['secretary'], '¿Cómo hago para llegar a la plaza central?'],
+      [['ivt'], '¿Cómo hago para llegar a la plaza central?'],
       // A closing about their own plan or a call for help doesn't make it their own thing.
-      [['secretary', 'camera'], '¿Qué hay el domingo? Quiero hacer mi plan'],
+      [['ivt', 'camera'], '¿Qué hay el domingo? Quiero hacer mi plan'],
       [['camera'], '¿A qué hora sale Kevin? Es para mi plan'],
-      [['secretary'], '¿Dónde queda la plaza central? Necesito ayuda'],
-      [['secretary'], '¿Dónde queda la cancha techada? Es para mi reporte'],
+      [['ivt'], '¿Dónde queda la plaza central? Necesito ayuda'],
+      [['ivt'], '¿Dónde queda la cancha techada? Es para mi reporte'],
     ];
     for (const [keys, q] of cases) {
       for (const key of keys) {
@@ -321,21 +321,21 @@ describe('cerebro de demostración (sin IA)', () => {
       return r;
     };
     // A piece is named after its event: asking when it is approved or goes out is about the piece.
-    for (const key of ['social', 'supervisor'] as DemoUserKey[]) {
+    for (const key of ['social', 'boss'] as DemoUserKey[]) {
       expect((await ask(key, '¿Cuándo aprueban la pieza del puente?')).answer).toMatch(/^La pieza «Avance del puente La Quebrada» está por aprobar/);
     }
     expect((await ask('social', '¿Hoy sale la pieza de la cancha?')).answer).toMatch(/^La pieza «Cancha techada de El Mirador» está/);
     // How-tos and screens.
-    expect((await ask('supervisor', '¿Dónde queda el copy?')).answer).toMatch(/pestaña Copies/);
-    expect((await ask('secretary', '¿Dónde es que se cambia la contraseña?')).answer).toMatch(/En «Entrar»/);
+    expect((await ask('boss', '¿Dónde queda el copy?')).answer).toMatch(/pestaña Copies/);
+    expect((await ask('ivt', '¿Dónde es que se cambia la contraseña?')).answer).toMatch(/En «Entrar»/);
     expect((await ask('admin', '¿Dónde está el material de la feria?')).answer).toMatch(/pestaña Material/);
     for (const [key, q] of [
-      ['supervisor', '¿Dónde queda Ajustes?'],
+      ['politics', '¿Dónde queda Ajustes?'],
       ['camera', '¿Cuándo hay que grabar con dron?'],
       ['camera', '¿Dónde se guarda la grabación?'],
       ['social', '¿Cuándo grabo en vertical y cuándo en horizontal?'],
       ['social', '¿Cuándo llega el material de la cancha?'],
-      ['supervisor', '¿Cuándo se publica lo de la cancha?'],
+      ['boss', '¿Cuándo se publica lo de la cancha?'],
     ] as [DemoUserKey, string][]) {
       const r = await ask(key, q);
       expect(r.answer, q).not.toMatch(/no lo manejo|no la tengo/);
@@ -359,11 +359,10 @@ describe('cerebro de demostración (sin IA)', () => {
     const rec = await ask('camera', '¿Qué me toca grabar el viernes?');
     expect(rec.did).toEqual([{ tool: 'mis_pendientes' }]);
     expect(rec.answer).toMatch(/^Tienes 1 pendiente/);
-    expect((await ask('secretary', '¿Ya me aceptaron la propuesta del evento del viernes?')).did).toEqual([{ tool: 'mis_pendientes' }]);
     // A notice to a group is prepared (or sent to whom prepares them), unless it carries a date or a time.
     const notice = await ask('admin', 'Mándales un aviso a redes de que hoy suben el material de la entrega');
     expect(notice.did).toEqual([{ tool: 'preparar_aviso' }]);
-    expect((await ask('dispatch', 'Mándale un aviso a grabación de que mañana suban el material del puente')).answer).toMatch(/los preparan administración o supervisión/);
+    expect((await ask('dispatch', 'Mándale un aviso a grabación de que mañana suban el material del puente')).answer).toMatch(/los preparan administración o el jefe/);
     const dated = await ask('admin', 'Mándales un aviso a redes de que la feria es el martes 27 a las 4 pm');
     expect(dated.did).toEqual([]);
     expect(dated.answer).toMatch(/no puede llevar la fecha, la hora/);
@@ -462,7 +461,7 @@ describe('cerebro de demostración (sin IA)', () => {
   });
 
   it('pasado el tope por hora, contesta como el asistente (no como avería)', async () => {
-    const s = sessionOf('secretary');
+    const s = sessionOf('ivt');
     const first = await handleTurn(s, { question: 'hola' }, LOCAL);
     await withSystem(async (sql) => {
       for (let i = 0; i < 40; i++) await sql.query(`insert into public.assistant_messages (conversation_id, who, body) values ($1, 'persona', 'relleno de prueba')`, [first.conversationId]);
@@ -698,7 +697,7 @@ describe('con modelo (proveedor falso)', () => {
     env.ai.monthlyCapUsd = Number(spent!.s) + 0.00005; // room for one turn only
     try {
       const p = fakeProvider(() => say('Revisa tu pantalla de inicio, ahí está todo.'));
-      const rs = await Promise.all((['admin', 'dispatch', 'supervisor', 'camera'] as DemoUserKey[]).map((k) => handleTurn(sessionOf(k), { question: 'revisa mis cosas' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } })));
+      const rs = await Promise.all((['admin', 'dispatch', 'politics', 'camera'] as DemoUserKey[]).map((k) => handleTurn(sessionOf(k), { question: 'revisa mis cosas' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } })));
       expect(p.seen).toHaveLength(1);
       expect(rs.filter((r) => r.model === 'groq:llama-3.3-70b')).toHaveLength(1);
       expect(rs.filter((r) => r.model === 'local')).toHaveLength(3); // over the cap: the demo brain, never a breakdown

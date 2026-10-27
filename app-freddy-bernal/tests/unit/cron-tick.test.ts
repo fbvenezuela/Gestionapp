@@ -143,11 +143,11 @@ describe('cron tick', () => {
           [id],
         ),
       );
-    // Supervision asks for changes and Redes uploads a new version before the mark lands.
+    // The boss asks for changes and Redes uploads a new version before the mark lands.
     h.during = async (n) => {
       if (n.link !== `/aprobar/${id}`) return;
       h.during = null;
-      await t.as('supervisor', (sql) => sql.query(`select public.review_piece($1, 'changes_requested', 'Ajusta el audio.')`, [id]));
+      await t.as('boss', (sql) => sql.query(`select public.review_piece($1, 'changes_requested', 'Ajusta el audio.')`, [id]));
       await t.as('social', (sql) => sql.query(`update public.pieces set current_version = current_version + 1 where id = $1`, [id]));
     };
     const first = await tick();

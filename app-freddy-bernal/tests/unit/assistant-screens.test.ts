@@ -32,7 +32,7 @@ describe('pantallas: roles copiados del control de acceso de cada página', () =
 describe('el botón que lleva a la pantalla', () => {
   it('si se usó una herramienta, manda su destino (si la persona puede abrirlo)', () => {
     expect(pickGoTo(['social'], { toolHrefs: ['/tweets'], answer: 'Quedan 4 días.' })).toEqual({ href: '/tweets', label: 'Tweets' });
-    expect(pickGoTo(['supervisor'], { toolHrefs: ['/aprobar/123e4567-e89b-12d3-a456-426614174000'], answer: '' })).toEqual({
+    expect(pickGoTo(['boss'], { toolHrefs: ['/aprobar/123e4567-e89b-12d3-a456-426614174000'], answer: '' })).toEqual({
       href: '/aprobar/123e4567-e89b-12d3-a456-426614174000',
       label: 'Abrir la pieza',
     });
@@ -42,7 +42,7 @@ describe('el botón que lleva a la pantalla', () => {
     expect(pickGoTo(['camera'], { toolHrefs: ['/ajustes/redes'], answer: 'Las reglas por red están en Ajustes.' })).toBeNull();
     expect(pickGoTo(['social'], { answer: 'Eso se cambia en Ajustes → Equipo: invitar a alguien es de administración.' })).toBeNull();
     expect(pickGoTo(['camera'], { answer: 'Las piezas se aprueban en Por aprobar.' })).toBeNull();
-    expect(canOpen('/piezas/abc', ['supervisor'])).toBe(false);
+    expect(canOpen('/piezas/abc', ['dispatch'])).toBe(false);
     expect(canOpen('/eventos/abc', ['camera'])).toBe(true);
   });
 

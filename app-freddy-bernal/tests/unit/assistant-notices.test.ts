@@ -104,7 +104,7 @@ describe('avisos a todo un rol: lo que se colaba (ronda 3)', () => {
   it('con modelo: preparar_aviso se niega y el modelo lee por qué; nada queda por confirmar', async () => {
     for (const [text] of LEAKY_NOTICES) {
       const p = toolCallingProvider(text);
-      const r = await handleTurn(sessionOf('supervisor'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
+      const r = await handleTurn(sessionOf('boss'), { question: 'prepara un aviso a redes' }, { chain: CHAIN, chatOptions: { fetchImpl: p.fetchImpl } });
       expect(r.did, text).toEqual([{ tool: 'preparar_aviso', error: expect.stringMatching(/^Ese aviso trae .*solo va en la Agenda/) }]);
       expect(p.seen[1].messages.find((m) => m.role === 'tool')!.content, text).toMatch(/^\{"error":"Ese aviso trae /);
       expect(await draftsOf(r.conversationId), text).toEqual([]);

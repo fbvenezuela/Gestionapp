@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import type { Session } from '@/lib/auth/session';
 import { withSystem } from '@/lib/db';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
-import { ROLES, type Role } from '@/lib/roles';
+import { INVITABLE_ROLES, ROLES, type Role } from '@/lib/roles';
 import * as admin from '@/lib/assistant/admin';
 import { handleTurn, assistantHealthCheck } from '@/lib/assistant';
 import { FACTORY_KNOWLEDGE, FACTORY_SCRIPTS, ROLE_BRIEFS, suggestedQuestions } from '@/lib/assistant/config';
@@ -50,7 +50,7 @@ describe('el panel: solo administración (con doble factor)', () => {
   });
   for (const [name, fn] of calls) {
     it(`${name}: rechaza a quien no es administración, y a administración sin doble factor`, async () => {
-      for (const s of [sessionOf('social'), sessionOf('supervisor'), sessionOf('boss'), sessionOf('admin', false)]) {
+      for (const s of [sessionOf('social'), sessionOf('politics'), sessionOf('boss'), sessionOf('admin', false)]) {
         await expect(fn(s)).rejects.toBeInstanceOf(admin.AssistantAdminError);
       }
     });
@@ -167,11 +167,14 @@ describe('el material de fábrica cumple sus reglas', () => {
 
   it('fichas de la guía por rol, con roles válidos; oficio y sugerencias para cada rol del equipo', () => {
     expect(FACTORY_KNOWLEDGE.length).toBeGreaterThan(20);
-    for (const k of FACTORY_KNOWLEDGE) for (const r of k.roles ?? []) expect(ROLES).toContain(r);
-    for (const r of ['admin', 'boss', 'dispatch', 'secretary', 'social', 'supervisor', 'camera'] as Role[]) {
+    for (const k of FACTORY_KNOWLEDGE) for (const r of k.roles ?? []) expect(INVITABLE_ROLES as readonly string[]).toContain(r);
+    for (const s of FACTORY_SCRIPTS) for (const r of s.roles ?? []) expect(INVITABLE_ROLES as readonly string[]).toContain(r);
+    // The six team roles and Administración; the retired ones have no brief, guide card or script any more.
+    for (const r of INVITABLE_ROLES) {
       expect(ROLE_BRIEFS[r]?.oficio, r).toBeTruthy();
       expect(FACTORY_KNOWLEDGE.some((k) => k.roles?.includes(r) && k.key.startsWith('rol-')), r).toBe(true);
     }
+    for (const r of ['secretary', 'supervisor'] as Role[]) expect(ROLE_BRIEFS[r], r).toBeUndefined();
     expect(suggestedQuestions(['boss'], 'el jefe').length).toBeGreaterThan(0);
   });
 

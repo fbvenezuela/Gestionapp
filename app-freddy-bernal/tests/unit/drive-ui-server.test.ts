@@ -164,7 +164,7 @@ describe('«Probar» (Ajustes → Google Drive)', () => {
   it('nadie más puede probar ni traer nada (ni administración sin doble factor), y Drive no se llama', async () => {
     await connect();
     const before = fake.log.length;
-    for (const who of ['social', 'supervisor', 'camera', 'secretary', 'boss', 'dispatch'] as DemoUserKey[]) {
+    for (const who of ['social', 'politics', 'camera', 'ivt', 'boss', 'dispatch'] as DemoUserKey[]) {
       as(who);
       expect(await drive.testDrive({}), who).toMatchObject({ ok: false });
       expect(await drive.scanDriveImports({}), who).toMatchObject({ ok: false });

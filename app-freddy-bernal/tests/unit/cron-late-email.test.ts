@@ -63,7 +63,7 @@ describe('cron tick: correo de «Venció el plazo» que falló', () => {
     const second = await tick();
     expect(second.lateReviews).toBe(1);
     expect(await marked()).toBe(true);
-    expect((await emails()).map((e) => e.to_email)).toEqual(['admin@demo.test', 'supervision@demo.test']);
+    expect((await emails()).map((e) => e.to_email)).toEqual(['admin@demo.test', 'jefe@demo.test']);
 
     expect((await tick()).lateReviews).toBe(0);
     expect(await emails()).toHaveLength(2);

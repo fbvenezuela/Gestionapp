@@ -11,7 +11,7 @@ async function noSerious(page: import('@playwright/test').Page) {
 }
 
 test('«Modo sol» se activa desde la cuenta y se recuerda en el teléfono', async ({ page }) => {
-  await loginAs(page, 'supervision@demo.test');
+  await loginAs(page, 'politica@demo.test');
   await page.goto('/hoy');
   await page.getByLabel('Mi cuenta').click();
   const sun = page.getByRole('switch', { name: 'Modo sol' });
@@ -28,10 +28,10 @@ test('«Modo sol» se activa desde la cuenta y se recuerda en el teléfono', asy
 });
 
 test('el consejo sale la primera vez y «Entendido» lo esconde', async ({ page }) => {
-  await loginAs(page, 'supervision@demo.test');
+  await loginAs(page, 'jefe@demo.test');
   await page.goto('/aprobar');
   const tip = page.getByRole('complementary', { name: 'Consejo' });
-  await expect(tip).toContainText('Las verdes se pueden aprobar juntas');
+  await expect(tip).toContainText('Las verdes se aprueban todas juntas con un toque');
   await tip.getByRole('button', { name: 'Entendido' }).click();
   await expect(tip).toHaveCount(0);
   await page.reload();
@@ -40,7 +40,7 @@ test('el consejo sale la primera vez y «Entendido» lo esconde', async ({ page 
 });
 
 test('una pantalla que no es del rol lleva a su inicio con un aviso', async ({ page }) => {
-  await loginAs(page, 'supervision@demo.test');
+  await loginAs(page, 'politica@demo.test');
   await page.goto('/piezas');
   await expect(page).toHaveURL(/\/hoy\?sin-permiso=1$/);
   await expect(page.getByText('Esa pantalla no es de tu rol.')).toBeVisible();
@@ -48,8 +48,11 @@ test('una pantalla que no es del rol lleva a su inicio con un aviso', async ({ p
   await expect(page).toHaveURL(/\/hoy$/);
   await page.context().clearCookies();
 
+  // The boss has the Redes screens now; Ajustes is still administración's.
   await loginAs(page, 'jefe@demo.test');
   await page.goto('/piezas');
+  await expect(page.getByRole('heading', { name: 'Piezas' })).toBeVisible();
+  await page.goto('/ajustes');
   await expect(page).toHaveURL(/\/jefe\?sin-permiso=1$/);
   await expect(page.getByText('Esa pantalla no es de tu rol.')).toBeVisible();
 });
@@ -60,9 +63,9 @@ test('pedir cambios: motivos rápidos y aviso sin ventanas del navegador', async
     nativeDialog = true;
     void d.dismiss();
   });
-  await loginAs(page, 'supervision@demo.test');
+  await loginAs(page, 'jefe@demo.test');
   await page.goto('/aprobar');
-  // An amarillo piece that no other spec approves (the red one is approved by the boss in flows.spec).
+  // An amarillo piece that no other spec approves (flows.spec approves «Jornada de salud escolar», the red one and the greens).
   await page.getByRole('link', { name: /Avance del puente La Quebrada/ }).click();
   await page.getByRole('button', { name: 'Pedir cambios' }).click();
   await expect(page.getByRole('alert').filter({ hasText: 'Escribe qué hay que cambiar' })).toBeVisible();
@@ -87,7 +90,8 @@ test('resultados en el teléfono: tarjetas y sin enlaces muertos', async ({ page
   await page.goto('/resultados?dias=90');
   await expect(page.locator('table')).toBeHidden();
   await expect(page.locator('a[href="#"]')).toHaveCount(0);
-  await expect(page.locator('a[href^="/publicar/"]')).toHaveCount(0);
+  // The boss does what Redes does: each publication opens in Publicar, never a dead link.
+  expect(await page.locator('a[href^="/publicar/"]').count()).toBeGreaterThan(0);
   await noSerious(page);
 });
 
@@ -173,11 +177,11 @@ test('con el teclado, un menú se cierra al salir de él, y abrir uno cierra el 
   await expect(account).not.toHaveAttribute('open');
 });
 
-test('el botón de 360 nunca tapa «Enviar propuesta»: pegada abajo ni al final del formulario', async ({ page }) => {
-  await loginAs(page, 'secretaria@demo.test');
+test('el botón de 360 nunca tapa «Guardar evento»: pegada abajo ni al final del formulario', async ({ page }) => {
+  await loginAs(page, 'despacho@demo.test');
   await page.goto('/agenda/nuevo');
   const bubble = page.locator('[data-assistant-button]');
-  const send = page.getByRole('button', { name: 'Enviar propuesta' });
+  const send = page.getByRole('button', { name: 'Guardar evento' });
   const last = page.getByLabel('Protocolo', { exact: true }); // the form's last field
   await expect(send).toBeVisible();
   await expect(bubble).toBeVisible();

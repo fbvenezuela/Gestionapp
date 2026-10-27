@@ -46,7 +46,7 @@ beforeAll(async () => {
   ({ notify } = await import('@/lib/notify'));
   ({ env } = await import('@/lib/env'));
   await t.system((sql) =>
-    sql.query(`insert into public.push_subscriptions (user_id, endpoint, p256dh, auth) values ($1, 'https://fcm.googleapis.com/fcm/send/sup-retry', $2, $3)`, [t.ids.supervisor, KEY, AUTH]),
+    sql.query(`insert into public.push_subscriptions (user_id, endpoint, p256dh, auth) values ($1, 'https://fcm.googleapis.com/fcm/send/pol-retry', $2, $3)`, [t.ids.politics, KEY, AUTH]),
   );
 });
 
@@ -64,15 +64,15 @@ const notices = (key: string) => t.system((sql) => sql.one<{ n: number }>(`selec
 describe('notify() reintentado después de un correo que falló', () => {
   // First on purpose: it is the one that rings a phone, so the push keys get set up in demo mode.
   it('el reintento manda solo los correos que faltaban, uno por persona, y el teléfono no vuelve a sonar', async () => {
-    const n = { userIds: [t.ids.supervisor, t.ids.admin, t.ids.social], kind: 'review_overdue', title: 'Venció el plazo: «Pieza X» sigue sin aprobar', link: '/aprobar/x', key: 'k-retry', email: true };
+    const n = { userIds: [t.ids.politics, t.ids.admin, t.ids.social], kind: 'review_overdue', title: 'Venció el plazo: «Pieza X» sigue sin aprobar', link: '/aprobar/x', key: 'k-retry', email: true };
     h.failTo = 'admin@demo.test';
     await expect(notify(n)).rejects.toThrow('connection reset');
     expect((await notices('k-retry'))!.n).toBe(3);
-    expect((await outbox('k-retry')).map((r) => r.to_email)).toEqual(['supervision@demo.test']);
+    expect((await outbox('k-retry')).map((r) => r.to_email)).toEqual(['politica@demo.test']);
     expect(sendNotification).toHaveBeenCalledTimes(1);
 
     await notify(n);
-    expect((await outbox('k-retry')).map((r) => r.to_email)).toEqual(['admin@demo.test', 'redes@demo.test', 'supervision@demo.test']);
+    expect((await outbox('k-retry')).map((r) => r.to_email)).toEqual(['admin@demo.test', 'politica@demo.test', 'redes@demo.test']);
     expect((await notices('k-retry'))!.n).toBe(3);
     expect(sendNotification).toHaveBeenCalledTimes(1);
 
@@ -86,12 +86,12 @@ describe('notify() reintentado después de un correo que falló', () => {
         await sql.query(`update public.profiles set notify_prefs = '{"material_ready": false}'::jsonb where id = $1`, [t.ids.social2]);
         await sql.query(`update public.profiles set active = false where id = $1`, [t.ids.camera]);
       });
-      const n = { userIds: [t.ids.social, t.ids.social2, t.ids.camera, t.ids.supervisor], kind: 'material_ready', title: 'Llegó material nuevo', key: 'k-retry-prefs', email: true };
+      const n = { userIds: [t.ids.social, t.ids.social2, t.ids.camera, t.ids.politics], kind: 'material_ready', title: 'Llegó material nuevo', key: 'k-retry-prefs', email: true };
       h.failTo = 'redes@demo.test';
       await expect(notify(n)).rejects.toThrow('connection reset');
       await notify(n);
       await notify(n);
-      expect((await outbox('k-retry-prefs')).map((r) => r.to_email)).toEqual(['redes@demo.test', 'supervision@demo.test']);
+      expect((await outbox('k-retry-prefs')).map((r) => r.to_email)).toEqual(['politica@demo.test', 'redes@demo.test']);
       expect((await notices('k-retry-prefs'))!.n).toBe(4);
     } finally {
       await t.system(async (sql) => {
@@ -103,7 +103,7 @@ describe('notify() reintentado después de un correo que falló', () => {
 
   it('con Resend tampoco se repite: cada persona recibe un solo correo', async () => {
     const saved = { mode: env.email.mode, key: env.email.resendKey, data: env.dataMode };
-    const people = [t.ids.supervisor, t.ids.admin, t.ids.boss];
+    const people = [t.ids.politics, t.ids.admin, t.ids.boss];
     // Addresses that canDeliver() accepts (it never sends to *.test); Resend is mocked above.
     await t.system((sql) => sql.query(`update public.profiles set email = replace(email, '@demo.test', '@demo.example') where id = any($1::uuid[])`, [people]));
     Object.assign(env.email, { mode: 'send', resendKey: 're_test_key' });
@@ -112,10 +112,10 @@ describe('notify() reintentado después de un correo que falló', () => {
       const n = { userIds: people, kind: 'review_overdue', title: 'Venció el plazo: «Pieza Y» sigue sin aprobar', key: 'k-retry-resend', email: true };
       h.failTo = 'admin@demo.example';
       await expect(notify(n)).rejects.toThrow('connection reset');
-      expect(h.resend.map((r) => r.to)).toEqual(['supervision@demo.example']);
+      expect(h.resend.map((r) => r.to)).toEqual(['politica@demo.example']);
       await notify(n);
       await notify(n);
-      expect(h.resend.map((r) => r.to).sort()).toEqual(['admin@demo.example', 'jefe@demo.example', 'supervision@demo.example']);
+      expect(h.resend.map((r) => r.to).sort()).toEqual(['admin@demo.example', 'jefe@demo.example', 'politica@demo.example']);
       expect(new Set(h.resend.map((r) => r.key)).size).toBe(3);
       expect((await outbox('k-retry-resend')).map((r) => r.status)).toEqual(['sent', 'sent', 'sent']);
     } finally {

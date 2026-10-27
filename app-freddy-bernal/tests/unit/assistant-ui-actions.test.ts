@@ -43,7 +43,7 @@ describe('acciones del panel: validación y permiso', () => {
   });
 
   it('quien no es administración (o no hizo el doble factor) recibe el «no» del servidor, en español', async () => {
-    for (const s of [sessionOf('social'), sessionOf('supervisor'), sessionOf('boss'), sessionOf('admin', false)]) {
+    for (const s of [sessionOf('social'), sessionOf('politics'), sessionOf('boss'), sessionOf('admin', false)]) {
       state.session = s;
       for (const r of [
         await actions.refreshAssistantKnowledge(),
@@ -80,7 +80,7 @@ describe('acciones del panel: los flujos', () => {
   });
 
   it('«Enseñarle cómo contestar»: el guion queda y la pregunta sale de la lista', async () => {
-    await handleTurn(sessionOf('secretary'), { question: '¿Dónde dejo las tarjetas de invitación?' }, noTool);
+    await handleTurn(sessionOf('ivt'), { question: '¿Dónde dejo las tarjetas de invitación?' }, noTool);
     const g = (await admin.heardGrouped(A)).find((h) => h.plain === 'donde dejo las tarjetas de invitacion')!;
     const r = await actions.saveAssistantScript({ topic: 'Tarjetas', triggers: ['tarjetas de invitacion'], script: `Persona: ${g.sample}\n[ASISTENTE]: Pregúntale a administración.`, heardIds: g.ids });
     expect(r).toMatchObject({ ok: true, data: { origin: 'equipo' } });

@@ -5,7 +5,7 @@ import { loginAs } from './helpers';
 // Perfil: phone notifications card and quiet hours, at 360 px. The permission is only asked
 // from the tap, so loading the page must not prompt (nothing is clicked here).
 test('perfil muestra los avisos del teléfono y guarda las horas de silencio', async ({ page }) => {
-  await loginAs(page, 'supervision@demo.test');
+  await loginAs(page, 'politica@demo.test');
   let prompted = false;
   page.on('dialog', () => {
     prompted = true;

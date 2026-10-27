@@ -90,13 +90,13 @@ describe('assistant_scripts_for: la puntuación del manual', () => {
   it('solo los guiones que se le ofrecen a ese rol', async () => {
     const rows = await withScripts(
       [
-        { topic: 'Aprobar piezas', triggers: ['como apruebo'], roles: '{supervisor,boss}' },
+        { topic: 'Aprobar piezas', triggers: ['como apruebo'], roles: '{admin,boss}' },
         { topic: 'Aprobar para todos', triggers: ['como apruebo'] },
       ],
-      async (sql) => ({ camera: await pickFor(sql, 'como apruebo', '{camera}'), sup: await pickFor(sql, 'como apruebo', '{supervisor}') }),
+      async (sql) => ({ camera: await pickFor(sql, 'como apruebo', '{camera}'), boss: await pickFor(sql, 'como apruebo', '{boss}') }),
     );
     expect(rows.camera.map((r) => r.script_topic)).toEqual(['Aprobar para todos']);
-    expect(rows.sup.map((r) => r.script_topic).sort()).toEqual(['Aprobar para todos', 'Aprobar piezas']);
+    expect(rows.boss.map((r) => r.script_topic).sort()).toEqual(['Aprobar para todos', 'Aprobar piezas']);
   });
 
   it('p_count cuenta el uso; el probador (false) no', async () => {

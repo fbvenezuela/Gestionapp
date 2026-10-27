@@ -180,7 +180,7 @@ afterAll(() => {
 
 describe('conectar Drive (Administración con doble factor)', () => {
   it('nadie más puede empezar, y Google ni se entera', async () => {
-    for (const who of ['social', 'supervisor', 'camera', 'secretary', 'boss', 'dispatch'] as DemoUserKey[]) {
+    for (const who of ['social', 'politics', 'camera', 'ivt', 'boss', 'dispatch'] as DemoUserKey[]) {
       as(who);
       expect(await drive.startDriveConnect({}), who).toMatchObject({ ok: false });
     }
@@ -273,7 +273,7 @@ describe('conectar Drive (Administración con doble factor)', () => {
     expect(r).toMatchObject({ ok: true, data: { apiKey: 'fake-picker-key', appId: '0' } });
     expect((r as { data: { accessToken: string } }).data.accessToken).toMatch(/^fake-access-/);
     const before = fake.log.length;
-    for (const who of ['social', 'supervisor', 'camera', 'secretary', 'boss'] as DemoUserKey[]) {
+    for (const who of ['social', 'politics', 'camera', 'ivt', 'boss'] as DemoUserKey[]) {
       as(who);
       expect(await drive.drivePickerConfig({}), who).toMatchObject({ ok: false });
       expect(await drive.registerDriveFile({ fileId: 'cualquierArchivo01', eventId: null, kind: 'other' }), who).toMatchObject({ ok: false });
@@ -585,7 +585,7 @@ describe('ver y descargar desde Drive (/api/media/[id])', () => {
     });
     // A quarter of the cap a day: one 4 MiB piece and 100 bytes more.
     h.capGb = (4 * (4 * MB + 100)) / 1024 ** 3;
-    as('supervisor');
+    as('boss');
     const a = await get(id, { range: 'bytes=0-' });
     expect(a.status).toBe(206);
     await a.arrayBuffer();
@@ -597,7 +597,7 @@ describe('ver y descargar desde Drive (/api/media/[id])', () => {
     expect(await no.text()).toBe(DRIVE_MESSAGE.share);
     const [n] = notices('drive_share');
     expect(n.userIds).toEqual([t.ids.admin]);
-    expect(n.body).toContain(DEMO_USERS.find((u) => u.key === 'supervisor')!.name);
+    expect(n.body).toContain(DEMO_USERS.find((u) => u.key === 'boss')!.name);
     expect(notices('drive_quota')).toHaveLength(0);
     // Somebody else, and Administración, still get it.
     for (const who of ['social', 'admin'] as DemoUserKey[]) {
@@ -606,7 +606,7 @@ describe('ver y descargar desde Drive (/api/media/[id])', () => {
       expect(r.status, who).toBe(206);
       await r.arrayBuffer();
     }
-    const day = await sys<{ bytes: string }>(`select bytes from public.drive_transfer_person where user_id = $1`, [t.ids.supervisor]);
+    const day = await sys<{ bytes: string }>(`select bytes from public.drive_transfer_person where user_id = $1`, [t.ids.boss]);
     expect(Number(day!.bytes)).toBe(4 * MB + 100);
     expect(await sys(`select 1 from public.drive_transfer_person where user_id = $1`, [t.ids.admin])).toBeNull();
   });
@@ -641,21 +641,21 @@ describe('ver y descargar desde Drive (/api/media/[id])', () => {
     }
   });
 
-  it('quien no ve el material recibe 404 y Drive ni se entera (grabación sin asignar, secretaría, sin doble factor)', async () => {
+  it('quien no ve el material recibe 404 y Drive ni se entera (grabación sin asignar, política, IVT, sin doble factor)', async () => {
     const before = fake.log.length;
-    for (const who of ['camera2', 'secretary'] as DemoUserKey[]) {
+    for (const who of ['camera2', 'politics', 'ivt'] as DemoUserKey[]) {
       as(who);
       expect((await get(id, { range: 'bytes=0-1' })).status, who).toBe(404);
       const th = await thumbRoute.GET(new NextRequest(`http://localhost:3000/api/media/${id}/thumb`), { params: Promise.resolve({ id }) });
       expect(th.status, who).toBe(404);
     }
-    as('supervisor', false);
+    as('boss', false);
     expect((await get(id)).status).toBe(401);
     h.session = null;
     expect((await get(id)).status).toBe(401);
     expect(fake.log.length).toBe(before);
-    // Redes and supervision do see it.
-    for (const who of ['social', 'supervisor'] as DemoUserKey[]) {
+    // Redes and the boss do see it.
+    for (const who of ['social', 'boss'] as DemoUserKey[]) {
       as(who);
       const r = await get(id, { range: 'bytes=0-1' });
       expect(r.status, who).toBe(206);
@@ -725,7 +725,7 @@ describe('ver y descargar desde Drive (/api/media/[id])', () => {
 
     // The month's cap: thumbnails never push the count past it, for anyone.
     h.capGb = (5 * len) / 1024 ** 3;
-    as('supervisor');
+    as('boss');
     expect(await statuses(id, 5)).toEqual([200, 404, 404, 404, 404]);
     as('admin');
     expect(await statuses(id, 3)).toEqual([404, 404, 404]);

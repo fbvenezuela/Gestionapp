@@ -57,9 +57,9 @@ const newEvent = (title: string, extra: Record<string, unknown> = {}) => ({
   siteContacts: 'Vocera demo 0000-1234567', ...extra,
 });
 
-describe('createEvent: avisos al proponer o crear', () => {
-  it('secretaría propone: avisa al jefe y a despacho, a ella no, y solo con el título', async () => {
-    as('secretary');
+describe('createEvent: avisos al crear', () => {
+  it('administración crea: avisa al jefe y a despacho, a ella no, y solo con el título', async () => {
+    as('admin');
     const r = await events.createEvent(newEvent('Visita de prueba a la escuela'));
     expect(r.ok).toBe(true);
     const [n, ...rest] = sent('event_new');
@@ -97,7 +97,7 @@ describe('el título de un evento no lleva fecha ni hora', () => {
   const placeHint = (name: string) => `${DATED} Si «${name}» es el nombre del sitio, ponlo en «A dónde se va».`;
 
   it('al crear: se rechaza cualquier hora y día de la semana, aunque siga una palabra en -s o un nombre', async () => {
-    as('secretary');
+    as('dispatch');
     for (const title of [
       'Acto en la plaza el 28/10', 'Inauguración a las 9:30 am', 'Acto del sábado', 'Acto a las nueve de la noche', 'Acto Domingo 25', 'Acto 28/10/2027',
       'Rueda de prensa a las 10 antes del acto', 'Acto a las 3 después del almuerzo', 'Misa a las 9 tras la procesión', 'Llegada a las ocho después de la misa',
@@ -113,7 +113,7 @@ describe('el título de un evento no lleva fecha ni hora', () => {
   });
 
   it('al crear: los sitios con nombre de fecha y los números que no son hora pasan; la fecha del propio evento no', async () => {
-    as('secretary');
+    as('dispatch');
     for (const title of [
       'Barrio 23 de Enero: entrega de mercados', 'Visita a la Escuela 12 de Octubre', 'Avenida 19 de Abril: asfaltado', 'Sector 4 de Mayo', 'Liceo 5 de Julio',
       'Urbanización 12 de Octubre', 'Inauguración de la UBCH 24 de Julio', 'Farmacia 24h en Rubio', 'Concierto Joven 3.0', 'Congreso 2.0 de comunicadores',
@@ -147,16 +147,13 @@ describe('el título de un evento no lleva fecha ni hora', () => {
     }
   });
 
-  it('al corregir la propuesta (secretaría) y al editar el evento (despacho)', async () => {
-    as('secretary');
+  it('al editar el evento (despacho)', async () => {
+    as('dispatch');
     const id = idOf(await events.createEvent(on('Visita de prueba al ambulatorio', WED)));
     const base = { id, placeName: '', municipality: '', summary: '', categoryId: '' };
-    expect(await events.updateProposal({ ...base, title: 'Visita al ambulatorio el lunes a las 8' })).toEqual({ ok: false, error: DATED });
-    // She cannot see the date: she cannot add one either, the event's or another (the answer would tell her which).
-    for (const title of ['Visita al ambulatorio 10 de marzo', 'Visita al ambulatorio 11 de marzo']) {
-      expect(await events.updateProposal({ ...base, title }), title).toEqual({ ok: false, error: placeHint(title.slice(-11)) });
-    }
-    as('dispatch');
+    expect(await events.updateEvent({ ...base, title: 'Visita al ambulatorio el lunes a las 8', urgency: 2 })).toEqual({ ok: false, error: DATED });
+    // The event's own date in the title, even as a place name, would say when it is.
+    expect(await events.updateEvent({ ...base, title: 'Visita al ambulatorio 10 de marzo', urgency: 2 })).toEqual({ ok: false, error: placeHint('10 de marzo') });
     expect(await events.updateEvent({ ...base, title: 'Visita al ambulatorio 10/3', urgency: 2 })).toEqual({ ok: false, error: DATED });
     const ev = await t.system((sql) => sql.one<{ title: string }>(`select title from public.events where id = $1`, [id]));
     expect(ev?.title).toBe('Visita de prueba al ambulatorio');
@@ -165,13 +162,11 @@ describe('el título de un evento no lleva fecha ni hora', () => {
     expect((await events.updateEvent({ ...base, title: 'Visita al ambulatorio del Sector 4 de Mayo', urgency: 3 })).ok).toBe(true);
   });
 
-  it('un sitio con nombre de fecha no bloquea corregir ni editar, y no se puede mover el evento a ese día', async () => {
-    as('secretary');
+  it('un sitio con nombre de fecha no bloquea editar, y no se puede mover el evento a ese día', async () => {
+    as('dispatch');
     const title = 'Barrio 23 de Enero: entrega de mercados';
     const id = idOf(await events.createEvent(on(title, WED)));
     const base = { id, placeName: 'Barrio 23 de Enero', municipality: '', categoryId: '' };
-    expect((await events.updateProposal({ ...base, title: `${title} y útiles`, summary: 'Con útiles' })).ok).toBe(true);
-    as('dispatch');
     expect((await events.updateEvent({ ...base, title: `${title} y útiles`, summary: 'Con útiles', urgency: 3 })).ok).toBe(true);
     const sched = { id, time: '10:00', durationMin: 60, exactAddress: 'Calle inventada 123', directions: '', siteContacts: '' };
     expect(await events.updateSchedule({ ...sched, date: '2028-01-23' })).toEqual({ ok: false, error: 'El título dice esa fecha: cámbialo primero.' });
@@ -179,36 +174,9 @@ describe('el título de un evento no lleva fecha ni hora', () => {
   });
 });
 
-describe('updateProposal: el jefe ve el título corregido', () => {
-  it('si cambia el título, el jefe y despacho reciben el aviso otra vez con el título nuevo', async () => {
-    as('secretary');
-    const c = await events.createEvent(newEvent('Visita de prueba a la biblioteca'));
-    const id = (c as { data: { id: string } }).data.id;
-    h.notices.length = 0;
-    const r = await events.updateProposal({ id, title: 'Visita corregida a la biblioteca', placeName: '', municipality: '', summary: '', categoryId: '' });
-    expect(r.ok).toBe(true);
-    const [n, ...rest] = sent('event_new');
-    expect(rest).toHaveLength(0);
-    expect(n.title).toBe('Corrigieron el evento por decidir: Visita corregida a la biblioteca');
-    expect(n.key).not.toBe(`event_new:${id}`); // not swallowed by the first notice's key
-    expect(n.key.startsWith(`event_new:${id}:`)).toBe(true);
-    expect(new Set(n.userIds)).toEqual(new Set([t.ids.boss, t.ids.dispatch]));
-  });
-
-  it('si solo cambia el resumen, no hay aviso nuevo', async () => {
-    as('secretary');
-    const c = await events.createEvent(newEvent('Propuesta con resumen nuevo'));
-    const id = (c as { data: { id: string } }).data.id;
-    h.notices.length = 0;
-    const r = await events.updateProposal({ id, title: 'Propuesta con resumen nuevo', placeName: '', municipality: '', summary: 'Otro resumen', categoryId: '' });
-    expect(r.ok).toBe(true);
-    expect(notices()).toHaveLength(0);
-  });
-});
-
 describe('bossDecide: solo el jefe decide', () => {
   const proposal = async (title: string) => {
-    as('secretary');
+    as('admin');
     const c = await events.createEvent(newEvent(title));
     h.notices.length = 0;
     return (c as { data: { id: string } }).data.id;
@@ -226,7 +194,7 @@ describe('bossDecide: solo el jefe decide', () => {
     expect(notices()).toHaveLength(0);
   });
 
-  it('el jefe acepta: se enteran quien propuso y despacho, él no', async () => {
+  it('el jefe acepta: se enteran quien lo creó y despacho, él no', async () => {
     const id = await proposal('Propuesta que el jefe acepta');
     as('boss');
     const r = await events.bossDecide({ id, priority: 7, decision: 'accepted' });
@@ -235,11 +203,60 @@ describe('bossDecide: solo el jefe decide', () => {
     const [n, ...rest] = sent('event_decided');
     expect(rest).toHaveLength(0);
     expect(n.title).toBe('El jefe aceptó: Propuesta que el jefe acepta');
-    expect(new Set(n.userIds)).toEqual(new Set([t.ids.secretary, t.ids.dispatch]));
+    expect(new Set(n.userIds)).toEqual(new Set([t.ids.admin, t.ids.dispatch]));
     // Same decision again: nothing changed, no new notice.
     h.notices.length = 0;
     await events.bossDecide({ id, priority: 7, decision: 'accepted' });
     expect(notices()).toHaveLength(0);
+  });
+
+  it('quien lo creó y ya no tiene rol (una cuenta de la ex Secretaría) no recibe el aviso', async () => {
+    const id = await t.system(async (sql) => {
+      const ghost = await sql.one<{ id: string }>(`insert into auth.users (email) values ('ex-secretaria@prueba.test') returning id`);
+      return (await sql.one<{ id: string }>(`insert into public.events (title, place_name, created_by) values ('Evento de alguien sin rol', 'Sitio inventado', $1) returning id`, [ghost!.id]))!.id;
+    });
+    as('boss');
+    expect((await events.bossDecide({ id, priority: 4, decision: 'rejected' })).ok).toBe(true);
+    const [n] = sent('event_decided');
+    expect(n.userIds).toEqual([t.ids.dispatch]);
+  });
+});
+
+describe('approveGreen: el jefe aprueba todas las verdes de un toque', () => {
+  const green = async (title: string) =>
+    t.as('social', async (sql) => {
+      const id = (await sql.one<{ id: string }>(`insert into public.pieces (kind, title, review_level) values ('video', $1, 'verde') returning id`, [title]))!.id;
+      await sql.query(`insert into public.piece_versions (piece_id, version) values ($1, 1)`, [id]);
+      await sql.query(`update public.pieces set current_version = 1 where id = $1`, [id]);
+      await sql.query(`insert into public.copies (piece_id, length_group, body) values ($1, 'short', 'Copy corto.')`, [id]);
+      await sql.query(`update public.pieces set status = 'in_review' where id = $1`, [id]);
+      return (await sql.one<{ id: string; revision: number }>(`select id, revision from public.pieces where id = $1`, [id]))!;
+    });
+  const status = (id: string) => t.system((sql) => sql.one<{ status: string; approved_by: string | null }>(`select status, approved_by from public.pieces where id = $1`, [id]));
+
+  it('aprueba las que vio en una sola llamada y se salta la que cambió mientras tanto', async () => {
+    const pieces = await import('@/lib/actions/pieces');
+    const [a, b, c] = [await green('Verde uno'), await green('Verde dos'), await green('Verde tres')];
+    await t.as('social', (sql) => sql.query(`update public.copies set body = 'Copy cambiado.' where piece_id = $1`, [c.id]));
+    as('boss');
+    const r = await pieces.approveGreen({ pieces: [a, b, c] });
+    expect(r).toMatchObject({ ok: true, data: { n: 2, skipped: 1 } });
+    for (const p of [a, b]) expect(await status(p.id)).toEqual({ status: 'approved', approved_by: t.ids.boss });
+    expect((await status(c.id))?.status).toBe('in_review');
+    const [n] = sent('piece_approved');
+    expect(n.userIds).toEqual(expect.arrayContaining([t.ids.social, t.ids.social2]));
+  });
+
+  it('nadie más las aprueba, ni administración ni Redes', async () => {
+    const pieces = await import('@/lib/actions/pieces');
+    const g = await green('Verde que nadie más aprueba');
+    for (const who of ['admin', 'social', 'dispatch'] as const) {
+      as(who);
+      // Refused by the database, or (despacho does not even see pieces) nothing to approve.
+      const r = await pieces.approveGreen({ pieces: [g] });
+      expect(r.ok ? r.data!.n : 0, who).toBe(0);
+    }
+    expect((await status(g.id))?.status).toBe('in_review');
   });
 });
 
