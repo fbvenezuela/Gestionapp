@@ -12,6 +12,7 @@ import { NoPermissionBanner } from '@/components/shell/no-permission-banner';
 import { SignOutButton } from '@/components/shell/sign-out-button';
 import { MenuDetails } from '@/components/shell/menu-details';
 import { AssistantMount } from '@/components/assistant/assistant-mount';
+import { DraftUserProvider } from '@/lib/hooks/use-draft';
 import { buttonVariants } from '@/components/ui/button';
 import { menuPanelClass } from '@/components/ui/menu-panel';
 import { cn } from '@/lib/cn';
@@ -72,7 +73,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             ) : null}
             <Link href="/avisos" className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'relative' })} aria-label={unread ? `Avisos: ${unread} sin leer` : 'Avisos'}>
               <Bell className="h-5 w-5" aria-hidden />
-              {unread ? <span className="absolute right-1.5 top-1.5 grid min-w-5 place-items-center rounded-full bg-danger px-1 text-[11px] font-bold text-on-accent">{unread}</span> : null}
+              {/* Soft red with red text: AA in light, dark and sun mode (dark text on the solid red was 3.3:1). */}
+              {unread ? <span className="absolute right-1.5 top-1.5 grid min-w-5 place-items-center rounded-full border border-danger/40 bg-danger-soft px-1 text-[11px] font-bold text-danger">{unread}</span> : null}
             </Link>
             <MenuDetails className="relative">
               <summary className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'list-none [&::-webkit-details-marker]:hidden cursor-pointer' })} aria-label="Mi cuenta">
@@ -96,7 +98,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         ) : null}
         <main id="contenido" className="safe-bottom mx-auto w-full max-w-6xl flex-1 px-4 pt-6">
           <NoPermissionBanner />
-          {children}
+          <DraftUserProvider userId={s.userId}>{children}</DraftUserProvider>
         </main>
         <AssistantMount />
       </div>

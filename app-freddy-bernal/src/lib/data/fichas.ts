@@ -38,8 +38,12 @@ export type FichaUpdate = {
   id: string; kind: FichaUpdateKind; from_value: string | null; to_value: string | null; fields: string[]; note: string | null;
   actor_id: string | null; actor_name: string | null; created_at: string | Date;
 };
-// The event born from a ficha, as far as this person may see it (the schedule is null without the right).
-export type LinkedEvent = { id: string; code: string; title: string; boss_decision: string; done_on: string | Date | null; starts_at: string | Date | null; ends_at: string | Date | null };
+// The event born from a ficha, as far as this person may see it (the schedule is null without the right). The live
+// one first (not cancelled, not rejected); otherwise the last one, to say it was cancelled.
+export type LinkedEvent = {
+  id: string; code: string; title: string; boss_decision: string; done_on: string | Date | null; starts_at: string | Date | null; ends_at: string | Date | null;
+  cancelled_at: string | Date | null; live: boolean;
+};
 
 const NAME = `coalesce(nullif(p.full_name, ''), p.email)`;
 
@@ -57,10 +61,11 @@ async function history(sql: Sql, column: 'obra_ficha_id' | 'community_report_id'
 
 async function linkedEvent(sql: Sql, column: 'obra_ficha_id' | 'community_report_id', id: string): Promise<LinkedEvent | null> {
   return sql.one<LinkedEvent>(
-    `select e.id, e.code, e.title, e.boss_decision, e.done_on, sc.starts_at, sc.ends_at
+    `select e.id, e.code, e.title, e.boss_decision, e.done_on, sc.starts_at, sc.ends_at, e.cancelled_at,
+            (e.cancelled_at is null and e.boss_decision <> 'rejected') as live
        from public.events e left join public.event_schedule sc on sc.event_id = e.id
       where e.${column} = $1 and e.deleted_at is null
-      order by e.created_at desc limit 1`,
+      order by (e.cancelled_at is null and e.boss_decision <> 'rejected') desc, e.created_at desc limit 1`,
     [id],
   );
 }
@@ -211,7 +216,7 @@ export async function municipalityTimeline(sql: Sql, municipality: string, today
     const events = await sql.query<{ id: string; code: string; title: string; boss_decision: string; done_on: string | Date | null; starts_at: string | Date | null; created_at: string | Date }>(
       `select e.id, e.code, e.title, e.boss_decision, e.done_on, sc.starts_at, e.created_at
          from public.events e left join public.event_schedule sc on sc.event_id = e.id
-        where e.deleted_at is null and e.municipality = $1 order by e.created_at desc limit 100`,
+        where e.deleted_at is null and e.cancelled_at is null and e.municipality = $1 order by e.created_at desc limit 100`,
       [municipality],
     );
     for (const e of events) items.push({ kind: 'event', id: e.id, code: e.code, title: e.title, boss_decision: e.boss_decision, done_on: e.done_on, starts_at: e.starts_at, at: e.starts_at ?? e.created_at });

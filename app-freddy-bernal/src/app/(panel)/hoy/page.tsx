@@ -13,6 +13,7 @@ import { LEVELS, reviewClock } from '@/lib/domain/review';
 import { obraStageCounts, overdueReports } from '@/lib/data/fichas';
 import { OverdueReports } from '@/components/fichas/overdue-reports';
 import { LinkButton } from '@/components/ui/button';
+import { toSchedule } from '@/lib/data/events';
 
 export const metadata = { title: 'Hoy' };
 
@@ -30,7 +31,7 @@ export default async function TodayPage() {
       ? await sql.query<{ id: string; title: string; place_name: string; starts_at: string; ends_at: string; work_status: string }>(
           `select e.id, e.title, e.place_name, s.starts_at, s.ends_at, e.work_status
              from public.events e join public.event_schedule s on s.event_id = e.id
-            where e.deleted_at is null and s.starts_at >= $1 and s.starts_at < $2 and e.boss_decision <> 'rejected'
+            where e.deleted_at is null and e.cancelled_at is null and s.starts_at >= $1 and s.starts_at < $2 and e.boss_decision <> 'rejected'
             order by s.starts_at`,
           [t0.toUTC().toISO(), t0.plus({ days: 1 }).toUTC().toISO()],
         )
@@ -45,14 +46,14 @@ export default async function TodayPage() {
       for (const p of changes) waiting.push({ href: `/piezas/${p.id}`, title: p.title, detail: 'El jefe pidió cambios', tone: 'danger', tag: 'Cambios' });
       const needBoard = await sql.query<{ id: string; title: string }>(
         `select e.id, e.title from public.events e left join public.storyboards sb on sb.event_id = e.id
-          where e.deleted_at is null and e.boss_decision = 'accepted' and e.done_on is null
+          where e.deleted_at is null and e.cancelled_at is null and e.boss_decision = 'accepted' and e.done_on is null
             and (sb.id is null or not exists (select 1 from public.storyboard_blocks b where b.storyboard_id = sb.id and b.deleted_at is null))
           order by e.urgency, e.created_at limit 10`,
       );
       for (const e of needBoard) waiting.push({ href: `/eventos/${e.id}?tab=storyboard`, title: e.title, detail: 'Falta el storyboard', tone: 'info', tag: 'Storyboard' });
       const matReady = await sql.query<{ id: string; title: string }>(
         `select e.id, e.title from public.events e
-          where e.deleted_at is null and exists (select 1 from public.media_assets m where m.event_id = e.id and m.kind in ('boss','drone','broll','other') and m.deleted_at is null)
+          where e.deleted_at is null and e.cancelled_at is null and exists (select 1 from public.media_assets m where m.event_id = e.id and m.kind in ('boss','drone','broll','other') and m.deleted_at is null)
             and not exists (select 1 from public.pieces p where p.event_id = e.id and p.deleted_at is null) limit 10`,
       );
       for (const e of matReady) waiting.push({ href: `/eventos/${e.id}?tab=material`, title: e.title, detail: 'Llegó el material: arma la pieza', tone: 'accent', tag: 'Material' });
@@ -96,13 +97,25 @@ export default async function TodayPage() {
     }
 
     if (has('dispatch')) {
+      // «Por ponerle fecha» first (§4): the fichas the IVT and política sent, still without a date.
+      const pending = await toSchedule(sql, 50);
+      waiting.unshift(
+        ...pending.slice(0, 10).map((f): Item => ({
+          href: f.kind === 'obra' ? `/obras/${f.id}` : `/reportes/${f.id}`,
+          title: f.title,
+          detail: `${f.kind === 'obra' ? 'Obra del IVT' : 'Reporte comunitario'} · ${f.municipality}`,
+          tone: 'warn',
+          tag: 'Por ponerle fecha',
+        })),
+      );
       const incomplete = await sql.query<{ id: string; title: string }>(
         `select e.id, e.title from public.events e left join public.event_brief b on b.event_id = e.id
-          where e.deleted_at is null and e.done_on is null and e.boss_decision <> 'rejected'
+          where e.deleted_at is null and e.cancelled_at is null and e.done_on is null and e.boss_decision <> 'rejected'
             and (b.event_id is null or b.work_description = '' or b.led_by = '' or b.achievements = '') limit 10`,
       );
       for (const e of incomplete) waiting.push({ href: `/eventos/${e.id}?tab=ficha`, title: e.title, detail: 'Ficha técnica incompleta', tone: 'warn', tag: 'Ficha' });
-      const pendingBoss = await sql.one<{ n: number }>(`select count(*)::int as n from public.events where boss_decision = 'pending' and deleted_at is null`);
+      const pendingBoss = await sql.one<{ n: number }>(`select count(*)::int as n from public.events where boss_decision = 'pending' and deleted_at is null and cancelled_at is null`);
+      stats.push({ label: 'Por ponerle fecha', value: pending.length, tone: pending.length ? 'accent' : undefined, hint: 'fichas sin fecha' });
       stats.push({ label: 'Fichas incompletas', value: incomplete.length, tone: incomplete.length ? 'accent' : undefined });
       stats.push({ label: 'Esperan al jefe', value: pendingBoss!.n });
     }
@@ -114,7 +127,7 @@ export default async function TodayPage() {
                 s.starts_at < now() as past
            from public.events e join public.event_assignments a on a.event_id = e.id and a.user_id = auth.uid()
            left join public.event_schedule s on s.event_id = e.id
-          where e.deleted_at is null order by s.starts_at`,
+          where e.deleted_at is null and e.cancelled_at is null order by s.starts_at`,
       );
       for (const e of mine.filter((m) => m.past && m.n === 0)) waiting.push({ href: `/eventos/${e.id}?tab=material`, title: e.title, detail: 'Sube el material', tone: 'danger', tag: 'Material' });
       stats.push({ label: 'Mis eventos', value: mine.length });

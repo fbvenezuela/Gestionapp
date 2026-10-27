@@ -101,12 +101,12 @@ export const TOOLS: Tool[] = [
           push('El jefe pidió cambios', await sql.query(`select title from public.pieces where status = 'changes_requested' and deleted_at is null order by updated_at desc limit 5`));
           push('Falta el storyboard', await sql.query(
             `select e.title from public.events e left join public.storyboards sb on sb.event_id = e.id
-              where e.deleted_at is null and e.boss_decision = 'accepted' and e.done_on is null
+              where e.deleted_at is null and e.cancelled_at is null and e.boss_decision = 'accepted' and e.done_on is null
                 and (sb.id is null or not exists (select 1 from public.storyboard_blocks b where b.storyboard_id = sb.id and b.deleted_at is null))
               order by e.urgency, e.created_at limit 5`));
           push('Llegó el material: arma la pieza', await sql.query(
             `select e.title from public.events e
-              where e.deleted_at is null and exists (select 1 from public.media_assets m where m.event_id = e.id and m.kind in ${RAW} and m.deleted_at is null)
+              where e.deleted_at is null and e.cancelled_at is null and exists (select 1 from public.media_assets m where m.event_id = e.id and m.kind in ${RAW} and m.deleted_at is null)
                 and not exists (select 1 from public.pieces p where p.event_id = e.id and p.deleted_at is null) limit 5`));
           push('Aprobada: lista para publicar', await sql.query(
             `select p.title from public.pieces p where p.status = 'approved' and p.deleted_at is null
@@ -124,22 +124,22 @@ export const TOOLS: Tool[] = [
           review.forEach((p) => items.push({ que: `Te toca aprobar (${p.review_level})`, titulo: p.title }));
           const tw = await sql.one<{ n: number }>(`select count(*)::int as n from public.tweets where status = 'draft' and deleted_at is null`);
           if (tw?.n) items.push({ que: 'Tweets por aprobar', titulo: `${tw.n} tweets` });
-          push('Espera tu decisión', await sql.query(`select title from public.events where boss_decision = 'pending' and deleted_at is null order by created_at limit 8`));
+          push('Espera tu decisión', await sql.query(`select title from public.events where boss_decision = 'pending' and deleted_at is null and cancelled_at is null order by created_at limit 8`));
         }
         if (has(s, 'dispatch')) {
           push('Ficha técnica incompleta', await sql.query(
             `select e.title from public.events e left join public.event_brief b on b.event_id = e.id
-              where e.deleted_at is null and e.done_on is null and e.boss_decision <> 'rejected'
+              where e.deleted_at is null and e.cancelled_at is null and e.done_on is null and e.boss_decision <> 'rejected'
                 and (b.event_id is null or b.work_description = '' or b.led_by = '' or b.achievements = '') limit 8`));
         }
         if (has(s, 'camera')) {
           push('Sube el material', await sql.query(
             `select e.title from public.events e join public.event_assignments a on a.event_id = e.id and a.user_id = auth.uid()
-              where e.deleted_at is null and e.done_on is not null
+              where e.deleted_at is null and e.cancelled_at is null and e.done_on is not null
                 and not exists (select 1 from public.media_assets m where m.event_id = e.id and m.kind in ${RAW} and m.deleted_at is null) limit 8`));
           push('Evento asignado', await sql.query(
             `select e.title from public.events e join public.event_assignments a on a.event_id = e.id and a.user_id = auth.uid()
-              where e.deleted_at is null and e.done_on is null limit 8`));
+              where e.deleted_at is null and e.cancelled_at is null and e.done_on is null limit 8`));
         }
         const unread = await sql.one<{ n: number }>(`select count(*)::int as n from public.notifications where read_at is null`);
         return { items, unread: unread?.n ?? 0 };
@@ -163,7 +163,7 @@ export const TOOLS: Tool[] = [
     level: 'cuenta',
     async run(_a, ctx) {
       const s = ctx.session;
-      const rows = await db(s, (sql) => sql.query<{ title: string }>(`select title from public.events where boss_decision = 'pending' and deleted_at is null order by created_at limit 50`));
+      const rows = await db(s, (sql) => sql.query<{ title: string }>(`select title from public.events where boss_decision = 'pending' and deleted_at is null and cancelled_at is null order by created_at limit 50`));
       return {
         result: { total: rows.length, eventos: rows.slice(0, 8).map((r) => ({ titulo: r.title })) },
         goTo: has(s, 'boss', 'admin') ? '/jefe/politica' : '/hoy',
@@ -313,8 +313,8 @@ export const TOOLS: Tool[] = [
     level: 'cuenta',
     async run(a, ctx) {
       const rows = await db(ctx.session, (sql) =>
-        sql.query<{ id: string; code: string; title: string; work_status: string; boss_decision: string; done: boolean; category: string | null; blocks: number; material: number; pieces: number }>(
-          `select e.id, e.code, e.title, e.work_status, e.boss_decision, e.done_on is not null as done, c.name as category,
+        sql.query<{ id: string; code: string; title: string; work_status: string; boss_decision: string; done: boolean; cancelled: boolean; category: string | null; blocks: number; material: number; pieces: number }>(
+          `select e.id, e.code, e.title, e.work_status, e.boss_decision, e.done_on is not null as done, e.cancelled_at is not null as cancelled, c.name as category,
                   (select count(*)::int from public.storyboard_blocks b join public.storyboards sb on sb.id = b.storyboard_id
                     where sb.event_id = e.id and b.deleted_at is null) as blocks,
                   (select count(*)::int from public.media_assets m where m.event_id = e.id and m.kind in ${RAW} and m.deleted_at is null) as material,
@@ -334,6 +334,7 @@ export const TOOLS: Tool[] = [
             trabajo: WORK_STATUS[e.work_status]?.label ?? e.work_status,
             decision_del_jefe: BOSS_DECISION[e.boss_decision]?.label ?? e.boss_decision,
             ya_se_hizo: e.done,
+            cancelado: e.cancelled,
             categoria: e.category,
             bloques_de_storyboard: e.blocks,
             archivos_de_material: e.material,

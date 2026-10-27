@@ -54,7 +54,7 @@ const EXPECTED: Record<Role & DemoUserKey, Record<string, Expect>> = {
   ivt: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
     '¿Qué puedo hacer en la plataforma?': { has: /ficha de cada obra/ },
-    '¿Puedo ver la agenda?': { has: /no está en tu menú/ },
+    '¿Puedo ver la agenda?': { has: /La Agenda está en el menú/ },
     '¿Qué es el doble factor?': { has: /director del IVT/ },
   },
   social: {

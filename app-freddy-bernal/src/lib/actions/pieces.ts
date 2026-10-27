@@ -36,12 +36,16 @@ export async function createPiece(raw: unknown) {
       categoryId: uuid.nullable().or(z.literal('')).transform((v) => v || null),
     }),
     raw,
-    async (sql, i) => {
+    async (sql, i, s) => {
       const r = await sql.one<{ id: string }>(
         `insert into public.pieces (event_id, kind, title, category_id) values ($1, $2, $3, $4) returning id`,
         [i.eventId, i.kind, i.title, i.categoryId],
       );
-      if (i.eventId) await sql.query(`update public.events set work_status = 'editing' where id = $1 and work_status in ('material', 'recording')`, [i.eventId]);
+      // The event moves on with its piece. Redes and the boss move an event's work (the column guard); administración,
+      // a technical role, does not (its piece is saved all the same).
+      if (i.eventId && s.roles.some((x) => x === 'social' || x === 'boss')) {
+        await sql.query(`update public.events set work_status = 'editing' where id = $1 and work_status in ('material', 'recording')`, [i.eventId]);
+      }
       return { id: r!.id };
     },
     { revalidate: ['/piezas', '/hoy'] },

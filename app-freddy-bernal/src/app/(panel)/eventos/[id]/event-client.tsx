@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { DateTime } from 'luxon';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { assignCamera, bossDecide, markDone, setWorkStatus, updateBrief, updateEvent, updateSchedule } from '@/lib/actions/events';
 import { useAction } from '@/lib/hooks/use-action';
@@ -15,7 +14,10 @@ import type { CategoryOption } from '@/lib/data/common';
 import type { EventFull } from '@/lib/data/events';
 import { DICTATE_HINT, WORK_STATUS } from '@/lib/data/labels';
 import { cn } from '@/lib/cn';
-import { TZ } from '@/lib/time';
+import { ConflictBanner } from '@/components/agenda/conflict-banner';
+import { ScheduleFields } from '@/components/agenda/schedule-fields';
+import { scheduleValues, type ScheduleValues } from '@/lib/domain/schedule-form';
+import { useEditDraft } from '@/components/agenda/use-edit-draft';
 
 export function BossPanel({ id, priority, decision }: { id: string; priority: number | null; decision: string }) {
   const { run, pending } = useAction();
@@ -70,44 +72,58 @@ export function MarkDone({ id }: { id: string }) {
   );
 }
 
+const SCHEDULE_LABELS = { date: 'Fecha', time: 'Hora', durationMin: 'Duración', exactAddress: 'Dirección exacta', directions: 'Cómo se llega', siteContacts: 'Contactos del sitio' };
+
+// The shared agenda: the boss and despacho edit the same event. Each editor keeps what is typed in the phone (per
+// person) and sends the version it started from; the last save wins and the other person is told, without losing
+// what was there (it stays in «Historial»).
 export function ScheduleEditor({ id, schedule }: { id: string; schedule: NonNullable<EventFull['schedule']> }) {
   const { run, pending } = useAction();
   const [open, setOpen] = useState(false);
-  const s = DateTime.fromJSDate(new Date(schedule.starts_at)).setZone(TZ);
-  const e = DateTime.fromJSDate(new Date(schedule.ends_at)).setZone(TZ);
-  const [f, setF] = useState({
-    date: s.toISODate()!, time: s.toFormat('HH:mm'), durationMin: String(Math.round(e.diff(s, 'minutes').minutes)),
-    exactAddress: schedule.exact_address, directions: schedule.directions, siteContacts: schedule.site_contacts,
-  });
-  const set = (k: keyof typeof f) => (ev: { target: { value: string } }) => setF({ ...f, [k]: ev.target.value });
+  const current = scheduleValues(schedule) as Record<string, string>;
+  const d = useEditDraft(`horario:${id}`, current, schedule.rev);
+  const v = d.values as unknown as ScheduleValues;
   return (
     <Sheet open={open} onOpenChange={setOpen} title="Fecha, hora y lugar" trigger={<Button variant="secondary" size="sm">Cambiar fecha o lugar</Button>}>
-      <form className="flex flex-col gap-3" onSubmit={(ev) => { ev.preventDefault(); run(() => updateSchedule({ id, ...f }), { success: 'Guardado.', onOk: () => setOpen(false) }); }}>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Fecha" htmlFor="sd"><Input id="sd" type="date" value={f.date} onChange={set('date')} required /></Field>
-          <Field label="Hora" htmlFor="st"><Input id="st" type="time" value={f.time} onChange={set('time')} required /></Field>
-        </div>
-        <Field label="Duración (minutos)" htmlFor="sdur"><Input id="sdur" type="number" min={15} step={15} value={f.durationMin} onChange={set('durationMin')} /></Field>
-        <Field label="Dirección exacta" htmlFor="sa"><Input id="sa" value={f.exactAddress} onChange={set('exactAddress')} /></Field>
-        <Field label="Cómo se llega" htmlFor="sdi"><Textarea id="sdi" rows={2} value={f.directions} onChange={set('directions')} /></Field>
-        <Field label="Contactos del sitio" htmlFor="sc"><Textarea id="sc" rows={2} value={f.siteContacts} onChange={set('siteContacts')} /></Field>
+      <form
+        className="flex flex-col gap-3"
+        onSubmit={(ev) => {
+          ev.preventDefault();
+          const p = d.payload();
+          run(() => updateSchedule({ id, ...v, rev: p.rev, base: p.base }), { onOk: () => { d.clear(); setOpen(false); } });
+        }}
+      >
+        <ConflictBanner conflicts={d.conflicts} theirs={d.theirs} onTheirs={d.takeTheirs} onMine={d.keepMine} labels={SCHEDULE_LABELS} />
+        <ScheduleFields idPrefix="s" values={v} onChange={(k, val) => d.set(k, val)} />
         <Button type="submit" disabled={pending}>Guardar</Button>
       </form>
     </Sheet>
   );
 }
 
+const BRIEF_LABELS = { workDescription: 'De qué es la obra o el acto', ledBy: 'Quién la dirige', inCharge: 'Encargado', achievements: 'Qué se está logrando', keyFacts: 'Datos y cifras', protocol: 'Protocolo', notes: 'Notas' };
+
 export function BriefEditor({ id, brief }: { id: string; brief: EventFull['brief'] }) {
   const { run, pending } = useAction();
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({
+  const current = {
     workDescription: brief?.work_description ?? '', ledBy: brief?.led_by ?? '', inCharge: brief?.in_charge ?? '',
     achievements: brief?.achievements ?? '', keyFacts: brief?.key_facts ?? '', protocol: brief?.protocol ?? '', notes: brief?.notes ?? '',
-  });
-  const set = (k: keyof typeof f) => (ev: { target: { value: string } }) => setF({ ...f, [k]: ev.target.value });
+  };
+  const d = useEditDraft(`ficha-tecnica:${id}`, current, brief?.rev ?? null);
+  const f = d.values as typeof current;
+  const set = (k: keyof typeof current) => (ev: { target: { value: string } }) => d.set(k, ev.target.value);
   return (
     <Sheet open={open} onOpenChange={setOpen} title="Ficha técnica" trigger={<Button variant="secondary" size="sm">Editar</Button>}>
-      <form className="flex flex-col gap-3" onSubmit={(ev) => { ev.preventDefault(); run(() => updateBrief({ id, ...f }), { success: 'Ficha guardada.', onOk: () => setOpen(false) }); }}>
+      <form
+        className="flex flex-col gap-3"
+        onSubmit={(ev) => {
+          ev.preventDefault();
+          const p = d.payload();
+          run(() => updateBrief({ id, ...f, rev: p.rev, base: brief ? p.base : undefined }), { onOk: () => { d.clear(); setOpen(false); } });
+        }}
+      >
+        <ConflictBanner conflicts={d.conflicts} theirs={d.theirs} onTheirs={d.takeTheirs} onMine={d.keepMine} labels={BRIEF_LABELS} />
         <Field label="De qué es la obra o el acto" htmlFor="bw" hint={DICTATE_HINT}><Textarea id="bw" rows={2} value={f.workDescription} onChange={set('workDescription')} /></Field>
         <Field label="Quién la dirige" htmlFor="bl"><Input id="bl" value={f.ledBy} onChange={set('ledBy')} /></Field>
         <Field label="Encargado" htmlFor="bi"><Input id="bi" value={f.inCharge} onChange={set('inCharge')} /></Field>
@@ -121,14 +137,26 @@ export function BriefEditor({ id, brief }: { id: string; brief: EventFull['brief
   );
 }
 
+const EVENT_LABELS = { title: 'Título', placeName: 'A dónde se va', municipality: 'Municipio', summary: 'De qué se trata', categoryId: 'Categoría', urgency: 'Prioridad para el equipo' };
+
 export function EventEditor({ ev, categories, municipalities }: { ev: EventFull; categories: CategoryOption[]; municipalities: string[] }) {
   const { run, pending } = useAction();
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({ title: ev.title, placeName: ev.place_name, municipality: ev.municipality, summary: ev.summary, categoryId: ev.category_id ?? '', urgency: String(ev.urgency) });
-  const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
+  const current = { title: ev.title, placeName: ev.place_name, municipality: ev.municipality, summary: ev.summary, categoryId: ev.category_id ?? '', urgency: String(ev.urgency) };
+  const d = useEditDraft(`evento:${ev.id}`, current, ev.rev);
+  const f = d.values as typeof current;
+  const set = (k: keyof typeof current) => (e: { target: { value: string } }) => d.set(k, e.target.value);
   return (
     <Sheet open={open} onOpenChange={setOpen} title="Datos del evento" trigger={<Button variant="secondary">Editar datos del evento</Button>}>
-      <form className="flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); run(() => updateEvent({ id: ev.id, ...f }), { success: 'Guardado.', onOk: () => setOpen(false) }); }}>
+      <form
+        className="flex flex-col gap-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const p = d.payload();
+          run(() => updateEvent({ id: ev.id, ...f, rev: p.rev, base: p.base }), { onOk: () => { d.clear(); setOpen(false); } });
+        }}
+      >
+        <ConflictBanner conflicts={d.conflicts} theirs={d.theirs} onTheirs={d.takeTheirs} onMine={d.keepMine} labels={EVENT_LABELS} />
         <Field label="Título" htmlFor="et"><Input id="et" value={f.title} onChange={set('title')} maxLength={140} required /></Field>
         <Field label="A dónde se va" htmlFor="ep"><Input id="ep" value={f.placeName} onChange={set('placeName')} /></Field>
         <Field label="Municipio" htmlFor="em">

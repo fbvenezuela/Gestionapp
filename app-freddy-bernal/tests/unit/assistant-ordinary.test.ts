@@ -137,7 +137,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Qué tengo pendiente?', { tool: 'mis_pendientes', has: /nada pendiente/ }],
     ['¿Qué puedo hacer yo en la plataforma?', { has: /ficha de cada obra/ }],
     ['¿Qué hace el director del IVT?', { has: /ficha de cada obra/ }],
-    ['¿Puedo ver la agenda?', { has: /no está en tu menú/ }],
+    // «Mis visitas de obra» (the shared agenda): the dates of the visits to its obras only.
+    ['¿Puedo ver la agenda?', { has: /La Agenda está en el menú/ }],
     ['¿Puedo ver las piezas?', { has: /^No ve piezas, copies, tweets ni publicaciones/ }],
     ['¿Quién decide si se hace un evento?', { has: /Jefe: tiene todo/ }],
     ['¿Qué es el doble factor?', { has: /el director del IVT/ }],

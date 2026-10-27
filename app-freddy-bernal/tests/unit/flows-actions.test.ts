@@ -58,17 +58,37 @@ const newEvent = (title: string, extra: Record<string, unknown> = {}) => ({
 });
 
 describe('createEvent: avisos al crear', () => {
-  it('administración crea: avisa al jefe y a despacho, a ella no, y solo con el título', async () => {
+  it('administración no crea eventos (la agenda es del jefe y del despacho)', async () => {
     as('admin');
+    const r = await events.createEvent(newEvent('Visita de prueba que administración no crea'));
+    expect(r.ok).toBe(false);
+    expect(notices()).toHaveLength(0);
+    const n = await t.system((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.events where title = 'Visita de prueba que administración no crea'`));
+    expect(n!.n).toBe(0);
+  });
+
+  it('el jefe crea: queda aceptado y suyo, al despacho le llega solo el título', async () => {
+    as('boss');
     const r = await events.createEvent(newEvent('Visita de prueba a la escuela'));
     expect(r.ok).toBe(true);
-    const [n, ...rest] = sent('event_new');
+    const id = (r as { data: { id: string } }).data.id;
+    const row = await t.system((sql) => sql.one(`select boss_decision, origin, kind from public.events where id = $1`, [id]));
+    expect(row).toEqual({ boss_decision: 'accepted', origin: 'boss', kind: 'event' });
+    expect(sent('event_new')).toHaveLength(0);
+    const [n, ...rest] = sent('agenda_changed');
     expect(rest).toHaveLength(0);
-    expect(n.title).toBe('Hay un evento nuevo por decidir: Visita de prueba a la escuela');
-    expect(new Set(n.userIds)).toEqual(new Set([t.ids.boss, t.ids.dispatch]));
-    expect(sent('event_assigned')).toHaveLength(0);
+    expect(n.title).toBe('El jefe agregó a la agenda: Visita de prueba a la escuela');
+    expect(n.userIds).toEqual([t.ids.dispatch]);
     const out = JSON.stringify(notices());
     for (const secret of ['Calle inventada', 'plaza de prueba', '1234567', '10:00', 'Cancha inventada']) expect(out).not.toContain(secret);
+  });
+
+  it('el jefe crea una visita de obra con el botón grande: queda como «Visita de obra»', async () => {
+    as('boss');
+    const r = await events.createEvent(newEvent('Visita de prueba a la cancha techada', { kind: 'obra_visit' }));
+    expect(r.ok).toBe(true);
+    const row = await t.system((sql) => sql.one(`select kind, boss_decision from public.events where id = $1`, [(r as { data: { id: string } }).data.id]));
+    expect(row).toEqual({ kind: 'obra_visit', boss_decision: 'accepted' });
   });
 
   it('despacho crea con cámara: el aviso (también por correo) a quien graba lleva solo el título', async () => {
@@ -85,6 +105,8 @@ describe('createEvent: avisos al crear', () => {
     expect(looksLikeDateTime(`${a.title} ${a.body}`)).toBe(false);
     const [n] = sent('event_new');
     expect(n.userIds).toEqual([t.ids.boss]); // despacho created it: no notice to herself
+    const row = await t.system((sql) => sql.one(`select boss_decision, origin from public.events where id = $1`, [(r as { data: { id: string } }).data.id]));
+    expect(row).toEqual({ boss_decision: 'pending', origin: 'dispatch' });
   });
 });
 
@@ -176,7 +198,7 @@ describe('el título de un evento no lleva fecha ni hora', () => {
 
 describe('bossDecide: solo el jefe decide', () => {
   const proposal = async (title: string) => {
-    as('admin');
+    as('dispatch');
     const c = await events.createEvent(newEvent(title));
     h.notices.length = 0;
     return (c as { data: { id: string } }).data.id;
@@ -203,7 +225,8 @@ describe('bossDecide: solo el jefe decide', () => {
     const [n, ...rest] = sent('event_decided');
     expect(rest).toHaveLength(0);
     expect(n.title).toBe('El jefe aceptó: Propuesta que el jefe acepta');
-    expect(new Set(n.userIds)).toEqual(new Set([t.ids.admin, t.ids.dispatch]));
+    // Despacho created it: one notice, to despacho.
+    expect(n.userIds).toEqual([t.ids.dispatch]);
     // Same decision again: nothing changed, no new notice.
     h.notices.length = 0;
     await events.bossDecide({ id, priority: 7, decision: 'accepted' });

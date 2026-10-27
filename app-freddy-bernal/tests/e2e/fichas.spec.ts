@@ -25,12 +25,15 @@ test('el IVT: sus fichas de obra, la ficha O-0001 con su diálogo FAB y una fich
   await noSerious(page, '/obras');
   await fitsWidth(page, '/obras');
 
-  // O-0001: the bridge of the demo (already dated by despacho: the IVT does not see the date yet).
+  // O-0001: the bridge of the demo, already dated by despacho: the IVT sees the date of the visits to its obras
+  // (the shared agenda, 27/10/2026), with 2FA.
   await page.getByRole('link', { name: /Rehabilitación del puente La Quebrada/ }).click();
   await expect(page).toHaveURL(/\/obras\/[0-9a-f-]{36}$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Rehabilitación del puente La Quebrada' })).toBeVisible();
   await expect(page.getByText('O-0001', { exact: true })).toBeVisible();
-  await expect(page.getByText('Ya tiene fecha. La ponen y la ven el jefe y el despacho en la agenda.')).toBeVisible();
+  await expect(page.getByRole('link', { name: /^Ver la visita E-\d{4}$/ })).toBeVisible();
+  // «Ponerle fecha» is the boss's and despacho's only.
+  await expect(page.getByRole('button', { name: 'Ponerle fecha' })).toHaveCount(0);
   // Contacts are there for the IVT (with 2FA), and the history has only field names.
   await expect(page.getByText('0000-0000102')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Historia' })).toBeVisible();

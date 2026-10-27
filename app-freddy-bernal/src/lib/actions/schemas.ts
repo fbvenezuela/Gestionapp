@@ -35,6 +35,13 @@ export const scheduleShape = {
   siteContacts: text(1000),
 };
 
+// The shared agenda: the version (rev) and the values (base) an editor started from. Without them a save writes
+// everything it sends (domain/agenda-merge.ts).
+export const revSchema = {
+  rev: z.coerce.number().int().min(1).optional(),
+  base: z.record(z.string().max(60), z.union([z.string().max(10_000), z.number(), z.boolean(), z.null()])).optional(),
+};
+
 export function toRange(date: string, time: string, durationMin: number) {
   const start = DateTime.fromISO(`${date}T${time}`, { zone: TZ });
   if (!start.isValid) throw new UserError('La fecha u hora no es válida.');

@@ -46,14 +46,15 @@ export async function markPublished(raw: unknown) {
   return act(
     z.object({ id: uuid, url: postUrl, evidenceId: uuid.nullable().default(null), publishedAt: z.string().datetime({ offset: true }).nullable().default(null) }),
     raw,
-    async (sql, i) => {
+    async (sql, i, s) => {
       const r = await sql.one<{ piece_id: string; event_id: string | null }>(
         `update public.publications p set status = 'published', url = $2, evidence_asset_id = $3, published_at = coalesce($4::timestamptz, now()), failure_reason = null
           where id = $1 returning piece_id, (select event_id from public.pieces x where x.id = p.piece_id)`,
         [i.id, i.url, i.evidenceId, i.publishedAt],
       );
       if (!r) throw new UserError('No se encontró la publicación.');
-      if (r.event_id) await sql.query(`update public.events set work_status = 'published' where id = $1`, [r.event_id]);
+      // Redes and the boss move an event's work (the column guard); administración does not.
+      if (r.event_id && s.roles.some((x) => x === 'social' || x === 'boss')) await sql.query(`update public.events set work_status = 'published' where id = $1`, [r.event_id]);
     },
     { revalidate: ['/publicar', '/piezas', '/resultados', '/hoy'] },
   );

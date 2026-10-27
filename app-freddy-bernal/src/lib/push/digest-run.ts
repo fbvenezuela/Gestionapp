@@ -24,7 +24,7 @@ async function digestData(sql: Sql): Promise<DigestData> {
   const stock = await tweetStock(sql);
   const briefs = await sql.query<{ title: string }>(
     `select e.title from public.events e left join public.event_brief b on b.event_id = e.id
-      where e.deleted_at is null and e.done_on is null and e.boss_decision <> 'rejected'
+      where e.deleted_at is null and e.cancelled_at is null and e.done_on is null and e.boss_decision <> 'rejected'
         and (b.event_id is null or b.work_description = '' or b.led_by = '' or b.achievements = '')
       order by e.created_at limit 50`,
   );

@@ -217,7 +217,7 @@
     "admin"
    ],
    "title": "Qué hace el director de política en la plataforma",
-   "body": "Para qué: cargar los eventos y avances comunitarios de cada municipio para que el jefe y Despacho los pongan en la agenda. No pone fecha ni hora: eso lo hacen el jefe o Despacho. No ve la agenda con fecha y hora, ni piezas, copies, tweets o publicaciones. Entra con el código del correo y el doble factor. Inicio: Hoy. Su pantalla de fichas por municipio llega en la próxima entrega.",
+   "body": "Para qué: cargar los eventos y avances comunitarios de cada municipio para que el jefe y Despacho los pongan en la agenda. No pone fecha ni hora: eso lo hacen el jefe o Despacho. No ve la agenda con fecha y hora, ni piezas, copies, tweets o publicaciones. Entra con el código del correo y el doble factor. Inicio: Municipios. Cuando el jefe le pone fecha a su reporte, ve «Ya tiene fecha», nunca la fecha.",
    "tags": [
     "politica",
     "director de politica",
@@ -233,7 +233,7 @@
     "admin"
    ],
    "title": "Qué hace el director del IVT en la plataforma",
-   "body": "Para qué: cargar la ficha de cada obra (del IVT) antes de la visita del jefe. No pone fecha ni hora: eso lo hacen el jefe o Despacho. No ve piezas, copies, tweets ni publicaciones. Entra con el código del correo y el doble factor. Inicio: Hoy. Su pantalla de fichas de obra llega en la próxima entrega.",
+   "body": "Para qué: cargar la ficha de cada obra (del IVT) antes de la visita del jefe. No pone fecha ni hora: eso lo hacen el jefe o Despacho. No ve piezas, copies, tweets ni publicaciones. Entra con el código del correo y el doble factor. Inicio: Fichas de obra. Cuando el jefe o Despacho le ponen fecha a la visita, la ve en la Agenda («Mis visitas de obra»), solo la de sus obras.",
    "tags": [
     "ivt",
     "director del ivt",

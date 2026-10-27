@@ -99,18 +99,20 @@ describe('menús', () => {
     expect([...mobile, ...more].length).toBe(visible.length);
   });
 
-  it('el jefe y el despacho crean fichas de obra y comunitarias; el evento todavía es de despacho (la base decide)', () => {
-    expect(createFor(['boss']).map((c) => c.label)).toEqual(['Ficha de obra', 'Ficha comunitaria', 'Nueva pieza', 'Tweets de la semana', 'Nueva publicación']);
-    expect(createFor(['dispatch']).map((c) => c.label)).toEqual(['Nuevo evento', 'Ficha de obra', 'Ficha comunitaria']);
+  it('el jefe y el despacho comparten la agenda: los dos crean eventos y visitas de obra; administración no (la base decide)', () => {
+    expect(createFor(['boss']).map((c) => c.label)).toEqual(['Nuevo evento', 'Visita de obra', 'Ficha de obra', 'Ficha comunitaria', 'Nueva pieza', 'Tweets de la semana', 'Nueva publicación']);
+    expect(createFor(['dispatch']).map((c) => c.label)).toEqual(['Nuevo evento', 'Visita de obra', 'Ficha de obra', 'Ficha comunitaria']);
+    expect(createFor(['admin']).map((c) => c.label)).not.toContain('Nuevo evento');
+    expect(createFor(['admin']).map((c) => c.label)).not.toContain('Visita de obra');
     expect(createFor(['politics']).map((c) => c.label)).toEqual(['Ficha comunitaria']);
     expect(createFor(['ivt']).map((c) => c.label)).toEqual(['Ficha de obra']);
     expect(createFor(['social', 'camera']).map((c) => c.label)).not.toContain('Ficha comunitaria');
   });
 
-  it('el IVT entra a sus fichas de obra y política a los municipios; sin agenda, contenido ni aprobaciones', () => {
+  it('el IVT entra a sus fichas de obra (y «Mis visitas de obra» en la agenda) y política a los municipios; sin contenido ni aprobaciones', () => {
     expect(homeFor(['ivt'])).toBe('/obras');
     expect(homeFor(['politics'])).toBe('/municipios');
-    expect(navFor(['ivt']).visible.map((n) => n.href)).toEqual(['/obras']);
+    expect(navFor(['ivt']).visible.map((n) => n.href)).toEqual(['/agenda', '/obras']);
     expect(navFor(['politics']).visible.map((n) => n.href)).toEqual(['/municipios']);
     expect(homeFor(['boss'])).toBe('/jefe');
     expect(homeFor(['boss', 'admin'])).toBe('/hoy');

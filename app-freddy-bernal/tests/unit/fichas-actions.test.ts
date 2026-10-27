@@ -439,11 +439,14 @@ describe('«Lo que voy a decir» no lleva contactos ni teléfonos', () => {
 });
 
 describe('«Ya tiene fecha» para política', () => {
-  it('política no lee el evento de su reporte, pero la base le dice que ya tiene fecha', async () => {
+  it('política lee el evento de su reporte sin su fecha, y la base le dice que ya tiene fecha', async () => {
     const { getReport } = await import('@/lib/data/fichas');
     const linked = (await t.system((sql) => sql.one<{ id: string }>(`select community_report_id as id from public.events where community_report_id is not null order by code limit 1`)))!.id;
     const forPolitics = await t.as('politics', (sql) => getReport(sql, linked));
-    expect(forPolitics!.event).toBeNull();
+    // The activity born from its report (the shared agenda, 27/10/2026), never its date.
+    expect(forPolitics!.event?.live).toBe(true);
+    expect(forPolitics!.event?.starts_at).toBeNull();
+    expect(forPolitics!.event?.ends_at).toBeNull();
     expect(forPolitics!.scheduled).toBe(true);
     const forBoss = await t.as('boss', (sql) => getReport(sql, linked));
     expect(forBoss!.event?.starts_at).toBeTruthy();

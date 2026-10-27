@@ -10,6 +10,7 @@ import { today } from '@/lib/time';
 import { ApproveGreen } from '../aprobar/approve-green';
 import { overdueReports } from '@/lib/data/fichas';
 import { OverdueReports } from '@/components/fichas/overdue-reports';
+import { toSchedule } from '@/lib/data/events';
 
 export const metadata = { title: 'Inicio' };
 
@@ -19,10 +20,11 @@ export default async function BossHome() {
   const t0 = today();
   const counts = await db(s, async (sql) => ({
     todayEvents: (await sql.one<{ n: number }>(
-      `select count(*)::int as n from public.event_calendar where starts_at >= $1 and starts_at < $2 and boss_decision <> 'rejected'`,
+      `select count(*)::int as n from public.event_calendar where starts_at >= $1 and starts_at < $2 and boss_decision <> 'rejected' and cancelled_at is null`,
       [t0.toUTC().toISO(), t0.plus({ days: 1 }).toUTC().toISO()],
     ))!.n,
-    pending: (await sql.one<{ n: number }>(`select count(*)::int as n from public.events where boss_decision = 'pending' and deleted_at is null`))!.n,
+    pending: (await sql.one<{ n: number }>(`select count(*)::int as n from public.events where boss_decision = 'pending' and deleted_at is null and cancelled_at is null`))!.n,
+    toSchedule: (await toSchedule(sql, 200)).length,
     published: (await sql.one<{ n: number }>(`select count(*)::int as n from public.publications where status = 'published' and published_at > now() - interval '7 days'`))!.n,
     // The boss approves every level and the tweets (public.can_approve()): all of it waits for him here.
     review: await piecesInReview(sql),
@@ -109,7 +111,7 @@ export default async function BossHome() {
             <span className="block text-3xl font-bold">Política</span>
             <span className="mt-1 block text-lg opacity-90">Agenda, fichas y lo que vas a decir</span>
             <span className="mt-3 block text-base">
-              {counts.todayEvents} {counts.todayEvents === 1 ? 'evento hoy' : 'eventos hoy'} · {counts.pending} por decidir
+              {counts.todayEvents} {counts.todayEvents === 1 ? 'evento hoy' : 'eventos hoy'} · {counts.pending} por decidir · {counts.toSchedule} por ponerle fecha
             </span>
           </span>
         </Link>

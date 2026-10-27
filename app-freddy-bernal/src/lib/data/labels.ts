@@ -16,6 +16,21 @@ export const BOSS_DECISION: Record<string, { label: string; tone: Tone }> = {
   rejected: { label: 'Rechazado', tone: 'danger' },
 };
 
+// The shared agenda (27/10/2026): what an event is and who proposed it (events.kind, events.origin). What the
+// ex-Secretaría proposed reads «Despacho» (origin), whoever created it.
+export const EVENT_KIND: Record<string, string> = {
+  event: 'Evento',
+  obra_visit: 'Visita de obra',
+  community: 'Actividad comunitaria',
+};
+
+export const EVENT_ORIGIN: Record<string, string> = {
+  dispatch: 'Propuesto por Despacho',
+  boss: 'Lo agregó el jefe',
+  ivt: 'Nació de una ficha del IVT',
+  politics: 'Nació de un reporte de política',
+};
+
 export const PIECE_STATUS: Record<string, { label: string; tone: Tone }> = {
   draft: { label: 'Borrador', tone: 'neutral' },
   in_review: { label: 'Por aprobar', tone: 'warn' },

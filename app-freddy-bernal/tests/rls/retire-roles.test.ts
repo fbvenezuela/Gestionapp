@@ -8,6 +8,9 @@ import postgres from 'postgres';
 import { asSystem, asUser, type Backend, type Row, type Sql } from '@/lib/db/core';
 import { pgliteBackend } from '@/lib/db/pglite';
 import { readMigrations, readShim } from '@/lib/db/migrations';
+import { EVENT_ORIGIN } from '@/lib/data/labels';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const FIRST_NEW = '20261027001500';
 const KEY = 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM';
@@ -154,10 +157,17 @@ describe('se retiran Secretaría y Supervisión política sin perder historia', 
     expect(ev).toEqual({ created_by: ID.secretary, deleted_at: null });
   });
 
-  // Spec §2: what Secretaría proposed reads «propuesto por Despacho». The column arrives with
-  // 20261027001800_shared_agenda.sql (events.origin default 'dispatch'); then this becomes a real check:
-  // origin = 'dispatch' while created_by keeps the real author, and the screens read origin, never created_by.
-  it.todo('lo que propuso Secretaría se lee «propuesto por Despacho» (events.origin = dispatch)');
+  // Spec §2: what Secretaría proposed reads «propuesto por Despacho». events.origin (default 'dispatch',
+  // 20261027002000_shared_agenda.sql) says it, while created_by keeps the real author; the screens read origin.
+  it('lo que propuso Secretaría se lee «propuesto por Despacho» (events.origin = dispatch)', async () => {
+    const ev = await sys((sql) => sql.one<{ origin: string; created_by: string; kind: string }>(`select origin, created_by, kind from public.events where id = $1`, [legacy.event]));
+    expect(ev).toEqual({ origin: 'dispatch', created_by: ID.secretary, kind: 'event' });
+    expect(EVENT_ORIGIN[ev!.origin]).toBe('Propuesto por Despacho');
+    // The event page shows the origin label, never who created it.
+    const page = fs.readFileSync(path.join('src', 'app', '(panel)', 'eventos', '[id]', 'page.tsx'), 'utf8');
+    expect(page).toContain('EVENT_ORIGIN[ev.origin]');
+    expect(page).not.toMatch(/created_by(_name)?\b(?!:)/);
+  });
 
   it('lo que aprobó Supervisión queda con su autor, y el jefe y Redes ven su nombre', async () => {
     const p = await sys((sql) => sql.one<{ status: string; approved_by: string }>(`select status, approved_by from public.pieces where id = $1`, [legacy.piece]));

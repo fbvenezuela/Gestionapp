@@ -56,7 +56,8 @@ test('despacho crea un evento con su ficha y aparece en el calendario', async ({
   await page.getByLabel('Guardar aunque choque con otro evento').check();
   await page.getByRole('button', { name: 'Guardar evento' }).click();
   await expect(page.getByRole('heading', { name: 'Inspección del acueducto de prueba' })).toBeVisible();
-  await expect(page.getByText(/7:15/)).toBeVisible();
+  // The schedule card comes first (the «Historial» below shows when each change was made, any time of day).
+  await expect(page.getByText(/7:15\sa\.\sm\./).first()).toBeVisible();
   await page.goto(`/agenda?vista=dia&fecha=${d}`);
   await expect(page.getByText('Inspección del acueducto de prueba')).toBeVisible();
   await axe(page);
@@ -122,7 +123,7 @@ test('el jefe sube material en el evento, como Redes («el jefe hace lo de Redes
   await loginAs(page, 'jefe@demo.test');
   await page.goto('/obras');
   await page.getByRole('link', { name: /Rehabilitación del puente La Quebrada/ }).click();
-  const ev = await page.getByRole('link', { name: /^Ver el evento E-\d+$/ }).getAttribute('href');
+  const ev = await page.getByRole('link', { name: /^Ver la visita E-\d+$/ }).getAttribute('href');
   expect(ev).toMatch(/^\/eventos\/[0-9a-f-]{36}$/);
   await page.goto(`${ev}?tab=material`);
   await expect(page.getByLabel('Subir jefe hablando')).toHaveCount(1);

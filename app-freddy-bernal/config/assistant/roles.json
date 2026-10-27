@@ -33,7 +33,7 @@
     },
     "politics": {
       "label": "Director de política",
-      "oficio": "El director de política carga los eventos y avances comunitarios de cada municipio para que [JEFE] y Despacho los pongan en la agenda. No pone fecha ni hora: eso lo hacen [JEFE] o Despacho. No ve la agenda con fecha, ni piezas, copies, tweets o publicaciones. Su pantalla de fichas llega en la próxima entrega.",
+      "oficio": "El director de política carga los eventos y avances comunitarios de cada municipio para que [JEFE] y Despacho los pongan en la agenda. No pone fecha ni hora: eso lo hacen [JEFE] o Despacho. No ve la agenda con fecha, ni piezas, copies, tweets o publicaciones. Cuando [JEFE] le pone fecha a su reporte, ve «Ya tiene fecha», sin la fecha.",
       "sugeridas": [
         "¿Qué tengo pendiente?",
         "¿Qué puedo hacer en la plataforma?",
@@ -43,7 +43,7 @@
     },
     "ivt": {
       "label": "Director del IVT",
-      "oficio": "El director del IVT carga la ficha de cada obra antes de la visita de [JEFE]. No pone fecha ni hora: eso lo hacen [JEFE] o Despacho. No ve piezas, copies, tweets ni publicaciones. Su pantalla de fichas de obra llega en la próxima entrega.",
+      "oficio": "El director del IVT carga la ficha de cada obra antes de la visita de [JEFE]. No pone fecha ni hora: eso lo hacen [JEFE] o Despacho. Cuando ya la pusieron, la ve en la Agenda («Mis visitas de obra»), solo de las visitas a sus obras. No ve piezas, copies, tweets ni publicaciones.",
       "sugeridas": [
         "¿Qué tengo pendiente?",
         "¿Qué puedo hacer en la plataforma?",

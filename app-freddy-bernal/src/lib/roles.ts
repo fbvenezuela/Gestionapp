@@ -66,7 +66,8 @@ export type NavItem = { href: string; label: string; icon: string; roles: Role[]
 export const NAV: NavItem[] = [
   { href: '/jefe', label: 'Inicio', icon: 'home', roles: ['boss'], mobile: ['boss'] },
   { href: '/hoy', label: 'Hoy', icon: 'sun', roles: ['admin', 'dispatch', 'social', 'camera'], mobile: ['admin', 'dispatch', 'social', 'camera'] },
-  { href: '/agenda', label: 'Agenda', icon: 'calendar', roles: ['admin', 'boss', 'dispatch', 'social', 'camera'], mobile: ['admin', 'boss', 'dispatch', 'social', 'camera'] },
+  // The IVT's agenda is «Mis visitas de obra» (the visits born from its fichas, with their date).
+  { href: '/agenda', label: 'Agenda', icon: 'calendar', roles: ['admin', 'boss', 'dispatch', 'social', 'camera', 'ivt'], mobile: ['admin', 'boss', 'dispatch', 'social', 'camera', 'ivt'] },
   { href: '/aprobar', label: 'Por aprobar', icon: 'check', roles: ['boss', 'admin'], mobile: ['boss'] },
   { href: '/obras', label: 'Obras', icon: 'hardhat', roles: ['admin', 'boss', 'dispatch', 'ivt'], mobile: ['dispatch', 'ivt'] },
   { href: '/municipios', label: 'Municipios', icon: 'map', roles: ['admin', 'boss', 'dispatch', 'politics'], mobile: ['dispatch', 'politics'] },
@@ -79,9 +80,11 @@ export const NAV: NavItem[] = [
   { href: '/ajustes', label: 'Ajustes', icon: 'settings', roles: ['admin'], mobile: ['admin'] },
 ];
 
-// The «Crear» menu in the top bar. Each entry mirrors what the database lets that role insert.
+// The «Crear» menu in the top bar. Each entry mirrors what the database lets that role insert. The agenda is the
+// boss's and despacho's (can_manage_agenda()); administración reads it only.
 export const CREATE_ITEMS: { href: string; label: string; roles: Role[] }[] = [
-  { href: '/agenda/nuevo', label: 'Nuevo evento', roles: ['admin', 'dispatch'] },
+  { href: '/agenda/nuevo', label: 'Nuevo evento', roles: ['boss', 'dispatch'] },
+  { href: '/agenda/nuevo?tipo=obra', label: 'Visita de obra', roles: ['boss', 'dispatch'] },
   { href: '/obras/nueva', label: 'Ficha de obra', roles: ['admin', 'boss', 'dispatch', 'ivt'] },
   { href: '/reportes/nuevo', label: 'Ficha comunitaria', roles: ['admin', 'boss', 'dispatch', 'politics'] },
   { href: '/piezas/nueva', label: 'Nueva pieza', roles: ['admin', 'social', 'boss'] },
@@ -115,4 +118,10 @@ export function homeFor(roles: Role[]): string {
 
 export function canSeeSchedule(roles: Role[]) {
   return roles.some((r) => r === 'admin' || r === 'boss' || r === 'dispatch');
+}
+
+// Who writes the agenda (create, put the date, move, cancel): the boss and despacho. The database decides too
+// (can_manage_agenda(), with 2FA).
+export function canManageAgenda(roles: Role[]) {
+  return roles.some((r) => r === 'boss' || r === 'dispatch');
 }

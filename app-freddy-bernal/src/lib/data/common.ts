@@ -24,6 +24,8 @@ export async function parishes(sql: Sql): Promise<ParishMap> {
 }
 
 export async function peopleWithRole(sql: Sql, role: string) {
+  // Grabación: the boss, despacho and Redes assign it, and they cannot read user_roles (only admin can).
+  if (role === 'camera') return sql.query<{ id: string; full_name: string }>(`select id, full_name from public.camera_people()`);
   return sql.query<{ id: string; full_name: string }>(
     `select p.id, coalesce(nullif(p.full_name, ''), p.email) as full_name from public.profiles p
       where p.active and p.deleted_at is null and exists (select 1 from public.user_roles ur where ur.user_id = p.id and ur.role = $1::public.app_role)

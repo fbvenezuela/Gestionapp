@@ -14,8 +14,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const q = (raw ?? '').trim().slice(0, 80);
   const results = q
     ? await db(s, async (sql) => ({
-        events: await sql.query<{ id: string; title: string; place_name: string }>(
-          `select id, title, place_name from public.events where deleted_at is null and (title ilike '%' || $1 || '%' or place_name ilike '%' || $1 || '%' or municipality ilike '%' || $1 || '%' or code ilike $1) limit 20`,
+        // A cancelled event is still found, marked as such.
+        events: await sql.query<{ id: string; title: string; place_name: string; cancelled: boolean }>(
+          `select id, title, place_name, cancelled_at is not null as cancelled from public.events where deleted_at is null and (title ilike '%' || $1 || '%' or place_name ilike '%' || $1 || '%' or municipality ilike '%' || $1 || '%' or code ilike $1) limit 20`,
           [q],
         ),
         pieces: await sql.query<{ id: string; title: string }>(`select id, title from public.pieces where deleted_at is null and title ilike '%' || $1 || '%' limit 20`, [q]),
@@ -33,7 +34,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       {results.events.length ? (
         <Card className="mb-4">
           <h2 className="border-b border-border px-4 py-3 font-semibold">Eventos</h2>
-          <ul className="divide-y divide-border">{results.events.map((e) => <li key={e.id}><Link className="block px-4 py-3 hover:bg-surface-2" href={`/eventos/${e.id}`}><b>{e.title}</b> <span className="text-text-2">· {e.place_name}</span></Link></li>)}</ul>
+          <ul className="divide-y divide-border">{results.events.map((e) => <li key={e.id}><Link className="block px-4 py-3 hover:bg-surface-2" href={`/eventos/${e.id}`}><b className={e.cancelled ? 'line-through' : undefined}>{e.title}</b> <span className="text-text-2">· {e.place_name}{e.cancelled ? ' · Cancelado' : ''}</span></Link></li>)}</ul>
         </Card>
       ) : null}
       {results.pieces.length ? (

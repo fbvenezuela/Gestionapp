@@ -85,6 +85,93 @@ export function toScheduleNotice(f: FichaRef, stamp: string): AgendaNotice {
   };
 }
 
+// ---------------------------------------------------------------------------
+// The shared agenda (§3, §4). Every text is the title (scrubbed) and, for an overwrite or a change, the NAMES of the
+// fields, never their values: no date, time, address, contact or reason. `stamp` (the row's rev after the save, or
+// the event's rev after a cancel) makes each real change its own notice; a retry of the same save is one.
+// ---------------------------------------------------------------------------
+export type EventRef = { id: string; title: string };
+
+// A ficha got its date. The IVT opens the visit and sees the date there (2FA); política gets «Ya tiene fecha» on its
+// report, without the date (link to the report). Despacho or the boss, whoever did not put it, also learns.
+export function scheduledNotice(ev: EventRef, link: string, stamp: string): AgendaNotice {
+  return {
+    kind: 'agenda_scheduled',
+    title: withTitle('Ya tiene fecha', 'Una ficha ya tiene fecha', ev.title),
+    body: '',
+    link,
+    key: `agenda_scheduled:${ev.id}:${stamp}`,
+  };
+}
+
+// The date, time or duration changed (Grabación and the IVT have to be there: critical).
+export function movedNotice(ev: EventRef, stamp: string): AgendaNotice {
+  return {
+    kind: 'event_moved',
+    title: withTitle('Cambió la fecha u hora', 'Cambió la fecha u hora de un evento', ev.title),
+    body: 'Ábrelo para ver la nueva.',
+    link: `/eventos/${ev.id}`,
+    key: `event_moved:${ev.id}:${stamp}`,
+  };
+}
+
+// Cancelled (critical), or back on the agenda after a cancel. Never the reason (free text).
+export function cancelledNotice(ev: EventRef, stamp: string, restored = false): AgendaNotice {
+  return restored
+    ? {
+        kind: 'event_cancelled',
+        title: withTitle('Volvió a la agenda', 'Un evento volvió a la agenda', ev.title),
+        body: 'Ya no está cancelado.',
+        link: `/eventos/${ev.id}`,
+        key: `event_cancelled:${ev.id}:restored:${stamp}`,
+      }
+    : {
+        kind: 'event_cancelled',
+        title: withTitle('Se canceló', 'Se canceló un evento', ev.title),
+        body: '',
+        link: `/eventos/${ev.id}`,
+        key: `event_cancelled:${ev.id}:${stamp}`,
+      };
+}
+
+// Someone saved over what this person had written in the same fields (last one wins). Labels only; what was there
+// stays in the event's history.
+export function overwrittenNotice(ev: EventRef, byName: string, labels: string, stamp: string): AgendaNotice {
+  const who = noticeEventTitle(byName) || 'Otra persona';
+  const t = noticeEventTitle(ev.title);
+  return {
+    kind: 'agenda_overwritten',
+    title: t ? `${who} cambió lo mismo que tú en ${t}` : `${who} cambió lo mismo que tú en un evento`,
+    body: labels ? `${labels}. Lo tuyo quedó en el historial del evento.` : 'Lo tuyo quedó en el historial del evento.',
+    link: `/eventos/${ev.id}`,
+    key: `agenda_overwritten:${ev.id}:${stamp}`,
+  };
+}
+
+// The other manager changed something of an event (optional notice, off by default in Mi perfil).
+export function changedNotice(ev: EventRef, byName: string, labels: string, stamp: string): AgendaNotice {
+  const who = noticeEventTitle(byName) || 'Alguien';
+  const t = noticeEventTitle(ev.title);
+  return {
+    kind: 'agenda_changed',
+    title: t ? `${who} cambió ${t}` : `${who} cambió un evento`,
+    body: labels,
+    link: `/eventos/${ev.id}`,
+    key: `agenda_changed:${ev.id}:${stamp}`,
+  };
+}
+
+// The boss put something on the agenda himself (accepted at once): despacho learns (optional, like a change).
+export function bossAddedNotice(ev: EventRef): AgendaNotice {
+  return {
+    kind: 'agenda_changed',
+    title: withTitle('El jefe agregó a la agenda', 'El jefe agregó algo a la agenda', ev.title),
+    body: '',
+    link: `/eventos/${ev.id}`,
+    key: `agenda_changed:${ev.id}:created`,
+  };
+}
+
 // Unique recipients, without the person who did the action.
 export function noticeRecipients(ids: (string | null | undefined)[], actorId?: string | null): string[] {
   return [...new Set(ids.filter((x): x is string => !!x && x !== actorId))];

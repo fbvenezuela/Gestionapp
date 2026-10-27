@@ -11,6 +11,7 @@ import { Field, Input, Select, Textarea } from '@/components/ui/field';
 import { CategorySelect } from '@/components/ui/category-select';
 import type { CategoryOption } from '@/lib/data/common';
 import { DICTATE_HINT } from '@/lib/data/labels';
+import { ScheduleFields } from '@/components/agenda/schedule-fields';
 
 const EMPTY = {
   title: '', placeName: '', municipality: '', summary: '', categoryId: '', urgency: '2', cameraUserId: '',
@@ -18,10 +19,10 @@ const EMPTY = {
   workDescription: '', ledBy: '', inCharge: '', achievements: '', keyFacts: '', protocol: '', notes: '',
 };
 
-export function NewEventForm({ categories, municipalities, cameras }: { categories: CategoryOption[]; municipalities: string[]; cameras: { id: string; full_name: string }[] }) {
+export function NewEventForm({ kind, categories, municipalities, cameras }: { kind: 'event' | 'obra_visit'; categories: CategoryOption[]; municipalities: string[]; cameras: { id: string; full_name: string }[] }) {
   const router = useRouter();
   const { run, pending } = useAction();
-  const { value: f, setValue, restored, clear } = useDraft('new-event', EMPTY);
+  const { value: f, setValue, restored, clear } = useDraft(kind === 'obra_visit' ? 'new-obra-visit' : 'new-event', EMPTY);
   const [allowOverlap, setAllowOverlap] = useState(false);
   const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) => setValue({ ...f, [k]: e.target.value });
 
@@ -30,7 +31,7 @@ export function NewEventForm({ categories, municipalities, cameras }: { categori
       className="flex flex-col gap-5"
       onSubmit={(e) => {
         e.preventDefault();
-        run(() => createEvent({ ...f, allowOverlap }), {
+        run(() => createEvent({ ...f, kind, allowOverlap }), {
           success: 'Evento guardado.',
           refresh: false,
           onOk: (r) => {
@@ -44,8 +45,13 @@ export function NewEventForm({ categories, municipalities, cameras }: { categori
       <Card>
         <CardHeader title="El evento" />
         <div className="grid gap-4 p-4 sm:grid-cols-2">
-          <Field label="Título" htmlFor="title" hint="Corto y claro, sin fecha ni hora. Ej.: Entrega de la cancha techada de El Mirador" className="sm:col-span-2">
-            <Input id="title" required maxLength={140} value={f.title} onChange={set('title')} />
+          <Field
+            label="Título"
+            htmlFor="title"
+            hint={kind === 'obra_visit' ? 'La obra que se visita, sin fecha ni hora. Ej.: Visita de obra: asfaltado del sector El Mirador' : 'Corto y claro, sin fecha ni hora. Ej.: Entrega de la cancha techada de El Mirador'}
+            className="sm:col-span-2"
+          >
+            <Input id="title" required maxLength={140} className="min-h-14 text-lg" value={f.title} onChange={set('title')} />
           </Field>
           <Field label="A dónde se va" htmlFor="place" hint="El nombre del sitio (lo ve todo el equipo)">
             <Input id="place" value={f.placeName} onChange={set('placeName')} />
@@ -78,28 +84,9 @@ export function NewEventForm({ categories, municipalities, cameras }: { categori
           subtitle="Privado: solo lo ven el jefe, el despacho, administración y quien graba el evento."
         />
         <div className="grid gap-4 p-4 sm:grid-cols-3">
-          <Field label="Fecha" htmlFor="date">
-            <Input id="date" type="date" required value={f.date} onChange={set('date')} />
-          </Field>
-          <Field label="Hora (Táchira)" htmlFor="time">
-            <Input id="time" type="time" required value={f.time} onChange={set('time')} />
-          </Field>
-          <Field label="Duración" htmlFor="dur">
-            <Select id="dur" value={f.durationMin} onChange={set('durationMin')}>
-              {[30, 45, 60, 90, 120, 150, 180, 240, 300, 480].map((m) => (
-                <option key={m} value={m}>{m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`}</option>
-              ))}
-            </Select>
-          </Field>
-          <Field label="Dirección exacta" htmlFor="addr" className="sm:col-span-3">
-            <Input id="addr" value={f.exactAddress} onChange={set('exactAddress')} />
-          </Field>
-          <Field label="Cómo se llega" htmlFor="dir" className="sm:col-span-3">
-            <Textarea id="dir" rows={2} value={f.directions} onChange={set('directions')} />
-          </Field>
-          <Field label="Contactos del sitio" htmlFor="contacts" className="sm:col-span-3">
-            <Textarea id="contacts" rows={2} value={f.siteContacts} onChange={set('siteContacts')} />
-          </Field>
+          <div className="sm:col-span-3">
+            <ScheduleFields idPrefix="ne" values={f} onChange={(k, v) => setValue({ ...f, [k]: v })} />
+          </div>
           <label className="flex min-h-11 items-center gap-2 text-[15px] sm:col-span-3">
             <input type="checkbox" className="h-5 w-5 accent-accent" checked={allowOverlap} onChange={(e) => setAllowOverlap(e.target.checked)} />
             Guardar aunque choque con otro evento
@@ -141,7 +128,7 @@ export function NewEventForm({ categories, municipalities, cameras }: { categori
 
       <div className="sticky bottom-20 z-10 flex gap-2 lg:bottom-4">
         <Button type="submit" size="lg" className="flex-1 sm:flex-none" disabled={pending}>
-          {pending ? 'Guardando…' : 'Guardar evento'}
+          {pending ? 'Guardando…' : kind === 'obra_visit' ? 'Guardar visita de obra' : 'Guardar evento'}
         </Button>
       </div>
     </form>

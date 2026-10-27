@@ -6,9 +6,11 @@ import { env } from './env';
 import { brand } from './client-config';
 import { sendEmail } from './email/send';
 import { pushNotice } from './push/deliver';
+import { kindOn } from './push/quiet';
 
 // Kinds that cannot be turned off (they block someone's work).
-const CRITICAL = new Set(['changes_requested', 'publish_failed', 'tweets_low_stock', 'event_assigned', 'review_red', 'review_overdue', 'assistant_escalation', 'assistant_health', 'drive_down', 'drive_quota']);
+// A moved or cancelled event (the shared agenda, 27/10/2026) too: Grabación and the IVT have to be there, or not.
+export const CRITICAL = new Set(['changes_requested', 'publish_failed', 'tweets_low_stock', 'event_assigned', 'review_red', 'review_overdue', 'assistant_escalation', 'assistant_health', 'drive_down', 'drive_quota', 'event_moved', 'event_cancelled']);
 
 export type Notice = {
   userIds: string[];
@@ -60,7 +62,7 @@ export async function notify(n: Notice) {
   // second guard so a push problem can never break the action that sent the notice.
   await pushNotice(fresh, n, CRITICAL.has(n.kind)).catch((e) => console.warn('[push]', (e as Error).message));
   for (const r of mail) {
-    if (!CRITICAL.has(n.kind) && r.notify_prefs?.[n.kind] === false) continue;
+    if (!CRITICAL.has(n.kind) && !kindOn(n.kind, r.notify_prefs)) continue;
     await sendEmail({
       to: r.email,
       subject: n.title,

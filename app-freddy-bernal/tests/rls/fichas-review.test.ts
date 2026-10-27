@@ -212,8 +212,10 @@ describe('«Ya tiene fecha» para política, sin la fecha', () => {
       expect(await ask(who, other.id), who).toBe(false);
     }
     for (const who of ['social', 'camera', 'ivt'] as const) expect(await ask(who, linked.id), who).toBe(false);
-    // Política still reads no event and no schedule.
-    expect(await count('politics', 'select 1 from public.events')).toBe(0);
+    // Política reads only the activities born from its reports, and never a schedule.
+    const fromReports = (await t.system((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.events where community_report_id is not null and deleted_at is null`)))!.n;
+    expect(await count('politics', 'select 1 from public.events')).toBe(fromReports);
+    expect(await count('politics', 'select 1 from public.events where community_report_id is null')).toBe(0);
     expect(await count('politics', 'select 1 from public.event_schedule')).toBe(0);
     // A rejected visit is not «Ya tiene fecha».
     await t.as('boss', (sql) => sql.query(`update public.events set boss_decision = 'rejected' where id = $1`, [linked.ev]));

@@ -21,7 +21,7 @@ export const metadata = { title: 'Biblioteca' };
 
 // lock = why a file cannot be removed (media-lock.ts), or null. bucket 'drive' = in Google Drive.
 type M = { id: string; kind: string; label: string; lock: string | null; bucket: string; mime: string; size: number; duration_s?: number | null };
-type Row = { event_id: string; title: string; code: string; day: string | Date | null; media: M[] };
+type Row = { event_id: string; title: string; code: string; day: string | Date | null; media: M[]; cancelled: boolean };
 
 function size(b: number) {
   return b > 1e9 ? `${(b / 1e9).toFixed(1)} GB` : `${Math.max(1, Math.round(b / 1e6))} MB`;
@@ -48,7 +48,8 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
               ${schedule ? `coalesce(e.done_on, (select (sc.starts_at at time zone 'America/Caracas')::date from public.event_schedule sc where sc.event_id = e.id and sc.starts_at < now()))` : 'e.done_on'} as day,
               coalesce((select json_agg(json_build_object('id', m.id, 'kind', m.kind, 'label', m.label, 'bucket', m.bucket, 'mime', m.mime, 'size', m.size_bytes,
                                 'lock', ${mediaLockSql('m.id')}) order by m.kind, m.created_at)
-                          from public.media_assets m where m.event_id = e.id and m.deleted_at is null and m.status = 'ready'), '[]') as media
+                          from public.media_assets m where m.event_id = e.id and m.deleted_at is null and m.status = 'ready'), '[]') as media,
+              e.cancelled_at is not null as cancelled -- a cancelled event keeps its material here, marked as cancelled
          from public.events e
         where e.deleted_at is null and exists (select 1 from public.media_assets m where m.event_id = e.id and m.deleted_at is null and m.status = 'ready')
           and ($1::text is null or e.title ilike '%' || $1 || '%' or e.place_name ilike '%' || $1 || '%' or e.code ilike '%' || $1 || '%'
@@ -110,6 +111,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
                   return (
                     <Card key={r.event_id} className="flex flex-col gap-3 p-4">
                       <Link href={`/eventos/${r.event_id}?tab=material`} className="font-semibold hover:underline">{r.title}</Link>
+                      {r.cancelled ? <span className="text-sm text-text-2">Evento cancelado</span> : null}
                       {thumbs.length ? (
                         <div className="flex gap-2" aria-hidden>
                           {thumbs.map((m) => <MediaThumb key={m.id} ids={[m.id]} mime={m.mime} className="h-14 w-14" />)}

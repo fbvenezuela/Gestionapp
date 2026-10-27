@@ -40,10 +40,19 @@ export function inQuietHours(now: Date, q: QuietHours, tz = 'America/Caracas'): 
 
 export type PushDecision = 'send' | 'kind_off' | 'quiet';
 
+// Notice kinds that are OFF until the person turns them on in Mi perfil (the in-app notice is created anyway).
+export const OPT_IN_KINDS: ReadonlySet<string> = new Set(['agenda_changed', 'daily_digest']);
+
+// Whether this person wants this kind by phone and email (critical kinds go regardless, decided by the caller).
+export function kindOn(kind: string, prefs: NotifyPrefs | null | undefined): boolean {
+  const v = (prefs ?? {})[kind];
+  return OPT_IN_KINDS.has(kind) ? v === true : v !== false;
+}
+
 // Whether a notice of this kind may go to this person's phone right now (before grouping).
 export function pushDecision(kind: string, prefs: NotifyPrefs | null | undefined, critical: boolean, now: Date, tz = 'America/Caracas'): PushDecision {
   if (critical) return 'send';
-  if ((prefs ?? {})[kind] === false) return 'kind_off';
+  if (!kindOn(kind, prefs)) return 'kind_off';
   if (inQuietHours(now, quietHours(prefs), tz)) return 'quiet';
   return 'send';
 }

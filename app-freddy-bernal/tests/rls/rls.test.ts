@@ -43,11 +43,15 @@ describe('regla de fecha y hora: redes nunca ve la agenda', () => {
     expect(upd).toHaveLength(0);
   });
 
-  it('el director de política y el del IVT tampoco ven la agenda', async () => {
-    for (const who of ['politics', 'ivt'] as const) {
-      const sch = await t.as(who, (sql) => sql.query('select * from public.event_schedule'));
-      expect(sch).toHaveLength(0);
-    }
+  it('el director de política no ve la agenda; el del IVT, solo la fecha de las visitas de sus obras', async () => {
+    expect(await t.as('politics', (sql) => sql.query('select * from public.event_schedule'))).toHaveLength(0);
+    expect(await t.as('politics', (sql) => sql.query('select * from public.event_calendar'))).toHaveLength(0);
+    const sch = await t.as('ivt', (sql) => sql.query<{ event_id: string }>('select event_id from public.event_schedule'));
+    const visits = await t.system((sql) => sql.query<{ id: string }>('select id from public.events where obra_ficha_id is not null and deleted_at is null'));
+    expect(visits.length).toBeGreaterThan(0);
+    expect(new Set(sch.map((r) => r.event_id))).toEqual(new Set(visits.map((r) => r.id)));
+    // Without 2FA, not even those.
+    expect(await t.as('ivt', (sql) => sql.query('select * from public.event_schedule'), 'aal1')).toHaveLength(0);
   });
 
   it('el registro de cambios de la agenda no es legible por redes', async () => {
@@ -93,11 +97,15 @@ describe('regla de fecha y hora: redes nunca ve la agenda', () => {
     expect(r).toHaveLength(1);
   });
 
-  it('el jefe califica y decide, pero no cambia el título', async () => {
+  it('el jefe califica y decide, y con el despacho comparte la agenda: también cambia el título', async () => {
     const id = await eventId();
+    const before = await t.system((sql) => sql.one<{ title: string }>(`select title from public.events where id = $1`, [id]));
     const r = await t.as('boss', (sql) => sql.query(`update public.events set priority = 10, boss_decision = 'accepted' where id = $1 returning id`, [id]));
     expect(r).toHaveLength(1);
-    await fails(t.as('boss', (sql) => sql.query(`update public.events set title = 'otro título' where id = $1`, [id])));
+    expect(await t.as('boss', (sql) => sql.query(`update public.events set title = 'Otro título (demo)' where id = $1 returning id`, [id]))).toHaveLength(1);
+    // Without 2FA the boss still decides, but does not edit the agenda.
+    await fails(t.as('boss', (sql) => sql.query(`update public.events set title = 'Sin doble factor (demo)' where id = $1`, [id]), 'aal1'));
+    await t.as('boss', (sql) => sql.query(`update public.events set title = $2 where id = $1`, [id, before!.title]));
   });
 });
 

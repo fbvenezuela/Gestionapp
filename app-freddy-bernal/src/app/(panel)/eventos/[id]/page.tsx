@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { CalendarClock, MapPin, BookOpenText, Phone, Route } from 'lucide-react';
+import { Ban, CalendarClock, ClipboardList, MapPin, BookOpenText, Phone, Route } from 'lucide-react';
 import { requireSession, db } from '@/lib/auth/session';
-import { getEvent } from '@/lib/data/events';
+import { eventHistory, getEvent, type EventFull } from '@/lib/data/events';
 import { contentCategories, municipalities, peopleWithRole } from '@/lib/data/common';
 import { PageHeader } from '@/components/ui/page';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
-import { BOSS_DECISION, WORK_STATUS, PIECE_STATUS, PIECE_KIND } from '@/lib/data/labels';
+import { BOSS_DECISION, EVENT_KIND, EVENT_ORIGIN, WORK_STATUS, PIECE_STATUS, PIECE_KIND } from '@/lib/data/labels';
 import { fmtDateTime, fmtTime, fmtDay, dt } from '@/lib/time';
 import { cn } from '@/lib/cn';
 import { BossPanel, BriefEditor, CameraAssign, EventEditor, MarkDone, ScheduleEditor, WorkStatusSelect } from './event-client';
@@ -16,6 +16,10 @@ import { StoryboardEditor } from './storyboard-editor';
 import { MaterialPanel } from './material-panel';
 import { mediaLockSql } from '@/lib/domain/media-lock';
 import { driveUi } from '@/lib/data/drive';
+import { MoveSheet } from '@/components/agenda/move-sheet';
+import { CancelButton, RestoreButton } from '@/components/agenda/cancel-button';
+import { HistoryCard } from '@/components/agenda/history-card';
+import { scheduleValues, whenOf } from '@/lib/domain/schedule-form';
 
 export const metadata = { title: 'Evento' };
 
@@ -46,20 +50,26 @@ export default async function EventPage({ params, searchParams }: { params: Prom
           [id],
         )
       : [];
-    const editors = has('admin', 'dispatch');
+    // The shared agenda: the boss and despacho edit it (the database decides: can_manage_agenda()).
+    const editors = has('boss', 'dispatch');
     return {
       ev,
       media,
       pieces,
       categories: editors ? await contentCategories(sql) : [],
       municipalities: editors ? await municipalities(sql) : [],
-      cameras: has('admin', 'dispatch', 'social') ? await peopleWithRole(sql, 'camera') : [],
+      cameras: has('admin', 'boss', 'dispatch', 'social') ? await peopleWithRole(sql, 'camera') : [],
+      history: editors ? await eventHistory(sql, id) : [],
     };
   });
   if (!data) notFound();
   const { ev } = data;
-  const canEdit = has('admin', 'dispatch');
-  const canBoard = has('admin', 'social');
+  // The IVT (a visit born from its obra) and política (an activity born from its report) read only the event row:
+  // never its brief, storyboard or material. Política never its date either.
+  if (!has('admin', 'boss', 'dispatch', 'social', 'camera')) return <SourceView ev={ev} has={has} />;
+  const cancelled = !!ev.cancelled_at;
+  const canEdit = has('boss', 'dispatch');
+  const canBoard = has('admin', 'social', 'boss');
   // The boss «hace lo de Redes» (he uploads finals, covers and material like Redes; media_insert lets him).
   const canUpload = has('admin', 'social', 'boss') || (has('camera') && ev.cameras.some((c) => c.user_id === s.userId));
   const tab = TABS.find((t) => t.key === rawTab)?.key ?? (has('camera') && !has('admin', 'boss') ? 'material' : 'ficha');
@@ -85,12 +95,46 @@ export default async function EventPage({ params, searchParams }: { params: Prom
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <span className="rounded-[var(--radius-chip)] bg-surface-2 px-2 py-0.5 font-mono text-xs font-semibold">{ev.code}</span>
+        {cancelled ? <Chip tone="danger">Cancelado</Chip> : null}
+        {ev.kind !== 'event' ? <Chip tone="info">{EVENT_KIND[ev.kind]}</Chip> : null}
         <Chip tone={WORK_STATUS[ev.work_status]?.tone}>{WORK_STATUS[ev.work_status]?.label}</Chip>
         <Chip tone={BOSS_DECISION[ev.boss_decision]?.tone}>{BOSS_DECISION[ev.boss_decision]?.label}</Chip>
         {ev.priority ? <Chip tone="accent">Importancia {ev.priority}/10</Chip> : null}
         {ev.category_name ? <Chip>{ev.category_name}</Chip> : null}
         {ev.done_on ? <Chip tone="ok">Realizado el {fmtDay(ev.done_on, "d 'de' LLLL")}</Chip> : null}
+        <span className="text-sm text-text-2">
+          {EVENT_ORIGIN[ev.origin]}
+          {ev.updated_by_name ? ` · último cambio: ${ev.updated_by_name}` : ''}
+        </span>
       </div>
+
+      {cancelled ? (
+        <Card className="mb-4 border-danger/40 bg-danger-soft" role="status">
+          <CardBody className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Ban className="h-6 w-6 shrink-0 text-danger" aria-hidden />
+            <p className="min-w-0 flex-1 text-[15px]">
+              <b className="text-danger">Cancelado</b>
+              {ev.cancelled_by_name ? ` por ${ev.cancelled_by_name}` : ''}.{ev.cancel_reason ? ` Motivo: ${ev.cancel_reason}` : ''}
+            </p>
+            {canEdit ? <RestoreButton id={ev.id} /> : null}
+          </CardBody>
+        </Card>
+      ) : null}
+
+      {canEdit && !cancelled && !ev.done_on ? (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {ev.schedule ? <MoveSheet id={ev.id} rev={ev.schedule.rev} current={whenOf(scheduleValues(ev.schedule))} /> : null}
+          <CancelButton id={ev.id} fromFicha={!!(ev.obra_ficha_id || ev.community_report_id)} />
+        </div>
+      ) : null}
+
+      {(ev.obra_ficha_id && has('admin', 'boss', 'dispatch')) || (ev.community_report_id && has('admin', 'boss', 'dispatch')) ? (
+        <p className="mb-4">
+          <Link className="inline-flex min-h-11 items-center gap-2 font-semibold text-accent-ink underline" href={ev.obra_ficha_id ? `/obras/${ev.obra_ficha_id}` : `/reportes/${ev.community_report_id}`}>
+            <ClipboardList className="h-4 w-4" aria-hidden /> {ev.obra_ficha_id ? 'Ver la ficha de obra' : 'Ver el reporte comunitario'}
+          </Link>
+        </p>
+      ) : null}
 
       {ev.schedule ? (
         <Card className="mb-4 border-slate/20">
@@ -111,16 +155,16 @@ export default async function EventPage({ params, searchParams }: { params: Prom
               {ev.schedule.site_contacts ? <p className="flex items-start gap-2"><Phone className="mt-0.5 h-5 w-5 shrink-0 text-text-2" aria-hidden />{ev.schedule.site_contacts}</p> : null}
             </div>
           </CardBody>
-          {canEdit || (past && !ev.done_on) ? (
+          {(canEdit && !cancelled) || (past && !ev.done_on && !cancelled) ? (
             <div className="flex flex-wrap gap-2 border-t border-border px-4 py-3">
-              {canEdit ? <ScheduleEditor id={ev.id} schedule={ev.schedule} /> : null}
-              {past && !ev.done_on ? <MarkDone id={ev.id} /> : null}
+              {canEdit && !cancelled ? <ScheduleEditor id={ev.id} schedule={ev.schedule} /> : null}
+              {past && !ev.done_on && !cancelled ? <MarkDone id={ev.id} /> : null}
             </div>
           ) : null}
         </Card>
       ) : null}
 
-      {has('boss') ? <BossPanel id={ev.id} priority={ev.priority} decision={ev.boss_decision} /> : null}
+      {has('boss') && !cancelled ? <BossPanel id={ev.id} priority={ev.priority} decision={ev.boss_decision} /> : null}
 
       <nav className="mb-4 flex gap-1 overflow-x-auto border-b border-border" aria-label="Secciones del evento">
         {visibleTabs.map((t) => (
@@ -155,7 +199,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
           </Card>
           <div className="flex flex-col gap-4">
             {canEdit ? <EventEditor ev={ev} categories={data.categories} municipalities={data.municipalities} /> : null}
-            {has('admin', 'social') ? <WorkStatusSelect id={ev.id} status={ev.work_status} /> : null}
+            {has('social', 'boss') ? <WorkStatusSelect id={ev.id} status={ev.work_status} /> : null}
             <Card>
               <CardHeader title="Quién graba" />
               <CardBody>
@@ -168,12 +212,13 @@ export default async function EventPage({ params, searchParams }: { params: Prom
                 )}
               </CardBody>
             </Card>
+            {canEdit ? <HistoryCard rows={data.history} /> : null}
           </div>
         </div>
       ) : null}
 
       {tab === 'storyboard' ? (
-        <StoryboardEditor eventId={ev.id} canEdit={canBoard} speech={ev.storyboard?.speech ?? ''} blocks={ev.blocks} facts={ev.brief?.key_facts ?? ''} />
+        <StoryboardEditor eventId={ev.id} canEdit={canBoard} speech={ev.storyboard?.speech ?? ''} blocks={ev.blocks} facts={ev.brief?.key_facts ?? ''} rev={ev.storyboard?.rev ?? null} />
       ) : null}
 
       {tab === 'material' ? <MaterialPanel eventId={ev.id} eventCode={ev.code} media={data.media} canUpload={canUpload} canRemove={has('admin')} canPick={!!drive?.picker} /> : null}
@@ -199,6 +244,51 @@ export default async function EventPage({ params, searchParams }: { params: Prom
             <p className="p-4 text-[15px] text-text-2">Todavía no hay piezas.</p>
           )}
         </Card>
+      ) : null}
+    </>
+  );
+}
+
+// The IVT and política: the event row only. The IVT sees the date of the visits born from its obras (2FA: the
+// database returns the schedule); política gets «Ya tiene fecha», never the date (the database returns none).
+function SourceView({ ev, has }: { ev: EventFull; has: (...r: string[]) => boolean }) {
+  const cancelled = !!ev.cancelled_at;
+  const back = has('ivt') ? { href: '/agenda', label: 'Mis visitas de obra' } : { href: ev.community_report_id ? `/reportes/${ev.community_report_id}` : '/municipios', label: 'Volver' };
+  return (
+    <>
+      <PageHeader back={back} title={ev.title} subtitle={[ev.place_name, ev.municipality].filter(Boolean).join(' · ')} />
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="rounded-[var(--radius-chip)] bg-surface-2 px-2 py-0.5 font-mono text-xs font-semibold">{ev.code}</span>
+        <Chip tone="info">{EVENT_KIND[ev.kind]}</Chip>
+        {cancelled ? <Chip tone="danger">Cancelado</Chip> : <Chip tone={BOSS_DECISION[ev.boss_decision]?.tone}>{BOSS_DECISION[ev.boss_decision]?.label}</Chip>}
+      </div>
+      <Card className="mb-4">
+        <CardBody className="flex items-start gap-3">
+          <CalendarClock className="mt-0.5 h-5 w-5 shrink-0 text-accent-ink" aria-hidden />
+          <div className="min-w-0 text-[15px]">
+            {cancelled ? (
+              <p><b className="text-danger">Se canceló.</b> La ficha vuelve a «Por ponerle fecha».</p>
+            ) : ev.schedule ? (
+              <>
+                <p className="font-semibold first-letter:uppercase">{fmtDateTime(ev.schedule.starts_at)}</p>
+                <p className="text-sm text-text-2">hasta las {fmtTime(ev.schedule.ends_at)}</p>
+                {ev.schedule.exact_address ? <p className="mt-1 flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />{ev.schedule.exact_address}</p> : null}
+              </>
+            ) : (
+              <p>Ya tiene fecha. La ven el jefe y el despacho en la agenda.</p>
+            )}
+          </div>
+        </CardBody>
+      </Card>
+      {ev.summary ? (
+        <Card className="mb-4">
+          <CardBody><p className="label-caps">De qué se trata</p><p className="mt-1 whitespace-pre-wrap text-[15px]">{ev.summary}</p></CardBody>
+        </Card>
+      ) : null}
+      {ev.obra_ficha_id && has('ivt') ? (
+        <LinkButton href={`/obras/${ev.obra_ficha_id}`} size="lg"><ClipboardList className="h-5 w-5" aria-hidden /> Ver la ficha de obra</LinkButton>
+      ) : ev.community_report_id && has('politics') ? (
+        <LinkButton href={`/reportes/${ev.community_report_id}`} size="lg"><ClipboardList className="h-5 w-5" aria-hidden /> Ver el reporte</LinkButton>
       ) : null}
     </>
   );

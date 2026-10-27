@@ -3,7 +3,10 @@ import { notFound } from 'next/navigation';
 import { CalendarClock, ImagePlus, Pencil } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
 import { dialogBrand, getObraFicha, parishesInUse } from '@/lib/data/fichas';
-import { municipalities, parishes } from '@/lib/data/common';
+import { municipalities, parishes, peopleWithRole } from '@/lib/data/common';
+import { canManageAgenda } from '@/lib/roles';
+import { eventFromObra } from '@/lib/domain/ficha-event';
+import { ScheduleSheet } from '@/components/agenda/schedule-sheet';
 import { OBRA_STAGE } from '@/lib/data/ficha-labels';
 import { OBRA_FIELDS, OBRA_GROUPS, daysUntil, groupProgress, toFormValues, type Marks } from '@/lib/domain/ficha-fields';
 import { buildObraDialog, dialogInput } from '@/lib/domain/obra-dialog';
@@ -30,11 +33,16 @@ export default async function ObraPage({ params, searchParams }: { params: Promi
   const { editar } = await searchParams;
   if (!UUID.test(id)) notFound();
   const editing = editar === '1';
+  const manager = canManageAgenda(s.roles);
   const data = await db(s, async (sql) => {
     const f = await getObraFicha(sql, id);
     if (!f) return null;
+    // «Ponerle fecha» (boss and despacho): only while it waits for a date and has no live visit.
+    const toSchedule = manager && f.ficha.stage === 'to_schedule' && !f.ficha.deleted_at && !f.event?.live;
     return {
       ...f,
+      toSchedule,
+      cameras: toSchedule ? await peopleWithRole(sql, 'camera') : [],
       brand: await dialogBrand(sql),
       municipalities: editing ? await municipalities(sql) : [],
       parishMap: editing ? await parishes(sql) : {},
@@ -109,22 +117,38 @@ export default async function ObraPage({ params, searchParams }: { params: Promi
           <CalendarClock className="mt-0.5 h-5 w-5 shrink-0 text-accent-ink" aria-hidden />
           <div className="min-w-0">
             <p className="label-caps">Fecha de la visita</p>
-            {event?.starts_at ? (
+            {event?.live && event.starts_at ? (
+              // The boss, despacho, administración and the IVT (2FA) see the visit's date; the database decides.
               <p className="mt-1 text-[15px]">
                 <span className="font-semibold first-letter:uppercase">{fmtDateTime(event.starts_at)}</span> ·{' '}
-                <Link href={`/eventos/${event.id}`} className="font-semibold text-accent-ink underline">Ver el evento {event.code}</Link>
+                <Link href={`/eventos/${event.id}`} className="font-semibold text-accent-ink underline">Ver la visita {event.code}</Link>
               </p>
             ) : (
               <p className="mt-1 text-[15px] text-text-2">
                 {ficha.stage === 'draft'
                   ? 'Cuando la guardes con «Guardar y avisar al jefe», el jefe o el despacho le ponen fecha y hora.'
                   : ficha.stage === 'to_schedule'
-                    ? 'Por ponerle fecha: la ponen el jefe o el despacho.'
+                    ? event && !event.live
+                      ? 'Se canceló la visita: otra vez por ponerle fecha. La ponen el jefe o el despacho.'
+                      : 'Por ponerle fecha: la ponen el jefe o el despacho.'
                     : ficha.stage === 'scheduled' || ficha.stage === 'done'
-                      ? 'Ya tiene fecha. La ponen y la ven el jefe y el despacho en la agenda.'
+                      ? s.mfaOk
+                        ? 'Ya tiene fecha. La ponen y la ven el jefe y el despacho en la agenda.'
+                        : 'Ya tiene fecha. Se ve con el doble factor.'
                       : 'Archivada: no va a la agenda.'}
               </p>
             )}
+            {data.toSchedule ? (
+              <div className="mt-3">
+                <ScheduleSheet
+                  kind="obra"
+                  fichaId={id}
+                  defaultTitle={eventFromObra(ficha as unknown as Record<string, unknown>).title}
+                  defaultPlace={eventFromObra(ficha as unknown as Record<string, unknown>).placeName}
+                  cameras={data.cameras}
+                />
+              </div>
+            ) : null}
           </div>
         </CardBody>
       </Card>

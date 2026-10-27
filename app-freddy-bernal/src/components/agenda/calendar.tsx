@@ -3,13 +3,15 @@ import { DateTime } from 'luxon';
 import { cn } from '@/lib/cn';
 import { TZ } from '@/lib/time';
 
-export type CalEvent = { id: string; title: string; place_name: string; starts_at: string; ends_at: string; boss_decision: string; priority: number | null };
+export type CalEvent = { id: string; title: string; place_name: string; starts_at: string; ends_at: string; boss_decision: string; priority: number | null; cancelled_at?: string | Date | null };
 
 const HOUR_START = 6;
 const HOUR_END = 23;
 const HOUR_PX = 56;
 
+// A cancelled event stays in its place, struck through (it is not deleted: who and why are on its page).
 function tone(e: CalEvent) {
+  if (e.cancelled_at) return 'border-muted bg-surface-2 text-text-2 line-through';
   if (e.boss_decision === 'rejected') return 'border-danger bg-danger-soft text-danger line-through';
   if (e.boss_decision === 'pending') return 'border-warn bg-warn-soft text-text';
   return 'border-accent bg-accent-soft text-text';
@@ -45,6 +47,7 @@ export function MonthView({ anchor, events }: { anchor: DateTime; events: CalEve
                   <li key={e.id}>
                     <Link href={`/eventos/${e.id}`} className={cn('block truncate rounded-[var(--radius-chip)] border-l-2 px-1 py-0.5 text-[11px] font-medium sm:text-xs', tone(e))}>
                       <span className="hidden font-mono sm:inline">{local(e.starts_at).toFormat('H:mm')} </span>
+                      {e.cancelled_at ? <span className="sr-only">Cancelado: </span> : null}
                       {e.title}
                     </Link>
                   </li>
@@ -103,7 +106,7 @@ export function TimeGrid({ days, events }: { days: DateTime[]; events: CalEvent[
                       style={{ top, height }}
                     >
                       <span className="block font-mono font-semibold">{s.toFormat('h:mm a')}</span>
-                      <span className="block font-semibold leading-tight">{e.title}</span>
+                      <span className="block font-semibold leading-tight">{e.cancelled_at ? <span className="sr-only">Cancelado: </span> : null}{e.title}</span>
                       <span className="block truncate text-text-2">{e.place_name}</span>
                     </Link>
                   );

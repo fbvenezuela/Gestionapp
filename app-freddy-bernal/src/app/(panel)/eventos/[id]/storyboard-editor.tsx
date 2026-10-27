@@ -1,9 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { saveStoryboard } from '@/lib/actions/events';
 import { useAction } from '@/lib/hooks/use-action';
-import { useDraft } from '@/lib/hooks/use-draft';
+import { sameJson, useDraft } from '@/lib/hooks/use-draft';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input, Textarea } from '@/components/ui/field';
@@ -15,17 +16,34 @@ type DbBlock = { id: string; shot: string; angle: string; boss_line: string; bro
 
 const emptyBlock = (): Block => ({ shot: '', angle: '', bossLine: '', broll: '', fact: '', factSource: '' });
 
-export function StoryboardEditor({ eventId, canEdit, speech, blocks, facts }: { eventId: string; canEdit: boolean; speech: string; blocks: DbBlock[]; facts: string }) {
-  const initial: { speech: string; blocks: Block[] } = {
+type Board = { speech: string; blocks: Block[] };
+// What the phone keeps: the storyboard as typed, plus what it was when this person started (base) and its version.
+type BoardDraft = Board & { base: Board | null; baseRev: number | null };
+
+export function StoryboardEditor({ eventId, canEdit, speech, blocks, facts, rev }: { eventId: string; canEdit: boolean; speech: string; blocks: DbBlock[]; facts: string; rev: number | null }) {
+  const server: Board = {
     speech,
     blocks: blocks.map((b) => ({ id: b.id, shot: b.shot, angle: b.angle, bossLine: b.boss_line, broll: b.broll, fact: b.fact, factSource: b.fact_source })),
   };
-  const { value, setValue, restored, clear } = useDraft(`storyboard:${eventId}`, initial);
+  const { value: draft, setValue: setDraft, restored, clear } = useDraft<BoardDraft>(`storyboard:${eventId}`, { ...server, base: null, baseRev: null }, {
+    restore: (saved) => {
+      const d = saved as Partial<BoardDraft> | null;
+      if (!d || typeof d.speech !== 'string' || !Array.isArray(d.blocks)) return null;
+      if (sameJson({ speech: d.speech, blocks: d.blocks }, server)) return null;
+      return { speech: d.speech, blocks: d.blocks as Block[], base: d.base ?? null, baseRev: typeof d.baseRev === 'number' ? d.baseRev : null };
+    },
+  });
+  const [kept, setKept] = useState(false);
+  const value: Board = { speech: draft.speech, blocks: draft.blocks };
+  // Every change remembers where this person started (the server's storyboard when the editor opened).
+  const setValue = (next: Board) => setDraft((d) => ({ ...next, base: d.base ?? server, baseRev: d.baseRev ?? rev }));
+  // Someone else saved the storyboard since this person started typing.
+  const changedMeanwhile = restored && !kept && !!draft.base && !sameJson(draft.base, server);
   const { run, pending } = useAction();
 
   if (!canEdit) {
     if (!blocks.length && !speech) return <EmptyState title="Todavía no hay storyboard para este evento." />;
-    return <ReadOnly speech={speech} blocks={initial.blocks} />;
+    return <ReadOnly speech={speech} blocks={server.blocks} />;
   }
 
   const update = (i: number, patch: Partial<Block>) => setValue({ ...value, blocks: value.blocks.map((b, j) => (j === i ? { ...b, ...patch } : b)) });
@@ -42,10 +60,35 @@ export function StoryboardEditor({ eventId, canEdit, speech, blocks, facts }: { 
       className="flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
-        run(() => saveStoryboard({ eventId, ...value }), { success: 'Storyboard guardado.', onOk: () => clear() });
+        run(() => saveStoryboard({ eventId, ...value, rev: draft.baseRev ?? rev ?? undefined, base: draft.base ?? server }), {
+          onOk: () => {
+            setKept(false);
+            clear();
+          },
+        });
       }}
     >
-      {restored ? <p className="rounded-[var(--radius-control)] bg-info-soft px-3 py-2 text-sm text-info" role="status">Tienes cambios sin guardar de antes. Revisa y toca «Guardar».</p> : null}
+      {changedMeanwhile ? (
+        <div className="rounded-[var(--radius-control)] bg-warn-soft px-3 py-3 text-sm text-warn" role="status">
+          <p className="font-semibold">Mientras escribías, otra persona guardó el storyboard. Si guardas, queda lo tuyo y lo de antes queda en el historial.</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                clear();
+                setDraft({ ...server, base: null, baseRev: null });
+              }}
+            >
+              Usar lo de él
+            </Button>
+            <Button type="button" size="sm" variant="secondary" onClick={() => setKept(true)}>Dejar lo mío</Button>
+          </div>
+        </div>
+      ) : restored ? (
+        <p className="rounded-[var(--radius-control)] bg-info-soft px-3 py-2 text-sm text-info" role="status">Tienes cambios sin guardar de antes. Revisa y toca «Guardar».</p>
+      ) : null}
       {facts ? (
         <Card className="bg-surface-2">
           <CardBody>

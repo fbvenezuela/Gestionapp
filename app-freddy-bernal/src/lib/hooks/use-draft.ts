@@ -1,6 +1,33 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'react';
+import { createContext, createElement, useCallback, useContext, useEffect, useRef, useState, type ReactNode, type SetStateAction } from 'react';
+
+// Drafts belong to the person who typed them: on a shared iPad the next person never sees (or saves) them. The panel
+// layout says who is signed in; «Salir» clears every draft in the phone (clearDrafts).
+const DraftUser = createContext('');
+export function DraftUserProvider({ userId, children }: { userId: string; children: ReactNode }) {
+  return createElement(DraftUser.Provider, { value: userId }, children);
+}
+
+export const DRAFT_PREFIX = 'draft:';
+export function draftStorageKey(userId: string, key: string) {
+  return userId ? `${DRAFT_PREFIX}${userId}:${key}` : `${DRAFT_PREFIX}${key}`;
+}
+
+// Every draft in this phone (anyone's): on sign-out.
+export function clearDrafts(storage: Pick<Storage, 'length' | 'key' | 'removeItem'> | null = typeof localStorage === 'undefined' ? null : localStorage) {
+  if (!storage) return;
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < storage.length; i++) {
+      const k = storage.key(i);
+      if (k?.startsWith(DRAFT_PREFIX)) keys.push(k);
+    }
+    for (const k of keys) storage.removeItem(k);
+  } catch {
+    /* storage unavailable */
+  }
+}
 
 // Keeps what someone is typing in the phone (localStorage) until it is sent, so a
 // power cut or lost signal never loses work. `clear()` after a successful save (and on «Cancelar»).
@@ -10,7 +37,7 @@ import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'r
 //   * `restore(saved)` lets a form decide what of a saved draft still applies (null = nothing): the fichas keep only
 //     the changed fields and compare them with the server's current values (src/lib/domain/ficha-draft.ts).
 export function useDraft<T>(key: string, initial: T, opts: { restore?: (saved: unknown) => T | null } = {}) {
-  const storageKey = `draft:${key}`;
+  const storageKey = draftStorageKey(useContext(DraftUser), key);
   const [value, setValue] = useState<T>(initial);
   const [restored, setRestored] = useState(false);
   const dirty = useRef(false);

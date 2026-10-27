@@ -2,7 +2,11 @@ import { notFound } from 'next/navigation';
 import { CalendarClock, FileImage, Pencil } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
 import { getReport, parishesInUse } from '@/lib/data/fichas';
-import { municipalities, parishes } from '@/lib/data/common';
+import { municipalities, parishes, peopleWithRole } from '@/lib/data/common';
+import { canManageAgenda } from '@/lib/roles';
+import { eventFromReport } from '@/lib/domain/ficha-event';
+import { isClosed } from '@/lib/domain/report-status';
+import { ScheduleSheet } from '@/components/agenda/schedule-sheet';
 import { PRIORITY, REPORT_STATUS, REPORT_TYPE } from '@/lib/data/ficha-labels';
 import { REPORT_FIELDS, REPORT_GROUPS, groupProgress, toFormValues, type Marks } from '@/lib/domain/ficha-fields';
 import { daysLate, isOverdue } from '@/lib/domain/report-status';
@@ -31,11 +35,16 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   const { editar } = await searchParams;
   if (!UUID.test(id)) notFound();
   const editing = editar === '1';
+  const manager = canManageAgenda(s.roles);
   const data = await db(s, async (sql) => {
     const r = await getReport(sql, id);
     if (!r) return null;
+    // «Ponerle fecha» (boss and despacho): it goes to the agenda, is still open and has no live activity.
+    const toSchedule = manager && r.report.wants_agenda && !isClosed(r.report.status) && !r.report.deleted_at && !r.scheduled && !r.event?.live;
     return {
       ...r,
+      toSchedule,
+      cameras: toSchedule ? await peopleWithRole(sql, 'camera') : [],
       municipalities: editing ? await municipalities(sql) : [],
       parishMap: editing ? await parishes(sql) : {},
       used: editing ? await parishesInUse(sql) : {},
@@ -107,15 +116,28 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
           <div className="min-w-0">
             <p className="label-caps">Agenda del jefe</p>
             <p className="mt-1 text-[15px] text-text-2">
-              {event?.starts_at
+              {event?.live && event.starts_at
                 ? `Ya tiene fecha: ${fmtDateTime(event.starts_at)} (${event.code}).`
-                : event || data.scheduled
-                  ? // Política never reads the event nor its date: the database only says that there is one.
+                : data.scheduled
+                  ? // Política never reads the date: the database only says that there is one (report_has_live_event).
                     'Ya tiene fecha. La ven el jefe y el despacho en la agenda.'
-                  : report.wants_agenda
-                  ? 'Va a la agenda: por ponerle fecha. La pone el jefe (o el despacho).'
-                  : 'No va a la agenda: queda en el registro del municipio.'}
+                  : report.wants_agenda && event && !event.live
+                    ? 'Se canceló la actividad en la agenda: otra vez por ponerle fecha.'
+                    : report.wants_agenda
+                      ? 'Va a la agenda: por ponerle fecha. La pone el jefe (o el despacho).'
+                      : 'No va a la agenda: queda en el registro del municipio.'}
             </p>
+            {data.toSchedule ? (
+              <div className="mt-3">
+                <ScheduleSheet
+                  kind="report"
+                  fichaId={id}
+                  defaultTitle={eventFromReport(report as unknown as Record<string, unknown>).title}
+                  defaultPlace={eventFromReport(report as unknown as Record<string, unknown>).placeName}
+                  cameras={data.cameras}
+                />
+              </div>
+            ) : null}
           </div>
         </CardBody>
       </Card>

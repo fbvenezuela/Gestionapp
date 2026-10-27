@@ -4,9 +4,11 @@ import { useTransition } from 'react';
 import { LogOut } from 'lucide-react';
 import { signOut } from '@/lib/auth/actions';
 import { releaseThisPhone } from '@/lib/push/client';
+import { clearDrafts } from '@/lib/hooks/use-draft';
 
 // «Salir»: first this phone stops receiving the person's notices (never blocks, at most
-// a few seconds), then the session closes. On a shared phone the next person turns them on.
+// a few seconds) and forgets every draft typed in it, then the session closes. On a shared phone the next person
+// turns their notices on and starts with clean forms.
 export function SignOutButton() {
   const [pending, start] = useTransition();
   return (
@@ -16,6 +18,7 @@ export function SignOutButton() {
       onClick={() =>
         start(async () => {
           await releaseThisPhone();
+          clearDrafts();
           await signOut();
         })
       }

@@ -11,7 +11,7 @@ export default async function NewPiecePage({ searchParams }: { searchParams: Pro
   const data = await db(s, async (sql) => ({
     categories: await contentCategories(sql),
     events: await sql.query<{ id: string; title: string; category_id: string | null }>(
-      `select id, title, category_id from public.events where deleted_at is null and boss_decision <> 'rejected' order by created_at desc limit 100`,
+      `select id, title, category_id from public.events where deleted_at is null and cancelled_at is null and boss_decision <> 'rejected' order by created_at desc limit 100`,
     ),
   }));
   return (

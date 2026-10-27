@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Moon, ShieldCheck } from 'lucide-react';
 import { updateProfile } from '@/lib/actions/profile';
 import { useAction } from '@/lib/hooks/use-action';
-import { QUIET_DEFAULT } from '@/lib/push/quiet';
+import { OPT_IN_KINDS, QUIET_DEFAULT } from '@/lib/push/quiet';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input } from '@/components/ui/field';
@@ -19,6 +19,9 @@ const OPTIONAL = [
   { key: 'event_new', label: 'Hay un evento nuevo por decidir' },
   { key: 'event_decided', label: 'El jefe decidió un evento' },
   { key: 'to_schedule', label: 'Hay una ficha por ponerle fecha' },
+  { key: 'agenda_scheduled', label: 'Una ficha ya tiene fecha' },
+  { key: 'agenda_overwritten', label: 'Alguien cambió lo mismo que yo en la agenda' },
+  { key: 'agenda_changed', label: 'Cada cambio del otro en la agenda (apagado si no lo prendes)' },
   { key: 'assistant_notice', label: 'Avisos del equipo preparados con 360' },
   { key: 'daily_digest', label: 'Resumen diario por correo' },
 ];
@@ -47,7 +50,7 @@ export function ProfileForm({ fullName, phone, prefs, mfa }: { fullName: string;
         <CardBody className="flex flex-col gap-1">
           {OPTIONAL.map((o) => (
             <label key={o.key} className="flex min-h-11 items-center gap-3 text-[15px]">
-              <input type="checkbox" className="h-5 w-5 accent-accent" checked={o.key === 'daily_digest' ? f.prefs[o.key] === true : f.prefs[o.key] !== false} onChange={(e) => set(o.key, e.target.checked)} />
+              <input type="checkbox" className="h-5 w-5 accent-accent" checked={OPT_IN_KINDS.has(o.key) ? f.prefs[o.key] === true : f.prefs[o.key] !== false} onChange={(e) => set(o.key, e.target.checked)} />
               {o.label}
             </label>
           ))}

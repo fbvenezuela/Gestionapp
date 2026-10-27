@@ -131,7 +131,8 @@ function TimelineRow({ it }: { it: TimelineItem }) {
     it.kind === 'event'
       ? it.starts_at
         ? fmtDateTime(it.starts_at)
-        : `creado el ${fmtDate(it.at, "d 'de' LLL")}`
+        : // Política reads the activities born from its reports, never their date.
+          'ya tiene fecha'
       : it.kind === 'obra'
         ? `actualizada el ${fmtDate(it.at, "d 'de' LLL")}`
         : fmtDate(it.at, "d 'de' LLL");
