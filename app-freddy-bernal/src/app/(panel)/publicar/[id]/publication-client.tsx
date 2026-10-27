@@ -56,18 +56,17 @@ export function Package({ video, cover, copy, collaborators, network, title }: {
   );
 }
 
-// canUpload: the evidence screenshot is a media upload, which the database lets admin and Redes do; the boss gets it
-// with 20261027001900_media_handoff.sql. Until then he pastes the link only, instead of an uploader that always fails.
-export function PublishedForm({ id, canUpload }: { id: string; canUpload: boolean }) {
+// Admin, Redes and the boss: all three may upload the evidence screenshot (20261027001900_media_handoff.sql).
+export function PublishedForm({ id }: { id: string }) {
   const { run, pending } = useAction();
   const [url, setUrl] = useState('');
   const [evidence, setEvidence] = useState<string | null>(null);
   return (
     <Card>
-      <CardHeader title="¿Ya lo publicaste?" subtitle={canUpload ? 'Pega el link y, si puedes, una captura como evidencia.' : 'Pega el link de la publicación.'} />
+      <CardHeader title="¿Ya lo publicaste?" subtitle="Pega el link y, si puedes, una captura como evidencia." />
       <CardBody className="flex flex-col gap-3">
         <Field label="Link de la publicación" htmlFor="pu"><Input id="pu" type="url" inputMode="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" /></Field>
-        {!canUpload ? null : evidence ? <p className="text-sm text-ok">Captura subida.</p> : <Uploader eventId={null} kind="evidence" accept="image/*" multiple={false} compact label="Subir captura" onUploaded={(a) => setEvidence(a.id)} />}
+        {evidence ? <p className="text-sm text-ok">Captura subida.</p> : <Uploader eventId={null} kind="evidence" accept="image/*" multiple={false} compact label="Subir captura" onUploaded={(a) => setEvidence(a.id)} />}
         <Button size="lg" disabled={pending || !url} onClick={() => run(() => markPublished({ id, url, evidenceId: evidence }), { success: '¡Listo! Marcada como publicada.' })}>
           <Check className="h-5 w-5" aria-hidden /> Ya lo publiqué
         </Button>

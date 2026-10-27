@@ -1,4 +1,5 @@
 import type { Tone } from '@/components/ui/chip';
+import type { MediaKind } from '@/lib/domain/media-mime';
 
 export const WORK_STATUS: Record<string, { label: string; tone: Tone }> = {
   brief: { label: 'Ficha', tone: 'neutral' },
@@ -31,6 +32,7 @@ export const PIECE_KIND: Record<string, string> = {
   photo: 'Foto',
 };
 
+// Also the start of each file's name («Jefe hablando 2», «Antes 1»): never a date, a time or a place.
 export const MEDIA_KIND: Record<string, string> = {
   boss: 'Jefe hablando',
   drone: 'Dron',
@@ -42,7 +44,12 @@ export const MEDIA_KIND: Record<string, string> = {
   voice_line: 'Audio del jefe',
   evidence: 'Captura',
   tweet_image: 'Imagen de tweet',
-};
+  storyboard: 'Storyboard',
+  before: 'Antes',
+  progress: 'Avance',
+  after: 'Después',
+  document: 'Documento',
+} satisfies Record<MediaKind, string>;
 
 export const TWEET_STATUS: Record<string, { label: string; tone: Tone }> = {
   draft: { label: 'Por aprobar', tone: 'warn' },

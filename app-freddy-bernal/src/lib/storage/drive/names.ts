@@ -1,9 +1,11 @@
 // Names the platform gives to what it creates in Drive, and to downloads. Rule 4: never a date,
 // a time or a place. Only fixed words, the event code (E-0042, a sequence) and the label the
 // platform itself wrote («Jefe hablando 2»). The person's original file name is never used.
+// The code is the file's parent: an event (E-0042), an obra ficha (O-0001) or a community report (R-0001).
 
-export const MEDIA_KINDS = ['boss', 'drone', 'broll', 'other', 'final', 'cover', 'editable', 'voice_line', 'evidence', 'tweet_image'] as const;
-export type MediaKind = (typeof MEDIA_KINDS)[number];
+import { MEDIA_KINDS, type MediaKind } from '@/lib/domain/media-mime';
+
+export { MEDIA_KINDS, type MediaKind };
 
 export const ROOT_FOLDER_MARK = { key: 'fb360', value: 'root' } as const;
 
@@ -18,9 +20,14 @@ const TYPE_FOLDER: Record<MediaKind, string> = {
   voice_line: 'Audios',
   evidence: 'Fotos',
   tweet_image: 'Fotos',
+  storyboard: 'Documentos',
+  before: 'Fotos',
+  progress: 'Fotos',
+  after: 'Fotos',
+  document: 'Documentos',
 };
 
-// Group folder for files with no event.
+// Group folder for files with no parent code (a storyboard and the ficha kinds always have one; these are fallbacks).
 const NO_EVENT_GROUP: Record<MediaKind, string> = {
   boss: 'Piezas',
   drone: 'Piezas',
@@ -32,13 +39,19 @@ const NO_EVENT_GROUP: Record<MediaKind, string> = {
   voice_line: 'Piezas',
   evidence: 'Capturas',
   tweet_image: 'Tweets',
+  storyboard: 'Piezas',
+  before: 'Fichas',
+  progress: 'Fichas',
+  after: 'Fichas',
+  document: 'Fichas',
 };
 
-const EVENT_CODE = /^E-\d{1,8}$/;
+// E-0042 (event), O-0001 (obra ficha), R-0001 (community report): a letter and a sequence, never a date.
+export const GROUP_CODE = /^[EOR]-\d{1,8}$/;
 
-/** «Videos/E-0042», «Fotos/Capturas», ... A bad code falls back to the no-event group. */
-export function driveFolderPath(kind: MediaKind, eventCode: string | null): string {
-  const group = eventCode && EVENT_CODE.test(eventCode) ? eventCode : NO_EVENT_GROUP[kind];
+/** «Videos/E-0042», «Fotos/O-0001», «Fotos/Capturas», ... A bad code falls back to the no-parent group. */
+export function driveFolderPath(kind: MediaKind, code: string | null): string {
+  const group = code && GROUP_CODE.test(code) ? code : NO_EVENT_GROUP[kind];
   return `${TYPE_FOLDER[kind]}/${group}`;
 }
 
