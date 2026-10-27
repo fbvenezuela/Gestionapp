@@ -17,10 +17,10 @@ type Row = { id: string; title: string; network: string; format: string; publish
 const nf = new Intl.NumberFormat('es-VE');
 
 export default async function ResultsPage({ searchParams }: { searchParams: Promise<{ dias?: string }> }) {
-  const s = await requireRole('admin', 'social', 'supervisor', 'boss');
+  const s = await requireRole('admin', 'social', 'boss');
   const { dias } = await searchParams;
   const days = [7, 30, 90].includes(Number(dias)) ? Number(dias) : 30;
-  const canLoad = s.roles.some((r) => r === 'admin' || r === 'social');
+  const canLoad = s.roles.some((r) => r === 'admin' || r === 'social' || r === 'boss');
   const rows = await db(s, (sql) =>
     sql.query<Row>(
       `select x.id, coalesce(p.title, x.title || ' (la publicó el jefe)') as title, x.network, x.format, x.published_at, x.url, x.republish_of,

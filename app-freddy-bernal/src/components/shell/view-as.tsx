@@ -2,10 +2,10 @@
 
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { ROLE_LABEL, INVITABLE_ROLES, type Role } from '@/lib/roles';
+import { ROLE_LABEL, TEAM_ROLES, type Role } from '@/lib/roles';
 import { setViewAs } from '@/lib/actions/view-as';
 
-// Admin-only. Changes which menus are shown, never what can be read or changed.
+// Admin-only: the six team roles. Changes which menus are shown, never what can be read or changed.
 export function ViewAs({ current }: { current: Role | null }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -25,7 +25,7 @@ export function ViewAs({ current }: { current: Role | null }) {
         className="min-h-9 rounded-[var(--radius-control)] border border-border bg-surface px-2 text-sm"
       >
         <option value="">Mi vista</option>
-        {INVITABLE_ROLES.filter((r) => r !== 'admin').map((r) => (
+        {TEAM_ROLES.map((r) => (
           <option key={r} value={r}>
             {ROLE_LABEL[r]}
           </option>

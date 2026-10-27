@@ -7,7 +7,7 @@ import { NO_TITLES, ORDINARY, namesTitle, titleIndex, titlesNamed, type TitleInd
 // Is this about an event? One detector for every place that asks (docs/ASISTENTE.md «Lo que habla de
 // un evento lo contesta 360 sin IA»): which brain answers a turn, how much of a question is masked,
 // when an answer is held to the agenda rule, what a notice may say, what 360 may be taught and what an
-// «aviso al equipo» tells Supervisión. A turn about an event never goes to an AI provider: the demo
+// «aviso al equipo» tells administración. A turn about an event never goes to an AI provider: the demo
 // brain answers it, with the event tools and the agenda refusal. So this leans to «yes»: a question
 // that only looks like one costs a demo answer instead of a model one, never a leak.
 

@@ -23,7 +23,7 @@ export async function createPublications(raw: unknown) {
     async (sql, i) => {
       const ctx = await loadPublishContext(sql, i.pieceId);
       if (!ctx) throw new UserError('Pieza no encontrada.');
-      if (ctx.piece.status !== 'approved') throw new UserError('La pieza no está aprobada por supervisión.');
+      if (ctx.piece.status !== 'approved') throw new UserError('La pieza no está aprobada por el jefe.');
       const ids: string[] = [];
       for (const it of i.items) {
         const check = await validateFor(ctx, it.network, it.format);

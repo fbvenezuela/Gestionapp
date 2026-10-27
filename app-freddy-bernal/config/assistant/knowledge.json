@@ -18,7 +18,7 @@
    "key": "doble-factor",
    "roles": null,
    "title": "Doble factor",
-   "body": "El doble factor es obligatorio para el jefe, Despacho, Supervisión y Administración. Sin él la plataforma no muestra la agenda ni deja aprobar. Redes, Grabación y Secretaría entran solo con el código del correo. Si alguien pierde el teléfono, administración le cierra las sesiones (Ajustes → Equipo) y le ayuda a activar el doble factor de nuevo.",
+   "body": "El doble factor es obligatorio para el jefe, Despacho, el director de política, el director del IVT y Administración. Sin él la plataforma no muestra la agenda ni deja aprobar. Redes y Grabación entran solo con el código del correo. Si alguien pierde el teléfono, administración le cierra las sesiones (Ajustes → Equipo) y le ayuda a activar el doble factor de nuevo.",
    "tags": [
     "doble factor",
     "seguridad",
@@ -65,7 +65,7 @@
    "key": "roles",
    "roles": null,
    "title": "Quién hace qué (resumen de roles)",
-   "body": "Jefe: decide los eventos, se prepara para cada acto y aprueba lo sensible (rojo). Despacho: arma la agenda, las fichas técnicas y asigna quién graba. Secretaría: propone eventos. Redes: storyboard, piezas, copies, tweets, publicar y resultados. Supervisión: aprueba piezas verdes y amarillas y los tweets. Grabación: graba y sube el material crudo de sus eventos. Administración: equipo, permisos y ajustes, y puede hacer todo lo de Redes, pero nunca aprueba.",
+   "body": "Seis roles. Jefe: tiene todo, hasta lo de Redes; decide los eventos, se prepara para cada acto y aprueba todo lo que sale (piezas verdes, amarillas y rojas, y los tweets). Despacho: arma la agenda, las fichas técnicas, pone fecha y hora y asigna quién graba. Director de política: carga los eventos y avances comunitarios por municipio. Director del IVT: carga la ficha de cada obra antes de la visita del jefe. Grabación: graba y sube el material crudo de sus eventos. Redes: storyboard, piezas, copies, tweets, publicar y resultados. Administración es el rol técnico: equipo, permisos y ajustes, y puede hacer todo lo de Redes, pero nunca aprueba.",
    "tags": [
     "roles",
     "permisos",
@@ -76,7 +76,7 @@
    "key": "agenda-privada",
    "roles": null,
    "title": "La agenda del jefe es privada",
-   "body": "La fecha, la hora, la dirección exacta, cómo llegar y los contactos de cada evento son información de seguridad. Solo los ven el jefe, Despacho, Administración y quien graba (solo sus eventos asignados). Redes, Supervisión y Secretaría nunca los ven; Redes ve solo el día cuando el evento ya pasó. Lo impide la base de datos, no solo la pantalla. El asistente no tiene la agenda y nunca la da: el que la necesite y tenga permiso la ve en la Agenda. Tampoco se escribe en avisos ni correos.",
+   "body": "La fecha, la hora, la dirección exacta, cómo llegar y los contactos de cada evento son información de seguridad. Solo los ven el jefe, Despacho, Administración y quien graba (solo sus eventos asignados). Redes y el director de política nunca los ven; Redes ve solo el día cuando el evento ya pasó. Lo impide la base de datos, no solo la pantalla. El asistente no tiene la agenda y nunca la da: el que la necesite y tenga permiso la ve en la Agenda. Tampoco se escribe en avisos ni correos.",
    "tags": [
     "agenda",
     "seguridad",
@@ -89,7 +89,7 @@
    "key": "permisos",
    "roles": null,
    "title": "Tabla de permisos",
-   "body": "Ver la agenda con fecha y hora: jefe, Despacho y Administración; Grabación solo sus eventos. Crear y editar eventos y fichas: Despacho y Administración (Secretaría propone). Aceptar, rechazar y calificar eventos: solo el jefe. Asignar quién graba: Despacho, Redes y Administración. Armar el storyboard: Redes y Administración (los demás lo leen). Subir material crudo: Redes, Administración y Grabación en sus eventos. Crear piezas, copies y mandar a aprobar: Redes y Administración. Aprobar verdes y amarillas y los tweets: Supervisión. Aprobar rojas: el jefe. Pedir cambios: Supervisión y el jefe. Publicar a mano y cargar métricas: Redes y Administración. Ver resultados: jefe, Redes, Supervisión y Administración. Biblioteca: Despacho, Redes, Supervisión y Administración. Invitar personas, roles y ajustes: Administración.",
+   "body": "Ver la agenda con fecha y hora: jefe, Despacho y Administración; Grabación solo sus eventos. Crear y editar eventos y fichas: Despacho y Administración. Aceptar, rechazar y calificar eventos: solo el jefe. Asignar quién graba: Despacho, Redes y Administración. Armar el storyboard: Redes y Administración (los demás lo leen). Subir material crudo: Redes, Administración y Grabación en sus eventos. Crear piezas, copies y mandar a aprobar: Redes, el jefe y Administración. Aprobar piezas (verdes, amarillas y rojas) y tweets, y pedir cambios: solo el jefe. Publicar a mano y cargar métricas: Redes, el jefe y Administración. Ver resultados: jefe, Redes y Administración. Biblioteca: Despacho, Redes, el jefe y Administración. Invitar personas, roles y ajustes: Administración.",
    "tags": [
     "permisos",
     "quien puede"
@@ -121,7 +121,7 @@
    "key": "semaforo-reglas",
    "roles": null,
    "title": "Reglas del semáforo de aprobación",
-   "body": "Las piezas verdes y amarillas las aprueba supervisión; las rojas, solo el jefe. Quien manda una pieza a aprobar elige el color: verde si es rutina, amarillo si es lo normal y rojo si es sensible (política, crisis, aclaratorias). Supervisión, el jefe o administración pueden cambiarlo. La falta de respuesta no es aprobación: si no se aprueba a tiempo y vence el plazo, la pieza sigue sin aprobar, sale en «Trancado» y se avisa de nuevo; nunca sale sola. Lo que sale es exactamente lo aprobado: si cambia el video o un copy, vuelve a revisión, y si cambió mientras alguien la revisaba, esa aprobación se rechaza y hay que abrirla de nuevo. Si una pieza aprobada por supervisión se sube a rojo, vuelve a revisión para el jefe. Una pieza en rojo solo baja con el jefe o administración. Lo que el jefe publica por su cuenta no pasa por aprobación (ya salió): Redes lo registra después con su link.",
+   "body": "Todo lo aprueba el jefe: las piezas verdes, amarillas y rojas. Quien manda una pieza a aprobar elige el color: verde si es rutina, amarillo si es lo normal y rojo si es sensible (política, crisis, aclaratorias); el color pone el plazo, y las verdes el jefe las aprueba todas de una vez. El jefe o administración pueden cambiarlo. La falta de respuesta no es aprobación: si no se aprueba a tiempo y vence el plazo, la pieza sigue sin aprobar, sale en «Trancado» y se avisa de nuevo; nunca sale sola. Lo que sale es exactamente lo aprobado: si cambia el video o un copy, vuelve a revisión, y si cambió mientras el jefe la revisaba, esa aprobación se rechaza y hay que abrirla de nuevo. Si una pieza aprobada se sube a rojo, vuelve a revisión. Una pieza en rojo solo baja con el jefe o administración. Lo que el jefe publica por su cuenta no pasa por aprobación (ya salió): Redes lo registra después con su link.",
    "tags": [
     "aprobar",
     "semaforo",
@@ -142,7 +142,7 @@
     "admin"
    ],
    "title": "Qué hace el jefe en la plataforma",
-   "body": "Inicio: «Te toca aprobar» (piezas en rojo con su reloj) y dos botones, Política y Digital. Menú: Inicio, Agenda, Por aprobar, Resultados y Digital. Puede aprobar las piezas en rojo después de marcar la lista de 4 chequeos, pedir cambios o comentar cualquier pieza anotando el segundo exacto del video, cambiar el nivel de una pieza (incluso sacarla del rojo), calificar cada evento de 1 a 10 y aceptarlo o rechazarlo (Política o la ficha del evento), leer «Lo que voy a decir» en letra grande (modo lectura), ver la agenda completa y marcar un evento como realizado, y ver lo publicado y cómo nos va (Digital y Resultados). No aprueba verdes, amarillas ni tweets (son de supervisión), no crea eventos ni cambia la ficha (es de Despacho) y no sube material, crea piezas ni publica.",
+   "body": "Tiene todo, hasta lo de Redes. Inicio: «Te toca aprobar» y dos botones, Política y Digital. Menú: Inicio, Agenda, Por aprobar, Digital y «Más» (Piezas, Tweets, Publicar, Resultados, Biblioteca). Aprueba todo lo que sale: las verdes, todas de una vez con «Aprobar todas las verdes»; las amarillas y rojas, una por una después de marcar la lista de 4 chequeos; y los tweets. Puede pedir cambios o comentar cualquier pieza anotando el segundo exacto del video, cambiar el nivel de una pieza (incluso sacarla del rojo), calificar cada evento de 1 a 10 y aceptarlo o rechazarlo (Política o la ficha del evento), leer «Lo que voy a decir» en letra grande (modo lectura), ver la agenda completa y marcar un evento como realizado, ver lo publicado y cómo nos va (Digital y Resultados) y hacer lo de Redes: piezas, copies, tweets y publicaciones.",
    "tags": [
     "jefe",
     "rol"
@@ -152,11 +152,10 @@
    "key": "como-aprobar-rojo",
    "roles": [
     "boss",
-    "admin",
-    "supervisor"
+    "admin"
    ],
    "title": "Cómo aprueba el jefe una pieza en rojo",
-   "body": "Las piezas en rojo las aprueba solo el jefe; supervisión puede pedir cambios. En Inicio, en el recuadro «Te toca aprobar», o en Por aprobar: abrir la pieza, ver el video y los copies, marcar la lista de chequeo y tocar Aprobar. Si algo no va, pedir cambios con un comentario (se puede anotar el segundo del video). Si no responde, la pieza no sale.",
+   "body": "Las piezas en rojo, como todas, las aprueba el jefe; para sacarla del rojo, el jefe o administración le cambian el nivel en la pieza. En Inicio, en el recuadro «Te toca aprobar», o en Por aprobar: abrir la pieza, ver el video y los copies, marcar la lista de chequeo y tocar Aprobar. Si algo no va, pedir cambios con un comentario (se puede anotar el segundo del video). Si no responde, la pieza no sale.",
    "tags": [
     "aprobar",
     "rojo",
@@ -168,8 +167,7 @@
    "roles": [
     "boss",
     "admin",
-    "dispatch",
-    "secretary"
+    "dispatch"
    ],
    "title": "Calificar, aceptar o rechazar eventos",
    "body": "En Política (desde Inicio) el jefe ve los eventos que esperan su decisión: los califica de 1 a 10 y los acepta o rechaza. También se puede desde la ficha del evento. Solo el jefe decide; Despacho no puede hacerlo en su nombre.",
@@ -213,13 +211,44 @@
    ]
   },
   {
+   "key": "rol-politica",
+   "roles": [
+    "politics",
+    "admin"
+   ],
+   "title": "Qué hace el director de política en la plataforma",
+   "body": "Para qué: cargar los eventos y avances comunitarios de cada municipio para que el jefe y Despacho los pongan en la agenda. No pone fecha ni hora: eso lo hacen el jefe o Despacho. No ve la agenda con fecha y hora, ni piezas, copies, tweets o publicaciones. Entra con el código del correo y el doble factor. Inicio: Hoy. Su pantalla de fichas por municipio llega en la próxima entrega.",
+   "tags": [
+    "politica",
+    "director de politica",
+    "rol",
+    "municipio",
+    "comunidad"
+   ]
+  },
+  {
+   "key": "rol-ivt",
+   "roles": [
+    "ivt",
+    "admin"
+   ],
+   "title": "Qué hace el director del IVT en la plataforma",
+   "body": "Para qué: cargar la ficha de cada obra (del IVT) antes de la visita del jefe. No pone fecha ni hora: eso lo hacen el jefe o Despacho. No ve piezas, copies, tweets ni publicaciones. Entra con el código del correo y el doble factor. Inicio: Hoy. Su pantalla de fichas de obra llega en la próxima entrega.",
+   "tags": [
+    "ivt",
+    "director del ivt",
+    "rol",
+    "obra",
+    "vialidad"
+   ]
+  },
+  {
    "key": "ficha-tecnica",
    "roles": [
     "dispatch",
     "admin",
-    "secretary",
     "social",
-    "supervisor"
+    "boss"
    ],
    "title": "Qué lleva la ficha técnica",
    "body": "La ficha técnica de un evento lleva: de qué se trata la obra o el acto, quién lo dirige, quién está a cargo, los logros, las cifras clave con su fuente y el protocolo (cómo va el acto). Mientras más completa, mejores copies y storyboard: la plantilla de copies nunca inventa cifras, así que lo que falta en la ficha falta en el copy. En Hoy, Despacho ve las fichas incompletas.",
@@ -234,15 +263,13 @@
    "key": "nuevo-evento",
    "roles": [
     "dispatch",
-    "admin",
-    "secretary"
+    "admin"
    ],
    "title": "Cómo se crea un evento",
-   "body": "Para crear o proponer un evento: «Crear» (arriba) → Nuevo evento. Se llenan título, lugar, municipio, de qué se trata, la parte privada (fecha, hora, duración, dirección, cómo llegar, contactos) y la ficha técnica. Despacho y Administración crean eventos; Secretaría los propone y el jefe decide. La parte privada solo la ven el jefe, Despacho, Administración y quien graba.",
+   "body": "Para crear un evento: «Crear» (arriba) → Nuevo evento. Se llenan título, lugar, municipio, de qué se trata, la parte privada (fecha, hora, duración, dirección, cómo llegar, contactos) y la ficha técnica. Despacho y Administración crean eventos y el jefe decide. La parte privada solo la ven el jefe, Despacho, Administración y quien graba.",
    "tags": [
     "evento",
-    "crear",
-    "proponer"
+    "crear"
    ]
   },
   {
@@ -250,11 +277,10 @@
    "roles": [
     "dispatch",
     "admin",
-    "boss",
-    "secretary"
+    "boss"
    ],
    "title": "Cambiar, cancelar o duplicar un evento",
-   "body": "Despacho y Administración cambian el título, el lugar, la fecha y la ficha técnica desde la ficha del evento. No hay botón para duplicar un evento: se crea otro en «Crear» → Nuevo evento. Tampoco hay botón para cancelarlo ni para borrarlo: si un evento ya no conviene, el jefe lo rechaza en Política o en su ficha, y si hay que quitarlo, Despacho le avisa a Administración. Secretaría no cambia una propuesta ya enviada: le avisa a Despacho.",
+   "body": "Despacho y Administración cambian el título, el lugar, la fecha y la ficha técnica desde la ficha del evento. No hay botón para duplicar un evento: se crea otro en «Crear» → Nuevo evento. Tampoco hay botón para cancelarlo ni para borrarlo: si un evento ya no conviene, el jefe lo rechaza en Política o en su ficha, y si hay que quitarlo, Despacho le avisa a Administración.",
    "tags": [
     "cambiar",
     "cancelar",
@@ -292,20 +318,6 @@
     "realizado",
     "biblioteca",
     "pasados"
-   ]
-  },
-  {
-   "key": "rol-secretaria",
-   "roles": [
-    "secretary",
-    "admin"
-   ],
-   "title": "Qué hace Secretaría en la plataforma",
-   "body": "Para qué: proponer eventos para que el jefe decida. Inicio: Hoy con sus propuestas y si están esperando, aceptadas o rechazadas. Menú: Hoy y «Mis eventos»; «Crear» → Proponer un evento. Puede proponer un evento con título, lugar, municipio, de qué se trata, la parte privada y la ficha técnica, ver el estado de lo que propuso y ver la ficha y el storyboard de sus propios eventos. No ve eventos de otras personas, no ve la fecha, la hora ni la dirección después de enviar la propuesta (ni siquiera de lo suyo), no asigna quién graba y no ve material, piezas ni tweets. Si hay que corregir algo que propuso, le avisa a Despacho para que lo corrija: Secretaría no tiene botón para cambiar una propuesta ya enviada.",
-   "tags": [
-    "secretaria",
-    "rol",
-    "proponer"
    ]
   },
   {
@@ -358,7 +370,7 @@
    "roles": [
     "social",
     "admin",
-    "supervisor"
+    "boss"
    ],
    "title": "Cómo se escriben los copies",
    "body": "En la pieza, pestaña Copies: se elige la fórmula (hay 9), la voz (la del jefe o institucional) y el cierre, y salen tres largos: largo (Instagram, TikTok y Facebook), medio (Threads) y corto (X). La plantilla nunca inventa cifras: usa lo que trae la ficha técnica y marca lo que falta. Cambiar un copy de una pieza aprobada la devuelve a revisión.",
@@ -376,10 +388,10 @@
    "roles": [
     "social",
     "admin",
-    "supervisor"
+    "boss"
    ],
    "title": "Tweets de la semana",
-   "body": "En Tweets → nueva tanda: se pega o se sube el documento de la semana, la plataforma separa los tweets, marca repetidos y largos y los reparte 2 o 3 por día en las franjas guardadas. Supervisión los aprueba; ya aprobados, Redes los programa. Cuando quedan pocos días de tweets programados, la plataforma avisa a Redes. Para mover un tweet, se toca y se cambia día y hora (arrastrar no funciona con el dedo).",
+   "body": "En Tweets → nueva tanda: se pega o se sube el documento de la semana, la plataforma separa los tweets, marca repetidos y largos y los reparte 2 o 3 por día en las franjas guardadas. El jefe los aprueba; ya aprobados, Redes los programa. Cuando quedan pocos días de tweets programados, la plataforma avisa a Redes. Para mover un tweet, se toca y se cambia día y hora (arrastrar no funciona con el dedo).",
    "tags": [
     "tweets",
     "semana",
@@ -433,11 +445,10 @@
    "roles": [
     "admin",
     "social",
-    "supervisor",
     "boss"
    ],
    "title": "Resultados y métricas",
-   "body": "En Resultados se cargan las métricas de cada publicación a mano o con el CSV de la red, y se ve «¿A qué hora nos va mejor?»: compara vistas e interacción por red y franja horaria. Con pocos datos lo dice. Nunca interpreta apoyo político. Lo ven el jefe, Redes, Supervisión y Administración.",
+   "body": "En Resultados se cargan las métricas de cada publicación a mano o con el CSV de la red, y se ve «¿A qué hora nos va mejor?»: compara vistas e interacción por red y franja horaria. Con pocos datos lo dice. Nunca interpreta apoyo político. Lo ven el jefe, Redes y Administración.",
    "tags": [
     "resultados",
     "metricas",
@@ -445,49 +456,34 @@
    ]
   },
   {
-   "key": "rol-supervision",
-   "roles": [
-    "supervisor",
-    "admin"
-   ],
-   "title": "Qué hace Supervisión en la plataforma",
-   "body": "Para qué: que nada salga sin revisión. Aprueba las piezas verdes y amarillas y los tweets; en las rojas puede pedir cambios, pero las aprueba el jefe. Inicio: Hoy con piezas por aprobar y su reloj, tweets que esperan y lo vencido. Menú: Hoy, Por aprobar, Resultados y «Más» (Tweets, Biblioteca). No aprueba piezas en rojo ni las saca del rojo, no ve la agenda con fecha y hora, no crea ni edita piezas, copies o publicaciones y no aprueba sin doble factor.",
-   "tags": [
-    "supervision",
-    "rol"
-   ]
-  },
-  {
    "key": "como-aprobar",
    "roles": [
-    "supervisor",
-    "admin",
-    "boss"
+    "boss",
+    "admin"
    ],
-   "title": "Cómo aprueba Supervisión y qué revisar antes",
-   "body": "En Por aprobar las piezas salen agrupadas por color, con el video, los tres copies y el historial. Las verdes se aprueban todas juntas, de una vez, con el botón «Aprobar las…» del grupo verde (las que cambiaron mientras tanto se saltan). Antes de aprobar una pieza sola, se revisa con la lista: cifras con fuente, sin fecha ni hora, se ve y se oye bien, copies revisados. Si trae un error o algo no va, se piden cambios con un comentario, anotando el segundo del video si hace falta. Una pieza delicada se puede subir a rojo; también se puede «Pedir frase al jefe». Los tweets se aprueban marcándolos en su pestaña.",
+   "title": "Cómo aprueba el jefe y qué revisar antes",
+   "body": "En Por aprobar las piezas salen agrupadas por color, con el video, los tres copies y el historial. Las verdes se aprueban todas juntas, con un toque, en el botón «Aprobar todas las verdes» (las que cambiaron mientras tanto se saltan). Antes de aprobar una pieza amarilla o roja, se revisa con la lista: cifras con fuente, sin fecha ni hora, se ve y se oye bien, copies revisados. Si trae un error o algo no va, se piden cambios con un comentario, anotando el segundo del video si hace falta. Una pieza delicada se puede subir a rojo. Los tweets se aprueban marcándolos en su pestaña.",
    "tags": [
     "aprobar",
-    "supervision",
     "lista",
     "revisar",
     "chequeo",
     "cambios",
     "error",
     "verde",
-    "amarillo"
+    "amarillo",
+    "todas las verdes"
    ]
   },
   {
    "key": "frase-jefe",
    "roles": [
-    "supervisor",
     "social",
     "admin",
     "boss"
    ],
    "title": "Pedir una frase al jefe",
-   "body": "Si a una pieza le falta una frase del jefe, Supervisión, Redes o Administración la piden desde la pieza con «Pedir frase al jefe»: se anota el segundo del video y la frase que hace falta. El jefe graba el audio y lo sube; mientras tanto, en Hoy de Redes sale «Esperando frase del jefe».",
+   "body": "Si a una pieza le falta una frase del jefe, Redes o Administración la piden desde la pieza con «Pedir frase al jefe»: se anota el segundo del video y la frase que hace falta. El jefe graba el audio y lo sube; mientras tanto, en Hoy de Redes sale «Esperando frase del jefe».",
    "tags": [
     "frase",
     "jefe",

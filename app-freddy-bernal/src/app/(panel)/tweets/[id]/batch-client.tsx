@@ -50,7 +50,7 @@ type T = { id: string; body: string; status: string; category_id: string | null;
 export function BatchEditor({ tweets, categories }: { tweets: T[]; categories: CategoryOption[] }) {
   return (
     <Card>
-      <CardHeader title="Editar textos" subtitle="Si cambias un tweet aprobado, vuelve a supervisión." />
+      <CardHeader title="Editar textos" subtitle="Si cambias un tweet aprobado, vuelve a la aprobación del jefe." />
       <ol className="divide-y divide-border">
         {tweets.map((t, i) => <Row key={t.id} t={t} n={i + 1} categories={categories} />)}
       </ol>

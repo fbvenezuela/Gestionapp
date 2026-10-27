@@ -18,7 +18,7 @@ const EMPTY = {
   workDescription: '', ledBy: '', inCharge: '', achievements: '', keyFacts: '', protocol: '', notes: '',
 };
 
-export function NewEventForm({ categories, municipalities, cameras, isSecretary }: { categories: CategoryOption[]; municipalities: string[]; cameras: { id: string; full_name: string }[]; isSecretary: boolean }) {
+export function NewEventForm({ categories, municipalities, cameras }: { categories: CategoryOption[]; municipalities: string[]; cameras: { id: string; full_name: string }[] }) {
   const router = useRouter();
   const { run, pending } = useAction();
   const { value: f, setValue, restored, clear } = useDraft('new-event', EMPTY);
@@ -30,8 +30,8 @@ export function NewEventForm({ categories, municipalities, cameras, isSecretary 
       className="flex flex-col gap-5"
       onSubmit={(e) => {
         e.preventDefault();
-        run(() => createEvent({ ...f, allowOverlap: isSecretary ? false : allowOverlap }), {
-          success: isSecretary ? 'Propuesta enviada. Te avisamos cuando el jefe decida.' : 'Evento guardado.',
+        run(() => createEvent({ ...f, allowOverlap }), {
+          success: 'Evento guardado.',
           refresh: false,
           onOk: (r) => {
             clear();
@@ -75,11 +75,7 @@ export function NewEventForm({ categories, municipalities, cameras, isSecretary 
       <Card>
         <CardHeader
           title="Fecha, hora y lugar exacto"
-          subtitle={
-            isSecretary
-              ? 'Privado: solo lo ven el jefe, el despacho, administración y quien graba. Después de enviar ya no lo verás; si cambia, avísale al despacho.'
-              : 'Privado: solo lo ven el jefe, el despacho, administración y quien graba el evento.'
-          }
+          subtitle="Privado: solo lo ven el jefe, el despacho, administración y quien graba el evento."
         />
         <div className="grid gap-4 p-4 sm:grid-cols-3">
           <Field label="Fecha" htmlFor="date">
@@ -104,15 +100,10 @@ export function NewEventForm({ categories, municipalities, cameras, isSecretary 
           <Field label="Contactos del sitio" htmlFor="contacts" className="sm:col-span-3">
             <Textarea id="contacts" rows={2} value={f.siteContacts} onChange={set('siteContacts')} />
           </Field>
-          {isSecretary ? (
-            // Secretaría cannot see other events' dates, so she cannot judge a clash: despacho does.
-            <p className="text-sm text-text-2 sm:col-span-3">El despacho revisa si choca con otro evento.</p>
-          ) : (
-            <label className="flex min-h-11 items-center gap-2 text-[15px] sm:col-span-3">
-              <input type="checkbox" className="h-5 w-5 accent-accent" checked={allowOverlap} onChange={(e) => setAllowOverlap(e.target.checked)} />
-              Guardar aunque choque con otro evento
-            </label>
-          )}
+          <label className="flex min-h-11 items-center gap-2 text-[15px] sm:col-span-3">
+            <input type="checkbox" className="h-5 w-5 accent-accent" checked={allowOverlap} onChange={(e) => setAllowOverlap(e.target.checked)} />
+            Guardar aunque choque con otro evento
+          </label>
         </div>
       </Card>
 
@@ -137,7 +128,7 @@ export function NewEventForm({ categories, municipalities, cameras, isSecretary 
           <Field label="Protocolo" htmlFor="prot" className="sm:col-span-2">
             <Textarea id="prot" rows={2} value={f.protocol} onChange={set('protocol')} />
           </Field>
-          {!isSecretary && cameras.length ? (
+          {cameras.length ? (
             <Field label="Quién graba" htmlFor="cam">
               <Select id="cam" value={f.cameraUserId} onChange={set('cameraUserId')}>
                 <option value="">Sin asignar</option>
@@ -150,7 +141,7 @@ export function NewEventForm({ categories, municipalities, cameras, isSecretary 
 
       <div className="sticky bottom-20 z-10 flex gap-2 lg:bottom-4">
         <Button type="submit" size="lg" className="flex-1 sm:flex-none" disabled={pending}>
-          {pending ? 'Guardando…' : isSecretary ? 'Enviar propuesta' : 'Guardar evento'}
+          {pending ? 'Guardando…' : 'Guardar evento'}
         </Button>
       </div>
     </form>

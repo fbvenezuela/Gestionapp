@@ -2,6 +2,7 @@ import { requireRole, db } from '@/lib/auth/session';
 import { PageHeader } from '@/components/ui/page';
 import { Card } from '@/components/ui/card';
 import { fmtDateTime } from '@/lib/time';
+import { RETIRED_ROLES, ROLE_LABEL } from '@/lib/roles';
 
 export const metadata = { title: 'Registro de cambios' };
 
@@ -15,6 +16,8 @@ const TABLE: Record<string, string> = {
   app_settings: 'Ajuste', categories: 'Categoría', copy_formulas: 'Fórmula', network_specs: 'Reglas de red',
 };
 const ACTION: Record<string, string> = { insert: 'creó', update: 'cambió', delete: 'quitó', soft_delete: 'borró', mfa_reset: 'reinició' };
+// One summary row of 20261027001600_six_roles.sql: the retired roles keep their names here (history).
+const RETIRED = `retiró los roles ${RETIRED_ROLES.map((r) => ROLE_LABEL[r]).join(' y ')}: quedan los seis del equipo y la historia se guarda`;
 
 export default async function AuditPage({ searchParams }: { searchParams: Promise<{ antes?: string }> }) {
   const s = await requireRole('admin');
@@ -36,8 +39,12 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
         <ul className="divide-y divide-border">
           {rows.map((r) => (
             <li key={r.id} className="px-4 py-3 text-[15px]">
-              <span className="font-semibold">{r.actor ?? 'El sistema'}</span> {ACTION[r.action] ?? r.action}{' '}
-              <span className="font-semibold">{TABLE[r.table_name] ?? r.table_name}</span>
+              <span className="font-semibold">{r.actor ?? 'El sistema'}</span>{' '}
+              {r.action === 'roles_retired' ? RETIRED : (
+                <>
+                  {ACTION[r.action] ?? r.action} <span className="font-semibold">{TABLE[r.table_name] ?? r.table_name}</span>
+                </>
+              )}
               {r.changed?.length ? <span className="text-text-2"> ({r.changed.join(', ')})</span> : null}
               <span className="block text-sm text-text-2">{fmtDateTime(r.at)}</span>
             </li>

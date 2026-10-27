@@ -11,7 +11,7 @@ import { LinkButton } from '@/components/ui/button';
 import { BOSS_DECISION, WORK_STATUS, PIECE_STATUS, PIECE_KIND } from '@/lib/data/labels';
 import { fmtDateTime, fmtTime, fmtDay, dt } from '@/lib/time';
 import { cn } from '@/lib/cn';
-import { BossPanel, BriefEditor, CameraAssign, EventEditor, MarkDone, ProposalEditor, ScheduleEditor, WorkStatusSelect } from './event-client';
+import { BossPanel, BriefEditor, CameraAssign, EventEditor, MarkDone, ScheduleEditor, WorkStatusSelect } from './event-client';
 import { StoryboardEditor } from './storyboard-editor';
 import { MaterialPanel } from './material-panel';
 import { mediaLockSql } from '@/lib/domain/media-lock';
@@ -40,14 +40,13 @@ export default async function EventPage({ params, searchParams }: { params: Prom
          from public.media_assets m where m.event_id = $1 and m.deleted_at is null order by m.kind, m.created_at`,
       [id],
     );
-    const pieces = has('admin', 'social', 'supervisor', 'boss')
+    const pieces = has('admin', 'social', 'boss')
       ? await sql.query<{ id: string; title: string; kind: string; status: string; current_version: number }>(
           `select id, title, kind, status, current_version from public.pieces where event_id = $1 and deleted_at is null order by created_at`,
           [id],
         )
       : [];
-    // Secretaría may correct her own proposal until the boss decides.
-    const editors = has('admin', 'dispatch') || (has('secretary') && ev.created_by === s.userId && ev.boss_decision === 'pending');
+    const editors = has('admin', 'dispatch');
     return {
       ev,
       media,
@@ -60,13 +59,10 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   if (!data) notFound();
   const { ev } = data;
   const canEdit = has('admin', 'dispatch');
-  const ownProposal = !canEdit && has('secretary') && ev.created_by === s.userId;
-  const onlySecretary = has('secretary') && !has('admin', 'boss', 'dispatch', 'social', 'supervisor', 'camera');
   const canBoard = has('admin', 'social');
   const canUpload = has('admin', 'social') || (has('camera') && ev.cameras.some((c) => c.user_id === s.userId));
-  const tab = onlySecretary ? 'ficha' : (TABS.find((t) => t.key === rawTab)?.key ?? (has('camera') && !has('admin') ? 'material' : 'ficha'));
-  // Secretaría only proposes: storyboard, material and pieces are not her work.
-  const visibleTabs = onlySecretary ? TABS.filter((t) => t.key === 'ficha') : TABS.filter((t) => t.key !== 'piezas' || has('admin', 'social', 'supervisor', 'boss'));
+  const tab = TABS.find((t) => t.key === rawTab)?.key ?? (has('camera') && !has('admin', 'boss') ? 'material' : 'ficha');
+  const visibleTabs = TABS.filter((t) => t.key !== 'piezas' || has('admin', 'social', 'boss'));
   const past = ev.schedule ? new Date(ev.schedule.starts_at) < new Date() : false;
   // Its own short query, after (never inside) the one above.
   const drive = tab === 'material' ? await driveUi(s) : null;
@@ -74,12 +70,11 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   return (
     <>
       <PageHeader
-        back={{ href: '/agenda', label: has('social', 'secretary') && !canEdit ? 'Eventos' : 'Agenda' }}
+        back={{ href: '/agenda', label: has('social') && !has('admin', 'boss', 'dispatch') ? 'Eventos' : 'Agenda' }}
         title={ev.title}
         subtitle={[ev.place_name, ev.municipality].filter(Boolean).join(' · ')}
         actions={
-          // Secretaría has no storyboard tab, so no reading mode either.
-          !onlySecretary && (ev.blocks.length || ev.storyboard?.speech) ? (
+          ev.blocks.length || ev.storyboard?.speech ? (
             <LinkButton variant="slate" href={`/eventos/${ev.id}/lectura`}>
               <BookOpenText className="h-4 w-4" aria-hidden /> Modo lectura
             </LinkButton>
@@ -159,31 +154,19 @@ export default async function EventPage({ params, searchParams }: { params: Prom
           </Card>
           <div className="flex flex-col gap-4">
             {canEdit ? <EventEditor ev={ev} categories={data.categories} municipalities={data.municipalities} /> : null}
-            {ownProposal && ev.boss_decision === 'pending' ? <ProposalEditor ev={ev} categories={data.categories} municipalities={data.municipalities} /> : null}
-            {ownProposal && ev.boss_decision !== 'pending' ? (
-              <Card>
-                <CardBody>
-                  <p className="text-[15px]">
-                    {ev.boss_decision === 'accepted' ? 'El jefe aceptó tu propuesta.' : 'El jefe rechazó tu propuesta.'} Si hace falta cambiar algo, avísale al despacho.
-                  </p>
-                </CardBody>
-              </Card>
-            ) : null}
             {has('admin', 'social') ? <WorkStatusSelect id={ev.id} status={ev.work_status} /> : null}
-            {onlySecretary ? null : (
-              <Card>
-                <CardHeader title="Quién graba" />
-                <CardBody>
-                  {data.cameras.length ? (
-                    <CameraAssign id={ev.id} assigned={ev.cameras.map((c) => c.user_id)} people={data.cameras} />
-                  ) : ev.cameras.length ? (
-                    <p>{ev.cameras.map((c) => c.full_name).join(', ')}</p>
-                  ) : (
-                    <p className="text-text-2">Sin asignar.</p>
-                  )}
-                </CardBody>
-              </Card>
-            )}
+            <Card>
+              <CardHeader title="Quién graba" />
+              <CardBody>
+                {data.cameras.length ? (
+                  <CameraAssign id={ev.id} assigned={ev.cameras.map((c) => c.user_id)} people={data.cameras} />
+                ) : ev.cameras.length ? (
+                  <p>{ev.cameras.map((c) => c.full_name).join(', ')}</p>
+                ) : (
+                  <p className="text-text-2">Sin asignar.</p>
+                )}
+              </CardBody>
+            </Card>
           </div>
         </div>
       ) : null}
@@ -196,7 +179,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
 
       {tab === 'piezas' ? (
         <Card>
-          <CardHeader title="Piezas de este evento" action={has('admin', 'social') ? <LinkButton size="sm" href={`/piezas/nueva?evento=${ev.id}`}>Nueva pieza</LinkButton> : undefined} />
+          <CardHeader title="Piezas de este evento" action={has('admin', 'social', 'boss') ? <LinkButton size="sm" href={`/piezas/nueva?evento=${ev.id}`}>Nueva pieza</LinkButton> : undefined} />
           {data.pieces.length ? (
             <ul className="divide-y divide-border">
               {data.pieces.map((p) => (

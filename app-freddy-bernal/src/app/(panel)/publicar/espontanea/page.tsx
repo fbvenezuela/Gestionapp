@@ -5,7 +5,7 @@ import { SpontaneousForm } from './spontaneous-form';
 export const metadata = { title: 'Lo que publicó el jefe' };
 
 export default async function SpontaneousPage() {
-  await requireRole('admin', 'social');
+  await requireRole('admin', 'social', 'boss');
   return (
     <>
       <PageHeader

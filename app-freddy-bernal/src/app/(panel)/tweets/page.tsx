@@ -12,8 +12,8 @@ import { fmtDateTime } from '@/lib/time';
 export const metadata = { title: 'Tweets' };
 
 export default async function TweetsPage() {
-  const s = await requireRole('admin', 'social', 'supervisor');
-  const canEdit = s.roles.some((r) => r === 'admin' || r === 'social');
+  const s = await requireRole('admin', 'social', 'boss');
+  const canEdit = s.roles.some((r) => r === 'admin' || r === 'social' || r === 'boss');
   const data = await db(s, async (sql) => ({
     stock: await tweetStock(sql),
     tweets: await sql.query<BoardTweet>(

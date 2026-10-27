@@ -9,12 +9,12 @@ import { withSystem } from '../db';
 import { endAuthSessions } from '../auth/revoke';
 import { brand } from '../client-config';
 import { sendEmail } from '../email/send';
-import { INVITABLE_ROLES, ROLE_LABEL, type Role } from '../roles';
+import { INVITABLE_ROLES, ROLE_LABEL } from '../roles';
 
 const inviteSchema = z.object({
   email: z.string().trim().toLowerCase().email('Escribe un correo válido.'),
   fullName: z.string().trim().min(2, 'Escribe el nombre.').max(120),
-  role: z.enum(INVITABLE_ROLES as [Role, ...Role[]]),
+  role: z.enum(INVITABLE_ROLES, 'Ese rol no es del equipo.'),
 });
 
 export async function inviteUser(raw: unknown) {
@@ -55,7 +55,7 @@ export async function inviteUser(raw: unknown) {
   });
 }
 
-const roleSchema = z.object({ userId: z.string().uuid(), role: z.enum(INVITABLE_ROLES as [Role, ...Role[]]), on: z.boolean() });
+const roleSchema = z.object({ userId: z.string().uuid(), role: z.enum(INVITABLE_ROLES, 'Ese rol no es del equipo.'), on: z.boolean() });
 
 export async function setRole(raw: unknown) {
   return act(roleSchema, raw, async (sql, input, s) => {

@@ -6,7 +6,7 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { LENGTH_GROUP, NETWORK_LABEL, PIECE_KIND, PIECE_STATUS } from '@/lib/data/labels';
 import { fmtDateTime } from '@/lib/time';
-import { getDeadlines } from '@/lib/data/review';
+import { canApprove as canApproveNow, getDeadlines } from '@/lib/data/review';
 import { LEVELS, reviewClock } from '@/lib/domain/review';
 import { ReviewRoom, LevelPicker } from './review-room';
 import { copyPreview, type SpecRow } from '@/lib/domain/copy-preview';
@@ -14,24 +14,23 @@ import { copyPreview, type SpecRow } from '@/lib/domain/copy-preview';
 export const metadata = { title: 'Revisión' };
 
 export default async function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
-  const s = await requireRole('supervisor', 'admin', 'boss');
+  const s = await requireRole('boss', 'admin');
   const { id } = await params;
-  const { p, deadlines, specs } = await db(s, async (sql) => ({
+  const { p, deadlines, specs, approver } = await db(s, async (sql) => ({
     p: await getPiece(sql, id),
+    approver: await canApproveNow(sql),
     deadlines: await getDeadlines(sql),
     specs: await sql.query<SpecRow>(`select network, label, copy_max_chars, length_group from public.network_specs order by network`),
   }));
   if (!p) notFound();
   const preview = copyPreview(p.copies, specs);
   const current = p.versions[0];
-  const isSup = s.roles.includes('supervisor');
   const isBoss = s.roles.includes('boss');
+  const isAdmin = s.roles.includes('admin');
   const inReview = p.status === 'in_review';
-  const red = p.review_level === 'rojo';
   const clock = inReview ? reviewClock(p.review_level, p.sent_to_review_at, deadlines) : null;
-  // Out of red only with the boss or admin (the database enforces the same).
-  const canLevel = inReview && (isSup || isBoss || s.roles.includes('admin'));
-  const canLower = !red || isBoss || s.roles.includes('admin');
+  // The boss or admin change the level, red included (the database enforces the same).
+  const canLevel = inReview && (isBoss || isAdmin);
   return (
     <>
       <PageHeader back={{ href: '/aprobar', label: 'Por aprobar' }} title={p.title} subtitle={[PIECE_KIND[p.kind], p.event_title, `versión ${p.current_version}`].filter(Boolean).join(' · ')} />
@@ -39,7 +38,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
         <Chip tone={PIECE_STATUS[p.status]?.tone}>{PIECE_STATUS[p.status]?.label}</Chip>
         <Chip tone={LEVELS[p.review_level].tone}>{LEVELS[p.review_level].label}: aprueba {LEVELS[p.review_level].who}</Chip>
         {clock?.text ? <Chip tone={clock.overdue ? 'danger' : 'neutral'}>{clock.text}</Chip> : null}
-        {canLevel ? <LevelPicker pieceId={p.id} level={p.review_level} canLower={canLower} /> : null}
+        {canLevel ? <LevelPicker pieceId={p.id} level={p.review_level} canLower /> : null}
       </div>
       {clock?.overdue ? <p className="mb-4 text-sm text-danger">Venció el plazo y sigue sin aprobar. No sale hasta que {LEVELS[p.review_level].who} decida.</p> : null}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -47,10 +46,10 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
           <ReviewRoom
             pieceId={p.id}
             revision={p.revision}
-            canApprove={inReview && (red ? isBoss : isSup)}
-            canRequestChanges={inReview && (isSup || isBoss)}
-            canAskVoice={isSup || s.roles.includes('admin')}
-            note={inReview && red && !isBoss ? 'Está en rojo: la aprueba el jefe. Tú puedes pedir cambios o comentar.' : inReview && !red && isBoss && !isSup ? 'La aprueba supervisión. Tú puedes pedir cambios o comentar.' : ''}
+            canApprove={inReview && approver}
+            canRequestChanges={inReview && approver}
+            canAskVoice={isAdmin}
+            note={inReview && !approver ? 'La aprueba el jefe. Tú puedes cambiar el nivel o comentar.' : ''}
             media={current?.media_asset_id ? { id: current.media_asset_id, mime: current.mime ?? '', drive: current.bucket === 'drive' } : null}
           />
           <Card>

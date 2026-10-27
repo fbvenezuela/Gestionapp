@@ -3,7 +3,7 @@ import { ExternalLink } from 'lucide-react';
 
 export type PubTitleRow = { id: string; title: string; url: string | null };
 
-// Who can open /publicar/[id] (admin, redes) goes there; the rest (jefe, supervisión) go to the
+// Who can open /publicar/[id] (admin, redes, jefe) goes there; anyone else goes to the
 // post itself on the network when there is a link, or see just the title. Never a dead «#» link.
 // On the phone card (`card`) the title is the main tap target: a full-width block at least 44 px
 // tall and underlined so it reads as a link. In the desktop table it stays inline.

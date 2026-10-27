@@ -98,8 +98,8 @@ export async function createBatch(raw: unknown) {
     return { id: b!.id, count: i.tweets.length };
   }, { revalidate: ['/tweets', '/aprobar', '/hoy'] }).then(async (r) => {
     if (r.ok) {
-      const sup = await usersWithRole('supervisor');
-      await notify({ userIds: sup, kind: 'review_pending', title: `${r.data!.count} tweets por aprobar`, link: '/aprobar?tab=tweets', key: `batch:${r.data!.id}`, email: true });
+      // Tweets are approved by the boss (public.can_approve()).
+      await notify({ userIds: await usersWithRole('boss'), kind: 'review_pending', title: `${r.data!.count} tweets por aprobar`, link: '/aprobar?tab=tweets', key: `batch:${r.data!.id}`, email: true });
     }
     return r;
   });
@@ -146,7 +146,7 @@ export async function skipTweet(raw: unknown) {
   }, { revalidate: ['/tweets', '/aprobar'] });
 }
 
-// Supervisor approves (all ids at once). The database refuses anyone else.
+// The boss approves (all ids at once). The database refuses anyone else (guard_tweet → can_approve()).
 export async function approveTweets(raw: unknown) {
   return act(z.object({ ids: z.array(uuid).min(1).max(400) }), raw, async (sql, i) => {
     const r = await sql.query(

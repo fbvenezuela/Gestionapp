@@ -6,7 +6,7 @@ import { demoShortcuts, env } from '../env';
 import { withSystem, withUser, type Claims, type Sql } from '../db';
 import { DEMO_COOKIE, readSession } from './cookie';
 import { revokedSession } from './revoke';
-import { ROLES, homeFor, type Role } from '../roles';
+import { homeFor, isTeamRole, type Role } from '../roles';
 import { noPermissionUrl } from '../../components/shell/no-permission';
 
 export type Session = {
@@ -87,8 +87,9 @@ export const getSession = cache(async (): Promise<Session | null> => {
   if (!info.p) return null;
   const mfaRequired = info.roles.some((r) => info.mfaRoles.includes(r));
   const store = await cookies();
-  const va = store.get('fb_view_as')?.value as Role | undefined;
-  const viewAs = info.roles.includes('admin') && va && (ROLES as readonly string[]).includes(va) ? va : null;
+  // Only the six team roles: an old cookie naming a retired role is ignored.
+  const va = store.get('fb_view_as')?.value;
+  const viewAs = info.roles.includes('admin') && isTeamRole(va) ? va : null;
   return {
     userId: claims.sub,
     email: info.p.email,

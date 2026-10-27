@@ -35,16 +35,15 @@ export function buildDigest(roles: readonly string[], d: DigestData): Digest | n
     sections.push({ line, ...cleanTitles(titles) });
   };
 
-  if (has('supervisor')) {
-    list(d.inReview.map((p) => p.title), plural(d.inReview.length, 'pieza por aprobar', 'piezas por aprobar'));
+  // The boss approves everything: every piece in review (saying how many are red) and the tweets.
+  if (has('boss')) {
+    const red = d.inReview.filter((p) => p.red).length;
+    const line = plural(d.inReview.length, 'pieza por aprobar', 'piezas por aprobar');
+    list(d.inReview.map((p) => p.title), red ? `${line} (${red === 1 ? '1 en rojo' : `${red} en rojo`})` : line);
     if (d.tweetsToApprove > 0) {
       total += d.tweetsToApprove;
       sections.push({ line: plural(d.tweetsToApprove, 'tweet por aprobar', 'tweets por aprobar'), titles: [], more: 0 });
     }
-  }
-  if (has('boss') && !has('supervisor')) {
-    const red = d.inReview.filter((p) => p.red).map((p) => p.title);
-    list(red, red.length === 1 ? '1 pieza en rojo espera por ti' : `${red.length} piezas en rojo esperan por ti`);
   }
   if (has('social', 'admin')) {
     list(d.changesRequested, plural(d.changesRequested.length, 'pieza con cambios pedidos', 'piezas con cambios pedidos'));

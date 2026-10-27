@@ -30,7 +30,7 @@ export function NewPublication({
     return (
       <Card>
         <CardBody>
-          {pieceId && pieceStatus !== 'approved' ? <p className="mb-3 text-danger">«{pieceTitle}» todavía no está aprobada por supervisión.</p> : null}
+          {pieceId && pieceStatus !== 'approved' ? <p className="mb-3 text-danger">«{pieceTitle}» todavía no está aprobada por el jefe.</p> : null}
           <Field label="¿Qué pieza vas a publicar?" htmlFor="pp">
             <Select id="pp" defaultValue="" onChange={(e) => e.target.value && router.push(`/publicar/nueva?pieza=${e.target.value}`)}>
               <option value="">Elegir pieza aprobada…</option>

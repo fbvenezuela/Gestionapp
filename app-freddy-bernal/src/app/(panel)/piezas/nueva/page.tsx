@@ -6,7 +6,7 @@ import { NewPieceForm } from './new-piece-form';
 export const metadata = { title: 'Nueva pieza' };
 
 export default async function NewPiecePage({ searchParams }: { searchParams: Promise<{ evento?: string }> }) {
-  const s = await requireRole('admin', 'social');
+  const s = await requireRole('admin', 'social', 'boss');
   const { evento } = await searchParams;
   const data = await db(s, async (sql) => ({
     categories: await contentCategories(sql),

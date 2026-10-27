@@ -59,9 +59,9 @@ const ROLE_FICHA: Partial<Record<Role, string>> = {
   admin: 'guia:rol-administracion',
   boss: 'guia:rol-jefe',
   dispatch: 'guia:rol-despacho',
-  secretary: 'guia:rol-secretaria',
+  politics: 'guia:rol-politica',
+  ivt: 'guia:rol-ivt',
   social: 'guia:rol-redes',
-  supervisor: 'guia:rol-supervision',
   camera: 'guia:rol-grabacion',
 };
 const COMMON = new Set(

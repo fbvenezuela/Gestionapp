@@ -31,11 +31,11 @@ const NETWORK_WORDS: [RegExp, string][] = [
 const ROLE_WORDS: [RegExp, string][] = [
   [/\b(todos|todo el equipo|todo el mundo)\b/, 'todos'],
   [/\b(redes|social)\b/, 'social'],
-  [/\b(supervision|supervisores?)\b/, 'supervisor'],
   [/\b(despacho)\b/, 'dispatch'],
   [/\b(grabacion|camarografos?|camaras?)\b/, 'camera'],
-  [/\b(secretaria|secretarias)\b/, 'secretary'],
   [/\b(administracion|admin)\b/, 'admin'],
+  [/\b(politica|director de politica)\b/, 'politics'],
+  [/\b(ivt|director del ivt)\b/, 'ivt'],
   [/\b(jefe)\b/, 'boss'],
 ];
 
@@ -47,8 +47,6 @@ const PENDING = /\b(pendiente|pendientes|que tengo|que me toca|por hacer|que hay
 const TO_DECIDE = /\b(?:calificar|decidir|decision|aceptar|rechazar|por aprobar)\b/;
 const SOME_EVENTS = /\b(?:eventos|propuestas)\b|\b(?:cuantos|cuantas|cuales)\b(?!.*\b(?:piezas?|tweets?|fichas?|copies)\b)/;
 // «¿Cómo sé si el jefe aceptó mi propuesta?»: how it went, the person's own list.
-const PROPOSAL_STATUS = /\bpropuestas?\b/;
-const PROPOSAL_ANSWER = /\b(?:acepto|aceptaron|rechazo|rechazaron|respondio|respondieron|decidio|decidieron)\b/;
 // «¿Qué puedo hacer yo aquí?», «¿qué hace mi rol?»: the person's role ficha.
 const ROLE_SELF = /\bque (?:puedo|podemos) hacer\b|\bque hago yo\b|\b(?:que hace|para que sirve|que puede hacer) mi rol\b|\bcual es mi (?:trabajo|rol|funcion)\b/;
 // «¿Puedo…?», «¿me deja…?»: a question of permissions, answered first from the person's role ficha.
@@ -200,7 +198,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const wantsHours = publishing && /\b(hora|horas|horario|cuando|dia|dias|mejor|mejores)\b/.test(q);
   // «¿Dónde está la agenda?» asks for the screen, not for an event's place.
   const agendaScreen = /\b(donde (esta|veo|encuentro|queda|abro|reviso)|como (entro|llego|abro|veo|encuentro|reviso)( a)?|ir a|abre|abreme|puedo ver|puedo abrir|tengo) (la |mi |tu )?agenda\b/.test(q);
-  const noticeToGroup = /\b(manda|mandale|mandales|envia|enviale|enviales|prepara|preparale)\b.*\baviso\b|\bavisale(s)? a (redes|supervision|despacho|grabacion|secretaria|todos|administracion)\b/.test(q);
+  const noticeToGroup = /\b(manda|mandale|mandales|envia|enviale|enviales|prepara|preparale)\b.*\baviso\b|\bavisale(s)? a (redes|despacho|politica|ivt|grabacion|todos|administracion)\b/.test(q);
 
   // 0. «Sí» to the offer just made («¿Quieres que le avise a administración?»): told for real, then said.
   const lastSaid = i.ctx.history.filter((h) => h.who === 'asistente').at(-1)?.body ?? '';
@@ -319,9 +317,9 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
 
   // 4. A notice to a whole group: only PREPARED, administration confirms.
   if (noticeToGroup) {
-    if (!offered('preparar_aviso')) return done('Los avisos a un grupo los preparan administración o supervisión. Si quieres, le pido a administración que lo haga.');
+    if (!offered('preparar_aviso')) return done('Los avisos a un grupo los preparan administración o el jefe. Si quieres, le pido a administración que lo haga.');
     const rol = ROLE_WORDS.find(([re]) => re.test(q))?.[1];
-    if (!rol) return done('¿A quién va el aviso? Puede ser un rol (Redes, Supervisión, Despacho, Grabación, Secretaría) o todo el equipo.');
+    if (!rol) return done('¿A quién va el aviso? Puede ser un rol (Redes, Despacho, Política, IVT, Grabación) o todo el equipo.');
     // What the person typed (a deadline keeps its real time); the tool stores it without contacts.
     const m = /\bque\s+(.+)$/i.exec(typed);
     const texto = (m?.[1] ?? typed).trim();
@@ -380,17 +378,14 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   }
   if (/\beres (un |una )?(bot|robot|ia|maquina|inteligencia artificial|humano|humana|persona|real)\b/.test(q)) return done(pick(variants('eres-bot')));
 
-  // 7. What's pending for me (and how a proposal went: «¿cómo sé si el jefe aceptó mi propuesta?»).
-  if ((!howTo && PENDING.test(q)) || (PROPOSAL_STATUS.test(q) && PROPOSAL_ANSWER.test(q) && i.ctx.roles.includes('secretary'))) {
+  // 7. What's pending for me.
+  if (!howTo && PENDING.test(q)) {
     const r = await call('mis_pendientes');
     if (!r.ok) return done(`No pude revisar tus pendientes: ${r.error}`);
     const res = r.result as { total: number; pendientes: { que: string; titulo: string }[]; avisos_sin_leer: number };
     const unread = res.avisos_sin_leer ? ` Además tienes ${count(res.avisos_sin_leer, 'aviso', 'avisos')} sin leer.` : '';
     // The person's own home screen, by its label in the menu (the boss's is «Inicio», not «Hoy»).
     const home = (r.goTo && screenFor(r.goTo)?.label) || 'Hoy';
-    if (!res.total && /\b(propuestas?|aceptaron|rechazaron)\b/.test(q)) {
-      return done(`No tienes propuestas por ahora. Cuando propongas un evento, en ${home} ves si ${i.ctx.huecos.boss} lo aceptó o lo rechazó.${unread}`);
-    }
     if (!res.total) return done(`No tienes nada pendiente ahora mismo. ¡Bien ahí!${unread}`);
     const top = res.pendientes.slice(0, 3).map((p) => `${p.que.toLowerCase()}: «${p.titulo}»`);
     return done(`Tienes ${count(res.total, 'pendiente', 'pendientes')}. Lo primero: ${list(top)}.${unread} Todo eso está en ${home}.`);

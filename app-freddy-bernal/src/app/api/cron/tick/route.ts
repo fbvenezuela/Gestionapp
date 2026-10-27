@@ -134,13 +134,15 @@ async function escalateLateReviews(): Promise<number> {
       .map((p) => ({ ...p, round: round.get(p.id) ?? null }));
   });
   if (!late.length) return 0;
-  const [sup, boss, admin] = [await usersWithRole('supervisor'), await usersWithRole('boss'), await usersWithRole('admin')];
+  // The boss approves every level; administración also hears about the non-red ones (never the governor's red
+  // ones, which are his alone).
+  const [boss, admin] = [await usersWithRole('boss'), await usersWithRole('admin')];
   const failed: string[] = [];
   for (const p of late) {
     const red = p.review_level === 'rojo';
     try {
       await notify({
-        userIds: [...new Set([...sup, ...(red ? boss : admin)])],
+        userIds: [...new Set([...boss, ...(red ? [] : admin)])],
         kind: 'review_overdue',
         title: `Venció el plazo: «${p.title}» sigue sin aprobar`,
         body: `Nivel ${LEVELS[p.review_level].label.toLowerCase()}: la aprueba ${LEVELS[p.review_level].who}. No sale hasta que alguien decida.`,

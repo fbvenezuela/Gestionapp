@@ -6,6 +6,12 @@ export async function getDeadlines(sql: Sql): Promise<Deadlines> {
   return { ...DEFAULT_DEADLINES, ...(v ?? {}) };
 }
 
+// The one approval gate, asked to the database (public.can_approve(): the boss with 2FA). The screens follow it, so
+// a future delegation changes one SQL function and nothing here.
+export async function canApprove(sql: Sql): Promise<boolean> {
+  return !!(await sql.one<{ ok: boolean }>(`select public.can_approve() as ok`))?.ok;
+}
+
 export type ReviewRow = { id: string; title: string; kind: string; current_version: number; review_level: Level; sent_to_review_at: string | null; revision: number; event_title: string | null };
 
 // Pieces waiting for a decision, red first, oldest first.

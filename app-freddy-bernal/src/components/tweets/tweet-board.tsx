@@ -164,7 +164,7 @@ function TweetSheet({ t, canEdit, pending, onClose, run }: { t: BoardTweet; canE
             <SkipForward className="h-4 w-4" aria-hidden /> Saltar este tweet
           </Button>
         ) : null}
-        {canEdit && !done ? <p className="text-sm text-text-2"><ImagePlus className="mr-1 inline h-4 w-4" aria-hidden />Para editar el texto, ábrelo en la tanda. Si estaba aprobado, vuelve a supervisión.</p> : null}
+        {canEdit && !done ? <p className="text-sm text-text-2"><ImagePlus className="mr-1 inline h-4 w-4" aria-hidden />Para editar el texto, ábrelo en la tanda. Si estaba aprobado, vuelve a la aprobación del jefe.</p> : null}
       </div>
     </Sheet>
   );

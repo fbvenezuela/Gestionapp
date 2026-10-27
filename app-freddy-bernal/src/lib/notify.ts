@@ -36,16 +36,19 @@ export async function notify(n: Notice) {
         `insert into public.notifications (user_id, kind, title, body, link, idempotency_key)
          values ($1, $2, $3, $4, $5, $6) on conflict (idempotency_key) do nothing
          returning user_id as id, (select notify_prefs from public.profiles where id = $1) as notify_prefs,
-                   coalesce((select active and deleted_at is null from public.profiles where id = $1), false) as live`,
+                   coalesce((select active and deleted_at is null from public.profiles where id = $1), false)
+                     and exists (select 1 from public.user_roles where user_id = $1) as live`,
         [uid, n.kind, n.title, n.body ?? '', n.link ?? null, `${n.key}:${uid}`],
       );
-      // Someone turned off or removed keeps the in-app notice but gets no push and no email.
+      // Someone turned off, removed or left without a role (the retired roles, 27/10/2026) keeps the in-app notice
+      // but gets no push and no email.
       if (row?.live) fresh.push({ id: row.id, prefs: row.notify_prefs ?? {} });
     }
     const mail = n.email && n.userIds.length
       ? await sql.query<{ id: string; email: string; notify_prefs: Record<string, unknown> | null }>(
           `select p.id, p.email, p.notify_prefs from public.profiles p
             where p.id = any($1::uuid[]) and p.active and p.deleted_at is null
+              and exists (select 1 from public.user_roles ur where ur.user_id = p.id)
               and not exists (select 1 from public.outbox o where o.idempotency_key = $2::text || ':' || p.id::text)
             order by array_position($1::uuid[], p.id)`,
           [n.userIds, n.key],
@@ -75,5 +78,21 @@ export async function usersWithRole(role: string): Promise<string[]> {
         where ur.role = $1::public.app_role and p.active and p.deleted_at is null`,
       [role],
     )).map((r) => r.user_id),
+  );
+}
+
+// The given people who still hold a role (one of the six or admin: the database allows nothing else) and are active.
+// For notices to someone named by a row (who created an event), who may have lost their role since.
+export async function withAnyRole(userIds: (string | null | undefined)[]): Promise<string[]> {
+  const ids = [...new Set(userIds.filter((x): x is string => !!x))];
+  if (!ids.length) return [];
+  return withSystem(async (sql) =>
+    (await sql.query<{ id: string }>(
+      `select p.id from public.profiles p
+        where p.id = any($1::uuid[]) and p.active and p.deleted_at is null
+          and exists (select 1 from public.user_roles ur where ur.user_id = p.id)
+        order by array_position($1::uuid[], p.id)`,
+      [ids],
+    )).map((r) => r.id),
   );
 }

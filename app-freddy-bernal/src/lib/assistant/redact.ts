@@ -404,7 +404,7 @@ export function redactPlacesAfterA(text: string, isPerson: (firstWord: string) =
 
 /**
  * What a model wrote for people outside the turn (the reason of an «aviso al equipo»): every rule, a
- * place said by its name too, and the second lock. Nothing of the agenda reaches Supervisión that way.
+ * place said by its name too, and the second lock. Nothing of the agenda reaches anyone that way.
  */
 export function redactForTeam(text: string): string {
   return apply(redactQuoted(text), ['named', 'bare']);

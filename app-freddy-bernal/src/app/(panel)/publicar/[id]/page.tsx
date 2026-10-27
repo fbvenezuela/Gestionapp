@@ -13,7 +13,7 @@ import { Package, PublishedForm, FailForm, MetricsForm, type PackageFile } from 
 export const metadata = { title: 'Publicación' };
 
 export default async function PublicationPage({ params }: { params: Promise<{ id: string }> }) {
-  const s = await requireRole('admin', 'social');
+  const s = await requireRole('admin', 'social', 'boss');
   const { id } = await params;
   const data = await db(s, async (sql) => {
     const p = await sql.one<{

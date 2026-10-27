@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Bell, Plus, Search, UserRound } from 'lucide-react';
 import { requireSession, menuRoles, db } from '@/lib/auth/session';
-import { navFor, ROLE_LABEL, type Role } from '@/lib/roles';
+import { createFor, navFor, ROLE_LABEL } from '@/lib/roles';
 import { brand } from '@/lib/client-config';
 import { isDemo } from '@/lib/env';
 import { SideNav, BottomNav } from '@/components/shell/nav';
@@ -14,19 +14,12 @@ import { MenuDetails } from '@/components/shell/menu-details';
 import { AssistantMount } from '@/components/assistant/assistant-mount';
 import { buttonVariants } from '@/components/ui/button';
 
-const CREATE: { href: string; label: string; roles: Role[] }[] = [
-  { href: '/agenda/nuevo', label: 'Nuevo evento', roles: ['admin', 'dispatch', 'secretary'] },
-  { href: '/piezas/nueva', label: 'Nueva pieza', roles: ['admin', 'social'] },
-  { href: '/tweets/nueva', label: 'Tweets de la semana', roles: ['admin', 'social'] },
-  { href: '/publicar/nueva', label: 'Nueva publicación', roles: ['admin', 'social'] },
-];
-
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const s = await requireSession();
   const roles = menuRoles(s);
   const { visible, mobile, more } = navFor(roles);
   const unread = await db(s, async (sql) => (await sql.one<{ n: number }>(`select count(*)::int as n from public.notifications where read_at is null`))!.n);
-  const create = CREATE.filter((c) => c.roles.some((r) => roles.includes(r)));
+  const create = createFor(roles);
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[248px_1fr]">

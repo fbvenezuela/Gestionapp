@@ -19,7 +19,9 @@ import { driveUi } from '@/lib/data/drive';
 export const metadata = { title: 'Pieza' };
 
 export default async function PiecePage({ params }: { params: Promise<{ id: string }> }) {
-  const s = await requireRole('admin', 'social');
+  const s = await requireRole('admin', 'social', 'boss');
+  // The boss does what Redes does; uploading the final file waits for his media permission (media_handoff).
+  const canUpload = s.roles.some((r) => r === 'admin' || r === 'social');
   const { id } = await params;
   const data = await db(s, async (sql) => ({
     piece: await getPiece(sql, id),
@@ -86,7 +88,7 @@ export default async function PiecePage({ params }: { params: Promise<{ id: stri
                   Descargar portada
                 </DownloadLink>
               ) : null}
-              <VersionUpload pieceId={p.id} eventId={p.event_id} kind={p.kind} canPick={drive.picker} />
+              {canUpload ? <VersionUpload pieceId={p.id} eventId={p.event_id} kind={p.kind} canPick={drive.picker} /> : null}
             </CardBody>
           </Card>
 

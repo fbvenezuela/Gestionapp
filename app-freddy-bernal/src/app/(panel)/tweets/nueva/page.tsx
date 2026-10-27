@@ -6,7 +6,7 @@ import { NewBatch } from './new-batch';
 export const metadata = { title: 'Tweets de la semana' };
 
 export default async function NewBatchPage() {
-  const s = await requireRole('admin', 'social');
+  const s = await requireRole('admin', 'social', 'boss');
   const categories = await db(s, (sql) => contentCategories(sql));
   return (
     <>

@@ -36,7 +36,7 @@ const driveRefs = (list: M[]) => list.filter((m) => m.bucket === 'drive').map((m
 // exists once the event is marked done (the date rule). Search: event title, place or code, and
 // the name the platform gave a file («Jefe hablando 2», «Archivo 007»); never dates.
 export default async function LibraryPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const s = await requireRole('admin', 'social', 'supervisor', 'dispatch');
+  const s = await requireRole('admin', 'social', 'dispatch', 'boss');
   const { q } = await searchParams;
   const schedule = canSeeSchedule(s.roles);
   const canRemove = s.roles.includes('admin');

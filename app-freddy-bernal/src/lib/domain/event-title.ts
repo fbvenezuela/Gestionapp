@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import { TZ } from '@/lib/time';
 
-// Event titles reach every role (Redes and Supervisión too), the notices and the phones: they never
+// Event titles reach every role (Redes too), the notices and the phones: they never
 // carry the event's when, which has its own fields (rule 4). Pure, so it can be tested; the actions
 // (src/lib/actions/events.ts) pick the date to check against. Two kinds of check:
 // - always refused, because they can only be a when (alwaysWhen):

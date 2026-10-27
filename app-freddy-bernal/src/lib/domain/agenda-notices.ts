@@ -20,7 +20,7 @@ const withTitle = (prefix: string, fallback: string, title: string) => {
   return t ? `${prefix}: ${t}` : fallback;
 };
 
-// A secretary proposed an event, or dispatch/admin created one: the boss has to decide.
+// Despacho or admin created an event: the boss has to decide.
 export function newEventNotice(ev: { id: string; title: string }): AgendaNotice {
   return {
     kind: 'event_new',
@@ -31,9 +31,9 @@ export function newEventNotice(ev: { id: string; title: string }): AgendaNotice 
   };
 }
 
-// Secretaría corrected the title of her proposal before the boss decided: the boss and
-// despacho get a notice with the new title. It says it is a correction, so Avisos does not
-// read as two events to decide. Same kind as the first one (the same switch in Mi perfil turns
+// Someone corrected the title of an event before the boss decided: the boss and despacho get a
+// notice with the new title (no caller since Secretaría was retired, 27/10/2026; kept for the shared
+// agenda). It says it is a correction, so Avisos does not read as two events to decide. Same kind as the first one (the same switch in Mi perfil turns
 // both off). `stamp` makes it a new notice (the first one keeps its own key); the same
 // correction sent twice in the same second is one notice.
 export function correctedEventNotice(ev: { id: string; title: string }, stamp: string): AgendaNotice {

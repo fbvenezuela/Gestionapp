@@ -18,9 +18,9 @@ export const metadata = { title: 'Agenda' };
 type Search = { vista?: string; fecha?: string };
 
 export default async function AgendaPage({ searchParams }: { searchParams: Promise<Search> }) {
-  const s = await requireRole('admin', 'boss', 'dispatch', 'secretary', 'social', 'camera');
+  const s = await requireRole('admin', 'boss', 'dispatch', 'social', 'camera');
   const sp = await searchParams;
-  const canCreate = s.roles.some((r) => r === 'admin' || r === 'dispatch' || r === 'secretary');
+  const canCreate = s.roles.some((r) => r === 'admin' || r === 'dispatch');
   // Calendar only for those who can see date and time. The database enforces it too.
   if (canSeeSchedule(s.roles)) return <Calendar s={s} sp={sp} canCreate={canCreate} />;
   if (s.roles.includes('camera')) return <CameraList s={s} />;
@@ -110,7 +110,7 @@ async function CameraList({ s }: { s: Awaited<ReturnType<typeof requireRole>> })
   );
 }
 
-// Redes, secretaría: a list WITHOUT date or time, ordered by state and priority.
+// Redes: a list WITHOUT date or time, ordered by state and priority.
 async function TeamList({ s, canCreate }: { s: Awaited<ReturnType<typeof requireRole>>; canCreate: boolean }) {
   const rows = await db(s, (sql) =>
     sql.query<{ id: string; code: string; title: string; place_name: string; municipality: string; summary: string; work_status: string; boss_decision: string; urgency: number; has_board: boolean; n: number }>(
@@ -124,7 +124,7 @@ async function TeamList({ s, canCreate }: { s: Awaited<ReturnType<typeof require
   );
   return (
     <>
-      <PageHeader title={s.roles.includes('secretary') ? 'Mis eventos' : 'Eventos'} subtitle="Hacia dónde va y de qué se trata. Ordenados por lo que hace falta." actions={canCreate ? <LinkButton href="/agenda/nuevo"><Plus className="h-4 w-4" aria-hidden /> Proponer evento</LinkButton> : undefined} />
+      <PageHeader title="Eventos" subtitle="Hacia dónde va y de qué se trata. Ordenados por lo que hace falta." actions={canCreate ? <LinkButton href="/agenda/nuevo"><Plus className="h-4 w-4" aria-hidden /> Nuevo evento</LinkButton> : undefined} />
       <Tip id="agenda-equipo">Toca un evento para ver de qué se trata y qué falta.</Tip>
       {rows.length === 0 ? (
         <EmptyState title="Todavía no hay eventos." />

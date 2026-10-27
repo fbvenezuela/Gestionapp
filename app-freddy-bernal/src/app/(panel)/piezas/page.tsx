@@ -18,7 +18,7 @@ const FILTERS = [
 ];
 
 export default async function PiecesPage({ searchParams }: { searchParams: Promise<{ ver?: string }> }) {
-  const s = await requireRole('admin', 'social');
+  const s = await requireRole('admin', 'social', 'boss');
   const { ver } = await searchParams;
   const filter = FILTERS.find((f) => f.key === ver) ?? FILTERS[0];
   const rows = await db(s, (sql) =>

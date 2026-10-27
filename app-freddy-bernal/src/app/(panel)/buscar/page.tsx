@@ -21,7 +21,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         pieces: await sql.query<{ id: string; title: string }>(`select id, title from public.pieces where deleted_at is null and title ilike '%' || $1 || '%' limit 20`, [q]),
       }))
     : { events: [], pieces: [] };
-  const canPieces = s.roles.some((r) => r === 'admin' || r === 'social');
+  const canPieces = s.roles.some((r) => r === 'admin' || r === 'social' || r === 'boss');
   return (
     <>
       <PageHeader title="Buscar" />

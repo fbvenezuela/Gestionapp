@@ -153,7 +153,7 @@ export function NewBatch({ categories }: { categories: CategoryOption[] }) {
           disabled={pending || checks.some((c) => c.tooLong)}
           onClick={() =>
             run(() => createBatch({ title: value.title, sourceName: value.source, tweets: value.tweets.map((t) => ({ body: t.body, categoryId: t.categoryId || null })) }), {
-              success: 'Tweets repartidos en la semana y enviados a supervisión.',
+              success: 'Tweets repartidos en la semana y enviados al jefe para aprobar.',
               refresh: false,
               onOk: (r) => {
                 if (!r.ok) return;

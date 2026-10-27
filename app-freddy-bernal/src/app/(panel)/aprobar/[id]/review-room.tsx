@@ -175,9 +175,12 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
             </div>
           </div>
         ) : (
-          <Button type="button" variant="secondary" disabled={pending || !comment.trim()} onClick={() => run(() => addComment({ pieceId, body: comment, atSecond }), { success: 'Comentario guardado.', onOk: () => setComment('') })}>
-            Guardar comentario
-          </Button>
+          <div className="flex flex-col gap-3">
+            {note ? <p className="text-sm text-text-2">{note}</p> : null}
+            <Button type="button" variant="secondary" disabled={pending || !comment.trim()} onClick={() => run(() => addComment({ pieceId, body: comment, atSecond }), { success: 'Comentario guardado.', onOk: () => setComment('') })}>
+              Guardar comentario
+            </Button>
+          </div>
         )}
       </CardBody>
     </Card>

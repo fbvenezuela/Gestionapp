@@ -133,7 +133,6 @@
    "roles": [
     "admin",
     "social",
-    "supervisor",
     "boss"
    ],
    "topic": "Cómo va una pieza",
@@ -156,7 +155,7 @@
    "roles": [
     "admin",
     "social",
-    "supervisor"
+    "boss"
    ],
    "topic": "Días de tweets",
    "triggers": [
@@ -269,7 +268,6 @@
    "roles": [
     "admin",
     "social",
-    "supervisor",
     "boss"
    ],
    "topic": "Mandar a aprobar y el semáforo",
@@ -284,7 +282,7 @@
     "nivel de la pieza"
    ],
    "always": false,
-   "script": "Persona: que color le pongo a la pieza?\n[ASISTENTE]: Verde si es rutina, amarillo si es lo normal y rojo si es sensible (política, crisis o aclaratorias). El rojo solo lo aprueba [JEFE].\n[ASISTENTE]: Depende de lo delicada: verde y amarillo los aprueba supervisión; rojo, [JEFE]. Si dudas, amarillo.\nSi dice «¿y si nadie responde?» → [ASISTENTE]: La falta de respuesta no es aprobación: la pieza sigue sin salir y la plataforma avisa de nuevo.",
+   "script": "Persona: que color le pongo a la pieza?\n[ASISTENTE]: Verde si es rutina, amarillo si es lo normal y rojo si es sensible (política, crisis o aclaratorias). Todo lo aprueba [JEFE]; el color pone el plazo.\n[ASISTENTE]: Depende de lo delicada; todas las aprueba [JEFE], y las verdes de una vez. Si dudas, amarillo.\nSi dice «¿y si nadie responde?» → [ASISTENTE]: La falta de respuesta no es aprobación: la pieza sigue sin salir y la plataforma avisa de nuevo.",
    "notes": "Los plazos de cada color salen de la ficha del semáforo; no se inventan."
   },
   {
@@ -310,7 +308,6 @@
    "key": "como-aprobar",
    "roles": [
     "admin",
-    "supervisor",
     "boss"
    ],
    "topic": "Cómo se aprueba",
@@ -324,15 +321,15 @@
     "aprobar tweets"
    ],
    "always": false,
-   "script": "Persona: como apruebo una pieza?\n[ASISTENTE]: En Por aprobar abres la pieza, ves el video y los tres copies, marcas la lista de chequeo y tocas Aprobar. Si algo no va, pide cambios con un comentario.\n[ASISTENTE]: Abre la pieza en Por aprobar, revisa cifras con fuente, que no lleve fecha ni hora, que se vea y se oiga bien y los copies; luego aprueba o pide cambios.\nSi dice «¿las verdes de una vez?» → [ASISTENTE]: Sí: en Por aprobar está el botón para aprobar todas las verdes; las que cambiaron mientras tanto se saltan.",
-   "notes": "Supervisión aprueba verde y amarillo y los tweets; [JEFE] solo el rojo. Administración nunca aprueba."
+   "script": "Persona: como apruebo una pieza?\n[ASISTENTE]: En Por aprobar abres la pieza, ves el video y los tres copies, marcas la lista de chequeo y tocas Aprobar. Si algo no va, pide cambios con un comentario.\n[ASISTENTE]: Abre la pieza en Por aprobar, revisa cifras con fuente, que no lleve fecha ni hora, que se vea y se oiga bien y los copies; luego aprueba o pide cambios.\nSi dice «¿las verdes de una vez?» → [ASISTENTE]: Sí: en Por aprobar toca «Aprobar todas las verdes», con un toque; las que cambiaron mientras tanto se saltan.",
+   "notes": "Todo lo aprueba [JEFE]: verde, amarillo, rojo y los tweets. Administración nunca aprueba."
   },
   {
    "key": "copies",
    "roles": [
     "admin",
     "social",
-    "supervisor"
+    "boss"
    ],
    "topic": "Copies: fórmula, voz y cierre",
    "triggers": [
@@ -353,20 +350,18 @@
    "key": "nuevo-evento",
    "roles": [
     "admin",
-    "dispatch",
-    "secretary"
+    "dispatch"
    ],
    "topic": "Nuevo evento y ficha técnica",
    "triggers": [
     "nuevo evento",
     "crear un evento",
-    "proponer un evento",
     "ficha tecnica",
     "completar la ficha",
     "cargar un evento"
    ],
    "always": false,
-   "script": "Persona: como cargo un evento nuevo?\n[ASISTENTE]: Toca «Crear» → Nuevo evento, llena los datos y la ficha técnica (quién dirige, logros, cifras con su fuente y protocolo) y guarda.\n[ASISTENTE]: Desde «Crear» arriba → Nuevo evento. Mientras más completa la ficha, mejor trabajan Redes y Grabación.\nSi dice «me equivoqué en la propuesta» → [ASISTENTE]: Avísale a Despacho para que la corrija; desde Secretaría no hay botón para cambiarla.",
+   "script": "Persona: como cargo un evento nuevo?\n[ASISTENTE]: Toca «Crear» → Nuevo evento, llena los datos y la ficha técnica (quién dirige, logros, cifras con su fuente y protocolo) y guarda.\n[ASISTENTE]: Desde «Crear» arriba → Nuevo evento. Mientras más completa la ficha, mejor trabajan Redes y Grabación.\nSi dice «me equivoqué en un dato» → [ASISTENTE]: Ábrelo desde la Agenda y cámbialo en su ficha; la fecha y el lugar exacto también se cambian ahí.",
    "notes": "La fecha, la hora y la dirección se escriben a mano en el formulario; el asistente nunca las pide ni las repite."
   },
   {
@@ -455,7 +450,7 @@
    "key": "preparar-aviso",
    "roles": [
     "admin",
-    "supervisor"
+    "boss"
    ],
    "topic": "Mandar un aviso a un grupo",
    "triggers": [
@@ -463,7 +458,7 @@
     "manda un aviso",
     "avisale a redes",
     "avisa a todos",
-    "avisale a supervision",
+    "avisale a despacho",
     "aviso al equipo de"
    ],
    "always": false,
@@ -492,7 +487,6 @@
    "roles": [
     "admin",
     "social",
-    "supervisor",
     "boss"
    ],
    "topic": "Resultados y métricas",

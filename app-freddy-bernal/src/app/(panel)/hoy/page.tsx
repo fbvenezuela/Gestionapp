@@ -39,7 +39,7 @@ export default async function TodayPage() {
 
     if (has('social', 'admin')) {
       const changes = await sql.query<{ id: string; title: string }>(`select id, title from public.pieces where status = 'changes_requested' and deleted_at is null order by updated_at desc limit 10`);
-      for (const p of changes) waiting.push({ href: `/piezas/${p.id}`, title: p.title, detail: 'Supervisión pidió cambios', tone: 'danger', tag: 'Cambios' });
+      for (const p of changes) waiting.push({ href: `/piezas/${p.id}`, title: p.title, detail: 'El jefe pidió cambios', tone: 'danger', tag: 'Cambios' });
       const needBoard = await sql.query<{ id: string; title: string }>(
         `select e.id, e.title from public.events e left join public.storyboards sb on sb.event_id = e.id
           where e.deleted_at is null and e.boss_decision = 'accepted' and e.done_on is null
@@ -70,24 +70,12 @@ export default async function TodayPage() {
     }
 
     // Review clock: past the deadline the piece is still NOT approved; it shows as stuck.
-    const inReview = has('social', 'admin', 'supervisor') ? await piecesInReview(sql, 50) : [];
+    const inReview = has('social', 'admin') ? await piecesInReview(sql, 50) : [];
     const deadlines = await getDeadlines(sql);
     const overdue = inReview.filter((p) => reviewClock(p.review_level, p.sent_to_review_at, deadlines).overdue);
     for (const p of overdue) {
       const c = reviewClock(p.review_level, p.sent_to_review_at, deadlines);
-      blocked.push({ href: has('supervisor') ? `/aprobar/${p.id}` : `/piezas/${p.id}`, title: p.title, detail: `Sin aprobar: ${c.text.toLowerCase()} (${LEVELS[p.review_level].label.toLowerCase()}, aprueba ${LEVELS[p.review_level].who})`, tone: 'danger' });
-    }
-
-    if (has('supervisor')) {
-      const pend = inReview.filter((p) => !overdue.includes(p));
-      for (const p of pend) {
-        const c = reviewClock(p.review_level, p.sent_to_review_at, deadlines);
-        waiting.push({ href: `/aprobar/${p.id}`, title: p.title, detail: p.review_level === 'rojo' ? `En rojo: la aprueba el jefe · ${c.text.toLowerCase()}` : `Por aprobar · ${c.text.toLowerCase()}`, tone: p.review_level === 'rojo' ? 'danger' : 'warn', tag: LEVELS[p.review_level].label });
-      }
-      const tw = await sql.one<{ n: number }>(`select count(*)::int as n from public.tweets where status = 'draft' and deleted_at is null`);
-      if (tw!.n) waiting.push({ href: '/aprobar?tab=tweets', title: `${tw!.n} tweets por aprobar`, tone: 'warn', tag: 'Tweets' });
-      stats.push({ label: 'Piezas por aprobar', value: inReview.length, tone: overdue.length ? 'danger' : inReview.length ? 'accent' : undefined });
-      stats.push({ label: 'Tweets por aprobar', value: tw!.n, tone: tw!.n ? 'accent' : undefined });
+      blocked.push({ href: has('boss') ? `/aprobar/${p.id}` : `/piezas/${p.id}`, title: p.title, detail: `Sin aprobar: ${c.text.toLowerCase()} (${LEVELS[p.review_level].label.toLowerCase()}, aprueba ${LEVELS[p.review_level].who})`, tone: 'danger' });
     }
 
     if (has('dispatch')) {
@@ -116,11 +104,6 @@ export default async function TodayPage() {
       stats.push({ label: 'Material por subir', value: mine.filter((m) => m.past && m.n === 0).length, tone: 'danger' });
     }
 
-    if (has('secretary')) {
-      const mine = await sql.query<{ id: string; title: string; boss_decision: string }>(`select id, title, boss_decision from public.events where deleted_at is null order by created_at desc limit 10`);
-      for (const e of mine) waiting.push({ href: `/eventos/${e.id}`, title: e.title, detail: e.boss_decision === 'pending' ? 'Esperando decisión' : e.boss_decision === 'accepted' ? 'Aceptado' : 'Rechazado', tone: e.boss_decision === 'accepted' ? 'ok' : e.boss_decision === 'rejected' ? 'danger' : 'warn' });
-    }
-
     return { todayEvents, waiting, blocked, stats: stats.slice(0, 3) };
   });
 
@@ -129,6 +112,20 @@ export default async function TodayPage() {
     <>
       <PageHeader title={`Hola, ${first}`} subtitle={t0.toFormat("cccc d 'de' LLLL")} />
       <Tip id="hoy">Aquí está lo que espera por ti; lo de «Trancado» está parado y necesita una mano.</Tip>
+
+      {/* Director de política and Director del IVT land here until their own screens arrive. */}
+      {has('politics', 'ivt') ? (
+        <Card className="mb-5">
+          <CardHeader
+            title={has('ivt') ? 'Las fichas de obra' : 'Los eventos y avances de cada municipio'}
+            subtitle={
+              has('ivt')
+                ? 'Aquí vas a cargar la ficha de cada obra antes de la visita del jefe, sin fecha ni hora: esa la ponen el jefe o el despacho. Esa pantalla llega en la próxima entrega.'
+                : 'Aquí vas a cargar los eventos y avances comunitarios de cada municipio. Esa pantalla llega en la próxima entrega.'
+            }
+          />
+        </Card>
+      ) : null}
 
       {data.stats.length ? (
         <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">

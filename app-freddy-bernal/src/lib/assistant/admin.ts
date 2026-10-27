@@ -3,7 +3,7 @@ import { db, type Session } from '../auth/session';
 import { withSystem } from '../db';
 import { env } from '../env';
 import { notify, usersWithRole } from '../notify';
-import { INVITABLE_ROLES, ROLES, ROLE_LABEL, type Role } from '../roles';
+import { INVITABLE_ROLES, ROLES, ROLE_LABEL, isInvitableRole, type Role } from '../roles';
 import { mergeProfile, type AssistantProfile } from './config';
 import { chat, estimateCost, keyDiagnostics, parseChain, type KeyDiagnosis } from './providers';
 import { DATES_MESSAGE, listOf, noticeIssues, teachingProblem } from './guard';
@@ -314,7 +314,7 @@ export async function confirmDraft(s: Session, id: string) {
     const role = String(d.target?.role ?? '');
     const people = new Set<string>();
     for (const r of role === 'todos' ? INVITABLE_ROLES : [role]) {
-      if (!(INVITABLE_ROLES as string[]).includes(r)) throw new AssistantAdminError('El rol del aviso no es válido.');
+      if (!isInvitableRole(r)) throw new AssistantAdminError('El rol del aviso no es válido.');
       for (const u of await usersWithRole(r)) people.add(u);
     }
     // Rule 4, checked again with the same check both brains use (a draft may come from before it, or

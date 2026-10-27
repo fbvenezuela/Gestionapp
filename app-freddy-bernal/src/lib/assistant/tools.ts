@@ -44,8 +44,10 @@ export type Tool = {
 
 export class ToolError extends Error {}
 
-const CONTENT: Role[] = ['admin', 'social', 'supervisor', 'boss'];
-const SEE_EVENTS: Role[] = ['admin', 'boss', 'dispatch', 'secretary', 'social', 'supervisor', 'camera'];
+const CONTENT: Role[] = ['admin', 'social', 'boss'];
+// Who sees events at all (can_see_event). Director de política and Director del IVT get their own events with
+// the shared agenda; until then, none.
+const SEE_EVENTS: Role[] = ['admin', 'boss', 'dispatch', 'social', 'camera'];
 const NETWORKS = Object.keys(NETWORK_LABEL);
 const RAW = `('boss','drone','broll','other')`;
 
@@ -96,7 +98,7 @@ export const TOOLS: Tool[] = [
         const items: { que: string; titulo: string }[] = [];
         const push = (que: string, rows: { title: string }[]) => rows.forEach((r) => items.push({ que, titulo: r.title }));
         if (has(s, 'social', 'admin')) {
-          push('Supervisión pidió cambios', await sql.query(`select title from public.pieces where status = 'changes_requested' and deleted_at is null order by updated_at desc limit 5`));
+          push('El jefe pidió cambios', await sql.query(`select title from public.pieces where status = 'changes_requested' and deleted_at is null order by updated_at desc limit 5`));
           push('Falta el storyboard', await sql.query(
             `select e.title from public.events e left join public.storyboards sb on sb.event_id = e.id
               where e.deleted_at is null and e.boss_decision = 'accepted' and e.done_on is null
@@ -114,13 +116,14 @@ export const TOOLS: Tool[] = [
           const stock = await tweetStock(sql);
           if (stock.lowStock) items.push({ que: 'Tweets', titulo: stock.daysLeft ? `Quedan ${stock.daysLeft} días de tweets programados` : 'No quedan tweets programados' });
         }
-        if (has(s, 'supervisor')) {
-          push('Por aprobar', await sql.query(`select title from public.pieces where status = 'in_review' and review_level <> 'rojo' and deleted_at is null order by sent_to_review_at nulls last limit 8`));
+        if (has(s, 'boss')) {
+          // The boss approves every level and the tweets (public.can_approve()).
+          const review = await sql.query<{ title: string; review_level: string }>(
+            `select title, review_level from public.pieces where status = 'in_review' and deleted_at is null
+              order by case review_level when 'rojo' then 0 when 'amarillo' then 1 else 2 end, sent_to_review_at nulls last limit 8`);
+          review.forEach((p) => items.push({ que: `Te toca aprobar (${p.review_level})`, titulo: p.title }));
           const tw = await sql.one<{ n: number }>(`select count(*)::int as n from public.tweets where status = 'draft' and deleted_at is null`);
           if (tw?.n) items.push({ que: 'Tweets por aprobar', titulo: `${tw.n} tweets` });
-        }
-        if (has(s, 'boss')) {
-          push('Te toca aprobar (rojo)', await sql.query(`select title from public.pieces where status = 'in_review' and review_level = 'rojo' and deleted_at is null order by sent_to_review_at nulls last limit 8`));
           push('Espera tu decisión', await sql.query(`select title from public.events where boss_decision = 'pending' and deleted_at is null order by created_at limit 8`));
         }
         if (has(s, 'dispatch')) {
@@ -137,10 +140,6 @@ export const TOOLS: Tool[] = [
           push('Evento asignado', await sql.query(
             `select e.title from public.events e join public.event_assignments a on a.event_id = e.id and a.user_id = auth.uid()
               where e.deleted_at is null and e.done_on is null limit 8`));
-        }
-        if (has(s, 'secretary')) {
-          const mine = await sql.query<{ title: string; boss_decision: string }>(`select title, boss_decision from public.events where deleted_at is null and created_by = auth.uid() order by created_at desc limit 8`);
-          mine.forEach((e) => items.push({ que: `Tu propuesta: ${(BOSS_DECISION[e.boss_decision]?.label ?? e.boss_decision).toLowerCase()}`, titulo: e.title }));
         }
         const unread = await sql.one<{ n: number }>(`select count(*)::int as n from public.notifications where read_at is null`);
         return { items, unread: unread?.n ?? 0 };
@@ -213,7 +212,7 @@ export const TOOLS: Tool[] = [
     parameters: {},
     required: [],
     fromServer: [],
-    roles: ['admin', 'social', 'supervisor'],
+    roles: ['admin', 'social', 'boss'],
     level: 'cuenta',
     async run(_a, ctx) {
       const r = await db(ctx.session, async (sql) => {
@@ -356,7 +355,7 @@ export const TOOLS: Tool[] = [
     },
     required: ['rol', 'texto'],
     fromServer: [],
-    roles: ['admin', 'supervisor'],
+    roles: ['admin', 'boss'],
     level: 'prepara',
     entity: 'assistant_drafts',
     async run(a, ctx) {
@@ -411,7 +410,7 @@ export const TOOLS: Tool[] = [
   {
     name: 'avisar_al_equipo',
     description:
-      'Avisa de verdad a administración (y a supervisión si es de aprobaciones) de que esta conversación necesita una persona. Úsala cuando pidan hablar con alguien, cuando algo falla y no lo puedes resolver, o cuando dudan de que seas útil. Nunca digas que avisaste sin llamarla.',
+      'Avisa de verdad a administración de que esta conversación necesita una persona. Úsala cuando pidan hablar con alguien, cuando algo falla y no lo puedes resolver, o cuando dudan de que seas útil. Nunca digas que avisaste sin llamarla.',
     parameters: { motivo: { type: 'string', description: 'En una frase, qué necesita la persona.' } },
     required: [],
     fromServer: ['conversacion'],

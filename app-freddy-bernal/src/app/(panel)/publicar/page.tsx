@@ -14,7 +14,7 @@ export const metadata = { title: 'Publicar' };
 type Pub = { id: string; network: string; format: string; status: string; scheduled_at: string | null; published_at: string | null; title: string; failure_reason: string | null; republish_of: string | null; origin: string };
 
 export default async function PublishPage() {
-  const s = await requireRole('admin', 'social');
+  const s = await requireRole('admin', 'social', 'boss');
   const data = await db(s, async (sql) => ({
     ready: await sql.query<{ id: string; title: string }>(
       `select p.id, p.title from public.pieces p where p.status = 'approved' and p.deleted_at is null

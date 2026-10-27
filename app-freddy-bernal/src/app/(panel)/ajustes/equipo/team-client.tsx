@@ -6,11 +6,14 @@ import { useAction } from '@/lib/hooks/use-action';
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Field, Input, Select } from '@/components/ui/field';
-import { INVITABLE_ROLES, ROLE_LABEL, type Role } from '@/lib/roles';
+import { INVITABLE_ROLES, ROLE_LABEL, TEAM_ROLES, type InvitableRole, type Role } from '@/lib/roles';
+
+// The six team roles, then Administración apart: the technical role, never part of the team lists.
+const roleLabel = (r: InvitableRole) => (r === 'admin' ? 'Administración (técnico)' : ROLE_LABEL[r]);
 
 export function InviteForm() {
   const { run, pending } = useAction();
-  const [form, setForm] = useState({ email: '', fullName: '', role: 'social' as Role });
+  const [form, setForm] = useState({ email: '', fullName: '', role: 'social' as InvitableRole });
   return (
     <form
       className="flex flex-col gap-3 p-4"
@@ -26,10 +29,13 @@ export function InviteForm() {
         <Input id="inv-email" type="email" inputMode="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
       </Field>
       <Field label="Rol" htmlFor="inv-role">
-        <Select id="inv-role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Role })}>
-          {INVITABLE_ROLES.map((r) => (
-            <option key={r} value={r}>{ROLE_LABEL[r]}</option>
-          ))}
+        <Select id="inv-role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as InvitableRole })}>
+          <optgroup label="Equipo">
+            {TEAM_ROLES.map((r) => (
+              <option key={r} value={r}>{ROLE_LABEL[r]}</option>
+            ))}
+          </optgroup>
+          <option value="admin">{roleLabel('admin')}</option>
         </Select>
       </Field>
       <Button type="submit" disabled={pending}>{pending ? 'Enviando…' : 'Enviar invitación'}</Button>
@@ -63,7 +69,7 @@ export function MemberActions({ userId, name, roles, active, isSelf, twoFactor }
                 disabled={pending || (isSelf && r === 'admin')}
                 onChange={(e) => run(() => setRole({ userId, role: r, on: e.target.checked }))}
               />
-              {ROLE_LABEL[r]}
+              {roleLabel(r)}
             </label>
           ))}
           <Button variant="secondary" size="sm" className="min-h-11" disabled={pending} onClick={() => run(async () => {

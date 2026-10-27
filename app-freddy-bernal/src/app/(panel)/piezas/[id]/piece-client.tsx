@@ -13,14 +13,14 @@ import { DrivePicker } from '@/components/media/drive-picker';
 const LEVEL_OPTIONS: { value: Level; text: string }[] = [
   { value: 'verde', text: '🟢 Verde: rutina' },
   { value: 'amarillo', text: '🟡 Amarillo: normal' },
-  { value: 'rojo', text: '🔴 Rojo: la aprueba el jefe' },
+  { value: 'rojo', text: '🔴 Rojo: sensible' },
 ];
 
 export function SendToReview({ pieceId, level: saved, locked }: { pieceId: string; level: Level; locked: boolean }) {
   const { run, pending } = useAction();
   const [level, setLevel] = useState<Level>(saved);
-  // Once it went through review, it can go up but not down (only supervision, the boss
-  // or admin lower it; the database enforces it). A red piece stays red.
+  // Once it went through review, it can go up but not down (only the boss or admin lower it;
+  // the database enforces it). A red piece stays red.
   const rank = (l: Level) => LEVEL_OPTIONS.findIndex((o) => o.value === l);
   const options = locked || saved === 'rojo' ? LEVEL_OPTIONS.filter((o) => rank(o.value) >= rank(saved)) : LEVEL_OPTIONS;
   return (
@@ -28,7 +28,7 @@ export function SendToReview({ pieceId, level: saved, locked }: { pieceId: strin
       <Select aria-label="Nivel de aprobación" title={LEVELS[level].hint} value={level} onChange={(e) => setLevel(e.target.value as Level)} className="w-full sm:w-auto">
         {options.map((o) => <option key={o.value} value={o.value}>{o.text}</option>)}
       </Select>
-      <Button disabled={pending} onClick={() => run(() => sendToReview({ pieceId, level }), { success: level === 'rojo' ? 'Enviada al jefe y a supervisión.' : 'Enviada a supervisión.' })}>
+      <Button disabled={pending} onClick={() => run(() => sendToReview({ pieceId, level }), { success: 'Enviada al jefe para aprobar.' })}>
         <Send className="h-4 w-4" aria-hidden /> Enviar a aprobación
       </Button>
     </div>

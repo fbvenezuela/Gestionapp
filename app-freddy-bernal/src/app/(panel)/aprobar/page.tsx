@@ -6,7 +6,7 @@ import { Tip } from '@/components/ui/tip';
 import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { PIECE_KIND } from '@/lib/data/labels';
-import { getDeadlines, piecesInReview } from '@/lib/data/review';
+import { canApprove as canApproveNow, getDeadlines, piecesInReview } from '@/lib/data/review';
 import { LEVELS, LEVEL_ORDER, reviewClock } from '@/lib/domain/review';
 import { cn } from '@/lib/cn';
 import { TweetApprovals } from './tweet-approvals';
@@ -15,12 +15,12 @@ import { ApproveGreen } from './approve-green';
 export const metadata = { title: 'Por aprobar' };
 
 export default async function ApprovalsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  const s = await requireRole('supervisor', 'admin', 'boss');
+  const s = await requireRole('boss', 'admin');
   const { tab } = await searchParams;
   const isTweets = tab === 'tweets';
-  const canApprove = s.roles.includes('supervisor');
-  const isBoss = s.roles.includes('boss');
   const data = await db(s, async (sql) => ({
+    // Every level and every tweet: the boss (public.can_approve()). Admin sees the list, never decides.
+    canApprove: await canApproveNow(sql),
     pieces: await piecesInReview(sql),
     deadlines: await getDeadlines(sql),
     tweets: await sql.query<{ id: string; body: string; weighted_length: number; scheduled_at: string | null; category: string | null; batch: string }>(
@@ -29,18 +29,19 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
         where t.status = 'draft' and t.deleted_at is null order by t.scheduled_at nulls last, t.position`,
     ),
   }));
+  const { canApprove } = data;
+  const greens = data.pieces.filter((p) => p.review_level === 'verde');
 
   return (
     <>
       <PageHeader
         title="Por aprobar"
         subtitle={
-          canApprove ? 'Nada se publica sin aprobación. Las rojas las aprueba el jefe.'
-            : isBoss ? 'Las rojas te esperan a ti. Las demás las aprueba supervisión.'
-              : 'Supervisión aprueba verdes y amarillas; el jefe, las rojas.'
+          canApprove ? 'Nada se publica sin tu aprobación. Las verdes, todas de una vez.'
+            : 'Todo lo aprueba el jefe: verdes, amarillas, rojas y tweets. Tú puedes cambiar el nivel o comentar.'
         }
       />
-      <Tip id="aprobar">Las verdes se pueden aprobar juntas; las rojas las aprueba el jefe.</Tip>
+      <Tip id="aprobar">Las verdes se aprueban todas juntas con un toque; las amarillas y las rojas, una por una con su lista.</Tip>
       <div className="mb-4 flex gap-1" role="tablist">
         <Link role="tab" aria-selected={!isTweets} href="/aprobar" className={cn('min-h-10 rounded-full px-4 py-2 text-sm font-semibold', !isTweets ? 'bg-slate text-on-slate' : 'border border-border bg-surface text-text-2')}>
           Piezas ({data.pieces.length})
@@ -52,10 +53,10 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
       {!isTweets ? (
         data.pieces.length ? (
           <div className="flex flex-col gap-4">
+            {canApprove && greens.length ? <ApproveGreen pieces={greens.map((p) => ({ id: p.id, revision: p.revision }))} /> : null}
             {LEVEL_ORDER.map((lvl) => {
               const list = data.pieces.filter((p) => p.review_level === lvl);
               if (!list.length) return null;
-              const mine = lvl === 'rojo' ? isBoss : canApprove;
               return (
                 <Card key={lvl}>
                   <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3">
@@ -63,7 +64,6 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
                     <h2 className="flex-1 text-base font-semibold">
                       {list.length} {list.length === 1 ? 'pieza' : 'piezas'} · aprueba {LEVELS[lvl].who}
                     </h2>
-                    {lvl === 'verde' && canApprove ? <ApproveGreen pieces={list.map((p) => ({ id: p.id, revision: p.revision }))} /> : null}
                   </div>
                   <ul className="divide-y divide-border">
                     {list.map((p) => {
@@ -75,7 +75,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
                               <span className="block font-semibold">{p.title}</span>
                               <span className="block truncate text-sm text-text-2">{PIECE_KIND[p.kind]} · v{p.current_version}{p.event_title ? ` · ${p.event_title}` : ''}</span>
                             </span>
-                            {clock.text ? <Chip tone={clock.overdue ? 'danger' : mine ? 'warn' : 'neutral'}>{clock.text}</Chip> : null}
+                            {clock.text ? <Chip tone={clock.overdue ? 'danger' : canApprove ? 'warn' : 'neutral'}>{clock.text}</Chip> : null}
                           </Link>
                         </li>
                       );

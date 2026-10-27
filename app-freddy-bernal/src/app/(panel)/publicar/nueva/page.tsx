@@ -7,7 +7,7 @@ import { NewPublication } from './new-publication';
 export const metadata = { title: 'Nueva publicación' };
 
 export default async function NewPublicationPage({ searchParams }: { searchParams: Promise<{ pieza?: string; republica?: string }> }) {
-  const s = await requireRole('admin', 'social');
+  const s = await requireRole('admin', 'social', 'boss');
   const { pieza, republica } = await searchParams;
   const data = await db(s, async (sql) => {
     const approved = await sql.query<{ id: string; title: string }>(`select id, title from public.pieces where status = 'approved' and deleted_at is null order by approved_at desc limit 50`);
@@ -21,7 +21,7 @@ export default async function NewPublicationPage({ searchParams }: { searchParam
     return (
       <>
         <PageHeader title="Nueva publicación" back={{ href: '/publicar', label: 'Publicar' }} />
-        <EmptyState title="No hay piezas aprobadas. Supervisión tiene que aprobar antes de publicar." action={<LinkButton href="/piezas">Ver piezas</LinkButton>} />
+        <EmptyState title="No hay piezas aprobadas. El jefe tiene que aprobar antes de publicar." action={<LinkButton href="/piezas">Ver piezas</LinkButton>} />
       </>
     );
   }

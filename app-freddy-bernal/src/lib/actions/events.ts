@@ -5,14 +5,12 @@ import { DateTime } from 'luxon';
 import { act, UserError } from './run';
 import { TZ, dt } from '../time';
 import type { Sql } from '../db';
-import { notify, usersWithRole } from '../notify';
+import { notify, usersWithRole, withAnyRole } from '../notify';
 import {
-  correctedEventNotice,
   decisionNotice,
   newEventNotice,
   noticeEventTitle,
   noticeRecipients,
-  noticeTitleChanged,
   type AgendaNotice,
 } from '@/lib/domain/agenda-notices';
 import { DATED, MAX_TITLE, alwaysWhen, datedMessage, datedTitle } from '@/lib/domain/event-title';
@@ -114,7 +112,7 @@ export async function createEvent(raw: unknown) {
        values ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [ev!.id, i.workDescription, i.ledBy, i.inCharge, i.achievements, i.keyFacts, i.protocol, i.notes],
     );
-    const assignCam = !!i.cameraUserId && !s.roles.includes('secretary');
+    const assignCam = !!i.cameraUserId;
     if (assignCam) {
       await sql.query(`insert into public.event_assignments (event_id, user_id, duty) values ($1, $2, 'camera')`, [ev!.id, i.cameraUserId]);
     }
@@ -125,43 +123,9 @@ export async function createEvent(raw: unknown) {
       await notify({ userIds: [r.data.cameraUserId], kind: 'event_assigned', title: 'Te asignaron un evento', body: noticeEventTitle(r.data.title), link: `/eventos/${r.data.id}`, key: `assigned:${r.data.id}`, email: true });
     }
     if (r.ok && r.data) {
-      // Proposed by secretaría or created by despacho/admin: the boss decides, despacho follows.
+      // Created by despacho or admin: the boss decides, despacho follows.
       const { actorId } = r.data;
       await sendAgendaNotice(newEventNotice(r.data), async () =>
-        noticeRecipients([...(await usersWithRole('boss')), ...(await usersWithRole('dispatch'))], actorId),
-      );
-    }
-    return r;
-  });
-}
-
-// Secretaría fixes her own proposal while the boss has not decided. Only the columns the
-// database lets her touch (guard_event_update): no date, place details, brief or urgency.
-const proposalSchema = z.object({
-  id: z.string().uuid(),
-  title: titleField,
-  placeName: text(200),
-  municipality: text(100),
-  summary: text(1000),
-  categoryId: z.string().uuid().nullable().or(z.literal('')).transform((v) => v || null),
-});
-
-export async function updateProposal(raw: unknown) {
-  return act(proposalSchema, raw, async (sql, i, s) => {
-    const before = await sql.one<{ title: string }>(`select title from public.events where id = $1`, [i.id]);
-    await refuseDatedTitle(sql, i.id, i.title);
-    const r = await sql.query(
-      `update public.events set title = $2, place_name = $3, municipality = $4, summary = $5, category_id = $6
-        where id = $1 and created_by = auth.uid() and boss_decision = 'pending' and deleted_at is null returning id`,
-      [i.id, i.title, i.placeName, i.municipality, i.summary, i.categoryId],
-    );
-    if (!r.length || !before) throw new UserError('Ya no se puede cambiar: el jefe ya decidió.');
-    return { id: i.id, title: i.title, retitled: noticeTitleChanged(before.title, i.title), actorId: s.userId };
-  }, { revalidate: ['/agenda', '/eventos', '/hoy'] }).then(async (r) => {
-    if (r.ok && r.data?.retitled) {
-      // The boss decides by the notice: he must see the corrected title, not the old one.
-      const { actorId } = r.data;
-      await sendAgendaNotice(correctedEventNotice(r.data, new Date().toISOString().slice(0, 19)), async () =>
         noticeRecipients([...(await usersWithRole('boss')), ...(await usersWithRole('dispatch'))], actorId),
       );
     }
@@ -237,10 +201,11 @@ export async function bossDecide(raw: unknown) {
   ).then(async (r) => {
     const i = raw as { id: string; decision: string };
     if (r.ok && r.data?.changed && (i.decision === 'accepted' || i.decision === 'rejected')) {
-      // Whoever proposed it and despacho learn the decision (never the date or place).
+      // Whoever created it and despacho learn the decision (never the date or place). Someone left without a role
+      // (an ex-secretaría account, 27/10/2026) is skipped.
       const { createdBy, actorId, title } = r.data;
       await sendAgendaNotice(decisionNotice({ id: i.id, title }, i.decision, new Date().toISOString().slice(0, 16)), async () =>
-        noticeRecipients([createdBy, ...(await usersWithRole('dispatch'))], actorId),
+        noticeRecipients([...(await withAnyRole([createdBy])), ...(await usersWithRole('dispatch'))], actorId),
       );
     }
     return r;
