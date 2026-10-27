@@ -42,10 +42,11 @@ test('el consejo sale la primera vez y «Entendido» lo esconde', async ({ page 
 test('una pantalla que no es del rol lleva a su inicio con un aviso', async ({ page }) => {
   await loginAs(page, 'politica@demo.test');
   await page.goto('/piezas');
-  await expect(page).toHaveURL(/\/hoy\?sin-permiso=1$/);
+  // Política's home is the municipalities (§4.2).
+  await expect(page).toHaveURL(/\/municipios\?sin-permiso=1$/);
   await expect(page.getByText('Esa pantalla no es de tu rol.')).toBeVisible();
   await page.getByRole('button', { name: 'Cerrar aviso' }).click();
-  await expect(page).toHaveURL(/\/hoy$/);
+  await expect(page).toHaveURL(/\/municipios$/);
   await page.context().clearCookies();
 
   // The boss has the Redes screens now; Ajustes is still administración's.

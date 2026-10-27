@@ -13,9 +13,8 @@ import {
   noticeRecipients,
   type AgendaNotice,
 } from '@/lib/domain/agenda-notices';
-import { DATED, MAX_TITLE, alwaysWhen, datedMessage, datedTitle } from '@/lib/domain/event-title';
-
-const text = (max: number) => z.string().trim().max(max).default('');
+import { datedMessage, datedTitle } from '@/lib/domain/event-title';
+import { scheduleShape, text, titleField, toRange } from './schemas';
 
 // Event titles never carry the event's when (rule 4): the checks are in domain/event-title.ts.
 async function refuseDatedTitle(sql: Sql, id: string, title: string) {
@@ -27,23 +26,6 @@ async function refuseDatedTitle(sql: Sql, id: string, title: string) {
   const hit = datedTitle(title, dt(ev?.starts_at), ev?.title ?? '');
   if (hit) throw new UserError(datedMessage(hit));
 }
-
-const titleField = z
-  .string()
-  .trim()
-  .min(3, 'Escribe un título.')
-  .max(MAX_TITLE, 'Máximo 140 caracteres.')
-  // Zod still runs a refine after .max fails: never feed the date patterns an over-long title.
-  .refine((t) => t.length > MAX_TITLE || !alwaysWhen(t), DATED);
-
-const scheduleShape = {
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Elige la fecha.'),
-  time: z.string().regex(/^\d{2}:\d{2}$/, 'Elige la hora.'),
-  durationMin: z.coerce.number().int().min(15, 'Mínimo 15 minutos.').max(24 * 60),
-  exactAddress: text(500),
-  directions: text(2000),
-  siteContacts: text(1000),
-};
 
 const briefShape = {
   workDescription: text(2000),
@@ -77,12 +59,6 @@ async function sendAgendaNotice(n: AgendaNotice, recipients: () => Promise<strin
     // The change is already saved: a failed notice must not turn it into an error.
     console.warn('[notify] agenda:', (e as Error).message);
   }
-}
-
-function toRange(date: string, time: string, durationMin: number) {
-  const start = DateTime.fromISO(`${date}T${time}`, { zone: TZ });
-  if (!start.isValid) throw new UserError('La fecha u hora no es válida.');
-  return { starts: start.toUTC().toISO()!, ends: start.plus({ minutes: durationMin }).toUTC().toISO()! };
 }
 
 export async function createEvent(raw: unknown) {

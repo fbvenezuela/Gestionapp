@@ -62,11 +62,14 @@ export type NavItem = { href: string; label: string; icon: string; roles: Role[]
 // Order matters: the first 4-5 visible items for a role go to the mobile bottom bar
 // (`mobile` lists the roles that get the item in the bar).
 // The boss «tiene todo, hasta lo de redes»: the Redes screens are in his menu (on the phone, under «Más»).
+// Director del IVT and Director de política land on their own screens (Obras, Municipios) instead of Hoy.
 export const NAV: NavItem[] = [
   { href: '/jefe', label: 'Inicio', icon: 'home', roles: ['boss'], mobile: ['boss'] },
-  { href: '/hoy', label: 'Hoy', icon: 'sun', roles: ['admin', 'dispatch', 'politics', 'ivt', 'social', 'camera'], mobile: ['admin', 'dispatch', 'politics', 'ivt', 'social', 'camera'] },
+  { href: '/hoy', label: 'Hoy', icon: 'sun', roles: ['admin', 'dispatch', 'social', 'camera'], mobile: ['admin', 'dispatch', 'social', 'camera'] },
   { href: '/agenda', label: 'Agenda', icon: 'calendar', roles: ['admin', 'boss', 'dispatch', 'social', 'camera'], mobile: ['admin', 'boss', 'dispatch', 'social', 'camera'] },
   { href: '/aprobar', label: 'Por aprobar', icon: 'check', roles: ['boss', 'admin'], mobile: ['boss'] },
+  { href: '/obras', label: 'Obras', icon: 'hardhat', roles: ['admin', 'boss', 'dispatch', 'ivt'], mobile: ['dispatch', 'ivt'] },
+  { href: '/municipios', label: 'Municipios', icon: 'map', roles: ['admin', 'boss', 'dispatch', 'politics'], mobile: ['dispatch', 'politics'] },
   { href: '/piezas', label: 'Piezas', icon: 'film', roles: ['admin', 'social', 'boss'], mobile: ['admin', 'social'] },
   { href: '/tweets', label: 'Tweets', icon: 'message', roles: ['admin', 'social', 'boss'], mobile: ['social'] },
   { href: '/publicar', label: 'Publicar', icon: 'send', roles: ['admin', 'social', 'boss'], mobile: ['social'] },
@@ -79,6 +82,8 @@ export const NAV: NavItem[] = [
 // The «Crear» menu in the top bar. Each entry mirrors what the database lets that role insert.
 export const CREATE_ITEMS: { href: string; label: string; roles: Role[] }[] = [
   { href: '/agenda/nuevo', label: 'Nuevo evento', roles: ['admin', 'dispatch'] },
+  { href: '/obras/nueva', label: 'Ficha de obra', roles: ['admin', 'boss', 'dispatch', 'ivt'] },
+  { href: '/reportes/nuevo', label: 'Ficha comunitaria', roles: ['admin', 'boss', 'dispatch', 'politics'] },
   { href: '/piezas/nueva', label: 'Nueva pieza', roles: ['admin', 'social', 'boss'] },
   { href: '/tweets/nueva', label: 'Tweets de la semana', roles: ['admin', 'social', 'boss'] },
   { href: '/publicar/nueva', label: 'Nueva publicación', roles: ['admin', 'social', 'boss'] },
@@ -99,10 +104,12 @@ export function navFor(roles: Role[]) {
   return { visible, mobile, more };
 }
 
-// Where each person lands. Director de política and Director del IVT land on Hoy until their own screens
-// (fichas de obra, municipios) arrive.
+// Where each person lands. The boss on his Inicio; the Director del IVT on the obra fichas and the Director de
+// política on the municipalities (cambios del 27/10/2026, §4), when that is their only role.
 export function homeFor(roles: Role[]): string {
   if (roles.includes('boss') && !roles.includes('admin')) return '/jefe';
+  if (roles.length && roles.every((r) => r === 'ivt')) return '/obras';
+  if (roles.length && roles.every((r) => r === 'politics')) return '/municipios';
   return '/hoy';
 }
 

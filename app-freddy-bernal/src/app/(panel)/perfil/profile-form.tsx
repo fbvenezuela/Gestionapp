@@ -18,6 +18,7 @@ const OPTIONAL = [
   { key: 'voice_line', label: 'Hay que pedir una frase al jefe' },
   { key: 'event_new', label: 'Hay un evento nuevo por decidir' },
   { key: 'event_decided', label: 'El jefe decidió un evento' },
+  { key: 'to_schedule', label: 'Hay una ficha por ponerle fecha' },
   { key: 'assistant_notice', label: 'Avisos del equipo preparados con 360' },
   { key: 'daily_digest', label: 'Resumen diario por correo' },
 ];

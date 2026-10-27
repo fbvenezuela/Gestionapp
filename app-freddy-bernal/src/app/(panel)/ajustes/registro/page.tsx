@@ -14,6 +14,8 @@ const TABLE: Record<string, string> = {
   voice_line_requests: 'Frase del jefe', tweets: 'Tweet', tweet_batches: 'Tanda de tweets', publications: 'Publicación',
   publication_metrics: 'Resultados', profiles: 'Persona', user_roles: 'Rol', invitations: 'Invitación',
   app_settings: 'Ajuste', categories: 'Categoría', copy_formulas: 'Fórmula', network_specs: 'Reglas de red',
+  obra_fichas: 'Ficha de obra', obra_ficha_private: 'Contactos de obra', community_reports: 'Ficha comunitaria',
+  community_report_private: 'Contactos del reporte', ficha_updates: 'Historia de ficha',
 };
 const ACTION: Record<string, string> = { insert: 'creó', update: 'cambió', delete: 'quitó', soft_delete: 'borró', mfa_reset: 'reinició' };
 // One summary row of 20261027001600_six_roles.sql: the retired roles keep their names here (history).

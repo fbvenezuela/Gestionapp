@@ -1,9 +1,10 @@
 import { stripDateTime } from '@/lib/push/text';
 
 // Texts of the agenda notices (pure, so they can be tested). Rule 4: the boss's agenda is
-// security information, so these texts carry ONLY the event title: never its date, time,
-// place, address or contacts. The title is also scrubbed of anything that looks like a date
-// or a time, in case someone typed one into it.
+// security information, so these texts carry ONLY the event title (plus the municipality in
+// «Por ponerle fecha», which has no date yet): never its date, time, place, address or contacts.
+// The title is also scrubbed of anything that looks like a date or a time, in case someone typed
+// one into it.
 
 export type AgendaNotice = { kind: string; title: string; body: string; link: string; key: string };
 export type BossDecision = 'accepted' | 'rejected';
@@ -60,6 +61,25 @@ export function decisionNotice(ev: { id: string; title: string }, decision: Boss
     body: '',
     link: `/eventos/${ev.id}`,
     key: `event_decided:${ev.id}:${decision}:${stamp}`,
+  };
+}
+
+// «Por ponerle fecha» (the client's words, §4.1 and §4.2): the IVT saved an obra ficha as ready, or política a community
+// report that goes to the boss's agenda. The boss and despacho put the date. The only agenda notice that carries the
+// municipality, as asked: there is no date yet to leak, and it goes only to the boss and despacho. Never a date, a
+// time, an address, a phone or a reporter's name (both texts are scrubbed). Once per ficha (the key).
+export type FichaRef = { kind: 'obra' | 'report'; id: string; title: string; municipality: string };
+
+export function toScheduleNotice(f: FichaRef): AgendaNotice {
+  const title = noticeEventTitle(f.title);
+  const place = noticeEventTitle(f.municipality);
+  const what = f.kind === 'obra' ? 'una obra' : 'un reporte';
+  return {
+    kind: 'to_schedule',
+    title: title ? `Por ponerle fecha: ${title}${place ? ` (${place})` : ''}` : `Por ponerle fecha: ${what}${place ? ` en ${place}` : ''}`,
+    body: '',
+    link: f.kind === 'obra' ? `/obras/${f.id}` : `/reportes/${f.id}`,
+    key: `to_schedule:${f.kind}:${f.id}`,
   };
 }
 

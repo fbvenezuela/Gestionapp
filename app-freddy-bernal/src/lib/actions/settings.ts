@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { act, UserError } from './run';
 
 const uuid = z.string().uuid();
-const KEYS = ['tweets.slots', 'tweets.per_day', 'tweets.low_stock_days', 'brand', 'publishing.default_collaborators', 'upload.max_mb', 'municipalities'] as const;
+const KEYS = ['tweets.slots', 'tweets.per_day', 'tweets.low_stock_days', 'brand', 'publishing.default_collaborators', 'upload.max_mb', 'municipalities', 'parishes'] as const;
 
 const valueSchemas: Record<(typeof KEYS)[number], z.ZodType> = {
   'tweets.slots': z.array(z.object({ from: z.string().regex(/^\d{2}:\d{2}$/), to: z.string().regex(/^\d{2}:\d{2}$/) })).min(1).max(12),
@@ -14,6 +14,10 @@ const valueSchemas: Record<(typeof KEYS)[number], z.ZodType> = {
   'publishing.default_collaborators': z.array(z.string().max(80)).max(20),
   'upload.max_mb': z.number().int().min(50).max(51200),
   municipalities: z.array(z.string().min(2).max(80)).max(200),
+  // The official parishes per municipality (empty until the list arrives; check_territory enforces it once loaded).
+  parishes: z
+    .record(z.string().min(2).max(80), z.array(z.string().trim().min(2).max(100)).max(80))
+    .refine((m) => Object.values(m).every((l) => new Set(l).size === l.length), 'Hay una parroquia repetida.'),
 };
 
 export async function saveSetting(raw: unknown) {

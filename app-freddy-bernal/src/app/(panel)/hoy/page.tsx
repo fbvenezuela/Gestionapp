@@ -10,6 +10,9 @@ import { fmtTime, today } from '@/lib/time';
 import { tweetStock } from '@/lib/data/tweets';
 import { getDeadlines, piecesInReview } from '@/lib/data/review';
 import { LEVELS, reviewClock } from '@/lib/domain/review';
+import { obraStageCounts, overdueReports } from '@/lib/data/fichas';
+import { OverdueReports } from '@/components/fichas/overdue-reports';
+import { LinkButton } from '@/components/ui/button';
 
 export const metadata = { title: 'Hoy' };
 
@@ -118,7 +121,11 @@ export default async function TodayPage() {
       stats.push({ label: 'Material por subir', value: mine.filter((m) => m.past && m.n === 0).length, tone: 'danger' });
     }
 
-    return { todayEvents, waiting, blocked, stats: stats.slice(0, 3) };
+    // Política: what is overdue in the municipalities, first (§4.2). IVT: how its obra fichas are going.
+    const lateReports = has('politics') ? await overdueReports(sql, t0.toISODate()!, 5) : [];
+    const obras = has('ivt') ? await obraStageCounts(sql) : null;
+
+    return { todayEvents, waiting, blocked, stats: stats.slice(0, 3), lateReports, obras };
   });
 
   const first = s.name.split(' ')[0];
@@ -127,16 +134,25 @@ export default async function TodayPage() {
       <PageHeader title={`Hola, ${first}`} subtitle={t0.toFormat("cccc d 'de' LLLL")} />
       <Tip id="hoy">Aquí está lo que espera por ti; lo de «Trancado» está parado y necesita una mano.</Tip>
 
-      {/* Director de política and Director del IVT land here until their own screens arrive. */}
-      {has('politics', 'ivt') ? (
+      {/* Director de política and Director del IVT have their own homes (/municipios, /obras); here, the short version. */}
+      {has('politics') ? (
+        <>
+          <OverdueReports rows={data.lateReports} todayIso={t0.toISODate()!} />
+          <Card className="mb-5">
+            <CardHeader
+              title="Los eventos y avances de cada municipio"
+              subtitle="Carga una ficha por actividad o situación; lo vencido sale arriba."
+              action={<LinkButton href="/municipios" size="sm">Ver municipios</LinkButton>}
+            />
+          </Card>
+        </>
+      ) : null}
+      {has('ivt') && data.obras ? (
         <Card className="mb-5">
           <CardHeader
-            title={has('ivt') ? 'Las fichas de obra' : 'Los eventos y avances de cada municipio'}
-            subtitle={
-              has('ivt')
-                ? 'Aquí vas a cargar la ficha de cada obra antes de la visita del jefe, sin fecha ni hora: esa la ponen el jefe o el despacho. Esa pantalla llega en la próxima entrega.'
-                : 'Aquí vas a cargar los eventos y avances comunitarios de cada municipio. Esa pantalla llega en la próxima entrega.'
-            }
+            title="Las fichas de obra"
+            subtitle={`${data.obras.draft ?? 0} en borrador · ${data.obras.to_schedule ?? 0} por ponerle fecha. La fecha la ponen el jefe o el despacho.`}
+            action={<LinkButton href="/obras" size="sm">Ver obras</LinkButton>}
           />
         </Card>
       ) : null}

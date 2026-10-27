@@ -8,6 +8,8 @@ import { LEVELS, LEVEL_ORDER, reviewClock } from '@/lib/domain/review';
 import { cn } from '@/lib/cn';
 import { today } from '@/lib/time';
 import { ApproveGreen } from '../aprobar/approve-green';
+import { overdueReports } from '@/lib/data/fichas';
+import { OverdueReports } from '@/components/fichas/overdue-reports';
 
 export const metadata = { title: 'Inicio' };
 
@@ -27,6 +29,12 @@ export default async function BossHome() {
     tweets: (await sql.one<{ n: number }>(`select count(*)::int as n from public.tweets where status = 'draft' and deleted_at is null`))!.n,
     deadlines: await getDeadlines(sql),
     canApprove: await canApprove(sql),
+    // «Lo vencido sale arriba en el inicio del jefe» (§4.2): community reports past their follow-up date.
+    overdue: await overdueReports(sql, t0.toISODate()!, 5),
+    overdueTotal: (await sql.one<{ n: number }>(
+      `select count(*)::int as n from public.community_reports where deleted_at is null and follow_up_due < $1::date and status not in ('finished', 'suspended')`,
+      [t0.toISODate()],
+    ))!.n,
   }));
   const boss = s.roles.includes('boss');
   const greens = counts.review.filter((p) => p.review_level === 'verde');
@@ -38,6 +46,7 @@ export default async function BossHome() {
         <h1 className="text-3xl font-bold sm:text-4xl">Buen día</h1>
         <p className="mt-1 text-lg first-letter:uppercase text-text-2">{t0.toFormat("cccc d 'de' LLLL")}</p>
       </div>
+      <OverdueReports rows={counts.overdue} todayIso={t0.toISODate()!} total={counts.overdueTotal} />
       {counts.review.length || counts.tweets ? (
         <Card aria-labelledby="approve-title" role="region" className={cn('p-4', anyRed && 'border-2 border-danger bg-danger-soft')}>
           <h2 id="approve-title" className={cn('flex items-center gap-2 text-xl font-bold', anyRed && 'text-danger')}>

@@ -15,8 +15,8 @@ test('los botones son los seis roles del equipo y Administración; ya no Secreta
 test('un toque por rol, sin código ni doble factor', async ({ page }) => {
   for (const [label, home, heading] of [
     ['El jefe', '/jefe', /Buen día/],
-    ['Director de política', '/hoy', /Hola, Elio/],
-    ['Director del IVT', '/hoy', /Hola, Fabián/],
+    ['Director de política', '/municipios', /^Municipios$/],
+    ['Director del IVT', '/obras', /^Fichas de obra$/],
     ['Administración', '/hoy', /Hola, Carla/],
     ['Redes', '/hoy', /Hola, (Daniela|Yorman)/],
   ] as const) {

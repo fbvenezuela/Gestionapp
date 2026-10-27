@@ -138,7 +138,7 @@ function breaks(text: string): { end: number; next: number }[] {
   return out;
 }
 
-function endDot(s: string) {
+export function endDot(s: string) {
   if (FINISHED.test(s)) return s;
   const t = s.replace(/[\s,;:]+$/, '');
   // Never a period after an emoji ("Seguimos trabajando 💪").
@@ -157,7 +157,7 @@ function pieces(text: string): string[] {
   return out;
 }
 
-function sentences(text: string): string[] {
+export function sentences(text: string): string[] {
   const out: string[] = [];
   for (const piece of pieces(text)) {
     const s = piece.replace(MARKER, '').trim();
@@ -209,7 +209,7 @@ function runsOn(prev: string, next: string) {
 }
 
 // Free text (summary, description, achievements): a line wrapped mid-sentence is the same sentence.
-const prose = (t: string) => lines(t, (prev, next) => runsOn(prev, next) || (!FINISHED.test(prev) && dangling(prev))).join('\n');
+export const prose = (t: string) => lines(t, (prev, next) => runsOn(prev, next) || (!FINISHED.test(prev) && dangling(prev))).join('\n');
 
 // The text without its last sentence; '' when it has only one. A quote is never shortened.
 function dropLast(text: string): string {
@@ -297,7 +297,7 @@ function facts(text: string): string[] {
 }
 
 // The first letter in uppercase, after any "¡", "¿" or quote mark ("¡entrega…!" → "¡Entrega…!").
-function cap(s: string) {
+export function cap(s: string) {
   return s.replace(/^([¡¿«"“‘'\s]*)(\p{Ll})/u, (_, a: string, b: string) => a + b.toUpperCase());
 }
 
@@ -562,7 +562,7 @@ function noDot(s: string) {
 
 // Place and municipality, without the municipality when the place already names it after a comma or
 // at its end ("Cancha El Mirador, Cárdenas", "… en Cárdenas", "…, municipio Cárdenas").
-function placeOf(place: string, municipality: string) {
+export function placeOf(place: string, municipality: string) {
   const p = noDot(place);
   const m = noDot(municipality);
   const words = (s: string) => plain(s).replace(/[^\p{L}\p{N},]+/gu, ' ').replace(/\s*,\s*/g, ',').trim();
@@ -781,19 +781,16 @@ function numberKey(n: string) {
   return sign + (dec ? `${int}.${dec}` : int);
 }
 
-// Numbers in the copies that appear in no text field of the brief. Hashtags, links, emails, unit
-// exponents ("m2") and the piece's own closing (`closing`, e.g. its destination) aside, in the copies
-// and in the brief alike: a "2" in "600 m2" or in "obras2027@…" is not a figure the brief gives.
-export function inventedNumbers(set: { long: string; medium: string; short: string }, input: CopyInput, closing = ''): string[] {
-  const brief = [
-    input.title, input.place, input.municipality, input.summary, input.workDescription, input.ledBy, input.inCharge,
-    input.achievements, input.keyFacts, input.speech, input.bossLines, input.category ?? '',
-  ].join('\n');
+// Numbers in `texts` that appear in none of `sources`. Hashtags, links, emails, unit exponents ("m2") and the
+// `ignore` text (a piece's own closing, e.g. its destination) aside, in the texts and in the sources alike: a "2"
+// in "600 m2" or in "obras2027@…" is not a figure the sources give. The guard of rule 7 for anything written from
+// a ficha (copies, the obra's FAB dialog).
+export function unknownNumbers(texts: string[], sources: string[], ignore = ''): string[] {
   const scrub = (t: string) => {
     // "¾" and "²" as plain digits ("3⁄4", "2"), and "1 200" as "1.200".
     let text = t
       .normalize('NFKC')
-      .replace(/(?<![\d.,])(\d{1,3})((?:[    ]\d{3})+)(?![\d.,]?\d)/g, (_, a: string, b: string) => a + b.replace(/\s/g, '.'))
+      .replace(/(?<![\d.,])(\d{1,3})((?:[ \u00a0\u202f\u2009]\d{3})+)(?![\d.,]?\d)/g, (_, a: string, b: string) => a + b.replace(/\s/g, '.'))
       .replace(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g, ' ');
     // A link starts a word, with its protocol, "www." or a letter: "4.500.La obra" or a "link" glued to a
     // figure ("2,5atodos.com") never eats the figure.
@@ -804,11 +801,11 @@ export function inventedNumbers(set: { long: string; medium: string; short: stri
       .replace(/#(?=[\p{N}_]*\p{L})[\p{L}\p{N}_]+/gu, ' ') // a hashtag needs a letter: "#7" is a figure
       .replace(/(\d\s*(?:k?m|cm|mm|dm))[23](?!\d)/g, '$1');
   };
-  const known = new Set((scrub(brief).match(NUMBER) ?? []).map(numberKey));
-  const own = closing.trim();
+  const known = new Set((scrub(sources.join('\n')).match(NUMBER) ?? []).map(numberKey));
+  const own = ignore.trim();
   const found = new Map<string, string>();
-  for (const copy of [set.long, set.medium, set.short]) {
-    let text = copy;
+  for (const t of texts) {
+    let text = t;
     for (const c of new Set([own, own.replace(/\.$/, '')])) if (c) text = text.split(c).join(' ');
     text = scrub(text);
     for (const n of text.match(NUMBER) ?? []) {
@@ -817,6 +814,15 @@ export function inventedNumbers(set: { long: string; medium: string; short: stri
     }
   }
   return [...found.values()];
+}
+
+// Numbers in the copies that appear in no text field of the brief (the piece's own `closing` aside).
+export function inventedNumbers(set: { long: string; medium: string; short: string }, input: CopyInput, closing = ''): string[] {
+  const brief = [
+    input.title, input.place, input.municipality, input.summary, input.workDescription, input.ledBy, input.inCharge,
+    input.achievements, input.keyFacts, input.speech, input.bossLines, input.category ?? '',
+  ];
+  return unknownNumbers([set.long, set.medium, set.short], brief, closing);
 }
 
 // Copies over their network's limit, e.g. ['medium 612/500'].

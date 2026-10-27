@@ -6,10 +6,11 @@ import { loginAs } from './helpers';
 const ROLES: Record<string, string[]> = {
   'admin@demo.test': ['/hoy', '/agenda', '/agenda?vista=mes', '/agenda?vista=dia', '/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca', '/aprobar', '/aprobar?tab=tweets', '/ajustes', '/ajustes/equipo', '/ajustes/categorias', '/ajustes/formulas', '/ajustes/horarios', '/ajustes/redes', '/ajustes/marca', '/ajustes/drive', '/ajustes/buzon', '/ajustes/registro', '/avisos', '/perfil', '/buscar?q=puente', '/agenda/nuevo', '/piezas/nueva', '/tweets/nueva', '/publicar/nueva', '/publicar/espontanea'],
   // The boss «tiene todo, hasta lo de redes»: the Redes screens open for him too.
-  'jefe@demo.test': ['/jefe', '/jefe/politica', '/jefe/digital', '/agenda', '/resultados', '/aprobar', '/aprobar?tab=tweets', '/piezas', '/piezas/nueva', '/tweets', '/tweets/nueva', '/publicar', '/publicar/nueva', '/biblioteca'],
-  'despacho@demo.test': ['/hoy', '/agenda', '/agenda/nuevo', '/biblioteca'],
-  'politica@demo.test': ['/hoy', '/avisos', '/perfil'],
-  'ivt@demo.test': ['/hoy', '/avisos', '/perfil'],
+  'jefe@demo.test': ['/jefe', '/jefe/politica', '/jefe/digital', '/agenda', '/resultados', '/aprobar', '/aprobar?tab=tweets', '/piezas', '/piezas/nueva', '/tweets', '/tweets/nueva', '/publicar', '/publicar/nueva', '/biblioteca', '/obras', '/obras/nueva', '/municipios', '/municipios/junin', '/reportes/nuevo'],
+  'despacho@demo.test': ['/hoy', '/agenda', '/agenda/nuevo', '/biblioteca', '/obras', '/municipios'],
+  // Fichas (§4.1 and §4.2): the IVT on its obra fichas, política on the municipalities. Both keep Hoy, Avisos and Perfil.
+  'politica@demo.test': ['/municipios', '/municipios?vencidas=1', '/municipios/junin', '/municipios/torbes?tipo=event', '/reportes/nuevo', '/hoy', '/avisos', '/perfil'],
+  'ivt@demo.test': ['/obras', '/obras?estado=to_schedule', '/obras/nueva', '/hoy', '/avisos', '/perfil'],
   'grabacion@demo.test': ['/hoy', '/agenda'],
 };
 
@@ -34,8 +35,8 @@ const HOMES: Record<string, string> = {
   'admin@demo.test': '/hoy',
   'jefe@demo.test': '/jefe',
   'despacho@demo.test': '/hoy',
-  'politica@demo.test': '/hoy',
-  'ivt@demo.test': '/hoy',
+  'politica@demo.test': '/municipios',
+  'ivt@demo.test': '/obras',
   'grabacion@demo.test': '/hoy',
   'redes@demo.test': '/hoy',
 };

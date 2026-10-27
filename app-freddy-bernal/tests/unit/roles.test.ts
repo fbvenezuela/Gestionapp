@@ -89,31 +89,44 @@ describe('menús', () => {
     for (const c of CREATE_ITEMS) for (const r of c.roles) expect(isInvitableRole(r), `${c.href} ${r}`).toBe(true);
   });
 
-  it('el jefe tiene las pantallas de Redes; en el teléfono caben con «Más»', () => {
+  it('el jefe tiene las pantallas de Redes, Obras y Municipios; en el teléfono caben con «Más»', () => {
     const { visible, mobile, more } = navFor(['boss']);
     const labels = visible.map((n) => n.label);
-    for (const l of ['Inicio', 'Agenda', 'Por aprobar', 'Piezas', 'Tweets', 'Publicar', 'Resultados', 'Biblioteca', 'Digital']) expect(labels, l).toContain(l);
+    for (const l of ['Inicio', 'Agenda', 'Por aprobar', 'Obras', 'Municipios', 'Piezas', 'Tweets', 'Publicar', 'Resultados', 'Biblioteca', 'Digital']) expect(labels, l).toContain(l);
     expect(labels).not.toContain('Hoy');
     expect(mobile.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Digital']);
     expect(mobile.length + (more.length ? 1 : 0)).toBeLessThanOrEqual(5);
     expect([...mobile, ...more].length).toBe(visible.length);
   });
 
-  it('el jefe crea piezas, tweets y publicaciones; el evento todavía es de despacho (la base decide)', () => {
-    const boss = createFor(['boss']).map((c) => c.label);
-    expect(boss).toEqual(['Nueva pieza', 'Tweets de la semana', 'Nueva publicación']);
-    expect(createFor(['dispatch']).map((c) => c.label)).toEqual(['Nuevo evento']);
-    expect(createFor(['politics'])).toEqual([]);
-    expect(createFor(['ivt'])).toEqual([]);
+  it('el jefe y el despacho crean fichas de obra y comunitarias; el evento todavía es de despacho (la base decide)', () => {
+    expect(createFor(['boss']).map((c) => c.label)).toEqual(['Ficha de obra', 'Ficha comunitaria', 'Nueva pieza', 'Tweets de la semana', 'Nueva publicación']);
+    expect(createFor(['dispatch']).map((c) => c.label)).toEqual(['Nuevo evento', 'Ficha de obra', 'Ficha comunitaria']);
+    expect(createFor(['politics']).map((c) => c.label)).toEqual(['Ficha comunitaria']);
+    expect(createFor(['ivt']).map((c) => c.label)).toEqual(['Ficha de obra']);
+    expect(createFor(['social', 'camera']).map((c) => c.label)).not.toContain('Ficha comunitaria');
   });
 
-  it('política e IVT entran a Hoy (sus pantallas llegan con las fichas); sin agenda, contenido ni aprobaciones', () => {
-    for (const r of ['politics', 'ivt'] as const) {
-      expect(homeFor([r]), r).toBe('/hoy');
-      expect(navFor([r]).visible.map((n) => n.href), r).toEqual(['/hoy']);
-    }
+  it('el IVT entra a sus fichas de obra y política a los municipios; sin agenda, contenido ni aprobaciones', () => {
+    expect(homeFor(['ivt'])).toBe('/obras');
+    expect(homeFor(['politics'])).toBe('/municipios');
+    expect(navFor(['ivt']).visible.map((n) => n.href)).toEqual(['/obras']);
+    expect(navFor(['politics']).visible.map((n) => n.href)).toEqual(['/municipios']);
     expect(homeFor(['boss'])).toBe('/jefe');
     expect(homeFor(['boss', 'admin'])).toBe('/hoy');
+    expect(homeFor(['ivt', 'dispatch'])).toBe('/hoy');
+  });
+
+  it('Redes y Grabación no tienen Obras ni Municipios en el menú (Redes nunca ve los reportes)', () => {
+    for (const r of ['social', 'camera'] as const) {
+      const hrefs = navFor([r]).visible.map((n) => n.href);
+      expect(hrefs, r).not.toContain('/obras');
+      expect(hrefs, r).not.toContain('/municipios');
+    }
+    // Despacho fits its five in the phone bar.
+    const d = navFor(['dispatch']);
+    expect(d.mobile.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Obras', 'Municipios', 'Biblioteca']);
+    expect(d.more).toEqual([]);
   });
 
   it('«Por aprobar» es del jefe (y administración lo mira); ya no hay supervisión', () => {

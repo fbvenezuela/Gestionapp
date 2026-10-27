@@ -37,6 +37,10 @@ describe('la demo tiene los mismos ids en todos los servidores', () => {
     const [a, b] = await Promise.all([seededIds(), seededIds()]);
     expect(a.ids.length).toBeGreaterThan(100);
     expect(a.ids.some((x) => x.startsWith('public.events:'))).toBe(true);
+    // The fichas part of the seed (obras, reports, their contacts and history) too.
+    for (const t of ['obra_fichas', 'obra_ficha_private', 'community_reports', 'community_report_private', 'ficha_updates']) {
+      expect(a.ids.some((x) => x.startsWith(`public.${t}:`)), t).toBe(true);
+    }
     expect(b.ids).toEqual(a.ids);
     for (const x of a.ids) expect(z.string().uuid().safeParse(x.split(':')[1]).success, x).toBe(true);
   }, 120_000);

@@ -1,4 +1,5 @@
 import type { Sql } from '../db/core';
+import type { ParishMap } from '../domain/territory';
 
 export type CategoryOption = { id: string; name: string; emoji: string | null; group: string };
 
@@ -11,6 +12,15 @@ export async function contentCategories(sql: Sql): Promise<CategoryOption[]> {
 
 export async function municipalities(sql: Sql): Promise<string[]> {
   return (await sql.one<{ value: string[] }>(`select value from public.app_settings where key = 'municipalities'`))?.value ?? [];
+}
+
+// {"<municipality>": ["<parish>", …]}: empty until the official list arrives (then the parish is free text).
+export async function parishes(sql: Sql): Promise<ParishMap> {
+  const v = (await sql.one<{ value: unknown }>(`select value from public.app_settings where key = 'parishes'`))?.value;
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return {};
+  return Object.fromEntries(
+    Object.entries(v as Record<string, unknown>).filter((e): e is [string, string[]] => Array.isArray(e[1]) && e[1].every((x) => typeof x === 'string')),
+  );
 }
 
 export async function peopleWithRole(sql: Sql, role: string) {
