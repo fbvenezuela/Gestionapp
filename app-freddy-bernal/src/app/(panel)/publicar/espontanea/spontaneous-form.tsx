@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DateTime } from 'luxon';
 import { registerSpontaneous } from '@/lib/actions/publications';
@@ -9,6 +9,8 @@ import { useDraft } from '@/lib/hooks/use-draft';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { Field, Input, Select } from '@/components/ui/field';
+import { Uploader } from '@/components/media/uploader';
+import { MediaThumb } from '@/components/media/media-thumb';
 import { NETWORK_LABEL } from '@/lib/data/labels';
 import { TZ } from '@/lib/time';
 
@@ -48,6 +50,9 @@ export function SpontaneousForm() {
   const { run, pending } = useAction();
   const today = DateTime.now().setZone(TZ).toISODate()!;
   const { value: f, setValue: setF, restored, clear } = useDraft('spontaneous', { network: 'instagram', title: '', url: '', date: today, time: '' });
+  // The screenshot of the post (optional): uploaded now, saved with the post, and its picture in Resultados.
+  // Kept out of the draft: a file id from another day is not worth restoring.
+  const [evidence, setEvidence] = useState<string | null>(null);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value });
   // A draft from another day (or with the day left empty) and nothing else typed starts again on today.
   useEffect(() => {
@@ -77,6 +82,25 @@ export function SpontaneousForm() {
         <Field label="Hora en que salió (Táchira)" htmlFor="sp-time" hint={date === today ? 'Vacía = ahora.' : 'Obligatoria si no salió hoy.'} error={timeError}>
           <Input id="sp-time" type="time" value={f.time} required={date !== today} onChange={set('time')} />
         </Field>
+        <div className="sm:col-span-2">
+          {evidence ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <MediaThumb ids={[evidence]} mime="image/jpeg" className="h-20 w-16" />
+              <p className="text-sm text-ok">Captura lista: sale como miniatura en Resultados.</p>
+              <Button variant="ghost" onClick={() => setEvidence(null)}>Cambiar la captura</Button>
+            </div>
+          ) : (
+            <Uploader
+              kind="evidence"
+              accept="image/*"
+              multiple={false}
+              compact
+              label="Subir una captura (opcional)"
+              hint="Una foto de la pantalla con la publicación: sale como miniatura en Resultados."
+              onUploaded={(a) => setEvidence(a.id)}
+            />
+          )}
+        </div>
         <p className="text-sm text-text-2 sm:col-span-2">No pasa por aprobación porque ya salió. Desde aquí no se publica nada.</p>
         <div className="sm:col-span-2">
           <Button
@@ -88,6 +112,7 @@ export function SpontaneousForm() {
                   title: f.title,
                   url: f.url,
                   publishedAt: at ? at.toUTC().toISO() : null,
+                  evidenceId: evidence,
                 }),
                 { success: 'Registrada.', refresh: false, onOk: (r) => { if (r.ok) { clear(); router.push(`/publicar/${r.data!.id}`); } } },
               )

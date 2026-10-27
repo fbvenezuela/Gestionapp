@@ -8,7 +8,8 @@ import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
 import { NETWORK_LABEL, PUB_STATUS } from '@/lib/data/labels';
 import { fmtDateTime } from '@/lib/time';
-import { Package, PublishedForm, FailForm, MetricsForm, type PackageFile } from './publication-client';
+import { MediaThumb } from '@/components/media/media-thumb';
+import { Package, PublishedForm, FailForm, MetricsForm, AttachEvidence, type PackageFile } from './publication-client';
 
 export const metadata = { title: 'Publicación' };
 
@@ -84,7 +85,17 @@ export default async function PublicationPage({ params }: { params: Promise<{ id
               <CardHeader title="Evidencia" />
               <CardBody className="flex flex-col gap-2">
                 {p.url ? <a href={p.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold text-accent-ink">Abrir la publicación <ExternalLink className="h-4 w-4" aria-hidden /></a> : null}
-                {p.evidence_asset_id ? <a href={`/api/media/${p.evidence_asset_id}?ver=1`} target="_blank" rel="noreferrer" className="text-sm font-semibold">Ver captura</a> : <p className="text-sm text-text-2">Sin captura.</p>}
+                {p.evidence_asset_id ? (
+                  <div className="flex items-center gap-3">
+                    <MediaThumb ids={[p.evidence_asset_id]} mime="image/jpeg" className="h-20 w-16" />
+                    <a href={`/api/media/${p.evidence_asset_id}?ver=1`} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-sm font-semibold">Ver captura</a>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-text-2">Sin captura.</p>
+                    <AttachEvidence id={p.id} />
+                  </>
+                )}
               </CardBody>
             </Card>
           )}

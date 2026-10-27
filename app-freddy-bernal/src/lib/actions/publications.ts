@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { act, UserError } from './run';
 import { loadPublishContext, validateFor } from '../data/publish';
+import type { Sql } from '../db';
 
 const uuid = z.string().uuid();
 const NETWORKS = ['instagram', 'facebook', 'tiktok', 'threads', 'x', 'youtube'] as const;
@@ -47,6 +48,7 @@ export async function markPublished(raw: unknown) {
     z.object({ id: uuid, url: postUrl, evidenceId: uuid.nullable().default(null), publishedAt: z.string().datetime({ offset: true }).nullable().default(null) }),
     raw,
     async (sql, i) => {
+      if (i.evidenceId) await checkEvidence(sql, i.evidenceId);
       const r = await sql.one<{ piece_id: string; event_id: string | null }>(
         `update public.publications p set status = 'published', url = $2, evidence_asset_id = $3, published_at = coalesce($4::timestamptz, now()), failure_reason = null
           where id = $1 returning piece_id, (select event_id from public.pieces x where x.id = p.piece_id)`,
@@ -73,6 +75,7 @@ export async function reschedule(raw: unknown) {
 
 // The boss published something himself (a spontaneous video, a story). The team records
 // it afterwards with its link so it counts in results. Nothing is sent from here.
+// Optional: a screenshot of the post (kind 'evidence'), which becomes its picture in Resultados.
 export async function registerSpontaneous(raw: unknown) {
   return act(
     z.object({
@@ -80,17 +83,47 @@ export async function registerSpontaneous(raw: unknown) {
       title: z.string().trim().min(3, 'Escribe de qué se trató.').max(140),
       url: postUrl,
       publishedAt: z.string().datetime({ offset: true }).nullable().default(null),
+      evidenceId: uuid.nullable().default(null),
     }),
     raw,
     async (sql, i) => {
       if (i.publishedAt && new Date(i.publishedAt).getTime() > Date.now() + 5 * 60_000) throw new UserError('La fecha no puede ser futura: se registra lo que ya salió.');
+      if (i.evidenceId) await checkEvidence(sql, i.evidenceId);
       const r = await sql.one<{ id: string }>(
-        `insert into public.publications (origin, title, network, format, status, mode, url, published_at)
-         values ('boss_spontaneous', $1, $2, 'post', 'published', 'manual', $3, coalesce($4::timestamptz, now())) returning id`,
-        [i.title, i.network, i.url, i.publishedAt],
+        `insert into public.publications (origin, title, network, format, status, mode, url, published_at, evidence_asset_id)
+         values ('boss_spontaneous', $1, $2, 'post', 'published', 'manual', $3, coalesce($4::timestamptz, now()), $5) returning id`,
+        [i.title, i.network, i.url, i.publishedAt, i.evidenceId],
       );
       return { id: r!.id };
     },
     { revalidate: ['/publicar', '/resultados', '/jefe'] },
   );
+}
+
+// «Agregar captura» on a published post that has none (an old one, or the boss's own post registered without it).
+// Only once: a screenshot already there is never swapped (it is the picture everyone sees in Resultados).
+export async function attachEvidence(raw: unknown) {
+  return act(z.object({ id: uuid, evidenceId: uuid }), raw, async (sql, i) => {
+    await checkEvidence(sql, i.evidenceId);
+    const r = await sql.one<{ id: string }>(
+      `update public.publications set evidence_asset_id = $2
+        where id = $1 and status = 'published' and deleted_at is null and evidence_asset_id is null returning id`,
+      [i.id, i.evidenceId],
+    );
+    if (!r) throw new UserError('Esta publicación ya tiene su captura, o todavía no está publicada.');
+  }, { revalidate: ['/publicar', '/resultados', '/jefe'] });
+}
+
+// A screenshot is a finished picture uploaded as 'evidence', with no event or ficha, that the person can read
+// (RLS: the content team) and that no other publication uses yet.
+async function checkEvidence(sql: Sql, id: string) {
+  const ok = await sql.one<{ used: boolean }>(
+    `select exists (select 1 from public.publications x where x.evidence_asset_id = m.id) as used
+       from public.media_assets m
+      where m.id = $1 and m.kind = 'evidence' and m.mime like 'image/%' and m.status = 'ready' and m.deleted_at is null
+        and m.event_id is null and m.obra_ficha_id is null and m.community_report_id is null`,
+    [id],
+  );
+  if (!ok) throw new UserError('No se encontró la captura: súbela otra vez.');
+  if (ok.used) throw new UserError('Esa captura ya es de otra publicación.');
 }

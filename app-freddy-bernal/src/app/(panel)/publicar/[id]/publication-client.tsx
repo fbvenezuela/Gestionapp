@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Check, Copy, Download } from 'lucide-react';
 import { toast } from 'sonner';
-import { markFailed, markPublished } from '@/lib/actions/publications';
+import { attachEvidence, markFailed, markPublished } from '@/lib/actions/publications';
 import { addMetrics } from '@/lib/actions/results';
 import { useAction } from '@/lib/hooks/use-action';
 import { Button } from '@/components/ui/button';
@@ -72,6 +72,25 @@ export function PublishedForm({ id }: { id: string }) {
         </Button>
       </CardBody>
     </Card>
+  );
+}
+
+// «Agregar captura»: a published post without a screenshot gets one, once (it becomes its picture in Resultados and
+// is never swapped afterwards: attachEvidence).
+export function AttachEvidence({ id }: { id: string }) {
+  const { run, pending } = useAction();
+  return (
+    <div aria-busy={pending}>
+      <Uploader
+        kind="evidence"
+        accept="image/*"
+        multiple={false}
+        compact
+        label="Agregar captura"
+        hint="Una foto de la pantalla con la publicación: sale como miniatura en Resultados."
+        onUploaded={(a) => void run(() => attachEvidence({ id, evidenceId: a.id }), { success: 'Captura guardada.' })}
+      />
+    </div>
   );
 }
 
