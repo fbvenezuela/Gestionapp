@@ -33,11 +33,15 @@ async function createDemoBackend(): Promise<Backend> {
   const { createMemoryDb } = await import('./pglite');
   const { seedClient } = await import('./seed-client');
   const { seedDemo } = await import('./seed-demo');
+  const { withStableIds } = await import('./stable-ids');
   const { backend } = await createMemoryDb();
-  await asSystem(backend, async (sql) => {
-    await seedClient(sql);
-    await seedDemo(sql, env.appTz);
-  });
+  // Same ids on every server, so a link made by one opens on another (./stable-ids.ts).
+  await asSystem(backend, (sql) =>
+    withStableIds(sql, async () => {
+      await seedClient(sql);
+      await seedDemo(sql, env.appTz);
+    }),
+  );
   return backend;
 }
 

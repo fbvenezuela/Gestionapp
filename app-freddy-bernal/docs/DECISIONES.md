@@ -12,6 +12,10 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 ## D-02. Modo demostración en memoria
 - **Qué:** sin `DATABASE_URL`, la app arranca con datos inventados en una base en memoria. En Vercel, cada servidor
   tiene su copia y se reinicia sola: lo que se escribe puede perderse. Los archivos subidos van al disco temporal.
+- **27/10 («la ficha completa del evento da error»):** la lista y la ficha podían salir de servidores distintos, y cada
+  copia tenía otros ids, así que la ficha decía «no encontrado». Ahora la siembra da los mismos ids en todos los
+  servidores (`src/lib/db/stable-ids.ts`) y «no encontrado» sale en español. Lo que alguien crea en la demo sigue
+  viviendo solo en el servidor donde lo creó: para que Hillary pruebe creando cosas hace falta la base real.
 - **Por qué:** para probar el viernes sin esperar las cuentas.
 - **Cómo se cambia:** poner `DATABASE_URL` (Supabase) en Vercel.
 

@@ -163,10 +163,12 @@ export async function seedDemo(sql: Sql, tz = 'America/Caracas'): Promise<Record
 
   // Material (demo rows, no real files behind them). An explicit null is kept (an image has no
   // duration, fps or codecs); only a missing key takes the video default.
+  // Paths and links are numbered, not random: every demo server must seed the same rows.
+  let mediaN = 0;
   const media = async (eventId: string | null, kind: string, label: string, by: string, extra: Partial<Record<string, unknown>> = {}) => {
     const pick = (key: string, fallback: unknown) => (key in extra ? extra[key] : fallback);
     const mime = pick('mime', 'video/mp4');
-    const path = `${eventId ?? kind}/${crypto.randomUUID()}${mime === 'image/jpeg' ? '.jpg' : '.mp4'}`;
+    const path = `${eventId ?? kind}/demo-${++mediaN}${mime === 'image/jpeg' ? '.jpg' : '.mp4'}`;
     const r = await sql.one<{ id: string }>(
       `insert into public.media_assets (event_id, kind, storage_path, label, mime, size_bytes, duration_s, width, height, fps, video_codec, audio_codec, status, uploaded_by)
        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'ready', $13) returning id`,
@@ -264,7 +266,7 @@ export async function seedDemo(sql: Sql, tz = 'America/Caracas'): Promise<Record
       `insert into public.publications (piece_id, network, format, copy_body, collaborators, scheduled_at, published_at, url, status, mode, republish_of, created_by)
        values ($1, $2, $3, $4, $5, $6, $6, $7, 'published', 'manual', $8, $9) returning id`,
       [p1, network, format, copiesP1[network === 'x' ? 2 : 0][1], ['@cuenta_aliada_demo'], when,
-        `https://example.com/demo/${network}/${crypto.randomUUID().slice(0, 8)}`, network === 'instagram' && firstIg ? firstIg : null, ids.social],
+        `https://example.com/demo/${network}/${format}-${day}-${hour}`, network === 'instagram' && firstIg ? firstIg : null, ids.social],
     );
     if (network === 'instagram' && !firstIg) firstIg = r!.id;
     await sql.query(
@@ -278,7 +280,7 @@ export async function seedDemo(sql: Sql, tz = 'America/Caracas'): Promise<Record
   const sp = await sql.one<{ id: string }>(
     `insert into public.publications (origin, title, network, format, status, mode, url, published_at, created_by)
      values ('boss_spontaneous', 'Video del jefe recorriendo una vía (demo)', 'tiktok', 'post', 'published', 'manual', $1, $2, $3) returning id`,
-    [`https://example.com/demo/tiktok/${crypto.randomUUID().slice(0, 8)}`, at(-1, 22, 40), ids.social],
+    ['https://example.com/demo/tiktok/video-del-jefe', at(-1, 22, 40), ids.social],
   );
   await sql.query(
     `insert into public.publication_metrics (publication_id, views, likes, comments, shares, saves, source, created_by) values ($1, 12400, 980, 85, 140, 60, 'manual', $2)`,
