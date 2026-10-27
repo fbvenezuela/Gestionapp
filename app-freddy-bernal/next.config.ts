@@ -16,8 +16,10 @@ const nextConfig: NextConfig = {
     useOffline: true,
   },
   serverExternalPackages: ['@electric-sql/pglite'],
+  // Read from disk when the demo database seeds itself (src/lib/db/migrations.ts, src/lib/db/seed-parts/thumbs.ts):
+  // Vercel ships only what is listed here.
   outputFileTracingIncludes: {
-    '/**': ['./supabase/migrations/*.sql', './supabase/shim/*.sql'],
+    '/**': ['./supabase/migrations/*.sql', './supabase/shim/*.sql', './src/lib/db/demo-assets/*.jpg'],
   },
   turbopack: {
     rules: {

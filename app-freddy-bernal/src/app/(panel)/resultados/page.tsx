@@ -7,12 +7,14 @@ import { Chip } from '@/components/ui/chip';
 import { NETWORK_LABEL } from '@/lib/data/labels';
 import { bestTimes, MIN_POINTS } from '@/lib/domain/best-times';
 import { dt, fmtDateTime } from '@/lib/time';
+import { PUB_THUMB_COLUMNS, PUB_THUMB_JOINS, pubThumbOf, type PubThumbCols } from '@/lib/data/pub-thumbs';
 import { CsvImport } from './csv-import';
 import { PubTitle } from './pub-title';
+import { PubThumb } from './pub-thumb';
 
 export const metadata = { title: 'Resultados' };
 
-type Row = { id: string; title: string; network: string; format: string; published_at: string; url: string | null; views: number | null; reach: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null; republish_of: string | null };
+type Row = PubThumbCols & { id: string; title: string; network: string; format: string; published_at: string; url: string | null; views: number | null; reach: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null; republish_of: string | null };
 
 const nf = new Intl.NumberFormat('es-VE');
 
@@ -21,11 +23,12 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
   const { dias } = await searchParams;
   const days = [7, 30, 90].includes(Number(dias)) ? Number(dias) : 30;
   const canLoad = s.roles.some((r) => r === 'admin' || r === 'social' || r === 'boss');
+  // Each publication with its picture's candidates (cover, final file, screenshot), in the same query.
   const rows = await db(s, (sql) =>
     sql.query<Row>(
-      `select x.id, coalesce(p.title, x.title || ' (la publicó el jefe)') as title, x.network, x.format, x.published_at, x.url, x.republish_of,
-              m.views, m.reach, m.likes, m.comments, m.shares, m.saves
-         from public.publications x left join public.pieces p on p.id = x.piece_id
+      `select x.id, coalesce(p.title, x.title || ' (la publicó el jefe)') as title, x.published_at, x.url, x.republish_of,
+              m.views, m.reach, m.likes, m.comments, m.shares, m.saves, ${PUB_THUMB_COLUMNS}
+         from public.publications x left join public.pieces p on p.id = x.piece_id ${PUB_THUMB_JOINS}
          left join lateral (select * from public.publication_metrics pm where pm.publication_id = x.id order by pm.captured_at desc limit 1) m on true
         where x.status = 'published' and x.deleted_at is null and x.published_at > now() - make_interval(days => $1)
         order by x.published_at desc`,
@@ -96,10 +99,13 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
             {rows.map((r) => (
               <li key={r.id}>
                 <Card className="flex flex-col gap-2 p-4">
-                  <div className="min-w-0">
-                    <PubTitle r={r} canLoad={canLoad} card />
-                    {r.republish_of ? <span className="text-xs text-text-2">(republicación)</span> : null}
-                    <p className="text-sm text-text-2">{NETWORK_LABEL[r.network]} · {r.format} · {fmtDateTime(r.published_at)}</p>
+                  <div className="flex items-start gap-3">
+                    <PubThumb t={pubThumbOf(r)} />
+                    <div className="min-w-0 flex-1">
+                      <PubTitle r={r} canLoad={canLoad} card />
+                      {r.republish_of ? <span className="text-xs text-text-2">(republicación)</span> : null}
+                      <p className="text-sm text-text-2">{NETWORK_LABEL[r.network]} · {r.format} · {fmtDateTime(r.published_at)}</p>
+                    </div>
                   </div>
                   {r.views != null ? (
                     <>
@@ -128,9 +134,14 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
                   {rows.map((r) => (
                     <tr key={r.id} className="border-t border-border">
                       <td className="px-3 py-2">
-                        <PubTitle r={r} canLoad={canLoad} />
-                        {r.republish_of ? <span className="ml-1 text-xs text-text-2">(republicación)</span> : null}
-                        {canLoad && r.url ? <a href={r.url} target="_blank" rel="noreferrer" className="ml-2 text-xs text-accent-ink">link</a> : null}
+                        <div className="flex items-center gap-3">
+                          <PubThumb t={pubThumbOf(r)} className="h-15 w-12" />
+                          <div className="min-w-0">
+                            <PubTitle r={r} canLoad={canLoad} />
+                            {r.republish_of ? <span className="ml-1 text-xs text-text-2">(republicación)</span> : null}
+                            {canLoad && r.url ? <a href={r.url} target="_blank" rel="noreferrer" className="ml-2 text-xs text-accent-ink">link</a> : null}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-3 py-2">{NETWORK_LABEL[r.network]} · {r.format}</td>
                       <td className="px-3 py-2 whitespace-nowrap">{fmtDateTime(r.published_at)}</td>

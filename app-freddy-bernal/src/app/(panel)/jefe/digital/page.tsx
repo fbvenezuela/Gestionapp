@@ -5,6 +5,8 @@ import { Card, CardHeader } from '@/components/ui/card';
 import { LinkButton } from '@/components/ui/button';
 import { NETWORK_LABEL } from '@/lib/data/labels';
 import { fmtDateTime } from '@/lib/time';
+import { PUB_THUMB_COLUMNS, PUB_THUMB_JOINS, pubThumbOf, type PubThumbCols } from '@/lib/data/pub-thumbs';
+import { PubThumb } from '@/app/(panel)/resultados/pub-thumb';
 
 export const metadata = { title: 'Digital' };
 
@@ -13,10 +15,11 @@ const nf = new Intl.NumberFormat('es-VE');
 export default async function BossDigital() {
   const s = await requireRole('boss', 'admin');
   const data = await db(s, async (sql) => ({
-    published: await sql.query<{ id: string; title: string; network: string; published_at: string; url: string | null; views: number | null }>(
-      `select x.id, coalesce(p.title, x.title) as title, x.network, x.published_at, x.url,
+    // With its picture (the same candidates and order as Resultados).
+    published: await sql.query<PubThumbCols & { id: string; title: string; published_at: string; url: string | null; views: number | null }>(
+      `select x.id, coalesce(p.title, x.title) as title, x.published_at, x.url, ${PUB_THUMB_COLUMNS},
               (select m.views from public.publication_metrics m where m.publication_id = x.id order by m.captured_at desc limit 1) as views
-         from public.publications x left join public.pieces p on p.id = x.piece_id
+         from public.publications x left join public.pieces p on p.id = x.piece_id ${PUB_THUMB_JOINS}
         where x.status = 'published' and x.deleted_at is null and x.published_at > now() - interval '7 days' order by x.published_at desc limit 20`,
     ),
     coming: await sql.query<{ id: string; title: string; network: string; scheduled_at: string }>(
@@ -41,6 +44,7 @@ export default async function BossDigital() {
             <ul className="divide-y divide-border">
               {data.published.map((p) => (
                 <li key={p.id} className="flex items-center gap-3 px-4 py-4 text-lg">
+                  <PubThumb t={pubThumbOf(p)} />
                   <span className="min-w-0 flex-1">
                     <span className="block font-semibold">{p.title}</span>
                     <span className="block text-base text-text-2">{NETWORK_LABEL[p.network]} · {fmtDateTime(p.published_at)}{p.views != null ? ` · ${nf.format(p.views)} vistas` : ''}</span>
