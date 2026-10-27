@@ -340,3 +340,22 @@ Lo que se ve en el día a día y que la plataforma tiene que facilitar:
   pedidos por privado.)
 - 22/10 19:53, Juan: «Apenas llegue a Miami me siento y agrego todo lo que me escribieron, mañana probamos y así a
   inicios de la semana que viene está listo para empezar a usarse».
+
+### 25–27/10/2026 — grupo «Socios multimillonarios» (segunda vuelta, después de probar la versión del 24/10)
+
+Tomado del encargo que Juan pasó el 27/10 (`docs/PROMPT-CAMBIOS-HILLARY-2026-10-27.md`). Las frases entre comillas
+son de Hillary; los mensajes completos no estaban en el repositorio.
+
+- 27/10, el error: «La ficha completa del evento, cuando la abro, da error».
+- Los roles: «jefe, director de despacho, director de política, director del IVT, grabación y redes. Más nada». Un
+  solo perfil para grabación.
+- El jefe tiene todo, «hasta lo de redes». Su agenda: «Debemos crearle todos los botones para sumar». «El director de
+  despacho o el jefe pueden agregar cosas en conjunto».
+- La ficha de obra la carga el director del IVT, sin fecha ni hora; al jefe y a despacho les llega «Por ponerle fecha».
+  «Generame un diálogo FAB con esto».
+- Las fichas comunitarias las carga el director de política, «una ficha por actividad o situación». «Todo filtrado por
+  municipio y que quede un registro. A eso hay que meterle lógica».
+- Redes: «la parte de redes no está igual a lo de Mila, y es hiper necesario que esté igual, porque ya esa es la
+  versión final; solo falta agregarle lo de los tweets». Resultados con miniaturas.
+- La cara: «La interfaz hay que hacerla más bonita, más glass, más UI design» (27/10; el 25/10: «glassmorphism»).
+- 25/10: no hacer guías nuevas hasta que ella pruebe cada rol.
