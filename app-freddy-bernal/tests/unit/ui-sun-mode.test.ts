@@ -3,34 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { SUN_ATTR, SUN_KEY, SUN_SCRIPT, SUN_VALUE, applySun, readSun, watchSun, writeSun } from '@/components/shell/sun-mode-core';
 import type { KV } from '@/components/ui/device-store';
-
-const css = fs.readFileSync(path.join(process.cwd(), 'src/app/tokens.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-
-// Declarations of the first rule whose selector is exactly `selector`.
-function block(selector: string): Record<string, string> {
-  const re = new RegExp(`${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`);
-  const m = css.match(re);
-  if (!m) throw new Error(`no block for ${selector}`);
-  return Object.fromEntries(
-    m[1].split(';').map((d) => d.trim()).filter(Boolean).map((d) => {
-      const i = d.indexOf(':');
-      return [d.slice(0, i).trim(), d.slice(i + 1).trim()];
-    }),
-  );
-}
-
-const lin = (c: number) => {
-  const v = c / 255;
-  return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
-};
-const lum = (hex: string) => {
-  const n = parseInt(hex.slice(1), 16);
-  return 0.2126 * lin(n >> 16) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
-};
-const ratio = (a: string, b: string) => {
-  const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
-  return (x + 0.05) / (y + 0.05);
-};
+import { block, ratio, tokensCss as css } from './fixtures/tokens';
 
 const BASE = block(':root');
 const SUN = {
@@ -45,6 +18,16 @@ describe('modo sol: tokens', () => {
     expect(names.length).toBeGreaterThan(20);
     for (const b of Object.values(SUN)) for (const n of names) expect(b[n], n).toMatch(/^#[0-9a-f]{6}$/i);
     expect(SUN.darkSystem).toEqual(SUN.darkForced);
+  });
+
+  it('sin vidrio: superficies sólidas, sin degradado y sin sombras (docs/DISENO.md «Cara glass»)', () => {
+    for (const [name, b] of Object.entries(SUN)) {
+      for (const k of ['--c-glass', '--c-glass-bar', '--c-glass-sheet']) expect(b[k], `${name} ${k}`).toBe(b['--c-surface']);
+      for (const k of ['--c-bg-tint-1', '--c-bg-tint-2']) expect(b[k], `${name} ${k}`).toBe(b['--c-bg']);
+      expect(b['--c-glass-border'], name).toBe(b['--c-border']);
+      expect(b['--glass-shadow'], name).toBe('none');
+      expect(b['--glass-shadow-pop'], name).toBe('none');
+    }
   });
 
   it('agranda un poco la letra', () => {

@@ -1,6 +1,10 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
+/* The Stitch mock-ups (diseno/) are reference HTML, not app code: without this line Tailwind would build
+   CSS for their classes and every phone would download it. */
+@source not "../../diseno";
+
 /* Tailwind theme: every color the app uses comes from tokens.css. Components never
    write a color by hand (tests/unit/no-hardcoded-colors.test.ts checks this). */
 @theme inline {
@@ -32,15 +36,18 @@
   --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', 'Courier New', monospace;
 
-  --radius-chip: 6px;
-  --radius-control: 8px;
-  --radius-card: 12px;
+  /* Rounder corners for the glass look (docs/DISENO.md): chips, buttons and fields, cards and windows. */
+  --radius-chip: 8px;
+  --radius-control: 12px;
+  --radius-card: 20px;
 }
 
 html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Solid page color. The brand gradient is drawn on body::before (below), never as a background image of
+   body or html: axe cannot measure contrast over a gradient and would silently stop checking it. */
 body {
   background: var(--c-bg);
   color: var(--c-text);
@@ -83,5 +90,145 @@ textarea {
 @media (min-width: 1024px) {
   .safe-bottom {
     padding-bottom: 2rem;
+  }
+}
+
+/* ───────────────────────── Glass (docs/DISENO.md «Cara glass») ─────────────────────────
+   Four surfaces, used by the base components only (Card, Sheet, dialogs, menus, bars):
+     .glass-card   cards: translucent, light edge and soft shadow, NEVER backdrop-filter (only the fixed
+                   gradient is behind them, so a blur would look the same and cost a GPU pass per card,
+                   also behind the long tables of Resultados and Registro);
+     .glass-bar    top bar and phone bar: real blur, drawn on ::before so the menus inside the bar can
+                   still blur the page (an element with backdrop-filter would hide the page from them).
+                   The bar needs a z-index (all of ours have one) so ::before stays behind its content;
+     .glass-pop    the «Crear», «Mi cuenta» and «Más» menus and the assistant button: real blur;
+     .glass-sheet  side panels and dialogs: almost opaque; the dimmed overlay behind them blurs a little
+                   (.glass-overlay, dialog.glass-sheet::backdrop).
+   Solid by default. The translucent version needs backdrop-filter support (old phones stay solid) and
+   is skipped with «Modo sol» (data-contrast='high') and on low-memory or data-saver phones
+   (data-glass='off', src/components/shell/glass-core.ts). «Reducir transparencia», «Más contraste» and
+   forced colors turn it solid again at the end. In @layer components, so a utility passed to <Card>
+   (bg-danger-soft, border-info…) still wins; :where() keeps the gated rules at the same specificity as
+   the plain class, so the overrides at the end win by order. Contrast: tests/unit/ui-glass.test.ts. */
+@layer components {
+  .glass-card {
+    background-color: var(--c-surface);
+    border: 1px solid var(--c-border);
+    box-shadow: var(--glass-shadow);
+  }
+  .glass-bar {
+    position: relative;
+    background-color: var(--c-surface);
+  }
+  .glass-pop,
+  .glass-sheet {
+    background-color: var(--c-surface);
+    border: 1px solid var(--c-border);
+    box-shadow: var(--glass-shadow-pop);
+  }
+
+  @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    :where(:root:not([data-glass='off']):not([data-contrast='high'])) body::before {
+      content: '';
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: 100vh;
+      height: 100lvh; /* the largest viewport: no repaint when the phone's toolbar shows or hides */
+      z-index: -1;
+      pointer-events: none;
+      background-color: var(--c-bg);
+      background-image:
+        radial-gradient(90% 60% at 0% 0%, var(--c-bg-tint-1), transparent 70%),
+        radial-gradient(90% 60% at 100% 100%, var(--c-bg-tint-2), transparent 70%),
+        radial-gradient(70% 40% at 50% 0%, var(--c-surface), transparent 70%);
+    }
+    :where(:root:not([data-glass='off']):not([data-contrast='high'])) .glass-card {
+      background-color: var(--c-glass);
+      border-color: var(--c-glass-border);
+      box-shadow: var(--glass-highlight), var(--glass-shadow);
+    }
+    :where(:root:not([data-glass='off']):not([data-contrast='high'])) .glass-bar {
+      background-color: var(--c-glass-bar);
+    }
+    /* No background on purpose: axe then ignores it and keeps measuring the bar's text. */
+    :where(:root:not([data-glass='off']):not([data-contrast='high'])) .glass-bar::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      -webkit-backdrop-filter: blur(12px) saturate(140%);
+      backdrop-filter: blur(12px) saturate(140%);
+    }
+    :where(:root:not([data-glass='off']):not([data-contrast='high'])) .glass-pop {
+      background-color: var(--c-glass-bar);
+      border-color: var(--c-glass-border);
+      box-shadow: var(--glass-highlight), var(--glass-shadow-pop);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      backdrop-filter: blur(16px) saturate(140%);
+    }
+    :where(:root:not([data-glass='off']):not([data-contrast='high'])) .glass-sheet {
+      background-color: var(--c-glass-sheet);
+      border-color: var(--c-glass-border);
+      box-shadow: var(--glass-highlight), var(--glass-shadow-pop);
+    }
+    :where(:root:not([data-glass='off']):not([data-contrast='high'])) .glass-overlay,
+    :where(:root:not([data-glass='off']):not([data-contrast='high'])) dialog.glass-sheet::backdrop {
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+    }
+  }
+
+  /* «Reducir transparencia», «Más contraste» and forced colors: solid. Same specificity as the rules
+     above and later in the file, so these win. A browser that does not know one of these media
+     features just never matches it. */
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+    body::before,
+    .glass-bar::before {
+      content: none;
+    }
+    .glass-card,
+    .glass-pop,
+    .glass-sheet {
+      background-color: var(--c-surface);
+      border-color: var(--c-border);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .glass-bar {
+      background-color: var(--c-surface);
+    }
+    .glass-overlay,
+    dialog.glass-sheet::backdrop {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+}
+
+/* Line icons (lucide): a bit thinner for the lighter look, thicker in «Modo sol» to read in the sun. */
+@layer base {
+  .lucide {
+    stroke-width: 1.75;
+  }
+  :root[data-contrast='high'] .lucide {
+    stroke-width: 2.25;
+  }
+}
+
+/* «Menos movimiento» (prefers-reduced-motion): no animations or transitions anywhere. The spinners
+   keep turning, slower, because they say «wait, it is working». */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-spin {
+    animation-duration: 1.5s !important;
+    animation-iteration-count: infinite !important;
   }
 }

@@ -4,6 +4,7 @@ import { Toaster } from 'sonner';
 import { brand } from '@/lib/client-config';
 import { OfflineBanner } from '@/components/shell/offline-banner';
 import { SwRegister } from '@/components/shell/sw-register';
+import { GlassScript } from '@/components/shell/glass-script';
 import './globals.css';
 
 const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-montserrat', display: 'swap' });
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es-VE" className={montserrat.variable} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
+        <GlassScript />
         <OfflineBanner />
         {children}
         <Toaster position="top-center" richColors closeButton />
