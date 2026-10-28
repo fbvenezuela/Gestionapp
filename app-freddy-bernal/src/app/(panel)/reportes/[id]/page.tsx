@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
-import { CalendarClock, FileImage, Pencil } from 'lucide-react';
+import { CalendarClock, Pencil } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
-import { getReport, parishesInUse } from '@/lib/data/fichas';
+import { fichaMedia, getReport, parishesInUse } from '@/lib/data/fichas';
 import { municipalities, parishes, peopleWithRole } from '@/lib/data/common';
 import { canManageAgenda } from '@/lib/roles';
 import { eventFromReport } from '@/lib/domain/ficha-event';
@@ -12,7 +12,7 @@ import { REPORT_FIELDS, REPORT_GROUPS, groupProgress, toFormValues, type Marks }
 import { daysLate, isOverdue } from '@/lib/domain/report-status';
 import { municipalitySlug } from '@/lib/domain/territory';
 import { PageHeader } from '@/components/ui/page';
-import { Card, CardBody, CardHeader } from '@/components/ui/card';
+import { Card, CardBody } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
 import { FichaGroup } from '@/components/fichas/ficha-group';
@@ -21,6 +21,8 @@ import { FichaForm } from '@/components/fichas/ficha-form';
 import { HistoryTimeline } from '@/components/fichas/history-timeline';
 import { NoteForm } from '@/components/fichas/note-form';
 import { ReportStatusControl } from '@/components/fichas/status-control';
+import { PhotoGallery } from '@/components/fichas/photo-gallery';
+import { REPORT_KINDS } from '@/lib/domain/media-mime';
 import { fmtDateTime, today } from '@/lib/time';
 
 export const metadata = { title: 'Ficha comunitaria' };
@@ -45,6 +47,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
       ...r,
       toSchedule,
       cameras: toSchedule ? await peopleWithRole(sql, 'camera') : [],
+      media: await fichaMedia(sql, 'report', id),
       municipalities: editing ? await municipalities(sql) : [],
       parishMap: editing ? await parishes(sql) : {},
       used: editing ? await parishesInUse(sql) : {},
@@ -59,6 +62,18 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   const values = { ...report, ...(priv ?? {}) } as Record<string, unknown>;
   const defs = REPORT_FIELDS.filter((d) => canPrivate || !d.private);
   const munHref = `/municipios/${municipalitySlug(report.municipality)}`;
+  // Evidence (§4.2 point 10): photos, videos or documents, before and after. Everyone who opens this page may upload
+  // it (media_insert: admin, boss, despacho, política), while the report is not deleted.
+  const evidence = (
+    <PhotoGallery
+      target={{ reportId: id }}
+      kinds={REPORT_KINDS}
+      media={data.media}
+      canUpload={canEdit}
+      title="Evidencias"
+      subtitle="Fotos, videos o documentos (antes y después)."
+    />
+  );
 
   if (editing && canEdit) {
     return (
@@ -77,6 +92,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
           parishesUsed={data.used}
           canPrivate={canPrivate}
           cancelHref={`/reportes/${id}`}
+          photos={evidence}
         />
       </>
     );
@@ -169,15 +185,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
         </div>
         <div className="flex min-w-0 flex-col gap-4">
           {canEdit ? <ReportStatusControl id={id} status={report.status} /> : null}
-          <Card>
-            <CardHeader title="Evidencias" subtitle="Fotos, videos o documentos (antes y después)." />
-            <CardBody className="flex items-start gap-3">
-              <FileImage className="mt-0.5 h-5 w-5 shrink-0 text-text-2" aria-hidden />
-              <p className="text-[15px] text-text-2">
-                La subida de archivos a la ficha llega en la próxima entrega. Mientras tanto, pega el enlace al material en «Evidencias y observaciones».
-              </p>
-            </CardBody>
-          </Card>
+          {evidence}
           <HistoryTimeline kind="report" rows={data.history}>
             {canEdit ? <NoteForm kind="report" id={id} /> : null}
           </HistoryTimeline>

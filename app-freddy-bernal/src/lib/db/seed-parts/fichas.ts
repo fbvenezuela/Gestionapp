@@ -3,6 +3,7 @@ import { parishesSetting } from '../seed-client';
 import { buildObraDialog, dialogInput } from '../../domain/obra-dialog';
 import type { Sql } from '../core';
 import { asPerson, type SeedCtx } from './context';
+import { DEMO_THUMBS, demoThumbBytes } from './thumbs';
 
 // INVENTED demonstration fichas (cambios del 27/10/2026, §4.1 and §4.2): three obra fichas of the IVT and seven
 // community reports of política. No real people, phones, addresses or cases: places say «(demo)», phones are
@@ -268,5 +269,28 @@ export async function seedFichas(ctx: SeedCtx): Promise<void> {
       return created;
     });
     if (r.linkEvent) await sql.query(`update public.events set community_report_id = $1 where id = $2`, [rep.id, r.linkEvent]);
+  }
+}
+
+// Photos of O-0001 (the bridge of event #2), so the boss and Redes see them in the visit's «Ficha de obra» tab: one
+// of the before and one of the progress, uploaded by the IVT. The pictures are INVENTED and abstract (the demo
+// assets: shapes in the brand's colors, no people, places, faces or text); the files have no bytes behind them, so
+// their small pictures are kept the way a phone keeps one at upload. A part of its own, appended at the end.
+export async function seedFichaPhotos(ctx: SeedCtx): Promise<void> {
+  const { sql, ids } = ctx;
+  const o1 = await sql.one<{ id: string }>(`select id from public.obra_fichas where code = 'O-0001'`);
+  if (!o1) return;
+  const photos = [
+    { kind: 'before', label: 'Antes 1', file: DEMO_THUMBS.frame1 },
+    { kind: 'progress', label: 'Avance 1', file: DEMO_THUMBS.frame2 },
+  ];
+  for (const p of photos) {
+    const bytes = demoThumbBytes(p.file);
+    const m = await sql.one<{ id: string }>(
+      `insert into public.media_assets (obra_ficha_id, kind, storage_path, label, mime, size_bytes, width, height, status, uploaded_by)
+       values ($1, $2, $3, $4, 'image/jpeg', $5, 180, 320, 'ready', $6) returning id`,
+      [o1.id, p.kind, `${o1.id}/demo-${p.kind}-1.jpg`, p.label, bytes.length, ids.ivt],
+    );
+    await sql.query(`insert into public.media_thumbs (media_id, mime, bytes) values ($1, 'image/jpeg', $2) on conflict (media_id) do nothing`, [m!.id, bytes]);
   }
 }

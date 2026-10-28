@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { CalendarClock, ImagePlus, Pencil } from 'lucide-react';
+import { CalendarClock, Pencil } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
-import { dialogBrand, getObraFicha, parishesInUse } from '@/lib/data/fichas';
+import { dialogBrand, fichaMedia, getObraFicha, parishesInUse } from '@/lib/data/fichas';
 import { municipalities, parishes, peopleWithRole } from '@/lib/data/common';
 import { canManageAgenda } from '@/lib/roles';
 import { eventFromObra } from '@/lib/domain/ficha-event';
@@ -11,7 +11,7 @@ import { OBRA_STAGE } from '@/lib/data/ficha-labels';
 import { OBRA_FIELDS, OBRA_GROUPS, daysUntil, groupProgress, toFormValues, type Marks } from '@/lib/domain/ficha-fields';
 import { buildObraDialog, dialogInput } from '@/lib/domain/obra-dialog';
 import { PageHeader } from '@/components/ui/page';
-import { Card, CardBody, CardHeader } from '@/components/ui/card';
+import { Card, CardBody } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
 import { FichaGroup } from '@/components/fichas/ficha-group';
@@ -21,6 +21,8 @@ import { FabDialogEditor } from '@/components/fichas/fab-dialog-editor';
 import { HistoryTimeline } from '@/components/fichas/history-timeline';
 import { NoteForm } from '@/components/fichas/note-form';
 import { ObraArchiveControl } from '@/components/fichas/status-control';
+import { PhotoGallery } from '@/components/fichas/photo-gallery';
+import { OBRA_KINDS } from '@/lib/domain/media-mime';
 import { fmtDateTime, fmtDay, today } from '@/lib/time';
 
 export const metadata = { title: 'Ficha de obra' };
@@ -44,6 +46,7 @@ export default async function ObraPage({ params, searchParams }: { params: Promi
       toSchedule,
       cameras: toSchedule ? await peopleWithRole(sql, 'camera') : [],
       brand: await dialogBrand(sql),
+      media: await fichaMedia(sql, 'obra', id),
       municipalities: editing ? await municipalities(sql) : [],
       parishMap: editing ? await parishes(sql) : {},
       used: editing ? await parishesInUse(sql) : {},
@@ -58,6 +61,18 @@ export default async function ObraPage({ params, searchParams }: { params: Promi
   const marks: Marks = { ...(ficha.marks as Marks), ...((priv?.marks ?? {}) as Marks) };
   const values = { ...ficha, ...(priv ?? {}) } as Record<string, unknown>;
   const defs = OBRA_FIELDS.filter((d) => canPrivate || !d.private);
+  // Photos of the before and the progress, and papers (§4.1). Everyone who opens this page may upload them
+  // (media_insert: admin, boss, despacho, IVT), while the ficha is not deleted.
+  const photos = (
+    <PhotoGallery
+      target={{ obraFichaId: id }}
+      kinds={OBRA_KINDS}
+      media={data.media}
+      canUpload={canEdit}
+      title="Fotos del antes y del avance"
+      subtitle="Varias fotos, y los documentos de la obra."
+    />
+  );
 
   if (editing && canEdit) {
     return (
@@ -76,6 +91,7 @@ export default async function ObraPage({ params, searchParams }: { params: Promi
           parishesUsed={data.used}
           canPrivate={canPrivate}
           cancelHref={`/obras/${id}`}
+          photos={photos}
         />
       </>
     );
@@ -193,13 +209,7 @@ export default async function ObraPage({ params, searchParams }: { params: Promi
         </div>
         <div className="flex min-w-0 flex-col gap-4">
           <FabDialogEditor id={id} saved={ficha.fab_dialog} generatedBy={ficha.fab_generated_by} template={dialog.text} missing={dialog.missing} canEdit={canEdit} />
-          <Card>
-            <CardHeader title="Fotos del antes y del avance" />
-            <CardBody className="flex items-start gap-3">
-              <ImagePlus className="mt-0.5 h-5 w-5 shrink-0 text-text-2" aria-hidden />
-              <p className="text-[15px] text-text-2">Aquí se van a subir varias fotos (antes y avance), con una subida que aguanta mala señal. Llega en la próxima entrega.</p>
-            </CardBody>
-          </Card>
+          {photos}
           <HistoryTimeline kind="obra" rows={data.history}>
             {canEdit ? <NoteForm kind="obra" id={id} /> : null}
           </HistoryTimeline>

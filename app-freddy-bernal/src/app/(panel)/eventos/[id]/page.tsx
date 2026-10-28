@@ -2,7 +2,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Ban, CalendarClock, ClipboardList, MapPin, BookOpenText, Phone, Route } from 'lucide-react';
 import { requireSession, db } from '@/lib/auth/session';
-import { eventHistory, getEvent, type EventFull } from '@/lib/data/events';
+import { eventHistory, getEvent, linkedFicha, type EventFull } from '@/lib/data/events';
+import { fichaTab } from '@/lib/domain/ficha-tab';
+import { EventFichaTab } from '@/components/fichas/event-ficha-tab';
 import { contentCategories, municipalities, peopleWithRole } from '@/lib/data/common';
 import { PageHeader } from '@/components/ui/page';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
@@ -25,12 +27,15 @@ import { scheduleValues, whenOf } from '@/lib/domain/schedule-form';
 
 export const metadata = { title: 'Evento' };
 
-const TABS = [
+type Tab = { key: string; label: string };
+const TABS: Tab[] = [
   { key: 'ficha', label: 'Ficha' },
   { key: 'storyboard', label: 'Storyboard' },
   { key: 'material', label: 'Material' },
   { key: 'piezas', label: 'Piezas' },
-] as const;
+];
+// An event born from a ficha (§4.1, §4.2) gets the ficha's own tab, after «Ficha».
+const FICHA_TAB: Record<'obra' | 'report', Tab> = { obra: { key: 'obra', label: 'Ficha de obra' }, report: { key: 'reporte', label: 'Reporte' } };
 
 export default async function EventPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
   const s = await requireSession();
@@ -54,7 +59,12 @@ export default async function EventPage({ params, searchParams }: { params: Prom
       : [];
     // The shared agenda: the boss and despacho edit it (the database decides: can_manage_agenda()).
     const editors = has('boss', 'dispatch');
+    // The ficha it was born from, as RLS gives it (Redes and Grabación: an obra's main part while the visit is live;
+    // never a report). Its contacts only for the boss, despacho and administración, and only on its tab.
+    const onFichaTab = rawTab === 'obra' || rawTab === 'reporte';
+    const ficha = await linkedFicha(sql, ev, { contacts: onFichaTab && has('admin', 'boss', 'dispatch'), media: onFichaTab });
     return {
+      ficha,
       ev,
       media,
       pieces,
@@ -82,8 +92,12 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   // The camera person assigned to this event, recording it (not the boss or admin with a camera role as well): they
   // leave the storyboard and the note for the editor (§5).
   const recorder = has('camera') && !has('admin', 'boss', 'social') && ev.cameras.some((c) => c.user_id === s.userId);
-  const tab = TABS.find((t) => t.key === rawTab)?.key ?? (has('camera') && !has('admin', 'boss') ? 'material' : 'ficha');
-  const visibleTabs = TABS.filter((t) => t.key !== 'piezas' || has('admin', 'social', 'boss'));
+  const { ficha } = data;
+  const allTabs = ficha ? [TABS[0], FICHA_TAB[ficha.kind], ...TABS.slice(1)] : TABS;
+  const tab = allTabs.find((t) => t.key === rawTab)?.key ?? (has('camera') && !has('admin', 'boss') ? 'material' : 'ficha');
+  const visibleTabs = allTabs.filter((t) => t.key !== 'piezas' || has('admin', 'social', 'boss'));
+  // Contacts in the ficha's tab: the boss, despacho and administración (the database returned them with 2FA).
+  const contacts = has('admin', 'boss', 'dispatch') && !!ficha?.priv;
   const past = ev.schedule ? new Date(ev.schedule.starts_at) < new Date() : false;
   // «Marcar realizado»: the boss, despacho and whoever records it (mark_event_done(); administración reads the agenda).
   const canMarkDone = has('boss', 'dispatch') || (has('camera') && ev.cameras.some((c) => c.user_id === s.userId));
@@ -98,7 +112,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
         title={ev.title}
         subtitle={[ev.place_name, ev.municipality].filter(Boolean).join(' · ')}
         actions={
-          ev.blocks.length || ev.storyboard?.speech ? (
+          ev.blocks.length || ev.storyboard?.speech || ficha?.fab.trim() ? (
             <LinkButton variant="slate" href={`/eventos/${ev.id}/lectura`}>
               <BookOpenText className="h-4 w-4" aria-hidden /> Modo lectura
             </LinkButton>
@@ -230,9 +244,28 @@ export default async function EventPage({ params, searchParams }: { params: Prom
         </div>
       ) : null}
 
+      {(tab === 'obra' || tab === 'reporte') && ficha ? (
+        <EventFichaTab
+          kind={ficha.kind}
+          id={ficha.id}
+          code={ficha.code}
+          tab={fichaTab(ficha.kind, ficha.row, contacts ? ficha.priv : null, { contacts })}
+          media={ficha.media}
+          contacts={contacts}
+        />
+      ) : null}
+
       {tab === 'storyboard' ? (
         <div className="flex flex-col gap-4">
-          <StoryboardEditor eventId={ev.id} canEdit={canBoard} speech={ev.storyboard?.speech ?? ''} blocks={ev.blocks} facts={ev.brief?.key_facts ?? ''} rev={ev.storyboard?.rev ?? null} />
+          <StoryboardEditor
+            eventId={ev.id}
+            canEdit={canBoard}
+            speech={ev.storyboard?.speech ?? ''}
+            blocks={ev.blocks}
+            facts={ev.brief?.key_facts ?? ''}
+            rev={ev.storyboard?.rev ?? null}
+            fab={ficha?.fab ?? ''}
+          />
           {canBoard ? <HistoryCard rows={data.boardHistory} title="Historial del storyboard" /> : null}
         </div>
       ) : null}

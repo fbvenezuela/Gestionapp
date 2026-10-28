@@ -3,9 +3,14 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Minus, Pause, Play, Plus, X } from 'lucide-react';
+import type { BeforeItem } from '@/lib/domain/ficha-tab';
 
-// Simple teleprompter for the boss's iPad: big text, adjustable size and speed.
-export function Teleprompter({ title, parts, backHref }: { title: string; parts: string[]; backHref: string }) {
+// Simple teleprompter for the boss's iPad: big text, adjustable size and speed. `before`: «Antes de hablar» (who
+// reported it, the liaison), read before starting and never aloud; only passed when the database returned it.
+// `source`: where the text comes from when it is not the storyboard's (the obra ficha's FAB dialog).
+export function Teleprompter({
+  title, parts, backHref, before = [], source,
+}: { title: string; parts: string[]; backHref: string; before?: BeforeItem[]; source?: string }) {
   const [size, setSize] = useState(40);
   const [speed, setSpeed] = useState(0);
   const box = useRef<HTMLDivElement>(null);
@@ -32,7 +37,23 @@ export function Teleprompter({ title, parts, backHref }: { title: string; parts:
         ) : null}
         <Link href={backHref} className="grid h-12 w-12 place-items-center rounded-[var(--radius-control)] hover:bg-on-slate/10" aria-label="Salir del modo lectura"><X /></Link>
       </div>
-      <div ref={box} className="flex-1 overflow-y-auto px-6 py-10 sm:px-16">
+      {/* Focusable, so it also scrolls with the keyboard's arrows (axe: scrollable-region-focusable). */}
+      <div ref={box} tabIndex={0} role="region" aria-label="Texto para leer" className="flex-1 overflow-y-auto px-6 py-10 sm:px-16">
+        {before.length ? (
+          <section aria-labelledby="antes-de-hablar" className="mx-auto mb-10 max-w-4xl rounded-[var(--radius-card)] border border-on-slate/30 bg-on-slate/10 p-4 sm:p-5">
+            <h2 id="antes-de-hablar" className="text-lg font-semibold">Antes de hablar</h2>
+            <p className="text-sm">Para ti: no es parte de lo que se lee.</p>
+            <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+              {before.map((b) => (
+                <div key={b.label} className="min-w-0">
+                  <dt className="text-sm font-semibold uppercase tracking-wide">{b.label}</dt>
+                  <dd className="mt-0.5 whitespace-pre-wrap text-lg [overflow-wrap:anywhere]">{b.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        ) : null}
+        {source && parts.length ? <p className="mx-auto mb-6 max-w-4xl text-sm">{source}</p> : null}
         {parts.length ? (
           parts.map((p, i) => (
             <p key={i} className="mx-auto mb-[1.2em] max-w-4xl whitespace-pre-wrap font-semibold leading-snug" style={{ fontSize: size }}>

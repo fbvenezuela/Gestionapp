@@ -1,4 +1,5 @@
 import type { Sql } from '../db/core';
+import { fichaMedia, type FichaMedia } from './fichas';
 
 export type EventFull = {
   id: string; code: string; title: string; place_name: string; municipality: string; summary: string;
@@ -54,6 +55,43 @@ export async function getEvent(sql: Sql, id: string): Promise<EventFull | null> 
     [id],
   );
   return { ...e, schedule, brief, storyboard, blocks, cameras };
+}
+
+// The ficha an event was born from (§4.1, §4.2), as far as THIS person may read it. RLS decides: Redes and Grabación
+// get an obra's main part while its visit is live and never a report (null: no tab); the IVT and política never come
+// here (they read the event row only). `contacts`: also read the private part (asked only for the boss, despacho and
+// administración; the database still wants 2FA and returns null otherwise). `media`: its photos and papers.
+// `row` and `priv` stay on the server: pages hand only the fields fit for the person to the screen (ficha-tab.ts).
+export type EventFicha = {
+  kind: 'obra' | 'report';
+  id: string;
+  code: string;
+  row: Record<string, unknown>;
+  priv: Record<string, unknown> | null;
+  fab: string; // «Lo que voy a decir» of the obra ('' for a report)
+  media: FichaMedia[];
+};
+export async function linkedFicha(
+  sql: Sql,
+  ev: Pick<EventFull, 'obra_ficha_id' | 'community_report_id'>,
+  opts: { contacts: boolean; media: boolean },
+): Promise<EventFicha | null> {
+  const kind = ev.obra_ficha_id ? 'obra' : ev.community_report_id ? 'report' : null;
+  if (!kind) return null;
+  const id = (ev.obra_ficha_id ?? ev.community_report_id)!;
+  const [table, privTable] = kind === 'obra' ? ['obra_fichas', 'obra_ficha_private'] : ['community_reports', 'community_report_private'];
+  const row = await sql.one<Record<string, unknown>>(`select * from public.${table} where id = $1 and deleted_at is null`, [id]);
+  if (!row) return null;
+  const priv = opts.contacts ? await sql.one<Record<string, unknown>>(`select * from public.${privTable} where id = $1`, [id]) : null;
+  return {
+    kind,
+    id,
+    code: String(row.code ?? ''),
+    row,
+    priv,
+    fab: kind === 'obra' && typeof row.fab_dialog === 'string' ? row.fab_dialog : '',
+    media: opts.media ? await fichaMedia(sql, kind, id) : [],
+  };
 }
 
 // Who changed what (boss and despacho with 2FA; the database returns nothing to anyone else).

@@ -409,6 +409,7 @@ describe('ningún archivo de Drive se baja con un enlace simple', () => {
     'src/app/(panel)/eventos/[id]/media-row.tsx': 1, // after `drive ?` → DriveDownload
     'src/components/media/download-all.tsx': 2, // after `e.drive ?` → downloadDriveFile: one by one, and the iPhone list
     'src/app/(panel)/publicar/[id]/page.tsx': 1, // «Ver captura» (?ver=1, a small picture in a new tab)
+    'src/components/fichas/photo-gallery.tsx': 1, // a ficha photo outside Drive (?ver=1, opens big in a new tab); after it, DownloadLink
   };
 
   it('solo quedan los enlaces simples revisados', async () => {

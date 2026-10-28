@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send } from 'lucide-react';
 import { saveObraFicha } from '@/lib/actions/obras';
@@ -37,6 +37,8 @@ type Props = {
   parishesUsed: Record<string, string[]>;
   canPrivate: boolean;
   cancelHref: string;
+  // The saved ficha's photos and papers (photo-gallery.tsx), shown while editing it; a new ficha has none yet.
+  photos?: ReactNode;
 };
 
 export function FichaForm(p: Props) {
@@ -155,14 +157,17 @@ export function FichaForm(p: Props) {
         );
       })}
 
-      {p.kind === 'obra' ? (
+      {p.photos ?? (
         <Card className="p-4">
           <p className="text-[15px] text-text-2">
-            Fotos del antes y del avance: se suben desde la ficha guardada en la próxima entrega. La fecha de la visita la ponen el jefe o el
-            despacho.
+            {p.kind === 'obra'
+              ? 'Fotos del antes y del avance: al guardar, se suben en la ficha (varias a la vez, y la subida aguanta mala señal).'
+              : 'Fotos, videos o documentos (antes y después): al guardar, se suben en la ficha (la subida aguanta mala señal).'}
           </p>
         </Card>
-      ) : (
+      )}
+
+      {p.kind === 'obra' ? null : (
         <Card className="p-4">
           <label className="flex min-h-11 items-center gap-3 text-[15px] font-semibold">
             <input
@@ -181,6 +186,7 @@ export function FichaForm(p: Props) {
       )}
 
       <Card className="flex flex-col gap-2 p-4">
+        {p.kind === 'obra' ? <p className="text-sm text-text-2">La fecha de la visita la ponen el jefe o el despacho.</p> : null}
         {p.kind === 'obra' && obraDraft ? (
           <p className="text-sm text-text-2" aria-live="polite">
             {missing.length ? missingMessage(missing) : 'Todo respondido: lista para avisar al jefe.'}

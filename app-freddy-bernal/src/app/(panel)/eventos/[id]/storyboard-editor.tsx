@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Plus, Quote, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { saveStoryboard } from '@/lib/actions/events';
 import { useAction } from '@/lib/hooks/use-action';
 import { sameJson, useDraft } from '@/lib/hooks/use-draft';
@@ -9,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input, Textarea } from '@/components/ui/field';
 import { EmptyState } from '@/components/ui/page';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { DICTATE_HINT } from '@/lib/data/labels';
 
 type Block = { id?: string; shot: string; angle: string; bossLine: string; broll: string; fact: string; factSource: string };
@@ -22,7 +24,12 @@ type Board = { speech: string; blocks: Block[] };
 // save, the refreshed one), and the next change starts from it.
 type BoardDraft = Board & { base: Board | null; baseRev: number | null };
 
-export function StoryboardEditor({ eventId, canEdit, speech, blocks, facts, rev }: { eventId: string; canEdit: boolean; speech: string; blocks: DbBlock[]; facts: string; rev: number | null }) {
+// fab: «Lo que voy a decir» of the obra ficha the event was born from (§4.1, the FAB dialog), '' when there is none:
+// whoever writes the storyboard can take it as the speech with one tap («Usar como discurso») and change it before
+// saving; everyone else reads it.
+export function StoryboardEditor({
+  eventId, canEdit, speech, blocks, facts, rev, fab = '',
+}: { eventId: string; canEdit: boolean; speech: string; blocks: DbBlock[]; facts: string; rev: number | null; fab?: string }) {
   const server: Board = {
     speech,
     blocks: blocks.map((b) => ({ id: b.id, shot: b.shot, angle: b.angle, bossLine: b.boss_line, broll: b.broll, fact: b.fact, factSource: b.fact_source })),
@@ -43,11 +50,24 @@ export function StoryboardEditor({ eventId, canEdit, speech, blocks, facts, rev 
   // Someone else saved the storyboard since this person started typing.
   const changedMeanwhile = restored && !kept && !!draft.base && !sameJson(draft.base, server);
   const { run, pending } = useAction();
+  const { confirm, dialog } = useConfirm();
+  const fabText = fab.trim();
 
   if (!canEdit) {
-    if (!blocks.length && !speech) return <EmptyState title="Todavía no hay storyboard para este evento." />;
-    return <ReadOnly speech={speech} blocks={server.blocks} />;
+    return (
+      <div className="flex flex-col gap-4">
+        {fabText ? <FabCard text={fabText} /> : null}
+        {!blocks.length && !speech ? <EmptyState title="Todavía no hay storyboard para este evento." /> : <ReadOnly speech={speech} blocks={server.blocks} />}
+      </div>
+    );
   }
+
+  const takeFab = async () => {
+    const now = value.speech.trim();
+    if (now && now !== fabText && !(await confirm({ title: '¿Reemplazar «Lo que va a decir»?', body: 'Lo que está escrito ahora se cambia por el diálogo de la ficha de obra.', confirmLabel: 'Reemplazar' }))) return;
+    setValue({ ...value, speech: fabText });
+    toast.success('Listo. Revisa el texto y toca «Guardar storyboard».');
+  };
 
   const update = (i: number, patch: Partial<Block>) => setValue({ ...value, blocks: value.blocks.map((b, j) => (j === i ? { ...b, ...patch } : b)) });
   const move = (i: number, d: -1 | 1) => {
@@ -88,6 +108,14 @@ export function StoryboardEditor({ eventId, canEdit, speech, blocks, facts, rev 
         </div>
       ) : restored ? (
         <p className="rounded-[var(--radius-control)] bg-info-soft px-3 py-2 text-sm text-info" role="status">Tienes cambios sin guardar de antes. Revisa y toca «Guardar».</p>
+      ) : null}
+      {dialog}
+      {fabText ? (
+        <FabCard text={fabText}>
+          <Button type="button" variant="secondary" className="self-start" disabled={value.speech.trim() === fabText} onClick={takeFab}>
+            <Quote className="h-4 w-4" aria-hidden /> {value.speech.trim() === fabText ? 'Ya es el discurso' : 'Usar como discurso'}
+          </Button>
+        </FabCard>
       ) : null}
       {facts ? (
         <Card className="bg-surface-2">
@@ -135,6 +163,18 @@ export function StoryboardEditor({ eventId, canEdit, speech, blocks, facts, rev 
         <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={pending}>{pending ? 'Guardando…' : 'Guardar storyboard'}</Button>
       </div>
     </form>
+  );
+}
+
+function FabCard({ text, children }: { text: string; children?: React.ReactNode }) {
+  return (
+    <Card>
+      <CardHeader title="Lo que voy a decir (ficha de obra)" subtitle="El diálogo FAB de la ficha del IVT: solo con las cifras de la ficha." />
+      <CardBody className="flex flex-col gap-3">
+        <p className="whitespace-pre-wrap text-[15px]">{text}</p>
+        {children}
+      </CardBody>
+    </Card>
   );
 }
 

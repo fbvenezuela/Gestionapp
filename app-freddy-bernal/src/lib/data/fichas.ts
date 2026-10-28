@@ -70,6 +70,21 @@ async function linkedEvent(sql: Sql, column: 'obra_ficha_id' | 'community_report
   );
 }
 
+// A ficha's photos and papers (Antes, Avance, Después, Documentos), ready ones only (the uploader shows its own
+// files while they go up). RLS: whoever reads the ficha (Redes and Grabación an obra's while its visit is live).
+export type FichaMedia = {
+  id: string; kind: string; label: string; mime: string; size_bytes: number | string; bucket: string;
+  width: number | null; height: number | null; duration_s: number | null;
+};
+export async function fichaMedia(sql: Sql, kind: 'obra' | 'report', id: string): Promise<FichaMedia[]> {
+  const column = kind === 'obra' ? 'obra_ficha_id' : 'community_report_id';
+  return sql.query<FichaMedia>(
+    `select id, kind, label, mime, size_bytes, bucket, width, height, duration_s from public.media_assets
+      where ${column} = $1 and deleted_at is null and status = 'ready' order by kind, created_at limit 300`,
+    [id],
+  );
+}
+
 export async function getObraFicha(sql: Sql, id: string) {
   const ficha = await sql.one<ObraFicha>(
     `select f.*, ${NAME} as created_by_name from public.obra_fichas f left join public.profiles p on p.id = f.created_by where f.id = $1`,
