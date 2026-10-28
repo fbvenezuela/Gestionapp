@@ -167,7 +167,6 @@ pruebe cada rol (lo pidió el 25/10).
    decisiones: tiempo de los datos personales.)
 
 **Lo que falta de nuestra parte:**
-- Aplicar en `fb-dev` las migraciones de esta ronda (`20261027001500` a `20261028002200`, en orden; la `001500` sola,
-  antes que las demás) cuando Juan siga con `PROMPT-SUPABASE.md`. Ahí se puede probar creando cosas entre roles (en la
-  demo no: D-39).
+- Las migraciones de esta ronda ya están en `fb-dev` (aplicadas y verificadas el 28/10, `PROMPT-SUPABASE.md`). Falta
+  que Juan siga esa guía. Ahí se puede probar creando cosas entre roles (en la demo no: D-39).
 - Rehacer Redes como Mila, por partes, cuando Hillary confirme la tabla (#11).

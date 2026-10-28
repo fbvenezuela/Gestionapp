@@ -273,9 +273,9 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
     `created_by`;
   - las invitaciones pendientes pierden los roles que salen; la que queda vacía se anula;
   - quien quedó sin rol: se le cierran las sesiones y ve «Sin acceso» hasta que administración le dé uno de los seis.
-- **Solo se dan los seis y administración.** La base rechaza los demás (al dar un rol, al invitar y al crear la
-  cuenta). Secretaría, Supervisión y los roles de la fase 3 siguen escritos en la base (borrar un valor de esa lista es
-  riesgoso), pero nadie los recibe.
+- **Solo se dan los seis y administración.** La base rechaza los demás al dar un rol y al invitar; al crear la cuenta,
+  una invitación vieja solo copia los roles que se pueden dar. Secretaría, Supervisión y los roles de la fase 3 siguen
+  escritos en la base (borrar un valor de esa lista es riesgoso), pero nadie los recibe.
 - **Grabación, «un solo perfil»:** un solo rol, con un usuario por persona (para saber quién subió qué y para el doble
   factor de cada uno, como Redes en D-09). Todos ven la misma pantalla; cada uno, los eventos que le asignaron.
 - **Doble factor (cambia D-08):** administración, jefe, despacho, política e IVT.
@@ -359,10 +359,11 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 
 ## D-33. «Por ponerle fecha»: de la ficha a la agenda (27/10/2026)
 - **Qué:**
-  - El IVT y política no ponen fecha. Al tocar **«Guardar y avisar al jefe»** (pide cada campo respondido o marcado
-    «No aplica» o «Por confirmar»), al jefe y al despacho les llega **«Por ponerle fecha»** con el nombre y el
-    municipio, nunca una fecha. «Guardar borrador» no avisa. En la ficha comunitaria decide el interruptor «¿Va a la
-    agenda del jefe?» (prendido por defecto solo si el tipo es «Evento»); si no va, queda en el registro del municipio.
+  - El IVT y política no ponen fecha. En la ficha de obra, **«Guardar y avisar al jefe»** (pide cada campo respondido
+    o marcado «No aplica» o «Por confirmar») le manda al jefe y al despacho **«Por ponerle fecha»** con el nombre y el
+    municipio, nunca una fecha; «Guardar borrador» no avisa. La ficha comunitaria no tiene borrador: decide el
+    interruptor «¿Va a la agenda del jefe?» (prendido por defecto solo si el tipo es «Evento»). Prendido, el botón es
+    «Guardar y avisar al jefe»; apagado, «Guardar», y queda en el registro del municipio.
   - La lista sale de la vista `agenda_to_schedule`, que no tiene columna de fecha: obras listas y reportes que van a la
     agenda, sin un evento vivo. Está en `/agenda/por-fecha`, primero en Hoy del despacho y en Política del jefe, con
     «Ponerle fecha» y «No va» (su motivo queda en la historia de la ficha).
@@ -371,9 +372,10 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
     fecha. La ficha técnica que nace de una obra lleva el nombre del ingeniero, nunca teléfonos ni nombres de quien
     reportó o del enlace.
   - Si la pone el jefe, queda aceptada; si la pone el despacho, llega «Por decidir» (D-32).
-  - Una sola visita viva por ficha. Si se cancela, se rechaza o se borra, la ficha vuelve sola a «Por ponerle fecha»,
-    con el motivo en su historia y un aviso nuevo; si el jefe rechaza, el IVT o política reciben el aviso sin la fecha.
-    Al marcarla realizada, la obra queda realizada.
+  - Una sola visita viva por ficha. Si se cancela o se rechaza (o administración la borra en la base), la ficha vuelve
+    sola a «Por ponerle fecha». La obra guarda el motivo en su historia; el reporte, solo «La actividad salió de la
+    agenda del jefe». Al cancelar o rechazar les llega un aviso nuevo al jefe y al despacho; el IVT o política reciben
+    el aviso sin la fecha. Al marcarla realizada, la obra queda realizada.
 - **Por qué:** encargo §4 («Por ponerle fecha» es texto de Hillary). «Al guardarla» se leyó como el botón principal: un
   borrador a medias no le llena la lista al jefe.
 - **No se hizo:** cosas «sin fecha todavía» hechas a mano, sin ficha. Solo las fichas entran a la lista.
@@ -386,10 +388,10 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
   - Los campos de §4.1 en cinco grupos. Cada uno admite **«No aplica» o «Por confirmar»**: se guarda vacío y marcado.
     El código (O-0001) y la fecha de creación los pone la base.
   - Lo de terceros (teléfono del ingeniero, quién reportó, el enlace comunitario y lo que el jefe debe saber) va aparte
-    y se ve solo con doble factor. La parte principal no se guarda con un teléfono: la app y la base lo rechazan y dicen
-    en qué campo está.
-  - Fotos en Antes, Avance, Después y Documentos, con la subida que aguanta mala señal y sin la ubicación. Los
-    Documentos (denuncias, actas) solo los ve quien ve los contactos.
+    y se ve solo con doble factor. La parte principal no se guarda con un teléfono: la app y la base lo rechazan; la
+    app dice en qué campo está.
+  - Fotos en Antes, Avance y Documentos, con la subida que aguanta mala señal y sin la ubicación. Los Documentos
+    (denuncias, actas) solo los ve quien ve los contactos.
   - Redes y Grabación ven la obra solo dentro de su visita viva, en la pestaña «Ficha de obra» (D-40): sin contactos,
     sin teléfonos y sin documentos.
 - **«Generame un diálogo FAB con esto»:** el botón **«Generar diálogo FAB»** arma «Lo que voy a decir» (qué es la obra,
@@ -414,8 +416,9 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
   - **Municipios:** los 29, cada uno con sus contadores (abiertas, en ejecución, finalizadas y vencidas por su fecha
     de seguimiento) y filtros por municipio, parroquia, tipo, estado y prioridad. Cada municipio muestra sus parroquias
     y todo en orden de fecha. **Lo vencido sale arriba** en el inicio de política y en el del jefe.
-  - **La historia nunca se pisa:** quién la creó, cada cambio de estado (con su motivo), cada actualización y cada nota
-    se agregan. Nadie la cambia ni la borra, tampoco el sistema. De los contactos guarda solo el nombre del campo.
+  - **La historia nunca se pisa:** quién la creó, cada cambio de estado (con su motivo, si lo escriben), cada
+    actualización y cada nota se agregan. Nadie la cambia ni la borra, tampoco el sistema. De los contactos guarda solo
+    el nombre del campo.
   - **Parroquias en texto libre** hasta que llegue la lista oficial (`PENDIENTES.md` #8): el municipio sale de la
     lista; la parroquia acepta cualquier texto corto, y el filtro junta las formas de escribir la misma (mayúsculas y
     espacios).
@@ -488,9 +491,10 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 
 ## D-39. Demo con los mismos datos en cada servidor; qué se puede probar ahí (27–28/10/2026)
 - **Qué:** el error de §1 («la ficha completa del evento da error») era de la demo: cada servidor de Vercel tenía otros
-  ids y la ficha decía «no encontrado» (D-02). Desde el 27/10 la siembra da los mismos ids en todos los servidores y
-  hay una prueba que abre cada evento, cada pestaña y el modo lectura en dos servidores, con cada rol que puede
-  abrirlo (jefe, despacho, redes, grabación, administración, política e IVT).
+  ids y la ficha decía «no encontrado» (D-02). Desde el 27/10 la siembra da los mismos ids en todos los servidores
+  (`tests/unit/demo-stable-ids.test.ts`). `tests/e2e/demo-instances.spec.ts` abre en el otro servidor un evento y su
+  modo lectura (despacho), la visita y la ficha de obra del IVT, y la actividad y el reporte de política;
+  `tests/e2e/pages.spec.ts` abre las cuatro pestañas de un evento con administración, Redes y el jefe.
   - Todo lo que Hillary tiene que ver ya viene sembrado: una obra y un reporte esperando fecha, una visita de obra con
     fecha y fotos, un reporte vencido, la nota y el storyboard de Grabación, dos verdes, una amarilla y una roja por
     aprobar, y miniaturas en Resultados. Sin eventos nuevos.
@@ -500,8 +504,8 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 - **Qué no:** crear algo con un rol y verlo con otro. Lo creado vive en un solo servidor y se pierde cuando se reinicia;
   la pantalla siguiente puede salir de otro y no mostrarlo. Tampoco correos reales, el doble factor de verdad, Drive ni
   dos personas editando a la vez.
-- **Para eso:** la base real `fb-dev`, cuando Juan termine `docs/PROMPT-SUPABASE.md` y se apliquen las migraciones de
-  esta ronda. Ahí no hay entrar de un toque: invitación, código y doble factor.
+- **Para eso:** la base real `fb-dev` (ya tiene las migraciones de esta ronda desde el 28/10), cuando Juan termine
+  `docs/PROMPT-SUPABASE.md`. Ahí no hay entrar de un toque: invitación, código y doble factor.
 - **Por qué:** encargo §1 y §8 («el enlace de la versión de prueba para que ella entre con cada rol»).
 - **Cómo se cambia:** los ids fijos, en `src/lib/db/stable-ids.ts`; lo sembrado, en `src/lib/db/seed-parts/`.
 
@@ -550,9 +554,11 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
     en la demo no hay nada antes y en fb-dev no hay datos reales.
 - **Además, en la misma migración:** un teléfono no entra en la nota de Grabación para el editor ni en su storyboard
   escrito (los tiempos del video, «2:15», sí), en el texto principal de un reporte ni en el título, el lugar o el
-  resumen de un evento (Redes los lee); un evento borrado ya no lo ven quien lo graba, Redes, el jefe ni el despacho
-  (su fecha, su ficha técnica, su material), solo administración; el código del evento lo pone la base (sin fechas, sin
-  quitarle el número al siguiente); y un evento realizado ya no cambia de fecha ni de lugar.
+  resumen de un evento (Redes los lee); de un evento borrado, quien lo graba ya no ve el evento ni su fecha, y Redes, el
+  jefe y el despacho ya no ven el evento, su ficha técnica, su storyboard ni su material. El jefe y el despacho todavía
+  leen su fecha y su lugar si los piden directo a la base, con doble factor (la app no los muestra: el evento ya no
+  sale); administración lo ve todo. El código del evento lo pone la base (sin fechas, sin quitarle el número al siguiente); y
+  un evento realizado ya no cambia de fecha ni de lugar.
 - **Por qué:** «Solo el jefe aprueba» y «administración no pone fecha ni edita la agenda» tenían que cumplirse en la
   base también contra administración, que es quien da los roles.
 - **Lo que queda:** administración todavía puede invitar a otra persona (otra cuenta) como jefe o despacho: es su

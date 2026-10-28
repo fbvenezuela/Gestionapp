@@ -25,8 +25,10 @@ Actualizado: 28/10/2026 (seis roles, fichas y agenda compartida). Qué se hizo p
      el despacho ponen fecha); la lista del doble factor siempre nombra a administración, el jefe, el despacho, política
      y el IVT; los contactos de las fichas comunitarias son solo de política, el despacho y el jefe; el registro de
      cambios guarda de los contactos solo qué campo cambió; un teléfono no entra en la nota de Grabación, en el texto
-     principal de un reporte ni en el título, el lugar o el resumen de un evento; un evento borrado es solo de
-     administración; el código del evento lo pone la base; un evento realizado no se mueve.
+     principal de un reporte ni en el título, el lugar o el resumen de un evento; un evento borrado ya no lo ve quien
+     lo graba (tampoco su fecha), y Redes, el jefe y el despacho ya no ven su ficha técnica (el jefe y el despacho
+     todavía leen su fecha y su lugar directo en la base, con doble factor; la app no los muestra); el código del
+     evento lo pone la base; un evento realizado no se mueve.
 3. **La regla de fecha y hora en la base** (`event_schedule` aparte).
    **Quién la ve, por rol (27–28/10):** el jefe y el despacho, con doble factor; quien graba, solo sus eventos
    asignados (y no si el evento está borrado); **el IVT**, con doble factor, solo las visitas nacidas de una ficha de
@@ -133,8 +135,8 @@ Actualizado: 28/10/2026 (seis roles, fichas y agenda compartida). Qué se hizo p
     editable; la lista `security.mfa_roles` solo cambia con doble factor y siempre nombra a administración, el jefe, el
     despacho, política y el IVT.
 17. **Administración no se vuelve jefe ni despacho** (D-41): nadie se da roles a sí mismo y una cuenta nunca junta
-    administración con el jefe o el despacho, ni por invitación (`guard_role_mix`). Solo se pueden dar los seis roles
-    del equipo y administración.
+    administración con el jefe o el despacho, ni por invitación (`guard_role_mix` y `guard_invitation_roles`). Solo se
+    pueden dar los seis roles del equipo y administración.
 18. **Códigos por la base:** el código de un evento (E-0001), de una obra (O-0001) y de un reporte (R-0001) lo pone la
     base: nadie mete una fecha en un código (empieza el nombre de cada archivo descargado) ni le quita el número al
     siguiente. Un evento ya realizado no cambia de fecha ni de lugar; un archivo nunca se pasa a otro evento o ficha.
@@ -151,7 +153,8 @@ Actualizado: 28/10/2026 (seis roles, fichas y agenda compartida). Qué se hizo p
 - Doble factor también para redes y grabación antes de abrir la web.
 - Cuánto tiempo se guardan los datos de terceros de las fichas (y lo que quedó en el registro de cambios antes del
   28/10): por decidir (`PENDIENTES.md`).
-- Aplicar en `fb-dev` las migraciones de la ronda del 27–28/10 y repetir ahí las pruebas por rol.
+- Repetir en `fb-dev` las pruebas por rol con cuentas de prueba (las migraciones de la ronda del 27–28/10 ya están
+  aplicadas allí desde el 28/10).
 - Drive: probar con la cuenta real (paso C de `DRIVE.md`) que Google acepta las partes directas del teléfono y los
   tramos (`Range`); la plataforma tiene respuesta para ambos casos, pero eso no se puede probar sin la cuenta.
 - Si algún día se agrega una política de contenido (CSP): permitir `apis.google.com` (script), `docs.google.com`

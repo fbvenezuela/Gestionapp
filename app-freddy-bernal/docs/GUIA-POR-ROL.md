@@ -16,9 +16,10 @@ Para probar en la versión de demostración, toca el rol en la lista «Versión 
   Salir).
 - **En el teléfono:** la barra de abajo; lo que no cabe está en «Más».
 - **360, el asistente:** el botón redondo abajo a la derecha. Pregúntale «¿qué tengo pendiente?».
-- **Sin señal:** lo que escribes queda en el teléfono hasta que se puede mandar.
-- **La fecha y la hora de la agenda** solo las ven el jefe, el despacho, quien graba ese evento y el IVT en sus
-  visitas. No las escribas en títulos, notas ni avisos: Redes los lee.
+- **Sin señal:** lo que escribes en fichas, eventos, storyboard y notas queda guardado en el teléfono hasta que tocas
+  «Guardar» con señal.
+- **La fecha y la hora de la agenda** solo las ven el jefe, el despacho, quien graba ese evento, el IVT en sus
+  visitas (y administración). No las escribas en títulos, notas ni avisos: Redes los lee.
 
 ## Jefe — `jefe@demo.test`
 **Qué ve:** todo, «hasta lo de redes». Entra a su **Inicio**.
@@ -57,8 +58,8 @@ En la demo: «Avance del puente La Quebrada» (amarilla) y «Aclaratoria sobre e
 ### Lo demás
 - **Obras:** las fichas del IVT por estado y municipio.
 - **Municipios:** los 29, con lo vencido arriba.
-- **Redes:** su puerta a Piezas, Tweets, Publicar, Resultados y Biblioteca, con lo que espera en cada una, y «Notas de
-  Grabación nuevas». Puede hacer todo lo que hace Redes.
+- **Redes:** su puerta a Piezas, Tweets, Publicar, Resultados y Biblioteca, con lo que espera en cada una. «Notas de
+  Grabación nuevas» sale en el botón Redes de su Inicio. Puede hacer todo lo que hace Redes.
 - **Digital:** lo publicado, lo que viene y cómo nos va.
 
 ## Director de despacho — `despacho@demo.test`
@@ -75,7 +76,7 @@ de las fichas, con doble factor. No ve piezas, copies, tweets ni resultados.
 3. **«Quién graba»:** elige a la persona de Grabación.
 4. En un evento: «Mover», «Cambiar fecha o lugar» y «Cancelar» con su motivo (sin teléfonos, fechas ni horas en el
    motivo).
-5. Cuando ya pasó: **«Marcar realizado»**. Un evento realizado ya no cambia de fecha ni de lugar.
+5. Cuando ya empezó: **«Marcar realizado»**. Un evento realizado ya no cambia de fecha ni de lugar.
 6. Lo que crea el despacho espera la decisión del jefe. Si el jefe cambió lo mismo, te llega «cambió lo mismo que tú».
 
 ## Director de política — `politica@demo.test`
@@ -99,8 +100,10 @@ ni tweets, y nunca ve una fecha de la agenda.
    - fotos, videos o documentos del antes y el después, y observaciones.
 3. Lo que no sabes: toca «No aplica» o «Por confirmar».
 4. «¿Va a la agenda del jefe?» (prendido si el tipo es «Evento») → **«Guardar y avisar al jefe»**: al jefe y al despacho
-   les llega «Por ponerle fecha». «Guardar borrador» no avisa a nadie.
-5. Cuando cambia, cambia el estado y escribe el motivo, o agrega una nota. Todo queda en la historia: nunca se borra.
+   les llega «Por ponerle fecha». Si lo apagas, el botón dice «Guardar»: no avisa a nadie y queda en el registro del
+   municipio.
+5. Cuando cambia, cambia el estado (con su motivo si quieres) o agrega una nota. Todo queda en la historia: nunca se
+   borra.
 6. Cuando le ponen fecha, ves **«Ya tiene fecha»**, sin la fecha.
 7. La parroquia se escribe como siempre (texto libre mientras llega la lista oficial).
 
@@ -119,7 +122,7 @@ la ficha técnica del evento ni el material.
    - comunidad y seguimiento (otras ayudas, qué falta, qué debe saber o decidir el jefe, próximo paso).
 2. Lo que no sabes: «No aplica» o «Por confirmar».
 3. Los teléfonos van solo en los contactos. Si pones uno en otro campo, la app te dice en cuál está.
-4. **Fotos:** Antes, Avance, Después y Documentos. Si se va la señal, la subida sigue sola.
+4. **Fotos:** Antes, Avance y Documentos. Si se va la señal, la subida sigue sola.
 5. **«Generar diálogo FAB»:** arma «Lo que voy a decir» solo con las cifras de la ficha. Cámbialo si quieres y guarda.
 6. **«Guardar y avisar al jefe»** (todo respondido o marcado): al jefe y al despacho les llega «Por ponerle fecha».
    «Guardar borrador» no avisa.
@@ -136,13 +139,13 @@ tweets ni publicaciones.
 1. Agenda → tu evento (en la demo: «Jornada de salud en la escuela Los Andes»).
 2. **Ficha:** a dónde, a qué hora y por dónde se llega. En una visita de obra, también la pestaña «Ficha de obra» (sin
    contactos).
-3. **Material** → sube en cada casilla: Jefe hablando, Dron, Apoyo y Otros. Va por partes: si se corta la señal, sigue
-   sola al volver.
+3. **Material** → sube en cada casilla: Jefe hablando, Dron, Tomas de apoyo y Otros. Va por partes: si se corta la
+   señal, sigue sola al volver.
 4. **Entrega de Grabación:**
    - «Subir el storyboard (foto o PDF)» con el que grabaste, o «O escríbelo aquí»;
    - «Nota para el editor»: qué toma sirve, qué falló, qué falta. Sin hora, fecha, dirección ni teléfonos (Redes la
      lee). Guardar otra vez la reemplaza.
-5. Cuando ya pasó: «Marcar realizado».
+5. Cuando ya empezó: **«Marcar realizado»**.
 
 En la demo, «Entrega de la cancha techada de El Mirador» ya tiene su nota y su storyboard.
 
@@ -174,6 +177,8 @@ No es parte del equipo y no va en la guía que se le mande al equipo.
 
 - **Hace:** Ajustes → Equipo (invitar, dar roles, cerrar sesiones, reiniciar el doble factor), categorías, fórmulas,
   horarios de tweets, reglas por red, Google Drive, Asistente, Buzón de correos y Registro de cambios. Puede hacer lo de
-  Redes. Borra y restaura (con doble factor) y queda en el registro. «Ver como…» cambia los menús, no los permisos.
+  Redes. Quita material subido por error (no si está en una pieza aprobada, en revisión o publicada) y queda en el
+  registro. Borrar o restaurar un evento o una ficha solo se puede en la base, con doble factor: la app no tiene ese
+  botón. «Ver como…» cambia los menús, no los permisos.
 - **No hace:** no aprueba; no crea eventos ni pone fecha; no ve los contactos de las fichas comunitarias ni crea
   reportes; no se da roles a sí misma, y su cuenta no puede ser también la del jefe o la del despacho (D-41).

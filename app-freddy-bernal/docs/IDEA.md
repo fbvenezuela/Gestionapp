@@ -130,8 +130,8 @@ tiene su doble factor. «Un solo perfil» (redes, grabación) es **un solo rol**
 
 - **Salen Secretaría y Supervisión política** sin perder historia (D-29). Lo que aprobaba Supervisión lo aprueba el
   jefe (D-30).
-- Solo el jefe y el despacho ponen fecha (D-32). El IVT y política cargan fichas que les llegan «Por ponerle fecha»
-  (D-33); el IVT ve la fecha de sus visitas, política nunca (D-34, D-35).
+- Solo el jefe y el despacho ponen fecha (D-32). El IVT y política cargan fichas; al jefe y al despacho les llegan como
+  «Por ponerle fecha» (D-33). El IVT ve la fecha de sus visitas, política nunca (D-34, D-35).
 - Los roles de la web pública (redactor, operadores de reportes, denuncias y ayudas) siguen previstos para la fase 3;
   todavía no se pueden dar.
 - Qué ve y qué hace cada rol, paso a paso: `GUIA-POR-ROL.md` (no se manda todavía).

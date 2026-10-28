@@ -88,8 +88,9 @@ Marca solo *Production* (desmarca *Preview* y *Development*): así la demo publi
 
 La plataforma crea la carpeta **«FB Operaciones 360»** y adentro: `Videos`, `Fotos`, `Portadas`, `Audios` y
 `Documentos`, con una carpeta por evento con su **código** (`E-0042`), nunca con la fecha. Desde el 27/10 también por
-ficha: `Fotos/O-0001` (fotos de una obra del IVT), `Fotos/R-0001` (evidencia de un reporte de política) y
-`Documentos/E-0042` (el storyboard con el que grabó Grabación). Los archivos se llaman como en la plataforma
+ficha: `Fotos/O-0001` (fotos de una obra del IVT), `Fotos/R-0001` (evidencia de un reporte de política), sus
+documentos en `Documentos/O-0001` o `Documentos/R-0001` y `Documentos/E-0042` (el storyboard con el que grabó
+Grabación). Los archivos se llaman como en la plataforma
 (`E-0042-Jefe-hablando-1.mp4`), sin fecha, hora ni lugar.
 
 ## D. El material de tu Mac (`~/Desktop/claude/freddy-videos-youtube/`, unos 2,3 GB)
