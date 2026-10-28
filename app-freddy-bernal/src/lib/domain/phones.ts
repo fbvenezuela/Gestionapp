@@ -54,8 +54,11 @@ export function withoutPhones(s: string): string {
 
 // ---------------------------------------------------------------------------
 // The main part of a ficha never carries a phone: phones go in its contacts (the private part, 2FA). Redes and
-// Grabación read an obra's main part as it is stored while its visit is live (RLS), and an event born from a ficha
-// takes its text; a report's main part is read without 2FA. A false alarm has a way out: an amount written with dots.
+// Grabación read an obra's main text as it is stored while its visit is live (visit_obra_ficha()), and an event born
+// from a ficha takes its text; a report's main part is read without 2FA. A false alarm has a way out: an amount
+// written with dots. The database checks the same rule (public.text_has_phone(), 20261028002100_privacy_hardening.sql)
+// on the obra's text Redes reads and on a cancel reason: a change here goes into a new migration too, with the cases
+// of tests/unit/fixtures/privacy-text-cases.ts.
 // ---------------------------------------------------------------------------
 const FREE_TEXT = new Set<FieldDef['type']>(['title', 'short', 'long', 'parish']);
 

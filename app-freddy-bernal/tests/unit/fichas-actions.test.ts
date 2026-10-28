@@ -427,7 +427,7 @@ describe('«Lo que voy a decir» no lleva contactos ni teléfonos', () => {
     const phone = await obras.saveObraDialog({ id, text: 'Saludos. Para más información llamen al 0414 555 1234.' });
     expect(phone).toEqual({
       ok: false,
-      error: 'No se guardó: «Lo que voy a decir» lo leen Redes y Grabación, y tiene algo que parece un teléfono (0414 555 1234). Quítalo y guarda otra vez.',
+      error: 'No se guardó: «Lo que voy a decir» lo leen Redes y Grabación, y tiene algo que parece un teléfono (0414 555 1234). Quítalo y guarda otra vez; si es una cifra, escríbela con puntos: 1.500.000.',
     });
     const own = await obras.saveObraDialog({ id, text: 'Saludos. El teléfono del enlace es 0000-0000902.' });
     expect(own.ok).toBe(false);

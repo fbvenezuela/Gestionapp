@@ -53,6 +53,11 @@ export class DbError extends Error {
   }
 }
 
+const PRIVACY_CHECKS: [string, string][] = [
+  ['obra_fichas_main_no_phone', 'No se guardó: la ficha de obra tiene algo que parece un teléfono, y Redes y Grabación leen esa parte. Los teléfonos van en los contactos; si es una cifra, escríbela con puntos: 1.500.000.'],
+  ['events_cancel_reason_private', 'El motivo lo leen todos (Redes también): escríbelo sin fecha, hora ni teléfono.'],
+];
+
 // Turn a Postgres error into a short Spanish message for people.
 export function friendlyDbError(e: unknown): string {
   const err = e as { code?: string; message?: string };
@@ -63,6 +68,11 @@ export function friendlyDbError(e: unknown): string {
     return 'No tienes permiso para hacer esto.';
   }
   if (err?.code === '23505') return 'Eso ya existe.';
+  if (err?.code === '23514') {
+    // The database's own privacy checks (20261028002100_privacy_hardening.sql): the app refuses the same before
+    // saving; this is what the person reads if a text gets past it anyway.
+    for (const [constraint, text] of PRIVACY_CHECKS) if (msg.includes(constraint)) return text;
+  }
   if (err?.code === '23514' || err?.code === '22001') return 'Algún dato no es válido o es muy largo.';
   if (err?.code === 'P0001' && msg) return msg;
   return 'No se pudo guardar. Revisa la señal y vuelve a intentar.';

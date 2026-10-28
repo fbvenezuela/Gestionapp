@@ -46,7 +46,7 @@ export default async function TodayPage() {
       for (const p of changes) waiting.push({ href: `/piezas/${p.id}`, title: p.title, detail: 'El jefe pidió cambios', tone: 'danger', tag: 'Cambios' });
       const needBoard = await sql.query<{ id: string; title: string }>(
         `select e.id, e.title from public.events e left join public.storyboards sb on sb.event_id = e.id
-          where e.deleted_at is null and e.cancelled_at is null and e.boss_decision = 'accepted' and e.done_on is null
+          where e.deleted_at is null and e.cancelled_at is null and e.boss_decision = 'accepted' and public.event_done_on(e.id) is null
             and (sb.id is null or not exists (select 1 from public.storyboard_blocks b where b.storyboard_id = sb.id and b.deleted_at is null))
           order by e.urgency, e.created_at limit 10`,
       );
@@ -124,7 +124,7 @@ export default async function TodayPage() {
       );
       const incomplete = await sql.query<{ id: string; title: string }>(
         `select e.id, e.title from public.events e left join public.event_brief b on b.event_id = e.id
-          where e.deleted_at is null and e.cancelled_at is null and e.done_on is null and e.boss_decision <> 'rejected'
+          where e.deleted_at is null and e.cancelled_at is null and public.event_done_on(e.id) is null and e.boss_decision <> 'rejected'
             and (b.event_id is null or b.work_description = '' or b.led_by = '' or b.achievements = '') limit 10`,
       );
       for (const e of incomplete) waiting.push({ href: `/eventos/${e.id}?tab=ficha`, title: e.title, detail: 'Ficha técnica incompleta', tone: 'warn', tag: 'Ficha' });

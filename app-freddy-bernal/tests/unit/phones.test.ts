@@ -73,7 +73,7 @@ describe('«Lo que voy a decir» no se guarda con un teléfono con puntos', () =
   const input = { name: 'Puente de prueba (demo)', municipality: 'Torbes', investment: '1.500.000', people_count: 1200, families_count: 300 } as unknown as ObraDialogInput;
 
   it('se rechaza 0414.555.0177; la inversión de la ficha no', () => {
-    expect(dialogPhones('Llamen al 0414.555.0177.', input, BRAND)).toEqual(['0414.555.0177']);
+    expect(dialogPhones('Llamen al 0414.555.0177.')).toEqual(['0414.555.0177']);
     expect(dialogContactProblem('Llamen al 0414.555.0177.', input, BRAND, null)).toContain('parece un teléfono (0414.555.0177)');
     expect(dialogContactProblem('Llamen al 0414-555.01.99.', input, BRAND, null)).toContain('parece un teléfono (0414-555.01.99)');
     expect(dialogContactProblem('La inversión es de 1.500.000 bolívares para 1200 personas.', input, BRAND, null)).toBeNull();

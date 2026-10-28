@@ -101,7 +101,7 @@ export const TOOLS: Tool[] = [
           push('El jefe pidió cambios', await sql.query(`select title from public.pieces where status = 'changes_requested' and deleted_at is null order by updated_at desc limit 5`));
           push('Falta el storyboard', await sql.query(
             `select e.title from public.events e left join public.storyboards sb on sb.event_id = e.id
-              where e.deleted_at is null and e.cancelled_at is null and e.boss_decision = 'accepted' and e.done_on is null
+              where e.deleted_at is null and e.cancelled_at is null and e.boss_decision = 'accepted' and public.event_done_on(e.id) is null
                 and (sb.id is null or not exists (select 1 from public.storyboard_blocks b where b.storyboard_id = sb.id and b.deleted_at is null))
               order by e.urgency, e.created_at limit 5`));
           push('Llegó el material: arma la pieza', await sql.query(
@@ -129,17 +129,17 @@ export const TOOLS: Tool[] = [
         if (has(s, 'dispatch')) {
           push('Ficha técnica incompleta', await sql.query(
             `select e.title from public.events e left join public.event_brief b on b.event_id = e.id
-              where e.deleted_at is null and e.cancelled_at is null and e.done_on is null and e.boss_decision <> 'rejected'
+              where e.deleted_at is null and e.cancelled_at is null and public.event_done_on(e.id) is null and e.boss_decision <> 'rejected'
                 and (b.event_id is null or b.work_description = '' or b.led_by = '' or b.achievements = '') limit 8`));
         }
         if (has(s, 'camera')) {
           push('Sube el material', await sql.query(
             `select e.title from public.events e join public.event_assignments a on a.event_id = e.id and a.user_id = auth.uid()
-              where e.deleted_at is null and e.cancelled_at is null and e.done_on is not null
+              where e.deleted_at is null and e.cancelled_at is null and public.event_done_on(e.id) is not null
                 and not exists (select 1 from public.media_assets m where m.event_id = e.id and m.kind in ${RAW} and m.deleted_at is null) limit 8`));
           push('Evento asignado', await sql.query(
             `select e.title from public.events e join public.event_assignments a on a.event_id = e.id and a.user_id = auth.uid()
-              where e.deleted_at is null and e.cancelled_at is null and e.done_on is null limit 8`));
+              where e.deleted_at is null and e.cancelled_at is null and public.event_done_on(e.id) is null limit 8`));
         }
         const unread = await sql.one<{ n: number }>(`select count(*)::int as n from public.notifications where read_at is null`);
         return { items, unread: unread?.n ?? 0 };
@@ -314,7 +314,7 @@ export const TOOLS: Tool[] = [
     async run(a, ctx) {
       const rows = await db(ctx.session, (sql) =>
         sql.query<{ id: string; code: string; title: string; work_status: string; boss_decision: string; done: boolean; cancelled: boolean; category: string | null; blocks: number; material: number; pieces: number }>(
-          `select e.id, e.code, e.title, e.work_status, e.boss_decision, e.done_on is not null as done, e.cancelled_at is not null as cancelled, c.name as category,
+          `select e.id, e.code, e.title, e.work_status, e.boss_decision, public.event_done_on(e.id) is not null as done, e.cancelled_at is not null as cancelled, c.name as category,
                   (select count(*)::int from public.storyboard_blocks b join public.storyboards sb on sb.id = b.storyboard_id
                     where sb.event_id = e.id and b.deleted_at is null) as blocks,
                   (select count(*)::int from public.media_assets m where m.event_id = e.id and m.kind in ${RAW} and m.deleted_at is null) as material,

@@ -22,10 +22,12 @@ const NAME = (p: string) => `(select coalesce(nullif(${p}.full_name, ''), ${p}.e
 
 // Everything about an event that the CURRENT USER may read. RLS decides: for social, `schedule` simply comes back
 // null; for the IVT and política, so do the brief, the storyboard and the cameras (they never enter can_see_event).
+// `done_on` (the day it happened) comes from event_done_on(): the column is closed to every API role, and política
+// gets null (it never reads a date; 20261028002100_privacy_hardening.sql).
 export async function getEvent(sql: Sql, id: string): Promise<EventFull | null> {
   const e = await sql.one<Omit<EventFull, 'schedule' | 'brief' | 'storyboard' | 'blocks' | 'cameras'>>(
     `select e.id, e.code, e.title, e.place_name, e.municipality, e.summary, e.category_id, c.name as category_name,
-            e.priority, e.boss_decision, e.work_status, e.urgency, e.done_on, e.created_by,
+            e.priority, e.boss_decision, e.work_status, e.urgency, public.event_done_on(e.id) as done_on, e.created_by,
             e.kind, e.origin, e.rev, e.updated_at, ${NAME('pu')} e.updated_by) as updated_by_name,
             e.cancelled_at, ${NAME('pc')} e.cancelled_by) as cancelled_by_name, e.cancel_reason,
             e.obra_ficha_id, e.community_report_id
@@ -58,10 +60,12 @@ export async function getEvent(sql: Sql, id: string): Promise<EventFull | null> 
   return { ...e, schedule, brief, storyboard, blocks, cameras };
 }
 
-// The ficha an event was born from (§4.1, §4.2), as far as THIS person may read it. RLS decides: Redes and Grabación
-// get an obra's main part while its visit is live and never a report (null: no tab); the IVT and política never come
-// here (they read the event row only). `contacts`: also read the private part (asked only for the boss, despacho and
-// administración; the database still wants 2FA and returns null otherwise). `media`: its photos and papers.
+// The ficha an event was born from (§4.1, §4.2), as far as THIS person may read it. The database decides: the obra
+// roles read the obra row; Redes and Grabación get, from visit_obra_ficha(), only the columns of the «Ficha de obra»
+// tab (no stage, author, times, follow-up owner nor the obra's own days) while its visit is live, and never a report
+// (null: no tab); the IVT and política never come here (they read the event row only). `contacts`: also read the
+// private part (asked only for the boss, despacho and administración; the database still wants 2FA and returns null
+// otherwise). `media`: its photos and papers.
 // `row` and `priv` stay on the server: pages hand only the fields fit for the person to the screen (ficha-tab.ts).
 export type EventFicha = {
   kind: 'obra' | 'report';
@@ -81,7 +85,9 @@ export async function linkedFicha(
   if (!kind) return null;
   const id = (ev.obra_ficha_id ?? ev.community_report_id)!;
   const [table, privTable] = kind === 'obra' ? ['obra_fichas', 'obra_ficha_private'] : ['community_reports', 'community_report_private'];
-  const row = await sql.one<Record<string, unknown>>(`select * from public.${table} where id = $1 and deleted_at is null`, [id]);
+  const row =
+    (await sql.one<Record<string, unknown>>(`select * from public.${table} where id = $1 and deleted_at is null`, [id])) ??
+    (kind === 'obra' ? await sql.one<Record<string, unknown>>(`select * from public.visit_obra_ficha($1)`, [id]) : null);
   if (!row) return null;
   const priv = opts.contacts ? await sql.one<Record<string, unknown>>(`select * from public.${privTable} where id = $1`, [id]) : null;
   return {

@@ -45,6 +45,9 @@ const assignedTo = async (who: DemoUserKey) =>
   (await t.system((sql) =>
     sql.query<{ id: string }>(`select e.id from public.events e join public.event_assignments a on a.event_id = e.id where a.user_id = $1 order by e.code`, [t.ids[who]]),
   )).map((r) => r.id);
+// Redes and Grabación read an obra only through visit_obra_ficha() (the columns of the event's «Ficha de obra» tab),
+// never the table (20261028002100_privacy_hardening.sql).
+const visit = (who: DemoUserKey, id: string) => count(who, 'select 1 from public.visit_obra_ficha($1)', [id]);
 const linkObra = (fichaId: string, eventId: string) => t.system((sql) => sql.query(`update public.events set obra_ficha_id = $1 where id = $2`, [fichaId, eventId]));
 const linkReport = (reportId: string, eventId: string) => t.system((sql) => sql.query(`update public.events set community_report_id = $1 where id = $2`, [reportId, eventId]));
 const history = (where: string, id: string) =>
@@ -86,24 +89,26 @@ describe('fichas de obra: quién las ve y quién las escribe', () => {
   it('redes ve la parte principal de una obra solo cuando un evento vivo que ve la tiene; nunca los contactos, por ninguna vía', async () => {
     const f = await newObra();
     await t.as('ivt', (sql) => sql.query(`insert into public.obra_ficha_private (id, liaison_name, liaison_phone) values ($1, 'Enlace de prueba (demo)', '0000-0000301')`, [f.id]));
-    expect(await count('social', 'select 1 from public.obra_fichas where id = $1', [f.id])).toBe(0);
+    expect(await visit('social', f.id)).toBe(0);
     const ev = await eventAt(0);
     await linkObra(f.id, ev);
-    expect(await count('social', 'select 1 from public.obra_fichas where id = $1', [f.id])).toBe(1);
+    expect(await visit('social', f.id)).toBe(1);
+    // The table itself never: only the tab's columns, through the function.
+    expect(await count('social', 'select 1 from public.obra_fichas where id = $1', [f.id])).toBe(0);
     // The contacts: not directly, not by join, subquery or exists.
     expect(await count('social', 'select 1 from public.obra_ficha_private')).toBe(0);
-    const j = await t.as('social', (sql) => sql.query<{ p: string | null }>(`select p.liaison_phone as p from public.obra_fichas f left join public.obra_ficha_private p on p.id = f.id`));
-    expect(j.length).toBeGreaterThan(0);
+    const j = await t.as('social', (sql) => sql.query<{ p: string | null }>(`select p.liaison_phone as p from public.visit_obra_ficha($1) f left join public.obra_ficha_private p on p.id = f.id`, [f.id]));
+    expect(j).toHaveLength(1);
     expect(j.every((r) => r.p === null)).toBe(true);
-    const s = await t.as('social', (sql) => sql.query<{ p: string | null }>(`select (select liaison_name from public.obra_ficha_private p where p.id = f.id) as p from public.obra_fichas f`));
+    const s = await t.as('social', (sql) => sql.query<{ p: string | null }>(`select (select liaison_name from public.obra_ficha_private p where p.id = f.id) as p from public.visit_obra_ficha($1) f`, [f.id]));
     expect(s.every((r) => r.p === null)).toBe(true);
-    expect(await count('social', 'select 1 from public.obra_fichas f where exists (select 1 from public.obra_ficha_private p where p.id = f.id)')).toBe(0);
+    expect(await count('social', 'select 1 from public.visit_obra_ficha($1) f where exists (select 1 from public.obra_ficha_private p where p.id = f.id)', [f.id])).toBe(0);
     expect(await count('social', `select 1 from public.events e join public.obra_ficha_private p on p.id = e.obra_ficha_id`)).toBe(0);
     // The event is deleted: the obra is gone for Redes again.
     await t.as('admin', (sql) => sql.query(`update public.events set deleted_at = now() where id = $1`, [ev]));
-    expect(await count('social', 'select 1 from public.obra_fichas where id = $1', [f.id])).toBe(0);
+    expect(await visit('social', f.id)).toBe(0);
     await t.as('admin', (sql) => sql.query(`update public.events set deleted_at = null where id = $1`, [ev]));
-    expect(await count('social', 'select 1 from public.obra_fichas where id = $1', [f.id])).toBe(1);
+    expect(await visit('social', f.id)).toBe(1);
   });
 
   it('grabación ve solo la obra de su visita asignada, y sin contactos', async () => {
@@ -114,12 +119,14 @@ describe('fichas de obra: quién las ve y quién las escribe', () => {
     await linkObra(a.id, cam[0]);
     await linkObra(b.id, cam2[cam2.length - 1]);
     await t.as('ivt', (sql) => sql.query(`insert into public.obra_ficha_private (id, engineer_phone) values ($1, '0000-0000302'), ($2, '0000-0000303')`, [a.id, b.id]));
-    expect(await count('camera', 'select 1 from public.obra_fichas where id = $1', [a.id])).toBe(1);
-    expect(await count('camera', 'select 1 from public.obra_fichas where id = $1', [b.id])).toBe(0);
-    expect(await count('camera2', 'select 1 from public.obra_fichas where id = $1', [b.id])).toBe(1);
-    expect(await count('camera2', 'select 1 from public.obra_fichas where id = $1', [a.id])).toBe(0);
+    expect(await visit('camera', a.id)).toBe(1);
+    expect(await visit('camera', b.id)).toBe(0);
+    expect(await visit('camera2', b.id)).toBe(1);
+    expect(await visit('camera2', a.id)).toBe(0);
+    // The table itself never (only the tab's columns, through visit_obra_ficha()).
+    for (const who of ['camera', 'camera2'] as const) expect(await count(who, 'select 1 from public.obra_fichas'), who).toBe(0);
     // Every obra camera sees is linked to one of its assigned events.
-    const seen = await t.as('camera', (sql) => sql.query<{ id: string }>(`select id from public.obra_fichas`));
+    const seen = await t.as('camera', (sql) => sql.query<{ id: string }>(`select v.id from public.events e cross join lateral public.visit_obra_ficha(e.obra_ficha_id) v`));
     const linked = await t.system((sql) => sql.query<{ id: string }>(`select obra_ficha_id as id from public.events where id = any($1::uuid[]) and obra_ficha_id is not null`, [cam]));
     expect(new Set(seen.map((r) => r.id))).toEqual(new Set(linked.map((r) => r.id)));
     for (const who of ['camera', 'camera2'] as const) expect(await count(who, 'select 1 from public.obra_ficha_private')).toBe(0);
@@ -508,8 +515,8 @@ describe('historia de la ficha: solo se agrega', () => {
   it('redes y grabación no leen la historia, ni la de una obra que sí ven', async () => {
     const f = await newObra();
     await linkObra(f.id, (await assignedTo('camera'))[0]);
-    expect(await count('camera', 'select 1 from public.obra_fichas where id = $1', [f.id])).toBe(1);
-    expect(await count('social', 'select 1 from public.obra_fichas where id = $1', [f.id])).toBe(1);
+    expect(await visit('camera', f.id)).toBe(1);
+    expect(await visit('social', f.id)).toBe(1);
     for (const who of ['social', 'social2', 'camera', 'camera2'] as const) expect(await count(who, 'select 1 from public.ficha_updates'), who).toBe(0);
   });
 

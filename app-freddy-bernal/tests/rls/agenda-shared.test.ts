@@ -54,9 +54,11 @@ describe('el jefe y el despacho comparten la agenda', () => {
     // Nothing is born cancelled, done or as a community activity by hand.
     await fails(t.as('dispatch', (sql) => sql.query(`insert into public.events (title, created_by, kind) values ('Actividad a mano (demo)', auth.uid(), 'community')`)), /reporte/);
     const c = await t.as('dispatch', (sql) =>
-      sql.one<Record<string, unknown>>(`insert into public.events (title, created_by, cancelled_at, cancel_reason, done_on) values ('Evento trampa (demo)', auth.uid(), now(), 'x', current_date) returning cancelled_at, done_on, cancel_reason`),
+      sql.one<Record<string, unknown>>(`insert into public.events (title, created_by, cancelled_at, cancel_reason, done_on) values ('Evento trampa (demo)', auth.uid(), now(), 'x', current_date) returning id, cancelled_at, cancel_reason`),
     );
-    expect(c).toEqual({ cancelled_at: null, done_on: null, cancel_reason: '' });
+    expect(c).toMatchObject({ cancelled_at: null, cancel_reason: '' });
+    // done_on is not readable as a column (20261028002100_privacy_hardening.sql): the system reads it.
+    expect((await event(String(c!.id)))!.done_on).toBeNull();
   });
 
   it('nadie más crea eventos: ni administración, ni Redes, ni Grabación, ni el IVT, ni política; el jefe sin doble factor tampoco', async () => {

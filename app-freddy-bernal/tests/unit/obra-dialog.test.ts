@@ -226,14 +226,21 @@ describe('sin contactos ni teléfonos', () => {
     expect(dialogContactProblem('Llamen al 0000-0000102.', base(), BRAND, null)).toContain('parece un teléfono (0000-0000102)');
   });
 
-  it('lo que parece un teléfono: 7 números o más con guiones, espacios, paréntesis o +; no las cifras de la ficha ni una fecha', () => {
-    const f = base();
-    expect(dialogPhones('Llamen al 0414-1234567 o al (0276) 555-1234, o al +58 414 123 4567.', f, BRAND)).toEqual(['0414-1234567', '(0276) 555-1234', '+58 414 123 4567']);
-    expect(dialogPhones('Escriban al 04141234567.', f, BRAND)).toEqual(['04141234567']);
-    expect(dialogPhones('La inversión es de 1.500.000 bolívares; son 1.200 personas, 300 familias y 80 m de puente.', f, BRAND)).toEqual([]);
-    expect(dialogPhones('La inversión es de 1500000 bolívares.', f, BRAND)).toEqual([]);
-    expect(dialogPhones('Lo entregamos el 2027-03-05, como se dijo.', f, BRAND)).toEqual([]);
-    expect(dialogPhones('Son 1200 300 familias.', f, BRAND)).toEqual([]);
-    expect(dialogPhones('Van 123 456 7890.', f, BRAND)).toEqual(['123 456 7890']);
+  it('lo que parece un teléfono: 7 números o más con guiones, espacios, paréntesis o +; nunca un monto con puntos ni una fecha', () => {
+    expect(dialogPhones('Llamen al 0414-1234567 o al (0276) 555-1234, o al +58 414 123 4567.')).toEqual(['0414-1234567', '(0276) 555-1234', '+58 414 123 4567']);
+    expect(dialogPhones('Escriban al 04141234567.')).toEqual(['04141234567']);
+    expect(dialogPhones('La inversión es de 1.500.000 bolívares; son 1.200 personas, 300 familias y 80 m de puente.')).toEqual([]);
+    expect(dialogPhones('La inversión es de 1500000 bolívares.')).toEqual([]);
+    expect(dialogPhones('Lo entregamos el 2027-03-05, como se dijo.')).toEqual([]);
+    expect(dialogPhones('Van 123 456 7890.')).toEqual(['123 456 7890']);
+  });
+
+  it('dos cifras de la ficha pegadas como un teléfono también se rechazan: la base no guarda eso en «Lo que voy a decir»', () => {
+    // 1200 personas y 300 familias son de la ficha, pero «1200 300» se lee como un teléfono (Redes y Grabación lo
+    // leen tal cual): el texto se rechaza con la salida de siempre, escribir la cifra con puntos.
+    const problem = dialogContactProblem('Son 1200 300 familias.', base(), BRAND, null);
+    expect(problem).toContain('parece un teléfono (1200 300)');
+    expect(problem).toContain('escríbela con puntos');
+    expect(dialogContactProblem('Son 1.200 personas y 300 familias.', base(), BRAND, null)).toBeNull();
   });
 });

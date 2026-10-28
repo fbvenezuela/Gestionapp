@@ -61,7 +61,7 @@ async function history(sql: Sql, column: 'obra_ficha_id' | 'community_report_id'
 
 async function linkedEvent(sql: Sql, column: 'obra_ficha_id' | 'community_report_id', id: string): Promise<LinkedEvent | null> {
   return sql.one<LinkedEvent>(
-    `select e.id, e.code, e.title, e.boss_decision, e.done_on, sc.starts_at, sc.ends_at, e.cancelled_at,
+    `select e.id, e.code, e.title, e.boss_decision, public.event_done_on(e.id) as done_on, sc.starts_at, sc.ends_at, e.cancelled_at,
             (e.cancelled_at is null and e.boss_decision <> 'rejected') as live
        from public.events e left join public.event_schedule sc on sc.event_id = e.id
       where e.${column} = $1 and e.deleted_at is null
@@ -231,7 +231,7 @@ export async function municipalityTimeline(sql: Sql, municipality: string, today
   }
   if (!onlyReports && !f.parish) {
     const events = await sql.query<{ id: string; code: string; title: string; boss_decision: string; done_on: string | Date | null; starts_at: string | Date | null; created_at: string | Date }>(
-      `select e.id, e.code, e.title, e.boss_decision, e.done_on, sc.starts_at, e.created_at
+      `select e.id, e.code, e.title, e.boss_decision, public.event_done_on(e.id) as done_on, sc.starts_at, e.created_at
          from public.events e left join public.event_schedule sc on sc.event_id = e.id
         where e.deleted_at is null and e.cancelled_at is null and e.municipality = $1 order by e.created_at desc limit 100`,
       [municipality],

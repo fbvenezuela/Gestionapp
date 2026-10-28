@@ -19,6 +19,7 @@ import {
   type FichaRef,
 } from '@/lib/domain/agenda-notices';
 import { looksLikeDateTime } from '@/lib/push/text';
+import { phonesIn } from '@/lib/domain/phones';
 
 // The shared agenda (cambios del 27/10/2026, §3 and §4): «Ponerle fecha» to a ficha, «Mover», «Cancelar» and «No va».
 // Only the boss and despacho (the database: can_manage_agenda(), schedule_ficha()). What the boss dates himself is
@@ -154,10 +155,12 @@ const cancelSchema = z.object({
 export async function cancelEvent(raw: unknown) {
   return act(cancelSchema, raw, async (sql, i, s) => {
     if (!isManager(s.roles)) throw new UserError('Cancelan el jefe o el despacho.');
-    if (i.reason && looksLikeDateTime(i.reason)) {
+    // The same two rules the database checks on cancel_reason (events_cancel_reason_private): looksLikeDateTime()
+    // and the app's one phone detector (phonesIn: «555.0199» too).
+    if (i.reason && (looksLikeDateTime(i.reason) || phonesIn(i.reason).length > 0)) {
       throw new UserError('El motivo lo leen todos (Redes también): escríbelo sin fecha, hora ni teléfono.');
     }
-    const before = await sql.one<{ cancelled_at: unknown; done_on: unknown }>(`select cancelled_at, done_on from public.events where id = $1 and deleted_at is null`, [i.id]);
+    const before = await sql.one<{ cancelled_at: unknown; done_on: unknown }>(`select cancelled_at, public.event_done_on(id) as done_on from public.events where id = $1 and deleted_at is null`, [i.id]);
     if (!before) throw new UserError('No encontramos este evento.');
     if (before.cancelled_at) throw new UserError('Este evento ya estaba cancelado.');
     if (before.done_on) throw new UserError('Este evento ya se realizó: no se cancela.');

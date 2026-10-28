@@ -183,7 +183,7 @@ async function TeamList({ s }: { s: Awaited<ReturnType<typeof requireRole>> }) {
               exists (select 1 from public.storyboards sb join public.storyboard_blocks b on b.storyboard_id = sb.id and b.deleted_at is null where sb.event_id = e.id) as has_board,
               (select count(*)::int from public.media_assets m where m.event_id = e.id and m.deleted_at is null and m.kind in ('boss','drone','broll','other')) as n
          from public.events e
-        where e.deleted_at is null and e.boss_decision <> 'rejected' and e.done_on is null
+        where e.deleted_at is null and e.boss_decision <> 'rejected' and public.event_done_on(e.id) is null
         order by e.cancelled_at is not null, array_position(array['brief','storyboard','recording','material','editing','published'], e.work_status), e.urgency, e.code`,
     ),
   );

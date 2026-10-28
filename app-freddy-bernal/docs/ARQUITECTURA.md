@@ -74,7 +74,8 @@ Funciones: `has_role`, `has_any_role`, `is_staff`, `is_content_team` (admin, red
 1. Fecha, hora, duración, dirección exacta, cómo llegar y contactos: **solo** en `event_schedule`.
 2. Su RLS: `can_see_schedule()` = `mfa_ok()` y (admin, jefe o despacho, o grabación asignada).
 3. La vista `event_calendar` es `security_invoker`: para redes devuelve cero filas.
-4. Al marcar «realizado», `mark_event_done()` (security definer) copia solo el **día** a `events.done_on`.
+4. Al marcar «realizado», `mark_event_done()` (security definer) copia solo el **día** a `events.done_on`. Esa columna
+   está cerrada para la API: el día sale de `event_done_on()` (Redes y quien ve la fecha; política no, D-40).
 5. `event_schedule` no se publica en Realtime; la auditoría solo la lee administración.
 6. Correos, avisos, rutas de archivos, nombres de descarga y búsquedas no usan esas columnas.
 7. Probado en `tests/rls` y en `tests/e2e/flows.spec.ts` (redes no ve horas en la lista ni en la ficha).

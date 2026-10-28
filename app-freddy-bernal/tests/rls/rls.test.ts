@@ -14,9 +14,12 @@ const fails = async (p: Promise<unknown>) => {
 
 describe('regla de fecha y hora: redes nunca ve la agenda', () => {
   it('redes ve los eventos pero no event_schedule', async () => {
-    const evs = await t.as('social', (sql) => sql.query('select * from public.events'));
+    const evs = await t.as('social', (sql) => sql.query('select id, code, title, place_name, municipality, summary from public.events'));
     expect(evs.length).toBe(6);
     expect(Object.keys(evs[0])).not.toContain('starts_at');
+    // events.done_on is closed as a column to every API role (20261028002100_privacy_hardening.sql): `select *`
+    // fails; the day comes from event_done_on().
+    await fails(t.as('social', (sql) => sql.query('select * from public.events')));
     const sch = await t.as('social', (sql) => sql.query('select * from public.event_schedule'));
     expect(sch).toHaveLength(0);
   });
@@ -80,9 +83,10 @@ describe('regla de fecha y hora: redes nunca ve la agenda', () => {
     expect(new Set(sch.map((r) => r.event_id))).toEqual(new Set(assigned.map((r) => r.event_id)));
   });
 
-  it('al marcar realizado, redes ve solo el día', async () => {
-    const evs = await t.as('social', (sql) => sql.query<{ done_on: unknown }>('select done_on from public.events where done_on is not null'));
+  it('al marcar realizado, redes ve solo el día (D-06), por event_done_on()', async () => {
+    const evs = await t.as('social', (sql) => sql.query<{ d: unknown }>('select public.event_done_on(id) as d from public.events where public.event_done_on(id) is not null'));
     expect(evs.length).toBe(2);
+    await fails(t.as('social', (sql) => sql.query('select done_on from public.events')));
   });
 
   it('redes no puede marcar un evento como realizado ni cambiar su prioridad', async () => {

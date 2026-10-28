@@ -204,30 +204,17 @@ export function dialogUnknownNumbers(text: string, input: ObraDialogInput, brand
 // ---------------------------------------------------------------------------
 // Contacts never go into «Lo que voy a decir»: Redes and Grabación read it (and Redes builds the storyboard with
 // it). The template never reads the private part; a text edited by hand is checked before it is saved: no value of
-// the ficha's contacts (names, phones) and nothing that looks like a phone number, unless that same figure is in the
-// main part of the ficha (which Redes already reads, like «1.500.000» of the investment).
+// the ficha's contacts (names, phones) and nothing that looks like a phone number, whatever its source: the database
+// refuses the same in fab_dialog (obra_fichas_main_no_phone, 20261028002100_privacy_hardening.sql), so a figure of
+// the ficha written as a phone would be («1200 300»: write «1.200 personas y 300 familias»). An amount with dots
+// («1.500.000») or a date is never a phone.
 // ---------------------------------------------------------------------------
 const CONTACT_KEYS = ['reporter_name', 'liaison_name', 'representative', 'engineer_phone', 'liaison_phone'] as const;
-// Phones: the app's one detector (phones.ts: dots, dashes, spaces, slashes, «0414.555.0199» too; never «1.500.000»
-// or a date).
-const NUMBER_TOKEN = /\d(?:[\d.,]*\d)?/g;
-const digitsOf = (s: string) => s.replace(/\D/g, '');
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// Phone-like figures in a text that are not figures of the ficha's main part.
-export function dialogPhones(text: string, input: ObraDialogInput, brand: DialogBrand): string[] {
-  const known = new Set<string>();
-  for (const src of obraDialogSources(input, brand)) {
-    for (const m of [...phonesIn(src), ...(src.match(NUMBER_TOKEN) ?? [])]) known.add(digitsOf(m));
-  }
-  const out: string[] = [];
-  for (const c of phonesIn(text)) {
-    if (known.has(digitsOf(c))) continue;
-    const parts = c.split(/[\s\u00a0\u202f]+/).filter(Boolean);
-    if (parts.length > 1 && parts.every((p) => known.has(digitsOf(p)))) continue;
-    out.push(c);
-  }
-  return out;
+// Phone-like figures in a text: the app's one detector (phones.ts), the rule the database checks.
+export function dialogPhones(text: string): string[] {
+  return phonesIn(text);
 }
 
 // Why a hand-edited «Lo que voy a decir» cannot be saved, or null. `priv` = the ficha's private row as this person
@@ -242,9 +229,9 @@ export function dialogContactProblem(text: string, input: ObraDialogInput, brand
       return `No se guardó: «Lo que voy a decir» lo leen Redes y Grabación, y tiene un dato de los contactos de la ficha («${LABEL[k] ?? k}»). Quítalo y guarda otra vez.`;
     }
   }
-  const phones = dialogPhones(text, input, brand);
+  const phones = dialogPhones(text);
   if (phones.length) {
-    return `No se guardó: «Lo que voy a decir» lo leen Redes y Grabación, y tiene algo que parece un teléfono (${phones.join(', ')}). Quítalo y guarda otra vez.`;
+    return `No se guardó: «Lo que voy a decir» lo leen Redes y Grabación, y tiene algo que parece un teléfono (${phones.join(', ')}). Quítalo y guarda otra vez; si es una cifra, escríbela con puntos: 1.500.000.`;
   }
   return null;
 }

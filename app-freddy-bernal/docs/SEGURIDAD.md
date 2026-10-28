@@ -29,7 +29,13 @@ Actualizado: 25/10/2026. Qué se hizo para blindar la plataforma y qué falta.
      1810») también, salvo si el evento es ese mismo día; el evento tampoco se puede mover a ese día. Quien no ve la
      fecha (Secretaría) no puede agregar al título una fecha nueva: comprobarla contra la del evento le diría cuál es;
    - archivos: rutas con uuid, sin fecha ni nombre original;
-   - registros: el servidor no imprime datos de la agenda.
+   - registros: el servidor no imprime datos de la agenda;
+   - el día realizado (`events.done_on`): cerrado como columna para la API; `event_done_on()` lo da a Redes y a quien
+     ve la fecha, nunca a política (D-40);
+   - la ficha de obra: Redes y Grabación no leen la tabla; `visit_obra_ficha()` les da solo las columnas de la pestaña
+     «Ficha de obra», mientras la visita está viva, sin los días de la obra ni nombres (D-40);
+   - teléfonos y fechas en texto libre: la base rechaza un teléfono en lo que Redes y Grabación leen de la ficha de obra
+     y un teléfono, una fecha o una hora en el motivo de una cancelación, con la misma regla que la app (D-40).
 4. **Auditoría** por trigger en cada cambio (quién, qué, cuándo, antes y después), en una tabla en la que solo se
    agrega. Solo administración la lee.
 5. **Entrar:** solo por invitación, con código de 6 dígitos por correo (sin contraseñas), **doble factor TOTP**

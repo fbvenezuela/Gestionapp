@@ -2,6 +2,9 @@
 // Notification titles/bodies are written without an event's date or time (rule 4); this is a
 // second lock: anything that LOOKS like a date, a time or a phone number is removed.
 // False positives (e.g. «versión 2.1») are fine: losing a detail is better than leaking one.
+// looksLikeDateTime() is also the database's check on a cancel reason (public.text_has_datetime(),
+// 20261028002100_privacy_hardening.sql): a change to PATTERNS goes into a new migration too, with the cases of
+// tests/unit/fixtures/privacy-text-cases.ts.
 
 const MONTHS = 'enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre';
 const MONTHS_SHORT = 'ene|feb|mar|abr|may|jun|jul|ago|sept?|oct|nov|dic';

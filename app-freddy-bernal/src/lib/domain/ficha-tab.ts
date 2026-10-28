@@ -5,12 +5,13 @@ import { withoutPhones } from './phones';
 // The ficha inside the event it was born from (cambios del 27/10/2026, §4.1): the «Ficha de obra» / «Reporte» tab,
 // the boss's «Antes de hablar» and «Lo que voy a decir» in modo lectura. Pure, so it can be tested.
 //
-// Who reads what is the database's (RLS): Redes and Grabación read an obra's MAIN part only while its visit is live
-// (obra_fichas_select), never obra_ficha_private and never a community report. Even so, for them this takes only
-// what says what the obra is: no contact (the private part is not even passed in), no people's names besides the
-// engineer's (a public official, as in the event's brief: ficha-event.ts), no days of the obra's own calendar
-// (start, delivery, follow-up), and anything that looks like a phone number in free text is taken out. The boss,
-// despacho and administración (2FA) get the private part too, in its own box.
+// Who reads what is the database's: Redes and Grabación read an obra only while its visit is live, through
+// visit_obra_ficha() (20261028002100_privacy_hardening.sql: the columns this tab shows them, nothing else), never
+// obra_ficha_private and never a community report. Even so, for them this takes only what says what the obra is: no
+// contact (the private part is not even passed in), no people's names besides the engineer's (a public official, as
+// in the event's brief: ficha-event.ts), no days of the obra's own calendar (start, delivery, follow-up), and
+// anything that looks like a phone number in free text is taken out. The boss, despacho and administración (2FA) get
+// the private part too, in its own box.
 
 export type TabItem = { def: FieldDef; value: unknown; mark?: Mark };
 export type TabGroup = { key: string; title: string; items: TabItem[] };

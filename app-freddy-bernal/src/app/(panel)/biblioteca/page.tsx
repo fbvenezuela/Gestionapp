@@ -48,7 +48,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
   const { rows, archive } = await db(s, async (sql) => ({
     rows: await sql.query<Row>(
       `select e.id as event_id, e.title, e.code,
-              ${schedule ? `coalesce(e.done_on, (select (sc.starts_at at time zone 'America/Caracas')::date from public.event_schedule sc where sc.event_id = e.id and sc.starts_at < now()))` : 'e.done_on'} as day,
+              ${schedule ? `coalesce(public.event_done_on(e.id), (select (sc.starts_at at time zone 'America/Caracas')::date from public.event_schedule sc where sc.event_id = e.id and sc.starts_at < now()))` : 'public.event_done_on(e.id)'} as day,
               coalesce((select json_agg(json_build_object('id', m.id, 'kind', m.kind, 'label', m.label, 'bucket', m.bucket, 'mime', m.mime, 'size', m.size_bytes,
                                 'lock', ${mediaLockSql('m.id')}, 'ext', lower(substring(m.storage_path from '\\.([A-Za-z0-9]{1,5})$'))) order by m.kind, m.created_at)
                           from public.media_assets m where m.event_id = e.id and m.deleted_at is null and m.status = 'ready'), '[]') as media,

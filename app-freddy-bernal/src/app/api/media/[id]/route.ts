@@ -3,6 +3,7 @@ import { Readable } from 'node:stream';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSession } from '@/lib/auth/session';
 import { withUser } from '@/lib/db';
+import { mediaDownloadRow } from '@/lib/data/media';
 import { isDemo } from '@/lib/env';
 import { demoFilePath } from '@/lib/storage/demo-store';
 
@@ -17,18 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const s = await getSession();
   if (!s || !s.mfaOk) return new NextResponse('Entra de nuevo.', { status: 401 });
-  const row = await withUser(s.claims, (sql) =>
-    sql.one<{ bucket: string; storage_path: string; label: string; mime: string; code: string | null }>(
-      // The name starts with the parent's code: E-0042 (event), O-0001 (obra ficha), R-0001 (report).
-      `select m.bucket, m.storage_path, m.label, m.mime, coalesce(e.code, f.code, r.code) as code
-         from public.media_assets m
-         left join public.events e on e.id = m.event_id
-         left join public.obra_fichas f on f.id = m.obra_ficha_id
-         left join public.community_reports r on r.id = m.community_report_id
-        where m.id = $1 and m.deleted_at is null and m.status = 'ready'`,
-      [id],
-    ),
-  );
+  const row = await withUser(s.claims, (sql) => mediaDownloadRow(sql, id));
   if (!row) return new NextResponse('No encontrado', { status: 404 });
   const ext = row.storage_path.split('.').pop();
   const name = `${row.code ?? 'pieza'}-${row.label}`.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9-]+/g, '-') + `.${ext}`;

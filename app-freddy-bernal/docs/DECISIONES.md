@@ -37,6 +37,8 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 ## D-06. Al marcar «realizado» se revela solo el día
 - **Qué:** `mark_event_done` copia el día (sin hora) a `events.done_on`. Así el material entra al registro por día.
 - **Quién puede:** administración, despacho, el jefe y quien grabó.
+- **Quién lo ve (28/10/2026, D-40):** Redes (la biblioteca por día) y quien ve la fecha; política nunca. La columna
+  está cerrada para la API y el día sale de `event_done_on()`.
 
 ## D-07. Aprueba supervisión; lo rojo, el jefe (ni administración) — ver D-23
 - **Qué:** aprobar piezas verdes y amarillas y los tweets es de `supervisor`; las piezas en **rojo** las aprueba el
@@ -248,3 +250,29 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
   carpeta y guarda el id en la base).
 - **Cómo se cambia:** vaciar `STORAGE_PROVIDER` vuelve a Supabase para lo nuevo (lo de Drive sigue abriendo mientras
   Drive esté conectado). Pasos y variables: `DRIVE.md`.
+
+## D-40. La base cierra lo que la pantalla escondía (28/10/2026)
+- **Qué:** migración `20261028002100_privacy_hardening.sql`, con pruebas por rol en
+  `tests/rls/privacy-hardening.test.ts` (por SQL directo, saltándose la app).
+  - **La ficha de obra para Redes y Grabación:** ya no leen la tabla `obra_fichas`. Mientras la visita está viva (sin
+    cancelar, sin rechazar, sin borrar), `visit_obra_ficha()` les da solo las columnas de la pestaña «Ficha de obra»:
+    sin etapa, autor, horas de creación o cambio, responsable del seguimiento ni los días de la obra (inicio, entrega,
+    seguimiento). Sus fotos del antes y del avance siguen saliendo; los documentos, nunca.
+  - **Teléfonos:** la base rechaza algo que parezca un teléfono en el texto de la ficha de obra que leen Redes y
+    Grabación (también en «Lo que voy a decir») y en el motivo de una cancelación; en el motivo, además, una fecha o una
+    hora. Es la misma regla de la app (`phones.ts` y `looksLikeDateTime`), copiada en SQL y probada con los mismos
+    casos y con miles de textos generados. En «Lo que voy a decir» ya no pasan dos cifras de la ficha pegadas como un
+    teléfono («1200 300»): se escriben con puntos.
+  - **El día realizado (`events.done_on`):** es la fecha del evento, después. Redes lo sigue viendo (D-06 y el encargo
+    §8.3: el material queda en el registro por día, la biblioteca de Hillary); también quien ve la fecha
+    (administración, el jefe y el despacho, quien graba ese evento, el IVT en las visitas de sus obras). **Política
+    no:** nunca ve fechas, y leía el día de las actividades nacidas de sus reportes. La columna se cerró para todos los
+    roles de la API (permiso por columna: también en Realtime) y el día sale de `event_done_on()`, que a política le da
+    vacío.
+- **Por qué:** la regla de la agenda la cumple la base, no la pantalla (encargo del 27/10, §0).
+- **Lo que queda:** política aún lee `updated_at` y `work_status` de esas actividades; cambian cuando alguien las toca
+  (también al marcar realizado), sin decir el día. Una columna nueva en `events` hay que darla a `authenticated` a
+  propósito (la prueba lo recuerda).
+- **Cómo se cambia:** quién recibe el día, en `event_done_on()`; qué columnas de la obra ven Redes y Grabación, en
+  `visit_obra_ficha()` (y en `HIDDEN_WITHOUT_CONTACTS` de `ficha-tab.ts`); las dos reglas de texto, en una migración
+  nueva junto con su copia en la app y los casos de `tests/unit/fixtures/privacy-text-cases.ts`.

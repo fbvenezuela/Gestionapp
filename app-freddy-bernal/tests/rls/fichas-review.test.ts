@@ -92,8 +92,9 @@ describe('Redes y Grabación leen una obra solo mientras su visita está viva', 
     const ev = await cam2Event();
     await t.system((sql) => sql.query(`update public.events set obra_ficha_id = $1, boss_decision = 'accepted' where id = $2`, [obra.id, ev]));
     const photo = await upload('ivt', 'before', { obra: obra.id });
+    // The obra: its row for its roles, visit_obra_ficha() (the tab's columns) for Redes and Grabación.
     const sees = async (who: DemoUserKey) => [
-      await count(who, 'select 1 from public.obra_fichas where id = $1', [obra.id]),
+      await count(who, 'select 1 where exists (select 1 from public.obra_fichas where id = $1) or exists (select 1 from public.visit_obra_ficha($1))', [obra.id]),
       await count(who, 'select 1 from public.media_assets where obra_ficha_id = $1', [obra.id]),
     ];
     for (const who of ['social', 'camera2'] as const) expect(await sees(who), who).toEqual([1, 1]);
@@ -160,9 +161,11 @@ describe('el código y la fecha de creación de una ficha los pone la base', () 
 });
 
 describe('«Lo que voy a decir» en la historia', () => {
-  it('queda el nombre del campo, nunca el texto (por si alguien escribió un teléfono)', async () => {
+  it('queda el nombre del campo, nunca el texto (por si alguien escribió un dato de más)', async () => {
     const f = await newObra();
-    const text = 'Saludos. Llamen al enlace al 0000-0000777 (demo).';
+    // A phone is refused by the database itself (obra_fichas_main_no_phone, 20261028002100_privacy_hardening.sql).
+    await expect(t.as('ivt', (sql) => sql.query(`update public.obra_fichas set fab_dialog = 'Llamen al enlace al 0000-0000777 (demo).' where id = $1`, [f.id]))).rejects.toThrow(/obra_fichas_main_no_phone/);
+    const text = 'Saludos. Gracias al enlace ZQSECRETO777 (demo).';
     await t.as('ivt', (sql) => sql.query(`update public.obra_fichas set fab_dialog = $2, fab_generated_by = 'manual', works = 'Pilotes (demo)' where id = $1`, [f.id, text]));
     const rows = await t.system((sql) =>
       sql.query<{ fields: string[]; changes: Record<string, unknown> }>(`select fields, changes from public.ficha_updates where obra_ficha_id = $1 and kind = 'update'`, [f.id]),
@@ -170,7 +173,7 @@ describe('«Lo que voy a decir» en la historia', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].fields).toEqual(['fab_dialog', 'fab_generated_by', 'works']);
     expect(Object.keys(rows[0].changes).sort()).toEqual(['fab_generated_by', 'works']);
-    expect(JSON.stringify(rows)).not.toContain('0000-0000777');
+    expect(JSON.stringify(rows)).not.toContain('ZQSECRETO777');
     // Only the dialog changed: still one row, with an empty changes object.
     await t.as('ivt', (sql) => sql.query(`update public.obra_fichas set fab_dialog = 'Saludos (demo).' where id = $1`, [f.id]));
     const last = await t.system((sql) =>
