@@ -36,11 +36,14 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 
 ## D-06. Al marcar «realizado» se revela solo el día
 - **Qué:** `mark_event_done` copia el día (sin hora) a `events.done_on`. Así el material entra al registro por día.
-- **Quién puede:** administración, despacho, el jefe y quien grabó.
+- **Quién puede:** el jefe y el despacho (con doble factor) y quien grabó, solo después de que empezó. Administración
+  ya no (27/10, D-32).
 - **Quién lo ve (28/10/2026, D-40):** Redes (la biblioteca por día) y quien ve la fecha; política nunca. La columna
   está cerrada para la API y el día sale de `event_done_on()`.
 
 ## D-07. Aprueba supervisión; lo rojo, el jefe (ni administración) — ver D-23
+> **Reemplazada el 27/10/2026 por D-29 y D-30:** Supervisión ya no existe y todo lo aprueba el jefe. Lo de abajo queda
+> como historia; sigue valiendo que administración nunca aprueba y que una versión nueva vuelve a revisión.
 - **Qué:** aprobar piezas verdes y amarillas y los tweets es de `supervisor`; las piezas en **rojo** las aprueba el
   **jefe**. Siempre con doble factor y por `review_piece`. Administración nunca aprueba. Una versión nueva o un copy
   cambiado vuelve a revisión; editar un tweet aprobado lo devuelve a borrador.
@@ -48,6 +51,9 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
   da el rol a otra persona (queda en el registro).
 
 ## D-08. Doble factor obligatorio para administración, jefe, despacho y supervisión
+> **Cambiada el 27/10/2026 (D-29) y el 28/10 (D-41):** sale supervisión y entran política y el IVT. La lista siempre
+> nombra a administración, jefe, despacho, política e IVT, y aprobar pide el doble factor del jefe sin leer la lista
+> (D-30).
 - **Qué:** lista en el ajuste `security.mfa_roles` (también operadores de denuncias y ayudas, fase 3). Sin `aal2`, la
   base les niega la agenda, la aprobación y los roles. Redes y grabación, antes de abrir la web (PENDIENTES #22).
 - **Cómo se cambia:** `config/clients/fb.json` (`mfaRoles`) o el ajuste en la base.
@@ -133,6 +139,9 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 - **Cómo se cambia:** se puede renombrar el repositorio en GitHub sin tocar el código.
 
 ## D-23. Semáforo de aprobación y lo que publica el jefe por su cuenta
+> **Cambiada el 27/10/2026 (D-30):** donde dice «supervisión», ahora es **el jefe**: aprueba verde, amarillo, rojo y
+> tweets, con doble factor; el nivel lo cambian el jefe o administración. El semáforo, los plazos, la lista de chequeo
+> y «lo que sale es exactamente lo aprobado» siguen igual.
 - **Qué:** quien manda una pieza a aprobar elige el nivel:
   - **Verde** (rutina): la aprueba supervisión, en el día; puede aprobar todas las verdes de una vez.
   - **Amarillo** (normal, por defecto): la aprueba supervisión; plazo 60 minutos.
@@ -209,8 +218,9 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
   cada pantalla; pantallas que se actualizan solas (Realtime con Supabase, cada 60 s en la demo, nunca mientras alguien
   escribe); motivos rápidos al pedir cambios y vista de cómo saldrá cada copy; resultados en tarjetas en el teléfono; aviso
   «Esa pantalla no es de tu rol» en vez de un salto sin explicación; tweets: «toca para cambiar el día o la hora».
-- Secretaría corrige su propuesta mientras el jefe no decide; avisos al jefe y a despacho de cada evento nuevo, y a quien
-  lo propuso cuando el jefe decide (sin fecha ni lugar en el texto). Solo el jefe decide (también en el servidor).
+- Secretaría corrige su propuesta mientras el jefe no decide (Secretaría salió el 27/10, D-29); avisos al jefe y a
+  despacho de cada evento nuevo, y a quien lo propuso cuando el jefe decide (sin fecha ni lugar en el texto). Solo el
+  jefe decide (también en el servidor).
 - Administración puede quitar material subido por error (no si está en una pieza aprobada, en revisión o publicada) y,
   en Equipo, ve quién tiene doble factor y lo reinicia si alguien pierde el teléfono (queda en el registro).
 - Las confirmaciones usan el diálogo de la app, no las ventanitas del navegador.
@@ -250,6 +260,250 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
   carpeta y guarda el id en la base).
 - **Cómo se cambia:** vaciar `STORAGE_PROVIDER` vuelve a Supabase para lo nuevo (lo de Drive sigue abriendo mientras
   Drive esté conectado). Pasos y variables: `DRIVE.md`.
+
+## D-29. Seis roles; Secretaría y Supervisión se van sin perder historia (27/10/2026)
+- **Qué:** el equipo son seis roles: **jefe, director de despacho, director de política, director del IVT, grabación y
+  redes** (Hillary: «más nada»). **Administración** queda como rol técnico (invitar, ajustes, registro): no sale en la
+  lista del equipo, en «Ver como…» ni en las guías. Migraciones `20261027001500_roles_enum.sql` (solo agrega los dos
+  roles nuevos) y `20261027001600_six_roles.sql`.
+- **Sin perder historia:**
+  - no se borra a nadie. Lo que aprobó Supervisión sigue con su autor (revisiones, piezas y tweets aprobados), y cada
+    rol quitado queda en el registro de cambios, con una fila de resumen;
+  - lo que propuso Secretaría se lee «propuesto por Despacho» (`events.origin`, D-32); quién lo escribió sigue en
+    `created_by`;
+  - las invitaciones pendientes pierden los roles que salen; la que queda vacía se anula;
+  - quien quedó sin rol: se le cierran las sesiones y ve «Sin acceso» hasta que administración le dé uno de los seis.
+- **Solo se dan los seis y administración.** La base rechaza los demás (al dar un rol, al invitar y al crear la
+  cuenta). Secretaría, Supervisión y los roles de la fase 3 siguen escritos en la base (borrar un valor de esa lista es
+  riesgoso), pero nadie los recibe.
+- **Grabación, «un solo perfil»:** un solo rol, con un usuario por persona (para saber quién subió qué y para el doble
+  factor de cada uno, como Redes en D-09). Todos ven la misma pantalla; cada uno, los eventos que le asignaron.
+- **Doble factor (cambia D-08):** administración, jefe, despacho, política e IVT.
+- **Demo:** salen los botones de Secretaría y Supervisión y entran «Director de política» y «Director del IVT» (nombres
+  inventados, `docs/DEMO.md`).
+- **Por qué:** encargo del 27/10, §2. Manda sobre `IDEA.md` §4 y la tabla de permisos del 24/10.
+- **Cómo se cambia:** un rol nuevo pide una migración que solo lo agregue (en su propio archivo) y otra que lo deje dar;
+  en la app, `TEAM_ROLES` de `src/lib/roles.ts`. La prueba `tests/rls/retire-roles.test.ts` arma datos viejos con los
+  roles retirados y revisa que la historia quede.
+
+## D-30. Solo el jefe aprueba (27/10/2026) — **Confirmar con Hillary**
+- **Qué:** lo que aprobaba Supervisión pasa al jefe: piezas verdes, amarillas y rojas, y los tweets. En la base hay una
+  sola puerta, `public.can_approve()`: el jefe **con doble factor**. Desde `20261027001650_approval_gate_fixes.sql` no
+  lee la lista editable del doble factor, así que nadie le baja la guardia desde Ajustes.
+  - «Aprobar todas las verdes (n)» de un toque, en su Inicio y en Por aprobar. Se salta la que cambió mientras tanto.
+  - Tweets: aprueba el texto que vio; si Redes lo cambió en ese rato, se salta y se avisa.
+  - Decidir y calificar eventos también pasan por `can_approve()` (D-32).
+  - El nivel (verde, amarillo, rojo) lo cambian el jefe o administración. Administración nunca aprueba y no puede ser
+    también el jefe en la misma cuenta (D-41).
+  - Avisos de revisión, plazos vencidos, tweets por aprobar y el resumen diario van al jefe.
+- **Por qué:** encargo §2: «las aprobaciones que hacía Supervisión pasan al jefe».
+- **Lo que se pierde:** ya no hay dos personas: el jefe puede aprobar algo que hizo él, y todo espera por él. Lo
+  alivian las verdes de un toque (lo rutinario va en verde).
+- **Pregunta para Hillary:** ¿alguien aprueba en su nombre (por ejemplo, el despacho las verdes)? ¿Fernando Alvarado
+  sigue revisando? Mientras tanto, solo el jefe. Si Fernando tiene cuenta, guarda su historia y no aprueba; si tiene que
+  comentar, se le da Redes.
+- **Cómo se cambia:** que otra persona apruebe en su nombre es cambiar **una sola función**, `can_approve()`, en una
+  migración nueva. Si fuera solo para las verdes, se toca también `review_piece`. Las pruebas `tests/rls/roles.test.ts`
+  y `tests/rls/por-rol.test.ts` dicen lo que debe seguir valiendo.
+
+## D-31. El jefe tiene todo, hasta lo de Redes (27–28/10/2026)
+- **Qué:**
+  - **En la base:** el jefe hace lo de Redes (piezas, versiones, copies, comentarios, frases, tweets, publicaciones,
+    resultados y subir material), lo de la agenda (D-32) y lo de las fichas. Una prueba compara, tabla por tabla, lo que
+    ve el jefe con todo lo que hay (`tests/rls/por-rol.test.ts`). Lo técnico (registro de cambios, buzón, ajustes)
+    sigue siendo de administración.
+  - **Su Inicio** (`/jefe`, ya no Hoy): arriba, «Vencidas en los municipios» (las 5 primeras) y «Te toca aprobar»
+    (rojo, amarillo y verde, «Aprobar todas las verdes (n)» y los tweets). Debajo, cuatro botones grandes con sus
+    números en vivo: **Política** (hoy, por decidir, por ponerle fecha, la agenda), **Obras** (las fichas del IVT por
+    estado y municipio), **Redes** (piezas en curso, listas para publicar, días de tweets y «Notas de Grabación
+    nuevas») y **Digital** (lo publicado, lo que viene, cómo nos va). Dos por fila en el iPad, uno debajo del otro en el
+    teléfono, botones de 56 px o más.
+  - **`/redes`:** su puerta a las mismas pantallas de Redes (Piezas, Tweets, Publicar, Resultados, Biblioteca), con lo
+    que espera en cada una y sin fechas de la agenda. Redes y administración también la abren.
+  - **Menú:** Inicio, Agenda, Por aprobar, Redes, Obras, Municipios y Digital. En el teléfono: Inicio, Agenda, Por
+    aprobar, Redes y «Más».
+  - Los números se cuentan como el jefe (RLS, `src/lib/data/home-counts.ts`): los mismos de la pantalla que abren, sin
+    eventos cancelados.
+- **Por qué:** encargo §3: «tiene todo, hasta lo de redes». Con once opciones el menú no cabía en el teléfono; por eso
+  Redes es una puerta.
+- **Cómo se cambia:** menú en `NAV` de `src/lib/roles.ts`; los botones en `src/app/(panel)/jefe/page.tsx`; la puerta en
+  `src/app/(panel)/redes/page.tsx`.
+
+## D-32. La agenda es del jefe y del despacho, juntos (27/10/2026)
+- **Qué:** migraciones `20261027002000_shared_agenda.sql` y `20261027002050_agenda_fixes.sql`.
+  - Solo **el jefe y el despacho**, con doble factor, crean eventos, ponen y cambian fecha y hora, llenan la ficha
+    técnica, mueven, cancelan y le ponen fecha a una ficha (`can_manage_agenda()`).
+  - Lo que crea o fecha **el jefe** queda aceptado de una vez. Lo del **despacho** llega «Por decidir», aunque diga
+    otra cosa. Solo el jefe decide y califica.
+  - **Administración ya no edita la agenda:** la lee, borra y restaura un evento (con doble factor) y no lo marca
+    realizado. Antes creaba eventos y ponía fecha.
+  - Cancelar no es borrar: el evento queda tachado, con quién, cuándo y el motivo (sin teléfono, fecha ni hora: la base
+    lo revisa). «Volver a la agenda» lo trae.
+  - Cada evento dice de dónde salió (despacho, jefe, política o IVT) y qué es (evento, visita de obra o actividad
+    comunitaria).
+  - Botones grandes para el iPad y el teléfono: Nuevo evento, Visita de obra, Por ponerle fecha y Por decidir. En el
+    evento: Mover, Cambiar fecha o lugar, Cancelar, Volver a la agenda e Historial.
+  - «Marcar realizado» solo después de que empezó, y solo quien ve la fecha. Un evento realizado ya no cambia de fecha
+    ni de lugar (D-41).
+- **Si los dos editan a la vez:** gana el último, pero se guarda solo lo que cada uno cambió. A quien cambió ese mismo
+  campo le llega «cambió lo mismo que tú», con los nombres de los campos y nunca el valor; lo de antes queda en el
+  Historial. Lo que alguien escribe queda en su teléfono hasta guardarlo, con «Usar lo de él / Dejar lo mío»; «Salir»
+  borra esos borradores.
+- **Avisos**, siempre con el título y nunca con la fecha: «Ya tiene fecha», «Cambió la fecha u hora» y «Se canceló»
+  (importantes: no se apagan), «cambió lo mismo que tú» y «cambió» (este último, apagado si nadie lo prende).
+- **Por qué:** encargo §3: «el director de despacho o el jefe pueden agregar cosas en conjunto», y §8: «solo jefe y
+  despacho la ponen». Que lo del despacho espere al jefe mantiene la idea de siempre: el jefe decide su agenda.
+- **Cómo se cambia:** quién escribe la agenda, en `can_manage_agenda()` (devolvérsela a administración es cambiar esa
+  función); qué toca cada rol en un evento, en `guard_event_update()`; los avisos, en
+  `src/lib/domain/agenda-notices.ts`.
+
+## D-33. «Por ponerle fecha»: de la ficha a la agenda (27/10/2026)
+- **Qué:**
+  - El IVT y política no ponen fecha. Al tocar **«Guardar y avisar al jefe»** (pide cada campo respondido o marcado
+    «No aplica» o «Por confirmar»), al jefe y al despacho les llega **«Por ponerle fecha»** con el nombre y el
+    municipio, nunca una fecha. «Guardar borrador» no avisa. En la ficha comunitaria decide el interruptor «¿Va a la
+    agenda del jefe?» (prendido por defecto solo si el tipo es «Evento»); si no va, queda en el registro del municipio.
+  - La lista sale de la vista `agenda_to_schedule`, que no tiene columna de fecha: obras listas y reportes que van a la
+    agenda, sin un evento vivo. Está en `/agenda/por-fecha`, primero en Hoy del despacho y en Política del jefe, con
+    «Ponerle fecha» y «No va» (su motivo queda en la historia de la ficha).
+  - **«Ponerle fecha»** usa `schedule_ficha()`, la única forma de unir un evento con una ficha. Crea el evento (visita
+    de obra o actividad comunitaria), su fecha y su ficha técnica, y anota «ya tiene fecha» en la historia, sin la
+    fecha. La ficha técnica que nace de una obra lleva el nombre del ingeniero, nunca teléfonos ni nombres de quien
+    reportó o del enlace.
+  - Si la pone el jefe, queda aceptada; si la pone el despacho, llega «Por decidir» (D-32).
+  - Una sola visita viva por ficha. Si se cancela, se rechaza o se borra, la ficha vuelve sola a «Por ponerle fecha»,
+    con el motivo en su historia y un aviso nuevo; si el jefe rechaza, el IVT o política reciben el aviso sin la fecha.
+    Al marcarla realizada, la obra queda realizada.
+- **Por qué:** encargo §4 («Por ponerle fecha» es texto de Hillary). «Al guardarla» se leyó como el botón principal: un
+  borrador a medias no le llena la lista al jefe.
+- **No se hizo:** cosas «sin fecha todavía» hechas a mano, sin ficha. Solo las fichas entran a la lista.
+- **Cómo se cambia:** qué entra, en la vista `agenda_to_schedule`; qué crea, en `schedule_ficha()`; el aviso, en
+  `src/lib/domain/agenda-notices.ts`.
+
+## D-34. Ficha de obra del IVT y el diálogo FAB (27–28/10/2026) — **Confirmar con Hillary** (el IVT y la fecha)
+- **Qué:** migración `20261027001700_fichas.sql` (y sus arreglos `…001950`, `…002100` y `20261028002100`). Pantallas
+  Obras, Nueva ficha de obra, la ficha y su modo lectura.
+  - Los campos de §4.1 en cinco grupos. Cada uno admite **«No aplica» o «Por confirmar»**: se guarda vacío y marcado.
+    El código (O-0001) y la fecha de creación los pone la base.
+  - Lo de terceros (teléfono del ingeniero, quién reportó, el enlace comunitario y lo que el jefe debe saber) va aparte
+    y se ve solo con doble factor. La parte principal no se guarda con un teléfono: la app y la base lo rechazan y dicen
+    en qué campo está.
+  - Fotos en Antes, Avance, Después y Documentos, con la subida que aguanta mala señal y sin la ubicación. Los
+    Documentos (denuncias, actas) solo los ve quien ve los contactos.
+  - Redes y Grabación ven la obra solo dentro de su visita viva, en la pestaña «Ficha de obra» (D-40): sin contactos,
+    sin teléfonos y sin documentos.
+- **«Generame un diálogo FAB con esto»:** el botón **«Generar diálogo FAB»** arma «Lo que voy a decir» (qué es la obra,
+  qué mejora, qué gana la gente) con la voz del jefe. Con la IA apagada sale de una plantilla con los campos y **nunca
+  inventa cifras**: solo las de la ficha (probado con 200 fichas inventadas). Lo «Por confirmar» no se dice y nunca lee
+  los contactos. Se puede cambiar antes de guardar. Llega al modo lectura del jefe (si el storyboard no tiene discurso)
+  y al storyboard de Redes («Usar como discurso»).
+- **El IVT ve la fecha de sus visitas:** cuando el jefe o el despacho ya la pusieron, el IVT la ve (con doble factor)
+  en «Mis visitas de obra», solo de las visitas nacidas de una ficha de obra. Ve la fecha, la hora y el sitio (también
+  los contactos del sitio), nunca la ficha técnica, el storyboard ni el material. Es como Grabación con sus eventos
+  (D-05): tiene que estar allí.
+- **Por qué:** encargo §4.1.
+- **Preguntas para Hillary:** ¿está bien que el IVT vea la fecha de sus visitas? Y, de D-41: ¿administración también
+  deja de ver los contactos de las fichas de obra?
+- **Cómo se cambia:** los campos, en `src/lib/domain/ficha-fields.ts` y una migración; la plantilla, en
+  `src/lib/domain/obra-dialog.ts`; que el IVT no vea la fecha, en su rama de `can_see_schedule()` (migración nueva).
+
+## D-35. Ficha comunitaria de política, por municipio (27–28/10/2026)
+- **Qué:** misma migración de fichas. Pantallas Municipios, cada municipio, Nueva ficha comunitaria y el reporte.
+  - Los diez grupos de §4.2, «una ficha por actividad o situación». El código (R-0001) lo pone la base. Si no es un
+    evento (un avance, una incidencia), queda en el registro sin ir a la agenda (D-33).
+  - **Municipios:** los 29, cada uno con sus contadores (abiertas, en ejecución, finalizadas y vencidas por su fecha
+    de seguimiento) y filtros por municipio, parroquia, tipo, estado y prioridad. Cada municipio muestra sus parroquias
+    y todo en orden de fecha. **Lo vencido sale arriba** en el inicio de política y en el del jefe.
+  - **La historia nunca se pisa:** quién la creó, cada cambio de estado (con su motivo), cada actualización y cada nota
+    se agregan. Nadie la cambia ni la borra, tampoco el sistema. De los contactos guarda solo el nombre del campo.
+  - **Parroquias en texto libre** hasta que llegue la lista oficial (`PENDIENTES.md` #8): el municipio sale de la
+    lista; la parroquia acepta cualquier texto corto, y el filtro junta las formas de escribir la misma (mayúsculas y
+    espacios).
+  - **Contactos** (quién reporta, su cargo y teléfono, la dirección, la referencia y la fecha de la actividad): solo
+    los ven **política, el despacho y el jefe**, con doble factor (D-41: administración ya no; ve la parte principal,
+    sin teléfonos, para borrar y restaurar). Redes y Grabación nunca ven un reporte.
+  - Política ve solo los eventos nacidos de sus reportes y nunca su fecha: le sale «Ya tiene fecha» (D-40).
+- **Por qué:** encargo §4.2: «Todo filtrado por municipio y que quede un registro. A eso hay que meterle lógica».
+- **Cómo se cambia:** la lista de parroquias va en el ajuste `parishes` (`config/clients/fb.json`); con ella, la base
+  acepta solo esas. Quién ve los contactos, en las políticas `community_report_private_*`.
+
+## D-36. Entrega de Grabación al editor (28/10/2026)
+- **Qué:** en cada evento asignado, en la pestaña Material, Grabación:
+  - sube **el storyboard con el que grabó** (foto o PDF, en su propio grupo) o lo escribe;
+  - sube el material crudo por casillas, como siempre;
+  - deja **una nota para el editor** (guardar otra vez la reemplaza). Avisa, sin bloquear, si parece llevar una hora o
+    una fecha, y no se guarda con un teléfono (los tiempos del video, «2:15», sí).
+- **Quién la ve:** Redes, el jefe y administración ven la nota y el storyboard arriba del material, con el primer
+  nombre de quien los dejó y sin horas. El despacho ve solo el archivo. A Redes le llega un aviso con el título del
+  evento y nada más (uno por hora, se puede apagar en Mi perfil); en Hoy y en el Inicio del jefe sale «Notas de
+  Grabación nuevas».
+- **«Descargar todo»** (en el evento y en la Biblioteca): un diálogo para elegir qué tipos bajar. Antes de empezar dice
+  si lo que viene de Drive no cabe en el cupo de hoy, y baja uno por uno, en orden:
+  - en Chrome o Edge de computadora, a una **carpeta** elegida, con una subcarpeta por tipo; otra vez en la misma
+    carpeta, salta lo que ya está entero (así sigue al día siguiente);
+  - en los demás navegadores, uno tras otro a descargas; en el iPhone, un toque por archivo;
+  - primero un `LEEME.txt` con el título, las notas de Grabación y la lista de archivos; **nunca** la fecha, la hora ni
+    la dirección, ni siquiera para el jefe. Los nombres de los archivos no llevan fecha (D-13);
+  - se detiene si se acaba el cupo o vence la sesión, y nunca dice «Listo» si algo no bajó.
+- **Por qué:** encargo §5. Carpeta y no zip: un evento pesa de 1 a 3 GB y el zip habría que armarlo entero en el
+  teléfono o en el servidor. El cupo diario de Drive (D-28: 1,75 GB por persona con el tope de 7 GB) puede cortar un
+  evento grande; por eso la carpeta sigue donde quedó.
+- **Cómo se cambia:** el plan de descarga, en `src/lib/media/download-plan.ts`; quién lee las notas, en las políticas
+  de `recording_notes` (migración `20261027001900_media_handoff.sql`).
+
+## D-37. Resultados con miniaturas (27/10/2026)
+- **Qué:** cada publicación de Resultados (la tarjeta del teléfono y la tabla) y de «Digital» del jefe lleva su
+  miniatura. El orden: la portada de la pieza → el archivo final (la imagen o un cuadro del video) → la captura de la
+  publicación → el ícono del formato. Lo que el jefe publica por su cuenta usa su captura; si no tiene, «Agregar
+  captura» (una sola vez).
+  - La miniatura (JPEG de hasta 320 px) se hace en el teléfono mientras sube; el servidor revisa sus bytes y la guarda
+    solo para el archivo propio, sin reemplazar otra. Se sirve por la plataforma después de revisar el permiso, para
+    cualquier almacenamiento, nunca con un enlace público de Drive. Sin miniatura sale el ícono, nunca una imagen rota.
+  - Demo: miniaturas inventadas y abstractas (sin personas, lugares ni texto).
+- **Por qué:** encargo §6. La plataforma de Mila no tiene pantalla de resultados: se hizo con su estilo de miniaturas.
+- **Lo demás de «Redes igual a Mila» espera:** el código de Mila apareció (`PENDIENTES.md` #11). Mila organiza Redes por
+  formato (Reels, Carruseles, Historias, Feed); la nuestra, por paso. Rehacerla es grande y el encargo dice «no rehagas
+  Redes a ciegas»: falta que Hillary confirme la tabla de diferencias.
+- **Cómo se cambia:** el orden, en `src/lib/domain/thumb-source.ts`.
+
+## D-38. Glass más visible, sin perder lectura (27–28/10/2026)
+- **Qué:** solo en los tokens y los componentes base (`docs/DISENO.md`, «Cara glass»):
+  - fondo con manchas suaves de la marca (oliva y amarillo) detrás de todo;
+  - tarjetas de **vidrio esmerilado** (45 % de blanco, 50 % en oscuro, desenfoque de 16 px), borde claro, sombra suave
+    y esquinas de 24 px;
+  - **las listas largas, sólidas:** agenda, registro, biblioteca, resultados, piezas, tweets, por aprobar, municipios,
+    obras, publicar, avisos, buzón, historia, y cualquier tarjeta con 9 filas o más. Nada se desenfoca detrás de una
+    tabla;
+  - barras, menús, paneles y diálogos con más desenfoque, pero casi opacos;
+  - **sólido de respaldo** cuando el navegador no sabe desenfocar, con «Modo sol», en teléfonos de 2 GB o menos o con
+    ahorro de datos, y si el sistema pide reducir transparencia, más contraste o colores forzados. «Menos movimiento»
+    se respeta;
+  - los grises y los colores de estado quedaron **un pelo más oscuros** en claro (y el apagado y el rojo un pelo más
+    claros en oscuro) para seguir en contraste AA sobre las manchas. Los colores de la marca no cambian.
+- **Por qué:** Hillary: «más bonita, más glass, más UI design»; el dueño, al ver la primera vuelta: «súbelo, que se
+  note más el glass». El encargo pide desenfoque en tarjetas y a la vez «sin desenfoque detrás de tablas largas»: por eso
+  las listas largas van sólidas.
+- **Cómo se cambia:** colores en `src/app/tokens.css`, reglas en `src/app/globals.css`; `tests/unit/ui-glass.test.ts`
+  falla si un color baja de AA. «Modo sol» quita el vidrio a mano.
+
+## D-39. Demo con los mismos datos en cada servidor; qué se puede probar ahí (27–28/10/2026)
+- **Qué:** el error de §1 («la ficha completa del evento da error») era de la demo: cada servidor de Vercel tenía otros
+  ids y la ficha decía «no encontrado» (D-02). Desde el 27/10 la siembra da los mismos ids en todos los servidores y
+  hay una prueba que abre cada evento, cada pestaña y el modo lectura en dos servidores, con cada rol que puede
+  abrirlo (jefe, despacho, redes, grabación, administración, política e IVT).
+  - Todo lo que Hillary tiene que ver ya viene sembrado: una obra y un reporte esperando fecha, una visita de obra con
+    fecha y fotos, un reporte vencido, la nota y el storyboard de Grabación, dos verdes, una amarilla y una roja por
+    aprobar, y miniaturas en Resultados. Sin eventos nuevos.
+- **Qué sí se prueba en la demo:** entrar con cada rol de un toque, recorrer sus pantallas, ver qué ve cada uno y qué
+  no (Redes sin fecha ni hora, el IVT y política sin «Ponerle fecha»), abrir eventos y fichas, y tocar los botones para
+  ver cómo funcionan (aprobar, ponerle fecha, subir).
+- **Qué no:** crear algo con un rol y verlo con otro. Lo creado vive en un solo servidor y se pierde cuando se reinicia;
+  la pantalla siguiente puede salir de otro y no mostrarlo. Tampoco correos reales, el doble factor de verdad, Drive ni
+  dos personas editando a la vez.
+- **Para eso:** la base real `fb-dev`, cuando Juan termine `docs/PROMPT-SUPABASE.md` y se apliquen las migraciones de
+  esta ronda. Ahí no hay entrar de un toque: invitación, código y doble factor.
+- **Por qué:** encargo §1 y §8 («el enlace de la versión de prueba para que ella entre con cada rol»).
+- **Cómo se cambia:** los ids fijos, en `src/lib/db/stable-ids.ts`; lo sembrado, en `src/lib/db/seed-parts/`.
 
 ## D-40. La base cierra lo que la pantalla escondía (28/10/2026)
 - **Qué:** migración `20261028002100_privacy_hardening.sql`, con pruebas por rol en

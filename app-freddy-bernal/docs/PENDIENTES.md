@@ -1,6 +1,6 @@
 # Lo que falta decidir o conseguir (antes o durante la construcción)
 
-Actualizado: 23/10/2026. La plataforma interna ya está construida en modo demostración; lo de abajo es lo que falta para pasar a datos reales y lo que hay que decidir. Mientras no esté, la sesión de Claude Code avanza con lo que está entre paréntesis («por ahora») y lo deja marcado.
+Actualizado: 23/10/2026; 28/10/2026: #8 (parroquias), #11 (código de Mila) y las preguntas de la segunda vuelta, al final. La plataforma interna ya está construida en modo demostración; lo de abajo es lo que falta para pasar a datos reales y lo que hay que decidir. Mientras no esté, la sesión de Claude Code avanza con lo que está entre paréntesis («por ahora») y lo deja marcado.
 
 ## Lo tiene que mandar alguien
 1. **Branding:** manual de identidad visual «F BERNAL», logos (incluido el de «Reporte Bernal 2.0»), colores y tipografías. Hillary preguntó el 22/10 si lo necesitas; le dijiste que sí. (Por ahora: paleta y logo provisionales, fáciles de cambiar en un solo archivo.)
@@ -10,13 +10,21 @@ Actualizado: 23/10/2026. La plataforma interna ya está construida en modo demos
 5. **Metricool:** ya no para publicar (Hillary, 22/10). Solo si se quiere para leer métricas: confirmar que el plan incluye la API.
 6. **Clave de API de IA** (copies, análisis de métricas, fotos). La suscripción de Claude o de ChatGPT no sirve para eso: hace falta una clave de API con su forma de pago.
 7. **La lista de personas que van a usar el panel**, por rol: operadores, redactores, despacho y supervisión.
+   **27/10:** ahora son los seis roles (jefe, despacho, política, IVT, grabación, redes); operadores y redactores, en la
+   fase 3.
 8. **Mapas de municipios y parroquias del Táchira** (límites geográficos), si se quiere ubicar cada reporte solo. (Por ahora: lista para elegir.)
+   **27/10: hace falta la lista oficial de parroquias por municipio** (las 66 parroquias de los 29 municipios). Las
+   fichas de obra y comunitarias la piden. Por ahora la parroquia es texto libre (hasta 100 letras) y el filtro junta las
+   formas de escribir la misma (mayúsculas y espacios), pero un error de escritura parte los contadores. Cuando llegue,
+   va en el ajuste `parishes` (`config/clients/fb.json`) y la base solo acepta esas (D-35).
 
 ## Lo tienen que decidir Hillary, Leo o el cliente
 1. **¿Se muestran los nombres de las personas ayudadas** en el feed público? Recomendado: solo con su permiso; si no, iniciales.
 2. **Denuncias:** ¿quién las atiende y a qué entidad se derivan las graves? Nada de una denuncia sería público.
 3. **Fotos mejoradas con IA:** recomendado que solo corrijan luz y nitidez, con la etiqueta «foto mejorada» y la original guardada. Una foto de obra que cambia lo que muestra se vuelve en contra.
 4. **¿Quién aprueba lo que se publica?** ¿Fernando Alvarado para todo, o solo para lo político?
+   **27/10:** Hillary: lo aprueba el jefe (D-30). Queda preguntar si alguien aprueba en su nombre y si Fernando sigue
+   revisando (ver al final).
 5. **Cuenta del ciudadano:** ¿se reporta sin cuenta (más fácil) o con verificación por teléfono (menos spam)?
 6. **Notificaciones a la gente:** ¿solo correo y aviso en la web, o también WhatsApp o SMS (tienen costo)?
 7. **Cuántos tweets al día y en qué horas** (Hillary dijo 4 o 5).
@@ -29,6 +37,15 @@ Actualizado: 23/10/2026. La plataforma interna ya está construida en modo demos
     y, para publicar, empezar por las APIs directas de Meta y X; TikTok cuando aprueben la app (su API pide revisión).
 11. **¿Dónde está el código de la plataforma de Mila?** Hay que copiarla y agregarle X. Si se hizo en Claude, ¿hay
     repositorio o hay que rehacerla a partir de capturas?
+    **28/10: apareció.** El código está en `escueladigitalusa-a11y/mila-proyecto` (una sola página, «Content Studio»),
+    y la versión en vivo se leyó sin entrar con ningún usuario. Mila organiza Redes **por formato** (Reels, YouTube,
+    Carruseles, Posts, Historias, Fin de mes y Vista del feed, con meses editoriales y cupos); la nuestra, **por paso**
+    (Piezas, Por aprobar, Publicar, Tweets, Resultados, Biblioteca). Mila no tiene resultados ni tweets. Ya se hizo lo
+    pedido para ahora: Resultados con miniaturas (D-37). La tabla de diferencias (qué falta, cuánto cuesta y lo que **no**
+    se copia por seguridad: el rol elegido en el navegador, entrar anónimo, archivos de Drive abiertos con el enlace,
+    borrar sin vuelta y «Programar» sin aprobación) está lista, y **falta que Hillary la confirme** antes de rehacer
+    Redes: el encargo dice «no rehagas Redes a ciegas». Capturas: ninguna obligatoria; sirve sobre todo la pantalla donde
+    hoy ve los resultados.
 12. **El Drive del cliente:** permiso para leer la carpeta de los días y eventos (cuenta del cliente).
 13. **Fórmulas de copies:** que Hillary mande sus fórmulas y ejemplos buenos de cada red.
 14. **La ropa:** fotos de las prendas del jefe y ejemplos de lo que se pone en cada tipo de evento.
@@ -54,6 +71,7 @@ Actualizado: 23/10/2026. La plataforma interna ya está construida en modo demos
     A–D de `DRIVE.md` (Google Cloud, variables en Vercel, conectar y probar, subir lo del Mac).
 19. **«Un solo perfil» para redes.** Recomendado: un solo **rol** (las cuatro ven y hacen lo mismo) pero **un usuario
     por persona**, para saber quién hizo qué y para el doble factor. Confirmar con Hillary. (Por ahora: así.)
+    **27/10:** igual para Grabación («un solo perfil»): un rol, un usuario por persona (D-29).
 20. **Reportes cercanos sin mostrar los de otros** (§11.1 de `IDEA.md`). Recomendado: solo «ya hay N reportes de esto a
     menos de 100 m, ¿te sumas?», sin fotos, textos ni nombres. Confirmar.
 21. **Permisos de las redes para publicar solos.** Cada una pide lo suyo y tarda:
@@ -63,7 +81,7 @@ Actualizado: 23/10/2026. La plataforma interna ya está construida en modo demos
     - YouTube: la subida gasta mucha cuota diaria.
     Verificar requisitos y precios vigentes. (Por ahora: publicación manual validada, con link y captura de evidencia.)
 22. **Doble factor desde el lunes.** Recomendado: obligatorio ya para administrador, jefe, director de despacho,
-    supervisión y quien vea denuncias o ayudas; para el resto, antes de abrir la web al público, con una guía paso a
+    supervisión (27/10: sale supervisión y entran política y el IVT, D-29) y quien vea denuncias o ayudas; para el resto, antes de abrir la web al público, con una guía paso a
     paso. Confirmar.
 23. **¿Quién es Igor y qué datos extrae?** (audio del 12/10, para los tweets de gestión).
 24. **Nombre de la plataforma.** El diseño dice «FB · Operaciones 360». ¿Se queda? (Por ahora: sí, en un solo archivo de
@@ -126,3 +144,30 @@ Resumen y lo que sirve: `docs/DIAGNOSTICO-360.md` (el ZIP no se subió al reposi
 ## Nuevo (25/10/2026)
 - **Correos que Resend rechazó:** quedan «failed» en Ajustes → Buzón y nadie los reenvía solos. Falta un reenvío con la misma clave en la tarea de cada 5 minutos.
 - **Permisos en `fb-dev`:** confirmar que el rol de `DATABASE_URL` puede borrar en `auth.sessions` (`npm run db:first-admin` avisa si no).
+
+## Nuevo (27–28/10/2026): segunda vuelta de Hillary
+Lo hecho está en `DECISIONES.md` D-29 a D-41. La guía por rol (`GUIA-POR-ROL.md`) **no se manda** hasta que Hillary
+pruebe cada rol (lo pidió el 25/10).
+
+**Preguntas para Hillary:**
+1. **Aprobaciones sin Supervisión:** ¿alguien aprueba en nombre del jefe (por ejemplo, el despacho las verdes)?
+   ¿Fernando Alvarado sigue revisando? (Por ahora: solo el jefe, con doble factor. Si Fernando tiene que comentar, se le
+   da Redes. D-30.)
+2. **El IVT y la fecha:** ¿está bien que el IVT vea la fecha de sus visitas cuando ya la pusieron? (Por ahora: sí, con
+   doble factor, solo de las visitas a obras del IVT, como Grabación con sus eventos. D-34.)
+3. **Contactos de las fichas de obra:** ¿administración también deja de verlos, como en las fichas comunitarias?
+   (Por ahora: los ve con doble factor. D-41.)
+4. **Mila:** ¿el repositorio `escueladigitalusa-a11y/mila-proyecto` es la versión final? ¿Qué pantallas se copian y en
+   qué orden? ¿Qué formatos usa el gobernador (¿«Fin de mes» sí o no?), qué cupos por mes, quién pone la valoración de
+   1 a 10 y si «Diseño desaprobado + nota» es lo mismo que «Pedir cambios» del jefe? (#11)
+5. **Grabación:** ¿cada persona ve solo los eventos que le asignaron (así está), o todos ven todo lo de Grabación?
+6. **Política y la fecha:** ¿el director de política debe ver la fecha de las actividades que nacen de sus reportes?
+   (Por ahora: no; ve «Ya tiene fecha».)
+7. **Datos de terceros:** ¿cuánto tiempo se guardan los nombres y teléfonos de las fichas? (Ver #8 de la lista de
+   decisiones: tiempo de los datos personales.)
+
+**Lo que falta de nuestra parte:**
+- Aplicar en `fb-dev` las migraciones de esta ronda (`20261027001500` a `20261028002200`, en orden; la `001500` sola,
+  antes que las demás) cuando Juan siga con `PROMPT-SUPABASE.md`. Ahí se puede probar creando cosas entre roles (en la
+  demo no: D-39).
+- Rehacer Redes como Mila, por partes, cuando Hillary confirme la tabla (#11).

@@ -21,13 +21,37 @@ repositorio). Se toman la máquina y las reglas; nada del negocio de Cemi. Este 
 - **Se llama «360»** (decidió Juan, 24/10/2026). Nombre, emoji y presentación por defecto en `config/clients/fb.json` →
   `assistant`; se cambian en Ajustes → Asistente sin desplegar.
 
+## Roles y reglas que usa 360 (desde el 27/10/2026)
+- **Seis roles del equipo** (jefe, despacho, política, IVT, grabación, redes) y administración, el técnico
+  (`DECISIONES.md` D-29). El «oficio» de cada uno está en `config/assistant/roles.json`: qué lleva, qué pantallas usa,
+  qué no es suyo y a quién mandarlo. No da ni quita permisos: eso lo decide la base.
+- **Lo que 360 dice de las reglas de la ronda:**
+  - todo lo aprueba **el jefe** (verdes de un toque; amarillas y rojas con la lista); administración nunca aprueba
+    (D-30);
+  - la agenda la hacen **el jefe y el despacho**: crear, poner fecha, mover y cancelar; lo del despacho espera la
+    decisión del jefe (D-32);
+  - **el IVT y política no ponen fecha**: cargan su ficha y «Guardar y avisar al jefe» la manda a «Por ponerle fecha»
+    (D-33). El IVT ve la fecha de sus visitas en «Mis visitas de obra»; política solo ve «Ya tiene fecha»;
+  - **Grabación** sube el material, el storyboard con el que grabó y la nota para el editor (D-36);
+  - **Redes** nunca ve fecha, hora ni dirección.
+  Las fichas de fábrica que lo dicen (`config/assistant/knowledge.json`): cambiar, cancelar y crear eventos, permisos,
+  Despacho, Grabación, storyboard, quién graba y la agenda privada.
+- **«¿Qué tengo pendiente?»** (`mis_pendientes`) trae lo mismo que el inicio de cada rol y manda a cada uno a su
+  pantalla: el jefe a su Inicio (lo que le toca aprobar, lo que espera su decisión, «Por ponerle fecha» y lo vencido);
+  el despacho a Hoy («Por ponerle fecha» y fichas técnicas incompletas); política a Municipios (lo vencido); el IVT a
+  Obras (sus fichas en borrador y cuántas esperan fecha); Grabación y Redes a Hoy. Nunca da fecha ni hora.
+- **Sin roles retirados:** al retirar Secretaría y Supervisión, las fichas y guiones del equipo que los nombraban los
+  perdieron (la que quedó sin rol se apagó, no se borró), y las automáticas se regeneraron (`assistant_refresh()`).
+- **Lo de terceros nunca pasa por 360:** las herramientas no leen los contactos de las fichas (`*_private`) ni la
+  fecha de la agenda, ni siquiera para quien los puede ver.
+
 ## Lo que habla de un evento lo contesta 360 sin IA
 La regla de fondo (ronda 4): en vez de buscar cada forma de escribir una fecha, una hora o un lugar, **un turno que
 habla de un evento nunca va al proveedor**, aunque haya cadena de modelos. Lo contesta el cerebro de demostración, que
 tiene las herramientas de eventos y la negativa de la agenda. No se reserva gasto para ese turno.
 - **Un solo detector** (`events.ts`, `aboutEvent` / `eventSignals`), el mismo en todas partes: qué cerebro contesta,
-  cuánto se tapa de la pregunta (`guardQuestion`), la red de salida, los avisos, las fichas y guiones, y lo que se le
-  dice a Supervisión al avisar al equipo. Antes lee las abreviaturas como palabras («kndo», «onde», «lo d la»). Habla de
+  cuánto se tapa de la pregunta (`guardQuestion`), la red de salida, los avisos, las fichas y guiones, y el motivo que le
+  llega a administración al avisar al equipo. Antes lee las abreviaturas como palabras («kndo», «onde», «lo d la»). Habla de
   un evento si trae: una palabra de evento («la feria», «el acto», «la agenda»), también con una letra de más, de menos,
   cambiada o trocada («feira», «evnto»); un evento en particular: un título que esa persona ve, entero, por un nombre
   suyo («Tariba»), por una tira de palabras con mayúscula («Alto Verde», aunque cada una sea común), por dos palabras
@@ -220,10 +244,11 @@ Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: 
   `assistant_actions` en un solo sitio.
   Herramientas iniciales: `mis_pendientes` (cuenta, todos), `eventos_por_decidir` (cuenta, jefe, administración y
   despacho: los eventos que esperan la decisión del jefe, sin fecha, hora ni lugar; su botón es Política para el jefe),
-  `estado_pieza(titulo)` (cuenta, equipo de contenido),
+  `estado_pieza(titulo)` (cuenta, equipo de contenido: administración, redes y el jefe),
   `dias_de_tweets` (cuenta, equipo de contenido), `mejores_horas(red)` y `reglas_de_video(red)` (cuenta, todos),
-  `buscar_evento(texto)` (cuenta, quien vea eventos; **nunca** lee `event_schedule`), `preparar_aviso(rol, texto)`
-  (prepara, admin y supervisión: borrador que confirma administración), `marcar_avisos_leidos` (hace, todos; deshacer =
+  `buscar_evento(texto)` (cuenta, quien vea eventos con su ficha técnica: administración, jefe, despacho, redes y
+  grabación; **nunca** lee `event_schedule`), `preparar_aviso(rol, texto)` (prepara, administración y el jefe; a uno de
+  los seis roles, a administración o a «todos»: borrador que confirma administración), `marcar_avisos_leidos` (hace, todos; deshacer =
   volver a no leídos), `avisar_al_equipo(motivo)` (siempre; el servidor pone la conversación).
 - `screens.ts` — destinos del botón «Ir a…»: `{ href, label, roles, phrases, nav, about }`, con los roles **copiados
   del control de acceso de cada página** (una prueba compara con `requireRole` del código). Exige una frase, no una
@@ -303,14 +328,12 @@ Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: 
   borra si no gastó nada. El tope del mes falla cerrado: si ya se pasó (contando las reservas en curso) o no se pudo
   leer el gasto, no se llama al modelo y contesta el cerebro de demostración. Al pasar el tope por hora, contesta como el
   asistente («Llevamos un buen rato…»), no como avería. Temperatura 0,6 (0,5 en la vuelta correctiva).
-- `escalate(conversationId, motivo)` — `notify()` a administración (y a supervisión si el motivo es de aprobación) con
-  enlace a la conversación en el panel; no repite en 6 horas. El motivo lo puede escribir el modelo (con los títulos
+- `escalate(conversationId, motivo)` — `notify()` solo a administración, también si el motivo es de aprobación (desde el
+  27/10 aprueba el jefe, y al jefe no le llega el ruido del asistente), con enlace a la conversación en el panel; no repite en 6 horas. El motivo lo puede escribir el modelo (con los títulos
   reales de vuelta): pierde cualquier marca que quede (también una abierta, «[[E1»), el lugar de un evento por su nombre
   o su tira de mayúsculas («la pieza de Alto Verde» → «la pieza de ese lugar»), y pasa por todas las reglas, los lugares
   dichos por su nombre (también después de «a» si no es alguien del equipo: «a Táriba» → «a [direccion]») y el filtro
-  de los avisos al teléfono. Si el motivo habla de un evento (el detector, contra todos
-  los títulos y lugares), a supervisión solo le llega «… necesita ayuda con un evento»; administración recibe el motivo
-  limpio.
+  de los avisos al teléfono. Administración recibe el motivo limpio.
 - Salud: en `/api/cron/tick`, si en la última hora más del 20 % de las respuestas salieron degradadas, aviso a
   administración, como mucho cada 6 horas.
 

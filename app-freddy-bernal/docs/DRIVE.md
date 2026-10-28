@@ -1,6 +1,6 @@
 # El material en Google Drive
 
-Actualizado: 25/10/2026. Para Juan: qué hace, qué tienes que hacer tú (en orden), cómo probarlo y qué pasa si el permiso
+Actualizado: 28/10/2026 («Descargar todo» y el cupo del día, más abajo). Para Juan: qué hace, qué tienes que hacer tú (en orden), cómo probarlo y qué pasa si el permiso
 de Google se vence. Decisión: `DECISIONES.md` D-28.
 
 ## En cinco líneas
@@ -87,8 +87,10 @@ Marca solo *Production* (desmarca *Preview* y *Development*): así la demo publi
    prueba se vencen a los 7 días aunque la publiques.
 
 La plataforma crea la carpeta **«FB Operaciones 360»** y adentro: `Videos`, `Fotos`, `Portadas`, `Audios` y
-`Documentos`, con una carpeta por evento con su **código** (`E-0042`), nunca con la fecha. Los archivos se llaman como
-en la plataforma (`E-0042-Jefe-hablando-1.mp4`), sin fecha, hora ni lugar.
+`Documentos`, con una carpeta por evento con su **código** (`E-0042`), nunca con la fecha. Desde el 27/10 también por
+ficha: `Fotos/O-0001` (fotos de una obra del IVT), `Fotos/R-0001` (evidencia de un reporte de política) y
+`Documentos/E-0042` (el storyboard con el que grabó Grabación). Los archivos se llaman como en la plataforma
+(`E-0042-Jefe-hablando-1.mp4`), sin fecha, hora ni lugar.
 
 ## D. El material de tu Mac (`~/Desktop/claude/freddy-videos-youtube/`, unos 2,3 GB)
 
@@ -183,6 +185,25 @@ recomiendo el script.
 - **Formato del video:** Drive solo da duración y medidas. De lo que sube el teléfono, la plataforma ya sabe todo; de
   lo que se elige o se importa de Drive, el navegador de Administración lee el formato justo después. Si no puede, las
   reglas por red dicen «revísalo a mano».
+
+## «Descargar todo» y el cupo del día (27–28/10/2026)
+Lo pidió Hillary para el editor (encargo §5): bajar de una vez todo el material de una pauta. Está en la pestaña
+Material de cada evento («Descargar todo el material») y en la Biblioteca. Decisión: `DECISIONES.md` D-36.
+- **Cómo funciona:** se abre un diálogo; eliges qué tipos bajar (jefe hablando, dron, apoyo, storyboard…). Baja **uno
+  por uno, en orden**, cada archivo de Drive por partes, como «Descargar».
+  - En Chrome o Edge de computadora: a una **carpeta** que eliges, con una subcarpeta por tipo. Si lo vuelves a hacer en
+    la misma carpeta, salta lo que ya bajó entero y sigue con lo que falta.
+  - En los demás navegadores (Android, Firefox, Safari): uno tras otro a descargas. En el iPhone, un toque por archivo.
+  - Primero baja un `LEEME.txt` con el título del evento, las notas de Grabación y la lista de archivos. **Nunca** lleva
+    la fecha, la hora ni la dirección, ni siquiera para el jefe. Los nombres de los archivos no llevan fecha.
+- **El cupo del día:** con el tope de 7 GB al mes, cada persona tiene 1,75 GB al día (Administración no tiene tope
+  diario). Un evento pesa de 1 a 3 GB, así que puede no caber en un día:
+  - **antes de empezar**, el diálogo dice si lo que viene de Drive no cabe en lo que te queda hoy (o en lo que queda del
+    mes);
+  - si se acaba a la mitad, se detiene y lo dice; nunca dice «Listo» si algún archivo no bajó;
+  - con la carpeta, al día siguiente eliges la misma carpeta y sigue donde quedó;
+  - si hace falta ya, Administración lo baja y se lo pasa. Con Vercel Pro (`DRIVE_TRANSFER_CAP_GB=0`) no hay tope.
+- También se detiene si la sesión venció (vuelve a entrar y sigue).
 
 ## Para probar sin Google (solo en tu Mac o en las pruebas)
 `STORAGE_PROVIDER=drive DRIVE_FAKE=1 npm run dev` (sin `DATABASE_URL`): un Drive de mentira en memoria, con la cuenta

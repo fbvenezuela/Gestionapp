@@ -1,6 +1,6 @@
 # La plataforma de Freddy Bernal: la idea completa
 
-Actualizado: 22/10/2026 (noche: §4 y §5 nuevos, §11 con lo que faltaba de los audios del 12 y 14/10 y de los grupos). Lo armó Juan con lo que pidió Hillary (Impulso Digital) entre el 12 y el 22 de octubre. El texto literal de cada pedido está en `requisitos-originales.md`. Lo que está por decidir está en `PENDIENTES.md`. El modelo visual, en `DISENO.md`.
+Actualizado: 22/10/2026 (noche: §4 y §5 nuevos, §11 con lo que faltaba de los audios del 12 y 14/10 y de los grupos). 28/10/2026: §4 con los seis roles de la ronda del 27/10. Lo armó Juan con lo que pidió Hillary (Impulso Digital) entre el 12 y el 22 de octubre. El texto literal de cada pedido está en `requisitos-originales.md`. Lo que está por decidir está en `PENDIENTES.md`. El modelo visual, en `DISENO.md`.
 
 ## 1. Para quién y para qué
 - **Cliente:** Freddy Bernal, gobernador del Táchira (Venezuela). Sus videos y mensajes abren con «¡Saludos, Táchira!». Canal de YouTube @FreddyBernal.oficial, cuenta de X @freddybernal_ve. El programa de videos se llama «Reporte Bernal 2.0».
@@ -35,7 +35,7 @@ Inspirado en el «estudio de contenido» que ya se hizo para otra clienta (Mila)
   - un análisis corto con IA de por qué puede estar funcionando o no.
 - **Biblioteca de videos conectada con Google Drive.** Los videos que edita Hillary aparecen en la plataforma y el equipo los descarga desde ahí. La biblioteca incluye el copy, la portada y los hashtags de cada uno.
 - **Categorías:** todo el contenido usa la lista de categorías de Hillary del 20/10, en `requisitos-originales.md`: Gestión y obras, Bienestar social, Formación, Orden y comunidad, Economía y producción, Identidad tachirense, Deporte y recreación, Ambiente y Gobierno, con sus subcategorías.
-- **Aprobación:** antes de programar, una vista para que Fernando Alvarado (supervisión política) apruebe o comente.
+- **Aprobación:** antes de programar, una vista para que Fernando Alvarado (supervisión política) apruebe o comente. (Desde el 27/10 aprueba el jefe: `DECISIONES.md` D-30.)
 
 ### 3.2 Trazabilidad de la gestión (pública; la sección estrella de la web)
 - Una **línea de tiempo** que se va construyendo sola con lo que se hace cada día: obras, entregas, visitas, reuniones.
@@ -109,10 +109,34 @@ Inspirado en el «estudio de contenido» que ya se hizo para otra clienta (Mila)
   - títulos y descripciones correctos;
   - enlaces con YouTube y las redes.
 
-## 4. Quién usa qué (roles; actualizado con §10.3 y §11)
+## 4. Quién usa qué (roles; desde el 27/10/2026)
+> **La ronda del 27/10 reemplaza la tabla vieja de esta sección y la de §10.3.** Hillary: «jefe, director de despacho,
+> director de política, director del IVT, grabación y redes. Más nada». Detalle en
+> `PROMPT-CAMBIOS-HILLARY-2026-10-27.md` §2 y en `DECISIONES.md` D-29 a D-36.
+
 Cada persona tiene **su propio usuario** aunque varias compartan el mismo rol: así se sabe quién hizo qué y cada una
-tiene su doble factor. Lo que Hillary llamó «un solo perfil» para redes es **un solo rol** con los mismos permisos
-para las cuatro (ver `PENDIENTES.md`).
+tiene su doble factor. «Un solo perfil» (redes, grabación) es **un solo rol** con la misma pantalla para todos.
+
+| Rol | Quién | Qué hace |
+|---|---|---|
+| **Jefe** | El gobernador | **Tiene todo**, «hasta lo de redes»: ve y hace lo de cualquier rol. Hace su agenda con el despacho y aprueba todo lo que sale |
+| **Director de despacho** | Despacho | La agenda y las fichas técnicas; pone fecha y hora |
+| **Director de política** | William | Carga los eventos y avances comunitarios por municipio |
+| **Director del IVT** | Ángel (Instituto de Vialidad del Táchira) | Carga la ficha de cada obra antes de la visita del jefe |
+| **Grabación** | Un solo perfil | Graba y sube lo de cada pauta para el editor |
+| **Redes** | Hillary, Nesmaury, Larissa, Yessica | Piezas, copies, tweets, publicar y resultados |
+
+**Administración:** rol técnico (invitar, ajustes, registro), no sale en la lista del equipo.
+
+- **Salen Secretaría y Supervisión política** sin perder historia (D-29). Lo que aprobaba Supervisión lo aprueba el
+  jefe (D-30).
+- Solo el jefe y el despacho ponen fecha (D-32). El IVT y política cargan fichas que les llegan «Por ponerle fecha»
+  (D-33); el IVT ve la fecha de sus visitas, política nunca (D-34, D-35).
+- Los roles de la web pública (redactor, operadores de reportes, denuncias y ayudas) siguen previstos para la fase 3;
+  todavía no se pueden dar.
+- Qué ve y qué hace cada rol, paso a paso: `GUIA-POR-ROL.md` (no se manda todavía).
+
+### La tabla de antes (22/10; reemplazada el 27/10)
 
 | Rol | Quién | Qué puede hacer |
 |---|---|---|
@@ -243,6 +267,9 @@ Esto cambia y amplía lo de arriba. Si algo choca, manda esto.
 - Esto reemplaza la idea de pegar el texto en un cuadro: ahora es subir un archivo, y se puede mantener el cuadro.
 
 ### 10.3 Perfiles (cambia la tabla de §4)
+> **Reemplazado por la ronda del 27/10** (§4 de arriba): seis roles, el jefe con todo y la agenda compartida con el
+> despacho.
+
 - **Gestión de redes:** un solo perfil compartido para las cuatro personas del equipo; todos hacen de todo. Hillary
   reparte después.
 - **El jefe:** vista completa, con dos partes al entrar:
