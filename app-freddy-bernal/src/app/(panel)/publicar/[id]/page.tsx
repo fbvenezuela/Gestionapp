@@ -64,8 +64,9 @@ export default async function PublicationPage({ params }: { params: Promise<{ id
         {p.piece_id ? <Link href={`/piezas/${p.piece_id}`} className="text-sm font-semibold text-accent-ink">Ver pieza</Link> : <Chip tone="info">Espontánea del jefe</Chip>}
       </div>
       {p.failure_reason ? <p className="mb-4 rounded-[var(--radius-control)] bg-danger-soft p-3 text-danger">Falló: {p.failure_reason}</p> : null}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="flex flex-col gap-4">
+      {/* One column on the phone that never grows past the screen: the results table scrolls inside its card. */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="flex min-w-0 flex-col gap-4">
           {spontaneous ? null : <Package video={data.video} cover={data.cover} copy={p.copy_body} collaborators={p.collaborators} network={NETWORK_LABEL[p.network]} title={p.title} />}
           {p.validation?.length ? (
             <Card>
@@ -74,7 +75,7 @@ export default async function PublicationPage({ params }: { params: Promise<{ id
             </Card>
           ) : null}
         </div>
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           {p.status !== 'published' ? (
             <>
               <PublishedForm id={p.id} />
