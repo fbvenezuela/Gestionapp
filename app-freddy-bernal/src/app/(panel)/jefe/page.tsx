@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronRight, HardHat, Landmark, Megaphone, MessageSquare, ShieldAlert, Sparkles } from 'lucide-react';
+import { ChevronRight, Clapperboard, HardHat, Landmark, Megaphone, MessageSquare, ShieldAlert, Sparkles } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
 import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
@@ -12,11 +12,14 @@ import { ApproveGreen } from '../aprobar/approve-green';
 import { overdueReports } from '@/lib/data/fichas';
 import { OverdueReports } from '@/components/fichas/overdue-reports';
 import { bossCounts, redesCounts } from '@/lib/data/home-counts';
+import { freshNoteEvents } from '@/lib/data/recording';
 
 export const metadata = { title: 'Inicio' };
 
 const nf = new Intl.NumberFormat('es-VE');
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+// Grabación's new notes shown by title in the Redes tile; the rest are one tap away in «Hoy» (up to 10 there).
+const SHOWN_NOTES = 3;
 
 // The boss's Inicio (§3), made for the iPad and the phone: what is overdue in the municipalities, what waits for his
 // approval (every level and the tweets, «Aprobar todas las verdes» in one tap) and four big tiles, Política, Obras,
@@ -24,10 +27,15 @@ const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 // administración open it, and both may see the agenda's dates.
 export default async function BossHome() {
   const s = await requireRole('boss', 'admin');
+  const boss = s.roles.includes('boss');
   const t0 = today();
   const counts = await db(s, async (sql) => ({
     tiles: await bossCounts(sql, t0.toUTC().toISO()!, t0.plus({ days: 1 }).toUTC().toISO()!),
     redes: await redesCounts(sql),
+    // What Grabación left for the editor in the last days (§5), the same events as «Notas de Grabación nuevas» in Hoy:
+    // the boss edits too, and he lands here, not in Hoy. Titles only (never when it was written). Administración does
+    // not get it in Hoy either.
+    notes: boss ? await freshNoteEvents(sql, SHOWN_NOTES) : null,
     // The boss approves every level and the tweets (public.can_approve()): all of it waits for him here.
     review: await piecesInReview(sql),
     tweets: (await sql.one<{ n: number }>(`select count(*)::int as n from public.tweets where status = 'draft' and deleted_at is null`))!.n,
@@ -43,7 +51,7 @@ export default async function BossHome() {
   const { politics, obras, digital } = counts.tiles;
   const redes = counts.redes;
   const stage = (st: string) => obras.stages[st] ?? 0;
-  const boss = s.roles.includes('boss');
+  const notes = counts.notes;
   const greens = counts.review.filter((p) => p.review_level === 'verde');
   const anyRed = counts.review.some((p) => p.review_level === 'rojo');
   const SHOWN = 5;
@@ -164,6 +172,19 @@ export default async function BossHome() {
             { href: '/publicar', value: redes.publish.ready, label: plural(redes.publish.ready, 'lista para publicar', 'listas para publicar'), tone: 'ok' },
             { href: '/tweets', value: redes.tweets.daysLeft, label: plural(redes.tweets.daysLeft, 'día cubierto de tweets', 'días cubiertos de tweets'), tone: redes.tweets.lowStock ? 'danger' : undefined },
           ]}
+          list={
+            notes && notes.total
+              ? {
+                  key: 'notes',
+                  label: 'Notas de Grabación nuevas',
+                  icon: Clapperboard,
+                  total: notes.total,
+                  items: notes.events.map((e) => ({ href: `/eventos/${e.id}?tab=material`, label: e.title })),
+                  itemHint: 'ver las notas de Grabación',
+                  more: notes.total > notes.events.length ? { href: '/hoy', label: 'Ver más en «Hoy»' } : undefined,
+                }
+              : null
+          }
         />
         <HubTile
           id="tile-digital"

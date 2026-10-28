@@ -228,19 +228,21 @@ export function DriveSettings(p: Props) {
       </Card>
 
       {hasGrant ? (
-        <details className="rounded-[var(--radius-card)] border border-border bg-surface">
-          <summary className="flex min-h-12 cursor-pointer items-center px-4 font-semibold">Más opciones</summary>
-          <div className="flex flex-col gap-3 border-t border-border p-4 text-[15px]">
-            <div className="flex flex-col gap-1">
-              <Button variant="secondary" onClick={() => disconnect({ revoke: true })} disabled={busy !== null} className="w-full sm:w-auto">Quitar el permiso en Google</Button>
-              <p className="text-sm text-text-2">Solo si crees que alguien de afuera tiene el permiso.</p>
+        <Card>
+          <details>
+            <summary className="flex min-h-12 cursor-pointer items-center rounded-[var(--radius-card)] px-4 font-semibold">Más opciones</summary>
+            <div className="flex flex-col gap-3 border-t border-border p-4 text-[15px]">
+              <div className="flex flex-col gap-1">
+                <Button variant="secondary" onClick={() => disconnect({ revoke: true })} disabled={busy !== null} className="w-full sm:w-auto">Quitar el permiso en Google</Button>
+                <p className="text-sm text-text-2">Solo si crees que alguien de afuera tiene el permiso.</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Button variant="secondary" onClick={() => disconnect({ changeAccount: true })} disabled={busy !== null} className="w-full sm:w-auto">Cambiar de cuenta de Google</Button>
+                <p className="text-sm text-text-2">Lo guardado en la cuenta actual deja de abrirse aquí.</p>
+              </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <Button variant="secondary" onClick={() => disconnect({ changeAccount: true })} disabled={busy !== null} className="w-full sm:w-auto">Cambiar de cuenta de Google</Button>
-              <p className="text-sm text-text-2">Lo guardado en la cuenta actual deja de abrirse aquí.</p>
-            </div>
-          </div>
-        </details>
+          </details>
+        </Card>
       ) : null}
     </div>
   );

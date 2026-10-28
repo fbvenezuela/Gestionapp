@@ -98,13 +98,15 @@ export function FailForm({ id }: { id: string }) {
   const { run, pending } = useAction();
   const [reason, setReason] = useState('');
   return (
-    <details className="rounded-[var(--radius-card)] border border-border bg-surface">
-      <summary className="cursor-pointer px-4 py-3 font-semibold">No se pudo publicar</summary>
-      <div className="flex flex-col gap-3 px-4 pb-4">
-        <Field label="¿Qué pasó?" htmlFor="pf"><Input id="pf" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ej.: la red rechazó el video por la duración" /></Field>
-        <Button variant="danger" disabled={pending || !reason} onClick={() => run(() => markFailed({ id, reason }), { success: 'Anotado.' })}>Marcar como fallida</Button>
-      </div>
-    </details>
+    <Card>
+      <details>
+        <summary className="cursor-pointer rounded-[var(--radius-card)] px-4 py-3 font-semibold">No se pudo publicar</summary>
+        <div className="flex flex-col gap-3 px-4 pb-4">
+          <Field label="¿Qué pasó?" htmlFor="pf"><Input id="pf" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ej.: la red rechazó el video por la duración" /></Field>
+          <Button variant="danger" disabled={pending || !reason} onClick={() => run(() => markFailed({ id, reason }), { success: 'Anotado.' })}>Marcar como fallida</Button>
+        </div>
+      </details>
+    </Card>
   );
 }
 

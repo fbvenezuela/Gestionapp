@@ -14,6 +14,7 @@ import { obraStageCounts, overdueReports } from '@/lib/data/fichas';
 import { OverdueReports } from '@/components/fichas/overdue-reports';
 import { LinkButton } from '@/components/ui/button';
 import { toSchedule } from '@/lib/data/events';
+import { freshNoteEvents } from '@/lib/data/recording';
 
 export const metadata = { title: 'Hoy' };
 
@@ -74,16 +75,10 @@ export default async function TodayPage() {
     }
 
     // Whoever edits (Redes and the boss): what Grabación left for the editor in the last days (§5). The title only
-    // (never when it was written: Redes sees no time); the notes themselves are on the event's Material tab.
+    // (never when it was written: Redes sees no time); the notes themselves are on the event's Material tab. The
+    // boss's Inicio (/jefe) shows the same events in its Redes tile.
     if (has('social', 'boss')) {
-      const fresh = await sql.query<{ id: string; title: string }>(
-        `select e.id, e.title from public.events e
-          where e.deleted_at is null and e.cancelled_at is null
-            and exists (select 1 from public.recording_notes n
-                         where n.event_id = e.id and n.deleted_at is null and n.body <> '' and n.author_id <> auth.uid()
-                           and n.updated_at > now() - interval '3 days')
-          order by e.code desc limit 10`,
-      );
+      const fresh = (await freshNoteEvents(sql, 10)).events;
       for (const e of fresh) waiting.push({ href: `/eventos/${e.id}?tab=material`, title: e.title, detail: 'Notas de Grabación nuevas', tone: 'info', tag: 'Grabación' });
     }
 

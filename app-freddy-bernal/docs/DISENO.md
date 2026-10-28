@@ -125,6 +125,12 @@ que use `<Card>`, `Sheet`, el diálogo propio o los menús ya lo tiene.
 - Para pantallas nuevas: `<Card>` (o `<Card solid>`, ver abajo), `Sheet`, `useConfirm`/`dialogPanelClass` y
   `menuPanelClass` (`src/components/ui/menu-panel.ts`). No se escribe vidrio a mano, ni la clase `glass-solid`, ni
   se usa `backdrop-blur` de Tailwind.
+  - Una barra que flota sobre una lista al bajar (`sticky`: «Aprobar marcados», la de abajo de la tanda nueva de
+    tweets) usa `menuPanelClass`: casi opaca, el texto que pasa por detrás nunca le baja el contraste.
+  - Un panel que se abre (`<details>`: «No se pudo publicar», «Más opciones» de Drive) va dentro de una `<Card>`.
+  - Esquinas solo con los tokens (`--radius-chip`, `--radius-control`, `--radius-card`), nunca `rounded-[6px]`.
+  - `tests/unit/ui-glass-screens.test.ts` falla si alguien arma una tarjeta a mano (esquina de tarjeta, borde y fondo
+    blanco) fuera de `src/components/ui` o pone una esquina en px.
 
 **Cómo se ve**
 - Fondo: el alabastro de siempre con un lavado suave hacia abajo (`--c-bg-wash`, alabastro con un poco de oliva) y
@@ -140,7 +146,7 @@ que use `<Card>`, `Sheet`, el diálogo propio o los menús ya lo tiene.
 - **Sin desenfoque detrás de listas o tablas largas**: ahí la tarjeta es sólida (blanca, con el mismo borde y la
   misma sombra), para leer mejor y para no pagar un desenfoque por tarjeta en cada cuadro al hacer scroll:
   - `<Card solid>` en la tarjeta que envuelve una lista o tabla larga, o en las tarjetas de una grilla larga. Hoy:
-    agenda (las tres listas y «por fecha»), registro de cambios, biblioteca (la grilla y el archivo), resultados (la
+    agenda (las tres listas, «por fecha» y el calendario de mes, semana y día), registro de cambios, biblioteca (la grilla y el archivo), resultados (la
     lista del teléfono y la tabla), piezas, tweets (tandas y «Editar textos»), por aprobar (cada semáforo y los
     tweets), municipios (la grilla de municipios, las fichas filtradas y la lista de cada municipio), obras,
     publicar (las tres listas y la tabla de resultados), avisos, buzón y la historia de las fichas;

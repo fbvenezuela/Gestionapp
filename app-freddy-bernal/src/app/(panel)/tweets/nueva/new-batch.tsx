@@ -13,6 +13,8 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input, Textarea } from '@/components/ui/field';
 import { CategorySelect } from '@/components/ui/category-select';
 import { Chip } from '@/components/ui/chip';
+import { useConfirm } from '@/components/ui/confirm-dialog';
+import { menuPanelClass } from '@/components/ui/menu-panel';
 import type { CategoryOption } from '@/lib/data/common';
 import { cn } from '@/lib/cn';
 
@@ -21,6 +23,7 @@ type T = { body: string; categoryId: string };
 export function NewBatch({ categories }: { categories: CategoryOption[] }) {
   const router = useRouter();
   const { run, pending } = useAction();
+  const { confirm, dialog } = useConfirm();
   const { value, setValue, restored, clear } = useDraft<{ raw: string; title: string; source: string; tweets: T[] }>('tweet-batch', { raw: '', title: '', source: '', tweets: [] });
   const [links, setLinks] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
@@ -80,6 +83,7 @@ export function NewBatch({ categories }: { categories: CategoryOption[] }) {
 
   return (
     <div className="flex flex-col gap-4">
+      {dialog}
       <Card>
         <CardBody className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <Field label="Nombre de la tanda" htmlFor="bt" className="flex-1">
@@ -144,8 +148,20 @@ export function NewBatch({ categories }: { categories: CategoryOption[] }) {
         })}
       </ol>
 
-      <div className="sticky bottom-20 z-10 flex flex-col gap-2 rounded-[var(--radius-card)] border border-border bg-surface p-3 shadow-lg sm:flex-row lg:bottom-4">
-        <Button type="button" variant="ghost" onClick={() => confirm('¿Empezar de nuevo? Se borra lo separado.') && setValue({ raw: value.raw, title: '', source: '', tweets: [] })}>Empezar de nuevo</Button>
+      {/* Floats over the tweets while they scroll: the menus' glass (menuPanelClass), almost opaque. */}
+      <div className={cn(menuPanelClass, 'sticky bottom-20 z-10 flex flex-col gap-2 p-3 sm:flex-row lg:bottom-4')}>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={async () => {
+            // The app's own dialog, never the browser's confirm() (docs/DISENO.md, D-27).
+            if (await confirm({ title: '¿Empezar de nuevo?', body: 'Se borra lo separado. El texto que pegaste sigue ahí.', confirmLabel: 'Empezar de nuevo', tone: 'danger' })) {
+              setValue({ raw: value.raw, title: '', source: '', tweets: [] });
+            }
+          }}
+        >
+          Empezar de nuevo
+        </Button>
         <Button
           type="button"
           size="lg"
