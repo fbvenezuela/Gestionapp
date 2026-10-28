@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { ChevronRight, Landmark, MessageSquare, ShieldAlert, Sparkles } from 'lucide-react';
+import { ChevronRight, HardHat, Landmark, Megaphone, MessageSquare, ShieldAlert, Sparkles } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
 import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
+import { HubTile } from '@/components/home/hub-tile';
 import { canApprove, getDeadlines, piecesInReview } from '@/lib/data/review';
 import { LEVELS, LEVEL_ORDER, reviewClock } from '@/lib/domain/review';
 import { cn } from '@/lib/cn';
@@ -10,22 +11,23 @@ import { today } from '@/lib/time';
 import { ApproveGreen } from '../aprobar/approve-green';
 import { overdueReports } from '@/lib/data/fichas';
 import { OverdueReports } from '@/components/fichas/overdue-reports';
-import { toSchedule } from '@/lib/data/events';
+import { bossCounts, redesCounts } from '@/lib/data/home-counts';
 
 export const metadata = { title: 'Inicio' };
 
-// The boss's entry: two big buttons, made for the iPad.
+const nf = new Intl.NumberFormat('es-VE');
+const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+
+// The boss's Inicio (§3), made for the iPad and the phone: what is overdue in the municipalities, what waits for his
+// approval (every level and the tweets, «Aprobar todas las verdes» in one tap) and four big tiles, Política, Obras,
+// Redes and Digital, each with live counters that open the screen where those things are. Only the boss and
+// administración open it, and both may see the agenda's dates.
 export default async function BossHome() {
   const s = await requireRole('boss', 'admin');
   const t0 = today();
   const counts = await db(s, async (sql) => ({
-    todayEvents: (await sql.one<{ n: number }>(
-      `select count(*)::int as n from public.event_calendar where starts_at >= $1 and starts_at < $2 and boss_decision <> 'rejected' and cancelled_at is null`,
-      [t0.toUTC().toISO(), t0.plus({ days: 1 }).toUTC().toISO()],
-    ))!.n,
-    pending: (await sql.one<{ n: number }>(`select count(*)::int as n from public.events where boss_decision = 'pending' and deleted_at is null and cancelled_at is null`))!.n,
-    toSchedule: (await toSchedule(sql, 200)).length,
-    published: (await sql.one<{ n: number }>(`select count(*)::int as n from public.publications where status = 'published' and published_at > now() - interval '7 days'`))!.n,
+    tiles: await bossCounts(sql, t0.toUTC().toISO()!, t0.plus({ days: 1 }).toUTC().toISO()!),
+    redes: await redesCounts(sql),
     // The boss approves every level and the tweets (public.can_approve()): all of it waits for him here.
     review: await piecesInReview(sql),
     tweets: (await sql.one<{ n: number }>(`select count(*)::int as n from public.tweets where status = 'draft' and deleted_at is null`))!.n,
@@ -38,6 +40,9 @@ export default async function BossHome() {
       [t0.toISODate()],
     ))!.n,
   }));
+  const { politics, obras, digital } = counts.tiles;
+  const redes = counts.redes;
+  const stage = (st: string) => obras.stages[st] ?? 0;
   const boss = s.roles.includes('boss');
   const greens = counts.review.filter((p) => p.review_level === 'verde');
   const anyRed = counts.review.some((p) => p.review_level === 'rojo');
@@ -105,24 +110,74 @@ export default async function BossHome() {
         </Card>
       ) : null}
       <div className="grid gap-4 md:grid-cols-2">
-        <Link href="/jefe/politica" className="flex min-h-56 flex-col justify-between rounded-[var(--radius-card)] bg-slate p-6 text-on-slate shadow-sm hover:opacity-95">
-          <Landmark className="h-12 w-12" aria-hidden />
-          <span>
-            <span className="block text-3xl font-bold">Política</span>
-            <span className="mt-1 block text-lg opacity-90">Agenda, fichas y lo que vas a decir</span>
-            <span className="mt-3 block text-base">
-              {counts.todayEvents} {counts.todayEvents === 1 ? 'evento hoy' : 'eventos hoy'} · {counts.pending} por decidir · {counts.toSchedule} por ponerle fecha
-            </span>
-          </span>
-        </Link>
-        <Link href="/jefe/digital" className="flex min-h-56 flex-col justify-between rounded-[var(--radius-card)] bg-accent p-6 text-on-accent shadow-sm hover:bg-accent-hover">
-          <Sparkles className="h-12 w-12" aria-hidden />
-          <span>
-            <span className="block text-3xl font-bold">Digital</span>
-            <span className="mt-1 block text-lg">Lo publicado, lo que viene y cómo nos va</span>
-            <span className="mt-3 block text-base">{counts.published} {counts.published === 1 ? 'publicación' : 'publicaciones'} esta semana</span>
-          </span>
-        </Link>
+        <HubTile
+          id="tile-politica"
+          href="/jefe/politica"
+          title="Política"
+          subtitle="Agenda, fichas y lo que vas a decir"
+          icon={Landmark}
+          tone="slate"
+          counters={[
+            { href: '/agenda?vista=dia', value: politics.today, label: plural(politics.today, 'evento hoy', 'eventos hoy') },
+            { href: '/jefe/politica', value: politics.pending, label: 'por decidir', tone: 'warn' },
+            { href: '/agenda/por-fecha', value: politics.toSchedule, label: 'por ponerle fecha', tone: 'warn' },
+          ]}
+        >
+          <Link href="/agenda" className="mt-1 flex min-h-14 items-center gap-2 rounded-[var(--radius-control)] px-3 text-base font-semibold text-accent-ink hover:bg-surface-2">
+            <span className="flex-1">Ver la agenda completa</span>
+            <ChevronRight className="h-5 w-5 shrink-0" aria-hidden />
+          </Link>
+        </HubTile>
+        <HubTile
+          id="tile-obras"
+          href="/obras"
+          title="Obras"
+          subtitle="Las fichas del IVT por estado y por municipio"
+          icon={HardHat}
+          tone="warn"
+          grid={[
+            { href: '/obras?estado=to_schedule', value: stage('to_schedule'), label: 'por ponerle fecha', tone: 'warn' },
+            { href: '/obras?estado=scheduled', value: stage('scheduled'), label: 'con fecha' },
+            { href: '/obras?estado=draft', value: stage('draft'), label: plural(stage('draft'), 'borrador', 'borradores') },
+            { href: '/obras?estado=done', value: stage('done'), label: plural(stage('done'), 'visita realizada', 'visitas realizadas') },
+          ]}
+          counters={obras.municipalities.slice(0, 3).map((m) => ({
+            href: `/obras?municipio=${encodeURIComponent(m.municipality)}`,
+            value: m.total,
+            label: `${plural(m.total, 'ficha', 'fichas')} en ${m.municipality}${m.to_schedule ? ` · ${m.to_schedule} por ponerle fecha` : ''}`,
+          }))}
+        >
+          <Link href="/municipios" className="mt-1 flex min-h-14 items-center gap-2 rounded-[var(--radius-control)] px-3 text-base font-semibold text-accent-ink hover:bg-surface-2">
+            <span className="flex-1">Ver los municipios</span>
+            <ChevronRight className="h-5 w-5 shrink-0" aria-hidden />
+          </Link>
+        </HubTile>
+        <HubTile
+          id="tile-redes"
+          href="/redes"
+          title="Redes"
+          subtitle="Piezas, tweets, publicaciones y resultados"
+          icon={Megaphone}
+          tone="accent"
+          counters={[
+            { href: '/piezas', value: redes.pieces.active, label: plural(redes.pieces.active, 'pieza en curso', 'piezas en curso') },
+            { href: '/publicar', value: redes.publish.ready, label: plural(redes.publish.ready, 'lista para publicar', 'listas para publicar'), tone: 'ok' },
+            { href: '/tweets', value: redes.tweets.daysLeft, label: plural(redes.tweets.daysLeft, 'día cubierto de tweets', 'días cubiertos de tweets'), tone: redes.tweets.lowStock ? 'danger' : undefined },
+          ]}
+        />
+        <HubTile
+          id="tile-digital"
+          href="/jefe/digital"
+          title="Digital"
+          subtitle="Lo publicado, lo que viene y cómo nos va"
+          icon={Sparkles}
+          tone="solid"
+          counters={[
+            { href: '/jefe/digital', value: digital.published7, label: plural(digital.published7, 'publicada esta semana', 'publicadas esta semana') },
+            { href: '/jefe/digital', value: digital.upcoming, label: plural(digital.upcoming, 'programada: lo que viene', 'programadas: lo que viene') },
+            { href: '/resultados?dias=7', value: nf.format(digital.views7), label: 'vistas esta semana' },
+          ]}
+        />
       </div>
     </div>
   );

@@ -130,23 +130,16 @@ test('el jefe sube material en el evento, como Redes («el jefe hace lo de Redes
   await axe(page);
 });
 
-test('el jefe aprueba todas las verdes de un toque', async ({ page }) => {
-  let nativeDialog = false;
-  page.on('dialog', (d) => {
-    nativeDialog = true;
-    void d.dismiss();
-  });
+// The tap itself happens on the boss's Inicio, at 1024 px (jefe-inicio.spec.ts, same ApproveGreen button): here
+// «Por aprobar» offers the same one-tap button for the same two greens.
+test('«Por aprobar» también ofrece aprobar todas las verdes de un toque', async ({ page }) => {
   await loginAs(page, 'jefe@demo.test');
   await page.goto('/aprobar');
   await expect(page.getByText(/aprueba el jefe/).first()).toBeVisible();
   await axe(page);
-  const greens = page.getByRole('button', { name: /^Aprobar todas las verdes \(2\)$/ });
-  await expect(greens).toBeVisible();
-  await greens.click();
-  await expect(page.getByText('Aprobadas 2 verdes.')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Aprobar todas las verdes/ })).toHaveCount(0);
-  await expect(page.getByRole('link', { name: /Saludo semanal a los clubes deportivos/ })).toHaveCount(0);
-  expect(nativeDialog).toBe(false);
+  await expect(page.getByRole('button', { name: /^Aprobar todas las verdes \(2\)$/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Saludo semanal a los clubes deportivos/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Resumen de obras de la semana/ })).toBeVisible();
 });
 
 test('el jefe aprueba la amarilla, con la lista de chequeo', async ({ page }) => {

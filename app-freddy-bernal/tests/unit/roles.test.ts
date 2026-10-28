@@ -17,10 +17,12 @@ import {
   createFor,
   homeFor,
   isInvitableRole,
+  isNavActive,
   isTeamRole,
   navFor,
   type Role,
 } from '@/lib/roles';
+import { canOpen } from '@/lib/assistant/screens';
 import { DEMO_USERS } from '@/lib/db/seed-demo';
 import { getClientConfig } from '@/lib/client-config';
 
@@ -89,14 +91,48 @@ describe('menús', () => {
     for (const c of CREATE_ITEMS) for (const r of c.roles) expect(isInvitableRole(r), `${c.href} ${r}`).toBe(true);
   });
 
-  it('el jefe tiene las pantallas de Redes, Obras y Municipios; en el teléfono caben con «Más»', () => {
+  it('el menú del jefe: Inicio, Agenda, Por aprobar, Redes, Obras, Municipios y Digital (§3)', () => {
+    const { visible } = navFor(['boss']);
+    expect(visible.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Redes', 'Obras', 'Municipios', 'Digital']);
+    expect(visible.map((n) => n.href)).toEqual(['/jefe', '/agenda', '/aprobar', '/redes', '/obras', '/municipios', '/jefe/digital']);
+    expect(visible.map((n) => n.label)).not.toContain('Hoy');
+  });
+
+  it('en el teléfono del jefe caben Inicio, Agenda, Por aprobar y Redes, más «Más» con Obras, Municipios y Digital', () => {
     const { visible, mobile, more } = navFor(['boss']);
-    const labels = visible.map((n) => n.label);
-    for (const l of ['Inicio', 'Agenda', 'Por aprobar', 'Obras', 'Municipios', 'Piezas', 'Tweets', 'Publicar', 'Resultados', 'Biblioteca', 'Digital']) expect(labels, l).toContain(l);
-    expect(labels).not.toContain('Hoy');
-    expect(mobile.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Digital']);
-    expect(mobile.length + (more.length ? 1 : 0)).toBeLessThanOrEqual(5);
-    expect([...mobile, ...more].length).toBe(visible.length);
+    expect(mobile.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Redes']);
+    expect(more.map((n) => n.label)).toEqual(['Obras', 'Municipios', 'Digital']);
+    // Five cells at most on a 360 px phone: four items and «Más».
+    expect(mobile.length + (more.length ? 1 : 0)).toBe(5);
+    expect([...mobile, ...more]).toEqual(visible);
+  });
+
+  it('«Redes» es la puerta del jefe a las pantallas de Redes: las sigue abriendo y el menú lo marca allí', () => {
+    const redes = NAV.find((n) => n.href === '/redes')!;
+    expect(redes.roles).toEqual(['boss']);
+    for (const href of ['/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca']) {
+      expect(redes.also, href).toContain(href);
+      expect(canOpen(href, ['boss']), href).toBe(true);
+      expect(navFor(['boss']).visible.some((n) => n.href === href), href).toBe(false);
+    }
+    expect(canOpen('/redes', ['boss'])).toBe(true);
+    expect(canOpen('/redes', ['social'])).toBe(true);
+    expect(canOpen('/redes', ['dispatch'])).toBe(false);
+    const boss = navFor(['boss']).visible;
+    const active = (path: string) => boss.filter((n) => isNavActive(path, n, boss)).map((n) => n.label);
+    expect(active('/jefe')).toEqual(['Inicio']);
+    expect(active('/jefe/politica')).toEqual(['Inicio']);
+    expect(active('/jefe/digital')).toEqual(['Digital']);
+    expect(active('/redes')).toEqual(['Redes']);
+    expect(active('/piezas/123')).toEqual(['Redes']);
+    expect(active('/biblioteca')).toEqual(['Redes']);
+    expect(active('/aprobar/123')).toEqual(['Por aprobar']);
+    expect(active('/eventos/123')).toEqual([]);
+    // Whoever has Piezas in the menu sees Piezas marked, never the hub too.
+    const both = navFor(['boss', 'social']).visible;
+    expect(both.filter((n) => isNavActive('/piezas', n, both)).map((n) => n.label)).toEqual(['Piezas']);
+    // Redes keeps its own menu (the hub is not in it until the client confirms Redes by format).
+    expect(navFor(['social']).visible.map((n) => n.href)).toEqual(['/hoy', '/agenda', '/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca']);
   });
 
   it('el jefe y el despacho comparten la agenda: los dos crean eventos y visitas de obra; administración no (la base decide)', () => {

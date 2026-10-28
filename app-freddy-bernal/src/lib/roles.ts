@@ -57,11 +57,14 @@ export function isInvitableRole(r: string | null | undefined): r is InvitableRol
   return (INVITABLE_ROLES as readonly string[]).includes(r ?? '');
 }
 
-export type NavItem = { href: string; label: string; icon: string; roles: Role[]; mobile?: Role[] };
+// `also`: screens a hub item stands for (Redes for the boss): it lights up there when no item of that menu is the screen's own.
+export type NavItem = { href: string; label: string; icon: string; roles: Role[]; mobile?: Role[]; also?: string[] };
 
 // Order matters: the first 4-5 visible items for a role go to the mobile bottom bar
 // (`mobile` lists the roles that get the item in the bar).
-// The boss «tiene todo, hasta lo de redes»: the Redes screens are in his menu (on the phone, under «Más»).
+// The boss «tiene todo, hasta lo de redes» (§3): his menu is Inicio, Agenda, Por aprobar, Redes, Obras, Municipios and
+// Digital; «Redes» is his door to the same screens Redes uses (Piezas, Tweets, Publicar, Resultados, Biblioteca), which
+// he still opens. On the phone: Inicio, Agenda, Por aprobar, Redes and «Más».
 // Director del IVT and Director de política land on their own screens (Obras, Municipios) instead of Hoy.
 export const NAV: NavItem[] = [
   { href: '/jefe', label: 'Inicio', icon: 'home', roles: ['boss'], mobile: ['boss'] },
@@ -69,14 +72,15 @@ export const NAV: NavItem[] = [
   // The IVT's agenda is «Mis visitas de obra» (the visits born from its fichas, with their date).
   { href: '/agenda', label: 'Agenda', icon: 'calendar', roles: ['admin', 'boss', 'dispatch', 'social', 'camera', 'ivt'], mobile: ['admin', 'boss', 'dispatch', 'social', 'camera', 'ivt'] },
   { href: '/aprobar', label: 'Por aprobar', icon: 'check', roles: ['boss', 'admin'], mobile: ['boss'] },
+  { href: '/redes', label: 'Redes', icon: 'megaphone', roles: ['boss'], mobile: ['boss'], also: ['/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca'] },
   { href: '/obras', label: 'Obras', icon: 'hardhat', roles: ['admin', 'boss', 'dispatch', 'ivt'], mobile: ['dispatch', 'ivt'] },
   { href: '/municipios', label: 'Municipios', icon: 'map', roles: ['admin', 'boss', 'dispatch', 'politics'], mobile: ['dispatch', 'politics'] },
-  { href: '/piezas', label: 'Piezas', icon: 'film', roles: ['admin', 'social', 'boss'], mobile: ['admin', 'social'] },
-  { href: '/tweets', label: 'Tweets', icon: 'message', roles: ['admin', 'social', 'boss'], mobile: ['social'] },
-  { href: '/publicar', label: 'Publicar', icon: 'send', roles: ['admin', 'social', 'boss'], mobile: ['social'] },
-  { href: '/resultados', label: 'Resultados', icon: 'chart', roles: ['admin', 'social', 'boss'] },
-  { href: '/biblioteca', label: 'Biblioteca', icon: 'folder', roles: ['admin', 'social', 'dispatch', 'boss'], mobile: ['dispatch'] },
-  { href: '/jefe/digital', label: 'Digital', icon: 'sparkles', roles: ['boss'], mobile: ['boss'] },
+  { href: '/piezas', label: 'Piezas', icon: 'film', roles: ['admin', 'social'], mobile: ['admin', 'social'] },
+  { href: '/tweets', label: 'Tweets', icon: 'message', roles: ['admin', 'social'], mobile: ['social'] },
+  { href: '/publicar', label: 'Publicar', icon: 'send', roles: ['admin', 'social'], mobile: ['social'] },
+  { href: '/resultados', label: 'Resultados', icon: 'chart', roles: ['admin', 'social'] },
+  { href: '/biblioteca', label: 'Biblioteca', icon: 'folder', roles: ['admin', 'social', 'dispatch'], mobile: ['dispatch'] },
+  { href: '/jefe/digital', label: 'Digital', icon: 'sparkles', roles: ['boss'] },
   { href: '/ajustes', label: 'Ajustes', icon: 'settings', roles: ['admin'], mobile: ['admin'] },
 ];
 
@@ -94,6 +98,19 @@ export const CREATE_ITEMS: { href: string; label: string; roles: Role[] }[] = [
 
 export function createFor(roles: Role[]) {
   return CREATE_ITEMS.filter((c) => c.roles.some((r) => roles.includes(r)));
+}
+
+function onScreen(pathname: string, href: string) {
+  // The boss's Inicio also covers Política (its own screen, reached from the tile).
+  if (href === '/jefe') return pathname === '/jefe' || pathname.startsWith('/jefe/politica');
+  return pathname === href || pathname.startsWith(href + '/');
+}
+
+/** Whether a menu item is the current screen: its own path, or (a hub like Redes) one it stands for that has no item of
+ * its own in this menu (`menu` = every item this person has, bar and «Más» together). */
+export function isNavActive(pathname: string, item: NavItem, menu: NavItem[]): boolean {
+  if (onScreen(pathname, item.href)) return true;
+  return !!item.also?.some((h) => onScreen(pathname, h)) && !menu.some((o) => onScreen(pathname, o.href));
 }
 
 export function navFor(roles: Role[]) {
