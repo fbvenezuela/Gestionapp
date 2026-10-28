@@ -12,6 +12,10 @@ import { NoPermissionBanner } from '@/components/shell/no-permission-banner';
 import { SignOutButton } from '@/components/shell/sign-out-button';
 import { MenuDetails } from '@/components/shell/menu-details';
 import { AssistantMount } from '@/components/assistant/assistant-mount';
+import { ChatHeaderLink } from '@/components/chat/chat-header-link';
+import { HelpMenuItems } from '@/components/tour/help-menu-items';
+import { TourHost } from '@/components/tour/tour-host';
+import { toursForRoles } from '@/lib/guides';
 import { DraftUserProvider } from '@/lib/hooks/use-draft';
 import { buttonVariants } from '@/components/ui/button';
 import { menuPanelClass } from '@/components/ui/menu-panel';
@@ -23,6 +27,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   const { visible, mobile, more } = navFor(roles);
   const unread = await db(s, async (sql) => (await sql.one<{ n: number }>(`select count(*)::int as n from public.notifications where read_at is null`))!.n);
   const create = createFor(roles);
+  // The tutorials of the menu roles (they follow «Ver como»); Mensajes' never for an account with Administración (D-49).
+  const tours = toursForRoles(roles, { admin: s.roles.includes('admin') });
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[248px_1fr]">
@@ -47,18 +53,18 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <span className="grid h-9 w-9 place-items-center rounded-[var(--radius-control)] bg-accent font-bold text-on-accent">{brand.logoText}</span>
             <span className="sr-only">{brand.appName}</span>
           </Link>
-          <form action="/buscar" className="relative ml-1 hidden max-w-md flex-1 sm:block">
+          <form action="/buscar" className="relative ml-1 hidden max-w-md flex-1 sm:block" data-tour="search">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
             <input name="q" type="search" placeholder="Buscar evento o pieza" aria-label="Buscar" className="min-h-10 w-full rounded-[var(--radius-control)] border border-border bg-surface-2 pl-9 pr-3 text-[15px]" />
           </form>
           <div className="ml-auto flex items-center gap-1.5">
             {s.roles.includes('admin') ? <div className="hidden md:block"><ViewAs current={s.viewAs} /></div> : null}
-            <Link href="/buscar" className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'sm:hidden' })} aria-label="Buscar">
+            <Link href="/buscar" className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'sm:hidden' })} aria-label="Buscar" data-tour="search">
               <Search className="h-5 w-5" aria-hidden />
             </Link>
             {create.length > 0 ? (
               <MenuDetails className="relative">
-                <summary className={buttonVariants({ size: 'sm', className: 'list-none [&::-webkit-details-marker]:hidden cursor-pointer' })}>
+                <summary className={buttonVariants({ size: 'sm', className: 'list-none [&::-webkit-details-marker]:hidden cursor-pointer' })} data-tour="create">
                   <Plus className="h-4 w-4" aria-hidden /> <span className="hidden sm:inline">Crear</span>
                   <span className="sr-only sm:hidden">Crear</span>
                 </summary>
@@ -71,13 +77,14 @@ export default async function PanelLayout({ children }: { children: React.ReactN
                 </div>
               </MenuDetails>
             ) : null}
-            <Link href="/avisos" className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'relative' })} aria-label={unread ? `Avisos: ${unread} sin leer` : 'Avisos'}>
+            <ChatHeaderLink session={s} />
+            <Link href="/avisos" className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'relative' })} aria-label={unread ? `Avisos: ${unread} sin leer` : 'Avisos'} data-tour="bell">
               <Bell className="h-5 w-5" aria-hidden />
               {/* Soft red with red text: AA in light, dark and sun mode (dark text on the solid red was 3.3:1). */}
               {unread ? <span className="absolute right-1.5 top-1.5 grid min-w-5 place-items-center rounded-full border border-danger/40 bg-danger-soft px-1 text-[11px] font-bold text-danger">{unread}</span> : null}
             </Link>
             <MenuDetails className="relative">
-              <summary className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'list-none [&::-webkit-details-marker]:hidden cursor-pointer' })} aria-label="Mi cuenta">
+              <summary className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'list-none [&::-webkit-details-marker]:hidden cursor-pointer' })} aria-label="Mi cuenta" data-tour="account">
                 <UserRound className="h-5 w-5" aria-hidden />
               </summary>
               <div className={cn(menuPanelClass, 'absolute right-0 z-30 mt-2 w-72 max-w-[calc(100vw-2rem)]')}>
@@ -85,6 +92,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
                 <p className="px-3 pb-2 text-xs text-text-2">{s.email}</p>
                 {s.roles.includes('admin') ? <div className="px-3 pb-2 md:hidden"><ViewAs current={s.viewAs} /></div> : null}
                 <Link href="/perfil" className="flex min-h-11 items-center rounded-[var(--radius-control)] px-3 text-[15px] hover:bg-surface-2">Mi perfil y avisos</Link>
+                <HelpMenuItems tours={tours} />
                 <SunModeToggle />
                 <SignOutButton />
               </div>
@@ -101,6 +109,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           <DraftUserProvider userId={s.userId}>{children}</DraftUserProvider>
         </main>
         <AssistantMount />
+        <TourHost userId={s.userId} roles={roles} tours={tours} />
       </div>
       <BottomNav items={mobile} more={more} />
     </div>

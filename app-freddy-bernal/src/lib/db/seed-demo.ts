@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon';
 import type { Sql } from './core';
 import type { SeedCtx } from './seed-parts/context';
+import { seedChat } from './seed-parts/chat';
 import { seedCore } from './seed-parts/core';
 import { seedFichaPhotos, seedFichas } from './seed-parts/fichas';
 import { seedHandoff } from './seed-parts/handoff';
@@ -53,6 +54,7 @@ export async function seedDemo(sql: Sql, tz = 'America/Caracas'): Promise<Record
   await seedHandoff(ctx);
   await seedThumbs(ctx);
   await seedFichaPhotos(ctx);
+  await seedChat(ctx);
 
   return ids;
 }

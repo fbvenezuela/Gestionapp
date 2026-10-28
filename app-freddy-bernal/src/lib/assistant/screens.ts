@@ -3,6 +3,8 @@
 // they never drift apart. null = any signed-in team member (the page calls requireSession).
 // A button that bounces is worse than no button: if the person can't open it, no button.
 import type { Role } from '../roles';
+import { CHAT_SCREENS } from '../chat-screens';
+import { HELP_SCREENS } from '../guides/screens';
 import { plain } from './text';
 
 export type Screen = {
@@ -17,7 +19,7 @@ export type Screen = {
   about?: string;
 };
 
-export const SCREENS: Screen[] = [
+const BASE_SCREENS: Screen[] = [
   { href: '/hoy', label: 'Hoy', roles: null, file: '(panel)/hoy/page.tsx', phrases: ['pantalla de hoy', 'pantalla hoy', 'en hoy', 'lo que espera por mi'], nav: ['hoy', 'inicio'], about: 'lo que te toca' },
   { href: '/avisos', label: 'Avisos', roles: null, file: '(panel)/avisos/page.tsx', phrases: ['mis avisos', 'tus avisos', 'ver los avisos', 'la campana'], nav: ['avisos', 'notificaciones', 'campana', 'campanita'], about: 'la campana de arriba' },
   { href: '/perfil', label: 'Mi perfil', roles: null, file: '(panel)/perfil/page.tsx', phrases: ['mi perfil', 'tu perfil', 'activar avisos', 'activa los avisos', 'preferencias de avisos'], nav: ['perfil', 'mi cuenta', 'preferencias'], about: 'en el menú de tu cuenta, arriba a la derecha' },
@@ -62,6 +64,10 @@ export const SCREENS: Screen[] = [
   { href: '/publicar/[id]', label: 'Abrir la publicación', roles: ['admin', 'social', 'boss'], file: '(panel)/publicar/[id]/page.tsx', phrases: [] },
   { href: '/tweets/[id]', label: 'Abrir la tanda', roles: ['admin', 'social', 'boss'], file: '(panel)/tweets/[id]/page.tsx', phrases: [] },
 ];
+
+// Mensajes and Ayuda (R3) keep their screens next to their own code (src/lib/chat-screens.ts, src/lib/guides/screens.ts);
+// both import only the Screen type from here, so there is no import cycle at run time.
+export const SCREENS: Screen[] = [...BASE_SCREENS, ...CHAT_SCREENS, ...HELP_SCREENS];
 
 export type GoTo = { href: string; label: string };
 

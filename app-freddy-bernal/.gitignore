@@ -13,6 +13,8 @@ supabase/.temp/
 supabase/.branches/
 test-results/
 playwright-report/
+# The phone's storage the e2e start from (360's offer turned off, tests/e2e/global-setup.ts).
+tests/e2e/.state/
 tests/fixtures/large/
 .demo-uploads/
 .DS_Store
