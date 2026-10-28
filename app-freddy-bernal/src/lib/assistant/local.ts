@@ -1,12 +1,16 @@
 import 'server-only';
-import { AGENDA_FALLBACK, canon, hasWord, keyWords, makesOne, roleFichaKeys, scoreFichas, stem, type BrainOutput, type ChosenScript, type TurnContext } from './brain';
+import { TEAM_ROLES } from '../roles';
+import { GUIDE_SLUGS } from '../guides/slugs';
+import { AGENDA_FALLBACK, canon, hasWord, isSection, keyWords, makesOne, roleFichaKeys, scoreFichas, sectionsFor, stem, type BrainOutput, type ChosenScript, type TurnContext } from './brain';
 import { EVENT_NOUNS, GOAL, PLATFORM, WORK, aboutEvent, asksAboutPublishing, asksPlace, asksRoute, asksSchedule, asksWhenWhere, eventAt, eventSignals, namedTitleWords, namesPlatform, spoken, withoutAgendaThings, withoutWhenWhere } from './events';
 import { NOTICE_MAX, NOTICE_TOO_LONG, noticeIssues } from './guard';
-import { hasDateOrTime, safeTitle } from './redact';
-import { canOpen, navTarget, screenFor, screensIn } from './screens';
+import { coverOf, taskAnswer, taskFor, type GuideTask } from './guide-help';
+import { MESSAGES_ADMIN_TEXT, MESSAGES_READ_TEXT, MESSAGES_TELL_TEXT, asksHowToWrite, messagesAsk } from './messages-ask';
+import { carriesWhen, hasDateOrTime, safeTitle } from './redact';
+import { canOpen, navTarget, screenFor, screenNamed, screensIn } from './screens';
 import { NO_TITLES, loadTitles, type TitleSet } from './titles';
 import { contract, fillHuecos, plain, sentences, HUECO } from './text';
-import { runTool, type Tool, type ToolCtx, type ToolRun } from './tools';
+import { runTool, type Tool, type ToolCtx, type ToolRun, type TutorialLink } from './tools';
 
 // Demo brain, WITHOUT AI (ASISTENTE_MODELOS empty). Same inputs and outputs as the model
 // brain: it answers with the scripts and fichas, and uses the same tools — through the same
@@ -106,6 +110,23 @@ const YES = /^(?:si|claro|dale|ok|okey|okay|por favor|hazlo|avisale|avisales|avi
 const OFFERED = /\b(?:quieres que le avise|le aviso)\b[^?¿]*\?\s*$/i;
 // «¿Con quién hablo?» alone, maybe with a greeting or a «perdón»: it asks for the assistant's name.
 const NAME_ONLY = /^(?:(?:hola|buenas|buenos dias|buenas tardes|buenas noches|epa|disculpa|disculpe|perdon|perdone|oye|oiga) )*con quien hablo(?: yo)?(?: (?:perdon|disculpa|disculpe|por favor))?$/;
+// A tutorial, or help to use the platform (R3, D-46, D-47; design §8.2 T). Asked for by name («tutorial», «paso a
+// paso», «enséñame a usar…», «muéstrame cómo…», «me perdí», «ayuda» alone), or «¿cómo se usa / cómo funciona…?» with a
+// screen named or «esta pantalla» (otherwise it is a how-to of something: «¿cómo funciona el semáforo?», the fichas).
+// Not «recorrido» alone: a recorrido is also an event («el recorrido del puente»).
+const TUTORIAL_WORD = /\b(?:tutorial(?:es)?|paso a paso|recorrido guiado)\b/;
+const SHOW_ME = /\b(?:ensename|ensenarme|me ensenas|me puedes ensenar|muestrame|mostrarme|me muestras|me puedes mostrar)(?: (?:a usar|como (?!(?:va|van|quedo|quedaron|esta|estan|sigue|siguen|anda|andan|le fue|salio|salieron)\b)|(?:la |esta )?pantalla|el tutorial)|$)/;
+const LOST = /\b(?:me perdi|estoy perdid[oa]|no se (?:como )?usar|no se como (?:se )?usa|no entiendo como (?:se )?usa|no entiendo (?:esta pantalla|la app|la aplicacion|la plataforma))\b|^(?:(?:hola|epa|buenas) )?(?:necesito |quiero |me das |dame )?(?:una )?ayuda(?: (?:por favor|porfa|aqui|con (?:la|esta) (?:app|aplicacion|plataforma|pantalla)))?$|\bnecesito ayuda (?:con|para usar) (?:la|esta) (?:app|aplicacion|plataforma|pantalla)\b/;
+const HOW_USED = /\bcomo (?:se )?(?:usa|usan|uso|funciona|funcionan)\b/;
+const THIS_SCREEN = /\b(?:esta pantalla|esta parte|esta seccion|aqui|esto)\b/;
+const WELCOME = /\b(?:bienvenida|como empiezo|por donde empiezo|primeros pasos)\b/;
+// The words that ask for a tutorial: they never name a screen here («tutoriales» is a word of Ayuda).
+const NOT_A_SCREEN = ['tutoriales', 'guia', 'guias', 'ayuda'];
+// «¿Qué hago aquí?», «¿para qué sirve esta pantalla?», «¿qué se hace en Publicar?» (design §8.2 S): what the screen
+// is for, for this role, and its tutorial.
+// The cards that say who does what (all the roles, or one role's summary): not a how-to.
+const ROLE_SUMMARY = /^guia:(?:roles|rol-[a-z]+)$/;
+const WHAT_HERE = /\bque (?:hago|se hace|hay que hacer|puedo hacer) (?:aqui|en esta pantalla|en esta parte)\b|\bpara que (?:sirve|es) (?:esta pantalla|esto|esta parte|esta seccion|aqui)\b|\bcomo funciona esta pantalla\b|\bque es esta pantalla\b|\bque (?:hago|se hace) en (?:la pantalla de |la pantalla |el |la |los |las )?(?!un |una )([a-z]+(?: [a-z]+)?)\b/;
 
 const BUILTIN: Record<string, string[]> = {
   'quien-eres': [
@@ -156,6 +177,9 @@ function namesTopic(fichas: { title: string; tags: string[] }[], text: string): 
 }
 
 export async function localTurn(i: LocalInput): Promise<BrainOutput> {
+  // The section cards (what each screen is for, per role) answer only «¿qué hago aquí?» and the tutorial steps, not
+  // the general scoring (they would move today's answers).
+  const knowledge = i.ctx.knowledge ? i.ctx.knowledge.filter((f) => !isSection(f)) : null;
   const q = spoken(i.question);
   const typed = i.typed ?? i.question;
   const calls: ToolRun[] = [];
@@ -186,7 +210,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     const n = i.ctx.history.filter((h) => h.who === 'asistente').length;
     return opts[n % Math.max(1, opts.length)] ?? '';
   };
-  const done = (text: string, goTo?: string): BrainOutput => ({ text: contract(text), model: 'local', provider: null, tokensIn: 0, tokensOut: 0, calls, ...(goTo ? { goTo } : {}) });
+  const done = (text: string, goTo?: string, tutorial?: TutorialLink | null): BrainOutput => ({ text: contract(text), model: 'local', provider: null, tokensIn: 0, tokensOut: 0, calls, ...(goTo ? { goTo } : {}), ...(tutorial ? { tutorial } : {}) });
   // "¿Cómo propongo un evento?" / "¿Quién aprueba una pieza en rojo?" are how-tos (fichas), not lookups.
   // Any «¿cómo + verbo?» but how one is going (HOW_ANY), and «¿qué pongo…?», «¿qué pasa si…?».
   const howTo = /\b(quien|quienes|como (se|hago|subo|creo|apruebo|mando|pongo|cambio|escribo|propongo|cargo|asigno|marco|invito|publico|registro|corrijo|agrego|quito|instalo|entro|activo|uso|armo)|que (color|nivel|formula|lleva|hago|pongo|escribo|necesito|debo|pasa si)|donde|por que|porque|para que|puedo)\b/.test(q) || HOW_ANY.test(q) || TO_DO_HOW.test(q);
@@ -208,6 +232,13 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     return done('Ahora no consigo avisar al equipo por aquí. Escríbele directo a administración, por favor.');
   }
 
+  // M3. «Dile a Kevin que…», «mándale un mensaje a Redes» (R3, D-50): 360 never sends a message, and never escalates
+  // or prepares a notice for it: the button to write it. The question is kept only as a mark (index.ts).
+  // An account with Administración is out of Mensajes (D-49: canOpen says so).
+  const msgs = messagesAsk(i.question);
+  const inMensajes = canOpen('/mensajes', i.ctx.roles);
+  if (msgs === 'tell') return inMensajes ? done(MESSAGES_TELL_TEXT, '/mensajes/nueva') : done(MESSAGES_ADMIN_TEXT);
+
   // 1. A person, please: notice for real, then say so.
   if (/\b(hablar con (alguien|una persona|un humano|administracion|el equipo|alguien del equipo)|quiero (una persona|un humano|hablar con)|pasame con|necesito (a alguien|una persona|ayuda de alguien|hablar con)|que me (llame|escriba) alguien|llamar a alguien)\b/.test(q)) {
     if (offered('avisar_al_equipo')) {
@@ -215,6 +246,67 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       if (r.ok) return done(pick(variants('hablar-persona')));
     }
     return done('Ahora no consigo avisar al equipo por aquí. Escríbele directo a administración, por favor.');
+  }
+
+  // M1. What a message of the team says: 360 does not read them (D-50). Kept only as a mark (index.ts).
+  if (msgs === 'read') return inMensajes ? done(MESSAGES_READ_TEXT, '/mensajes') : done(MESSAGES_ADMIN_TEXT);
+
+  // M2. How to write to someone of the team: the guide card of Mensajes and the button to «Escribirle a alguien».
+  if (asksHowToWrite(i.question)) {
+    if (!inMensajes) return done(MESSAGES_ADMIN_TEXT);
+    const card = (knowledge ?? []).find((f) => f.key === 'guia:mensajes');
+    return done(card ? sentences(fill(card.body)).slice(0, 2).join(' ') : 'En el sobre de arriba, junto a la campana, está Mensajes: ahí tocas «Escribirle a alguien». El jefe puede leer las conversaciones.', '/mensajes/nueva');
+  }
+
+  // S. What this screen is for, for this role («¿qué hago aquí?», «¿qué se hace en Publicar?»): its section card and
+  // its tutorial (R3, design §8.2). Before the tutorials: «¿cómo funciona esta pantalla?» is this one.
+  const whatHere = WHAT_HERE.exec(q);
+  if (whatHere && !carriesWhen(i.question)) {
+    const named = whatHere[1] ? screenNamed(whatHere[1], i.ctx.roles, NOT_A_SCREEN) : null;
+    const screen = whatHere[1] ? named?.href ?? null : i.ctx.screen ?? null;
+    if (screen) {
+      const card = sectionsFor(i.ctx.knowledge, screen, TEAM_ROLES.filter((r) => i.ctx.roles.includes(r)))[0];
+      const info = screenFor(screen);
+      const tutorial = offered('ver_tutorial') ? (await call('ver_tutorial', { pantalla: screen })).tutorial ?? null : null;
+      if (card) return done(`${sentences(fill(card.body)).slice(0, 2).join(' ')}${tutorial ? ' Si quieres, te lo muestro paso a paso: toca el botón.' : ''}`, undefined, tutorial);
+      if (info && !screen.includes('[') && info.about) return done(`${info.label}: ${info.about}.${tutorial ? ' Si quieres, te la muestro paso a paso: toca el botón.' : ''}`, tutorial ? undefined : info.href, tutorial);
+    }
+  }
+
+  // T. A tutorial, or help to use the platform (R3, D-46, D-47): the tutorial of the screen named, or of the one the
+  // person is on; else what that screen is for and the guide of the role; else the tutorials 360 can show. Before the
+  // agenda's refusal: «el tutorial de la agenda» is not a question about a date. Never with a when in it, never
+  // support («necesito ayuda, me sale un error»).
+  const screenAsked = screenNamed(q, i.ctx.roles, NOT_A_SCREEN);
+  const strongAsk = TUTORIAL_WORD.test(q) || SHOW_ME.test(q) || LOST.test(q);
+  // «¿Cómo se usa Publicar?» names the screen by its label or a phrase of it; «¿cómo funciona el semáforo?» (a word
+  // that leads to Por aprobar) asks about the thing (the fichas).
+  const byName = !!screenAsked && [screenAsked.label, ...screenAsked.phrases].some((p) => ` ${q} `.includes(` ${plain(p)} `));
+  const usedAsk = HOW_USED.test(q) && (byName || THIS_SCREEN.test(q));
+  const eventOnly = eventAt(i.question) >= 0 && !screenAsked && !TUTORIAL_WORD.test(q);
+  if ((strongAsk || usedAsk) && !eventOnly && !carriesWhen(i.question) && !SUPPORT.test(q) && offered('ver_tutorial')) {
+    type Listed = { tutoriales: { id: string; titulo: string }[] };
+    if (screenAsked && !canOpen(screenAsked.href, i.ctx.roles)) return done(`${screenAsked.label} no es de tu rol, así que no tiene tutorial para ti. En el menú de tu cuenta, «Ayuda y guías» tiene la guía de tu trabajo.`);
+    const welcome = WELCOME.test(q);
+    const screen = welcome ? null : screenAsked?.href ?? i.ctx.screen ?? null;
+    const r = await call('ver_tutorial', welcome ? { tutorial: 'bienvenida' } : screen ? { pantalla: screen } : {});
+    if (!r.ok) return done(`No pude revisarlo: ${r.error}`);
+    const res = r.result as Listed;
+    if (r.tutorial) {
+      const title = res.tutoriales.find((t) => t.id === r.tutorial!.id)?.titulo ?? r.tutorial.label;
+      // A screen with an id (an event, a piece): the window draws the button only on that screen.
+      if (r.tutorial.href || i.ctx.screen === screen) return done(`Te muestro «${title}» paso a paso, aquí mismo en la pantalla. Toca el botón para empezar.`, undefined, r.tutorial);
+      return done(`«${title}» se ve en su pantalla: ábrela, y en el menú de tu cuenta toca «Ver el tutorial de esta pantalla».`, undefined, r.tutorial);
+    }
+    // No tutorial for it: what that screen is for (the role's guide), and the guide.
+    const card = screen ? sectionsFor(i.ctx.knowledge, screen, TEAM_ROLES.filter((x) => i.ctx.roles.includes(x)))[0] : undefined;
+    const role = TEAM_ROLES.find((x) => i.ctx.roles.includes(x));
+    if (card && role) return done(`${sentences(fill(card.body))[0]} Esa pantalla no tiene tutorial; la guía de tu trabajo la explica.`, `/ayuda/${GUIDE_SLUGS[role]}?ver=pantallas`);
+    // Nothing for that screen: the tutorials this person has.
+    const all = screen ? ((await call('ver_tutorial', {})).result as Listed | undefined) : res;
+    const shown = (all?.tutoriales ?? []).filter((t) => t.id !== 'perfil').slice(0, 3).map((t) => `«${t.titulo}»`);
+    if (shown.length) return done(`${screen ? 'Esa pantalla no tiene tutorial. ' : ''}Puedo mostrarte, paso a paso: ${list(shown)}. ¿Cuál? También están en el menú de tu cuenta, en «Ayuda y guías».`);
+    return done('En el menú de tu cuenta, arriba a la derecha, «Ayuda y guías» tiene la guía de tu trabajo, pantalla por pantalla.', '/ayuda');
   }
 
   // 2a. Best hours to publish (before the agenda: naming the event doesn't make it a schedule question).
@@ -365,7 +457,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
 
   // 4d. What this role does here («¿qué puedo hacer yo?»): the person's role ficha.
   if (ROLE_SELF.test(q)) {
-    const own = (i.ctx.knowledge ?? []).find((f) => roleFichaKeys(i.ctx.roles).includes(f.key ?? ''));
+    const own = (knowledge ?? []).find((f) => roleFichaKeys(i.ctx.roles).includes(f.key ?? ''));
     if (own) return done(sentences(fill(own.body)).slice(0, 2).join(' '));
   }
 
@@ -458,7 +550,9 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // 13. Greeting, 14. thanks, off-topic.
   if (/^(hola|buenas|buenos dias|buenas tardes|buenas noches|epa|que tal|saludos|hey)\b/.test(q) && q.length < 40) return done(pick(variants('saludo')));
   if (/\b(gracias|chao|nos vemos|hasta luego)\b/.test(q) && q.length < 40) return done(pick(variants('gracias')));
-  if (/\b(chiste|politica|opinas|elecciones|partido|tarea|deberes|poema)\b/.test(q)) return done(pick(variants('fuera-de-tema')));
+  // Not «política» alone (the boss's Política screen, the director de política) nor «tarea» («¿cómo marco una tarea
+  // como hecha?»): only what is clearly out of the platform.
+  if (/\b(chiste|opinas|elecciones|partido politico|deberes|poema)\b|\bopinas? de (?:la )?politica\b|\bhaz(?:me)? (?:la|mi) tarea\b/.test(q)) return done(pick(variants('fuera-de-tema')));
 
   // 14b. Asked as a schedule («¿a qué hora sale Kevin?», «¿qué hay el domingo?») or the way somewhere
   // that is not a goal («¿cómo hago para llegar a la plaza central?»), and nothing above knew the
@@ -475,7 +569,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const titleWords = namedTitleWords(typed, seen.events);
   const placeWords = new Set([...namedTitleWords(typed, seen.places), ...titleWords]);
   const subject = plain(way ? withoutWhenWhere(i.question) : whenless).split(' ').filter((w) => !placeWords.has(w)).join(' ');
-  if (((whenWhere && asksSchedule(i.question)) || way) && !self && !screensIn(withoutAgendaThings(q)).length && !namesPlatform(q) && !namesTopic(i.ctx.knowledge ?? [], withoutAgendaThings(subject))) return refuse();
+  if (((whenWhere && asksSchedule(i.question)) || way) && !self && !screensIn(withoutAgendaThings(q)).length && !namesPlatform(q) && !namesTopic(knowledge ?? [], withoutAgendaThings(subject))) return refuse();
 
   // A turn about an event (the shared detector, with the titles this person can see; S3, ronda 5): the
   // titles it names are the event's name, not what is asked («¿cómo hago un copy para la jornada de
@@ -502,7 +596,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // To pick a ficha's sentence, between two with as many words asked, the one with the rarer word («¿una
   // pieza puede tener varias versiones?» is answered by the sentence about versions, not the one that says
   // «pieza»): each word by how rare it is among the fichas, 1 on average.
-  const docs = (i.ctx.knowledge ?? []).map((f) => ` ${canon(`${f.title} ${f.tags.join(' ')} ${f.body}`)}`);
+  const docs = (knowledge ?? []).map((f) => ` ${canon(`${f.title} ${f.tags.join(' ')} ${f.body}`)}`);
   const idf = words.map((w) => Math.log(1 + (docs.length + 1) / (1 + docs.filter((d) => hasWord(d, w)).length)));
   const mean = idf.reduce((a, b) => a + b, 0) / Math.max(1, idf.length) || 1;
   const weighted = (t: string) => words.reduce((n, w, k) => n + (hasWord(` ${canon(t)}`, w) ? idf[k] / mean : 0), 0);
@@ -530,17 +624,29 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // «¿Puedo…?»: the person's role ficha says what the role does and does not do. Its sentence answers when
   // it has at least half the words asked («¿puedo ver las piezas?» → «No ve piezas…»).
   if (mayI && words.length) {
-    const own = (i.ctx.knowledge ?? []).find((f) => roleFichaKeys(i.ctx.roles).includes(f.key ?? ''));
+    const own = (knowledge ?? []).find((f) => roleFichaKeys(i.ctx.roles).includes(f.key ?? ''));
     const a = own ? answerFrom(own.body) : null;
     if (a && a.hits >= Math.max(1, Math.ceil(words.length / 2))) return done(a.text);
   }
   // A weak match is a guess: below MIN_FICHA_SCORE or MIN_FICHA_COVER (twice that next to an event that
   // is not a how-to), or, next to an event, one word of the question found only in a ficha's text, never
   // in its title or tags («… ¿qué llevo?» and «Ningún aviso lleva…»): 360 says it is not sure (step 17).
-  const pool = whenWhere ? i.ctx.knowledge?.filter((f) => !hasDateOrTime(fill(f.body))) : i.ctx.knowledge;
+  const pool = whenWhere ? knowledge?.filter((f) => !hasDateOrTime(fill(f.body))) : knowledge;
   const top = pool ? scoreFichas(pool, topic)[0] : undefined;
   const loose = eventTurn && !!top && top.words === 1 && !top.titled;
+
+  // G. «¿Cómo cargo una ficha comunitaria?» (R3, D-42): a task of the person's role guide («Paso a paso»,
+  // guide-help.ts) whose title says all that is asked: its steps, and its tutorial (or the guide). Instead of a card
+  // that says only part of it, or only who does what (a role's summary is not a how-to), or of «no estoy seguro»
+  // (after step 15). A card that says all of it keeps answering. Never next to an event.
+  const task = !eventTurn && (howTo || HOW_ANY.test(q)) ? taskFor(topic, i.ctx.roles) : null;
+  const byTask = async (t: GuideTask) => {
+    const tutorial = t.tour && offered('ver_tutorial') ? (await call('ver_tutorial', { tutorial: t.tour })).tutorial ?? null : null;
+    return tutorial?.href ? done(taskAnswer(t), undefined, tutorial) : done(taskAnswer(t), t.guide);
+  };
+  if (task && top && (top.cover < 1 || (ROLE_SUMMARY.test(top.f.key ?? '') && coverOf(top.f.title, [...new Set(keyWords(topic))]) < 1))) return byTask(task);
   if (top && !loose && top.n >= MIN_FICHA_SCORE * (strict ? 1.5 : 1) && top.cover >= MIN_FICHA_COVER * (strict ? 2 : 1)) return done(answerFrom(top.f.body).text);
+  if (task) return byTask(task);
 
   // 16. The best chosen script with a variant that needs no data, only when the question said one of its
   // triggers whole (a word in common is a guess). Never the agenda's refusal for a question that is not

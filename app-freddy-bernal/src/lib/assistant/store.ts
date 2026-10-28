@@ -1,12 +1,13 @@
 import 'server-only';
-import { withSystem, type Sql } from '../db';
+import type { Sql } from '../db';
+import { system } from './db';
 import type { Role } from '../roles';
 import type { ChosenScript, Ficha, HistoryMsg } from './brain';
 import { mergeProfile, type AssistantProfile } from './config';
 import { estimateCost } from './providers';
 
-// The assistant's own tables, through withSystem ("service key"), always checking in code
-// that the conversation belongs to the caller. Never called from inside db(session, …).
+// The assistant's own tables, through system() ("service key"; db.ts marks it as 360's), always
+// checking in code that the conversation belongs to the caller. Never called from inside db(session, …).
 
 export const THREAD_MESSAGES = 24; // the whole thread the model sees; not trimmed to save
 export const MESSAGES_PER_HOUR = 40;
@@ -43,7 +44,7 @@ const MONTH_SPEND = `select coalesce(sum(cost_usd), 0) as s from public.ai_usage
  * across the model call (the demo database runs one transaction at a time).
  */
 export async function openTurn(userId: string, requested: string | null | undefined, question: string, reserve: Reserve | null) {
-  return withSystem(async (sql) => {
+  return system(async (sql) => {
     await sql.query(`select pg_advisory_xact_lock(hashtext('assistant:' || $1::text))`, [userId]);
     const conversationId = await conversationFor(sql, userId, requested, question);
     const recent = await sql.one<{ n: number }>(
@@ -92,7 +93,7 @@ export async function openTurn(userId: string, requested: string | null | undefi
 /** Fichas offered to these roles. null = could not be read (the prompt declares it). */
 export async function loadKnowledge(roles: Role[]): Promise<Ficha[] | null> {
   try {
-    return await withSystem((sql) =>
+    return await system((sql) =>
       sql.query<Ficha>(
         `select key, title, body, tags, origin from public.assistant_knowledge
           where active and (roles is null or roles && $1::public.app_role[]) order by origin desc, title`,
@@ -109,7 +110,7 @@ export async function loadKnowledge(roles: Role[]): Promise<Ficha[] | null> {
  * them (the team's and the ones saved from a conversation are scrubbed again in the prompt). */
 export async function loadScripts(text: string, roles: Role[], count = true): Promise<ChosenScript[]> {
   try {
-    return await withSystem(async (sql) =>
+    return await system(async (sql) =>
       (
         await sql.query<{ script_key: string | null; script_topic: string; script_text: string; script_always: boolean; script_points: number; script_origin: string | null }>(
           `select f.*, (select s.origin from public.assistant_scripts s where s.id = f.script_id) as script_origin
@@ -129,7 +130,7 @@ export async function noteHeard(text: string, role: Role | null) {
   const t = text.trim().slice(0, 1000);
   if (t.length < HEARD_MIN) return;
   try {
-    await withSystem((sql) => sql.query(`insert into public.assistant_heard (role, text) values ($1, $2)`, [role, t]));
+    await system((sql) => sql.query(`insert into public.assistant_heard (role, text) values ($1, $2)`, [role, t]));
   } catch (e) {
     console.error('[asistente] no se pudo anotar la pregunta:', (e as Error).message);
   }
@@ -155,7 +156,7 @@ export type SavedTurn = {
 /** The answer, saved AFTER answering (the question went in with openTurn). If it fails the caller
  * logs it and the answer still goes out. */
 export async function saveTurn(t: SavedTurn) {
-  await withSystem(async (sql) => {
+  await system(async (sql) => {
     await sql.query(
       `insert into public.assistant_messages (conversation_id, who, body, model, tokens_in, tokens_out, ms, error, degraded, tools, go_to, created_at)
        values ($1, 'asistente', $2, $3, $4, $5, $6, $7, $8, $9::text::jsonb, $10::text::jsonb, clock_timestamp() + interval '1 millisecond')`,

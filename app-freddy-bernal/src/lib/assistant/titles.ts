@@ -1,5 +1,6 @@
 import 'server-only';
-import { db, type Session } from '../auth/session';
+import type { Session } from '../auth/session';
+import { db } from './db';
 import { safeTitle } from './redact';
 import { plain } from './text';
 

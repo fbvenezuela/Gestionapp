@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { SCREENS, canOpen, pickGoTo, screenFor } from '@/lib/assistant/screens';
+import { SCREENS, canOpen, navTarget, pickGoTo, screenFor, screenNamed } from '@/lib/assistant/screens';
 import { ROLES, type Role } from '@/lib/roles';
 
 function accessOf(file: string): Role[] | null | 'none' {
@@ -61,5 +61,41 @@ describe('el botón que lleva a la pantalla', () => {
 
   it('todos los roles de screens.ts existen', () => {
     for (const s of SCREENS) for (const r of s.roles ?? []) expect(ROLES).toContain(r);
+  });
+});
+
+// R3 (design §8.5): the screens of Mensajes and Ayuda, any [param] in a pattern, and Mensajes never for an account
+// with Administración (D-49).
+describe('R3: Mensajes, Ayuda y cualquier [param]', () => {
+  it('las rutas nuevas están, con frases de dos palabras o más', () => {
+    for (const href of ['/mensajes', '/mensajes/nueva', '/mensajes/todas', '/mensajes/permisos', '/mensajes/[id]', '/ayuda', '/ayuda/flujos', '/ayuda/administracion', '/ayuda/[id]']) {
+      expect(SCREENS.some((s) => s.href === href), href).toBe(true);
+    }
+  });
+
+  it('un [param] con cualquier nombre es un segmento', () => {
+    expect(screenFor('/ayuda/redes')?.href).toBe('/ayuda/[id]');
+    expect(screenFor('/ayuda/redes?ver=pantallas')?.href).toBe('/ayuda/[id]');
+    expect(screenFor('/eventos/abc/lectura')?.href).toBe('/eventos/[id]/lectura');
+    expect(screenFor('/eventos/abc/otra')).toBeNull();
+    expect(screenFor('/mensajes/abc')?.href).toBe('/mensajes/[id]');
+    // Exact paths first: /mensajes/nueva is not a conversation.
+    expect(screenFor('/mensajes/nueva')?.href).toBe('/mensajes/nueva');
+  });
+
+  it('Mensajes no se abre con administración, aunque tenga un rol del equipo; Ayuda sí', () => {
+    expect(canOpen('/mensajes', ['social'])).toBe(true);
+    expect(canOpen('/mensajes/nueva', ['admin', 'social'])).toBe(false);
+    expect(canOpen('/mensajes/abc', ['admin', 'boss'])).toBe(false);
+    expect(canOpen('/ayuda', ['admin'])).toBe(true);
+    expect(pickGoTo(['admin', 'social'], { toolHrefs: ['/mensajes'], answer: '' })).toBeNull();
+    expect(pickGoTo(['social'], { answer: 'Míralo en mis mensajes.' })).toEqual({ href: '/mensajes', label: 'Mensajes' });
+  });
+
+  it('una pantalla nombrada sin «¿dónde?» (para «¿cómo se usa Publicar?»), y las palabras que no cuentan', () => {
+    expect(navTarget('como se usa publicar', ['social'])).toBeNull();
+    expect(screenNamed('como se usa publicar', ['social'])?.href).toBe('/publicar');
+    expect(screenNamed('hay tutoriales', ['social'])?.href).toBe('/ayuda');
+    expect(screenNamed('hay tutoriales', ['social'], ['tutoriales'])).toBeNull();
   });
 });

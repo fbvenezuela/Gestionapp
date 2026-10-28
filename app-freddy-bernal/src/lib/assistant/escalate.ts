@@ -1,6 +1,6 @@
 import 'server-only';
-import { withSystem } from '../db';
 import { notify, usersWithRole } from '../notify';
+import { system } from './db';
 import { redactPlaceAfterA } from './events';
 import { redactForTeam } from './redact';
 import { Placeholders, peopleWords, stripTokens, type TitleSet } from './titles';
@@ -11,7 +11,7 @@ import { Placeholders, peopleWords, stripTokens, type TitleSet } from './titles'
 // panel. Not repeated within 6 hours for the same conversation. The texts never carry dates, times or
 // places: the reason (a model may write it, with the real titles back in it) loses any placeholder left
 // and any event place by its name («ese lugar»), then gets every rule, a place said by its name too
-// (also «a Táriba», when Táriba is no one of the team), and the phone's guard. Uses withSystem only;
+// (also «a Táriba», when Táriba is no one of the team), and the phone's guard. Uses system() only (db.ts);
 // never call it from inside db(session, …).
 
 export const ESCALATION_KIND = 'assistant_escalation';
@@ -20,7 +20,7 @@ const REPEAT_HOURS = 6;
 // Every event title and place (to check and to hide: nothing of it is shown or sent), and the team's
 // names («a Kevin» is someone; «a Táriba», a place).
 async function allTitles(): Promise<TitleSet> {
-  return withSystem(async (sql) => {
+  return system(async (sql) => {
     const rows = await sql.query<{ title: string; place_name: string }>(`select title, place_name from public.events where deleted_at is null order by created_at desc limit 3000`);
     const people = await sql.query<{ full_name: string }>(`select full_name from public.profiles where deleted_at is null limit 3000`);
     return { events: rows.map((r) => r.title), pieces: [], places: rows.map((r) => r.place_name), people: peopleWords(people.map((r) => r.full_name)) };
@@ -36,7 +36,7 @@ export async function escalate(conversationId: string, reason: string): Promise<
   const said = stripTokens(String(reason ?? '').trim());
   // An event's place by its name («la pieza de Alto Verde») is «ese lugar» for administración too.
   const motivo = redactForTeam(redactPlaceAfterA(stripTokens(new Placeholders({ events: [], pieces: [], places: titles.places }).mask(said)), titles)).slice(0, 300) || 'Pidió hablar con alguien del equipo.';
-  const conv = await withSystem((sql) =>
+  const conv = await system((sql) =>
     sql.one<{ id: string; name: string; repeated: boolean }>(
       `select c.id, coalesce(nullif(p.full_name, ''), p.email, 'Alguien del equipo') as name,
               c.escalated_at is not null and c.escalated_at > now() - make_interval(hours => $2) as repeated
@@ -56,7 +56,7 @@ export async function escalate(conversationId: string, reason: string): Promise<
   const body = `${conv.name} necesita ayuda: ${motivo}`;
   await notify({ userIds: admins, kind: ESCALATION_KIND, title, body, link: panelLink(conversationId), key, email: true });
   // Marked only after the notice went out: a failed notice must not silence the next one.
-  await withSystem((sql) =>
+  await system((sql) =>
     sql.query(`update public.assistant_conversations set escalated_at = now(), escalated_reason = $2 where id = $1`, [conversationId, motivo]),
   );
   return { alreadyNotified: false, to };

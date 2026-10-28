@@ -12,8 +12,20 @@ test('asistente: sin sesión no contesta; con sesión contesta con las claves de
   const r1 = await page.request.post('/api/asistente', { data: { pregunta: '¿Cómo te llamas?' } });
   expect(r1.status()).toBe(200);
   const j1 = await r1.json();
-  expect(Object.keys(j1).sort()).toEqual(['ambito', 'conversacion', 'degradado', 'hizo', 'ir', 'modelo', 'ms', 'respuesta']);
-  expect(j1).toMatchObject({ ambito: 'equipo', modelo: 'local', degradado: false });
+  expect(Object.keys(j1).sort()).toEqual(['ambito', 'conversacion', 'degradado', 'hizo', 'ir', 'modelo', 'ms', 'respuesta', 'tutorial']);
+  expect(j1).toMatchObject({ ambito: 'equipo', modelo: 'local', degradado: false, tutorial: null });
+
+  // R3: the window sends the pattern of the screen; «muéstrame…» brings that screen's tutorial (never an id, and a
+  // screen that is not a pattern is dropped). 360 never reads Mensajes: the button to it.
+  const rt = await page.request.post('/api/asistente', { data: { pregunta: 'muéstrame cómo se usa esta pantalla', pantalla: '/piezas' } });
+  expect((await rt.json()).tutorial).toEqual({ id: 'piezas', etiqueta: 'Ver el tutorial de Piezas', href: '/piezas?tutorial=piezas' });
+  const rx = await page.request.post('/api/asistente', { data: { pregunta: 'muéstrame cómo se usa esta pantalla', pantalla: '/piezas/123e4567-e89b-42d3-a456-426614174000' } });
+  expect(rx.status()).toBe(200);
+  expect((await rx.json()).tutorial?.id ?? null).not.toBe('pieza');
+  const rm = await page.request.post('/api/asistente', { data: { pregunta: '¿Qué me escribió Daniela?' } });
+  const jm = await rm.json();
+  expect(jm.respuesta).toMatch(/^No leo los mensajes del equipo/);
+  expect(jm.ir).toEqual({ href: '/mensajes', label: 'Mensajes' });
 
   // Same conversation, and never a date, time or address of an event.
   const r2 = await page.request.post('/api/asistente', { data: { pregunta: '¿A qué hora y dónde es la jornada de salud?', conversacion: j1.conversacion } });

@@ -25,6 +25,9 @@ function sessionOf(key: DemoUserKey): Session {
 
 // What each suggestion must bring: the tool it uses (if any) and words the answer must carry.
 type Expect = { tool?: string; has: RegExp; not?: RegExp };
+// R3 (design §8.4): each team role has «¿Me muestras cómo se usa esta pantalla?» (the window sends the screen; here
+// without one, 360 lists the tutorials it can show).
+const SHOW_SCREEN: Expect = { tool: 'ver_tutorial', has: /paso a paso: «Bienvenida»/ };
 const EXPECTED: Record<Role & DemoUserKey, Record<string, Expect>> = {
   admin: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
@@ -37,37 +40,37 @@ const EXPECTED: Record<Role & DemoUserKey, Record<string, Expect>> = {
     // The bulk approval, never «one by one».
     '¿Cómo apruebo todas las verdes de una vez?': { has: /verdes se aprueban todas juntas, con un toque/, not: /una por una/ },
     '¿Cómo va una pieza?': { tool: 'estado_pieza', has: /¿Cuál pieza\?/ },
-    '¿Dónde veo cómo nos va?': { has: /Resultados/ },
+    '¿Me muestras cómo se usa esta pantalla?': SHOW_SCREEN,
   },
   dispatch: {
     '¿Qué fichas tengo incompletas?': { tool: 'mis_pendientes', has: /ficha|pendiente/i },
     '¿Cómo asigno a quien graba?': { has: /Quién graba/ },
     '¿Cómo marco un evento como realizado?': { has: /realizado/ },
-    '¿Qué lleva una ficha técnica?': { has: /protocolo|cifras/ },
+    '¿Me muestras cómo se usa esta pantalla?': SHOW_SCREEN,
   },
   politics: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
     '¿Qué puedo hacer en la plataforma?': { has: /eventos y avances comunitarios/ },
     '¿Quién decide si se hace un evento?': { has: /Jefe: tiene todo/ },
-    '¿Qué es el doble factor?': { has: /director de política/ },
+    '¿Me muestras cómo se usa esta pantalla?': SHOW_SCREEN,
   },
   ivt: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
     '¿Qué puedo hacer en la plataforma?': { has: /ficha de cada obra/ },
     '¿Puedo ver la agenda?': { has: /La Agenda está en el menú/ },
-    '¿Qué es el doble factor?': { has: /director del IVT/ },
+    '¿Me muestras cómo se usa esta pantalla?': SHOW_SCREEN,
   },
   social: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
     '¿Cuántos días de tweets quedan?': { tool: 'dias_de_tweets', has: /tweets/ },
     '¿A qué hora publico en TikTok?': { tool: 'mejores_horas', has: /TikTok/ },
-    '¿Por qué no me deja publicar esta pieza?': { has: /aprobada|reglas/ },
+    '¿Me muestras cómo se usa esta pantalla?': SHOW_SCREEN,
   },
   camera: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
     '¿Cómo subo el material?': { has: /Material.*casilla/ },
     '¿Qué pasa si se va la señal subiendo un video?': { has: /sigue sola/ },
-    '¿Cuánto puede durar un video para TikTok?': { tool: 'reglas_de_video', has: /segundos/ },
+    '¿Me muestras cómo se usa esta pantalla?': SHOW_SCREEN,
   },
 };
 

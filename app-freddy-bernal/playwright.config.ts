@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { QUIET_STATE } from './tests/e2e/global-setup';
 
 // Two demo servers: one STRICT (code by email + 2FA, like production) and one with the
 // testing shortcuts on (one-tap sign-in, no 2FA). The main suite runs on the strict one.
@@ -8,7 +9,9 @@ import { defineConfig, devices } from '@playwright/test';
 const port = Number(process.env.E2E_PORT ?? 3100);
 const shortcutsPort = port + 1;
 const shortcutsUrl = process.env.E2E_SHORTCUTS_URL ?? (process.env.E2E_BASE_URL ? null : `http://localhost:${shortcutsPort}`);
-const mobile = { ...devices['Galaxy S9+'], viewport: { width: 360, height: 760 } };
+// Every context starts with 360's offer of tutorials turned off on this «phone» (tests/e2e/global-setup.ts writes the
+// state): no strip covers what a test taps. assistant-offer.spec.ts starts without it.
+const mobile = { ...devices['Galaxy S9+'], viewport: { width: 360, height: 760 }, storageState: QUIET_STATE };
 
 export default defineConfig({
   testDir: 'tests/e2e',

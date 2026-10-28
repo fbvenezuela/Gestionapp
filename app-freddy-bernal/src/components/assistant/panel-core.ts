@@ -182,6 +182,7 @@ const LOOKUP_LABEL: Record<string, string> = {
   mejores_horas: 'Buscó las mejores horas',
   reglas_de_video: 'Buscó las reglas de video',
   buscar_evento: 'Buscó un evento',
+  ver_tutorial: 'Buscó un tutorial',
 };
 
 const plainName = (name: string) => {

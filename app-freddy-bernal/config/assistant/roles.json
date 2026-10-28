@@ -18,7 +18,7 @@
         "¿Qué me toca aprobar?",
         "¿Cómo apruebo todas las verdes de una vez?",
         "¿Cómo va una pieza?",
-        "¿Dónde veo cómo nos va?"
+        "¿Me muestras cómo se usa esta pantalla?"
       ]
     },
     "dispatch": {
@@ -28,7 +28,7 @@
         "¿Qué fichas tengo incompletas?",
         "¿Cómo asigno a quien graba?",
         "¿Cómo marco un evento como realizado?",
-        "¿Qué lleva una ficha técnica?"
+        "¿Me muestras cómo se usa esta pantalla?"
       ]
     },
     "politics": {
@@ -38,7 +38,7 @@
         "¿Qué tengo pendiente?",
         "¿Qué puedo hacer en la plataforma?",
         "¿Quién decide si se hace un evento?",
-        "¿Qué es el doble factor?"
+        "¿Me muestras cómo se usa esta pantalla?"
       ]
     },
     "ivt": {
@@ -48,7 +48,7 @@
         "¿Qué tengo pendiente?",
         "¿Qué puedo hacer en la plataforma?",
         "¿Puedo ver la agenda?",
-        "¿Qué es el doble factor?"
+        "¿Me muestras cómo se usa esta pantalla?"
       ]
     },
     "social": {
@@ -58,7 +58,7 @@
         "¿Qué tengo pendiente?",
         "¿Cuántos días de tweets quedan?",
         "¿A qué hora publico en TikTok?",
-        "¿Por qué no me deja publicar esta pieza?"
+        "¿Me muestras cómo se usa esta pantalla?"
       ]
     },
     "camera": {
@@ -68,7 +68,7 @@
         "¿Qué tengo pendiente?",
         "¿Cómo subo el material?",
         "¿Qué pasa si se va la señal subiendo un video?",
-        "¿Cuánto puede durar un video para TikTok?"
+        "¿Me muestras cómo se usa esta pantalla?"
       ]
     }
   }

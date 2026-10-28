@@ -1,6 +1,6 @@
 import 'server-only';
 import type { Session } from '../auth/session';
-import { withSystem } from '../db';
+import { system } from './db';
 import { env } from '../env';
 import { notify, usersWithRole } from '../notify';
 import { INVITABLE_ROLES, type Role } from '../roles';
@@ -17,7 +17,9 @@ import {
   looksLikeText,
   modelTurn,
   promisesNotice,
+  sectionFichas,
   type BrainOutput,
+  type Ficha,
   type TurnContext,
 } from './brain';
 import { defaultProfile } from './config';
@@ -26,11 +28,12 @@ import { aboutEvent, eventThread } from './events';
 import { localTurn } from './local';
 import { estimateCost, parseChain, type ChatOptions, type Link } from './providers';
 import { redact } from './redact';
-import { pickGoTo, type GoTo } from './screens';
+import { MESSAGES_MARK, messagesAsk } from './messages-ask';
+import { pickGoTo, screenFor, type GoTo } from './screens';
 import { MESSAGES_PER_HOUR, loadKnowledge, loadScripts, noteHeard, openTurn, saveTurn, type Reserve } from './store';
 import { firstName } from './text';
 import { NO_TITLES, Placeholders, loadTitles, titlesIn, type TitleSet } from './titles';
-import { toolsFor, type EscalateFn, type ToolRun } from './tools';
+import { toolsFor, type EscalateFn, type ToolRun, type TutorialLink } from './tools';
 
 export { escalate } from './escalate';
 
@@ -57,7 +60,8 @@ export function reserveTokensIn(threadChars: number): number {
   return Math.ceil((MODEL_CALLS * (PROMPT_CHARS + threadChars) + TOOL_RESULT_CHARS) / 3);
 }
 
-export type TurnInput = { question: string; conversationId?: string | null };
+// screen: the pattern of the screen the person is on (/eventos/[id]: never an id or the address), sent by the window.
+export type TurnInput = { question: string; conversationId?: string | null; screen?: string | null };
 export type TurnResult = {
   answer: string;
   scope: 'equipo';
@@ -66,6 +70,9 @@ export type TurnResult = {
   degraded: boolean;
   did: { tool: string; error?: string }[];
   goTo: GoTo | null;
+  // A tutorial of the person's to start («Ver el tutorial de Publicar»): href null when its screen needs an id (the
+  // window builds it only when the person is already there).
+  tutorial: TutorialLink | null;
   conversationId: string | null;
 };
 export type TurnDeps = { chain?: Link[]; chatOptions?: Partial<ChatOptions>; escalate?: EscalateFn };
@@ -79,11 +86,25 @@ export type ApiAnswer = {
   degradado: boolean;
   hizo: { tool: string; error?: string }[];
   ir: GoTo | null;
+  tutorial: { id: string; etiqueta: string; href: string | null } | null;
   conversacion: string | null;
 };
 
 export function toApi(r: TurnResult): ApiAnswer {
-  return { respuesta: r.answer, ambito: r.scope, modelo: r.model, ms: r.ms, degradado: r.degraded, hizo: r.did, ir: r.goTo, conversacion: r.conversationId };
+  const tutorial = r.tutorial ? { id: r.tutorial.id, etiqueta: r.tutorial.label, href: r.tutorial.href } : null;
+  return { respuesta: r.answer, ambito: r.scope, modelo: r.model, ms: r.ms, degradado: r.degraded, hizo: r.did, ir: r.goTo, tutorial, conversacion: r.conversationId };
+}
+
+/** The screen the window says the person is on, only when it is a pattern of SCREENS as it is (never an id). */
+export function screenOf(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  return screenFor(raw)?.href === raw ? raw : null;
+}
+
+// The fichas of the turn: the database's (null when they could not be read: the prompt says so), and the section
+// cards of the role guides, which come from the code (brain.ts sectionFichas).
+function withSections(knowledge: Ficha[] | null, roles: Role[]): Ficha[] | null {
+  return knowledge === null ? null : [...knowledge, ...sectionFichas(roles)];
 }
 
 export function isTeamMember(s: Pick<Session, 'roles'>): boolean {
@@ -97,8 +118,13 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   const raw = String(input.question ?? '').trim().slice(0, MAX_QUESTION);
   // `routing` is only for the demo brain's own choices (never stored, never sent).
   const routing = redact(raw);
-  const finish = (r: Omit<TurnResult, 'ms' | 'scope'>): TurnResult => ({ ...r, scope: 'equipo', ms: Date.now() - t0 });
+  const finish = (r: Omit<TurnResult, 'ms' | 'scope' | 'tutorial'> & { tutorial?: TutorialLink | null }): TurnResult => ({ tutorial: null, ...r, scope: 'equipo', ms: Date.now() - t0 });
   if (!routing) return finish({ answer: '¿Qué necesitas? Escríbeme tu pregunta.', model: 'local', degraded: false, did: [], goTo: null, conversationId: input.conversationId ?? null });
+  const screen = screenOf(input.screen);
+  // A question about what the team's messages say, or «dile a Kevin que…» (D-50, S8): 360 never reads or sends
+  // messages. Neither its text nor a word of it is kept: it is stored as a mark, it stays out of «Lo que preguntan»,
+  // and no provider gets it (the demo brain answers with the button to Mensajes).
+  const aboutMessages = messagesAsk(routing);
 
   // With a model chain, the titles this person can see are read first, once, AS THE PERSON: a
   // question that names an event by its title is guarded like one with an event word, and on the
@@ -114,7 +140,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   // `question` is what is stored, goes to «Lo que preguntan» and to a provider: about an event, its
   // places and days go too.
   const seen = titles ?? NO_TITLES;
-  const question = guardQuestion(routing, seen);
+  const question = aboutMessages ? MESSAGES_MARK : guardQuestion(routing, seen);
   // Lo que habla de un evento lo contesta 360 sin IA: a turn about an event (the shared detector,
   // events.ts, on what was typed) never goes to a provider, even with a model chain. The demo brain has
   // the event tools and the agenda refusal. Nothing is reserved for it.
@@ -124,7 +150,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   // brain (escalating needs the conversation; parallel requests see the question). With a model
   // chain, the turn's estimated cost (at the dearest link, for this thread) is reserved against the
   // month's cap in that same step.
-  const reserve: Reserve | null = chain.length && !eventTurn
+  const reserve: Reserve | null = chain.length && !eventTurn && !aboutMessages
     ? {
         provider: chain[0].provider,
         model: chain[0].raw,
@@ -139,7 +165,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   const conversationId = basics?.conversationId ?? null;
   const profile = basics?.profile;
   const history = basics?.history ?? [];
-  const save = async (t: { answer: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; error: string | null; degraded: boolean; calls: ToolRun[]; goTo: GoTo | null }) => {
+  const save = async (t: { answer: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; error: string | null; degraded: boolean; calls: ToolRun[]; goTo: unknown }) => {
     const ms = Date.now() - t0;
     if (!conversationId) return ms;
     try {
@@ -180,12 +206,13 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     huecos: { name, app: brand.shortName || brand.appName || 'la plataforma', boss: brand.bossLabel || 'el jefe', person: firstName(session.name) },
     roles,
     personName: session.name,
-    knowledge: await loadKnowledge(roles),
+    knowledge: withSections(await loadKnowledge(roles), roles),
     // Chosen by what was asked (the words the masking took count too; nothing of it is stored or sent).
     scripts: await loadScripts([routing, ...history.filter((h) => h.who === 'persona').slice(-2).map((h) => h.body)].join(' '), roles),
     history,
+    screen,
   };
-  await noteHeard(question, roles[0] ?? null);
+  if (!aboutMessages) await noteHeard(question, roles[0] ?? null);
 
   // Only a turn with its reservation and the titles asks the model, and never one about an event: this
   // question, or one that goes on with a thread about one («¿y a qué hora?», «¿y quién la cubre?» after
@@ -193,7 +220,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   // the monthly AI cap (or if the turn could not be counted, or the titles not read) the demo brain
   // answers (it costs nothing): never a breakdown (the reservation is released when saving).
   const thread = eventThread([...history.filter((h) => h.who === 'persona').map((h) => h.body), question], seen);
-  const useModel = !!basics?.usageId && !!titles && !eventTurn && !thread.at(-1);
+  const useModel = !!basics?.usageId && !!titles && !eventTurn && !thread.at(-1) && !aboutMessages;
   const tools = toolsFor(roles, !!conversationId);
   const toolCtx = { session, conversationId, escalate: escalateFn };
 
@@ -253,17 +280,22 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   }
 
   if (!degraded) answer = shown(answer);
-  const goTo = degraded
+  // A tutorial to start: the one the demo brain chose, or (the model) the last one ver_tutorial gave for one screen.
+  // Its button replaces «Ir a…» (both would lead to the same screen).
+  const fromTool = out.model === 'local' ? null : out.calls.filter((c) => c.ok && c.tutorial).at(-1)?.tutorial;
+  const tutorial = degraded ? null : (out.tutorial ?? fromTool ?? null);
+  const goTo = degraded || tutorial
     ? null
     : pickGoTo(session.roles, { toolHrefs: [out.goTo, ...out.calls.filter((c) => c.ok).map((c) => c.goTo).reverse()], answer, question });
   const model = degraded && !out.model ? 'ninguno' : out.model || 'local';
-  await save({ answer, model, provider: out.provider, tokensIn: out.tokensIn, tokensOut: out.tokensOut, error, degraded, calls: out.calls, goTo });
+  await save({ answer, model, provider: out.provider, tokensIn: out.tokensIn, tokensOut: out.tokensOut, error, degraded, calls: out.calls, goTo: tutorial ? { href: tutorial.href, label: tutorial.label, tutorial: tutorial.id } : goTo });
   return finish({
     answer,
     model,
     degraded,
     did: out.calls.map((c) => (c.ok ? { tool: c.tool } : { tool: c.tool, error: c.error })),
     goTo,
+    tutorial,
     conversationId,
   });
 }
@@ -275,7 +307,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
 export const HEALTH_KIND = 'assistant_health';
 
 export async function assistantHealthCheck(): Promise<{ answers: number; degraded: number; ratio: number; notified: boolean }> {
-  const s = await withSystem(async (sql) => {
+  const s = await system(async (sql) => {
     const r = await sql.one<{ total: number; bad: number }>(
       `select count(*)::int as total, count(*) filter (where degraded)::int as bad
          from public.assistant_messages where who = 'asistente' and created_at > now() - interval '1 hour'`,

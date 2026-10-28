@@ -1,6 +1,6 @@
 import 'server-only';
-import { db, type Session } from '../auth/session';
-import { withSystem } from '../db';
+import type { Session } from '../auth/session';
+import { db, system } from './db';
 import { env } from '../env';
 import { notify, usersWithRole } from '../notify';
 import { INVITABLE_ROLES, ROLES, ROLE_LABEL, isInvitableRole, type Role } from '../roles';
@@ -9,13 +9,15 @@ import { chat, estimateCost, keyDiagnostics, parseChain, type KeyDiagnosis } fro
 import { DATES_MESSAGE, listOf, noticeIssues, teachingProblem } from './guard';
 import { hasDate, redact, redactContacts } from './redact';
 import { variantsOf } from './local';
+import { MESSAGES_MARK } from './messages-ask';
 import { loadTitles } from './titles';
 import { toolByName } from './tools';
 
 // Server functions for Ajustes → Asistente (the panel). Plain functions, not server
 // actions: the panel wraps them. EVERY one checks that the caller is administration (with
-// 2FA when required) using the session it receives. Assistant tables go through withSystem
-// (never inside db(session, …)); app_settings goes through db(session) with RLS.
+// 2FA when required) using the session it receives. Assistant tables go through system()
+// (never inside db(session, …)); app_settings goes through db(session) with RLS. Both are
+// db.ts's: every transaction is marked as 360's (app.caller), so none reaches Mensajes.
 
 export class AssistantAdminError extends Error {}
 
@@ -67,7 +69,7 @@ export type KnowledgeRow = {
 
 export async function listKnowledge(s: Session, f: { q?: string; origin?: 'plataforma' | 'equipo'; active?: boolean } = {}): Promise<KnowledgeRow[]> {
   assertAdmin(s);
-  return withSystem((sql) =>
+  return system((sql) =>
     sql.query<KnowledgeRow>(
       `select id, roles::text[] as roles, title, body, tags, origin, key, active, created_at, updated_at, origin = 'plataforma' as automatic
          from public.assistant_knowledge
@@ -88,7 +90,7 @@ export async function saveKnowledge(s: Session, input: { id?: string | null; tit
   await teachable(s, { said: [title, body], whole: true });
   const roles = rolesOrNull(input.roles);
   const tags = strings(input.tags);
-  return withSystem(async (sql) => {
+  return system(async (sql) => {
     if (input.id) {
       const row = await sql.one<{ id: string; origin: string }>(
         `update public.assistant_knowledge set title = $2, body = $3, roles = $4::public.app_role[], tags = $5::text[],
@@ -110,7 +112,7 @@ export async function saveKnowledge(s: Session, input: { id?: string | null; tit
 /** On/off. Switching an automatic one is a team decision too: it becomes the team's. */
 export async function toggleKnowledge(s: Session, id: string, active: boolean) {
   assertAdmin(s);
-  const r = await withSystem((sql) =>
+  const r = await system((sql) =>
     sql.one<{ id: string }>(`update public.assistant_knowledge set active = $2, origin = case when active = $2 then origin else 'equipo' end where id = $1 returning id`, [uuid(id), !!active]),
   );
   if (!r) throw new AssistantAdminError('Esa ficha no existe.');
@@ -119,7 +121,7 @@ export async function toggleKnowledge(s: Session, id: string, active: boolean) {
 /** «Actualizar lo que sabe»: regenerates the automatic fichas now. */
 export async function refreshKnowledge(s: Session): Promise<number> {
   assertAdmin(s);
-  return withSystem(async (sql) => (await sql.one<{ n: number }>(`select public.assistant_refresh() as n`))!.n);
+  return system(async (sql) => (await sql.one<{ n: number }>(`select public.assistant_refresh() as n`))!.n);
 }
 
 // ---------------------------------------------------------------------------
@@ -132,7 +134,7 @@ export type ScriptRow = {
 
 export async function listScripts(s: Session, f: { q?: string; active?: boolean } = {}): Promise<ScriptRow[]> {
   assertAdmin(s);
-  return withSystem((sql) =>
+  return system((sql) =>
     sql.query<ScriptRow>(
       `select id, roles::text[] as roles, topic, triggers, script, notes, always, active, origin, key, times_used, last_used_at, updated_at
          from public.assistant_scripts
@@ -157,7 +159,7 @@ export async function saveScript(
   await teachable(s, { said: [script, notes ?? ''], asked: [topic] });
   const triggers = strings(input.triggers, 40);
   const roles = rolesOrNull(input.roles);
-  return withSystem(async (sql) => {
+  return system(async (sql) => {
     if (input.id) {
       const row = await sql.one<{ id: string; origin: string }>(
         `update public.assistant_scripts set topic = $2, triggers = $3::text[], script = $4, notes = $5, always = coalesce($6, always),
@@ -178,7 +180,7 @@ export async function saveScript(
 
 export async function toggleScript(s: Session, id: string, active: boolean) {
   assertAdmin(s);
-  const r = await withSystem((sql) => sql.one<{ id: string }>(`update public.assistant_scripts set active = $2 where id = $1 returning id`, [uuid(id), !!active]));
+  const r = await system((sql) => sql.one<{ id: string }>(`update public.assistant_scripts set active = $2 where id = $1 returning id`, [uuid(id), !!active]));
   if (!r) throw new AssistantAdminError('Ese guion no existe.');
 }
 
@@ -187,7 +189,7 @@ export async function testScripts(s: Session, question: string, roles?: Role[]) 
   assertAdmin(s);
   const q = redact(text(question, 'la pregunta', 1, 1500));
   const rs = roles?.length ? rolesOrNull(roles)! : INVITABLE_ROLES;
-  return withSystem((sql) =>
+  return system((sql) =>
     sql.query<{ id: string; key: string | null; topic: string; points: number; always: boolean }>(
       `select script_id as id, script_key as key, script_topic as topic, script_points as points, script_always as always
          from public.assistant_scripts_for($1, $2::public.app_role[], 3, false)`,
@@ -206,7 +208,7 @@ export type ConversationRow = {
 
 export async function listConversations(s: Session, f: { limit?: number; offset?: number; onlyEscalated?: boolean; onlyProblems?: boolean; userId?: string } = {}): Promise<ConversationRow[]> {
   assertAdmin(s);
-  return withSystem((sql) =>
+  return system((sql) =>
     sql.query<ConversationRow>(
       `select c.id, c.user_id, coalesce(nullif(p.full_name, ''), p.email, '—') as person, c.title, c.created_at, c.last_at,
               c.escalated_at, c.escalated_reason,
@@ -232,7 +234,7 @@ export type MessageRow = {
 
 export async function getConversation(s: Session, id: string) {
   assertAdmin(s);
-  return withSystem(async (sql) => {
+  return system(async (sql) => {
     const conv = await sql.one<Omit<ConversationRow, 'messages' | 'degraded' | 'errors' | 'models'>>(
       `select c.id, c.user_id, coalesce(nullif(p.full_name, ''), p.email, '—') as person, c.title, c.created_at, c.last_at, c.escalated_at, c.escalated_reason
          from public.assistant_conversations c left join public.profiles p on p.id = c.user_id where c.id = $1`,
@@ -249,19 +251,20 @@ export async function getConversation(s: Session, id: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Lo que preguntan (agrupado por pregunta parecida, ordenado por cuántas veces salió)
+// Lo que preguntan (agrupado por pregunta parecida, ordenado por cuántas veces salió). A question about the team's
+// messages never gets here (index.ts keeps only its mark, and not in this list either: D-50).
 // ---------------------------------------------------------------------------
 export async function heardGrouped(s: Session, f: { days?: number; limit?: number } = {}) {
   assertAdmin(s);
-  return withSystem((sql) =>
+  return system((sql) =>
     sql.query<{ plain: string; sample: string; times: number; roles: Role[]; last_at: Date; ids: string[] }>(
       `select public.assistant_plain(text) as plain, (array_agg(text order by created_at desc))[1] as sample, count(*)::int as times,
               coalesce(array_agg(distinct role::text) filter (where role is not null), '{}') as roles, max(created_at) as last_at,
               array_agg(id) as ids
          from public.assistant_heard
-        where not discarded and knowledge_id is null and created_at > now() - make_interval(days => $1)
+        where not discarded and knowledge_id is null and created_at > now() - make_interval(days => $1) and text <> $3
         group by 1 order by times desc, last_at desc limit $2`,
-      [Math.min(Math.max(f.days ?? 30, 1), 365), Math.min(Math.max(f.limit ?? 100, 1), 500)],
+      [Math.min(Math.max(f.days ?? 30, 1), 365), Math.min(Math.max(f.limit ?? 100, 1), 500), MESSAGES_MARK],
     ),
   );
 }
@@ -269,14 +272,14 @@ export async function heardGrouped(s: Session, f: { days?: number; limit?: numbe
 export async function discardHeard(s: Session, ids: string[]) {
   assertAdmin(s);
   const list = ids.map((x) => uuid(x));
-  await withSystem((sql) => sql.query(`update public.assistant_heard set discarded = true where id = any ($1::uuid[])`, [`{${list.join(',')}}`]));
+  await system((sql) => sql.query(`update public.assistant_heard set discarded = true where id = any ($1::uuid[])`, [`{${list.join(',')}}`]));
 }
 
 /** After «Enseñarle el dato»: the questions that ficha answers leave the list. */
 export async function linkHeard(s: Session, ids: string[], knowledgeId: string) {
   assertAdmin(s);
   const list = ids.map((x) => uuid(x));
-  await withSystem((sql) =>
+  await system((sql) =>
     sql.query(`update public.assistant_heard set knowledge_id = $2 where id = any ($1::uuid[])`, [`{${list.join(',')}}`, uuid(knowledgeId, 'id de ficha')]),
   );
 }
@@ -286,7 +289,7 @@ export async function linkHeard(s: Session, ids: string[], knowledgeId: string) 
 // ---------------------------------------------------------------------------
 export async function listDrafts(s: Session, status: 'pendiente' | 'confirmado' | 'descartado' | 'todos' = 'pendiente') {
   assertAdmin(s);
-  return withSystem((sql) =>
+  return system((sql) =>
     sql.query<{ id: string; kind: string; summary: string; body: string; target: { role?: string }; status: string; created_at: Date; created_by_name: string | null; conversation_id: string | null; resolved_at: Date | null; result: unknown }>(
       `select d.id, d.kind, d.summary, d.body, d.target, d.status, d.created_at, coalesce(nullif(p.full_name, ''), p.email) as created_by_name,
               d.conversation_id, d.resolved_at, d.result
@@ -301,7 +304,7 @@ export async function listDrafts(s: Session, status: 'pendiente' | 'confirmado' 
  * sending fails, it goes back to pending and administración is told why, in plain words. */
 export async function confirmDraft(s: Session, id: string) {
   assertAdmin(s);
-  const d = await withSystem((sql) =>
+  const d = await system((sql) =>
     sql.one<{ id: string; kind: string; body: string; target: { role?: string } }>(
       `update public.assistant_drafts set status = 'confirmado', resolved_by = $2, resolved_at = now()
         where id = $1 and status = 'pendiente' returning id, kind, body, target`,
@@ -326,19 +329,19 @@ export async function confirmDraft(s: Session, id: string) {
       throw new AssistantAdminError(`No se mandó: el aviso trae ${listOf(issues)}, y eso solo va en la Agenda. Descártalo y pide otro sin eso.`);
     }
     await notify({ userIds: [...people], kind: 'assistant_notice', title: 'Aviso del equipo', body: redactContacts(d.body), key: `assistant-draft:${d.id}` });
-    await withSystem((sql) =>
+    await system((sql) =>
       sql.query(`update public.assistant_drafts set result = $2::text::jsonb where id = $1`, [d.id, JSON.stringify({ enviados: people.size, a: role === 'todos' ? 'todo el equipo' : ROLE_LABEL[role as Role] })]),
     );
     return { sent: people.size };
   } catch (e) {
-    await withSystem((sql) => sql.query(`update public.assistant_drafts set status = 'pendiente', resolved_by = null, resolved_at = null where id = $1`, [d.id]));
+    await system((sql) => sql.query(`update public.assistant_drafts set status = 'pendiente', resolved_by = null, resolved_at = null where id = $1`, [d.id]));
     throw e;
   }
 }
 
 export async function discardDraft(s: Session, id: string) {
   assertAdmin(s);
-  const r = await withSystem((sql) =>
+  const r = await system((sql) =>
     sql.one<{ id: string }>(
       `update public.assistant_drafts set status = 'descartado', resolved_by = $2, resolved_at = now() where id = $1 and status = 'pendiente' returning id`,
       [uuid(id), s.userId],
@@ -352,7 +355,7 @@ export async function discardDraft(s: Session, id: string) {
 // ---------------------------------------------------------------------------
 export async function listActions(s: Session, f: { limit?: number } = {}) {
   assertAdmin(s);
-  const rows = await withSystem((sql) =>
+  const rows = await system((sql) =>
     sql.query<{ id: string; action: string; entity: string | null; entity_id: string | null; detail: Record<string, unknown>; created_at: Date; undone_at: Date | null; person: string | null; conversation_id: string | null }>(
       `select a.id, a.action, a.entity, a.entity_id, a.detail, a.created_at, a.undone_at, coalesce(nullif(p.full_name, ''), p.email) as person, a.conversation_id
          from public.assistant_actions a left join public.profiles p on p.id = a.user_id
@@ -365,7 +368,7 @@ export async function listActions(s: Session, f: { limit?: number } = {}) {
 
 export async function undoAction(s: Session, id: string) {
   assertAdmin(s);
-  const a = await withSystem((sql) =>
+  const a = await system((sql) =>
     sql.one<{ id: string; action: string; user_id: string | null; entity_id: string | null; detail: Record<string, unknown>; undone_at: Date | null }>(
       `select id, action, user_id, entity_id, detail, undone_at from public.assistant_actions where id = $1`,
       [uuid(id)],
@@ -376,7 +379,7 @@ export async function undoAction(s: Session, id: string) {
   const tool = toolByName(a.action);
   if (!tool?.undo) throw new AssistantAdminError('Esto no se puede deshacer: el aviso ya salió.');
   await tool.undo(a);
-  await withSystem((sql) => sql.query(`update public.assistant_actions set undone_at = now(), undone_by = $2 where id = $1`, [a.id, s.userId]));
+  await system((sql) => sql.query(`update public.assistant_actions set undone_at = now(), undone_by = $2 where id = $1`, [a.id, s.userId]));
 }
 
 // ---------------------------------------------------------------------------
@@ -398,7 +401,7 @@ export async function healthStats(s: Session, f: { days?: number } = {}): Promis
   assertAdmin(s);
   const chain = parseChain(env.assistant.models);
   const days = Math.min(Math.max(f.days ?? 14, 1), 90);
-  const data = await withSystem(async (sql) => {
+  const data = await system(async (sql) => {
     const perDay = await sql.query<HealthStats['days'][number]>(
       `select to_char((m.created_at at time zone $2)::date, 'YYYY-MM-DD') as day,
               count(distinct m.conversation_id)::int as conversations,
@@ -452,7 +455,7 @@ export async function probeChain(s: Session): Promise<{ link: string; ok: boolea
       const r = await chat([{ role: 'system', content: 'Contesta con una sola palabra.' }, { role: 'user', content: 'di hola' }], { chain: [link], maxTokens: 20, temperature: 0 });
       out.push({ link: link.raw, ok: true, text: r.text.slice(0, 80), ms: Date.now() - t0 });
       if (r.usage.prompt_tokens || r.usage.completion_tokens) {
-        await withSystem((sql) =>
+        await system((sql) =>
           sql.query(`insert into public.ai_usage (user_id, feature, provider, model, input_tokens, output_tokens, cost_usd) values ($1, 'assistant', $2, $3, $4, $5, $6)`, [
             s.userId, r.provider, r.link, r.usage.prompt_tokens, r.usage.completion_tokens, estimateCost(r.link, r.usage.prompt_tokens, r.usage.completion_tokens).toFixed(4),
           ]),

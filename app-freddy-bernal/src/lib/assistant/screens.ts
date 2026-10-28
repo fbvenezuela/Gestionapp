@@ -8,7 +8,7 @@ import { HELP_SCREENS } from '../guides/screens';
 import { plain } from './text';
 
 export type Screen = {
-  href: string; // static path, or a pattern with [id]
+  href: string; // static path, or a pattern with [id] (any [name] is one segment: /ayuda/[rol])
   label: string;
   roles: Role[] | null;
   phrases: string[]; // phrases (never a lone word) that name this screen
@@ -92,15 +92,25 @@ const GENERAL = new Set(['/avisos', '/hoy', '/buscar', '/perfil']);
  * them can be opened, the first one: the caller says it is not of this role.
  */
 export function navTarget(text: string, roles?: Role[]): Screen | null {
+  if (!WHERE_IS.test(` ${plain(text)} `)) return null;
+  return screenNamed(text, roles);
+}
+
+/**
+ * The screen a text names by its label, its phrases or its nav words (a lone word is enough), ranked as navTarget does;
+ * null when it names none. `skip`: words that do not count here («tutoriales» names Ayuda, but «¿hay tutoriales?»
+ * asks for one of them).
+ */
+export function screenNamed(text: string, roles?: Role[], skip: readonly string[] = []): Screen | null {
   const t = ` ${plain(text)} `;
-  if (!WHERE_IS.test(t)) return null;
+  const skipped = new Set(skip.map((w) => plain(w)));
   type Hit = { s: Screen; at: number; len: number; label: boolean; open: boolean; general: boolean };
   const hits: Hit[] = [];
   for (const s of SCREENS) {
-    if (s.href.includes('[id]')) continue;
+    if (s.href.includes('[')) continue;
     let first: Hit | null = null;
     for (const w of [plain(s.label), ...navOf(s)]) {
-      const at = w ? t.indexOf(` ${w} `) : -1;
+      const at = w && !skipped.has(w) ? t.indexOf(` ${w} `) : -1;
       if (at >= 0 && (!first || at < first.at || (at === first.at && w.length > first.len))) {
         first = { s, at, len: w.length, label: w === plain(s.label), open: !roles || canOpen(s.href, roles), general: GENERAL.has(s.href) };
       }
@@ -111,20 +121,27 @@ export function navTarget(text: string, roles?: Role[]): Screen | null {
   return hits.sort(rank)[0]?.s ?? null;
 }
 
+// A pattern's [param] (any name: [id], [rol]) stands for one segment of the path.
+const PARAM = /\[[a-z]+\]/g;
 function patternOf(href: string): RegExp {
-  const esc = href.replace(/[.*+?^${}()|\\]/g, '\\$&').replaceAll('[id]', '[^/?#]+');
+  const esc = href.replace(/[.*+?^${}()|\\]/g, '\\$&').replace(PARAM, '[^/?#]+');
   return new RegExp(`^${esc}(?:[?#].*)?$`);
 }
 
-/** The screen a concrete href belongs to (exact path first, then [id] patterns). */
+/** The screen a concrete href belongs to (exact path first, then the patterns with a [param]). */
 export function screenFor(href: string): Screen | null {
   const path = href.split(/[?#]/)[0];
-  return SCREENS.find((s) => s.href === path) ?? SCREENS.find((s) => s.href.includes('[id]') && patternOf(s.href).test(href)) ?? null;
+  return SCREENS.find((s) => s.href === path) ?? SCREENS.find((s) => s.href.includes('[') && patternOf(s.href).test(href)) ?? null;
 }
+
+// An account with Administración is out of Mensajes even with a team role (D-49): its pages send it away, so no
+// button leads there.
+const CHAT_HREFS = new Set(CHAT_SCREENS.map((s) => s.href));
 
 export function canOpen(href: string, roles: Role[]): boolean {
   const s = screenFor(href);
   if (!s) return false;
+  if (CHAT_HREFS.has(s.href) && roles.includes('admin')) return false;
   return s.roles === null ? roles.length > 0 : s.roles.some((r) => roles.includes(r));
 }
 
@@ -145,7 +162,7 @@ export function pickGoTo(roles: Role[], o: { toolHrefs?: (string | null | undefi
   // An answer that names several screens (the list of Ajustes) points to none of them.
   for (const text of [o.answer, o.question]) {
     if (!text) continue;
-    const named = screensIn(text).filter((x) => !x.href.includes('[id]'));
+    const named = screensIn(text).filter((x) => !x.href.includes('['));
     if (text === o.answer && named.length > 1) continue;
     const s = named.find((x) => canOpen(x.href, roles));
     if (s) return { href: s.href, label: s.label };

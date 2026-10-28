@@ -319,7 +319,11 @@
    "tags": [
     "realizado",
     "biblioteca",
-    "pasados"
+    "pasados",
+    "tarea",
+    "hecha",
+    "hecho",
+    "terminado"
    ]
   },
   {
@@ -575,6 +579,52 @@
    "tags": [
     "asistente",
     "panel"
+   ]
+  },
+  {
+   "key": "mensajes",
+   "roles": null,
+   "title": "Cómo le escribo a alguien del equipo",
+   "body": "Mensajes está en el sobre de arriba, junto a la campana: con «Escribirle a alguien» le escribes a una persona del equipo o armas un grupo, y en «Todo el equipo» le escribes a todos. El jefe puede leer todas las conversaciones; administración no las lee, y [ASISTENTE] tampoco. Lo que se escribe queda guardado y no se borra. Para hablar de un evento, una pieza o una ficha, pegas su dirección de la plataforma y cada quien la abre con sus permisos. Nunca van teléfonos: los contactos van en la ficha. Si conoces la agenda, no escribas fechas, horas ni mapas donde están Redes o política. En el teléfono, Enter hace un salto de línea y se envía con el botón. Una cuenta con administración no entra a Mensajes.",
+   "tags": [
+    "mensajes",
+    "mensaje",
+    "chat",
+    "red interna",
+    "escribirle",
+    "grupo",
+    "todo el equipo",
+    "conversaciones",
+    "sobre"
+   ]
+  },
+  {
+   "key": "tutoriales",
+   "roles": null,
+   "title": "Cómo pido un tutorial",
+   "body": "Cada pantalla de tu trabajo tiene su tutorial, paso a paso, en la misma pantalla. Lo abres en el menú de tu cuenta, arriba a la derecha, con «Ver el tutorial de esta pantalla»; en «Ayuda y guías», en «Tutoriales de mis pantallas»; o pidiéndomelo: “muéstrame cómo se usa esta pantalla”. [ASISTENTE] también te lo ofrece con una franja junto a su botón, «¿Te muestro esta pantalla?»; si le dices que no dos veces, deja de ofrecerlo, y lo vuelves a prender en «Ayuda y guías».",
+   "tags": [
+    "tutorial",
+    "tutoriales",
+    "recorrido",
+    "paso a paso",
+    "aprender",
+    "ensenar"
+   ]
+  },
+  {
+   "key": "ayuda-guias",
+   "roles": null,
+   "title": "Dónde está la guía de mi trabajo",
+   "body": "La guía de tu trabajo está en el menú de tu cuenta, arriba a la derecha, en «Ayuda y guías»: qué hace tu rol, tu día, el paso a paso, cada pantalla y cómo pasa el trabajo de un rol a otro. Vive en la plataforma, no se manda por correo, y se abre con señal.",
+   "tags": [
+    "guia",
+    "guias",
+    "ayuda",
+    "manual",
+    "descripcion de cargo",
+    "flujos",
+    "flujogramas"
    ]
   }
  ]

@@ -84,6 +84,10 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Cómo subo una pieza a rojo?', { has: /se sube a rojo/ }],
     ['que significa el rojo', { has: /rojo, como todas, las aprueba el jefe/ }],
     ['¿Dónde están los tweets?', { go: '/tweets' }],
+    // R3 (design §8.2): «política» is not off topic any more (the boss's Política screen). The tutorials, the screen
+    // the person is on and Mensajes are in assistant-help.test.ts (each file has its own hourly limit).
+    ['¿Cómo califico los eventos en Política?', { has: /califica de 1 a 10/, go: '/jefe/politica' }],
+    ['¿qué opinas de la política?', { has: /se me escapa|no opino/ }],
   ],
   dispatch: [
     ['¿Qué fichas tengo incompletas?', { tool: 'mis_pendientes', has: /ficha/ }],
@@ -231,6 +235,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿qué llevo a la cancha?', A],
     ['¿dónde queda mi sesión de fotos?', A],
     ['¿qué tengo que llevar a un acto?', { unsure: true }],
+    // R3: nor «tarea».
+    ['¿Cómo marco una tarea como hecha?', { has: /realizado/ }],
   ],
   camera2: [
     ['el puentesito es en semana santa, ¿qué llevo?', A],

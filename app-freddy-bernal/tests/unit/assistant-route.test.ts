@@ -9,14 +9,15 @@ vi.mock('@/lib/env', async (orig) => {
   return { ...m, env: { ...m.env, assistant: { get enabled() { return state.enabled; }, models: '' } } };
 });
 vi.mock('@/lib/auth/session', async (orig) => ({ ...(await orig<typeof import('@/lib/auth/session')>()), getSession: vi.fn(async () => state.session) }));
-const handleTurn = vi.fn(async (_s: Session, i: { question: string; conversationId?: string | null }) => ({
+const handleTurn = vi.fn(async (_s: Session, i: { question: string; conversationId?: string | null; screen?: string | null }) => ({
   answer: `ok: ${i.question}`,
   scope: 'equipo' as const,
   model: 'local',
   ms: 3,
   degraded: false,
   did: [{ tool: 'mis_pendientes' }],
-  goTo: { href: '/hoy', label: 'Hoy' },
+  goTo: i.screen ? null : { href: '/hoy', label: 'Hoy' },
+  tutorial: i.screen ? { id: 'publicar', label: 'Ver el tutorial de Publicar', href: '/publicar?tutorial=publicar' } : null,
   conversationId: i.conversationId ?? '123e4567-e89b-42d3-a456-426614174000',
 }));
 vi.mock('@/lib/assistant', async (orig) => ({ ...(await orig<typeof import('@/lib/assistant')>()), handleTurn }));
@@ -75,9 +76,22 @@ describe('POST /api/asistente', () => {
       degradado: false,
       hizo: [{ tool: 'mis_pendientes' }],
       ir: { href: '/hoy', label: 'Hoy' },
+      tutorial: null,
       conversacion: conv,
     });
     // The scope sent by the window is ignored: the server decides it.
-    expect(handleTurn).toHaveBeenCalledWith(state.session, { question: '¿qué tengo pendiente?', conversationId: conv });
+    expect(handleTurn).toHaveBeenCalledWith(state.session, { question: '¿qué tengo pendiente?', conversationId: conv, screen: null });
+  });
+
+  it('la pantalla llega como patrón (nunca un id); una que no lo parece se descarta sin error', async () => {
+    const r = await POST(req({ pregunta: 'muéstrame cómo se usa esta pantalla', pantalla: '/publicar' }));
+    expect(r.status).toBe(200);
+    expect((await r.json()).tutorial).toEqual({ id: 'publicar', etiqueta: 'Ver el tutorial de Publicar', href: '/publicar?tutorial=publicar' });
+    expect(handleTurn).toHaveBeenLastCalledWith(state.session, { question: 'muéstrame cómo se usa esta pantalla', conversationId: null, screen: '/publicar' });
+    for (const bad of ['/eventos/ABC?tab=x', 'publicar', '/'.repeat(90), 42, '/ayuda#x']) {
+      const r2 = await POST(req({ pregunta: 'hola', pantalla: bad }));
+      expect(r2.status, String(bad)).toBe(200);
+      expect(handleTurn, String(bad)).toHaveBeenLastCalledWith(state.session, { question: 'hola', conversationId: null, screen: null });
+    }
   });
 });

@@ -6,8 +6,10 @@ import { EVENT_NOUNS, aboutEvent, asksAboutPublishing, asksRoute, asksWhenWhere,
 import { scrubTeamFicha, scrubTeamScript } from './guard';
 import { carriesWhen, hasDate, hasPlaceOrContact, redact, redactDeep, redactEventSpeech, redactLandmarks, redactQuoted } from './redact';
 import { fillHuecos, plain, sentences, HUECO, type Huecos } from './text';
+import { sectionCards } from '../guides';
+import { screenFor } from './screens';
 import { ANY_TOKEN, NO_TITLES, Placeholders, type TitleSet } from './titles';
-import { runTool, toSpecs, type Tool, type ToolCtx, type ToolRun } from './tools';
+import { runTool, toSpecs, type Tool, type ToolCtx, type ToolRun, type TutorialLink } from './tools';
 
 // The readings of a question (when, where, how to get there, publishing) live with the shared detector.
 export { asksAboutPublishing, asksPlace, asksRoute, asksSchedule, asksWhenWhere, eventAt, withoutWhenWhere } from './events';
@@ -44,12 +46,15 @@ export type TurnContext = {
   knowledge: Ficha[] | null; // null = could not be read (declared, never silently omitted)
   scripts: ChosenScript[];
   history: HistoryMsg[];
+  // The screen the person is on, as a SCREENS pattern ('/eventos/[id]'), when the window said it (index.ts screenOf).
+  screen?: string | null;
 };
 
 // restore: on the model path, `text` carries the placeholders of the titles (titles.ts); this puts the
 // real names back for the person, after the filter and the nets have looked at the placeholders.
-// goTo: a screen the demo brain points to without a tool («¿dónde está la biblioteca?»).
-export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[]; restore?: (t: string) => string; goTo?: string };
+// goTo: a screen the demo brain points to without a tool («¿dónde está la biblioteca?»). tutorial: one to start
+// («Ver el tutorial de Publicar»).
+export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[]; restore?: (t: string) => string; goTo?: string; tutorial?: TutorialLink };
 
 // ---------------------------------------------------------------------------
 // Which fichas go into this turn: the relevant ones, not all of them (a turn should weigh
@@ -218,6 +223,26 @@ export function scoreFichas(all: Ficha[], text: string): ScoredFicha[] {
     .sort((a, b) => b.n - a.n);
 }
 
+// 360's section cards: what each screen is for and what each role does there, from the role guides (src/lib/guides,
+// D-42: one source, so they never drift from /ayuda). They come from the code on every turn (sectionFichas), not from
+// the database: the guides name the screens' labels («Hoy en la agenda», «Horas de silencio»), which the check on what
+// the team teaches would refuse if one were edited and saved in Ajustes. Not in the general scoring: only the ones of
+// the screen the person is on go into a turn (sectionsFor).
+export const SECTION_PREFIX = 'seccion:';
+let SECTIONS: (Ficha & { roles: Role[] })[] | null = null;
+/** The section cards of these roles, as fichas. */
+export function sectionFichas(roles: Role[]): Ficha[] {
+  SECTIONS ??= sectionCards().map((c) => ({ key: c.key, title: c.title, body: c.body, tags: c.tags, origin: 'plataforma', roles: c.roles }));
+  return SECTIONS.filter((f) => f.roles.some((r) => roles.includes(r)));
+}
+export const isSection = (f: Pick<Ficha, 'key'>) => !!f.key?.startsWith(SECTION_PREFIX);
+export const sectionKey = (screen: string, role: Role) => `${SECTION_PREFIX}${screen}:${role}`;
+/** The section cards of this screen for these roles (in the order of the roles). */
+export function sectionsFor(all: Ficha[] | null, screen: string | null | undefined, roles: Role[]): Ficha[] {
+  if (!all || !screen) return [];
+  return roles.flatMap((r) => all.filter((f) => f.key === sectionKey(screen, r)));
+}
+
 export function pickFichas(all: Ficha[], text: string, roles: Role[], max = 6, withMust = true): Ficha[] {
   const must = withMust ? all.filter((f) => f.key === 'guia:agenda-privada' || roles.some((r) => ROLE_FICHA[r] === f.key)) : [];
   const scored = scoreFichas(all, text).filter((x) => !must.includes(x.f) && x.n >= 2);
@@ -284,7 +309,11 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string, 
   if (ctx.knowledge === null) {
     L.push('Ahora mismo no tienes las fichas (no se pudieron leer). No inventes datos de la plataforma: si la respuesta depende de ellas, di «Déjame confirmarlo con el equipo» y ofrece avisar a administración.');
   } else {
-    const picked = pickFichas(ctx.knowledge, `${question} ${ctx.history.filter((h) => h.who === 'persona').slice(-2).map((h) => h.body).join(' ')}`, ctx.roles, 4);
+    const general = ctx.knowledge.filter((x) => !isSection(x));
+    const picked = [
+      ...sectionsFor(ctx.knowledge, ctx.screen, ctx.roles).slice(0, 1),
+      ...pickFichas(general, `${question} ${ctx.history.filter((h) => h.who === 'persona').slice(-2).map((h) => h.body).join(' ')}`, ctx.roles, 4),
+    ];
     if (!picked.length) L.push('No hay fichas sobre esto. Si te preguntan algo que no está aquí ni en una herramienta, dilo sin inventar.');
     let used = 0;
     for (const x of picked) {
@@ -299,6 +328,11 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string, 
   // 5. Who is asking (their own things come from the tools, as facts to use).
   L.push('', '## QUIEN PREGUNTA');
   L.push(`Nombre: ${ctx.personName || 'sin dato'}. Lo suyo (pendientes, piezas, avisos) lo consultas con las herramientas; nunca lo supongas.`);
+  const here = ctx.screen ? screenFor(ctx.screen) : null;
+  // A screen with an id is named by its pattern («Abrir el evento» is a button's label, not a screen's name).
+  const where = here && (ctx.screen!.includes('[') ? `la pantalla de una sola cosa, ${ctx.screen}` : `la pantalla «${here.label}» (${ctx.screen})`);
+  if (where) L.push(`Está en ${where}. «Aquí» o «esta pantalla» es esa. Para enseñarle cómo se usa, llama a ver_tutorial con esa pantalla.`);
+  L.push('No lees ni mandas los mensajes del equipo (Mensajes): si te piden qué dice uno o que le digas algo a alguien, di que eso se escribe en Mensajes y que el jefe puede leerlos.');
 
   // 6. Examples: «ASÍ CONTESTAS».
   if (ctx.scripts.length) {

@@ -1,10 +1,15 @@
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { Suspense, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import * as Dialog from '@radix-ui/react-dialog';
-import { ArrowRight, RotateCcw, Send, TriangleAlert, X } from 'lucide-react';
+import { ArrowRight, PlayCircle, RotateCcw, Send, TriangleAlert, X } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
+import { deviceStore } from '@/components/ui/device-store';
+import { isEditing } from '@/components/shell/live-refresh-core';
+import { NO_PERMISSION_PARAM } from '@/components/shell/no-permission';
+import { TOUR_START_EVENT, TOUR_STATE_EVENT, parseScreen, type TourStartDetail, type TourStateDetail } from '@/components/tour/tour-core';
 import { cn } from '@/lib/cn';
 import {
   ASSISTANT_URL,
@@ -23,24 +28,58 @@ import {
   inProgress,
   isDemo,
   liftFrom,
+  panelNote,
   parseThread,
   readRaw,
+  screenPattern,
   threadKey,
+  tutorialHref,
   writeThread,
   type SessionKV,
   type StickyBox,
   type Thread,
 } from './core';
+import {
+  OFFER_AUTO_HIDE_MS,
+  OFFER_DELAY_MS,
+  OFFER_LABEL,
+  OFFER_NO,
+  OFFER_OFF_HIDE_MS,
+  OFFER_OFF_TEXT,
+  OFFER_RECHECK_MS,
+  OFFER_TEXT,
+  OFFER_YES,
+  WELCOME_TOUR,
+  availableHere,
+  dayOf,
+  markShown,
+  momentOk,
+  offerAllowed,
+  pickOffer,
+  rememberAnswer,
+  welcomeText,
+  type OfferTour,
+} from './offer-core';
 
 // The team assistant's window (docs/ASISTENTE.md «La ventana», manual §12). Mounted once for
 // every role by assistant-mount.tsx. It reads nobody's data: it only calls /api/asistente,
-// which decides who asks, the scope and what each person may see.
+// which decides who asks, the scope and what each person may see. It sends the pattern of the
+// screen the person is on (/eventos/[id], never the id) and offers that screen's tutorial with a
+// one-line strip (offer-core.ts: R3, D-47). Not on a conversation of Mensajes (U11).
 
 export type AssistantWidgetProps = {
   userId: string;
   profile: { name: string; emoji: string; intro: string };
   suggestions: string[];
+  // The person's tutorials (the menu's, as the engine has them), without their steps: for the offer and the button of
+  // a tutorial whose screen needs an id.
+  tours?: OfferTour[];
 };
+
+// Where 360's button and panel are not drawn: a conversation of Mensajes fills the screen (U11).
+const NO_ASSISTANT_SCREENS = ['/mensajes/[id]'];
+// One empty list for every render (the offer's effect depends on the list).
+const NO_TOURS: OfferTour[] = [];
 
 function sessionStore(): SessionKV | null {
   try {
@@ -127,13 +166,17 @@ function subscribeLift(cb: () => void) {
 
 const getLift = () => liftValue;
 
-export function AssistantWidget({ userId, profile, suggestions }: AssistantWidgetProps) {
+export function AssistantWidget({ userId, profile, suggestions, tours = NO_TOURS }: AssistantWidgetProps) {
+  const pathname = usePathname();
+  const screen = screenPattern(pathname);
   const key = threadKey(userId);
   const raw = useSyncExternalStore(subscribeThread, () => readRaw(sessionStore(), key), () => null);
   const thread = useMemo(() => parseThread(raw, userId), [raw, userId]);
   const lift = useSyncExternalStore(subscribeLift, getLift, () => 0);
 
   const [open, setOpen] = useState(false);
+  // How tall the offer strip is while it shows: the spacer grows by that much (it never covers the page's end).
+  const [stripHeight, setStripHeight] = useState(0);
   const [text, setText] = useState('');
   const [waiting, setWaiting] = useState(false);
   const busy = useRef(false);
@@ -178,7 +221,7 @@ export function AssistantWidget({ userId, profile, suggestions }: AssistantWidge
       const res = await fetch(ASSISTANT_URL, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ pregunta: q, conversacion: before.conversationId }),
+        body: JSON.stringify({ pregunta: q, conversacion: before.conversationId, pantalla: screen }),
         credentials: 'same-origin',
         cache: 'no-store',
         signal: ctrl.signal,
@@ -195,7 +238,7 @@ export function AssistantWidget({ userId, profile, suggestions }: AssistantWidge
     const now = parseThread(readRaw(store, key), userId);
     if (out.ok) {
       save({
-        ...addMessage(now, { who: 'asistente', text: out.text, degraded: out.degraded, goTo: out.goTo, model: out.model }),
+        ...addMessage(now, { who: 'asistente', text: out.text, degraded: out.degraded, goTo: out.goTo, tutorial: out.tutorial, model: out.model }),
         conversationId: out.conversationId ?? now.conversationId,
       });
     } else {
@@ -214,12 +257,24 @@ export function AssistantWidget({ userId, profile, suggestions }: AssistantWidge
   };
 
   const counter = text.length >= COUNTER_FROM;
+  // A tutorial's button: its address, or (a screen with an id) this very screen when the person is on it.
+  const tutorialLink = (t: NonNullable<Thread['messages'][number]['tutorial']>) => {
+    const own = tours.find((x) => x.id === t.id);
+    const search = typeof window === 'undefined' ? '' : window.location.search;
+    return tutorialHref(t, pathname, search, own ? parseScreen(own.screen).path : null);
+  };
+
+  if (screen && NO_ASSISTANT_SCREENS.includes(screen)) return null;
 
   return (
     <>
     {/* Room at the end of the page so its last row can scroll out from under the button (the
-        button reaches 124 px above the bottom on a phone; main's own padding is 72 px). */}
-    <div aria-hidden data-assistant-spacer="" className="h-16 shrink-0" />
+        button reaches 124 px above the bottom on a phone; main's own padding is 72 px), and
+        from under the offer strip while it shows. */}
+    <div aria-hidden data-assistant-spacer="" className="h-16 shrink-0" style={stripHeight ? { height: 64 + stripHeight + 8 } : undefined} />
+    <Suspense fallback={null}>
+      <OfferStrip userId={userId} name={profile.name} tours={tours} panelOpen={open} lift={lift} onHeight={setStripHeight} />
+    </Suspense>
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
         <button
@@ -311,6 +366,11 @@ export function AssistantWidget({ userId, profile, suggestions }: AssistantWidge
             {thread.messages.map((m) => (
               <div key={m.id} className={cn('flex max-w-full flex-col gap-2', m.who === 'persona' ? 'items-end' : 'items-start')}>
                 <Bubble who={m.who} degraded={m.degraded}>{m.text}</Bubble>
+                {m.tutorial && tutorialLink(m.tutorial) ? (
+                  <Link href={tutorialLink(m.tutorial)!} onClick={() => setOpen(false)} className={buttonVariants({ size: 'md', className: 'max-w-full' })}>
+                    <PlayCircle className="h-4 w-4 shrink-0" aria-hidden /> <span className="truncate">{m.tutorial.label}</span>
+                  </Link>
+                ) : null}
                 {m.goTo ? (
                   <Link href={m.goTo.href} onClick={() => setOpen(false)} className={buttonVariants({ variant: 'secondary', size: 'md', className: 'max-w-full' })}>
                     <span className="truncate">{goToText(m.goTo.label)}</span> <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
@@ -373,8 +433,9 @@ export function AssistantWidget({ userId, profile, suggestions }: AssistantWidge
               </button>
             </div>
             <div className="mt-1.5 flex items-start justify-between gap-2">
-              <Dialog.Description className="text-xs text-text-2">
+              <Dialog.Description className="flex flex-col gap-0.5 text-xs text-text-2">
                 <span id={`${ids}-note`}>{NOTE}</span>
+                <span data-assistant-panel-note="">{panelNote(profile.name)}</span>
               </Dialog.Description>
               {counter ? (
                 <span id={`${ids}-count`} aria-live="polite" className="shrink-0 text-xs tabular text-text-2">
@@ -387,6 +448,156 @@ export function AssistantWidget({ userId, profile, suggestions }: AssistantWidge
       </Dialog.Portal>
     </Dialog.Root>
     </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// The offer (R3, D-47; rules in offer-core.ts): a one-line strip above 360's button, after 4 s on a screen
+// that has a tutorial the person has not seen. It never opens 360, never takes the focus and never calls
+// /api/asistente. Its own component, under Suspense: useSearchParams() (the screen's tab, «sin permiso»).
+// ---------------------------------------------------------------------------
+function tabStore(): SessionKV | null {
+  return sessionStore();
+}
+
+function tipShown(): boolean {
+  return Array.from(document.querySelectorAll('aside[aria-label="Consejo"]')).some((el) => el.getClientRects().length > 0);
+}
+
+type Shown = { tour: OfferTour; text: string } | { off: true };
+
+function OfferStrip({ userId, name, tours, panelOpen, lift, onHeight }: { userId: string; name: string; tours: OfferTour[]; panelOpen: boolean; lift: number; onHeight: (h: number) => void }) {
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const where = `${pathname}?${params.toString()}`;
+  const screen = screenPattern(pathname);
+  const noPermission = params.get(NO_PERMISSION_PARAM) === '1';
+  const [shown, setShown] = useState<Shown | null>(null);
+  // Another screen or tab: the strip goes (reset while rendering, as tour-host.tsx). It counted as offered already.
+  const [shownAt, setShownAt] = useState(where);
+  if (shownAt !== where) {
+    setShownAt(where);
+    if (shown) setShown(null);
+  }
+  const box = useRef<HTMLElement>(null);
+  const panel = useRef(panelOpen);
+  const tourOpen = useRef(false);
+  useEffect(() => {
+    panel.current = panelOpen;
+  }, [panelOpen]);
+
+  // A tutorial running (from «Mi cuenta», a link or this strip): no strip meanwhile.
+  useEffect(() => {
+    const onState = (e: Event) => {
+      tourOpen.current = (e as CustomEvent<TourStateDetail>).detail?.state === 'open';
+      if (tourOpen.current) setShown((s) => (s && 'tour' in s ? null : s));
+    };
+    window.addEventListener(TOUR_STATE_EVENT, onState);
+    return () => window.removeEventListener(TOUR_STATE_EVENT, onState);
+  }, []);
+
+  // 4 s after the screen shows, and then once a second while something else is going on (a field with the focus, a
+  // dialog, 360 open, a tip, a tutorial), the first tutorial of this screen that may be offered.
+  useEffect(() => {
+    const since = Date.now();
+    let timer = 0;
+    const check = () => {
+      const store = deviceStore();
+      const today = dayOf(new Date());
+      const tab = tabStore();
+      if (!offerAllowed({ userId, store, tab, today })) return;
+      const moment = {
+        visibleMs: Date.now() - since,
+        editing: isEditing(document.activeElement as HTMLInputElement | null),
+        dialogOpen: !!document.querySelector('dialog[open], [role="dialog"], [role="alertdialog"]'),
+        panelOpen: panel.current,
+        tipVisible: tipShown(),
+        noPermission,
+        tourOpen: tourOpen.current || !!document.querySelector('[data-tour-dialog]'),
+      };
+      if (document.hidden || !momentOk(moment)) {
+        timer = window.setTimeout(check, OFFER_RECHECK_MS);
+        return;
+      }
+      const tour = pickOffer({ tours, here: availableHere(tours.map((t) => t.id), window), userId, store, screen });
+      if (!tour) return;
+      markShown({ tourId: tour.id, userId, store, tab, today });
+      setShown({ tour, text: tour.id === WELCOME_TOUR ? welcomeText(name) : OFFER_TEXT });
+    };
+    timer = window.setTimeout(check, OFFER_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [where, userId, name, tours, screen, noPermission]);
+
+  // Untouched, it goes away by itself (12 s; «Listo…», 6 s). Not while the focus is on it.
+  useEffect(() => {
+    if (!shown) return;
+    let timer = 0;
+    const hide = () => {
+      if (box.current?.contains(document.activeElement)) {
+        timer = window.setTimeout(hide, OFFER_RECHECK_MS);
+        return;
+      }
+      if ('tour' in shown) rememberAnswer({ answer: 'ignored', tourId: shown.tour.id, userId, store: deviceStore(), today: dayOf(new Date()) });
+      setShown(null);
+    };
+    timer = window.setTimeout(hide, 'tour' in shown ? OFFER_AUTO_HIDE_MS : OFFER_OFF_HIDE_MS);
+    return () => window.clearTimeout(timer);
+  }, [shown, userId]);
+
+  // Its height, for the spacer at the end of the page.
+  useEffect(() => {
+    const el = box.current;
+    if (!shown || !el) {
+      onHeight(0);
+      return;
+    }
+    onHeight(Math.ceil(el.getBoundingClientRect().height));
+  }, [shown, onHeight]);
+
+  if (!shown) return null;
+  const button = () => document.querySelector<HTMLElement>('[data-assistant-button]');
+  // The focus was on the strip: it goes to 360's button, not to nowhere.
+  const leave = () => {
+    if (box.current?.contains(document.activeElement)) button()?.focus();
+  };
+  const answer = (a: 'yes' | 'no') => {
+    if (!('tour' in shown)) return;
+    const { off } = rememberAnswer({ answer: a, tourId: shown.tour.id, userId, store: deviceStore(), today: dayOf(new Date()) });
+    leave();
+    if (a === 'yes') {
+      setShown(null);
+      window.dispatchEvent(new CustomEvent(TOUR_START_EVENT, { detail: { id: shown.tour.id, opener: button() } satisfies TourStartDetail }));
+    } else setShown(off ? { off: true } : null);
+  };
+
+  return (
+    <aside
+      ref={box}
+      aria-label={OFFER_LABEL}
+      aria-live="polite"
+      data-assistant-offer=""
+      style={{ '--asst-lift': `${lift}px` } as CSSProperties}
+      className={cn(
+        'glass-pop fixed right-3 z-20 flex w-[min(20rem,calc(100vw-24px))] items-center gap-2 rounded-[var(--radius-card)] py-1.5 pl-3 pr-1.5 text-text',
+        // 56 px above 360's button, which sits over the phone's bottom bar and any sticky action bar.
+        '[--asst-base:calc(env(safe-area-inset-bottom)_+_76px)] bottom-[calc(max(var(--asst-base),calc(var(--asst-lift)_+_12px))_+_56px)]',
+        'lg:right-6 lg:[--asst-base:24px]',
+      )}
+    >
+      {'tour' in shown ? (
+        <>
+          <p className="min-w-0 flex-1 text-sm font-semibold leading-tight">{shown.text}</p>
+          <button type="button" onClick={() => answer('yes')} className={buttonVariants({ size: 'md', className: 'shrink-0 px-3 text-sm' })}>
+            {OFFER_YES}
+          </button>
+          <button type="button" onClick={() => answer('no')} aria-label={OFFER_NO} className="grid h-11 w-11 shrink-0 place-items-center rounded-[var(--radius-control)] text-text-2 hover:bg-surface-2 hover:text-text">
+            <X className="h-5 w-5" aria-hidden />
+          </button>
+        </>
+      ) : (
+        <p className="min-h-11 flex-1 py-3 text-sm font-semibold leading-tight">{OFFER_OFF_TEXT}</p>
+      )}
+    </aside>
   );
 }
 

@@ -18,13 +18,18 @@ import {
   inProgress,
   isDemo,
   liftFrom,
+  panelNote,
   parseThread,
   readRaw,
   safeGoTo,
+  safeTutorial,
+  screenPattern,
   threadKey,
+  tutorialHref,
   writeThread,
   type SessionKV,
 } from '@/components/assistant/core';
+import { SCREENS } from '@/lib/assistant/screens';
 import { stickyBox } from '@/components/assistant/assistant-widget';
 import { MAX_QUESTION as SERVER_MAX } from '@/lib/assistant';
 import { DEGRADED_TEXT, DEGRADED_UNNOTIFIED } from '@/lib/assistant/brain';
@@ -128,7 +133,7 @@ describe('lo que dice el servidor', () => {
   const ok = { respuesta: 'Me llamo Nube.', ambito: 'equipo', modelo: 'local', ms: 4, degradado: false, hizo: [], ir: { href: '/hoy', label: 'Hoy' }, conversacion: CONV };
 
   it('una respuesta normal trae su botón «Ir a…» y la conversación', () => {
-    expect(fromApi(200, ok)).toEqual({ ok: true, text: 'Me llamo Nube.', degraded: false, goTo: { href: '/hoy', label: 'Hoy' }, model: 'local', conversationId: CONV });
+    expect(fromApi(200, ok)).toEqual({ ok: true, text: 'Me llamo Nube.', degraded: false, goTo: { href: '/hoy', label: 'Hoy' }, tutorial: null, model: 'local', conversationId: CONV });
   });
 
   it('degradado del servidor: el mismo aviso, sin botón', () => {
@@ -286,5 +291,72 @@ describe('reglas del código de la ventana', () => {
     for (const w of [brand.brand.clientName, ...brand.brand.clientName.split(' ').filter((x) => x.length > 3)]) {
       expect(all).not.toContain(w);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
+// R3 (design §8.1, §8.6, §8.7): the screen 360 knows, the tutorial button and the panel's line.
+// ---------------------------------------------------------------------------------------------------------------------
+describe('la pantalla que sabe 360: solo el patrón', () => {
+  const ID = '123e4567-e89b-42d3-a456-426614174000';
+  it('un id es [id], la guía de un rol es /ayuda/[id]; nunca la consulta ni el #', () => {
+    expect(screenPattern('/hoy')).toBe('/hoy');
+    expect(screenPattern(`/eventos/${ID}`)).toBe('/eventos/[id]');
+    expect(screenPattern(`/eventos/${ID}/lectura`)).toBe('/eventos/[id]/lectura');
+    expect(screenPattern(`/mensajes/${ID}?x=1#y`)).toBe('/mensajes/[id]');
+    expect(screenPattern('/ayuda/redes')).toBe('/ayuda/[id]');
+    expect(screenPattern('/ayuda/flujos')).toBe('/ayuda/flujos');
+    expect(screenPattern('/ayuda/administracion')).toBe('/ayuda/administracion');
+    expect(screenPattern('/publicar/')).toBe('/publicar');
+    expect(screenPattern('/')).toBeNull(); // not a screen of the panel
+    expect(screenPattern('/Eventos/ABC')).toBeNull();
+    expect(screenPattern(null)).toBeNull();
+  });
+
+  it('cada pantalla de SCREENS sale igual de su dirección (con un id inventado en su lugar)', () => {
+    for (const s of SCREENS) expect(screenPattern(s.href.replace(/\[[a-z]+\]/g, s.href.startsWith('/ayuda/') ? 'redes' : ID)), s.href).toBe(s.href);
+  });
+});
+
+describe('el botón del tutorial', () => {
+  it('solo un id con forma, una etiqueta y una dirección de la app (o ninguna)', () => {
+    expect(safeTutorial({ id: 'publicar', etiqueta: 'Ver el tutorial de Publicar', href: '/publicar?tutorial=publicar' })).toEqual({ id: 'publicar', label: 'Ver el tutorial de Publicar', href: '/publicar?tutorial=publicar' });
+    expect(safeTutorial({ id: 'evento-redes', label: 'Ver el tutorial de un evento', href: null })).toEqual({ id: 'evento-redes', label: 'Ver el tutorial de un evento', href: null });
+    for (const bad of [null, {}, { id: 'X Y', etiqueta: 'a', href: null }, { id: 'a', etiqueta: '', href: null }, { id: 'a', etiqueta: 'b', href: 'https://evil.test' }, { id: 'a', etiqueta: 'b', href: '//evil.test' }]) {
+      expect(safeTutorial(bad), JSON.stringify(bad)).toBeNull();
+    }
+  });
+
+  it('la respuesta del servidor lo trae; degradada, nunca', () => {
+    const body = { respuesta: 'Te muestro.', degradado: false, ir: null, tutorial: { id: 'piezas', etiqueta: 'Ver el tutorial de Piezas', href: '/piezas?tutorial=piezas' }, modelo: 'local', conversacion: CONV };
+    const out = fromApi(200, body);
+    expect(out.ok && out.tutorial).toEqual({ id: 'piezas', label: 'Ver el tutorial de Piezas', href: '/piezas?tutorial=piezas' });
+    const bad = fromApi(200, { ...body, degradado: true });
+    expect(bad.ok && bad.tutorial).toBeNull();
+    // It stays in the tab's thread with the message.
+    const s = store();
+    writeThread(s, addMessage(emptyThread(U1), { who: 'asistente', text: 'x', tutorial: { id: 'piezas', label: 'Ver el tutorial de Piezas', href: '/piezas?tutorial=piezas' } }));
+    expect(parseThread(readRaw(s, threadKey(U1)), U1).messages[0].tutorial?.id).toBe('piezas');
+  });
+
+  it('una pantalla con id: el botón lleva a esta misma pantalla, solo si la persona está en ella', () => {
+    const ID = '123e4567-e89b-42d3-a456-426614174000';
+    const t = { id: 'evento-redes-storyboard', label: 'Ver el tutorial: Cómo se arma el storyboard', href: null };
+    expect(tutorialHref(t, `/eventos/${ID}`, '?tab=storyboard', '/eventos/[id]')).toBe(`/eventos/${ID}?tab=storyboard&tutorial=evento-redes-storyboard`);
+    expect(tutorialHref(t, '/hoy', '', '/eventos/[id]')).toBeNull();
+    expect(tutorialHref(t, `/eventos/${ID}`, '', null)).toBeNull();
+    expect(tutorialHref({ id: 'piezas', label: 'x', href: '/piezas?tutorial=piezas' }, '/hoy', '', null)).toBe('/piezas?tutorial=piezas');
+  });
+});
+
+describe('la ventana dice la pantalla, y lo que ve administración', () => {
+  const widget = fs.readFileSync('src/components/assistant/assistant-widget.tsx', 'utf8');
+  it('manda el patrón de la pantalla con la pregunta (y nada más)', () => {
+    expect(widget).toContain('body: JSON.stringify({ pregunta: q, conversacion: before.conversationId, pantalla: screen })');
+    expect(widget).toContain('const screen = screenPattern(pathname);');
+  });
+  it('una línea fija bajo el campo: administración ve lo que se le pregunta; no pegar mensajes del equipo', () => {
+    expect(panelNote('360')).toBe('Administración ve lo que le preguntas a 360; no pegues aquí mensajes del equipo.');
+    expect(widget).toContain('{panelNote(profile.name)}');
   });
 });

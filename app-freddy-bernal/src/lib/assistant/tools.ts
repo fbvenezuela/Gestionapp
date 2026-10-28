@@ -1,9 +1,10 @@
 import 'server-only';
-import { db, type Session } from '../auth/session';
-import { withSystem } from '../db';
+import { menuRoles, type Session } from '../auth/session';
+import { db, system } from './db';
 import { friendlyDbError } from '../db/core';
 import { usersWithRole } from '../notify';
-import { INVITABLE_ROLES, ROLE_LABEL, homeFor, type Role } from '../roles';
+import { INVITABLE_ROLES, ROLE_LABEL, TEAM_ROLES, homeFor, type Role } from '../roles';
+import { HOME_SCREEN, tourHref, toursForRoles, type Tour } from '../guides';
 import { tweetStock } from '../data/tweets';
 import { toSchedule } from '../data/events';
 import { obraStageCounts, overdueReports } from '../data/fichas';
@@ -13,7 +14,8 @@ import { bestTimes } from '../domain/best-times';
 import { dt, today } from '../time';
 import { NOTICE_MAX, NOTICE_TOO_LONG, noticeIssues, noticeRefusal } from './guard';
 import { redact, redactContacts } from './redact';
-import { plain } from './text';
+import { canOpen, screenFor } from './screens';
+import { contract, plain } from './text';
 import { loadTitles } from './titles';
 import type { ToolSpec } from './providers';
 
@@ -22,13 +24,16 @@ import type { ToolSpec } from './providers';
 // database's row rules decide what comes back; someone who isn't allowed gets zero rows.
 // Never read the boss's private schedule here (date, time, address, how to get there, contacts):
 // no tool selects from it, joins it or uses a view built on it. Assistant tables are written
-// with withSystem, never nested inside db(session, …).
+// with system() (db.ts), never nested inside db(session, …). Both mark the transaction as 360's (app.caller).
 
 export type Level = 'cuenta' | 'prepara' | 'hace';
 export type Param = { type: 'string' | 'integer' | 'boolean'; description: string; enum?: string[] };
 export type EscalateFn = (conversationId: string, reason: string) => Promise<{ alreadyNotified: boolean; to: string[] }>;
 export type ToolCtx = { session: Session; conversationId: string | null; escalate: EscalateFn };
-export type ToolOutput = { result: unknown; goTo?: string | null; entityId?: string | null; detail?: Record<string, unknown>; skipRecord?: boolean };
+// A tutorial to start from the window: «Ver el tutorial de Publicar». href null when its screen needs an id (the
+// window builds it only when the person is already on that screen).
+export type TutorialLink = { id: string; label: string; href: string | null };
+export type ToolOutput = { result: unknown; goTo?: string | null; tutorial?: TutorialLink | null; entityId?: string | null; detail?: Record<string, unknown>; skipRecord?: boolean };
 export type ActionRow = { id: string; user_id: string | null; entity_id: string | null; detail: Record<string, unknown> };
 
 export type Tool = {
@@ -392,7 +397,7 @@ export const TOOLS: Tool[] = [
       const people = new Set<string>();
       for (const r of rol === 'todos' ? INVITABLE_ROLES : [rol]) for (const id of await usersWithRole(r)) people.add(id);
       const label = rol === 'todos' ? 'todo el equipo' : ROLE_LABEL[rol as Role];
-      const row = await withSystem((sql) =>
+      const row = await system((sql) =>
         sql.one<{ id: string }>(
           `insert into public.assistant_drafts (kind, created_by, conversation_id, summary, body, target)
            values ('aviso', $1, $2, $3, $4, $5::text::jsonb) returning id`,
@@ -423,7 +428,42 @@ export const TOOLS: Tool[] = [
     async undo(a) {
       const ids = Array.isArray(a.detail?.ids) ? (a.detail.ids as string[]) : [];
       if (!ids.length || !a.user_id) return;
-      await withSystem((sql) => sql.query(`update public.notifications set read_at = null where id = any ($1::uuid[]) and user_id = $2`, [ids, a.user_id]));
+      await system((sql) => sql.query(`update public.notifications set read_at = null where id = any ($1::uuid[]) and user_id = $2`, [ids, a.user_id]));
+    },
+  },
+  {
+    name: 'ver_tutorial',
+    description:
+      'Los tutoriales de las pantallas de quien pregunta: un recorrido «mira aquí», paso a paso, en la misma pantalla. Con pantalla (como /publicar, /hoy o /eventos/[id]) da el de esa pantalla y el botón para empezarlo; sin pantalla, la lista. Úsala cuando pida un tutorial, que le enseñes o le muestres cómo se usa una pantalla, o ayuda para usar la plataforma. No lee datos de nadie.',
+    parameters: {
+      pantalla: { type: 'string', description: 'La pantalla, como /publicar, /hoy o /eventos/[id]. Sin ella, la lista de sus tutoriales.' },
+      tutorial: { type: 'string', description: 'El id de uno de sus tutoriales (de la lista), si ya sabe cuál quiere.' },
+    },
+    required: [],
+    fromServer: [],
+    roles: null,
+    level: 'cuenta',
+    async run(a, ctx) {
+      // The tutorials follow «Ver como» (they are the menu's), and their screen must open for the person.
+      const s = ctx.session;
+      const menu = menuRoles(s);
+      const home = homeFor(menu);
+      const mine = toursForRoles(menu, { admin: s.roles.includes('admin') }).filter((t) => canOpen(screenOfTour(t, home), s.roles));
+      const asked = typeof a.tutorial === 'string' ? mine.find((t) => t.id === a.tutorial) : undefined;
+      const screen = typeof a.pantalla === 'string' ? screenFor(a.pantalla)?.href ?? null : null;
+      const here = asked ? [asked] : screen ? toursOn(mine, screen, home) : [];
+      const pick = here[0] ?? null;
+      const href = pick ? tourHref(pick, home) : null;
+      // The whole list: the welcome one first, then the ones of fewer roles (the person's own screens before the shared).
+      const list = asked || screen ? here : [...mine].sort((x, y) => (x.id === 'bienvenida' ? 0 : x.roles.length) - (y.id === 'bienvenida' ? 0 : y.roles.length));
+      return {
+        result: {
+          tutoriales: list.slice(0, 12).map((t) => ({ id: t.id, titulo: t.title, pantalla: screenFor(screenOfTour(t, home))?.label ?? null, pasos: stepsFor(t, menu) })),
+          ...(screen && !pick ? { pantalla: screenFor(screen)?.label ?? screen, sin_tutorial: true } : {}),
+        },
+        goTo: href,
+        tutorial: pick ? { id: pick.id, label: tutorialLabel(pick.title), href } : null,
+      };
     },
   },
   {
@@ -446,6 +486,32 @@ export const TOOLS: Tool[] = [
   },
 ];
 
+// ---------------------------------------------------------------------------
+// Tutorials (ver_tutorial): the catalogue is data (src/lib/guides); nothing is read from the database.
+// ---------------------------------------------------------------------------
+const screenOfTour = (t: Tour, home: string) => (t.screen === HOME_SCREEN ? home : t.screen.split('?')[0]);
+
+/** The tutorials of one screen (a SCREENS pattern): its own first, then the ones of one of its tabs, then the welcome
+ * one when it is the person's home. */
+export function toursOn(tours: readonly Tour[], screen: string, home: string): Tour[] {
+  const rank = (t: Tour) => (t.screen === HOME_SCREEN ? 2 : t.screen.includes('?') ? 1 : 0);
+  return tours.filter((t) => screenOfTour(t, home) === screen).sort((x, y) => rank(x) - rank(y) || x.roles.length - y.roles.length);
+}
+
+/** How many steps have a text for these roles (some are only for one role). */
+function stepsFor(t: Tour, roles: readonly Role[]): number {
+  return t.steps.filter((st) => {
+    const b = st.body;
+    return typeof b === 'string' || TEAM_ROLES.some((r) => roles.includes(r) && !!b[r]);
+  }).length;
+}
+
+/** «Ver el tutorial de Publicar» («Cómo se usa Publicar»); otherwise «Ver el tutorial: Cómo se crea un evento». */
+export function tutorialLabel(title: string): string {
+  const m = /^Cómo se usa (.+)$/.exec(title);
+  return contract(m ? `Ver el tutorial de ${m[1]}` : `Ver el tutorial: ${title}`);
+}
+
 /** The tools offered to these roles. avisar_al_equipo only with an open conversation. */
 export function toolsFor(roles: Role[], hasConversation = true): Tool[] {
   return TOOLS.filter((t) => (t.roles === null || t.roles.some((r) => roles.includes(r))) && (hasConversation || t.name !== 'avisar_al_equipo'));
@@ -467,7 +533,7 @@ export function toSpecs(tools: Tool[]): ToolSpec[] {
   }));
 }
 
-export type ToolRun = { tool: string; ok: boolean; result?: unknown; error?: string; goTo?: string | null };
+export type ToolRun = { tool: string; ok: boolean; result?: unknown; error?: string; goTo?: string | null; tutorial?: TutorialLink | null };
 
 /** Only declared parameters pass, with their declared type; identity comes from the server. */
 export function cleanArgs(t: Tool, raw: Record<string, unknown>, server: Record<string, unknown>): Record<string, unknown> {
@@ -515,7 +581,7 @@ export async function runTool(name: string, rawArgs: unknown, offered: Tool[], c
     const args = cleanArgs(t, parsed, { conversacion: ctx.conversationId });
     const out = await t.run(args, ctx);
     if (t.level === 'hace' && !out.skipRecord) await recordAction(t, args, out, ctx);
-    return { tool: t.name, ok: true, result: out.result, goTo: out.goTo ?? null };
+    return { tool: t.name, ok: true, result: out.result, goTo: out.goTo ?? null, ...(out.tutorial ? { tutorial: out.tutorial } : {}) };
   } catch (e) {
     const msg = e instanceof ToolError ? e.message : friendlyDbError(e);
     if (!(e instanceof ToolError)) console.error(`[asistente] herramienta ${t.name}:`, (e as Error)?.message);
@@ -526,7 +592,7 @@ export async function runTool(name: string, rawArgs: unknown, offered: Tool[], c
 async function recordAction(t: Tool, args: Record<string, unknown>, out: ToolOutput, ctx: ToolCtx) {
   try {
     const shown = Object.fromEntries(Object.entries(args).filter(([k]) => !t.fromServer.includes(k)).map(([k, v]) => [k, typeof v === 'string' ? redact(v) : v]));
-    await withSystem((sql) =>
+    await system((sql) =>
       sql.query(
         `insert into public.assistant_actions (conversation_id, user_id, action, entity, entity_id, detail) values ($1, $2, $3, $4, $5, $6::text::jsonb)`,
         [ctx.conversationId, ctx.session.userId, t.name, t.entity ?? null, out.entityId ?? null, JSON.stringify({ args: shown, result: out.result, ...(out.detail ?? {}) })],
