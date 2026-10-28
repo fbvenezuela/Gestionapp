@@ -62,13 +62,18 @@ export function isInvitableRole(r: string | null | undefined): r is InvitableRol
 const NOT_WITH_ADMIN: readonly Role[] = ['boss', 'dispatch'];
 export const SELF_GRANT_MESSAGE = 'Tus propios roles los da otra persona de administración.';
 export const ROLE_MIX_MESSAGE = 'Administración no puede ser también el jefe ni el despacho: usa otra cuenta.';
+// The boss reads every conversation and approves everything: the role is given only by the system, with
+// `npm run db:first-admin -- <correo> "<nombre>" --jefe` (D-58; guard_boss_grant, 20261028002350_boss_grant.sql).
+export const BOSS_GRANT_MESSAGE = 'El rol de jefe lo da el comando de instalación.';
 
-/** Why this role cannot be given (on) to this person, or null. Taking a role away is never refused here. */
+/** Why this role cannot be given (on) to this person, or null. Taking a role away is never refused here. Your own
+ * roles and the mix with Administración say so first (the more specific reason); then the boss's role, never here. */
 export function roleGrantProblem(p: { isSelf: boolean; roles: readonly Role[]; role: Role }): string | null {
   if (p.roles.includes(p.role)) return null;
   if (p.isSelf) return SELF_GRANT_MESSAGE;
   const mixed = p.role === 'admin' ? p.roles.some((r) => NOT_WITH_ADMIN.includes(r)) : NOT_WITH_ADMIN.includes(p.role) && p.roles.includes('admin');
-  return mixed ? ROLE_MIX_MESSAGE : null;
+  if (mixed) return ROLE_MIX_MESSAGE;
+  return p.role === 'boss' ? BOSS_GRANT_MESSAGE : null;
 }
 
 // Who reads a community report's contacts (§4.2: «solo las ven el director de política, el despacho y el jefe»), with

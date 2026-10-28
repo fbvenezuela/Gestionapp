@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import type { Session } from '@/lib/auth/session';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
-import { ROLE_MIX_MESSAGE, SELF_GRANT_MESSAGE, roleGrantProblem } from '@/lib/roles';
+import { BOSS_GRANT_MESSAGE, ROLE_MIX_MESSAGE, SELF_GRANT_MESSAGE, roleGrantProblem } from '@/lib/roles';
 import { makeTestDb, type TestDb } from '../rls/setup';
 
 const h = vi.hoisted(() => ({ session: null as unknown }));
@@ -79,5 +79,40 @@ describe('setRole e inviteUser', () => {
     expect(await rolesOf('camera2')).toEqual(['camera']);
     // Giving a role the person already has is not an error (the screen never sends it, a double tap might).
     expect(await team.setRole({ userId: t.ids.camera2, role: 'camera', on: true })).toMatchObject({ ok: true });
+  });
+});
+
+// R3 (D-58): the boss reads every conversation and approves everything, so the role is given only by the system
+// (the installation command, `npm run db:first-admin -- … --jefe`), never from «Equipo» or «Invitar».
+describe('el rol de jefe solo lo da el comando de instalación', () => {
+  it('roleGrantProblem: el jefe a otra cuenta, nunca; quien ya lo tiene, nada que dar; los motivos de antes, primero', () => {
+    expect(roleGrantProblem({ isSelf: false, roles: ['camera'], role: 'boss' })).toBe(BOSS_GRANT_MESSAGE);
+    expect(roleGrantProblem({ isSelf: false, roles: [], role: 'boss' })).toBe(BOSS_GRANT_MESSAGE);
+    expect(roleGrantProblem({ isSelf: false, roles: ['boss'], role: 'boss' })).toBeNull();
+    expect(roleGrantProblem({ isSelf: false, roles: ['camera'], role: 'social' })).toBeNull();
+  });
+
+  it('setRole e inviteUser dicen que no en español, antes que la base, y nada cambia', async () => {
+    as('admin');
+    expect(await team.setRole({ userId: t.ids.camera2, role: 'boss', on: true })).toEqual({ ok: false, error: BOSS_GRANT_MESSAGE });
+    expect(await rolesOf('camera2')).toEqual(['camera']);
+    // An existing account and a new one.
+    expect(await team.inviteUser({ email: 'grabacion2@demo.test', fullName: 'Mariela Ostos', role: 'boss' })).toEqual({ ok: false, error: BOSS_GRANT_MESSAGE });
+    expect(await team.inviteUser({ email: 'nuevo.jefe@demo.test', fullName: 'Jefe Inventado', role: 'boss' })).toEqual({ ok: false, error: BOSS_GRANT_MESSAGE });
+    const inv = await t.system((sql) => sql.query(`select 1 from public.invitations where email = 'nuevo.jefe@demo.test'`));
+    expect(inv).toEqual([]);
+  });
+
+  it('quitarle el rol de jefe a alguien sigue siendo de administración', async () => {
+    as('admin');
+    try {
+      expect(await team.setRole({ userId: t.ids.boss, role: 'boss', on: false })).toMatchObject({ ok: true });
+      expect(await rolesOf('boss')).toEqual([]);
+      // And giving it back from «Equipo» is the command's, not the screen's.
+      expect(await team.setRole({ userId: t.ids.boss, role: 'boss', on: true })).toEqual({ ok: false, error: BOSS_GRANT_MESSAGE });
+    } finally {
+      await t.system((sql) => sql.query(`insert into public.user_roles (user_id, role) values ($1, 'boss') on conflict do nothing`, [t.ids.boss]));
+    }
+    expect(await rolesOf('boss')).toEqual(['boss']);
   });
 });

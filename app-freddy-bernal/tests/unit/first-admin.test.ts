@@ -35,9 +35,9 @@ const isAdmin = async (email: string) =>
   !!(await t.system((s) => s.one(`select 1 from public.profiles p join public.user_roles r on r.user_id = p.id and r.role = 'admin' where p.email = $1`, [email])));
 
 // Every message the script could print, to check that the email never shows.
-function run(email: string, createUser: CreateAuthUser) {
+function run(email: string, createUser: CreateAuthUser, role?: 'admin' | 'boss') {
   const said: string[] = [];
-  return createFirstAdmin({ sql, email, name: 'Persona Inventada', createUser, warn: (m) => said.push(m) }).then((r) => {
+  return createFirstAdmin({ sql, email, name: 'Persona Inventada', createUser, warn: (m) => said.push(m), role }).then((r) => {
     if (!r.ok) said.push(r.message);
     for (const m of said) expect(m).not.toContain(email.split('@')[0]);
     return r;
@@ -116,5 +116,38 @@ describe('primer administrador', () => {
   it('hideEmails tapa cualquier correo de un mensaje', () => {
     expect(hideEmails('A user with email juan.perez+x@correo.example already exists (x@y.co)')).toBe('A user with email [correo] already exists ([correo])');
     expect(hideEmails('sin correo')).toBe('sin correo');
+  });
+});
+
+// R3 (D-58): --jefe. The boss's role is given only by the system, and this is the system (no person's claims).
+describe('el jefe, con --jefe', () => {
+  const isBoss = async (email: string) =>
+    !!(await t.system((s) => s.one(`select 1 from public.profiles p join public.user_roles r on r.user_id = p.id and r.role = 'boss' where p.email = $1`, [email])));
+
+  it('crea la invitación de jefe y la persona queda como jefe (no como administrador)', async () => {
+    expect(await run('jefe.nuevo@ejemplo.test', authOk, 'boss')).toEqual({ ok: true, reused: false });
+    expect(await invitations('jefe.nuevo@ejemplo.test')).toEqual([{ roles: ['boss'], accepted: true, revoked: false }]);
+    expect(await isBoss('jefe.nuevo@ejemplo.test')).toBe(true);
+    expect(await isAdmin('jefe.nuevo@ejemplo.test')).toBe(false);
+  });
+
+  it('usa la invitación de jefe que ya estaba pendiente; una de administrador no sirve para el jefe', async () => {
+    await t.system((s) => s.query(`insert into public.invitations (email, full_name, roles) values ('jefe.pendiente@ejemplo.test', 'Ya invitado', '{boss}')`));
+    expect(await run('jefe.pendiente@ejemplo.test', authOk, 'boss')).toEqual({ ok: true, reused: true });
+    expect(await isBoss('jefe.pendiente@ejemplo.test')).toBe(true);
+    await t.system((s) => s.query(`insert into public.invitations (email, roles) values ('jefe.admin@ejemplo.test', '{admin}')`));
+    expect(await run('jefe.admin@ejemplo.test', authOk, 'boss')).toEqual({ ok: true, reused: false });
+    expect(await isBoss('jefe.admin@ejemplo.test')).toBe(true);
+  });
+
+  it('si Supabase falla, revoca la de esta corrida; si no quedó como jefe, lo dice', async () => {
+    const r = await run('jefe.falla@ejemplo.test', authFails('no'), 'boss');
+    expect(r.ok).toBe(false);
+    expect(await invitations('jefe.falla@ejemplo.test')).toEqual([{ roles: ['boss'], accepted: false, revoked: true }]);
+    const sneaky: CreateAuthUser = async (email, name) => {
+      await t.system((s) => s.query(`update public.invitations set revoked_at = now() where lower(email) = $1`, [email]));
+      return authOk(email, name);
+    };
+    expect(await run('jefe.sinrol@ejemplo.test', sneaky, 'boss')).toEqual({ ok: false, message: expect.stringContaining('no quedó como jefe') });
   });
 });

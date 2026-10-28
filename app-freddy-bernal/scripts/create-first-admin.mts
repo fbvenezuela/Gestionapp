@@ -1,18 +1,21 @@
 // Creates the first administrator in a real Supabase project (there is no open sign-up,
 // so someone has to be first). Sends nothing: the person then signs in with the code.
+// With --jefe it creates the boss instead: the boss's role is given only by the system, never from «Equipo» (D-58).
 // Exits with 1 on any failure and never prints the email (the steps are in ./first-admin.ts).
 // Usage: DATABASE_URL=... NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... \
-//        npm run db:first-admin -- correo@dominio.com "Nombre Apellido"   (= npx tsx scripts/create-first-admin.mts)
+//        npm run db:first-admin -- correo@dominio.com "Nombre Apellido" [--jefe]   (= npx tsx scripts/create-first-admin.mts)
 import postgres from 'postgres';
 import { createClient } from '@supabase/supabase-js';
 import { pgTls } from '../src/lib/db/ssl';
 import type { Row, Sql } from '../src/lib/db/core';
 import { createFirstAdmin, hideEmails } from './first-admin';
 
-const [email, name = ''] = process.argv.slice(2);
+const args = process.argv.slice(2);
+const boss = args.includes('--jefe');
+const [email, name = ''] = args.filter((a) => a !== '--jefe');
 const { DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
 if (!email || !DATABASE_URL || !NEXT_PUBLIC_SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('Uso: npm run db:first-admin -- <correo> "<nombre>" con DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY.');
+  console.error('Uso: npm run db:first-admin -- <correo> "<nombre>" [--jefe] con DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY.');
   process.exit(1);
 }
 
@@ -29,6 +32,7 @@ try {
     sql,
     email,
     name,
+    role: boss ? 'boss' : 'admin',
     createUser: async (e, n) => {
       const { error } = await admin.auth.admin.createUser({ email: e, email_confirm: true, user_metadata: { full_name: n } });
       return { error: error ? error.message || 'error desconocido' : null };
@@ -36,7 +40,7 @@ try {
     warn: (m) => console.warn(`Ojo: ${m}`),
   });
   if (r.ok) {
-    console.log(`Listo: el administrador ya puede entrar con su correo y el código.${r.reused ? ' Se usó la invitación pendiente que ya existía.' : ''}`);
+    console.log(`Listo: ${boss ? 'el jefe' : 'el administrador'} ya puede entrar con su correo y el código.${r.reused ? ' Se usó la invitación pendiente que ya existía.' : ''}`);
   } else {
     console.error(r.message);
     process.exitCode = 1;

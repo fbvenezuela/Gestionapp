@@ -62,15 +62,28 @@ const PRIVACY_CHECKS: [string, string][] = [
   ['events_main_no_phone', 'No se guardó: el título, el lugar o el resumen tienen algo que parece un teléfono, y Redes los lee. Los teléfonos van en «Contactos del sitio».'],
   // 20261028002300_report_files_notes.sql
   ['ficha_updates_report_note_no_phone', 'No se guardó: la nota tiene algo que parece un teléfono, y la historia del reporte se lee sin doble factor. Los teléfonos van en «Teléfono» de la persona que reporta; si es una cifra, escríbela con puntos: 1.500.000.'],
+  // 20261028002400_internal_chat.sql (Mensajes). The text never comes back in the error.
+  ['chat_messages_no_phone', 'Los teléfonos no van en los mensajes: los contactos van en la ficha, con doble factor. Si es un número largo dentro de un enlace, pega la dirección de la plataforma o quita el número.'],
+  ['chat_messages_no_agenda_when', 'Aquí está Redes o política: el mensaje no puede llevar una hora, una fecha ni un mapa. Escribe «lo antes posible» o «el día del evento».'],
+  ['chat_title_private', 'El nombre del grupo no lleva teléfonos, ni fechas, horas o mapas si en el grupo está Redes o política.'],
+  ['chat_conv_title_no_phone', 'El nombre del grupo no lleva teléfonos, ni fechas, horas o mapas si en el grupo está Redes o política.'],
+  ['chat_pair_not_allowed', 'El jefe no permite mensajes entre estas personas.'],
+  ['chat_messages_len', 'El mensaje tiene que tener entre 1 y 2000 letras.'],
+  ['chat_conv_title_len', 'El nombre del grupo va de 1 a 60 letras.'],
 ];
+
+// Mensajes: a message the policies refuse (the conversation closed, «Solo el jefe escribe», the notice not accepted).
+export const CHAT_POST_REFUSED = 'Ya no puedes escribir en esta conversación.';
 
 // Turn a Postgres error into a short Spanish message for people.
 export function friendlyDbError(e: unknown): string {
   const err = e as { code?: string; message?: string };
   const msg = err?.message ?? '';
   if (err?.code === '42501' || /row-level security|permission denied/i.test(msg)) {
-    // Our own guards raise with a readable Spanish message; keep it.
+    // Our own guards raise with a readable Spanish message; keep it (the boss's role, 20261028002350_boss_grant.sql,
+    // and a message of Mensajes, chat_message_guard()).
     if (/^[A-ZÁÉÍÓÚ¿¡]/.test(msg) && !/row-level security|permission denied/i.test(msg)) return msg;
+    if (/row-level security/i.test(msg) && /"chat_messages"/.test(msg)) return CHAT_POST_REFUSED;
     return 'No tienes permiso para hacer esto.';
   }
   if (err?.code === '23505') return 'Eso ya existe.';

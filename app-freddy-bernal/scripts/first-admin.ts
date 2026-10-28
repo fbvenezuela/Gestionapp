@@ -1,6 +1,8 @@
 // Steps of scripts/create-first-admin.mts, apart from the script so they can be tested against the
 // in-memory database (tests/unit/first-admin.test.ts). Safe to run again: it reuses a pending admin
 // invitation, cleans up after a failed Auth step and never puts the email in its messages.
+// With `role: 'boss'` (the script's --jefe) it makes the boss the same way: the boss's role is given only by the system
+// (D-58, guard_boss_grant in 20261028002350_boss_grant.sql), and this runs as the system (no person's claims).
 import type { Sql } from '../src/lib/db/core';
 
 // Creates the person in Supabase Auth (service key). The database trigger handle_new_auth_user then
@@ -16,8 +18,13 @@ export function hideEmails(text: string): string {
   return text.replace(/[^\s@<>"'(),;:]+@[^\s@<>"'(),;:]+/g, '[correo]');
 }
 
-export async function createFirstAdmin(o: { sql: Sql; email: string; name: string; createUser: CreateAuthUser; warn?: (m: string) => void }): Promise<FirstAdminResult> {
+// What each role is called in the messages.
+const WHO = { admin: 'administrador', boss: 'jefe' } as const;
+export type FirstRole = keyof typeof WHO;
+
+export async function createFirstAdmin(o: { sql: Sql; email: string; name: string; createUser: CreateAuthUser; warn?: (m: string) => void; role?: FirstRole }): Promise<FirstAdminResult> {
   const warn = o.warn ?? (() => {});
+  const role: FirstRole = o.role ?? 'admin';
   const email = o.email.trim().toLowerCase();
   if (!EMAIL.test(email)) return { ok: false, message: 'El correo no es válido.' };
 
@@ -37,16 +44,19 @@ export async function createFirstAdmin(o: { sql: Sql; email: string; name: strin
   if (g?.fn === null) warn('falta la migración 20261025001100_session_started.sql.');
   if (g?.fn === false) warn('el rol de DATABASE_URL no puede usar public.auth_session_started. Dale EXECUTE.');
 
-  // The trigger takes the newest pending invitation: reuse it when it already makes them admin.
-  const pending = await o.sql.one<{ admin: boolean }>(
-    `select 'admin' = any(roles) as admin from public.invitations
+  // The trigger takes the newest pending invitation: reuse it when it already gives them the role.
+  const pending = await o.sql.one<{ has: boolean }>(
+    `select $2::public.app_role = any(roles) as has from public.invitations
       where lower(email) = $1 and accepted_at is null and revoked_at is null and expires_at > now()
       order by created_at desc limit 1`,
-    [email],
+    [email, role],
   );
   let created: string | null = null;
-  if (!pending?.admin) {
-    const row = await o.sql.one<{ id: string }>(`insert into public.invitations (email, full_name, roles) values ($1, $2, '{admin}') returning id`, [email, o.name]);
+  if (!pending?.has) {
+    const row = await o.sql.one<{ id: string }>(
+      `insert into public.invitations (email, full_name, roles) values ($1, $2, array[$3::public.app_role]) returning id`,
+      [email, o.name, role],
+    );
     created = row!.id;
   }
 
@@ -62,10 +72,10 @@ export async function createFirstAdmin(o: { sql: Sql; email: string; name: strin
     return { ok: false, message: `Supabase no creó el usuario: ${hideEmails(authError).replace(/\.$/, '')}.${created ? ' La invitación de esta corrida quedó revocada.' : ''}` };
   }
 
-  const isAdmin = await o.sql.one(
-    `select 1 from public.profiles p join public.user_roles r on r.user_id = p.id and r.role = 'admin' where lower(p.email) = $1`,
-    [email],
+  const holds = await o.sql.one(
+    `select 1 from public.profiles p join public.user_roles r on r.user_id = p.id and r.role = $2::public.app_role where lower(p.email) = $1`,
+    [email, role],
   );
-  if (!isAdmin) return { ok: false, message: 'El usuario se creó, pero no quedó como administrador. Revisa public.invitations y public.user_roles.' };
+  if (!holds) return { ok: false, message: `El usuario se creó, pero no quedó como ${WHO[role]}. Revisa public.invitations y public.user_roles.` };
   return { ok: true, reused: !created };
 }
