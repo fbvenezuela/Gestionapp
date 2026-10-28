@@ -42,7 +42,7 @@ export default async function ToSchedulePage() {
         <ul className="grid gap-3 md:grid-cols-2">
           {data.rows.map((r) => (
             <li key={`${r.kind}:${r.id}`}>
-              <Card className="flex h-full flex-col gap-3 p-4">
+              <Card solid className="flex h-full flex-col gap-3 p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   {r.kind === 'obra' ? (
                     <Chip tone="accent"><HardHat className="h-3.5 w-3.5" aria-hidden /> Obra del IVT</Chip>

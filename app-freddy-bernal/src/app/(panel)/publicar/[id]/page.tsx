@@ -101,7 +101,7 @@ export default async function PublicationPage({ params }: { params: Promise<{ id
           )}
           {p.status === 'published' ? <MetricsForm publicationId={p.id} /> : null}
           {data.metrics.length ? (
-            <Card>
+            <Card solid>
               <CardHeader title="Resultados cargados" />
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">

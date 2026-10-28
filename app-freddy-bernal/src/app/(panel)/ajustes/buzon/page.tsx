@@ -25,7 +25,7 @@ export default async function OutboxPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {rows.map((r) => (
-            <Card key={r.id}>
+            <Card key={r.id} solid>
               <details>
                 <summary className="flex cursor-pointer list-none flex-col gap-1 p-4 sm:flex-row sm:items-center">
                   <span className="min-w-0 flex-1">

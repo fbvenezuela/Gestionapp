@@ -51,7 +51,7 @@ export default async function TweetsPage() {
         <Stat label="Por salir" value={data.stock.count} />
       </div>
       {data.tweets.length ? <TweetBoard tweets={data.tweets} canEdit={canEdit} /> : <EmptyState title="No hay tweets en las próximas semanas." action={canEdit ? <LinkButton href="/tweets/nueva">Subir la tanda de la semana</LinkButton> : undefined} />}
-      <Card className="mt-6">
+      <Card solid className="mt-6">
         <CardHeader title="Tandas" />
         <ul className="divide-y divide-border">
           {data.batches.map((b) => (

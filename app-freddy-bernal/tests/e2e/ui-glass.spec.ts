@@ -2,12 +2,14 @@ import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { loginAs } from './helpers';
 
-// «Cara glass» at 360 px (docs/DISENO.md): the gradient and the blur are really drawn, axe can still
-// measure contrast (it goes blind over a gradient image), and every way of going solid works: «Modo
-// sol», a weak phone, «Más contraste», colors forced by the system and «Reducir transparencia». Also
-// «Menos movimiento» and a pass in dark mode, which no other spec covers.
+// «Cara glass» at 360 px (docs/DISENO.md): the brand background and the blur are really drawn (cards are
+// frosted glass, v2 27/10), the cards around long lists stay solid, axe can still measure contrast (it goes
+// blind over a gradient image), and every way of going solid works: «Modo sol», a weak phone, «Más
+// contraste», colors forced by the system and «Reducir transparencia». Also «Menos movimiento» and a pass
+// in dark mode, which no other spec covers.
 
-// The boss's home has big buttons and no card; Redes' home has cards (figures, «Lo que espera por mí»).
+// The boss's home has big buttons (and a card only when something is overdue); Redes' home has cards
+// (figures, «Lo que espera por mí»).
 const HOMES = { 'jefe@demo.test': { home: '/jefe', cards: false }, 'redes@demo.test': { home: '/hoy', cards: true } } as const;
 
 async function noSerious(page: Page) {
@@ -40,6 +42,8 @@ type Glass = {
   navBlur: boolean;
   cardAlpha: number;
   cardBlur: string;
+  solidAlpha: number;
+  solidBlur: string;
 };
 
 // What is really drawn: a pseudo-element with content 'none' is not drawn, whatever else it declares.
@@ -58,7 +62,11 @@ function readGlass(page: Page): Promise<Glass> {
     };
     const header = document.querySelector('header.glass-bar');
     const nav = document.querySelector('nav[aria-label="Menú"]');
-    const card = document.querySelector('main .glass-card');
+    // A glass card (not opted out, not a list item, no color of its own such as bg-danger-soft) and an
+    // opted-out one (<Card solid>), when the page has them.
+    const cards = [...document.querySelectorAll('main .glass-card')];
+    const card = cards.find((el) => !el.classList.contains('glass-solid') && !el.parentElement?.matches('li') && !/(^|\s)bg-/.test(el.className)) ?? null;
+    const solid = cards.find((el) => el.classList.contains('glass-solid')) ?? null;
     const body = getComputedStyle(document.body, '::before');
     return {
       attr: document.documentElement.getAttribute('data-glass'),
@@ -72,6 +80,8 @@ function readGlass(page: Page): Promise<Glass> {
       navBlur: drawnBlur(nav),
       cardAlpha: card ? alpha(getComputedStyle(card).backgroundColor) : Number.NaN,
       cardBlur: card ? getComputedStyle(card).backdropFilter : 'missing',
+      solidAlpha: solid ? alpha(getComputedStyle(solid).backgroundColor) : Number.NaN,
+      solidBlur: solid ? getComputedStyle(solid).backdropFilter : 'missing',
     };
   });
 }
@@ -89,8 +99,12 @@ async function expectGlass(page: Page) {
   expect(g.headerAlpha).toBeLessThan(1);
   expect(g.navBlur, 'phone bar blur').toBe(true);
   if (!Number.isNaN(g.cardAlpha)) {
-    expect(g.cardAlpha, 'translucent card').toBeLessThan(1);
-    expect(g.cardBlur, 'cards never blur').toBe('none');
+    expect(g.cardAlpha, 'translucent card').toBeLessThanOrEqual(0.5);
+    expect(g.cardBlur, 'frosted card').toMatch(/^blur\(1[4-8]px\) saturate\((1\.[4-6]\d*|1[4-6]\d%)\)$/);
+  }
+  if (!Number.isNaN(g.solidAlpha)) {
+    expect(g.solidAlpha, '<Card solid> stays opaque').toBe(1);
+    expect(g.solidBlur, '<Card solid> never blurs').toBe('none');
   }
 }
 
@@ -101,7 +115,7 @@ async function expectSolid(page: Page, why: string) {
   expect(g.navBlur, `${why}: no blur on the phone bar`).toBe(false);
   expect(g.headerAlpha, `${why}: solid top bar`).toBe(1);
   expect(g.cardAlpha, `${why}: solid card`).toBe(1);
-  expect(g.cardBlur).toBe('none');
+  expect(g.cardBlur, `${why}: no blur on the cards`).toBe('none');
 }
 
 const visitHome = async (page: Page, email: keyof typeof HOMES) => {
@@ -119,7 +133,7 @@ async function openAccountMenu(page: Page) {
 }
 
 for (const email of Object.keys(HOMES) as (keyof typeof HOMES)[]) {
-  test(`glass en el inicio de ${email}: degradado, barras con desenfoque, tarjetas sin él, y axe sigue midiendo`, async ({ page }) => {
+  test(`glass en el inicio de ${email}: fondo de la marca, barras y tarjetas esmeriladas, y axe sigue midiendo`, async ({ page }) => {
     await loginAs(page, email);
     await visitHome(page, email);
     await expectGlass(page);
@@ -132,13 +146,14 @@ for (const email of Object.keys(HOMES) as (keyof typeof HOMES)[]) {
     expect(menu.bg).toMatch(/^rgba\(/);
     await page.keyboard.press('Escape');
 
-    // The assistant: a dimmed overlay that blurs a little and an almost opaque panel.
+    // The assistant: a dimmed overlay that blurs a little and a frosted panel (92 %, blurred).
     const bubble = page.getByRole('button', { name: /asistente del equipo/ });
     if (await bubble.count()) {
       await bubble.click();
       const dialog = page.getByRole('dialog');
       await expect(dialog).toBeVisible();
-      expect(await dialog.evaluate((el) => getComputedStyle(el).backgroundColor)).toMatch(/^rgba\(.*0\.96\)$/);
+      expect(await dialog.evaluate((el) => getComputedStyle(el).backgroundColor)).toMatch(/^rgba\(.*0\.92\)$/);
+      expect(await dialog.evaluate((el) => getComputedStyle(el).backdropFilter)).toContain('blur');
       expect(await page.locator('.glass-overlay').evaluate((el) => getComputedStyle(el).backdropFilter)).toContain('blur');
       await noSerious(page);
       await page.keyboard.press('Escape');
@@ -146,6 +161,28 @@ for (const email of Object.keys(HOMES) as (keyof typeof HOMES)[]) {
     }
   });
 }
+
+test('sin desenfoque detrás de listas largas: la lista de piezas y las tarjetas que son ítems de una lista quedan sólidas', async ({ page }) => {
+  await loginAs(page, 'redes@demo.test');
+  await page.goto('/piezas');
+  const list = page.locator('main .glass-card.glass-solid').filter({ has: page.locator('ul > li') }).first();
+  await expect(list).toBeVisible();
+  expect(await list.evaluate((el) => [getComputedStyle(el).backdropFilter, getComputedStyle(el).backgroundColor])).toEqual(['none', 'rgb(255, 255, 255)']);
+  await expectGlass(page);
+  await axeNotBlind(page);
+
+  // Any card that is an item of a list is solid by itself (globals.css), except inside a <nav>.
+  const blur = await page.evaluate(() => {
+    const host = document.createElement('div');
+    host.innerHTML = '<ul><li><div class="glass-card">a</div></li></ul><nav><ul><li><div class="glass-card">b</div></li></ul></nav>';
+    document.querySelector('main')!.append(host);
+    const [item, inNav] = [...host.querySelectorAll('.glass-card')].map((el) => getComputedStyle(el).backdropFilter);
+    host.remove();
+    return { item, inNav };
+  });
+  expect(blur.item).toBe('none');
+  expect(blur.inNav).toContain('blur');
+});
 
 test('«Más contraste», colores forzados y «Reducir transparencia» dejan todo sólido', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');
@@ -172,7 +209,7 @@ test('«Más contraste», colores forzados y «Reducir transparencia» dejan tod
   await expectGlass(page);
 });
 
-test('«Modo sol» es sólido: sin degradado, sin desenfoque, tarjetas opacas', async ({ page }) => {
+test('«Modo sol» es sólido: sin fondo de manchas, sin desenfoque, tarjetas opacas', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');
   await visitHome(page, 'redes@demo.test');
   await page.evaluate(() => localStorage.setItem('fb:sun', '1'));

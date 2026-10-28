@@ -109,7 +109,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
                   // The pictures made at upload time (any storage) or Drive's; a file without one shows its icon.
                   const thumbs = r.media.filter((m) => /^(image|video)\//.test(m.mime) || m.bucket === 'drive').slice(0, 4);
                   return (
-                    <Card key={r.event_id} className="flex flex-col gap-3 p-4">
+                    <Card key={r.event_id} solid className="flex flex-col gap-3 p-4">
                       <Link href={`/eventos/${r.event_id}?tab=material`} className="font-semibold hover:underline">{r.title}</Link>
                       {r.cancelled ? <span className="text-sm text-text-2">Evento cancelado</span> : null}
                       {thumbs.length ? (
@@ -150,7 +150,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
                 <Archive className="h-5 w-5 text-accent-ink" aria-hidden /> Archivo (sin evento)
               </h2>
               <p className="mb-2 text-[15px] text-text-2">Lo que se trajo de Drive sin un evento.</p>
-              <Card>
+              <Card solid>
                 <ul className="divide-y divide-border">
                   {archive.map((m) => {
                     const label = m.label || MEDIA_KIND[m.kind];

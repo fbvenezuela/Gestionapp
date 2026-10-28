@@ -30,7 +30,7 @@ export function TweetApprovals({ tweets, canApprove }: { tweets: T[]; canApprove
           </Button>
         </div>
       ) : null}
-      <Card>
+      <Card solid>
         <ul className="divide-y divide-border">
           {tweets.map((t) => (
             <li key={t.id}>

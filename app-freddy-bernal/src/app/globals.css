@@ -39,7 +39,7 @@
   /* Rounder corners for the glass look (docs/DISENO.md): chips, buttons and fields, cards and windows. */
   --radius-chip: 8px;
   --radius-control: 12px;
-  --radius-card: 20px;
+  --radius-card: 24px;
 }
 
 html {
@@ -95,21 +95,28 @@ textarea {
 
 /* ───────────────────────── Glass (docs/DISENO.md «Cara glass») ─────────────────────────
    Four surfaces, used by the base components only (Card, Sheet, dialogs, menus, bars):
-     .glass-card   cards: translucent, light edge and soft shadow, NEVER backdrop-filter (only the fixed
-                   gradient is behind them, so a blur would look the same and cost a GPU pass per card,
-                   also behind the long tables of Resultados and Registro);
+     .glass-card   cards: frosted glass (white in light, dark in dark) with a real blur, a light 1 px edge,
+                   a highlight on top and a soft shadow.
+                   Opt-out, solid and without blur, for what can grow long («sin desenfoque detrás de tablas
+                   largas»: easier to read, and no blur pass per card on every scroll frame):
+                     - <Card solid> (.glass-solid) on a card that wraps a long list or table, or a card of a
+                       long grid (Biblioteca, Municipios);
+                     - any card that is itself an item of a list (ul/ol > li > card, as in the agenda), except
+                       in a <nav> (a handful of big buttons);
      .glass-bar    top bar and phone bar: real blur, drawn on ::before so the menus inside the bar can
                    still blur the page (an element with backdrop-filter would hide the page from them).
                    The bar needs a z-index (all of ours have one) so ::before stays behind its content;
      .glass-pop    the «Crear», «Mi cuenta» and «Más» menus and the assistant button: real blur;
-     .glass-sheet  side panels and dialogs: almost opaque; the dimmed overlay behind them blurs a little
+     .glass-sheet  side panels and dialogs: real blur over a dimmed overlay that blurs a little too
                    (.glass-overlay, dialog.glass-sheet::backdrop).
+   Behind it all, body::before draws the brand background: a top-to-bottom wash and four soft blobs.
    Solid by default. The translucent version needs backdrop-filter support (old phones stay solid) and
    is skipped with «Modo sol» (data-contrast='high') and on low-memory or data-saver phones
    (data-glass='off', src/components/shell/glass-core.ts). «Reducir transparencia», «Más contraste» and
    forced colors turn it solid again at the end. In @layer components, so a utility passed to <Card>
    (bg-danger-soft, border-info…) still wins; :where() keeps the gated rules at the same specificity as
-   the plain class, so the overrides at the end win by order. Contrast: tests/unit/ui-glass.test.ts. */
+   the plain class, so the overrides at the end win by order. Never a gradient or an image on a surface
+   that holds text: axe cannot measure contrast over them. Contrast: tests/unit/ui-glass.test.ts. */
 @layer components {
   .glass-card {
     background-color: var(--c-surface);
@@ -128,24 +135,41 @@ textarea {
   }
 
   @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    /* The background: big soft blobs of the brand (oliva top left and bottom right, amarillo on the
+       right, an olive-sage lower left; each solid in its center, then fading out) over a wash from the
+       alabastro to a slightly olive bottom. Fixed and the size of the largest viewport, so it is painted
+       once and never repaints when the phone's toolbar shows or hides. */
     :where(:root:not([data-glass='off']):not([data-contrast='high'])) body::before {
       content: '';
       position: fixed;
       inset: 0 0 auto 0;
       height: 100vh;
-      height: 100lvh; /* the largest viewport: no repaint when the phone's toolbar shows or hides */
+      height: 100lvh;
       z-index: -1;
       pointer-events: none;
       background-color: var(--c-bg);
       background-image:
-        radial-gradient(90% 60% at 0% 0%, var(--c-bg-tint-1), transparent 70%),
-        radial-gradient(90% 60% at 100% 100%, var(--c-bg-tint-2), transparent 70%),
-        radial-gradient(70% 40% at 50% 0%, var(--c-surface), transparent 70%);
+        radial-gradient(95% 42% at 0% 18%, var(--c-bg-tint-1) 0 20%, transparent 80%),
+        radial-gradient(85% 40% at 100% 42%, var(--c-bg-tint-2) 0 20%, transparent 80%),
+        radial-gradient(90% 38% at 0% 78%, var(--c-bg-tint-3) 0 20%, transparent 80%),
+        radial-gradient(75% 32% at 100% 100%, var(--c-bg-tint-1) 0 15%, transparent 80%),
+        linear-gradient(180deg, var(--c-bg), var(--c-bg-wash));
     }
     :where(:root:not([data-glass='off']):not([data-contrast='high'])) .glass-card {
       background-color: var(--c-glass);
       border-color: var(--c-glass-border);
       box-shadow: var(--glass-highlight), var(--glass-shadow);
+      -webkit-backdrop-filter: blur(16px) saturate(160%);
+      backdrop-filter: blur(16px) saturate(160%);
+    }
+    /* Opt-out (see above): solid, no blur, same edge and shadow. More specific than the rule above, so
+       it wins wherever it sits. The list-item case is a separate rule at the end of this block (not next
+       to this one, or the minifier would merge them): a browser that does not know :not(nav *) drops only
+       that rule and still keeps <Card solid> solid. */
+    :where(:root:not([data-glass='off']):not([data-contrast='high'])) .glass-card.glass-solid {
+      background-color: var(--c-surface);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
     :where(:root:not([data-glass='off']):not([data-contrast='high'])) .glass-bar {
       background-color: var(--c-glass-bar);
@@ -157,31 +181,39 @@ textarea {
       inset: 0;
       z-index: -1;
       pointer-events: none;
-      -webkit-backdrop-filter: blur(12px) saturate(140%);
-      backdrop-filter: blur(12px) saturate(140%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      backdrop-filter: blur(24px) saturate(180%);
     }
     :where(:root:not([data-glass='off']):not([data-contrast='high'])) .glass-pop {
       background-color: var(--c-glass-bar);
       border-color: var(--c-glass-border);
       box-shadow: var(--glass-highlight), var(--glass-shadow-pop);
-      -webkit-backdrop-filter: blur(16px) saturate(140%);
-      backdrop-filter: blur(16px) saturate(140%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      backdrop-filter: blur(24px) saturate(180%);
     }
     :where(:root:not([data-glass='off']):not([data-contrast='high'])) .glass-sheet {
       background-color: var(--c-glass-sheet);
       border-color: var(--c-glass-border);
       box-shadow: var(--glass-highlight), var(--glass-shadow-pop);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      backdrop-filter: blur(24px) saturate(160%);
     }
     :where(:root:not([data-glass='off']):not([data-contrast='high'])) .glass-overlay,
     :where(:root:not([data-glass='off']):not([data-contrast='high'])) dialog.glass-sheet::backdrop {
-      -webkit-backdrop-filter: blur(4px);
-      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+    }
+    /* Opt-out for a card that is itself an item of a list (see above). */
+    :where(:root:not([data-glass='off']):not([data-contrast='high'])) :where(ul, ol):not(nav *) > li > .glass-card {
+      background-color: var(--c-surface);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
   }
 
   /* «Reducir transparencia», «Más contraste» and forced colors: solid. Same specificity as the rules
-     above and later in the file, so these win. A browser that does not know one of these media
-     features just never matches it. */
+     above and later in the file, so these win (the opt-out rules are more specific, but solid too). A
+     browser that does not know one of these media features just never matches it. */
   @media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
     body::before,
     .glass-bar::before {

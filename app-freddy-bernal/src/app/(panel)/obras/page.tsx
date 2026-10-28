@@ -87,7 +87,7 @@ export default async function ObrasPage({ searchParams }: { searchParams: Promis
             const rows = by(sec.stage);
             if (!rows.length) return null;
             return (
-              <Card key={sec.stage}>
+              <Card key={sec.stage} solid>
                 <CardHeader title={`${sec.title} (${rows.length})`} subtitle={sec.subtitle} />
                 <ObraList rows={rows} />
               </Card>

@@ -5,8 +5,9 @@
 > Detalle en `docs/DECISIONES.md` D-21 y `src/app/tokens.css`.
 >
 > **27/10/2026:** Hillary pidió una cara «más glass». Esquinas más redondas, sombras suaves, vidrio en tarjetas,
-> barras, menús y ventanas, siempre con los mismos colores y la misma letra. Las reglas están abajo, en
-> [«Cara glass»](#cara-glass-27102026).
+> barras, menús y ventanas, siempre con los mismos colores y la misma letra. El mismo día el dueño pidió subirlo
+> («súbelo, que se note más el glass»): manchas de la marca detrás y tarjetas de vidrio esmerilado de verdad. Las
+> reglas están abajo, en [«Cara glass»](#cara-glass-27102026).
 
 Actualizado: 22/10/2026. El modelo visual está en `diseno/stitch/`: 23 pantallas exportadas de Google Stitch, cada una
 con `screen.png` (la captura) y `code.html` (HTML con Tailwind por CDN), más `diseno/stitch/operaciones_360/DESIGN.md`
@@ -42,7 +43,7 @@ el reproductor con código de tiempo) y la idea de los módulos. No se copia tal
   modelo; vale una del sistema). Escala de `DESIGN.md` (titulares −0,01 a −0,02 em; etiquetas en mayúsculas con
   espaciado 0,02–0,04 em). En el celular, nada por debajo de 14 px para leer y 16 px en los campos (si no, iOS hace
   zoom).
-- **Formas** (27/10): 8 px chips, 12 px botones y campos, 20 px tarjetas y ventanas, píldoras solo para estados.
+- **Formas** (27/10): 8 px chips, 12 px botones y campos, 24 px tarjetas y ventanas, píldoras solo para estados.
   Salen de `--radius-chip`, `--radius-control` y `--radius-card` en `globals.css`: ninguna pantalla escribe un
   radio a mano.
 - **Sombras** (27/10): suaves y bajas (`--glass-shadow` en tarjetas, `--glass-shadow-pop` en menús y ventanas), con
@@ -108,49 +109,73 @@ Hay dos variantes de algunas (s04, s06, s07, s08, s10): se toma lo mejor de cada
 - Accesible: contraste AA, foco visible, etiquetas en los campos y probado con axe.
 
 ## Cara glass (27/10/2026)
-Hillary: «más bonita, más glass, más UI design». Se hace **solo en los tokens y en los componentes base**, nunca
-pantalla por pantalla. Toda pantalla que use `<Card>`, `Sheet`, el diálogo propio o los menús ya lo tiene.
+Hillary: «más bonita, más glass, más UI design». El dueño, al verlo: «súbelo, que se note más el glass» (en claro casi
+no se notaba). Se hace **solo en los tokens y en los componentes base**, nunca pantalla por pantalla. Toda pantalla
+que use `<Card>`, `Sheet`, el diálogo propio o los menús ya lo tiene.
 
 **Dónde vive**
-- Colores: `src/app/tokens.css` (`--c-bg-tint-1`, `--c-bg-tint-2`, `--c-glass`, `--c-glass-bar`, `--c-glass-sheet`,
-  `--c-glass-border`, `--glass-highlight`, `--glass-shadow`, `--glass-shadow-pop`), en claro, oscuro y «Modo sol».
+- Colores: `src/app/tokens.css` (`--c-bg-tint-1`, `--c-bg-tint-2`, `--c-bg-tint-3`, `--c-bg-wash`, `--c-glass`,
+  `--c-glass-bar`, `--c-glass-sheet`, `--c-glass-border`, `--glass-highlight`, `--glass-shadow`, `--glass-shadow-pop`),
+  en claro, oscuro y «Modo sol».
 - Reglas: `src/app/globals.css`, cuatro clases en `@layer components`:
   - `.glass-card`: tarjetas (`<Card>`, cifras, estados vacíos, la barra lateral del escritorio);
   - `.glass-bar`: la barra de arriba y la de abajo del teléfono;
   - `.glass-pop`: los menús «Crear», «Mi cuenta» y «Más», y el botón del asistente;
   - `.glass-sheet`: paneles laterales (`Sheet`), diálogos (`dialogPanelClass`) y la ventana del asistente.
-- Para pantallas nuevas: `<Card>`, `Sheet`, `useConfirm`/`dialogPanelClass` y `menuPanelClass`
-  (`src/components/ui/menu-panel.ts`). No se escribe vidrio a mano ni se usa `backdrop-blur` de Tailwind.
+- Para pantallas nuevas: `<Card>` (o `<Card solid>`, ver abajo), `Sheet`, `useConfirm`/`dialogPanelClass` y
+  `menuPanelClass` (`src/components/ui/menu-panel.ts`). No se escribe vidrio a mano, ni la clase `glass-solid`, ni
+  se usa `backdrop-blur` de Tailwind.
 
 **Cómo se ve**
-- Fondo: un degradado suave de la marca (brillo oliva arriba a la izquierda, amarillo abajo a la derecha) sobre el
-  alabastro de siempre. Va en `body::before`, fijo, nunca como imagen de fondo de `body` o `html`: axe no sabe medir
-  contraste sobre un degradado y dejaría de revisarlo sin avisar.
-- Tarjetas: translúcidas, borde claro de 1 px, brillo arriba y sombra suave. **Sin desenfoque**: detrás solo está el
-  degradado fijo, que desenfocado se ve igual, y así no hay desenfoque detrás de las tablas largas (Resultados,
-  Registro de cambios). La decisión queda como D-37 en `docs/DECISIONES.md`.
-- Desenfoque de verdad solo en las dos barras (12 px), los menús (16 px) y el fondo oscuro de las ventanas (4 px).
-  En las barras va en `::before`: si la barra misma desenfocara, los menús que salen de ella no podrían desenfocar
-  la página.
+- Fondo: el alabastro de siempre con un lavado suave hacia abajo (`--c-bg-wash`, alabastro con un poco de oliva) y
+  cuatro manchas grandes y difuminadas de la marca: oliva arriba a la izquierda y abajo a la derecha, amarillo a la
+  derecha y un oliva-salvia abajo a la izquierda. Son `radial-gradient` con los colores de los tokens (el oliva con
+  el tono del oliva de la marca, el amarillo con el del amarillo `#FFD380`), tan intensos como deja el contraste AA.
+  Va en `body::before`, fijo y del alto de la pantalla más grande (no se repinta al esconderse la barra del
+  navegador), nunca como imagen de fondo de `body` o `html`: axe no sabe medir contraste sobre un degradado y
+  dejaría de revisarlo sin avisar.
+- Tarjetas: vidrio esmerilado de verdad. Blanco al 45 % en claro (oscuro al 50 % en oscuro), desenfoque de 16 px y
+  saturación de 160 % (las manchas se ven a través, más vivas), borde claro de 1 px, brillo arriba y sombra suave
+  con un toque de oliva. Esquinas de 24 px.
+- **Sin desenfoque detrás de listas o tablas largas**: ahí la tarjeta es sólida (blanca, con el mismo borde y la
+  misma sombra), para leer mejor y para no pagar un desenfoque por tarjeta en cada cuadro al hacer scroll:
+  - `<Card solid>` en la tarjeta que envuelve una lista o tabla larga, o en las tarjetas de una grilla larga. Hoy:
+    agenda (las tres listas y «por fecha»), registro de cambios, biblioteca (la grilla y el archivo), resultados (la
+    lista del teléfono y la tabla), piezas, tweets (tandas y «Editar textos»), por aprobar (cada semáforo y los
+    tweets), municipios (la grilla de municipios, las fichas filtradas y la lista de cada municipio), obras,
+    publicar (las tres listas y la tabla de resultados), avisos, buzón y la historia de las fichas;
+  - además, cualquier tarjeta que sea ella misma un ítem de una lista (`ul`/`ol` › `li` › tarjeta) queda sólida
+    sola, salvo dentro de un `<nav>` (pocos botones grandes);
+  - las listas de «Hoy» quedan de vidrio: son cortas a propósito (máximo 10 cosas).
+- Barras, menús, paneles y diálogos desenfocan más (24 px, saturación 180 % en barras y menús, 160 % en paneles) y
+  son un poco más translúcidos que antes. En las barras el desenfoque va en `::before`: si la barra misma
+  desenfocara, los menús que salen de ella no podrían desenfocar la página. El fondo oscuro de las ventanas
+  desenfoca 8 px.
 - Íconos lineales (lucide) de trazo 1,75; 2,25 en «Modo sol».
 - Más aire desde tablet (`sm:`): tarjetas con 20 px de relleno; en el teléfono de 360 px casi no cambia nada.
-- En claro el vidrio es sutil a propósito (ver contraste); en oscuro se nota más.
 
 **Que se siga leyendo bien**
 - Contraste AA en todo texto sobre lo peor que puede quedar detrás. Por eso:
-  - los brillos del degradado son muy claros (`--c-warn` queda en 4,6:1 sobre ellos);
-  - las barras y los menús son casi opacos (90 % en claro, 92 % en oscuro): aunque pase algo negro por detrás, el
-    texto, el gris y el oliva siguen en 4,5:1 o más. El verde y el naranja de estado **no** van sobre barras ni menús;
-  - paneles y diálogos al 96 %.
-  - `tests/unit/ui-glass.test.ts` hace la cuenta con todo el degradado y falla si un token nuevo baja de AA.
-- Sólido (sin degradado, sin desenfoque, superficies opacas) cuando:
+  - las manchas son claras en claro (luminancia 0,77 o más; la mezcla más oscura del fondo queda en 0,766) y
+    oscuras en oscuro: todo color de texto llega a 4,5:1 directamente sobre el fondo. Para eso el gris secundario,
+    el apagado, el verde, el naranja y el rojo de estado se oscurecieron un pelo en claro (`--c-text-2` `#62625c`,
+    `--c-muted` `#63625d`, `--c-ok` `#03704f`, `--c-warn` `#a34b08`, `--c-danger` `#b91c1c`) y el apagado y el rojo
+    se aclararon un pelo en oscuro (`#a3a29c`, `#f98080`). Los colores de la marca no cambian;
+  - las tarjetas de vidrio son más claras (u oscuras) que el fondo que tienen detrás, saturación incluida;
+  - las barras y los menús siguen casi opacos (87 % en claro, 90 % en oscuro): aunque pase algo negro por detrás,
+    el texto, el gris y el oliva siguen en 4,5:1 o más. El verde y el naranja de estado **no** van sobre barras ni
+    menús;
+  - paneles y diálogos al 92 % (94 % en oscuro).
+  - `tests/unit/ui-glass.test.ts` hace la cuenta con todas las mezclas posibles del fondo (lavado y manchas en
+    cualquier orden, de 10 en 10 %), la saturación de cada vidrio leída de `globals.css` (aplicada en sRGB y en luz
+    lineal) y falla si un token baja de AA. También exige que las manchas se vean y sean de la familia de la marca.
+- Sólido (sin fondo de manchas, sin desenfoque, superficies opacas) cuando:
   - el navegador no sabe desenfocar (`@supports`), como los teléfonos viejos;
   - «Modo sol» está encendido (es también el interruptor manual para quitar el vidrio);
   - el teléfono tiene 2 GB de memoria o menos, o el ahorro de datos encendido (`data-glass="off"`,
     `src/components/shell/glass-core.ts`; solo Chrome y Android lo informan);
   - el sistema pide «Reducir transparencia», «Más contraste» o colores forzados.
 - «Menos movimiento» del sistema: se apagan animaciones y transiciones en toda la app; las ruedas de «cargando»
-  siguen girando, más despacio.
-- Pruebas en el navegador: `tests/e2e/ui-glass.spec.ts` (estilos calculados, axe sin quedar ciego, cada caso sólido,
-  menos movimiento y una pasada de axe en modo oscuro).
-
+  siguen girando, más despacio. El vidrio no se mueve.
+- Pruebas en el navegador: `tests/e2e/ui-glass.spec.ts` (estilos calculados: tarjetas esmeriladas y `<Card solid>`
+  opaca, axe sin quedar ciego, cada caso sólido, menos movimiento y una pasada de axe en modo oscuro).

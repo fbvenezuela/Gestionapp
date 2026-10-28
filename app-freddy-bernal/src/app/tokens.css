@@ -5,8 +5,9 @@
    Text on brand fills is always #111111 (white on olive is 3.92:1 and fails AA). Still PROVISIONAL until the
    client approves the manual and sends the vector logo (docs/PENDIENTES.md #1, docs/DECISIONES.md D-21).
    Changing the brand = changing this file (and the email copy in emails/layout.tsx). Nothing else.
-   The glass tokens (--c-bg-tint-*, --c-glass*, --glass-*) are derived from the same palette (pale oliva
-   and amarillo glows, white or dark glass), keep AA with a margin and are solid in «Modo sol». */
+   The glass tokens (--c-bg-tint-*, --c-bg-wash, --c-glass*, --glass-*) are derived from the same palette
+   (oliva and amarillo glows, white or dark frosted glass, olive-tinted shadows), keep AA over the worst case
+   (tests/unit/ui-glass.test.ts) and are solid in «Modo sol». */
 
 :root {
   --c-bg: #f7f7f5;          /* alabastro */
@@ -14,40 +15,43 @@
   --c-surface-2: #f4f4f2;
   --c-border: #e9e8e4;
   --c-text: #111111;
-  --c-text-2: #666660;
-  --c-muted: #686762;       /* darker than the model's #8E8D88 to pass AA on white and alabaster */
+  --c-text-2: #62625c;      /* a hair darker than #666660 (27/10): AA over the stronger glass */
+  --c-muted: #63625d;       /* darker than the model's #8E8D88 to pass AA on white, alabaster and glass */
   --c-accent: #7f8630;      /* brand Oliva: primary actions and active items */
   --c-accent-hover: #8c9339;
   --c-accent-soft: #f0f2e0;
   --c-on-accent: #111111;   /* 4.82:1 on Oliva (white would be 3.92:1, fails AA) */
-  --c-accent-ink: #5f6524;  /* olive for text on light backgrounds: 5.8:1 on the page */
+  --c-accent-ink: #5f6524;  /* olive for text on light backgrounds: 5.8:1 on the alabastro, 4.8:1 on the blobs */
   --c-slate: #111111;      /* brand Negro (was a bluish slate; the brand excludes blue) */
   --c-on-slate: #f1f1ef;
   --c-olive: #7f8630;
-  --c-ok: #047857;
+  --c-ok: #03704f;          /* ok, warn and danger a hair darker (27/10) so they keep AA over the blobs */
   --c-ok-soft: #e7f8f1;
-  --c-warn: #b45309;
+  --c-warn: #a34b08;
   --c-warn-soft: #fef3e2;
-  --c-danger: #c81e1e;
+  --c-danger: #b91c1c;
   --c-danger-soft: #fdecec;
   --c-info: #1d4ed8;
   --c-info-soft: #eaf1fe;
-  --c-focus: #5f6524;      /* focus ring: 5.8:1 on the page background */
-  /* Glass (docs/DISENO.md «Cara glass»). The page gradient (body::before in globals.css) goes from
-     --c-bg to two pale glows of the brand, oliva and amarillo. They stay this pale on purpose: --c-warn
-     is only 4.6:1 on them, so a stronger glow would break AA. Translucent surfaces are white with alpha:
-     cards only have the fixed gradient behind them (and no blur); bars, menus and sheets can have
-     anything scrolling behind, even black, so they are nearly opaque. tests/unit/ui-glass.test.ts
-     checks every text color against the worst case. */
-  --c-bg-tint-1: #f4f8d8;   /* olive glow */
-  --c-bg-tint-2: #fff5e3;   /* amarillo glow */
-  --c-glass: rgba(255, 255, 255, 0.6);        /* cards */
-  --c-glass-bar: rgba(255, 255, 255, 0.9);    /* top bar, phone bar, menus */
-  --c-glass-sheet: rgba(255, 255, 255, 0.96); /* side panels and dialogs */
-  --c-glass-border: rgba(255, 255, 255, 0.7); /* the light 1 px edge */
-  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  --glass-shadow: 0 1px 2px rgba(17, 17, 17, 0.04), 0 8px 24px -12px rgba(17, 17, 17, 0.12);
-  --glass-shadow-pop: 0 2px 8px rgba(17, 17, 17, 0.06), 0 24px 48px -16px rgba(17, 17, 17, 0.22);
+  --c-focus: #5f6524;      /* focus ring: 4.8:1 or more on the page background */
+  /* Glass (docs/DISENO.md «Cara glass», v2 27/10: «súbelo, que se note más el glass»). The page background
+     (body::before in globals.css) is the alabastro with a soft top-to-bottom wash and four blurred blobs of
+     the brand: oliva (top left and bottom right), amarillo (right) and an olive-sage (lower left). As
+     colorful as AA allows: every text color keeps 4.5:1 on them (page min. luminance 0.766). Cards are
+     white frosted glass (45 %, blur and saturate); bars and menus can have anything scrolling behind,
+     even black, so they stay at 87 %, and panels and dialogs at 92 %. tests/unit/ui-glass.test.ts checks
+     every text color against the worst composite, saturation included. */
+  --c-bg-tint-1: #e6ee8e;   /* olive blob: the brand oliva's hue, light (luminance .80) */
+  --c-bg-tint-2: #ffe1a0;   /* amarillo blob: the brand amarillo #FFD380, lighter (luminance .78) */
+  --c-bg-tint-3: #dbe9b8;   /* olive-sage blob: between the two, a touch greener (luminance .77) */
+  --c-bg-wash: #ecede3;     /* bottom of the wash: alabastro with a little oliva */
+  --c-glass: rgba(255, 255, 255, 0.45);        /* cards */
+  --c-glass-bar: rgba(255, 255, 255, 0.87);    /* top bar, phone bar, menus */
+  --c-glass-sheet: rgba(255, 255, 255, 0.92);  /* side panels and dialogs */
+  --c-glass-border: rgba(255, 255, 255, 0.85); /* the light 1 px edge */
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 1px 2px rgba(47, 51, 18, 0.06), 0 12px 32px -12px rgba(47, 51, 18, 0.26);
+  --glass-shadow-pop: 0 4px 12px rgba(47, 51, 18, 0.1), 0 28px 56px -16px rgba(47, 51, 18, 0.36);
   color-scheme: light;
 }
 
@@ -59,7 +63,7 @@
     --c-border: #2e3633;
     --c-text: #f1f1ef;
     --c-text-2: #b9b8b2;
-    --c-muted: #9a9993;
+    --c-muted: #a3a29c;
     --c-accent: #b4bb5c;
     --c-accent-hover: #c5cc6e;
     --c-accent-soft: #262b14;
@@ -72,20 +76,22 @@
     --c-ok-soft: #0f2a21;
     --c-warn: #fbbf24;
     --c-warn-soft: #2e2410;
-    --c-danger: #f87171;
+    --c-danger: #f98080;
     --c-danger-soft: #331717;
     --c-info: #60a5fa;
     --c-info-soft: #13223a;
     --c-focus: #d4da7f;
-    --c-bg-tint-1: #1e2317;
-    --c-bg-tint-2: #1f211a;
-    --c-glass: rgba(26, 32, 30, 0.7);
-    --c-glass-bar: rgba(26, 32, 30, 0.92);
-    --c-glass-sheet: rgba(26, 32, 30, 0.96);
-    --c-glass-border: rgba(255, 255, 255, 0.08);
-    --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    --glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
-    --glass-shadow-pop: 0 2px 8px rgba(0, 0, 0, 0.4), 0 24px 48px -16px rgba(0, 0, 0, 0.6);
+    --c-bg-tint-1: #353b14;
+    --c-bg-tint-2: #423216;
+    --c-bg-tint-3: #22351c;
+    --c-bg-wash: #0b0f0d;
+    --c-glass: rgba(26, 32, 30, 0.5);
+    --c-glass-bar: rgba(26, 32, 30, 0.9);
+    --c-glass-sheet: rgba(26, 32, 30, 0.94);
+    --c-glass-border: rgba(255, 255, 255, 0.12);
+    --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 12px 32px -12px rgba(0, 0, 0, 0.7);
+    --glass-shadow-pop: 0 4px 12px rgba(0, 0, 0, 0.45), 0 28px 56px -16px rgba(0, 0, 0, 0.75);
     color-scheme: dark;
   }
 }
@@ -97,7 +103,7 @@
   --c-border: #2e3633;
   --c-text: #f1f1ef;
   --c-text-2: #b9b8b2;
-  --c-muted: #9a9993;
+  --c-muted: #a3a29c;
   --c-accent: #b4bb5c;
   --c-accent-hover: #c5cc6e;
   --c-accent-soft: #262b14;
@@ -110,20 +116,22 @@
   --c-ok-soft: #0f2a21;
   --c-warn: #fbbf24;
   --c-warn-soft: #2e2410;
-  --c-danger: #f87171;
+  --c-danger: #f98080;
   --c-danger-soft: #331717;
   --c-info: #60a5fa;
   --c-info-soft: #13223a;
   --c-focus: #d4da7f;
-  --c-bg-tint-1: #1e2317;
-  --c-bg-tint-2: #1f211a;
-  --c-glass: rgba(26, 32, 30, 0.7);
-  --c-glass-bar: rgba(26, 32, 30, 0.92);
-  --c-glass-sheet: rgba(26, 32, 30, 0.96);
-  --c-glass-border: rgba(255, 255, 255, 0.08);
-  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
-  --glass-shadow-pop: 0 2px 8px rgba(0, 0, 0, 0.4), 0 24px 48px -16px rgba(0, 0, 0, 0.6);
+  --c-bg-tint-1: #353b14;
+  --c-bg-tint-2: #423216;
+  --c-bg-tint-3: #22351c;
+  --c-bg-wash: #0b0f0d;
+  --c-glass: rgba(26, 32, 30, 0.5);
+  --c-glass-bar: rgba(26, 32, 30, 0.9);
+  --c-glass-sheet: rgba(26, 32, 30, 0.94);
+  --c-glass-border: rgba(255, 255, 255, 0.12);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 12px 32px -12px rgba(0, 0, 0, 0.7);
+  --glass-shadow-pop: 0 4px 12px rgba(0, 0, 0, 0.45), 0 28px 56px -16px rgba(0, 0, 0, 0.75);
   color-scheme: dark;
 }
 
@@ -164,6 +172,8 @@
      translucent rules here). */
   --c-bg-tint-1: #ffffff;
   --c-bg-tint-2: #ffffff;
+  --c-bg-tint-3: #ffffff;
+  --c-bg-wash: #ffffff;
   --c-glass: #ffffff;
   --c-glass-bar: #ffffff;
   --c-glass-sheet: #ffffff;
@@ -201,6 +211,8 @@
     --c-focus: #ffffff;
     --c-bg-tint-1: #000000;
     --c-bg-tint-2: #000000;
+    --c-bg-tint-3: #000000;
+    --c-bg-wash: #000000;
     --c-glass: #0b0d0c;
     --c-glass-bar: #0b0d0c;
     --c-glass-sheet: #0b0d0c;
@@ -237,6 +249,8 @@
   --c-focus: #ffffff;
   --c-bg-tint-1: #000000;
   --c-bg-tint-2: #000000;
+  --c-bg-tint-3: #000000;
+  --c-bg-wash: #000000;
   --c-glass: #0b0d0c;
   --c-glass-bar: #0b0d0c;
   --c-glass-sheet: #0b0d0c;

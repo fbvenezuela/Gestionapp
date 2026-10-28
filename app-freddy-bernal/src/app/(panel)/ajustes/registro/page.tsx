@@ -38,7 +38,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   return (
     <>
       <PageHeader title="Registro de cambios" subtitle="Quién cambió qué y cuándo. No se puede editar ni borrar." back={{ href: '/ajustes', label: 'Ajustes' }} />
-      <Card>
+      <Card solid>
         <ul className="divide-y divide-border">
           {rows.map((r) => (
             <li key={r.id} className="px-4 py-3 text-[15px]">

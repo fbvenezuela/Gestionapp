@@ -65,3 +65,42 @@ export function ratio(a: string, b: string): number {
   const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
   return (x + 0.05) / (y + 0.05);
 }
+
+// OKLab of an opaque color, for «how different do these two colors look» (Euclidean distance) and hue.
+export function oklab(color: string): { L: number; a: number; b: number; hue: number; chroma: number } {
+  const c = parseColor(color);
+  const [r, g, b] = [c.r, c.g, c.b].map((v) => {
+    const x = v / 255;
+    return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+  });
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  const L = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s;
+  const A = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
+  const B = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
+  return { L, a: A, b: B, chroma: Math.hypot(A, B), hue: ((Math.atan2(B, A) * 180) / Math.PI + 360) % 360 };
+}
+
+export function deltaE(x: string, y: string): number {
+  const [p, q] = [oklab(x), oklab(y)];
+  return Math.hypot(p.L - q.L, p.a - q.a, p.b - q.b);
+}
+
+// What the CSS filter saturate(s) does to an opaque color: the Filter Effects matrix, applied to the
+// gamma-encoded values (`linear` false) or to linear light (`linear` true), each channel clamped.
+export function saturate(color: string, s: number, linear = false): string {
+  const c = parseColor(color);
+  const dec = (x: number) => (x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4);
+  const encode = (x: number) => (x <= 0.0031308 ? x * 12.92 : 1.055 * x ** (1 / 2.4) - 0.055);
+  let v = [c.r, c.g, c.b].map((x) => x / 255);
+  if (linear) v = v.map(dec);
+  const m = [
+    [0.213 + 0.787 * s, 0.715 - 0.715 * s, 0.072 - 0.072 * s],
+    [0.213 - 0.213 * s, 0.715 + 0.285 * s, 0.072 - 0.072 * s],
+    [0.213 - 0.213 * s, 0.715 - 0.715 * s, 0.072 + 0.928 * s],
+  ];
+  let out = m.map((row) => Math.min(1, Math.max(0, row[0] * v[0] + row[1] * v[1] + row[2] * v[2])));
+  if (linear) out = out.map(encode);
+  return toHex({ r: out[0] * 255, g: out[1] * 255, b: out[2] * 255, a: 1 });
+}

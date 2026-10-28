@@ -23,7 +23,7 @@ describe('modo sol: tokens', () => {
   it('sin vidrio: superficies sólidas, sin degradado y sin sombras (docs/DISENO.md «Cara glass»)', () => {
     for (const [name, b] of Object.entries(SUN)) {
       for (const k of ['--c-glass', '--c-glass-bar', '--c-glass-sheet']) expect(b[k], `${name} ${k}`).toBe(b['--c-surface']);
-      for (const k of ['--c-bg-tint-1', '--c-bg-tint-2']) expect(b[k], `${name} ${k}`).toBe(b['--c-bg']);
+      for (const k of ['--c-bg-tint-1', '--c-bg-tint-2', '--c-bg-tint-3', '--c-bg-wash']) expect(b[k], `${name} ${k}`).toBe(b['--c-bg']);
       expect(b['--c-glass-border'], name).toBe(b['--c-border']);
       expect(b['--glass-shadow'], name).toBe('none');
       expect(b['--glass-shadow-pop'], name).toBe('none');

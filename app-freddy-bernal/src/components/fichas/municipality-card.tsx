@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn';
 import type { Counters } from '@/lib/domain/report-status';
 
 // One municipality with its counters (§4.2): abiertas, en ejecución, finalizadas and vencidas (by their follow-up
-// date). The obra count only for those who see obras.
+// date). The obra count only for those who see obras. Solid (no blur): it comes in a grid of all the municipalities.
 export function MunicipalityCard({ name, href, counters, obras }: { name: string; href: string; counters: Counters; obras?: number }) {
   const cells: { label: string; value: number; tone?: string }[] = [
     { label: 'Abiertas', value: counters.open },
@@ -14,7 +14,7 @@ export function MunicipalityCard({ name, href, counters, obras }: { name: string
     { label: 'Vencidas', value: counters.overdue, tone: counters.overdue ? 'text-danger' : undefined },
   ];
   return (
-    <Card className={cn('flex flex-col', counters.overdue > 0 && 'border-danger/40')}>
+    <Card solid className={cn('flex flex-col', counters.overdue > 0 && 'border-danger/40')}>
       <Link href={href} className="flex min-h-14 items-center justify-between gap-2 rounded-t-[var(--radius-card)] px-4 pt-3 pb-2 hover:bg-surface-2">
         <h3 className="min-w-0 text-base font-semibold [overflow-wrap:anywhere]">{name}</h3>
         <ChevronRight className="h-4 w-4 shrink-0 text-muted" aria-hidden />

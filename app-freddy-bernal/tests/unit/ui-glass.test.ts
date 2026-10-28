@@ -2,109 +2,14 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { GLASS_ATTR, GLASS_OFF, GLASS_SCRIPT, applyGlass, lowEndDevice, type GlassNavigator } from '@/components/shell/glass-core';
-import { block, fade, over, ratio } from './fixtures/tokens';
+import { block, deltaE, fade, lum, oklab, over, ratio, saturate } from './fixtures/tokens';
 
 // «Cara glass» (docs/DISENO.md): the glass lives in tokens.css, globals.css and the base components only.
 // These checks keep it readable (AA over the worst thing that can be behind each surface), solid where it
-// must be, and keep axe able to measure contrast.
+// must be, and keep axe able to measure contrast. v2 (27/10, «súbelo, que se note más el glass»): visible
+// blobs of the brand behind real frosted cards.
 
 const read = (f: string) => fs.readFileSync(path.join(process.cwd(), f), 'utf8');
-
-const THEMES = {
-  light: { t: block(':root'), worst: '#000000' }, // dark text: black behind a bar is the worst case
-  dark: { t: block(":root[data-theme='dark']"), worst: '#ffffff' }, // light text: white is the worst case
-};
-const SUN = {
-  light: block(":root[data-contrast='high']"),
-  darkSystem: block(":root[data-contrast='high']:not([data-theme='light'])"),
-  darkForced: block(":root[data-contrast='high'][data-theme='dark']"),
-};
-const GLASS_TOKENS = ['--c-bg-tint-1', '--c-bg-tint-2', '--c-glass', '--c-glass-bar', '--c-glass-sheet', '--c-glass-border', '--glass-highlight', '--glass-shadow', '--glass-shadow-pop'];
-const TEXT = ['--c-text', '--c-text-2', '--c-muted', '--c-accent-ink', '--c-ok', '--c-warn', '--c-danger', '--c-info'];
-// What the top bar, the phone bar and the menus print. ok and warn text never go on .glass-bar or .glass-pop.
-const BAR_TEXT = ['--c-text', '--c-text-2', '--c-muted', '--c-accent-ink', '--c-danger', '--c-info'];
-
-// Every color the page gradient can show: --c-bg under three layers (olive glow, amarillo glow, a white
-// or dark glow at the top) that each fade to transparent, sampled in steps of 10 %. Includes the stops.
-function pageColors(t: Record<string, string>): string[] {
-  const steps = Array.from({ length: 11 }, (_, i) => i / 10);
-  const out: string[] = [];
-  for (const a of steps) for (const b of steps) for (const c of steps) out.push(fade(t['--c-surface'], c, fade(t['--c-bg-tint-2'], b, fade(t['--c-bg-tint-1'], a, t['--c-bg']))));
-  return out;
-}
-const minRatio = (fg: string, bgs: string[]) => Math.min(...bgs.map((bg) => ratio(fg, bg)));
-
-describe('glass: contraste AA sobre lo peor que puede quedar detrás', () => {
-  for (const [name, { t, worst }] of Object.entries(THEMES)) {
-    describe(name, () => {
-      const page = pageColors(t);
-      const behindBars = [...page, worst, t['--c-text'], t['--c-accent']];
-      const card = page.map((p) => over(t['--c-glass'], p));
-      const bar = behindBars.map((p) => over(t['--c-glass-bar'], p));
-      const sheet = behindBars.map((p) => over(t['--c-glass-sheet'], p));
-
-      it('todo texto llega a 4.5:1 sobre el degradado de la página y sobre la tarjeta blanca', () => {
-        for (const fg of TEXT) {
-          expect(minRatio(t[fg], page), `${fg} on page`).toBeGreaterThanOrEqual(4.5);
-          expect(ratio(t[fg], t['--c-surface']), `${fg} on surface`).toBeGreaterThanOrEqual(4.5);
-        }
-      });
-
-      it('todo texto llega a 4.5:1 sobre una tarjeta de vidrio en cualquier punto del degradado', () => {
-        for (const fg of TEXT) expect(minRatio(t[fg], card), fg).toBeGreaterThanOrEqual(4.5);
-      });
-
-      it('barras y menús: su texto llega a 4.5:1 aunque pase algo negro (o blanco, en oscuro) por detrás', () => {
-        for (const fg of BAR_TEXT) expect(minRatio(t[fg], bar), fg).toBeGreaterThanOrEqual(4.5);
-      });
-
-      it('paneles y diálogos: todo texto llega a 4.5:1 con cualquier cosa detrás', () => {
-        for (const fg of TEXT) expect(minRatio(t[fg], sheet), fg).toBeGreaterThanOrEqual(4.5);
-      });
-
-      it('el anillo de foco se ve (3:1) sobre la página y sobre cada vidrio', () => {
-        for (const [where, bgs] of Object.entries({ page, card, bar, sheet })) expect(minRatio(t['--c-focus'], bgs), where).toBeGreaterThanOrEqual(3);
-      });
-
-      it('el vidrio es translúcido de verdad, más opaco cuanto más puede pasar detrás', () => {
-        const alpha = (k: string) => Number(/,\s*([\d.]+)\)$/.exec(t[k])?.[1]);
-        expect(alpha('--c-glass')).toBeLessThan(1);
-        expect(alpha('--c-glass')).toBeLessThan(alpha('--c-glass-bar'));
-        expect(alpha('--c-glass-bar')).toBeLessThan(alpha('--c-glass-sheet'));
-        expect(alpha('--c-glass-sheet')).toBeLessThan(1);
-      });
-    });
-  }
-});
-
-describe('glass: tokens', () => {
-  it('claro y oscuro definen todo el vidrio, y los dos bloques oscuros son iguales', () => {
-    const system = block(":root:not([data-theme='light'])");
-    for (const k of GLASS_TOKENS) {
-      expect(THEMES.light.t[k], `light ${k}`).toBeTruthy();
-      expect(THEMES.dark.t[k], `dark ${k}`).toBeTruthy();
-      expect(system[k], `dark (system) ${k}`).toBe(THEMES.dark.t[k]);
-    }
-  });
-
-  it('el degradado usa solo tonos de la marca muy claros (o muy oscuros en oscuro)', () => {
-    // Pale glows: luminance close to the page so the gradient never darkens the light page (warn stays AA).
-    for (const k of ['--c-bg-tint-1', '--c-bg-tint-2']) {
-      expect(ratio(THEMES.light.t[k], THEMES.light.t['--c-bg']), k).toBeLessThan(1.1);
-      expect(ratio(THEMES.dark.t[k], THEMES.dark.t['--c-bg']), k).toBeLessThan(1.2);
-    }
-  });
-
-  it('«Modo sol» es sólido: vidrio = superficie, degradado = fondo, sin sombras', () => {
-    for (const [name, b] of Object.entries(SUN)) {
-      for (const k of ['--c-glass', '--c-glass-bar', '--c-glass-sheet']) expect(b[k], `${name} ${k}`).toBe(b['--c-surface']);
-      for (const k of ['--c-bg-tint-1', '--c-bg-tint-2']) expect(b[k], `${name} ${k}`).toBe(b['--c-bg']);
-      expect(b['--c-glass-border'], name).toBe(b['--c-border']);
-      expect(b['--glass-shadow'], name).toBe('none');
-      expect(b['--glass-shadow-pop'], name).toBe('none');
-    }
-  });
-});
 
 // ── globals.css ──────────────────────────────────────────────────────────────────────────────
 type Rule = { selector: string; decls: Record<string, string[]>; at: string[] };
@@ -144,13 +49,172 @@ const RULES = parse(globals);
 const SUPPORTS = '@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px)))';
 const GATE = ":where(:root:not([data-glass='off']):not([data-contrast='high']))";
 const SOLID_MEDIA = '@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active)';
-const blurs = (r: Rule) => [...(r.decls['backdrop-filter'] ?? []), ...(r.decls['-webkit-backdrop-filter'] ?? [])].some((v) => v !== 'none');
+const OPT_OUT = [`${GATE} .glass-card.glass-solid`, `${GATE} :where(ul, ol):not(nav *) > li > .glass-card`];
+// The selectors of a selector list (commas inside :where(…) or :not(…) do not split).
+function selectors(list: string): string[] {
+  const out = [''];
+  let depth = 0;
+  for (const ch of list) {
+    if (ch === ',' && depth === 0) out.push('');
+    else {
+      depth += ch === '(' ? 1 : ch === ')' ? -1 : 0;
+      out[out.length - 1] += ch;
+    }
+  }
+  return out.map((x) => x.trim());
+}
+const filters = (r: Rule) => [...(r.decls['backdrop-filter'] ?? []), ...(r.decls['-webkit-backdrop-filter'] ?? [])];
+const blurs = (r: Rule) => filters(r).some((v) => v !== 'none');
 const inComponents = (r: Rule) => r.at[0] === '@layer components';
+const gated = (sel: string) => RULES.find((r) => r.selector === `${GATE} ${sel}` && r.at.includes(SUPPORTS));
+// The blur radius (px) and the saturation (as a factor) of a rule's backdrop-filter.
+function filterOf(r: Rule | undefined): { blur: number; sat: number } {
+  const v = r?.decls['backdrop-filter']?.[0] ?? '';
+  return { blur: Number(/blur\((\d+(?:\.\d+)?)px\)/.exec(v)?.[1] ?? 0), sat: Number(/saturate\((\d+(?:\.\d+)?)%\)/.exec(v)?.[1] ?? 100) / 100 };
+}
+const SAT = { card: filterOf(gated('.glass-card')).sat, bar: filterOf(gated('.glass-bar::before')).sat, pop: filterOf(gated('.glass-pop')).sat, sheet: filterOf(gated('.glass-sheet')).sat };
+
+// ── Contrast ─────────────────────────────────────────────────────────────────────────────────
+const THEMES = {
+  light: { t: block(':root'), worst: '#000000' }, // dark text: black behind a bar is the worst case
+  dark: { t: block(":root[data-theme='dark']"), worst: '#ffffff' }, // light text: white is the worst case
+};
+const SUN = {
+  light: block(":root[data-contrast='high']"),
+  darkSystem: block(":root[data-contrast='high']:not([data-theme='light'])"),
+  darkForced: block(":root[data-contrast='high'][data-theme='dark']"),
+};
+const TINTS = ['--c-bg-tint-1', '--c-bg-tint-2', '--c-bg-tint-3'];
+const GLASS_TOKENS = [...TINTS, '--c-bg-wash', '--c-glass', '--c-glass-bar', '--c-glass-sheet', '--c-glass-border', '--glass-highlight', '--glass-shadow', '--glass-shadow-pop'];
+const TEXT = ['--c-text', '--c-text-2', '--c-muted', '--c-accent-ink', '--c-ok', '--c-warn', '--c-danger', '--c-info'];
+// What the top bar, the phone bar and the menus print. ok and warn text never go on .glass-bar or .glass-pop.
+const BAR_TEXT = ['--c-text', '--c-text-2', '--c-muted', '--c-accent-ink', '--c-danger', '--c-info'];
+
+// Every color the page background (body::before) can show: --c-bg under the wash (a linear gradient to
+// --c-bg-wash), then the three blob colors, each fading to transparent and stacked in any order (the
+// blobs overlap), in steps of 10 %. Stops and plateaus included. A blur only averages these colors, so
+// it cannot leave this set (the steps cover every mix of the five colors).
+function pageColors(t: Record<string, string>): string[] {
+  const steps = Array.from({ length: 11 }, (_, i) => i / 10);
+  const orders = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
+  const out = new Set<string>();
+  for (const w of steps) {
+    const base = fade(t['--c-bg-wash'], w, t['--c-bg']);
+    for (const [i, j, k] of orders)
+      for (const a of steps) {
+        const x = fade(t[TINTS[i]], a, base);
+        for (const b of steps) {
+          const y = fade(t[TINTS[j]], b, x);
+          for (const c of steps) out.add(fade(t[TINTS[k]], c, y));
+        }
+      }
+  }
+  return [...out];
+}
+// What a blurred surface really has behind it: the colors, and the same colors after its saturate().
+const saturated = (colors: string[], s: number) => [...new Set(colors.flatMap((c) => [c, saturate(c, s), saturate(c, s, true)]))];
+const contrast = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+const minRatio = (fg: string, bgLums: number[]) => {
+  const f = lum(fg);
+  return bgLums.reduce((m, b) => Math.min(m, contrast(f, b)), Infinity);
+};
+
+describe('glass: contraste AA sobre lo peor que puede quedar detrás', () => {
+  it('lee la saturación de cada vidrio en globals.css', () => {
+    for (const [k, v] of Object.entries(SAT)) expect(v, k).toBeGreaterThan(1);
+  });
+
+  for (const [name, { t, worst }] of Object.entries(THEMES)) {
+    describe(name, () => {
+      const page = pageColors(t);
+      const behindBars = [...page, worst, t['--c-text'], t['--c-accent']];
+      const lums = (colors: string[]) => colors.map(lum);
+      const pageL = lums(page);
+      const cardL = lums(saturated(page, SAT.card).map((p) => over(t['--c-glass'], p)));
+      const barL = lums(saturated(behindBars, Math.max(SAT.bar, SAT.pop)).map((p) => over(t['--c-glass-bar'], p)));
+      const sheetL = lums(saturated(behindBars, SAT.sheet).map((p) => over(t['--c-glass-sheet'], p)));
+
+      it('el fondo tiene miles de mezclas posibles (la cuenta no está vacía)', () => {
+        expect(page.length).toBeGreaterThan(1000);
+        expect(Math.max(...pageL) - Math.min(...pageL), 'the blobs really change the page').toBeGreaterThan(name === 'light' ? 0.1 : 0.02);
+      });
+
+      it('todo texto llega a 4.5:1 sobre el fondo de la página (manchas y lavado) y sobre la tarjeta sólida', () => {
+        for (const fg of TEXT) {
+          expect(minRatio(t[fg], pageL), `${fg} on page`).toBeGreaterThanOrEqual(4.5);
+          expect(ratio(t[fg], t['--c-surface']), `${fg} on surface`).toBeGreaterThanOrEqual(4.5);
+        }
+      });
+
+      it('todo texto llega a 4.5:1 sobre una tarjeta de vidrio (desenfoque y saturación) en cualquier punto del fondo', () => {
+        for (const fg of TEXT) expect(minRatio(t[fg], cardL), fg).toBeGreaterThanOrEqual(4.5);
+      });
+
+      it('barras y menús: su texto llega a 4.5:1 aunque pase algo negro (o blanco, en oscuro) por detrás', () => {
+        for (const fg of BAR_TEXT) expect(minRatio(t[fg], barL), fg).toBeGreaterThanOrEqual(4.5);
+      });
+
+      it('paneles y diálogos: todo texto llega a 4.5:1 con cualquier cosa detrás', () => {
+        for (const fg of TEXT) expect(minRatio(t[fg], sheetL), fg).toBeGreaterThanOrEqual(4.5);
+      });
+
+      it('el anillo de foco se ve (3:1) sobre la página y sobre cada vidrio', () => {
+        for (const [where, bgs] of Object.entries({ page: pageL, card: cardL, bar: barL, sheet: sheetL })) expect(minRatio(t['--c-focus'], bgs), where).toBeGreaterThanOrEqual(3);
+      });
+
+      it('el vidrio es translúcido de verdad (que se note), más opaco cuanto más puede pasar detrás', () => {
+        const alpha = (k: string) => Number(/,\s*([\d.]+)\)$/.exec(t[k])?.[1]);
+        expect(alpha('--c-glass')).toBeLessThanOrEqual(0.5);
+        expect(alpha('--c-glass')).toBeLessThan(alpha('--c-glass-bar'));
+        expect(alpha('--c-glass-bar')).toBeLessThan(alpha('--c-glass-sheet'));
+        expect(alpha('--c-glass-sheet')).toBeLessThan(1);
+      });
+    });
+  }
+});
+
+describe('glass: tokens', () => {
+  it('claro y oscuro definen todo el vidrio, y los dos bloques oscuros son iguales', () => {
+    const system = block(":root:not([data-theme='light'])");
+    for (const k of GLASS_TOKENS) {
+      expect(THEMES.light.t[k], `light ${k}`).toBeTruthy();
+      expect(THEMES.dark.t[k], `dark ${k}`).toBeTruthy();
+      expect(system[k], `dark (system) ${k}`).toBe(THEMES.dark.t[k]);
+    }
+  });
+
+  it('las manchas se ven (bien distintas del fondo) y son de la familia de la marca: oliva a amarillo, nada de azul', () => {
+    for (const [name, { t }] of Object.entries(THEMES)) {
+      for (const k of TINTS) {
+        expect(deltaE(t[k], t['--c-bg']), `${name} ${k} visible`).toBeGreaterThan(0.08);
+        const { hue, chroma } = oklab(t[k]);
+        expect(chroma, `${name} ${k} has color`).toBeGreaterThan(0.03);
+        expect(hue, `${name} ${k} hue`).toBeGreaterThanOrEqual(60);
+        expect(hue, `${name} ${k} hue`).toBeLessThanOrEqual(145);
+      }
+      // The oliva blob has the hue of the brand oliva; the amarillo one, of the brand amarillo #FFD380.
+      expect(Math.abs(oklab(t['--c-bg-tint-1']).hue - oklab(THEMES.light.t['--c-olive']).hue), `${name} oliva`).toBeLessThan(10);
+      expect(Math.abs(oklab(t['--c-bg-tint-2']).hue - oklab('#ffd380').hue), `${name} amarillo`).toBeLessThan(10);
+      // The wash is only a hint.
+      expect(deltaE(t['--c-bg-wash'], t['--c-bg']), `${name} wash`).toBeLessThan(0.06);
+    }
+  });
+
+  it('«Modo sol» es sólido: vidrio = superficie, fondo sin manchas, sin sombras', () => {
+    for (const [name, b] of Object.entries(SUN)) {
+      for (const k of ['--c-glass', '--c-glass-bar', '--c-glass-sheet']) expect(b[k], `${name} ${k}`).toBe(b['--c-surface']);
+      for (const k of [...TINTS, '--c-bg-wash']) expect(b[k], `${name} ${k}`).toBe(b['--c-bg']);
+      expect(b['--c-glass-border'], name).toBe(b['--c-border']);
+      expect(b['--glass-shadow'], name).toBe('none');
+      expect(b['--glass-shadow-pop'], name).toBe('none');
+    }
+  });
+});
 
 describe('glass: globals.css', () => {
   it('cada vidrio tiene una versión sólida por defecto, fuera del @supports', () => {
     for (const cls of ['.glass-card', '.glass-bar', '.glass-pop', '.glass-sheet']) {
-      const solid = RULES.find((r) => r.selector.split(',').map((s) => s.trim()).includes(cls) && inComponents(r) && r.at.length === 1);
+      const solid = RULES.find((r) => selectors(r.selector).includes(cls) && inComponents(r) && r.at.length === 1);
       expect(solid, cls).toBeTruthy();
       expect(solid!.decls['background-color'], cls).toEqual(['var(--c-surface)']);
       expect(blurs(solid!), cls).toBe(false);
@@ -159,30 +223,53 @@ describe('glass: globals.css', () => {
 
   it('el desenfoque solo existe dentro del @supports, con y sin prefijo -webkit-, y nunca con «Modo sol» ni data-glass=off', () => {
     const withBlur = RULES.filter(blurs);
-    expect(withBlur.length).toBeGreaterThanOrEqual(3);
+    expect(withBlur.length).toBeGreaterThanOrEqual(5);
     for (const r of withBlur) {
       expect(r.at, r.selector).toEqual(['@layer components', SUPPORTS]);
       expect(r.decls['backdrop-filter'], r.selector).toEqual(r.decls['-webkit-backdrop-filter']);
-      for (const s of r.selector.split(',')) expect(s.trim().startsWith(GATE), s).toBe(true);
+      for (const s of selectors(r.selector)) expect(s.startsWith(GATE), s).toBe(true);
     }
     // Every translucent rule is gated the same way.
-    for (const r of RULES.filter((x) => x.at.includes(SUPPORTS))) for (const s of r.selector.split(',')) expect(s.trim().startsWith(GATE), s).toBe(true);
+    for (const r of RULES.filter((x) => x.at.includes(SUPPORTS))) for (const s of selectors(r.selector)) expect(s.startsWith(GATE), s).toBe(true);
   });
 
-  it('.glass-card nunca declara backdrop-filter (nada de desenfoque detrás de las tablas largas)', () => {
-    const cards = RULES.filter((r) => r.selector.includes('.glass-card'));
-    expect(cards.length).toBeGreaterThanOrEqual(3);
-    for (const r of cards) expect(blurs(r), r.selector).toBe(false);
-    // The blur lives on the bars (through ::before), the menus and the overlays.
-    const blurred = RULES.filter(blurs).map((r) => r.selector);
-    expect(blurred.some((s) => s.endsWith('.glass-bar::before'))).toBe(true);
-    expect(blurred.some((s) => s.endsWith('.glass-pop'))).toBe(true);
-    expect(blurred.some((s) => s.includes('.glass-overlay'))).toBe(true);
+  it('las tarjetas son vidrio esmerilado de verdad: desenfoque de 14 a 18 px y saturación de 140 a 160 %', () => {
+    const card = gated('.glass-card')!;
+    expect(card.decls['background-color']).toEqual(['var(--c-glass)']);
+    expect(card.decls['border-color']).toEqual(['var(--c-glass-border)']);
+    expect(card.decls['box-shadow']).toEqual(['var(--glass-highlight), var(--glass-shadow)']);
+    const { blur, sat } = filterOf(card);
+    expect(blur).toBeGreaterThanOrEqual(14);
+    expect(blur).toBeLessThanOrEqual(18);
+    expect(sat).toBeGreaterThanOrEqual(1.4);
+    expect(sat).toBeLessThanOrEqual(1.6);
+  });
+
+  it('barras, menús, paneles y diálogos desenfocan más que las tarjetas; una barra nunca se desenfoca a sí misma', () => {
+    const card = filterOf(gated('.glass-card')).blur;
+    for (const sel of ['.glass-bar::before', '.glass-pop', '.glass-sheet']) expect(filterOf(gated(sel)).blur, sel).toBeGreaterThan(card);
+    expect(RULES.filter(blurs).some((r) => r.selector.includes('.glass-overlay'))).toBe(true);
     // A bar never blurs itself: the menus inside it could not blur the page.
-    expect(blurred.some((s) => /\.glass-bar$/.test(s))).toBe(false);
+    expect(RULES.filter(blurs).some((r) => /\.glass-bar$/.test(r.selector))).toBe(false);
   });
 
-  it('el degradado solo va en body::before fijo, nunca como fondo de body o html (axe dejaría de medir)', () => {
+  it('sin desenfoque detrás de listas largas: <Card solid> y las tarjetas que son ítems de una lista quedan sólidas', () => {
+    for (const sel of OPT_OUT) {
+      const r = RULES.find((x) => x.selector === sel);
+      expect(r, sel).toBeTruthy();
+      expect(r!.at, sel).toEqual(['@layer components', SUPPORTS]);
+      expect(r!.decls['background-color'], sel).toEqual(['var(--c-surface)']);
+      expect(r!.decls['backdrop-filter'], sel).toEqual(['none']);
+      expect(r!.decls['-webkit-backdrop-filter'], sel).toEqual(['none']);
+    }
+    // More specific than the blurring card rule (0,1,0): (0,2,0) and (0,1,2), so they win wherever they sit.
+    // And no rule that blurs a card can reach an opted-out one.
+    for (const r of RULES.filter((x) => blurs(x) && x.selector.includes('.glass-card'))) {
+      expect(r.selector).toBe(`${GATE} .glass-card`);
+    }
+  });
+
+  it('el fondo de la marca solo va en body::before fijo, nunca como fondo de body o html (axe dejaría de medir)', () => {
     const gradients = RULES.filter((r) => Object.values(r.decls).flat().some((v) => /gradient\(|url\(/.test(v)));
     expect(gradients.map((r) => r.selector)).toEqual([`${GATE} body::before`]);
     const g = gradients[0];
@@ -190,24 +277,30 @@ describe('glass: globals.css', () => {
     expect(g.decls['z-index']).toEqual(['-1']);
     expect(g.decls['pointer-events']).toEqual(['none']);
     expect(g.decls['background-attachment']).toBeUndefined();
+    // Four blobs (radial gradients) of the three blob colors over the wash, and nothing else.
+    const image = g.decls['background-image'].join(' ');
+    expect(image.match(/radial-gradient\(/g)?.length).toBeGreaterThanOrEqual(4);
+    for (const k of [...TINTS, '--c-bg-wash']) expect(image, k).toContain(`var(${k})`);
+    expect(image.match(/var\(--[a-z0-9-]+\)/g)!.every((v) => /var\(--c-bg(-tint-\d|-wash)?\)/.test(v))).toBe(true);
     for (const r of RULES.filter((x) => /^(html|body|:root)$/.test(x.selector))) {
       expect(r.decls['background-image'], r.selector).toBeUndefined();
       for (const v of r.decls.background ?? []) expect(v, r.selector).toMatch(/^var\(--c-[a-z0-9-]+\)$/);
     }
     // The bar's ::before has no background, so axe ignores it.
-    const barBefore = RULES.find((r) => r.selector.endsWith('.glass-bar::before') && r.at.includes(SUPPORTS))!;
+    const barBefore = gated('.glass-bar::before')!;
     expect(Object.keys(barBefore.decls).filter((k) => k.startsWith('background'))).toEqual([]);
     expect(barBefore.decls.position).toEqual(['absolute']);
   });
 
   it('«Reducir transparencia», «Más contraste» y colores forzados lo vuelven sólido, al final', () => {
     const solid = RULES.filter((r) => r.at.includes(SOLID_MEDIA));
-    const sel = (s: string) => solid.find((r) => r.selector.split(',').map((x) => x.trim()).includes(s));
+    const sel = (s: string) => solid.find((r) => selectors(r.selector).includes(s));
     expect(sel('body::before')?.decls.content).toEqual(['none']);
     expect(sel('.glass-bar::before')?.decls.content).toEqual(['none']);
     for (const c of ['.glass-card', '.glass-pop', '.glass-sheet']) {
       expect(sel(c)?.decls['background-color'], c).toEqual(['var(--c-surface)']);
       expect(sel(c)?.decls['backdrop-filter'], c).toEqual(['none']);
+      expect(sel(c)?.decls['-webkit-backdrop-filter'], c).toEqual(['none']);
     }
     expect(sel('.glass-bar')?.decls['background-color']).toEqual(['var(--c-surface)']);
     expect(sel('.glass-overlay')?.decls['backdrop-filter']).toEqual(['none']);
@@ -227,13 +320,13 @@ describe('glass: globals.css', () => {
   it('esquinas más redondas, íconos lineales parejos y sin el CSS de los modelos de Stitch', () => {
     expect(globals).toMatch(/--radius-chip:\s*8px/);
     expect(globals).toMatch(/--radius-control:\s*12px/);
-    expect(globals).toMatch(/--radius-card:\s*20px/);
+    expect(globals).toMatch(/--radius-card:\s*24px/);
     expect(RULES.find((r) => r.selector === '.lucide' && r.at[0] === '@layer base')?.decls['stroke-width']).toEqual(['1.75']);
     expect(globals).toContain('@source not "../../diseno";');
   });
 
   it('los colores del vidrio no salen como utilidades de Tailwind (una sola puerta, la de globals.css)', () => {
-    expect(globals).not.toMatch(/--color-glass|--color-bg-tint/);
+    expect(globals).not.toMatch(/--color-glass|--color-bg-tint|--color-bg-wash/);
   });
 });
 
@@ -249,9 +342,38 @@ describe('glass: componentes base', () => {
   const assistant = read('src/components/assistant/assistant-widget.tsx');
   const menu = read('src/components/ui/menu-panel.ts');
 
-  it('tarjetas, cifras y estados vacíos usan .glass-card', () => {
-    expect(card).toContain("cn('glass-card rounded-[var(--radius-card)]', className)");
+  it('tarjetas, cifras y estados vacíos usan .glass-card; <Card solid> pone .glass-solid', () => {
+    expect(card).toContain("cn('glass-card rounded-[var(--radius-card)]', solid && 'glass-solid', className)");
     expect(page.match(/glass-card/g)?.length).toBe(2);
+  });
+
+  it('las tarjetas que envuelven listas o tablas largas (o vienen en una grilla larga) son sólidas', () => {
+    const SOLID: Record<string, number> = {
+      'src/app/(panel)/agenda/page.tsx': 3,
+      'src/app/(panel)/agenda/por-fecha/page.tsx': 1,
+      'src/app/(panel)/ajustes/registro/page.tsx': 1,
+      'src/app/(panel)/ajustes/buzon/page.tsx': 1,
+      'src/app/(panel)/avisos/page.tsx': 1,
+      'src/app/(panel)/biblioteca/page.tsx': 2,
+      'src/app/(panel)/resultados/page.tsx': 2,
+      'src/app/(panel)/piezas/page.tsx': 1,
+      'src/app/(panel)/publicar/page.tsx': 3,
+      'src/app/(panel)/publicar/[id]/page.tsx': 1,
+      'src/app/(panel)/tweets/page.tsx': 1,
+      'src/app/(panel)/tweets/[id]/batch-client.tsx': 1,
+      'src/app/(panel)/aprobar/page.tsx': 1,
+      'src/app/(panel)/aprobar/tweet-approvals.tsx': 1,
+      'src/app/(panel)/municipios/page.tsx': 1,
+      'src/app/(panel)/municipios/[municipio]/page.tsx': 1,
+      'src/app/(panel)/obras/page.tsx': 1,
+      'src/components/fichas/municipality-card.tsx': 1,
+      'src/components/fichas/history-timeline.tsx': 1,
+    };
+    for (const [f, n] of Object.entries(SOLID)) expect(read(f).match(/<Card\b[^>]*\bsolid\b/g)?.length ?? 0, f).toBe(n);
+    // Nobody writes the class by hand: the prop is the only way in.
+    const files = (dir: string): string[] =>
+      fs.readdirSync(dir, { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? files(path.join(dir, d.name)) : /\.tsx?$/.test(d.name) ? [path.join(dir, d.name)] : []));
+    expect(files('src').filter((f) => read(f).includes('glass-solid'))).toEqual([path.join('src', 'components', 'ui', 'card.tsx')]);
   });
 
   it('las barras usan .glass-bar con z-index y los menús usan menuPanelClass', () => {

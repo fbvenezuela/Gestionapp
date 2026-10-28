@@ -1,10 +1,12 @@
 import type { ComponentProps, ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
-// Glass card (globals.css .glass-card): translucent with a light edge and a soft shadow, never blurred.
+// Glass card (globals.css .glass-card): frosted glass with a real blur, a light edge and a soft shadow.
+// `solid` (.glass-solid) for a card that wraps a long list or table: solid and without blur, so there is
+// no blur behind long lists (cards that are themselves list items are solid on their own, in globals.css).
 // A color passed in className (bg-danger-soft, border-info…) still wins.
-export function Card({ className, ...props }: ComponentProps<'div'>) {
-  return <div className={cn('glass-card rounded-[var(--radius-card)]', className)} {...props} />;
+export function Card({ className, solid, ...props }: ComponentProps<'div'> & { solid?: boolean }) {
+  return <div className={cn('glass-card rounded-[var(--radius-card)]', solid && 'glass-solid', className)} {...props} />;
 }
 
 export function CardHeader({ title, action, subtitle }: { title: ReactNode; action?: ReactNode; subtitle?: ReactNode }) {

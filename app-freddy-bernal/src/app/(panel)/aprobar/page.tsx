@@ -58,7 +58,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
               const list = data.pieces.filter((p) => p.review_level === lvl);
               if (!list.length) return null;
               return (
-                <Card key={lvl}>
+                <Card key={lvl} solid>
                   <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3">
                     <Chip tone={LEVELS[lvl].tone}>{LEVELS[lvl].label}</Chip>
                     <h2 className="flex-1 text-base font-semibold">
