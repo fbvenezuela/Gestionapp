@@ -103,7 +103,7 @@ ni tweets, y nunca ve una fecha de la agenda.
    les llega «Por ponerle fecha». Si lo apagas, el botón dice «Guardar»: no avisa a nadie y queda en el registro del
    municipio.
 5. Cuando cambia, cambia el estado (con su motivo si quieres) o agrega una nota. Todo queda en la historia: nunca se
-   borra.
+   borra. La historia no lleva teléfonos (se lee sin doble factor): van en «Teléfono» de la persona que reporta.
 6. Cuando le ponen fecha, ves **«Ya tiene fecha»**, sin la fecha.
 7. La parroquia se escribe como siempre (texto libre mientras llega la lista oficial).
 
@@ -161,7 +161,8 @@ sin contactos. Nunca una ficha comunitaria. No aprueba: todo lo aprueba el jefe.
    visita de obra, «Usar como discurso» toma el diálogo FAB de la ficha.
 2. **Lo de Grabación:** el evento → Material → arriba, la nota para el editor y el storyboard con el que grabó →
    «Descargar todo el material» → elige qué tipos → en la computadora (Chrome o Edge) a una carpeta; en el teléfono,
-   uno por uno. Los archivos no llevan fecha.
+   uno por uno. Los archivos no llevan fecha. En la demo baja el LEEME y el storyboard; los videos de ejemplo no tienen
+   archivo detrás, y el aviso dice cuántos no se bajaron.
 3. **Pieza:** Crear → Nueva pieza → sube el video final y la portada → Copies: fórmula, voz y cierre → «Escribir desde
    la ficha» → revisa los tres largos → elige el nivel (verde, amarillo o rojo) → «Enviar a aprobación».
 4. **Tweets:** Tweets → «Tweets de la semana» → pega el texto o sube el .docx → «Separar» → revisa repetidos y largos →
@@ -182,4 +183,5 @@ No es parte del equipo y no va en la guía que se le mande al equipo.
   registro. Borrar o restaurar un evento o una ficha solo se puede en la base, con doble factor: la app no tiene ese
   botón. «Ver como…» cambia los menús, no los permisos.
 - **No hace:** no aprueba; no crea eventos ni pone fecha; no ve los contactos de las fichas comunitarias ni crea
-  reportes; no se da roles a sí misma, y su cuenta no puede ser también la del jefe o la del despacho (D-41).
+  reportes; de un reporte ve las fotos, pero no sus documentos, y no le sube archivos; no se da roles a sí misma, y su
+  cuenta no puede ser también la del jefe o la del despacho (D-41).

@@ -64,14 +64,14 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   const values = { ...report, ...(priv ?? {}) } as Record<string, unknown>;
   const defs = REPORT_FIELDS.filter((d) => canPrivate || !d.private);
   const munHref = `/municipios/${municipalitySlug(report.municipality)}`;
-  // Evidence (§4.2 point 10): photos, videos or documents, before and after. Everyone who opens this page may upload
-  // it (media_insert: admin, boss, despacho, política), while the report is not deleted.
+  // Evidence (§4.2 point 10): photos, videos or documents, before and after. Política, despacho and the boss upload it
+  // while the report is not deleted (media_insert); Administración sees only its photos and uploads nothing (D-41).
   const evidence = (
     <PhotoGallery
       target={{ reportId: id }}
       kinds={REPORT_KINDS}
       media={data.media}
-      canUpload={canEdit}
+      canUpload={canEdit && contactsRole}
       title="Evidencias"
       subtitle="Fotos, videos o documentos (antes y después)."
     />

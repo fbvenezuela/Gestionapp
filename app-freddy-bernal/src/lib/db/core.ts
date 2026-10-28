@@ -60,6 +60,8 @@ const PRIVACY_CHECKS: [string, string][] = [
   ['recording_notes_no_phone', 'No se guardó: la nota tiene algo que parece un teléfono, y Redes la lee. Quítalo; los tiempos del video (2:15) sí van.'],
   ['community_reports_main_no_phone', 'No se guardó: el reporte tiene algo que parece un teléfono fuera de los contactos. Los teléfonos van en «Teléfono» de la persona que reporta; si es una cifra, escríbela con puntos: 1.500.000.'],
   ['events_main_no_phone', 'No se guardó: el título, el lugar o el resumen tienen algo que parece un teléfono, y Redes los lee. Los teléfonos van en «Contactos del sitio».'],
+  // 20261028002300_report_files_notes.sql
+  ['ficha_updates_report_note_no_phone', 'No se guardó: la nota tiene algo que parece un teléfono, y la historia del reporte se lee sin doble factor. Los teléfonos van en «Teléfono» de la persona que reporta; si es una cifra, escríbela con puntos: 1.500.000.'],
 ];
 
 // Turn a Postgres error into a short Spanish message for people.

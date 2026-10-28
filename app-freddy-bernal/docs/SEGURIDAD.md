@@ -121,6 +121,9 @@ Actualizado: 28/10/2026 (seis roles, fichas y agenda compartida). Qué se hizo p
       y el jefe (administración no); los de una obra, administración, el jefe, el despacho y el IVT;
     - Redes y Grabación nunca leen un reporte comunitario; de una obra ven solo la pestaña de su visita viva, sin
       contactos, sin documentos (denuncias, actas) y sin los días de la obra;
+    - los documentos de un reporte (denuncias, actas) los leen y los suben solo política, el despacho y el jefe;
+      administración ve sus fotos del antes y del después y no le sube archivos (desde el 28/10,
+      `tests/rls/report-files.test.ts`);
     - la historia de las fichas y, desde el 28/10, el registro de cambios guardan de los contactos solo **qué campo**
       cambió, nunca el valor (lo escrito antes en el registro no se reescribe: solo crece);
     - los contactos no se guardan en el teléfono como borrador; «Lo que voy a decir» y la ficha técnica que nace de una
@@ -128,7 +131,8 @@ Actualizado: 28/10/2026 (seis roles, fichas y agenda compartida). Qué se hizo p
 14. **Teléfonos y fechas en texto que lee Redes** (la base, con la misma regla que la app, `text_has_phone()` y
     `text_has_datetime()`): no entra un teléfono en el texto principal de la obra y de un reporte, en «Lo que voy a
     decir», en la nota de Grabación para el editor (los tiempos del video, «2:15», sí), ni en el título, el lugar o el
-    resumen de un evento; en el motivo de una cancelación tampoco una fecha ni una hora.
+    resumen de un evento; en el motivo de una cancelación tampoco una fecha ni una hora. Tampoco un teléfono en la
+    historia de un reporte (notas y motivos), que se lee sin doble factor.
 15. **El día realizado por columna:** `events.done_on` está cerrado para la API como columna (también en Realtime); el
     día sale de `event_done_on()`, que se lo da a Redes y a quien ve la fecha, nunca a política (D-40).
 16. **Doble factor que no se puede bajar:** aprobar (`can_approve()`) pide el doble factor del jefe sin leer la lista

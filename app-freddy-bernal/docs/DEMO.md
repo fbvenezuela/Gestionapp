@@ -42,5 +42,6 @@ Paso a paso por rol: `GUIA-POR-ROL.md` (no se manda todavía: Hillary pidió pro
 - Cada servidor de Vercel tiene su copia. Lo sembrado es igual en todos (mismos ids), pero lo que alguien crea vive
   solo en el servidor donde lo creó: crear algo con un rol y verlo con otro puede fallar. Por eso todo lo que hay que
   ver ya viene sembrado (D-39). Para probar creando cosas entre roles hace falta la base real.
-- Los videos de demostración no tienen archivo real detrás (la descarga avisa).
+- Los videos de demostración no tienen archivo real detrás: «Descargar todo» baja el LEEME y el storyboard de la
+  cancha de El Mirador (ese sí tiene su imagen) y dice cuántos archivos no se bajaron porque no están guardados.
 - Ningún correo sale: todos quedan en Ajustes → Buzón de correos.

@@ -5,7 +5,7 @@ import { act, UserError, type Result } from './run';
 import { contactsSchema, formValuesSchema, keepOthersContacts, marksSchema, parseFicha, writeFicha, writePrivate } from './schemas';
 import { notify, usersWithRole } from '../notify';
 import { REPORT_FIELDS } from '@/lib/domain/ficha-fields';
-import { mainPhoneMessage, mainTextPhone } from '@/lib/domain/phones';
+import { mainPhoneMessage, mainTextPhone, phonesIn } from '@/lib/domain/phones';
 import { isClosed } from '@/lib/domain/report-status';
 import { REPORT_STATUSES } from '@/lib/data/ficha-labels';
 import { noticeRecipients, toScheduleNotice, type AgendaNotice } from '@/lib/domain/agenda-notices';
@@ -80,6 +80,18 @@ export async function saveReport(raw: unknown) {
   });
 }
 
+// The history is read without 2FA (Administración too): a note never carries a phone, which goes in the contacts.
+// phonesIn() is the app's one detector; the database checks the same rule (ficha_updates_report_note_no_phone,
+// 20261028002300_report_files_notes.sql).
+function noPhoneInNote(note: string) {
+  const phones = phonesIn(note);
+  if (phones.length) {
+    throw new UserError(
+      `No se guardó: la nota tiene algo que parece un teléfono (${phones.join(', ')}), y la historia del reporte se lee sin doble factor. Los teléfonos van en «Teléfono» de la persona que reporta. Si es una cifra, escríbela con puntos: 1.500.000.`,
+    );
+  }
+}
+
 // A change of state with its reason: both go into the history («cambió de Programado a En ejecución: …»).
 export async function setReportStatus(raw: unknown) {
   return act(
@@ -89,6 +101,7 @@ export async function setReportStatus(raw: unknown) {
       const before = await sql.one<{ status: string }>(`select status from public.community_reports where id = $1 and deleted_at is null`, [i.id]);
       if (!before) throw new UserError('No encontramos este reporte.');
       if (before.status === i.status) throw new UserError('Ya está en ese estado.');
+      noPhoneInNote(i.note);
       if (i.note) await sql.query(`select set_config('app.history_note', $1, true)`, [i.note]);
       const r = await sql.one(`update public.community_reports set status = $2 where id = $1 and deleted_at is null returning id`, [i.id, i.status]);
       if (!r) throw new UserError('No tienes permiso para cambiar este reporte.');
@@ -100,6 +113,7 @@ export async function setReportStatus(raw: unknown) {
 
 export async function addReportNote(raw: unknown) {
   return act(z.object({ id: uuid, note: z.string().trim().min(2, 'Escribe la nota.').max(2000, 'Máximo 2000 caracteres.') }), raw, async (sql, i) => {
+    noPhoneInNote(i.note);
     await sql.query(`insert into public.ficha_updates (community_report_id, kind, note) values ($1, 'note', $2)`, [i.id, i.note]);
     return { message: 'Nota guardada en la historia.' };
   }, { revalidate: ['/reportes'] }).then(withMessage);

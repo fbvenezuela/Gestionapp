@@ -1,7 +1,7 @@
 # Arquitectura
 
 Actualizado: 28/10/2026 (seis roles, fichas, agenda compartida y entrega de Grabación: migraciones
-`20261027001500` a `20261028002200`).
+`20261027001500` a `20261028002300`).
 
 ## Piezas
 - **Next.js 16 (App Router), React 19, TypeScript estricto, Tailwind 4.** Server Components para leer y server
@@ -87,8 +87,8 @@ cambió qué), `agenda_last_writers()` (a quién avisar «cambió lo mismo que t
 | `obra_ficha_private` | admin, jefe, despacho, IVT, con aal2 | igual |
 | `community_reports` (sin teléfonos) | admin, jefe, despacho, política | crear: jefe, despacho, política; cambiar: ellos y admin (que borra y restaura) |
 | `community_report_private` | jefe, despacho, política, con aal2 (D-41) | igual |
-| `ficha_updates` | quien ve la ficha | la escribe la base; a mano, solo notas propias |
-| `media_assets` | con su evento (`can_see_event`); sin dueño, el equipo de contenido; de una ficha, quien ve la ficha (Redes y Grabación solo fotos del antes y del avance de su visita, nunca documentos) | admin, redes y jefe cualquier tipo sin ficha; grabación crudo y storyboard en sus eventos; fotos de obra: admin, jefe, despacho, IVT; evidencia de reporte: admin, jefe, despacho, política |
+| `ficha_updates` | quien ve la ficha | la escribe la base; a mano, solo notas propias; la de un reporte, sin teléfonos |
+| `media_assets` | con su evento (`can_see_event`); sin dueño, el equipo de contenido; de una ficha, quien ve la ficha (Redes y Grabación solo fotos del antes y del avance de su visita, nunca documentos; de un reporte, admin solo las fotos y los documentos jefe, despacho y política) | admin, redes y jefe cualquier tipo sin ficha; grabación crudo y storyboard en sus eventos; fotos de obra: admin, jefe, despacho, IVT; evidencia de reporte: jefe, despacho, política |
 | `recording_notes` | admin, jefe y redes con el evento; grabación en los suyos | la propia: el jefe, o grabación en un evento asignado |
 | `pieces`, versiones, copies | equipo de contenido | admin, redes, jefe; aprobar solo `can_approve()` (función) |
 | `tweets` | equipo de contenido | admin, redes, jefe; aprobar solo `can_approve()` |
@@ -198,6 +198,7 @@ cambió qué), `agenda_last_writers()` (a quién avisar «cambió lo mismo que t
 | `20261027002100_obra_documents.sql` | Los documentos de una obra, solo para sus roles |
 | `20261028002100_privacy_hardening.sql` | `visit_obra_ficha()`, `text_has_phone()`, `text_has_datetime()`, `done_on` cerrado por columna (D-40) |
 | `20261028002200_round_review_fixes.sql` | Admin nunca con jefe o despacho; lista del doble factor fija; contactos comunitarios sin admin; más teléfonos rechazados; código del evento por la base (D-41) |
+| `20261028002300_report_files_notes.sql` | Los documentos de un reporte, solo para política, despacho y jefe (admin ve las fotos y no sube); la historia de un reporte sin teléfonos (D-41) |
 
 ## Tareas programadas
 - `/api/cron/tick` (con `CRON_SECRET`): aviso de tweets por acabarse (una vez al día) y publicaciones vencidas

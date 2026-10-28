@@ -46,3 +46,26 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (error || !data) return new NextResponse('No se pudo preparar la descarga.', { status: 500 });
   return NextResponse.redirect(data.signedUrl, { headers: { 'Cache-Control': 'private, no-store' } });
 }
+
+// Whether the file is really there, before «Descargar todo» hands it to the browser (src/lib/media/one-by-one.ts): the
+// same session and RLS check as GET, no bytes and no signed URL. 404 = no row this person may read, or a row with no
+// file behind it (a demo row, or a file gone from storage). A Drive row answers 200 without asking Google: its
+// download goes in pieces and says by itself how it ended (and a HEAD never spends the transfer cap).
+export async function HEAD(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const headers = { 'Cache-Control': 'private, no-store' };
+  const s = await getSession();
+  if (!s || !s.mfaOk) return new NextResponse(null, { status: 401, headers });
+  const row = await withUser(s.claims, (sql) => mediaDownloadRow(sql, id));
+  if (!row) return new NextResponse(null, { status: 404, headers });
+  if (row.bucket === 'drive') return new NextResponse(null, { status: 200, headers });
+  if (isDemo()) return new NextResponse(null, { status: fs.existsSync(demoFilePath(row.storage_path)) ? 200 : 404, headers });
+  try {
+    const { supabaseServer } = await import('@/lib/supabase/server');
+    const supabase = await supabaseServer();
+    const { data } = await supabase.storage.from(row.bucket).exists(row.storage_path);
+    return new NextResponse(null, { status: data ? 200 : 404, headers });
+  } catch {
+    return new NextResponse(null, { status: 500, headers });
+  }
+}

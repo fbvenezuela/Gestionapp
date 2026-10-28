@@ -11,7 +11,7 @@ import type { FichaMedia } from '@/lib/data/fichas';
 // checks permissions first), or its type icon. Uploading uses the same resumable Uploader as the event material:
 // several files at once, it waits while there is no signal and goes on by itself, and photos leave the phone without
 // their location (probe.ts compressImage). Who may upload is the database's (media_insert: obra photos admin, boss,
-// despacho and IVT; report evidence admin, boss, despacho and política); `canUpload` only shows the buttons.
+// despacho and IVT; report evidence boss, despacho and política); `canUpload` only shows the buttons.
 
 const KIND: Record<string, { title: string; upload: string; accept: string; hint: string }> = {
   before: { title: 'Antes', upload: 'Subir fotos del antes', accept: 'image/*,video/*', hint: 'Fotos o videos de cómo estaba.' },
@@ -20,9 +20,11 @@ const KIND: Record<string, { title: string; upload: string; accept: string; hint
   document: { title: 'Documentos', upload: 'Subir documentos', accept: 'application/pdf,image/*', hint: 'Un PDF o la foto de un papel.' },
 };
 
-// Who sees each kind, said to whoever uploads (media_select, 20261027002100_obra_documents.sql). An obra's photos reach
-// Redes and the camera person of its visit; its documents (names and phones of the community) never do.
+// Who sees each kind, said to whoever uploads (media_select, 20261027002100_obra_documents.sql and
+// 20261028002300_report_files_notes.sql). An obra's photos reach Redes and the camera person of its visit; its
+// documents (names and phones of the community) never do. A report's documents never reach Administración (D-41).
 function whoSees(obra: boolean, kind: string): string {
+  if (!obra && kind === 'document') return 'Los ven solo política, el jefe y el despacho: nunca Administración, Redes ni Grabación.';
   if (!obra) return 'Los ven política, el jefe, el despacho y Administración. Redes y Grabación nunca ven un reporte.';
   if (kind === 'document') return 'Los ven solo el IVT, el jefe, el despacho y Administración: nunca Redes ni Grabación.';
   return 'Cuando la visita tenga fecha, también las ven Redes y quien la grabe.';

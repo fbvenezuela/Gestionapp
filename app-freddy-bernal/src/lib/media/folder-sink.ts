@@ -53,6 +53,8 @@ export async function sizeIn(dir: FsDir, name: string): Promise<number | null> {
 
 // The answers that stop a whole run (one by one too: one-by-one.ts).
 export const STOPS: ReadonlySet<number> = new Set([401, 429, 503]);
+// A file with nothing behind it (404 or 410: a demo row, a file gone from storage), in both modes.
+export const MISSING = 'No hay un archivo detrás.';
 
 export async function writePlanToFolder(root: FsDir, plan: DownloadPlan, o: FolderRunOptions = {}): Promise<FolderRun> {
   const files: FileRunState[] = plan.entries.map(() => ({ phase: 'waiting', received: 0, total: null }));
@@ -100,7 +102,7 @@ export async function writePlanToFolder(root: FsDir, plan: DownloadPlan, o: Fold
       const status = err instanceof DownloadError ? err.status : null;
       const message = err instanceof DownloadError ? err.message : 'No se pudo descargar ese archivo.';
       if (status === 404 || status === 410) {
-        set(i, { phase: 'missing', received: 0, total: null, error: 'No hay un archivo detrás.' });
+        set(i, { phase: 'missing', received: 0, total: null, error: MISSING });
         continue;
       }
       set(i, { phase: 'error', received: 0, total: null, error: message });
@@ -125,7 +127,7 @@ export function fileStateText(s: FileRunState): string {
     case 'skipped':
       return 'Ya estaba en la carpeta';
     case 'missing':
-      return s.error ?? 'No hay un archivo detrás.';
+      return s.error ?? MISSING;
     case 'error':
       return s.error ?? 'No se pudo descargar.';
   }

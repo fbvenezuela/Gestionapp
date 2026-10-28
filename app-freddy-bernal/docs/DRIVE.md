@@ -201,7 +201,8 @@ Material de cada evento («Descargar todo el material») y en la Biblioteca. Dec
   diario). Un evento pesa de 1 a 3 GB, así que puede no caber en un día:
   - **antes de empezar**, el diálogo dice si lo que viene de Drive no cabe en lo que te queda hoy (o en lo que queda del
     mes);
-  - si se acaba a la mitad, se detiene y lo dice; nunca dice «Listo» si algún archivo no bajó;
+  - si se acaba a la mitad, se detiene y lo dice; nunca dice «Listo» a secas si algún archivo no bajó (uno que no
+    está guardado, como los videos de ejemplo de la demo, lo cuenta aparte: «N archivos no se bajaron…»);
   - con la carpeta, al día siguiente eliges la misma carpeta y sigue donde quedó;
   - si hace falta ya, Administración lo baja y se lo pasa. Con Vercel Pro (`DRIVE_TRANSFER_CAP_GB=0`) no hay tope.
 - También se detiene si la sesión venció (vuelve a entrar y sigue).

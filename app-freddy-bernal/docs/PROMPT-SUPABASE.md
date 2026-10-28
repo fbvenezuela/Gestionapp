@@ -26,7 +26,8 @@ migraciones sin preguntar. Lee primero `CLAUDE.md`, `AGENTS.md` y `PROMPT-APP-FR
   `anon`/`authenticated`; tenía que ir primero, con la base vacía). `20261027001500_roles_enum.sql` va sola (agrega
   valores al tipo de roles y Postgres no deja usarlos en la misma transacción). El historial
   `supabase_migrations.schema_migrations` tiene las versiones de los archivos, así que `supabase db push` y
-  `list_migrations` coinciden con el repositorio.
+  `list_migrations` coinciden con el repositorio. **Falta aplicar** `20261028002300_report_files_notes.sql` (llegó
+  después, con la auditoría de la ronda): va igual, en orden, después de las 26.
 - Verificado el 28/10: tablas, columnas, funciones, políticas, triggers, índices y privilegios (por tabla, por
   columna y de funciones) iguales a una base local armada con `supabase/shim` + migraciones (las pruebas). Las
   huellas se comparan con `order by ... collate "C"`: Supabase ordena el texto distinto que el Postgres local.
