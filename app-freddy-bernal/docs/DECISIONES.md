@@ -498,8 +498,9 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 - **Qué:** el error de §1 («la ficha completa del evento da error») era de la demo: cada servidor de Vercel tenía otros
   ids y la ficha decía «no encontrado» (D-02). Desde el 27/10 la siembra da los mismos ids en todos los servidores
   (`tests/unit/demo-stable-ids.test.ts`). `tests/e2e/demo-instances.spec.ts` abre en el otro servidor un evento y su
-  modo lectura (despacho), la visita y la ficha de obra del IVT, y la actividad y el reporte de política;
-  `tests/e2e/pages.spec.ts` abre las cuatro pestañas de un evento con administración, Redes y el jefe.
+  modo lectura (despacho), la visita y la ficha de obra del IVT, la actividad y el reporte de política, y, con el jefe,
+  Redes, Grabación y administración, los eventos de sus pantallas con cada pestaña que ven (también «Ficha de obra» y
+  «Reporte» para el jefe y administración) y el modo lectura; `tests/e2e/pages.spec.ts` abre las cuatro pestañas de un evento con administración, Redes y el jefe.
   - Todo lo que Hillary tiene que ver ya viene sembrado: una obra y un reporte esperando fecha, una visita de obra con
     fecha y fotos, un reporte vencido, la nota y el storyboard de Grabación, dos verdes, una amarilla y una roja por
     aprobar, y miniaturas en Resultados. Sin eventos nuevos.

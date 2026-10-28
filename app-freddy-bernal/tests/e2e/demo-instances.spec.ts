@@ -6,6 +6,13 @@ import { loginAs } from './helpers';
 // servers (strict and shortcuts) play those two instances; a session cookie works on both.
 const other = `http://localhost:${Number(process.env.E2E_PORT ?? 3100) + 1}`;
 
+// The page itself, not the loading skeleton ((panel)/loading.tsx): the streamed page can take its place after the
+// load event, and until then «No encontramos esto» is absent even for a record that is missing.
+async function shown(page: Page, where: string) {
+  await expect(page.locator('main'), where).toBeVisible();
+  await expect(page.locator('main [aria-busy="true"]'), where).toHaveCount(0);
+}
+
 test('la ficha de un evento abre aunque la sirva otro servidor de la demo', async ({ page }) => {
   test.skip(!!process.env.E2E_BASE_URL, 'solo con los dos servidores locales');
   await loginAs(page, 'despacho@demo.test');
@@ -20,6 +27,7 @@ test('la ficha de un evento abre aunque la sirva otro servidor de la demo', asyn
   expect(res?.status()).toBe(200);
   await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
   await page.goto(`${other}${href}/lectura`);
+  await shown(page, `${href}/lectura`);
   await expect(page.getByText('No encontramos esto')).toHaveCount(0);
 });
 
@@ -45,6 +53,7 @@ test('la visita de obra y la ficha del IVT abren aunque las sirva otro servidor'
   const obra = (await page.getByRole('link', { name: 'Ver la ficha de obra' }).getAttribute('href'))!.split('?')[0];
   await sameOnTheOther(page, obra);
   await page.goto(`${other}${obra}/lectura`);
+  await shown(page, `${obra}/lectura`);
   await expect(page.getByText('No encontramos esto')).toHaveCount(0);
 });
 
@@ -59,6 +68,63 @@ test('el reporte y la actividad de política abren aunque los sirva otro servido
   await expect(page.getByText('Ya tiene fecha. La ven el jefe y el despacho en la agenda.')).toBeVisible();
   await sameOnTheOther(page, report);
 });
+
+// The other four roles (audit of 28/10/2026): each one opens, on the other server, the events it reaches from its own
+// screens, every tab it sees there and «Modo lectura» when the page offers it. The boss and administración also an
+// event born from an obra ficha and one born from a community report, so the «Ficha de obra» and «Reporte» tabs are
+// opened there too.
+const EVENT = /^\/eventos\/[0-9a-f-]{36}$/;
+const ROLES = [
+  { email: 'jefe@demo.test', screens: ['/agenda', '/jefe/politica', '/biblioteca'], fichaTabs: true },
+  { email: 'redes@demo.test', screens: ['/agenda'], fichaTabs: false },
+  { email: 'grabacion@demo.test', screens: ['/agenda'], fichaTabs: false },
+  { email: 'admin@demo.test', screens: ['/agenda', '/biblioteca'], fichaTabs: true },
+] as const;
+
+for (const { email, screens, fichaTabs } of ROLES) {
+  test(`${email}: sus eventos, cada pestaña y el modo lectura abren aunque los sirva otro servidor`, async ({ page }) => {
+    test.skip(!!process.env.E2E_BASE_URL, 'solo con los dos servidores locales');
+    await loginAs(page, email);
+    const found: string[] = [];
+    for (const screen of screens) {
+      await page.goto(screen);
+      await shown(page, screen);
+      found.push(...(await page.locator('main a[href^="/eventos/"]').evaluateAll((as) => as.map((a) => a.getAttribute('href')!.split('?')[0]))));
+    }
+    const events = [...new Set(found)].filter((h) => EVENT.test(h));
+    expect(events.length, email).toBeGreaterThan(0);
+    const tabsOf = () => page.getByRole('navigation', { name: 'Secciones del evento' }).getByRole('link').evaluateAll((as) => as.map((a) => a.getAttribute('href')!));
+    const reads = async () => (await page.getByRole('link', { name: 'Modo lectura' }).count()) > 0;
+
+    // On its own server: the first event of its screens, then the first one that offers «Modo lectura» and (the boss
+    // and administración) the first one with each ficha tab.
+    let wants = ['lectura', ...(fichaTabs ? ['obra', 'reporte'] : [])];
+    const pick = new Set([events[0]]);
+    for (const href of events) {
+      if (!wants.length) break;
+      await page.goto(href);
+      await shown(page, href);
+      const offers = [...((await reads()) ? ['lectura'] : []), ...(await tabsOf()).map((t) => t.split('?tab=')[1])];
+      if (wants.some((w) => offers.includes(w))) pick.add(href);
+      wants = wants.filter((w) => !offers.includes(w));
+    }
+    expect(wants, `${email}: lo que no se encontró en sus eventos`).toEqual([]);
+    for (const href of pick) {
+      await sameOnTheOther(page, href);
+      const title = (await page.getByRole('heading', { level: 1 }).first().innerText()).trim();
+      const tabs = await tabsOf();
+      expect(tabs.length, `${email} ${href}`).toBeGreaterThan(1);
+      for (const path of [...tabs, ...((await reads()) ? [`${href}/lectura`] : [])]) {
+        const res = await page.goto(`${other}${path}`);
+        expect(res?.status(), `${email} ${path}`).toBe(200);
+        await shown(page, `${email} ${path}`);
+        // Every tab and the teleprompter name the event.
+        await expect(page.locator('main').getByText(title, { exact: true }).first(), `${email} ${path}`).toBeVisible();
+        await expect(page.getByText('No encontramos esto'), `${email} ${path}`).toHaveCount(0);
+      }
+    }
+  });
+}
 
 // «Ir al inicio» goes to each person's own home: Hoy for despacho, Municipios for política (not Hoy for everyone).
 test('lo que no existe dice «No encontramos esto» en español y lleva al inicio de cada quien', async ({ page }) => {
