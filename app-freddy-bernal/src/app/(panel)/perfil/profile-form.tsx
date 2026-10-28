@@ -24,6 +24,7 @@ const OPTIONAL = [
   { key: 'agenda_overwritten', label: 'Alguien cambió lo mismo que yo en la agenda' },
   { key: 'agenda_changed', label: 'Cada cambio del otro en la agenda (apagado si no lo prendes)' },
   { key: 'assistant_notice', label: 'Avisos del equipo preparados con 360' },
+  { key: 'chat_message', label: 'Mensajes nuevos del equipo' },
   { key: 'daily_digest', label: 'Resumen diario por correo' },
 ];
 
