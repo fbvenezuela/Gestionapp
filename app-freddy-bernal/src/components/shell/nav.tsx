@@ -4,15 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import type { NavItem } from '@/lib/roles';
+import { isNavActive, type NavItem } from '@/lib/roles';
 import { NAV_ICONS } from './nav-icons';
 import { MenuDetails } from './menu-details';
 import { menuPanelClass } from '@/components/ui/menu-panel';
-
-function isActive(pathname: string, href: string) {
-  if (href === '/jefe') return pathname === '/jefe' || pathname.startsWith('/jefe/politica');
-  return pathname === href || pathname.startsWith(href + '/');
-}
 
 export function SideNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
@@ -20,7 +15,7 @@ export function SideNav({ items }: { items: NavItem[] }) {
     <nav aria-label="Menú principal" className="flex flex-col gap-1">
       {items.map((it) => {
         const Icon = NAV_ICONS[it.icon];
-        const active = isActive(pathname, it.href);
+        const active = isNavActive(pathname, it, items);
         return (
           <Link
             key={it.href}
@@ -44,7 +39,8 @@ export function BottomNav({ items, more = [] }: { items: NavItem[]; more?: NavIt
   const pathname = usePathname();
   if (items.length === 0 && more.length === 0) return null;
   const cols = items.length + (more.length ? 1 : 0);
-  const moreActive = more.some((it) => isActive(pathname, it.href));
+  const menu = [...items, ...more];
+  const moreActive = more.some((it) => isNavActive(pathname, it, menu));
   // Five columns leave 72 px each on a 360 px phone. A fixed 11 px fits «Por aprobar» and
   // «Resultados» there, also in «Modo sol» (it enlarges rem-based text), so labels never overlap.
   const text = cols >= 5 ? 'text-[11px] tracking-tight' : 'text-xs';
@@ -56,7 +52,7 @@ export function BottomNav({ items, more = [] }: { items: NavItem[]; more?: NavIt
       <ul className="grid" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
         {items.map((it) => {
           const Icon = NAV_ICONS[it.icon];
-          const active = isActive(pathname, it.href);
+          const active = isNavActive(pathname, it, menu);
           return (
             <li key={it.href}>
               <Link
@@ -88,7 +84,7 @@ export function BottomNav({ items, more = [] }: { items: NavItem[]; more?: NavIt
               <div className={cn(menuPanelClass, 'absolute bottom-full right-1 mb-2 w-56')}>
                 {more.map((it) => {
                   const Icon = NAV_ICONS[it.icon];
-                  const active = isActive(pathname, it.href);
+                  const active = isNavActive(pathname, it, menu);
                   return (
                     <Link
                       key={it.href}
