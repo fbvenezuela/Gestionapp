@@ -4,8 +4,10 @@
 --      and D-41 keeps those with política, despacho and the boss. media_select (20261028002100_privacy_hardening.sql)
 --      gave every file of a report to whoever reads the report's main part, Administración too. Now Administración
 --      keeps the report's photos (before and after) and never its documents; política, despacho and the boss read all
---      of them. Redes and Grabación never read a report, so none of its files either. Every other branch of
---      media_select stays exactly as it was (the trash, deleted rows, is still Administración's).
+--      of them. Redes and Grabación never read a report, so none of its files either. The trash (deleted rows) is still
+--      Administración's, except a report's documents: a paper deleted in the base (the owner's way to remove one) stays
+--      out of its reach too, and so does the file (storage's material_read follows this row). Every other branch of
+--      media_select stays exactly as it was.
 --   2. Uploading to a report: política, despacho and the boss only, as community_reports_insert since D-41
 --      (media_insert, 20261027001900_media_handoff.sql, still named admin). The other branches stay as they were.
 --   3. A report's history note never carries a phone: Administración, despacho, política and the boss read the history
@@ -32,7 +34,8 @@ alter policy media_select on public.media_assets
                and exists (select 1 from public.community_reports r where r.id = media_assets.community_report_id)
                and (kind in ('before', 'after')
                     or public.has_any_role(array['boss', 'dispatch', 'politics']::public.app_role[])))))
-         or (deleted_at is not null and public.has_role('admin')));
+         or (deleted_at is not null and public.has_role('admin')
+             and (community_report_id is null or kind in ('before', 'after'))));
 
 -- ---------------------------------------------------------------------------
 -- 2. Uploading to a report: política, despacho and the boss

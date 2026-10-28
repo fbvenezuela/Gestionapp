@@ -10,6 +10,8 @@
 //   * A plain download cannot tell the page how it ended, so before handing a file to the browser the platform is
 //     asked whether it is there (HEAD /api/media/<id>: the same session and RLS check, no bytes). A file that is not
 //     (a demo row, a file gone from storage) is marked like a Drive 404, and 401, 429 and 503 stop the run.
+//   * iPhone and iPad have no run (one «Bajar» per file): the list asks the same thing once as it opens
+//     (missingStored), and a file that is not there says so instead of «Bajar».
 // No date, time or address is ever written: the names come from the plan (download-plan.ts).
 
 import { DownloadError } from './chunk-download';
@@ -41,6 +43,35 @@ export async function checkStored(id: string, o: { fetcher?: Fetcher; signal?: A
   } catch {
     return null;
   }
+}
+
+/**
+ * iPhone and iPad (one «Bajar» per file, no run to watch): the files outside Drive that are not there (404 or 410: a
+ * demo row, a file gone from storage), asked once as the list opens, one after another, so each one says so instead of
+ * a link that would save an error page. No answer, or any other status, leaves that file's «Bajar»; 401, 429 and 503
+ * stop the asking (every other file would get the same answer).
+ */
+export async function missingStored(
+  files: readonly { id: string; drive: boolean }[],
+  o: { check?: (id: string, signal?: AbortSignal) => Promise<number | null>; signal?: AbortSignal } = {},
+): Promise<Set<string>> {
+  const missing = new Set<string>();
+  for (const f of files) {
+    if (o.signal?.aborted) break;
+    if (f.drive) continue;
+    const status = await (o.check ?? ((id, signal) => checkStored(id, { signal })))(f.id, o.signal);
+    if (status === 404 || status === 410) missing.add(f.id);
+    else if (status != null && STOPS.has(status)) break;
+  }
+  return missing;
+}
+
+/** The line above that list when some files are not there; null when every one is. */
+export function missingListLine(n: number): string | null {
+  if (!n) return null;
+  return n === 1
+    ? '1 archivo no se puede bajar porque no está guardado en la plataforma.'
+    : `${n} archivos no se pueden bajar porque no están guardados en la plataforma.`;
 }
 
 /** Runs one Drive download and says how it ended (a DownloadError carries the server's status and sentence). */

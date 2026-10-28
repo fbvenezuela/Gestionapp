@@ -15,11 +15,11 @@ import { ScheduleFields, type ScheduleValues } from './schedule-fields';
 // in the phone (per person) until it is saved: if someone else put the date in the meantime, nothing typed is lost.
 type Form = ScheduleValues & { title: string; placeName: string; cameraUserId: string };
 
-// Who reads the date and the place (can_see_schedule()): an obra visit's also reaches the IVT (it is his visit); a
-// report's activity never reaches política.
+// Who reads the date, the time and the exact address (can_see_schedule()): an obra visit's also reaches the IVT (it is
+// his visit); a report's activity never reaches política. «A dónde se va» (events.place_name) is the whole team's.
 const WHO_SEES = {
-  obra: 'Se convierte en un evento de la agenda. La fecha y el lugar solo los ven el jefe, el despacho, administración, quien graba y el IVT (es su visita de obra).',
-  report: 'Se convierte en un evento de la agenda. La fecha y el lugar solo los ven el jefe, el despacho, administración y quien graba.',
+  obra: 'Se convierte en un evento de la agenda. La fecha, la hora y la dirección exacta solo las ven el jefe, el despacho, administración, quien graba y el IVT (es su visita de obra).',
+  report: 'Se convierte en un evento de la agenda. La fecha, la hora y la dirección exacta solo las ven el jefe, el despacho, administración y quien graba.',
 };
 
 export function ScheduleSheet({

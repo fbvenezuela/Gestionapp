@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { demoFilePath } from '../../storage/demo-store';
@@ -32,15 +33,25 @@ export async function seedHandoff(ctx: SeedCtx): Promise<void> {
   await sql.query(`insert into public.recording_notes (event_id, kind, body, author_id) values ($1, 'editor_note', $2, $3)`, [eventId, DEMO_EDITOR_NOTE, ids.camera]);
 }
 
-// The file itself in the demo store (the server's temp disk: /api/media serves it from there), written whole every
-// time (a second seed on the same disk leaves the same bytes). A disk that cannot be written leaves the row as the
-// sample videos are: «Descargar todo» counts it as a file with nothing behind it.
-function keepDemoFile(storagePath: string, bytes: Buffer) {
+// The file itself in the demo store (the server's temp disk: /api/media serves it from there). Every seed on the
+// machine writes the same path (stable ids: the parallel test workers, both e2e servers), so the bytes go to a file of
+// their own first and then take the final name in one step (rename): a download already running keeps reading a whole
+// picture, never one cut short by another seed. A disk that cannot be written leaves the row as the sample videos
+// are: «Descargar todo» counts it as a file with nothing behind it.
+export function keepDemoFile(storagePath: string, bytes: Buffer) {
+  let tmp: string | null = null;
   try {
     const file = demoFilePath(storagePath);
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, bytes);
+    tmp = `${file}.${process.pid}.${randomUUID()}.tmp`;
+    fs.writeFileSync(tmp, bytes);
+    fs.renameSync(tmp, file);
   } catch (e) {
+    try {
+      if (tmp) fs.rmSync(tmp, { force: true });
+    } catch {
+      // Left on the temp disk, which a restart clears; the seed goes on.
+    }
     console.warn('[seed] storyboard de la demo sin archivo:', (e as Error).message);
   }
 }

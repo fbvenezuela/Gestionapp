@@ -9,8 +9,8 @@ import { myDriveBudget } from '@/lib/actions/drive';
 import { sizeText } from '@/lib/media/chunk-download';
 import { budgetMessage, budgetVerdict, buildDownloadPlan, kindsOf, type DriveBudget, type PlanFile, type PlanNote } from '@/lib/media/download-plan';
 import { downloadMode, type DownloadMode } from '@/lib/media/download-mode';
-import { fileStateText, pickFolder, writePlanToFolder, type FileRunState } from '@/lib/media/folder-sink';
-import { runHeadline, sendPlanOneByOne } from '@/lib/media/one-by-one';
+import { fileStateText, MISSING, pickFolder, writePlanToFolder, type FileRunState } from '@/lib/media/folder-sink';
+import { missingListLine, missingStored, runHeadline, sendPlanOneByOne } from '@/lib/media/one-by-one';
 import { downloadDriveFile } from './drive-download';
 import { cn } from '@/lib/cn';
 
@@ -18,7 +18,8 @@ import { cn } from '@/lib/cn';
 // title, Grabación's notes and the list of files. Never a date, a time or an address, for the boss too: this
 // component never receives them (title, code, files and notes only) and the plan names everything (download-plan.ts).
 //   * Chrome, Edge, Opera on a computer: a folder the person chooses, one file after another (folder-sink.ts).
-//   * Elsewhere: one by one to Downloads; on iPhone and iPad one «Bajar» per file (each needs its own tap).
+//   * Elsewhere: one by one to Downloads; on iPhone and iPad one «Bajar» per file (each needs its own tap), and a file
+//     that is not there (the demo's sample videos, one gone from storage) says so instead.
 // Files kept in Drive count against the transfer cap: before starting, the dialog says when they do not fit in what
 // the person has left today (myDriveBudget).
 
@@ -32,6 +33,7 @@ const MODE_HINT: Record<DownloadMode, string> = {
 
 const noSubscribe = () => () => {};
 const NO_NOTES: PlanNote[] = [];
+const NONE: ReadonlySet<string> = new Set();
 
 function clickDownload(href: string, name: string) {
   const a = document.createElement('a');
@@ -73,6 +75,8 @@ export function DownloadAllDialog({
   const [run, setRun] = useState<Run | null>(null);
   const ctrl = useRef<AbortController | null>(null);
   const hasDrive = files.some((f) => f.drive);
+  // iPhone and iPad: the files outside Drive that are not there, asked once as the list opens (missingStored).
+  const [absent, setAbsent] = useState<ReadonlySet<string>>(NONE);
 
   useEffect(() => {
     if (!open || !hasDrive) return;
@@ -84,6 +88,17 @@ export function DownloadAllDialog({
       live = false;
     };
   }, [open, hasDrive]);
+
+  useEffect(() => {
+    if (!open || mode !== 'ios-list') return;
+    const c = new AbortController();
+    missingStored(files, { signal: c.signal })
+      .then((s) => {
+        if (!c.signal.aborted) setAbsent(s);
+      })
+      .catch(() => {});
+    return () => c.abort();
+  }, [open, mode, files]);
 
   if (!files.length) return null;
   const verdict = budgetVerdict(plan.totals, budget);
@@ -131,6 +146,7 @@ export function DownloadAllDialog({
   }
 
   const toggle = (k: string, on: boolean) => setOff((list) => (on ? list.filter((x) => x !== k) : [...list, k]));
+  const absentLine = mode === 'ios-list' ? missingListLine(plan.entries.filter((e) => absent.has(e.id)).length) : null;
   const count = (k: string) => files.filter((f) => f.kind === k).length;
   const done = run && !run.running;
 
@@ -174,27 +190,32 @@ export function DownloadAllDialog({
         <p className="text-sm text-text-2">{MODE_HINT[mode]}</p>
 
         {mode === 'ios-list' ? (
-          <ul className="divide-y divide-border rounded-[var(--radius-control)] border border-border">
-            <li className="flex items-center gap-2 px-3 py-2">
-              <span className="min-w-0 flex-1 truncate text-[15px]">{plan.readme.name}</span>
-              <Button size="sm" variant="secondary" onClick={() => saveText(plan.readme.text, plan.readme.name)}>Bajar</Button>
-            </li>
-            {plan.entries.map((e) => (
-              <li key={e.id} className="flex items-center gap-2 px-3 py-2">
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[15px]">{e.name}</span>
-                  <span className="block text-sm text-text-2">{sizeText(e.size)}</span>
-                </span>
-                {e.drive ? (
-                  <Button size="sm" variant="secondary" onClick={() => void downloadDriveFile({ id: e.id, label: e.name, size: e.size })}>Bajar</Button>
-                ) : (
-                  <a href={`/api/media/${e.id}`} download={e.name} className="inline-flex min-h-9 items-center rounded-[var(--radius-control)] border border-border px-3 text-sm font-semibold hover:bg-surface-2">
-                    Bajar
-                  </a>
-                )}
+          <>
+            {absentLine ? <p role="status" className="text-[15px] font-semibold">{absentLine}</p> : null}
+            <ul className="divide-y divide-border rounded-[var(--radius-control)] border border-border">
+              <li className="flex items-center gap-2 px-3 py-2">
+                <span className="min-w-0 flex-1 truncate text-[15px]">{plan.readme.name}</span>
+                <Button size="sm" variant="secondary" onClick={() => saveText(plan.readme.text, plan.readme.name)}>Bajar</Button>
               </li>
-            ))}
-          </ul>
+              {plan.entries.map((e) => (
+                <li key={e.id} className="flex items-center gap-2 px-3 py-2">
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[15px]">{e.name}</span>
+                    <span className="block text-sm text-text-2">{sizeText(e.size)}</span>
+                  </span>
+                  {e.drive ? (
+                    <Button size="sm" variant="secondary" onClick={() => void downloadDriveFile({ id: e.id, label: e.name, size: e.size })}>Bajar</Button>
+                  ) : absent.has(e.id) ? (
+                    <span className="shrink-0 text-sm text-text-2">{MISSING}</span>
+                  ) : (
+                    <a href={`/api/media/${e.id}`} download={e.name} className="inline-flex min-h-9 items-center rounded-[var(--radius-control)] border border-border px-3 text-sm font-semibold hover:bg-surface-2">
+                      Bajar
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
         ) : running ? (
           <Button size="lg" variant="secondary" onClick={() => ctrl.current?.abort()}>
             <X className="h-5 w-5" aria-hidden /> Cancelar

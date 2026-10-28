@@ -22,7 +22,7 @@ import { HistoryTimeline } from '@/components/fichas/history-timeline';
 import { NoteForm } from '@/components/fichas/note-form';
 import { ReportStatusControl } from '@/components/fichas/status-control';
 import { PhotoGallery } from '@/components/fichas/photo-gallery';
-import { REPORT_KINDS } from '@/lib/domain/media-mime';
+import { REPORT_KINDS, REPORT_PHOTO_KINDS } from '@/lib/domain/media-mime';
 import { fmtDateTime, today } from '@/lib/time';
 
 export const metadata = { title: 'Ficha comunitaria' };
@@ -69,11 +69,11 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   const evidence = (
     <PhotoGallery
       target={{ reportId: id }}
-      kinds={REPORT_KINDS}
+      kinds={contactsRole ? REPORT_KINDS : REPORT_PHOTO_KINDS}
       media={data.media}
       canUpload={canEdit && contactsRole}
       title="Evidencias"
-      subtitle="Fotos, videos o documentos (antes y después)."
+      subtitle={contactsRole ? 'Fotos, videos o documentos (antes y después).' : 'Fotos o videos del antes y del después.'}
     />
   );
 

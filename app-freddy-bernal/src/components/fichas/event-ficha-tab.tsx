@@ -9,8 +9,10 @@ import { OBRA_KINDS, OBRA_PHOTO_KINDS, REPORT_KINDS, REPORT_PHOTO_KINDS } from '
 // The «Ficha de obra» / «Reporte» tab of an event born from a ficha (cambios del 27/10/2026, §4.1): what the IVT (or
 // política) loaded, live from the ficha (never a stale copy), with its photos. Server-only: what reaches the page is
 // exactly what `tab` holds (ficha-tab.ts: for Redes and Grabación the main part only, without names, phones or the
-// ficha's own days); the contacts box only for the boss, despacho and administración, with 2FA. Its documents (a
-// denuncia, an acta: names and phones of the community) go with the contacts; without them, only the photos.
+// ficha's own days); the contacts box only for whoever the database gives them, with 2FA (an obra's: the boss,
+// despacho and administración; a report's: the boss and despacho here, política on the report, never administración,
+// D-41). Its documents (a denuncia, an acta: names and phones of the community) go with the contacts; without them,
+// only the photos.
 export function EventFichaTab({
   kind, id, code, tab, media, contacts,
 }: { kind: 'obra' | 'report'; id: string; code: string; tab: FichaTab; media: FichaMedia[]; contacts: boolean }) {
@@ -46,7 +48,14 @@ export function EventFichaTab({
         ))}
         {contacts && tab.contacts.length ? (
           <Card>
-            <CardHeader title={obra ? 'Contactos y lo que debe saber el jefe' : 'Persona que reporta, dirección y fecha'} subtitle="Solo el jefe, el despacho y Administración, con doble factor. Nunca Redes ni Grabación." />
+            <CardHeader
+              title={obra ? 'Contactos y lo que debe saber el jefe' : 'Persona que reporta, dirección y fecha'}
+              subtitle={
+                obra
+                  ? 'Solo el jefe, el despacho y Administración, con doble factor. Nunca Redes ni Grabación.'
+                  : 'Solo el jefe, el despacho y política, con doble factor. Nunca Administración, Redes ni Grabación.'
+              }
+            />
             <CardBody>
               <dl className="grid gap-4 sm:grid-cols-2">
                 {tab.contacts.map((it) => (

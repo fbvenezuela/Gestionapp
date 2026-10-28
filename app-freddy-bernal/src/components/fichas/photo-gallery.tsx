@@ -51,6 +51,7 @@ export function PhotoGallery({
 }) {
   const shown = media.filter((m) => kinds.includes(m.kind as MediaKind));
   const obra = 'obraFichaId' in target;
+  const papers = kinds.includes('document');
   const where = obra ? { obraFichaId: target.obraFichaId } : { reportId: target.reportId };
   return (
     // Solid once it holds a long list (no blur behind many pictures).
@@ -105,7 +106,9 @@ export function PhotoGallery({
             </section>
           );
         })}
-        {!shown.length && !canUpload ? <p className="text-[15px] text-text-2">Todavía no hay fotos ni documentos.</p> : null}
+        {!shown.length && !canUpload ? <p className="text-[15px] text-text-2">{papers ? 'Todavía no hay fotos ni documentos.' : 'Todavía no hay fotos.'}</p> : null}
+        {/* A report's documents are not this person's (Administración, D-41): said, so an empty list is not read as a lost upload. */}
+        {!obra && !papers ? <p className="text-sm text-text-2">Los documentos del reporte (denuncias, actas) solo los ven política, el jefe y el despacho.</p> : null}
       </div>
     </Card>
   );

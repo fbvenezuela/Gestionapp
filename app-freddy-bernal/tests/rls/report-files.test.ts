@@ -1,7 +1,8 @@
 // A community report's papers and notes (20261028002300_report_files_notes.sql), straight against the database as
 // each demo person (RLS on), as an API client would:
 //   1. its documents (a denuncia, an acta: names and phones of the community) only for política, despacho and the boss;
-//      Administración keeps its photos (before and after); Redes, Grabación and the IVT read none of its files;
+//      Administración keeps its photos (before and after), in the trash too; Redes, Grabación and the IVT read none of
+//      its files;
 //   2. only política, despacho and the boss upload to a report (Administración no longer does, D-41);
 //   3. a phone never goes into its history: a note by hand, the reason of a change of state, the reason of «No va a la
 //      agenda». An amount with dots still passes.
@@ -72,6 +73,25 @@ describe('los archivos de un reporte comunitario', () => {
     expect(await t.as('admin', (sql) => sql.query(`update public.media_assets set label = 'Cambiado (demo)' where id = $1 returning id`, [files.document]))).toEqual([]);
     expect(await t.as('admin', (sql) => sql.query(`update public.media_assets set deleted_at = now() where id = $1 returning id`, [files.document]))).toEqual([]);
     expect(await t.system((sql) => sql.one('select label, deleted_at from public.media_assets where id = $1', [files.document]))).toEqual({ label: 'Denuncia (demo)', deleted_at: null });
+  });
+
+  it('un documento borrado en la base tampoco le llega a Administración por la papelera; una foto borrada, sí', async () => {
+    const trashed = await newReport();
+    const ids: Record<string, string> = {};
+    for (const kind of REPORT_KINDS) {
+      ids[kind] = (await t.as('politics', (sql) =>
+        sql.one<{ id: string }>(
+          `insert into public.media_assets (community_report_id, kind, mime, storage_path, label, status, uploaded_by)
+           values ($1, $2, $3, $4, $5, 'ready', auth.uid()) returning id`,
+          [trashed, kind, kind === 'document' ? 'application/pdf' : 'image/jpeg', `${trashed}/${kind}-borrado.bin`, `${kind} borrado (demo)`],
+        )))!.id;
+    }
+    // The owner deletes them in the base (the documented way), with no person behind the change.
+    await t.system((sql) => sql.query(`update public.media_assets set deleted_at = now() where community_report_id = $1`, [trashed]));
+    expect(await kindsAs('admin', trashed)).toEqual(['after', 'before']);
+    expect(await t.as('admin', (sql) => sql.one('select label, storage_path from public.media_assets where id = $1', [ids.document]))).toBeNull();
+    // Nobody else reads the trash.
+    for (const who of ['politics', 'dispatch', 'boss', 'social', 'camera', 'ivt'] as const) expect(await kindsAs(who, trashed), who).toEqual([]);
   });
 
   it('política, el despacho y el jefe ven las fotos y los documentos, con un factor o con dos', async () => {

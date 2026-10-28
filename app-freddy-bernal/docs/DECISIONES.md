@@ -450,7 +450,8 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
   - se detiene si se acaba el cupo o vence la sesión, y nunca dice «Listo» a secas si algo no bajó. Uno por uno,
     antes de pasarle un archivo al navegador pregunta si está guardado (`HEAD /api/media/<id>`, con el mismo permiso
     que la descarga): el que no está (los videos de ejemplo de la demo, o uno que se perdió) no sale como «Enviado» y
-    el aviso dice cuántos no se bajaron (auditoría del 28/10).
+    el aviso dice cuántos no se bajaron (auditoría del 28/10). En el iPhone y el iPad la lista pregunta lo mismo al
+    abrirse: el que no está dice «No hay un archivo detrás.» en vez de «Bajar», y arriba dice cuántos son.
 - **Por qué:** encargo §5. Carpeta y no zip: un evento pesa de 1 a 3 GB y el zip habría que armarlo entero en el
   teléfono o en el servidor. El cupo diario de Drive (D-28: 1,75 GB por persona con el tope de 7 GB) puede cortar un
   evento grande; por eso la carpeta sigue donde quedó.
@@ -561,7 +562,8 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
   - **Documentos y notas de un reporte** (auditoría del 28/10, `20261028002300_report_files_notes.sql`, pruebas en
     `tests/rls/report-files.test.ts`): una denuncia o un acta subida como documento de un reporte lleva los mismos
     datos de terceros que sus contactos, así que la ven y la suben solo política, el despacho y el jefe;
-    administración ve las fotos del antes y del después, y ya no sube archivos a un reporte. La historia del reporte
+    administración ve las fotos del antes y del después (también borradas), nunca un documento, ni siquiera uno
+    borrado en la base, y ya no sube archivos a un reporte. La historia del reporte
     (notas, motivo de un cambio de estado o de «No va a la agenda») no acepta un teléfono: la leen los cuatro roles sin
     doble factor. Administración la sigue leyendo (sin teléfonos, es lo que necesita para borrar y restaurar).
 - **Además, en la misma migración:** un teléfono no entra en la nota de Grabación para el editor ni en su storyboard

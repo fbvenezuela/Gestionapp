@@ -43,5 +43,7 @@ Paso a paso por rol: `GUIA-POR-ROL.md` (no se manda todavía: Hillary pidió pro
   solo en el servidor donde lo creó: crear algo con un rol y verlo con otro puede fallar. Por eso todo lo que hay que
   ver ya viene sembrado (D-39). Para probar creando cosas entre roles hace falta la base real.
 - Los videos de demostración no tienen archivo real detrás: «Descargar todo» baja el LEEME y el storyboard de la
-  cancha de El Mirador (ese sí tiene su imagen) y dice cuántos archivos no se bajaron porque no están guardados.
+  cancha de El Mirador (ese sí tiene su imagen) y dice cuántos archivos no se bajaron porque no están guardados. En el
+  iPhone y el iPad, donde cada archivo tiene su «Bajar», la lista dice cuántos no se pueden bajar y cada video dice «No
+  hay un archivo detrás.» en vez de «Bajar».
 - Ningún correo sale: todos quedan en Ajustes → Buzón de correos.

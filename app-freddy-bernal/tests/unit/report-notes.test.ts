@@ -2,14 +2,18 @@
 // refuses a phone in a note or in the reason of a change of state before the database does (the history is read
 // without 2FA; the phones go in the contacts), and the gallery tells whoever uploads who sees each kind (a report's
 // documents: política, the boss and despacho, never Administración). The actions run for real against the in-memory
-// database; the session is mocked. All data here is invented.
+// database; the session is mocked. The event's «Reporte» tab says who reads the reporter's contacts (never
+// Administración), and Administración, who cannot see a report's documents, is told so instead of «no documents».
+// All data here is invented.
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { Session } from '@/lib/auth/session';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import { PhotoGallery } from '@/components/fichas/photo-gallery';
-import { REPORT_KINDS } from '@/lib/domain/media-mime';
+import { EventFichaTab } from '@/components/fichas/event-ficha-tab';
+import { fichaTab } from '@/lib/domain/ficha-tab';
+import { REPORT_KINDS, REPORT_PHOTO_KINDS } from '@/lib/domain/media-mime';
 import { makeTestDb, type TestDb } from '../rls/setup';
 
 const h = vi.hoisted(() => ({ session: null as unknown }));
@@ -71,5 +75,36 @@ describe('quién ve los archivos de un reporte, dicho a quien sube', () => {
     const out = renderToStaticMarkup(createElement(PhotoGallery, { target: { reportId: report }, kinds: REPORT_KINDS, media: [], canUpload: true, title: 'Evidencias' }));
     expect(out).toContain('Los ven política, el jefe, el despacho y Administración. Redes y Grabación nunca ven un reporte.');
     expect(out).toContain('Los ven solo política, el jefe y el despacho: nunca Administración, Redes ni Grabación.');
+  });
+
+  it('la tarjeta de quien reporta, en la pestaña «Reporte» del evento: el jefe, el despacho y política, nunca Administración', () => {
+    const row = { title: 'Asamblea de prueba (demo)', type: 'event', municipality: 'Junín', description: 'Se atendió a la comunidad.', status: 'planned', marks: {} };
+    const priv = { reporter_name: 'Vocera de prueba (demo)', marks: {} };
+    const out = renderToStaticMarkup(
+      createElement(EventFichaTab, { kind: 'report', id: report, code: 'R-0099', tab: fichaTab('report', row, priv, { contacts: true }), media: [], contacts: true }),
+    );
+    expect(out).toContain('Vocera de prueba (demo)');
+    expect(out).toContain('Solo el jefe, el despacho y política, con doble factor. Nunca Administración, Redes ni Grabación.');
+    expect(out).not.toContain('y Administración, con doble factor');
+    // An obra's contacts are still Administración's too.
+    const obra = renderToStaticMarkup(
+      createElement(EventFichaTab, {
+        kind: 'obra', id: report, code: 'O-0099', tab: fichaTab('obra', { name: 'Muro de prueba (demo)', marks: {} }, { liaison_name: 'Enlace de prueba (demo)', marks: {} }, { contacts: true }), media: [], contacts: true,
+      }),
+    );
+    expect(obra).toContain('Solo el jefe, el despacho y Administración, con doble factor. Nunca Redes ni Grabación.');
+  });
+
+  it('a Administración, sin documentos que ver, no se le dice «ni documentos»: se le dice quién los ve', () => {
+    const gallery = (kinds: readonly string[]) =>
+      renderToStaticMarkup(createElement(PhotoGallery, { target: { reportId: report }, kinds: kinds as typeof REPORT_KINDS, media: [], canUpload: false, title: 'Evidencias' }));
+    const admin = gallery(REPORT_PHOTO_KINDS);
+    expect(admin).toContain('Todavía no hay fotos.');
+    expect(admin).not.toContain('ni documentos');
+    expect(admin).toContain('Los documentos del reporte (denuncias, actas) solo los ven política, el jefe y el despacho.');
+    // Whoever reads them (política, the boss, despacho) without uploading: the plain sentence, no note.
+    const reader = gallery(REPORT_KINDS);
+    expect(reader).toContain('Todavía no hay fotos ni documentos.');
+    expect(reader).not.toContain('Los documentos del reporte');
   });
 });

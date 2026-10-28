@@ -1,17 +1,22 @@
 // «Descargar todo» on the demo's seeded event, the path the demo guide gives Redes (auditoría del 28/10): the
 // storyboard Grabación recorded with has a real picture behind it and comes down; the three sample videos have none,
 // and the dialog counts them instead of saying «Listo» over files that never arrived. Through the real route
-// (/api/media/<id>, GET and HEAD) as each person, against the seeded in-memory database. All data here is invented.
+// (/api/media/<id>, GET and HEAD) as each person, against the seeded in-memory database. Every seed on the machine
+// writes that picture to the same path, so it is replaced in one step: a download already running never reads a file
+// cut short by another seed. All data here is invented.
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import type { Session } from '@/lib/auth/session';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
-import { DEMO_STORYBOARD } from '@/lib/db/seed-parts/handoff';
+import { DEMO_STORYBOARD, keepDemoFile } from '@/lib/db/seed-parts/handoff';
+import { demoFilePath } from '@/lib/storage/demo-store';
 import { demoThumbBytes } from '@/lib/db/seed-parts/thumbs';
 import { RAW_KINDS } from '@/lib/domain/media-mime';
 import { buildDownloadPlan } from '@/lib/media/download-plan';
 import { fileStateText } from '@/lib/media/folder-sink';
-import { checkStored, runHeadline, sendPlanOneByOne } from '@/lib/media/one-by-one';
+import { checkStored, missingListLine, missingStored, runHeadline, sendPlanOneByOne } from '@/lib/media/one-by-one';
 import { makeTestDb, type TestDb } from '../rls/setup';
 
 const h = vi.hoisted(() => ({ session: null as unknown }));
@@ -90,6 +95,14 @@ describe('«Descargar todo» en el evento sembrado de la demo', () => {
     );
   });
 
+  it('en el iPhone y el iPad: los tres videos dicen que no hay un archivo detrás; el storyboard conserva su «Bajar»', async () => {
+    as('social');
+    const files = pauta.map((m) => ({ id: m.id, drive: false }));
+    const missing = await missingStored(files, { check: (id) => checkStored(id, { fetcher }) });
+    expect(pauta.filter((m) => missing.has(m.id)).map((m) => m.kind).sort()).toEqual(['boss', 'broll', 'drone']);
+    expect(missingListLine(missing.size)).toBe('3 archivos no se pueden bajar porque no están guardados en la plataforma.');
+  });
+
   it('HEAD pide lo mismo que GET: sin sesión 401; quien no ve el archivo, 404 (un documento de un reporte para Administración y Redes)', async () => {
     const sb = pauta.find((m) => m.kind === 'storyboard')!;
     as(null);
@@ -113,5 +126,27 @@ describe('«Descargar todo» en el evento sembrado de la demo', () => {
     // Política reads the row: in the demo there are no bytes behind it, so 404 with nothing else said.
     as('politics');
     expect((await ask('HEAD', doc)).status).toBe(404);
+  });
+});
+
+describe('el archivo del storyboard en el almacén de la demo', () => {
+  it('otra siembra lo cambia de una vez: quien ya lo está leyendo sigue con la imagen entera, y no quedan archivos a medias', () => {
+    // Its own folder, so the seeded picture the other tests read is never touched.
+    const storagePath = `prueba-${crypto.randomUUID()}/demo-storyboard-1.jpg`;
+    const file = demoFilePath(storagePath);
+    const picture = demoThumbBytes(DEMO_STORYBOARD);
+    keepDemoFile(storagePath, picture);
+    const reader = fs.openSync(file, 'r'); // a download already running
+    try {
+      keepDemoFile(storagePath, Buffer.from('Otra siembra (demo)'));
+      const seen = Buffer.alloc(picture.length + 16);
+      const n = fs.readSync(reader, seen, 0, seen.length, 0);
+      expect(seen.subarray(0, n).equals(picture)).toBe(true);
+      expect(fs.readFileSync(file, 'utf8')).toBe('Otra siembra (demo)');
+      expect(fs.readdirSync(path.dirname(file))).toEqual(['demo-storyboard-1.jpg']);
+    } finally {
+      fs.closeSync(reader);
+      fs.rmSync(path.dirname(file), { recursive: true, force: true });
+    }
   });
 });

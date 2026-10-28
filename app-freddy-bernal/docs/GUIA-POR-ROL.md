@@ -162,7 +162,8 @@ sin contactos. Nunca una ficha comunitaria. No aprueba: todo lo aprueba el jefe.
 2. **Lo de Grabación:** el evento → Material → arriba, la nota para el editor y el storyboard con el que grabó →
    «Descargar todo el material» → elige qué tipos → en la computadora (Chrome o Edge) a una carpeta; en el teléfono,
    uno por uno. Los archivos no llevan fecha. En la demo baja el LEEME y el storyboard; los videos de ejemplo no tienen
-   archivo detrás, y el aviso dice cuántos no se bajaron.
+   archivo detrás, y el aviso dice cuántos no se bajaron (en el iPhone y el iPad, cada video dice «No hay un archivo
+   detrás.» en vez de «Bajar»).
 3. **Pieza:** Crear → Nueva pieza → sube el video final y la portada → Copies: fórmula, voz y cierre → «Escribir desde
    la ficha» → revisa los tres largos → elige el nivel (verde, amarillo o rojo) → «Enviar a aprobación».
 4. **Tweets:** Tweets → «Tweets de la semana» → pega el texto o sube el .docx → «Separar» → revisa repetidos y largos →

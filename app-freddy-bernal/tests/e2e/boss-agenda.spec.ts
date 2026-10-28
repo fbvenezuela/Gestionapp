@@ -52,7 +52,10 @@ async function putDate(page: Page, card: string, time: string, kind: 'obra' | 'r
   const sheet = page.getByRole('dialog');
   await expect(sheet.getByRole('heading', { name: 'Ponerle fecha' })).toBeVisible();
   await expect(sheet.getByLabel('A dónde se va')).toHaveValue(place);
-  // Who will see the date: an obra visit's reaches the IVT too.
+  // Who will see the date: an obra visit's reaches the IVT too. The place's name is the whole team's, so the sheet
+  // names what is kept (the date, the time and the exact address), never «el lugar».
+  await expect(sheet.getByText('La fecha, la hora y la dirección exacta solo las ven el jefe, el despacho, administración', { exact: false })).toBeVisible();
+  await expect(sheet.getByText('el lugar solo', { exact: false })).toHaveCount(0);
   await expect(sheet.getByText('y el IVT (es su visita de obra)', { exact: false })).toHaveCount(kind === 'obra' ? 1 : 0);
   await sheet.getByLabel('Fecha', { exact: true }).fill(inDays(6));
   await sheet.getByLabel('Hora (Táchira)').fill(time);

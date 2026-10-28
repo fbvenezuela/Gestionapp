@@ -7,7 +7,8 @@ import { loginAs } from './helpers';
 // Grabación's handoff to the editor (cambios del 27/10/2026, §5), at 360 px against the demo: the camera person
 // uploads the storyboard it recorded with and leaves its note; Redes sees both, with no date or time, and brings
 // the whole pauta at once: into a folder (the folder picker mapped to the browser's private disk, OPFS) or, where
-// there is no picker, one file after another to Downloads. Runs in order. All data here is invented.
+// there is no picker, one file after another to Downloads; on the iPhone, a «Bajar» per file, and the seeded court's
+// sample videos say they have no file behind them. Runs in order. All data here is invented.
 test.describe.configure({ mode: 'serial' });
 
 const fixture = (f: string) => path.join(__dirname, '..', 'fixtures', f);
@@ -127,4 +128,35 @@ test('sin selector de carpetas, los archivos van uno tras otro a descargas, el L
   const next = await page.waitForEvent('download');
   expect(next.suggestedFilename()).toMatch(new RegExp(`^${code}-[A-Za-z0-9-]+\\.[a-z0-9]{1,5}$`));
   await expect(sheet.getByText('Listo: todo va a tus descargas.')).toBeVisible({ timeout: 30_000 });
+});
+
+test('en el iPhone, cada archivo con su «Bajar»; los videos de ejemplo de la cancha dicen que no hay un archivo detrás', async ({ page }) => {
+  const COURT = 'Entrega de la cancha techada de El Mirador';
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'showDirectoryPicker', { value: undefined, configurable: true, writable: true });
+    Object.defineProperty(navigator, 'userAgent', {
+      get: () => 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+    });
+  });
+  await loginAs(page, 'redes@demo.test');
+  // The path the demo guide gives Redes: the seeded court, from Biblioteca.
+  await page.goto('/biblioteca');
+  await page.getByRole('link', { name: COURT, exact: true }).first().click();
+  await expect(page.getByRole('heading', { name: COURT })).toBeVisible();
+  await page.getByRole('button', { name: /^Descargar todo el material \(\d+\)$/ }).click();
+  const sheet = page.getByRole('dialog', { name: 'Descargar todo' });
+  await expect(sheet.getByText('En el iPhone y el iPad cada archivo se baja con su propio toque.', { exact: false })).toBeVisible();
+  await expect(sheet.getByRole('status').filter({ hasText: '3 archivos no se pueden bajar porque no están guardados en la plataforma.' })).toBeVisible();
+  const row = (name: RegExp) => sheet.getByRole('listitem').filter({ hasText: name });
+  for (const video of ['Jefe-hablando', 'Dron', 'Apoyo']) {
+    await expect(row(new RegExp(`-${video}-1\\.mp4`))).toContainText('No hay un archivo detrás.');
+    await expect(row(new RegExp(`-${video}-1\\.mp4`)).getByRole('link', { name: 'Bajar' })).toHaveCount(0);
+  }
+  // The storyboard has its picture: its «Bajar» brings it down.
+  const storyboard = row(/-Storyboard-1\.jpg/).getByRole('link', { name: 'Bajar' });
+  await expect(storyboard).toBeVisible();
+  const down = page.waitForEvent('download');
+  await storyboard.click();
+  expect((await down).suggestedFilename()).toMatch(/^E-\d{4,}-Storyboard-1\.jpg$/);
+  await axe(page);
 });

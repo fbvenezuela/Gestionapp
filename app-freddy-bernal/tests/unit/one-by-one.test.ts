@@ -2,13 +2,14 @@
 // Drive share runs out (429) it stops like the folder does, says the server's sentence and leaves the rest «En
 // espera», and it never says a plain «Listo» when a file did not come down. A file that is not in Drive is asked for
 // first (HEAD): one with nothing behind it (the demo's sample videos) is counted, never handed to the browser as
-// «Enviado» (auditoría del 28/10). The server is a fake fetch; the Drive files go through the real chunked download.
+// «Enviado» (auditoría del 28/10). On iPhone and iPad (one «Bajar» per file) the list asks the same once as it opens.
+// The server is a fake fetch; the Drive files go through the real chunked download.
 // All data here is invented.
 import { describe, it, expect } from 'vitest';
 import { downloadInChunks, memorySink } from '@/lib/media/chunk-download';
 import { buildDownloadPlan, type PlanEntry, type PlanFile } from '@/lib/media/download-plan';
 import { fileStateText } from '@/lib/media/folder-sink';
-import { checkStored, driveOutcome, runHeadline, sendPlanOneByOne } from '@/lib/media/one-by-one';
+import { checkStored, driveOutcome, missingListLine, missingStored, runHeadline, sendPlanOneByOne } from '@/lib/media/one-by-one';
 
 const SHARE = 'Ya usaste tu cupo de hoy para bajar archivos de Drive. Mañana se renueva.';
 const bytesOf = (n: number) => Uint8Array.from({ length: n }, (_, i) => (i * 7) % 256);
@@ -196,5 +197,27 @@ describe('uno por uno, sin carpeta', () => {
     expect(runHeadline({ running: false, cancelled: false, stopped: null, sent: false, files: [missing] })).toBe(
       'No se bajó ningún archivo: no está guardado en la plataforma. Solo el LEEME.',
     );
+  });
+});
+
+describe('en el iPhone y el iPad, un «Bajar» por archivo', () => {
+  it('al abrir la lista pregunta por cada archivo fuera de Drive: el que no está guardado (404, 410) no lleva «Bajar»', async () => {
+    const files = [file('sb', 'storyboard', 'Storyboard', false), file('j1', 'boss', 'Jefe hablando', false), file('dv', 'drone', 'Dron', true), file('gone', 'broll', 'Apoyo', false)];
+    const { fetcher, heads } = server({ sb: 'ok', gone: { status: 410 } });
+    const missing = await missingStored(files, { check: (id) => checkStored(id, { fetcher }) });
+    expect([...missing].sort()).toEqual(['gone', 'j1']);
+    // A Drive file is never asked for (its download says by itself how it ended).
+    expect(heads).toEqual(['sb', 'j1', 'gone']);
+    expect(missingListLine(missing.size)).toBe('2 archivos no se pueden bajar porque no están guardados en la plataforma.');
+    expect(missingListLine(1)).toBe('1 archivo no se puede bajar porque no está guardado en la plataforma.');
+    expect(missingListLine(0)).toBeNull();
+  });
+
+  it('sin señal o con la sesión vencida deja cada «Bajar» como está, y con 401, 429 o 503 deja de preguntar', async () => {
+    const files = [file('a', 'boss', 'Jefe hablando', false), file('b', 'boss', 'Jefe hablando', false), file('c', 'drone', 'Dron', false)];
+    expect((await missingStored(files, { check: async () => null })).size).toBe(0);
+    const { fetcher, heads } = server({ a: { status: 401 }, b: 'ok' });
+    expect((await missingStored(files, { check: (id) => checkStored(id, { fetcher }) })).size).toBe(0);
+    expect(heads).toEqual(['a']);
   });
 });

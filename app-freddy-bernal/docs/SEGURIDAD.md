@@ -122,8 +122,8 @@ Actualizado: 28/10/2026 (seis roles, fichas y agenda compartida). Qué se hizo p
     - Redes y Grabación nunca leen un reporte comunitario; de una obra ven solo la pestaña de su visita viva, sin
       contactos, sin documentos (denuncias, actas) y sin los días de la obra;
     - los documentos de un reporte (denuncias, actas) los leen y los suben solo política, el despacho y el jefe;
-      administración ve sus fotos del antes y del después y no le sube archivos (desde el 28/10,
-      `tests/rls/report-files.test.ts`);
+      administración ve sus fotos del antes y del después y no le sube archivos; un documento borrado tampoco le llega
+      por la papelera (desde el 28/10, `tests/rls/report-files.test.ts`);
     - la historia de las fichas y, desde el 28/10, el registro de cambios guardan de los contactos solo **qué campo**
       cambió, nunca el valor (lo escrito antes en el registro no se reescribe: solo crece);
     - los contactos no se guardan en el teléfono como borrador; «Lo que voy a decir» y la ficha técnica que nace de una
