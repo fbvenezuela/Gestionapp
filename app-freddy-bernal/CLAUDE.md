@@ -58,7 +58,7 @@ Usuarios demo en `docs/DEMO.md`. En demo, `DEMO_SHORTCUTS` (activo por defecto) 
 factor; con `DATABASE_URL` nunca se activa. Playwright levanta dos servidores: 3100 estricto y 3101 con atajos.
 
 ## Qué falta (siguiente sesión)
-1. `fb-dev` (Supabase, gratis) ya tiene las 26 migraciones, hasta `20261028002200`, y la configuración del cliente con
+1. `fb-dev` (Supabase, gratis) ya tiene las 27 migraciones, hasta `20261028002300`, y la configuración del cliente con
    los seis roles (aplicadas y verificadas el 28/10, `docs/PROMPT-SUPABASE.md`). Falta lo de esa guía: los pasos de
    Juan en el panel (SMTP primero), las variables en Vercel y la primera entrada (OTP, TOTP, Drive).
 2. Respuestas de Hillary a las preguntas de la segunda vuelta (`docs/PENDIENTES.md`, al final) y, si confirma la tabla
