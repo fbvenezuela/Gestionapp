@@ -42,7 +42,7 @@ export default async function ToSchedulePage() {
         <ul className="grid gap-3 md:grid-cols-2">
           {data.rows.map((r) => (
             <li key={`${r.kind}:${r.id}`}>
-              <Card solid className="flex h-full flex-col gap-3 p-4">
+              <Card solid className="flex h-full flex-col gap-3 p-4" data-tour="ficha-card">
                 <div className="flex flex-wrap items-center gap-2">
                   {r.kind === 'obra' ? (
                     <Chip tone="accent"><HardHat className="h-3.5 w-3.5" aria-hidden /> Obra del IVT</Chip>
@@ -68,7 +68,7 @@ export default async function ToSchedulePage() {
                       cameras={data.cameras}
                     />
                   ) : null}
-                  <Link href={r.kind === 'obra' ? `/obras/${r.id}` : `/reportes/${r.id}`} className="inline-flex min-h-11 items-center px-2 font-semibold text-accent-ink underline">
+                  <Link href={r.kind === 'obra' ? `/obras/${r.id}` : `/reportes/${r.id}`} className="inline-flex min-h-11 items-center px-2 font-semibold text-accent-ink underline" data-tour="see-ficha">
                     Ver ficha
                   </Link>
                   {manager ? <DismissButton kind={r.kind} id={r.id} /> : null}

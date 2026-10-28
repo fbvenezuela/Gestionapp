@@ -24,7 +24,7 @@ export function BossPanel({ id, priority, decision }: { id: string; priority: nu
   const { confirm, dialog } = useConfirm();
   const [p, setP] = useState<number | null>(priority);
   return (
-    <Card className="mb-4">
+    <Card className="mb-4" data-tour="boss-decision">
       {dialog}
       <CardHeader title="Tu decisión" subtitle="Califica de 1 a 10 qué tan importante es y acepta o rechaza." />
       <CardBody className="flex flex-col gap-4">
@@ -66,7 +66,7 @@ export function BossPanel({ id, priority, decision }: { id: string; priority: nu
 export function MarkDone({ id }: { id: string }) {
   const { run, pending } = useAction();
   return (
-    <Button variant="secondary" disabled={pending} onClick={() => run(() => markDone({ id }), { success: 'Marcado como realizado. Su material ya aparece en el registro por día.' })}>
+    <Button variant="secondary" data-tour="mark-done" disabled={pending} onClick={() => run(() => markDone({ id }), { success: 'Marcado como realizado. Su material ya aparece en el registro por día.' })}>
       Marcar realizado
     </Button>
   );

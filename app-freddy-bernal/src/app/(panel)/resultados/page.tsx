@@ -46,7 +46,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
   return (
     <>
       <PageHeader title="Resultados" subtitle="Cómo le fue a cada publicación y a qué hora nos va mejor." />
-      <div className="mb-4 flex gap-1">
+      <div className="mb-4 flex gap-1" data-tour="period">
         {[7, 30, 90].map((d) => (
           <Link key={d} href={`/resultados?dias=${d}`} className={`min-h-10 rounded-full px-4 py-2 text-sm font-semibold ${d === days ? 'bg-slate text-on-slate' : 'border border-border bg-surface text-text-2'}`}>
             {d} días
@@ -59,39 +59,41 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
         <Stat label="Sin números" value={rows.length - withData.length} tone={rows.length - withData.length ? 'accent' : undefined} hint="carga sus resultados" />
       </div>
 
-      <h2 className="mb-2 text-lg font-bold">¿A qué hora nos va mejor?</h2>
-      {best.length === 0 ? (
-        <EmptyState title="Todavía no hay publicaciones con resultados." />
-      ) : (
-        <div className="mb-6 grid gap-3 md:grid-cols-2">
-          {best.map((b) => (
-            <Card key={b.network}>
-              <CardHeader title={NETWORK_LABEL[b.network]} subtitle={`${b.total} ${b.total === 1 ? 'publicación' : 'publicaciones'}`} action={b.enoughData ? null : <Chip tone="warn">Todavía pocos datos</Chip>} />
-              <CardBody className="flex flex-col gap-2">
-                {b.best ? (
-                  <p className="text-[15px]">
-                    Por ahora, lo que mejor funciona es la <b>{b.best.label.split(' (')[0].toLowerCase()}</b> ({nf.format(b.best.avgViews ?? 0)} vistas en promedio).
-                    {!b.enoughData ? ` Hace falta probar al menos ${MIN_POINTS} veces en cada horario para estar seguros.` : ''}
-                  </p>
-                ) : null}
-                <ul className="flex flex-col gap-1.5">
-                  {b.slots.map((sl) => {
-                    const max = Math.max(...b.slots.map((x) => x.avgViews ?? 0), 1);
-                    return (
-                      <li key={sl.band} className="text-sm">
-                        <div className="flex justify-between"><span>{sl.label}</span><span className="tabular text-text-2">{sl.avgViews != null ? nf.format(sl.avgViews) : '—'} · {sl.count} pub.</span></div>
-                        <div className="h-2 rounded-full bg-surface-2"><div className="h-2 rounded-full bg-accent" style={{ width: `${((sl.avgViews ?? 0) / max) * 100}%` }} /></div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </CardBody>
-            </Card>
-          ))}
-        </div>
-      )}
+      <div data-tour="best-hours">
+        <h2 className="mb-2 text-lg font-bold">¿A qué hora nos va mejor?</h2>
+        {best.length === 0 ? (
+          <EmptyState title="Todavía no hay publicaciones con resultados." />
+        ) : (
+          <div className="mb-6 grid gap-3 md:grid-cols-2">
+            {best.map((b) => (
+              <Card key={b.network}>
+                <CardHeader title={NETWORK_LABEL[b.network]} subtitle={`${b.total} ${b.total === 1 ? 'publicación' : 'publicaciones'}`} action={b.enoughData ? null : <Chip tone="warn">Todavía pocos datos</Chip>} />
+                <CardBody className="flex flex-col gap-2">
+                  {b.best ? (
+                    <p className="text-[15px]">
+                      Por ahora, lo que mejor funciona es la <b>{b.best.label.split(' (')[0].toLowerCase()}</b> ({nf.format(b.best.avgViews ?? 0)} vistas en promedio).
+                      {!b.enoughData ? ` Hace falta probar al menos ${MIN_POINTS} veces en cada horario para estar seguros.` : ''}
+                    </p>
+                  ) : null}
+                  <ul className="flex flex-col gap-1.5">
+                    {b.slots.map((sl) => {
+                      const max = Math.max(...b.slots.map((x) => x.avgViews ?? 0), 1);
+                      return (
+                        <li key={sl.band} className="text-sm">
+                          <div className="flex justify-between"><span>{sl.label}</span><span className="tabular text-text-2">{sl.avgViews != null ? nf.format(sl.avgViews) : '—'} · {sl.count} pub.</span></div>
+                          <div className="h-2 rounded-full bg-surface-2"><div className="h-2 rounded-full bg-accent" style={{ width: `${((sl.avgViews ?? 0) / max) * 100}%` }} /></div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
-      <h2 className="mb-2 text-lg font-bold">Por publicación</h2>
+      <h2 className="mb-2 text-lg font-bold" data-tour="by-publication">Por publicación</h2>
       {rows.length ? (
         <>
           {/* Phone (< 640 px): one card per publication. */}

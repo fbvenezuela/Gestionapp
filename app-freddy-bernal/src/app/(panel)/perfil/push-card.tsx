@@ -111,7 +111,7 @@ export function PushCard({ publicKey, devices, appName }: { publicKey: string | 
   const disabled = busy || pending;
 
   return (
-    <Card>
+    <Card data-tour="push-on">
       <CardHeader title="Avisos en este teléfono" subtitle="Te avisa aunque la app esté cerrada. De noche solo llegan los importantes." />
       <CardBody className="flex flex-col gap-3">
         {!publicKey ? (

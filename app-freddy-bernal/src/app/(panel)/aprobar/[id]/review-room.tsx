@@ -70,13 +70,14 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
               controls
               playsInline
               preload="metadata"
+              data-tour="review-video"
               className="max-h-[60vh] w-full rounded-[var(--radius-control)] bg-slate"
               onPause={grabTime}
               onError={onError}
             />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={attempt} ref={watch} src={src} alt="Pieza a revisar" onError={onError} className="max-h-[60vh] w-full rounded-[var(--radius-control)] bg-slate object-contain" />
+            <img key={attempt} ref={watch} src={src} alt="Pieza a revisar" data-tour="review-video" onError={onError} className="max-h-[60vh] w-full rounded-[var(--radius-control)] bg-slate object-contain" />
           )
         ) : (
           <p className="rounded-[var(--radius-control)] bg-surface-2 p-6 text-center text-text-2">Esta pieza no tiene archivo todavía.</p>
@@ -135,7 +136,7 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
           <div className="flex flex-col gap-3">
             {note ? <p className="text-sm text-text-2">{note}</p> : null}
             {canApprove ? (
-              <fieldset className="flex flex-col gap-1 rounded-[var(--radius-control)] border border-border p-3">
+              <fieldset className="flex flex-col gap-1 rounded-[var(--radius-control)] border border-border p-3" data-tour="checklist">
                 <legend className="px-1 text-sm font-semibold">Antes de aprobar</legend>
                 {CHECKS.map((c, n) => (
                   <label key={c} className="flex min-h-10 items-center gap-3 text-[15px]">
@@ -147,7 +148,7 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
             ) : null}
             <div className="grid gap-2 sm:grid-cols-3">
               {canApprove ? (
-                <Button type="button" size="lg" disabled={pending || !allChecked} onClick={() => run(() => reviewPiece({ pieceId, decision: 'approved', comment, revision }), { success: 'Aprobada.', refresh: false, onOk: (r) => r.ok && router.push('/aprobar') })}>
+                <Button type="button" size="lg" data-tour="approve" disabled={pending || !allChecked} onClick={() => run(() => reviewPiece({ pieceId, decision: 'approved', comment, revision }), { success: 'Aprobada.', refresh: false, onOk: (r) => r.ok && router.push('/aprobar') })}>
                   <CheckCircle2 className="h-5 w-5" aria-hidden /> {allChecked ? 'Aprobar' : 'Marca la lista para aprobar'}
                 </Button>
               ) : null}
@@ -155,6 +156,7 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
                 type="button"
                 size="lg"
                 variant="danger"
+                data-tour="request-changes"
                 disabled={pending}
                 onClick={async () => {
                   if (!comment.trim()) {

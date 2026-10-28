@@ -14,6 +14,7 @@ export function NoteForm({ kind, id }: { kind: 'obra' | 'report'; id: string }) 
   return (
     <form
       className="flex flex-col gap-2"
+      data-tour="note"
       onSubmit={(e) => {
         e.preventDefault();
         run(() => (kind === 'obra' ? addObraNote({ id, note }) : addReportNote({ id, note })), { onOk: () => setNote('') });

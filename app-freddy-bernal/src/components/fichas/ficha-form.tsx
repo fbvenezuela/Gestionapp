@@ -136,7 +136,7 @@ export function FichaForm(p: Props) {
         const fields = defs.filter((d) => d.group === g.key);
         if (!fields.length) return null;
         return (
-          <FichaGroup key={g.key} title={g.title} done={prog.done} total={prog.total} open={gi < 2 || isNew}>
+          <FichaGroup key={g.key} title={g.title} done={prog.done} total={prog.total} open={gi < 2 || isNew} data-tour="ficha-group">
             <div className="grid gap-4 sm:grid-cols-2">
               {fields.map((d) => (
                 <div key={d.key} className={d.type === 'long' || d.type === 'title' ? 'sm:col-span-2' : undefined}>
@@ -168,7 +168,7 @@ export function FichaForm(p: Props) {
       )}
 
       {p.kind === 'obra' ? null : (
-        <Card className="p-4">
+        <Card className="p-4" data-tour="wants-agenda">
           <label className="flex min-h-11 items-center gap-3 text-[15px] font-semibold">
             <input
               type="checkbox"
@@ -195,15 +195,15 @@ export function FichaForm(p: Props) {
         <div className="flex flex-wrap gap-2">
           {p.kind === 'obra' && obraDraft ? (
             <>
-              <Button type="button" disabled={pending} onClick={() => save(true)}>
+              <Button type="button" disabled={pending} onClick={() => save(true)} data-tour="save-notify">
                 <Send className="h-4 w-4" aria-hidden /> Guardar y avisar al jefe
               </Button>
-              <Button type="button" variant="secondary" disabled={pending} onClick={() => save(false)}>
+              <Button type="button" variant="secondary" disabled={pending} onClick={() => save(false)} data-tour="save-draft">
                 Guardar borrador
               </Button>
             </>
           ) : (
-            <Button type="button" disabled={pending} onClick={() => save(false)}>
+            <Button type="button" disabled={pending} onClick={() => save(false)} data-tour="save-notify">
               {notifies ? (
                 <>
                   <Send className="h-4 w-4" aria-hidden /> Guardar y avisar al jefe

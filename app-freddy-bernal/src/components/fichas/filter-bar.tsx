@@ -23,7 +23,7 @@ export function FilterBar({
   const active = Object.values(values).some(Boolean);
   const label = 'flex min-w-0 flex-col gap-1 text-sm font-semibold';
   return (
-    <Card className="mb-5 p-4">
+    <Card className="mb-5 p-4" data-tour="report-filter">
       <form action={action} method="get" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {municipalities ? (
           <label className={label}>

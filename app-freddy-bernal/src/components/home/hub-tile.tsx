@@ -103,7 +103,8 @@ export function HubTile({
         </ul>
       ) : null}
       {list && list.total > 0 ? (
-        <div className="mt-1 border-t border-border pt-2">
+        // The only list a tile carries today is Grabación's new notes in the boss's Redes tile (a tutorial points at it).
+        <div className="mt-1 border-t border-border pt-2" data-tour="grabacion-notes">
           <p id={listId} className="flex min-w-0 items-center gap-2 px-3 py-1 text-base font-semibold">
             <list.icon className="h-5 w-5 shrink-0 text-info" aria-hidden />
             <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{list.label}</span>

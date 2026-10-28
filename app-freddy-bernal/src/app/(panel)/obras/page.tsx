@@ -40,13 +40,13 @@ export default async function ObrasPage({ searchParams }: { searchParams: Promis
         title="Fichas de obra"
         subtitle="La ficha de cada obra antes de la visita del jefe. Sin fecha ni hora: esa la ponen el jefe o el despacho."
         actions={
-          <LinkButton href="/obras/nueva" size="lg">
+          <LinkButton href="/obras/nueva" size="lg" data-tour="new-obra">
             <Plus className="h-5 w-5" aria-hidden /> Nueva ficha de obra
           </LinkButton>
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2" data-tour="obra-stages">
         {OBRA_STAGES.filter((st) => st !== 'archived').map((st) => (
           <Chip key={st} tone={OBRA_STAGE[st].tone}>
             {OBRA_STAGE[st].label}: {data.counts[st] ?? 0}
@@ -54,7 +54,7 @@ export default async function ObrasPage({ searchParams }: { searchParams: Promis
         ))}
       </div>
 
-      <Card className="mb-5 p-4">
+      <Card className="mb-5 p-4" data-tour="obra-filter">
         <form method="get" action="/obras" className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <label className="flex min-w-0 flex-col gap-1 text-sm font-semibold">
             Municipio
@@ -82,7 +82,7 @@ export default async function ObrasPage({ searchParams }: { searchParams: Promis
       </Card>
 
       {data.list.length ? (
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5" data-tour="obra-sections">
           {SECTIONS.map((sec) => {
             const rows = by(sec.stage);
             if (!rows.length) return null;

@@ -33,9 +33,9 @@ export default async function PiecesPage({ searchParams }: { searchParams: Promi
   );
   return (
     <>
-      <PageHeader title="Piezas" subtitle="Videos, portadas, carruseles y fotos, con sus copies." actions={<LinkButton href="/piezas/nueva"><Plus className="h-4 w-4" aria-hidden /> Nueva pieza</LinkButton>} />
+      <PageHeader title="Piezas" subtitle="Videos, portadas, carruseles y fotos, con sus copies." actions={<LinkButton href="/piezas/nueva" data-tour="new-piece"><Plus className="h-4 w-4" aria-hidden /> Nueva pieza</LinkButton>} />
       <Tip id="piezas">Abre una pieza para subir el archivo, escribir los copies y mandarla a aprobar.</Tip>
-      <div className="mb-4 flex gap-1 overflow-x-auto" role="tablist">
+      <div className="mb-4 flex gap-1 overflow-x-auto" role="tablist" aria-label="Filtro de piezas" data-tour="pieces-tabs">
         {FILTERS.map((f) => (
           <Link key={f.key} role="tab" aria-selected={filter.key === f.key} href={`/piezas?ver=${f.key}`} className={cn('min-h-10 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold', filter.key === f.key ? 'bg-slate text-on-slate' : 'bg-surface text-text-2 border border-border')}>
             {f.label}
@@ -45,7 +45,7 @@ export default async function PiecesPage({ searchParams }: { searchParams: Promi
       {rows.length === 0 ? (
         <EmptyState title="No hay piezas aquí." action={<LinkButton href="/piezas/nueva">Crear la primera</LinkButton>} />
       ) : (
-        <Card solid>
+        <Card solid data-tour="pieces-list">
           <ul className="divide-y divide-border">
             {rows.map((p) => (
               <li key={p.id}>

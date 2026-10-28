@@ -110,7 +110,7 @@ export default async function BossHome() {
                 <ChevronRight className="h-5 w-5 shrink-0" aria-hidden />
               </Link>
             ) : null}
-            <Link href="/aprobar" className="flex min-h-12 items-center gap-2 rounded-[var(--radius-control)] border border-border bg-surface px-4 py-2 font-semibold hover:bg-surface-2">
+            <Link href="/aprobar" data-tour="see-all-approve" className="flex min-h-12 items-center gap-2 rounded-[var(--radius-control)] border border-border bg-surface px-4 py-2 font-semibold hover:bg-surface-2">
               <span className="flex-1">Ver todo en «Por aprobar»</span>
               <ChevronRight className="h-5 w-5 shrink-0" aria-hidden />
             </Link>

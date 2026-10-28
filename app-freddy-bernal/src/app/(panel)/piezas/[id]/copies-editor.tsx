@@ -44,7 +44,7 @@ export function CopiesEditor({
   const formula = formulas.find((f) => f.id === formulaId);
 
   return (
-    <Card>
+    <Card data-tour="copies">
       <CardHeader title="Copies" subtitle="La misma fórmula en tres largos. Solo usan cifras de la ficha." />
       {dialog}
       <CardBody className="flex flex-col gap-4">
@@ -76,6 +76,7 @@ export function CopiesEditor({
         <div>
           <Button
             type="button"
+            data-tour="write-copies"
             disabled={pending || !formulaId}
             onClick={async () => {
               if (

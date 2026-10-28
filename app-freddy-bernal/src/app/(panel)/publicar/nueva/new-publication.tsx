@@ -49,7 +49,7 @@ export function NewPublication({
 
   return (
     <div className="flex flex-col gap-4">
-      <Card>
+      <Card data-tour="networks">
         <CardHeader title={pieceTitle} subtitle="Elige las redes. Las que tienen problemas dicen qué arreglar." />
         <ul className="divide-y divide-border">
           {checks.map((c) => {
@@ -110,6 +110,7 @@ export function NewPublication({
         <Button
           size="lg"
           className="w-full sm:w-auto"
+          data-tour="schedule-publication"
           disabled={pending || !chosen.length || blocking}
           onClick={() =>
             run(

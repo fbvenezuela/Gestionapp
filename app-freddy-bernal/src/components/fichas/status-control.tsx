@@ -17,7 +17,7 @@ export function ReportStatusControl({ id, status }: { id: string; status: Report
   const [next, setNext] = useState<ReportStatus>(status);
   const [note, setNote] = useState('');
   return (
-    <Card>
+    <Card data-tour="report-status">
       <CardHeader title="Estado" subtitle="Cada cambio queda en la historia con su motivo." />
       <CardBody>
         <form

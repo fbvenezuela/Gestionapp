@@ -45,7 +45,7 @@ export default async function BossPolitics() {
       {manager ? <BigActions items={actions} /> : null}
 
       {data.toSchedule.length ? (
-        <Card className="mb-5">
+        <Card className="mb-5" data-tour="to-schedule">
           <CardHeader
             title={`Por ponerle fecha (${data.toSchedule.length})`}
             subtitle="Fichas del IVT y reportes de política que esperan fecha y hora."
@@ -68,7 +68,7 @@ export default async function BossPolitics() {
       ) : null}
 
       {data.pending.length ? (
-        <Card className="mb-5">
+        <Card className="mb-5" data-tour="pending-decision">
           <CardHeader title={`Esperan tu decisión (${data.pending.length})`} subtitle="Califica de 1 a 10 y acepta o rechaza." />
           <ul className="divide-y divide-border">
             {data.pending.map((e) => (
@@ -85,32 +85,34 @@ export default async function BossPolitics() {
           </ul>
         </Card>
       ) : null}
-      <h2 className="mb-2 text-xl font-bold">Los próximos 7 días</h2>
-      {data.upcoming.length === 0 ? (
-        <EmptyState title="No hay eventos en los próximos días." />
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {data.upcoming.map((e) => (
-            <li key={e.id}>
-              <Card className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center">
-                <Link href={`/eventos/${e.id}`} className="min-w-0 flex-1">
-                  <p className="font-mono text-base font-semibold first-letter:uppercase text-accent-ink">{fmtDateTime(e.starts_at).split(',')[0]} · {fmtTime(e.starts_at)}</p>
-                  <p className="text-xl font-semibold">{e.title}</p>
-                  <p className="flex items-center gap-1 text-base text-text-2"><MapPin className="h-4 w-4" aria-hidden /> {e.place_name}</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <Chip tone={BOSS_DECISION[e.boss_decision].tone}>{BOSS_DECISION[e.boss_decision].label}</Chip>
-                    {e.kind !== 'event' ? <Chip tone="info">{EVENT_KIND[e.kind]}</Chip> : null}
-                    {e.priority ? <Chip tone="accent">{e.priority}/10</Chip> : null}
-                  </div>
-                </Link>
-                {e.has_board ? (
-                  <LinkButton variant="slate" size="lg" href={`/eventos/${e.id}/lectura`}><BookOpenText className="h-5 w-5" aria-hidden /> Lo que voy a decir</LinkButton>
-                ) : null}
-              </Card>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div data-tour="next-days">
+        <h2 className="mb-2 text-xl font-bold">Los próximos 7 días</h2>
+        {data.upcoming.length === 0 ? (
+          <EmptyState title="No hay eventos en los próximos días." />
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {data.upcoming.map((e) => (
+              <li key={e.id}>
+                <Card className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center">
+                  <Link href={`/eventos/${e.id}`} className="min-w-0 flex-1">
+                    <p className="font-mono text-base font-semibold first-letter:uppercase text-accent-ink">{fmtDateTime(e.starts_at).split(',')[0]} · {fmtTime(e.starts_at)}</p>
+                    <p className="text-xl font-semibold">{e.title}</p>
+                    <p className="flex items-center gap-1 text-base text-text-2"><MapPin className="h-4 w-4" aria-hidden /> {e.place_name}</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Chip tone={BOSS_DECISION[e.boss_decision].tone}>{BOSS_DECISION[e.boss_decision].label}</Chip>
+                      {e.kind !== 'event' ? <Chip tone="info">{EVENT_KIND[e.kind]}</Chip> : null}
+                      {e.priority ? <Chip tone="accent">{e.priority}/10</Chip> : null}
+                    </div>
+                  </Link>
+                  {e.has_board ? (
+                    <LinkButton variant="slate" size="lg" href={`/eventos/${e.id}/lectura`} data-tour="read-speech"><BookOpenText className="h-5 w-5" aria-hidden /> Lo que voy a decir</LinkButton>
+                  ) : null}
+                </Card>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <p className="mt-6 text-sm text-text-2">La sección de ropa llega en una fase siguiente.</p>
     </>
   );

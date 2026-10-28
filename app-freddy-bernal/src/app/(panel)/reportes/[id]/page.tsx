@@ -128,7 +128,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
         <span className="text-sm text-text-2">Cargada por {report.created_by_name ?? '—'} · actualizada el {fmtDateTime(report.updated_at)}</span>
       </div>
 
-      <Card className="mb-4">
+      <Card className="mb-4" data-tour="report-agenda">
         <CardBody className="flex items-start gap-3">
           <CalendarClock className="mt-0.5 h-5 w-5 shrink-0 text-accent-ink" aria-hidden />
           <div className="min-w-0">

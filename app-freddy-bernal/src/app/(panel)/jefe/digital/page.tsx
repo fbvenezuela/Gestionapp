@@ -31,14 +31,14 @@ export default async function BossDigital() {
   const views = data.published.reduce((a, p) => a + (p.views ?? 0), 0);
   return (
     <>
-      <PageHeader title="Digital" back={{ href: '/jefe', label: 'Inicio' }} actions={<LinkButton href="/resultados" size="lg" variant="secondary">Ver resultados</LinkButton>} />
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <PageHeader title="Digital" back={{ href: '/jefe', label: 'Inicio' }} actions={<LinkButton href="/resultados" size="lg" variant="secondary" data-tour="see-results">Ver resultados</LinkButton>} />
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3" data-tour="digital-stats">
         <Stat label="Publicado esta semana" value={data.published.length} />
         <Stat label="Vistas esta semana" value={nf.format(views)} />
         <Stat label="En revisión" value={data.inReview} />
       </div>
       <div className="grid gap-5 lg:grid-cols-2">
-        <Card>
+        <Card data-tour="digital-published">
           <CardHeader title="Lo publicado" />
           {data.published.length ? (
             <ul className="divide-y divide-border">
@@ -55,7 +55,7 @@ export default async function BossDigital() {
             </ul>
           ) : <div className="p-4"><EmptyState title="Nada publicado esta semana." /></div>}
         </Card>
-        <Card>
+        <Card data-tour="digital-upcoming">
           <CardHeader title="Lo que viene" />
           {data.coming.length ? (
             <ul className="divide-y divide-border">

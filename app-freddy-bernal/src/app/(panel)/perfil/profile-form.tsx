@@ -46,7 +46,7 @@ export function ProfileForm({ fullName, phone, prefs, mfa }: { fullName: string;
           <p className="flex items-center gap-2 text-sm text-text-2"><ShieldCheck className="h-4 w-4" aria-hidden /> Doble factor: {mfa ? 'activo en esta sesión' : 'no usado en esta sesión'}</p>
         </CardBody>
       </Card>
-      <Card>
+      <Card data-tour="notify-prefs">
         <CardHeader title="Qué avisos quiero" subtitle="Por correo y en el teléfono. Los importantes siempre llegan." />
         <CardBody className="flex flex-col gap-1">
           {OPTIONAL.map((o) => (
@@ -57,7 +57,7 @@ export function ProfileForm({ fullName, phone, prefs, mfa }: { fullName: string;
           ))}
         </CardBody>
       </Card>
-      <Card>
+      <Card data-tour="quiet-hours">
         <CardHeader title="Horas de silencio" subtitle="De noche el teléfono no suena. Los avisos importantes sí llegan y todo queda en «Avisos»." />
         <CardBody className="flex flex-col gap-3">
           <label className="flex min-h-11 items-center gap-3 text-[15px]">

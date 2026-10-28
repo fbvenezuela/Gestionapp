@@ -42,7 +42,7 @@ export function FabDialogEditor({
   };
 
   return (
-    <Card>
+    <Card data-tour="fab">
       {dialog}
       <CardHeader
         title="Lo que voy a decir"

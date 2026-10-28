@@ -47,13 +47,14 @@ export function MaterialPanel({
           files={pauta.map((m) => ({ id: m.id, kind: m.kind, label: m.label, ext: m.ext ?? 'bin', size: Number(m.size_bytes), drive: m.bucket === 'drive' }))}
           notes={notes}
           label="Descargar todo el material"
+          data-tour="download-all"
         />
       </div>
       {handoffFirst ? handoff : null}
       {RAW.map((r) => {
         const list = media.filter((m) => m.kind === r.kind);
         return (
-          <Card key={r.kind}>
+          <Card key={r.kind} data-tour="raw-boxes">
             <CardHeader title={MEDIA_KIND[r.kind]} subtitle={r.hint} action={list.length ? <Chip tone="ok">{list.length}</Chip> : <Chip>Vacío</Chip>} />
             <div className="flex flex-col gap-2 p-4">
               {list.map((m) => <MediaRow key={m.id} m={m} canRemove={canRemove} />)}

@@ -54,7 +54,7 @@ export function ScheduleSheet({
       title="Ponerle fecha"
       description={WHO_SEES[kind]}
       trigger={
-        <Button size={size} className="w-full sm:w-auto">
+        <Button size={size} className="w-full sm:w-auto" data-tour="schedule-ficha">
           <CalendarClock className="h-5 w-5" aria-hidden /> {label}
         </Button>
       }

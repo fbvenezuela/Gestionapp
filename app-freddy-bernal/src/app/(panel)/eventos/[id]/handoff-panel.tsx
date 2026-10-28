@@ -56,7 +56,7 @@ export function HandoffPanel({
       </Card>
 
       {camera || notes ? (
-        <Card>
+        <Card data-tour="editor-note">
           <CardHeader
             title="Nota para el editor"
             subtitle={camera ? 'Lo que Redes tiene que saber para editar: qué toma sirve, qué falló, qué falta.' : 'Lo que dejó Grabación para quien edita.'}

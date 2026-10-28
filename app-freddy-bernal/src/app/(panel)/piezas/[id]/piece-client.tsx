@@ -28,7 +28,7 @@ export function SendToReview({ pieceId, level: saved, locked }: { pieceId: strin
       <Select aria-label="Nivel de aprobación" title={LEVELS[level].hint} value={level} onChange={(e) => setLevel(e.target.value as Level)} className="w-full sm:w-auto">
         {options.map((o) => <option key={o.value} value={o.value}>{o.text}</option>)}
       </Select>
-      <Button disabled={pending} onClick={() => run(() => sendToReview({ pieceId, level }), { success: 'Enviada al jefe para aprobar.' })}>
+      <Button disabled={pending} data-tour="send-review" onClick={() => run(() => sendToReview({ pieceId, level }), { success: 'Enviada al jefe para aprobar.' })}>
         <Send className="h-4 w-4" aria-hidden /> Enviar a aprobación
       </Button>
     </div>
