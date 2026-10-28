@@ -14,6 +14,8 @@ import { cn } from '@/lib/cn';
 import { BossPanel, BriefEditor, CameraAssign, EventEditor, MarkDone, ScheduleEditor, WorkStatusSelect } from './event-client';
 import { StoryboardEditor } from './storyboard-editor';
 import { MaterialPanel } from './material-panel';
+import { HandoffPanel } from './handoff-panel';
+import { getHandoff } from '@/lib/data/recording';
 import { mediaLockSql } from '@/lib/domain/media-lock';
 import { driveUi } from '@/lib/data/drive';
 import { MoveSheet } from '@/components/agenda/move-sheet';
@@ -38,9 +40,9 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   const data = await db(s, async (sql) => {
     const ev = await getEvent(sql, id);
     if (!ev) return null;
-    const media = await sql.query<{ id: string; kind: string; label: string; size_bytes: number; duration_s: number | null; width: number | null; height: number | null; status: string; mime: string; bucket: string; lock: string | null }>(
+    const media = await sql.query<{ id: string; kind: string; label: string; size_bytes: number; duration_s: number | null; width: number | null; height: number | null; status: string; mime: string; bucket: string; lock: string | null; ext: string | null }>(
       `select m.id, m.kind, m.label, m.size_bytes, m.duration_s, m.width, m.height, m.status, m.mime, m.bucket,
-              ${mediaLockSql('m.id')} as lock
+              ${mediaLockSql('m.id')} as lock, lower(substring(m.storage_path from '\\.([A-Za-z0-9]{1,5})$')) as ext
          from public.media_assets m where m.event_id = $1 and m.deleted_at is null order by m.kind, m.created_at`,
       [id],
     );
@@ -62,6 +64,9 @@ export default async function EventPage({ params, searchParams }: { params: Prom
       history: editors ? await eventHistory(sql, id) : [],
       // Whoever edits the storyboard reads its history (what someone else typed stays readable after a save).
       boardHistory: rawTab === 'storyboard' && has('admin', 'social', 'boss') ? await eventHistory(sql, id, true) : [],
+      // Grabación's storyboard and note for the editor (§5): RLS gives the notes to admin, the boss, Redes and the
+      // camera person assigned; despacho gets the storyboard files only.
+      handoff: await getHandoff(sql, id),
     };
   });
   if (!data) notFound();
@@ -74,6 +79,9 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   const canBoard = has('admin', 'social', 'boss');
   // The boss «hace lo de Redes» (he uploads finals, covers and material like Redes; media_insert lets him).
   const canUpload = has('admin', 'social', 'boss') || (has('camera') && ev.cameras.some((c) => c.user_id === s.userId));
+  // The camera person assigned to this event, recording it (not the boss or admin with a camera role as well): they
+  // leave the storyboard and the note for the editor (§5).
+  const recorder = has('camera') && !has('admin', 'boss', 'social') && ev.cameras.some((c) => c.user_id === s.userId);
   const tab = TABS.find((t) => t.key === rawTab)?.key ?? (has('camera') && !has('admin', 'boss') ? 'material' : 'ficha');
   const visibleTabs = TABS.filter((t) => t.key !== 'piezas' || has('admin', 'social', 'boss'));
   const past = ev.schedule ? new Date(ev.schedule.starts_at) < new Date() : false;
@@ -229,7 +237,20 @@ export default async function EventPage({ params, searchParams }: { params: Prom
         </div>
       ) : null}
 
-      {tab === 'material' ? <MaterialPanel eventId={ev.id} eventCode={ev.code} media={data.media} canUpload={canUpload} canRemove={has('admin')} canPick={!!drive?.picker} /> : null}
+      {tab === 'material' ? (
+        <MaterialPanel
+          eventId={ev.id}
+          eventCode={ev.code}
+          eventTitle={ev.title}
+          media={data.media.map((m) => ({ ...m, ext: m.ext ?? 'bin' }))}
+          canUpload={canUpload}
+          canRemove={has('admin')}
+          canPick={!!drive?.picker}
+          handoffFirst={!recorder}
+          notes={recorder || has('admin', 'boss', 'social') ? data.handoff.notes.filter((n) => n.body.trim()).map((n) => ({ kind: n.kind, body: n.body, author: n.author })) : null}
+          handoff={<HandoffPanel eventId={ev.id} handoff={data.handoff} camera={recorder && !cancelled} notes={recorder || has('admin', 'boss', 'social')} canRemove={has('admin')} />}
+        />
+      ) : null}
 
       {tab === 'piezas' ? (
         <Card>

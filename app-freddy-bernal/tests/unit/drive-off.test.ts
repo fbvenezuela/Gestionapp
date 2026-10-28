@@ -171,6 +171,12 @@ describe('con STORAGE_PROVIDER vacío todo sigue igual', () => {
     ]) {
       expect(r).toEqual({ ok: false, error: 'Drive no está activado en esta versión.' });
     }
+    // «Descargar todo» asks for the person's Drive cap: without Drive there is none (and no Drive module loads).
+    for (const who of ['social', 'admin'] as const) {
+      as(who);
+      expect(await drive.myDriveBudget({}), who).toEqual({ ok: true, data: { monthLeft: null, todayLeft: null } });
+    }
+    as('admin');
     // The demo's route for the fake Drive does not exist either.
     const fakeUpload = await (await import('@/app/api/drive/fake-upload/route')).PUT(new NextRequest('http://localhost:3000/api/drive/fake-upload?upload_id=abcdefgh', { method: 'PUT', headers: { 'content-range': 'bytes */10' } }));
     expect(fakeUpload.status).toBe(404);

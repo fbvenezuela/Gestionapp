@@ -38,7 +38,8 @@ describe('la demo tiene los mismos ids en todos los servidores', () => {
     expect(a.ids.length).toBeGreaterThan(100);
     expect(a.ids.some((x) => x.startsWith('public.events:'))).toBe(true);
     // The fichas part of the seed (obras, reports, their contacts and history) too.
-    for (const t of ['obra_fichas', 'obra_ficha_private', 'community_reports', 'community_report_private', 'ficha_updates']) {
+    // ... and Grabación's handoff (its note for the editor, §5).
+    for (const t of ['obra_fichas', 'obra_ficha_private', 'community_reports', 'community_report_private', 'ficha_updates', 'recording_notes']) {
       expect(a.ids.some((x) => x.startsWith(`public.${t}:`)), t).toBe(true);
     }
     expect(b.ids).toEqual(a.ids);

@@ -23,9 +23,13 @@ export interface ChunkSink {
 
 export class DownloadError extends Error {
   readonly fatal: boolean;
-  constructor(message: string, fatal: boolean) {
+  // The server's answer when there was one (404 = no file behind, 429 = the person's share for today, 503 = Drive
+  // or this month's cap): «Descargar todo» stops the whole run on the last two instead of failing each file.
+  readonly status: number | null;
+  constructor(message: string, fatal: boolean, status: number | null = null) {
     super(message);
     this.fatal = fatal;
+    this.status = status;
   }
 }
 
@@ -121,6 +125,122 @@ export async function opfsSink(key: string): Promise<ChunkSink | null> {
   } catch {
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// A folder the person chose (File System Access API, «Descargar todo»). The same shapes as OPFS, which is what the
+// tests and the e2e use in its place.
+// ---------------------------------------------------------------------------
+export type FsWritable = { write(d: Uint8Array): Promise<void>; close(): Promise<void>; abort?(reason?: unknown): Promise<void> };
+export type FsFile = { getFile(): Promise<Blob>; createWritable(o?: { keepExistingData?: boolean }): Promise<FsWritable> };
+export type FsDir = {
+  getDirectoryHandle(n: string, o?: { create?: boolean }): Promise<FsDir>;
+  getFileHandle(n: string, o?: { create?: boolean }): Promise<FsFile>;
+};
+export type FolderSink = ChunkSink & {
+  /** Writes the file for good (nothing reaches the folder before this). */
+  close(): Promise<void>;
+  /** Drops what was written; a file that was already there stays as it was. */
+  abort(): Promise<void>;
+};
+
+/**
+ * One file in the chosen folder, written through ONE writable kept open for the whole file. (Opening one per piece
+ * with keepExistingData copies the whole file every time, and the browser only puts the bytes in the folder on
+ * close().) It always starts empty: a file cut halfway is downloaded again from the start, never patched.
+ */
+export function folderSink(dir: FsDir, name: string): FolderSink {
+  let w: FsWritable | null = null;
+  let n = 0;
+  const drop = async () => {
+    const open = w;
+    w = null;
+    n = 0;
+    if (open) await (open.abort ? open.abort() : open.close()).catch(() => {});
+  };
+  return {
+    size: async () => n,
+    append: async (b) => {
+      if (!w) w = await (await dir.getFileHandle(name, { create: true })).createWritable();
+      await w.write(b);
+      n += b.length;
+    },
+    file: async (fileName, type) => {
+      const done = w;
+      w = null;
+      if (done) await done.close();
+      const blob = await (await dir.getFileHandle(name)).getFile();
+      return new File([blob], fileName, { type });
+    },
+    clear: drop,
+    close: async () => {
+      // An empty file still gets written (a 0-byte answer opened nothing).
+      if (!w) w = await (await dir.getFileHandle(name, { create: true })).createWritable();
+      const done = w;
+      w = null;
+      await done.close();
+    },
+    abort: drop,
+  };
+}
+
+/**
+ * A file that is NOT in Drive, in one plain GET piped into `sink` piece by piece as it arrives (it never sits whole
+ * in memory). With Supabase the platform answers with a redirect to a short-lived signed link, so the bytes come
+ * straight from storage; nothing here depends on headers a cross-origin answer may hide. Throws DownloadError.
+ */
+export async function streamToSink(
+  url: string,
+  o: { sink: ChunkSink; signal?: AbortSignal; fetcher?: (url: string, init: RequestInit) => Promise<Response>; onState?: (s: DownloadState) => void },
+): Promise<{ name: string; type: string; total: number }> {
+  const fetcher = o.fetcher ?? ((u: string, init: RequestInit) => fetch(u, init));
+  const cancelled = () => new DownloadError('Descarga cancelada.', true);
+  if (o.signal?.aborted) throw cancelled();
+  let res: Response;
+  try {
+    res = await fetcher(url, { cache: 'no-store', signal: o.signal });
+  } catch {
+    if (o.signal?.aborted) throw cancelled();
+    throw new DownloadError('Se cortó la descarga. Vuelve a intentarlo.', false);
+  }
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new DownloadError(res.status === 401 ? 'Entra de nuevo.' : plain(body, 'No se pudo descargar ese archivo.'), res.status < 500, res.status);
+  }
+  // A compressed answer's length is not the file's: only a plain one is checked at the end.
+  const total = res.headers.get('content-encoding') ? null : Number(res.headers.get('content-length')) || null;
+  if ((await o.sink.size()) > 0) await o.sink.clear();
+  let received = 0;
+  o.onState?.({ phase: 'downloading', received, total });
+  try {
+    const reader = res.body?.getReader();
+    if (!reader) {
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      await o.sink.append(bytes);
+      received = bytes.length;
+    } else {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value?.length) {
+          await o.sink.append(value);
+          received += value.length;
+          o.onState?.({ phase: 'downloading', received, total });
+        }
+      }
+    }
+  } catch (e) {
+    if (o.signal?.aborted) throw cancelled();
+    if (e instanceof DownloadError) throw e;
+    throw new DownloadError('Se cortó la descarga. Vuelve a intentarlo.', false);
+  }
+  if (total != null && received !== total) throw new DownloadError('Se cortó la descarga. Vuelve a intentarlo.', false);
+  o.onState?.({ phase: 'saving', received, total: received });
+  return {
+    name: fileNameFrom(res.headers.get('content-disposition')) ?? 'archivo',
+    type: (res.headers.get('content-type') ?? 'application/octet-stream').split(';')[0],
+    total: received,
+  };
 }
 
 export type DownloadOptions = {
@@ -242,10 +362,10 @@ export async function downloadInChunks(url: string, o: DownloadOptions): Promise
     if (res.status >= 500 && attempt < delays.length) {
       o.onState?.({ phase: 'waiting', received, total, error: plain(body, '') || undefined });
       await wait(delays[attempt++], o.signal);
-      if (res.status === 503 && attempt >= 3) throw new DownloadError(plain(body, 'Drive está lento; intenta en un momento.'), false);
+      if (res.status === 503 && attempt >= 3) throw new DownloadError(plain(body, 'Drive está lento; intenta en un momento.'), false, 503);
       continue;
     }
-    throw new DownloadError(res.status === 401 ? 'Entra de nuevo.' : plain(body, 'No se pudo descargar ese archivo.'), true);
+    throw new DownloadError(res.status === 401 ? 'Entra de nuevo.' : plain(body, 'No se pudo descargar ese archivo.'), true, res.status);
   }
   o.onState?.({ phase: 'saving', received, total });
   return { name, type, total: total ?? received };

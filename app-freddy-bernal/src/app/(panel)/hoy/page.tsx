@@ -73,6 +73,20 @@ export default async function TodayPage() {
       stats.push({ label: 'Días de tweets', value: stock.daysLeft, tone: stock.lowStock ? 'danger' : undefined, hint: 'programados' });
     }
 
+    // Whoever edits (Redes and the boss): what Grabación left for the editor in the last days (§5). The title only
+    // (never when it was written: Redes sees no time); the notes themselves are on the event's Material tab.
+    if (has('social', 'boss')) {
+      const fresh = await sql.query<{ id: string; title: string }>(
+        `select e.id, e.title from public.events e
+          where e.deleted_at is null and e.cancelled_at is null
+            and exists (select 1 from public.recording_notes n
+                         where n.event_id = e.id and n.deleted_at is null and n.body <> '' and n.author_id <> auth.uid()
+                           and n.updated_at > now() - interval '3 days')
+          order by e.code desc limit 10`,
+      );
+      for (const e of fresh) waiting.push({ href: `/eventos/${e.id}?tab=material`, title: e.title, detail: 'Notas de Grabación nuevas', tone: 'info', tag: 'Grabación' });
+    }
+
     // Review clock: past the deadline the piece is still NOT approved; it shows as stuck.
     const inReview = has('social', 'admin', 'boss') ? await piecesInReview(sql, 50) : [];
     const deadlines = await getDeadlines(sql);

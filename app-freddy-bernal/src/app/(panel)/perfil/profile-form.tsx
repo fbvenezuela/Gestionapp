@@ -13,6 +13,7 @@ import { Field, Input } from '@/components/ui/field';
 // running out) cannot be turned off. These switches apply to email and phone alike.
 const OPTIONAL = [
   { key: 'material_ready', label: 'Llegó material nuevo' },
+  { key: 'recording_note', label: 'Grabación dejó su nota o su storyboard' },
   { key: 'review_pending', label: 'Hay algo por aprobar' },
   { key: 'piece_approved', label: 'Aprobaron una pieza' },
   { key: 'voice_line', label: 'Hay que pedir una frase al jefe' },

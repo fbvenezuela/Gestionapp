@@ -7,6 +7,8 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { makeTestDb, type TestDb } from './setup';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import { CAMERA_KINDS, MEDIA_KINDS, OBRA_KINDS, REPORT_KINDS } from '@/lib/domain/media-mime';
+import { getHandoff } from '@/lib/data/recording';
+import { DEMO_EDITOR_NOTE } from '@/lib/db/seed-parts/handoff';
 
 let t: TestDb;
 const ALL: DemoUserKey[] = DEMO_USERS.map((u) => u.key);
@@ -66,6 +68,38 @@ beforeAll(async () => {
   report = (await t.as('politics', (sql) =>
     sql.one<{ id: string }>(`insert into public.community_reports (title, municipality, type) values ('Reporte de material (demo)', 'Torbes', 'repair') returning id`),
   ))!.id;
+});
+
+describe('la entrega de Grabación como la ve cada uno (getHandoff, con RLS)', () => {
+  it('la demo trae, en un evento de Grabación, su storyboard (con miniatura) y su nota para el editor', async () => {
+    const sb = await t.system((sql) =>
+      sql.one<{ id: string; uploaded_by: string; thumb: boolean }>(
+        `select m.id, m.uploaded_by, exists (select 1 from public.media_thumbs th where th.media_id = m.id) as thumb
+           from public.media_assets m where m.event_id = $1 and m.kind = 'storyboard' and m.storage_path like '%demo-storyboard-1.jpg'`,
+        [camEvent],
+      ),
+    );
+    expect(sb).toMatchObject({ uploaded_by: t.ids.camera, thumb: true });
+    const note = await t.system((sql) => sql.one<{ body: string; author_id: string }>(`select body, author_id from public.recording_notes where event_id = $1 and kind = 'editor_note'`, [camEvent]));
+    expect(note).toEqual({ body: DEMO_EDITOR_NOTE, author_id: t.ids.camera });
+  });
+
+  it('Redes, el jefe, administración y Grabación asignada ven nota y storyboard; el despacho solo el archivo; los demás nada', async () => {
+    const view = (who: DemoUserKey) => t.as(who, (sql) => getHandoff(sql, camEvent));
+    for (const who of ['admin', 'boss', 'social', 'social2', 'camera'] as const) {
+      const h = await view(who);
+      const note = h.notes.find((n) => n.kind === 'editor_note');
+      expect(note?.author, who).toBe('Kevin');
+      expect(note?.mine, who).toBe(who === 'camera');
+      expect(h.storyboards.some((m) => m.label === 'Storyboard 1'), who).toBe(true);
+      // No time of any kind comes back (Redes never gets one from here).
+      expect(JSON.stringify(h), who).not.toMatch(/created_at|updated_at|starts_at|\d{4}-\d{2}-\d{2}T/);
+    }
+    const dispatch = await view('dispatch');
+    expect(dispatch.notes).toEqual([]);
+    expect(dispatch.storyboards.length).toBeGreaterThan(0);
+    for (const who of ['camera2', 'ivt', 'politics'] as const) expect(await view(who), who).toEqual({ notes: [], storyboards: [] });
+  });
 });
 
 describe('material: los tipos nuevos y quién sube cada uno', () => {
@@ -261,6 +295,10 @@ describe('notas de Grabación (para el editor y el storyboard escrito)', () => {
       expect(r, who).toHaveLength(0);
     }
     expect((await write('boss', otherEvent, 'editor_note', 'Nota del jefe (demo).')).author_id).toBe(t.ids.boss);
+    // Nobody writes one in Grabación's name (the boss and Redes neither).
+    for (const who of ['boss', 'social'] as const) {
+      await fails(t.as(who, (sql) => sql.query(`insert into public.recording_notes (event_id, kind, body, author_id) values ($1, 'editor_note', 'A nombre de Grabación', $2)`, [camEvent, t.ids.camera])), /row-level security/);
+    }
     for (const who of ['dispatch', 'ivt', 'politics', 'admin'] as const) await fails(write(who, camEvent, 'storyboard_text', 'No me toca (demo).'));
   });
 
@@ -274,6 +312,10 @@ describe('notas de Grabación (para el editor y el storyboard escrito)', () => {
   it('solo administración la quita (queda en el registro) y nadie la borra de verdad', async () => {
     const n = await write('camera', camEvent, 'storyboard_text', 'Para quitar (demo).');
     await fails(t.as('camera', (sql) => sql.query(`update public.recording_notes set deleted_at = now() where id = $1`, [n.id])), /administrador/);
+    // The boss and Redes cannot remove it either (it is not theirs: the row is not even theirs to update).
+    for (const who of ['boss', 'social'] as const) {
+      expect(await t.as(who, (sql) => sql.query(`update public.recording_notes set deleted_at = now() where id = $1 returning id`, [n.id])), who).toHaveLength(0);
+    }
     for (const who of ['camera', 'admin', 'boss'] as const) {
       await fails(t.as(who, (sql) => sql.query(`delete from public.recording_notes where id = $1`, [n.id])), /permission denied/);
     }

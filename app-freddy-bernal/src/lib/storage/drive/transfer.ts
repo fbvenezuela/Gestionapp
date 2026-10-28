@@ -37,6 +37,24 @@ export async function transferUsed(): Promise<number> {
   return Number(r?.bytes ?? 0);
 }
 
+/**
+ * What is left of this month's cap and of the person's share for today, for «Descargar todo» to say before it
+ * starts (cambios del 27/10/2026, §5). null = no limit (no cap, or Administración, which has no daily share). Reads
+ * only the month's total and this person's own row of today.
+ */
+export async function transferLeft(userId: string, admin: boolean): Promise<{ monthLeft: number | null; todayLeft: number | null }> {
+  const cap = transferCapBytes();
+  if (!Number.isFinite(cap)) return { monthLeft: null, todayLeft: null };
+  const { month, mine } = await withSystem(async (sql) => ({
+    month: await sql.one<{ bytes: string | number }>(`select bytes from public.drive_transfer where month = $1`, [transferMonth()]),
+    mine: admin
+      ? null
+      : await sql.one<{ bytes: string | number }>(`select bytes from public.drive_transfer_person where day = $1 and user_id = $2`, [transferDay(), userId]),
+  }));
+  const monthLeft = Math.max(0, cap - Number(month?.bytes ?? 0));
+  return { monthLeft, todayLeft: admin ? null : Math.max(0, personDayBytes() - Number(mine?.bytes ?? 0)) };
+}
+
 type Personal = { userId: string; day: string } | null;
 
 /** Counts bytes with no check (an answer that turned out longer than reserved). */

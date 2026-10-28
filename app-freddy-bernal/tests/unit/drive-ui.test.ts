@@ -406,8 +406,8 @@ describe('ningún archivo de Drive se baja con un enlace simple', () => {
   // to be in Drive (or to open a small evidence picture). A new one has to go through DownloadLink.
   const ALLOWED: Record<string, number> = {
     'src/components/media/drive-download.tsx': 1, // DownloadLink, branch for files not in Drive
-    'src/app/(panel)/eventos/[id]/material-panel.tsx': 1, // after `drive ?` → DriveDownload
-    'src/components/media/download-all.tsx': 1, // after the Drive files were taken out
+    'src/app/(panel)/eventos/[id]/media-row.tsx': 1, // after `drive ?` → DriveDownload
+    'src/components/media/download-all.tsx': 2, // after `e.drive ?` → downloadDriveFile: one by one, and the iPhone list
     'src/app/(panel)/publicar/[id]/page.tsx': 1, // «Ver captura» (?ver=1, a small picture in a new tab)
   };
 

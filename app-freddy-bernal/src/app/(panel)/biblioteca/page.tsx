@@ -5,9 +5,8 @@ import { canSeeSchedule } from '@/lib/roles';
 import { PageHeader, EmptyState } from '@/components/ui/page';
 import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
-import { DownloadAll } from '@/components/media/download-all';
+import { DownloadAllDialog } from '@/components/media/download-all';
 import { DriveDownload } from '@/components/media/drive-download';
-import { DriveThumb } from '@/components/media/drive-thumb';
 import { MediaThumb } from '@/components/media/media-thumb';
 import { DrivePicker } from '@/components/media/drive-picker';
 import { DriveImportScan } from '@/components/media/drive-import-scan';
@@ -16,12 +15,14 @@ import { driveUi } from '@/lib/data/drive';
 import { fmtDay } from '@/lib/time';
 import { RemoveMedia } from '@/app/(panel)/eventos/[id]/remove-media';
 import { mediaLockChip, mediaLockSql } from '@/lib/domain/media-lock';
+import { firstName } from '@/lib/domain/recording';
 
 export const metadata = { title: 'Biblioteca' };
 
 // lock = why a file cannot be removed (media-lock.ts), or null. bucket 'drive' = in Google Drive.
-type M = { id: string; kind: string; label: string; lock: string | null; bucket: string; mime: string; size: number; duration_s?: number | null };
-type Row = { event_id: string; title: string; code: string; day: string | Date | null; media: M[]; cancelled: boolean };
+type M = { id: string; kind: string; label: string; lock: string | null; bucket: string; mime: string; size: number; duration_s?: number | null; ext?: string | null };
+// notes: Grabación's notes of the event for the LEEME of «Descargar todo» (RLS: admin, the boss and Redes; none for despacho).
+type Row = { event_id: string; title: string; code: string; day: string | Date | null; media: M[]; cancelled: boolean; notes: { kind: 'editor_note' | 'storyboard_text'; body: string; author: string | null }[] };
 
 function size(b: number) {
   return b > 1e9 ? `${(b / 1e9).toFixed(1)} GB` : `${Math.max(1, Math.round(b / 1e6))} MB`;
@@ -31,7 +32,7 @@ function dur(s: number | null | undefined) {
   const m = Math.floor(s / 60);
   return `${m}:${String(Math.round(s % 60)).padStart(2, '0')}`;
 }
-const driveRefs = (list: M[]) => list.filter((m) => m.bucket === 'drive').map((m) => ({ id: m.id, label: m.label || MEDIA_KIND[m.kind], size: Number(m.size) }));
+const planFiles = (list: M[]) => list.map((m) => ({ id: m.id, kind: m.kind, label: m.label || MEDIA_KIND[m.kind], ext: m.ext || 'bin', size: Number(m.size), drive: m.bucket === 'drive' }));
 
 // Day → event → material, like the client's Drive. For the social team the day only
 // exists once the event is marked done (the date rule). Search: event title, place or code, and
@@ -41,14 +42,19 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
   const { q } = await searchParams;
   const schedule = canSeeSchedule(s.roles);
   const canRemove = s.roles.includes('admin');
+  // Grabación's notes go in the LEEME for whoever reads them (admin, the boss, Redes; the database gives despacho none).
+  const readsNotes = s.roles.some((r) => r === 'admin' || r === 'boss' || r === 'social');
   const term = q?.trim() || null;
   const { rows, archive } = await db(s, async (sql) => ({
     rows: await sql.query<Row>(
       `select e.id as event_id, e.title, e.code,
               ${schedule ? `coalesce(e.done_on, (select (sc.starts_at at time zone 'America/Caracas')::date from public.event_schedule sc where sc.event_id = e.id and sc.starts_at < now()))` : 'e.done_on'} as day,
               coalesce((select json_agg(json_build_object('id', m.id, 'kind', m.kind, 'label', m.label, 'bucket', m.bucket, 'mime', m.mime, 'size', m.size_bytes,
-                                'lock', ${mediaLockSql('m.id')}) order by m.kind, m.created_at)
+                                'lock', ${mediaLockSql('m.id')}, 'ext', lower(substring(m.storage_path from '\\.([A-Za-z0-9]{1,5})$'))) order by m.kind, m.created_at)
                           from public.media_assets m where m.event_id = e.id and m.deleted_at is null and m.status = 'ready'), '[]') as media,
+              coalesce((select json_agg(json_build_object('kind', n.kind, 'body', n.body, 'author', coalesce(nullif(p.full_name, ''), p.email)) order by n.kind, n.created_at)
+                          from public.recording_notes n left join public.profiles p on p.id = n.author_id
+                         where n.event_id = e.id and n.deleted_at is null and n.body <> ''), '[]') as notes,
               e.cancelled_at is not null as cancelled -- a cancelled event keeps its material here, marked as cancelled
          from public.events e
         where e.deleted_at is null and exists (select 1 from public.media_assets m where m.event_id = e.id and m.deleted_at is null and m.status = 'ready')
@@ -124,7 +130,12 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
                         {counts(['final']) ? <Chip tone="ok">Finales: {counts(['final'])}</Chip> : null}
                         {counts(['cover']) ? <Chip tone="info">Portadas: {counts(['cover'])}</Chip> : null}
                       </div>
-                      <DownloadAll ids={r.media.map((m) => m.id)} drive={driveRefs(r.media)} />
+                      <DownloadAllDialog
+                        title={r.title}
+                        code={r.code}
+                        files={planFiles(r.media)}
+                        notes={readsNotes ? r.notes.map((n) => ({ kind: n.kind, body: n.body, author: firstName(n.author) })) : null}
+                      />
                       {canRemove ? (
                         <details className="rounded-[var(--radius-control)] border border-border">
                           <summary className="flex min-h-11 cursor-pointer items-center px-3 text-[15px] font-semibold">Ver archivos ({r.media.length})</summary>
@@ -156,7 +167,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
                     const label = m.label || MEDIA_KIND[m.kind];
                     return (
                       <li key={m.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
-                        <DriveThumb id={m.id} mime={m.mime} />
+                        <MediaThumb ids={[m.id]} mime={m.mime} />
                         <div className="min-w-0 flex-[1_1_9rem]">
                           <p className="truncate font-semibold">{label}</p>
                           <p className="text-sm text-text-2">{[size(Number(m.size)), dur(m.duration_s != null ? Number(m.duration_s) : null)].filter(Boolean).join(' · ')}</p>

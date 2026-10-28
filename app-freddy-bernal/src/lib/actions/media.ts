@@ -11,6 +11,8 @@ import { notify, usersWithRole } from '../notify';
 import { MEDIA_LOCK, mediaLockSql, type MediaLock } from '@/lib/domain/media-lock';
 import { kindTargetError, MEDIA_KINDS, RAW_KINDS, storageMime, targetOf, type TargetKind } from '@/lib/domain/media-mime';
 import { THUMB_MAX_BASE64 } from '@/lib/domain/thumb';
+import { recordingNotice } from '@/lib/domain/recording';
+import { noticeRecipients } from '@/lib/domain/agenda-notices';
 import { storageProvider } from '../storage/provider';
 import type { StartUpload } from '../storage/drive/upload';
 
@@ -127,8 +129,10 @@ export async function finishUpload(raw: unknown) {
   // Who finished it and their thumbnail, kept for the step after the person's own (never nested in it).
   type Keep = { id: string; by: string; thumb: string };
   let keep: Keep | null = null;
+  let actor: string | null = null;
   const remember = (i: { id: string; thumb?: string | null }, by: string) => {
     keep = i.thumb ? { id: i.id, by, thumb: i.thumb } : null;
+    actor = by;
   };
   const done: Promise<Result<Finished>> = storageProvider() !== 'drive'
     ? act(schema, raw, async (sql, i, s) => {
@@ -186,6 +190,12 @@ export async function finishUpload(raw: unknown) {
       const social = await usersWithRole('social');
       // One notice per event per hour, not one per file.
       await notify({ userIds: social, kind: 'material_ready', title: 'Llegó material nuevo', body: title, link: `/eventos/${eventId}?tab=material`, key: `material:${eventId}:${new Date().toISOString().slice(0, 13)}` });
+    } else if (res.ok && res.data?.event_id && res.data.kind === 'storyboard') {
+      // The storyboard Grabación recorded with (§5): Redes is told, with the title only; the work status stays.
+      const eventId = res.data.event_id;
+      const title = (await withSystem((sql) => sql.one<{ title: string }>(`select title from public.events where id = $1`, [eventId])))?.title ?? '';
+      const n = recordingNotice({ id: eventId, title }, 'storyboard', new Date().toISOString().slice(0, 13));
+      await notify({ ...n, userIds: noticeRecipients(await usersWithRole('social'), actor as string | null) });
     }
     return res;
   });

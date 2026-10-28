@@ -609,6 +609,17 @@ describe('ver y descargar desde Drive (/api/media/[id])', () => {
     const day = await sys<{ bytes: string }>(`select bytes from public.drive_transfer_person where user_id = $1`, [t.ids.boss]);
     expect(Number(day!.bytes)).toBe(4 * MB + 100);
     expect(await sys(`select 1 from public.drive_transfer_person where user_id = $1`, [t.ids.admin])).toBeNull();
+    // «Descargar todo» asks first what each one has left (§5): the boss nothing today, Redes its share minus 100 bytes,
+    // Administración no daily share; the month, what the three left.
+    const cap = Math.floor(h.capGb * 1024 ** 3);
+    const monthLeft = cap - (4 * MB + 100) - 200;
+    const left = async (who: DemoUserKey) => {
+      as(who);
+      return drive.myDriveBudget({});
+    };
+    expect(await left('boss')).toEqual({ ok: true, data: { monthLeft, todayLeft: 0 } });
+    expect(await left('social')).toEqual({ ok: true, data: { monthLeft, todayLeft: Math.floor(cap * 0.25) - 100 } });
+    expect(await left('admin')).toEqual({ ok: true, data: { monthLeft, todayLeft: null } });
   });
 
   it('un archivo grande nunca sale entero en una sola respuesta: se baja por partes', async () => {

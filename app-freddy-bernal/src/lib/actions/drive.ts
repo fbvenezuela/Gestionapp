@@ -9,7 +9,8 @@ import { storageProvider } from '../storage/provider';
 import { MEDIA_KINDS } from '../storage/drive/names';
 
 // Google Drive (docs/DRIVE.md). Everything here is for Administración with 2FA, and refused
-// before any Drive call for everyone else. No action opens a transaction around a Google call.
+// before any Drive call for everyone else (except myDriveBudget: each person's own cap, no Drive call).
+// No action opens a transaction around a Google call.
 
 function adminOnly(s: Session) {
   if (!s.roles.includes('admin') || !s.mfaOk) throw new UserError('Solo Administración, con doble factor, puede hacer esto.');
@@ -75,6 +76,19 @@ export async function drivePickerConfig(raw: unknown = {}) {
     if (!fake && !env.google.pickerApiKey) throw new UserError('Falta GOOGLE_PICKER_API_KEY en Vercel.');
     const appId = env.google.projectNumber || /^(\d+)-/.exec(env.google.clientId)?.[1] || '';
     return { accessToken: await accessToken(), apiKey: fake ? 'fake-picker-key' : env.google.pickerApiKey, appId: fake ? '0' : appId };
+  });
+}
+
+/**
+ * «Descargar todo» (§5): what this person may still bring from Drive today and what is left of the month, so the
+ * dialog can say it before starting. Any signed-in person, for themselves only; nulls when Drive is off or there is
+ * no cap (and no daily share for Administración).
+ */
+export async function myDriveBudget(raw: unknown = {}) {
+  return actOutside(z.object({}).strict(), raw, async (_i, s) => {
+    if (storageProvider() !== 'drive') return { monthLeft: null, todayLeft: null };
+    const { transferLeft } = await import('../storage/drive/transfer');
+    return transferLeft(s.userId, s.roles.includes('admin'));
   });
 }
 
