@@ -93,6 +93,7 @@ export function messagesSections(role: TeamRole): S[] {
         ...agenda,
         MSG_LINKS,
         'En el menú de los tres puntos: «Silenciar» (deja de sonar en tu teléfono) o «Quitar el silencio».',
+        ...(role === 'boss' ? ['En un grupo o en «Todo el equipo», ese menú también tiene «Solo el jefe escribe»: los demás leen y solo tú escribes.'] : []),
         MSG_RULES,
       ],
       cannot: ['Editar ni borrar un mensaje: lo escrito queda.', 'Mandar fotos, audios o archivos: para eso están el material y las piezas.'],

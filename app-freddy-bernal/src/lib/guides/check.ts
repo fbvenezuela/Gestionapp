@@ -74,34 +74,6 @@ export const LABEL_ALLOW: string[] = [
   'Rojo',
 ];
 
-// Mensajes' screens (WP-B) are built in parallel with these guides (R3, §10): their labels, written from the design
-// (§5.3), are allowed here until WP-B merges. The integration step REMOVES this list; from then on they must exist.
-export const LABEL_PENDING_CHAT: string[] = [
-  'Todo el equipo',
-  'Una persona',
-  'Un grupo',
-  'Nombre del grupo',
-  'Crear grupo',
-  'Entendido',
-  'Enviar',
-  'Enviar igual',
-  'Corregir',
-  'Sí, es del video',
-  'Silenciar',
-  'Quitar el silencio',
-  'Solo el jefe escribe en Todo el equipo',
-  'Mías',
-  'Todas',
-  'Ver anteriores',
-  'Mensajes nuevos',
-  'Reintentar',
-  'Ver el aviso',
-  'Pueden escribirse',
-  'No pueden',
-  'Eres parte',
-  'Mensajes nuevos del equipo',
-];
-
 // First names and places of the demo seed: never in a guide or a tutorial (they describe the work, not the demo).
 export const DEMO_WORDS: string[] = [
   'Daniela',

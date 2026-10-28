@@ -12,7 +12,6 @@ import {
   DEMO_WORDS,
   LABEL_ALLOW,
   LABEL_PATTERNS,
-  LABEL_PENDING_CHAT,
   balancedQuotes,
   concreteDateTime,
   hasPhone,
@@ -88,18 +87,12 @@ describe('las etiquetas «…» existen en las pantallas (U16)', () => {
 
   it('cada etiqueta existe como texto en src/ (fuera de src/lib/guides), o es una contada o un chip armado en código', () => {
     const missing = new Set<string>();
-    for (const t of ALL_TEXTS) for (const l of quotedLabels(t.text)) if (!labelFound(l) && !LABEL_PENDING_CHAT.includes(l)) missing.add(`«${l}» (${t.where})`);
+    for (const t of ALL_TEXTS) for (const l of quotedLabels(t.text)) if (!labelFound(l)) missing.add(`«${l}» (${t.where})`);
     expect([...missing]).toEqual([]);
   });
 
   it('los patrones de las contadas siguen armándose en el código', () => {
     for (const p of LABEL_PATTERNS) expect(SOURCE.includes(p.source), p.source).toBe(true);
-  });
-
-  it('las pendientes de Mensajes (WP-B) son solo etiquetas de Mensajes que todavía no están', () => {
-    // When WP-B merges they exist; the integration step then removes LABEL_PENDING_CHAT.
-    const used = new Set(ALL_TEXTS.flatMap((t) => quotedLabels(t.text)));
-    expect(LABEL_PENDING_CHAT.filter((l) => !used.has(l)), 'no se usan: sácalas de la lista').toEqual([]);
   });
 });
 
