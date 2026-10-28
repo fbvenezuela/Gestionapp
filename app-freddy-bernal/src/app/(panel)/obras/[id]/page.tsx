@@ -129,7 +129,9 @@ export default async function ObraPage({ params, searchParams }: { params: Promi
                   ? 'Cuando la guardes con «Guardar y avisar al jefe», el jefe o el despacho le ponen fecha y hora.'
                   : ficha.stage === 'to_schedule'
                     ? event && !event.live
-                      ? 'Se canceló la visita: otra vez por ponerle fecha. La ponen el jefe o el despacho.'
+                      ? event.boss_decision === 'rejected' && !event.cancelled_at
+                        ? 'El jefe rechazó la visita: otra vez por ponerle fecha. La ponen el jefe o el despacho.'
+                        : 'Se canceló la visita: otra vez por ponerle fecha. La ponen el jefe o el despacho.'
                       : 'Por ponerle fecha: la ponen el jefe o el despacho.'
                     : ficha.stage === 'scheduled' || ficha.stage === 'done'
                       ? s.mfaOk

@@ -13,13 +13,18 @@ import {
   noticeEventTitle,
   noticeRecipients,
   overwrittenNotice,
+  rejectedNotice,
+  scheduledNotice,
+  toScheduleNotice,
 } from '@/lib/domain/agenda-notices';
 import { datedMessage, datedTitle } from '@/lib/domain/event-title';
 import { labelList, same } from '@/lib/domain/agenda-merge';
 import {
-  BRIEF_COLUMNS, CLASH, EVENT_COLUMNS, afterAgendaSave, clashWith, columnsOf, eventPeople, nameOf, saveAgendaRow, saveMessage, saveSchedule,
-  scheduleInput, sendAgendaNotice,
+  BRIEF_COLUMNS, CLASH, EVENT_COLUMNS, afterAgendaSave, clashWith, columnsOf, eventPeople, fichaBackInQueue, managers, namesOf, overlapMessage,
+  saveAgendaRow, saveMessage, saveSchedule, scheduleInput, sendAgendaNotice,
 } from './agenda-shared';
+import { lastWriters } from '../data/agenda-write';
+import { mergeBlocks, sameContent, type BoardBlock } from '@/lib/domain/storyboard-merge';
 import { revSchema, scheduleShape, text, titleField, toRange } from './schemas';
 
 // Event titles never carry the event's when (rule 4): the checks are in domain/event-title.ts.
@@ -173,8 +178,8 @@ export async function updateBrief(raw: unknown) {
       );
       if (!r) throw new UserError('No tienes permiso para cambiar la ficha.');
       save = {
-        found: true, rev: r.rev, changed: Object.keys(mine).filter((k) => !same(mine[k], '')), overlap: [], overwrittenUserId: null,
-        eventId: i.id, table: 'event_brief', actorId: actor.id, actorName: actor.name, people: (await eventPeople(sql, i.id))!, overwrittenName: null, moved: false,
+        found: true, rev: r.rev, changed: Object.keys(mine).filter((k) => !same(mine[k], '')), overlap: [], overwritten: [],
+        eventId: i.id, table: 'event_brief', actorId: actor.id, actorName: actor.name, people: (await eventPeople(sql, i.id))!, overwrittenNames: [], moved: false,
       };
     }
     return { save, message: saveMessage(save, 'Ficha guardada.') };
@@ -189,17 +194,33 @@ export async function bossDecide(raw: unknown) {
     z.object({ id: z.string().uuid(), priority: z.coerce.number().int().min(1).max(10).nullable(), decision: z.enum(['pending', 'accepted', 'rejected']) }),
     raw,
     async (sql, i, s) => {
-      // Deciding is the boss's alone (the column guard says so too).
+      // Deciding is the boss's alone, with 2FA (the column guard: can_approve()).
       if (!s.roles.includes('boss')) throw new UserError('Solo el jefe decide.');
-      const before = await sql.one<{ boss_decision: string; title: string; created_by: string | null }>(
-        `select boss_decision, title, created_by from public.events where id = $1`,
+      const before = await sql.one<{ boss_decision: string; title: string; created_by: string | null; obra_ficha_id: string | null; community_report_id: string | null }>(
+        `select boss_decision, title, created_by, obra_ficha_id, community_report_id from public.events where id = $1`,
         [i.id],
       );
-      const r = await sql.query(`update public.events set priority = $2, boss_decision = $3 where id = $1 returning id`, [i.id, i.priority, i.decision]);
+      let r: { rev: number }[];
+      try {
+        r = await sql.query<{ rev: number }>(`update public.events set priority = $2, boss_decision = $3 where id = $1 returning rev`, [i.id, i.priority, i.decision]);
+      } catch (e) {
+        // Taking back a rejected visit whose ficha got another date in between: one live visit per ficha.
+        if ((e as { code?: string }).code === '23505') throw new UserError('Esa ficha ya tiene otra visita con fecha: cancela o rechaza esa primero.');
+        throw e;
+      }
       if (!r.length || !before) throw new UserError('No autorizado.');
-      return { changed: before.boss_decision !== i.decision, title: before.title, createdBy: before.created_by, actorId: s.userId };
+      const changed = before.boss_decision !== i.decision;
+      const fromFicha = !!(before.obra_ficha_id || before.community_report_id);
+      // Rejected (or taken back) and born from a ficha: the database moved the ficha (events_source_sync).
+      const rejected = changed && fromFicha && i.decision === 'rejected';
+      const back = changed && fromFicha && before.boss_decision === 'rejected';
+      return {
+        changed, title: before.title, createdBy: before.created_by, actorId: s.userId, rev: r[0].rev,
+        obraFichaId: before.obra_ficha_id, communityReportId: before.community_report_id, rejected, back,
+        ficha: rejected ? await fichaBackInQueue(sql, before) : null,
+      };
     },
-    { revalidate: ['/agenda', '/eventos', '/jefe'] },
+    { revalidate: ['/agenda', '/eventos', '/jefe', '/obras', '/reportes', '/municipios', '/hoy'] },
   ).then(async (r) => {
     const i = raw as { id: string; decision: string };
     if (r.ok && r.data?.changed && (i.decision === 'accepted' || i.decision === 'rejected')) {
@@ -209,6 +230,24 @@ export async function bossDecide(raw: unknown) {
       await sendAgendaNotice(decisionNotice({ id: i.id, title }, i.decision, new Date().toISOString().slice(0, 16)), async () =>
         noticeRecipients([...(await withAnyRole([createdBy])), ...(await usersWithRole('dispatch'))], actorId),
       );
+    }
+    if (r.ok && r.data) {
+      const d = r.data;
+      const ev = { id: i.id, title: d.title };
+      const owners = async () => (d.obraFichaId ? await usersWithRole('ivt') : await usersWithRole('politics'));
+      const link = d.obraFichaId ? `/obras/${d.obraFichaId}` : `/reportes/${d.communityReportId}`;
+      if (d.rejected) {
+        // Whoever loaded the ficha got «Ya tiene fecha»: now it has none (without the date). The boss and despacho get
+        // «Por ponerle fecha» again, as a new notice (its key names this rejection), like after a cancel.
+        await sendAgendaNotice(rejectedNotice(ev, link, String(d.rev)), async () => noticeRecipients(await owners(), d.actorId));
+        if (d.ficha) {
+          const f = d.ficha;
+          await sendAgendaNotice(toScheduleNotice(f, `reject-${i.id}-${d.rev}`), async () => noticeRecipients(await managers(), d.actorId));
+        }
+      } else if (d.back) {
+        // Taken back: it has its date again (the IVT opens the visit to see it; política gets it without the date).
+        await sendAgendaNotice(scheduledNotice(ev, d.obraFichaId ? `/eventos/${i.id}` : link, `back-${d.rev}`), async () => noticeRecipients(await owners(), d.actorId));
+      }
     }
     return r;
   });
@@ -276,8 +315,9 @@ const storyboardSchema = z.object({
   eventId: z.string().uuid(),
   speech: text(10000),
   blocks: z.array(blockSchema).max(60),
-  // What the editor started from: the speech and the blocks. A block list nobody else touched is replaced as is;
-  // one this person did not touch is left as the other person saved it.
+  // What the editor started from: the speech and the blocks. Blocks merge by id (domain/storyboard-merge.ts): a
+  // block someone else added stays, only what this person removed is removed, and a block this person did not touch
+  // is left as the other person saved it.
   rev: z.coerce.number().int().min(1).optional(),
   base: z.object({ speech: z.string().max(10000), blocks: z.array(blockSchema.partial()).max(60) }).optional(),
 });
@@ -287,39 +327,55 @@ export async function saveStoryboard(raw: unknown) {
     for (const b of i.blocks) {
       if (b.fact && !b.factSource) throw new UserError('Cada dato que dice el jefe necesita su fuente.');
     }
-    const cur = await sql.one<{ id: string; speech: string; updated_by: string | null }>(
-      `select id, speech, updated_by from public.storyboards where event_id = $1 for update`,
-      [i.eventId],
-    );
-    const curBlocks: BlockIn[] = cur
-      ? (await sql.query<{ id: string; shot: string; angle: string; boss_line: string; broll: string; fact: string; fact_source: string }>(
-          `select id, shot, angle, boss_line, broll, fact, fact_source from public.storyboard_blocks where storyboard_id = $1 and deleted_at is null order by position`,
+    const cur = await sql.one<{ id: string; speech: string }>(`select id, speech from public.storyboards where event_id = $1 for update`, [i.eventId]);
+    const curRows = cur
+      ? await sql.query<{ id: string; position: number; shot: string; angle: string; boss_line: string; broll: string; fact: string; fact_source: string }>(
+          `select id, position, shot, angle, boss_line, broll, fact, fact_source from public.storyboard_blocks where storyboard_id = $1 and deleted_at is null order by position, created_at`,
           [cur.id],
-        )).map((b) => ({ id: b.id, shot: b.shot, angle: b.angle, bossLine: b.boss_line, broll: b.broll, fact: b.fact, factSource: b.fact_source }))
+        )
       : [];
-    const overlap: string[] = [];
+    const curBlocks: BoardBlock[] = curRows.map((b) => ({ id: b.id, shot: b.shot, angle: b.angle, bossLine: b.boss_line, broll: b.broll, fact: b.fact, factSource: b.fact_source }));
     let speech = i.speech;
+    let speechOverlap = false;
     let writeBlocks = true;
-    if (i.base && cur) {
-      if (same(i.speech, i.base.speech)) speech = cur.speech;
-      else if (!same(cur.speech, i.base.speech) && !same(cur.speech, i.speech)) overlap.push('speech');
-      writeBlocks = !sameBlocks(i.blocks, i.base.blocks);
-      if (writeBlocks && !sameBlocks(curBlocks, i.base.blocks) && !sameBlocks(curBlocks, i.blocks)) overlap.push('blocks');
+    // Without a base (an old form, or the first save) everything sent is this person's: the list is theirs.
+    const base = i.base && cur ? i.base : null;
+    if (base && cur) {
+      if (same(i.speech, base.speech)) speech = cur.speech;
+      else if (!same(cur.speech, base.speech) && !same(cur.speech, i.speech)) speechOverlap = true;
+      writeBlocks = !sameBlocks(i.blocks, base.blocks);
     }
+    const merged = writeBlocks ? mergeBlocks(base ? base.blocks : curBlocks, i.blocks, curBlocks) : null;
+    // Who wrote what this save replaces (read before this save's own audit rows): the speech's last writer, and
+    // each overlapping block's. This same person (another tab) is nobody to tell.
+    const writers: { userId: string; field: 'speech' | 'blocks' }[] = [];
+    if (speechOverlap) {
+      const w = (await lastWriters(sql, 'storyboards', i.eventId, ['speech'])).speech;
+      if (w !== s.userId) writers.push({ userId: w ?? '', field: 'speech' });
+    }
+    if (merged?.overlap.length) {
+      const w = await lastWriters(sql, 'storyboard_blocks', i.eventId, merged.overlap);
+      const others = merged.overlap.map((id) => w[id] ?? '').filter((u) => u !== s.userId);
+      for (const u of new Set(others)) writers.push({ userId: u, field: 'blocks' });
+    }
+    const overlap = [...new Set(writers.map((x) => x.field))];
     const sb = await sql.one<{ id: string; rev: number }>(
       `insert into public.storyboards (event_id, speech, updated_by) values ($1, $2, auth.uid())
        on conflict (event_id) do update set speech = excluded.speech, updated_by = auth.uid() returning id, rev`,
       [i.eventId, speech],
     );
     if (!sb) throw new UserError('No tienes permiso para el storyboard.');
-    if (writeBlocks) {
-      const keep = i.blocks.filter((b) => b.id).map((b) => b.id!);
-      await sql.query(
-        `update public.storyboard_blocks set deleted_at = now() where storyboard_id = $1 and deleted_at is null and not (id = any($2::uuid[]))`,
-        [sb.id, keep],
-      );
-      for (const [pos, b] of i.blocks.entries()) {
-        if (b.id) {
+    if (merged) {
+      if (merged.remove.length) {
+        await sql.query(`update public.storyboard_blocks set deleted_at = now() where storyboard_id = $1 and deleted_at is null and id = any($2::uuid[])`, [sb.id, merged.remove]);
+      }
+      // Only rows that really change are written: each write is a line in the history.
+      const was = new Map(curRows.map((r) => [r.id, r]));
+      for (const [pos, b] of merged.blocks.entries()) {
+        const row = b.id ? was.get(b.id) : undefined;
+        if (row) {
+          const unchanged = row.position === pos && sameContent(b, { shot: row.shot, angle: row.angle, bossLine: row.boss_line, broll: row.broll, fact: row.fact, factSource: row.fact_source });
+          if (unchanged) continue;
           await sql.query(
             `update public.storyboard_blocks set position = $2, shot = $3, angle = $4, boss_line = $5, broll = $6, fact = $7, fact_source = $8 where id = $1`,
             [b.id, pos, b.shot, b.angle, b.bossLine, b.broll, b.fact, b.factSource],
@@ -336,22 +392,26 @@ export async function saveStoryboard(raw: unknown) {
     if (s.roles.some((x) => x === 'social' || x === 'boss')) {
       await sql.query(`update public.events set work_status = 'recording' where id = $1 and work_status in ('brief', 'storyboard')`, [i.eventId]);
     }
-    // Someone else saved the same part since this person opened it: this one wins, that person is told.
-    const lastBy = overlap.length && cur?.updated_by && cur.updated_by !== s.userId ? cur.updated_by : null;
+    // Someone else saved the same part since this person opened it: this one wins, those people are told (each with
+    // the part they had changed).
     const people = await eventPeople(sql, i.eventId);
-    const otherName = await nameOf(sql, lastBy);
+    const told = new Map<string, string[]>();
+    for (const w of writers) if (w.userId) told.set(w.userId, [...(told.get(w.userId) ?? []), w.field]);
+    const names = await namesOf(sql, [...told.keys()]);
+    const stamp = `storyboards:${sb.rev}:${contentStamp(speech, merged?.blocks ?? i.blocks)}`;
     return {
-      overwritten: lastBy ? { userId: lastBy, title: people?.title ?? '', labels: labelList(overlap), stamp: `storyboards:${sb.rev}:${contentStamp(speech, i.blocks)}` } : null,
+      overwritten: [...told].map(([userId, fields]) => ({ userId, title: people?.title ?? '', labels: labelList(fields), stamp })),
       actor: { id: s.userId, name: s.name },
-      message: lastBy ? `Guardado. ${otherName ?? 'Otra persona'} también había cambiado ${labelList(overlap)}: quedó lo tuyo, y lo de antes está en el historial.` : 'Storyboard guardado.',
+      message: overlap.length ? overlapMessage(names, labelList(overlap)) : 'Storyboard guardado.',
     };
   }, { revalidate: ['/eventos', '/hoy'] }).then(async (r) => {
-    if (r.ok && r.data?.overwritten) {
-      const o = r.data.overwritten;
+    if (r.ok && r.data) {
       const i = raw as { eventId: string };
-      await sendAgendaNotice(overwrittenNotice({ id: i.eventId, title: o.title }, r.data.actor.name, o.labels, o.stamp), async () =>
-        noticeRecipients([o.userId], r.data!.actor.id),
-      );
+      for (const o of r.data.overwritten) {
+        await sendAgendaNotice(overwrittenNotice({ id: i.eventId, title: o.title }, r.data.actor.name, o.labels, o.stamp), async () =>
+          noticeRecipients([o.userId], r.data!.actor.id),
+        );
+      }
     }
     return r.ok ? { ...r, message: r.data?.message } : r;
   });

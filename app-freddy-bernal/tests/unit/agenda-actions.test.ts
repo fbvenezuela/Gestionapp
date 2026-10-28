@@ -231,6 +231,127 @@ describe('dos personas editan el mismo evento: gana el último, con aviso al otr
   });
 });
 
+// Review of the shared agenda (wave C): whom the overwrite notice goes to, the date and the duration merged as the
+// form shows them, storyboard blocks merged by id, and a rejected visit told to whoever loaded its ficha.
+describe('la revisión de la agenda compartida', () => {
+  const newEvent = async (time = '10:00') => {
+    as('dispatch');
+    const r = await events.createEvent({
+      title: `Evento de la revisión ${++n}`, placeName: 'Sitio de prueba', municipality: '', summary: 'Resumen inicial', categoryId: '', urgency: 2, cameraUserId: t.ids.camera,
+      allowOverlap: true, ...when(45, time), exactAddress: 'Calle de prueba 2 (demo)', directions: '', siteContacts: '',
+      workDescription: 'Obra (demo)', ledBy: '', inCharge: '', achievements: '', keyFacts: '', protocol: '', notes: '',
+    });
+    h.notices.length = 0;
+    return dataOf<{ id: string }>(r).id;
+  };
+  const revOf = (table: string, col: string, id: string) => t.system(async (sql) => (await sql.one<{ rev: number }>(`select rev from public.${table} where ${col} = $1`, [id]))!.rev);
+  const range = (id: string) =>
+    t.system(async (sql) => {
+      const r = (await sql.one<{ starts_at: Date; ends_at: Date }>(`select starts_at, ends_at from public.event_schedule where event_id = $1`, [id]))!;
+      return [new Date(r.starts_at).toISOString(), new Date(r.ends_at).toISOString()];
+    });
+  const Z = (plus: number, hhmm: string) => new Date(`${day(plus)}T${hhmm}:00Z`).toISOString();
+
+  it('«cambió lo mismo que tú» le llega a quien cambió ese campo, aunque Redes haya guardado el evento después', async () => {
+    const id = await newEvent();
+    const rev = await revOf('events', 'id', id);
+    const base = { title: `Evento de la revisión ${n}`, placeName: 'Sitio de prueba', municipality: '', summary: 'Resumen inicial', categoryId: '', urgency: '2' };
+    as('boss');
+    expect((await events.updateEvent({ id, ...base, title: 'Título del jefe (demo)', urgency: 2, rev, base })).ok).toBe(true);
+    as('social');
+    expect((await events.setWorkStatus({ id, status: 'storyboard' })).ok).toBe(true);
+    h.notices.length = 0;
+    as('dispatch');
+    const r = await events.updateEvent({ id, ...base, title: 'Título del despacho (demo)', urgency: 2, rev, base });
+    expect((r as { message?: string }).message).toMatch(/^Guardado\. Jefe \(demo\) también había cambiado Título: quedó lo tuyo/);
+    const [o, ...rest] = sent('agenda_overwritten');
+    expect(rest).toHaveLength(0);
+    expect(o.userIds).toEqual([t.ids.boss]);
+    expect(o.body).toMatch(/^Título\./);
+    // Redes changed nothing of it: no notice for Redes, and the boss does not also get the optional «cambió».
+    expect(notices().flatMap((x) => x.userIds)).not.toContain(t.ids.social);
+    expect(sent('agenda_changed').flatMap((x) => x.userIds)).not.toContain(t.ids.boss);
+  });
+
+  it('el jefe mueve el evento y el despacho solo cambia la duración: queda la hora del jefe con la duración del despacho', async () => {
+    const schedBase = (time: string) => ({ ...when(45, time), exactAddress: 'Calle de prueba 2 (demo)', directions: '', siteContacts: '' });
+    // Earlier: 08:00 moved to 06:00; despacho sets 180 min on its old 08:00. 06:00–09:00 (Táchira = UTC-4).
+    const a = await newEvent('08:00');
+    const ra = await revOf('event_schedule', 'event_id', a);
+    as('boss');
+    expect((await agenda.moveEvent({ id: a, ...when(45, '06:00'), rev: ra, base: when(45, '08:00'), allowOverlap: true })).ok).toBe(true);
+    as('dispatch');
+    const r1 = await events.updateSchedule({ id: a, ...schedBase('08:00'), durationMin: 180, rev: ra, base: schedBase('08:00') });
+    expect(r1, JSON.stringify(r1)).toMatchObject({ ok: true, message: 'Guardado.' });
+    expect(await range(a)).toEqual([Z(45, '10:00'), Z(45, '13:00')]);
+    // Later: 08:00 moved to 12:00; despacho picks 30 min. 12:00–12:30, never an end before the start.
+    const b = await newEvent('08:00');
+    const rb = await revOf('event_schedule', 'event_id', b);
+    as('boss');
+    expect((await agenda.moveEvent({ id: b, ...when(45, '12:00'), rev: rb, base: when(45, '08:00'), allowOverlap: true })).ok).toBe(true);
+    as('dispatch');
+    const r2 = await events.updateSchedule({ id: b, ...schedBase('08:00'), durationMin: 30, rev: rb, base: schedBase('08:00') });
+    expect(r2, JSON.stringify(r2)).toMatchObject({ ok: true, message: 'Guardado.' });
+    expect(await range(b)).toEqual([Z(45, '16:00'), Z(45, '16:30')]);
+    expect(sent('agenda_overwritten')).toHaveLength(0);
+  });
+
+  it('el storyboard: Redes y el jefe agregan un bloque a la vez; quedan los dos, y guardar solo el discurso no toca los bloques', async () => {
+    const id = await newEvent();
+    const blank = { angle: '', bossLine: '', broll: '', fact: '', factSource: '' };
+    as('social');
+    expect((await events.saveStoryboard({ eventId: id, speech: 'Saludo (demo).', blocks: [{ shot: 'Plano general', ...blank }] })).ok).toBe(true);
+    const live = () =>
+      t.system((sql) => sql.query<{ id: string; shot: string }>(
+        `select b.id, b.shot from public.storyboard_blocks b join public.storyboards s on s.id = b.storyboard_id where s.event_id = $1 and b.deleted_at is null order by b.position`, [id]));
+    const [first] = await live();
+    const base = { speech: 'Saludo (demo).', blocks: [{ id: first.id, shot: 'Plano general', ...blank }] };
+    const rev = await revOf('storyboards', 'event_id', id);
+    expect(await events.saveStoryboard({ eventId: id, speech: base.speech, blocks: [...base.blocks, { shot: 'Toma de Redes (demo)', ...blank }], rev, base })).toMatchObject({ ok: true, message: 'Storyboard guardado.' });
+    h.notices.length = 0;
+    as('boss');
+    expect(await events.saveStoryboard({ eventId: id, speech: base.speech, blocks: [...base.blocks, { shot: 'Primer plano del jefe (demo)', ...blank }], rev, base })).toMatchObject({ ok: true, message: 'Storyboard guardado.' });
+    expect((await live()).map((b) => b.shot)).toEqual(['Plano general', 'Toma de Redes (demo)', 'Primer plano del jefe (demo)']);
+    expect(sent('agenda_overwritten')).toHaveLength(0);
+    // Redes changes only the speech, from its own list: no block is written again (no new line in the history).
+    const blockRows = () => t.system(async (sql) => (await sql.one<{ n: number }>(
+      `select count(*)::int as n from public.audit_log where table_name = 'storyboard_blocks' and row_id in (
+         select b.id::text from public.storyboard_blocks b join public.storyboards s on s.id = b.storyboard_id where s.event_id = $1)`, [id]))!.n);
+    const before = await blockRows();
+    const redesList = { speech: base.speech, blocks: [...base.blocks, { id: (await live())[1].id, shot: 'Toma de Redes (demo)', ...blank }] };
+    as('social');
+    expect((await events.saveStoryboard({ eventId: id, ...redesList, speech: 'Saludo nuevo (demo).', rev, base: redesList })).ok).toBe(true);
+    expect(await blockRows()).toBe(before);
+    expect((await live()).map((b) => b.shot)).toEqual(['Plano general', 'Toma de Redes (demo)', 'Primer plano del jefe (demo)']);
+  });
+
+  it('el jefe rechaza una visita de obra: el IVT se entera sin la fecha y la obra vuelve a «Por ponerle fecha» con un aviso nuevo', async () => {
+    const obra = await readyObra();
+    as('dispatch');
+    const ev = dataOf<{ eventId: string }>(await agenda.scheduleObraFicha(sched(obra))).eventId;
+    h.notices.length = 0;
+    as('boss');
+    expect((await events.bossDecide({ id: ev, priority: null, decision: 'rejected' })).ok).toBe(true);
+    const [rej, ...more] = sent('event_cancelled');
+    expect(more).toHaveLength(0);
+    expect(rej.userIds).toEqual([t.ids.ivt]);
+    expect(rej.link).toBe(`/obras/${obra}`);
+    expect(rej.title).toMatch(/^El jefe rechazó la fecha: Visita de obra: prueba/);
+    const [again] = sent('to_schedule');
+    expect(again.userIds).toEqual([t.ids.dispatch]);
+    expect(again.key).toContain(`reject-${ev}`);
+    expect(sent('event_decided')[0].userIds).toEqual([t.ids.dispatch]);
+    expect(await t.system((sql) => sql.one(`select stage from public.obra_fichas where id = $1`, [obra]))).toEqual({ stage: 'to_schedule' });
+    noSecrets();
+    // Taken back: it has its date again; the IVT gets «Ya tiene fecha» (a new one).
+    h.notices.length = 0;
+    expect((await events.bossDecide({ id: ev, priority: 5, decision: 'accepted' })).ok).toBe(true);
+    expect(sent('agenda_scheduled').map((x) => x.userIds)).toEqual([[t.ids.ivt]]);
+    expect(await t.system((sql) => sql.one(`select stage from public.obra_fichas where id = $1`, [obra]))).toEqual({ stage: 'scheduled' });
+    noSecrets();
+  });
+});
+
 describe('administración en la agenda: lee y borra, no la mueve', () => {
   it('su pieza y su storyboard de un evento se guardan sin mover el estado del evento (eso es de Redes y del jefe)', async () => {
     const pieces = await import('@/lib/actions/pieces');

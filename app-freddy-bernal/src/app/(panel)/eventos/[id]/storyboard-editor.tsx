@@ -18,6 +18,8 @@ const emptyBlock = (): Block => ({ shot: '', angle: '', bossLine: '', broll: '',
 
 type Board = { speech: string; blocks: Block[] };
 // What the phone keeps: the storyboard as typed, plus what it was when this person started (base) and its version.
+// base null = nothing of this person's is pending: the editor shows the server's storyboard as it is now (after a
+// save, the refreshed one), and the next change starts from it.
 type BoardDraft = Board & { base: Board | null; baseRev: number | null };
 
 export function StoryboardEditor({ eventId, canEdit, speech, blocks, facts, rev }: { eventId: string; canEdit: boolean; speech: string; blocks: DbBlock[]; facts: string; rev: number | null }) {
@@ -25,17 +27,18 @@ export function StoryboardEditor({ eventId, canEdit, speech, blocks, facts, rev 
     speech,
     blocks: blocks.map((b) => ({ id: b.id, shot: b.shot, angle: b.angle, bossLine: b.boss_line, broll: b.broll, fact: b.fact, factSource: b.fact_source })),
   };
-  const { value: draft, setValue: setDraft, restored, clear } = useDraft<BoardDraft>(`storyboard:${eventId}`, { ...server, base: null, baseRev: null }, {
+  const clean = (): BoardDraft => ({ ...server, base: null, baseRev: null });
+  const { value: draft, setValue: setDraft, restored, reset } = useDraft<BoardDraft>(`storyboard:${eventId}`, clean(), {
     restore: (saved) => {
       const d = saved as Partial<BoardDraft> | null;
       if (!d || typeof d.speech !== 'string' || !Array.isArray(d.blocks)) return null;
       if (sameJson({ speech: d.speech, blocks: d.blocks }, server)) return null;
-      return { speech: d.speech, blocks: d.blocks as Block[], base: d.base ?? null, baseRev: typeof d.baseRev === 'number' ? d.baseRev : null };
+      return { speech: d.speech, blocks: d.blocks as Block[], base: d.base ?? server, baseRev: typeof d.baseRev === 'number' ? d.baseRev : null };
     },
   });
   const [kept, setKept] = useState(false);
-  const value: Board = { speech: draft.speech, blocks: draft.blocks };
-  // Every change remembers where this person started (the server's storyboard when the editor opened).
+  const value: Board = draft.base ? { speech: draft.speech, blocks: draft.blocks } : server;
+  // Every change remembers where this person started (the server's storyboard when the first change was made).
   const setValue = (next: Board) => setDraft((d) => ({ ...next, base: d.base ?? server, baseRev: d.baseRev ?? rev }));
   // Someone else saved the storyboard since this person started typing.
   const changedMeanwhile = restored && !kept && !!draft.base && !sameJson(draft.base, server);
@@ -63,7 +66,7 @@ export function StoryboardEditor({ eventId, canEdit, speech, blocks, facts, rev 
         run(() => saveStoryboard({ eventId, ...value, rev: draft.baseRev ?? rev ?? undefined, base: draft.base ?? server }), {
           onOk: () => {
             setKept(false);
-            clear();
+            reset(clean());
           },
         });
       }}
@@ -76,10 +79,7 @@ export function StoryboardEditor({ eventId, canEdit, speech, blocks, facts, rev 
               type="button"
               size="sm"
               variant="secondary"
-              onClick={() => {
-                clear();
-                setDraft({ ...server, base: null, baseRev: null });
-              }}
+              onClick={() => reset(clean())}
             >
               Usar lo de él
             </Button>

@@ -30,7 +30,8 @@ export function clearDrafts(storage: Pick<Storage, 'length' | 'key' | 'removeIte
 }
 
 // Keeps what someone is typing in the phone (localStorage) until it is sent, so a
-// power cut or lost signal never loses work. `clear()` after a successful save (and on «Cancelar»).
+// power cut or lost signal never loses work. `clear()` after a successful save (and on «Cancelar»); `reset(next)`
+// when the form stays open on the same page and must start again.
 //   * Nothing is written until the person really changes something: opening a form and leaving keeps no draft
 //     (a draft of the starting values would later hide someone else's newer save).
 //   * A saved draft equal to the starting values is thrown away, not restored.
@@ -79,6 +80,7 @@ export function useDraft<T>(key: string, initial: T, opts: { restore?: (saved: u
     setValue(next);
   }, []);
 
+  // Forget the copy in the phone; what is on screen stays (a form that leaves the page after sending).
   const clear = useCallback(() => {
     dirty.current = false;
     try {
@@ -87,7 +89,18 @@ export function useDraft<T>(key: string, initial: T, opts: { restore?: (saved: u
     setRestored(false);
   }, [storageKey]);
 
-  return { value, setValue: update, restored, clear };
+  // Forget the copy in the phone AND start again from `next` (not a change by the person: nothing is kept). For an
+  // editor that stays on the page after a save (the iPad on the event): its next save must start from what the
+  // server has now, not from the values and version this one started from.
+  const reset = useCallback(
+    (next: T) => {
+      clear();
+      setValue(next);
+    },
+    [clear],
+  );
+
+  return { value, setValue: update, restored, clear, reset };
 }
 
 // The same data, whatever the order of the keys.

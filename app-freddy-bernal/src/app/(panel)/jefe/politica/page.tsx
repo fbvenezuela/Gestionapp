@@ -97,7 +97,7 @@ export default async function BossPolitics() {
                   <p className="font-mono text-base font-semibold first-letter:uppercase text-accent-ink">{fmtDateTime(e.starts_at).split(',')[0]} · {fmtTime(e.starts_at)}</p>
                   <p className="text-xl font-semibold">{e.title}</p>
                   <p className="flex items-center gap-1 text-base text-text-2"><MapPin className="h-4 w-4" aria-hidden /> {e.place_name}</p>
-                  <div className="mt-2 flex gap-2">
+                  <div className="mt-2 flex flex-wrap gap-2">
                     <Chip tone={BOSS_DECISION[e.boss_decision].tone}>{BOSS_DECISION[e.boss_decision].label}</Chip>
                     {e.kind !== 'event' ? <Chip tone="info">{EVENT_KIND[e.kind]}</Chip> : null}
                     {e.priority ? <Chip tone="accent">{e.priority}/10</Chip> : null}

@@ -20,7 +20,7 @@ import {
 // «Dejar lo mío». The save sends the starting version and values, so the server writes only this person's changes
 // and tells the other one when the same field was overwritten (domain/agenda-merge.ts).
 export function useEditDraft(key: string, current: Record<string, Value>, rev: number | null) {
-  const { value: d, setValue, restored, clear } = useDraft<EditDraft>(key, emptyDraft(), { restore: (saved) => restoreEditDraft(saved, current) });
+  const { value: d, setValue, restored, reset } = useDraft<EditDraft>(key, emptyDraft(), { restore: (saved) => restoreEditDraft(saved, current) });
   const [kept, setKept] = useState<string[]>([]);
   const conflicts = draftConflicts(d, current).filter((k) => !kept.includes(k));
   return {
@@ -33,9 +33,12 @@ export function useEditDraft(key: string, current: Record<string, Value>, rev: n
     restored,
     dirty: Object.keys(d.values).length > 0,
     payload: () => savePayload(d, current, rev),
+    // After a save that worked: nothing of this person's is pending, so the editor shows the server's values (they
+    // arrive with the refresh) and the next change starts from them and their new version. Keeping the old base and
+    // version would send the field saved before again, with a stale version (and overwrite whoever saved since).
     clear: () => {
       setKept([]);
-      clear();
+      reset(emptyDraft());
     },
   };
 }

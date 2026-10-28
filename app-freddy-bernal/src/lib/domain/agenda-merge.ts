@@ -45,12 +45,84 @@ export function mergePatch(current: Row, base: Row | null | undefined, mine: Row
   return { write, overlap };
 }
 
-// Who to tell that their value was overwritten: the last person who saved the row, when the row moved since this
-// person opened it, both changed the same field, and it was someone else.
-export function overwrittenUser(r: { rowRev: number; sentRev: number | null | undefined; overlap: string[]; lastBy: string | null; me: string }): string | null {
-  if (r.sentRev === null || r.sentRev === undefined) return null;
-  if (r.rowRev === r.sentRev || !r.overlap.length || !r.lastBy || r.lastBy === r.me) return null;
-  return r.lastBy;
+// The date and the duration, as the form shows them (not as two instants): «Fecha y hora» is the start and
+// «Duración» is the end minus the start. Merging ends_at as an instant would put one person's end on the other
+// person's new start (a length nobody chose, or an end before the start).
+//   * only the duration changed: the end follows the start there is NOW;
+//   * only the date or time changed: the duration there is now is kept;
+//   * both changed: start and end go together (the last save wins for both).
+// `changed` names what changed in those terms (a move that keeps the duration does not change «Duración»).
+export function mergeTimes(current: Row, base: Row | null | undefined, mine: Row): Merge & { changed: string[] } {
+  const at = (v: unknown) => {
+    const n = norm(v);
+    return typeof n === 'number' ? n : null;
+  };
+  const none = { write: {}, overlap: [], changed: [] };
+  const ms = at(mine.starts_at);
+  const me = at(mine.ends_at);
+  if (ms === null || me === null) return none;
+  const cs = at(current.starts_at);
+  const ce = at(current.ends_at);
+  const mineDur = me - ms;
+  const curDur = cs !== null && ce !== null ? ce - cs : null;
+  const bs = base ? at(base.starts_at) : null;
+  const be = base ? at(base.ends_at) : null;
+  if (bs === null || be === null || cs === null || curDur === null) {
+    // No base (an old form) or nothing there yet: what differs from now is written, start and end together.
+    const changed = [...(ms !== cs ? ['starts_at'] : []), ...(mineDur !== curDur ? ['ends_at'] : [])];
+    return { write: changed.length ? { starts_at: mine.starts_at, ends_at: mine.ends_at } : {}, overlap: [], changed };
+  }
+  const baseDur = be - bs;
+  const moved = ms !== bs;
+  const resized = mineDur !== baseDur;
+  if (!moved && !resized) return none;
+  const start = moved ? ms : cs;
+  const end = moved && resized ? me : moved ? ms + curDur : cs + mineDur;
+  const overlap: string[] = [];
+  if (moved && cs !== bs && cs !== ms) overlap.push('starts_at');
+  if (resized && curDur !== baseDur && curDur !== mineDur) overlap.push('ends_at');
+  const write: Row = {};
+  if (start !== cs) write.starts_at = new Date(start).toISOString();
+  if (end !== ce) write.ends_at = new Date(end).toISOString();
+  const changed = [...(start !== cs ? ['starts_at'] : []), ...(end - start !== curDur ? ['ends_at'] : [])];
+  return { write, overlap, changed };
+}
+
+// One row of the agenda: the schedule's start and end merge as a pair (mergeTimes); every other field by itself.
+export function mergeRow(table: string, current: Row, base: Row | null | undefined, mine: Row): Merge & { changed: string[] } {
+  if (table !== 'event_schedule' || !('starts_at' in mine || 'ends_at' in mine)) {
+    const m = mergePatch(current, base, mine);
+    return { ...m, changed: Object.keys(m.write) };
+  }
+  const { starts_at, ends_at, ...rest } = mine;
+  const times = mergeTimes(current, base, { starts_at, ends_at });
+  const other = mergePatch(current, base, rest);
+  return {
+    write: { ...times.write, ...other.write },
+    overlap: [...times.overlap, ...other.overlap],
+    changed: [...times.changed, ...Object.keys(other.write)],
+  };
+}
+
+// Whom to tell that their value was replaced: for each field both changed, the last person who changed THAT field
+// (`writers`, from audit_log: data/agenda-write.ts), never whoever saved the row last (Redes moving «¿En qué va?»
+// would get it). Only when the row moved since this person opened it; never this person; nobody known, nobody told.
+export type Overwritten = { userId: string; fields: string[] };
+export function overwrittenPeople(r: {
+  rowRev: number;
+  sentRev: number | null | undefined;
+  overlap: string[];
+  writers: Record<string, string | null | undefined>;
+  me: string;
+}): Overwritten[] {
+  if (r.sentRev === null || r.sentRev === undefined || r.rowRev === r.sentRev) return [];
+  const by = new Map<string, string[]>();
+  for (const f of r.overlap) {
+    const who = r.writers[f];
+    if (!who || who === r.me) continue;
+    by.set(who, [...(by.get(who) ?? []), f]);
+  }
+  return [...by].map(([userId, fields]) => ({ userId, fields }));
 }
 
 // Spanish names of the fields, for the notices and the banner (never their values).
@@ -76,6 +148,12 @@ export const FIELD_LABEL: Record<string, string> = {
   notes: 'Notas',
   speech: 'Lo que va a decir',
   blocks: 'Los bloques del storyboard',
+  shot: 'Plano',
+  angle: 'Ángulo',
+  boss_line: 'Lo que dice el jefe',
+  broll: 'Tomas de apoyo',
+  fact: 'Dato que menciona',
+  fact_source: 'Fuente del dato',
   cancelled_at: 'Cancelado',
   cancel_reason: 'Motivo de la cancelación',
   boss_decision: 'Decisión del jefe',

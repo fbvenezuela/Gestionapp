@@ -134,6 +134,19 @@ export function cancelledNotice(ev: EventRef, stamp: string, restored = false): 
       };
 }
 
+// The boss rejected a visit (or activity) born from a ficha. Whoever loaded the ficha got «Ya tiene fecha»: now it has
+// none, and the ficha is back in «Por ponerle fecha» (critical, like a cancel). Never a date or a reason. `link`: the
+// ficha (the IVT's obra, política's report).
+export function rejectedNotice(ev: EventRef, link: string, stamp: string): AgendaNotice {
+  return {
+    kind: 'event_cancelled',
+    title: withTitle('El jefe rechazó la fecha', 'El jefe rechazó una fecha', ev.title),
+    body: 'Ya no tiene fecha: vuelve a «Por ponerle fecha».',
+    link,
+    key: `event_cancelled:${ev.id}:rejected:${stamp}`,
+  };
+}
+
 // Someone saved over what this person had written in the same fields (last one wins). Labels only; what was there
 // stays in the event's history.
 export function overwrittenNotice(ev: EventRef, byName: string, labels: string, stamp: string): AgendaNotice {

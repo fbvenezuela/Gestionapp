@@ -60,6 +60,8 @@ export default async function EventPage({ params, searchParams }: { params: Prom
       municipalities: editors ? await municipalities(sql) : [],
       cameras: has('admin', 'boss', 'dispatch', 'social') ? await peopleWithRole(sql, 'camera') : [],
       history: editors ? await eventHistory(sql, id) : [],
+      // Whoever edits the storyboard reads its history (what someone else typed stays readable after a save).
+      boardHistory: rawTab === 'storyboard' && has('admin', 'social', 'boss') ? await eventHistory(sql, id, true) : [],
     };
   });
   if (!data) notFound();
@@ -75,6 +77,9 @@ export default async function EventPage({ params, searchParams }: { params: Prom
   const tab = TABS.find((t) => t.key === rawTab)?.key ?? (has('camera') && !has('admin', 'boss') ? 'material' : 'ficha');
   const visibleTabs = TABS.filter((t) => t.key !== 'piezas' || has('admin', 'social', 'boss'));
   const past = ev.schedule ? new Date(ev.schedule.starts_at) < new Date() : false;
+  // «Marcar realizado»: the boss, despacho and whoever records it (mark_event_done(); administración reads the agenda).
+  const canMarkDone = has('boss', 'dispatch') || (has('camera') && ev.cameras.some((c) => c.user_id === s.userId));
+  const markDone = canMarkDone && past && !ev.done_on && !cancelled;
   // Its own short query, after (never inside) the one above.
   const drive = tab === 'material' ? await driveUi(s) : null;
 
@@ -155,10 +160,10 @@ export default async function EventPage({ params, searchParams }: { params: Prom
               {ev.schedule.site_contacts ? <p className="flex items-start gap-2"><Phone className="mt-0.5 h-5 w-5 shrink-0 text-text-2" aria-hidden />{ev.schedule.site_contacts}</p> : null}
             </div>
           </CardBody>
-          {(canEdit && !cancelled) || (past && !ev.done_on && !cancelled) ? (
+          {(canEdit && !cancelled) || markDone ? (
             <div className="flex flex-wrap gap-2 border-t border-border px-4 py-3">
               {canEdit && !cancelled ? <ScheduleEditor id={ev.id} schedule={ev.schedule} /> : null}
-              {past && !ev.done_on && !cancelled ? <MarkDone id={ev.id} /> : null}
+              {markDone ? <MarkDone id={ev.id} /> : null}
             </div>
           ) : null}
         </Card>
@@ -218,7 +223,10 @@ export default async function EventPage({ params, searchParams }: { params: Prom
       ) : null}
 
       {tab === 'storyboard' ? (
-        <StoryboardEditor eventId={ev.id} canEdit={canBoard} speech={ev.storyboard?.speech ?? ''} blocks={ev.blocks} facts={ev.brief?.key_facts ?? ''} rev={ev.storyboard?.rev ?? null} />
+        <div className="flex flex-col gap-4">
+          <StoryboardEditor eventId={ev.id} canEdit={canBoard} speech={ev.storyboard?.speech ?? ''} blocks={ev.blocks} facts={ev.brief?.key_facts ?? ''} rev={ev.storyboard?.rev ?? null} />
+          {canBoard ? <HistoryCard rows={data.boardHistory} title="Historial del storyboard" /> : null}
+        </div>
       ) : null}
 
       {tab === 'material' ? <MaterialPanel eventId={ev.id} eventCode={ev.code} media={data.media} canUpload={canUpload} canRemove={has('admin')} canPick={!!drive?.picker} /> : null}
@@ -253,6 +261,8 @@ export default async function EventPage({ params, searchParams }: { params: Prom
 // database returns the schedule); política gets «Ya tiene fecha», never the date (the database returns none).
 function SourceView({ ev, has }: { ev: EventFull; has: (...r: string[]) => boolean }) {
   const cancelled = !!ev.cancelled_at;
+  // Rejected by the boss: it has no date any more (the one it had is not shown), and the ficha waits for another.
+  const rejected = !cancelled && ev.boss_decision === 'rejected';
   const back = has('ivt') ? { href: '/agenda', label: 'Mis visitas de obra' } : { href: ev.community_report_id ? `/reportes/${ev.community_report_id}` : '/municipios', label: 'Volver' };
   return (
     <>
@@ -268,6 +278,8 @@ function SourceView({ ev, has }: { ev: EventFull; has: (...r: string[]) => boole
           <div className="min-w-0 text-[15px]">
             {cancelled ? (
               <p><b className="text-danger">Se canceló.</b> La ficha vuelve a «Por ponerle fecha».</p>
+            ) : rejected ? (
+              <p><b className="text-danger">El jefe la rechazó.</b> Ya no tiene fecha: la ficha vuelve a «Por ponerle fecha».</p>
             ) : ev.schedule ? (
               <>
                 <p className="font-semibold first-letter:uppercase">{fmtDateTime(ev.schedule.starts_at)}</p>

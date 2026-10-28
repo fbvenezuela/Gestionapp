@@ -317,3 +317,121 @@ describe('quién graba: los nombres para asignar', () => {
     for (const who of ['ivt', 'politics', 'camera'] as const) expect(await count(who, 'select * from public.camera_people()'), who).toBe(0);
   });
 });
+
+// Review of the shared agenda (20261027002050_agenda_fixes.sql).
+describe('marcar realizado no revela el día ni lo adelanta', () => {
+  const withSchedule = async (startsIn: string) => {
+    const { id } = await insertEvent('boss');
+    await t.as('boss', (sql) => sql.query(`insert into public.event_schedule (event_id, starts_at, ends_at) values ($1, now() + $2::interval, now() + $2::interval + interval '1 hour')`, [id, startsIn]));
+    await t.as('boss', (sql) => sql.query(`insert into public.event_assignments (event_id, user_id) values ($1, $2)`, [id, t.ids.camera]));
+    return id;
+  };
+  const mark = (who: DemoUserKey, id: string, aal: 'aal1' | 'aal2' = 'aal2') => t.as(who, (sql) => sql.one<{ d: string }>(`select public.mark_event_done($1)::text as d`, [id]), aal);
+
+  it('sin doble factor, el jefe, el despacho y administración reciben «No autorizado», sea el día que sea', async () => {
+    const future = await withSchedule('9 days');
+    const later = await withSchedule('1 hour');
+    const past = await withSchedule('-1 day');
+    for (const id of [future, later, past]) {
+      for (const who of ['boss', 'dispatch', 'admin'] as const) await fails(mark(who, id, 'aal1'), /No autorizado/);
+    }
+    // Administración reads the agenda and does not mark it, with 2FA either; nor do Redes, the IVT, política or a
+    // camera person who does not record it.
+    for (const who of ['admin', 'social', 'ivt', 'politics', 'camera2'] as const) await fails(mark(who, past), /No autorizado/);
+    // An id that does not exist reads the same.
+    await fails(mark('social', '00000000-0000-4000-8000-00000000dead'), /No autorizado/);
+    for (const id of [future, later, past]) expect((await event(id))!.done_on, id).toBeNull();
+  });
+
+  it('un evento que todavía no empezó (aunque sea hoy) no se marca; uno que ya empezó sí, también por quien lo graba', async () => {
+    const later = await withSchedule('1 hour');
+    await fails(mark('dispatch', later), /todavía no ha empezado/);
+    expect((await event(later))!).toMatchObject({ done_on: null, work_status: 'brief' });
+    const started = await withSchedule('-5 minutes');
+    expect((await mark('camera', started))!.d).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect((await event(started))!).toMatchObject({ work_status: 'material' });
+    expect((await event(started))!.done_on).not.toBeNull();
+  });
+});
+
+describe('decidir y borrar piden doble factor', () => {
+  it('el jefe sin doble factor no acepta, no rechaza ni califica; sí mueve el estado de trabajo (como Redes)', async () => {
+    const { id } = await insertEvent('dispatch');
+    for (const set of [`boss_decision = 'accepted'`, `boss_decision = 'rejected'`, `priority = 9`]) {
+      await fails(t.as('boss', (sql) => sql.query(`update public.events set ${set} where id = $1`, [id]), 'aal1'), /No puedes cambiar/);
+    }
+    expect(await t.as('boss', (sql) => sql.query(`update public.events set work_status = 'storyboard', urgency = 1 where id = $1 returning id`, [id]), 'aal1')).toHaveLength(1);
+    expect(await event(id)).toMatchObject({ boss_decision: 'pending', priority: null, work_status: 'storyboard' });
+    // A visit born from an obra stays on the agenda (rejecting it would send the obra back).
+    const obra = await readyObra();
+    const ev = await schedule('dispatch', 'obra', obra);
+    await fails(t.as('boss', (sql) => sql.query(`update public.events set boss_decision = 'rejected' where id = $1`, [ev]), 'aal1'), /No puedes cambiar/);
+    expect((await t.system((sql) => sql.one<{ stage: string }>(`select stage from public.obra_fichas where id = $1`, [obra])))!.stage).toBe('scheduled');
+    // With 2FA he decides.
+    expect(await t.as('boss', (sql) => sql.query(`update public.events set boss_decision = 'accepted', priority = 6 where id = $1 returning id`, [ev]))).toHaveLength(1);
+  });
+
+  it('administración sin doble factor no borra ni restaura un evento', async () => {
+    const obra = await readyObra();
+    const ev = await schedule('boss', 'obra', obra);
+    await fails(t.as('admin', (sql) => sql.query(`update public.events set deleted_at = now() where id = $1`, [ev]), 'aal1'), /No puedes cambiar/);
+    expect((await t.system((sql) => sql.one<{ stage: string }>(`select stage from public.obra_fichas where id = $1`, [obra])))!.stage).toBe('scheduled');
+    expect(await t.as('admin', (sql) => sql.query(`update public.events set deleted_at = now() where id = $1 returning id`, [ev]))).toHaveLength(1);
+    await fails(t.as('admin', (sql) => sql.query(`update public.events set deleted_at = null where id = $1`, [ev]), 'aal1'), /No puedes cambiar/);
+    expect((await event(ev))!.deleted_at).not.toBeNull();
+  });
+});
+
+describe('a quién se le avisa que su valor se reemplazó', () => {
+  const writers = (who: DemoUserKey, table: string, id: string, keys: string[], aal: 'aal1' | 'aal2' = 'aal2') =>
+    t.as(who, (sql) => sql.query<{ key: string; actor_id: string | null }>(`select key, actor_id from public.agenda_last_writers($1, $2, $3::text[]) order by key`, [table, id, keys]), aal);
+
+  it('a quien cambió ese campo, no a quien guardó el evento por último (Redes moviendo «¿En qué va?»)', async () => {
+    const { id } = await insertEvent('dispatch');
+    await t.as('boss', (sql) => sql.query(`update public.events set title = 'Título del jefe (demo)' where id = $1`, [id]));
+    await t.as('social', (sql) => sql.query(`update public.events set work_status = 'storyboard' where id = $1`, [id]));
+    expect((await event(id))!.updated_by).toBe(t.ids.social);
+    expect(await writers('dispatch', 'events', id, ['title', 'summary'])).toEqual([{ key: 'summary', actor_id: t.ids.dispatch }, { key: 'title', actor_id: t.ids.boss }]);
+  });
+
+  it('la duración es fin menos inicio: mover el evento no la cambia', async () => {
+    const { id } = await insertEvent('dispatch');
+    await t.as('dispatch', (sql) => sql.query(`insert into public.event_schedule (event_id, starts_at, ends_at) values ($1, now() + interval '9 days', now() + interval '9 days 1 hour')`, [id]));
+    await t.as('dispatch', (sql) => sql.query(`update public.event_schedule set ends_at = ends_at + interval '30 minutes' where event_id = $1`, [id]));
+    await t.as('boss', (sql) => sql.query(`update public.event_schedule set starts_at = starts_at + interval '2 hours', ends_at = ends_at + interval '2 hours' where event_id = $1`, [id]));
+    expect(await writers('dispatch', 'event_schedule', id, ['starts_at', 'ends_at'])).toEqual([{ key: 'ends_at', actor_id: t.ids.dispatch }, { key: 'starts_at', actor_id: t.ids.boss }]);
+  });
+
+  it('lo preguntan quienes guardan esa parte: la agenda el jefe y el despacho (con doble factor); el storyboard también Redes', async () => {
+    const { id } = await insertEvent('boss');
+    await t.as('social', (sql) => sql.query(`insert into public.storyboards (event_id, speech) values ($1, 'Discurso de Redes (demo)')`, [id]));
+    for (const who of ['social', 'camera', 'ivt', 'politics', 'admin'] as const) expect(await writers(who, 'events', id, ['title']), who).toEqual([]);
+    expect(await writers('boss', 'events', id, ['title'], 'aal1')).toEqual([]);
+    expect(await writers('social', 'storyboards', id, ['speech'])).toEqual([{ key: 'speech', actor_id: t.ids.social }]);
+    for (const who of ['camera', 'ivt', 'politics'] as const) expect(await writers(who, 'storyboards', id, ['speech']), who).toEqual([]);
+    expect(await writers('boss', 'nothing', id, ['speech'])).toEqual([]);
+  });
+});
+
+describe('el historial del storyboard', () => {
+  it('Redes, el jefe y administración (con doble factor) leen la parte del storyboard, con el contenido de cada bloque; nunca la de la fecha', async () => {
+    const obra = await readyObra();
+    const ev = await schedule('dispatch', 'obra', obra);
+    const sb = await t.as('social', async (sql) => (await sql.one<{ id: string }>(`insert into public.storyboards (event_id, speech) values ($1, 'Saludo (demo)') returning id`, [ev]))!.id);
+    const block = await t.as('social', async (sql) =>
+      (await sql.one<{ id: string }>(`insert into public.storyboard_blocks (storyboard_id, position, shot, boss_line) values ($1, 0, 'Plano de Redes (demo)', 'Frase de Redes (demo)') returning id`, [sb]))!.id);
+    await t.as('boss', (sql) => sql.query(`update public.storyboard_blocks set deleted_at = now() where id = $1`, [block]));
+    type H = { table_name: string; action: string; block: Record<string, string> | null };
+    const q = `select table_name, action, block from public.event_history($1)`;
+    for (const who of ['social', 'admin', 'boss'] as const) {
+      const rows = await t.as(who, (sql) => sql.query<H>(q, [ev]));
+      expect(new Set(rows.map((r) => r.table_name)), who).toEqual(new Set(who === 'boss' ? ['events', 'event_schedule', 'event_brief', 'storyboards', 'storyboard_blocks'] : ['storyboards', 'storyboard_blocks']));
+      const gone = rows.find((r) => r.table_name === 'storyboard_blocks' && r.action === 'soft_delete')!;
+      expect(gone.block, who).toEqual({ shot: 'Plano de Redes (demo)', boss_line: 'Frase de Redes (demo)' });
+      expect(rows.find((r) => r.table_name === 'storyboard_blocks' && r.action === 'insert')!.block, who).toEqual({ shot: 'Plano de Redes (demo)', boss_line: 'Frase de Redes (demo)' });
+      if (who !== 'boss') expect(JSON.stringify(rows), who).not.toContain('Calle de prueba');
+    }
+    for (const who of ['camera', 'ivt', 'politics'] as const) expect(await count(who, 'select * from public.event_history($1)', [ev]), who).toBe(0);
+    expect(await count('admin', 'select * from public.event_history($1)', [ev], 'aal1')).toBe(0);
+  });
+});

@@ -3,9 +3,11 @@ import { Card, CardHeader } from '@/components/ui/card';
 import { FIELD_LABEL } from '@/lib/domain/agenda-merge';
 import type { HistoryRow } from '@/lib/data/events';
 import { fmtDateTime } from '@/lib/time';
+import { cn } from '@/lib/cn';
 
-// «Historial» of an event (boss and despacho only: event_history() returns nothing to anyone else). Who changed
-// what, with the value before, so nothing typed is lost when the last save wins.
+// «Historial» of an event (boss and despacho: all of it; Redes, the boss and administración: the storyboard's part.
+// event_history() decides). Who changed what, with the value before, so nothing typed is lost when the last save
+// wins; a storyboard block that was added or removed shows what it said.
 const TABLE: Record<string, string> = {
   events: 'Datos del evento',
   event_schedule: 'Fecha, hora y lugar',
@@ -23,10 +25,12 @@ function show(v: unknown): string {
   return String(v);
 }
 
-export function HistoryCard({ rows }: { rows: HistoryRow[] }) {
+const BLOCK_ORDER = ['shot', 'angle', 'boss_line', 'broll', 'fact', 'fact_source'];
+
+export function HistoryCard({ rows, title = 'Historial' }: { rows: HistoryRow[]; title?: string }) {
   return (
     <Card>
-      <CardHeader title={<span className="inline-flex items-center gap-2"><History className="h-4 w-4" aria-hidden /> Historial</span>} subtitle="Quién cambió qué. Lo de antes queda aquí." />
+      <CardHeader title={<span className="inline-flex items-center gap-2"><History className="h-4 w-4" aria-hidden /> {title}</span>} subtitle="Quién cambió qué. Lo de antes queda aquí." />
       {rows.length ? (
         // Scrolls on its own: reachable with the keyboard too.
         <ol className="max-h-[28rem] divide-y divide-border overflow-y-auto" tabIndex={0} aria-label="Cambios del evento, del más nuevo al más viejo">
@@ -38,7 +42,15 @@ export function HistoryCard({ rows }: { rows: HistoryRow[] }) {
                   <b>{r.actor_name ?? 'El sistema'}</b> {ACTION[r.action] ?? r.action} · {TABLE[r.table_name] ?? r.table_name}
                 </p>
                 <p className="text-sm text-text-2">{fmtDateTime(r.at)}</p>
-                {r.action === 'update' && fields.length ? (
+                {r.block && (r.action === 'insert' || r.action === 'soft_delete') ? (
+                  <ul className={cn('mt-1 flex flex-col gap-1 text-sm', r.action === 'soft_delete' && 'text-text-2')}>
+                    {BLOCK_ORDER.filter((k) => r.block?.[k]).map((k) => (
+                      <li key={k} className="[overflow-wrap:anywhere]">
+                        <span className="font-semibold">{FIELD_LABEL[k] ?? k}:</span> {r.block![k]}
+                      </li>
+                    ))}
+                  </ul>
+                ) : r.action === 'update' && fields.length ? (
                   <ul className="mt-1 flex flex-col gap-1 text-sm">
                     {fields.slice(0, 8).map(([k, v]) => (
                       <li key={k} className="[overflow-wrap:anywhere]">

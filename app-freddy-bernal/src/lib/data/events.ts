@@ -57,9 +57,22 @@ export async function getEvent(sql: Sql, id: string): Promise<EventFull | null> 
 }
 
 // Who changed what (boss and despacho with 2FA; the database returns nothing to anyone else).
-export type HistoryRow = { at: string | Date; actor_name: string | null; table_name: string; action: string; changes: Record<string, { before: unknown; after: unknown }> };
-export async function eventHistory(sql: Sql, id: string): Promise<HistoryRow[]> {
-  return sql.query<HistoryRow>(`select at, actor_name, table_name, action, changes from public.event_history($1)`, [id]);
+// `block`: a storyboard block's content (so an inserted or removed block can still be read). `storyboard`: only the
+// storyboard's rows (what Redes, the boss and administración read: event_history() decides).
+export type HistoryRow = {
+  at: string | Date;
+  actor_name: string | null;
+  table_name: string;
+  action: string;
+  changes: Record<string, { before: unknown; after: unknown }>;
+  block: Record<string, string> | null;
+};
+export async function eventHistory(sql: Sql, id: string, storyboard = false): Promise<HistoryRow[]> {
+  return sql.query<HistoryRow>(
+    `select at, actor_name, table_name, action, changes, block from public.event_history($1)
+      where not $2::boolean or table_name in ('storyboards', 'storyboard_blocks')`,
+    [id, storyboard],
+  );
 }
 
 // «Por ponerle fecha» (view agenda_to_schedule: no date column). Each person sees what their role reads.

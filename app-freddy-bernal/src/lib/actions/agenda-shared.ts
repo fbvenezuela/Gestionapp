@@ -8,13 +8,14 @@ import { revSchema, scheduleShape, toRange } from './schemas';
 import { datedTitle } from '@/lib/domain/event-title';
 import { notify, usersWithRole } from '../notify';
 import { saveWithRev, type AgendaTable, type SaveResult } from '../data/agenda-write';
-import { labelList } from '@/lib/domain/agenda-merge';
+import { labelList, type Row } from '@/lib/domain/agenda-merge';
 import {
   changedNotice,
   movedNotice,
   noticeRecipients,
   overwrittenNotice,
   type AgendaNotice,
+  type FichaRef,
 } from '@/lib/domain/agenda-notices';
 
 // What the agenda actions share (NOT a 'use server' file: those may export only actions). Saves go through
@@ -50,22 +51,40 @@ export async function nameOf(sql: Sql, userId: string | null): Promise<string | 
   return (await sql.one<{ n: string }>(`select coalesce(nullif(full_name, ''), email) as n from public.profiles where id = $1`, [userId]))?.n ?? null;
 }
 
+// The names of the people whose values a save replaced, in the same order (unknown ones left out).
+export async function namesOf(sql: Sql, userIds: string[]): Promise<string[]> {
+  const out: string[] = [];
+  for (const id of userIds) {
+    const n = await nameOf(sql, id);
+    if (n) out.push(n);
+  }
+  return out;
+}
+
 export type AgendaSave = SaveResult & {
   eventId: string;
   table: AgendaTable;
   actorId: string;
   actorName: string;
   people: EventPeople;
-  overwrittenName: string | null;
+  overwrittenNames: string[];
   moved: boolean;
 };
 
 // Save one agenda row (merge by field, last one wins) and gather what the notices need.
 export async function saveAgendaRow(
   sql: Sql,
-  o: { table: AgendaTable; eventId: string; rev?: number | null; base?: Record<string, unknown> | null; mine: Record<string, unknown>; actor: { id: string; name: string } },
+  o: {
+    table: AgendaTable;
+    eventId: string;
+    rev?: number | null;
+    base?: Record<string, unknown> | null;
+    mine: Record<string, unknown>;
+    actor: { id: string; name: string };
+    beforeWrite?: (write: Row, current: Row) => Promise<void>;
+  },
 ): Promise<AgendaSave | null> {
-  const r = await saveWithRev(sql, { table: o.table, id: o.eventId, rev: o.rev, base: o.base, mine: o.mine, me: o.actor.id });
+  const r = await saveWithRev(sql, { table: o.table, id: o.eventId, rev: o.rev, base: o.base, mine: o.mine, me: o.actor.id, beforeWrite: o.beforeWrite });
   if (!r.found) return null;
   const people = (await eventPeople(sql, o.eventId)) ?? { title: '', cameras: [], obraFichaId: null, communityReportId: null };
   return {
@@ -75,37 +94,60 @@ export async function saveAgendaRow(
     actorId: o.actor.id,
     actorName: o.actor.name,
     people,
-    overwrittenName: await nameOf(sql, r.overwrittenUserId),
+    overwrittenNames: await namesOf(sql, r.overwritten.map((x) => x.userId)),
     moved: o.table === 'event_schedule' && r.changed.some((k) => k === 'starts_at' || k === 'ends_at'),
   };
+}
+
+// «Jefe (demo) también había cambiado…» / «Jefe (demo) y Despacho (demo) también habían cambiado…»: the people
+// whose values this save replaced, by name (only those who changed those fields).
+export function overlapMessage(names: string[], labels: string): string {
+  const who = names.length ? (names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`) : 'Otra persona';
+  return `Guardado. ${who} también ${names.length > 1 ? 'habían' : 'había'} cambiado ${labels}: quedó lo tuyo, y lo de antes está en el historial.`;
 }
 
 // The message for the person who saved.
 export function saveMessage(r: AgendaSave | null, ok = 'Guardado.'): string {
   if (!r || !r.changed.length) return 'No había cambios que guardar.';
-  if (r.overlap.length) {
-    return `Guardado. ${r.overwrittenName ?? 'Otra persona'} también había cambiado ${labelList(r.overlap)}: quedó lo tuyo, y lo de antes está en el historial.`;
-  }
+  if (r.overlap.length) return overlapMessage(r.overwrittenNames, labelList(r.overlap));
   return ok;
 }
 
-// After the transaction: the overwritten person (field names only), Grabación and the IVT when the date moved
-// (critical: they have to be there), and the other managers (optional «cambió» notice).
+// After the transaction: each overwritten person (their own fields' names only), Grabación and the IVT when the date
+// moved (critical: they have to be there), and the other managers (optional «cambió» notice).
 export async function afterAgendaSave(r: AgendaSave | null) {
   if (!r || !r.changed.length) return;
   const ev = { id: r.eventId, title: r.people.title };
   const stamp = `${r.table}:${r.rev}`;
-  if (r.overwrittenUserId) {
-    await sendAgendaNotice(overwrittenNotice(ev, r.actorName, labelList(r.overlap), stamp), async () => noticeRecipients([r.overwrittenUserId], r.actorId));
+  for (const o of r.overwritten) {
+    await sendAgendaNotice(overwrittenNotice(ev, r.actorName, labelList(o.fields), stamp), async () => noticeRecipients([o.userId], r.actorId));
   }
   if (r.moved) {
     await sendAgendaNotice(movedNotice(ev, String(r.rev)), async () =>
       noticeRecipients([...r.people.cameras, ...(r.people.obraFichaId ? await usersWithRole('ivt') : [])], r.actorId),
     );
   }
+  const told = new Set(r.overwritten.map((o) => o.userId));
   await sendAgendaNotice(changedNotice(ev, r.actorName, labelList(r.changed), stamp), async () =>
-    noticeRecipients(await managers(), r.actorId).filter((u) => u !== r.overwrittenUserId),
+    noticeRecipients(await managers(), r.actorId).filter((u) => !told.has(u)),
   );
+}
+
+// A visit or activity that stopped being live (cancelled, rejected): its ficha, if the database put it back in «Por
+// ponerle fecha» (name and municipality for that notice; never a date).
+export async function fichaBackInQueue(sql: Sql, ev: { obra_ficha_id: string | null; community_report_id: string | null }): Promise<FichaRef | null> {
+  if (ev.obra_ficha_id) {
+    const f = await sql.one<{ name: string; municipality: string; stage: string }>(`select name, municipality, stage from public.obra_fichas where id = $1`, [ev.obra_ficha_id]);
+    return f?.stage === 'to_schedule' ? { kind: 'obra', id: ev.obra_ficha_id, title: f.name, municipality: f.municipality } : null;
+  }
+  if (ev.community_report_id) {
+    const f = await sql.one<{ id: string; title: string; municipality: string }>(
+      `select id, title, municipality from public.agenda_to_schedule where kind = 'report' and id = $1`,
+      [ev.community_report_id],
+    );
+    return f ? { kind: 'report', id: f.id, title: f.title, municipality: f.municipality } : null;
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -157,11 +199,15 @@ export async function saveSchedule(sql: Sql, i: ScheduleInput, actor: { id: stri
   const ev = await sql.one<{ title: string; cancelled_at: unknown }>(`select title, cancelled_at from public.events where id = $1`, [i.id]);
   if (!ev) throw new UserError('No encontramos este evento.');
   if (ev.cancelled_at) throw new UserError('Este evento está cancelado: tráelo de vuelta antes de moverlo.');
-  if (datedTitle(ev.title, DateTime.fromISO(i.date, { zone: TZ }))) throw new UserError('El título dice esa fecha: cámbialo primero.');
-  if (!i.allowOverlap) {
-    const clash = await clashWith(sql, starts, ends, i.id);
-    if (clash) throw new UserError(CLASH(clash));
-  }
+  // On what will really be written: the merge may keep the other person's start or duration (agenda-merge.ts).
+  const check = async (from: string, to: string) => {
+    if (datedTitle(ev.title, DateTime.fromISO(from, { zone: TZ }))) throw new UserError('El título dice esa fecha: cámbialo primero.');
+    if (!i.allowOverlap) {
+      const clash = await clashWith(sql, from, to, i.id);
+      if (clash) throw new UserError(CLASH(clash));
+    }
+  };
+  const iso = (v: unknown) => (v instanceof Date ? v.toISOString() : String(v));
   const mine: Record<string, unknown> = { starts_at: starts, ends_at: ends, ...(onlyWhen ? {} : columnsOf(SCHEDULE_COLUMNS, i)) };
   let base: Record<string, unknown> | undefined;
   if (i.base) {
@@ -173,17 +219,39 @@ export async function saveSchedule(sql: Sql, i: ScheduleInput, actor: { id: stri
       base.ends_at = r.ends;
     }
   }
-  const save = await saveAgendaRow(sql, { table: 'event_schedule', eventId: i.id, rev: i.rev, base, mine, actor });
+  const save = await withScheduleCheck(() =>
+    saveAgendaRow(sql, {
+      table: 'event_schedule', eventId: i.id, rev: i.rev, base, mine, actor,
+      beforeWrite: async (write, current) => {
+        if ('starts_at' in write || 'ends_at' in write) await check(iso(write.starts_at ?? current.starts_at), iso(write.ends_at ?? current.ends_at));
+      },
+    }),
+  );
   if (save) return save;
   // No schedule yet: this puts the date (the database lets only the boss and despacho, with 2FA).
-  const created = await sql.one<{ rev: number }>(
-    `insert into public.event_schedule (event_id, starts_at, ends_at, exact_address, directions, site_contacts) values ($1, $2, $3, $4, $5, $6) returning rev`,
-    [i.id, starts, ends, i.exactAddress, i.directions, i.siteContacts],
+  await check(starts, ends);
+  const created = await withScheduleCheck(() =>
+    sql.one<{ rev: number }>(
+      `insert into public.event_schedule (event_id, starts_at, ends_at, exact_address, directions, site_contacts) values ($1, $2, $3, $4, $5, $6) returning rev`,
+      [i.id, starts, ends, i.exactAddress, i.directions, i.siteContacts],
+    ),
   );
   if (!created) return null;
   const people = (await eventPeople(sql, i.id))!;
   return {
-    found: true, rev: created.rev, changed: Object.keys(mine), overlap: [], overwrittenUserId: null,
-    eventId: i.id, table: 'event_schedule', actorId: actor.id, actorName: actor.name, people, overwrittenName: null, moved: true,
+    found: true, rev: created.rev, changed: Object.keys(mine), overlap: [], overwritten: [],
+    eventId: i.id, table: 'event_schedule', actorId: actor.id, actorName: actor.name, people, overwrittenNames: [], moved: true,
   };
+}
+
+// The end before the start (event_schedule_check): said plainly, not as «Algún dato no es válido».
+export const SCHEDULE_ORDER = 'La hora de fin quedaba antes del inicio. Revisa la fecha, la hora y la duración, y vuelve a guardar.';
+async function withScheduleCheck<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    const err = e as { code?: string; message?: string };
+    if (err?.code === '23514' && /event_schedule_check/.test(err.message ?? '')) throw new UserError(SCHEDULE_ORDER);
+    throw e;
+  }
 }

@@ -313,7 +313,7 @@
     "camera"
    ],
    "title": "Marcar un evento como realizado",
-   "body": "Cuando el evento ya pasó, el jefe, Despacho, Administración o quien lo grabó lo marcan como realizado desde su ficha. Así el material queda en la Biblioteca con su día y Redes ve solo ese día (nunca la hora). No se puede marcar un evento antes de que ocurra.",
+   "body": "Cuando el evento ya pasó, el jefe, Despacho o quien lo grabó lo marcan como realizado desde su ficha; Administración no lo marca. Así el material queda en la Biblioteca con su día y Redes ve solo ese día (nunca la hora). No se puede marcar un evento antes de que empiece.",
    "tags": [
     "realizado",
     "biblioteca",

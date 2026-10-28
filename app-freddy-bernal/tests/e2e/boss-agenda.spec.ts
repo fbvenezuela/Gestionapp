@@ -147,6 +147,15 @@ test.describe('en el teléfono (360 px)', () => {
     await expect(page.getByRole('main').getByText('Visita de obra', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Aceptado', { exact: true }).first()).toBeVisible();
     await fitsWidth(page, '/eventos/[id] en el teléfono');
+    // Rated 7/10: in «Los próximos 7 días» of Política the chips (decision, kind, importance) wrap at 360 px.
+    await page.getByRole('radio', { name: '7', exact: true }).click();
+    await page.getByRole('button', { name: 'Aceptar', exact: true }).click();
+    await expect(page.getByText('Evento aceptado.')).toBeVisible();
+    await page.goto('/jefe/politica');
+    const row = page.getByRole('listitem').filter({ hasText: 'Visita a la cancha techada de prueba (demo)' });
+    await expect(row.getByText('7/10')).toBeVisible();
+    await expect(row.getByText('Visita de obra', { exact: true })).toBeVisible();
+    await fitsWidth(page, '/jefe/politica en el teléfono');
   });
 
   test('un reporte de política espera fecha; el jefe se la pone; política ve «Ya tiene fecha», sin la fecha', async ({ page, browser }) => {

@@ -6,7 +6,7 @@ import { act, UserError, type Result } from './run';
 import { TZ } from '../time';
 import { notify, usersWithRole } from '../notify';
 import { scheduleShape, text, titleField, toRange } from './schemas';
-import { CLASH, afterAgendaSave, clashWith, eventPeople, managers, saveMessage, saveSchedule, sendAgendaNotice } from './agenda-shared';
+import { CLASH, afterAgendaSave, clashWith, eventPeople, fichaBackInQueue, managers, saveMessage, saveSchedule, sendAgendaNotice } from './agenda-shared';
 import { datedMessage, datedTitle } from '@/lib/domain/event-title';
 import { eventFromObra, eventFromReport } from '@/lib/domain/ficha-event';
 import {
@@ -169,17 +169,7 @@ export async function cancelEvent(raw: unknown) {
     if (!ev) throw new UserError('No tienes permiso para cancelar este evento.');
     const people = (await eventPeople(sql, i.id))!;
     // The ficha back in the queue (as the database left it): its name and municipality for «Por ponerle fecha».
-    let ficha: FichaRef | null = null;
-    if (ev.obra_ficha_id) {
-      const f = await sql.one<{ name: string; municipality: string; stage: string }>(`select name, municipality, stage from public.obra_fichas where id = $1`, [ev.obra_ficha_id]);
-      if (f?.stage === 'to_schedule') ficha = { kind: 'obra', id: ev.obra_ficha_id, title: f.name, municipality: f.municipality };
-    } else if (ev.community_report_id) {
-      const f = await sql.one<{ id: string; title: string; municipality: string }>(
-        `select id, title, municipality from public.agenda_to_schedule where kind = 'report' and id = $1`,
-        [ev.community_report_id],
-      );
-      if (f) ficha = { kind: 'report', id: f.id, title: f.title, municipality: f.municipality };
-    }
+    const ficha = await fichaBackInQueue(sql, ev);
     return {
       ev: { id: i.id, title: ev.title }, rev: ev.rev, people, ficha, actorId: s.userId,
       message: ficha ? 'Cancelado. La ficha volvió a «Por ponerle fecha».' : 'Cancelado. Le avisamos a quien graba y a Redes.',

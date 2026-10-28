@@ -77,6 +77,60 @@ test('los dos editan el mismo evento a la vez: gana el último, el otro recibe e
   await boss.ctx.close();
 });
 
+// The iPad case: the editor stays on the event page after a save. The next save must start from what the server has
+// now (its values and version), not from the first one's: moving back to the old time is a real change, and changing
+// another field does not send the first one again over what the boss saved in between.
+test('en la misma página se guarda dos veces: mover y devolverlo, y cambiar otro dato después de que el jefe guardó el mismo', async ({ page, browser }) => {
+  const noToasts = () => expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 15_000 });
+  await loginAs(page, 'despacho@demo.test');
+  await page.goto('/buscar?q=biblioteca%20comunal');
+  await page.getByRole('link', { name: new RegExp(TITLE) }).first().click();
+  await expect(page.getByRole('heading', { name: TITLE })).toBeVisible();
+  const eventUrl = page.url();
+
+  const move = async (time: string) => {
+    await page.getByRole('button', { name: 'Mover' }).click();
+    const sheet = page.getByRole('dialog');
+    await sheet.getByLabel('Hora (Táchira)').fill(time);
+    await sheet.getByLabel('Guardar aunque choque con otro evento').check();
+    await sheet.getByRole('button', { name: 'Guardar la nueva fecha' }).click();
+    await expect(page.getByText('Listo: la nueva fecha quedó. Le avisamos a quien graba.')).toBeVisible();
+    await expect(page.getByText('No había cambios que guardar.')).toHaveCount(0);
+    await expect(sheet).toHaveCount(0);
+    await noToasts();
+  };
+  await move('15:05');
+  await move('10:00');
+  await page.reload();
+  await page.getByRole('button', { name: 'Mover' }).click();
+  await expect(page.getByRole('dialog').getByLabel('Hora (Táchira)')).toHaveValue('10:00');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+
+  const editEvent = async (p: Page, label: string, value: string) => {
+    await p.getByRole('button', { name: 'Editar datos del evento' }).click();
+    await p.getByRole('dialog').getByLabel(label).fill(value);
+    await p.getByRole('dialog').getByRole('button', { name: 'Guardar' }).click();
+    await expect(p.getByText('Guardado.', { exact: true })).toBeVisible();
+    await expect(p.getByRole('dialog')).toHaveCount(0);
+  };
+  // Despacho saves «De qué se trata»; the boss then saves his own; despacho, without reloading, changes only «A dónde
+  // se va»: the boss's text stays and nobody is told that anything was overwritten.
+  await editEvent(page, 'De qué se trata', 'Resumen del despacho, segunda vuelta');
+  await noToasts();
+  const boss = await phone(browser, 'jefe@demo.test');
+  await boss.page.goto(eventUrl);
+  await editEvent(boss.page, 'De qué se trata', 'Resumen del jefe, segunda vuelta');
+  await editEvent(page, 'A dónde se va', 'Sala dos de la biblioteca (demo)');
+  await expect(page.getByText(/también había cambiado/)).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByText('Resumen del jefe, segunda vuelta').first()).toBeVisible();
+  await expect(page.getByText(/Sala dos de la biblioteca \(demo\)/).first()).toBeVisible();
+  await boss.page.goto('/avisos');
+  await expect(boss.page.getByText(/cambió lo mismo que tú/).filter({ hasText: TITLE })).toHaveCount(1);
+  await boss.ctx.close();
+});
+
 test('el jefe rechaza con el diálogo de la app, y el despacho se entera solo con el título', async ({ page, browser }) => {
   let nativeDialog = false;
   page.on('dialog', (dl) => {

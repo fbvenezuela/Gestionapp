@@ -10,8 +10,10 @@ import {
   fieldLabels,
   labelList,
   mergePatch,
+  mergeRow,
+  mergeTimes,
   norm,
-  overwrittenUser,
+  overwrittenPeople,
   restoreEditDraft,
   savePayload,
   shownValues,
@@ -52,18 +54,73 @@ describe('mergePatch: lo que cada uno cambió', () => {
     expect(r).toEqual({ write: { starts_at: '2027-03-10T15:00:00.000Z' }, overlap: [] });
   });
 
-  it('a quién se avisa: al último que guardó, si la fila se movió, chocaron y no es uno mismo', () => {
-    expect(overwrittenUser({ rowRev: 3, sentRev: 2, overlap: ['title'], lastBy: 'b', me: 'a' })).toBe('b');
-    expect(overwrittenUser({ rowRev: 2, sentRev: 2, overlap: ['title'], lastBy: 'b', me: 'a' })).toBeNull();
-    expect(overwrittenUser({ rowRev: 3, sentRev: 2, overlap: [], lastBy: 'b', me: 'a' })).toBeNull();
-    expect(overwrittenUser({ rowRev: 3, sentRev: 2, overlap: ['title'], lastBy: 'a', me: 'a' })).toBeNull();
-    expect(overwrittenUser({ rowRev: 3, sentRev: undefined, overlap: ['title'], lastBy: 'b', me: 'a' })).toBeNull();
+  it('a quién se avisa: a quien cambió ese campo por último, si la fila se movió, chocaron y no es uno mismo', () => {
+    // The boss changed the title, Redes then «¿En qué va?» (the last to save the row): the notice is the boss's.
+    const writers = { title: 'boss', summary: 'dispatch2' };
+    expect(overwrittenPeople({ rowRev: 4, sentRev: 2, overlap: ['title'], writers, me: 'dispatch' })).toEqual([{ userId: 'boss', fields: ['title'] }]);
+    expect(overwrittenPeople({ rowRev: 4, sentRev: 2, overlap: ['title', 'summary'], writers, me: 'dispatch' })).toEqual([
+      { userId: 'boss', fields: ['title'] },
+      { userId: 'dispatch2', fields: ['summary'] },
+    ]);
+    expect(overwrittenPeople({ rowRev: 2, sentRev: 2, overlap: ['title'], writers, me: 'dispatch' })).toEqual([]);
+    expect(overwrittenPeople({ rowRev: 4, sentRev: 2, overlap: [], writers, me: 'dispatch' })).toEqual([]);
+    expect(overwrittenPeople({ rowRev: 4, sentRev: 2, overlap: ['title'], writers, me: 'boss' })).toEqual([]);
+    expect(overwrittenPeople({ rowRev: 4, sentRev: undefined, overlap: ['title'], writers, me: 'dispatch' })).toEqual([]);
+    expect(overwrittenPeople({ rowRev: 4, sentRev: 2, overlap: ['place_name'], writers, me: 'dispatch' })).toEqual([]);
   });
 
   it('los nombres de los campos, nunca sus valores ni una fecha', () => {
     expect(labelList(['starts_at', 'exact_address'])).toBe('Fecha y hora y Dirección exacta');
     expect(fieldLabels(['title', 'title'])).toEqual(['Título']);
     for (const l of fieldLabels(['starts_at', 'ends_at', 'exact_address', 'site_contacts', 'speech', 'blocks'])) expect(looksLikeDateTime(l), l).toBe(false);
+  });
+});
+
+describe('mergeTimes: la fecha y la duración como las muestra el formulario', () => {
+  const T = (h: string) => `2027-03-10T${h}:00.000Z`;
+  const at = (s: string, e: string) => ({ starts_at: T(s), ends_at: T(e) });
+  const ms = (v: unknown) => new Date(v as string).getTime();
+  it('solo cambió la duración: el fin sigue al inicio que hay ahora (el otro lo movió)', () => {
+    // Base 8:00–10:30; the boss moved it to 6:00–8:30; despacho sets 180 min on 8:00 (its old start).
+    const r = mergeTimes(at('06:00', '08:30'), at('08:00', '10:30'), at('08:00', '11:00'));
+    expect(r.overlap).toEqual([]);
+    expect(r.write).toEqual({ ends_at: T('09:00') });
+    expect(r.changed).toEqual(['ends_at']);
+  });
+  it('moverlo después y acortarlo no deja el fin antes del inicio', () => {
+    const r = mergeTimes(at('12:00', '14:30'), at('08:00', '10:30'), at('08:00', '09:00'));
+    expect(r.write).toEqual({ ends_at: T('13:00') });
+    expect(ms(r.write.ends_at)).toBeGreaterThan(ms(T('12:00')));
+  });
+  it('solo cambió la fecha u hora: se queda la duración que hay ahora (la que puso el otro)', () => {
+    const r = mergeTimes(at('08:00', '11:00'), at('08:00', '10:30'), at('15:00', '17:30'));
+    expect(r.write).toEqual({ starts_at: T('15:00'), ends_at: T('18:00') });
+    expect(r.overlap).toEqual([]);
+    expect(r.changed).toEqual(['starts_at']);
+  });
+  it('los dos movieron: gana el último, inicio y fin juntos, y se nombra «Fecha y hora»', () => {
+    const r = mergeTimes(at('06:00', '08:30'), at('08:00', '10:30'), at('16:00', '18:30'));
+    expect(r.write).toEqual({ starts_at: T('16:00'), ends_at: T('18:30') });
+    expect(r.overlap).toEqual(['starts_at']);
+    expect(fieldLabels(r.overlap)).toEqual(['Fecha y hora']);
+  });
+  it('los dos cambiaron la duración: se nombra «Duración»; si los dos cambiaron todo, van juntos', () => {
+    expect(mergeTimes(at('08:00', '09:00'), at('08:00', '10:30'), at('08:00', '12:00')).overlap).toEqual(['ends_at']);
+    const r = mergeTimes(at('06:00', '07:00'), at('08:00', '10:30'), at('16:00', '16:45'));
+    expect(r.write).toEqual({ starts_at: T('16:00'), ends_at: T('16:45') });
+    expect(r.overlap).toEqual(['starts_at', 'ends_at']);
+  });
+  it('volver a la hora de antes es un cambio (mover y luego devolverlo)', () => {
+    // After the first move the editor starts again from the new time (13:35 → 15:05, then back).
+    const r = mergeTimes(at('15:05', '16:05'), at('15:05', '16:05'), at('13:35', '14:35'));
+    expect(r.write).toEqual({ starts_at: T('13:35'), ends_at: T('14:35') });
+  });
+  it('mergeRow: en la fecha el par va junto y lo demás campo por campo', () => {
+    const cur = { ...at('06:00', '08:30'), exact_address: 'Dirección del jefe (demo)' };
+    const base = { ...at('08:00', '10:30'), exact_address: 'Dirección vieja (demo)' };
+    const r = mergeRow('event_schedule', cur, base, { ...at('08:00', '11:00'), exact_address: 'Dirección vieja (demo)' });
+    expect(r.write).toEqual({ ends_at: T('09:00') });
+    expect(mergeRow('events', { title: 'a' }, { title: 'a' }, { title: 'b' })).toEqual({ write: { title: 'b' }, overlap: [], changed: ['title'] });
   });
 });
 

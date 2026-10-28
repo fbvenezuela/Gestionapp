@@ -122,7 +122,9 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
                   ? // Política never reads the date: the database only says that there is one (report_has_live_event).
                     'Ya tiene fecha. La ven el jefe y el despacho en la agenda.'
                   : report.wants_agenda && event && !event.live
-                    ? 'Se canceló la actividad en la agenda: otra vez por ponerle fecha.'
+                    ? event.boss_decision === 'rejected' && !event.cancelled_at
+                      ? 'El jefe rechazó la actividad en la agenda: otra vez por ponerle fecha.'
+                      : 'Se canceló la actividad en la agenda: otra vez por ponerle fecha.'
                     : report.wants_agenda
                       ? 'Va a la agenda: por ponerle fecha. La pone el jefe (o el despacho).'
                       : 'No va a la agenda: queda en el registro del municipio.'}

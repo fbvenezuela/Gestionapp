@@ -136,7 +136,7 @@ async function IvtList({ s }: { s: Awaited<ReturnType<typeof requireRole>> }) {
       `select e.id, e.title, e.place_name, e.municipality, sc.starts_at, sc.exact_address, e.boss_decision, e.cancelled_at is not null as cancelled, e.obra_ficha_id
          from public.events e left join public.event_schedule sc on sc.event_id = e.id
         where e.deleted_at is null and e.obra_ficha_id is not null
-        order by e.cancelled_at is not null, sc.starts_at nulls last`,
+        order by e.cancelled_at is not null or e.boss_decision = 'rejected', sc.starts_at nulls last`,
     ),
   );
   return (
@@ -149,20 +149,26 @@ async function IvtList({ s }: { s: Awaited<ReturnType<typeof requireRole>> }) {
         <EmptyState title="Todavía ninguna obra tiene fecha de visita." action={<LinkButton href="/obras">Ver mis fichas de obra</LinkButton>} />
       ) : (
         <ul className="flex flex-col gap-3">
-          {rows.map((e) => (
-            <li key={e.id}>
-              <Card>
-                <Link href={`/eventos/${e.id}`} className="block p-4">
-                  <p className={cn('font-mono text-sm font-semibold text-accent-ink', e.cancelled && 'line-through')}>{e.starts_at ? fmtDateTime(e.starts_at) : 'Ya tiene fecha'}</p>
-                  <p className={cn('mt-0.5 text-lg font-semibold', e.cancelled && 'line-through')}>{e.title}</p>
-                  <p className="flex items-center gap-1 text-[15px] text-text-2"><MapPin className="h-4 w-4" aria-hidden /> {e.exact_address || [e.place_name, e.municipality].filter(Boolean).join(' · ')}</p>
-                  <div className="mt-2">
-                    {e.cancelled ? <Chip tone="danger">Cancelada</Chip> : <Chip tone={BOSS_DECISION[e.boss_decision]?.tone}>{BOSS_DECISION[e.boss_decision]?.label}</Chip>}
-                  </div>
-                </Link>
-              </Card>
-            </li>
-          ))}
+          {rows.map((e) => {
+            // Rejected by the boss: no date any more (the obra is back in «Por ponerle fecha»).
+            const rejected = !e.cancelled && e.boss_decision === 'rejected';
+            return (
+              <li key={e.id}>
+                <Card>
+                  <Link href={`/eventos/${e.id}`} className="block p-4">
+                    <p className={cn('font-mono text-sm font-semibold text-accent-ink', e.cancelled && 'line-through')}>
+                      {rejected ? 'Sin fecha: el jefe la rechazó' : e.starts_at ? fmtDateTime(e.starts_at) : 'Ya tiene fecha'}
+                    </p>
+                    <p className={cn('mt-0.5 text-lg font-semibold', (e.cancelled || rejected) && 'line-through')}>{e.title}</p>
+                    <p className="flex items-center gap-1 text-[15px] text-text-2"><MapPin className="h-4 w-4" aria-hidden /> {(!rejected && e.exact_address) || [e.place_name, e.municipality].filter(Boolean).join(' · ')}</p>
+                    <div className="mt-2">
+                      {e.cancelled ? <Chip tone="danger">Cancelada</Chip> : <Chip tone={BOSS_DECISION[e.boss_decision]?.tone}>{BOSS_DECISION[e.boss_decision]?.label}</Chip>}
+                    </div>
+                  </Link>
+                </Card>
+              </li>
+            );
+          })}
         </ul>
       )}
     </>
