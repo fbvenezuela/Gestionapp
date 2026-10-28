@@ -126,6 +126,47 @@ for (const { email, screens, fichaTabs } of ROLES) {
   });
 }
 
+// Mensajes in the demo (R3, D-57): the seeded conversations have the same ids on every server, also the directs that
+// have no message yet (so «Escribirle a alguien» opens the same one anywhere); a conversation made on another server
+// says so instead of «No encontramos esto». The notice of Mensajes is closed with Escape: nothing is written here.
+async function closeNotice(page: Page) {
+  if (!(await page.locator('dialog', { hasText: 'Antes de escribir en Mensajes' }).count())) return;
+  const d = page.getByRole('dialog', { name: 'Antes de escribir en Mensajes' });
+  await expect(d).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(d).toHaveCount(0);
+}
+
+test('las conversaciones sembradas de Mensajes abren con el mismo id en los dos servidores', async ({ page }) => {
+  test.skip(!!process.env.E2E_BASE_URL, 'solo con los dos servidores locales');
+  const { chatDirectId } = await import('../../src/lib/db/seed-parts/chat');
+  // Daniela (Redes) and Elio (Política), fixed demo ids (src/lib/db/seed-demo.ts): seeded, with no message.
+  const empty = `/mensajes/${chatDirectId('00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-000000000010')}`;
+  await loginAs(page, 'redes@demo.test');
+  await page.goto('/mensajes');
+  await shown(page, '/mensajes');
+  await closeNotice(page);
+  const withKevin = (await page.locator('main [data-tour="chat-list"] a', { hasText: 'Kevin Sánchez' }).first().getAttribute('href'))!;
+  for (const [href, title, text] of [
+    [withKevin, 'Kevin Sánchez', 'Ya subí las tomas de la cancha de El Mirador, con la nota para el editor.'],
+    [empty, 'Elio Rondón', 'Todavía no hay mensajes. Escribe el primero.'],
+  ] as const) {
+    for (const base of ['', other]) {
+      const res = await page.goto(`${base}${href}`);
+      expect(res?.status(), `${base}${href}`).toBe(200);
+      await shown(page, `${base}${href}`);
+      await closeNotice(page);
+      await expect(page.getByRole('heading', { level: 1, name: title }), `${base}${href}`).toBeVisible();
+      await expect(page.getByRole('log', { name: 'Mensajes' }), `${base}${href}`).toContainText(text);
+    }
+  }
+  // An id this server never had (a group made on another one): said plainly, in the demo only.
+  await page.goto(`${other}/mensajes/00000000-0000-4000-8000-00000000c0de`);
+  await shown(page, 'conversación de otro servidor');
+  await expect(page.getByText('Esta conversación se creó en otro servidor de la demostración. Prueba con las que ya están.')).toBeVisible();
+  await expect(page.getByText('No encontramos esto')).toHaveCount(0);
+});
+
 // «Ir al inicio» goes to each person's own home: Hoy for despacho, Municipios for política (not Hoy for everyone).
 test('lo que no existe dice «No encontramos esto» en español y lleva al inicio de cada quien', async ({ page }) => {
   for (const [email, missing, home] of [

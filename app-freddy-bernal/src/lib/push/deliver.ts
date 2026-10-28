@@ -99,11 +99,31 @@ const LIVE_SUBS = `select s.user_id, s.endpoint, s.p256dh, s.auth from public.pu
 type SubRow = PushSub & { user_id: string };
 const keys = ({ endpoint, p256dh, auth }: SubRow): PushSub => ({ endpoint, p256dh, auth });
 
+// A new message of Mensajes (notifyChat, src/lib/notify.ts): it has no row in «Avisos», so its grouped count comes
+// from the messages themselves (never their text) and its summary opens Mensajes.
+export const CHAT_PUSH_KIND = 'chat_message';
+
 // Text for a grouped push: replaces the earlier one in the tray (same tag) without ringing again.
 export function summaryPayload(count: number, latest: { title: string; body: string; url: string }, kind: string): PushPayload {
   if (count < 2) return { ...latest, tag: kind, kind, silent: true };
+  if (kind === CHAT_PUSH_KIND) return { title: `Tienes ${count} mensajes nuevos`, body: `El último: ${latest.body}`.slice(0, 160), url: '/mensajes', tag: kind, kind, silent: true };
   return { title: `Tienes ${count} avisos nuevos`, body: `El último: ${latest.title}`.slice(0, 160), url: '/avisos', tag: kind, kind, silent: true };
 }
+
+// Unread notices of this kind since the last push that rang (one minute of slack for the notice that caused it,
+// which is stored just before the push goes out). For Mensajes: the messages from others, in conversations of theirs
+// they did not silence, newer than what they read.
+const GROUPED_COUNT = `select t.user_id, count(x.id)::int as n from public.notify_throttle t
+     left join public.notifications x on x.user_id = t.user_id and x.kind = $3 and x.read_at is null
+       and x.created_at >= t.sent_at - interval '1 minute'
+    where t.user_id = any($1::uuid[]) and t.kind = $2 group by t.user_id`;
+const CHAT_GROUPED_COUNT = `select t.user_id, count(x.id)::int as n from public.notify_throttle t
+     left join public.chat_messages x on x.author_id <> t.user_id and x.created_at >= t.sent_at - interval '1 minute'
+       and (exists (select 1 from public.chat_members m where m.conversation_id = x.conversation_id and m.user_id = t.user_id)
+            or exists (select 1 from public.chat_conversations k where k.id = x.conversation_id and k.kind = 'team'))
+       and not exists (select 1 from public.chat_reads r where r.conversation_id = x.conversation_id and r.user_id = t.user_id
+                        and (r.muted or r.last_read_at >= x.created_at))
+    where t.user_id = any($1::uuid[]) and t.kind = $2 group by t.user_id`;
 
 // Push for a notice that was just stored in the app. Respects the per-kind preferences and
 // quiet hours (critical kinds ignore both). Critical kinds are never grouped: each one rings and
@@ -142,16 +162,10 @@ export async function pushNotice(
       );
       const fresh = new Set(claimed.map((c) => c.user_id));
       const waiting = [...new Set(subs.filter((s) => !fresh.has(s.user_id)).map((s) => s.user_id))];
-      // Unread notices of this kind since the last push that rang (one minute of slack for the
-      // notice that caused it, which is stored just before the push goes out).
       const counts = waiting.length
-        ? await sql.query<{ user_id: string; n: number }>(
-            `select t.user_id, count(x.id)::int as n from public.notify_throttle t
-               left join public.notifications x on x.user_id = t.user_id and x.kind = $3 and x.read_at is null
-                 and x.created_at >= t.sent_at - interval '1 minute'
-              where t.user_id = any($1::uuid[]) and t.kind = $2 group by t.user_id`,
-            [waiting, `push:${n.kind}`, n.kind],
-          )
+        ? n.kind === CHAT_PUSH_KIND
+          ? await sql.query<{ user_id: string; n: number }>(CHAT_GROUPED_COUNT, [waiting, `push:${n.kind}`])
+          : await sql.query<{ user_id: string; n: number }>(GROUPED_COUNT, [waiting, `push:${n.kind}`, n.kind])
         : [];
       const count = new Map(counts.map((c) => [c.user_id, c.n]));
       return {

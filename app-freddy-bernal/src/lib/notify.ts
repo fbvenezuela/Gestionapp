@@ -5,8 +5,10 @@ import { withSystem } from './db';
 import { env } from './env';
 import { brand } from './client-config';
 import { sendEmail } from './email/send';
-import { pushNotice } from './push/deliver';
+import { CHAT_PUSH_KIND, pushNotice } from './push/deliver';
 import { kindOn } from './push/quiet';
+import type { Role } from './roles';
+import { chatRoles, firstName } from '@/components/chat/chat-core';
 
 // Kinds that cannot be turned off (they block someone's work).
 // A moved or cancelled event (the shared agenda, 27/10/2026) too: Grabación and the IVT have to be there, or not.
@@ -81,6 +83,46 @@ export async function usersWithRole(role: string): Promise<string[]> {
       [role],
     )).map((r) => r.user_id),
   );
+}
+
+// Mensajes (R3, D-55): a new message rings the phones of the others in the conversation (everyone of the team in «Todo
+// el equipo») who did not silence it, with the title «Mensaje nuevo» and who wrote it: «De Daniela (Redes)». NEVER the
+// text nor a group's name (a phone's lock screen shows the notice, and phones may be shared): this never even reads
+// them. No row in «Avisos» (the envelope already counts it) and never an email. Grouped every 10 minutes like any
+// other kind («Tienes 3 mensajes nuevos», push/deliver.ts), quiet hours apply, and «Qué avisos quiero» → «Mensajes
+// nuevos del equipo» turns it off. Called after the message's transaction, never inside db().
+export async function notifyChat(m: { messageId: string }) {
+  const plan = await withSystem(async (sql) => {
+    const msg = await sql.one<{ conversation_id: string; author_id: string; kind: string; name: string; roles: string[] }>(
+      `select x.conversation_id, x.author_id, c.kind,
+              coalesce(nullif(btrim(p.full_name), ''), split_part(p.email, '@', 1)) as name,
+              public.chat_team_roles(x.author_id)::text[] as roles
+         from public.chat_messages x
+         join public.chat_conversations c on c.id = x.conversation_id
+         join public.profiles p on p.id = x.author_id
+        where x.id = $1`,
+      [m.messageId],
+    );
+    if (!msg) return null;
+    // Active people of the team (never an admin account), members of this conversation, not the author, not muted.
+    const recipients = await sql.query<{ id: string; notify_prefs: Record<string, unknown> | null }>(
+      `select p.id, p.notify_prefs from public.profiles p
+        where p.id <> $2 and p.active and p.deleted_at is null and public.chat_team_roles(p.id) <> '{}'
+          and ($3::text = 'team' or exists (select 1 from public.chat_members cm where cm.conversation_id = $1 and cm.user_id = p.id))
+          and not exists (select 1 from public.chat_reads r where r.conversation_id = $1 and r.user_id = p.id and r.muted)
+        order by p.id`,
+      [msg.conversation_id, msg.author_id, msg.kind],
+    );
+    return { msg, recipients };
+  });
+  if (!plan || !plan.recipients.length) return;
+  const { msg, recipients } = plan;
+  const body = msg.roles.includes('boss') ? 'Del jefe' : `De ${firstName(msg.name)} (${chatRoles(msg.roles as Role[])})`;
+  await pushNotice(
+    recipients.map((r) => ({ id: r.id, prefs: r.notify_prefs ?? {} })),
+    { kind: CHAT_PUSH_KIND, title: 'Mensaje nuevo', body, link: `/mensajes/${msg.conversation_id}` },
+    false,
+  ).catch((e) => console.warn('[push]', (e as Error).message));
 }
 
 // The given people who still hold a role (one of the six or admin: the database allows nothing else) and are active.
