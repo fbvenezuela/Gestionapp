@@ -253,7 +253,7 @@ test('Escape sale y el foco vuelve a «Mi cuenta»; ahí están los tutoriales d
   await expect(page.locator('summary[aria-label="Mi cuenta"]')).toBeFocused();
 
   // A screen without a tutorial for Redes: only «Ayuda y guías».
-  await page.goto('/agenda');
+  await page.goto('/avisos');
   await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0);
   await page.getByLabel('Mi cuenta').click();
   await expect(page.locator('header details[open]').getByRole('link', { name: 'Ayuda y guías' })).toBeVisible();

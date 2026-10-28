@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useEffectEvent, useId, useRef, useSta
 import { usePathname, useSearchParams } from 'next/navigation';
 import { homeFor, TEAM_ROLES, type Role } from '@/lib/roles';
 import type { Tour } from '@/lib/guides/types';
-import { GUIDE_SLUGS } from '@/lib/guides';
+import { GUIDE_SLUGS } from '@/lib/guides/slugs';
 import { deviceStore } from '@/components/ui/device-store';
 import {
   MIN_STEPS,

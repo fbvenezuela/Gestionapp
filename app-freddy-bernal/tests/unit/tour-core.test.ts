@@ -191,7 +191,7 @@ describe('qué tutoriales van con la pantalla (tourForPath)', () => {
     expect(ids(tourForPath('/hoy', '', mine, { home: '/hoy' }))).toEqual(['bienvenida', 'hoy-redes']);
     // Without a home (or on another screen), bienvenida does not go.
     expect(ids(tourForPath('/hoy', '', mine))).toEqual(['hoy-redes']);
-    expect(ids(tourForPath('/agenda', '', mine, { home: '/hoy' }))).toEqual([]);
+    expect(ids(tourForPath('/agenda', '', mine, { home: '/hoy' }))).toEqual(['agenda-redes']);
     // The catalogue order does not matter: the shared one goes after the role's own.
     const shared = tour({ id: 'compartido', screen: '/biblioteca', roles: ['dispatch', 'social', 'boss'] });
     const own = tour({ id: 'propio', screen: '/biblioteca', roles: ['social'] });

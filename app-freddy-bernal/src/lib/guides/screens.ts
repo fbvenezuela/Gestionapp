@@ -36,4 +36,7 @@ export const HELP_SCREENS: Screen[] = [
   },
   // Reached only with a role's slug (/ayuda/redes).
   { href: '/ayuda/[id]', label: 'Abrir la guía del rol', roles: null, file: '(panel)/ayuda/[rol]/page.tsx', phrases: [] },
+  // Not a help screen: an event's reading mode, reached only from its event. Here so its tutorial (`lectura`) and the
+  // guides' «Cada pantalla» can name it (both must be a SCREENS pattern that canOpen). The page calls requireSession().
+  { href: '/eventos/[id]/lectura', label: 'Abrir el modo lectura', roles: null, file: '(panel)/eventos/[id]/lectura/page.tsx', phrases: [] },
 ];
