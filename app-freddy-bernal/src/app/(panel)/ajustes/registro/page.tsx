@@ -17,6 +17,9 @@ const TABLE: Record<string, string> = {
   obra_fichas: 'Ficha de obra', obra_ficha_private: 'Contactos de obra', community_reports: 'Ficha comunitaria',
   community_report_private: 'Contactos del reporte', ficha_updates: 'Historia de ficha',
   recording_notes: 'Nota de grabación',
+  // Mensajes: the audit keeps only that something happened, who and when; never a text, a name or the members (D-50).
+  chat_conversations: 'Conversación', chat_members: 'Miembro de una conversación', chat_messages: 'Mensaje',
+  chat_notice_ack: 'Aceptación del aviso de Mensajes', chat_rules: 'Regla de Mensajes',
 };
 const ACTION: Record<string, string> = { insert: 'creó', update: 'cambió', delete: 'quitó', soft_delete: 'borró', mfa_reset: 'reinició' };
 // One summary row of 20261027001600_six_roles.sql: the retired roles keep their names here (history).

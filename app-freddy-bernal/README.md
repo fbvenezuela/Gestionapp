@@ -51,6 +51,9 @@ Hoy hay un proyecto, `fb-dev` (`docs/CUENTAS.md`). Lo que falta, paso a paso y c
    `DATABASE_URL=... NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npm run db:first-admin -- correo@x.com "Nombre"`.
    El script pide antes la configuración del cliente, usa la invitación pendiente si ya existe, no muestra el
    correo y, si algo falla, sale con error sin dejar invitaciones sueltas.
+   **El jefe** se crea igual, con `--jefe` al final: `npm run db:first-admin -- correo@x.com "Nombre" --jefe`. El rol
+   de jefe solo lo da el sistema (este comando, la semilla o una migración); Administración no lo da desde «Equipo»
+   (D-58). Cada rol que da una persona le llega al jefe como aviso.
 10. **Nunca borrar personas** en Authentication → Users: falla cuando ya hicieron algo. Se desactivan en la app
     (Ajustes → Equipo).
 11. **Claves y conexión para Vercel** (las pone Juan; nunca en el repositorio):
