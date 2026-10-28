@@ -55,7 +55,7 @@ export function PhotoGallery({
   const where = obra ? { obraFichaId: target.obraFichaId } : { reportId: target.reportId };
   return (
     // Solid once it holds a long list (no blur behind many pictures).
-    <Card solid={shown.length > 8}>
+    <Card solid={shown.length > 8} data-tour="photos">
       <CardHeader title={title} subtitle={subtitle} action={shown.length ? <Chip tone="ok">{shown.length}</Chip> : <Chip>Vacío</Chip>} />
       <div className="flex flex-col gap-5 p-4 sm:p-5">
         {canUpload ? <p className="text-sm text-text-2">Puedes elegir varias a la vez. Cada una queda guardada en la ficha en cuanto termina de subir; si se va la señal, sigue sola cuando vuelva. Las fotos se suben sin la ubicación del teléfono.</p> : null}

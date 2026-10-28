@@ -74,7 +74,7 @@ export default async function PiecePage({ params }: { params: Promise<{ id: stri
           />
         </div>
         <div className="flex flex-col gap-4">
-          <Card>
+          <Card data-tour="final-file">
             <CardHeader title="Archivo final" subtitle={current ? `Versión ${current.version}` : 'Todavía no hay archivo'} />
             <CardBody className="flex flex-col gap-3">
               {current?.media_asset_id ? <MediaPreview id={current.media_asset_id} mime={current.mime ?? ''} drive={current.bucket === 'drive'} /> : null}

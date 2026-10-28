@@ -27,6 +27,7 @@ export function SunModeToggle() {
     <button
       type="button"
       role="switch"
+      data-tour="sun-mode"
       aria-checked={on}
       aria-labelledby={`${id}-name`}
       aria-describedby={`${id}-hint`}

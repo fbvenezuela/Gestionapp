@@ -110,7 +110,7 @@ export default async function ObraPage({ params, searchParams }: { params: Promi
         actions={
           canEdit ? (
             <>
-              <LinkButton href={`/obras/${id}?editar=1`}>
+              <LinkButton href={`/obras/${id}?editar=1`} data-tour="edit-ficha">
                 <Pencil className="h-4 w-4" aria-hidden /> Editar
               </LinkButton>
               <ObraArchiveControl id={id} stage={ficha.stage} />
@@ -128,7 +128,7 @@ export default async function ObraPage({ params, searchParams }: { params: Promi
         </span>
       </div>
 
-      <Card className="mb-4">
+      <Card className="mb-4" data-tour="visit-date">
         <CardBody className="flex items-start gap-3">
           <CalendarClock className="mt-0.5 h-5 w-5 shrink-0 text-accent-ink" aria-hidden />
           <div className="min-w-0">

@@ -46,7 +46,7 @@ export function TweetBoard({ tweets, canEdit }: { tweets: BoardTweet[]; canEdit:
 
   return (
     <>
-      <div className="flex gap-3 overflow-x-auto pb-2">
+      <div className="flex gap-3 overflow-x-auto pb-2" data-tour="tweet-board">
         {days.map((d) => {
           const list = scheduled.filter((t) => local(t.scheduled_at!).toISODate() === d).sort((a, b) => ms(a.scheduled_at) - ms(b.scheduled_at));
           return (

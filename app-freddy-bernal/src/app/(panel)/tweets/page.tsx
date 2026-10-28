@@ -31,7 +31,7 @@ export default async function TweetsPage() {
   }));
   return (
     <>
-      <PageHeader title="Tweets" subtitle={canEdit ? 'La semana repartida por horas. Toca un tweet para cambiar el día o la hora.' : 'La semana repartida por horas.'} actions={canEdit ? <LinkButton href="/tweets/nueva"><Plus className="h-4 w-4" aria-hidden /> Tweets de la semana</LinkButton> : undefined} />
+      <PageHeader title="Tweets" subtitle={canEdit ? 'La semana repartida por horas. Toca un tweet para cambiar el día o la hora.' : 'La semana repartida por horas.'} actions={canEdit ? <LinkButton href="/tweets/nueva" data-tour="new-batch"><Plus className="h-4 w-4" aria-hidden /> Tweets de la semana</LinkButton> : undefined} />
       {canEdit ? (
         <Tip id="tweets">Toca un tweet para cambiarle el día o la hora, copiarlo o marcarlo como publicado.</Tip>
       ) : (
@@ -51,7 +51,7 @@ export default async function TweetsPage() {
         <Stat label="Por salir" value={data.stock.count} />
       </div>
       {data.tweets.length ? <TweetBoard tweets={data.tweets} canEdit={canEdit} /> : <EmptyState title="No hay tweets en las próximas semanas." action={canEdit ? <LinkButton href="/tweets/nueva">Subir la tanda de la semana</LinkButton> : undefined} />}
-      <Card solid className="mt-6">
+      <Card solid className="mt-6" data-tour="batches">
         <CardHeader title="Tandas" />
         <ul className="divide-y divide-border">
           {data.batches.map((b) => (

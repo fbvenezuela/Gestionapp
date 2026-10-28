@@ -67,12 +67,12 @@ export function NewBatch({ categories }: { categories: CategoryOption[] }) {
         <Card>
           <CardBody className="flex flex-col gap-4">
             <input ref={fileRef} type="file" accept=".docx,.txt,.md,text/plain" className="sr-only" aria-label="Documento de tweets" onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
-            <Button type="button" size="lg" variant="secondary" disabled={busy} onClick={() => fileRef.current?.click()}>
+            <Button type="button" size="lg" variant="secondary" data-tour="tweets-upload" disabled={busy} onClick={() => fileRef.current?.click()}>
               <FileText className="h-5 w-5" aria-hidden /> {busy ? 'Leyendo…' : 'Subir el documento (.docx, .txt o .md)'}
             </Button>
             <p className="text-center text-sm text-text-2">o pega el texto</p>
             <Textarea aria-label="Texto con los tweets" rows={10} value={value.raw} onChange={(e) => setValue({ ...value, raw: e.target.value })} placeholder={'1. Primer tweet…\n2. Segundo tweet…\n\n(También sirven líneas en blanco o ---)'} />
-            <Button type="button" size="lg" disabled={busy || !value.raw.trim()} onClick={() => separate(value.raw)}>
+            <Button type="button" size="lg" data-tour="tweets-split" disabled={busy || !value.raw.trim()} onClick={() => separate(value.raw)}>
               <Wand2 className="h-5 w-5" aria-hidden /> Separar tweets
             </Button>
           </CardBody>
@@ -166,6 +166,7 @@ export function NewBatch({ categories }: { categories: CategoryOption[] }) {
           type="button"
           size="lg"
           className="sm:ml-auto"
+          data-tour="tweets-distribute"
           disabled={pending || checks.some((c) => c.tooLong)}
           onClick={() =>
             run(() => createBatch({ title: value.title, sourceName: value.source, tweets: value.tweets.map((t) => ({ body: t.body, categoryId: t.categoryId || null })) }), {

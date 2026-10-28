@@ -59,7 +59,7 @@ export default async function MunicipiosPage({ searchParams }: { searchParams: P
         actions={
           // Administración reads the register but does not load reports (their contacts are not its own, D-41).
           canSeeReportContacts(s.roles) ? (
-            <LinkButton href="/reportes/nuevo" size="lg">
+            <LinkButton href="/reportes/nuevo" size="lg" data-tour="new-report">
               <Plus className="h-5 w-5" aria-hidden /> Nueva ficha comunitaria
             </LinkButton>
           ) : undefined
@@ -68,7 +68,7 @@ export default async function MunicipiosPage({ searchParams }: { searchParams: P
 
       {!filtered ? <OverdueReports rows={data.overdue} todayIso={t0} total={all.overdue} /> : null}
 
-      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4" data-tour="mun-stats">
         <Stat label="Abiertas" value={all.open} />
         <Stat label="En ejecución" value={all.inProgress} tone={all.inProgress ? 'accent' : undefined} />
         <Stat label="Finalizadas" value={all.finished} tone={all.finished ? 'ok' : undefined} />

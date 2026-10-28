@@ -38,13 +38,13 @@ export default async function PublishPage() {
     <>
       <PageHeader title="Publicar" subtitle="Calendario de publicaciones por red. Por ahora se publica a mano: descarga el paquete y marca «Ya lo publiqué»." actions={
           <div className="flex flex-wrap gap-2">
-            <LinkButton variant="secondary" href="/publicar/espontanea">Registrar lo que publicó el jefe</LinkButton>
-            <LinkButton href="/publicar/nueva"><Plus className="h-4 w-4" aria-hidden /> Nueva publicación</LinkButton>
+            <LinkButton variant="secondary" href="/publicar/espontanea" data-tour="register-boss">Registrar lo que publicó el jefe</LinkButton>
+            <LinkButton href="/publicar/nueva" data-tour="new-publication"><Plus className="h-4 w-4" aria-hidden /> Nueva publicación</LinkButton>
           </div>
         } />
       <Tip id="publicar">Abre una publicación para ver si cumple con cada red antes de subirla.</Tip>
       {data.ready.length ? (
-        <Card solid className="mb-5">
+        <Card solid className="mb-5" data-tour="approved-unpublished">
           <CardHeader title="Aprobadas y sin publicar" />
           <ul className="divide-y divide-border">
             {data.ready.map((p) => (

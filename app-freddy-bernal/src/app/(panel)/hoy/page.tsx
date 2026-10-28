@@ -160,7 +160,7 @@ export default async function TodayPage() {
       {has('politics') ? (
         <>
           <OverdueReports rows={data.lateReports} todayIso={t0.toISODate()!} />
-          <Card className="mb-5">
+          <Card className="mb-5" data-tour="hoy-politica">
             <CardHeader
               title="Los eventos y avances de cada municipio"
               subtitle="Carga una ficha por actividad o situación; lo vencido sale arriba."
@@ -170,7 +170,7 @@ export default async function TodayPage() {
         </>
       ) : null}
       {has('ivt') && data.obras ? (
-        <Card className="mb-5">
+        <Card className="mb-5" data-tour="hoy-ivt">
           <CardHeader
             title="Las fichas de obra"
             subtitle={`${data.obras.draft ?? 0} en borrador · ${data.obras.to_schedule ?? 0} por ponerle fecha. La fecha la ponen el jefe o el despacho.`}
@@ -180,7 +180,7 @@ export default async function TodayPage() {
       ) : null}
 
       {data.stats.length ? (
-        <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3" data-tour="today-stats">
           {data.stats.map((st) => (
             <Stat key={st.label} label={st.label} value={st.value} tone={st.tone} hint={st.hint} />
           ))}
@@ -191,14 +191,14 @@ export default async function TodayPage() {
           page scrolls sideways on a phone instead of wrapping it. */}
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <div className="flex min-w-0 flex-col gap-5">
-          <Card>
+          <Card data-tour="waiting">
             <CardHeader title="Lo que espera por mí" subtitle={data.waiting.length ? `${data.waiting.length} ${data.waiting.length === 1 ? 'pendiente' : 'pendientes'}` : undefined} />
             {data.waiting.length ? <ItemList items={data.waiting} /> : <div className="p-4"><EmptyState icon={<Inbox className="h-8 w-8" />} title="Nada pendiente. ¡Bien!" /></div>}
           </Card>
         </div>
         <div className="flex min-w-0 flex-col gap-5">
           {sched ? (
-            <Card>
+            <Card data-tour="today-agenda">
               <CardHeader title="Hoy en la agenda" action={<Link href="/agenda" className="text-sm font-semibold text-accent-ink">Ver agenda</Link>} />
               {data.todayEvents.length ? (
                 <ul className="divide-y divide-border">
@@ -219,7 +219,7 @@ export default async function TodayPage() {
               )}
             </Card>
           ) : null}
-          <Card>
+          <Card data-tour="blocked">
             <CardHeader title="Trancado" />
             {data.blocked.length ? <ItemList items={data.blocked} icon /> : <p className="p-4 text-[15px] text-text-2">Nada trancado.</p>}
           </Card>

@@ -27,7 +27,7 @@ export function MoveSheet({ id, current, rev }: { id: string; current: Pick<Sche
       title="Mover"
       description="Otra fecha u hora. Le avisamos a quien graba (sin la fecha)."
       trigger={
-        <Button size="lg" variant="secondary">
+        <Button size="lg" variant="secondary" data-tour="move">
           <CalendarClock className="h-5 w-5" aria-hidden /> Mover
         </Button>
       }

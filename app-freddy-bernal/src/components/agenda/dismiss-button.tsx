@@ -19,7 +19,7 @@ export function DismissButton({ kind, id }: { kind: 'obra' | 'report'; id: strin
       onOpenChange={setOpen}
       title="No va a la agenda"
       description={kind === 'obra' ? 'La obra queda archivada (se puede traer de vuelta desde su ficha).' : 'El reporte queda en el registro del municipio.'}
-      trigger={<Button variant="ghost">No va</Button>}
+      trigger={<Button variant="ghost" data-tour="dismiss">No va</Button>}
     >
       <form
         className="flex flex-col gap-4"

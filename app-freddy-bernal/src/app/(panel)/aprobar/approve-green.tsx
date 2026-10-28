@@ -14,6 +14,7 @@ export function ApproveGreen({ pieces }: { pieces: { id: string; revision: numbe
   return (
     <Button
       size="lg"
+      data-tour="approve-green"
       className="w-full sm:w-auto sm:self-start"
       disabled={pending}
       onClick={() =>

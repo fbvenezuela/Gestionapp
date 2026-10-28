@@ -21,7 +21,7 @@ export function CancelButton({ id, fromFicha }: { id: string; fromFicha: boolean
       title="¿Cancelar este evento?"
       description={fromFicha ? 'Queda en la agenda tachado. Su ficha vuelve a «Por ponerle fecha».' : 'Queda en la agenda tachado, con quién lo canceló y por qué.'}
       trigger={
-        <Button size="lg" variant="danger">
+        <Button size="lg" variant="danger" data-tour="cancel">
           <Ban className="h-5 w-5" aria-hidden /> Cancelar
         </Button>
       }

@@ -50,7 +50,7 @@ export function BatchActions({ batchId, counts, drafts, canApprove, canEdit }: {
               </Button>
             ) : null}
             {canEdit && counts.approved ? (
-              <Button disabled={pending} onClick={() => run(() => scheduleTweets({ batchId }), { success: 'Programados. Quedan en el calendario con «Copiar» y «Ya lo publiqué».' })}>
+              <Button disabled={pending} data-tour="tweets-schedule" onClick={() => run(() => scheduleTweets({ batchId }), { success: 'Programados. Quedan en el calendario con «Copiar» y «Ya lo publiqué».' })}>
                 <CalendarClock className="h-4 w-4" aria-hidden /> Programar
               </Button>
             ) : null}

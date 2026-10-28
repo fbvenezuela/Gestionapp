@@ -35,9 +35,20 @@ export function SideNav({ items }: { items: NavItem[] }) {
   );
 }
 
+// Inside one conversation of Mensajes (/mensajes/<uuid>) the phone has no bottom bar: the box to write sits at the very
+// bottom and the messages get the room (R3, design §5.3, U11). The list, «Escribirle a alguien» and the boss's pages
+// keep it.
+const CHAT_THREAD = /^\/mensajes\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/?$/i;
+
+/** Whether the phone's bottom bar is left out on this screen (one conversation of Mensajes). */
+export function hidesBottomNav(pathname: string | null): boolean {
+  return CHAT_THREAD.test(pathname ?? '');
+}
+
 export function BottomNav({ items, more = [] }: { items: NavItem[]; more?: NavItem[] }) {
   const pathname = usePathname();
   if (items.length === 0 && more.length === 0) return null;
+  if (hidesBottomNav(pathname)) return null;
   const cols = items.length + (more.length ? 1 : 0);
   const menu = [...items, ...more];
   const moreActive = more.some((it) => isNavActive(pathname, it, menu));
@@ -72,6 +83,7 @@ export function BottomNav({ items, more = [] }: { items: NavItem[]; more?: NavIt
             {/* key on the path: the panel closes after choosing a page */}
             <MenuDetails key={pathname} className="group relative h-full">
               <summary
+                data-tour="nav-more"
                 className={cn(
                   'flex min-h-16 cursor-pointer list-none flex-col items-center justify-center gap-0.5 font-semibold [&::-webkit-details-marker]:hidden',
                   text,

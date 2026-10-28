@@ -19,7 +19,7 @@ const FILE_BUTTON = 'inline-flex min-h-11 items-center justify-center gap-2 roun
 export function Package({ video, cover, copy, collaborators, network, title }: { video: PackageFile | null; cover: PackageFile | null; copy: string; collaborators: string[]; network: string; title: string }) {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   return (
-    <Card>
+    <Card data-tour="package">
       <CardHeader title="Paquete para publicar" subtitle={`Todo lo que necesitas para subirlo a ${network}.`} />
       <CardBody className="flex flex-col gap-3">
         <div className="grid gap-2 sm:grid-cols-3">
@@ -62,7 +62,7 @@ export function PublishedForm({ id }: { id: string }) {
   const [url, setUrl] = useState('');
   const [evidence, setEvidence] = useState<string | null>(null);
   return (
-    <Card>
+    <Card data-tour="mark-published">
       <CardHeader title="¿Ya lo publicaste?" subtitle="Pega el link y, si puedes, una captura como evidencia." />
       <CardBody className="flex flex-col gap-3">
         <Field label="Link de la publicación" htmlFor="pu"><Input id="pu" type="url" inputMode="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" /></Field>
@@ -116,7 +116,7 @@ export function MetricsForm({ publicationId }: { publicationId: string }) {
   const [f, setF] = useState(empty);
   const fields: [keyof typeof f, string][] = [['views', 'Vistas'], ['reach', 'Alcance'], ['likes', 'Me gusta'], ['comments', 'Comentarios'], ['shares', 'Compartidos'], ['saves', 'Guardados']];
   return (
-    <Card>
+    <Card data-tour="load-metrics">
       <CardHeader title="Cargar resultados" subtitle="Copia los números de la red. Puedes cargarlos varias veces (se guarda cada foto)." />
       <CardBody>
         <form className="grid grid-cols-2 gap-3 sm:grid-cols-3" onSubmit={(e) => {

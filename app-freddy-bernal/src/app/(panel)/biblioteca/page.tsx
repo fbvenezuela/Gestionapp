@@ -135,6 +135,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
                         code={r.code}
                         files={planFiles(r.media)}
                         notes={readsNotes ? r.notes.map((n) => ({ kind: n.kind, body: n.body, author: firstName(n.author) })) : null}
+                        data-tour="download-day"
                       />
                       {canRemove ? (
                         <details className="rounded-[var(--radius-control)] border border-border">

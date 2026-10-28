@@ -155,11 +155,11 @@ export function StoryboardEditor({
         </Card>
       ))}
 
-      <Button type="button" variant="secondary" onClick={() => setValue({ ...value, blocks: [...value.blocks, emptyBlock()] })}>
+      <Button type="button" variant="secondary" data-tour="add-block" onClick={() => setValue({ ...value, blocks: [...value.blocks, emptyBlock()] })}>
         <Plus className="h-4 w-4" aria-hidden /> Agregar bloque
       </Button>
       <div className="sticky bottom-20 z-10 lg:bottom-4">
-        <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={pending}>{pending ? 'Guardando…' : 'Guardar storyboard'}</Button>
+        <Button type="submit" size="lg" className="w-full sm:w-auto" data-tour="save-storyboard" disabled={pending}>{pending ? 'Guardando…' : 'Guardar storyboard'}</Button>
       </div>
     </form>
   );

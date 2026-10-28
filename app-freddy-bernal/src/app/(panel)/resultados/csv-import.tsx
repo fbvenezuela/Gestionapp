@@ -12,7 +12,7 @@ export function CsvImport() {
   const { run, pending } = useAction();
   const ref = useRef<HTMLInputElement>(null);
   return (
-    <Card>
+    <Card data-tour="csv">
       <CardHeader title="Cargar resultados desde un archivo (CSV)" subtitle="Columnas: link, vistas, alcance, me_gusta, comentarios, compartidos, guardados." />
       <CardBody>
         <input ref={ref} type="file" accept=".csv,text/csv" className="sr-only" aria-label="Archivo CSV" onChange={async (e) => {

@@ -42,7 +42,7 @@ export function NewEventForm({ kind, categories, municipalities, cameras }: { ki
       }}
     >
       {restored ? <p className="rounded-[var(--radius-control)] bg-info-soft px-3 py-2 text-sm text-info" role="status">Recuperamos lo que estabas escribiendo.</p> : null}
-      <Card>
+      <Card data-tour="event-basics">
         <CardHeader title="El evento" />
         <div className="grid gap-4 p-4 sm:grid-cols-2">
           <Field
@@ -78,7 +78,7 @@ export function NewEventForm({ kind, categories, municipalities, cameras }: { ki
         </div>
       </Card>
 
-      <Card>
+      <Card data-tour="event-schedule">
         <CardHeader
           title="Fecha, hora y lugar exacto"
           subtitle="Privado: solo lo ven el jefe, el despacho, administración y quien graba el evento."
@@ -94,7 +94,7 @@ export function NewEventForm({ kind, categories, municipalities, cameras }: { ki
         </div>
       </Card>
 
-      <Card>
+      <Card data-tour="event-brief">
         <CardHeader title="Ficha técnica" subtitle="Con esto se arma el storyboard y los copies. Solo cifras confirmadas." />
         <div className="grid gap-4 p-4 sm:grid-cols-2">
           <Field label="De qué es la obra o el acto" htmlFor="work" hint={DICTATE_HINT} className="sm:col-span-2">
@@ -127,7 +127,7 @@ export function NewEventForm({ kind, categories, municipalities, cameras }: { ki
       </Card>
 
       <div className="sticky bottom-20 z-10 flex gap-2 lg:bottom-4">
-        <Button type="submit" size="lg" className="flex-1 sm:flex-none" disabled={pending}>
+        <Button type="submit" size="lg" data-tour="event-save" className="flex-1 sm:flex-none" disabled={pending}>
           {pending ? 'Guardando…' : kind === 'obra_visit' ? 'Guardar visita de obra' : 'Guardar evento'}
         </Button>
       </div>

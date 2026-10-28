@@ -82,8 +82,8 @@ async function Calendar({ s, sp, canCreate }: { s: Awaited<ReturnType<typeof req
           ))}
         </div>
       </div>
-      {view === 'mes' ? <MonthView anchor={anchor} events={events} /> : <TimeGrid days={days} events={events} />}
-      <p className="mt-3 flex flex-wrap gap-3 text-sm text-text-2">
+      <div data-tour="calendar">{view === 'mes' ? <MonthView anchor={anchor} events={events} /> : <TimeGrid days={days} events={events} />}</div>
+      <p className="mt-3 flex flex-wrap gap-3 text-sm text-text-2" data-tour="legend">
         <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-sm border-l-4 border-accent bg-accent-soft" /> Aceptado</span>
         <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-sm border-l-4 border-warn bg-warn-soft" /> Por decidir</span>
         <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-sm border-l-4 border-danger bg-danger-soft" /> Rechazado</span>
@@ -109,7 +109,7 @@ async function CameraList({ s }: { s: Awaited<ReturnType<typeof requireRole>> })
       {rows.length === 0 ? (
         <EmptyState title="No tienes eventos asignados todavía." />
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-3" data-tour="my-events">
           {rows.map((e) => (
             <li key={e.id}>
               <Card solid>
@@ -148,7 +148,7 @@ async function IvtList({ s }: { s: Awaited<ReturnType<typeof requireRole>> }) {
       {rows.length === 0 ? (
         <EmptyState title="Todavía ninguna obra tiene fecha de visita." action={<LinkButton href="/obras">Ver mis fichas de obra</LinkButton>} />
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-3" data-tour="my-visits">
           {rows.map((e) => {
             // Rejected by the boss: no date any more (the obra is back in «Por ponerle fecha»).
             const rejected = !e.cancelled && e.boss_decision === 'rejected';
@@ -194,7 +194,7 @@ async function TeamList({ s }: { s: Awaited<ReturnType<typeof requireRole>> }) {
       {rows.length === 0 ? (
         <EmptyState title="Todavía no hay eventos." />
       ) : (
-        <ul className="grid gap-3 md:grid-cols-2">
+        <ul className="grid gap-3 md:grid-cols-2" data-tour="team-events">
           {rows.map((e) => (
             <li key={e.id}>
               <Card solid className="h-full">

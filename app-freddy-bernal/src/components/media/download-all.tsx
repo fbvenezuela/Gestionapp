@@ -60,9 +60,10 @@ function saveStored(id: string, name: string) {
   a.remove();
 }
 
+// `data-tour` goes on the button that opens it (a tutorial's anchor: the event's Material tab or a day of Biblioteca).
 export function DownloadAllDialog({
-  title, code, files, notes = NO_NOTES, label = 'Descargar todo',
-}: { title: string; code: string; files: PlanFile[]; notes?: PlanNote[] | null; label?: string }) {
+  title, code, files, notes = NO_NOTES, label = 'Descargar todo', 'data-tour': tour,
+}: { title: string; code: string; files: PlanFile[]; notes?: PlanNote[] | null; label?: string; 'data-tour'?: 'download-all' | 'download-day' }) {
   const [open, setOpen] = useState(false);
   const present = useMemo(() => kindsOf(files), [files]);
   // The kinds the person unticked (a kind that arrives later starts ticked).
@@ -161,7 +162,7 @@ export function DownloadAllDialog({
       title="Descargar todo"
       description={`${code} · ${plan.totals.files} ${plan.totals.files === 1 ? 'archivo' : 'archivos'} · ${sizeText(plan.totals.bytes)}`}
       trigger={
-        <Button variant="secondary">
+        <Button variant="secondary" data-tour={tour}>
           <Download className="h-4 w-4" aria-hidden /> {label} ({files.length})
         </Button>
       }

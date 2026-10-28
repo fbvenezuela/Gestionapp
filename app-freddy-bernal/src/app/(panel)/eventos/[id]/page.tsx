@@ -113,14 +113,14 @@ export default async function EventPage({ params, searchParams }: { params: Prom
         subtitle={[ev.place_name, ev.municipality].filter(Boolean).join(' · ')}
         actions={
           ev.blocks.length || ev.storyboard?.speech || ficha?.fab.trim() ? (
-            <LinkButton variant="slate" href={`/eventos/${ev.id}/lectura`}>
+            <LinkButton variant="slate" href={`/eventos/${ev.id}/lectura`} data-tour="reading-mode">
               <BookOpenText className="h-4 w-4" aria-hidden /> Modo lectura
             </LinkButton>
           ) : undefined
         }
       />
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2" data-tour="event-chips">
         <span className="rounded-[var(--radius-chip)] bg-surface-2 px-2 py-0.5 font-mono text-xs font-semibold">{ev.code}</span>
         {cancelled ? <Chip tone="danger">Cancelado</Chip> : null}
         {ev.kind !== 'event' ? <Chip tone="info">{EVENT_KIND[ev.kind]}</Chip> : null}
@@ -164,7 +164,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
       ) : null}
 
       {ev.schedule ? (
-        <Card className="mb-4 border-slate/20">
+        <Card className="mb-4 border-slate/20" data-tour="event-when">
           <CardBody className="grid gap-3 sm:grid-cols-3">
             <p className="flex items-start gap-2">
               <CalendarClock className="mt-0.5 h-5 w-5 shrink-0 text-accent-ink" aria-hidden />
@@ -210,7 +210,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
 
       {tab === 'ficha' ? (
         <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-          <Card>
+          <Card data-tour="brief">
             <CardHeader title="Ficha técnica" action={canEdit ? <BriefEditor id={ev.id} brief={ev.brief} /> : undefined} />
             <CardBody>
               <dl className="grid gap-4 sm:grid-cols-2">
@@ -228,7 +228,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
           <div className="flex flex-col gap-4">
             {canEdit ? <EventEditor ev={ev} categories={data.categories} municipalities={data.municipalities} /> : null}
             {has('social', 'boss') ? <WorkStatusSelect id={ev.id} status={ev.work_status} /> : null}
-            <Card>
+            <Card data-tour="who-records">
               <CardHeader title="Quién graba" />
               <CardBody>
                 {data.cameras.length ? (

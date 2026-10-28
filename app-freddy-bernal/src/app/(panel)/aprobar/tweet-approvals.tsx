@@ -29,7 +29,7 @@ export function TweetApprovals({ tweets, canApprove }: { tweets: T[]; canApprove
       {canApprove ? (
         <div className={cn(menuPanelClass, 'sticky top-16 z-10 flex items-center gap-2 p-3')}>
           <span className="text-sm text-text-2">{sel.size} de {tweets.length} marcados. Desmarca los que no van.</span>
-          <Button className="ml-auto" disabled={pending || !sel.size} onClick={() => run(() => approveTweets({ tweets: tweets.filter((t) => sel.has(t.id)).map((t) => ({ id: t.id, body: t.body })) }), { onOk: approvedToast })}>
+          <Button className="ml-auto" data-tour="approve-tweets" disabled={pending || !sel.size} onClick={() => run(() => approveTweets({ tweets: tweets.filter((t) => sel.has(t.id)).map((t) => ({ id: t.id, body: t.body })) }), { onOk: approvedToast })}>
             <CheckCheck className="h-4 w-4" aria-hidden /> Aprobar marcados
           </Button>
         </div>

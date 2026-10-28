@@ -42,7 +42,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
         }
       />
       <Tip id="aprobar">Las verdes se aprueban todas juntas con un toque; las amarillas y las rojas, una por una con su lista.</Tip>
-      <div className="mb-4 flex gap-1" role="tablist">
+      <div className="mb-4 flex gap-1" role="tablist" aria-label="Qué aprobar" data-tour="approve-tabs">
         <Link role="tab" aria-selected={!isTweets} href="/aprobar" className={cn('min-h-10 rounded-full px-4 py-2 text-sm font-semibold', !isTweets ? 'bg-slate text-on-slate' : 'border border-border bg-surface text-text-2')}>
           Piezas ({data.pieces.length})
         </Link>
@@ -58,7 +58,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
               const list = data.pieces.filter((p) => p.review_level === lvl);
               if (!list.length) return null;
               return (
-                <Card key={lvl} solid>
+                <Card key={lvl} solid data-tour="level-card">
                   <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3">
                     <Chip tone={LEVELS[lvl].tone}>{LEVELS[lvl].label}</Chip>
                     <h2 className="flex-1 text-base font-semibold">
