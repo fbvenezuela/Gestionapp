@@ -1,7 +1,8 @@
 # Arquitectura
 
 Actualizado: 28/10/2026 (seis roles, fichas, agenda compartida y entrega de Grabación: migraciones
-`20261027001500` a `20261028002300`).
+`20261027001500` a `20261028002300`; tercera vuelta: Mensajes, Ayuda y tutoriales, migraciones `20261028002350` y
+`20261028002400`).
 
 ## Piezas
 - **Next.js 16 (App Router), React 19, TypeScript estricto, Tailwind 4.** Server Components para leer y server
@@ -11,7 +12,7 @@ Actualizado: 28/10/2026 (seis roles, fichas, agenda compartida y entrega de Grab
 - **Demostración y pruebas:** PGlite (Postgres en WASM) con las **mismas migraciones** + `supabase/shim/` (imita el
   esquema `auth` de Supabase).
 - **Supabase Auth** (correo + código de 6 dígitos, TOTP), **Storage** (subida TUS por partes), **Realtime** (listo en
-  la publicación; la UI se refresca al actuar).
+  la publicación; la UI se refresca al actuar). Mensajes no usa Realtime: pide lo nuevo por rutas GET (D-56).
 - **Resend + React Email** (`emails/`), siempre pasando por la tabla `outbox`.
 - **Google Drive del cliente** para el material, solo con `STORAGE_PROVIDER=drive` (ver «Subidas y dónde vive el
   video» y `DRIVE.md`). Sin la variable, todo como antes.
@@ -25,16 +26,16 @@ app-freddy-bernal/
 ├── emails/                 # Plantillas de correo
 ├── diseno/stitch/          # Modelo visual (referencia, no se ejecuta)
 ├── public/                 # PWA: sw.js, offline.html, iconos; mediainfo (se copia al instalar)
-├── scripts/                # Cargar la configuración del cliente, crear el primer admin, importar videos a Drive (drive-import/)
+├── scripts/                # Cargar la configuración del cliente, crear el primer admin (y el jefe con --jefe), importar videos a Drive (drive-import/), generar las guías (guides-docs.mts)
 ├── supabase/
 │   ├── migrations/         # SQL versionado (lo que va a Supabase)
 │   └── shim/               # Solo demo/pruebas: esquema auth falso y tablas de login demo
 ├── src/
 │   ├── app/(auth)/         # Entrar, doble factor, sin acceso
-│   ├── app/(panel)/        # Hoy, jefe, agenda, eventos, obras, municipios, reportes, redes, piezas, aprobar, tweets, publicar, resultados, biblioteca, ajustes
-│   ├── app/api/            # Descarga firmada (y por tramos desde Drive), miniaturas, subida demo (TUS), Drive (conexión, partes por la plataforma), cron
-│   ├── components/         # UI (tokens), shell, agenda, media, tweets
-│   └── lib/                # db, auth, actions (server actions), data (lecturas), domain (lógica pura), ai, publish, email
+│   ├── app/(panel)/        # Hoy, jefe, agenda, eventos, obras, municipios, reportes, redes, piezas, aprobar, tweets, publicar, resultados, biblioteca, ajustes, mensajes, ayuda
+│   ├── app/api/            # Descarga firmada (y por tramos desde Drive), miniaturas, subida demo (TUS), Drive (conexión, partes por la plataforma), cron, asistente, mensajes (lecturas GET del lazo)
+│   ├── components/         # UI (tokens), shell, agenda, media, tweets, assistant, chat (Mensajes), tour (motor de tutoriales), guides (Ayuda y flujogramas)
+│   └── lib/                # db, auth, actions (server actions), data (lecturas), domain (lógica pura), ai, publish, email, assistant, guides (guías, flujos y tutoriales: una sola fuente)
 └── tests/                  # unit (Vitest), rls (Vitest), e2e (Playwright 360 px + axe)
 ```
 
@@ -51,6 +52,7 @@ app-freddy-bernal/
 | Publicación | `publications` (con `republish_of`, `collaborators`, `validation`), `publication_metrics` (fotos en el tiempo), `network_specs` | Trigger `guard_publication` |
 | Avisos | `notifications`, `outbox`, `jobs`, `ai_usage` | Escritos por el servidor |
 | Auditoría | `audit_log` | Solo se agrega; trigger en todas las tablas de negocio |
+| Mensajes (28/10) | `chat_conversations` (directa, grupo o «Todo el equipo»), `chat_members` (fijos), `chat_messages` (con `agenda_clear`), `chat_reads` (leído y silencio propios), `chat_rules` (quién habla con quién, por pareja de roles), `chat_notice_ack` (el aviso aceptado) | Mensajes, miembros y el aviso aceptado solo se agregan (ni el sistema los borra: tampoco `TRUNCATE`). La auditoría guarda tabla, fila, quién y cuándo, nunca el texto, el nombre del grupo ni los miembros. Nada en Realtime. Ver «Mensajes» |
 | Google Drive y miniaturas | `drive_connection`, `drive_folders`, `media_drive`, `media_thumbs`, `drive_transfer`; función `drive_status()` | Solo el servidor (RLS activo, sin políticas, sin permisos para los roles de la API). Un archivo de Drive es una fila normal de `media_assets` con `bucket = 'drive'`. `media_thumbs` guarda también las miniaturas hechas en el teléfono (cualquier almacenamiento) |
 
 Índices en las columnas de búsqueda y orden (estado, fechas, claves foráneas). Borrado: columna `deleted_at` y
@@ -74,7 +76,22 @@ Funciones que usan las reglas: `has_role`, `has_any_role`, `is_staff`, `is_conte
 Funciones que llama la app: `schedule_ficha()` (la única que une un evento con una ficha), `event_history()` (quién
 cambió qué), `agenda_last_writers()` (a quién avisar «cambió lo mismo que tú»), `camera_people()`, `event_done_on()`,
 `visit_obra_ficha()`, `report_has_live_event()` y `review_piece()`. Reglas de texto: `text_has_phone()` y
-`text_has_datetime()` (las mismas de la app).
+`text_has_datetime()` (las mismas de la app); desde el 28/10 también `text_has_concrete_datetime()`, `chat_strip_refs()`,
+`chat_has_map()` y `chat_strip_timecodes()` (copias exactas en `src/lib/domain/chat.ts`).
+
+Mensajes (28/10, `20261028002400_internal_chat.sql`): `is_team_member()` (un rol del equipo y no administración),
+`chat_is_member(c)`, `chat_can_read(c)` (miembro con su doble factor, o el jefe con `can_approve()`; nunca administración ni 360),
+`chat_may_post(c)` (aviso aceptado, todas las parejas permitidas, «Solo el jefe escribe»), `chat_hides_agenda_for_me(c)`,
+`chat_reader_knows_agenda()`, `chat_by_assistant()` (la marca `app.caller = 'assistant'` de 360), y las que llama la app:
+`chat_start()`, `chat_team_channel()`, `chat_set_only_boss()`, `chat_people()`, `chat_member_list()`,
+`chat_hidden_marks()`. Internas, sin permiso para la API: `chat_team_roles()`, `chat_pair_allowed()`,
+`chat_author_knows_agenda()`, `chat_author_camera_only()`, `chat_hides_agenda()`. Disparadores: `chat_message_guard()`
+(la regla de teléfono y agenda al escribir, y `agenda_clear`), `chat_append_only()`, `guard_chat_conversation_update()`,
+`chat_stamp_rule()` y `audit_chat_row()`.
+
+El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (solo el sistema da `boss`, en
+`user_roles` y en `invitations`), `notify_team_role_grant()` (aviso al jefe por cada rol del equipo que da una persona) y
+`team_role_label()` (los nombres de `ROLE_LABEL`).
 
 | Tabla | Leer | Escribir |
 |---|---|---|
@@ -93,7 +110,12 @@ cambió qué), `agenda_last_writers()` (a quién avisar «cambió lo mismo que t
 | `pieces`, versiones, copies | equipo de contenido | admin, redes, jefe; aprobar solo `can_approve()` (función) |
 | `tweets` | equipo de contenido | admin, redes, jefe; aprobar solo `can_approve()` |
 | `publications`, métricas | equipo de contenido | admin, redes, jefe; publicada/programada solo si la pieza está aprobada |
-| `user_roles`, `invitations` | admin (y cada quien sus roles) | admin con aal2; nadie se da roles a sí mismo y una cuenta no junta admin con jefe o despacho (`guard_role_mix`, D-41) |
+| `user_roles`, `invitations` | admin (y cada quien sus roles) | admin con aal2; nadie se da roles a sí mismo y una cuenta no junta admin con jefe o despacho (`guard_role_mix`, D-41); el rol de jefe solo lo da el sistema (`guard_boss_grant`, D-58) |
+| `chat_conversations`, `chat_members` | `chat_can_read()` | solo `chat_start()` y `chat_team_channel()`; «Solo el jefe escribe» con `chat_set_only_boss()` |
+| `chat_messages` | `chat_can_read()` y (`agenda_clear`, o quien conoce la agenda sin Redes ni política, o el jefe) | el autor con `chat_may_post()`; `chat_message_guard()` revisa y pone `agenda_clear`; nunca se cambia ni se borra |
+| `chat_reads` | las propias | las propias, de un miembro |
+| `chat_rules` | el equipo y el jefe | el jefe con aal2 (`can_approve()`) |
+| `chat_notice_ack` | la propia | la propia, de alguien del equipo; nunca se borra |
 | `audit_log`, `outbox` | admin (con aal2) | nadie (trigger / servidor) |
 
 ## Regla de fecha y hora (regla 4)
@@ -110,6 +132,39 @@ cambió qué), `agenda_last_writers()` (a quién avisar «cambió lo mismo que t
    fichas y las búsquedas no usan esas columnas.
 7. Probado en `tests/rls` (sobre todo `por-rol.test.ts`: un bloque por cada frase de §8 del encargo del 27/10) y en
    `tests/e2e/por-rol.spec.ts` y `flows.spec.ts` (redes no ve horas en la lista ni en la ficha).
+
+## Mensajes (D-49 a D-59)
+- **Pantallas** (`src/app/(panel)/mensajes/**`): la lista, «Escribirle a alguien» (`nueva`), la conversación (`[id]`),
+  y para el jefe «Todas» y «Quién habla con quién» (`permisos`). Una cuenta con administración vuelve a su inicio con
+  «Esa pantalla no es de tu rol». El sobre de arriba (`ChatHeaderLink` + `ChatBadgeLive`) solo para el equipo.
+- **Lecturas:** `src/lib/data/chat.ts`, siempre dentro de `db(session, …)`. **Rutas GET del lazo:**
+  `/api/mensajes/[id]/nuevos` (lo nuevo de una conversación, cada 5 s con la pantalla a la vista) y
+  `/api/mensajes/sin-leer` (el número del sobre, cada 30 s); sin sesión 401, sin Mensajes 404, `no-store`.
+- **Acciones:** `src/lib/actions/chat.ts`: `acceptNotice`, `startConversation`, `openTeamChannel`, `sendMessage` (con
+  `clientId` como id: un reintento no duplica; pregunta antes de enviar un tiempo del video de Grabación o una palabra
+  relativa como «mañana» a quien conoce la agenda, E1; sin `revalidatePath`), `markRead`, `setMuted`, `setRoleRule`,
+  `setOnlyBoss`. Enviar va directo, en una cola en orden, sin refrescar la página (`chat-feed-core.ts`).
+- **Dominio:** `src/lib/domain/chat.ts`: los textos fijos (avisos, rechazos, preguntas), las copias exactas de las
+  reglas de texto de la base y `pairAllowed()`, comparadas con `tests/unit/fixtures/chat-text-cases.ts`.
+- **Avisos:** `notifyChat()` (`src/lib/notify.ts`) manda push tipo `chat_message` sin el texto ni el nombre del grupo,
+  nunca a la campana ni por correo; se apaga en «Qué avisos quiero» → «Mensajes nuevos del equipo».
+- **360 fuera:** ningún archivo de `src/lib/assistant`, `src/components/assistant`, `config/assistant` o la ruta del
+  asistente toca Mensajes (`tests/unit/chat-isolation.test.ts`), y en la base lo que corre 360 lleva
+  `app.caller = 'assistant'` (`src/lib/assistant/db.ts`), que las funciones de chat rechazan.
+- **Demo:** `src/lib/db/seed-parts/chat.ts` siembra con ids estables las 28 directas, un grupo, «Todo el equipo» y un
+  mensaje sin leer para cada persona del equipo (D-57).
+
+## Guías, tutoriales y Ayuda (D-42 a D-48)
+- **Una sola fuente:** `src/lib/guides/` (un archivo por rol, `shared.ts`, `admin.ts`, `flows.ts`, `sections.ts`,
+  `tours.ts`; las anclas `data-tour` en la lista cerrada de `anchors.ts`). De ahí salen `/ayuda`, `/ayuda/[rol]` (tres
+  pestañas), `/ayuda/flujos`, `/ayuda/administracion`, las fichas de sección de 360 y los documentos
+  `docs/GUIA-POR-ROL.md`, `docs/FLUJOS.md` y `docs/GUIA-ADMINISTRACION.md`, que genera `npm run docs:guides`
+  (`scripts/guides-docs.mts`; `tests/unit/guides-docs.test.ts` falla si no están al día).
+- **Motor de tutoriales** (`src/components/tour/`): `TourHost` en el layout, con los tutoriales de los roles del menú
+  (`toursForRoles`, sigue «Ver como»; sin los de Mensajes para una cuenta con administración). Arranca con
+  `?tutorial=<id>` o con el evento `fb:tour:start`; el avance va al teléfono (`device-store`), nunca a la base.
+- **«Mi cuenta»** suma «Ayuda y guías» y «Ver el tutorial de esta pantalla» (`HelpMenuItems`). 360 los ofrece con la
+  franja de `offer-core.ts` (ver `ASISTENTE.md`).
 
 ## Flujo de cada módulo
 - **Entrar:** admin invita (`invitations` + cuenta en Auth) → correo → la persona escribe su correo → código → si su
@@ -199,6 +254,8 @@ cambió qué), `agenda_last_writers()` (a quién avisar «cambió lo mismo que t
 | `20261028002100_privacy_hardening.sql` | `visit_obra_ficha()`, `text_has_phone()`, `text_has_datetime()`, `done_on` cerrado por columna (D-40) |
 | `20261028002200_round_review_fixes.sql` | Admin nunca con jefe o despacho; lista del doble factor fija; contactos comunitarios sin admin; más teléfonos rechazados; código del evento por la base (D-41) |
 | `20261028002300_report_files_notes.sql` | Los documentos de un reporte, solo para política, despacho y jefe (admin ve las fotos y no sube); la historia de un reporte sin teléfonos (D-41) |
+| `20261028002350_boss_grant.sql` | Tercera vuelta: el rol de jefe solo lo da el sistema; aviso al jefe por cada rol del equipo que da una persona (D-58). **Aún no en `fb-dev`** |
+| `20261028002400_internal_chat.sql` | Tercera vuelta: Mensajes (seis tablas, sus funciones y RLS), `text_has_concrete_datetime()` (E1), nada para anon ni en Realtime (D-49 a D-57, D-59). **Aún no en `fb-dev`** |
 
 ## Tareas programadas
 - `/api/cron/tick` (con `CRON_SECRET`): aviso de tweets por acabarse (una vez al día) y publicaciones vencidas

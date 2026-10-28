@@ -25,14 +25,22 @@ async function noSerious(page: Page, where: string) {
 }
 
 // Opens a screen of this person's own: it loads, says no error, fits 360 px and has no serious axe issue.
-async function open(page: Page, path: string, opts: { axe?: boolean } = {}) {
+// `quotes`: the guides (Ayuda) quote those notices in their own text, so there the address and the headings tell.
+async function open(page: Page, path: string, opts: { axe?: boolean; quotes?: boolean } = {}) {
   const res = await page.goto(path);
   expect(res?.status(), path).toBeLessThan(400);
   const main = page.locator('main');
   // The page itself, not the loading skeleton ((panel)/loading.tsx).
   await expect(main, path).toBeVisible();
   await expect(main.locator('[aria-busy="true"]'), path).toHaveCount(0);
-  for (const bad of [NOT_YOURS, 'Algo no cargó', 'No encontramos esto']) await expect(main.getByText(bad), `${path}: ${bad}`).toHaveCount(0);
+  if (opts.quotes) {
+    const url = new URL(page.url());
+    expect(url.pathname, `${path}: ${NOT_YOURS}`).toBe(path.split('?')[0]);
+    expect(url.searchParams.get('sin-permiso'), `${path}: ${NOT_YOURS}`).toBeNull();
+    for (const bad of ['Algo no cargó', 'No encontramos esto']) await expect(main.getByRole('heading', { name: bad }), `${path}: ${bad}`).toHaveCount(0);
+  } else {
+    for (const bad of [NOT_YOURS, 'Algo no cargó', 'No encontramos esto']) await expect(main.getByText(bad), `${path}: ${bad}`).toHaveCount(0);
+  }
   const w = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(w, `${path}: se desplaza hacia los lados`).toBeLessThanOrEqual(page.viewportSize()!.width);
   if (opts.axe !== false) await noSerious(page, path);
@@ -72,6 +80,23 @@ async function schedulesOf(browser: Browser, hrefs: string[]): Promise<Sched[]> 
   }
   await boss.ctx.close();
   return out;
+}
+
+// Mensajes and Ayuda (R3) for a team role: the conversations (the notice to accept may be open on top) and the guide.
+// The guide never has a clock; the messages' own times are not checked against CLOCK (each message shows when it was
+// written), only that no event's address or end time is there (D-52: the database keeps the agenda out of them).
+async function mensajesYAyuda(page: Page, slug: string, sched: Sched[] = []) {
+  for (const path of ['/mensajes', '/mensajes/nueva']) {
+    const text = (await open(page, path)).toLowerCase();
+    for (const s of sched) for (const piece of [s.until, s.address]) if (piece) expect(text, `${path}: «${piece}»`).not.toContain(piece.toLowerCase());
+  }
+  for (const path of ['/ayuda', `/ayuda/${slug}`, `/ayuda/${slug}?ver=pantallas`, '/ayuda/flujos']) {
+    const text = await open(page, path, { axe: path !== '/ayuda/flujos', quotes: true });
+    expect(text, path).not.toMatch(CLOCK);
+    for (const s of sched) noSchedule(text, s, path);
+  }
+  // Only the boss reads «Todas» and decides who talks with whom.
+  for (const path of ['/mensajes/todas', '/mensajes/permisos']) await closed(page, path, 'role');
 }
 
 // None of the agenda's strings of this event on the page. `done`: the day it was done may show (D-06), never its
@@ -124,6 +149,9 @@ test('Redes no ve fecha ni hora: ni en la agenda, ni en el evento, ni en Hoy, ni
   }
   // The agenda's own screens are not Redes'.
   for (const path of ['/agenda/por-fecha', '/agenda/nuevo', '/obras', '/municipios']) await closed(page, path, 'role');
+  // Mensajes and its guide (R3); another role's guide is not its.
+  await mensajesYAyuda(page, 'redes', sched);
+  await closed(page, '/ayuda/jefe', 'role');
 });
 
 test('El IVT y el director de política no ponen fecha: ningún «Ponerle fecha», «Mover» ni «Nuevo evento» en sus pantallas', async ({ page, browser }) => {
@@ -162,6 +190,7 @@ test('El IVT y el director de política no ponen fecha: ningún «Ponerle fecha�
   expect(visitText.toLowerCase()).toContain(visit.when.toLowerCase());
   await noButtons(page, visit.href);
   for (const path of ['/agenda/por-fecha', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/municipios', '/reportes/nuevo', '/piezas']) await closed(page, path, 'role');
+  await mensajesYAyuda(page, 'ivt');
   await page.context().clearCookies();
 
   // Política: its municipalities, a report that goes to the agenda and the activity born from another one, without
@@ -187,6 +216,9 @@ test('El IVT y el director de política no ponen fecha: ningún «Ponerle fecha�
     await noButtons(page, s.href);
   }
   for (const path of ['/agenda', '/agenda/por-fecha', '/agenda/nuevo', '/obras', '/biblioteca']) await closed(page, path, 'role');
+  // Mensajes and its guide, without the date of those activities (R3).
+  await mensajesYAyuda(page, 'politica', sched);
+  await closed(page, '/ayuda/despacho', 'role');
 });
 
 test('Solo jefe y despacho la ponen: «Ponerle fecha» y los botones de la agenda son suyos; Administración solo mira', async ({ page }) => {
@@ -208,6 +240,9 @@ test('Solo jefe y despacho la ponen: «Ponerle fecha» y los botones de la agend
   await open(page, '/agenda', { axe: false });
   await expect(page.getByRole('navigation', { name: 'Acciones de la agenda' })).toHaveCount(0);
   await closed(page, '/agenda/nuevo', 'role');
+  // Administración has its own guide and is not in Mensajes (D-43, D-49).
+  await open(page, '/ayuda/administracion', { quotes: true });
+  for (const path of ['/mensajes', '/mensajes/todas', '/mensajes/permisos']) await closed(page, path, 'role');
   await page.context().clearCookies();
   // Grabación and Redes do not reach the agenda's writing screens at all.
   for (const email of ['grabacion@demo.test', 'redes2@demo.test']) {
@@ -222,8 +257,11 @@ test('El jefe ve todo: llega a cada pantalla de cada rol, con la fecha y la hora
   // Every menu of the team (his own, despacho's, the IVT's, política's, Redes', Grabación's) and their lists.
   const screens = ['/jefe', '/jefe/politica', '/jefe/digital', '/hoy', '/agenda', '/agenda?vista=dia', '/agenda?vista=mes', '/agenda/por-fecha', '/agenda/nuevo',
     '/aprobar', '/aprobar?tab=tweets', '/redes', '/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca', '/obras', '/obras?estado=to_schedule',
-    '/municipios', '/municipios/torbes', '/reportes/nuevo', '/obras/nueva', '/avisos', '/perfil'];
-  for (const path of screens) await open(page, path, { axe: false });
+    '/municipios', '/municipios/torbes', '/reportes/nuevo', '/obras/nueva', '/avisos', '/perfil',
+    // R3: Mensajes with «Todas» and «Quién habla con quién», Ayuda with every role's guide and the flows.
+    '/mensajes', '/mensajes/nueva', '/mensajes/todas', '/mensajes/permisos', '/ayuda', '/ayuda/flujos',
+    ...['jefe', 'despacho', 'politica', 'ivt', 'grabacion', 'redes'].map((slug) => `/ayuda/${slug}`)];
+  for (const path of screens) await open(page, path, { axe: false, quotes: path.startsWith('/ayuda') });
   // Every detail page those lists lead to: each obra, each report of a municipality, each piece, tweet batch and
   // publication, and every event (with each of its tabs and the read mode).
   const linksOn = async (path: string, prefix: string) => {
@@ -297,6 +335,10 @@ test('Grabación solo ve lo suyo: sus eventos con fecha, nada de los de la otra 
     // The other person's events do not exist for it.
     for (const href of mine[otherEmail]) await closed(page, href, 'record');
     for (const path of ['/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca', '/obras', '/municipios', '/agenda/por-fecha']) await closed(page, path, 'role');
+    if (email === 'grabacion@demo.test') {
+      await mensajesYAyuda(page, 'grabacion');
+      await closed(page, '/ayuda/redes', 'role');
+    }
     await page.context().clearCookies();
   }
 });

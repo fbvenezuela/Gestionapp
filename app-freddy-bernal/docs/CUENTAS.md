@@ -23,3 +23,18 @@ Variables de entorno: los nombres van en `.env.example`; los valores, solo en Ve
 
 ## Variables que hay que llenar (sin valores aquí)
 La lista completa, con qué es cada una y de dónde sale, está en `.env.example`. Las de producción van solo en Vercel.
+
+## Cuentas de la plataforma que se crean con el comando (no desde la pantalla)
+Dos cuentas no se crean desde Ajustes → Equipo: el **primer administrador** y **el jefe**. Las crea quien tenga la
+clave del servidor (`DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` en su terminal, nunca en
+el repositorio), con el mismo comando, que no manda ningún correo ni imprime el correo de la persona:
+
+```bash
+npm run db:first-admin -- <correo> "<nombre>"          # el primer administrador
+npm run db:first-admin -- <correo> "<nombre>" --jefe   # el jefe
+```
+
+Desde el 28/10 el rol de jefe **solo** lo da el sistema (este comando, la semilla o una migración): Administración no
+lo da en Equipo ni en una invitación, porque el jefe lee todas las conversaciones de Mensajes y aprueba todo
+(`DECISIONES.md` D-58). Cada rol del equipo que da una persona le llega al jefe como aviso en la campana. Aquí se anota
+solo que la cuenta existe (rol y fecha), nunca su clave ni su código.

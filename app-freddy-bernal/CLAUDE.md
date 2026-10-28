@@ -31,6 +31,14 @@ Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en españo
   - Pruebas por rol de §8 en `tests/rls/por-rol.test.ts` y `tests/e2e/por-rol.spec.ts`. Guía en
     `docs/GUIA-POR-ROL.md` (no se manda hasta que Hillary pruebe cada rol). Preguntas abiertas: `docs/PENDIENTES.md`,
     al final.
+- **Tercera vuelta (28/10; D-42 a D-59):** guías por rol, flujos y tutoriales «mira aquí» desde una sola fuente
+  (`src/lib/guides`, `/ayuda`, `npm run docs:guides` genera `docs/GUIA-POR-ROL.md`, `FLUJOS.md` y
+  `GUIA-ADMINISTRACION.md`); 360 sabe la pantalla, ofrece el tutorial con una franja y nunca lee mensajes
+  (`app.caller`); **Mensajes** (directos, grupos y «Todo el equipo»): el jefe lee todas con doble factor,
+  administración y 360 ninguna, el jefe decide quién habla con quién, la base rechaza horas, fechas y mapas concretos
+  donde hay Redes o política (a «hoy»/«mañana» la app pregunta, E1), sin teléfonos, nada se borra; el rol de jefe solo
+  por `npm run db:first-admin -- … --jefe`. Migraciones `20261028002350_boss_grant.sql` y
+  `20261028002400_internal_chat.sql`. Preguntas en `docs/PENDIENTES.md`, al final.
 - Marca: oliva como color principal (D-21). Diagnóstico Digital 360 resumido en `docs/DIAGNOSTICO-360.md` (el ZIP es
   confidencial y no está en el repositorio).
 - Pruebas: Vitest (unidad + RLS) y Playwright a 360 px con axe. CI en `.github/workflows/ci.yml`.
@@ -59,8 +67,9 @@ factor; con `DATABASE_URL` nunca se activa. Playwright levanta dos servidores: 3
 
 ## Qué falta (siguiente sesión)
 1. `fb-dev` (Supabase, gratis) ya tiene las 27 migraciones, hasta `20261028002300`, y la configuración del cliente con
-   los seis roles (aplicadas y verificadas el 28/10, `docs/PROMPT-SUPABASE.md`). Falta lo de esa guía: los pasos de
-   Juan en el panel (SMTP primero), las variables en Vercel y la primera entrada (OTP, TOTP, Drive).
+   los seis roles (aplicadas y verificadas el 28/10, `docs/PROMPT-SUPABASE.md`). Faltan las dos de la tercera vuelta
+   (`20261028002350_boss_grant.sql`, `20261028002400_internal_chat.sql`) y lo de esa guía: los pasos de Juan en el
+   panel (SMTP primero), las variables en Vercel y la primera entrada (OTP, TOTP, Drive).
 2. Respuestas de Hillary a las preguntas de la segunda vuelta (`docs/PENDIENTES.md`, al final) y, si confirma la tabla
    de diferencias, Redes como Mila por partes (#11).
 3. Fase 2: publicación automática (Meta, X, TikTok, YouTube), métricas por API, análisis con IA, Drive del cliente,

@@ -581,3 +581,297 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
   sube los archivos de un reporte, en `media_select` y `media_insert` (en una migración nueva); qué roles no van juntos,
   en `guard_role_mix()` y `guard_invitation_roles()` (y `roleGrantProblem()` en `src/lib/roles.ts`).
 
+
+---------------------------------------------------------------------------------------------------------------------
+
+**Tercera vuelta (28/10/2026): guías y flujos por rol, tutoriales que ofrece 360 y la red interna «Mensajes».** Lo
+pidió Juan el 28/10. D-42 a D-59. Migraciones nuevas: `20261028002350_boss_grant.sql` y
+`20261028002400_internal_chat.sql` (todavía sin aplicar en `fb-dev`). Las preguntas que quedan están al final de
+`PENDIENTES.md`; mientras, se siguen los valores de abajo (todas las parejas abiertas, el rol de jefe solo por el
+comando, los mensajes no se borran).
+
+## D-42. Una sola fuente para guías, descripciones de cargo, flujos y tutoriales (28/10/2026)
+- **Qué:** todo el contenido de ayuda vive en `src/lib/guides/*.ts` (un archivo por rol, uno «para todos»
+  (`shared.ts`), uno de flujos, uno de tutoriales y las secciones de cada pantalla). De ahí salen: las páginas
+  `/ayuda…` de la app, las fichas de sección que usa 360, los pasos de los tutoriales y los documentos del repo
+  (`docs/GUIA-POR-ROL.md`, `docs/FLUJOS.md`, `docs/GUIA-ADMINISTRACION.md`), que se generan con `npm run docs:guides`.
+  Una prueba falla si un documento del repo no es igual a lo que genera la fuente, y otra si una «etiqueta» de la guía
+  o de un tutorial no existe como texto en `src/`. «» va solo para etiquetas de pantalla; las citas van con “ ”. Los
+  documentos llevan arriba «No se manda todavía: Hillary pidió probar cada rol antes (25/10)».
+- **Por qué:** la guía anterior quedó desfasada del código en una semana (etiquetas mal, pasos que faltaban). Con una
+  fuente y pruebas que la comparan con las pantallas (`SCREENS`, los `data-tour`, los textos de los botones), no se
+  desfasa.
+- **Lo que queda:** las 127 fichas de sección de 360 se arman del código en cada pregunta y no se siembran en la tabla
+  del asistente: así siempre dicen lo mismo que `/ayuda`, y Ajustes → Asistente no las lista (18 nombran etiquetas que
+  la revisión del material rechazaría al guardarlas).
+- **Cómo se cambia:** se edita `src/lib/guides/<rol>.ts` (o `sections.ts`, `flows.ts`, `tours.ts`) y se corre
+  `npm run docs:guides`. Nunca se edita a mano el `.md` generado.
+
+## D-43. La guía de administración va aparte (28/10/2026)
+- **Qué:** las guías del equipo hablan de seis roles. Administración tiene su propia guía (`src/lib/guides/admin.ts` →
+  `/ayuda/administracion`, solo administración, y `docs/GUIA-ADMINISTRACION.md`). Ninguna guía del equipo nombra a
+  administración salvo en el aviso de Mensajes («Administración no lee las conversaciones») y en la línea de 360
+  («Administración ve lo que le preguntas a 360»).
+- **Por qué:** lo pidió Hillary (administración no entra en las guías del equipo).
+- **Cómo se cambia:** `src/lib/guides/admin.ts`.
+
+## D-44. Flujogramas: lista accesible en la app, Mermaid en el repo (28/10/2026)
+- **Qué:** en la app, cada flujo es una lista ordenada de tarjetas («Paso 3 · Redes · tú») con flechas decorativas en
+  SVG (`aria-hidden`) y las ramas como sublista («Sí → …», «No, pide cambios → …»). Los pasos de tu rol llevan borde
+  de acento y «tú». Una columna en todos los anchos. `/ayuda/flujos` es un índice de los 8 flujos y abre uno a la vez
+  (`?f=<id>`). En el repo, bloques Mermaid generados de los mismos datos. Mermaid no entra en la app.
+- **Por qué:** un lector de pantalla oye «lista de 8 pasos»; a 360 px es una columna sin scroll de lado; colores solo
+  por tokens. Mermaid pesa demasiado para un Android barato.
+- **Cómo se cambia:** `src/lib/guides/flows.ts`; el componente `src/components/guides/flowchart.tsx`.
+
+## D-45. Tutoriales: motor propio, solo «mira aquí», sin dependencias (28/10/2026)
+- **Qué:** un motor pequeño propio (`src/components/tour/*`): un diálogo nativo `<dialog>` (encima de todo, Escape
+  sale, el foco vuelve a «Mi cuenta») que es un contenedor **transparente** de pantalla completa, sin vidrio ni
+  difuminado; adentro, el anillo alrededor de lo que se señala y la tarjeta con «Paso 2 de 5», el texto (≤ 140
+  letras), «Atrás» · «Siguiente»/«Terminar» y una X «Salir del tutorial». La tarjeta va arriba o abajo; «al lado» solo
+  cuando hay lugar. Cada tutorial tiene de 2 a 6 pasos, todos en la pantalla actual (puede incluir la pestaña:
+  `/eventos/[id]?tab=storyboard`). Los pasos que se pueden mostrar se cuentan **al empezar**: «Paso n de N» nunca
+  salta, y uno con menos de 2 pasos visibles no se ofrece. Ningún paso dice «toca X»: dice «Aquí está «X»: lo tocas
+  cuando cierres el tutorial». Hay 44 tutoriales; `bienvenida` termina con «Seguir», que abre el del inicio del rol.
+- **Por qué:** shepherd.js e intro.js son AGPL (producto de un cliente); joyride es pesado y pelea con la barra de abajo
+  y el botón de 360 a 360 px; driver.js trae sus colores. Ya teníamos diálogo nativo, vidrio con respaldo sólido,
+  guardado en el teléfono y medición de barras. El diálogo no lleva vidrio porque `backdrop-filter` corría el anillo y
+  su fondo difuminaba justo lo que se señala.
+- **Cómo se cambia:** los pasos en `src/lib/guides/tours.ts` (las anclas, `data-tour`, en la lista cerrada de
+  `src/lib/guides/anchors.ts`); el motor en `src/components/tour/`.
+
+## D-46. Dónde empieza un tutorial (28/10/2026)
+- **Qué:** (1) 360 lo ofrece con una franja de una línea junto a su botón (D-47); (2) en «Mi cuenta», arriba a la
+  derecha: «Ayuda y guías» (`/ayuda`) y «Ver el tutorial de esta pantalla» (solo si hay uno; en el inicio, uno por
+  tutorial: «Bienvenida» y el del inicio); (3) en `/ayuda`, la lista «Tutoriales de mis pantallas»; (4) una respuesta
+  de 360 («muéstrame cómo se usa Publicar») trae el botón «Ver el tutorial de Publicar». Las entradas 2 a 4 usan la
+  dirección `<pantalla>?tutorial=<id>`; la franja lo arranca en la misma pantalla, sin recargar (evento
+  `fb:tour:start`). Nunca empieza solo.
+- **Por qué:** el equipo «es muy poco didáctico con la tecnología»: la ayuda tiene que estar a un toque, pero sin
+  interrumpir el trabajo.
+- **Cómo se cambia:** `src/components/tour/help-menu-items.tsx`, `src/app/(panel)/ayuda/page.tsx`, la herramienta
+  `ver_tutorial` de 360.
+
+## D-47. 360 ofrece ayuda (cambia el «No se hace» P10 de `ASISTENTE.md`) (28/10/2026)
+- **Qué:** 360 pregunta con una franja de una línea junto a su botón: «¿Te muestro esta pantalla?» con «Sí, muéstrame»
+  y una X («Ahora no», 44 px). La primera vez en el inicio: «Hola, soy 360. ¿Te muestro cómo empezar?» (abre
+  `bienvenida`). Reglas para no fastidiar (puras, en `offer-core.ts`, con pruebas):
+  - solo en pantallas que tienen un tutorial para tu rol con 2 pasos o más, y **nunca** en pantallas de formulario
+    (`/agenda/nuevo`, `/publicar/nueva`, `/tweets/nueva`, `/obras/nueva`, `/reportes/nuevo`, `/mensajes/nueva`,
+    `/mensajes/[id]`, `/aprobar/[id]`);
+  - cada tutorial se ofrece **una vez** por persona; como mucho una franja por pestaña y **una por día**;
+  - **tras la segunda X** se apaga para siempre en ese teléfono para esa persona, y lo dice una vez: «Listo. La ayuda
+    está en Mi cuenta → Ayuda y guías.»; se vuelve a prender en `/ayuda` («Volver a ofrecerme ayuda»);
+  - aparece a los 4 s, nunca mientras escribes, con un diálogo abierto, con 360 abierto, con el aviso «Esa pantalla no
+    es de tu rol», con un tutorial corriendo o con un consejo a la vista; si no se toca, se va sola a los 12 s (no
+    cuenta como X);
+  - nunca abre 360 solo, nunca roba el foco, nunca llama a `/api/asistente` (no gasta el tope por hora ni sale en «Lo
+    que preguntan»).
+  360 además **sabe la pantalla** en la que estás cuando le preguntas: la ventana manda solo el patrón
+  (`/eventos/[id]`, nunca el id ni la dirección completa), para contestar «¿qué hago aquí?».
+- **Por qué:** Juan: «que 360 los ofrezca, que le diga a cada usuario que si necesita un tutorial o ayuda». Una franja
+  de una línea no tapa formularios a 360 px; «Ahora no» no puede significar «nunca» a escondidas, y dos «no» bastan.
+- **Cómo se cambia:** reglas y textos en `src/components/assistant/offer-core.ts`.
+
+## D-48. El avance de los tutoriales se guarda en el teléfono, por persona (28/10/2026)
+- **Qué:** «visto», «terminado», «ya se ofreció», la cuenta de X y el apagado se guardan en el teléfono
+  (`device-store`) con claves por persona: `fb:tour:<persona>:<tutorial>`, `fb:360:oferta:<persona>:<tutorial>`,
+  `fb:360:oferta:<persona>` y, en la pestaña, `fb:360:oferta-sesion`. Una llave del teléfono, `fb:360:oferta:off=1`,
+  lo apaga para todos en ese teléfono (la usan las pruebas e2e). No hay tabla en la base. «Salir» no las borra (no son
+  datos sensibles).
+- **Por qué:** es una comodidad de cada persona; en la demo cada servidor tiene su base y el «ya lo vi» aparecería y
+  desaparecería. En un teléfono compartido cada persona tiene su clave.
+- **Lo que queda:** en otro teléfono o en la PC se ofrece otra vez (una vez por tutorial).
+- **Cómo se cambia:** si hace falta seguirlo entre equipos o que el jefe vea quién terminó, una tabla
+  `tutorial_progress(user_id, tour_id, done_at)` con RLS de filas propias.
+
+## D-49. La red interna se llama «Mensajes»: directos, grupos y «Todo el equipo» (28/10/2026)
+- **Qué:** tres tipos de conversación: **directa** (dos personas; una sola por pareja), **grupo** (de 3 a 12
+  personas, con nombre, lo arma cualquiera del equipo) y **«Todo el equipo»** (una sola; todos los del equipo activos
+  son parte). Los miembros de una directa o un grupo quedan fijos al crearla (para sumar a alguien se arma otro grupo).
+  Se puede **silenciar** una conversación. Se entra desde un ícono de sobre arriba, junto a la campana, con el número
+  de conversaciones sin leer. Solo los seis roles del equipo, y **una cuenta que tiene administración no entra a
+  Mensajes aunque tenga además un rol del equipo**: no sale en «Escribirle a alguien», no lee ni escribe.
+- **Por qué:** «que todos puedan comunicarse». Miembros fijos evitan que alguien que entra después lea lo escrito
+  antes. Sin canales por rol (regla 1). Si una cuenta de administración fuera miembro, el aviso «Administración no las
+  lee» sería falso.
+- **Cómo se cambia:** `chat_start()`, `chat_team_channel()` e `is_team_member()` en una migración nueva; los tamaños
+  en `src/lib/domain/chat.ts`.
+
+## D-50. Quién lee los mensajes (28/10/2026)
+- **Qué:**
+  - cada miembro lee sus conversaciones (con doble factor si su rol lo pide: jefe, despacho, política, IVT), salvo los
+    mensajes que tenían una fecha de la agenda si no la conoce (D-52: «Mensaje oculto»);
+  - **el jefe lee todas**, con doble factor (`can_approve()`), en «Mensajes → Todas». En las que no es miembro solo
+    lee: no escribe y su lectura no las marca como leídas para nadie;
+  - **administración no lee ninguna**: ni con «Ver como jefe», ni en el registro de cambios (guarda solo que hubo un
+    mensaje, quién y cuándo, nunca el texto, el nombre del grupo ni los miembros), ni en Ajustes → Asistente, ni
+    teniendo además un rol del equipo (D-49), ni armando otra cuenta con el rol de jefe (D-58);
+  - **360 no lee ninguna**: ninguna herramienta, ficha ni guion toca las tablas de mensajes (prueba estática
+    `chat-isolation.test.ts`), y en la base todo lo que corre 360 lleva `app.caller = 'assistant'`, con lo que las
+    funciones de chat dicen que no. Una pregunta a 360 sobre lo que dice un mensaje, o «dile a X que…», se guarda como
+    «[pregunta sobre Mensajes]» (no el texto) y contesta con el botón a Mensajes. El panel de 360 dice «Administración
+    ve lo que le preguntas a 360; no pegues aquí mensajes del equipo.»;
+  - **todos ven siempre**: arriba de `/mensajes`, «El jefe puede leer todas las conversaciones. Administración no las
+    lee, y 360 tampoco. Lo que se escribe queda guardado y no se borra.»; en cada conversación, bajo el título, «El
+    jefe puede leer esta conversación. Administración y 360 no.» y, junto a la caja, «Lo lee el jefe · queda guardado,
+    no se borra». La primera vez, un aviso que se acepta (D-59).
+- **Por qué:** decisión anunciada. Se cumple en la base (RLS sin rama de administración y sin `is_staff()`), porque
+  «Ver como» solo cambia menús.
+- **Lo que queda:** los nombres y roles del equipo los ve todo el equipo en «Escribirle a alguien». Administración
+  puede crear cuentas del equipo (es su trabajo); cada rol que da le llega al jefe como aviso (D-58), y una cuenta
+  nueva lee «Todo el equipo» desde el principio.
+- **Cómo se cambia:** `chat_can_read()` en una migración nueva.
+
+## D-51. Quién habla con quién lo decide el jefe (28/10/2026) — **Confirmar con Juan** (parejas cerradas de entrada)
+- **Qué:**
+  - solo el jefe, con doble factor, cambia las reglas, en «Mensajes → Quién habla con quién» (administración no);
+  - **por defecto todos hablan con todos**; las reglas son por pareja de roles distintos: las 10 parejas entre los
+    cinco roles que no son el jefe. Cada fila muestra a quiénes afecta («Redes (nombres) ↔ Política (nombres)»);
+  - **a todos siempre se les permite escribirle al jefe** y el jefe le escribe a todos;
+  - con dos roles **gana la regla más restrictiva**;
+  - un grupo solo se arma si **todas** las parejas del grupo pueden hablar;
+  - si el jefe cierra una pareja, lo escrito antes se sigue leyendo pero ya no se escribe ahí («El jefe cerró los
+    mensajes entre Redes y Política. Puedes leer lo anterior.»); en un grupo, solo deja de escribir quien tiene la
+    pareja cerrada con alguien del grupo;
+  - **«Todo el equipo» no sigue estas reglas**: lo dice la pantalla, donde está también «Solo el jefe escribe en Todo
+    el equipo», y lo repite la confirmación al cerrar una pareja. Las reglas tampoco tocan las notas de trabajo (la
+    nota de Grabación al editor, los comentarios de piezas).
+- **Por qué:** «permitir o restringir quién habla con quién». Por pareja de roles porque son pocos, se entiende en una
+  lista a 360 px y el jefe puede predecir el resultado. Excepciones por persona y «Redes con Redes» quedan como
+  pregunta.
+- **Cómo se cambia:** tabla `chat_rules`; la regla efectiva en `chat_pair_allowed()` y su espejo `pairAllowed()` de
+  `src/lib/domain/chat.ts`.
+
+## D-52. La agenda en los mensajes: la base la cuida al escribir y al leer (28/10/2026) — **Confirmar con Juan** (modo estricto o no)
+- **Qué:**
+  1. **Al escribir**, la base rechaza un mensaje cuando: (a) en la conversación hay alguien de **Redes o política**
+     (todas las filas de miembros, activos o no, y todos sus roles) o es «Todo el equipo»; (b) quien escribe **conoce
+     la agenda**: tiene jefe, despacho, IVT, Grabación o administración; y (c) el texto tiene una fecha o una hora
+     **concreta** (`public.text_has_concrete_datetime`: horas de reloj como «10:30», «3 pm», «a las 3», «3 de la
+     tarde», «15h», «mediodía»; fechas de calendario como «12 de noviembre», «12/11», «12-11-2026» o una fecha ISO) o
+     lleva un enlace de mapas o unas coordenadas (`chat_has_map`). Antes de revisar solo se quitan la ruta interna
+     exacta `/<sección>/<uuid>` y el número de un post de X (`/status/<cifras>`); lo demás, enlaces de afuera
+     incluidos, se revisa como texto. Para **Grabación** (sin jefe, despacho ni IVT) se quitan antes los tiempos del
+     video sueltos («2:15», no «a las 2:15» ni «2:15 pm»), y la app le pregunta «¿2:15 es un tiempo del video? Si es
+     una hora, no va aquí.» con «Sí, es del video» / «Corregir».
+  2. **Las palabras relativas no se rechazan** («hoy», «mañana», «pasado mañana», «esta tarde», «esta noche», los días
+     de la semana, «el lunes», «el fin de semana»). A quien conoce la agenda, en una conversación con Redes o política,
+     la app le pregunta antes de enviar: «“mañana”: ¿dice cuándo va el jefe? Si es de la agenda, no va aquí.» con
+     «Enviar igual» y «Corregir» (**enmienda E1 del 28/10**: para que el jefe pueda decir «hoy» en el chat).
+  3. **Cada mensaje guarda `agenda_clear`** (lo pone la base, con el mismo detector concreto): falso cuando su autor
+     conoce la agenda y el texto tenía fecha u hora concreta o un mapa (pasa en conversaciones sin Redes ni política,
+     como jefe ↔ despacho).
+  4. **Al leer**, un mensaje con `agenda_clear` falso solo lo ve el jefe con doble factor o quien tiene jefe, despacho,
+     IVT o Grabación **y no tiene Redes ni política**. Los demás ven «Mensaje oculto: tenía una fecha o una hora de la
+     agenda.». Así, si alguien de Grabación pasa a Redes, o la única persona de Redes de un grupo se desactiva y vuelve,
+     no lee lo que se escribió con fechas mientras no estaba.
+  - **Redes y política** escriben libre: no conocen la agenda, así que no pueden filtrarla.
+  - **Falsos positivos** que se rechazan: «Barrio 23 de Enero» (es una fecha de calendario), «a las 3 escuelas», un
+    enlace con una fecha. Se aceptan: el rechazo explica cómo decirlo sin fecha («lo antes posible», «el día del
+    evento»), y la app avisa **mientras escribes**, nombrando la palabra («“10:30” no puede ir aquí»). El texto queda en
+    la caja; nunca se repite el texto en el error ni en los registros.
+  - La nota «Aquí está Redes o política: sin fechas, horas, ni cuándo sales o llegas.» la ve solo quien conoce la
+    agenda, y solo en esas conversaciones. «Cuándo sales o llegas» no lo detecta la base: es guía.
+  - **Nombres de grupo:** con Redes o política en el grupo siguen con el detector completo (`text_has_datetime`,
+    también «hoy» o «mañana»): nadie pregunta antes de guardar un nombre, y todos lo leen cada vez.
+- **Por qué:** regla 4: «la agenda del jefe se cumple en la base de datos, no solo en la pantalla». La fuga real es
+  alguien que conoce la agenda escribiéndole a Redes o política; ahí la base cierra, y la marca por mensaje cubre los
+  cambios de rol y de miembros. «Hoy» o «mañana» solos no dan la hora ni el lugar; rechazarlos frustraba al jefe en
+  cada mensaje. Con la pregunta, quien escribe decide sabiendo la regla, y lo concreto (la hora, la fecha, el mapa)
+  sigue cerrado en la base. `text_has_concrete_datetime` tiene su copia exacta en la app (`firstConcreteDateTime` en
+  `src/lib/domain/chat.ts`), comparada con los casos de `tests/unit/fixtures/chat-text-cases.ts` y con textos
+  generados en `tests/rls/chat.test.ts`.
+- **Lo que queda:** una palabra relativa enviada con «Enviar igual» llega tal cual (Redes la lee). El número de un post
+  de X no se revisa (no lleva fecha ni teléfono).
+- **Cómo se cambia:** `chat_message_guard()`, `text_has_concrete_datetime()`, `chat_strip_refs()`, `chat_has_map()`,
+  `chat_reader_knows_agenda()` en una migración nueva, junto con su copia en `src/lib/domain/chat.ts` y los casos de
+  `tests/unit/fixtures/chat-text-cases.ts`. **Para volver al modo estricto** (que «hoy», «mañana» y los días de la
+  semana también se rechacen): cambiar `text_has_concrete_datetime` por `text_has_datetime` en `chat_message_guard()`
+  (migración nueva) y quitar la pregunta del compositor (el caso `relative` de `chatTextProblem()` y su `relativeOk`
+  en `sendMessage`).
+
+## D-53. Teléfonos: nunca en un mensaje (28/10/2026)
+- **Qué:** la base rechaza un mensaje o un nombre de grupo que parezca tener un teléfono (`text_has_phone`), en
+  cualquier conversación y venga de quien venga, revisando el texto completo salvo la ruta interna exacta y el número
+  de un post de X (un enlace como `https://x.com/0414-555-1234` o uno de `wa.me` se rechaza). Mensaje: «Los teléfonos no
+  van en los mensajes: los contactos van en la ficha, con doble factor.»; si el número largo es parte de un enlace:
+  «Ese enlace tiene un número largo que parece un teléfono. Si es de la plataforma, pega su dirección; si no, quita el
+  número.»
+- **Por qué:** los contactos de terceros se guardan aparte y con doble factor (D-34, D-41); Grabación y Redes no usan
+  doble factor, y el jefe lee todo. Una sola regla fácil de explicar.
+- **Cómo se cambia:** `chat_message_guard()` y `chat_start()`.
+
+## D-54. Lo escrito queda: sin editar, sin borrar, sin adjuntos; enlaces a la plataforma (28/10/2026) — **Confirmar con Juan** (cuánto se guardan)
+- **Qué:** un mensaje no se edita ni se borra (la base lo impide, también al sistema por `TRUNCATE`). Se guardan como
+  el resto de la plataforma, sin fecha de vencimiento. La gente lo sabe antes de escribir (D-50, D-59). Sin adjuntos.
+  Para hablar de un evento, una pieza, una obra, un reporte, una publicación o una tanda de tweets, se pega su dirección
+  de la plataforma (`/eventos/<id>`…) y la conversación la muestra como una tarjetita con el título **que ve quien
+  lee** (si no lo puede abrir: «Algo que no puedes abrir»). Las direcciones no llevan fecha (regla 4).
+- **Por qué:** regla 3 (auditoría y borrado lógico; nadie podría borrar con `guard_soft_delete` porque administración
+  no ve los mensajes). Los enlaces reutilizan el RLS de cada pantalla sin columnas nuevas.
+- **Cómo se cambia:** el permiso de borrar exigiría otra columna y otra regla (pregunta en `PENDIENTES.md`).
+
+## D-55. Avisos de mensajes: al teléfono, sin el texto (28/10/2026)
+- **Qué:** un mensaje nuevo avisa por push (tipo `chat_message`) a los miembros que no lo silenciaron, con título
+  «Mensaje nuevo» y cuerpo «De <nombre> (<rol>)», enlace `/mensajes/<id>`. Nunca el texto ni el nombre del grupo. No va
+  a la campana (no hay dos números para lo mismo, y 360 no los cuenta) y nunca por correo. Se agrupan como los demás
+  avisos («Tienes 3 mensajes nuevos»), respetan las horas de silencio y se apagan en «Qué avisos quiero» → «Mensajes
+  nuevos del equipo».
+- **Por qué:** la pantalla de bloqueo muestra título y cuerpo, y el teléfono puede ser compartido; regla 8.
+- **Cómo se cambia:** `notifyChat()` en `src/lib/notify.ts`; `summaryPayload()` en `src/lib/push/deliver.ts`.
+
+## D-56. Cómo llegan los mensajes: revisión periódica por rutas GET (28/10/2026)
+- **Qué:** la conversación abierta pide lo nuevo cada 5 s mientras la pantalla está a la vista y hay señal; el número
+  del sobre, cada 30 s. Las dos lecturas van por **rutas GET** (`/api/mensajes/[id]/nuevos`, `/api/mensajes/sin-leer`)
+  con un tope de 8 s, como la persona (`db(session)`), sin guardarse en el teléfono. **Enviar** llama a la acción
+  directo y sin refrescar la página: la burbuja sale al instante con «Enviando…», la caja queda libre y los envíos van
+  en orden por `clientId` (un reintento nunca duplica). Sin Realtime en esta versión.
+- **Por qué:** Next 16 manda las acciones del servidor de a una, y una que quedó colgada sin señal dejaría esperando a
+  «Enviar»; refrescar la página en la demo puede traerla de otro servidor sin el mensaje recién enviado. Realtime no
+  tiene cómo probarse en la base en memoria ni en CI. Son 9 personas.
+- **Cómo se cambia:** `src/components/chat/chat-feed-core.ts` (`CHAT_POLL_MS`, `CHAT_BADGE_MS`,
+  `CHAT_FETCH_TIMEOUT_MS`). Realtime (`postgres_changes`, que respeta RLS) cuando se pueda probar en `fb-dev`.
+
+## D-57. Mensajes en la demo: cada servidor tiene los suyos (28/10/2026)
+- **Qué:** la demo trae conversaciones sembradas (inventadas, mismos ids en cada servidor): **todas las directas entre
+  las 8 personas del equipo** (28; las que no tienen mensajes no salen en la lista hasta el primero, así «Escribirle a
+  alguien» abre el mismo id en cualquier servidor), un grupo, «Todo el equipo» y **un mensaje sin leer para cada una de
+  las 8**. Nadie tiene el aviso aceptado: cada persona lo ve la primera vez. Arriba de Mensajes, solo en la demo: «En la
+  demostración, lo nuevo (mensajes, grupos y los cambios de «Quién habla con quién») puede no verse con otra cuenta o en
+  otro teléfono. No escribas nada real: en la demostración cualquiera que entre como jefe lo lee.» Si una conversación
+  no existe en ese servidor (un grupo creado en otro), se ve «Esta conversación se creó en otro servidor de la
+  demostración. Prueba con las que ya están.».
+- **Por qué:** D-02/D-39: cada servidor de Vercel tiene su base en memoria; un id nuevo creado en uno da 404 en otro.
+  En la demo toda sesión cuenta como doble factor, así que «Todas» se abre con solo entrar como jefe.
+- **Lo que queda:** en la demo una conversación que existe pero que esa persona no puede leer muestra el mismo texto
+  de «otro servidor» (no se filtra nada, pero puede confundir). Dos personas conversando desde dos teléfonos se prueba
+  en `fb-dev`.
+- **Cómo se cambia:** `src/lib/db/seed-parts/chat.ts`; el texto en `CHAT_DEMO_NOTICE` (`src/lib/domain/chat.ts`).
+
+## D-58. El rol de jefe solo lo da el sistema; cada rol del equipo que se da le llega al jefe (28/10/2026) — **Confirmar con Juan**
+- **Qué:** migración `20261028002350_boss_grant.sql`: dar el rol `boss` (en `user_roles` y en `invitations.roles`)
+  solo lo puede hacer el sistema (sin persona: la semilla, una migración, el comando de instalación o el alta de
+  Supabase que copia los roles de una invitación que hizo el sistema). Administración ya no lo da, ni en «Equipo» ni en
+  «Invitar»; la casilla «Jefe» se ve apagada con «El rol de jefe lo da el comando de instalación.». Una invitación que
+  nombra al jefe solo se puede anular. El comando: `npm run db:first-admin -- <correo> "<nombre>" --jefe` (el mismo
+  script del primer administrador; no manda nada). Además, cada rol del equipo que da **una persona** crea un aviso en
+  la campana del jefe («Administración le dio el rol Grabación a <nombre>.» o «Administración invitó a … como Redes.»),
+  con enlace a «Quién habla con quién».
+- **Por qué:** el jefe lee todas las conversaciones (D-50) y aprueba todo (`can_approve()`). Antes administración podía
+  invitar otra cuenta con el rol de jefe, ponerle doble factor y leer «Todas» o aprobar. Esto cierra el «Lo que queda»
+  de D-41 para el jefe. Con el aviso, una cuenta nueva que entra a «Todo el equipo» no pasa sin que el jefe lo sepa.
+- **Lo que queda:** quitar el rol de jefe sigue siendo de administración (cerrar no abre nada). Administración todavía
+  puede invitar a alguien como despacho (D-41); el jefe recibe el aviso.
+- **Cómo se cambia:** `guard_boss_grant()` y `notify_team_role_grant()` en una migración nueva; `roleGrantProblem()`
+  en `src/lib/roles.ts`; `scripts/first-admin.ts` y `scripts/create-first-admin.mts`.
+
+## D-59. El aviso de Mensajes se acepta una vez antes de escribir (28/10/2026)
+- **Qué:** la primera vez que alguien entra a Mensajes ve un diálogo: «El jefe puede leer todas las conversaciones. Lo
+  que escribes queda guardado y no se borra. Administración y 360 no las leen.» (en la demo, más la línea de D-57) con
+  «Entendido». Se guarda en `chat_notice_ack`, donde cada persona ve solo su fila (sin rama de administración). Sin
+  aceptarlo no hay caja para escribir («Para escribir, acepta el aviso.» con «Ver el aviso»), y la base no deja
+  escribir (`chat_may_post`). Escape lo cierra sin aceptar: se puede leer.
+- **Por qué:** «todos ven un aviso» se anunció; aceptarlo una vez es la forma de saber que lo vieron, sin volver a
+  molestar.
+- **Cómo se cambia:** la tabla `chat_notice_ack` (se inserta la fila propia; no se borra); el texto en `CHAT_ACK_TEXT`.

@@ -205,6 +205,71 @@ regla de arriba, estas capas quedan de segunda línea.
   mejores horas (se permiten), una fecha o un lugar no. Se acepta que un plazo de trabajo dicho con hora junto a un
   evento («¿hasta qué hora subo el material del acto?») reciba la frase de la agenda: mejor perder ese dato que filtrar uno.
 
+## Ayuda, tutoriales y Mensajes (desde el 28/10/2026, D-46, D-47 y D-50)
+La tercera vuelta le dio a 360 la pantalla, los tutoriales y las guías por rol (`src/lib/guides`, D-42), y le cerró
+Mensajes del todo.
+- **Sabe la pantalla.** La ventana manda `pantalla`: solo el patrón de la dirección (`screenPattern()`: los uuid pasan
+  a `[id]`, `/ayuda/<slug>` a `/ayuda/[id]`, sin la parte de `?` ni `#`). La ruta la revisa con zod y la descarta si no
+  encaja (nunca da 400); `handleTurn` la acepta solo si es exactamente un patrón de `SCREENS` y la pone en
+  `TurnContext.screen`. Nunca se guarda más que el patrón.
+- **Trae el tutorial.** La respuesta suma `tutorial: { id, etiqueta, href | null }` (`TurnResult`, `toApi`; en la
+  ventana, `safeTutorial`). Se guarda dentro de `assistant_messages.go_to` (`{ href, label, tutorial }`, sin migración).
+  Con el botón «Ver el tutorial de X», el de «Ir a…» no sale.
+- **Herramienta `ver_tutorial(pantalla?)`** (nivel «cuenta», todos los roles, no lee la base): los tutoriales de
+  `toursForRoles(menuRoles(session))` (sigue «Ver como») cuya pantalla esa persona puede abrir; en una pantalla, primero
+  el suyo, luego los de sus pestañas y al final `bienvenida`. Solo pone botón y dirección si la pantalla no tiene `[id]`.
+- **Cerebro de demostración** (`local.ts`), en este orden con lo de antes:
+  - la regex de fuera de tema ya no tiene «política» ni «tarea» («¿cómo califico los eventos en Política?» se contesta;
+    «hazme la tarea» y «¿qué opinas de la política?» siguen fuera de tema);
+  - **M3, «dile / mándale / escríbele / pregúntale a X que…»** (antes del paso 1): «Eso se lo escribes tú en Mensajes:
+    yo no leo ni mando mensajes, y el jefe puede leerlos.» con el botón a «Escribirle a alguien». Nunca escala ni
+    prepara un aviso. «Dile a administración que no puedo entrar» sigue siendo soporte, y «avísale a Redes que…» sigue
+    siendo el aviso que prepara el jefe o administración (`preparar_aviso`);
+  - **M1, «léeme / resúmeme los mensajes», «¿qué me escribió Daniela?»** (después del paso 1): «No leo los mensajes del
+    equipo: son entre ustedes, y el jefe puede leerlos. Te dejo el botón para abrir Mensajes.»;
+  - **M2, «¿cómo le escribo a Redes?», «¿cómo armo un grupo?»**: la ficha `mensajes` y el botón a «Escribirle a
+    alguien». A una cuenta con administración: «Mensajes es solo para el equipo…»;
+  - **S, «¿qué hago aquí?», «¿para qué sirve esta pantalla?», «¿qué se hace en X?»**: la sección de esa pantalla para
+    su rol (de la guía) y el botón del tutorial si hay;
+  - **T, «tutorial», «paso a paso», «enséñame a usar», «muéstrame esta pantalla», «me perdí», «ayuda» sola, o «cómo se
+    usa / cómo funciona» con una pantalla nombrada** (antes de la negativa de la agenda, nunca con un «cuándo», nunca
+    para soporte): el tutorial; si no hay, la sección y la guía; si no, tres de sus tutoriales para elegir. No dice
+    cuántos pasos son (el motor los cuenta al empezar);
+  - **«¿Cómo hago X?» con la guía del rol** (`guide-help.ts`): si el título de una tarea de su «Paso a paso» dice todas
+    las palabras de la pregunta, contesta con sus pasos y el botón del tutorial (o el enlace a `/ayuda/<slug>?ver=pasos`).
+    Reemplaza a una ficha que solo cubre una parte o solo describe roles, y al «No estoy seguro».
+  - Las fichas de sección (127, una por pantalla y rol) se arman del código en cada turno (`withSections`,
+    `sectionFichas`), no se siembran: así siempre dicen lo de `/ayuda`. No entran en el puntaje general ni en la
+    revisión del tema de la negativa de la agenda.
+- **Material de fábrica:** tres fichas nuevas para todos los roles (`mensajes`, `tutoriales`, `ayuda-guias`), el guion
+  30 `tutorial` (el tope) y, en cada rol del equipo, una sugerida «¿Me muestras cómo se usa esta pantalla?». En el panel,
+  la herramienta sale como «Buscó un tutorial».
+- **`SCREENS`** suma las rutas de Mensajes (`src/lib/chat-screens.ts`) y de Ayuda (`src/lib/guides/screens.ts`);
+  `patternOf` acepta cualquier `[param]`. `canOpen` niega las pantallas de Mensajes a una cuenta con administración
+  (D-49): nunca hay un botón que lleve ahí.
+- **Ofrece ayuda** (D-47, `src/components/assistant/offer-core.ts`, reglas puras con pruebas en
+  `assistant-offer-core.test.ts`): la franja «¿Te muestro esta pantalla?» junto al botón, a los 4 s, revisando cada
+  segundo que nadie escribe, que no hay un diálogo abierto, ni 360 abierto, ni un consejo, ni «sin permiso», ni un
+  tutorial corriendo. Nunca en pantallas de formulario. Cada tutorial una vez, como mucho una franja por día y por
+  pestaña; se apaga tras la segunda X (y lo dice una vez, 6 s). Se va sola a los 12 s (no cuenta como «no»). Pregunta al
+  motor por `fb:tour:can` si el tutorial tiene 2 pasos o más; «Sí, muéstrame» lo arranca con `fb:tour:start` (sin
+  recargar; el foco vuelve al botón de 360). Nunca llama a `/api/asistente` ni lleva `data-who`. En `/mensajes/[id]` no
+  salen ni el botón de 360 ni la franja. Las pruebas e2e la apagan con la llave del teléfono `fb:360:oferta:off`
+  (`tests/e2e/global-setup.ts`); solo `assistant-offer.spec.ts` empieza sin ella.
+- **No lee Mensajes** (D-50, design §8.7):
+  - ninguna herramienta, guion o ficha toca las tablas, funciones o rutas de Mensajes, y ningún archivo de 360 importa
+    algo que las lea (prueba estática con el grafo de imports, `tests/unit/chat-isolation.test.ts`);
+  - en la base, todo lo que corre 360 marca la transacción con `set_config('app.caller', 'assistant', true)`
+    (`src/lib/assistant/db.ts`: `asAssistant`, `db(session)` y `system()`, también lo que antes era `withSystem`), y las
+    funciones de chat dicen que no con esa marca (`tests/unit/assistant-db-caller.test.ts` lo prueba en el código y en
+    la base demo);
+  - una pregunta sobre lo que dice un mensaje, o «dile a X que…», se guarda como «[pregunta sobre Mensajes]» (también el
+    título de la conversación), no pasa por «Lo que preguntan» ni por las correcciones, nunca va al modelo y nunca
+    escala;
+  - el guion del modelo dice la pantalla y que 360 nunca lee mensajes;
+  - el panel de la ventana lleva una línea fija: «Administración ve lo que le preguntas a {nombre}; no pegues aquí
+    mensajes del equipo.».
+
 ## Datos (migración `20261025000900_assistant.sql`)
 Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: solo el servidor las toca.
 - `assistant_knowledge` (fichas): `id, roles app_role[] null` (null = todos los roles), `title, body, tags text[],
@@ -249,7 +314,8 @@ Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: 
   `buscar_evento(texto)` (cuenta, quien vea eventos con su ficha técnica: administración, jefe, despacho, redes y
   grabación; **nunca** lee `event_schedule`), `preparar_aviso(rol, texto)` (prepara, administración y el jefe; a uno de
   los seis roles, a administración o a «todos»: borrador que confirma administración), `marcar_avisos_leidos` (hace, todos; deshacer =
-  volver a no leídos), `avisar_al_equipo(motivo)` (siempre; el servidor pone la conversación).
+  volver a no leídos), `avisar_al_equipo(motivo)` (siempre; el servidor pone la conversación), `ver_tutorial(pantalla)` (cuenta, todos; desde
+  el 28/10, ver «Ayuda, tutoriales y Mensajes»). **No hay** herramienta de mensajes (ni leer ni mandar).
 - `screens.ts` — destinos del botón «Ir a…»: `{ href, label, roles, phrases, nav, about }`, con los roles **copiados
   del control de acceso de cada página** (una prueba compara con `requireRole` del código). Exige una frase, no una
   palabra suelta; solo en una pregunta de «¿dónde está…?», «¿dónde apruebo?», «¿cómo edito…?», «llévame a…» basta una
@@ -314,8 +380,8 @@ Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: 
   3000 títulos, 3000 lugares y una pregunta de 1.500 caracteres, cada revisión tarda menos de 50 ms
   (`tests/unit/text-speed.test.ts`), y ningún patrón se traba con un texto largo en blanco.
 - Cada turno tiene un límite de 40 s; después de la primera vuelta, la cadena arranca desde el eslabón que respondió.
-- `index.ts` — `handleTurn(session, { question, conversationId })` → `{ answer, scope, model, ms, degraded, did:
-  [{ tool, error? }], goTo: { href, label } | null, conversationId }`. Con cadena, decide el cerebro con el detector
+- `index.ts` — `handleTurn(session, { question, conversationId, screen })` → `{ answer, scope, model, ms, degraded,
+  did: [{ tool, error? }], goTo: { href, label } | null, tutorial: { id, label, href } | null, conversationId }`. Con cadena, decide el cerebro con el detector
   (ver «Lo que habla de un evento lo contesta 360 sin IA»). Antes del cerebro abre el turno (`openTurn`: una
   transacción corta, con candado por persona): la conversación, la cuenta de la hora y la pregunta redactada se guardan
   **al empezar**, así los pedidos en paralelo la ven y un turno que falla después igual cuenta. Solo la respuesta se
@@ -343,8 +409,11 @@ el nombre, abajo a la derecha, por encima de la barra del teléfono; no tapa nad
 (`aria-expanded`, Escape cierra, foco visible, enviar desactivado mientras espera, tope de 1.500 en el campo). El hilo
 vive en `sessionStorage` con el usuario y el ámbito; «Empezar de nuevo» no borra nada de la base; el botón marca cuando
 hay una conversación a medias. Preguntas sugeridas por rol. Aviso de degradado si el servidor lo marca o si no responde.
-Botón «Ir a…» cuando la respuesta trae destino. No lee datos de nadie: solo llama a `/api/asistente`.
-Aviso fijo: «No escribas aquí fechas, horas ni direcciones de la agenda.»
+Botón «Ir a…» cuando la respuesta trae destino, o «Ver el tutorial de X» cuando trae un tutorial. No lee datos de
+nadie: solo llama a `/api/asistente`, con la pregunta y el patrón de la pantalla. Aviso fijo: «No escribas aquí fechas,
+horas ni direcciones de la agenda.», y debajo del campo «Administración ve lo que le preguntas a {nombre}; no pegues aquí
+mensajes del equipo.». La franja que ofrece tutoriales vive al lado del botón (ver arriba). En `/mensajes/[id]` no se
+pinta nada (la conversación ocupa la pantalla).
 
 ## El panel (Ajustes → Asistente, solo administración)
 Ocho pestañas: **Lo que sabe** (fichas; las automáticas avisan antes de editarse; «Actualizar lo que sabe»),
@@ -355,5 +424,7 @@ cadena»; lo que cortó el tope por hora sale como «Límite por hora», en su p
 (con deshacer) y **Ajustes** (nombre, cara y presentación).
 
 ## No se hace (y por qué)
-- Ofrecerse solo en páginas de producto (P10): no hay páginas de producto; el equipo lo abre cuando lo necesita.
+- ~~Ofrecerse solo en páginas de producto (P10)~~: desde el 28/10 sí ofrece, pero solo tutoriales y con la franja de
+  una línea (D-47). Abrirse solo o arrancar un tutorial solo, no: rompería el trabajo de la gente.
+- Leer, resumir o mandar mensajes de Mensajes: decisión anunciada (D-50). Contesta con el botón a Mensajes.
 - Camino de visitante y tope por huella: llega con la web pública (fase 3).

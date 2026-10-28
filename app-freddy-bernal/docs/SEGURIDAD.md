@@ -1,6 +1,7 @@
 # Seguridad (primera versión)
 
-Actualizado: 28/10/2026 (seis roles, fichas y agenda compartida). Qué se hizo para blindar la plataforma y qué falta.
+Actualizado: 28/10/2026 (seis roles, fichas, agenda compartida y, en la tercera vuelta, Mensajes y el rol de jefe solo
+por el sistema). Qué se hizo para blindar la plataforma y qué falta.
 
 ## Lo que ya está
 1. **RLS en todas las tablas.** Cada consulta de una persona corre con su rol y su sesión (`set local role
@@ -140,8 +141,53 @@ Actualizado: 28/10/2026 (seis roles, fichas y agenda compartida). Qué se hizo p
     despacho, política y el IVT.
 17. **Administración no se vuelve jefe ni despacho** (D-41): nadie se da roles a sí mismo y una cuenta nunca junta
     administración con el jefe o el despacho, ni por invitación (`guard_role_mix` y `guard_invitation_roles`). Solo se
-    pueden dar los seis roles del equipo y administración.
-18. **Códigos por la base:** el código de un evento (E-0001), de una obra (O-0001) y de un reporte (R-0001) lo pone la
+    pueden dar los seis roles del equipo y administración. **Desde el 28/10 (D-58,
+    `20261028002350_boss_grant.sql`, `tests/rls/boss-grant.test.ts`):** el rol de jefe solo lo da el sistema (la
+    semilla, una migración, `npm run db:first-admin -- <correo> "<nombre>" --jefe` o el alta de Supabase de una
+    invitación que hizo el sistema). Administración no lo da a otra cuenta, ni en Equipo ni en una invitación, y una
+    invitación que nombra al jefe solo se puede anular (cambiarle el correo le daría el rol a otro). Cada rol del equipo
+    que da una persona le llega al jefe como aviso en la campana (el nombre y el rol, nunca el correo). Quitar el rol de
+    jefe sigue siendo de administración.
+18. **Mensajes, la red interna** (28/10; `DECISIONES.md` D-49 a D-59; `20261028002400_internal_chat.sql`; pruebas en
+    `tests/rls/chat.test.ts`, `tests/unit/chat-text-rules.test.ts` y `tests/unit/chat-isolation.test.ts`):
+    - **Quién lee:** cada miembro sus conversaciones, con doble factor si su rol lo pide (jefe, despacho, política, IVT);
+      **el jefe lee todas, con doble factor** (`can_approve()`), sin escribir en las ajenas ni marcarlas como leídas.
+      **Administración no lee ninguna:** las reglas no tienen rama de administración ni `is_staff()`, «Ver como» solo
+      cambia menús, y una cuenta con administración no es del equipo para Mensajes aunque tenga otro rol (no lee, no
+      escribe, no sale en «Escribirle a alguien»). Tampoco puede armar otra cuenta de jefe (D-58). **360 no lee
+      ninguna:** ningún archivo suyo toca Mensajes (prueba estática con el grafo de imports) y lo que corre en la base
+      lleva `app.caller = 'assistant'`, que todas las funciones de chat rechazan. Una pregunta a 360 sobre un mensaje
+      se guarda como «[pregunta sobre Mensajes]», sin el texto.
+    - **La agenda (regla 4) al escribir:** donde hay alguien de Redes o política (cualquier fila de miembro, activa o
+      no, con cualquiera de sus roles) o en «Todo el equipo», la base rechaza el mensaje de quien conoce la agenda (jefe,
+      despacho, IVT, Grabación o administración) si tiene una fecha o una hora **concreta** («10:30», «3 pm», «a las 3»,
+      «12 de noviembre», «12/11») o un enlace de mapas o unas coordenadas (`text_has_concrete_datetime()`,
+      `chat_has_map()`, copias exactas en la app y casos compartidos). Las palabras relativas («hoy», «mañana», «el
+      lunes») pasan, pero la app pregunta antes de enviar («“mañana”: ¿dice cuándo va el jefe? Si es de la agenda, no va
+      aquí.»), por la enmienda E1 de D-52. Solo se quitan antes la dirección interna exacta y el número de un post de X;
+      a Grabación, además, los tiempos del video sueltos. Los nombres de grupo siguen con la regla completa.
+    - **La agenda al leer:** cada mensaje guarda `agenda_clear` (lo pone la base, nunca quien escribe). Un mensaje con
+      fecha concreta (escrito donde no había Redes ni política) solo lo lee el jefe con doble factor o quien tiene jefe,
+      despacho, IVT o Grabación **sin** Redes ni política; los demás ven «Mensaje oculto», nunca el texto. Cubre los
+      cambios de rol y de miembros.
+    - **Teléfonos:** nunca en un mensaje ni en un nombre de grupo, de nadie y en ninguna conversación
+      (`text_has_phone()`), también dentro de un enlace (`wa.me`, `x.com/<número>`).
+    - **Lo escrito queda:** mensajes, miembros y el aviso aceptado solo se agregan; nadie los cambia ni los borra, ni el
+      sistema (`TRUNCATE` también bloqueado). El registro de cambios guarda tabla, fila, quién y cuándo, **nunca** el
+      texto, el nombre del grupo ni los miembros.
+    - **El aviso:** todos ven arriba de Mensajes, en cada conversación y junto a la caja que el jefe puede leer, que
+      administración y 360 no, y que lo escrito no se borra. La primera vez se acepta (`chat_notice_ack`); sin
+      aceptarlo, la base no deja escribir (`chat_may_post`).
+    - **Quién habla con quién:** solo el jefe con doble factor cambia las reglas (`chat_rules`); con dos roles gana la
+      más restrictiva; un grupo no sirve para saltarse una regla; todos pueden escribirle al jefe.
+    - **Avisos al teléfono sin el texto:** «Mensaje nuevo · De <nombre> (<rol>)», nunca el texto ni el nombre del grupo;
+      no van a la campana ni por correo.
+    - **Lecturas por rutas GET** como la persona (`db(session)`), con `Cache-Control: no-store` y sin guardarse en el
+      service worker; sin sesión 401, sin Mensajes 404. El texto de un mensaje nunca se escribe en los registros del
+      servidor ni se repite en un error. `<title>` nunca lleva un nombre ni un texto.
+    - **Nada para anon:** cada función nueva tiene `revoke all … from public, anon`; las que hablan de otras personas
+      (sus roles, quién está en una conversación) tampoco son de `authenticated`. Nada nuevo en Realtime.
+19. **Códigos por la base:** el código de un evento (E-0001), de una obra (O-0001) y de un reporte (R-0001) lo pone la
     base: nadie mete una fecha en un código (empieza el nombre de cada archivo descargado) ni le quita el número al
     siguiente. Un evento ya realizado no cambia de fecha ni de lugar; un archivo nunca se pasa a otro evento o ficha.
 
@@ -158,7 +204,9 @@ Actualizado: 28/10/2026 (seis roles, fichas y agenda compartida). Qué se hizo p
 - Cuánto tiempo se guardan los datos de terceros de las fichas (y lo que quedó en el registro de cambios antes del
   28/10): por decidir (`PENDIENTES.md`).
 - Repetir en `fb-dev` las pruebas por rol con cuentas de prueba (las migraciones de la ronda del 27–28/10 ya están
-  aplicadas allí desde el 28/10).
+  aplicadas allí desde el 28/10; las dos de la tercera vuelta, Mensajes y el rol de jefe, todavía no).
+- Mensajes: probar en `fb-dev` dos personas conversando desde dos teléfonos (en la demo cada servidor tiene su base,
+  D-57), y en un Android real que el aviso de mensaje en la pantalla de bloqueo no lleve el texto.
 - Drive: probar con la cuenta real (paso C de `DRIVE.md`) que Google acepta las partes directas del teléfono y los
   tramos (`Range`); la plataforma tiene respuesta para ambos casos, pero eso no se puede probar sin la cuenta.
 - Si algún día se agrega una política de contenido (CSP): permitir `apis.google.com` (script), `docs.google.com`

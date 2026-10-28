@@ -3,7 +3,8 @@
 // never stored, so nothing sensitive stays in the cache.
 // It also shows phone notifications (Web Push). A notification only opens the app: nothing
 // is ever approved or changed from it.
-const CACHE = 'fb-shell-v1';
+// v2 (R3): offline.html says where the guide is; a new name makes installed phones fetch it again.
+const CACHE = 'fb-shell-v2';
 const SHELL = ['/offline.html', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', (e) => {

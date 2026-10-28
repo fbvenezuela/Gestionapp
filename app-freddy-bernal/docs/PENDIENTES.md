@@ -170,3 +170,37 @@ pruebe cada rol (lo pidió el 25/10).
 - Las migraciones de esta ronda ya están en `fb-dev` (aplicadas y verificadas el 28/10, `PROMPT-SUPABASE.md`). Falta
   que Juan siga esa guía. Ahí se puede probar creando cosas entre roles (en la demo no: D-39).
 - Rehacer Redes como Mila, por partes, cuando Hillary confirme la tabla (#11).
+
+## Nuevo (28/10/2026): tercera vuelta — guías, tutoriales y Mensajes
+Lo hecho está en `DECISIONES.md` D-42 a D-59. Las guías siguen sin mandarse a nadie: viven en la app («Mi cuenta» →
+«Ayuda y guías») y en el repositorio. Mientras no haya respuesta, sigue lo que dice cada pregunta entre paréntesis.
+
+**Preguntas para Juan (o Hillary):**
+1. **El rol de jefe:** ¿de acuerdo con que solo se dé con el comando de instalación y nunca desde Equipo? (Así está.
+   D-58.)
+2. **«Hoy» y «mañana» en Mensajes:** ¿lo dejamos así (la base rechaza horas, fechas y mapas concretos; a «hoy»,
+   «mañana» o un día de la semana la app pregunta «¿dice cuándo va el jefe?» antes de enviar) o el modo estricto, donde
+   también se rechazan? (Así está: el primero. D-52, enmienda E1.)
+3. **Quién habla con quién:** ¿alguna pareja cerrada de entrada (por ejemplo Redes ↔ Política)? (Todos hablan con
+   todos. D-51.)
+4. **Excepciones:** ¿hace falta cerrar entre dos personas («Daniela y Elio no») o entre gente del mismo rol («Redes con
+   Redes»)? (No existen. D-51.)
+5. **Cuánto se guardan los mensajes** y si se podrá borrar algo a pedido (un dato escrito por error). (Se guardan y no
+   se borran. D-54.)
+6. **Fotos y audios en los mensajes**, ¿en una fase siguiente? (Hoy solo texto y enlaces de la plataforma.)
+7. **Registro de cambios:** ¿está bien que administración vea que hubo un mensaje (quién y cuándo, sin el texto ni a
+   quién) y los cambios de reglas? (Así está. D-50.)
+8. **Nombres a la vista:** ¿está bien que todo el equipo vea los nombres y roles de los demás para escribirles? (Así
+   está.)
+9. **Guías sin señal:** ¿hace falta leerlas sin señal? (Hoy no: el teléfono no guarda páginas con datos de la persona.)
+10. **«Todo el equipo»:** ¿también debería seguir «Quién habla con quién»? (No; el jefe tiene «Solo el jefe escribe».)
+11. **Administración con un rol del equipo:** si alguna cuenta real tiene las dos cosas, ¿de acuerdo con que use otra
+    cuenta para Mensajes? (Así está. D-49.)
+12. **Hillary:** ¿los tutoriales y Mensajes entran en su prueba por rol de la demo antes de mandar las guías?
+
+**Lo que falta de nuestra parte:**
+- Aplicar en `fb-dev` las dos migraciones nuevas (`20261028002350_boss_grant.sql` y
+  `20261028002400_internal_chat.sql`) y probar ahí dos personas conversando desde dos teléfonos (en la demo cada
+  servidor tiene su base, D-57).
+- La lista manual de `DEMO.md` en un Android de verdad (teclado, Enter, aviso en la pantalla de bloqueo, tutorial).
+- Realtime para Mensajes cuando se pueda probar en `fb-dev` (hoy revisa cada 5 s, D-56).

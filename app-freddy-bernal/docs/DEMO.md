@@ -1,4 +1,4 @@
-# Recorrido de demostración (seis roles desde el 27/10)
+# Recorrido de demostración (seis roles desde el 27/10; Mensajes, guías y tutoriales desde el 28/10)
 
 **Link:** el de la versión de prueba de Vercel (ver `README.md`, «Publicar la demostración»). En local:
 `npm run build && npm start` → http://localhost:3000.
@@ -9,16 +9,57 @@ con Google Authenticator), pon `DEMO_SHORTCUTS=false` en Vercel. Con datos reale
 
 | Rol | Correo | Qué tocar |
 |---|---|---|
-| Redes | `redes@demo.test` | **Agenda**: los eventos salen en lista, sin fecha ni hora. Abre «Entrega de viviendas…» → **Storyboard** → agrega un bloque → Guardar. Abre «Entrega de la cancha techada de El Mirador» → **Material**: la nota para el editor y el storyboard con el que grabó Grabación, y «Descargar todo el material» (todo el material de la pauta en una carpeta, o uno por uno en el teléfono). **Piezas** → «Jornada de salud escolar» → sube un video → elige **fórmula, voz y cierre** → «Escribir desde la ficha» → mira los tres largos con su contador → elige el **nivel** (verde, amarillo o rojo) → «Enviar a aprobación». **Tweets** → «Tweets de la semana» → pega o sube un .docx → «Separar» → mira repetidos y largos → «Repartir en la semana» |
+| Redes | `redes@demo.test` | **Agenda**: los eventos salen en lista, sin fecha ni hora (los realizados no están ahí: van a la Biblioteca). Abre «Entrega de viviendas…» → **Storyboard** → «Agregar bloque» → «Guardar storyboard». En **Hoy**, «Notas de Grabación nuevas» (o en **Biblioteca**) abre «Entrega de la cancha techada de El Mirador» → **Material**: la nota para el editor y el storyboard con el que grabó Grabación, y «Descargar todo el material» (todo el material de la pauta en una carpeta, o uno por uno en el teléfono). **Piezas** → «Jornada de salud escolar» → sube un video → elige **fórmula, voz y cierre** → «Escribir desde la ficha» → mira los tres largos con su contador → elige el **nivel** (verde, amarillo o rojo) → «Enviar a aprobación». **Tweets** → «Tweets de la semana» → pega o sube un .docx → «Separar tweets» → mira repetidos y largos → «Repartir en la semana y enviar a aprobación»; ya aprobada, la tanda → «Programar» |
 | Redes (otra vez) | `redes@demo.test` | **Publicar** → la pieza aprobada → elige redes (cada una dice si el video sirve y qué arreglar) → paquete → pon una hora: avisa si es mala para esa red → paquete → pega un link → «Ya lo publiqué» → carga vistas y me gusta. «Registrar lo que publicó el jefe» para un video que subió él. **Resultados** → «¿A qué hora nos va mejor?» |
-| Jefe | `jefe@demo.test` | **Todo lo aprueba él.** **Por aprobar**: «Aprobar todas las verdes (2)» de un toque; abre «Avance del puente La Quebrada» (amarilla) → pausa el video y comenta si quiere → marca la lista «Antes de aprobar» → «Aprobar» o «Pedir cambios»; la roja («Aclaratoria sobre el servicio de agua») igual. Pestaña **Tweets** → «Aprobar marcados». En **Inicio** (también «Aprobar todas las verdes» de un toque), cuatro botones grandes con sus números en vivo: **Política** (eventos de hoy, por decidir, por ponerle fecha; adentro, «Lo que voy a decir» en letra grande, calificar 1–10 y aceptar), **Obras** (las fichas del IVT por estado y por municipio), **Redes** (debajo, «Notas de Grabación nuevas»: el título de «Entrega de la cancha techada de El Mirador», que abre su pestaña Material con la nota para el editor) y **Digital**. Menú: Inicio, Agenda, Por aprobar, **Redes** (su puerta a Piezas, Tweets, Publicar, Resultados y Biblioteca, con lo que espera en cada una) y «Más» (Obras, Municipios, Digital) |
+| Jefe | `jefe@demo.test` | **Todo lo aprueba él.** **Por aprobar**: «Aprobar todas las verdes (2)» de un toque; abre «Avance del puente La Quebrada» (amarilla) → pausa el video y comenta si quiere → marca la lista «Antes de aprobar» → «Aprobar» o «Pedir cambios»; la roja («Aclaratoria sobre el servicio de agua») igual. Pestaña **Tweets** → «Aprobar marcados». En **Inicio** (también «Aprobar todas las verdes» de un toque), cuatro botones grandes con sus números en vivo: **Política** (eventos de hoy, «Esperan tu decisión», por ponerle fecha, y «Lo que voy a decir» en letra grande; la nota de 1 a 10 y aceptar o rechazar van en el evento, en la tarjeta «Tu decisión»), **Obras** (las fichas del IVT por estado y por municipio), **Redes** (debajo, «Notas de Grabación nuevas»: el título de «Entrega de la cancha techada de El Mirador», que abre su pestaña Material con la nota para el editor) y **Digital**. Menú: Inicio, Agenda, Por aprobar, **Redes** (su puerta a Piezas, Tweets, Publicar, Resultados y Biblioteca, con lo que espera en cada una) y «Más» (Obras, Municipios, Digital) |
 | Despacho | `despacho@demo.test` | **Hoy** empieza con «Por ponerle fecha» (la obra del IVT y el reporte de política que esperan fecha) → «Ponerle fecha» la convierte en evento. **Agenda** en calendario (día, semana, mes) → «Nuevo evento» o «Visita de obra» con la ficha técnica (avisa si choca con otro). En un evento: «Mover», «Cambiar fecha o lugar» y «Cancelar» con su motivo («Volver a la agenda» lo trae). Menú: Hoy, Agenda, Obras, Municipios y Biblioteca |
 | Grabación | `grabacion@demo.test` | **Agenda** (con fecha y lugar: solo los suyos) → «Jornada de salud…» → **Material** → sube «Jefe hablando» (corta el wifi a la mitad: sigue sola al volver); en «Entrega de Grabación», sube el storyboard con el que grabó (foto, PDF o escrito) y deja la nota para el editor (sin hora, fecha, dirección ni teléfonos: Redes la lee) |
 | Director de política | `politica@demo.test` | Entra a **Municipios**: lo vencido arriba («Bote de aguas negras…»), los 29 municipios con sus contadores y filtros. «Nueva ficha comunitaria» → «¿Va a la agenda del jefe?» → «Guardar y avisar al jefe»: le llega «Por ponerle fecha» al jefe y al despacho. Cuando le ponen fecha, ve «Ya tiene fecha», nunca la fecha. No ve agenda, piezas ni tweets |
 | Director del IVT | `ivt@demo.test` | Entra a **Obras**: sus fichas por estado (borrador, por ponerle fecha, con fecha). «Nueva ficha de obra» y, ya guardada, sus fotos del antes y del avance (la subida aguanta mala señal) y «Generar diálogo FAB» (lo que Hillary pidió como «Generame un diálogo FAB con esto»: solo con las cifras de la ficha). No pone fecha ni hora; cuando el jefe o el despacho se la ponen, la ve en **Agenda** («Mis visitas de obra»), solo de sus obras |
 | Administración | `admin@demo.test` | **Ajustes** → Equipo (invitar, roles, cerrar sesiones), categorías, fórmulas, horarios de tweets, reglas de video por red, buzón de correos y registro de cambios. «Ver como…» arriba cambia los menús (no los permisos). Lee la agenda, pero no crea eventos ni pone fecha; no ve los contactos de las fichas comunitarias, y en Equipo no puede darse roles ni ser también el jefe o el despacho (D-41) |
 
-Paso a paso por rol: `GUIA-POR-ROL.md` (no se manda todavía: Hillary pidió probar cada rol antes, 25/10).
+Paso a paso por rol: `GUIA-POR-ROL.md` (no se manda todavía: Hillary pidió probar cada rol antes, 25/10). La misma
+guía está en la app: «Mi cuenta» → «Ayuda y guías».
+
+## Mensajes, guías y tutoriales (28/10): qué probar primero
+Con cualquier rol del equipo, en este orden:
+1. **El tutorial de tu pantalla.** «Mi cuenta» (arriba a la derecha) → «Ver el tutorial de esta pantalla» (en el
+   inicio, «Bienvenida», que termina con «Seguir» al tutorial de tu inicio). También lo ofrece 360 con una franja
+   junto a su botón, «¿Te muestro esta pantalla?», a los 4 segundos: una vez por tutorial y como mucho una por día. Si
+   tocas la X dos veces, deja de ofrecer y lo dice; se vuelve a prender en «Ayuda y guías» → «Volver a ofrecerme
+   ayuda». Escape sale del tutorial.
+2. **La guía de tu trabajo.** «Mi cuenta» → «Ayuda y guías»: «Mi trabajo, paso a paso» (tres pestañas: «Tu trabajo»,
+   «Paso a paso», «Cada pantalla»), «Qué se hace en cada pantalla», «Cómo va el trabajo entre todos» (los 8 flujos, con
+   «tú» en tus pasos) y «Tutoriales de mis pantallas». El jefe ve además «La guía de cada persona» (las seis);
+   Administración tiene la suya aparte («Guía de administración»).
+3. **Mensajes.** El sobre arriba, junto a la campana, con «1 sin leer» o más (cada persona del equipo tiene uno
+   sembrado). La primera vez sale el aviso «El jefe puede leer todas las conversaciones…» → «Entendido» (con Escape
+   lees, pero no escribes). Abre una conversación y escribe; «Escribirle a alguien» → «Una persona» o «Un grupo» (de 2
+   a 11 personas más tú, con nombre). El ⋯ de la conversación silencia el teléfono.
+4. **La regla de la agenda en Mensajes** (entra como `jefe@demo.test` y abre la conversación con Yorman, de Redes):
+   escribe «mañana sale la pieza» → la app pregunta «“mañana”: ¿dice cuándo va el jefe? Si es de la agenda, no va
+   aquí.» con «Enviar igual» y «Corregir» (E1, D-52); escribe «a las 10:30» → lo avisa mientras escribes y la base no
+   lo deja enviar (el texto se queda en la caja). Un teléfono no se manda con nadie. Con `grabacion@demo.test`, un
+   «2:15» suelto pregunta si es un tiempo del video («Sí, es del video»).
+5. **Lo del jefe:** «Mensajes» → «Todas» (lee una conversación ajena, sin caja y sin marcarla como leída) y «Quién
+   habla con quién» (cierra Redes ↔ Grabación, mira que Redes ya no escribe ahí, y ábrelo otra vez; «Solo el jefe
+   escribe en Todo el equipo»). En la campana le llega un aviso cuando Administración da un rol del equipo («Un rol
+   nuevo en el equipo») o invita a alguien («Alguien nuevo en el equipo»).
+6. **Administración** (`admin@demo.test`): no tiene el sobre, y `/mensajes` la devuelve a su inicio con «Esa pantalla
+   no es de tu rol». En Equipo, la casilla «Jefe» está apagada: el rol de jefe lo da el comando de instalación (D-58).
+7. **360 y Mensajes:** pregúntale «¿qué me escribió Daniela?» o «dile a Kevin que ya subí la pieza»: contesta que no
+   lee ni manda mensajes, con el botón a Mensajes. «Muéstrame cómo se usa esta pantalla» trae «Ver el tutorial de…».
+
+**Lo que la demo no puede mostrar de Mensajes:** cada servidor de Vercel tiene su base en memoria. Lo sembrado es igual
+en todos (mismos ids), pero un mensaje, un grupo nuevo o un cambio de «Quién habla con quién» vive solo en el servidor
+donde se hizo: con otra cuenta o en otro teléfono puede no verse, y un grupo creado en otro servidor dice «Esta
+conversación se creó en otro servidor de la demostración. Prueba con las que ya están.» (D-57). Dos personas
+conversando desde dos teléfonos se prueba en `fb-dev`. **No escribas nada real:** en la demo cualquiera que entre como
+jefe lo lee. En la demo cada persona ve el aviso la primera vez (nadie lo tiene aceptado).
+
+**A mano, en un Android de verdad** (no se automatiza): el teclado no tapa la caja de escribir; Enter hace salto de
+línea y solo el botón «Enviar» manda; el aviso de un mensaje en la pantalla de bloqueo dice «Mensaje nuevo · De …» sin
+el texto; un tutorial con el teclado cerrado (el anillo cae sobre lo que señala).
 
 ## Lo nuevo para probar
 - **360, el asistente:** el botón redondo abajo a la derecha, en cualquier pantalla y con cualquier rol. Prueba «¿cómo te
@@ -35,13 +76,17 @@ Paso a paso por rol: `GUIA-POR-ROL.md` (no se manda todavía: Hillary pidió pro
 - Con redes abierto en un teléfono y el jefe en otro: redes nunca ve la hora; el jefe sí.
 - Redes no puede aprobar: el botón no está, y aunque lo intente por la API, la base lo rechaza.
 - El IVT y política no tienen «Ponerle fecha»; solo el jefe y el despacho la ponen (también en la base).
-- Ajustes → Registro de cambios: quién hizo qué.
+- Ajustes → Registro de cambios: quién hizo qué (de Mensajes, solo que hubo un mensaje, quién y cuándo: nunca el
+  texto, el nombre del grupo ni los miembros).
+- Mensajes: Administración no lee ninguna conversación ni entra; 360 tampoco; el jefe lee todas (con doble factor
+  fuera de la demo).
 
 ## Límites de la demostración
 - La base es en memoria: si el servidor se reinicia (pasa en Vercel), vuelve a los datos inventados.
 - Cada servidor de Vercel tiene su copia. Lo sembrado es igual en todos (mismos ids), pero lo que alguien crea vive
   solo en el servidor donde lo creó: crear algo con un rol y verlo con otro puede fallar. Por eso todo lo que hay que
-  ver ya viene sembrado (D-39). Para probar creando cosas entre roles hace falta la base real.
+  ver ya viene sembrado (D-39). Para probar creando cosas entre roles hace falta la base real. Lo mismo con Mensajes
+  (ver arriba) y con el avance de los tutoriales, que se guarda en cada teléfono.
 - Los videos de demostración no tienen archivo real detrás: «Descargar todo» baja el LEEME y el storyboard de la
   cancha de El Mirador (ese sí tiene su imagen) y dice cuántos archivos no se bajaron porque no están guardados. En el
   iPhone y el iPad, donde cada archivo tiene su «Bajar», la lista dice cuántos no se pueden bajar y cada video dice «No

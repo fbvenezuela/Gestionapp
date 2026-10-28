@@ -2,16 +2,19 @@ import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { loginAs } from './helpers';
 
-// Every page of every role opens without errors and without serious accessibility issues.
+// Every page of every role opens without errors and without serious accessibility issues. Mensajes and Ayuda (R3):
+// every team role has its conversations and its guide; the boss also «Todas», «Quién habla con quién» and every
+// guide; Administración has Ayuda (its own guide apart, D-43) and never Mensajes (D-49, chat.spec.ts).
 const ROLES: Record<string, string[]> = {
-  'admin@demo.test': ['/hoy', '/agenda', '/agenda?vista=mes', '/agenda?vista=dia', '/redes', '/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca', '/aprobar', '/aprobar?tab=tweets', '/ajustes', '/ajustes/equipo', '/ajustes/categorias', '/ajustes/formulas', '/ajustes/horarios', '/ajustes/redes', '/ajustes/marca', '/ajustes/drive', '/ajustes/buzon', '/ajustes/registro', '/avisos', '/perfil', '/buscar?q=puente', '/agenda/por-fecha', '/piezas/nueva', '/tweets/nueva', '/publicar/nueva', '/publicar/espontanea'],
+  'admin@demo.test': ['/hoy', '/agenda', '/agenda?vista=mes', '/agenda?vista=dia', '/redes', '/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca', '/aprobar', '/aprobar?tab=tweets', '/ajustes', '/ajustes/equipo', '/ajustes/categorias', '/ajustes/formulas', '/ajustes/horarios', '/ajustes/redes', '/ajustes/marca', '/ajustes/drive', '/ajustes/buzon', '/ajustes/registro', '/avisos', '/perfil', '/buscar?q=puente', '/agenda/por-fecha', '/piezas/nueva', '/tweets/nueva', '/publicar/nueva', '/publicar/espontanea', '/ayuda', '/ayuda/administracion', '/ayuda/flujos', '/ayuda/redes'],
   // The boss «tiene todo, hasta lo de redes»: the Redes screens open for him too.
-  'jefe@demo.test': ['/jefe', '/jefe/politica', '/jefe/digital', '/redes', '/agenda', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/agenda/por-fecha', '/resultados', '/aprobar', '/aprobar?tab=tweets', '/piezas', '/piezas/nueva', '/tweets', '/tweets/nueva', '/publicar', '/publicar/nueva', '/biblioteca', '/obras', '/obras/nueva', '/municipios', '/municipios/junin', '/reportes/nuevo'],
-  'despacho@demo.test': ['/hoy', '/agenda', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/agenda/por-fecha', '/biblioteca', '/obras', '/municipios'],
+  'jefe@demo.test': ['/jefe', '/jefe/politica', '/jefe/digital', '/redes', '/agenda', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/agenda/por-fecha', '/resultados', '/aprobar', '/aprobar?tab=tweets', '/piezas', '/piezas/nueva', '/tweets', '/tweets/nueva', '/publicar', '/publicar/nueva', '/biblioteca', '/obras', '/obras/nueva', '/municipios', '/municipios/junin', '/reportes/nuevo', '/mensajes', '/mensajes/nueva', '/mensajes/todas', '/mensajes/permisos', '/ayuda', '/ayuda/jefe', '/ayuda/despacho', '/ayuda/politica', '/ayuda/ivt', '/ayuda/grabacion', '/ayuda/redes', '/ayuda/flujos'],
+  'despacho@demo.test': ['/hoy', '/agenda', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/agenda/por-fecha', '/biblioteca', '/obras', '/municipios', '/mensajes', '/mensajes/nueva', '/ayuda', '/ayuda/despacho'],
   // Fichas (§4.1 and §4.2): the IVT on its obra fichas, política on the municipalities. Both keep Hoy, Avisos and Perfil.
-  'politica@demo.test': ['/municipios', '/municipios?vencidas=1', '/municipios/junin', '/municipios/torbes?tipo=event', '/reportes/nuevo', '/hoy', '/avisos', '/perfil'],
-  'ivt@demo.test': ['/obras', '/obras?estado=to_schedule', '/obras/nueva', '/agenda', '/hoy', '/avisos', '/perfil'],
-  'grabacion@demo.test': ['/hoy', '/agenda'],
+  'politica@demo.test': ['/municipios', '/municipios?vencidas=1', '/municipios/junin', '/municipios/torbes?tipo=event', '/reportes/nuevo', '/hoy', '/avisos', '/perfil', '/mensajes', '/ayuda', '/ayuda/politica'],
+  'ivt@demo.test': ['/obras', '/obras?estado=to_schedule', '/obras/nueva', '/agenda', '/hoy', '/avisos', '/perfil', '/mensajes', '/ayuda', '/ayuda/ivt'],
+  'grabacion@demo.test': ['/hoy', '/agenda', '/mensajes', '/mensajes/nueva', '/ayuda', '/ayuda/grabacion'],
+  'redes@demo.test': ['/mensajes', '/mensajes/nueva', '/ayuda', '/ayuda/redes', '/ayuda/flujos'],
 };
 
 for (const [email, pages] of Object.entries(ROLES)) {
@@ -21,6 +24,15 @@ for (const [email, pages] of Object.entries(ROLES)) {
       const res = await page.goto(p);
       expect(res?.status(), p).toBeLessThan(400);
       await expect(page.getByRole('heading', { name: 'Algo no cargó' }), p).toHaveCount(0);
+      // The R3 screens open as themselves, not as the home with «Esa pantalla no es de tu rol» (?sin-permiso=1) or a
+      // 404 page. (The guides mention that notice in their text, so the URL is what is checked.)
+      if (/^\/(mensajes|ayuda)/.test(p)) {
+        const url = new URL(page.url());
+        expect(url.pathname, p).toBe(p.split('?')[0]);
+        expect(url.searchParams.get('sin-permiso'), p).toBeNull();
+        await expect(page.getByRole('heading', { level: 1, name: 'No encontramos esto' }), p).toHaveCount(0);
+        await expect(page.locator('main h1'), p).toHaveCount(1);
+      }
       const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
       const serious = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${p} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 2).join(' | ')}`);
       expect(serious, p).toEqual([]);
