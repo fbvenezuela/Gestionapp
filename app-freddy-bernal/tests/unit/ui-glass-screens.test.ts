@@ -31,7 +31,7 @@ describe('glass en las pantallas sueltas', () => {
 
   it('las esquinas salen de los tokens (nada de rounded-[6px])', () => {
     expect(files('src').filter((f) => /\brounded-\[\d+(\.\d+)?px\]/.test(read(f)))).toEqual([]);
-    expect(read('src/app/(panel)/agenda/page.tsx')).toContain("'min-h-10 rounded-[var(--radius-chip)] px-3 py-2 text-sm font-semibold'");
+    expect(read('src/app/(panel)/agenda/page.tsx')).toContain("'flex min-h-11 items-center rounded-[var(--radius-chip)] px-3 text-sm font-semibold'");
   });
 
   it('las barras que flotan sobre una lista al bajar usan el vidrio de los menús (casi opaco)', () => {

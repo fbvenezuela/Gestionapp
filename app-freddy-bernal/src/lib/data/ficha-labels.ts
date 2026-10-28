@@ -109,3 +109,8 @@ export const FICHA_UPDATE_KIND: Record<FichaUpdateKind, string> = {
   deleted: 'borró la ficha',
   restored: 'restauró la ficha',
 };
+// A community report is an activity, not a visit: its own words where the obra's say «la visita». Never the date.
+export const REPORT_UPDATE_KIND: Partial<Record<FichaUpdateKind, string>> = {
+  scheduled: 'le puso fecha a la actividad',
+  done: 'marcó la actividad como realizada',
+};

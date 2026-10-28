@@ -161,8 +161,8 @@ export function FichaForm(p: Props) {
         <Card className="p-4">
           <p className="text-[15px] text-text-2">
             {p.kind === 'obra'
-              ? 'Fotos del antes y del avance: al guardar, se suben en la ficha (varias a la vez, y la subida aguanta mala señal).'
-              : 'Fotos, videos o documentos (antes y después): al guardar, se suben en la ficha (la subida aguanta mala señal).'}
+              ? 'Las fotos del antes y del avance se suben después de guardar: al guardar se abre la ficha, y ahí las agregas (varias a la vez; la subida aguanta mala señal).'
+              : 'Las fotos, videos o documentos (antes y después) se suben después de guardar: al guardar se abre la ficha, y ahí los agregas (la subida aguanta mala señal).'}
           </p>
         </Card>
       )}

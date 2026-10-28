@@ -122,7 +122,8 @@ la ficha técnica del evento ni el material.
    - comunidad y seguimiento (otras ayudas, qué falta, qué debe saber o decidir el jefe, próximo paso).
 2. Lo que no sabes: «No aplica» o «Por confirmar».
 3. Los teléfonos van solo en los contactos. Si pones uno en otro campo, la app te dice en cuál está.
-4. **Fotos:** Antes, Avance y Documentos. Si se va la señal, la subida sigue sola.
+4. **Fotos:** se suben después de guardar (al guardar se abre la ficha): Antes, Avance y Documentos. Si se va la
+   señal, la subida sigue sola.
 5. **«Generar diálogo FAB»:** arma «Lo que voy a decir» solo con las cifras de la ficha. Cámbialo si quieres y guarda.
 6. **«Guardar y avisar al jefe»** (todo respondido o marcado): al jefe y al despacho les llega «Por ponerle fecha».
    «Guardar borrador» no avisa.

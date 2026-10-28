@@ -60,9 +60,18 @@ test('el reporte y la actividad de política abren aunque los sirva otro servido
   await sameOnTheOther(page, report);
 });
 
-test('lo que no existe dice «No encontramos esto» en español', async ({ page }) => {
-  await loginAs(page, 'despacho@demo.test');
-  await page.goto('/eventos/00000000-0000-4000-8000-00000000abcd');
-  await expect(page.getByRole('heading', { name: 'No encontramos esto' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Ir a Hoy' })).toBeVisible();
+// «Ir al inicio» goes to each person's own home: Hoy for despacho, Municipios for política (not Hoy for everyone).
+test('lo que no existe dice «No encontramos esto» en español y lleva al inicio de cada quien', async ({ page }) => {
+  for (const [email, missing, home] of [
+    ['despacho@demo.test', '/eventos/00000000-0000-4000-8000-00000000abcd', '/hoy'],
+    ['politica@demo.test', '/reportes/00000000-0000-4000-8000-00000000abcd', '/municipios'],
+  ] as const) {
+    await page.context().clearCookies();
+    await loginAs(page, email);
+    await page.goto(missing);
+    await expect(page.getByRole('heading', { name: 'No encontramos esto' }), email).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Ir a Hoy' }), email).toHaveCount(0);
+    await page.getByRole('link', { name: 'Ir al inicio' }).click();
+    await page.waitForURL((u) => u.pathname === home);
+  }
 });

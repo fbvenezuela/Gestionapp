@@ -27,6 +27,17 @@ test('la política de privacidad dice el permiso de Drive y el uso limitado de G
   await expect(page.getByRole('link', { name: /Política de datos del usuario de los servicios de las API de Google/ })).toHaveAttribute('href', 'https://developers.google.com/terms/api-services-user-data-policy');
 });
 
+// The strict server (code by email): the demo users list shows each email on the right; it fits a 360 px phone too.
+test('entrar con código cabe en un teléfono de 360 px, con la lista de usuarios de prueba', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await page.goto('/entrar');
+  const despacho = page.getByRole('button', { name: /Director de despacho/ });
+  await expect(despacho).toBeVisible();
+  const box = (await despacho.boundingBox())!;
+  expect(box.x + box.width).toBeLessThanOrEqual(360);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth));
+});
+
 test('la pantalla de entrar enlaza las páginas públicas', async ({ page }) => {
   await page.goto('/entrar');
   const nav = page.getByRole('navigation', { name: 'Información' });

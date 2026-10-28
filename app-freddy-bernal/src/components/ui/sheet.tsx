@@ -18,7 +18,7 @@ export function Sheet({ open, onOpenChange, title, description, children, trigge
               <Dialog.Title className="text-lg font-bold">{title}</Dialog.Title>
               {description ? <Dialog.Description className="text-sm text-text-2">{description}</Dialog.Description> : <Dialog.Description className="sr-only">{title}</Dialog.Description>}
             </div>
-            <Dialog.Close className="grid h-11 w-11 place-items-center rounded-[var(--radius-control)] hover:bg-surface-2" aria-label="Cerrar">
+            <Dialog.Close className="grid h-11 w-11 shrink-0 place-items-center rounded-[var(--radius-control)] hover:bg-surface-2" aria-label="Cerrar">
               <X className="h-5 w-5" aria-hidden />
             </Dialog.Close>
           </div>

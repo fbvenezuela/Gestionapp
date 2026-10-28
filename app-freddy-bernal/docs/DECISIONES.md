@@ -482,7 +482,9 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
     ahorro de datos, y si el sistema pide reducir transparencia, más contraste o colores forzados. «Menos movimiento»
     se respeta;
   - los grises y los colores de estado quedaron **un pelo más oscuros** en claro (y el apagado y el rojo un pelo más
-    claros en oscuro) para seguir en contraste AA sobre las manchas. Los colores de la marca no cambian.
+    claros en oscuro) para seguir en contraste AA sobre las manchas, también justo debajo de la sombra de una tarjeta
+    (28/10: el gris, el apagado, el oliva de texto, el verde y el naranja otro pelo). Los colores de la marca no
+    cambian.
 - **Por qué:** Hillary: «más bonita, más glass, más UI design»; el dueño, al ver la primera vuelta: «súbelo, que se
   note más el glass». El encargo pide desenfoque en tarjetas y a la vez «sin desenfoque detrás de tablas largas»: por eso
   las listas largas van sólidas.

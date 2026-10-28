@@ -15,6 +15,13 @@ import { ScheduleFields, type ScheduleValues } from './schedule-fields';
 // in the phone (per person) until it is saved: if someone else put the date in the meantime, nothing typed is lost.
 type Form = ScheduleValues & { title: string; placeName: string; cameraUserId: string };
 
+// Who reads the date and the place (can_see_schedule()): an obra visit's also reaches the IVT (it is his visit); a
+// report's activity never reaches política.
+const WHO_SEES = {
+  obra: 'Se convierte en un evento de la agenda. La fecha y el lugar solo los ven el jefe, el despacho, administración, quien graba y el IVT (es su visita de obra).',
+  report: 'Se convierte en un evento de la agenda. La fecha y el lugar solo los ven el jefe, el despacho, administración y quien graba.',
+};
+
 export function ScheduleSheet({
   kind,
   fichaId,
@@ -45,7 +52,7 @@ export function ScheduleSheet({
       open={open}
       onOpenChange={setOpen}
       title="Ponerle fecha"
-      description="Se convierte en un evento de la agenda. La fecha y el lugar solo los ven el jefe, el despacho, administración y quien graba."
+      description={WHO_SEES[kind]}
       trigger={
         <Button size={size} className="w-full sm:w-auto">
           <CalendarClock className="h-5 w-5" aria-hidden /> {label}

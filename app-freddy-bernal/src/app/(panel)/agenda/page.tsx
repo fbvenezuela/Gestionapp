@@ -76,7 +76,7 @@ async function Calendar({ s, sp, canCreate }: { s: Awaited<ReturnType<typeof req
         <h2 className="text-lg font-bold first-letter:uppercase">{title}</h2>
         <div className="ml-auto flex rounded-[var(--radius-control)] border border-border bg-surface p-0.5" role="tablist" aria-label="Vista">
           {(['dia', 'semana', 'mes'] as const).map((v) => (
-            <Link key={v} role="tab" aria-selected={view === v} href={`/agenda?vista=${v}&fecha=${anchor.toISODate()}`} className={cn('min-h-10 rounded-[var(--radius-chip)] px-3 py-2 text-sm font-semibold', view === v ? 'bg-slate text-on-slate' : 'text-text-2')}>
+            <Link key={v} role="tab" aria-selected={view === v} href={`/agenda?vista=${v}&fecha=${anchor.toISODate()}`} className={cn('flex min-h-11 items-center rounded-[var(--radius-chip)] px-3 text-sm font-semibold', view === v ? 'bg-slate text-on-slate' : 'text-text-2')}>
               {v === 'dia' ? 'Día' : v === 'semana' ? 'Semana' : 'Mes'}
             </Link>
           ))}

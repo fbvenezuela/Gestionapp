@@ -1,4 +1,4 @@
-import { test, expect, type Browser, type Page } from '@playwright/test';
+import { test, expect, type Browser, type Locator, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { loginAs } from './helpers';
 
@@ -29,10 +29,21 @@ async function other(browser: Browser, email: string, viewport: { width: number;
   return { ctx, page };
 }
 
+// «Botones grandes para el iPad y el teléfono» (§3): what the boss taps is at least 44 px tall.
+async function bigEnough(where: string, controls: Locator[]) {
+  for (const c of controls) {
+    await expect(c, where).toBeVisible();
+    const box = (await c.boundingBox())!;
+    expect(box.height, `${where}: «${(await c.innerText()).trim()}» mide ${box.height} px de alto`).toBeGreaterThanOrEqual(44);
+  }
+}
+
 const inDays = (n: number) => new Date(Date.now() + n * 86400_000).toISOString().slice(0, 10);
 const actions = (page: Page) => page.getByRole('navigation', { name: 'Acciones de la agenda' });
 
-async function putDate(page: Page, card: string, time: string) {
+// `place`: what «A dónde se va» starts with, the same as on the ficha's own page (the obra's sector and parish, the
+// report's community).
+async function putDate(page: Page, card: string, time: string, kind: 'obra' | 'report', place: string | RegExp) {
   await page.goto('/agenda/por-fecha');
   await expect(page.getByRole('heading', { level: 1, name: 'Por ponerle fecha' })).toBeVisible();
   const item = page.getByRole('listitem').filter({ hasText: card });
@@ -40,6 +51,9 @@ async function putDate(page: Page, card: string, time: string) {
   await item.getByRole('button', { name: 'Ponerle fecha' }).click();
   const sheet = page.getByRole('dialog');
   await expect(sheet.getByRole('heading', { name: 'Ponerle fecha' })).toBeVisible();
+  await expect(sheet.getByLabel('A dónde se va')).toHaveValue(place);
+  // Who will see the date: an obra visit's reaches the IVT too.
+  await expect(sheet.getByText('y el IVT (es su visita de obra)', { exact: false })).toHaveCount(kind === 'obra' ? 1 : 0);
   await sheet.getByLabel('Fecha', { exact: true }).fill(inDays(6));
   await sheet.getByLabel('Hora (Táchira)').fill(time);
   await sheet.getByLabel('Guardar aunque choque con otro evento').check();
@@ -87,7 +101,7 @@ test.describe('en el iPad (1024×768)', () => {
     await actions(page).getByRole('link', { name: /^Por ponerle fecha/ }).click();
     await expect(page).toHaveURL(/\/agenda\/por-fecha$/);
     await noSerious(page, '/agenda/por-fecha');
-    const url = await putDate(page, 'Asfaltado de la vía del sector Las Palmas (demo)', '09:40');
+    const url = await putDate(page, 'Asfaltado de la vía del sector Las Palmas (demo)', '09:40', 'obra', /^Sector Las Palmas \(demo\), \S/);
     const title = 'Visita de obra: Asfaltado de la vía del sector Las Palmas (demo)';
     await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
     await expect(page.getByRole('main').getByText('Visita de obra', { exact: true }).first()).toBeVisible();
@@ -134,6 +148,7 @@ test.describe('en el teléfono (360 px)', () => {
     await page.goto('/agenda');
     await fitsWidth(page, '/agenda del jefe');
     await noSerious(page, '/agenda del jefe');
+    await bigEnough('/agenda del jefe', ['Día', 'Semana', 'Mes'].map((name) => page.getByRole('tab', { name, exact: true })));
     await actions(page).getByRole('link', { name: /^Visita de obra/ }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Nueva visita de obra' })).toBeVisible();
     await page.getByLabel('Título').fill('Visita a la cancha techada de prueba (demo)');
@@ -147,6 +162,12 @@ test.describe('en el teléfono (360 px)', () => {
     await expect(page.getByRole('main').getByText('Visita de obra', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Aceptado', { exact: true }).first()).toBeVisible();
     await fitsWidth(page, '/eventos/[id] en el teléfono');
+    await bigEnough('/eventos/[id] en el teléfono', [
+      page.getByRole('button', { name: 'Mover' }),
+      page.getByRole('button', { name: 'Cambiar fecha o lugar' }),
+      page.getByRole('button', { name: 'Editar', exact: true }),
+      page.locator('main header').first().getByRole('link', { name: 'Agenda' }),
+    ]);
     // Rated 7/10: in «Los próximos 7 días» of Política the chips (decision, kind, importance) wrap at 360 px.
     await page.getByRole('radio', { name: '7', exact: true }).click();
     await page.getByRole('button', { name: 'Aceptar', exact: true }).click();
@@ -156,12 +177,13 @@ test.describe('en el teléfono (360 px)', () => {
     await expect(row.getByText('7/10')).toBeVisible();
     await expect(row.getByText('Visita de obra', { exact: true })).toBeVisible();
     await fitsWidth(page, '/jefe/politica en el teléfono');
+    await bigEnough('/jefe/politica en el teléfono', [page.getByRole('link', { name: 'Ver todas' }), page.locator('main header').first().getByRole('link', { name: 'Inicio' })]);
   });
 
   test('un reporte de política espera fecha; el jefe se la pone; política ve «Ya tiene fecha», sin la fecha', async ({ page, browser }) => {
     await loginAs(page, 'jefe@demo.test');
     const report = 'Asamblea con los voceros del sector La Ermita (demo)';
-    const url = await putDate(page, report, '16:20');
+    const url = await putDate(page, report, '16:20', 'report', 'Sector La Ermita (demo)');
     await expect(page.getByRole('heading', { level: 1, name: report })).toBeVisible();
     await expect(page.getByText('Actividad comunitaria', { exact: true }).first()).toBeVisible();
     await expect(page.getByText(/4:20/).first()).toBeVisible();

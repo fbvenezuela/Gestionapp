@@ -162,6 +162,10 @@ export const FIELD_LABEL: Record<string, string> = {
   deleted_at: 'Borrado',
 };
 
+// «Historial» shows each value (before → after), so there the schedule's end is a clock time, not a length. The
+// notices and the banner keep «Duración»: they only name the field, which the form edits as a length.
+export const HISTORY_FIELD_LABEL: Record<string, string> = { ...FIELD_LABEL, ends_at: 'Hora de fin' };
+
 export function fieldLabels(keys: string[]): string[] {
   return [...new Set(keys.map((k) => FIELD_LABEL[k] ?? k))];
 }

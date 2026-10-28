@@ -97,13 +97,12 @@ export function StoryboardEditor({
           <div className="mt-2 flex flex-wrap gap-2">
             <Button
               type="button"
-              size="sm"
               variant="secondary"
               onClick={() => reset(clean())}
             >
               Usar lo de él
             </Button>
-            <Button type="button" size="sm" variant="secondary" onClick={() => setKept(true)}>Dejar lo mío</Button>
+            <Button type="button" variant="secondary" onClick={() => setKept(true)}>Dejar lo mío</Button>
           </div>
         </div>
       ) : restored ? (

@@ -90,10 +90,34 @@ const TEXT = ['--c-text', '--c-text-2', '--c-muted', '--c-accent-ink', '--c-ok',
 // What the top bar, the phone bar and the menus print. ok and warn text never go on .glass-bar or .glass-pop.
 const BAR_TEXT = ['--c-text', '--c-text-2', '--c-muted', '--c-accent-ink', '--c-danger', '--c-info'];
 
+// A glass card's soft shadow (--glass-shadow) darkens the page right under the card, where the next line of text can
+// start: 12 px below its edge, the gap the screens leave under a card (mt-3, gap-3). Each layer of the shadow is the
+// card's box moved down by its y offset, grown by its spread (shrunk, when negative) and blurred with a Gaussian of
+// sigma = blur / 2; under a wide card its alpha `d` px below the edge is alpha × (1 − Φ((d − y − spread) / sigma)).
+const TEXT_UNDER_CARD = 12;
+// Φ, the normal distribution (Abramowitz and Stegun 7.1.26 for erf: error under 1.5e-7).
+function phi(z: number): number {
+  const x = Math.abs(z) / Math.SQRT2;
+  const k = 1 / (1 + 0.3275911 * x);
+  const erf = 1 - ((((1.061405429 * k - 1.453152027) * k + 1.421413741) * k - 0.284496736) * k + 0.254829592) * k * Math.exp(-x * x);
+  return 0.5 * (1 + Math.sign(z) * erf);
+}
+// Each layer of a box-shadow as the color it lays `d` px under the card ('rgba(r, g, b, a)'), from the token.
+function shadowUnderCard(shadow: string, d = TEXT_UNDER_CARD): string[] {
+  return selectors(shadow).map((layer) => {
+    const m = /^(-?[\d.]+)(?:px)? (-?[\d.]+)(?:px)? ([\d.]+)(?:px)?(?: (-?[\d.]+)(?:px)?)? rgba\((\d+), (\d+), (\d+), ([\d.]+)\)$/.exec(layer);
+    if (!m) throw new Error(`box-shadow layer not understood: ${layer}`);
+    const [y, blur, spread, alpha] = [Number(m[2]), Number(m[3]), Number(m[4] ?? 0), Number(m[8])];
+    const a = alpha * (1 - phi((d - y - spread) / (blur / 2)));
+    return `rgba(${m[5]}, ${m[6]}, ${m[7]}, ${a.toFixed(4)})`;
+  });
+}
+
 // Every color the page background (body::before) can show: --c-bg under the wash (a linear gradient to
 // --c-bg-wash), then the three blob colors, each fading to transparent and stacked in any order (the
 // blobs overlap), in steps of 10 %. Stops and plateaus included. A blur only averages these colors, so
-// it cannot leave this set (the steps cover every mix of the five colors).
+// it cannot leave this set (the steps cover every mix of the five colors). And each of them again under a
+// card's shadow (shadowUnderCard), where text right below a card sits.
 function pageColors(t: Record<string, string>): string[] {
   const steps = Array.from({ length: 11 }, (_, i) => i / 10);
   const orders = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
@@ -109,6 +133,8 @@ function pageColors(t: Record<string, string>): string[] {
         }
       }
   }
+  const shadow = shadowUnderCard(t['--glass-shadow']);
+  for (const c of [...out]) out.add(shadow.reduce((bg, layer) => over(layer, bg), c));
   return [...out];
 }
 // What a blurred surface really has behind it: the colors, and the same colors after its saturate().
@@ -139,7 +165,13 @@ describe('glass: contraste AA sobre lo peor que puede quedar detrás', () => {
         expect(Math.max(...pageL) - Math.min(...pageL), 'the blobs really change the page').toBeGreaterThan(name === 'light' ? 0.1 : 0.02);
       });
 
-      it('todo texto llega a 4.5:1 sobre el fondo de la página (manchas y lavado) y sobre la tarjeta sólida', () => {
+      it('la sombra de una tarjeta oscurece de verdad el fondo justo debajo (la cuenta la lee de tokens.css)', () => {
+        const through = shadowUnderCard(t['--glass-shadow']).reduce((left, l) => left * (1 - Number(/([\d.]+)\)$/.exec(l)![1])), 1);
+        expect(1 - through).toBeGreaterThan(name === 'light' ? 0.04 : 0.1);
+        expect(1 - through).toBeLessThan(0.3);
+      });
+
+      it('todo texto llega a 4.5:1 sobre el fondo de la página (manchas, lavado y sombra de una tarjeta) y sobre la tarjeta sólida', () => {
         for (const fg of TEXT) {
           expect(minRatio(t[fg], pageL), `${fg} on page`).toBeGreaterThanOrEqual(4.5);
           expect(ratio(t[fg], t['--c-surface']), `${fg} on surface`).toBeGreaterThanOrEqual(4.5);

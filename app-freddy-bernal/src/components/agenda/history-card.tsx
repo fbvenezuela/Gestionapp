@@ -1,8 +1,8 @@
 import { History } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/card';
-import { FIELD_LABEL } from '@/lib/domain/agenda-merge';
+import { HISTORY_FIELD_LABEL as LABEL } from '@/lib/domain/agenda-merge';
 import type { HistoryRow } from '@/lib/data/events';
-import { fmtDateTime } from '@/lib/time';
+import { dt, fmtDateTime, fmtTime } from '@/lib/time';
 import { cn } from '@/lib/cn';
 
 // «Historial» of an event (boss and despacho: all of it; Redes, the boss and administración: the storyboard's part.
@@ -23,6 +23,13 @@ function show(v: unknown): string {
   if (v === null || v === undefined || v === '') return '(vacío)';
   if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(v)) return fmtDateTime(v);
   return String(v);
+}
+
+// «Hora de fin» on the same day as before: the times alone («11:10 a. m. → 12:20 p. m.»).
+function showChange(k: string, before: unknown, after: unknown): [string, string] {
+  const [b, a] = [before, after].map((v) => (typeof v === 'string' ? dt(v)?.toISODate() : null));
+  if (k === 'ends_at' && b && b === a) return [fmtTime(before as string), fmtTime(after as string)];
+  return [show(before), show(after)];
 }
 
 const BLOCK_ORDER = ['shot', 'angle', 'boss_line', 'broll', 'fact', 'fact_source'];
@@ -46,17 +53,20 @@ export function HistoryCard({ rows, title = 'Historial' }: { rows: HistoryRow[];
                   <ul className={cn('mt-1 flex flex-col gap-1 text-sm', r.action === 'soft_delete' && 'text-text-2')}>
                     {BLOCK_ORDER.filter((k) => r.block?.[k]).map((k) => (
                       <li key={k} className="[overflow-wrap:anywhere]">
-                        <span className="font-semibold">{FIELD_LABEL[k] ?? k}:</span> {r.block![k]}
+                        <span className="font-semibold">{LABEL[k] ?? k}:</span> {r.block![k]}
                       </li>
                     ))}
                   </ul>
                 ) : r.action === 'update' && fields.length ? (
                   <ul className="mt-1 flex flex-col gap-1 text-sm">
-                    {fields.slice(0, 8).map(([k, v]) => (
-                      <li key={k} className="[overflow-wrap:anywhere]">
-                        <span className="font-semibold">{FIELD_LABEL[k] ?? k}:</span> <span className="text-text-2 line-through">{show(v.before)}</span> → {show(v.after)}
-                      </li>
-                    ))}
+                    {fields.slice(0, 8).map(([k, v]) => {
+                      const [before, after] = showChange(k, v.before, v.after);
+                      return (
+                        <li key={k} className="[overflow-wrap:anywhere]">
+                          <span className="font-semibold">{LABEL[k] ?? k}:</span> <span className="text-text-2 line-through">{before}</span> → {after}
+                        </li>
+                      );
+                    })}
                   </ul>
                 ) : null}
               </li>

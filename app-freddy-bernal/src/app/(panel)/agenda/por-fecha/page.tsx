@@ -64,7 +64,7 @@ export default async function ToSchedulePage() {
                       kind={r.kind}
                       fichaId={r.id}
                       defaultTitle={r.kind === 'obra' ? obraVisitTitle(r.title) : eventFromReport({ title: r.title }).title}
-                      defaultPlace={r.parish}
+                      defaultPlace={r.place}
                       cameras={data.cameras}
                     />
                   ) : null}

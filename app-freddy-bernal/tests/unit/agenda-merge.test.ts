@@ -3,11 +3,15 @@
 // shows «Usar lo de él / Dejar lo mío» when someone saved in between. Also the brief an event takes from a ficha
 // (src/lib/domain/ficha-event.ts): never a contact. All data is invented.
 import { describe, it, expect } from 'vitest';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import {
   draftConflicts,
   editField,
   emptyDraft,
+  FIELD_LABEL,
   fieldLabels,
+  HISTORY_FIELD_LABEL,
   labelList,
   mergePatch,
   mergeRow,
@@ -22,6 +26,7 @@ import {
 import { eventFromObra, eventFromReport, obraVisitTitle, withoutPhones } from '@/lib/domain/ficha-event';
 import { clearDrafts, draftStorageKey } from '@/lib/hooks/use-draft';
 import { looksLikeDateTime } from '@/lib/push/text';
+import { HistoryCard } from '@/components/agenda/history-card';
 
 describe('mergePatch: lo que cada uno cambió', () => {
   const base = { title: 'Visita (demo)', summary: 'Resumen', urgency: 2 };
@@ -161,6 +166,33 @@ describe('el borrador en el teléfono', () => {
     const fake = { get length() { return store.size; }, key: (i: number) => [...store.keys()][i] ?? null, removeItem: (k: string) => void store.delete(k) };
     clearDrafts(fake);
     expect([...store.keys()]).toEqual(['sun-mode']);
+  });
+});
+
+describe('el historial dice «Hora de fin», no «Duración»', () => {
+  it('el historial muestra horas, así que nombra la hora de fin; los avisos y el aviso de choque siguen con «Duración»', () => {
+    expect(HISTORY_FIELD_LABEL.ends_at).toBe('Hora de fin');
+    expect(FIELD_LABEL.ends_at).toBe('Duración');
+    expect(labelList(['starts_at', 'ends_at'])).toBe('Fecha y hora y Duración');
+    for (const [k, v] of Object.entries(FIELD_LABEL)) if (k !== 'ends_at') expect(HISTORY_FIELD_LABEL[k], k).toBe(v);
+  });
+
+  it('una hora de fin que cambia el mismo día sale solo con las horas', () => {
+    const row = (before: string, after: string) => ({
+      at: '2026-11-02T14:00:00.000Z', actor_name: 'Persona de prueba', table_name: 'event_schedule', action: 'update', block: null,
+      changes: { ends_at: { before, after } },
+    });
+    // 15:10 and 16:20 UTC are 11:10 a. m. and 12:20 p. m. in the Táchira.
+    const sameDay = renderToStaticMarkup(createElement(HistoryCard, { rows: [row('2026-11-09T15:10:00+00:00', '2026-11-09T16:20:00+00:00')] }));
+    expect(sameDay).toContain('Hora de fin');
+    expect(sameDay).not.toContain('Duración');
+    expect(sameDay).toContain('11:10 a. m.');
+    expect(sameDay).toContain('12:20 p. m.');
+    expect(sameDay).not.toContain('9 de nov');
+    // Another day: with the day, so it still reads right.
+    const otherDay = renderToStaticMarkup(createElement(HistoryCard, { rows: [row('2026-11-09T15:10:00+00:00', '2026-11-10T16:20:00+00:00')] }));
+    expect(otherDay).toContain('9 de nov');
+    expect(otherDay).toContain('10 de nov');
   });
 });
 

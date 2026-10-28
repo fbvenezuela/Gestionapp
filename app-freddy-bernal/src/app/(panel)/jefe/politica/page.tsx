@@ -49,7 +49,7 @@ export default async function BossPolitics() {
           <CardHeader
             title={`Por ponerle fecha (${data.toSchedule.length})`}
             subtitle="Fichas del IVT y reportes de política que esperan fecha y hora."
-            action={<LinkButton href="/agenda/por-fecha" size="sm">Ver todas</LinkButton>}
+            action={<LinkButton href="/agenda/por-fecha" className="shrink-0">Ver todas</LinkButton>}
           />
           <ul className="divide-y divide-border">
             {data.toSchedule.slice(0, 5).map((f) => (

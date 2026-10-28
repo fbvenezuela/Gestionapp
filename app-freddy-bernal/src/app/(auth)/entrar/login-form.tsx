@@ -85,7 +85,9 @@ export function LoginForm({ demoUsers, quick }: { demoUsers: DemoUser[] | null; 
                 : 'Los datos son inventados. Toca un usuario para probar cada rol; el código aparece aquí mismo.'}
             </p>
             {quickError ? <p className="mb-2 text-sm font-medium text-danger" role="alert">{quickError}</p> : null}
-            <ul className="grid gap-2">
+            {/* One column that can shrink (minmax(0, 1fr)): an auto column would take the width of the longest
+                «name · email» line and push the rows past a 360 px phone. */}
+            <ul className="grid grid-cols-1 gap-2">
               {demoUsers.map((u) => (
                 <li key={u.email}>
                   <button
@@ -106,7 +108,7 @@ export function LoginForm({ demoUsers, quick }: { demoUsers: DemoUser[] | null; 
                       <span className="block font-semibold">{u.label}</span>
                       {quick ? <span className="block truncate text-text-2">{u.name} · {u.email}</span> : null}
                     </span>
-                    <span className="shrink-0 truncate text-text-2">{quick ? 'Entrar →' : u.email}</span>
+                    <span className={quick ? 'shrink-0 text-text-2' : 'min-w-0 truncate text-text-2'}>{quick ? 'Entrar →' : u.email}</span>
                   </button>
                 </li>
               ))}

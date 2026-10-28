@@ -12,6 +12,19 @@ test('los botones son los seis roles del equipo y Administración; ya no Secreta
   }
 });
 
+// The «name · email» line is long: on a 360 px phone the rows used to run past the card and the page scrolled sideways.
+test('la lista de roles cabe en un teléfono de 360 px, sin moverse hacia los lados', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await page.goto('/entrar');
+  const despacho = page.getByRole('button', { name: /^Entrar como Director de despacho/ });
+  await expect(despacho).toBeVisible();
+  for (const [what, el] of [['el botón', despacho], ['«Entrar →»', despacho.getByText('Entrar →')]] as const) {
+    const box = (await el.boundingBox())!;
+    expect(box.x + box.width, `${what} termina dentro de la pantalla`).toBeLessThanOrEqual(360);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth));
+});
+
 test('un toque por rol, sin código ni doble factor', async ({ page }) => {
   for (const [label, home, heading] of [
     ['El jefe', '/jefe', /Buen día/],

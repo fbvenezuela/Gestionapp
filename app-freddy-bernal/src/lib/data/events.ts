@@ -1,6 +1,7 @@
 import type { Sql } from '../db/core';
 import { fichaMedia, type FichaMedia } from './fichas';
 import { OBRA_PHOTO_KINDS, REPORT_PHOTO_KINDS } from '@/lib/domain/media-mime';
+import { eventFromObra, eventFromReport } from '@/lib/domain/ficha-event';
 
 export type EventFull = {
   id: string; code: string; title: string; place_name: string; municipality: string; summary: string;
@@ -122,10 +123,21 @@ export async function eventHistory(sql: Sql, id: string, storyboard = false): Pr
 }
 
 // «Por ponerle fecha» (view agenda_to_schedule: no date column). Each person sees what their role reads.
-export type ToScheduleRow = { kind: 'obra' | 'report'; id: string; code: string; title: string; municipality: string; parish: string; rev: number; waiting_since: string | Date; had_cancelled: boolean };
+// `place`: «A dónde se va» to start «Ponerle fecha» with, the same as on the ficha's own page (eventFromObra: the obra's
+// sector and parish; eventFromReport: the report's community). Only those text columns of the ficha's main table, read
+// under the person's own RLS like the view itself: nothing with a date or a contact.
+export type ToScheduleRow = { kind: 'obra' | 'report'; id: string; code: string; title: string; municipality: string; parish: string; rev: number; waiting_since: string | Date; had_cancelled: boolean; place: string };
 export async function toSchedule(sql: Sql, limit = 100): Promise<ToScheduleRow[]> {
-  return sql.query<ToScheduleRow>(
-    `select kind, id, code, title, municipality, parish, rev, waiting_since, had_cancelled from public.agenda_to_schedule order by waiting_since limit $1`,
+  const rows = await sql.query<Omit<ToScheduleRow, 'place'> & { sector: string | null; community: string | null }>(
+    `select t.kind, t.id, t.code, t.title, t.municipality, t.parish, t.rev, t.waiting_since, t.had_cancelled, f.sector, r.community
+       from public.agenda_to_schedule t
+       left join public.obra_fichas f on t.kind = 'obra' and f.id = t.id
+       left join public.community_reports r on t.kind = 'report' and r.id = t.id
+      order by t.waiting_since limit $1`,
     [limit],
   );
+  return rows.map(({ sector, community, ...r }) => ({
+    ...r,
+    place: r.kind === 'obra' ? eventFromObra({ sector, parish: r.parish }).placeName : eventFromReport({ community }).placeName,
+  }));
 }

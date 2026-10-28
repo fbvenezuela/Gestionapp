@@ -163,18 +163,21 @@ que use `<Card>`, `Sheet`, el diálogo propio o los menús ya lo tiene.
 **Que se siga leyendo bien**
 - Contraste AA en todo texto sobre lo peor que puede quedar detrás. Por eso:
   - las manchas son claras en claro (luminancia 0,77 o más; la mezcla más oscura del fondo queda en 0,766) y
-    oscuras en oscuro: todo color de texto llega a 4,5:1 directamente sobre el fondo. Para eso el gris secundario,
-    el apagado, el verde, el naranja y el rojo de estado se oscurecieron un pelo en claro (`--c-text-2` `#62625c`,
-    `--c-muted` `#63625d`, `--c-ok` `#03704f`, `--c-warn` `#a34b08`, `--c-danger` `#b91c1c`) y el apagado y el rojo
-    se aclararon un pelo en oscuro (`#a3a29c`, `#f98080`). Los colores de la marca no cambian;
+    oscuras en oscuro: todo color de texto llega a 4,5:1 directamente sobre el fondo, también justo debajo de una
+    tarjeta, donde su sombra suave oscurece un poco las manchas (28/10). Para eso el gris secundario, el apagado, el
+    oliva de texto, el verde, el naranja y el rojo de estado se oscurecieron un pelo en claro (`--c-text-2` y
+    `--c-muted` `#5c5c56`, `--c-accent-ink` `#5c6123`, `--c-ok` `#036a4b`, `--c-warn` `#974507`, `--c-danger`
+    `#b91c1c`) y el apagado y el rojo se aclararon un pelo en oscuro (`#a3a29c`, `#f98080`). Los colores de la marca
+    no cambian;
   - las tarjetas de vidrio son más claras (u oscuras) que el fondo que tienen detrás, saturación incluida;
   - las barras y los menús siguen casi opacos (87 % en claro, 90 % en oscuro): aunque pase algo negro por detrás,
     el texto, el gris y el oliva siguen en 4,5:1 o más. El verde y el naranja de estado **no** van sobre barras ni
     menús;
   - paneles y diálogos al 92 % (94 % en oscuro).
   - `tests/unit/ui-glass.test.ts` hace la cuenta con todas las mezclas posibles del fondo (lavado y manchas en
-    cualquier orden, de 10 en 10 %), la saturación de cada vidrio leída de `globals.css` (aplicada en sRGB y en luz
-    lineal) y falla si un token baja de AA. También exige que las manchas se vean y sean de la familia de la marca.
+    cualquier orden, de 10 en 10 %, y cada una otra vez bajo la sombra de una tarjeta, a 12 px de su borde, leída de
+    `--glass-shadow`), la saturación de cada vidrio leída de `globals.css` (aplicada en sRGB y en luz lineal) y falla
+    si un token baja de AA. También exige que las manchas se vean y sean de la familia de la marca.
 - Sólido (sin fondo de manchas, sin desenfoque, superficies opacas) cuando:
   - el navegador no sabe desenfocar (`@supports`), como los teléfonos viejos;
   - «Modo sol» está encendido (es también el interruptor manual para quitar el vidrio);

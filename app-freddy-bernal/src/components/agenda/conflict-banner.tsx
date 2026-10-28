@@ -31,8 +31,8 @@ export function ConflictBanner({
               <span className="block text-text-2 [overflow-wrap:anywhere]">Lo de la otra persona: {String(theirs(k) ?? '') || '(vacío)'}</span>
             </span>
             <span className="flex gap-2">
-              <Button type="button" size="sm" variant="secondary" onClick={() => onTheirs(k)}>Usar lo de él</Button>
-              <Button type="button" size="sm" variant="secondary" onClick={() => onMine(k)}>Dejar lo mío</Button>
+              <Button type="button" variant="secondary" onClick={() => onTheirs(k)}>Usar lo de él</Button>
+              <Button type="button" variant="secondary" onClick={() => onMine(k)}>Dejar lo mío</Button>
             </span>
           </li>
         ))}

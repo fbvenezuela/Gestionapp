@@ -7,7 +7,7 @@ export function PageHeader({ title, subtitle, actions, back }: { title: ReactNod
     <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
         {back ? (
-          <Link href={back.href} className="mb-1 inline-flex min-h-9 items-center gap-1 text-sm font-medium text-text-2 hover:text-text">
+          <Link href={back.href} className="mb-1 inline-flex min-h-11 items-center gap-1 text-sm font-medium text-text-2 hover:text-text">
             <ChevronLeft className="h-4 w-4" aria-hidden /> {back.label}
           </Link>
         ) : null}

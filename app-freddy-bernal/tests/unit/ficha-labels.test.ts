@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import { readMigrations, readShim } from '@/lib/db/migrations';
 import * as L from '@/lib/data/ficha-labels';
+import { describeUpdate } from '@/components/fichas/history-timeline';
 
 // The screens' value lists and the database CHECK lists of the fichas must be the same: a value the database
 // refuses would fail on save, and one without a label would show raw English.
@@ -57,4 +58,17 @@ describe('valores de las fichas: pantalla y base iguales', () => {
     }
     expect(Object.keys(L.MARK).sort()).toEqual([...L.MARKS].sort());
   }, 60_000);
+});
+
+describe('la historia de una ficha: palabras de obra y de reporte', () => {
+  it('una obra tiene visita; un reporte, actividad. Sin la fecha', () => {
+    const line = (kind: L.FichaUpdateKind) => ({ kind, from_value: null, to_value: null, fields: [] });
+    expect(describeUpdate('obra', line('scheduled'))).toBe('le puso fecha a la visita');
+    expect(describeUpdate('report', line('scheduled'))).toBe('le puso fecha a la actividad');
+    expect(describeUpdate('obra', line('done'))).toBe('marcó la visita como realizada');
+    expect(describeUpdate('report', line('done'))).toBe('marcó la actividad como realizada');
+    // The rest is the same for both.
+    for (const k of ['note', 'deleted', 'restored'] as const) expect(describeUpdate('report', line(k)), k).toBe(describeUpdate('obra', line(k)));
+    for (const k of Object.keys(L.REPORT_UPDATE_KIND)) expect(L.FICHA_UPDATE_KINDS, k).toContain(k);
+  });
 });

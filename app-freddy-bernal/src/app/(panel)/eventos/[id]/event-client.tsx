@@ -66,7 +66,7 @@ export function BossPanel({ id, priority, decision }: { id: string; priority: nu
 export function MarkDone({ id }: { id: string }) {
   const { run, pending } = useAction();
   return (
-    <Button variant="secondary" size="sm" disabled={pending} onClick={() => run(() => markDone({ id }), { success: 'Marcado como realizado. Su material ya aparece en el registro por día.' })}>
+    <Button variant="secondary" disabled={pending} onClick={() => run(() => markDone({ id }), { success: 'Marcado como realizado. Su material ya aparece en el registro por día.' })}>
       Marcar realizado
     </Button>
   );
@@ -84,7 +84,7 @@ export function ScheduleEditor({ id, schedule }: { id: string; schedule: NonNull
   const d = useEditDraft(`horario:${id}`, current, schedule.rev);
   const v = d.values as unknown as ScheduleValues;
   return (
-    <Sheet open={open} onOpenChange={setOpen} title="Fecha, hora y lugar" trigger={<Button variant="secondary" size="sm">Cambiar fecha o lugar</Button>}>
+    <Sheet open={open} onOpenChange={setOpen} title="Fecha, hora y lugar" trigger={<Button variant="secondary">Cambiar fecha o lugar</Button>}>
       <form
         className="flex flex-col gap-3"
         onSubmit={(ev) => {
@@ -114,7 +114,7 @@ export function BriefEditor({ id, brief }: { id: string; brief: EventFull['brief
   const f = d.values as typeof current;
   const set = (k: keyof typeof current) => (ev: { target: { value: string } }) => d.set(k, ev.target.value);
   return (
-    <Sheet open={open} onOpenChange={setOpen} title="Ficha técnica" trigger={<Button variant="secondary" size="sm">Editar</Button>}>
+    <Sheet open={open} onOpenChange={setOpen} title="Ficha técnica" trigger={<Button variant="secondary" className="shrink-0">Editar</Button>}>
       <form
         className="flex flex-col gap-3"
         onSubmit={(ev) => {

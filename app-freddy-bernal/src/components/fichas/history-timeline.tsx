@@ -1,6 +1,6 @@
 import { History } from 'lucide-react';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
-import { FICHA_UPDATE_KIND, OBRA_STAGE, REPORT_STATUS, type ObraStage, type ReportStatus } from '@/lib/data/ficha-labels';
+import { FICHA_UPDATE_KIND, OBRA_STAGE, REPORT_STATUS, REPORT_UPDATE_KIND, type ObraStage, type ReportStatus } from '@/lib/data/ficha-labels';
 import { fieldLabel, type FichaKind } from '@/lib/domain/ficha-fields';
 import type { FichaUpdate } from '@/lib/data/fichas';
 import { fmtDateTime } from '@/lib/time';
@@ -24,7 +24,7 @@ export function describeUpdate(kind: FichaKind, u: Pick<FichaUpdate, 'kind' | 'f
     case 'contact':
       return fields.length ? `${FICHA_UPDATE_KIND[u.kind]}: ${fields.join(', ')}` : FICHA_UPDATE_KIND[u.kind];
     default:
-      return FICHA_UPDATE_KIND[u.kind] ?? u.kind;
+      return (kind === 'report' ? REPORT_UPDATE_KIND[u.kind] : undefined) ?? FICHA_UPDATE_KIND[u.kind] ?? u.kind;
   }
 }
 
