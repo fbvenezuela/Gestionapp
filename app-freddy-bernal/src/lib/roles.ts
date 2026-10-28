@@ -57,6 +57,26 @@ export function isInvitableRole(r: string | null | undefined): r is InvitableRol
   return (INVITABLE_ROLES as readonly string[]).includes(r ?? '');
 }
 
+// Administración never holds the boss's or despacho's role in the same account: only the boss approves and only the
+// boss and despacho write the agenda (D-41). The database refuses it too (guard_role_mix, guard_invitation_roles).
+const NOT_WITH_ADMIN: readonly Role[] = ['boss', 'dispatch'];
+export const SELF_GRANT_MESSAGE = 'Tus propios roles los da otra persona de administración.';
+export const ROLE_MIX_MESSAGE = 'Administración no puede ser también el jefe ni el despacho: usa otra cuenta.';
+
+/** Why this role cannot be given (on) to this person, or null. Taking a role away is never refused here. */
+export function roleGrantProblem(p: { isSelf: boolean; roles: readonly Role[]; role: Role }): string | null {
+  if (p.roles.includes(p.role)) return null;
+  if (p.isSelf) return SELF_GRANT_MESSAGE;
+  const mixed = p.role === 'admin' ? p.roles.some((r) => NOT_WITH_ADMIN.includes(r)) : NOT_WITH_ADMIN.includes(p.role) && p.roles.includes('admin');
+  return mixed ? ROLE_MIX_MESSAGE : null;
+}
+
+// Who reads a community report's contacts (§4.2: «solo las ven el director de política, el despacho y el jefe»), with
+// 2FA. Administración keeps the main part only (community_report_private policies, D-41).
+export function canSeeReportContacts(roles: readonly Role[]) {
+  return roles.some((r) => r === 'boss' || r === 'dispatch' || r === 'politics');
+}
+
 // `also`: screens a hub item stands for (Redes for the boss): it lights up there when no item of that menu is the screen's own.
 export type NavItem = { href: string; label: string; icon: string; roles: Role[]; mobile?: Role[]; also?: string[] };
 
@@ -90,7 +110,8 @@ export const CREATE_ITEMS: { href: string; label: string; roles: Role[] }[] = [
   { href: '/agenda/nuevo', label: 'Nuevo evento', roles: ['boss', 'dispatch'] },
   { href: '/agenda/nuevo?tipo=obra', label: 'Visita de obra', roles: ['boss', 'dispatch'] },
   { href: '/obras/nueva', label: 'Ficha de obra', roles: ['admin', 'boss', 'dispatch', 'ivt'] },
-  { href: '/reportes/nuevo', label: 'Ficha comunitaria', roles: ['admin', 'boss', 'dispatch', 'politics'] },
+  // Not Administración: the report's contacts are política's, despacho's and the boss's only (D-41).
+  { href: '/reportes/nuevo', label: 'Ficha comunitaria', roles: ['boss', 'dispatch', 'politics'] },
   { href: '/piezas/nueva', label: 'Nueva pieza', roles: ['admin', 'social', 'boss'] },
   { href: '/tweets/nueva', label: 'Tweets de la semana', roles: ['admin', 'social', 'boss'] },
   { href: '/publicar/nueva', label: 'Nueva publicación', roles: ['admin', 'social', 'boss'] },

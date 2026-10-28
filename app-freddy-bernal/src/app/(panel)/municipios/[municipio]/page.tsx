@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CalendarDays, ChevronRight, ClipboardList, HardHat, Plus } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
+import { canSeeReportContacts } from '@/lib/roles';
 import { municipalityCounters, municipalityTimeline, parishesInUse, type TimelineItem } from '@/lib/data/fichas';
 import { municipalities, parishes } from '@/lib/data/common';
 import { OBRA_STAGE, PRIORITIES, PRIORITY, REPORT_STATUS, REPORT_STATUSES, REPORT_TYPE, REPORT_TYPES } from '@/lib/data/ficha-labels';
@@ -58,9 +59,12 @@ export default async function MunicipioPage({ params, searchParams }: { params: 
         title={data.name}
         subtitle="Fichas comunitarias, obras y eventos del municipio, en orden de fecha."
         actions={
-          <LinkButton href={`/reportes/nuevo?municipio=${encodeURIComponent(data.name)}`}>
-            <Plus className="h-4 w-4" aria-hidden /> Nueva ficha comunitaria
-          </LinkButton>
+          // Administración reads the register but does not load reports (their contacts are not its own, D-41).
+          canSeeReportContacts(s.roles) ? (
+            <LinkButton href={`/reportes/nuevo?municipio=${encodeURIComponent(data.name)}`}>
+              <Plus className="h-4 w-4" aria-hidden /> Nueva ficha comunitaria
+            </LinkButton>
+          ) : undefined
         }
       />
 

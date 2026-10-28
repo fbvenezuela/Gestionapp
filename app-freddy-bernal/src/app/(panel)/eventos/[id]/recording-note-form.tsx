@@ -7,11 +7,11 @@ import { useDraft } from '@/lib/hooks/use-draft';
 import { Button } from '@/components/ui/button';
 import { Field, Textarea } from '@/components/ui/field';
 import { DICTATE_HINT } from '@/lib/data/labels';
-import { NOTE_HINT, NOTE_MAX, noteWarning, type NoteKind } from '@/lib/domain/recording';
+import { NOTE_HINT, NOTE_MAX, notePhoneProblem, noteWarning, type NoteKind } from '@/lib/domain/recording';
 
 // Grabación's note for the editor, or the storyboard it recorded with written out (§5). One per person, event and
 // kind: saving again replaces it. What is typed stays in the phone until it is saved (a dropped signal at the event
-// loses nothing). A soft warning when it looks like a date or a time of day, never a block (timecodes look alike).
+// loses nothing). A soft warning when it looks like a date or a time of day (timecodes look alike); a phone blocks it.
 export function RecordingNoteForm({
   eventId, kind, initial, label, placeholder, button,
 }: { eventId: string; kind: NoteKind; initial: string; label: string; placeholder: string; button: string }) {
@@ -20,6 +20,8 @@ export function RecordingNoteForm({
   const d = useDraft(`recording:${eventId}:${kind}`, { body: initial });
   const body = d.value.body;
   const warning = noteWarning(body);
+  // A phone blocks the save (the action and the database refuse it too); a date or a time only warns.
+  const blocked = !!notePhoneProblem(body);
   const changed = body.trim() !== initial.trim();
   return (
     <form
@@ -41,10 +43,12 @@ export function RecordingNoteForm({
           onChange={(e) => d.setValue({ body: e.target.value })}
         />
       </Field>
-      {warning ? <p className="rounded-[var(--radius-control)] bg-warn-soft px-3 py-2 text-sm text-warn">{warning}</p> : null}
+      {warning ? (
+        <p role={blocked ? 'alert' : undefined} className={blocked ? 'rounded-[var(--radius-control)] bg-danger-soft px-3 py-2 text-sm text-danger' : 'rounded-[var(--radius-control)] bg-warn-soft px-3 py-2 text-sm text-warn'}>{warning}</p>
+      ) : null}
       {d.restored ? <p className="text-sm text-text-2">Recuperamos lo que estabas escribiendo; todavía no está guardado.</p> : null}
       <div>
-        <Button type="submit" disabled={pending || !changed}>{pending ? 'Guardando…' : button}</Button>
+        <Button type="submit" disabled={pending || !changed || blocked}>{pending ? 'Guardando…' : button}</Button>
       </div>
     </form>
   );

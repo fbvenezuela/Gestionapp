@@ -89,8 +89,9 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Qué fichas tengo incompletas?', { tool: 'mis_pendientes', has: /ficha/ }],
     ['¿Cómo creo un evento?', { go: '/agenda/nuevo', has: /Nuevo evento/ }],
     ['¿Cómo duplico un evento?', { has: /No hay botón para duplicar/ }],
-    ['¿Cómo cancelo un evento?', { has: /botón para cancelarlo/ }],
-    ['¿Cómo borro un evento?', { has: /borrarlo/ }],
+    // The boss and despacho cancel from the event's page («Cancelar», with its reason) and bring it back (cambios del 27/10).
+    ['¿Cómo cancelo un evento?', { has: /tocan «Cancelar» en su ficha/ }],
+    ['¿Cómo borro un evento?', { has: /lo hace Administración, que también lo puede restaurar/ }],
     ['¿Cómo cambio la fecha de un evento?', { has: /cambian el título, el lugar, la fecha/ }],
     ['¿Cómo asigno a quien graba?', { has: /Quién graba/ }],
     ['¿Cómo cambio quién graba un evento?', { has: /Quién graba/ }],
@@ -115,7 +116,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
   ],
   // Director de política and Director del IVT (27/10/2026): no dates, no content; their screens come next.
   politics: [
-    ['¿Qué tengo pendiente?', { tool: 'mis_pendientes', has: /nada pendiente/ }],
+    // Its overdue reports, as on its Municipios (the demo has one).
+    ['¿Qué tengo pendiente?', { tool: 'mis_pendientes', has: /vencida: «.+»\. Todo eso está en Municipios/ }],
     ['¿Qué puedo hacer yo en la plataforma?', { has: /eventos y avances comunitarios de cada municipio/ }],
     ['¿Puedo ver la agenda?', { has: /no está en tu menú/ }],
     ['¿Dónde está la agenda?', { has: /no está en tu menú/ }],
@@ -134,7 +136,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['como llego a alto verde', A],
   ],
   ivt: [
-    ['¿Qué tengo pendiente?', { tool: 'mis_pendientes', has: /nada pendiente/ }],
+    // Its obra drafts and how many wait for a date, as on its Obras (never the date).
+    ['¿Qué tengo pendiente?', { tool: 'mis_pendientes', has: /ficha de obra en borrador: «.+».*Todo eso está en Fichas de obra/ }],
     ['¿Qué puedo hacer yo en la plataforma?', { has: /ficha de cada obra/ }],
     ['¿Qué hace el director del IVT?', { has: /ficha de cada obra/ }],
     // «Mis visitas de obra» (the shared agenda): the dates of the visits to its obras only.

@@ -8,7 +8,7 @@ import type { Session } from '@/lib/auth/session';
 import type { Notice } from '@/lib/notify';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import { looksLikeDateTime } from '@/lib/push/text';
-import { recordingNotice, noteWarning, firstName } from '@/lib/domain/recording';
+import { recordingNotice, noteWarning, notePhoneProblem, firstName } from '@/lib/domain/recording';
 import { makeTestDb, type TestDb } from '../rls/setup';
 
 const h = vi.hoisted(() => ({ session: null as unknown, notices: [] as unknown[] }));
@@ -144,6 +144,19 @@ describe('los textos de la entrega', () => {
     expect(noteWarning('Llegamos a las 9 de la mañana')).toMatch(/Parece que escribiste una hora/);
     expect(noteWarning('Lo mejor está en el segundo clip')).toBeNull();
     expect(noteWarning('   ')).toBeNull();
+  });
+
+  it('un teléfono no se guarda (Redes lee la nota); un tiempo del video sí', async () => {
+    expect(notePhoneProblem('La vocera (demo) tiene más fotos: 0414-555.01.23')).toMatch(/No se guarda con un teléfono \(0414-555\.01\.23\)/);
+    expect(notePhoneProblem('El saludo bueno está en el 2:15 y la toma aérea en el 12:40.')).toBeNull();
+    expect(noteWarning('Llamar al 0414 555 0123')).toMatch(/No se guarda con un teléfono/);
+    as('camera');
+    h.notices = [];
+    const r = await recording.saveRecordingNote({ eventId: ev.id, kind: 'editor_note', body: 'Para el editor: llamar a la vocera (demo) al 0414-5550123' });
+    expect(r.ok).toBe(false);
+    expect((r as { error: string }).error).toMatch(/No se guarda con un teléfono/);
+    expect(notices()).toEqual([]);
+    expect(await t.system((sql) => sql.query(`select 1 from public.recording_notes where event_id = $1 and body like '%0414%'`, [ev.id]))).toEqual([]);
   });
 
   it('el nombre de quien escribe: solo el primero', () => {

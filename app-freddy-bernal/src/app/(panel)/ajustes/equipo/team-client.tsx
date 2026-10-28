@@ -6,7 +6,7 @@ import { useAction } from '@/lib/hooks/use-action';
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Field, Input, Select } from '@/components/ui/field';
-import { INVITABLE_ROLES, ROLE_LABEL, TEAM_ROLES, type InvitableRole, type Role } from '@/lib/roles';
+import { INVITABLE_ROLES, ROLE_LABEL, TEAM_ROLES, roleGrantProblem, type InvitableRole, type Role } from '@/lib/roles';
 
 // The six team roles, then Administración apart: the technical role, never part of the team lists.
 const roleLabel = (r: InvitableRole) => (r === 'admin' ? 'Administración (técnico)' : ROLE_LABEL[r]);
@@ -51,6 +51,11 @@ export function MemberActions({ userId, name, roles, active, isSelf, twoFactor }
   const { run, pending } = useAction();
   const { confirm, dialog } = useConfirm();
   const [open, setOpen] = useState(false);
+  // Roles that cannot be given here, and why (your own, or Administración with the boss or despacho). The database
+  // refuses them too; the screen says why before anyone taps.
+  const problems = new Map(INVITABLE_ROLES.map((r) => [r, roleGrantProblem({ isSelf, roles, role: r })] as const));
+  const reasons = [...new Set([...problems.values()].filter((x): x is string => !!x))];
+  const hintId = `roles-why-${userId}`;
   return (
     <div className="flex flex-col items-stretch gap-2 sm:items-end">
       {dialog}
@@ -66,12 +71,18 @@ export function MemberActions({ userId, name, roles, active, isSelf, twoFactor }
                 type="checkbox"
                 className="h-5 w-5 accent-accent"
                 checked={roles.includes(r)}
-                disabled={pending || (isSelf && r === 'admin')}
+                disabled={pending || (isSelf && r === 'admin') || !!problems.get(r)}
+                aria-describedby={problems.get(r) ? hintId : undefined}
                 onChange={(e) => run(() => setRole({ userId, role: r, on: e.target.checked }))}
               />
               {roleLabel(r)}
             </label>
           ))}
+          {reasons.length ? (
+            <div id={hintId} className="text-sm text-text-2">
+              {reasons.map((m) => <p key={m}>{m}</p>)}
+            </div>
+          ) : null}
           <Button variant="secondary" size="sm" className="min-h-11" disabled={pending} onClick={() => run(async () => {
             // The action's own message (a partial success) wins; a plain success gets this one.
             const r = await revokeSessions({ userId });

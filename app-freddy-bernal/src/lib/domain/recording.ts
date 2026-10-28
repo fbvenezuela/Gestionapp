@@ -3,6 +3,7 @@
 // person, event and kind, no date, time or address columns.
 
 import { looksLikeDateTime } from '@/lib/push/text';
+import { phonesIn } from './phones';
 import { noticeEventTitle } from './agenda-notices';
 
 export const NOTE_KINDS = ['editor_note', 'storyboard_text'] as const;
@@ -20,11 +21,22 @@ export const NOTE_LABEL: Record<NoteKind, string> = {
 export const NOTE_HINT = 'No escribas hora, fecha ni dirección: Redes no las ve. Los tiempos del video (2:15) sí.';
 
 /**
- * A soft warning when the text looks like it carries a date, a time of day or a phone number. It never blocks: a
+ * Why a note is not saved: a phone number (phonesIn, the app's one detector; the database checks the same rule,
+ * recording_notes_no_phone). Redes reads the note and never a third party's phone. A timecode is never a phone.
+ */
+export function notePhoneProblem(body: string): string | null {
+  const phones = phonesIn(body);
+  return phones.length ? `No se guarda con un teléfono (${phones.join(', ')}): Redes lee esta nota. Quítalo; los tiempos del video (2:15) sí van.` : null;
+}
+
+/**
+ * Under the box: a phone blocks the save (notePhoneProblem); a date or a time of day is only a soft warning, since a
  * timecode («en el 2:15») looks like a time too, and only the person knows which one it is.
  */
 export function noteWarning(body: string): string | null {
-  return body.trim() && looksLikeDateTime(body) ? 'Parece que escribiste una hora, una fecha o un teléfono. Si es un tiempo del video, déjalo; si no, quítalo: Redes no ve la agenda.' : null;
+  if (!body.trim()) return null;
+  return notePhoneProblem(body)
+    ?? (looksLikeDateTime(body) ? 'Parece que escribiste una hora o una fecha. Si es un tiempo del video, déjalo; si no, quítalo: Redes no ve la agenda.' : null);
 }
 
 export type RecordingNotice = { kind: 'recording_note'; title: string; body: string; link: string; key: string };

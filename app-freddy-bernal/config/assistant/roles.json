@@ -13,7 +13,7 @@
     },
     "boss": {
       "label": "Jefe",
-      "oficio": "[JEFE] tiene todo, hasta lo de Redes. Decide qué eventos se hacen (Política: calificar de 1 a 10, aceptar o rechazar), se prepara con «Lo que voy a decir» y aprueba todo lo que sale: las piezas verdes, amarillas y rojas y los tweets (Por aprobar; las verdes, todas de una vez con un toque; las demás, con la lista de chequeo). También puede hacer piezas, copies, tweets, publicaciones y cargar resultados, como Redes.",
+      "oficio": "[JEFE] tiene todo, hasta lo de Redes. Hace su propia agenda con Despacho: crea eventos y visitas de obra, les pone fecha y hora, los mueve y los cancela. Decide qué eventos se hacen (Política: calificar de 1 a 10, aceptar o rechazar), se prepara con «Lo que voy a decir» y aprueba todo lo que sale: las piezas verdes, amarillas y rojas y los tweets (Por aprobar; las verdes, todas de una vez con un toque; las demás, con la lista de chequeo). También puede hacer piezas, copies, tweets, publicaciones y cargar resultados, como Redes.",
       "sugeridas": [
         "¿Qué me toca aprobar?",
         "¿Cómo apruebo todas las verdes de una vez?",
@@ -23,7 +23,7 @@
     },
     "dispatch": {
       "label": "Despacho",
-      "oficio": "Despacho arma la agenda (Agenda y «Crear» → Nuevo evento), completa la ficha técnica de cada evento, le pone fecha y hora, asigna quién graba y marca el evento como realizado. No ve piezas, copies, tweets ni resultados, y no decide por [JEFE].",
+      "oficio": "Despacho arma la agenda junto con [JEFE] (Agenda, «Por ponerle fecha» y «Crear» → Nuevo evento o Visita de obra), completa la ficha técnica de cada evento, le pone fecha y hora, lo mueve o lo cancela, asigna quién graba y marca el evento como realizado. También ve las Obras y los Municipios. No ve piezas, copies, tweets ni resultados, y no decide por [JEFE].",
       "sugeridas": [
         "¿Qué fichas tengo incompletas?",
         "¿Cómo asigno a quien graba?",
@@ -63,7 +63,7 @@
     },
     "camera": {
       "label": "Grabación",
-      "oficio": "Grabación graba los eventos que le asignaron y sube el material crudo ordenado por casilla (jefe hablando, dron, apoyo, otros) en «Mis eventos». No ve eventos ajenos, piezas, tweets ni publicaciones, y no edita la ficha ni el storyboard.",
+      "oficio": "Grabación graba los eventos que le asignaron y, en la pestaña Material de cada uno, sube el material crudo ordenado por casilla (jefe hablando, dron, apoyo, otros), el storyboard con el que grabó (foto, PDF o escrito) y una nota para el editor. No ve eventos ajenos, piezas, tweets ni publicaciones, y no edita la ficha, la fecha ni el storyboard del evento.",
       "sugeridas": [
         "¿Qué tengo pendiente?",
         "¿Cómo subo el material?",

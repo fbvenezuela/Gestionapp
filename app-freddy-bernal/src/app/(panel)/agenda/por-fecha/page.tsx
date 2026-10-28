@@ -4,7 +4,7 @@ import { requireRole, db } from '@/lib/auth/session';
 import { canManageAgenda } from '@/lib/roles';
 import { toSchedule } from '@/lib/data/events';
 import { peopleWithRole } from '@/lib/data/common';
-import { obraVisitTitle } from '@/lib/domain/ficha-event';
+import { eventFromReport, obraVisitTitle } from '@/lib/domain/ficha-event';
 import { PageHeader, EmptyState } from '@/components/ui/page';
 import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
@@ -63,7 +63,7 @@ export default async function ToSchedulePage() {
                     <ScheduleSheet
                       kind={r.kind}
                       fichaId={r.id}
-                      defaultTitle={r.kind === 'obra' ? obraVisitTitle(r.title) : r.title}
+                      defaultTitle={r.kind === 'obra' ? obraVisitTitle(r.title) : eventFromReport({ title: r.title }).title}
                       defaultPlace={r.parish}
                       cameras={data.cameras}
                     />

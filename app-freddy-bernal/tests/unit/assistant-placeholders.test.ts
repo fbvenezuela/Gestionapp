@@ -13,6 +13,7 @@ import { AGENDA_FALLBACK, breaksAgendaRule, filterOutput, guardQuestion } from '
 import { parseChain } from '@/lib/assistant/providers';
 import { redact, redactQuoted, safeTitle } from '@/lib/assistant/redact';
 import { Placeholders, nameReplacer, withTitleHoles } from '@/lib/assistant/titles';
+import { phonesIn } from '@/lib/domain/phones';
 
 function sessionOf(key: DemoUserKey): Session {
   const u = DEMO_USERS.find((x) => x.key === key)!;
@@ -59,6 +60,9 @@ const FORMATS = [
   'juan arroba gmail punto com', 'juan@localhost', 'km 8 vía San Cristóbal', '7 a 9 am', '12 del mediodía', 'Mar. 3/11', 'sáb 3',
   '2026/11/03', 'pasado mañana', 'el próximo martes', '2026-11-03T13:30:00Z',
 ];
+// An event's title can no longer hold a phone (events_main_no_phone, 20261028002200_round_review_fixes.sql): the
+// formats inside a title are the rest.
+const TITLE_FORMATS = FORMATS.filter((f) => !phonesIn(f).length);
 // «zqx <format> wqy»: whatever the redaction leaves around a format, the format itself is never
 // next to its markers in what was sent.
 const marked = (f: string) => `zqx ${f} wqy`;
@@ -72,11 +76,11 @@ function assertNoFormat(sent: string, where: string) {
 describe('títulos de eventos: al proveedor solo como marcas', () => {
   it('cada formato dentro de un título (resultado de una herramienta) llega como «[[E…]]»; la persona ve el título real', async () => {
     const code = (k: number) => `Kqa${String.fromCharCode(97 + Math.floor(k / 26))}${String.fromCharCode(97 + (k % 26))}`;
-    const titles = FORMATS.map((f, k) => `${code(k)} Visita ${f}`);
+    const titles = TITLE_FORMATS.map((f, k) => `${code(k)} Visita ${f}`);
     const ids = await addEvents(titles);
     try {
-      for (let start = 0; start < FORMATS.length; start += 8) {
-        const chunk = FORMATS.map((_f, k) => k).slice(start, start + 8);
+      for (let start = 0; start < TITLE_FORMATS.length; start += 8) {
+        const chunk = TITLE_FORMATS.map((_f, k) => k).slice(start, start + 8);
         const first = chunk.slice(0, 4).map((k): [string, unknown] => ['buscar_evento', { texto: code(k) }]);
         const second = chunk.slice(4).map((k): [string, unknown] => ['buscar_evento', { texto: code(k) }]);
         const p = fakeProvider((n) => (n === 1 ? callTools(first) : n === 2 && second.length ? callTools(second) : say('El evento «[[E1]]» va en ficha. ¿Algo más?')));
@@ -87,7 +91,7 @@ describe('títulos de eventos: al proveedor solo como marcas', () => {
         const sent = JSON.stringify(p.seen.map((b) => b.messages.map((m) => m.content)));
         // Not even the start of a title, nor any of its formats.
         expect(sent).not.toMatch(/Kqa[a-z]{2}/);
-        for (const k of chunk) expect(sent, FORMATS[k]).not.toContain(`Visita ${FORMATS[k]}`);
+        for (const k of chunk) expect(sent, TITLE_FORMATS[k]).not.toContain(`Visita ${TITLE_FORMATS[k]}`);
         const tools = p.seen.at(-1)!.messages.filter((m) => m.role === 'tool').map((m) => JSON.parse(m.content!).eventos[0].titulo);
         expect(tools.every((t: string) => /^\[\[E\d+\]\]$/.test(t))).toBe(true);
         // What the person sees: the first title looked up, real (the person can see it), never a placeholder.

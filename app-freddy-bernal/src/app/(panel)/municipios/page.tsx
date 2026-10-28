@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
+import { canSeeReportContacts } from '@/lib/roles';
 import { listReports, municipalityCounters, obraCounts, overdueReports, parishesInUse } from '@/lib/data/fichas';
 import { municipalities, parishes } from '@/lib/data/common';
 import { PRIORITIES, REPORT_STATUSES, REPORT_TYPES } from '@/lib/data/ficha-labels';
@@ -56,9 +57,12 @@ export default async function MunicipiosPage({ searchParams }: { searchParams: P
         title="Municipios"
         subtitle="Los eventos, avances e incidencias de cada municipio, con su estado. Toca uno para ver todo en orden de fecha."
         actions={
-          <LinkButton href="/reportes/nuevo" size="lg">
-            <Plus className="h-5 w-5" aria-hidden /> Nueva ficha comunitaria
-          </LinkButton>
+          // Administración reads the register but does not load reports (their contacts are not its own, D-41).
+          canSeeReportContacts(s.roles) ? (
+            <LinkButton href="/reportes/nuevo" size="lg">
+              <Plus className="h-5 w-5" aria-hidden /> Nueva ficha comunitaria
+            </LinkButton>
+          ) : undefined
         }
       />
 

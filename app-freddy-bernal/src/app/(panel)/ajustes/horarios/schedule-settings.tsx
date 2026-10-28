@@ -20,10 +20,12 @@ export function ScheduleSettings({ slots, perDay, lowStock, collaborators }: { s
         <CardHeader title="Franjas para tweets" subtitle="Cada tweet cae en una franja distinta, con minutos variados." />
         <CardBody className="flex flex-col gap-2">
           {s.map((x, i) => (
-            <div key={i} className="flex items-end gap-2">
-              <Field label="Desde" htmlFor={`f${i}`} className="flex-1"><Input id={`f${i}`} type="time" value={x.from} onChange={(e) => setS(s.map((y, j) => (j === i ? { ...y, from: e.target.value } : y)))} /></Field>
-              <Field label="Hasta" htmlFor={`t${i}`} className="flex-1"><Input id={`t${i}`} type="time" value={x.to} onChange={(e) => setS(s.map((y, j) => (j === i ? { ...y, to: e.target.value } : y)))} /></Field>
-              <Button variant="ghost" size="icon" aria-label="Quitar franja" onClick={() => setS(s.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></Button>
+            // Two columns that may shrink below the time inputs' natural width, and the trash button apart: at 360 px
+            // the row fits the card (it used to push the page 24 px sideways).
+            <div key={i} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-2">
+              <Field label="Desde" htmlFor={`f${i}`} className="min-w-0"><Input id={`f${i}`} type="time" className="w-full min-w-0" value={x.from} onChange={(e) => setS(s.map((y, j) => (j === i ? { ...y, from: e.target.value } : y)))} /></Field>
+              <Field label="Hasta" htmlFor={`t${i}`} className="min-w-0"><Input id={`t${i}`} type="time" className="w-full min-w-0" value={x.to} onChange={(e) => setS(s.map((y, j) => (j === i ? { ...y, to: e.target.value } : y)))} /></Field>
+              <Button variant="ghost" size="icon" className="shrink-0" aria-label="Quitar franja" onClick={() => setS(s.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></Button>
             </div>
           ))}
           <Button variant="secondary" onClick={() => setS([...s, { from: '12:00', to: '13:00' }])}><Plus className="h-4 w-4" aria-hidden /> Agregar franja</Button>

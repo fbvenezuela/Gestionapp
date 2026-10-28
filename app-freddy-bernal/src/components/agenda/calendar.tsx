@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { DateTime } from 'luxon';
 import { cn } from '@/lib/cn';
 import { Card } from '@/components/ui/card';
-import { TZ } from '@/lib/time';
+import { TZ, fmtAt } from '@/lib/time';
 
 export type CalEvent = { id: string; title: string; place_name: string; starts_at: string; ends_at: string; boss_decision: string; priority: number | null; cancelled_at?: string | Date | null };
 
@@ -83,7 +83,7 @@ export function TimeGrid({ days, events }: { days: DateTime[]; events: CalEvent[
           <div>
             {hours.map((h) => (
               <div key={h} className="relative border-b border-border text-right font-mono text-[11px] text-text-2" style={{ height: HOUR_PX }}>
-                <span className="absolute -top-2 right-1.5 bg-surface px-0.5">{DateTime.fromObject({ hour: h }).toFormat('h a')}</span>
+                <span className="absolute -top-2 right-1.5 bg-surface px-0.5">{fmtAt(DateTime.fromObject({ hour: h }), 'h a')}</span>
               </div>
             ))}
           </div>
@@ -107,7 +107,7 @@ export function TimeGrid({ days, events }: { days: DateTime[]; events: CalEvent[
                       className={cn('absolute inset-x-1 overflow-hidden rounded-[var(--radius-chip)] border-l-4 px-1.5 py-1 text-xs shadow-sm', tone(e))}
                       style={{ top, height }}
                     >
-                      <span className="block font-mono font-semibold">{s.toFormat('h:mm a')}</span>
+                      <span className="block font-mono font-semibold">{fmtAt(s, 'h:mm a')}</span>
                       <span className="block font-semibold leading-tight">{e.cancelled_at ? <span className="sr-only">Cancelado: </span> : null}{e.title}</span>
                       <span className="block truncate text-text-2">{e.place_name}</span>
                     </Link>

@@ -140,14 +140,16 @@ describe('fichas de obra: quién las ve y quién las escribe', () => {
   });
 });
 
-describe('reportes comunitarios: solo política, despacho, el jefe y administración', () => {
-  it('política, el jefe, el despacho y administración crean y ven reportes; el IVT, redes y grabación no ven ni crean ninguno', async () => {
-    for (const who of REPORT_ROLES) {
+describe('reportes comunitarios: política, despacho y el jefe (administración solo ve la parte principal, D-41)', () => {
+  it('política, el jefe y el despacho crean y ven reportes; administración los ve sin crearlos (D-41); el IVT, redes y grabación no ven ni crean ninguno', async () => {
+    for (const who of REPORT_ROLES.filter((w) => w !== 'admin')) {
       const r = await newReport(who);
       expect(r.code).toMatch(/^R-\d{4}$/);
       const row = await t.as(who, (sql) => sql.one<{ status: string; rev: number; wants_agenda: boolean }>(`select status, rev, wants_agenda from public.community_reports where id = $1`, [r.id]));
       expect(row).toEqual({ status: 'planned', rev: 1, wants_agenda: false });
     }
+    expect(await count('admin', 'select 1 from public.community_reports')).toBeGreaterThan(0);
+    await fails(newReport('admin'));
     for (const who of ['ivt', 'social', 'social2', 'camera', 'camera2'] as const) {
       expect(await count(who, 'select 1 from public.community_reports'), who).toBe(0);
       await fails(newReport(who));

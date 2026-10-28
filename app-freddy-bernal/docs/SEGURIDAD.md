@@ -14,7 +14,14 @@ Actualizado: 25/10/2026. Qué se hizo para blindar la plataforma y qué falta.
    - solo administración borra (borrado lógico) y da roles; nadie se da roles a sí mismo;
    - quien graba solo sube material crudo a sus eventos asignados;
    - secretaría solo ve lo que propuso; un usuario sin rol no ve nada;
-   - el registro de cambios no se puede editar ni borrar.
+   - el registro de cambios no se puede editar ni borrar;
+   - desde el 28/10 (D-41, `tests/rls/por-rol.test.ts` y `tests/rls/round-review.test.ts`): administración no se da
+     roles a sí misma ni una cuenta junta administración con el jefe o el despacho (solo el jefe aprueba; solo el jefe y
+     el despacho ponen fecha); la lista del doble factor siempre nombra a administración, el jefe, el despacho, política
+     y el IVT; los contactos de las fichas comunitarias son solo de política, el despacho y el jefe; el registro de
+     cambios guarda de los contactos solo qué campo cambió; un teléfono no entra en la nota de Grabación, en el texto
+     principal de un reporte ni en el título, el lugar o el resumen de un evento; un evento borrado es solo de
+     administración; el código del evento lo pone la base; un evento realizado no se mueve.
 3. **La regla de fecha y hora en la base** (`event_schedule` aparte), también en:
    - tiempo real: `event_schedule` no está en la publicación de Realtime;
    - búsquedas: corren con los permisos de la persona y no buscan en fechas ni direcciones;

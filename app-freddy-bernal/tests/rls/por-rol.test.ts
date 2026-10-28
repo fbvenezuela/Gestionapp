@@ -433,6 +433,57 @@ describe('Solo jefe y despacho la ponen', () => {
     }
   });
 
+  // 20261028002200_round_review_fixes.sql: before it, admin (2FA) gave itself 'boss' (then approved a red piece) or
+  // 'dispatch' (then moved the agenda).
+  it('Administración no se vuelve jefe ni despacho: no se da roles a sí misma, no los junta con el suyo en otra cuenta, ni por invitación', async () => {
+    const insertRole = (user: string, role: string) => (sql: { query: (q: string, p?: unknown[]) => Promise<unknown> }) =>
+      sql.query(`insert into public.user_roles (user_id, role) values ($1, $2)`, [user, role]);
+    for (const role of ['boss', 'dispatch', 'social']) {
+      await denied(t.as('admin', insertRole(t.ids.admin, role)), `admin se da ${role}`);
+    }
+    // One account never holds Administración with the boss or despacho: not given by admin, not by the system either.
+    for (const who of ['boss', 'dispatch'] as const) {
+      await denied(t.as('admin', insertRole(t.ids[who], 'admin')), `admin a ${who}`, /no puede ser también el jefe ni el despacho/);
+      await denied(t.system(insertRole(t.ids[who], 'admin')), `sistema a ${who}`, /no puede ser también el jefe ni el despacho/);
+      await denied(t.system(insertRole(t.ids.admin, who)), `sistema a admin: ${who}`, /no puede ser también el jefe ni el despacho/);
+    }
+    // A second account of Administración (an invitation as admin): admin cannot make it the boss or despacho.
+    const email = `segunda-admin-${++n}@prueba.test`;
+    await t.as('admin', (sql) => sql.query(`insert into public.invitations (email, full_name, roles, invited_by) values ($1, 'Segunda cuenta (demo)', '{admin}', auth.uid())`, [email]));
+    const other = (await t.system((sql) => sql.one<{ id: string }>(`insert into auth.users (email) values ($1) returning id`, [email])))!.id;
+    for (const role of ['boss', 'dispatch']) {
+      await denied(t.as('admin', insertRole(other, role)), `segunda cuenta: ${role}`, /no puede ser también el jefe ni el despacho/);
+    }
+    // Nor by invitation.
+    for (const roles of ['{admin,boss}', '{dispatch,admin}']) {
+      await denied(
+        t.as('admin', (sql) => sql.query(`insert into public.invitations (email, full_name, roles) values ($1, 'Prueba (demo)', $2::public.app_role[])`, [`mezcla-${++n}@prueba.test`, roles])),
+        `invitación ${roles}`, /invita otra cuenta/,
+      );
+    }
+    expect((await sys<{ role: string }>(`select role::text from public.user_roles where user_id = $1`, [t.ids.admin])).map((r) => r.role)).toEqual(['admin']);
+    // So Administración approves nothing (a red piece neither) and moves nothing.
+    expect(await rows('admin', 'select public.can_approve() as a, public.can_manage_agenda() as m')).toEqual([{ a: false, m: false }]);
+    const red = (await sysOne<{ id: string }>(`select id from public.pieces where review_level = 'rojo' order by created_at limit 1`))!.id;
+    await denied(rows('admin', `select public.review_piece($1, 'approved')`, [red]), 'admin aprueba la roja', /Solo el jefe aprueba/);
+    expect(await moveSchedule('admin', ev['E-0005']!)).toEqual([]);
+  });
+
+  it('la lista del doble factor siempre nombra al despacho, a política y al IVT: sin doble factor siguen sin fecha ni contactos', async () => {
+    const list = async () => (await sysOne<{ v: string[] }>(`select value as v from public.app_settings where key = 'security.mfa_roles'`))!.v;
+    const saved = await list();
+    for (const drop of ['dispatch', 'politics', 'ivt']) {
+      const value = JSON.stringify(saved.filter((r) => r !== drop));
+      await denied(rows('admin', `update public.app_settings set value = $1::text::jsonb where key = 'security.mfa_roles'`, [value]), `sin ${drop}`, /siempre lo usan/);
+    }
+    expect(await list()).toEqual(saved);
+    // What the list keeps closed on a first-factor session.
+    expect(await rows('dispatch', 'select public.can_manage_agenda() as m', [], 'aal1')).toEqual([{ m: false }]);
+    expect(await moveSchedule('dispatch', ev['E-0005']!, 'aal1')).toEqual([]);
+    for (const table of ['event_schedule', 'obra_ficha_private']) expect(await count('ivt', `select 1 from public.${table}`, [], 'aal1'), `ivt ${table}`).toBe(0);
+    expect(await count('politics', 'select 1 from public.community_report_private', [], 'aal1')).toBe(0);
+  });
+
   it('las acciones de la app: el jefe y el despacho sí; Administración, Redes y Grabación reciben un no en español', async () => {
     for (const who of ['boss', 'dispatch'] as const) {
       as(who);
@@ -505,6 +556,57 @@ describe('El jefe ve todo', () => {
     for (const table of ['event_schedule', 'event_calendar', 'obra_ficha_private', 'community_report_private']) {
       expect(await count('boss', `select 1 from public.${table}`, [], 'aal1'), table).toBe(0);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// §4.2: «Las fichas comunitarias tienen teléfonos de terceros: solo las ven el director de política, el despacho y el
+// jefe» (D-41). Administración keeps the main part (no phone in it) to delete and restore it.
+// ---------------------------------------------------------------------------
+describe('Los contactos de las fichas comunitarias: política, despacho y el jefe', () => {
+  it('Administración no lee, no agrega ni cambia los contactos de un reporte, y no crea reportes', async () => {
+    const report = await agendaReport();
+    await t.as('politics', (sql) =>
+      sql.query(`insert into public.community_report_private (id, reporter_name, reporter_phone) values ($1, 'Vocera de prueba (demo)', '0000-0000931')`, [report]));
+    for (const who of ['politics', 'dispatch', 'boss'] as const) {
+      expect(await count(who, 'select 1 from public.community_report_private where id = $1', [report]), who).toBe(1);
+    }
+    expect(await count('admin', 'select 1 from public.community_report_private')).toBe(0);
+    expect(await rows('admin', `update public.community_report_private set reporter_phone = '0000-0000932' where id = $1 returning id`, [report])).toEqual([]);
+    const bare = await agendaReport();
+    await denied(rows('admin', 'insert into public.community_report_private (id) values ($1)', [bare]), 'admin agrega contactos');
+    await denied(
+      rows('admin', `insert into public.community_reports (title, municipality, type, created_by) values ('Reporte de administración (demo)', 'Torbes', 'event', auth.uid())`),
+      'admin crea un reporte',
+    );
+    expect(await count('admin', 'select 1 from public.community_reports where id = $1', [report])).toBe(1);
+    expect((await sysOne<{ p: string }>('select reporter_phone as p from public.community_report_private where id = $1', [report]))!.p).toBe('0000-0000931');
+  });
+
+  it('el registro de cambios guarda qué campos de los contactos cambiaron, nunca su valor (tampoco en la obra)', async () => {
+    const report = await agendaReport();
+    await t.as('politics', (sql) =>
+      sql.query(`insert into public.community_report_private (id, reporter_name, reporter_phone) values ($1, 'Vocera de prueba (demo)', '0000-0000933')`, [report]));
+    await t.as('dispatch', (sql) => sql.query(`update public.community_report_private set reporter_phone = '0000-0000934' where id = $1`, [report]));
+    const obra = await readyObra();
+    await t.as('ivt', (sql) =>
+      sql.query(`insert into public.obra_ficha_private (id, liaison_name, liaison_phone) values ($1, 'Enlace de prueba (demo)', '0000-0000935')`, [obra]));
+    const trail = await rows<{ t: string; a: string; o: Record<string, unknown> | null; n: Record<string, unknown> }>(
+      'admin',
+      `select table_name as t, action as a, old_data as o, new_data as n from public.audit_log
+        where row_id in ($1, $2) and table_name in ('community_report_private', 'obra_ficha_private') order by id`,
+      [report, obra],
+    );
+    expect(trail.map((r) => [r.t, r.a, r.n.fields])).toEqual([
+      ['community_report_private', 'insert', ['reporter_name', 'reporter_phone']],
+      ['community_report_private', 'update', ['reporter_phone']],
+      ['obra_ficha_private', 'insert', ['liaison_name', 'liaison_phone']],
+    ]);
+    const text = JSON.stringify(trail);
+    for (const secret of ['0000-000093', 'Vocera de prueba', 'Enlace de prueba']) expect(text).not.toContain(secret);
+    // Which row and who saved it stay.
+    expect(trail[1]!.n).toMatchObject({ id: report, updated_by: t.ids.dispatch });
+    expect(Object.keys(trail[1]!.o!).sort()).toEqual(['id', 'rev', 'updated_at', 'updated_by']);
   });
 });
 

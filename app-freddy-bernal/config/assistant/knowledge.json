@@ -65,7 +65,7 @@
    "key": "roles",
    "roles": null,
    "title": "Quién hace qué (resumen de roles)",
-   "body": "Seis roles. Jefe: tiene todo, hasta lo de Redes; decide los eventos, se prepara para cada acto y aprueba todo lo que sale (piezas verdes, amarillas y rojas, y los tweets). Despacho: arma la agenda, las fichas técnicas, pone fecha y hora y asigna quién graba. Director de política: carga los eventos y avances comunitarios por municipio. Director del IVT: carga la ficha de cada obra antes de la visita del jefe. Grabación: graba y sube el material crudo de sus eventos. Redes: storyboard, piezas, copies, tweets, publicar y resultados. Administración es el rol técnico: equipo, permisos y ajustes, y puede hacer todo lo de Redes, pero nunca aprueba.",
+   "body": "Seis roles. Jefe: tiene todo, hasta lo de Redes; hace su propia agenda con Despacho (crea eventos y visitas de obra, les pone fecha y hora, los mueve y los cancela), decide los eventos, se prepara para cada acto y aprueba todo lo que sale (piezas verdes, amarillas y rojas, y los tweets). Despacho: la agenda junto con el jefe y las fichas técnicas; crea eventos, pone fecha y hora (también a lo que llega a «Por ponerle fecha»), mueve, cancela y asigna quién graba. Director de política: carga los eventos y avances comunitarios por municipio. Director del IVT: carga la ficha de cada obra antes de la visita del jefe y ve la fecha de esas visitas. Grabación: graba sus eventos y sube el material crudo, el storyboard con el que grabó y una nota para el editor. Redes: storyboard, piezas, copies, tweets, publicar y resultados. Administración es el rol técnico: equipo, permisos y ajustes; lee la agenda pero no crea eventos ni pone fecha, puede hacer todo lo de Redes y nunca aprueba.",
    "tags": [
     "roles",
     "permisos",
@@ -76,7 +76,7 @@
    "key": "agenda-privada",
    "roles": null,
    "title": "La agenda del jefe es privada",
-   "body": "La fecha, la hora, la dirección exacta, cómo llegar y los contactos de cada evento son información de seguridad. Solo los ven el jefe, Despacho, Administración y quien graba (solo sus eventos asignados). Redes y el director de política nunca los ven; Redes ve solo el día cuando el evento ya pasó. Lo impide la base de datos, no solo la pantalla. El asistente no tiene la agenda y nunca la da: el que la necesite y tenga permiso la ve en la Agenda. Tampoco se escribe en avisos ni correos.",
+   "body": "La fecha, la hora, la dirección exacta, cómo llegar y los contactos de cada evento son información de seguridad. Solo los ven el jefe, Despacho y Administración; quien graba, solo sus eventos asignados; y el director del IVT, solo las visitas a sus obras (las que nacen de sus fichas), con doble factor. Redes y el director de política nunca los ven; Redes ve solo el día cuando el evento ya pasó. Lo impide la base de datos, no solo la pantalla. El asistente no tiene la agenda y nunca la da: el que la necesite y tenga permiso la ve en la Agenda. Tampoco se escribe en avisos ni correos.",
    "tags": [
     "agenda",
     "seguridad",
@@ -89,7 +89,7 @@
    "key": "permisos",
    "roles": null,
    "title": "Tabla de permisos",
-   "body": "Ver la agenda con fecha y hora: jefe, Despacho y Administración; Grabación solo sus eventos. Crear y editar eventos y fichas: Despacho y Administración. Aceptar, rechazar y calificar eventos: solo el jefe. Asignar quién graba: Despacho, Redes y Administración. Armar el storyboard: Redes y Administración (los demás lo leen). Subir material crudo: Redes, Administración y Grabación en sus eventos. Crear piezas, copies y mandar a aprobar: Redes, el jefe y Administración. Aprobar piezas (verdes, amarillas y rojas) y tweets, y pedir cambios: solo el jefe. Publicar a mano y cargar métricas: Redes, el jefe y Administración. Ver resultados: jefe, Redes y Administración. Biblioteca: Despacho, Redes, el jefe y Administración. Invitar personas, roles y ajustes: Administración.",
+   "body": "Ver la agenda con fecha y hora: el jefe, Despacho y Administración; Grabación solo sus eventos; el director del IVT solo las visitas a sus obras. Crear eventos y visitas de obra, ponerles fecha y hora, moverlos y cancelarlos: el jefe y Despacho (Administración solo lee la agenda; el IVT y política nunca ponen fecha). Fichas de obra: el director del IVT, el jefe, Despacho y Administración. Fichas comunitarias: el director de política, el jefe y Despacho (los contactos de quien reporta, solo ellos). Aceptar, rechazar y calificar eventos: solo el jefe. Asignar quién graba: el jefe, Despacho, Redes y Administración. Armar el storyboard: Redes, el jefe y Administración (los demás lo leen); Grabación sube el storyboard con el que grabó y deja una nota para el editor. Subir material crudo: Redes, el jefe, Administración y Grabación en sus eventos. Crear piezas, copies y mandar a aprobar: Redes, el jefe y Administración. Aprobar piezas (verdes, amarillas y rojas) y tweets, y pedir cambios: solo el jefe. Publicar a mano y cargar métricas: Redes, el jefe y Administración. Ver resultados: jefe, Redes y Administración. Biblioteca: Despacho, Redes, el jefe y Administración. Invitar personas, roles y ajustes: Administración, que nunca se da roles a sí misma ni puede ser también el jefe o Despacho.",
    "tags": [
     "permisos",
     "quien puede"
@@ -204,7 +204,7 @@
     "admin"
    ],
    "title": "Qué hace Despacho en la plataforma",
-   "body": "Para qué: llevar la agenda del jefe y que cada evento tenga su ficha técnica completa, para que Redes y Grabación puedan trabajar. Inicio: Hoy con los eventos del día, fichas incompletas y cuántos esperan la decisión del jefe. Menú: Hoy, Agenda y Biblioteca; «Crear» → Nuevo evento. Puede crear eventos con fecha, hora, duración, dirección, cómo llegar, contactos y ficha técnica (avisa si choca con otro), ver la agenda en calendario (día, semana o mes), cambiar fecha, lugar o ficha, asignar o quitar a quien graba, marcar el evento como realizado y ver y descargar el material. No ve piezas, copies, tweets, publicaciones ni resultados, no sube material ni edita el storyboard, no borra eventos (solo Administración) y no decide por el jefe.",
+   "body": "Para qué: llevar la agenda del jefe junto con él y que cada evento tenga su ficha técnica completa, para que Redes y Grabación puedan trabajar. Inicio: Hoy, con «Por ponerle fecha» primero (las fichas de obra y los reportes que esperan fecha), los eventos del día, las fichas incompletas y cuántos esperan la decisión del jefe. Menú: Hoy, Agenda, Obras, Municipios y Biblioteca; «Por ponerle fecha» se abre desde Hoy y desde la Agenda. «Crear»: Nuevo evento, Visita de obra, Ficha de obra y Ficha comunitaria. Ve la agenda en calendario (día, semana o mes). Puede crear eventos con fecha, hora, duración, dirección, cómo llegar, contactos y ficha técnica (avisa si choca con otro), ver y descargar el material, ponerle fecha a lo que llega, moverlo («Mover»), cambiar fecha, lugar o ficha, cancelarlo con su motivo («Cancelar») y devolverlo a la agenda, asignar o quitar a quien graba y marcar el evento como realizado. Lo que crea o le pone fecha llega al jefe «Por decidir». No ve piezas, copies, tweets, publicaciones ni resultados, no sube material ni edita el storyboard, no borra eventos (solo Administración) y no decide por el jefe.",
    "tags": [
     "despacho",
     "rol"
@@ -233,7 +233,7 @@
     "admin"
    ],
    "title": "Qué hace el director del IVT en la plataforma",
-   "body": "Para qué: cargar la ficha de cada obra (del IVT) antes de la visita del jefe. No pone fecha ni hora: eso lo hacen el jefe o Despacho. No ve piezas, copies, tweets ni publicaciones. Entra con el código del correo y el doble factor. Inicio: Fichas de obra. Cuando el jefe o Despacho le ponen fecha a la visita, la ve en la Agenda («Mis visitas de obra»), solo la de sus obras.",
+   "body": "Para qué: cargar la ficha de cada obra (del IVT) antes de la visita del jefe. No pone fecha ni hora: eso lo hacen el jefe o Despacho. No ve piezas, copies, tweets ni publicaciones. Entra con el código del correo y el doble factor. Inicio: Fichas de obra. Cuando el jefe o Despacho le ponen fecha a la visita, la ve en la Agenda («Mis visitas de obra») con su fecha, hora y dirección, solo la de sus obras y con el doble factor.",
    "tags": [
     "ivt",
     "director del ivt",
@@ -262,11 +262,12 @@
   {
    "key": "nuevo-evento",
    "roles": [
+    "boss",
     "dispatch",
     "admin"
    ],
    "title": "Cómo se crea un evento",
-   "body": "Para crear un evento: «Crear» (arriba) → Nuevo evento. Se llenan título, lugar, municipio, de qué se trata, la parte privada (fecha, hora, duración, dirección, cómo llegar, contactos) y la ficha técnica. Despacho y Administración crean eventos y el jefe decide. La parte privada solo la ven el jefe, Despacho, Administración y quien graba.",
+   "body": "Para crear un evento: «Crear» (arriba) → Nuevo evento (o Visita de obra). Se llenan título, lugar, municipio, de qué se trata, la parte privada (fecha, hora, duración, dirección, cómo llegar, contactos) y la ficha técnica. Lo crean el jefe y Despacho: lo que crea el jefe queda aceptado y lo que crea Despacho le llega al jefe «Por decidir». Lo que manda el IVT o política llega a «Por ponerle fecha» y se convierte en evento con «Ponerle fecha». Administración no crea eventos: solo lee la agenda. La parte privada solo la ven el jefe, Despacho, Administración, quien graba y, en las visitas a sus obras, el director del IVT.",
    "tags": [
     "evento",
     "crear"
@@ -275,12 +276,12 @@
   {
    "key": "cambiar-evento",
    "roles": [
+    "boss",
     "dispatch",
-    "admin",
-    "boss"
+    "admin"
    ],
    "title": "Cambiar, cancelar o duplicar un evento",
-   "body": "Despacho y Administración cambian el título, el lugar, la fecha y la ficha técnica desde la ficha del evento. No hay botón para duplicar un evento: se crea otro en «Crear» → Nuevo evento. Tampoco hay botón para cancelarlo ni para borrarlo: si un evento ya no conviene, el jefe lo rechaza en Política o en su ficha, y si hay que quitarlo, Despacho le avisa a Administración.",
+   "body": "El jefe y Despacho cambian el título, el lugar, la fecha y la ficha técnica desde la ficha del evento. Para cancelar un evento, el jefe o Despacho tocan «Cancelar» en su ficha: sale de la agenda con su motivo (sin fecha, hora ni teléfono: lo leen todos), y «Volver a la agenda» lo trae de vuelta; si era una visita de obra, la obra vuelve a «Por ponerle fecha». Para moverlo, «Mover» cambia el día, la hora y la duración; «Cambiar fecha o lugar» también la dirección, cómo llegar y los contactos. Lo que ya se realizó no se mueve ni se cancela. No hay botón para duplicar un evento: se crea otro en «Crear» → Nuevo evento. Un evento no se borra a mano: si hay que quitarlo del todo, lo hace Administración, que también lo puede restaurar. Administración no cambia ni cancela eventos: solo lee la agenda.",
    "tags": [
     "cambiar",
     "cancelar",
@@ -293,12 +294,13 @@
   {
    "key": "asignar-grabacion",
    "roles": [
+    "boss",
     "dispatch",
     "admin",
     "social"
    ],
    "title": "Cómo se asigna quién graba",
-   "body": "En la ficha del evento, en «Quién graba», se elige a la persona; también al crear el evento. A esa persona le llega un aviso (y un correo). Para cambiarla, se quita y se asigna otra. Asignan Despacho, Redes y Administración.",
+   "body": "En la ficha del evento, en «Quién graba», se elige a la persona; también al crear el evento o al ponerle fecha. Cada persona de Grabación ve solo los eventos que le asignaron. A esa persona le llega un aviso (y un correo). Para cambiarla, se quita y se asigna otra. Asignan el jefe, Despacho, Redes y Administración.",
    "tags": [
     "grabacion",
     "asignar"
@@ -343,7 +345,7 @@
     "boss"
    ],
    "title": "Cómo se arma el storyboard",
-   "body": "En la ficha del evento, pestaña Storyboard: «Lo que va a decir el jefe» y los bloques, cada uno con plano, ángulo, la frase del jefe, las tomas de apoyo y un dato con su fuente. Lo arman Redes y Administración; el resto lo lee. Conviene armarlo para los eventos que el jefe ya aceptó.",
+   "body": "En la ficha del evento, pestaña Storyboard: «Lo que va a decir el jefe» y los bloques, cada uno con plano, ángulo, la frase del jefe, las tomas de apoyo y un dato con su fuente. Lo arman Redes, el jefe y Administración; el resto lo lee. Conviene armarlo para los eventos que el jefe ya aceptó. Después del evento, Grabación sube en la pestaña Material el storyboard con el que grabó (una foto, un PDF o escrito) y deja una nota para el editor; Redes los ve ahí, junto al material.",
    "tags": [
     "storyboard",
     "evento",
@@ -498,7 +500,7 @@
     "admin"
    ],
    "title": "Qué hace Grabación en la plataforma",
-   "body": "Para qué: grabar los eventos asignados y subir el material ordenado. Inicio: Hoy con sus eventos y los pasados sin material («Sube el material»). Menú: Hoy y «Mis eventos». Ve solo los eventos que le asignaron, con su parte privada; lee la ficha y el storyboard para saber qué tomas hacen falta; sube el material crudo; descarga el material de sus eventos y marca el evento como realizado. No ve eventos que no le asignaron, no sube finales ni portadas ni sube a eventos ajenos, no ve piezas, tweets ni publicaciones y no edita ficha, fecha ni storyboard.",
+   "body": "Para qué: grabar los eventos asignados y dejarle al editor todo lo que necesita. Inicio: Hoy con sus eventos y los pasados sin material («Sube el material»). Menú: Hoy y Agenda (sus eventos). Ve solo los eventos que le asignaron, con su fecha, hora y dirección; lee la ficha y el storyboard para saber qué tomas hacen falta. Por cada evento, en la pestaña Material («Entrega de Grabación»): sube el material crudo por casilla, sube el storyboard con el que grabó (foto, PDF o escrito) y deja una nota para el editor (qué toma sirve, qué falló; sin hora, fecha, dirección ni teléfonos: Redes la lee). Descarga el material de sus eventos y marca el evento como realizado. No ve eventos que no le asignaron, no sube finales ni portadas ni sube a eventos ajenos, no ve piezas, tweets ni publicaciones y no edita la ficha, la fecha ni el storyboard del evento.",
    "tags": [
     "grabacion",
     "rol"
@@ -529,7 +531,7 @@
     "admin"
    ],
    "title": "Qué hace Administración en la plataforma",
-   "body": "Para qué: manejar el equipo, los permisos y los ajustes. Puede hacer todo lo de Redes, pero nunca aprueba. Inicio: Hoy, con lo de Redes y lo trancado. Menú: Hoy, Agenda, Piezas y «Más» (Por aprobar, Tweets, Publicar, Resultados, Biblioteca, Ajustes). No aprueba piezas ni tweets ni pide cambios con decisión formal (solo comenta), no edita ni borra el registro de cambios y no enciende la publicación automática.",
+   "body": "Para qué: manejar el equipo, los permisos y los ajustes. Puede hacer todo lo de Redes, pero nunca aprueba. Inicio: Hoy, con lo de Redes y lo trancado. Menú: Hoy, Agenda, Piezas y «Más» (Por aprobar, Tweets, Publicar, Resultados, Biblioteca, Ajustes). Lee la agenda con fecha y hora, pero no crea eventos, no les pone fecha, no los mueve ni los cancela (eso es del jefe y Despacho); sí borra y restaura. No aprueba piezas ni tweets ni pide cambios con decisión formal (solo comenta), no ve los contactos de las fichas comunitarias, no se da roles a sí misma ni puede ser también el jefe o Despacho, no edita ni borra el registro de cambios y no enciende la publicación automática.",
    "tags": [
     "administracion",
     "rol"

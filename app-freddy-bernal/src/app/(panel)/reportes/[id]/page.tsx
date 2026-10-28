@@ -3,7 +3,7 @@ import { CalendarClock, Pencil } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
 import { fichaMedia, getReport, parishesInUse } from '@/lib/data/fichas';
 import { municipalities, parishes, peopleWithRole } from '@/lib/data/common';
-import { canManageAgenda } from '@/lib/roles';
+import { canManageAgenda, canSeeReportContacts } from '@/lib/roles';
 import { eventFromReport } from '@/lib/domain/ficha-event';
 import { isClosed } from '@/lib/domain/report-status';
 import { ScheduleSheet } from '@/components/agenda/schedule-sheet';
@@ -30,7 +30,8 @@ export const metadata = { title: 'Ficha comunitaria' };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // A community report (§4.2): only política, despacho, the boss and administración open it (the database decides:
-// Redes gets nothing, not even by the link). Contacts with 2FA. Its history only grows.
+// Redes gets nothing, not even by the link). Contacts: política, despacho and the boss, with 2FA (never
+// administración, D-41). Its history only grows.
 export default async function ReportPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ editar?: string }> }) {
   const s = await requireRole('admin', 'boss', 'dispatch', 'politics');
   const { id } = await params;
@@ -57,7 +58,8 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   const { report, priv, event } = data;
   const deleted = !!report.deleted_at;
   const canEdit = !deleted;
-  const canPrivate = s.mfaOk;
+  const contactsRole = canSeeReportContacts(s.roles);
+  const canPrivate = s.mfaOk && contactsRole;
   const marks: Marks = { ...(report.marks as Marks), ...((priv?.marks ?? {}) as Marks) };
   const values = { ...report, ...(priv ?? {}) } as Record<string, unknown>;
   const defs = REPORT_FIELDS.filter((d) => canPrivate || !d.private);
@@ -167,7 +169,11 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
             if (!fields.length) {
               return g.key === 'reporter' ? (
                 <Card key={g.key} className="p-4">
-                  <p className="text-[15px] text-text-2">«Persona que reporta»: se ve con el doble factor.</p>
+                  <p className="text-[15px] text-text-2">
+                    {contactsRole
+                      ? '«Persona que reporta»: se ve con el doble factor.'
+                      : '«Persona que reporta», la dirección y la fecha de la actividad: solo las ven política, el despacho y el jefe.'}
+                  </p>
                 </Card>
               ) : null;
             }

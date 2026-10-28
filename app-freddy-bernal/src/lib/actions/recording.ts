@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { act, UserError } from './run';
 import { notify, usersWithRole } from '../notify';
-import { NOTE_KINDS, NOTE_MAX, recordingNotice } from '../domain/recording';
+import { NOTE_KINDS, NOTE_MAX, notePhoneProblem, recordingNotice } from '../domain/recording';
 import { noticeRecipients } from '../domain/agenda-notices';
 
 // Grabación's handoff (cambios del 27/10/2026, §5): the note for the editor and the storyboard it typed, one per
@@ -22,6 +22,8 @@ const schema = z.object({
  */
 export async function saveRecordingNote(raw: unknown) {
   const res = await act(schema, raw, async (sql, i, s) => {
+    const phone = notePhoneProblem(i.body);
+    if (phone) throw new UserError(phone);
     const row = await sql.one<{ id: string }>(
       `insert into public.recording_notes (event_id, kind, body) values ($1, $2, $3)
        on conflict (event_id, author_id, kind) where deleted_at is null do update set body = excluded.body

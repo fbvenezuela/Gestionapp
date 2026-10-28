@@ -350,6 +350,7 @@
    "key": "nuevo-evento",
    "roles": [
     "admin",
+    "boss",
     "dispatch"
    ],
    "topic": "Nuevo evento y ficha técnica",
@@ -362,12 +363,13 @@
    ],
    "always": false,
    "script": "Persona: como cargo un evento nuevo?\n[ASISTENTE]: Toca «Crear» → Nuevo evento, llena los datos y la ficha técnica (quién dirige, logros, cifras con su fuente y protocolo) y guarda.\n[ASISTENTE]: Desde «Crear» arriba → Nuevo evento. Mientras más completa la ficha, mejor trabajan Redes y Grabación.\nSi dice «me equivoqué en un dato» → [ASISTENTE]: Ábrelo desde la Agenda y cámbialo en su ficha; la fecha y el lugar exacto también se cambian ahí.",
-   "notes": "La fecha, la hora y la dirección se escriben a mano en el formulario; el asistente nunca las pide ni las repite."
+   "notes": "Crean eventos [JEFE] y Despacho; Administración solo lee la agenda. La fecha, la hora y la dirección se escriben a mano en el formulario; el asistente nunca las pide ni las repite."
   },
   {
    "key": "asignar-grabacion",
    "roles": [
     "admin",
+    "boss",
     "dispatch",
     "social"
    ],
@@ -381,7 +383,7 @@
    ],
    "always": false,
    "script": "Persona: como asigno a quien graba?\n[ASISTENTE]: En la ficha del evento, en la parte de quién graba, eliges a la persona. Le llega un aviso al momento.\n[ASISTENTE]: Abre el evento y asigna a quien graba; si hay que cambiarlo, lo quitas y pones a otra persona.",
-   "notes": "Asignan Despacho, Redes y administración."
+   "notes": "Asignan [JEFE], Despacho, Redes y administración. Cada persona de Grabación ve solo lo que le asignaron."
   },
   {
    "key": "entrar",

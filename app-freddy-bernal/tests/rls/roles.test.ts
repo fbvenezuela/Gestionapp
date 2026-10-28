@@ -162,8 +162,9 @@ describe('el jefe aprueba todo (public.can_approve())', () => {
         await fails(t.as('boss', (sql) => sql.query(`select public.review_piece($1, 'approved')`, [p]), 'aal1'), /Solo el jefe aprueba/);
         await fails(t.as('boss', (sql) => sql.query(`update public.tweets set status = 'approved', approved_by = auth.uid(), approved_at = now() where id = $1`, [tw]), 'aal1'), /Solo el jefe aprueba tweets/);
       }
-      // Even with the list empty, admin who gives himself the boss's role on a first-factor session does not approve.
-      await t.as('admin', (sql) => sql.query(`insert into public.user_roles (user_id, role) values (auth.uid(), 'boss')`), 'aal1');
+      // Even with the list empty, admin cannot give himself the boss's role (nobody grants roles to themselves,
+      // 20261028002200_round_review_fixes.sql), and does not approve.
+      await fails(t.as('admin', (sql) => sql.query(`insert into public.user_roles (user_id, role) values (auth.uid(), 'boss')`), 'aal1'), /row-level security/);
       await fails(t.as('admin', (sql) => sql.query(`select public.review_piece($1, 'approved')`, [p]), 'aal1'), /Solo el jefe aprueba/);
     } finally {
       await t.system((sql) => sql.query(`delete from public.user_roles where user_id = $1 and role = 'boss'`, [t.ids.admin]));
@@ -191,12 +192,13 @@ describe('el jefe aprueba todo (public.can_approve())', () => {
     expect(await t.as('admin', (sql) => sql.query(`update public.app_settings set value = value where key = 'tweets.low_stock_days' returning key`))).toHaveLength(1);
   });
 
-  it('con doble factor, administración no saca de la lista a administración ni al jefe, ni la renombra', async () => {
+  it('con doble factor, administración no saca de la lista a administración, al jefe, al despacho, a política ni al IVT, ni la renombra', async () => {
     const saved = await mfaList();
-    for (const value of [['dispatch'], [], ['admin', 'dispatch'], ['boss'], { admin: true, boss: true }, 'admin boss', ['admin', 'boss', 7]]) {
+    for (const value of [['dispatch'], [], ['admin', 'dispatch'], ['boss'], { admin: true, boss: true }, 'admin boss', ['admin', 'boss', 7],
+      ['admin', 'boss'], ['admin', 'boss', 'dispatch', 'politics'], ['admin', 'boss', 'dispatch', 'ivt'], ['admin', 'boss', 'politics', 'ivt']]) {
       await fails(
         t.as('admin', (sql) => sql.query(`update public.app_settings set value = $1::text::jsonb where key = 'security.mfa_roles'`, [JSON.stringify(value)])),
-        /siempre lo usan administración y el jefe/,
+        /siempre lo usan administración, el jefe, el despacho, política y el IVT/,
       );
     }
     await fails(t.as('admin', (sql) => sql.query(`update public.app_settings set key = 'security.mfa_roles_vieja' where key = 'security.mfa_roles'`)), /no se renombra/);

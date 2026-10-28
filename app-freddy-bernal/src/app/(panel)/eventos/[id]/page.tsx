@@ -182,9 +182,10 @@ export default async function EventPage({ params, searchParams }: { params: Prom
               {ev.schedule.site_contacts ? <p className="flex items-start gap-2"><Phone className="mt-0.5 h-5 w-5 shrink-0 text-text-2" aria-hidden />{ev.schedule.site_contacts}</p> : null}
             </div>
           </CardBody>
-          {(canEdit && !cancelled) || markDone ? (
+          {(canEdit && !cancelled && !ev.done_on) || markDone ? (
             <div className="flex flex-wrap gap-2 border-t border-border px-4 py-3">
-              {canEdit && !cancelled ? <ScheduleEditor id={ev.id} schedule={ev.schedule} /> : null}
+              {/* What already happened keeps its date and place (the database refuses it too: guard_schedule_done). */}
+              {canEdit && !cancelled && !ev.done_on ? <ScheduleEditor id={ev.id} schedule={ev.schedule} /> : null}
               {markDone ? <MarkDone id={ev.id} /> : null}
             </div>
           ) : null}

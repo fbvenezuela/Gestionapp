@@ -276,3 +276,33 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 - **Cómo se cambia:** quién recibe el día, en `event_done_on()`; qué columnas de la obra ven Redes y Grabación, en
   `visit_obra_ficha()` (y en `HIDDEN_WITHOUT_CONTACTS` de `ficha-tab.ts`); las dos reglas de texto, en una migración
   nueva junto con su copia en la app y los casos de `tests/unit/fixtures/privacy-text-cases.ts`.
+
+## D-41. Administración es técnica de verdad: ni jefe, ni despacho, ni contactos comunitarios (28/10/2026)
+- **Qué:** migración `20261028002200_round_review_fixes.sql` (revisión de toda la ronda), con pruebas en
+  `tests/rls/por-rol.test.ts` y `tests/rls/round-review.test.ts`.
+  - **Roles:** nadie se da roles a sí mismo, y una cuenta nunca tiene administración junto con el jefe o el despacho
+    (la base lo rechaza también al sistema; las invitaciones que los mezclan, también, y las pendientes que los
+    mezclaban quedaron anuladas). Antes, administración con doble factor podía darse el rol del jefe (y aprobar una
+    roja) o el del despacho (y mover la agenda). En Equipo, esas casillas salen desactivadas con el porqué.
+  - **Doble factor:** la lista `security.mfa_roles` siempre nombra a administración, el jefe, el despacho, política y
+    el IVT: la fecha, la agenda y los contactos se cierran con ella, y sacar a uno los abría con un solo factor.
+  - **Contactos comunitarios (encargo §4.2: «solo las ven el director de política, el despacho y el jefe»):**
+    administración ya no lee, agrega ni cambia los contactos de un reporte (nombre, teléfono, dirección, referencia,
+    fecha de la actividad) y ya no crea reportes; sigue viendo la parte principal (sin teléfonos) para borrar y
+    restaurar. Los contactos de la ficha de obra siguen como estaban (el encargo no los limita; administración los ve
+    con doble factor): **pregunta para Hillary**.
+  - **Registro de cambios de los contactos (obra y reporte):** guarda qué campos cambiaron, quién y cuándo, nunca el
+    valor (como la historia de la ficha). Lo escrito antes de esta migración no se reescribe (el registro solo crece);
+    en la demo no hay nada antes y en fb-dev no hay datos reales.
+- **Además, en la misma migración:** un teléfono no entra en la nota de Grabación para el editor ni en su storyboard
+  escrito (los tiempos del video, «2:15», sí), en el texto principal de un reporte ni en el título, el lugar o el
+  resumen de un evento (Redes los lee); un evento borrado ya no lo ven quien lo graba, Redes, el jefe ni el despacho
+  (su fecha, su ficha técnica, su material), solo administración; el código del evento lo pone la base (sin fechas, sin
+  quitarle el número al siguiente); y un evento realizado ya no cambia de fecha ni de lugar.
+- **Por qué:** «Solo el jefe aprueba» y «administración no pone fecha ni edita la agenda» tenían que cumplirse en la
+  base también contra administración, que es quien da los roles.
+- **Lo que queda:** administración todavía puede invitar a otra persona (otra cuenta) como jefe o despacho: es su
+  trabajo dar roles, y queda en el registro de cambios con su autor.
+- **Cómo se cambia:** quién lee los contactos comunitarios, en las políticas `community_report_private_*`; qué roles
+  no van juntos, en `guard_role_mix()` y `guard_invitation_roles()` (y `roleGrantProblem()` en `src/lib/roles.ts`).
+

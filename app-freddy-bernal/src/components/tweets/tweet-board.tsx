@@ -13,7 +13,7 @@ import { Sheet } from '@/components/ui/sheet';
 import { Uploader } from '@/components/media/uploader';
 import { DownloadLink } from '@/components/media/drive-download';
 import { TWEET_STATUS } from '@/lib/data/labels';
-import { TZ, ms } from '@/lib/time';
+import { TZ, fmtAt, ms } from '@/lib/time';
 import { cn } from '@/lib/cn';
 
 export type BoardTweet = {
@@ -81,7 +81,7 @@ export function TweetBoard({ tweets, canEdit }: { tweets: BoardTweet[]; canEdit:
                       className={cn('min-h-11 w-full rounded-[var(--radius-control)] border border-border bg-surface p-2 text-left hover:border-accent', t.status === 'skipped' && 'opacity-50')}
                     >
                       <span className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-sm font-semibold">{local(t.scheduled_at!).toFormat('h:mm a')}</span>
+                        <span className="font-mono text-sm font-semibold">{fmtAt(local(t.scheduled_at!), 'h:mm a')}</span>
                         <Chip tone={TWEET_STATUS[t.status]?.tone}>{TWEET_STATUS[t.status]?.label}</Chip>
                       </span>
                       <span className="mt-1 line-clamp-3 block text-sm">{t.body}</span>

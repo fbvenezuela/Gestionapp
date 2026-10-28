@@ -9,7 +9,7 @@ import { mainPhoneMessage, mainTextPhone } from '@/lib/domain/phones';
 import { isClosed } from '@/lib/domain/report-status';
 import { REPORT_STATUSES } from '@/lib/data/ficha-labels';
 import { noticeRecipients, toScheduleNotice, type AgendaNotice } from '@/lib/domain/agenda-notices';
-import type { Role } from '../roles';
+import { canSeeReportContacts } from '../roles';
 
 // The community report (§4.2): the Director de política loads every event, advance or incident per municipality,
 // one ficha per activity or situation. «¿Va a la agenda del jefe?» on: the boss and despacho get «Por ponerle
@@ -17,7 +17,6 @@ import type { Role } from '../roles';
 // report; contacts (reporter's name and phone, address, the activity's date) need 2FA.
 
 const uuid = z.string().uuid();
-const REPORT_ROLES: Role[] = ['admin', 'boss', 'dispatch', 'politics'];
 const REVALIDATE = ['/municipios', '/reportes', '/hoy', '/jefe'];
 
 async function sendNotice(n: AgendaNotice, recipients: () => Promise<string[]>) {
@@ -42,7 +41,9 @@ const saveSchema = z.object({
 
 export async function saveReport(raw: unknown) {
   return act(saveSchema, raw, async (sql, i, s) => {
-    const canPrivate = s.mfaOk && s.roles.some((r) => REPORT_ROLES.includes(r));
+    // The contacts: política, despacho and the boss, with 2FA (never administración, D-41; the database too).
+    const canPrivate = s.mfaOk && canSeeReportContacts(s.roles);
+    if (!i.id && !canSeeReportContacts(s.roles)) throw new UserError('Las fichas comunitarias las cargan política, el despacho y el jefe.');
     const defs = canPrivate ? REPORT_FIELDS : REPORT_FIELDS.filter((d) => !d.private);
     const before = i.id
       ? await sql.one<{ wants_agenda: boolean; rev: number }>(`select wants_agenda, rev from public.community_reports where id = $1 and deleted_at is null`, [i.id])

@@ -3,12 +3,14 @@ import { db, type Session } from '../auth/session';
 import { withSystem } from '../db';
 import { friendlyDbError } from '../db/core';
 import { usersWithRole } from '../notify';
-import { INVITABLE_ROLES, ROLE_LABEL, type Role } from '../roles';
+import { INVITABLE_ROLES, ROLE_LABEL, homeFor, type Role } from '../roles';
 import { tweetStock } from '../data/tweets';
+import { toSchedule } from '../data/events';
+import { obraStageCounts, overdueReports } from '../data/fichas';
 import { BOSS_DECISION, NETWORK_LABEL, PIECE_STATUS, WORK_STATUS } from '../data/labels';
 import { windowHint, type PublishingWindows } from '../domain/publishing-windows';
 import { bestTimes } from '../domain/best-times';
-import { dt } from '../time';
+import { dt, today } from '../time';
 import { NOTICE_MAX, NOTICE_TOO_LONG, noticeIssues, noticeRefusal } from './guard';
 import { redact, redactContacts } from './redact';
 import { plain } from './text';
@@ -45,8 +47,9 @@ export type Tool = {
 export class ToolError extends Error {}
 
 const CONTENT: Role[] = ['admin', 'social', 'boss'];
-// Who sees events at all (can_see_event). Director de política and Director del IVT get their own events with
-// the shared agenda; until then, none.
+// Who sees events with their brief, storyboard and material (can_see_event). The Director de política and the Director
+// del IVT read only the events born from their own fichas (events_select), never their brief: the event tools are not
+// offered to them.
 const SEE_EVENTS: Role[] = ['admin', 'boss', 'dispatch', 'social', 'camera'];
 const NETWORKS = Object.keys(NETWORK_LABEL);
 const RAW = `('boss','drone','broll','other')`;
@@ -86,7 +89,7 @@ export const TOOLS: Tool[] = [
   {
     name: 'mis_pendientes',
     description:
-      'Lo que tiene pendiente quien pregunta según su rol (lo mismo que su pantalla Hoy) y cuántos avisos sin leer tiene. Úsala cuando pregunte qué tiene, qué le toca o qué hay por hacer. No da fechas ni horas de eventos.',
+      'Lo que tiene pendiente quien pregunta según su rol (lo mismo que su pantalla de inicio: Hoy, el Inicio del jefe, Municipios u Obras) y cuántos avisos sin leer tiene. Úsala cuando pregunte qué tiene, qué le toca o qué hay por hacer. No da fechas ni horas de eventos.',
     parameters: {},
     required: [],
     fromServer: [],
@@ -97,6 +100,10 @@ export const TOOLS: Tool[] = [
       const out = await db(s, async (sql) => {
         const items: { que: string; titulo: string }[] = [];
         const push = (que: string, rows: { title: string }[]) => rows.forEach((r) => items.push({ que, titulo: r.title }));
+        // The same as each home (Hoy, /jefe, /municipios, /obras). «Lo vencido sale arriba» in política's home (§4.2):
+        // community reports past their follow-up day. The boss gets them after what waits for his approval.
+        const overdue = has(s, 'politics', 'boss') ? await overdueReports(sql, today().toISODate()!, 5) : [];
+        if (has(s, 'politics') && !has(s, 'boss')) push('Vencida', overdue);
         if (has(s, 'social', 'admin')) {
           push('El jefe pidió cambios', await sql.query(`select title from public.pieces where status = 'changes_requested' and deleted_at is null order by updated_at desc limit 5`));
           push('Falta el storyboard', await sql.query(
@@ -125,7 +132,11 @@ export const TOOLS: Tool[] = [
           const tw = await sql.one<{ n: number }>(`select count(*)::int as n from public.tweets where status = 'draft' and deleted_at is null`);
           if (tw?.n) items.push({ que: 'Tweets por aprobar', titulo: `${tw.n} tweets` });
           push('Espera tu decisión', await sql.query(`select title from public.events where boss_decision = 'pending' and deleted_at is null and cancelled_at is null order by created_at limit 8`));
+          push('Vencida', overdue);
         }
+        // «Por ponerle fecha» (§4): the obras and reports that wait for a date, first in despacho's Hoy and on the boss's
+        // Política tile. The title only (agenda_to_schedule has no date: there is none yet).
+        if (has(s, 'boss', 'dispatch')) push('Por ponerle fecha', await toSchedule(sql, 10));
         if (has(s, 'dispatch')) {
           push('Ficha técnica incompleta', await sql.query(
             `select e.title from public.events e left join public.event_brief b on b.event_id = e.id
@@ -141,14 +152,21 @@ export const TOOLS: Tool[] = [
             `select e.title from public.events e join public.event_assignments a on a.event_id = e.id and a.user_id = auth.uid()
               where e.deleted_at is null and e.cancelled_at is null and public.event_done_on(e.id) is null limit 8`));
         }
+        if (has(s, 'ivt')) {
+          // His obra fichas (Obras, and the card in Hoy): the drafts to finish and send, and how many wait for a date.
+          push('Ficha de obra en borrador', await sql.query(`select name as title from public.obra_fichas where stage = 'draft' and deleted_at is null order by updated_at desc limit 5`));
+          const waitingDate = (await obraStageCounts(sql)).to_schedule ?? 0;
+          if (waitingDate) items.push({ que: 'Esperan fecha (la ponen el jefe o el despacho)', titulo: `${waitingDate} ${waitingDate === 1 ? 'obra' : 'obras'} por ponerle fecha` });
+        }
         const unread = await sql.one<{ n: number }>(`select count(*)::int as n from public.notifications where read_at is null`);
         return { items, unread: unread?.n ?? 0 };
       });
       const seen = new Set<string>();
-      const pendientes = out.items.filter((i) => !seen.has(i.que + i.titulo) && seen.add(i.que + i.titulo)).slice(0, 12);
+      const all = out.items.filter((i) => !seen.has(i.que + i.titulo) && seen.add(i.que + i.titulo));
       return {
-        result: { total: pendientes.length, pendientes, avisos_sin_leer: out.unread },
-        goTo: has(s, 'boss') && !has(s, 'admin') ? '/jefe' : '/hoy',
+        result: { total: all.length, pendientes: all.slice(0, 12), avisos_sin_leer: out.unread },
+        // Their home: the boss's Inicio, Municipios for política, Obras for the IVT, Hoy for the rest.
+        goTo: homeFor(s.roles),
       };
     },
   },

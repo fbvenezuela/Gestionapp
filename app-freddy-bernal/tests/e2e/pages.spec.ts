@@ -87,3 +87,36 @@ test('las páginas de un evento abren para cada rol', async ({ page }) => {
     await page.context().clearCookies();
   }
 });
+
+// Administración's settings at 360 px: «Franjas para tweets» used to be 24 px wider than the phone (the two time
+// inputs and the trash button in one row).
+test('los ajustes de Administración caben en el teléfono', async ({ page }) => {
+  await loginAs(page, 'admin@demo.test');
+  for (const p of ['/ajustes/horarios', '/ajustes/equipo', '/ajustes/redes']) {
+    await page.goto(p);
+    await expect(page.getByRole('heading', { name: 'Algo no cargó' }), p).toHaveCount(0);
+    const w = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(w, `${p}: se desplaza hacia los lados`).toBeLessThanOrEqual(page.viewportSize()!.width);
+    // The trash button of each tweet slot is whole on the screen (it used to be cut at the right edge).
+    if (p === '/ajustes/horarios') await expect(page.getByRole('button', { name: 'Quitar franja' }).first()).toBeInViewport({ ratio: 1 });
+  }
+});
+
+// The tweet screens wrote «8:07 a. m.» with a no-break space on the server and a plain one in the browser: React's
+// hydration error #418 on every role that opens them (the boss too, from his Redes hub).
+test('las pantallas de tweets no dan error al cargar (la hora sale igual en el servidor y en el teléfono)', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => {
+    if (/#418|#423|#425|hydrat/i.test(e.message)) errors.push(e.message);
+  });
+  for (const email of ['jefe@demo.test', 'redes@demo.test', 'admin@demo.test']) {
+    await loginAs(page, email);
+    for (const p of email === 'admin@demo.test' ? ['/tweets', '/aprobar?tab=tweets'] : ['/tweets']) {
+      await page.goto(p);
+      await expect(page.locator('main')).toBeVisible();
+      await page.waitForLoadState('networkidle');
+      expect(errors, `${email} ${p}`).toEqual([]);
+    }
+    await page.context().clearCookies();
+  }
+});

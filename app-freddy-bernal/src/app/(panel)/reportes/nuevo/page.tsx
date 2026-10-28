@@ -8,9 +8,10 @@ import { municipalitySlug } from '@/lib/domain/territory';
 
 export const metadata = { title: 'Nueva ficha comunitaria' };
 
-// One ficha per activity or situation (§4.2).
+// One ficha per activity or situation (§4.2). Política, despacho and the boss: a report carries third-party contacts
+// that only they read (D-41), so Administración does not load one.
 export default async function NewReportPage({ searchParams }: { searchParams: Promise<{ municipio?: string }> }) {
-  const s = await requireRole('admin', 'boss', 'dispatch', 'politics');
+  const s = await requireRole('boss', 'dispatch', 'politics');
   const { municipio } = await searchParams;
   const data = await db(s, async (sql) => ({
     municipalities: await municipalities(sql),

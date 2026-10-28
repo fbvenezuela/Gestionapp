@@ -9,16 +9,26 @@ export function dt(v: string | Date | null | undefined): DateTime | null {
   return d.isValid ? d.setZone(TZ).setLocale('es') : null;
 }
 
+// ICU writes «a. m.» with a no-break space in Node (the server's HTML) and with a plain space in some browsers: the
+// text then differs between the server and the phone, and React throws its hydration error (number 418) on the screen.
+// Every formatted date and time goes out with plain spaces, on both sides.
+const ODD_SPACES = /[\u00a0\u202f]/g;
+
+/** `d.toFormat(format)` with plain spaces (the same text on the server and in the browser). */
+export function fmtAt(d: DateTime | null | undefined, format: string): string {
+  return d ? d.toFormat(format).replace(ODD_SPACES, ' ') : '';
+}
+
 export function fmtDate(v: string | Date | null | undefined, fmt = "ccc d 'de' LLL") {
-  return dt(v)?.toFormat(fmt) ?? '';
+  return fmtAt(dt(v), fmt);
 }
 
 export function fmtTime(v: string | Date | null | undefined) {
-  return dt(v)?.toFormat('h:mm a') ?? '';
+  return fmtAt(dt(v), 'h:mm a');
 }
 
 export function fmtDateTime(v: string | Date | null | undefined) {
-  return dt(v)?.toFormat("ccc d 'de' LLL, h:mm a") ?? '';
+  return fmtAt(dt(v), "ccc d 'de' LLL, h:mm a");
 }
 
 // Timestamps arrive as Date (pg drivers) or ISO strings; compare them as numbers.
@@ -38,5 +48,5 @@ export function dayOnly(v: string | Date | null | undefined): DateTime | null {
 }
 
 export function fmtDay(v: string | Date | null | undefined, fmt = "cccc d 'de' LLLL") {
-  return dayOnly(v)?.toFormat(fmt) ?? '';
+  return fmtAt(dayOnly(v), fmt);
 }

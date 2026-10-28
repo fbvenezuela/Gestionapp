@@ -56,6 +56,10 @@ export class DbError extends Error {
 const PRIVACY_CHECKS: [string, string][] = [
   ['obra_fichas_main_no_phone', 'No se guardó: la ficha de obra tiene algo que parece un teléfono, y Redes y Grabación leen esa parte. Los teléfonos van en los contactos; si es una cifra, escríbela con puntos: 1.500.000.'],
   ['events_cancel_reason_private', 'El motivo lo leen todos (Redes también): escríbelo sin fecha, hora ni teléfono.'],
+  // 20261028002200_round_review_fixes.sql
+  ['recording_notes_no_phone', 'No se guardó: la nota tiene algo que parece un teléfono, y Redes la lee. Quítalo; los tiempos del video (2:15) sí van.'],
+  ['community_reports_main_no_phone', 'No se guardó: el reporte tiene algo que parece un teléfono fuera de los contactos. Los teléfonos van en «Teléfono» de la persona que reporta; si es una cifra, escríbela con puntos: 1.500.000.'],
+  ['events_main_no_phone', 'No se guardó: el título, el lugar o el resumen tienen algo que parece un teléfono, y Redes los lee. Los teléfonos van en «Contactos del sitio».'],
 ];
 
 // Turn a Postgres error into a short Spanish message for people.

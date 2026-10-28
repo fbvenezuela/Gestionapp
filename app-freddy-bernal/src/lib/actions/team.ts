@@ -9,7 +9,7 @@ import { withSystem } from '../db';
 import { endAuthSessions } from '../auth/revoke';
 import { brand } from '../client-config';
 import { sendEmail } from '../email/send';
-import { INVITABLE_ROLES, ROLE_LABEL } from '../roles';
+import { INVITABLE_ROLES, ROLE_LABEL, roleGrantProblem, type Role } from '../roles';
 
 const inviteSchema = z.object({
   email: z.string().trim().toLowerCase().email('Escribe un correo válido.'),
@@ -20,9 +20,17 @@ const inviteSchema = z.object({
 export async function inviteUser(raw: unknown) {
   return act(inviteSchema, raw, async (sql, input, s) => {
     if (!s.roles.includes('admin')) throw new UserError('Solo administración invita.');
-    const existing = await sql.one<{ id: string }>(`select id from public.profiles where email = $1`, [input.email]);
+    const existing = await sql.one<{ id: string; roles: Role[] | null }>(
+      `select p.id, (select array_agg(ur.role::text) from public.user_roles ur where ur.user_id = p.id) as roles from public.profiles p where p.email = $1`,
+      [input.email],
+    );
     if (existing) {
-      await sql.query(`insert into public.user_roles (user_id, role, granted_by) values ($1, $2, auth.uid()) on conflict do nothing`, [existing.id, input.role]);
+      // Nobody gives roles to themselves, and Administración never goes with the boss or despacho (the database too).
+      const problem = roleGrantProblem({ isSelf: existing.id === s.userId, roles: existing.roles ?? [], role: input.role });
+      if (problem) throw new UserError(problem);
+      if (!existing.roles?.includes(input.role)) {
+        await sql.query(`insert into public.user_roles (user_id, role, granted_by) values ($1, $2, auth.uid()) on conflict do nothing`, [existing.id, input.role]);
+      }
     } else {
       await sql.query(`insert into public.invitations (email, full_name, roles, invited_by) values ($1, $2, $3::public.app_role[], auth.uid())`, [
         input.email,
@@ -60,8 +68,16 @@ const roleSchema = z.object({ userId: z.string().uuid(), role: z.enum(INVITABLE_
 export async function setRole(raw: unknown) {
   return act(roleSchema, raw, async (sql, input, s) => {
     if (input.userId === s.userId && input.role === 'admin' && !input.on) throw new UserError('No puedes quitarte tu propio rol de administración.');
-    if (input.on) await sql.query(`insert into public.user_roles (user_id, role, granted_by) values ($1, $2, auth.uid()) on conflict do nothing`, [input.userId, input.role]);
-    else await sql.query(`delete from public.user_roles where user_id = $1 and role = $2`, [input.userId, input.role]);
+    if (input.on) {
+      // Nobody gives roles to themselves, and Administración never goes with the boss or despacho (the database too:
+      // user_roles_insert, guard_role_mix).
+      const held = await sql.query<{ role: Role }>(`select role::text as role from public.user_roles where user_id = $1`, [input.userId]);
+      const problem = roleGrantProblem({ isSelf: input.userId === s.userId, roles: held.map((r) => r.role), role: input.role });
+      if (problem) throw new UserError(problem);
+      if (!held.some((r) => r.role === input.role)) {
+        await sql.query(`insert into public.user_roles (user_id, role, granted_by) values ($1, $2, auth.uid()) on conflict do nothing`, [input.userId, input.role]);
+      }
+    } else await sql.query(`delete from public.user_roles where user_id = $1 and role = $2`, [input.userId, input.role]);
   }, { revalidate: ['/ajustes/equipo'] });
 }
 
