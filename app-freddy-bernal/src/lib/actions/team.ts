@@ -32,6 +32,9 @@ export async function inviteUser(raw: unknown) {
         await sql.query(`insert into public.user_roles (user_id, role, granted_by) values ($1, $2, auth.uid()) on conflict do nothing`, [existing.id, input.role]);
       }
     } else {
+      // A new account: only the boss's role is out (the system gives it; guard_boss_grant refuses it too).
+      const problem = roleGrantProblem({ isSelf: false, roles: [], role: input.role });
+      if (problem) throw new UserError(problem);
       await sql.query(`insert into public.invitations (email, full_name, roles, invited_by) values ($1, $2, $3::public.app_role[], auth.uid())`, [
         input.email,
         input.fullName,

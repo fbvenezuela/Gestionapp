@@ -6,7 +6,7 @@ import { useAction } from '@/lib/hooks/use-action';
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Field, Input, Select } from '@/components/ui/field';
-import { INVITABLE_ROLES, ROLE_LABEL, TEAM_ROLES, roleGrantProblem, type InvitableRole, type Role } from '@/lib/roles';
+import { BOSS_GRANT_MESSAGE, INVITABLE_ROLES, ROLE_LABEL, TEAM_ROLES, roleGrantProblem, type InvitableRole, type Role } from '@/lib/roles';
 
 // The six team roles, then Administración apart: the technical role, never part of the team lists.
 const roleLabel = (r: InvitableRole) => (r === 'admin' ? 'Administración (técnico)' : ROLE_LABEL[r]);
@@ -28,11 +28,12 @@ export function InviteForm() {
       <Field label="Correo" htmlFor="inv-email">
         <Input id="inv-email" type="email" inputMode="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
       </Field>
-      <Field label="Rol" htmlFor="inv-role">
+      {/* The boss's role is not given here (D-58): the option stays, off, with the reason under the list. */}
+      <Field label="Rol" htmlFor="inv-role" hint={BOSS_GRANT_MESSAGE}>
         <Select id="inv-role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as InvitableRole })}>
           <optgroup label="Equipo">
             {TEAM_ROLES.map((r) => (
-              <option key={r} value={r}>{ROLE_LABEL[r]}</option>
+              <option key={r} value={r} disabled={r === 'boss'}>{r === 'boss' ? `${ROLE_LABEL[r]} (lo da el comando de instalación)` : ROLE_LABEL[r]}</option>
             ))}
           </optgroup>
           <option value="admin">{roleLabel('admin')}</option>
@@ -51,8 +52,8 @@ export function MemberActions({ userId, name, roles, active, isSelf, twoFactor }
   const { run, pending } = useAction();
   const { confirm, dialog } = useConfirm();
   const [open, setOpen] = useState(false);
-  // Roles that cannot be given here, and why (your own, or Administración with the boss or despacho). The database
-  // refuses them too; the screen says why before anyone taps.
+  // Roles that cannot be given here, and why (your own, Administración with the boss or despacho, or the boss's role,
+  // which only the installation command gives). The database refuses them too; the screen says why before anyone taps.
   const problems = new Map(INVITABLE_ROLES.map((r) => [r, roleGrantProblem({ isSelf, roles, role: r })] as const));
   const reasons = [...new Set([...problems.values()].filter((x): x is string => !!x))];
   const hintId = `roles-why-${userId}`;

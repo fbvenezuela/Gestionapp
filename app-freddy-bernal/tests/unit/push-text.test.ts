@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { looksLikeDateTime, pushText, stripDateTime } from '@/lib/push/text';
+import { firstDateTime, looksLikeDateTime, pushText, stripDateTime } from '@/lib/push/text';
+import { DATETIME_CASES, generatedTexts } from './fixtures/privacy-text-cases';
 
 describe('guardia de texto: nada que parezca fecha u hora sale al teléfono', () => {
   it('quita horas en todos sus formatos', () => {
@@ -90,5 +91,22 @@ describe('guardia de texto: formas comunes que se escapaban', () => {
   it('no se come cantidades que no son año', () => {
     expect(stripDateTime('Entrega 24 de octubre 15 piezas')).toBe('Entrega 15 piezas');
     expect(stripDateTime('Te asignaron 2 hermanos')).toBe('Te asignaron 2 hermanos');
+  });
+});
+
+// R3 (Mensajes): firstDateTime() names what looksLikeDateTime() finds, so the app can say «"mañana" no puede ir aquí».
+describe('firstDateTime: la misma regla, con la palabra', () => {
+  it('encuentra algo justo cuando looksLikeDateTime dice que sí (los casos de siempre y 6000 textos generados)', () => {
+    for (const c of DATETIME_CASES) expect(firstDateTime(c.text) !== null, JSON.stringify(c.text)).toBe(looksLikeDateTime(c.text));
+    for (const s of generatedTexts(6000)) expect(firstDateTime(s) !== null, JSON.stringify(s)).toBe(looksLikeDateTime(s));
+  });
+
+  it('da lo primero que aparece, tal como está escrito', () => {
+    expect(firstDateTime('Nos vemos mañana a las 9')).toBe('mañana');
+    expect(firstDateTime('Acto a las 9:30 el viernes')).toBe('a las 9:30');
+    expect(firstDateTime('Entrega el 24 de octubre')).toBe('24 de octubre');
+    expect(firstDateTime('Llamar al 0414-1234567')).toBe('0414-1234567');
+    expect(firstDateTime('Lluvia fuerte en la zona')).toBeNull();
+    expect(firstDateTime('')).toBeNull();
   });
 });

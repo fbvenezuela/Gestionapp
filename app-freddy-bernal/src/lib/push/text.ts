@@ -76,7 +76,25 @@ export function pushText(title: string, body?: string): { title: string; body: s
   return { title: t, body: clip(stripDateTime(body ?? ''), 160) };
 }
 
-// True if the text still contains something that looks like a date, time or phone.
+// The patterns themselves, in their order, for the chat's concrete detector (hasConcreteDateTime() of
+// src/lib/domain/chat.ts takes some of them, as public.text_has_concrete_datetime() takes them from
+// public.datetime_patterns()). They are global: clone one before using it (new RegExp(re.source, flags)).
+export const DATETIME_PATTERNS: readonly RegExp[] = PATTERNS;
+
+/** The first piece of `s` (by position; the longer one when two start together) that looks like a date, a time or a
+ * phone, or null: what looksLikeDateTime() finds, to name it to the person («"mañana" no puede ir aquí»). */
+export function firstDateTime(s: string): string | null {
+  let best: { at: number; text: string } | null = null;
+  for (const re of PATTERNS) {
+    re.lastIndex = 0;
+    const m = re.exec(s ?? '');
+    re.lastIndex = 0;
+    if (m && (!best || m.index < best.at || (m.index === best.at && m[0].length > best.text.length))) best = { at: m.index, text: m[0] };
+  }
+  return best ? best.text.trim() : null;
+}
+
+// True if the text still contains something that looks like a date, time or phone (= firstDateTime() is not null).
 export function looksLikeDateTime(s: string): boolean {
   return PATTERNS.some((re) => {
     re.lastIndex = 0;
