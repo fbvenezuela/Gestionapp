@@ -7,6 +7,7 @@ import { notify, usersWithRole } from '../notify';
 import { dialogBrand } from '../data/fichas';
 import { OBRA_FIELDS, missingFields, missingMessage } from '@/lib/domain/ficha-fields';
 import { noticeRecipients, toScheduleNotice, type AgendaNotice } from '@/lib/domain/agenda-notices';
+import { mainPhoneMessage, mainTextPhone } from '@/lib/domain/phones';
 import { buildObraDialog, dialogContactProblem, dialogInput, dialogUnknownNumbers } from '@/lib/domain/obra-dialog';
 import type { Role } from '../roles';
 
@@ -55,6 +56,9 @@ export async function saveObraFicha(raw: unknown) {
       ? await keepOthersContacts(sql, 'obra_fichas', i.id, defs, i.values, i.marks, i.privRev, i.privChanged)
       : { values: i.values, marks: i.marks, moved: false };
     const p = parseFicha(defs, contacts.values, contacts.marks);
+    // Redes and Grabación read the main part as stored while the visit is live (RLS): never a phone in it.
+    const phone = mainTextPhone(defs, p.main);
+    if (phone) throw new UserError(mainPhoneMessage('obra', phone));
     if (before && ['scheduled', 'done', 'archived'].includes(before.stage) && i.submit) throw new UserError('Esta ficha ya no está en borrador.');
     // Ready = «Guardar y avisar», or any later save of a ficha that already went out: every field answered.
     // (A draft or an archived ficha saves with whatever it has.)

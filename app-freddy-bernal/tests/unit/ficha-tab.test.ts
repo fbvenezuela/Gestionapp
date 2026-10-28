@@ -2,7 +2,7 @@
 // the brief copied into the event, the boss's «Antes de hablar» and the FAB fallback of modo lectura. Whatever
 // Redes and Grabación get from an obra carries no phone, no reporter's name and no liaison's name, even when the
 // private part is handed in by mistake. All data here is invented.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeSpeaking, fichaTab, HIDDEN_WITHOUT_CONTACTS, readingParts } from '@/lib/domain/ficha-tab';
@@ -11,6 +11,9 @@ import { EventFichaTab } from '@/components/fichas/event-ficha-tab';
 import { PhotoGallery } from '@/components/fichas/photo-gallery';
 import { OBRA_KINDS, REPORT_KINDS } from '@/lib/domain/media-mime';
 import type { FichaMedia } from '@/lib/data/fichas';
+
+// The uploader needs the app router; here only the words around it matter.
+vi.mock('@/components/media/uploader', () => ({ Uploader: () => null }));
 
 const obra: Record<string, unknown> = {
   id: '00000000-0000-4000-8000-0000000000f1',
@@ -168,6 +171,22 @@ describe('las fotos de la ficha', () => {
     // A PDF outside Drive has no picture: its icon.
     expect(out).not.toContain('0000000000b3/thumb');
     for (const t of ['Antes', 'Avance', 'Documentos']) expect(out).toContain(`aria-label="${t}"`);
+  });
+
+  it('la pestaña del evento sin contactos (Redes, Grabación) no muestra los documentos, aunque lleguen', () => {
+    const doc = m({ id: '00000000-0000-4000-8000-0000000000b5', kind: 'document', label: 'Documento 1', mime: 'application/pdf' });
+    const tab = (contacts: boolean) =>
+      renderToStaticMarkup(createElement(EventFichaTab, { kind: 'obra', id: String(obra.id), code: 'O-0099', tab: { groups: [], contacts: [] }, media: [m({}), doc], contacts }));
+    expect(tab(false)).not.toContain('aria-label="Documentos"');
+    expect(tab(false)).not.toContain('0000000000b5');
+    expect(tab(false)).toContain('aria-label="Antes"');
+    expect(tab(true)).toContain('aria-label="Documentos"');
+  });
+
+  it('a quien sube se le dice quién ve cada cosa: los documentos de una obra, nunca Redes ni Grabación', () => {
+    const out = renderToStaticMarkup(createElement(PhotoGallery, { target: { obraFichaId: String(obra.id) }, kinds: OBRA_KINDS, media: [], canUpload: true, title: 'Fotos' }));
+    expect(out).toContain('Los ven solo el IVT, el jefe, el despacho y Administración: nunca Redes ni Grabación.');
+    expect(out).toContain('Cuando la visita tenga fecha, también las ven Redes y quien la grabe.');
   });
 
   it('un archivo de Drive nunca se abre con un enlace simple; un reporte muestra «Después» y no «Avance»', () => {

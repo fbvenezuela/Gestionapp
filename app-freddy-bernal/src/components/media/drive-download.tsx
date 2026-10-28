@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { downloadInChunks, downloadText, memorySink, opfsSink, saveToDevice, sizeText, DownloadError, type ChunkSink } from '@/lib/media/chunk-download';
+import { driveOutcome, type DriveOutcome } from '@/lib/media/one-by-one';
 import { cn } from '@/lib/cn';
 
 // Downloads of files kept in Google Drive, in 4 MiB pieces through the platform (see
@@ -14,16 +15,22 @@ let queue: Promise<unknown> = Promise.resolve();
 
 export type DriveFileRef = { id: string; label: string; size: number };
 
-/** Queues one Drive file. `prefix` = «2 de 5 · » when downloading several. */
-export function downloadDriveFile(f: DriveFileRef, prefix = ''): Promise<boolean> {
-  const run = async (): Promise<boolean> => {
+/**
+ * Queues one Drive file. `prefix` = «2 de 5 · » when downloading several; `signal` cancels it from outside (the
+ * «Cancelar» of «Descargar todo»). Says how it ended: «Descargar todo» stops on the daily share (429), Drive or the
+ * month's cap (503) and a lost session (401) instead of asking for every other file.
+ */
+export function downloadDriveFile(f: DriveFileRef, prefix = '', signal?: AbortSignal): Promise<DriveOutcome> {
+  const run = async (): Promise<DriveOutcome> => {
     const ctrl = new AbortController();
+    if (signal?.aborted) ctrl.abort();
+    signal?.addEventListener('abort', () => ctrl.abort(), { once: true });
     const tid = toast.loading(`${prefix}Empezando la descarga…`, {
       duration: Infinity,
       action: { label: 'Cancelar', onClick: () => ctrl.abort() },
     });
     let sink: ChunkSink = memorySink();
-    try {
+    const out = await driveOutcome(async () => {
       const disk = await opfsSink(f.id);
       if (disk) {
         const est = await (navigator.storage?.estimate?.() ?? Promise.resolve(undefined)).catch(() => undefined);
@@ -41,16 +48,15 @@ export function downloadDriveFile(f: DriveFileRef, prefix = ''): Promise<boolean
       });
       await saveToDevice(sink, r.name, r.type);
       toast.success(`${prefix}Listo: ${f.label} (${sizeText(r.total)}) está en tus descargas.`, { id: tid, duration: 6000, action: undefined });
-      return true;
-    } catch (e) {
-      const msg = e instanceof DownloadError ? e.message : 'No se pudo descargar. Revisa la señal y vuelve a tocar «Descargar».';
-      if (ctrl.signal.aborted) {
+    }, () => ctrl.signal.aborted);
+    if (!out.ok) {
+      if (out.cancelled) {
         // Cancelled: what was kept is dropped.
         await sink.clear().catch(() => {});
         toast.dismiss(tid);
-      } else toast.error(`${prefix}${msg}`, { id: tid, duration: 10000, action: undefined });
-      return false;
+      } else toast.error(`${prefix}${out.message}`, { id: tid, duration: 10000, action: undefined });
     }
+    return out;
   };
   const p = queue.then(run, run);
   queue = p.catch(() => {});

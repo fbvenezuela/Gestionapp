@@ -20,6 +20,14 @@ const KIND: Record<string, { title: string; upload: string; accept: string; hint
   document: { title: 'Documentos', upload: 'Subir documentos', accept: 'application/pdf,image/*', hint: 'Un PDF o la foto de un papel.' },
 };
 
+// Who sees each kind, said to whoever uploads (media_select, 20261027002100_obra_documents.sql). An obra's photos reach
+// Redes and the camera person of its visit; its documents (names and phones of the community) never do.
+function whoSees(obra: boolean, kind: string): string {
+  if (!obra) return 'Los ven política, el jefe, el despacho y Administración. Redes y Grabación nunca ven un reporte.';
+  if (kind === 'document') return 'Los ven solo el IVT, el jefe, el despacho y Administración: nunca Redes ni Grabación.';
+  return 'Cuando la visita tenga fecha, también las ven Redes y quien la grabe.';
+}
+
 function size(b: number) {
   return b > 1e9 ? `${(b / 1e9).toFixed(1)} GB` : b >= 1e6 ? `${Math.round(b / 1e6)} MB` : `${Math.max(1, Math.round(b / 1e3))} KB`;
 }
@@ -40,7 +48,8 @@ export function PhotoGallery({
   subtitle?: string;
 }) {
   const shown = media.filter((m) => kinds.includes(m.kind as MediaKind));
-  const where = 'obraFichaId' in target ? { obraFichaId: target.obraFichaId } : { reportId: target.reportId };
+  const obra = 'obraFichaId' in target;
+  const where = obra ? { obraFichaId: target.obraFichaId } : { reportId: target.reportId };
   return (
     // Solid once it holds a long list (no blur behind many pictures).
     <Card solid={shown.length > 8}>
@@ -85,7 +94,12 @@ export function PhotoGallery({
                   })}
                 </ul>
               ) : null}
-              {canUpload ? <Uploader {...where} kind={kind} label={k.upload} hint={k.hint} accept={k.accept} compact={list.length > 0} /> : null}
+              {canUpload ? (
+                <>
+                  <p className="text-sm text-text-2">{whoSees(obra, kind)}</p>
+                  <Uploader {...where} kind={kind} label={k.upload} hint={k.hint} accept={k.accept} compact={list.length > 0} />
+                </>
+              ) : null}
             </section>
           );
         })}

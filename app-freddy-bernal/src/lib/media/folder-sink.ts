@@ -51,7 +51,8 @@ export async function sizeIn(dir: FsDir, name: string): Promise<number | null> {
   }
 }
 
-const STOPS = new Set([401, 429, 503]);
+// The answers that stop a whole run (one by one too: one-by-one.ts).
+export const STOPS: ReadonlySet<number> = new Set([401, 429, 503]);
 
 export async function writePlanToFolder(root: FsDir, plan: DownloadPlan, o: FolderRunOptions = {}): Promise<FolderRun> {
   const files: FileRunState[] = plan.entries.map(() => ({ phase: 'waiting', received: 0, total: null }));

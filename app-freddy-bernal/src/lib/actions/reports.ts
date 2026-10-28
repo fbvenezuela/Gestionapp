@@ -5,6 +5,7 @@ import { act, UserError, type Result } from './run';
 import { contactsSchema, formValuesSchema, keepOthersContacts, marksSchema, parseFicha, writeFicha, writePrivate } from './schemas';
 import { notify, usersWithRole } from '../notify';
 import { REPORT_FIELDS } from '@/lib/domain/ficha-fields';
+import { mainPhoneMessage, mainTextPhone } from '@/lib/domain/phones';
 import { isClosed } from '@/lib/domain/report-status';
 import { REPORT_STATUSES } from '@/lib/data/ficha-labels';
 import { noticeRecipients, toScheduleNotice, type AgendaNotice } from '@/lib/domain/agenda-notices';
@@ -51,6 +52,9 @@ export async function saveReport(raw: unknown) {
       ? await keepOthersContacts(sql, 'community_reports', i.id, defs, i.values, i.marks, i.privRev, i.privChanged)
       : { values: i.values, marks: i.marks, moved: false };
     const p = parseFicha(defs, contacts.values, contacts.marks);
+    // Phones go in the contacts (2FA); the main part is read without it, and an event born from it takes its text.
+    const phone = mainTextPhone(defs, p.main);
+    if (phone) throw new UserError(mainPhoneMessage('report', phone));
     const saved = await writeFicha(sql, 'community_reports', i.id ?? null, { ...p.main, wants_agenda: i.wantsAgenda }, p.marks.main);
     if (!saved) throw new UserError('No tienes permiso para cambiar este reporte.');
     if (canPrivate) await writePrivate(sql, 'community_reports', saved.id, p.priv, p.marks.priv);

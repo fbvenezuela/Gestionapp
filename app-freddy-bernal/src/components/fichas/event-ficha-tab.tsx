@@ -4,12 +4,13 @@ import { FichaValue } from './ficha-value';
 import { PhotoGallery } from './photo-gallery';
 import type { FichaTab } from '@/lib/domain/ficha-tab';
 import type { FichaMedia } from '@/lib/data/fichas';
-import { OBRA_KINDS, REPORT_KINDS } from '@/lib/domain/media-mime';
+import { OBRA_KINDS, OBRA_PHOTO_KINDS, REPORT_KINDS, REPORT_PHOTO_KINDS } from '@/lib/domain/media-mime';
 
 // The «Ficha de obra» / «Reporte» tab of an event born from a ficha (cambios del 27/10/2026, §4.1): what the IVT (or
 // política) loaded, live from the ficha (never a stale copy), with its photos. Server-only: what reaches the page is
 // exactly what `tab` holds (ficha-tab.ts: for Redes and Grabación the main part only, without names, phones or the
-// ficha's own days); the contacts box only for the boss, despacho and administración, with 2FA.
+// ficha's own days); the contacts box only for the boss, despacho and administración, with 2FA. Its documents (a
+// denuncia, an acta: names and phones of the community) go with the contacts; without them, only the photos.
 export function EventFichaTab({
   kind, id, code, tab, media, contacts,
 }: { kind: 'obra' | 'report'; id: string; code: string; tab: FichaTab; media: FichaMedia[]; contacts: boolean }) {
@@ -59,10 +60,10 @@ export function EventFichaTab({
       <div className="flex min-w-0 flex-col gap-4">
         <PhotoGallery
           target={obra ? { obraFichaId: id } : { reportId: id }}
-          kinds={obra ? OBRA_KINDS : REPORT_KINDS}
+          kinds={obra ? (contacts ? OBRA_KINDS : OBRA_PHOTO_KINDS) : contacts ? REPORT_KINDS : REPORT_PHOTO_KINDS}
           media={media}
           canUpload={false}
-          title={obra ? 'Fotos del antes y del avance' : 'Evidencias'}
+          title={obra ? (contacts ? 'Fotos y documentos' : 'Fotos del antes y del avance') : 'Evidencias'}
         />
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { REPORTER_ATTENDS, type Mark } from '../data/ficha-labels';
 import { FIELDS, GROUPS, isEmpty, type FichaKind, type FieldDef } from './ficha-fields';
-import { withoutPhones } from './ficha-event';
+import { withoutPhones } from './phones';
 
 // The ficha inside the event it was born from (cambios del 27/10/2026, §4.1): the «Ficha de obra» / «Reporte» tab,
 // the boss's «Antes de hablar» and «Lo que voy a decir» in modo lectura. Pure, so it can be tested.

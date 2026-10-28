@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon';
 import { cap, endDot, placeOf, prose, sentences, unknownNumbers } from './copies';
 import { OBRA_FIELDS, isoDay } from './ficha-fields';
+import { phonesIn } from './phones';
 import { WORK_STATE, type WorkState } from '../data/ficha-labels';
 
 // «Generame un diálogo FAB con esto» (§4.1), with the AI off: «Lo que voy a decir» for the boss's visit, built
@@ -207,11 +208,9 @@ export function dialogUnknownNumbers(text: string, input: ObraDialogInput, brand
 // main part of the ficha (which Redes already reads, like «1.500.000» of the investment).
 // ---------------------------------------------------------------------------
 const CONTACT_KEYS = ['reporter_name', 'liaison_name', 'representative', 'engineer_phone', 'liaison_phone'] as const;
-// A run of 7 or more digits with phone separators (spaces, dashes, parentheses, +); dots and commas end it, so
-// «1.500.000» or «2,5» never is one.
-const PHONE_LIKE = /\+?\(?\d[\d  ()+-]{5,}\d/g;
+// Phones: the app's one detector (phones.ts: dots, dashes, spaces, slashes, «0414.555.0199» too; never «1.500.000»
+// or a date).
 const NUMBER_TOKEN = /\d(?:[\d.,]*\d)?/g;
-const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 const digitsOf = (s: string) => s.replace(/\D/g, '');
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -219,16 +218,14 @@ const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 export function dialogPhones(text: string, input: ObraDialogInput, brand: DialogBrand): string[] {
   const known = new Set<string>();
   for (const src of obraDialogSources(input, brand)) {
-    for (const m of [...(src.match(PHONE_LIKE) ?? []), ...(src.match(NUMBER_TOKEN) ?? [])]) known.add(digitsOf(m));
+    for (const m of [...phonesIn(src), ...(src.match(NUMBER_TOKEN) ?? [])]) known.add(digitsOf(m));
   }
   const out: string[] = [];
-  for (const raw of text.normalize('NFKC').match(PHONE_LIKE) ?? []) {
-    const c = raw.trim();
-    const digits = digitsOf(c);
-    if (digits.length < 7 || ISO_DAY.test(c) || known.has(digits)) continue;
-    const parts = c.split(/[  ]+/).filter(Boolean);
+  for (const c of phonesIn(text)) {
+    if (known.has(digitsOf(c))) continue;
+    const parts = c.split(/[\s\u00a0\u202f]+/).filter(Boolean);
     if (parts.length > 1 && parts.every((p) => known.has(digitsOf(p)))) continue;
-    if (!out.includes(c)) out.push(c);
+    out.push(c);
   }
   return out;
 }

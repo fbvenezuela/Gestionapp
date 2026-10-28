@@ -108,7 +108,8 @@ describe('Redes y Grabación leen una obra solo mientras su visita está viva', 
     // The obra's own roles keep everything.
     for (const who of ['ivt', 'boss', 'dispatch'] as const) expect(await sees(who), who).toEqual([1, 2]);
     await t.as('boss', (sql) => sql.query(`update public.events set boss_decision = 'accepted' where id = $1`, [ev]));
-    for (const who of ['social', 'camera2'] as const) expect(await sees(who), who).toEqual([1, 2]);
+    // The photo again, never the document (20261027002100_obra_documents.sql: papers stay with the obra roles).
+    for (const who of ['social', 'camera2'] as const) expect(await sees(who), who).toEqual([1, 1]);
   });
 });
 

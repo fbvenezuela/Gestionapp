@@ -1,4 +1,5 @@
 import { MAX_TITLE } from './event-title';
+import { withoutPhones } from './phones';
 
 // «Ponerle fecha» (§4.1, §4.2): what the new event takes from its ficha. The event and its brief are read by Redes
 // and Grabación, so they take ONLY main-table fields, and never a contact: no phone, no reporter's name, no
@@ -14,15 +15,8 @@ export type EventDraft = {
   brief: { summary: string; work_description: string; led_by: string; in_charge: string; achievements: string; key_facts: string; protocol: string; notes: string };
 };
 
-// 7 or more digits joined by phone separators (spaces, dashes, parentheses, +). «1.500.000» (dots) is an amount.
-const PHONE_LIKE = /\+?\(?\d[\d \t()+-]{5,}\d/g;
-export function withoutPhones(s: string): string {
-  return (s ?? '')
-    .replace(PHONE_LIKE, (m) => (m.replace(/\D/g, '').length >= 7 ? '' : m))
-    .replace(/[ \t]{2,}/g, ' ')
-    .replace(/\(\s*\)/g, '')
-    .trim();
-}
+// Anything that looks like a phone number in free text is taken out: one detector for the whole app (phones.ts).
+export { withoutPhones };
 
 const str = (row: Record<string, unknown>, k: string) => (typeof row[k] === 'string' ? withoutPhones(row[k] as string) : '');
 const num = (row: Record<string, unknown>, k: string) => {

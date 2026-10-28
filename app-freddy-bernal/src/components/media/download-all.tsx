@@ -10,6 +10,7 @@ import { sizeText } from '@/lib/media/chunk-download';
 import { budgetMessage, budgetVerdict, buildDownloadPlan, kindsOf, type DriveBudget, type PlanFile, type PlanNote } from '@/lib/media/download-plan';
 import { downloadMode, type DownloadMode } from '@/lib/media/download-mode';
 import { fileStateText, pickFolder, writePlanToFolder, type FileRunState } from '@/lib/media/folder-sink';
+import { runHeadline, sendPlanOneByOne } from '@/lib/media/one-by-one';
 import { downloadDriveFile } from './drive-download';
 import { cn } from '@/lib/cn';
 
@@ -119,19 +120,14 @@ export function DownloadAllDialog({
     setRun(fresh());
     saveText(plan.readme.text, plan.readme.name);
     setRun((x) => (x ? { ...x, readme: true } : x));
-    for (const [i, e] of plan.entries.entries()) {
-      if (c.signal.aborted) break;
-      patch(i, { phase: 'downloading', received: 0, total: e.size || null });
-      if (e.drive) {
-        const ok = await downloadDriveFile({ id: e.id, label: e.name, size: e.size }, `${i + 1} de ${plan.entries.length} · `);
-        patch(i, ok ? { phase: 'done', received: e.size, total: e.size } : { phase: 'error', received: 0, total: null, error: 'No se pudo descargar.' });
-      } else {
-        saveStored(e.id, e.name);
-        patch(i, { phase: 'done', received: e.size, total: e.size });
-        await new Promise((r) => setTimeout(r, 800));
-      }
-    }
-    setRun((x) => (x ? { ...x, running: false, cancelled: c.signal.aborted, sent: true } : x));
+    // Stops on the daily share (429), Drive or the month's cap (503) and a lost session (401), like the folder.
+    const r = await sendPlanOneByOne(plan, {
+      signal: c.signal,
+      onFile: patch,
+      stored: (e) => saveStored(e.id, e.name),
+      drive: (e, i) => downloadDriveFile({ id: e.id, label: e.name, size: e.size }, `${i + 1} de ${plan.entries.length} · `, c.signal),
+    });
+    setRun((x) => (x ? { ...x, files: r.files, running: false, stopped: r.stopped, cancelled: r.cancelled, sent: true } : x));
   }
 
   const toggle = (k: string, on: boolean) => setOff((list) => (on ? list.filter((x) => x !== k) : [...list, k]));
@@ -214,17 +210,7 @@ export function DownloadAllDialog({
 
         {run && mode !== 'ios-list' ? (
           <div role="status" aria-live="polite" className="flex flex-col gap-2">
-            <p className="text-[15px] font-semibold">
-              {run.running
-                ? 'Descargando…'
-                : run.cancelled
-                  ? 'Se detuvo. Lo que ya bajó queda.'
-                  : run.stopped
-                    ? 'Se detuvo antes de terminar.'
-                    : run.sent
-                      ? 'Listo: todo va a tus descargas.'
-                      : 'Listo: todo está en la carpeta.'}
-            </p>
+            <p className="text-[15px] font-semibold">{runHeadline(run)}</p>
             <ul className="flex flex-col gap-1 text-sm">
               <li className="flex items-center gap-2">
                 {run.readme ? <CheckCircle2 className="h-4 w-4 shrink-0 text-ok" aria-hidden /> : <Loader2 className="h-4 w-4 shrink-0 animate-spin text-text-2" aria-hidden />}

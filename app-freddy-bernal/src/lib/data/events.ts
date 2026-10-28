@@ -1,5 +1,6 @@
 import type { Sql } from '../db/core';
 import { fichaMedia, type FichaMedia } from './fichas';
+import { OBRA_PHOTO_KINDS, REPORT_PHOTO_KINDS } from '@/lib/domain/media-mime';
 
 export type EventFull = {
   id: string; code: string; title: string; place_name: string; municipality: string; summary: string;
@@ -90,7 +91,8 @@ export async function linkedFicha(
     row,
     priv,
     fab: kind === 'obra' && typeof row.fab_dialog === 'string' ? row.fab_dialog : '',
-    media: opts.media ? await fichaMedia(sql, kind, id) : [],
+    // Papers only with the contacts: a denuncia or an acta carries the names and phones the private part keeps.
+    media: opts.media ? await fichaMedia(sql, kind, id, priv ? undefined : kind === 'obra' ? OBRA_PHOTO_KINDS : REPORT_PHOTO_KINDS) : [],
   };
 }
 

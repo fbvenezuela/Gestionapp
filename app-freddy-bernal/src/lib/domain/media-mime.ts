@@ -17,6 +17,13 @@ export const CAMERA_KINDS = [...RAW_KINDS, 'storyboard'] as const satisfies read
 export const OBRA_KINDS = ['before', 'progress', 'document'] as const satisfies readonly MediaKind[];
 /** Evidence of a community report (política). */
 export const REPORT_KINDS = ['before', 'after', 'document'] as const satisfies readonly MediaKind[];
+/**
+ * A ficha's photos without its papers: what reaches whoever does not read the ficha's contacts. Redes and the camera
+ * person of a live visit read only these of its obra (media_select, 20261027002100_obra_documents.sql): documents
+ * carry the names and phones that the private part keeps behind 2FA.
+ */
+export const OBRA_PHOTO_KINDS = ['before', 'progress'] as const satisfies readonly MediaKind[];
+export const REPORT_PHOTO_KINDS = ['before', 'after'] as const satisfies readonly MediaKind[];
 /** The kinds that only go on a ficha. */
 export const FICHA_KINDS = ['before', 'progress', 'after', 'document'] as const satisfies readonly MediaKind[];
 /** A storyboard file is a picture or a PDF. */

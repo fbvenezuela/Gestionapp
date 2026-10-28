@@ -7,7 +7,8 @@ import { loginAs } from './helpers';
 // a photo of the before and its FAB dialog; the boss puts the date; Redes opens the visit and sees no date and a
 // «Ficha de obra» tab without contacts (not even in what the server sends), takes the FAB as the speech, and modo
 // lectura reads it; the boss also sees «Antes de hablar». The visit is cancelled at the end, so the other specs find
-// the agenda as it was. All data here is invented.
+// the agenda as it was. A phone written with dots never gets into the ficha's main part or its FAB dialog, and the
+// obra's documents stay with the obra roles (revisión de la ola D). All data here is invented.
 
 const fixture = (f: string) => path.join(__dirname, '..', 'fixtures', f);
 const NAME = 'Puente peatonal de prueba (demo)';
@@ -16,6 +17,10 @@ const WORKS = 'Puente peatonal de 25 m con barandas.';
 const REPORTER = 'Vecina de prueba (demo)';
 const LIAISON = 'Enlace peatonal (demo)';
 const PHONE = '0000-0000555';
+// Written the Venezuelan way, with dots: refused in the main part and in «Lo que voy a decir».
+const DOTTED = '0000.555.0199';
+const DOTTED_FAB = '0000.555.0177';
+const NEEDS = 'Alumbrado en el cruce (demo).';
 const TIME = '10:20';
 const TIME_RE = /\b\d{1,2}:\d{2}\s?(a\.?\s?m\.?|p\.?\s?m\.?|AM|PM)/i;
 const inDays = (n: number) => new Date(Date.now() + n * 86400_000).toISOString().slice(0, 10);
@@ -63,6 +68,7 @@ test('la ficha de obra llega al evento: foto, fecha del jefe, Redes sin fecha ni
     'Quién hizo el reporte o la denuncia': REPORTER,
     'Nombre del enlace comunitario': LIAISON,
     'Teléfono del enlace comunitario': PHONE,
+    'Necesidades pendientes o problemas recurrentes': NEEDS,
   };
   await page.getByLabel('Nombre de la obra (obligatorio)').fill(NAME);
   await page.getByLabel('Municipio (obligatorio)').selectOption('Torbes');
@@ -78,6 +84,13 @@ test('la ficha de obra llega al evento: foto, fecha del jefe, Redes sin fecha ni
     await g.getByRole('button', { name: 'No aplica' }).click();
   }
   await expect(page.getByText('Todo respondido: lista para avisar al jefe.')).toBeVisible();
+  // A phone in the main part (Redes and Grabación read it once the visit has a date) is refused, even with dots.
+  const needs = page.getByLabel('Necesidades pendientes o problemas recurrentes', { exact: true });
+  await needs.fill(`Alumbrado; la vocera atiende al ${DOTTED} (demo).`);
+  await page.getByRole('button', { name: 'Guardar y avisar al jefe' }).click();
+  await expect(page.getByText(`tiene algo que parece un teléfono (${DOTTED})`)).toBeVisible();
+  await expect(page).toHaveURL(/\/obras\/nueva$/);
+  await needs.fill(NEEDS);
   await page.getByRole('button', { name: 'Guardar y avisar al jefe' }).click();
   await expect(page).toHaveURL(/\/obras\/[0-9a-f-]{36}$/);
   const obraUrl = new URL(page.url()).pathname;
@@ -90,10 +103,25 @@ test('la ficha de obra llega al evento: foto, fecha del jefe, Redes sin fecha ni
   await expect(before.getByRole('listitem')).toContainText('Antes 1');
   await expect.poll(() => shownPictures(page, 'Antes'), { timeout: 15_000 }).toBe(1);
 
-  // «Generame un diálogo FAB con esto», saved as it came out.
+  // A paper (the photo of a denuncia): it stays with the obra roles, and the IVT is told so.
+  const papers = page.getByRole('region', { name: 'Documentos' });
+  await expect(papers.getByText('Los ven solo el IVT, el jefe, el despacho y Administración: nunca Redes ni Grabación.')).toBeVisible();
+  await page.getByLabel('Subir documentos').setInputFiles(fixture('cover.jpg'));
+  await expect(papers.getByRole('listitem')).toHaveCount(1, { timeout: 30_000 });
+  const docHref = (await papers.getByRole('link', { name: /^Ver / }).getAttribute('href'))!;
+  expect(docHref).toMatch(/^\/api\/media\/[0-9a-f-]{36}\?ver=1$/);
+  const docUrl = docHref.replace('?ver=1', '');
+
+  // «Generame un diálogo FAB con esto»: with a phone added by hand (dots) it is not saved; as it came out, it is.
   await page.getByRole('button', { name: 'Generar diálogo FAB' }).click();
   const box = page.getByLabel('Texto para leer (lo puedes cambiar antes de guardar)');
   await expect(box).toHaveValue(/Puente peatonal de 25 m con barandas/i);
+  const generated = await box.inputValue();
+  await box.fill(`${generated}\n\nPara más información, llamen al ${DOTTED_FAB}.`);
+  await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+  await expect(page.getByText(`parece un teléfono (${DOTTED_FAB})`)).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Modo lectura' })).toHaveCount(0);
+  await box.fill(generated);
   await page.getByRole('button', { name: 'Guardar', exact: true }).click();
   await expect(page.getByRole('link', { name: 'Modo lectura' })).toBeVisible();
   await noSerious(page, '/obras/[id] con fotos');
@@ -117,6 +145,8 @@ test('la ficha de obra llega al evento: foto, fecha del jefe, Redes sin fecha ni
   await boss.page.goto(`${eventUrl}?tab=obra`);
   await expect(boss.page.getByText(LIAISON)).toBeVisible();
   await expect(boss.page.getByRole('link', { name: PHONE })).toBeVisible();
+  // And the obra's documents.
+  await expect(boss.page.getByRole('region', { name: 'Documentos' }).getByRole('listitem')).toHaveCount(1);
 
   // 3. Redes opens the visit: no date, no time, no address.
   const redes = await other(browser, 'redes@demo.test');
@@ -131,13 +161,17 @@ test('la ficha de obra llega al evento: foto, fecha del jefe, Redes sin fecha ni
   await expect(redes.page.getByText('350', { exact: true })).toBeVisible();
   for (const secret of [REPORTER, LIAISON, PHONE]) await expect(redes.page.getByText(secret), secret).toHaveCount(0);
   await expect.poll(() => shownPictures(redes.page, 'Antes'), { timeout: 15_000 }).toBe(1);
+  // The before photo, never the obra's papers: no «Documentos», and the file itself is not found for Redes.
+  await expect(redes.page.getByRole('region', { name: 'Documentos' })).toHaveCount(0);
+  expect((await redes.page.request.get(docUrl)).status()).toBe(404);
   await noSerious(redes.page, '/eventos/[id]?tab=obra para Redes');
   await fitsWidth(redes.page, '/eventos/[id]?tab=obra para Redes');
   // Not even in what the server sends with the page (the RSC payload inline in the document).
   await redes.page.goto(`${eventUrl}?tab=obra`);
   await expect(redes.page.getByText(WORKS)).toBeVisible();
   const html = await redes.page.content();
-  for (const secret of [REPORTER, LIAISON, PHONE, DAY, 'T14:20']) expect(html, secret).not.toContain(secret);
+  for (const secret of [REPORTER, LIAISON, PHONE, DAY, 'T14:20', DOTTED, DOTTED_FAB, '555.01', docUrl]) expect(html, secret).not.toContain(secret);
+  expect(html).toContain(NEEDS);
 
   // Storyboard: «Usar como discurso» puts the FAB dialog in «Lo que va a decir».
   await redes.page.goto(`${eventUrl}?tab=storyboard`);

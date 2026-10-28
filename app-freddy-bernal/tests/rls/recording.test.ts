@@ -179,7 +179,11 @@ describe('material: los tipos nuevos y quién sube cada uno', () => {
     try {
       const n = await seen('boss', 'obra_ficha_id', obra);
       expect(n).toBeGreaterThan(0);
-      for (const who of ['social', 'social2', 'camera'] as const) expect(await seen(who, 'obra_ficha_id', obra), who).toBe(n);
+      // Its photos, not its documents (20261027002100_obra_documents.sql).
+      const photos = await count('boss', `select 1 from public.media_assets where obra_ficha_id = $1 and kind in ('before', 'progress')`, [obra]);
+      expect(photos).toBeGreaterThan(0);
+      expect(photos).toBeLessThan(n);
+      for (const who of ['social', 'social2', 'camera'] as const) expect(await seen(who, 'obra_ficha_id', obra), who).toBe(photos);
       expect(await seen('camera2', 'obra_ficha_id', obra)).toBe(0);
       // A report linked to an event stays closed to Redes and Grabación.
       for (const who of ['social', 'social2', 'camera', 'camera2'] as const) expect(await seen(who, 'community_report_id', report), who).toBe(0);

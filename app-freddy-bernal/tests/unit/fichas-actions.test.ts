@@ -438,6 +438,34 @@ describe('«Lo que voy a decir» no lleva contactos ni teléfonos', () => {
   });
 });
 
+// Redes and Grabación read an obra's main part as stored while its visit is live: a phone there (even written with
+// dots) is refused, with the field and where phones go; a report's main part too (it is read without 2FA).
+describe('la parte principal de una ficha no se guarda con un teléfono (revisión de la ola D)', () => {
+  it('la ficha de obra: «0414.555.0199» en «Próxima acción» no se guarda; la misma ficha sin él, sí', async () => {
+    as('ivt');
+    const { values, marks } = fullObra({ next_action: 'Coordinar con la vocera, que atiende al 0414.555.0199 (demo).' });
+    const r = await obras.saveObraFicha({ submit: false, values, marks });
+    expect(r.ok).toBe(false);
+    const error = (r as { error: string }).error;
+    expect(error).toContain('«Próxima acción o compromiso» tiene algo que parece un teléfono (0414.555.0199)');
+    expect(error).toContain('«Teléfono del enlace comunitario»');
+    expect((await t.system((sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.obra_fichas where name = $1`, [values.name])))!.n).toBe(0);
+    expect((await obras.saveObraFicha({ submit: false, values: { ...values, next_action: 'Coordinar con la vocera (demo).' }, marks })).ok).toBe(true);
+    // «1.500.000» of the investment and a date are not phones.
+    expect((await obras.saveObraFicha({ submit: false, values: { ...fullObra().values, problem_since: 'desde el 15/03/2024' }, marks })).ok).toBe(true);
+  });
+
+  it('el reporte comunitario: «0276.555.0101» en «Observaciones» no se guarda', async () => {
+    as('politics');
+    const r = await reports.saveReport({
+      values: { title: `Reporte con teléfono ${++n} (demo)`, type: 'incident', municipality: 'Torbes', reported_at: '2026-10-27T09:00', status: 'planned', observations: 'Contacto: 0276.555.0101' },
+      marks: {}, wantsAgenda: false,
+    });
+    expect(r.ok).toBe(false);
+    expect((r as { error: string }).error).toContain('«Observaciones» tiene algo que parece un teléfono (0276.555.0101)');
+  });
+});
+
 describe('«Ya tiene fecha» para política', () => {
   it('política lee el evento de su reporte sin su fecha, y la base le dice que ya tiene fecha', async () => {
     const { getReport } = await import('@/lib/data/fichas');
