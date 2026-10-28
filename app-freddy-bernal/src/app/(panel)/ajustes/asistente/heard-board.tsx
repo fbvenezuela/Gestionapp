@@ -22,7 +22,7 @@ export function HeardBoard({ groups }: { groups: HeardGroup[] }) {
   if (!groups.length) return <EmptyState title="Nadie ha preguntado nada nuevo en estos días. Cuando pregunten algo que no sabe, sale aquí." />;
   return (
     <>
-      <Card>
+      <Card solid>
         <ul className="divide-y divide-border">
           {groups.map((g) => (
             <li key={g.plain} className="flex flex-col gap-2 px-4 py-3">

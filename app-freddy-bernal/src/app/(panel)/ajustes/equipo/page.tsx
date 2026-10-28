@@ -29,7 +29,7 @@ export default async function TeamPage() {
     <>
       <PageHeader title="Equipo" subtitle="Cada persona tiene su usuario, aunque compartan el mismo rol." back={{ href: '/ajustes', label: 'Ajustes' }} />
       <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
-        <Card>
+        <Card solid>
           <CardHeader title="Personas" subtitle={`${data.members.length} en la plataforma`} />
           <ul className="divide-y divide-border">
             {data.members.map((m) => (

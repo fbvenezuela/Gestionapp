@@ -209,6 +209,13 @@ textarea {
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
+    /* Safety net for a long list someone forgot to mark solid: a card in the page holding 9 or more rows.
+       Its own rule, so a browser without :has() drops only this one. */
+    :where(:root:not([data-glass='off']):not([data-contrast='high'])) main .glass-card:has(:is(ul, ol, tbody) > :nth-child(9)) {
+      background-color: var(--c-surface);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
   }
 
   /* «Reducir transparencia», «Más contraste» and forced colors: solid. Same specificity as the rules

@@ -184,6 +184,31 @@ test('sin desenfoque detrás de listas largas: la lista de piezas y las tarjetas
   expect(blur.inNav).toContain('blur');
 });
 
+test('sin desenfoque detrás de listas largas: lo que sabe el asistente (68 fichas) y cualquier tarjeta con 9 filas o más', async ({ page }) => {
+  await loginAs(page, 'admin@demo.test');
+  await page.goto('/ajustes/asistente?tab=sabe');
+  await expect(page.locator('main li').nth(8)).toBeVisible();
+  const blurred = await page.evaluate(() =>
+    [...document.querySelectorAll('main .glass-card')]
+      .filter((el) => el.querySelectorAll('li, tr').length >= 9)
+      .map((el) => getComputedStyle(el).backdropFilter)
+      .filter((f) => f !== 'none'),
+  );
+  expect(blurred).toEqual([]);
+
+  // The safety net in globals.css: a card someone forgot to mark solid, holding 9 or more rows.
+  const net = await page.evaluate(() => {
+    const host = document.createElement('div');
+    host.innerHTML = `<div class="glass-card"><ul>${'<li>x</li>'.repeat(9)}</ul></div><div class="glass-card"><ul>${'<li>x</li>'.repeat(3)}</ul></div>`;
+    document.querySelector('main')!.append(host);
+    const [long, short] = [...host.querySelectorAll('.glass-card')].map((el) => getComputedStyle(el).backdropFilter);
+    host.remove();
+    return { long, short };
+  });
+  expect(net.long).toBe('none');
+  expect(net.short).toContain('blur');
+});
+
 test('«Más contraste», colores forzados y «Reducir transparencia» dejan todo sólido', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');
   await visitHome(page, 'redes@demo.test');

@@ -44,7 +44,7 @@ export function KnowledgeBoard({ rows }: { rows: KnowledgeItem[] }) {
       {rows.length === 0 ? (
         <EmptyState title="No hay fichas con ese filtro." />
       ) : (
-        <Card>
+        <Card solid>
           <ul className="divide-y divide-border">
             {rows.map((k) => (
               <li key={k.id} className="flex flex-col gap-2 px-4 py-3">

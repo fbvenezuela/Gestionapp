@@ -99,7 +99,7 @@ export function ScriptBoard({ rows }: { rows: ScriptItem[] }) {
       {rows.length === 0 ? (
         <EmptyState title="No hay guiones con ese filtro." />
       ) : (
-        <Card>
+        <Card solid>
           <ul className="divide-y divide-border">
             {rows.map((s) => (
               <li key={s.id} className="flex flex-col gap-2 px-4 py-3">

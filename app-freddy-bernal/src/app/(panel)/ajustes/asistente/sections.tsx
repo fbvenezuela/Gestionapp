@@ -171,7 +171,7 @@ export async function ConversationsTab({ s, sp }: { s: Session; sp: SP }) {
       {rows.length === 0 ? (
         <EmptyState title="Todavía no hay conversaciones con ese filtro." />
       ) : (
-        <Card>
+        <Card solid>
           <ul className="divide-y divide-border">
             {rows.slice(0, PER_PAGE).map((c) => (
               <li key={c.id}>
@@ -318,7 +318,7 @@ export async function HealthTab({ s }: { s: Session }) {
 
       <ProbeChain />
 
-      <Card>
+      <Card solid>
         <CardHeader title="Por día" subtitle="Últimos 14 días" />
         {h.days.length === 0 ? (
           <CardBody className="text-[15px] text-text-2">Todavía nadie le ha preguntado nada.</CardBody>
@@ -460,7 +460,7 @@ export async function ActionsTab({ s }: { s: Session }) {
       {rows.length === 0 ? (
         <EmptyState title="El asistente no ha hecho nada todavía." />
       ) : (
-        <Card>
+        <Card solid>
           <ul className="divide-y divide-border">
             {rows.map((a) => {
               const what = actionLabel(a.action, a.detail);
