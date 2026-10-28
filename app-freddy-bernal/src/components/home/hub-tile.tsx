@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import { ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Chip } from '@/components/ui/chip';
 import { cn } from '@/lib/cn';
 
 // A big tile of the boss's Inicio and of the Redes hub (§3), made for the iPad (1024×768) and the phone (360 px): the
@@ -9,6 +10,19 @@ import { cn } from '@/lib/cn';
 // least 56 px high. The tiles are not list items, so they keep the glass (globals.css).
 export type HubCounter = { href: string; value: number | string; label: string; tone?: 'warn' | 'danger' | 'ok' };
 export type HubIconTone = 'slate' | 'warn' | 'accent' | 'solid';
+// A few things to open one by one, under the counters (on the boss's Redes tile, the events with Grabación's new notes):
+// a line with what they are and how many, then each one's title, which opens it. `more` when there are more than shown.
+// Titles only: no dates, times or places here.
+export type HubList = {
+  key: string;
+  label: string;
+  icon: LucideIcon;
+  total: number;
+  items: { href: string; label: string }[];
+  // Read by screen readers after each title («Jornada de salud…: ver las notas»).
+  itemHint?: string;
+  more?: { href: string; label: string };
+};
 
 const ICON_TONE: Record<HubIconTone, string> = {
   slate: 'bg-slate text-on-slate',
@@ -27,6 +41,7 @@ export function HubTile({
   tone = 'accent',
   counters = [],
   grid = [],
+  list,
   children,
 }: {
   id: string;
@@ -38,8 +53,11 @@ export function HubTile({
   counters?: HubCounter[];
   // Short counters, two per row (the obra stages).
   grid?: HubCounter[];
+  // Shown only when it has something (total > 0).
+  list?: HubList | null;
   children?: React.ReactNode;
 }) {
+  const listId = list ? `${id}-${list.key}` : '';
   return (
     <Card role="region" aria-labelledby={`${id}-title`} className="flex min-w-0 flex-col p-2">
       <Link
@@ -83,6 +101,36 @@ export function HubTile({
             </li>
           ))}
         </ul>
+      ) : null}
+      {list && list.total > 0 ? (
+        <div className="mt-1 border-t border-border pt-2">
+          <p id={listId} className="flex min-w-0 items-center gap-2 px-3 py-1 text-base font-semibold">
+            <list.icon className="h-5 w-5 shrink-0 text-info" aria-hidden />
+            <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{list.label}</span>
+            <Chip tone="info">
+              <span className="tabular">{list.total}</span>
+            </Chip>
+          </p>
+          <ul aria-labelledby={listId} className="flex flex-col gap-1">
+            {list.items.map((it) => (
+              <li key={it.href}>
+                <Link href={it.href} className="flex min-h-14 items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 hover:bg-surface-2">
+                  <span className="min-w-0 flex-1 text-lg font-semibold leading-snug [overflow-wrap:anywhere]">
+                    {it.label}
+                    {list.itemHint ? <span className="sr-only">: {list.itemHint}</span> : null}
+                  </span>
+                  <ChevronRight className="h-5 w-5 shrink-0 text-muted" aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {list.more ? (
+            <Link href={list.more.href} className="mt-1 flex min-h-14 items-center gap-2 rounded-[var(--radius-control)] px-3 text-base font-semibold text-accent-ink hover:bg-surface-2">
+              <span className="flex-1">{list.more.label}</span>
+              <ChevronRight className="h-5 w-5 shrink-0" aria-hidden />
+            </Link>
+          ) : null}
+        </div>
       ) : null}
       {children}
     </Card>

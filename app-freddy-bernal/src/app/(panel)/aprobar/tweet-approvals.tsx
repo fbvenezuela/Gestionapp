@@ -6,6 +6,8 @@ import { approveTweets } from '@/lib/actions/tweets';
 import { useAction } from '@/lib/hooks/use-action';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { menuPanelClass } from '@/components/ui/menu-panel';
+import { cn } from '@/lib/cn';
 import { fmtDateTime } from '@/lib/time';
 import { approvedToast } from '@/components/tweets/approved-toast';
 
@@ -20,10 +22,12 @@ export function TweetApprovals({ tweets, canApprove }: { tweets: T[]; canApprove
     else n.add(id);
     return n;
   });
+  // The bar floats over the list while it scrolls: the menus' glass (menuPanelClass), almost opaque, so the tweets
+  // passing behind it never blur its text. The list itself is a long one: a solid Card.
   return (
     <div className="flex flex-col gap-3">
       {canApprove ? (
-        <div className="sticky top-16 z-10 flex items-center gap-2 rounded-[var(--radius-card)] border border-border bg-surface p-3">
+        <div className={cn(menuPanelClass, 'sticky top-16 z-10 flex items-center gap-2 p-3')}>
           <span className="text-sm text-text-2">{sel.size} de {tweets.length} marcados. Desmarca los que no van.</span>
           <Button className="ml-auto" disabled={pending || !sel.size} onClick={() => run(() => approveTweets({ tweets: tweets.filter((t) => sel.has(t.id)).map((t) => ({ id: t.id, body: t.body })) }), { onOk: approvedToast })}>
             <CheckCheck className="h-4 w-4" aria-hidden /> Aprobar marcados

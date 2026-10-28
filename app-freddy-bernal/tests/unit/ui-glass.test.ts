@@ -351,6 +351,7 @@ describe('glass: componentes base', () => {
     const SOLID: Record<string, number> = {
       'src/app/(panel)/agenda/page.tsx': 3,
       'src/app/(panel)/agenda/por-fecha/page.tsx': 1,
+      'src/components/agenda/calendar.tsx': 2,
       'src/app/(panel)/ajustes/registro/page.tsx': 1,
       'src/app/(panel)/ajustes/buzon/page.tsx': 1,
       'src/app/(panel)/avisos/page.tsx': 1,
