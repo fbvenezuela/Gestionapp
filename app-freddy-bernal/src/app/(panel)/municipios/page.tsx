@@ -74,7 +74,7 @@ export default async function MunicipiosPage({ searchParams }: { searchParams: P
       <FilterBar action="/municipios" values={f} municipalities={data.list} parishes={parishChoice} />
 
       {filtered ? (
-        <Card>
+        <Card solid>
           <CardHeader title={`Fichas comunitarias (${data.results.length})`} subtitle="Las vencidas primero; después, de la más nueva a la más vieja." />
           {data.results.length ? <ReportList rows={data.results} /> : <div className="p-4"><EmptyState title="No hay fichas con ese filtro." /></div>}
         </Card>

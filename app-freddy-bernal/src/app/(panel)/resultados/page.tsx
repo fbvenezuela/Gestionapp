@@ -98,7 +98,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
           <ul className="mb-6 flex flex-col gap-3 sm:hidden">
             {rows.map((r) => (
               <li key={r.id}>
-                <Card className="flex flex-col gap-2 p-4">
+                <Card solid className="flex flex-col gap-2 p-4">
                   <div className="flex items-start gap-3">
                     <PubThumb t={pubThumbOf(r)} />
                     <div className="min-w-0 flex-1">
@@ -124,7 +124,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
               </li>
             ))}
           </ul>
-          <Card className="mb-6 hidden sm:block">
+          <Card solid className="mb-6 hidden sm:block">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-sm">
                 <thead className="bg-surface-2 text-left">

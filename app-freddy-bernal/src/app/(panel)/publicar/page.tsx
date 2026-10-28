@@ -44,7 +44,7 @@ export default async function PublishPage() {
         } />
       <Tip id="publicar">Abre una publicación para ver si cumple con cada red antes de subirla.</Tip>
       {data.ready.length ? (
-        <Card className="mb-5">
+        <Card solid className="mb-5">
           <CardHeader title="Aprobadas y sin publicar" />
           <ul className="divide-y divide-border">
             {data.ready.map((p) => (
@@ -64,7 +64,7 @@ export default async function PublishPage() {
       ) : (
         <div className="mb-6 flex flex-col gap-4">
           {[...byDay.entries()].map(([k, list]) => (
-            <Card key={k}>
+            <Card key={k} solid>
               <CardHeader title={<span className="first-letter:uppercase">{k === 'sin-hora' ? 'Sin hora' : fmtDay(k)}</span>} />
               <ul className="divide-y divide-border">{list.map((p) => <PubRow key={p.id} p={p} />)}</ul>
             </Card>
@@ -73,7 +73,7 @@ export default async function PublishPage() {
       )}
       <h2 className="mb-2 text-lg font-bold">Publicado (últimas 2 semanas)</h2>
       {done.length ? (
-        <Card><ul className="divide-y divide-border">{done.map((p) => <PubRow key={p.id} p={p} />)}</ul></Card>
+        <Card solid><ul className="divide-y divide-border">{done.map((p) => <PubRow key={p.id} p={p} />)}</ul></Card>
       ) : (
         <EmptyState title="Nada publicado todavía." />
       )}

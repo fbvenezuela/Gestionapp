@@ -112,7 +112,7 @@ async function CameraList({ s }: { s: Awaited<ReturnType<typeof requireRole>> })
         <ul className="flex flex-col gap-3">
           {rows.map((e) => (
             <li key={e.id}>
-              <Card>
+              <Card solid>
                 <Link href={`/eventos/${e.id}`} className="block p-4">
                   <p className={cn('font-mono text-sm font-semibold text-accent-ink', e.cancelled && 'line-through')}>{fmtDateTime(e.starts_at)}</p>
                   <p className={cn('mt-0.5 text-lg font-semibold', e.cancelled && 'line-through')}>{e.title}</p>
@@ -154,7 +154,7 @@ async function IvtList({ s }: { s: Awaited<ReturnType<typeof requireRole>> }) {
             const rejected = !e.cancelled && e.boss_decision === 'rejected';
             return (
               <li key={e.id}>
-                <Card>
+                <Card solid>
                   <Link href={`/eventos/${e.id}`} className="block p-4">
                     <p className={cn('font-mono text-sm font-semibold text-accent-ink', e.cancelled && 'line-through')}>
                       {rejected ? 'Sin fecha: el jefe la rechazó' : e.starts_at ? fmtDateTime(e.starts_at) : 'Ya tiene fecha'}
@@ -197,7 +197,7 @@ async function TeamList({ s }: { s: Awaited<ReturnType<typeof requireRole>> }) {
         <ul className="grid gap-3 md:grid-cols-2">
           {rows.map((e) => (
             <li key={e.id}>
-              <Card className="h-full">
+              <Card solid className="h-full">
                 <Link href={`/eventos/${e.id}`} className="flex h-full flex-col gap-2 p-4">
                   <div className="flex flex-wrap items-center gap-2">
                     {e.cancelled ? <Chip tone="danger">Cancelado</Chip> : null}

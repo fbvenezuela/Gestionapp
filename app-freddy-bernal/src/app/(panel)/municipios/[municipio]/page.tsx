@@ -91,7 +91,7 @@ export default async function MunicipioPage({ params, searchParams }: { params: 
 
       <FilterBar action={here} values={f} parishes={choice} />
 
-      <Card>
+      <Card solid>
         <CardHeader title={`En orden de fecha (${data.items.length})`} subtitle="Lo vencido arriba; después, de lo más nuevo a lo más viejo." />
         {data.items.length ? (
           <ul className="divide-y divide-border">

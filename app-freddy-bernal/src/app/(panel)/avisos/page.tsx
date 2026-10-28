@@ -21,7 +21,7 @@ export default async function NoticesPage() {
       {rows.length === 0 ? (
         <EmptyState icon={<Bell className="h-8 w-8" />} title="No tienes avisos." />
       ) : (
-        <Card>
+        <Card solid>
           <ul className="divide-y divide-border">
             {rows.map((r) => {
               const inner = (

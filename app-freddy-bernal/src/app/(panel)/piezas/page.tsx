@@ -45,7 +45,7 @@ export default async function PiecesPage({ searchParams }: { searchParams: Promi
       {rows.length === 0 ? (
         <EmptyState title="No hay piezas aquí." action={<LinkButton href="/piezas/nueva">Crear la primera</LinkButton>} />
       ) : (
-        <Card>
+        <Card solid>
           <ul className="divide-y divide-border">
             {rows.map((p) => (
               <li key={p.id}>

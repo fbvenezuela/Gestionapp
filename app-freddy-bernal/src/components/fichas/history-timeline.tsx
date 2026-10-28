@@ -30,7 +30,7 @@ export function describeUpdate(kind: FichaKind, u: Pick<FichaUpdate, 'kind' | 'f
 
 export function HistoryTimeline({ kind, rows, children }: { kind: FichaKind; rows: FichaUpdate[]; children?: React.ReactNode }) {
   return (
-    <Card>
+    <Card solid>
       <CardHeader title="Historia" subtitle="Quién hizo qué y cuándo. No se borra ni se cambia: solo se agrega." />
       <CardBody className="flex flex-col gap-4">
         {children}
