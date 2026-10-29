@@ -319,7 +319,8 @@ describe('lo que esta migración rehízo ya no nombra los roles retirados', () =
       sql.query<{ tablename: string; policyname: string; expr: string }>(
         `select tablename, policyname, coalesce(qual, '') || ' ' || coalesce(with_check, '') as expr from pg_policies
           where schemaname = 'public' and tablename = any($1::text[])`,
-        [['pieces', 'piece_versions', 'copies', 'reviews', 'review_comments', 'voice_line_requests', 'tweet_batches', 'tweets', 'publications', 'publication_metrics']],
+        [['pieces', 'piece_versions', 'copies', 'reviews', 'review_comments', 'voice_line_requests', 'tweet_batches', 'tweets', 'publications', 'publication_metrics',
+          'content_months', 'feed_slots', 'piece_details', 'piece_notices']],
       ),
     );
     expect(rows.length).toBeGreaterThan(10);

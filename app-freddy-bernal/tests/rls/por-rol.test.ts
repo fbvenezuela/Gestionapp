@@ -511,6 +511,8 @@ const BUSINESS: [table: string, key: string][] = [
   ['reviews', 'id'], ['review_comments', 'id'], ['voice_line_requests', 'id'], ['tweet_batches', 'id'], ['tweets', 'id'], ['publications', 'id'],
   ['publication_metrics', 'id'], ['obra_fichas', 'id'], ['obra_ficha_private', 'id'], ['community_reports', 'id'], ['community_report_private', 'id'],
   ['ficha_updates', 'id'], ['recording_notes', 'id'], ['agenda_to_schedule', `kind || ':' || id`], ['event_calendar', 'id'],
+  // Redes por formato (20261029000100_redes_formatos.sql): months, feed places, card fields and notices.
+  ['content_months', 'id'], ['feed_slots', 'id'], ['piece_details', 'id'], ['piece_notices', 'id'],
 ];
 const TEAM_OTHERS: DemoUserKey[] = ['dispatch', 'politics', 'ivt', 'social', 'social2', 'camera', 'camera2'];
 

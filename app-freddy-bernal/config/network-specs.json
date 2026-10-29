@@ -1,5 +1,5 @@
 {
-  "$comment": "Reglas por red para validar el video antes de programar. Se editan en Ajustes > Reglas por red. Valores tomados de la documentación pública de cada red; verified_on vacío = verificar contra la documentación vigente antes de confiar en ellos.",
+  "$comment": "Reglas por red para validar el video antes de programar (y, desde el 29/10, historias y carruseles: min_items y max_items son las imágenes de un carrusel). Se editan en Ajustes > Reglas por red. Valores tomados de la documentación pública de cada red; verified_on vacío = verificar contra la documentación vigente antes de confiar en ellos.",
   "specs": [
     {
       "network": "instagram",
@@ -10,7 +10,9 @@
       "notes": "Reels por API. Hashtags máx. 30.",
       "formats": {
         "reel": { "min_duration_s": 3, "max_duration_s": 900, "aspects": ["9:16"], "aspect_tolerance": 0.02, "min_width": 540, "max_width": 1920, "max_size_mb": 300, "min_fps": 23, "max_fps": 60, "video_codecs": ["avc", "h264", "hevc", "h265"], "audio_codecs": ["aac"] },
-        "photo": { "aspects": ["4:5", "1:1", "1.91:1"], "aspect_tolerance": 0.03, "max_size_mb": 8 }
+        "photo": { "aspects": ["4:5", "1:1", "1.91:1"], "aspect_tolerance": 0.03, "max_size_mb": 8 },
+        "story": { "min_duration_s": 3, "max_duration_s": 60, "aspects": ["9:16"], "aspect_tolerance": 0.02 },
+        "carousel": { "min_items": 2, "max_items": 20, "aspects": ["4:5", "1:1"], "aspect_tolerance": 0.03, "max_size_mb": 8 }
       }
     },
     {
@@ -22,7 +24,9 @@
       "notes": "Reels de página por API: 3 a 90 s.",
       "formats": {
         "reel": { "min_duration_s": 3, "max_duration_s": 90, "aspects": ["9:16"], "aspect_tolerance": 0.02, "min_width": 540, "min_height": 960, "max_size_mb": 1024, "min_fps": 24, "max_fps": 60, "video_codecs": ["avc", "h264", "hevc", "h265", "vp9"], "audio_codecs": ["aac"] },
-        "video": { "min_duration_s": 1, "max_duration_s": 14400, "max_size_mb": 10240, "max_fps": 60 }
+        "video": { "min_duration_s": 1, "max_duration_s": 14400, "max_size_mb": 10240, "max_fps": 60 },
+        "story": { "min_duration_s": 3, "max_duration_s": 60, "aspects": ["9:16"], "aspect_tolerance": 0.02 },
+        "carousel": { "min_items": 2, "max_items": 10, "aspects": ["4:5", "1:1"], "aspect_tolerance": 0.03 }
       }
     },
     {

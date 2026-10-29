@@ -607,6 +607,11 @@
   "importExclude": ["*sabados felices*"]
  },
  "defaultCollaborators": [],
+ "redes": {
+  "$comment": "Redes por formato (29/10/2026, D-68): cupo mensual por formato (informativo: pasarse no bloquea) y pilares de contenido. Se cambian en Ajustes → Cupo y pilares. El cupo es el de la referencia hasta que el equipo diga el de FB; los pilares, vacíos hasta que los diga.",
+  "quotas": { "reel": 12, "post": 8, "carousel": 4, "story": 30, "youtube": 4 },
+  "pillars": []
+ },
  "$schedules_source": "Diagnóstico Digital 360 (m06, m13), aprobado por Juan el 24/10/2026: X 2–3 al día; TikTok de noche.",
  "publishingWindows": {
   "tiktok": {
