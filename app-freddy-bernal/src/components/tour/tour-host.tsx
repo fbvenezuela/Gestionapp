@@ -130,6 +130,28 @@ function whenIdle(ms = 4000): Promise<void> {
 
 const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
+// A dialog of the page itself is open, or is about to open on its own (Mensajes' notice, marked data-blocks-tour until
+// the person closes it once: its effect may run after the tutorial's): the tutorial would ring what sits under it.
+// The tutorial's own card does not count.
+const pageDialogOpen = () => !!document.querySelector('dialog[open]:not([data-tour-dialog]), dialog[data-blocks-tour]');
+
+// Waits until no dialog of the page is open (closed with its button or Escape), at most `ms`.
+function whenNoDialog(ms = 10 * 60_000): Promise<void> {
+  if (!pageDialogOpen()) return Promise.resolve();
+  return new Promise((resolve) => {
+    const done = () => {
+      mo.disconnect();
+      window.clearTimeout(timer);
+      resolve();
+    };
+    const mo = new MutationObserver(() => {
+      if (!pageDialogOpen()) done();
+    });
+    const timer = window.setTimeout(done, ms);
+    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['open', 'data-blocks-tour'] });
+  });
+}
+
 // Where the focus goes back to: the element given, or the one that had it; inside a menu (which closes when the focus
 // leaves it, as «Mi cuenta»), that menu's button.
 function openerFrom(given: unknown): HTMLElement | null {
@@ -203,7 +225,12 @@ function Host({ userId, roles, tours }: TourHostProps) {
     const at = whereNow.current;
     await whenIdle();
     await nextFrame();
-    if (live.current || at !== whereNow.current) return;
+    // Mensajes' notice first: the tutorial starts once it is closed (accepted or not), still on this screen.
+    if (pageDialogOpen()) {
+      await whenNoDialog();
+      await nextFrame();
+    }
+    if (live.current || at !== whereNow.current || pageDialogOpen()) return;
     const tour = here().find((t) => t.id === id);
     if (!tour) return; // not a tutorial of this screen for this person: nothing happens
     const steps = stepsOf(tour);

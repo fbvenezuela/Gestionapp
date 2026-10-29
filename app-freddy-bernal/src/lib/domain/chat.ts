@@ -107,10 +107,12 @@ export function stripTimecodes(text: string): string {
 const L = 'a-záéíóúüñ';
 const once = (re: RegExp) => new RegExp(re.source, re.flags.replace('g', ''));
 // The patterns of looksLikeDateTime() without the 2nd (a phone), the 14th («de la tarde», «mediodía») and the 15th
-// (weekdays and relative days); of the 14th, «mediodía» and «medianoche» stay. As text_has_concrete_datetime().
+// (weekdays and relative days); of the 14th, «mediodía» and «medianoche» stay, and a weekday followed by a day number
+// («el sábado 24», «domingo 3») stays. As text_has_concrete_datetime().
 const CONCRETE: RegExp[] = [
   ...DATETIME_PATTERNS.filter((_, i) => i !== 1 && i !== 13 && i !== 14),
   new RegExp(`(?<![${L}])(?:mediod[ií]a|medianoche)(?![${L}])`, 'gi'),
+  new RegExp(`(?<![${L}])(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo),?${SP}+(?:de${SP}+)?[0-9]{1,2}(?![a-z0-9_])`, 'gi'),
 ].map(once);
 
 // What the composer asks about (E1): the 14th and 15th patterns, and a few more ways of saying when.
@@ -187,6 +189,16 @@ export type ChatTextContext = {
   relativeOk?: boolean;
 };
 
+/** What the agenda rule checks, as chat_message_guard(): Grabación alone has its bare time codes taken out, unless the
+ * message also has a relative day («mañana 7:00 salimos»: the strict looksLikeDateTime() finds it), and then the time
+ * code counts as an hour. `codes` = the time codes taken out. */
+function agendaText(raw: string, roles: readonly Role[]): { t: string; codes: string[] } {
+  if (!cameraOnly(roles)) return { t: raw, codes: [] };
+  const codes = timecodesIn(raw);
+  const stripped = stripTimecodes(raw);
+  return codes.length && looksLikeDateTime(stripped) ? { t: raw, codes: [] } : { t: stripped, codes };
+}
+
 function phoneInLink(text: string, phones: string[]): boolean {
   return phones.some((p) => {
     const at = text.indexOf(p);
@@ -208,9 +220,7 @@ export function chatTextProblem(text: string, ctx: ChatTextContext): ChatTextPro
   const phones = phonesIn(raw);
   if (phones.length) return { kind: 'phone', inLink: phoneInLink(raw, phones) };
   if (!ctx.hidesAgenda || !knowsAgenda(ctx.authorRoles)) return null;
-  const camera = cameraOnly(ctx.authorRoles);
-  const codes = camera ? timecodesIn(raw) : [];
-  const t = camera ? stripTimecodes(raw) : raw;
+  const { t, codes } = agendaText(raw, ctx.authorRoles);
   const when = firstConcreteDateTime(t) ?? mapWord(t);
   if (when) return { kind: 'when', word: when };
   if (codes.length && !ctx.timecodeOk) return { kind: 'timecode', word: codes[0].trim() };
@@ -223,19 +233,18 @@ export function chatTextProblem(text: string, ctx: ChatTextContext): ChatTextPro
  * and it has a concrete date, time or map (in a conversation without Redes or política). */
 export function chatAgendaClear(text: string, authorRoles: readonly Role[]): boolean {
   if (!knowsAgenda(authorRoles)) return true;
-  const raw = stripRefs((text ?? '').normalize('NFKC'));
-  const t = cameraOnly(authorRoles) ? stripTimecodes(raw) : raw;
+  const { t } = agendaText(stripRefs((text ?? '').normalize('NFKC')), authorRoles);
   return !(hasConcreteDateTime(t) || hasMap(t));
 }
 
 /**
- * Why a group's name is not saved: a phone; and, with Redes or política in the group, a date, a time or a map (the
- * strict rule of chat_start(): nobody is asked before a name is saved, and everyone in it reads it every time).
+ * Why a group's name is not saved: a phone, a date, a time or a map, whoever is in the group (the strict rule of
+ * chat_start(): nobody is asked before a name is saved, everyone in it reads it every time, and a name has no
+ * agenda_clear, so a member who gains Redes or política later still reads it).
  */
-export function chatTitleProblem(title: string, ctx: { withRedesOrPolitics: boolean }): ChatTextProblem | null {
+export function chatTitleProblem(title: string): ChatTextProblem | null {
   const phones = phonesIn(title ?? '');
   if (phones.length) return { kind: 'phone', inLink: phoneInLink((title ?? '').normalize('NFKC'), phones) };
-  if (!ctx.withRedesOrPolitics) return null;
   if (looksLikeDateTime(title ?? '')) return { kind: 'when', word: firstDateTime(title ?? '') ?? '' };
   const map = mapWord(title ?? '');
   return map ? { kind: 'when', word: map } : null;

@@ -19,7 +19,7 @@ import { chatRoles } from './chat-core';
 
 export type PickPerson = { id: string; name: string; roles: Role[] };
 
-const TITLE_REFUSED = 'El nombre del grupo no lleva teléfonos, ni fechas, horas o mapas si en el grupo está Redes o política.';
+const TITLE_REFUSED = 'El nombre del grupo no lleva teléfonos, fechas, horas ni mapas: todos los del grupo lo leen siempre.';
 
 export function blockedLine(n: number): string | null {
   if (n <= 0) return null;
@@ -68,7 +68,7 @@ export function NewConversation({ mode, people, blocked, myRoles }: { mode: 'per
 
   const chosen = people.filter((p) => picked.includes(p.id));
   const withRedesOrPolitics = [...chosen.flatMap((p) => p.roles), ...myRoles].some((r) => r === 'social' || r === 'politics');
-  const titleProblem = title.trim() ? chatTitleProblem(title, { withRedesOrPolitics }) : null;
+  const titleProblem = title.trim() ? chatTitleProblem(title) : null;
   const full = picked.length >= CHAT_GROUP_MAX - 1;
   const ready = picked.length >= 2 && title.trim().length > 0 && !titleProblem;
   return (

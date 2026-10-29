@@ -1,8 +1,8 @@
 import { BookOpen, LayoutList, PlayCircle, ShieldCheck, Users, Workflow } from 'lucide-react';
 import { menuRoles, requireSession } from '@/lib/auth/session';
-import { homeFor, TEAM_ROLES } from '@/lib/roles';
+import { homeFor, isTeamRole, TEAM_ROLES } from '@/lib/roles';
 import { screenFor } from '@/lib/assistant/screens';
-import { GUIDE_SLUGS, GUIDE_TITLES, SHARED, guideFor, teamRolesOf, tourHref, toursForRoles } from '@/lib/guides';
+import { GUIDE_SLUGS, GUIDE_TITLES, guideFor, sharedFor, teamRolesOf, tourHref, toursForRoles } from '@/lib/guides';
 import { PageHeader } from '@/components/ui/page';
 import { Card } from '@/components/ui/card';
 import { HelpList, HelpRow, type HelpItem } from '@/components/guides/help-list';
@@ -26,6 +26,8 @@ export default async function HelpPage() {
     .filter((x): x is { t: (typeof x)['t']; href: string } => x.href !== null);
   const several = team.length > 1;
   const everyone = s.roles.includes('boss') || admin;
+  // Mensajes only for the team, never for an account with Administración (not even with «Ver como»), as the envelope.
+  const messages = !admin && s.roles.some((r) => isTeamRole(r));
 
   const tourItems: HelpItem[] = tours.map(({ t, href }) => ({
     href,
@@ -82,7 +84,7 @@ export default async function HelpPage() {
         />
       ) : null}
 
-      <SharedTopics topics={SHARED} id="para-todos" />
+      <SharedTopics topics={sharedFor({ messages })} id="para-todos" />
 
       {everyone ? (
         <HelpList

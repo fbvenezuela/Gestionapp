@@ -78,6 +78,11 @@ test('la franja sale a los ~4 s, después del consejo, en una línea y sin tapar
   expect(box.y + box.height).toBeLessThanOrEqual(button.y);
   await noSideScroll(page);
   await noSerious(page);
+  // The same strip in dark mode.
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(s).toBeVisible();
+  await noSerious(page);
+  await page.emulateMedia({ colorScheme: 'light' });
 
   // At the end of the page the last control is not under it (the page leaves room for it).
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
@@ -163,8 +168,13 @@ test('no sale en una pantalla de formulario, ni mientras se escribe, ni en una c
   // A conversation fills the screen: no 360 button and no strip (U11).
   await nextDayNewTab(page);
   await page.goto('/mensajes');
-  const ack = page.getByRole('button', { name: 'Entendido' });
-  if (await ack.isVisible().catch(() => false)) await page.keyboard.press('Escape');
+  // The notice (not accepted yet) opens by itself once the page is live: wait for it, then read without accepting.
+  await expect(page.locator('main [data-tour="chat-list"]')).toBeVisible();
+  if (await page.locator('dialog', { hasText: 'Antes de escribir en Mensajes' }).count()) {
+    await expect(page.getByRole('dialog', { name: 'Antes de escribir en Mensajes' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog', { name: 'Antes de escribir en Mensajes' })).toHaveCount(0);
+  }
   await page.locator('[data-tour="chat-list"] a[href^="/mensajes/"]').first().click();
   await page.waitForURL(/\/mensajes\/[0-9a-f-]{36}/);
   await expectNoStrip(page, 5_000);

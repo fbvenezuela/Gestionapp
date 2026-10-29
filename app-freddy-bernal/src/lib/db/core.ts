@@ -65,8 +65,8 @@ const PRIVACY_CHECKS: [string, string][] = [
   // 20261028002400_internal_chat.sql (Mensajes). The text never comes back in the error.
   ['chat_messages_no_phone', 'Los teléfonos no van en los mensajes: los contactos van en la ficha, con doble factor. Si es un número largo dentro de un enlace, pega la dirección de la plataforma o quita el número.'],
   ['chat_messages_no_agenda_when', 'Aquí está Redes o política: el mensaje no puede llevar una hora, una fecha ni un mapa. Escribe «lo antes posible» o «el día del evento».'],
-  ['chat_title_private', 'El nombre del grupo no lleva teléfonos, ni fechas, horas o mapas si en el grupo está Redes o política.'],
-  ['chat_conv_title_no_phone', 'El nombre del grupo no lleva teléfonos, ni fechas, horas o mapas si en el grupo está Redes o política.'],
+  ['chat_title_private', 'El nombre del grupo no lleva teléfonos, fechas, horas ni mapas: todos los del grupo lo leen siempre.'],
+  ['chat_conv_title_no_phone', 'El nombre del grupo no lleva teléfonos, fechas, horas ni mapas: todos los del grupo lo leen siempre.'],
   ['chat_pair_not_allowed', 'El jefe no permite mensajes entre estas personas.'],
   ['chat_messages_len', 'El mensaje tiene que tener entre 1 y 2000 letras.'],
   ['chat_conv_title_len', 'El nombre del grupo va de 1 a 60 letras.'],

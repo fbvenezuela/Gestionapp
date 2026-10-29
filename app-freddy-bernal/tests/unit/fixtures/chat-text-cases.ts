@@ -37,6 +37,12 @@ export const CONCRETE_CASES: { text: string; concrete: boolean }[] = [
   { text: 'el 2026-11-12', concrete: true },
   { text: 'https://app.ejemplo.test/agenda?dia=2026-10-30', concrete: true },
   { text: 'sáb 24', concrete: true },
+  // A full weekday with a day number is a calendar date too.
+  { text: 'el sábado 24 vamos a Petare', concrete: true },
+  { text: 'domingo 3', concrete: true },
+  { text: 'El Jueves, 5', concrete: true },
+  { text: 'el miércoles de 12', concrete: true },
+  { text: 'SÁBADO\u00a024', concrete: true },
   { text: 'oct. 25', concrete: true },
   { text: '23 de enero', concrete: true },
   // False positives, accepted (a place named for a date, «a las 3 escuelas»).
@@ -151,6 +157,8 @@ export const GUARD_CASES: GuardCase[] = [
   { text: 'el jueves a las 10', author: 'dispatch', hides: true, result: 'when' },
   { text: '23 de enero', author: 'ivt', hides: true, result: 'when' },
   { text: 'el lunes lo revisamos', author: 'ivt', hides: true, result: 'ok', agendaClear: true },
+  { text: 'el sábado 24 vamos a Petare', author: 'dispatch', hides: true, result: 'when' },
+  { text: 'domingo 3', author: 'dispatch', hides: false, result: 'ok', agendaClear: false },
   // 23: Redes does not know the agenda.
   { text: '¿mañana grabamos?', author: 'social', hides: true, result: 'ok', agendaClear: true },
   { text: 'el jueves a las 10', author: 'social', hides: true, result: 'ok', agendaClear: true },
@@ -163,6 +171,12 @@ export const GUARD_CASES: GuardCase[] = [
   { text: '2:15 pm', author: 'camera', hides: true, result: 'when' },
   { text: 'mañana', author: 'camera', hides: true, result: 'ok', agendaClear: true },
   { text: 'a las 2:15', author: 'camera', hides: false, result: 'ok', agendaClear: false },
+  // A time code with a relative day in the same message is an hour of the agenda: it is not taken out.
+  { text: 'mañana 7:00 salimos', author: 'camera', hides: true, result: 'when' },
+  { text: 'esta tarde 4:30 en la cancha', author: 'camera', hides: true, result: 'when' },
+  { text: 'el sábado 9:30 en Catia', author: 'camera', hides: true, result: 'when' },
+  { text: 'en el 2:15 está la toma, mañana te mando el resto', author: 'camera', hides: true, result: 'when' },
+  { text: 'mañana 7:00 salimos', author: 'camera', hides: false, result: 'ok', agendaClear: false },
   { text: 'en el 2:15 está la toma del dron', author: 'dispatch', hides: true, result: 'when' },
   // 26: a phone, for everyone and everywhere.
   { text: 'llámalo al 0414 555 12 34', author: 'social', hides: true, result: 'phone' },
@@ -195,7 +209,7 @@ const PIECES = [
   'redesfb', '/status/', '1849204857203948573', '04145551234', '0414', '555', '1234', 'https://', 'maps.google.com', 'google.com/maps',
   'goo.gl/maps', 'waze.com', 'geo:', 'geografía', '10.4806', ',', ', ', '-66.9036', '7°', '46', "'", '′', '"', '8C9X', '+', '2V', '+2V',
   '2:15', '0:45', '10:30', '1:02:15', 'a las', 'A LAS', 'la', 'las', 'tipo', 'desde', 'hasta', 'para', 'casa', 'ella', 'pm', 'p. m.', 'a.m.',
-  'a mi', 'h', 'hs', 'horas', 'de la tarde', 'DE LA MAÑANA', 'del día', 'del video', 'mañana', 'hoy', 'jueves', 'sáb', '24', 'de', 'enero',
+  'a mi', 'h', 'hs', 'horas', 'de la tarde', 'DE LA MAÑANA', 'del día', 'del video', 'mañana', 'hoy', 'jueves', 'sáb', 'sábado', 'Domingo', '24', 'de', 'enero',
   'Enero', '12/11', '2026-10-30', 'mediodía', 'MEDIANOCHE', '9', 'am', '１０', '：', '３０', 'é', 'Ñ', 'ſ', 'K', 'İ', 'ÿ', 'Ÿ', ' ', ' ', ' ',
   ' ', '\t', '\n', '-', '.', '/', ':', '?', '=', '&',
 ];

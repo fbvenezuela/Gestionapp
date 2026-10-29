@@ -144,7 +144,10 @@ export function ChatThread({
         setItems((cur) => {
           const mine = cur.find((it) => it.id === job.clientId);
           const rest = cur.filter((it) => it.id !== job.clientId);
-          return mine ? mergeItems(rest, [{ ...mine, createdAt: sent.createdAt, state: undefined } as ChatItem]) : cur;
+          // Saved: in its place by the server's time, but `local` until the loop brings the server's copy (cursorOf).
+          if (!mine) return cur;
+          const confirmed: FeedItem = { ...mine, createdAt: sent.createdAt, state: undefined, local: true };
+          return mergeItems(rest, [confirmed]);
         });
         window.dispatchEvent(new Event(CHAT_READ_EVENT));
       },
@@ -168,7 +171,9 @@ export function ChatThread({
 
   return (
     <>
-      <Card solid className="flex min-h-[50dvh] flex-col">
+      {/* Tall enough that the box below reaches the bottom of a tall screen (an iPad) even with few messages: the page
+          header and the box take about 16rem; more than that only scrolls a little, and the box stays stuck below. */}
+      <Card solid className="flex min-h-[max(50dvh,calc(100dvh_-_16rem))] flex-col">
         {more ? (
           <div className="border-b border-border p-2 text-center">
             <Link href={moreHref} scroll={false} className="inline-flex min-h-11 items-center px-3 text-sm font-semibold text-accent-ink underline underline-offset-2">

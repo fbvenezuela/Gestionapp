@@ -20,14 +20,22 @@ export function offerIsOff(raw: string | null): boolean {
   }
 }
 
+// The band at the foot of the card it sits in (HelpList's footer): drawn only when there is something to show.
+const BAND = 'border-t border-border px-4 py-3';
+
 export function OfferReset({ userId }: { userId: string }) {
   const key = offerStateKey(userId);
   const raw = useSyncExternalStore(subscribeDevice, () => readKey(deviceStore(), key), () => null);
   const [done, setDone] = useState(false);
-  if (done) return <p className="text-[15px] text-text-2" role="status">Listo: 360 te vuelve a ofrecer ayuda en tus pantallas.</p>;
+  if (done)
+    return (
+      <p className={`${BAND} text-[15px] text-text-2`} role="status">
+        Listo: 360 te vuelve a ofrecer ayuda en tus pantallas.
+      </p>
+    );
   if (!offerIsOff(raw)) return null;
   return (
-    <div className="flex flex-col gap-2">
+    <div className={`${BAND} flex flex-col gap-2`}>
       <p className="text-[15px] text-text-2">360 dejó de ofrecerte ayuda en este teléfono.</p>
       <Button
         variant="secondary"

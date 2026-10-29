@@ -567,7 +567,7 @@ describe('quién habla con quién lo decide el jefe (filas 34 a 44)', () => {
     expect(await start('camera', 'direct', ['camera2'])).toBe(D3);
   });
 
-  it('44: un grupo va de 3 a 12 personas, con nombre, sin teléfono, y sin fecha ni mapa en el nombre si están Redes o política', async () => {
+  it('44: un grupo va de 3 a 12 personas, con nombre, sin teléfono, fecha ni mapa en el nombre (estén o no Redes o política)', async () => {
     const twelve: Who[] = ['boss', 'dispatch', 'politics', 'ivt', 'social2', 'camera', 'camera2', 'polIvt', 'r1', 'r2', 'r3', 'r4'];
     for (const [members, title] of [[['camera'], 'Dos'], [twelve, 'Trece'], [['camera', 'camera2'], null], [['camera', 'camera2'], '   ']] as [Who[], string | null][]) {
       expect((await errorOf(start('social', 'group', members, title ?? undefined))).code, `${members.length} ${title}`).toBe('22023');
@@ -576,9 +576,11 @@ describe('quién habla con quién lo decide el jefe (filas 34 a 44)', () => {
       const e = await errorOf(start('social', 'group', ['politics', 'camera'], title));
       expect(e.message, title).toBe('chat_title_private');
     }
-    // Without Redes or política a name may say «mañana» (never a phone).
-    expect(await start('camera', 'group', ['camera2', 'r1'], 'Lo de mañana')).toMatch(/^[0-9a-f-]{36}$/);
-    expect((await errorOf(start('camera', 'group', ['camera2', 'r1'], 'Vocera 0414-555-1234'))).message).toBe('chat_title_private');
+    // Without Redes or política either: the name has no agenda_clear, and a member may gain Redes or política later.
+    for (const title of ['Lo de mañana', 'Petare 12/11 9am', 'Vocera 0414-555-1234', 'Plaza maps.google.com']) {
+      expect((await errorOf(start('camera', 'group', ['camera2', 'r1'], title))).message, title).toBe('chat_title_private');
+    }
+    expect(await start('camera', 'group', ['camera2', 'r1'], 'Tomas del parque (demo)')).toMatch(/^[0-9a-f-]{36}$/);
     expect(await start('social', 'group', twelve.slice(0, 10), 'Grupo grande (demo)')).toMatch(/^[0-9a-f-]{36}$/);
     await expect(start('social', 'team', ['camera'], 'Otro equipo')).rejects.toThrow(/kind/);
   });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { acceptNotice } from '@/lib/actions/chat';
 import { useAction } from '@/lib/hooks/use-action';
 import { CHAT_ACK_TEXT, CHAT_DEMO_NOTICE } from '@/lib/domain/chat';
@@ -18,6 +18,8 @@ export function ChatAckDialog({ accepted, demo }: { accepted: boolean; demo: boo
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const { run, pending } = useAction();
+  // Until the person closes it once, it tells the tutorials' engine to wait (data-blocks-tour): it opens by itself.
+  const [closedOnce, setClosedOnce] = useState(false);
   useEffect(() => {
     if (accepted) return;
     const open = () => {
@@ -30,7 +32,7 @@ export function ChatAckDialog({ accepted, demo }: { accepted: boolean; demo: boo
   }, [accepted]);
   if (accepted) return null;
   return (
-    <dialog ref={ref} aria-labelledby={titleId} className={dialogPanelClass}>
+    <dialog ref={ref} aria-labelledby={titleId} className={dialogPanelClass} data-blocks-tour={closedOnce ? undefined : ''} onClose={() => setClosedOnce(true)}>
       <h2 id={titleId} className="text-lg font-semibold">Antes de escribir en Mensajes</h2>
       <p className="mt-2 text-[15px] text-text-2">{CHAT_ACK_TEXT}</p>
       {demo ? <p className="mt-2 text-sm text-text-2">{CHAT_DEMO_NOTICE}</p> : null}

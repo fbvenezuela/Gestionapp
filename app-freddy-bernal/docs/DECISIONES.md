@@ -749,12 +749,15 @@ comando, los mensajes no se borran).
      (todas las filas de miembros, activos o no, y todos sus roles) o es «Todo el equipo»; (b) quien escribe **conoce
      la agenda**: tiene jefe, despacho, IVT, Grabación o administración; y (c) el texto tiene una fecha o una hora
      **concreta** (`public.text_has_concrete_datetime`: horas de reloj como «10:30», «3 pm», «a las 3», «3 de la
-     tarde», «15h», «mediodía»; fechas de calendario como «12 de noviembre», «12/11», «12-11-2026» o una fecha ISO) o
+     tarde», «15h», «mediodía»; fechas de calendario como «12 de noviembre», «12/11», «12-11-2026», una fecha ISO o un
+     día de la semana con su número, «el sábado 24») o
      lleva un enlace de mapas o unas coordenadas (`chat_has_map`). Antes de revisar solo se quitan la ruta interna
      exacta `/<sección>/<uuid>` y el número de un post de X (`/status/<cifras>`); lo demás, enlaces de afuera
      incluidos, se revisa como texto. Para **Grabación** (sin jefe, despacho ni IVT) se quitan antes los tiempos del
      video sueltos («2:15», no «a las 2:15» ni «2:15 pm»), y la app le pregunta «¿2:15 es un tiempo del video? Si es
-     una hora, no va aquí.» con «Sí, es del video» / «Corregir».
+     una hora, no va aquí.» con «Sí, es del video» / «Corregir». Si el mismo mensaje tiene además un día relativo
+     («mañana 7:00 salimos», «el sábado 9:30»), el tiempo no se quita: cuenta como hora y se rechaza (revisión del
+     29/10: dos «sí» seguidos dejaban pasar la hora de salida).
   2. **Las palabras relativas no se rechazan** («hoy», «mañana», «pasado mañana», «esta tarde», «esta noche», los días
      de la semana, «el lunes», «el fin de semana»). A quien conoce la agenda, en una conversación con Redes o política,
      la app le pregunta antes de enviar: «“mañana”: ¿dice cuándo va el jefe? Si es de la agenda, no va aquí.» con
@@ -773,8 +776,9 @@ comando, los mensajes no se borran).
     la caja; nunca se repite el texto en el error ni en los registros.
   - La nota «Aquí está Redes o política: sin fechas, horas, ni cuándo sales o llegas.» la ve solo quien conoce la
     agenda, y solo en esas conversaciones. «Cuándo sales o llegas» no lo detecta la base: es guía.
-  - **Nombres de grupo:** con Redes o política en el grupo siguen con el detector completo (`text_has_datetime`,
-    también «hoy» o «mañana»): nadie pregunta antes de guardar un nombre, y todos lo leen cada vez.
+  - **Nombres de grupo:** siempre con el detector completo (`text_has_datetime`, también «hoy» o «mañana») y sin
+    mapas, estén o no Redes o política: nadie pregunta antes de guardar un nombre, todos lo leen cada vez, y un nombre
+    no tiene `agenda_clear` (alguien que pase a Redes después lo seguiría leyendo; revisión del 29/10).
 - **Por qué:** regla 4: «la agenda del jefe se cumple en la base de datos, no solo en la pantalla». La fuga real es
   alguien que conoce la agenda escribiéndole a Redes o política; ahí la base cierra, y la marca por mensaje cubre los
   cambios de rol y de miembros. «Hoy» o «mañana» solos no dan la hora ni el lugar; rechazarlos frustraba al jefe en
@@ -862,7 +866,9 @@ comando, los mensajes no se borran).
   invitar otra cuenta con el rol de jefe, ponerle doble factor y leer «Todas» o aprobar. Esto cierra el «Lo que queda»
   de D-41 para el jefe. Con el aviso, una cuenta nueva que entra a «Todo el equipo» no pasa sin que el jefe lo sepa.
 - **Lo que queda:** quitar el rol de jefe sigue siendo de administración (cerrar no abre nada). Administración todavía
-  puede invitar a alguien como despacho (D-41); el jefe recibe el aviso.
+  puede invitar a alguien como despacho (D-41); el jefe recibe el aviso. Las invitaciones pendientes con el rol de jefe
+  que hizo una persona antes de esta migración las anula la misma migración (`invited_by` no nulo; las del sistema
+  quedan): si no, el alta las copiaría sin preguntar (revisión del 29/10, `tests/rls/boss-grant-pending.test.ts`).
 - **Cómo se cambia:** `guard_boss_grant()` y `notify_team_role_grant()` en una migración nueva; `roleGrantProblem()`
   en `src/lib/roles.ts`; `scripts/first-admin.ts` y `scripts/create-first-admin.mts`.
 

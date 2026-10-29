@@ -8,7 +8,7 @@ import type { SharedTopic } from './types';
 export const ADMIN_SEES_360 = 'Administración ve lo que le preguntas a 360: no pegues ahí mensajes del equipo.';
 
 // The sentences of Mensajes every guide repeats (design §7.2): one source, so the test can check each guide has them.
-export const MSG_ENTER = 'En el teléfono, la tecla Enter hace un salto de línea: el mensaje sale cuando tocas el botón «Enviar».';
+export const MSG_ENTER = 'En el teléfono, la tecla Enter hace un salto de línea: el mensaje sale cuando tocas el botón de enviar (el avioncito de papel).';
 export const MSG_PHONES = CHAT_PHONE_TEXT;
 export const MSG_AGENDA =
   'Quien conoce la agenda (el jefe, el despacho, el IVT y Grabación) no escribe fechas, horas ni mapas donde está Redes o política: la plataforma no lo deja.';
@@ -116,6 +116,18 @@ export const SHARED: SharedTopic[] = [
     ],
   },
 ];
+
+// Administración has no Mensajes (D-49): its «Para todos» drops the topic and says so where the envelope is named.
+export const NO_MESSAGES_LINE = 'Mensajes es del equipo: administración no lo ve, y por eso no tiene el sobre.';
+
+/** «Para todos» for this session: with Mensajes for a team member, without it (and without the envelope) for an
+ * account with Administración or without a team role (the same test as the envelope, chat-header-link.tsx). */
+export function sharedFor(o: { messages: boolean }): SharedTopic[] {
+  if (o.messages) return SHARED;
+  return SHARED.filter((t) => t.id !== 'mensajes').map((t) =>
+    t.id === 'arriba' ? { ...t, body: t.body.map((line) => (line.startsWith('El sobre:') ? NO_MESSAGES_LINE : line)) } : t,
+  );
+}
 
 // The texts that may name Administración in a team guide (D-43): Mensajes' notices and 360's line.
 export const ADMIN_MENTIONS: string[] = [CHAT_NOTICE, CHAT_NOTICE_LINE, CHAT_ACK_TEXT, ADMIN_SEES_360];

@@ -61,6 +61,7 @@ describe('chatTextProblem(): lo que el compositor dice antes de enviar', () => {
   it('nombra la palabra: lo concreto no va, lo relativo se pregunta (E1)', () => {
     expect(chatTextProblem('Nos vemos mañana a las 9', { hidesAgenda: true, authorRoles: boss })).toEqual({ kind: 'when', word: 'a las 9' });
     expect(chatTextProblem('el 12 de noviembre en la plaza', { hidesAgenda: true, authorRoles: boss })).toEqual({ kind: 'when', word: '12 de noviembre' });
+    expect(chatTextProblem('el sábado 24 vamos a Petare', { hidesAgenda: true, authorRoles: boss, ...ok })).toEqual({ kind: 'when', word: 'sábado 24' });
     expect(chatTextProblem('Mira https://maps.google.com/?q=plaza', { hidesAgenda: true, authorRoles: boss })).toEqual({ kind: 'when', word: 'un enlace de mapas' });
     expect(chatTextProblem('Queda en 7.7612, -72.2245', { hidesAgenda: true, authorRoles: boss })).toEqual({ kind: 'when', word: 'unas coordenadas' });
     expect(chatTextProblem('mañana te mando la frase', { hidesAgenda: true, authorRoles: boss })).toEqual({ kind: 'relative', word: 'mañana' });
@@ -77,7 +78,12 @@ describe('chatTextProblem(): lo que el compositor dice antes de enviar', () => {
   it('Grabación: el tiempo del video se pregunta; la hora no va', () => {
     expect(chatTextProblem('en el 2:15 está la toma', { hidesAgenda: true, authorRoles: camera })).toEqual({ kind: 'timecode', word: '2:15' });
     expect(chatTextProblem('en el 2:15 está la toma', { hidesAgenda: true, authorRoles: camera, timecodeOk: true })).toBeNull();
-    expect(chatTextProblem('en el 2:15 mañana', { hidesAgenda: true, authorRoles: camera, timecodeOk: true })).toEqual({ kind: 'relative', word: 'mañana' });
+    // With a relative day in the same message the time code is an hour (the database does the same): not asked, refused.
+    expect(chatTextProblem('en el 2:15 mañana', { hidesAgenda: true, authorRoles: camera, timecodeOk: true })).toEqual({ kind: 'when', word: '2:15' });
+    expect(chatTextProblem('mañana 7:00 salimos', { hidesAgenda: true, authorRoles: camera, ...ok })).toEqual({ kind: 'when', word: '7:00' });
+    expect(chatTextProblem('el sábado 9:30 en Catia', { hidesAgenda: true, authorRoles: camera, ...ok })).toEqual({ kind: 'when', word: 'sábado 9' });
+    expect(chatAgendaClear('mañana 7:00 salimos', camera)).toBe(false);
+    expect(chatAgendaClear('en el 2:15 está la toma', camera)).toBe(true);
     expect(chatTextProblem('a las 2:15 en la escuela', { hidesAgenda: true, authorRoles: camera })).toEqual({ kind: 'when', word: 'a las 2:15' });
     // Grabación with despacho too knows the whole agenda: no time codes for it.
     expect(chatTextProblem('en el 2:15 está la toma', { hidesAgenda: true, authorRoles: ['camera', 'dispatch'] })).toEqual({ kind: 'when', word: '2:15' });
@@ -107,11 +113,12 @@ describe('chatTextProblem(): lo que el compositor dice antes de enviar', () => {
   });
 
   it('el nombre de un grupo: el modo estricto si están Redes o política', () => {
-    expect(chatTitleProblem('Obras y comunidad', { withRedesOrPolitics: true })).toBeNull();
-    expect(chatTitleProblem('Lo de mañana', { withRedesOrPolitics: true })).toEqual({ kind: 'when', word: 'mañana' });
-    expect(chatTitleProblem('Lo de mañana', { withRedesOrPolitics: false })).toBeNull();
-    expect(chatTitleProblem('Plaza maps.google.com', { withRedesOrPolitics: true })).toEqual({ kind: 'when', word: 'un enlace de mapas' });
-    expect(chatTitleProblem('Vocera 0414-555-1234', { withRedesOrPolitics: false })).toEqual({ kind: 'phone', inLink: false });
+    expect(chatTitleProblem('Obras y comunidad')).toBeNull();
+    expect(chatTitleProblem('Lo de mañana')).toEqual({ kind: 'when', word: 'mañana' });
+    // Whoever is in the group: a member may gain Redes or política later, and the name has no agenda_clear.
+    expect(chatTitleProblem('Petare 12/11 9am')).toEqual({ kind: 'when', word: '12/11' });
+    expect(chatTitleProblem('Plaza maps.google.com')).toEqual({ kind: 'when', word: 'un enlace de mapas' });
+    expect(chatTitleProblem('Vocera 0414-555-1234')).toEqual({ kind: 'phone', inLink: false });
   });
 });
 

@@ -75,7 +75,7 @@ export function messagesSections(role: TeamRole): S[] {
         'Si el jefe no permite mensajes entre tu rol y otro, esas personas no salen en la lista.',
         MSG_TO_BOSS,
       ],
-      cannot: ['Poner teléfonos en el nombre del grupo, ni fechas u horas si en el grupo está Redes o política.'],
+      cannot: ['Poner teléfonos, fechas, horas o mapas en el nombre del grupo.'],
     },
     {
       screen: '/mensajes/[id]',

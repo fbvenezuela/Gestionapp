@@ -100,7 +100,7 @@ export function renderGuideMd(p: { shared: readonly SharedTopic[]; guides: reado
       '|---|---|',
       ...DEMO_USERS.map(([r, e]) => `| ${r} | ${e} |`),
       '',
-      'Qué probar primero con cada rol: el tutorial de su inicio («Mi cuenta» → «Ver el tutorial de esta pantalla»), su ' +
+      'Qué probar primero con cada rol: el tutorial de su inicio («Mi cuenta» → «Ver el tutorial: Bienvenida»), su ' +
         'guía en «Ayuda y guías», una conversación en Mensajes y lo de su «Paso a paso».',
     ].join('\n'),
   ];

@@ -216,10 +216,12 @@ describe('leer, silenciar, armar conversaciones', () => {
     expect(await chat.startConversation({ kind: 'direct', memberIds: [t.ids.camera] })).toEqual({ ok: true, data: { id: direct('social2', 'camera') } });
   });
 
-  it('el nombre de un grupo con Redes no lleva fecha ni teléfono', async () => {
+  it('el nombre de un grupo no lleva fecha ni teléfono, esté o no Redes (alguien puede pasar a Redes después)', async () => {
     as('dispatch');
     const r = await chat.startConversation({ kind: 'group', memberIds: [t.ids.social, t.ids.camera], title: 'Grupo del 12 de noviembre' });
-    expect(r).toEqual({ ok: false, error: 'El nombre del grupo no lleva teléfonos, ni fechas, horas o mapas si en el grupo está Redes o política.' });
+    expect(r).toEqual({ ok: false, error: 'El nombre del grupo no lleva teléfonos, fechas, horas ni mapas: todos los del grupo lo leen siempre.' });
+    const noRedes = await chat.startConversation({ kind: 'group', memberIds: [t.ids.ivt, t.ids.camera], title: 'Petare 12/11 9am' });
+    expect(noRedes).toEqual({ ok: false, error: 'El nombre del grupo no lleva teléfonos, fechas, horas ni mapas: todos los del grupo lo leen siempre.' });
     const ok = await chat.startConversation({ kind: 'group', memberIds: [t.ids.social, t.ids.camera], title: 'Material del parque (prueba)' });
     expect(ok).toMatchObject({ ok: true, data: { id: expect.any(String) } });
   });

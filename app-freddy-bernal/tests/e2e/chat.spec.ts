@@ -67,6 +67,14 @@ async function openFromList(page: Page, name: string | RegExp) {
   return page.url().replace(/^https?:\/\/[^/]+/, '');
 }
 
+// The number on the envelope at the top (0 when it says just «Mensajes»), read again from the server.
+async function envelope(page: Page): Promise<number> {
+  await page.goto('/hoy');
+  await shown(page);
+  const name = (await page.getByRole('link', { name: /^Mensajes(: \d+ sin leer)?$/ }).first().getAttribute('aria-label')) ?? '';
+  return Number(/(\d+) sin leer/.exec(name)?.[1] ?? 0);
+}
+
 async function sendText(page: Page, text: string) {
   await box(page).fill(text);
   await page.getByRole('button', { name: 'Enviar' }).click();
@@ -107,6 +115,22 @@ test('el aviso se acepta una vez: sin caja hasta «Entendido»; con Escape se le
 });
 
 test('Redes le escribe a Grabación: la burbuja sale antes que la respuesta del servidor, le llega y la respuesta vuelve sola', async ({ page, browser }) => {
+  // Grabación first reads what the seed left in this conversation, so the envelope counts only what Redes sends now.
+  const cam = await phone(browser, 'grabacion@demo.test');
+  await cam.page.goto(c1);
+  await shown(cam.page);
+  await expect(log(cam.page)).toContainText('Perfecto, armo la pieza y te aviso si falta algo.');
+  // Opening marks it read in the background (markRead): its row in the list stops saying «sin leer», then count.
+  const danielaRow = (p: Page) => p.locator('main [data-tour="chat-list"]').getByRole('link', { name: /Daniela Pernía/ }).first();
+  await expect
+    .poll(async () => {
+      await cam.page.goto('/mensajes');
+      await shown(cam.page);
+      return (await danielaRow(cam.page).textContent()) ?? '';
+    }, { timeout: 15_000 })
+    .not.toMatch(/sin leer/);
+  const before = await envelope(cam.page);
+
   await loginAs(page, 'redes@demo.test');
   await page.goto(c1);
   await shown(page);
@@ -123,13 +147,15 @@ test('Redes le escribe a Grabación: la burbuja sale antes que la respuesta del 
   await expect(mine).not.toContainText('Enviando…', { timeout: 15_000 });
   await page.unroute('**/mensajes/**');
 
-  const cam = await phone(browser, 'grabacion@demo.test');
   try {
-    await cam.page.goto('/hoy');
-    await expect(cam.page.getByRole('link', { name: /^Mensajes: \d+ sin leer$/ })).toBeVisible();
+    // The new message adds this conversation to the envelope; opening it takes it off again.
+    await expect.poll(() => envelope(cam.page), { timeout: 15_000 }).toBe(before + 1);
+    await expect(cam.page.getByRole('link', { name: `Mensajes: ${before + 1} sin leer` }).first()).toBeVisible();
     await openFromList(cam.page, /Daniela Pernía/);
     await accept(cam.page);
     await expect(log(cam.page)).toContainText(msg);
+    await expect.poll(() => envelope(cam.page), { timeout: 15_000 }).toBe(before);
+    await openFromList(cam.page, /Daniela Pernía/);
     const reply = `Respuesta ${RUN}: ya lo veo (inventado)`;
     await sendText(cam.page, reply);
     await expect(log(cam.page)).toContainText(reply);
@@ -179,6 +205,7 @@ test('el jefe a Redes: «mañana» se pregunta (E1); una hora concreta se avisa,
   await sendText(page, relative);
   const ask = page.getByRole('dialog', { name: '“Mañana”: ¿dice cuándo va el jefe? Si es de la agenda, no va aquí.' });
   await expect(ask).toBeVisible();
+  await noSerious(page, 'pregunta de la palabra relativa');
   await ask.getByRole('button', { name: 'Corregir' }).click();
   await expect(box(page)).toHaveValue(relative);
   await page.getByRole('button', { name: 'Enviar' }).click();
@@ -297,6 +324,28 @@ test('administración no tiene Mensajes: ni el sobre, ni la lista, ni una conver
   }
   const r = await page.request.get('/api/mensajes/sin-leer');
   expect(r.status()).toBe(404);
+});
+
+test.describe('en el iPad (820×1180)', () => {
+  test.use({ viewport: { width: 820, height: 1180 } });
+
+  test('la caja queda abajo y la última burbuja no queda tapada', async ({ page }) => {
+    await loginAs(page, 'grabacion@demo.test');
+    await page.goto(c1);
+    await shown(page);
+    await accept(page);
+    const last = log(page).locator('li[data-message]').last();
+    await expect(last).toBeVisible();
+    await expect.poll(async () => page.evaluate(() => Math.round(window.innerHeight + window.scrollY - document.documentElement.scrollHeight))).toBeGreaterThanOrEqual(-2);
+    const composer = page.locator('[data-tour="chat-composer"]');
+    const lb = (await last.boundingBox())!;
+    const cb = (await composer.boundingBox())!;
+    expect(lb.y + lb.height, 'la última burbuja queda por encima de la caja').toBeLessThanOrEqual(cb.y + 1);
+    expect(cb.y + cb.height, 'la caja se ve entera').toBeLessThanOrEqual(1180);
+    expect(cb.y + cb.height, 'la caja está abajo').toBeGreaterThan(1180 - 120);
+    await noSideScroll(page, `${c1} en el iPad`);
+    await noSerious(page, `${c1} en el iPad`);
+  });
 });
 
 test.describe('a 360×640', () => {

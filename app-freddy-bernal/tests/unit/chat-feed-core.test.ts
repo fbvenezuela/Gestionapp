@@ -146,6 +146,34 @@ describe('enviar en orden', () => {
     await vi.waitFor(() => expect(sent).toEqual(['a', 'b', 'c']));
   });
 
+  it('lo que se escribe después de un «No se envió» no se adelanta: espera a «Reintentar», y sale detrás', async () => {
+    let signal = false;
+    const sent: string[] = [];
+    const outcomes: string[] = [];
+    const q = createSendQueue<{ id: string }>({
+      send: async (job) => {
+        if (!signal) return { kind: 'failed' };
+        sent.push(job.id);
+        return { kind: 'sent', result: job.id };
+      },
+      onOutcome: (job, o) => outcomes.push(`${job.id}:${o.kind}`),
+    });
+    const a = { id: 'a' };
+    const b = { id: 'b' };
+    q.push(a);
+    await vi.waitFor(() => expect(outcomes).toEqual(['a:failed']));
+    // The signal comes back and the person writes b before tapping «Reintentar».
+    signal = true;
+    q.push(b);
+    await Promise.resolve();
+    expect(sent).toEqual([]);
+    expect(outcomes).toEqual(['a:failed', 'b:failed']);
+    expect(q.pending()).toBe(2);
+    q.retry([a, b]);
+    await vi.waitFor(() => expect(sent).toEqual(['a', 'b']));
+    expect(q.pending()).toBe(0);
+  });
+
   it('un rechazo de la base sigue con el siguiente; un error al enviar cuenta como sin señal', async () => {
     const outcomes: string[] = [];
     const q = createSendQueue<{ id: string }>({
@@ -197,6 +225,18 @@ describe('lo que hay en la pantalla', () => {
     expect(cursorOf([])).toBeNull();
     expect(sinceUrl(C, cursorOf(cur))).toBe(`/api/mensajes/${C}/nuevos?despues=2026-10-28T15%3A02%3A00.000Z&id=b`);
     expect(sinceUrl(C, null)).toBe(`/api/mensajes/${C}/nuevos`);
+  });
+
+  it('lo mío que el envío confirmó no mueve el lazo: lo de otro guardado antes llega igual, y la copia del servidor lo reemplaza', () => {
+    // Weak signal: the polls fail, my send gets through at 15:05; Kevin's message of 15:01 was never fetched.
+    const cur = [msg('a', '2026-10-28T15:00:00.000Z'), msg('m', '2026-10-28T15:05:00.000Z', 'yo', { local: true })];
+    expect(cursorOf(cur)).toEqual({ at: '2026-10-28T15:00:00.000Z', id: 'a' });
+    const server = msg('m', '2026-10-28T15:05:00.000Z', 'yo', { links: [{ href: `/eventos/${C}`, kind: 'event', title: 'Visita (inventada)' }] });
+    const next = mergeItems(cur, [msg('k', '2026-10-28T15:01:00.000Z', 'kevin'), server]);
+    expect(next.map((i) => i.id)).toEqual(['a', 'k', 'm']);
+    expect(next.find((i) => i.id === 'm')!.local).toBeUndefined();
+    expect(next.find((i) => i.id === 'm')!.links).toHaveLength(1);
+    expect(cursorOf(next)).toEqual({ at: '2026-10-28T15:05:00.000Z', id: 'm' });
   });
 
   it('«Hay mensajes nuevos» solo por lo nuevo de los demás', () => {

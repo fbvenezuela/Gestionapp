@@ -18,7 +18,10 @@ export const CHAT_SEND_TIMEOUT_MS = 20_000;
 // The list on screen
 // ---------------------------------------------------------------------------------------------------------------
 // A message on screen: one of the server's, or one of mine on its way (sending) or stopped by the signal (failed).
-export type FeedItem = ChatItem & { state?: 'sending' | 'failed' };
+// `local`: mine, saved (the send said so) but not yet given by the loop: it is shown in its place, but the loop does
+// not ask from it (a message of someone else saved before it could be skipped), and its server copy (with its link
+// cards) replaces it when the loop brings it.
+export type FeedItem = ChatItem & { state?: 'sending' | 'failed'; local?: true };
 
 const byTime = (a: FeedItem, b: FeedItem) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
@@ -37,9 +40,10 @@ export function mergeItems(current: readonly FeedItem[], incoming: readonly Chat
   return [...confirmed, ...pending];
 }
 
-/** Where the loop asks from: the newest message the server already gave (mine on their way do not count). */
+/** Where the loop asks from: the newest message the loop or the page already gave (mine on their way, and mine the send
+ * confirmed, do not count). */
 export function cursorOf(items: readonly FeedItem[]): { at: string; id: string } | null {
-  const confirmed = items.filter((it) => !it.state);
+  const confirmed = items.filter((it) => !it.state && !it.local);
   if (!confirmed.length) return null;
   const last = [...confirmed].sort(byTime).at(-1)!;
   return { at: last.createdAt, id: last.id };
@@ -145,20 +149,22 @@ export type SendOutcome<R = unknown> = { kind: 'sent'; result: R } | { kind: 're
 
 export type SendQueue<J> = {
   push: (job: J) => void;
-  /** Sends again, in order, jobs that failed. */
+  /** Sends again, first and in order, the jobs held after a failure (`jobs` only when none is held). */
   retry: (jobs: J[]) => void;
   pending: () => number;
 };
 
 /**
  * One send at a time, in the order they were written. A send stopped by the signal stops the line: it and every one
- * after it are «failed» (sending the next one first would change the order), and «Reintentar» puts them back.
+ * after it are «failed» and held (sending the next one first would change the order); one written while some are held
+ * is held too («failed» at once), and «Reintentar» puts the held ones back at the front of the line, in order.
  */
 export function createSendQueue<J, R = unknown>(o: {
   send: (job: J) => Promise<SendOutcome<R>>;
   onOutcome: (job: J, outcome: SendOutcome<R>) => void;
 }): SendQueue<J> {
   const line: J[] = [];
+  const held: J[] = [];
   let running = false;
   const run = async () => {
     if (running) return;
@@ -174,10 +180,11 @@ export function createSendQueue<J, R = unknown>(o: {
         }
         if (outcome.kind === 'failed') {
           const stopped = line.splice(0, line.length);
+          held.push(...stopped);
           for (const j of stopped) o.onOutcome(j, { kind: 'failed' });
           break;
         }
-        line.shift();
+        line.splice(line.indexOf(job), 1);
         o.onOutcome(job, outcome);
       }
     } finally {
@@ -186,14 +193,21 @@ export function createSendQueue<J, R = unknown>(o: {
   };
   return {
     push(job) {
+      if (held.length) {
+        held.push(job);
+        o.onOutcome(job, { kind: 'failed' });
+        return;
+      }
       line.push(job);
       void run();
     },
     retry(jobs) {
-      line.push(...jobs);
+      // While some are held nothing else is in the line (push holds too), so they go first.
+      if (held.length) line.unshift(...held.splice(0, held.length));
+      else line.push(...jobs.filter((j) => !line.includes(j)));
       void run();
     },
-    pending: () => line.length,
+    pending: () => line.length + held.length,
   };
 }
 

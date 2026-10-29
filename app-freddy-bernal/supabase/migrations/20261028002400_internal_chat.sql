@@ -21,9 +21,11 @@
 --     text_has_concrete_datetime() in chat_message_guard() (and drop the composer's question).
 --     Before the checks only the exact in-app reference /<section>/<uuid> and the number of an X post are taken out;
 --     Grabación alone (without boss, despacho, IVT or admin) also has its bare video time codes («en el 2:15») taken
---     out. text_has_concrete_datetime(), chat_strip_refs(), chat_has_map() and chat_strip_timecodes() have exact copies
---     in src/lib/domain/chat.ts, compared on the cases of tests/unit/fixtures/chat-text-cases.ts and on generated texts
+--     out, unless the message also has a relative day («mañana 7:00 salimos»: then the time code is an hour).
+--     text_has_concrete_datetime(), chat_strip_refs(), chat_has_map() and chat_strip_timecodes() have exact copies in
+--     src/lib/domain/chat.ts, compared on the cases of tests/unit/fixtures/chat-text-cases.ts and on generated texts
 --     (tests/rls/chat.test.ts): a change to one is a change to the other, with a new migration.
+--   * A group's name (no agenda_clear, everyone in it reads it): never a phone, a date, a time or a map (strict).
 --   * Phones (D-53): never, in any conversation, from anyone (text_has_phone(), the same rule as phonesIn()).
 --   * What is written stays (D-54): messages, members and the accepted notice are append-only, for the system too
 --     (TRUNCATE). The audit keeps which table, which row, who and when: never a text, a group's name or the members.
@@ -90,15 +92,21 @@ $$;
 -- A CONCRETE date or time (E1): the patterns of text_has_datetime() (datetime_patterns(),
 -- 20261028002100_privacy_hardening.sql) without the 2nd (a phone: text_has_phone() checks those, for everyone), the
 -- 15th (weekdays and relative days: «hoy», «mañana», «esta tarde») and the 14th, of which only «mediodía» and
--- «medianoche» stay («de la tarde» alone says no hour). After NFKC, as text_has_phone() (full-width digits are digits).
--- «Barrio 23 de Enero» is still a date: a false positive accepted.
+-- «medianoche» stay («de la tarde» alone says no hour), and a weekday followed by a day number stays: «el sábado 24»,
+-- «domingo 3» (the 4th only knows «sáb 24»). After NFKC, as text_has_phone() (full-width digits are digits).
+-- «Barrio 23 de Enero» is still a date, and so is «el lunes 3 piezas»: false positives accepted.
 create function public.text_has_concrete_datetime(p text)
 returns boolean language sql immutable parallel safe set search_path = '' as $fn$
   select coalesce(p, '') <> '' and exists (
     select 1
       from (select x.re from unnest(public.datetime_patterns()) with ordinality as x(re, n) where x.n not in (2, 14, 15)
             union all
-            select '(?<![a-záéíóúüñ])(?:mediod[ií]a|medianoche)(?![a-záéíóúüñ])') c(re)
+            select '(?<![a-záéíóúüñ])(?:mediod[ií]a|medianoche)(?![a-záéíóúüñ])'
+            union all
+            -- JavaScript's \s, as in chat_has_map()
+            select '(?<![a-záéíóúüñ])(?:lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo),?'
+                   '[\t\n\v\f\r \u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+'
+                   '(?:de[\t\n\v\f\r \u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+)?[0-9]{1,2}(?![a-z0-9_])') c(re)
      where translate(normalize(p, NFKC), 'ABCDEFGHIJKLMNOPQRSTUVWXYZÁÉÍÓÚÜÑ', 'abcdefghijklmnopqrstuvwxyzáéíóúüñ') ~ c.re)
 $fn$;
 
@@ -325,12 +333,11 @@ begin
       end if;
     end loop;
   end loop;
-  -- A group's name: never a phone; with Redes or política inside, no date, time or map either (the strict rule: a name
-  -- is read by everyone in it, every time, and nobody is asked before it is saved).
-  if v_title is not null and (public.text_has_phone(v_title) or
-     (exists (select 1 from unnest(v_all) x join public.user_roles ur on ur.user_id = x
-               where ur.role::text in ('politics', 'social'))
-      and (public.text_has_datetime(v_title) or public.chat_has_map(v_title)))) then
+  -- A group's name: never a phone, a date, a time or a map, whoever is in it (the strict rule: a name is read by
+  -- everyone in it, every time, nobody is asked before it is saved, and it has no agenda_clear: a member who gains
+  -- Redes or política later still reads it).
+  if v_title is not null and (public.text_has_phone(v_title) or public.text_has_datetime(v_title)
+                              or public.chat_has_map(v_title)) then
     raise exception 'chat_title_private' using errcode = '23514', constraint = 'chat_title_private';
   end if;
   insert into public.chat_conversations (kind, title, direct_key, created_by)
@@ -442,7 +449,13 @@ begin
     raise exception 'chat_messages_no_phone' using errcode = '23514', constraint = 'chat_messages_no_phone';
   end if;
   if public.chat_author_knows_agenda(new.author_id) then
-    v_text := case when public.chat_author_camera_only(new.author_id) then public.chat_strip_timecodes(v_raw) else v_raw end;
+    v_text := v_raw;
+    if public.chat_author_camera_only(new.author_id) then
+      v_text := public.chat_strip_timecodes(v_raw);
+      -- A time code with «mañana», «el sábado» or «esta tarde» in the same message is an hour of the agenda: then
+      -- nothing is taken out (the strict text_has_datetime() looks for those words).
+      if v_text <> v_raw and public.text_has_datetime(v_text) then v_text := v_raw; end if;
+    end if;
     v_when := public.text_has_concrete_datetime(v_text) or public.chat_has_map(v_text);
   end if;
   if v_when and public.chat_hides_agenda(new.conversation_id) then

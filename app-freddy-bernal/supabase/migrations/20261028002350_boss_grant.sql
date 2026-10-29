@@ -11,11 +11,12 @@
 --      (closing opens nothing). The guard runs AFTER the row is written, so the policies speak first: what they
 --      already refused (admin giving itself a role, a session without 2FA) still reads as a refusal of the policy,
 --      and so does guard_role_mix (Administración with the boss in one account).
+--      A pending invitation naming the boss that a person made before this file is revoked by it.
 --   2. Every TEAM role a PERSON gives (not the system) reaches every active boss as a notice in the bell: «Administración
 --      le dio el rol Grabación a Kevin Sánchez.» or «Administración invitó a … como Redes.», linked to «Quién habla con
 --      quién» (/mensajes/permisos). The person's name and the role only: never the email. The names of the roles are
 --      the app's (ROLE_LABEL, src/lib/roles.ts; tests/rls/boss-grant.test.ts compares them).
--- No enum values, no rows, nothing new in the Realtime publication.
+-- No enum values, no new rows (one update: the revoke of 1), nothing new in the Realtime publication.
 
 -- ---------------------------------------------------------------------------
 -- 1. The boss's role: the system's only
@@ -51,6 +52,12 @@ create trigger guard_role_to_boss after insert or update on public.user_roles
   for each row execute function public.guard_boss_grant();
 create trigger guard_role_to_boss after insert or update on public.invitations
   for each row execute function public.guard_boss_grant();
+
+-- An invitation naming the boss that a PERSON made before this file (Administración could until now) would still hand
+-- the role over at sign-up (handle_new_auth_user runs without a session, so the guard lets it through): revoked here,
+-- once. The system's own (invited_by is null: the seed, `db:first-admin -- … --jefe`) stay.
+update public.invitations set revoked_at = now()
+ where 'boss' = any (roles::text[]) and accepted_at is null and revoked_at is null and invited_by is not null;
 
 -- ---------------------------------------------------------------------------
 -- 2. A team role given by a person: the boss is told

@@ -43,10 +43,7 @@ export async function startConversation(raw: unknown): Promise<Result<{ id: stri
     if (i.kind === 'group') {
       if (others.length + 1 < CHAT_GROUP_MIN || others.length + 1 > CHAT_GROUP_MAX) throw new UserError(`Un grupo es de ${CHAT_GROUP_MIN} a ${CHAT_GROUP_MAX} personas, contándote.`);
       if (!i.title) throw new UserError('Ponle un nombre al grupo.');
-      const roles = await sql.query<{ roles: string[] }>(`select roles::text[] as roles from public.chat_people() where id = any($1::uuid[])`, [others]);
-      const withRedesOrPolitics = [...roles.flatMap((r) => r.roles), ...s.roles].some((r) => r === 'social' || r === 'politics');
-      const p = chatTitleProblem(i.title, { withRedesOrPolitics });
-      if (p) throw new UserError(friendlyDbError({ code: '23514', message: 'chat_title_private' }));
+      if (chatTitleProblem(i.title)) throw new UserError(friendlyDbError({ code: '23514', message: 'chat_title_private' }));
     }
     const row = await sql.one<{ id: string }>(`select public.chat_start($1, $2::uuid[], $3) as id`, [i.kind, others, i.kind === 'group' ? i.title : null]);
     return { id: row!.id };
@@ -93,11 +90,13 @@ export async function sendMessage(raw: unknown): Promise<Result<SendData>> {
       [i.clientId, i.conversationId, i.body],
     );
     if (!row) throw new UserError('No se pudo enviar. Vuelve a intentar.');
-    // Writing means having read what came before.
+    // Writing means having read what came before. The time is taken from the row itself: a JavaScript Date keeps only
+    // milliseconds, and Postgres keeps microseconds.
     await sql.query(
-      `insert into public.chat_reads (conversation_id, user_id, last_read_at) values ($1, auth.uid(), $2)
+      `insert into public.chat_reads (conversation_id, user_id, last_read_at)
+       select $1, auth.uid(), x.created_at from public.chat_messages x where x.id = $2
        on conflict (conversation_id, user_id) do update set last_read_at = greatest(public.chat_reads.last_read_at, excluded.last_read_at)`,
-      [i.conversationId, row.created_at],
+      [i.conversationId, row.id],
     );
     return { kind: 'sent', id: row.id, createdAt: new Date(row.created_at).toISOString(), fresh: true };
   });
@@ -117,13 +116,22 @@ export async function sendMessage(raw: unknown): Promise<Result<SendData>> {
 const readSchema = z.object({ conversationId: uuid, upTo: z.string().datetime({ offset: true }).optional() });
 
 /** Read up to `upTo` (the newest message on my screen) or now. Only members: the boss reading someone else's
- * conversation marks nothing for anyone. */
+ * conversation marks nothing for anyone. `upTo` comes from the screen in milliseconds (toISOString) while Postgres keeps
+ * microseconds: it is moved to the full time of the newest message (or hidden mark) within that millisecond, or the
+ * message read would still count as new. */
 export async function markRead(raw: unknown) {
   return act(readSchema, raw, async (sql, i) => {
     const member = await sql.one<{ m: boolean }>(`select public.chat_is_member($1) and public.mfa_ok() as m`, [i.conversationId]);
     if (!member?.m) return { marked: false };
     await sql.query(
-      `insert into public.chat_reads (conversation_id, user_id, last_read_at) values ($1, auth.uid(), least(coalesce($2::timestamptz, now()), now()))
+      `with up as (select coalesce($2::timestamptz, now()) as t),
+            seen as (select x.created_at from public.chat_messages x, up
+                      where x.conversation_id = $1 and x.created_at < up.t + interval '1 millisecond'
+                     union all
+                     select h.created_at from public.chat_hidden_marks($1) h, up
+                      where h.created_at < up.t + interval '1 millisecond')
+       insert into public.chat_reads (conversation_id, user_id, last_read_at)
+       select $1, auth.uid(), least(greatest(up.t, (select max(created_at) from seen)), now()) from up
        on conflict (conversation_id, user_id) do update set last_read_at = greatest(public.chat_reads.last_read_at, excluded.last_read_at)`,
       [i.conversationId, i.upTo ?? null],
     );

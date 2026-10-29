@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ChevronDown, ExternalLink, PlayCircle } from 'lucide-react';
 import type { Role } from '@/lib/roles';
 import { canOpen } from '@/lib/assistant/screens';
-import { flowById, tourHref, type RoleGuide, type SectionGuide, type Tour } from '@/lib/guides';
+import { flowById, teamRolesOf, tourHref, type RoleGuide, type SectionGuide, type Tour } from '@/lib/guides';
 import { cn } from '@/lib/cn';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { buttonVariants } from '@/components/ui/button';
@@ -120,11 +120,19 @@ export function JobTab({ guide, mine }: { guide: RoleGuide; mine: boolean }) {
             </div>
             <div>
               <dt className="label-caps">Crear</dt>
-              <dd>{account.create.length ? account.create.join(', ') : 'No tiene el botón «Crear».'}</dd>
+              <dd>{account.create.length ? account.create.join(', ') : mine ? 'No tienes el botón «Crear».' : 'No tiene el botón «Crear».'}</dd>
             </div>
             <div>
               <dt className="label-caps">Doble factor</dt>
-              <dd>{account.twoFactor ? 'Sí: entra con el código del correo y el de su aplicación.' : 'No: entra con el código del correo.'}</dd>
+              <dd>
+                {account.twoFactor
+                  ? mine
+                    ? 'Sí: entras con el código del correo y el de tu aplicación.'
+                    : 'Sí: entra con el código del correo y el de su aplicación.'
+                  : mine
+                    ? 'No: entras con el código del correo.'
+                    : 'No: entra con el código del correo.'}
+              </dd>
             </div>
           </dl>
         </CardBody>
@@ -162,7 +170,9 @@ function tourLink(id: string | undefined, tours: readonly Tour[], home: string):
 }
 
 export function TasksTab({ guide, tours, home, roles }: { guide: RoleGuide; tours: readonly Tour[]; home: string; roles: readonly Role[] }) {
-  const mine = guide.role;
+  // «· tú» marks the READER's steps (their team roles), as /ayuda/flujos does: never the steps of the guide's role
+  // when the boss or Administración reads someone else's guide.
+  const mine = teamRolesOf(roles);
   return (
     <div className="flex flex-col gap-4">
       {guide.tasks.map((t) => {
@@ -185,7 +195,7 @@ export function TasksTab({ guide, tours, home, roles }: { guide: RoleGuide; tour
                     <ChevronDown className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" aria-hidden />
                   </summary>
                   <div className="p-3">
-                    <Flowchart flow={flow} mine={[mine]} roles={roles} />
+                    <Flowchart flow={flow} mine={mine} roles={roles} />
                   </div>
                 </details>
               ) : null}

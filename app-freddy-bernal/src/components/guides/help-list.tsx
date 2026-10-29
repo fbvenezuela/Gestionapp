@@ -32,7 +32,9 @@ export function HelpList({ title, subtitle, items, footer, ...rest }: { title: s
           </li>
         ))}
       </ul>
-      {footer ? <div className="border-t border-border px-4 py-3">{footer}</div> : null}
+      {/* The footer draws its own band (border and padding) when it has something to say: an element that renders
+          nothing must leave no empty band. */}
+      {footer}
     </Card>
   );
 }

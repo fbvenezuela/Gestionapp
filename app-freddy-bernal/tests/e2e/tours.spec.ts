@@ -398,3 +398,58 @@ test('el tutorial del evento va con su pestaña; uno de otra pantalla no se abre
   await page.waitForTimeout(800);
   await expect(dialog(page)).toHaveCount(0);
 });
+
+// Mensajes' notice opens on its own until it is accepted: the tutorial waits for it to close and never rings what
+// sits under it. The IVT has not accepted it in this run (nothing here writes: Escape closes it without accepting).
+test.describe('Mensajes: el tutorial y el aviso que se acepta', () => {
+  test.use({ viewport: { width: 360, height: 640 } });
+  const notice = (page: Page) => page.getByRole('dialog', { name: 'Antes de escribir en Mensajes' });
+
+  test('con el aviso sin aceptar, el tutorial espera a que se cierre y no se monta encima', async ({ page }) => {
+    const tour = tourOf(['ivt'], 'mensajes');
+    await loginAs(page, 'ivt@demo.test');
+    await page.goto('/mensajes?tutorial=mensajes');
+    await expect(notice(page)).toBeVisible();
+    await expect(page).toHaveURL(/\/mensajes$/);
+    await page.waitForTimeout(1000);
+    await expect(dialog(page)).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(notice(page)).toHaveCount(0);
+    await expect(dialog(page)).toBeVisible();
+    const end = await walk(page, tour, 'ivt');
+    await expect(end).toHaveText('Terminar');
+    await end.click();
+    await expect(dialog(page)).toHaveCount(0);
+  });
+
+  test('con el aviso ya cerrado, el tutorial sale de una vez', async ({ page }) => {
+    const tour = tourOf(['ivt'], 'mensajes');
+    await loginAs(page, 'ivt@demo.test');
+    await page.goto('/mensajes');
+    await expect(notice(page)).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(notice(page)).toHaveCount(0);
+    // «Mi cuenta» → «Ver el tutorial…» on the same screen (fb:tour:start): no notice in the way now.
+    await page.getByLabel('Mi cuenta').click();
+    await page.locator('header details[open]').getByRole('button', { name: /^Ver el tutorial de esta pantalla$/ }).click();
+    await expect(dialog(page)).toBeVisible();
+    await walk(page, tour, 'ivt', { axe: false });
+    await page.keyboard.press('Escape');
+  });
+
+  for (const theme of ['vidrio', 'oscuro', 'Modo sol'] as const) {
+    test(`el aviso, abierto, sin problemas serios de accesibilidad (${theme})`, async ({ page }) => {
+      await loginAs(page, 'ivt@demo.test');
+      await page.goto('/hoy');
+      if (theme === 'oscuro') await page.emulateMedia({ colorScheme: 'dark' });
+      if (theme === 'Modo sol') await page.evaluate(() => localStorage.setItem('fb:sun', '1'));
+      await page.goto('/mensajes');
+      if (theme === 'Modo sol') await expect(page.locator('html')).toHaveAttribute('data-contrast', 'high');
+      await expect(notice(page)).toBeVisible();
+      await noSerious(page, `aviso de Mensajes (${theme})`);
+      await noSideScroll(page, `aviso de Mensajes (${theme})`);
+      await page.keyboard.press('Escape');
+      await page.evaluate(() => localStorage.removeItem('fb:sun'));
+    });
+  }
+});

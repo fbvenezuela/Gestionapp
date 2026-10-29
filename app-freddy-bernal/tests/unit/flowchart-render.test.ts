@@ -5,7 +5,8 @@ import { describe, it, expect } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Flowchart } from '@/components/guides/flowchart';
-import { FLOWS, flowById } from '@/lib/guides';
+import { TasksTab } from '@/components/guides/role-guide';
+import { FLOWS, flowById, guideFor } from '@/lib/guides';
 
 const html = (id: string, mine: Parameters<typeof Flowchart>[0]['mine'], roles: Parameters<typeof Flowchart>[0]['roles']) =>
   renderToStaticMarkup(createElement(Flowchart, { flow: flowById(id)!, mine, roles }));
@@ -47,6 +48,20 @@ describe('el flujograma en la app', () => {
     expect(out.match(/border-2 border-accent/g)?.length).toBe(mine);
     // Someone not in the flow: no «tú».
     expect(html('comunitario', ['camera'], ['camera'])).not.toContain(' · tú');
+  });
+
+  it('en la guía de otro rol, «tú» marca los pasos de quien lee (el jefe, administración), nunca los del rol de la guía', () => {
+    const guide = guideFor('social');
+    const withFlow = guide.tasks.filter((t) => t.flow);
+    const count = (role: 'boss' | 'social') => withFlow.reduce((n, t) => n + flowById(t.flow!)!.steps.filter((s) => s.roles.includes(role)).length, 0);
+    // Redes has steps the boss does not: the test would see the difference.
+    expect(count('social')).toBeGreaterThan(count('boss'));
+    const tab = (roles: Parameters<typeof TasksTab>[0]['roles']) => renderToStaticMarkup(createElement(TasksTab, { guide, tours: [], home: '/jefe', roles }));
+    expect(tab(['boss']).match(/ · tú/g)?.length ?? 0).toBe(count('boss'));
+    expect(tab(['admin'])).not.toContain(' · tú');
+    expect(tab(['admin'])).not.toContain('Te toca a ti.');
+    // Redes reading its own guide: its steps.
+    expect(tab(['social']).match(/ · tú/g)?.length ?? 0).toBe(count('social'));
   });
 
   it('el enlace a la pantalla solo si quien lee la puede abrir', () => {

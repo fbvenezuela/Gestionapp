@@ -161,11 +161,12 @@ por el sistema). Qué se hizo para blindar la plataforma y qué falta.
     - **La agenda (regla 4) al escribir:** donde hay alguien de Redes o política (cualquier fila de miembro, activa o
       no, con cualquiera de sus roles) o en «Todo el equipo», la base rechaza el mensaje de quien conoce la agenda (jefe,
       despacho, IVT, Grabación o administración) si tiene una fecha o una hora **concreta** («10:30», «3 pm», «a las 3»,
-      «12 de noviembre», «12/11») o un enlace de mapas o unas coordenadas (`text_has_concrete_datetime()`,
+      «12 de noviembre», «12/11», «el sábado 24») o un enlace de mapas o unas coordenadas (`text_has_concrete_datetime()`,
       `chat_has_map()`, copias exactas en la app y casos compartidos). Las palabras relativas («hoy», «mañana», «el
       lunes») pasan, pero la app pregunta antes de enviar («“mañana”: ¿dice cuándo va el jefe? Si es de la agenda, no va
       aquí.»), por la enmienda E1 de D-52. Solo se quitan antes la dirección interna exacta y el número de un post de X;
-      a Grabación, además, los tiempos del video sueltos. Los nombres de grupo siguen con la regla completa.
+      a Grabación, además, los tiempos del video sueltos, salvo si el mensaje tiene también un día relativo («mañana
+      7:00»: es una hora). Los nombres de grupo siguen con la regla completa, en todo grupo.
     - **La agenda al leer:** cada mensaje guarda `agenda_clear` (lo pone la base, nunca quien escribe). Un mensaje con
       fecha concreta (escrito donde no había Redes ni política) solo lo lee el jefe con doble factor o quien tiene jefe,
       despacho, IVT o Grabación **sin** Redes ni política; los demás ven «Mensaje oculto», nunca el texto. Cubre los
