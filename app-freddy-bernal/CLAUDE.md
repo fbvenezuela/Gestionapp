@@ -66,10 +66,10 @@ Usuarios demo en `docs/DEMO.md`. En demo, `DEMO_SHORTCUTS` (activo por defecto) 
 factor; con `DATABASE_URL` nunca se activa. Playwright levanta dos servidores: 3100 estricto y 3101 con atajos.
 
 ## Qué falta (siguiente sesión)
-1. `fb-dev` (Supabase, gratis) ya tiene las 27 migraciones, hasta `20261028002300`, y la configuración del cliente con
-   los seis roles (aplicadas y verificadas el 28/10, `docs/PROMPT-SUPABASE.md`). Faltan las dos de la tercera vuelta
-   (`20261028002350_boss_grant.sql`, `20261028002400_internal_chat.sql`) y lo de esa guía: los pasos de Juan en el
-   panel (SMTP primero), las variables en Vercel y la primera entrada (OTP, TOTP, Drive).
+1. `fb-dev` (Supabase, gratis) ya tiene las 29 migraciones, hasta `20261028002400`, y la configuración del cliente con
+   los seis roles y el material de 360 de la tercera vuelta (aplicadas y verificadas el 29/10, `docs/PROMPT-SUPABASE.md`).
+   Falta lo de esa guía: los pasos de Juan en el panel (SMTP primero), las variables en Vercel y la primera entrada
+   (OTP, TOTP, Drive); después, probar Mensajes ahí con dos teléfonos.
 2. Respuestas de Hillary a las preguntas de la segunda vuelta (`docs/PENDIENTES.md`, al final) y, si confirma la tabla
    de diferencias, Redes como Mila por partes (#11).
 3. Fase 2: publicación automática (Meta, X, TikTok, YouTube), métricas por API, análisis con IA, Drive del cliente,

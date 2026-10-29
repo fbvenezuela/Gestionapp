@@ -20,9 +20,10 @@ migraciones sin preguntar. Lee primero `CLAUDE.md`, `AGENTS.md` y `PROMPT-APP-FR
 - Proyecto de Supabase **`fb-dev`** (organización «fbvenezuela's Org», región us-east-1, Postgres 17, plan gratis).
   Búscalo con `list_projects` por el nombre. Hay otro proyecto vacío en Oregon, «fbvenezuela's Project», que se creó
   solo: Juan lo borra desde el panel cuando quiera (no lo borres tú).
-- **Migraciones aplicadas: las 27**, hasta `20261028002300_report_files_notes.sql` (la ronda de cambios del 27/10:
+- **Migraciones aplicadas: las 29**, hasta `20261028002400_internal_chat.sql` (la ronda de cambios del 27/10:
   seis roles, fichas de obra y comunitarias, entrega de Grabación, agenda compartida y los cierres de privacidad; la
-  última llegó con la auditoría de la ronda: los documentos de un reporte, solo para política, despacho y jefe),
+  auditoría de esa ronda: los documentos de un reporte, solo para política, despacho y jefe; y la tercera vuelta,
+  aplicada el 29/10: el rol de jefe solo por el sistema y Mensajes),
   en orden, empezando por `20261023000000_hosted_defaults.sql` (quita los privilegios que Supabase da por defecto a
   `anon`/`authenticated`; tenía que ir primero, con la base vacía). `20261027001500_roles_enum.sql` va sola (agrega
   valores al tipo de roles y Postgres no deja usarlos en la misma transacción). El historial

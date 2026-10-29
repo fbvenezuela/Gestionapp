@@ -586,7 +586,7 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 
 **Tercera vuelta (28/10/2026): guías y flujos por rol, tutoriales que ofrece 360 y la red interna «Mensajes».** Lo
 pidió Juan el 28/10. D-42 a D-59. Migraciones nuevas: `20261028002350_boss_grant.sql` y
-`20261028002400_internal_chat.sql` (todavía sin aplicar en `fb-dev`). Las preguntas que quedan están al final de
+`20261028002400_internal_chat.sql` (aplicadas y verificadas en `fb-dev` el 29/10). Las preguntas que quedan están al final de
 `PENDIENTES.md`; mientras, se siguen los valores de abajo (todas las parejas abiertas, el rol de jefe solo por el
 comando, los mensajes no se borran).
 

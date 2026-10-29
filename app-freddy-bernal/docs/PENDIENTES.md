@@ -199,8 +199,7 @@ Lo hecho está en `DECISIONES.md` D-42 a D-59. Las guías siguen sin mandarse a 
 12. **Hillary:** ¿los tutoriales y Mensajes entran en su prueba por rol de la demo antes de mandar las guías?
 
 **Lo que falta de nuestra parte:**
-- Aplicar en `fb-dev` las dos migraciones nuevas (`20261028002350_boss_grant.sql` y
-  `20261028002400_internal_chat.sql`) y probar ahí dos personas conversando desde dos teléfonos (en la demo cada
-  servidor tiene su base, D-57).
+- Probar en `fb-dev` dos personas conversando desde dos teléfonos (las dos migraciones nuevas ya están ahí desde el
+  29/10; en la demo cada servidor tiene su base, D-57).
 - La lista manual de `DEMO.md` en un Android de verdad (teclado, Enter, aviso en la pantalla de bloqueo, tutorial).
 - Realtime para Mensajes cuando se pueda probar en `fb-dev` (hoy revisa cada 5 s, D-56).
