@@ -162,9 +162,10 @@ for (const email of Object.keys(HOMES) as (keyof typeof HOMES)[]) {
   });
 }
 
-test('sin desenfoque detrás de listas largas: la lista de piezas y las tarjetas que son ítems de una lista quedan sólidas', async ({ page }) => {
+test('sin desenfoque detrás de listas largas: la lista de publicaciones y las tarjetas que son ítems de una lista quedan sólidas', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');
-  await page.goto('/piezas');
+  // Publicar's lists (R4: the list of «Piezas» went into the sections of Redes, which bring their own solid cards).
+  await page.goto('/publicar');
   const list = page.locator('main .glass-card.glass-solid').filter({ has: page.locator('ul > li') }).first();
   await expect(list).toBeVisible();
   expect(await list.evaluate((el) => [getComputedStyle(el).backdropFilter, getComputedStyle(el).backgroundColor])).toEqual(['none', 'rgb(255, 255, 255)']);

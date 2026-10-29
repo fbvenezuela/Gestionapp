@@ -62,7 +62,8 @@ describe('consejos: cuándo se ven', () => {
 });
 
 describe('consejos en las pantallas', () => {
-  const pages = ['hoy', 'agenda', 'piezas', 'aprobar', 'publicar', 'tweets'].map((p) => path.join(process.cwd(), `src/app/(panel)/${p}/page.tsx`));
+  // «Piezas» became the sections of Redes by format (R4): its tip went with them.
+  const pages = ['hoy', 'agenda', 'redes/[formato]', 'aprobar', 'publicar', 'tweets'].map((p) => path.join(process.cwd(), `src/app/(panel)/${p}/page.tsx`));
   const tips = pages.flatMap((f) => [...fs.readFileSync(f, 'utf8').matchAll(/<Tip id="([^"]+)">([^<]+)<\/Tip>/g)].map((m) => ({ f, id: m[1], text: m[2] })));
 
   it('cada pantalla pedida tiene su consejo', () => {

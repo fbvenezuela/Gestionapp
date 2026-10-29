@@ -168,7 +168,7 @@ export default async function BossHome() {
           icon={Megaphone}
           tone="accent"
           counters={[
-            { href: '/piezas', value: redes.pieces.active, label: plural(redes.pieces.active, 'pieza en curso', 'piezas en curso') },
+            { href: '/redes', value: redes.pieces.active, label: plural(redes.pieces.active, 'pieza en curso', 'piezas en curso') },
             { href: '/publicar', value: redes.publish.ready, label: plural(redes.publish.ready, 'lista para publicar', 'listas para publicar'), tone: 'ok' },
             { href: '/tweets', value: redes.tweets.daysLeft, label: plural(redes.tweets.daysLeft, 'día cubierto de tweets', 'días cubiertos de tweets'), tone: redes.tweets.lowStock ? 'danger' : undefined },
           ]}

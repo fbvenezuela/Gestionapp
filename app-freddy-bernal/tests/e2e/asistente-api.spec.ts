@@ -17,8 +17,8 @@ test('asistente: sin sesión no contesta; con sesión contesta con las claves de
 
   // R3: the window sends the pattern of the screen; «muéstrame…» brings that screen's tutorial (never an id, and a
   // screen that is not a pattern is dropped). 360 never reads Mensajes: the button to it.
-  const rt = await page.request.post('/api/asistente', { data: { pregunta: 'muéstrame cómo se usa esta pantalla', pantalla: '/piezas' } });
-  expect((await rt.json()).tutorial).toEqual({ id: 'piezas', etiqueta: 'Ver el tutorial de Piezas', href: '/piezas?tutorial=piezas' });
+  const rt = await page.request.post('/api/asistente', { data: { pregunta: 'muéstrame cómo se usa esta pantalla', pantalla: '/redes' } });
+  expect((await rt.json()).tutorial).toEqual({ id: 'redes', etiqueta: 'Ver el tutorial de Redes', href: '/redes?tutorial=redes' });
   const rx = await page.request.post('/api/asistente', { data: { pregunta: 'muéstrame cómo se usa esta pantalla', pantalla: '/piezas/123e4567-e89b-42d3-a456-426614174000' } });
   expect(rx.status()).toBe(200);
   expect((await rx.json()).tutorial?.id ?? null).not.toBe('pieza');

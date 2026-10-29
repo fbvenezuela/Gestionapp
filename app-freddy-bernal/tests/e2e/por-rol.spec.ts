@@ -256,7 +256,7 @@ test('El jefe ve todo: llega a cada pantalla de cada rol, con la fecha y la hora
   await loginAs(page, 'jefe@demo.test');
   // Every menu of the team (his own, despacho's, the IVT's, política's, Redes', Grabación's) and their lists.
   const screens = ['/jefe', '/jefe/politica', '/jefe/digital', '/hoy', '/agenda', '/agenda?vista=dia', '/agenda?vista=mes', '/agenda/por-fecha', '/agenda/nuevo',
-    '/aprobar', '/aprobar?tab=tweets', '/redes', '/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca', '/obras', '/obras?estado=to_schedule',
+    '/aprobar', '/aprobar?tab=tweets', '/redes', '/redes/reels', '/redes/feed', '/redes/buscar', '/tweets', '/publicar', '/resultados', '/biblioteca', '/obras', '/obras?estado=to_schedule',
     '/municipios', '/municipios/torbes', '/reportes/nuevo', '/obras/nueva', '/avisos', '/perfil',
     // R3: Mensajes with «Todas» and «Quién habla con quién», Ayuda with every role's guide and the flows.
     '/mensajes', '/mensajes/nueva', '/mensajes/todas', '/mensajes/permisos', '/ayuda', '/ayuda/flujos',
@@ -270,7 +270,8 @@ test('El jefe ve todo: llega a cada pantalla de cada rol, con la fecha y la hora
   };
   const obras = (await linksOn('/obras', '/obras/')).filter((h) => /\/obras\/[0-9a-f-]{36}$/.test(h));
   const reports = [...(await linksOn('/municipios/torbes', '/reportes/')), ...(await linksOn('/municipios/junin', '/reportes/'))].filter((h) => /[0-9a-f-]{36}$/.test(h));
-  const pieces = (await linksOn('/piezas', '/piezas/')).filter((h) => /[0-9a-f-]{36}$/.test(h));
+  // Each piece keeps its address (R4); until the sections of Redes list their cards, the search finds them all.
+  const pieces = (await linksOn('/buscar?q=a', '/piezas/')).filter((h) => /[0-9a-f-]{36}$/.test(h));
   const tweets = (await linksOn('/tweets', '/tweets/')).filter((h) => /[0-9a-f-]{36}$/.test(h));
   const pubs = (await linksOn('/publicar', '/publicar/')).filter((h) => /[0-9a-f-]{36}$/.test(h));
   const events = [...new Set([...(await linksOn('/jefe/politica', '/eventos/')), ...(await linksOn('/biblioteca', '/eventos/'))])].filter((h) => /^\/eventos\/[0-9a-f-]{36}$/.test(h));

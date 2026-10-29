@@ -5,6 +5,7 @@ import { seedChat } from './seed-parts/chat';
 import { seedCore } from './seed-parts/core';
 import { seedFichaPhotos, seedFichas } from './seed-parts/fichas';
 import { seedHandoff } from './seed-parts/handoff';
+import { seedRedes } from './seed-parts/redes';
 import { seedThumbs } from './seed-parts/thumbs';
 
 // INVENTED demonstration data. No real people, phones, addresses or cases.
@@ -55,6 +56,7 @@ export async function seedDemo(sql: Sql, tz = 'America/Caracas'): Promise<Record
   await seedThumbs(ctx);
   await seedFichaPhotos(ctx);
   await seedChat(ctx);
+  await seedRedes(ctx);
 
   return ids;
 }

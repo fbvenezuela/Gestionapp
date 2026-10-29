@@ -179,6 +179,21 @@ describe('qué tutoriales van con la pantalla (tourForPath)', () => {
     expect(ids(tourForPath('/eventos/ab12/lectura', '', all))).toEqual([]);
   });
 
+  it('una pantalla con su propio tutorial no es también el [param] de otra: el feed no es una sección de Redes (R4)', () => {
+    const section = tour({ id: 'redes-seccion', screen: '/redes/[formato]', roles: ['social', 'boss'] });
+    const feed = tour({ id: 'feed', screen: '/redes/feed', roles: ['social', 'boss'] });
+    expect(ids(tourForPath('/redes/reels', '', [section, feed]))).toEqual(['redes-seccion']);
+    expect(ids(tourForPath('/redes/feed', '?mes=x', [section, feed]))).toEqual(['feed']);
+    // Without the feed's own tutorial (not this person's), the pattern still matches: its steps decide on screen.
+    expect(ids(tourForPath('/redes/feed', '', [section]))).toEqual(['redes-seccion']);
+    const ficha = tour({ id: 'ficha-obra', screen: '/obras/[id]', roles: ['ivt'] });
+    const nueva = tour({ id: 'nueva-obra', screen: '/obras/nueva', roles: ['ivt'] });
+    expect(ids(tourForPath('/obras/nueva', '', [ficha, nueva]))).toEqual(['nueva-obra']);
+    expect(ids(tourForPath('/obras/ab12', '', [ficha, nueva]))).toEqual(['ficha-obra']);
+    // A home tutorial (bienvenida) does not count as the screen's own.
+    expect(ids(tourForPath('/eventos/ab12', '', [tour({ id: 'bienvenida', screen: '@home', roles: ['social'] }), event], { home: '/eventos/ab12' }))).toEqual(['bienvenida', 'evento-redes']);
+  });
+
   it('/aprobar sin tab es la de piezas; ?tab=tweets, la de tweets', () => {
     const pieces = tour({ id: 'aprobar', screen: '/aprobar', roles: ['boss'] });
     const tweets = tour({ id: 'aprobar-tweets', screen: '/aprobar?tab=tweets', roles: ['boss'] });

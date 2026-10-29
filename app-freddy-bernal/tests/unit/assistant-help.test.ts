@@ -78,8 +78,9 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
   social: [
     ['muéstrame cómo se usa Publicar', SHOW('publicar')],
     ['enséñame a usar Publicar', SHOW('publicar')],
-    ['¿Cómo funciona esta pantalla?', { screen: '/piezas', tutorial: 'piezas', has: /Nueva pieza/ }],
-    ['¿Qué hago en Piezas?', { tutorial: 'piezas', has: /Nueva pieza/ }],
+    // «Piezas» became Redes by format (R4): a section has its tutorial; «Piezas» names the board.
+    ['¿Cómo funciona esta pantalla?', { screen: '/redes/[formato]', tutorial: 'redes-seccion', has: /Nuevo mes/ }],
+    ['¿Qué hago en Piezas?', { tutorial: 'redes', has: /Tablero/ }],
     ['necesito ayuda', SHOW('hoy-redes', '/hoy')],
     ['tutorial de la agenda', SHOW('agenda-redes')],
     ['¿Hay tutoriales?', { tool: 'ver_tutorial', has: /Puedo mostrarte, paso a paso: «Bienvenida»/, tutorial: null }],
@@ -234,13 +235,13 @@ describe('la pantalla y la herramienta ver_tutorial', () => {
       knowledge,
       scripts: [],
       history: [],
-      screen: '/piezas',
+      screen: '/redes',
     };
     const p = systemPrompt(ctx, [], '¿qué hago aquí?');
-    expect(p).toContain('Está en la pantalla «Piezas» (/piezas)');
+    expect(p).toContain('Está en la pantalla «Redes» (/redes)');
     expect(systemPrompt({ ...ctx, screen: '/eventos/[id]' }, [], 'x')).toContain('Está en la pantalla de una sola cosa, /eventos/[id].');
     expect(p).toContain('No lees ni mandas los mensajes del equipo');
-    const piezas = knowledge.find((f) => f.key === sectionKey('/piezas', 'social'))!;
+    const piezas = knowledge.find((f) => f.key === sectionKey('/redes', 'social'))!;
     expect(p).toContain(piezas.title);
     const other = knowledge.find((f) => f.key === sectionKey('/publicar', 'social'))!;
     expect(p).not.toContain(other.title);

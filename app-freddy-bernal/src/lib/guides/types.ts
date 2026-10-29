@@ -37,7 +37,8 @@ export type Tour = {
 
 // ── Flows between roles (design §7.4, D-44) ─────────────────────────────────────────────────────────────────────────
 
-export type FlowId = 'evento' | 'obra' | 'comunitario' | 'tweets' | 'aprobacion' | 'entrega' | 'mensajes' | 'ayuda';
+// 'mes-redes' (R4): «El mes de Redes», written by WP-E.
+export type FlowId = 'evento' | 'obra' | 'comunitario' | 'tweets' | 'aprobacion' | 'entrega' | 'mensajes' | 'ayuda' | 'mes-redes';
 
 // One way out of a decision («Sí → …», «No, pide cambios → …»). `to` is the id of the step it goes to (a later one,
 // or an earlier one when it goes back); without `to` the branch ends there (its text says how).

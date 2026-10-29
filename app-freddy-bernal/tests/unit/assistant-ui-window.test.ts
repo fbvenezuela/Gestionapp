@@ -314,7 +314,14 @@ describe('la pantalla que sabe 360: solo el patrón', () => {
   });
 
   it('cada pantalla de SCREENS sale igual de su dirección (con un id inventado en su lugar)', () => {
-    for (const s of SCREENS) expect(screenPattern(s.href.replace(/\[[a-z]+\]/g, s.href.startsWith('/ayuda/') ? 'redes' : ID)), s.href).toBe(s.href);
+    // A role's guide takes its slug, a section of Redes its format's (R4); any other [param] is an id.
+    const sample = (href: string) => (href.startsWith('/ayuda/') ? 'redes' : href.startsWith('/redes/') ? 'reels' : ID);
+    for (const s of SCREENS) expect(screenPattern(s.href.replace(/\[[a-z]+\]/g, sample(s.href))), s.href).toBe(s.href);
+    // Every format's section is the same screen; the feed and the search are their own.
+    for (const slug of ['reels', 'posts', 'carruseles', 'historias', 'youtube', 'fin-de-mes']) expect(screenPattern(`/redes/${slug}?mes=${ID}#pieza-${ID}`)).toBe('/redes/[formato]');
+    expect(screenPattern('/redes/feed')).toBe('/redes/feed');
+    expect(screenPattern('/redes/buscar')).toBe('/redes/buscar');
+    expect(screenPattern('/redes/otra')).toBe('/redes/otra');
   });
 });
 

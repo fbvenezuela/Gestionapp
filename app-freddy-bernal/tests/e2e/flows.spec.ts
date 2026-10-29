@@ -75,8 +75,10 @@ test('quien graba sube el material por partes a su evento', async ({ page }) => 
 
 test('redes crea la pieza, sube el final, escribe los copies y la manda a aprobar', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');
-  await page.goto('/piezas');
+  // Until the sections of Redes list their cards (WP-C1), the piece is found with the search (R4: /piezas went away).
+  await page.goto('/buscar?q=Jornada de salud escolar');
   await page.getByRole('link', { name: 'Jornada de salud escolar' }).click();
+  await expect(page).toHaveURL(/\/piezas\/[0-9a-f-]{36}$/);
   await page.getByLabel('Subir video final (nueva versión)').setInputFiles(fixture('vertical-4s.mp4'));
   await expect(page.getByText('Nueva versión guardada.')).toBeVisible({ timeout: 30_000 });
   await page.getByRole('button', { name: 'Escribir desde la ficha' }).click();

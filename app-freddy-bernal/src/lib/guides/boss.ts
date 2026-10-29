@@ -181,11 +181,11 @@ export const BOSS_GUIDE: RoleGuide = {
       title: 'Hacer algo de Redes tú mismo',
       when: 'Cuando quieras: tienes todo lo de Redes.',
       steps: [
-        'Menú → Redes: Piezas, Tweets, Publicar, Resultados y Biblioteca, con lo que espera en cada una.',
+        'Menú → Redes: las secciones por formato, el feed, Tweets, Publicar, Resultados y Biblioteca, con lo que espera en cada una.',
         'Desde ahí haces lo mismo que Redes: storyboard, piezas y copies, tweets, publicar a mano y cargar resultados.',
         'Si publicaste algo por tu cuenta, anótalo en Publicar → «Registrar lo que publicó el jefe».',
       ],
-      tour: 'redes-puerta',
+      tour: 'redes',
     },
     {
       id: 'reglas-mensajes',

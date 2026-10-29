@@ -2,19 +2,21 @@ import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { loginAs } from './helpers';
 
-// Every page of every role opens without errors and without serious accessibility issues. Mensajes and Ayuda (R3):
+// Every page of every role opens without errors and without serious accessibility issues. Redes by format (R4): the
+// board, its sections, the feed and the search open as themselves for Redes, the boss and administración; /piezas lands
+// on the board. Mensajes and Ayuda (R3):
 // every team role has its conversations and its guide; the boss also «Todas», «Quién habla con quién» and every
 // guide; Administración has Ayuda (its own guide apart, D-43) and never Mensajes (D-49, chat.spec.ts).
 const ROLES: Record<string, string[]> = {
-  'admin@demo.test': ['/hoy', '/agenda', '/agenda?vista=mes', '/agenda?vista=dia', '/redes', '/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca', '/aprobar', '/aprobar?tab=tweets', '/ajustes', '/ajustes/equipo', '/ajustes/categorias', '/ajustes/formulas', '/ajustes/horarios', '/ajustes/redes', '/ajustes/marca', '/ajustes/drive', '/ajustes/buzon', '/ajustes/registro', '/avisos', '/perfil', '/buscar?q=puente', '/agenda/por-fecha', '/piezas/nueva', '/tweets/nueva', '/publicar/nueva', '/publicar/espontanea', '/ayuda', '/ayuda/administracion', '/ayuda/flujos', '/ayuda/redes'],
+  'admin@demo.test': ['/hoy', '/agenda', '/agenda?vista=mes', '/agenda?vista=dia', '/redes', '/redes/reels', '/redes/fin-de-mes', '/redes/feed', '/redes/buscar', '/tweets', '/publicar', '/resultados', '/biblioteca', '/aprobar', '/aprobar?tab=tweets', '/ajustes', '/ajustes/equipo', '/ajustes/categorias', '/ajustes/formulas', '/ajustes/horarios', '/ajustes/redes', '/ajustes/marca', '/ajustes/drive', '/ajustes/contenido', '/ajustes/buzon', '/ajustes/registro', '/avisos', '/perfil', '/buscar?q=puente', '/agenda/por-fecha', '/piezas/nueva', '/tweets/nueva', '/publicar/nueva', '/publicar/espontanea', '/ayuda', '/ayuda/administracion', '/ayuda/flujos', '/ayuda/redes'],
   // The boss «tiene todo, hasta lo de redes»: the Redes screens open for him too.
-  'jefe@demo.test': ['/jefe', '/jefe/politica', '/jefe/digital', '/redes', '/agenda', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/agenda/por-fecha', '/resultados', '/aprobar', '/aprobar?tab=tweets', '/piezas', '/piezas/nueva', '/tweets', '/tweets/nueva', '/publicar', '/publicar/nueva', '/biblioteca', '/obras', '/obras/nueva', '/municipios', '/municipios/junin', '/reportes/nuevo', '/mensajes', '/mensajes/nueva', '/mensajes/todas', '/mensajes/permisos', '/ayuda', '/ayuda/jefe', '/ayuda/despacho', '/ayuda/politica', '/ayuda/ivt', '/ayuda/grabacion', '/ayuda/redes', '/ayuda/flujos'],
+  'jefe@demo.test': ['/jefe', '/jefe/politica', '/jefe/digital', '/redes', '/redes/posts', '/redes/feed', '/redes/buscar', '/agenda', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/agenda/por-fecha', '/resultados', '/aprobar', '/aprobar?tab=tweets', '/piezas/nueva', '/tweets', '/tweets/nueva', '/publicar', '/publicar/nueva', '/biblioteca', '/obras', '/obras/nueva', '/municipios', '/municipios/junin', '/reportes/nuevo', '/mensajes', '/mensajes/nueva', '/mensajes/todas', '/mensajes/permisos', '/ayuda', '/ayuda/jefe', '/ayuda/despacho', '/ayuda/politica', '/ayuda/ivt', '/ayuda/grabacion', '/ayuda/redes', '/ayuda/flujos'],
   'despacho@demo.test': ['/hoy', '/agenda', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/agenda/por-fecha', '/biblioteca', '/obras', '/municipios', '/mensajes', '/mensajes/nueva', '/ayuda', '/ayuda/despacho'],
   // Fichas (§4.1 and §4.2): the IVT on its obra fichas, política on the municipalities. Both keep Hoy, Avisos and Perfil.
   'politica@demo.test': ['/municipios', '/municipios?vencidas=1', '/municipios/junin', '/municipios/torbes?tipo=event', '/reportes/nuevo', '/hoy', '/avisos', '/perfil', '/mensajes', '/ayuda', '/ayuda/politica'],
   'ivt@demo.test': ['/obras', '/obras?estado=to_schedule', '/obras/nueva', '/agenda', '/hoy', '/avisos', '/perfil', '/mensajes', '/ayuda', '/ayuda/ivt'],
   'grabacion@demo.test': ['/hoy', '/agenda', '/mensajes', '/mensajes/nueva', '/ayuda', '/ayuda/grabacion'],
-  'redes@demo.test': ['/mensajes', '/mensajes/nueva', '/ayuda', '/ayuda/redes', '/ayuda/flujos'],
+  'redes@demo.test': ['/redes', '/redes/historias', '/redes/feed', '/redes/buscar', '/mensajes', '/mensajes/nueva', '/ayuda', '/ayuda/redes', '/ayuda/flujos'],
 };
 
 for (const [email, pages] of Object.entries(ROLES)) {
@@ -24,9 +26,9 @@ for (const [email, pages] of Object.entries(ROLES)) {
       const res = await page.goto(p);
       expect(res?.status(), p).toBeLessThan(400);
       await expect(page.getByRole('heading', { name: 'Algo no cargó' }), p).toHaveCount(0);
-      // The R3 screens open as themselves, not as the home with «Esa pantalla no es de tu rol» (?sin-permiso=1) or a
+      // The R3 and R4 screens open as themselves, not as the home with «Esa pantalla no es de tu rol» (?sin-permiso=1) or a
       // 404 page. (The guides mention that notice in their text, so the URL is what is checked.)
-      if (/^\/(mensajes|ayuda)/.test(p)) {
+      if (/^\/(mensajes|ayuda|redes)/.test(p)) {
         const url = new URL(page.url());
         expect(url.pathname, p).toBe(p.split('?')[0]);
         expect(url.searchParams.get('sin-permiso'), p).toBeNull();
@@ -39,6 +41,17 @@ for (const [email, pages] of Object.entries(ROLES)) {
     }
   });
 }
+
+// Redes by format (R4): a format that does not exist is «No encontramos esto»; the old list of pieces lands on the board
+// (the page redirects while it streams, so it is checked here by its address and not in the axe loop above).
+test('una sección de Redes que no existe no abre; /piezas lleva al tablero', async ({ page }) => {
+  await loginAs(page, 'redes@demo.test');
+  await page.goto('/redes/otra');
+  await expect(page.getByRole('heading', { level: 1, name: 'No encontramos esto' })).toBeVisible();
+  await page.goto('/piezas?ver=aprobadas');
+  await expect(page).toHaveURL(/\/redes$/);
+  await expect(page.getByRole('navigation', { name: 'Secciones de Redes' })).toBeVisible();
+});
 
 // At 360 px the home of each role does not scroll sideways (the demo's long titles wrap), every
 // label of the phone bar fits in its cell and no deadline («vence en …») is cut, also in «Modo

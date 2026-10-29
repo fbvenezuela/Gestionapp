@@ -225,7 +225,7 @@ export const TOOLS: Tool[] = [
             publicada_en_redes: p.published,
           })),
         },
-        goTo: found.length === 1 ? (editor ? `/piezas/${found[0].id}` : `/aprobar/${found[0].id}`) : found.length ? (editor ? '/piezas' : '/aprobar') : null,
+        goTo: found.length === 1 ? (editor ? `/piezas/${found[0].id}` : `/aprobar/${found[0].id}`) : found.length ? (editor ? '/redes' : '/aprobar') : null,
       };
     },
   },

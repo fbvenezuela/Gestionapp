@@ -57,9 +57,22 @@ describe('anclas de los tutoriales (lista cerrada)', () => {
     expect(missing).toEqual([]);
   });
 
-  it('las dos pestañas que los tutoriales señalan tienen nombre: «Filtro de piezas» y «Qué aprobar»', () => {
+  it('las pestañas que los tutoriales señalan tienen nombre: los meses de Redes y «Qué aprobar»', () => {
     const read = (f: string) => fs.readFileSync(f, 'utf8');
-    expect(read('src/app/(panel)/piezas/page.tsx')).toMatch(/role="tablist" aria-label="Filtro de piezas" data-tour="pieces-tabs"/);
+    // The month tabs live in their component (R4, F15), shared by the sections and the feed, not in a page.
+    expect(read('src/components/redes/month-tabs.tsx')).toMatch(/<nav aria-label="Meses de contenido" data-tour="month-tabs"/);
+    expect(read('src/components/redes/month-tabs.tsx')).toContain('data-tour="month-new"');
     expect(read('src/app/(panel)/aprobar/page.tsx')).toMatch(/role="tablist" aria-label="Qué aprobar" data-tour="approve-tabs"/);
+  });
+
+  it('cada ancla de Redes por formato está una sola vez en src/ (R4: un componente, o su envoltorio del Paso 0)', () => {
+    const R4 = ['new-piece', 'month-tabs', 'month-new', 'month-quota', 'section-sort', 'piece-card', 'card-checks', 'design-checks', 'rating', 'notice-band', 'month-summary', 'feed-grid', 'feed-live', 'feed-clear-month', 'redes-matrix', 'redes-period', 'redes-observations', 'redes-activity', 'redes-search'];
+    for (const a of R4) expect(TOUR_ANCHORS as readonly string[], a).toContain(a);
+    const twice = R4.filter((a) => used.filter((u) => u.name === a).length !== 1).map((a) => `${a}: ${used.filter((u) => u.name === a).map((u) => u.f).join(', ')}`);
+    expect(twice).toEqual([]);
+    // «Piezas» is gone: its tabs and list are no anchors any more, nor the hub's «Piezas» tile.
+    for (const gone of ['pieces-tabs', 'pieces-list']) expect(TOUR_ANCHORS as readonly string[]).not.toContain(gone);
+    expect(STABLE_TARGETS as readonly string[]).not.toContain('#hub-piezas-title');
+    expect(STABLE_TARGETS as readonly string[]).toContain('nav[aria-label="Secciones de Redes"]');
   });
 });

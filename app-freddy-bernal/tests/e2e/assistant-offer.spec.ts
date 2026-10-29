@@ -51,7 +51,8 @@ async function expectNoStrip(page: Page, ms = 6_000) {
 
 test('la franja sale a los ~4 s, después del consejo, en una línea y sin tapar el último control; «Sí, muéstrame» abre el tutorial', async ({ page }) => {
   await loginAs(page, REDES);
-  await page.goto('/piezas');
+  // A section of Redes (R4: «Piezas» went into the sections), with its tip and its tutorial.
+  await page.goto('/redes/reels');
   // First the tip: no strip while it shows.
   await expect(page.getByRole('complementary', { name: 'Consejo' })).toBeVisible();
   await expectNoStrip(page, 5_000);
@@ -117,7 +118,7 @@ test('en el inicio, la primera vez, se presenta y ofrece cómo empezar', async (
 
 test('una X: ese tutorial no vuelve; la segunda X lo apaga en este teléfono y lo dice; «Volver a ofrecerme ayuda» lo prende', async ({ page }) => {
   await loginAs(page, REDES);
-  await page.goto('/piezas');
+  await page.goto('/redes/reels');
   await dismissTips(page);
   await strip(page).getByRole('button', { name: 'Ahora no' }).click({ timeout: 8_000 });
   await expect(strip(page)).toHaveCount(0);
@@ -194,7 +195,7 @@ test.describe('con la llave del teléfono (como el resto de la suite)', () => {
 
   test('en el panel: «Ver el tutorial de…», la línea de administración, y 360 no lee Mensajes', async ({ page }) => {
     await loginAs(page, REDES);
-    await page.goto('/piezas');
+    await page.goto('/redes/reels');
     await dismissTips(page);
     await page.getByRole('button', { name: /asistente del equipo/ }).click();
     const dialog = page.getByRole('dialog');
@@ -211,7 +212,8 @@ test.describe('con la llave del teléfono (como el resto de la suite)', () => {
     await expect(dialog.getByRole('link', { name: 'Ir a Mensajes' })).toBeVisible();
 
     await ask('muéstrame cómo se usa esta pantalla');
-    const go = dialog.getByRole('link', { name: 'Ver el tutorial de Piezas' });
+    // A section is a pattern (/redes/[formato]): the window starts its tutorial right here.
+    const go = dialog.getByRole('link', { name: 'Ver el tutorial de una sección de Redes' });
     await expect(go).toBeVisible();
     await noSerious(page);
     await go.click();

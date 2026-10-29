@@ -80,7 +80,9 @@ export function pathMatches(pattern: string, pathname: string): boolean {
  * The tutorials of this screen (`tours` are already the person's, toursForRoles), in the order they are listed and
  * offered: the person's home first with `bienvenida` (screen '@home', on `home`) and then the home's own; then the
  * ones for fewer roles before the shared ones; catalogue order otherwise. A tutorial with ?tab= goes only with that
- * tab; one without goes with the first tab. `tab` is the tab the page marks as current, when it marks one.
+ * tab; one without goes with the first tab. `tab` is the tab the page marks as current, when it marks one. A screen
+ * with a tutorial of its own is not another screen's [param] too: /redes/feed is the feed, never a section of
+ * /redes/[formato] (R4), as /obras/nueva is never an obra's /obras/[id].
  */
 export function tourForPath(
   pathname: string,
@@ -88,10 +90,11 @@ export function tourForPath(
   tours: readonly Tour[],
   opts: { home?: string | null; tab?: string | null } = {},
 ): Tour[] {
+  const own = tours.some((t) => t.screen !== HOME_SCREEN && !parseScreen(t.screen).path.includes('[') && pathMatches(parseScreen(t.screen).path, pathname));
   const found = tours.flatMap((t, i) => {
     if (t.screen === HOME_SCREEN) return opts.home && pathMatches(opts.home, pathname) ? [{ t, i, home: true }] : [];
     const { path, tab } = parseScreen(t.screen);
-    if (!pathMatches(path, pathname)) return [];
+    if (!pathMatches(path, pathname) || (own && path.includes('['))) return [];
     const first = FIRST_TAB[path] ?? null;
     const here = opts.tab ?? searchTab(search) ?? first;
     return (tab ?? first) === here ? [{ t, i, home: false }] : [];

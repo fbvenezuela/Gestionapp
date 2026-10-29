@@ -41,7 +41,7 @@ test('el consejo sale la primera vez y «Entendido» lo esconde', async ({ page 
 
 test('una pantalla que no es del rol lleva a su inicio con un aviso', async ({ page }) => {
   await loginAs(page, 'politica@demo.test');
-  await page.goto('/piezas');
+  await page.goto('/redes');
   // Política's home is the municipalities (§4.2).
   await expect(page).toHaveURL(/\/municipios\?sin-permiso=1$/);
   await expect(page.getByText('Esa pantalla no es de tu rol.')).toBeVisible();
@@ -51,8 +51,11 @@ test('una pantalla que no es del rol lleva a su inicio con un aviso', async ({ p
 
   // The boss has the Redes screens now; Ajustes is still administración's.
   await loginAs(page, 'jefe@demo.test');
+  await page.goto('/redes/posts');
+  await expect(page.getByRole('heading', { level: 1, name: 'Posts' })).toBeVisible();
+  // «Piezas» became Redes by format (R4): its old address lands on the board.
   await page.goto('/piezas');
-  await expect(page.getByRole('heading', { name: 'Piezas' })).toBeVisible();
+  await expect(page).toHaveURL(/\/redes$/);
   await page.goto('/ajustes');
   await expect(page).toHaveURL(/\/jefe\?sin-permiso=1$/);
   await expect(page.getByText('Esa pantalla no es de tu rol.')).toBeVisible();
@@ -151,7 +154,8 @@ test('«Más», «Mi cuenta» y «Crear» se cierran con un toque afuera, con Es
   await page.keyboard.press('Escape');
   await create.locator('summary').click();
   await create.getByRole('link', { name: 'Nueva pieza' }).click();
-  await expect(page).toHaveURL(/\/piezas\/nueva$/);
+  // «¿Qué quieres crear?» on the board of Redes (R4, D-70).
+  await expect(page).toHaveURL(/\/redes\?crear=1$/);
   await expect(create).not.toHaveAttribute('open');
 });
 

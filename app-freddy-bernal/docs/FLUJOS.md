@@ -207,7 +207,7 @@ flowchart TD
   aprobacion_aprobada["Redes: Le llega «Aprobada: lista para publicar». Si vence el plazo sin respuesta, sigue sin aprobar y sale en «Trancado»."]
 ```
 
-1. **Redes:** En la pieza, «Nivel de aprobación» y «Enviar a aprobación». (`/piezas`)
+1. **Redes:** En la pieza, «Nivel de aprobación» y «Enviar a aprobación». (`/redes`)
    ¿De qué color es?
    - Verde → Rutina: el jefe las aprueba todas de un toque, en el día. Sigue en el paso 3.
    - Amarillo o rojo → Amarillo en 60 minutos, rojo en 30.

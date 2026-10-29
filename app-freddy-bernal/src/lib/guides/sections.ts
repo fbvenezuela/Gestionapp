@@ -464,41 +464,54 @@ export function municipiosSections(role: 'boss' | 'dispatch' | 'politics', menu:
 export function redesSections(role: 'boss' | 'social', group: (label: string) => string): S[] {
   const boss = role === 'boss';
   const list: S[] = [
+    // Redes by format (R4, D-60): Paso 0 writes these short sections of the new screens; WP-E writes them in full with
+    // the real labels of each screen.
     {
       screen: '/redes',
-      menu: boss ? group('Redes') : OFF_MENU,
+      menu: group('Redes'),
       title: 'Redes',
-      tour: 'redes-puerta',
+      tour: 'redes',
       what: boss
-        ? 'Tu puerta a las pantallas de Redes, con lo que espera en cada una.'
-        : 'La puerta a tus pantallas con lo que espera en cada una (no está en tu menú: es la del jefe, y la puedes abrir).',
+        ? 'Tu puerta a Redes: las secciones por formato, el feed y lo demás de Redes, con lo que espera en cada una.'
+        : 'El tablero de Redes: las secciones por formato, el feed y lo demás de Redes, con lo que espera en cada una.',
       youDo: [
-        'Una tarjeta por pantalla: Piezas, Tweets, Publicar, Resultados y Biblioteca, con sus números.',
+        'Arriba, la barra de secciones: «Tablero», «Reels», «Posts», «Carruseles», «Historias», «YouTube», «Fin de mes», «Feed» y «Tweets», y «Buscar en Redes».',
+        'Una tarjeta por pantalla: Tweets, Publicar, Resultados y Biblioteca, con sus números.',
         'Abajo, «Crear en Redes»: «Nueva pieza», «Tweets de la semana» y «Nueva publicación».',
       ],
     },
     {
-      screen: '/piezas',
-      menu: group('Piezas'),
-      title: 'Piezas',
-      tour: 'piezas',
-      what: 'Videos, portadas, carruseles y fotos, con sus copies.',
-      youDo: [
-        '«Nueva pieza» para empezar una.',
-        'Las pestañas «En curso», «Aprobadas» y «Todas».',
-        'Cada pieza dice cómo va: «Borrador», «Por aprobar», «Cambios pedidos», «Aprobada» o «Archivada», y en cuántas redes salió.',
-      ],
+      screen: '/redes/[formato]',
+      menu: group('Redes'),
+      title: 'Una sección de Redes',
+      tour: 'redes-seccion',
+      what: 'Las piezas de un formato (reels, posts, carruseles, historias, videos de YouTube o fin de mes) en el mes que eliges.',
+      youDo: ['Las pestañas de los meses y «+ Nuevo mes»: el mes que eliges sigue en las otras secciones y en el feed.'],
+    },
+    {
+      screen: '/redes/feed',
+      menu: group('Redes'),
+      title: 'El feed del mes',
+      what: 'Los espacios del feed del mes, en el orden en que se publican: el primero abajo a la derecha.',
+      youDo: ['Se llega con «Feed», en la barra de secciones de Redes.'],
+    },
+    {
+      screen: '/redes/buscar',
+      menu: group('Redes'),
+      title: 'Buscar en Redes',
+      what: 'Para buscar en todo Redes: títulos, copies, avisos y tweets.',
+      youDo: ['Se llega con «Buscar en Redes», en la barra de secciones.'],
     },
     {
       screen: '/piezas/nueva',
-      menu: group('Piezas'),
+      menu: group('Redes'),
       title: 'Nueva pieza',
       what: 'Para crear una pieza.',
       youDo: ['Eliges el «Evento» (o «Sin evento»), el «Tipo», la «Categoría» y el «Título», y tocas «Crear pieza».'],
     },
     {
       screen: '/piezas/[id]',
-      menu: group('Piezas'),
+      menu: group('Redes'),
       title: 'Una pieza',
       tour: 'pieza',
       what: 'El archivo final, los copies y la aprobación de una pieza.',

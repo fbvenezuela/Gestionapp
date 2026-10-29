@@ -146,7 +146,7 @@ export const FLOWS: Flow[] = [
         id: 'envia',
         roles: ['social'],
         text: 'En la pieza, «Nivel de aprobación» y «Enviar a aprobación».',
-        href: '/piezas',
+        href: '/redes',
         question: '¿De qué color es?',
         branches: [
           { label: 'Verde', text: 'Rutina: el jefe las aprueba todas de un toque, en el día.', to: 'aprobada' },

@@ -1,6 +1,7 @@
 // The assistant window's pure logic (docs/ASISTENTE.md «La ventana», manual §12): the thread
 // kept in sessionStorage, what the server's answer means for the window, and where the button
 // sits. No React and no I/O here, so it can be tested without a browser.
+import { formatFromSlug } from '@/lib/domain/redes';
 
 export const ASSISTANT_URL = '/api/asistente';
 export const SCOPE = 'equipo' as const;
@@ -205,14 +206,18 @@ export function fromApi(status: number, body: unknown): Outcome {
 
 // ---------------------------------------------------------------------------
 // The screen the person is on, as 360 may know it (R3, design §8.1): the pattern only. An id (any uuid) becomes
-// [id], a role's guide (/ayuda/<slug>) becomes /ayuda/[id]; never the query, the hash or anything typed.
+// [id], a role's guide (/ayuda/<slug>) becomes /ayuda/[id], a section of Redes (/redes/reels, R4) becomes
+// /redes/[formato]; never the query, the hash or anything typed.
 // ---------------------------------------------------------------------------
 const UUID_SEGMENT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SCREEN = /^\/[a-z0-9\-/[\]]{1,80}$/;
 
 export function screenPattern(pathname: string | null | undefined): string | null {
   const path = String(pathname ?? '').split(/[?#]/)[0].replace(/\/+$/, '') || '/';
-  const segs = path.split('/').map((seg, i, all) => (UUID_SEGMENT.test(seg) || (i === 2 && all[1] === 'ayuda' && all.length === 3 && !['flujos', 'administracion'].includes(seg)) ? '[id]' : seg));
+  const segs = path.split('/').map((seg, i, all) => {
+    if (UUID_SEGMENT.test(seg) || (i === 2 && all[1] === 'ayuda' && all.length === 3 && !['flujos', 'administracion'].includes(seg))) return '[id]';
+    return i === 2 && all[1] === 'redes' && all.length === 3 && formatFromSlug(seg) ? '[formato]' : seg;
+  });
   const out = segs.join('/');
   return SCREEN.test(out) ? out : null;
 }

@@ -389,7 +389,6 @@ describe('glass: componentes base', () => {
       'src/app/(panel)/avisos/page.tsx': 1,
       'src/app/(panel)/biblioteca/page.tsx': 2,
       'src/app/(panel)/resultados/page.tsx': 2,
-      'src/app/(panel)/piezas/page.tsx': 1,
       'src/app/(panel)/publicar/page.tsx': 3,
       'src/app/(panel)/publicar/[id]/page.tsx': 1,
       'src/app/(panel)/tweets/page.tsx': 1,

@@ -96,7 +96,9 @@ describe('el catálogo de tutoriales (§6.3)', () => {
 
   it('la dirección de un tutorial: su pantalla con ?tutorial= (y su pestaña); con [id], ninguna', () => {
     const byId = (id: string) => TOURS.find((t) => t.id === id)!;
-    expect(tourHref(byId('piezas'), '/hoy')).toBe('/piezas?tutorial=piezas');
+    expect(tourHref(byId('redes'), '/hoy')).toBe('/redes?tutorial=redes');
+    // A section of Redes is a pattern (/redes/[formato]): its tutorial starts on the section the person is on.
+    expect(tourHref(byId('redes-seccion'), '/hoy')).toBeNull();
     expect(tourHref(byId('aprobar-tweets'), '/jefe')).toBe('/aprobar?tab=tweets&tutorial=aprobar-tweets');
     expect(tourHref(byId('bienvenida'), '/obras')).toBe('/obras?tutorial=bienvenida');
     expect(tourHref(byId('pieza'), '/hoy')).toBeNull();

@@ -53,7 +53,8 @@ async function bigTargets(page: Page, names: string[]) {
 }
 
 const BOSS_TILES = ['Política', 'Obras', 'Redes', 'Digital'];
-const HUB_TILES = ['Piezas', 'Tweets', 'Publicar', 'Resultados', 'Biblioteca'];
+// «Lo demás de Redes» (R4, D-60): the «Piezas» tile went into the sections of Redes by format, in the bar on top.
+const HUB_TILES = ['Tweets', 'Publicar', 'Resultados', 'Biblioteca'];
 
 test.describe('en el iPad (1024×768)', () => {
   test.use({ viewport: { width: 1024, height: 768 } });
@@ -111,10 +112,12 @@ test.describe('en el iPad (1024×768)', () => {
     await expect(page).toHaveURL(/\/obras\?estado=to_schedule$/);
     await expect(page.locator('main li a[href^="/obras/"]')).toHaveCount(obraWaiting.n);
 
+    // The pieces in progress open the board of Redes (R4; its numbers by format come with the board, WP-D).
     await page.goto('/jefe');
+    expect(pieces.n).toBeGreaterThan(0);
     await pieces.link.click();
-    await expect(page).toHaveURL(/\/piezas$/);
-    await expect(page.locator('main li a[href^="/piezas/"]')).toHaveCount(pieces.n);
+    await expect(page).toHaveURL(/\/redes$/);
+    await expect(page.getByRole('navigation', { name: 'Secciones de Redes' })).toBeVisible();
     // On a Redes screen the boss's menu marks «Redes» (his door to it).
     await expect(page.getByRole('navigation', { name: 'Menú principal' }).getByRole('link', { name: 'Redes' })).toHaveAttribute('aria-current', 'page');
 
@@ -155,15 +158,17 @@ test.describe('en el iPad (1024×768)', () => {
     expect(nativeDialog).toBe(false);
   });
 
-  test('la puerta de Redes: cinco botones con lo que espera en cada pantalla', async ({ page }) => {
+  test('la puerta de Redes: la barra de secciones y cuatro botones con lo que espera en cada pantalla', async ({ page }) => {
     await loginAs(page, 'jefe@demo.test');
     await page.goto('/redes');
     await expect(page.getByRole('heading', { level: 1, name: 'Redes' })).toBeVisible();
     for (const name of HUB_TILES) await expect(tile(page, name)).toBeVisible();
+    await expect(tile(page, 'Piezas')).toHaveCount(0);
+    const sections = page.getByRole('navigation', { name: 'Secciones de Redes' });
+    await expect(sections.getByRole('link', { name: 'Tablero' })).toHaveAttribute('aria-current', 'page');
+    await expect(sections.getByRole('link', { name: 'Reels' })).toHaveAttribute('href', '/redes/reels');
     await expect(page.getByRole('navigation', { name: 'Menú principal' }).getByRole('link', { name: 'Redes' })).toHaveAttribute('aria-current', 'page');
     // What waits for the boss opens where he approves.
-    const waiting = await counter(tile(page, 'Piezas'), 'esperan? al jefe');
-    await expect(waiting.link).toHaveAttribute('href', '/aprobar');
     await expect((await counter(tile(page, 'Tweets'), 'por aprobar')).link).toHaveAttribute('href', '/aprobar?tab=tweets');
     await bigTargets(page, HUB_TILES);
     await fitsWidth(page, '/redes en el iPad');
@@ -206,14 +211,16 @@ test.describe('en el teléfono (360 px)', () => {
     for (const name of HUB_TILES) await expect(tile(page, name)).toBeVisible();
     await fitsWidth(page, '/redes en el teléfono');
     await noSerious(page, '/redes en el teléfono');
-    const active = await counter(tile(page, 'Piezas'), 'en curso');
     const upcoming = await counter(tile(page, 'Tweets'), 'por salir');
     const published = await counter(tile(page, 'Resultados'), 'publicaciones? en 30 días');
 
-    await active.link.click();
-    await expect(page).toHaveURL(/\/piezas$/);
-    await expect(page.locator('main li a[href^="/piezas/"]')).toHaveCount(active.n);
+    // A section of Redes, from the bar that scrolls inside itself: the boss's menu still marks «Redes».
+    const sections = page.getByRole('navigation', { name: 'Secciones de Redes' });
+    await sections.getByRole('link', { name: 'Posts' }).click();
+    await expect(page).toHaveURL(/\/redes\/posts$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Posts' })).toBeVisible();
     await expect(bar.getByRole('link', { name: 'Redes' })).toHaveAttribute('aria-current', 'page');
+    await fitsWidth(page, '/redes/posts en el teléfono');
 
     await page.goto('/redes');
     await upcoming.link.click();
@@ -226,16 +233,17 @@ test.describe('en el teléfono (360 px)', () => {
     expect(await stat(page, 'Publicaciones')).toBe(published.n);
   });
 
-  test('Redes también puede usar la puerta de Redes: sin fechas y sin «Por aprobar»', async ({ page }) => {
+  test('Redes también usa la puerta de Redes (ahora en su menú): sin fechas y sin «Por aprobar»', async ({ page }) => {
     await loginAs(page, 'redes@demo.test');
     await page.goto('/redes');
     for (const name of HUB_TILES) await expect(tile(page, name)).toBeVisible();
     expect(await page.locator('main').innerText()).not.toMatch(TIME_RE);
     // Redes does not approve: what waits for the boss opens its own screens.
-    await expect((await counter(tile(page, 'Piezas'), 'esperan? al jefe')).link).toHaveAttribute('href', '/piezas');
     await expect((await counter(tile(page, 'Tweets'), 'por aprobar')).link).toHaveAttribute('href', '/tweets');
-    // Its own menu does not change (Hoy first).
-    await expect(page.getByRole('navigation', { name: 'Menú', exact: true }).getByRole('link').first()).toHaveText('Hoy');
+    // Its menu: Hoy first, and «Redes» where «Piezas» was (R4), marked here.
+    const bar = page.getByRole('navigation', { name: 'Menú', exact: true });
+    await expect(bar.getByRole('link')).toHaveText(['Hoy', 'Agenda', 'Redes', 'Tweets']);
+    await expect(bar.getByRole('link', { name: 'Redes' })).toHaveAttribute('aria-current', 'page');
     await fitsWidth(page, '/redes de Redes');
     await noSerious(page, '/redes de Redes');
   });

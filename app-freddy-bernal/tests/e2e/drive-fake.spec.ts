@@ -120,7 +120,7 @@ test('Biblioteca: miniaturas, «Elegir de Drive» y «Traer lo nuevo de Drive» 
 
 test('la pieza en Drive: «Descargar portada» baja por partes, y si Drive se desconecta el video dice por qué', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');
-  await page.goto('/piezas');
+  await page.goto('/buscar?q=Jornada de salud escolar');
   await page.getByRole('link', { name: /^Jornada de salud escolar/ }).click();
   await page.waitForURL(/\/piezas\/[0-9a-f-]{36}$/);
   const piece = page.url();

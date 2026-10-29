@@ -88,8 +88,11 @@ export type NavItem = { href: string; label: string; icon: string; roles: Role[]
 // Order matters: the first 4-5 visible items for a role go to the mobile bottom bar
 // (`mobile` lists the roles that get the item in the bar).
 // The boss «tiene todo, hasta lo de redes» (§3): his menu is Inicio, Agenda, Por aprobar, Redes, Obras, Municipios and
-// Digital; «Redes» is his door to the same screens Redes uses (Piezas, Tweets, Publicar, Resultados, Biblioteca), which
-// he still opens. On the phone: Inicio, Agenda, Por aprobar, Redes and «Más».
+// Digital; «Redes» is his door to the same screens Redes uses (Tweets, Publicar, Resultados, Biblioteca), which he still
+// opens. On the phone: Inicio, Agenda, Por aprobar, Redes and «Más».
+// «Redes» is also Redes' and administración's (R4, D-60): it opens the board of Redes by format (Reels, Posts…, the feed)
+// where «Piezas» used to be. Redes: Hoy, Agenda, Redes, Tweets, Publicar, Resultados, Biblioteca (phone: Hoy, Agenda,
+// Redes, Tweets and «Más»). /piezas sends to /redes; each piece keeps its address /piezas/[id].
 // Director del IVT and Director de política land on their own screens (Obras, Municipios) instead of Hoy.
 export const NAV: NavItem[] = [
   { href: '/jefe', label: 'Inicio', icon: 'home', roles: ['boss'], mobile: ['boss'] },
@@ -97,10 +100,9 @@ export const NAV: NavItem[] = [
   // The IVT's agenda is «Mis visitas de obra» (the visits born from its fichas, with their date).
   { href: '/agenda', label: 'Agenda', icon: 'calendar', roles: ['admin', 'boss', 'dispatch', 'social', 'camera', 'ivt'], mobile: ['admin', 'boss', 'dispatch', 'social', 'camera', 'ivt'] },
   { href: '/aprobar', label: 'Por aprobar', icon: 'check', roles: ['boss', 'admin'], mobile: ['boss'] },
-  { href: '/redes', label: 'Redes', icon: 'megaphone', roles: ['boss'], mobile: ['boss'], also: ['/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca'] },
+  { href: '/redes', label: 'Redes', icon: 'megaphone', roles: ['admin', 'social', 'boss'], mobile: ['admin', 'social', 'boss'], also: ['/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca'] },
   { href: '/obras', label: 'Obras', icon: 'hardhat', roles: ['admin', 'boss', 'dispatch', 'ivt'], mobile: ['dispatch', 'ivt'] },
   { href: '/municipios', label: 'Municipios', icon: 'map', roles: ['admin', 'boss', 'dispatch', 'politics'], mobile: ['dispatch', 'politics'] },
-  { href: '/piezas', label: 'Piezas', icon: 'film', roles: ['admin', 'social'], mobile: ['admin', 'social'] },
   { href: '/tweets', label: 'Tweets', icon: 'message', roles: ['admin', 'social'], mobile: ['social'] },
   { href: '/publicar', label: 'Publicar', icon: 'send', roles: ['admin', 'social'], mobile: ['social'] },
   { href: '/resultados', label: 'Resultados', icon: 'chart', roles: ['admin', 'social'] },
@@ -117,7 +119,8 @@ export const CREATE_ITEMS: { href: string; label: string; roles: Role[] }[] = [
   { href: '/obras/nueva', label: 'Ficha de obra', roles: ['admin', 'boss', 'dispatch', 'ivt'] },
   // Not Administración: the report's contacts are política's, despacho's and the boss's only (D-41).
   { href: '/reportes/nuevo', label: 'Ficha comunitaria', roles: ['boss', 'dispatch', 'politics'] },
-  { href: '/piezas/nueva', label: 'Nueva pieza', roles: ['admin', 'social', 'boss'] },
+  // «¿Qué quieres crear?» on the board of Redes (R4, D-70); /piezas/nueva stays for a piece born from an event.
+  { href: '/redes?crear=1', label: 'Nueva pieza', roles: ['admin', 'social', 'boss'] },
   { href: '/tweets/nueva', label: 'Tweets de la semana', roles: ['admin', 'social', 'boss'] },
   { href: '/publicar/nueva', label: 'Nueva publicación', roles: ['admin', 'social', 'boss'] },
 ];

@@ -1,39 +1,40 @@
-import { BarChart3, Film, FolderOpen, MessageSquareText, Plus, Send } from 'lucide-react';
+import { BarChart3, FolderOpen, MessageSquareText, Plus, Send } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
 import { PageHeader } from '@/components/ui/page';
 import { LinkButton } from '@/components/ui/button';
 import { HubTile } from '@/components/home/hub-tile';
+import { RedesNav } from '@/components/redes/redes-nav';
+import { DemoNotice } from '@/components/redes/demo-notice';
 import { redesCounts } from '@/lib/data/home-counts';
+import { monthParam } from '@/lib/domain/redes';
 
 export const metadata = { title: 'Redes' };
 
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
-// The door to Redes (§3: «Redes: piezas, copies, tweets, publicaciones y resultados, con las mismas pantallas que ve
-// Redes»): the boss's way in, and Redes may use it too. Each tile opens the very screen Redes works on, with what waits
-// there. Nothing here reads the agenda: no event dates, ever (Redes must not see them).
-export default async function RedesHub() {
+// Redes (§3, R4 D-60, D-71): the board of Redes by format for Redes, the boss and administración, with the section bar
+// on top and «Lo demás de Redes» below (Tweets, Publicar, Resultados and Biblioteca, the same tiles as before, each
+// opening the very screen Redes works on). Nothing here reads the agenda: no event dates, ever (Redes must not see them).
+// Paso 0 (integrator): the hub of before without the «Piezas» tile (its pieces go to the sections), the section bar and
+// the board's tutorial anchors, hidden. WP-D builds the board (and «¿Qué quieres crear?» with ?crear=1) and removes
+// each hidden anchor it replaces.
+export default async function RedesHub({ searchParams }: { searchParams: Promise<{ mes?: string }> }) {
   const s = await requireRole('admin', 'social', 'boss');
+  const monthId = monthParam((await searchParams).mes);
   // What waits for the boss opens where he approves; Redes (who does not approve) goes to its own screen.
   const approver = s.roles.some((r) => r === 'boss' || r === 'admin');
   const c = await db(s, (sql) => redesCounts(sql));
   return (
     <>
       <PageHeader title="Redes" subtitle="Las mismas pantallas que usa el equipo de Redes, con lo que espera en cada una." />
+      <RedesNav active="dashboard" monthId={monthId} />
+      <DemoNotice userId={s.userId} />
+      <div data-tour="redes-period" hidden />
+      <div data-tour="redes-matrix" hidden />
+      <div data-tour="redes-observations" hidden />
+      <div data-tour="redes-activity" hidden />
+      <div data-tour="redes-search" hidden />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <HubTile
-          id="hub-piezas"
-          href="/piezas"
-          title="Piezas"
-          subtitle="Videos, portadas y carruseles, con sus copies"
-          icon={Film}
-          counters={[
-            { href: '/piezas', value: c.pieces.active, label: 'en curso' },
-            { href: '/piezas', value: c.pieces.changes, label: 'con cambios pedidos', tone: 'danger' },
-            { href: approver ? '/aprobar' : '/piezas', value: c.pieces.inReview, label: plural(c.pieces.inReview, 'espera al jefe', 'esperan al jefe'), tone: 'warn' },
-            { href: '/piezas?ver=aprobadas', value: c.pieces.approved, label: plural(c.pieces.approved, 'aprobada', 'aprobadas') },
-          ]}
-        />
         <HubTile
           id="hub-tweets"
           href="/tweets"

@@ -21,7 +21,7 @@ export default async function NewPublicationPage({ searchParams }: { searchParam
     return (
       <>
         <PageHeader title="Nueva publicación" back={{ href: '/publicar', label: 'Publicar' }} />
-        <EmptyState title="No hay piezas aprobadas. El jefe tiene que aprobar antes de publicar." action={<LinkButton href="/piezas">Ver piezas</LinkButton>} />
+        <EmptyState title="No hay piezas aprobadas. El jefe tiene que aprobar antes de publicar." action={<LinkButton href="/redes">Ver Redes</LinkButton>} />
       </>
     );
   }

@@ -62,7 +62,6 @@ export const LABEL_PATTERNS: { re: RegExp; source: string }[] = [
   { re: /^n tweets por aprobar$/, source: "'tweets por aprobar'" },
   { re: /^Quedan n días de tweets$/, source: 'Quedan ${stock.daysLeft} días de tweets' },
   { re: /^Falló la publicación en…$/, source: 'Falló la publicación en ${' },
-  { re: /^Publicada en n$/, source: 'Publicada en ' },
   { re: /^(?:7|30|90) días$/, source: '{d} días' },
 ];
 

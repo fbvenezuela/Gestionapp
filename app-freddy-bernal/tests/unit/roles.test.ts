@@ -109,10 +109,9 @@ describe('menús', () => {
 
   it('«Redes» es la puerta del jefe a las pantallas de Redes: las sigue abriendo y el menú lo marca allí', () => {
     const redes = NAV.find((n) => n.href === '/redes')!;
-    expect(redes.roles).toEqual(['boss']);
     for (const href of ['/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca']) {
       expect(redes.also, href).toContain(href);
-      expect(canOpen(href, ['boss']), href).toBe(true);
+      expect(canOpen(href === '/piezas' ? '/piezas/123' : href, ['boss']), href).toBe(true);
       expect(navFor(['boss']).visible.some((n) => n.href === href), href).toBe(false);
     }
     expect(canOpen('/redes', ['boss'])).toBe(true);
@@ -124,15 +123,44 @@ describe('menús', () => {
     expect(active('/jefe/politica')).toEqual(['Inicio']);
     expect(active('/jefe/digital')).toEqual(['Digital']);
     expect(active('/redes')).toEqual(['Redes']);
+    expect(active('/redes/reels')).toEqual(['Redes']);
+    expect(active('/redes/feed')).toEqual(['Redes']);
     expect(active('/piezas/123')).toEqual(['Redes']);
     expect(active('/biblioteca')).toEqual(['Redes']);
     expect(active('/aprobar/123')).toEqual(['Por aprobar']);
     expect(active('/eventos/123')).toEqual([]);
-    // Whoever has Piezas in the menu sees Piezas marked, never the hub too.
+  });
+
+  it('«Piezas» pasa a «Redes» en el menú de Redes y de administración (R4, D-60): el tablero, sin «Piezas»', () => {
+    const redes = NAV.find((n) => n.href === '/redes')!;
+    expect([...redes.roles].sort()).toEqual(['admin', 'boss', 'social']);
+    expect([...(redes.mobile ?? [])].sort()).toEqual(['admin', 'boss', 'social']);
+    expect(NAV.some((n) => n.href === '/piezas')).toBe(false);
+    expect(NAV.some((n) => n.label === 'Piezas')).toBe(false);
+    // Redes: Hoy, Agenda, Redes, Tweets, Publicar, Resultados, Biblioteca; on the phone Hoy, Agenda, Redes, Tweets and «Más».
+    const social = navFor(['social']);
+    expect(social.visible.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Redes', 'Tweets', 'Publicar', 'Resultados', 'Biblioteca']);
+    expect(social.mobile.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Redes', 'Tweets']);
+    expect(social.more.map((n) => n.label)).toEqual(['Publicar', 'Resultados', 'Biblioteca']);
+    // Administración: the same with Redes where Piezas was, on the phone too.
+    const admin = navFor(['admin']);
+    expect(admin.visible.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Por aprobar', 'Redes', 'Obras', 'Municipios', 'Tweets', 'Publicar', 'Resultados', 'Biblioteca', 'Ajustes']);
+    expect(admin.mobile.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Redes', 'Ajustes']);
+    // The boss's menu does not change.
+    expect(navFor(['boss']).visible.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Redes', 'Obras', 'Municipios', 'Digital']);
+    // Whoever has Tweets in the menu sees Tweets marked there, never the hub too; a section of Redes marks Redes.
     const both = navFor(['boss', 'social']).visible;
-    expect(both.filter((n) => isNavActive('/piezas', n, both)).map((n) => n.label)).toEqual(['Piezas']);
-    // Redes keeps its own menu (the hub is not in it until the client confirms Redes by format).
-    expect(navFor(['social']).visible.map((n) => n.href)).toEqual(['/hoy', '/agenda', '/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca']);
+    expect(both.filter((n) => isNavActive('/tweets', n, both)).map((n) => n.label)).toEqual(['Tweets']);
+    expect(both.filter((n) => isNavActive('/redes/posts', n, both)).map((n) => n.label)).toEqual(['Redes']);
+    expect(both.filter((n) => isNavActive('/piezas/123', n, both)).map((n) => n.label)).toEqual(['Redes']);
+    for (const r of ['social', 'admin'] as const) expect(navFor([r]).visible.filter((n) => isNavActive('/piezas/123', n, navFor([r]).visible)).map((n) => n.label), r).toEqual(['Redes']);
+  });
+
+  it('«Crear» → «Nueva pieza» abre «¿Qué quieres crear?» en el tablero; desde un evento sigue /piezas/nueva', () => {
+    const item = CREATE_ITEMS.find((c) => c.label === 'Nueva pieza')!;
+    expect(item.href).toBe('/redes?crear=1');
+    expect([...item.roles].sort()).toEqual(['admin', 'boss', 'social']);
+    expect(CREATE_ITEMS.some((c) => c.href === '/piezas/nueva')).toBe(false);
   });
 
   it('el jefe y el despacho comparten la agenda: los dos crean eventos y visitas de obra; administración no (la base decide)', () => {

@@ -180,13 +180,15 @@ export const TOURS: Tour[] = [
       { target: [anchor('digital-upcoming')], title: 'Lo que viene', body: 'Lo que ya está programado.' },
     ],
   },
+  // Redes by format (R4, design §6): `redes` and `redes-seccion` are provisional from Paso 0 (on what the screens show
+  // today); WP-E writes them with the board's and the cards' anchors, and adds `feed`.
   {
-    id: 'redes-puerta',
+    id: 'redes',
     screen: '/redes',
     roles: ['boss', 'social'],
     title: 'Cómo se usa Redes',
     steps: [
-      { target: ['#hub-piezas-title'], title: 'Piezas', body: 'Las piezas en curso, con cambios pedidos, esperando al jefe y aprobadas.' },
+      { target: ['nav[aria-label="Secciones de Redes"]'], title: 'Las secciones', body: 'Cada formato tiene su sección: reels, posts, carruseles, historias, YouTube y fin de mes. Después, el feed y los tweets.' },
       { target: ['#hub-tweets-title'], title: 'Tweets', body: 'Cuántos días de tweets quedan y cuántos esperan aprobación.' },
       { target: ['#hub-publicar-title'], title: 'Publicar', body: 'Lo aprobado, listo para publicar a mano.' },
       { target: ['#hub-resultados-title'], title: 'Resultados', body: 'Cómo nos va, y lo que todavía no tiene sus números.' },
@@ -491,14 +493,15 @@ export const TOURS: Tour[] = [
     ],
   },
   {
-    id: 'piezas',
-    screen: '/piezas',
+    id: 'redes-seccion',
+    screen: '/redes/[formato]',
     roles: ['social', 'boss'],
-    title: 'Cómo se usa Piezas',
+    title: 'Cómo se usa una sección de Redes',
     steps: [
-      { target: [anchor('new-piece')], title: 'Nueva pieza', body: 'Desde aquí empiezas una pieza.' },
-      { target: [anchor('pieces-tabs')], title: 'Las pestañas', body: 'En curso, aprobadas o todas.' },
-      { target: [anchor('pieces-list')], title: 'Cada pieza', body: 'Cada pieza dice cómo va y en cuántas redes salió.' },
+      { target: [anchor('month-tabs')], title: 'Los meses', body: 'Cada mes con sus piezas. El mes que eliges sigue en las otras secciones y en el feed.' },
+      { target: [anchor('month-new')], title: 'Nuevo mes', body: 'Aquí está «+ Nuevo mes», para empezar el mes que sigue.' },
+      { target: [anchor('new-piece')], title: 'Una pieza nueva', body: 'Desde aquí empiezas una pieza de esta sección.' },
+      { target: [anchor('piece-card')], title: 'Cada tarjeta', body: 'Cada pieza es una tarjeta: su archivo, sus campos y cómo va.' },
     ],
   },
   {

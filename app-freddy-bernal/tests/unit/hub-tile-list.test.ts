@@ -8,7 +8,8 @@ import { Clapperboard, Megaphone } from 'lucide-react';
 import { HubTile, type HubList } from '@/components/home/hub-tile';
 import { looksLikeDateTime } from '@/lib/push/text';
 
-const counters = [{ href: '/piezas', value: 2, label: 'piezas en curso' }];
+// As on the boss's Redes tile: the pieces in progress open the board of Redes (R4: «Piezas» went into its sections).
+const counters = [{ href: '/redes', value: 2, label: 'piezas en curso' }];
 const notes = (over: Partial<HubList> = {}): HubList => ({
   key: 'notes',
   label: 'Notas de Grabación nuevas',
@@ -47,7 +48,8 @@ describe('la línea de notas de Grabación nuevas en el botón de Redes del jefe
     expect(html).toContain('<ul aria-labelledby="tile-redes-notes"');
     expect(html).toMatch(/^<div class="glass-card [^"]*" role="region" aria-labelledby="tile-redes-title">/);
     // Under the counters.
-    expect(html.indexOf('tile-redes-notes')).toBeGreaterThan(html.indexOf('href="/piezas"'));
+    expect(html.indexOf('tile-redes-notes')).toBeGreaterThan(html.indexOf('piezas en curso'));
+    expect(html.indexOf('piezas en curso')).toBeGreaterThan(0);
   });
 
   it('cada título es un blanco grande para el dedo (56 px), como los contadores', () => {
