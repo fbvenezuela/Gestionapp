@@ -2,9 +2,27 @@
 
 import { z } from 'zod';
 import { act, UserError } from './run';
+import { phonesIn } from '../domain/phones';
 
 const uuid = z.string().uuid();
-const KEYS = ['tweets.slots', 'tweets.per_day', 'tweets.low_stock_days', 'brand', 'publishing.default_collaborators', 'upload.max_mb', 'municipalities', 'parishes'] as const;
+const KEYS = [
+  'tweets.slots', 'tweets.per_day', 'tweets.low_stock_days', 'brand', 'publishing.default_collaborators', 'upload.max_mb', 'municipalities', 'parishes',
+  'redes.quotas', 'redes.pillars',
+] as const;
+
+// Cupo y pilares (R4, D-68): the same rules as guard_redes_settings() in the database. The quota is informative
+// (going over blocks nothing); a pillar's key never changes, so renaming it keeps it on the pieces.
+const QUOTA_TEXT = 'El cupo es un número entero de 0 a 200 por formato.';
+const PILLAR_TEXT = 'Cada pilar lleva una clave única y un nombre de 1 a 40 letras.';
+const quota = z.number({ error: QUOTA_TEXT }).int(QUOTA_TEXT).min(0, QUOTA_TEXT).max(200, QUOTA_TEXT);
+const pillar = z.object({
+  key: z.string().regex(/^[a-z0-9][a-z0-9-]{0,39}$/, PILLAR_TEXT),
+  name: z.string().trim().min(1, PILLAR_TEXT).max(40, PILLAR_TEXT).refine((v) => !phonesIn(v).length, 'El nombre del pilar no lleva teléfonos.'),
+  tone: z
+    .enum(['neutral', 'info', 'accent', 'ok'], { error: 'El color del pilar es uno de la lista.' })
+    .nullish()
+    .transform((v) => v ?? 'neutral'),
+});
 
 const valueSchemas: Record<(typeof KEYS)[number], z.ZodType> = {
   'tweets.slots': z.array(z.object({ from: z.string().regex(/^\d{2}:\d{2}$/), to: z.string().regex(/^\d{2}:\d{2}$/) })).min(1).max(12),
@@ -18,6 +36,14 @@ const valueSchemas: Record<(typeof KEYS)[number], z.ZodType> = {
   parishes: z
     .record(z.string().min(2).max(80), z.array(z.string().trim().min(2).max(100)).max(80))
     .refine((m) => Object.values(m).every((l) => new Set(l).size === l.length), 'Hay una parroquia repetida.'),
+  'redes.quotas': z.strictObject(
+    { reel: quota.optional(), post: quota.optional(), carousel: quota.optional(), story: quota.optional(), youtube: quota.optional() },
+    { error: QUOTA_TEXT },
+  ),
+  'redes.pillars': z
+    .array(pillar)
+    .max(12, 'Hasta 12 pilares.')
+    .refine((l) => new Set(l.map((p) => p.key)).size === l.length, PILLAR_TEXT),
 };
 
 export async function saveSetting(raw: unknown) {
@@ -29,7 +55,7 @@ export async function saveSetting(raw: unknown) {
        on conflict (key) do update set value = excluded.value, updated_by = auth.uid(), updated_at = now()`,
       [i.key, JSON.stringify(v.data)],
     );
-  }, { revalidate: ['/ajustes'] });
+  }, { revalidate: ['/ajustes', '/redes'] });
 }
 
 export async function saveCategory(raw: unknown) {

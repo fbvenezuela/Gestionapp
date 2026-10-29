@@ -33,6 +33,9 @@ export const env = {
     monthlyCapUsd: Number(process.env.AI_MONTHLY_CAP_USD ?? '20'),
   },
   publishingEnabled: flag('PUBLISHING_ENABLED'),
+  // «Organizar por orden del feed» in Ajustes → Google Drive (R4, D-74). Off by default; it also needs Drive as the
+  // storage, Drive connected and administración with 2FA (src/lib/actions/drive-organize.ts checks all four).
+  redesDriveOrganize: flag('REDES_DRIVE_ORGANIZE'),
   // Phone notifications (Web Push). Keys are optional: without them they are derived
   // from SESSION_SECRET (src/lib/push). PUSH_ENABLED=false turns them off.
   push: {

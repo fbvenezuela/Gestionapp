@@ -332,6 +332,7 @@ export class FakeDrive {
     if (want('mimeType')) out.mimeType = f.mimeType;
     if (want('trashed')) out.trashed = f.trashed;
     if (want('name')) out.name = f.name;
+    if (want('parents')) out.parents = f.parents;
     if (want('appProperties')) out.appProperties = f.appProperties;
     if (want('md5Checksum') && f.mimeType !== FOLDER) out.md5Checksum = 'fake';
     if (want('videoMediaMetadata') && f.video) out.videoMediaMetadata = f.video;
@@ -402,6 +403,12 @@ export class FakeDrive {
     if (!f) return apiError(404, 'notFound');
     const body = JSON.parse(new TextDecoder().decode(await bodyBytes(init)) || '{}');
     if (body.trashed === true) f.trashed = true;
+    // Rename and move (moveFile): name in the body, addParents/removeParents in the query, like Google.
+    if (typeof body.name === 'string') f.name = body.name;
+    const add = url.searchParams.get('addParents');
+    const remove = (url.searchParams.get('removeParents') ?? '').split(',').filter(Boolean);
+    if (add && !this.visible(add)) return apiError(404, 'notFound');
+    if (add || remove.length) f.parents = [...f.parents.filter((p) => !remove.includes(p)), ...(add && !f.parents.includes(add) ? [add] : [])];
     return json(200, { id });
   }
 

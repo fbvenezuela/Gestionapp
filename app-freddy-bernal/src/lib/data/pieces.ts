@@ -1,4 +1,6 @@
 import type { Sql } from '../db/core';
+import type { Format } from '../domain/redes';
+import { getCard, type CardData } from './redes';
 
 export type PieceFull = {
   id: string; title: string; kind: string; status: string; current_version: number; approved_version: number | null;
@@ -12,11 +14,15 @@ export type PieceFull = {
   comments: { id: string; body: string; at_second: number | null; version: number; created_at: string; author: string }[];
   voice: { id: string; phrase: string; at_second: number | null; status: string; audio_asset_id: string | null; audio_bucket: string | null; audio_size: number | null; audio_label: string | null }[];
   publications: { id: string; network: string; status: string; url: string | null; published_at: string | null; scheduled_at: string | null }[];
+  // R4: the piece's format and its card (the same CardData as its section: fields, notices, design, feed place, what
+  // is missing before «Enviar a aprobación»). /piezas/[id] is the card in big.
+  format: Format;
+  card: CardData | null;
 };
 
 export async function getPiece(sql: Sql, id: string): Promise<PieceFull | null> {
-  const p = await sql.one<Omit<PieceFull, 'versions' | 'copies' | 'reviews' | 'comments' | 'voice' | 'publications'>>(
-    `select p.id, p.title, p.kind, p.status, p.current_version, p.approved_version, p.event_id, e.title as event_title, c.name as category_name,
+  const p = await sql.one<Omit<PieceFull, 'versions' | 'copies' | 'reviews' | 'comments' | 'voice' | 'publications' | 'card'>>(
+    `select p.id, p.title, p.kind, p.format, p.status, p.current_version, p.approved_version, p.event_id, e.title as event_title, c.name as category_name,
             coalesce(nullif(ap.full_name, ''), ap.email) as approved_by_name, p.approved_at,
             p.review_level, p.sent_to_review_at, p.revision, p.copy_voice, p.copy_closing
        from public.pieces p left join public.events e on e.id = p.event_id left join public.categories c on c.id = p.category_id
@@ -53,7 +59,7 @@ export async function getPiece(sql: Sql, id: string): Promise<PieceFull | null> 
     `select id, network, status, url, published_at, scheduled_at from public.publications where piece_id = $1 and deleted_at is null order by coalesce(published_at, scheduled_at, created_at) desc`,
     [id],
   );
-  return { ...p, versions, copies, reviews, comments, voice, publications };
+  return { ...p, versions, copies, reviews, comments, voice, publications, card: await getCard(sql, id) };
 }
 
 export function fmtSecond(s: number | null) {

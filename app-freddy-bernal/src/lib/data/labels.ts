@@ -1,5 +1,6 @@
 import type { Tone } from '@/components/ui/chip';
 import type { MediaKind } from '@/lib/domain/media-mime';
+import { FORMAT, FORMATS } from '@/lib/domain/redes';
 
 export const WORK_STATUS: Record<string, { label: string; tone: Tone }> = {
   brief: { label: 'Ficha', tone: 'neutral' },
@@ -39,6 +40,8 @@ export const PIECE_STATUS: Record<string, { label: string; tone: Tone }> = {
   archived: { label: 'Archivada', tone: 'neutral' },
 };
 
+// The old kind of a piece: kept for the archive (pieces made before R4, the event's Piezas tab). The format and the
+// computed state of Redes (R4) come from src/lib/domain/redes.ts, the one source: PIECE_FORMAT, displayState, chipFor.
 export const PIECE_KIND: Record<string, string> = {
   video: 'Video',
   short: 'Video corto',
@@ -46,6 +49,9 @@ export const PIECE_KIND: Record<string, string> = {
   carousel: 'Carrusel',
   photo: 'Foto',
 };
+
+/** «Reel», «Post», «Carrusel», «Historia», «Video de YouTube», «Pieza de fin de mes» (FORMAT[f].label). */
+export const PIECE_FORMAT: Record<string, string> = Object.fromEntries(FORMATS.map((f) => [f, FORMAT[f].label]));
 
 // Also the start of each file's name («Jefe hablando 2», «Antes 1»): never a date, a time or a place.
 export const MEDIA_KIND: Record<string, string> = {

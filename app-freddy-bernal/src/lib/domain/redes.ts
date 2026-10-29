@@ -47,6 +47,31 @@ export function formatFromSlug(slug: string): Format | null {
 // The quota of the reference (A1), until Ajustes → Cupo y pilares says otherwise (config/clients/fb.json redes.quotas).
 export const DEFAULT_QUOTA: Record<QuotaFormat, number> = { reel: 12, post: 8, carousel: 4, story: 30, youtube: 4 };
 
+/** The format of a piece made with only the old `kind` (as the migration filled the pieces that existed, D-76). */
+export function formatOfKind(kind: string): Format {
+  if (kind === 'carousel') return 'carousel';
+  if (kind === 'photo' || kind === 'cover') return 'post';
+  return 'reel';
+}
+
+// The network format each piece format goes out as (D-73), in order of preference: the publication's `format` and
+// the network rule it is checked against (config/network-specs.json). Fin de mes goes out as a carousel.
+export const NETWORK_FORMATS: Record<Format, readonly string[]> = {
+  reel: ['reel', 'short', 'video'],
+  post: ['photo'],
+  carousel: ['carousel'],
+  story: ['story'],
+  youtube: ['video'],
+  month_end: ['carousel'],
+};
+// «Esta red no recibe historias» (D-73).
+const RECEIVED_NOUN: Record<Format, string> = { reel: 'reels', post: 'posts', carousel: 'carruseles', story: 'historias', youtube: 'videos de YouTube', month_end: 'carruseles' };
+export const notReceived = (network: string, f: Format) => `${network}: esta red no recibe ${RECEIVED_NOUN[f]}.`;
+
+// Why «Ya lo publiqué» and Publicar are off (D-63, D-64): the same words on the card and in the actions.
+export const NO_APPROVAL = 'Falta la aprobación del jefe';
+export const DESIGN_HELD = 'El diseño quedó desaprobado: el jefe tiene que volver a verla';
+
 // ---------------------------------------------------------------------------------------------------------------
 // Months (D-67): one list for the sections and the feed.
 // ---------------------------------------------------------------------------------------------------------------
@@ -218,6 +243,15 @@ export function suggestedRole(i: number, n: number): SlideRole {
   if (i === n - 1) return 'cta';
   if (n >= 4 && i === n - 2) return 'summary';
   return 'body';
+}
+
+/** The pictures to try for a piece's thumbnail, in order (the feed cell, the card's header, the picker): its cover,
+ * its own file (a picture, or a video's frame kept at upload), then its first slide. Each once. */
+export function pieceThumbIds(v: { coverId?: string | null; mediaId?: string | null; mediaMime?: string | null; slideIds?: readonly (string | null)[] | null } | null): string[] {
+  if (!v) return [];
+  const media = v.mediaId && (!v.mediaMime || v.mediaMime.startsWith('image/') || v.mediaMime.startsWith('video/')) ? v.mediaId : null;
+  const first = (v.slideIds ?? []).find((s): s is string => !!s) ?? null;
+  return [...new Set([v.coverId, media, first].filter((x): x is string => !!x))];
 }
 
 /** How the public received it (1 to 10); null: not rated (it never counts as 0, D-65). */

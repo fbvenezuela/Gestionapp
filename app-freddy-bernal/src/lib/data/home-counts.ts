@@ -1,21 +1,28 @@
 import type { Sql } from '../db/core';
 import { tweetStock } from './tweets';
 import { obraCounts, obraStageCounts } from './fichas';
+import { FORMATS, type Format } from '../domain/redes';
 
 // The live counters of the boss's Inicio (/jefe) and of the Redes hub (/redes). Everything runs AS THE PERSON (RLS):
 // the boss sees everything, Redes only what its role reads. Each number is the same one the screen it links to shows,
 // so a tap never lands on a different count. Cancelled events never count. No counter here reads a date of the
 // agenda except «eventos hoy», which only the boss's Inicio asks for (and only the boss and administración open it).
 
+export type FormatCount = { total: number; inReview: number; approved: number; published: number };
+
 export type RedesCounts = {
   pieces: { active: number; changes: number; inReview: number; approved: number };
+  // R4 (D-60, D-71): the open month's pieces by format (the boss's Redes tile, the board). `month` null: no month yet.
+  month: { id: string; label: string } | null;
+  byFormat: Record<Format, FormatCount>;
   tweets: { daysLeft: number; lowStock: boolean; upcoming: number; drafts: number };
   publish: { ready: number; scheduled: number; failed: number };
   results: { published30: number; withoutNumbers: number };
   library: { events: number };
 };
 
-export async function redesCounts(sql: Sql): Promise<RedesCounts> {
+/** `monthId`: the open month (?mes= or the person's choice); missing or gone = the first month. */
+export async function redesCounts(sql: Sql, monthId?: string | null): Promise<RedesCounts> {
   // /piezas «En curso» (draft, changes requested, in review) and «Aprobadas»; /publicar «Aprobadas y sin publicar».
   const p = (await sql.one<{ active: number; changes: number; in_review: number; approved: number; ready: number }>(
     `select count(*) filter (where p.status in ('draft', 'changes_requested', 'in_review'))::int as active,
@@ -44,8 +51,37 @@ export async function redesCounts(sql: Sql): Promise<RedesCounts> {
       where e.deleted_at is null and e.cancelled_at is null
         and exists (select 1 from public.media_assets m where m.event_id = e.id and m.deleted_at is null and m.status = 'ready')`,
   ))!.n;
+  // The month by format: the same pieces the sections show (with no month: the first month), the same counts as the
+  // board (approved = «Revisados», published = with a publication done).
+  const month = await sql.one<{ id: string; label: string }>(
+    `select id, label from public.content_months where deleted_at is null
+      order by (id = $1::uuid) desc nulls last, ordinal limit 1`,
+    [monthId && /^[0-9a-f-]{36}$/i.test(monthId) ? monthId : null],
+  );
+  const perFormat = month
+    ? await sql.query<{ format: string; total: number; in_review: number; approved: number; published: number }>(
+        `with first as (select id from public.content_months where deleted_at is null order by ordinal limit 1)
+         select p.format, count(*)::int as total,
+                count(*) filter (where p.status = 'in_review')::int as in_review,
+                count(*) filter (where p.status = 'approved')::int as approved,
+                count(*) filter (where exists (select 1 from public.publications x
+                                                where x.piece_id = p.id and x.deleted_at is null and x.status = 'published'))::int as published
+           from public.pieces p
+          where p.deleted_at is null and coalesce(p.content_month_id, (select id from first)) = $1
+          group by p.format`,
+        [month.id],
+      )
+    : [];
+  const byFormat = Object.fromEntries(
+    FORMATS.map((f) => {
+      const r = perFormat.find((x) => x.format === f);
+      return [f, { total: r?.total ?? 0, inReview: r?.in_review ?? 0, approved: r?.approved ?? 0, published: r?.published ?? 0 }];
+    }),
+  ) as Record<Format, FormatCount>;
   return {
     pieces: { active: p.active, changes: p.changes, inReview: p.in_review, approved: p.approved },
+    month,
+    byFormat,
     tweets: { daysLeft: stock.daysLeft, lowStock: stock.lowStock, upcoming: stock.count, drafts },
     publish: { ready: p.ready, scheduled: x.scheduled, failed: x.failed },
     results: { published30: x.published30, withoutNumbers: x.without_numbers },
