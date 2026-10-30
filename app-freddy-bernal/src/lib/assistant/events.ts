@@ -38,10 +38,22 @@ const SUBJECT = new RegExp(String.raw`\b(jefe|${BOSS_NAMES.map((w) => `${w}|`).j
 // What is written to save letters or as it is said («kndo», «onde», «lo d la»): read as the words.
 const SHORTHAND: [RegExp, string][] = [
   [/\b(?:kndo|qndo|cndo|cuado|kuando)\b/g, 'cuando'],
-  [/\b(?:onde|aonde|adonde)\b/g, 'donde'],
-  [/\b(?:q|k|ke)\b/g, 'que'],
+  [/\b(?:onde|aonde|adonde|dnd|dnde|dond)\b/g, 'donde'],
+  [/\b(?:q|k|ke|qe)\b/g, 'que'],
   [/\bd\b/g, 'de'],
-  [/\bxq\b/g, 'porque'],
+  [/\b(?:xq|pq|porq|xk|pk|porke|xque)\b/g, 'porque'],
+  // D-89: more of what is typed to save letters («q hay pa hoy», «donde stan mis eventos», «q me falta x hacer»).
+  [/\bpal\b/g, 'para el'],
+  [/\bpa\b/g, 'para'],
+  [/\bstan\b/g, 'estan'],
+  [/\b(?:sta|ta)\b/g, 'esta'],
+  [/\b(?:kmo|cmo|komo)\b/g, 'como'],
+  [/\b(?:kiero|kero|qiero)\b/g, 'quiero'],
+  [/\b(?:tng|tngo)\b/g, 'tengo'],
+  [/\b(?:msj|msje|mje)\b/g, 'mensaje'],
+  [/\b(?:tb|tmb|tbn)\b/g, 'tambien'],
+  [/\b(?:aki)\b/g, 'aqui'],
+  [/\bx (?=hacer|subir|aprobar|decidir|ponerle|poner|calificar|revisar|publicar|grabar|completar|llenar|leer|ver)/g, 'por '],
 ];
 const spokenFolded = (p: string) => SHORTHAND.reduce((t, [re, to]) => t.replace(re, to), p);
 /** plain(), with the shorthand read as the words it stands for. */

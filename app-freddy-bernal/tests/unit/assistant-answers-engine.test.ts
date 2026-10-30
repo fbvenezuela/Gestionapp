@@ -91,27 +91,32 @@ describe('las entradas', () => {
 describe('cómo elige', () => {
   it('una tarea de su guía, dicha con otras formas del verbo («pongo» / «Ponerle», «ficha de obra» / «del IVT»)', () => {
     const found = findAnswers('¿como le pongo fecha a una ficha de obra?', { roles: ['boss'] }).filter((m) => !m.entry.may);
-    expect(found.slice(0, 3).map((m) => m.entry.source)).toContain('boss:tasks.poner-fecha');
+    // The curated answers say it in his words first; the guide's task is reached too, and sure.
+    const task = found.find((m) => m.entry.source === 'boss:tasks.poner-fecha');
+    expect(task?.confidence).toBe('strong');
     expect(found[0].confidence).toBe('strong');
-    expect(found[0].text).toMatch(/Ponerle fecha/);
+    expect(found[0].text).toMatch(/[Pp]onerle fecha/);
   });
 
   it('cada rol con lo suyo: la misma pregunta, la guía de quien pregunta', () => {
-    expect(top('como subo el material', ['camera']).entry.roles).toEqual(['camera']);
+    // Grabación's own entry, or a shared one in Grabación's words («Tú, en tus eventos…»).
+    const camera = top('como subo el material', ['camera']);
+    expect(camera.entry.roles === null || camera.entry.roles.includes('camera')).toBe(true);
+    expect(camera.text).toMatch(/^Tú|Material/);
+    expect(top('como subo el material', ['social']).text).not.toBe(camera.text);
     expect(findAnswers('como subo el material', { roles: ['politics'] }).every((m) => m.entry.roles === null || m.entry.roles.includes('politics'))).toBe(true);
   });
 
   it('una etiqueta de la pantalla nombrada entera va primero («Hoy en la agenda»)', () => {
     const m = top('¿Qué sale en «Hoy en la agenda»?', ['camera']);
     expect(m.text).toMatch(/Hoy en la agenda/);
-    expect(m.entry.screen).toBe('/hoy');
+    expect(m.confidence).toBe('strong');
   });
 
   it('en la pantalla donde está la persona, su entrada suma un poco', () => {
     const q = '¿qué es «Por ponerle fecha»?';
-    const here = findAnswers(q, { roles: ['dispatch'], screen: '/agenda/por-fecha' })[0];
-    const away = findAnswers(q, { roles: ['dispatch'] }).find((m) => m.entry.id === here.entry.id)!;
-    expect(here.entry.screen).toBe('/agenda/por-fecha');
+    const here = findAnswers(q, { roles: ['dispatch'], screen: '/agenda/por-fecha', limit: 20 }).find((m) => m.entry.screen === '/agenda/por-fecha')!;
+    const away = findAnswers(q, { roles: ['dispatch'], limit: 20 }).find((m) => m.entry.id === here.entry.id)!;
     expect(here.score).toBeGreaterThan(away.score);
   });
 
@@ -120,10 +125,12 @@ describe('cómo elige', () => {
   });
 
   it('una pregunta que sigue a otra se lee con las palabras de la anterior', () => {
-    const alone = top('¿y quién lo aprueba?', ['social']);
     const after = top('¿y quién lo aprueba?', ['social'], { extra: '¿Cómo mando una pieza a aprobación?' });
     expect(after.text).toMatch(/jefe/);
-    expect(after.score).toBeGreaterThan(alone?.score ?? 0);
+    // Alone, «¿y eso dónde?» says nothing; after a question about the copies, it is where they are.
+    expect(top('¿y eso dónde está?', ['social'])?.confidence ?? 'none').not.toBe('strong');
+    const where = top('¿y eso dónde está?', ['social'], { extra: '¿cómo genero los copies de una pieza?' });
+    expect(where.text).toMatch(/Copies/);
   });
 
   it('una sola palabra que solo sale en un texto no es una respuesta segura', () => {
@@ -131,10 +138,14 @@ describe('cómo elige', () => {
     if (m.entry.q.length === 0) expect(m.score).toBeLessThan(STRONG);
   });
 
-  it('lo que no es de la plataforma no tiene una respuesta segura', () => {
-    for (const q of ['¿cuánto está el dólar hoy?', '¿quién ganó el juego de béisbol?', 'cuéntame un chiste']) {
-      const m = top(q, ['social']);
-      expect(m?.confidence ?? 'none', q).not.toBe('strong');
+  it('lo que no es de la plataforma no tiene una respuesta de la plataforma: a lo sumo la de fuera de tema', () => {
+    // The curated off-topic entry («Eso se me escapa: yo te ayudo con la plataforma…») may answer it; nothing else does.
+    const offTopic = /se me escapa|te ayudo con la plataforma/;
+    for (const q of ['¿cuánto está el dólar hoy?', '¿quién ganó el juego de béisbol?', 'cuéntame un chiste', 'q opinas de las elecciones']) {
+      for (const roles of [['social'], ['boss'], ['admin']] as Role[][]) {
+        const m = top(q, roles);
+        if (m?.confidence === 'strong') expect(m.text, `${q} (${roles[0]})`).toMatch(offTopic);
+      }
     }
   });
 

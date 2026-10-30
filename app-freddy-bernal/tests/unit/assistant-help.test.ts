@@ -48,7 +48,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['dile a Kevin que ya subí la pieza', TELL_MSG],
     ['¿cómo le escribo a Redes?', HOW_MSG],
     ['hazme la tarea', { has: /se me escapa|no opino/ }],
-    ['¿cómo cambio quién está en un canal?', { go: '/ayuda/jefe?ver=pasos', has: /^Cambiar quién está en un canal, paso a paso/ }],
+    // The boss's curated answer says the steps in his words (D-89): «Abre el canal → tres puntos → «Editar canal»…».
+    ['¿cómo cambio quién está en un canal?', { has: /«Editar canal».*«Guardar»|^Cambiar quién está en un canal, paso a paso/ }],
     // Still the notice the boss prepares (step 4), not a message; still support for administración.
     ['avísale a Redes que suban el material de la feria', { tool: 'preparar_aviso', notTool: 'ver_tutorial' }],
   ],
@@ -62,7 +63,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
   ],
   politics: [
     // «¿Cómo hago X?» with the role guide's «Paso a paso» (guide-help.ts), with its tutorial or the guide.
-    ['¿Cómo cargo una ficha comunitaria?', { tutorial: 'nueva-comunitaria', has: /^Cargar una ficha comunitaria, paso a paso: 1\) «Nueva ficha comunitaria»/ }],
+    // Política's curated answer (D-89), with the tutorial: «En Municipios toca «Nueva ficha comunitaria»…».
+    ['¿Cómo cargo una ficha comunitaria?', { tutorial: 'nueva-comunitaria', has: /«Nueva ficha comunitaria»/ }],
     ['¿cómo le doy seguimiento a una ficha?', { tutorial: null, go: '/ayuda/politica?ver=pasos', has: /^Darle seguimiento a una ficha, paso a paso: 1\)/ }],
     ['¿qué hago aquí?', { screen: '/municipios', tutorial: 'municipios', has: /municipio/ }],
     ['muéstrame cómo se usa Publicar', { has: /no es de tu rol/, tutorial: null }],
@@ -73,7 +75,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['necesito ayuda', SHOW('obras', '/obras')],
     // A screen with an id: the button is drawn by the window, on that screen (href null).
     ['¿qué hago aquí?', { screen: '/obras/[id]', tutorial: 'ficha-obra', has: /obra/ }],
-    ['¿cómo armo un canal?', HOW_MSG],
+    // A channel is armed by the boss (D-82): its curated answer says so, not the card on how to write (D-89).
+    ['¿cómo armo un canal?', { has: /los arma solo el jefe/ }],
   ],
   social: [
     ['muéstrame cómo se usa Publicar', SHOW('publicar')],
@@ -88,7 +91,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Me muestras cómo se usa esta pantalla?', SHOW('evento-redes', '/eventos/[id]')],
     ['¿qué me quiso decir Kevin con eso?', READ_MSG],
     ['mándale un mensaje a Rubén', TELL_MSG],
-    ['¿quién puede leer mis mensajes?', { has: /cada quien ve solo los canales donde está/ }],
+    // D-89: the curated answer («Lo leen solo los que están en ese canal…, y el jefe está en todos»).
+    ['¿quién puede leer mis mensajes?', { has: /solo los que están en ese canal|cada quien ve solo los canales donde está/ }],
     // A how-to of a thing, not of a screen: the ficha, as before.
     ['¿cómo funciona el semáforo?', { has: /Todo lo aprueba el jefe/, tutorial: null }],
   ],
@@ -140,8 +144,9 @@ describe('360 nunca lee ni manda mensajes (D-50, S8)', () => {
     for (const q of ['¿el jefe lee los mensajes?', '¿quién puede leer mis mensajes?', '¿dónde leo los mensajes?', '¿qué significa Mensaje oculto?', 'avisa a Redes que suban el material', 'mándales un aviso a todos', 'dile a administración que no puedo entrar', '¿qué dice el semáforo?', '¿qué me mandaron a grabar?', '¿Cómo hago los copies?']) {
       expect(messagesAsk(q), q).toBeNull();
     }
-    for (const q of ['¿Cómo le escribo a Redes?', '¿Cómo mando un mensaje?', '¿cómo armo un grupo?', '¿cómo armo un canal?', '¿cómo hablo por la red interna?']) expect(asksHowToWrite(q), q).toBe(true);
-    for (const q of ['¿Cómo escribo con la voz?', '¿cómo le mando la pieza al jefe?', '¿Cómo hago los copies?', 'dile a Kevin que ya está']) expect(asksHowToWrite(q), q).toBe(false);
+    for (const q of ['¿Cómo le escribo a Redes?', '¿Cómo mando un mensaje?', '¿cómo hablo por la red interna?']) expect(asksHowToWrite(q), q).toBe(true);
+    // A channel's management and a message the platform held are the answers', role by role (D-89).
+    for (const q of ['¿Cómo escribo con la voz?', '¿cómo le mando la pieza al jefe?', '¿Cómo hago los copies?', 'dile a Kevin que ya está', '¿cómo armo un grupo?', '¿cómo armo un canal?', 'me sale Enviar igual o Corregir', 'no me deja mandar el mensaje']) expect(asksHowToWrite(q), q).toBe(false);
   });
 
   it('la pregunta se guarda como «[pregunta sobre Mensajes]», sin su texto, fuera de «Lo que preguntan», y nunca escala', async () => {

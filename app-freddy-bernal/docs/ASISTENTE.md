@@ -285,9 +285,24 @@ Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene ad
   `may`, y solo contesta «¿puedo…?». El índice se arma una vez por servidor y cada pregunta tarda mucho menos de 20 ms
   (hay una prueba).
 - **Cómo compara.** Las dos partes se leen igual, sin tildes. La pregunta pasa por `readable()`: «q», «pa», «xq»,
-  «msj», «cel», «camarógrafo» → Grabación, «gobernador» → el jefe, «x» → Twitter. Cada palabra queda en su raíz
-  (`rootOf()`: apruebo/aprobar, pongo/ponerle, publiqué/publicar). Hay sinónimos: subir/cargar/montar, borrar/eliminar,
-  cambiar/editar/corregir, mandar/enviar y otros. Las palabras raras pesan más.
+  «msj», «cel», «camarógrafo» → Grabación, «gobernador» → el jefe, «x» → Twitter, «la campanita», «el sobrecito», «el
+  lapicito», «la lupita», «el engranaje». Cada palabra queda en su raíz (`rootOf()`: apruebo/aprobar, pongo/ponerle,
+  publiqué/publicar, rechacé/rechazar, decisión/decidir; b/v, s/z/c, ll/y y la h muda se leen igual). Hay sinónimos,
+  escritos como palabras: subir/cargar/montar/meter, borrar/eliminar/tumbar/quitar, cancelar/suspender, cambiar/editar/
+  corregir/arreglar, ver/chequear/revisar, cuadrar/organizar, prender/activar, acto/feria/asamblea/jornada/evento y
+  otros; un sinónimo cuenta como la más común de las dos palabras. Un diminutivo es su palabra (numerito/número). Las
+  palabras raras pesan más. No cuentan las maneras de pedir («podrías», «explícame», «quisiera», «disculpa»,
+  «procedimiento», «necesito saber») ni el marco de la pregunta («funciona», «sirve», «significa»); «error» pesa poco
+  (dice que es un problema, no de qué).
+  - **El tipo de pregunta** (`askKind()`): cómo se hace, qué es, quién, dónde, por qué, si se puede, qué pasa si, qué
+    lleva, cuántos, cuándo, algo que falla. Una forma de preguntar del mismo tipo suma; una de otro tipo resta (un
+    «¿cómo apruebo una pieza en rojo?» no es «¿qué significa el rojo?»; un «¿quién aprueba los tweets?» no es «si Redes
+    cambia un tweet…»). «Quién graba» dentro de la pregunta es una etiqueta, no un «¿quién…?».
+  - **El verbo de un «¿cómo…?»** pesa un poco más que lo demás.
+  - **Los nombres no cuentan:** los títulos de eventos, piezas y lugares que la persona ve y los nombres del equipo se
+    dejan fuera (como los lee `events.ts`), salvo que el texto de ayuda los diga o que sin ellos no quede qué preguntar.
+  - **Dos preguntas en una, o una historia larga:** cada oración se mide sola también (un poco menos que todo junto), y lo
+    que dice un error («me sale un error que dice que…»).
   - **Una forma de preguntar** cuenta en los dos sentidos. Pesa más cuánto de la pregunta tiene.
   - **El texto de una respuesta** cuenta en un solo sentido, y menos mientras más largo sea.
   - **Puntos a favor:**
@@ -297,9 +312,11 @@ Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene ad
     - la pantalla donde está la persona;
     - una tarea o un paso, cuando la pregunta es un «¿cómo…?»;
     - la pregunta escrita igual a una de las formas de preguntar;
-    - una respuesta curada.
+    - una respuesta curada, un poco más si se escribió para el rol de quien pregunta.
   - **Puntos en contra:**
-    - un «¿quién…?» contestado por un texto que no nombra a nadie;
+    - un «¿quién…?» contestado por un texto que no nombra a nadie al empezar (un texto en «tú» nombra a quien pregunta, y
+      el «No:» de «No: solo el jefe…» no cuenta);
+    - una forma de preguntar sobre una etiqueta («¿Qué significa «Sube el material»?») para una pregunta que no la nombra;
     - un «No.» o un «Sí,» para un «¿qué…?», o un «Porque…» para lo que no pregunta por qué;
     - una pantalla como respuesta a un «¿cómo…?».
   - **Casos especiales:**
@@ -307,11 +324,15 @@ Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene ad
       entradas dicen casi igual de bien.
     - En una pregunta corta (hasta tres palabras que dicen algo), un texto o el nombre de un botón al que le falta una
       de ellas no es seguro. Por ejemplo, «¿cómo pido cambios en un copy?» no es «¿Pedir cambios también?» del diseño.
-    - «Mi nombre», «mi teléfono» o «mis avisos» llevan a Mi perfil.
+    - «Mi nombre», «mi teléfono» o «mis avisos» llevan a Mi perfil; «los números de arriba» no (un número de teléfono es
+      un teléfono).
+    - Una pregunta de pocas palabras sin nada que pese («¿qué no debo hacer nunca?») se contesta si una forma de
+      preguntar se dice así, sin su «nunca» o su «yo».
     - Una pregunta que sigue a otra («¿y después?», «¿y quién lo aprueba?») se lee con las palabras de la anterior, a la
       mitad de su peso, salvo después de una pregunta sobre un evento.
-  - **Segura** desde 0,62 y **débil** desde 0,45. Una débil sola contesta solo desde 0,52, y solo si ninguna ficha ni
-    tarea contesta: nunca le gana a «No estoy seguro…» con una adivinanza.
+  - **Segura** desde 0,62 y **débil** desde 0,45. Una débil sola contesta solo desde 0,52, solo si ninguna ficha ni
+    tarea contesta y solo por una forma de preguntar (nunca por el texto de una respuesta): nunca le gana a «No estoy
+    seguro…» con una adivinanza.
 - **Dónde se usa** (`local.ts`, la demo y la cadena caída):
   - una respuesta segura contesta antes del paso viejo de las fichas si queda al menos 0,08 por encima de las tres
     mejores fichas medidas igual, frase por frase (`scoreFicha`);
@@ -359,6 +380,40 @@ Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene ad
     Mensajes, nunca con una lectura.
   - **Otros:** «¿qué es esto?» y «no entiendo» dan la pantalla donde está la persona, con su tutorial; un «¿Se publica
     solo?» respondido a un «¿qué tengo que hacer…?» va sin su «No,».
+- **La segunda vuelta (30/10, lo que encontró la revisión del jefe y del despacho):**
+  - «Lo de…» nombra un evento solo si lo que sigue no es una etiqueta, una pantalla o algo de la plataforma («lo de por
+    ponerle fecha», «lo de contactos del sitio», «lo de los copies»): ni `buscar_evento` ni la negativa para esos.
+  - Las etiquetas de cualquier pantalla se quitan cuando se pregunta qué son, dónde están o cómo se llenan («q es eso d
+    hoy en la agenda», «¿qué es lo de esperan al jefe?», «¿qué es Guardar aunque choque?»); las de los datos de la agenda
+    («Contactos del sitio», «A dónde se va»), solo cuando terminan la pregunta. «Del 1 al 10» nunca es una fecha.
+  - Una regla también es: dónde se ve algo en la plataforma o cuándo pasa un paso («¿dónde veo cómo va el trabajo entre
+    todos?», «¿cuándo puedo armar el diálogo FAB?»), solo si no nombra un evento; un condicional propio («si guardo sin
+    mandarlo al jefe, ¿dónde queda?»), un «cuando ya está lista», «¿me avisas cuando el jefe la apruebe?», «no
+    encuentro…». Con un evento nombrado, el cuándo o el dónde gana.
+  - Una trampa también es: «¿cuándo viene el gobernador?», «me preguntó si el acto es mañana o pasado», «tengo dos
+    eventos seguidos, ¿cuál es primero?», «¿a quién llamo cuando llegue a la obra?» (los contactos del sitio, siempre).
+  - `spoken()` lee también «pa», «dnd», «stan», «kmo», «tng», «msj», «x hacer».
+  - «La Agenda está en el menú» solo para dónde está la Agenda, no para cómo se usa («¿cómo veo la agenda por semana?»).
+  - El botón de una pantalla («Te dejo el botón para ir») no le gana a una respuesta segura sobre esa misma pantalla que
+    dice más; un «¿dónde…?» solo cede ante una respuesta que dice dónde. El botón de una respuesta es la pantalla más
+    precisa que nombra («Ajustes → «Cupo y pilares»» lleva a Cupo y pilares).
+  - Mensajes: «¿cómo le escribo a X?» sigue con la ficha de Mensajes; armar, editar o archivar un canal, «Solo el jefe
+    escribe», «Enviar igual» o «Corregir» y un mensaje que no sale los contestan las respuestas de cada rol.
+  - Los pendientes y lo que espera la decisión del jefe salen solo cuando se pide la lista, no en «¿qué significa
+    pendiente?» o «¿cómo funciona lo de decidir?». «¿Qué tengo en la agenda hoy?» no es la lista de pendientes.
+  - Junto a un evento, una pregunta de ayuda (cómo, qué es, si se puede, por qué, qué pasa si) que no pregunta cuándo ni
+    dónde recibe la respuesta segura.
+  - Una respuesta curada segura le gana a la ficha de una sección de Redes que dice menos (salvo «¿qué es…?» de una
+    sección con su frase) y a la ficha de rol en un «¿puedo…?». Las fichas de la plataforma se revisan como las
+    respuestas, salvo cuando la pregunta pide un cuándo o un dónde.
+  - El soporte no salta por «teléfono» ni por «¿a quién llamo cuando llegue…?».
+  - El tutorial de lo que se nombra: «¿hay tutorial para crear eventos?» ofrece «Cómo se crea un evento»; «enséñame la
+    agenda», el de la agenda.
+  - El jefe sube material como Redes (la pestaña Material del evento): no recibe «pásaselo a Redes».
+  - «¿Cuánto dura una historia?» dice Instagram y Facebook sin preguntar la red; «el copy es muy largo» lleva a las
+    reglas de cada red.
+  - «¿Y después?» sigue con el paso que viene después de lo que contestó la pregunta anterior.
+  - Pedir un discurso o un copy («escríbeme…», «hazme…») recibe el «no lo hago por ti» y de dónde sale.
 
 ## Datos (migración `20261025000900_assistant.sql`)
 Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: solo el servidor las toca.

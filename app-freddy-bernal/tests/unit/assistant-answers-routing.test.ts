@@ -43,7 +43,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
   dispatch: [
     ['en «Hoy en la agenda» sale la entrega de viviendas, ¿dónde queda?', A],
     ['¿Qué pongo en «A dónde se va»?', { not: REFUSAL }],
-    ['¿Qué es «Por ponerle fecha»?', { has: /fichas del IVT/, not: REFUSAL }],
+    // The curated answer says it in full («las fichas de obra del IVT», D-89).
+    ['¿Qué es «Por ponerle fecha»?', { has: /fichas (?:de obra )?del IVT/, not: REFUSAL }],
     ['¿Grabación ve la fecha del evento que le asigné?', { not: REFUSAL }],
     ['se cambio la hora de la entrega de viviendas como la cambio en la plataforma', { has: /«Mover»|«Cambiar fecha o lugar»/, not: REFUSAL }],
   ],
@@ -54,7 +55,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Puedes publicar por mí?', { has: /^No: yo no publico/ }],
     ['¿Cómo estás?', { has: /Todo bien|Bien, gracias/ }],
     ['resumeme lo que hablaron en el canal de obras y comunidad', { is: MESSAGES_READ_TEXT, go: '/mensajes' }],
-    ['¿Cómo le pongo fecha a una ficha de obra?', { has: /Ponerle fecha/, not: REFUSAL }],
+    // The boss's curated answer («Tú o el despacho: en «Por ponerle fecha»…») or the guide's task («Ponerle fecha»).
+    ['¿Cómo le pongo fecha a una ficha de obra?', { has: /[Pp]onerle fecha/, not: REFUSAL }],
   ],
   social: [
     ['puedo borrar un aviso de cumplimiento', { notTool: 'marcar_avisos_leidos' }],
@@ -94,6 +96,73 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
   ],
 };
 
+// The engine classes found by the content tuners (D-89, second pass): each one with the step that used to answer first.
+const CLASSES: Partial<Record<DemoUserKey, [string, Expect][]>> = {
+  boss: [
+    // «lo de …» names a thing of the platform, not an event: no event lookup.
+    ['lo de los copies como funciona', { notTool: 'buscar_evento', not: REFUSAL }],
+    // The agenda's how-tos and labels are answered, not refused, and not «La Agenda está en el menú».
+    ['¿cómo veo la agenda por semana?', { has: /«Semana»/, not: /La Agenda está en el menú/ }],
+    ['¿qué significan los colores de la agenda?', { has: /«Aceptado»/, not: REFUSAL }],
+    // A strong answer about one screen keeps its own button instead of the bare «Te dejo el botón para ir».
+    ['¿dónde le cambio el nivel a una pieza?', { has: /«Cambiar nivel»/ }],
+    // Mensajes: a channel is the boss's to create, with his steps.
+    ['como creo un canal', { has: /«Nuevo canal»/ }],
+    // «pendiente» or «decidir» in a how-it-works question: no list.
+    ['que significa pendiente en la tarjeta', { notTool: 'mis_pendientes' }],
+    ['como funciona lo de decidir los eventos', { notTool: 'eventos_por_decidir' }],
+    // The boss uploads like Redes, on the event's Material tab.
+    ['como subo el video del acto', { has: /Material/, not: /pásaselo a Redes/ }],
+    // The support step is for support: «teléfono» alone is not; «los números de arriba» are not Mi perfil.
+    ['algo de un teléfono', { not: /No hay teléfono de soporte/ }],
+    ['que son los números de arriba en mi inicio', { not: /Mi perfil/, screen: '/jefe' }],
+    // The tutorial of what is named.
+    ['¿hay tutorial para crear eventos?', { tutorial: 'nuevo-evento' }],
+    ['enséñame la agenda', { screen: '/agenda', tutorial: 'agenda-calendario' }],
+    // Filler only: the guide's own answer.
+    ['¿qué no debo hacer nunca?', { has: /«Antes de aprobar»/ }],
+    // «¿Quién…?» answered in «tú»; «Quién graba» named in a question is a label.
+    ['quien aprueba los tweets', { has: /^Tú/ }],
+    // A speech is not written for him: where it comes from instead.
+    ['escribeme un discurso para la inauguracion del hospital', { has: /diálogo FAB|Lo que voy a decir/, not: REFUSAL }],
+    // Traps said other ways, with labels around them.
+    ['¿me avisas a qué hora llega el jefe a la cancha?', A],
+    ['si guardo la ficha, ¿a qué hora es la feria?', A],
+    ['qué es «Hoy en la agenda»? y a qué hora es lo de la cancha', A],
+  ],
+  dispatch: [
+    ['que es Guardar aunque choque', { has: /choca/, not: REFUSAL }],
+    ['que es lo de esperan al jefe en hoy', { screen: '/hoy', has: /decisión del jefe/, not: REFUSAL }],
+    ['donde esta lo de por ponerle fecha', { go: '/agenda/por-fecha', not: REFUSAL }],
+    ['como pongo quien graba en el evento', { has: /Quién graba/ }],
+    ['¿La importancia del 1 al 10 la pongo yo?', { has: /^No/, not: REFUSAL }],
+    ['que dice como se llega en la feria', A],
+    ['¿Cuándo va el gobernador a la escuela Los Andes?', A],
+  ],
+  social: [
+    ['como archivo un canal', { has: /jefe/, not: /^Mensajes está en el sobre/ }],
+    ['me sale Enviar igual o Corregir que hago', { has: /Enviar igual/, not: /^Mensajes está en el sobre/ }],
+    ['¿cuánto dura una historia?', { tool: 'reglas_de_video', has: /Instagram y Facebook/, not: /¿Para qué red\?/ }],
+    ['kevin me pregunto si el acto de las viviendas es mañana o pasado, tu sabes?', A],
+    ['chamo pasame la direccion del acto d mañana', A],
+  ],
+  camera: [
+    ['tengo dos eventos seguidos, cual es primero', A],
+    ['donde stan mis eventos', { go: '/agenda', not: REFUSAL }],
+    ['pa q es «Quién graba»? y a q hora es la jornada de salud', A],
+  ],
+  ivt: [
+    ['a quien llamo cuando llegue a la obra', A],
+    ['la gente de la comunidad me pregunta cuando viene el gobernador q les digo', A],
+    ['¿Cómo le mando la ficha al jefe cuando ya está lista?', { has: /«Guardar y avisar al jefe»/, not: REFUSAL }],
+    ['q me falta x hacer hoy', { tool: 'mis_pendientes' }],
+  ],
+  politics: [
+    ['si guardo sin mandarlo al jefe donde queda', { not: REFUSAL }],
+    ['redes puede ver mis reportes? no quiero q vean los datos de la gente', { has: /^No/ }],
+  ],
+};
+
 let secrets: string[] = [];
 beforeAll(async () => {
   const rows = await withSystem((sql) =>
@@ -104,8 +173,9 @@ beforeAll(async () => {
 });
 
 describe('360 con sus respuestas: la negativa solo para la agenda de verdad, y cada pregunta a lo suyo', () => {
-  for (const [role, rows] of Object.entries(TABLE) as [DemoUserKey, [string, Expect][]][]) {
-    it(`${role}: cada pregunta tiene lo suyo`, async () => {
+  for (const [table, name] of [[TABLE, 'cada pregunta tiene lo suyo'], [CLASSES, 'lo que antes contestaba otro paso']] as const)
+  for (const [role, rows] of Object.entries(table) as [DemoUserKey, [string, Expect][]][]) {
+    it(`${role}: ${name}`, async () => {
       for (const [q, e] of rows) {
         let conversationId: string | null = null;
         for (const t of e.thread ?? []) conversationId = (await handleTurn(sessionOf(role), { question: t, conversationId, screen: e.screen }, { chain: [] })).conversationId;

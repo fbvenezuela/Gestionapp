@@ -109,6 +109,9 @@ const ROOTS: [RegExp, string][] = [
   [/\b(?:propuest|propus|propong)/g, 'propon'],
   // «correo» is not «corregir» (the same first letters).
   [/\bcorreos?\b/g, 'mail'],
+  // A phone number is a phone: «los números de arriba» (counts on a screen) are not «tu número de teléfono» (D-89).
+  [/\bnumeros? (?:de|del) (?:telefonos?|celular)\b/g, 'telefono'],
+  [/\b(mis?|tus?|su) numero\b/g, '$1 telefono'],
   // The same thing said two ways («la aplicación» / «la app», «el celular» / «el teléfono»).
   [/\baplicacion(?:es)?\b/g, 'app'],
   [/\bcelular(?:es)?\b/g, 'telefono'],

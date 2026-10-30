@@ -31,28 +31,33 @@ const ctx = (key: DemoUserKey) => ({ session: sessionOf(key), conversationId: nu
 // has: words the answer must carry; go: the «Ir a…» screen (null: no button); label: its button's name, when it says.
 type Expect = { has: RegExp; go: string | null; label?: string };
 const DELETE_RULE = /^Eliminar una pieza: solo el jefe, con el doble factor; no se borra de verdad/;
+// Since the answers (D-89), the curated answer for each role may say it first: who deletes, in that role's words.
+const DELETE_WHO = (who: RegExp) => new RegExp(`${DELETE_RULE.source}|${who.source}`);
 const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
   social: [
-    ['¿cómo armo el feed?', { has: /^Para armar el feed del mes: Redes → Feed, tocas un espacio vacío/, go: '/redes/feed' }],
+    // Redes' curated answer comes with the feed's tutorial (its button replaces «Ir a…»).
+    ['¿cómo armo el feed?', { has: /^Para armar el feed del mes: Redes → Feed, tocas un espacio vacío|^Redes → «Feed», y el mes en las pestañas/, go: null }],
     // A section's button names the section itself («Ir a Fin de mes»), not the pattern of its screen.
     ['¿qué es fin de mes?', { has: /^Fin de mes es una sección de Redes sin cupo/, go: '/redes/fin-de-mes', label: 'Fin de mes' }],
-    ['¿quién borra una pieza?', { has: DELETE_RULE, go: '/redes' }],
+    ['¿quién borra una pieza?', { has: DELETE_WHO(/^Solo el jefe, con el doble factor/), go: null }],
     ['¿dónde están las piezas?', { has: /^Redes: el tablero y una sección por formato/, go: '/redes', label: 'Redes' }],
-    ['¿cómo muevo una pieza de mes?', { has: /^Para mover una pieza de mes: en su tarjeta, tres puntos → «Mover a otro mes»/, go: '/redes' }],
+    // The guide's task (D-89) says it too: «En una tarjeta: tres puntos → «Mover a otro mes»…».
+    ['¿cómo muevo una pieza de mes?', { has: /^Para mover una pieza de mes: en su tarjeta, tres puntos → «Mover a otro mes»|tres puntos → «Mover a otro mes»/, go: '/redes' }],
     ['¿qué es un pilar?', { has: /pilares/, go: '/redes' }],
     ['¿dónde está el feed?', { has: /^El feed del mes: en Redes: los 24 espacios del mes/, go: '/redes/feed' }],
   ],
   boss: [
-    ['¿quién borra una pieza?', { has: DELETE_RULE, go: '/redes' }],
+    ['¿quién borra una pieza?', { has: DELETE_WHO(/^Solo tú eliminas piezas/), go: '/redes' }],
     ['¿dónde están las piezas?', { has: /^Redes: el tablero/, go: '/redes' }],
     ['¿qué es fin de mes?', { has: /^Fin de mes es una sección de Redes sin cupo/, go: '/redes/fin-de-mes' }],
-    ['¿dónde veo el resumen del mes?', { has: /Resumen del mes/, go: '/redes/fin-de-mes' }],
+    // His curated answer (D-89): «Tu Inicio → botón Redes → «Resumen del mes», o Redes → «Fin de mes»…», with Redes' button.
+    ['¿dónde veo el resumen del mes?', { has: /Resumen del mes/, go: '/redes' }],
   ],
   admin: [
     // Administración does not delete: it brings a piece back in Ajustes → Cupo y pilares.
-    ['¿quién borra una pieza?', { has: DELETE_RULE, go: '/ajustes/contenido' }],
-    ['¿dónde cambio el cupo?', { has: /^Cupo y pilares: en Ajustes/, go: '/ajustes/contenido' }],
-    ['¿cuánto es el cupo del mes?', { has: /^El cupo del mes/, go: '/ajustes/contenido' }],
+    ['¿quién borra una pieza?', { has: DELETE_WHO(/^Solo el jefe elimina piezas/), go: '/ajustes/contenido' }],
+    ['¿dónde cambio el cupo?', { has: /^Cupo y pilares: en Ajustes|^Ajustes → «Cupo y pilares»/, go: '/ajustes/contenido' }],
+    ['¿cuánto es el cupo del mes?', { has: /^El cupo del mes|«Cupo del mes»/, go: '/ajustes/contenido' }],
   ],
 };
 

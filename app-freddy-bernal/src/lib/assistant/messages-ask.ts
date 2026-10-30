@@ -42,17 +42,20 @@ const BY_MESSAGE = new RegExp(String.raw`\bavisa(?:le|les)?\b.*\bpor (?:${NOUN}|
 // A notice for a whole role (step 4 of the demo brain): not a message.
 const NOTICE = /\bavisos?\b/;
 
-// «¿Cómo le escribo a Redes?», «¿cómo mando un mensaje?», «¿cómo armo un canal?» (the boss's own steps, «Cambiar quién
-// está en un canal», are a task of his guide),
-// «la red interna».
+// «¿Cómo le escribo a Redes?», «¿cómo mando un mensaje?», «la red interna». Not a channel's management («¿cómo armo /
+// edito / archivo un canal?», «Solo el jefe escribe»), nor a message the platform held («Enviar igual» o «Corregir», «no me
+// deja mandar el mensaje», «Mensaje oculto»): the answers say those, role by role (D-89).
 const HOW_WRITE = new RegExp(
   [
     String.raw`\bcomo (?:se |le |les )?(?:escribo|escribe|escribimos|hablo|hablamos|digo|pregunto)\b(?: (?:algo|un mensaje|una pregunta))? (?:(?:a|al) (?!mano\b)[a-z]+|con (?:alguien|el jefe|redes|despacho|politica|el ivt|ivt|grabacion|el equipo|todo el equipo|mis companeros))\b`,
     String.raw`\bcomo (?:le |les )(?:escribo|hablo|digo|pregunto)\b`,
-    String.raw`\bcomo (?:se |le |les )?(?:mando|manda|envio|envia|escribo|escribe|hago|creo|armo|abro|empiezo|inicio) (?:un |una |el |la )?(?:mensaje|mensajito|chat|conversacion|grupo|canal)\b`,
+    String.raw`\bcomo (?:se |le |les )?(?:mando|manda|envio|envia|escribo|escribe|hago|empiezo|inicio) (?:un |una |el |la )?(?:mensaje|mensajito|chat|conversacion)\b`,
     String.raw`\b(?:red interna|chat del equipo|mensajes del equipo|hablar por mensajes?|hablo por mensajes?|mandar (?:un )?mensaje|mandarle (?:un )?mensaje|escribir(?:le)? (?:un )?mensaje)\b`,
   ].join('|'),
 );
+
+// A channel's management or a message the platform held: not how to write to someone.
+const NOT_HOW_WRITE = /\b(?:canal|canales|grupo|grupos|no me deja|no me dejo|no puedo|no se (?:manda|envia|puede|mando|envio)|oculto|oculta|ocultaron|enviar igual|corregir|solo el jefe|archiv\w*|edit\w*|borr\w*|elimin\w*|bloque\w*)\b/;
 
 export type MessagesAsk = 'read' | 'tell';
 
@@ -70,5 +73,5 @@ export function messagesAsk(text: string): MessagesAsk | null {
 /** «¿Cómo le escribo a alguien?»: how Mensajes is used (the guide card and the button to Mensajes). */
 export function asksHowToWrite(text: string): boolean {
   const q = plain(text);
-  return !!q && HOW_WRITE.test(q) && !messagesAsk(text) && !NOTICE.test(q);
+  return !!q && HOW_WRITE.test(q) && !NOT_HOW_WRITE.test(q) && !messagesAsk(text) && !NOTICE.test(q);
 }

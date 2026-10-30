@@ -33,7 +33,7 @@ const EXPECTED: Record<Role & DemoUserKey, Record<string, Expect>> = {
   admin: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
     '¿Cómo invito a alguien nuevo?': { has: /Equipo.*Invitar|invitaci/ },
-    '¿Quién aprueba una pieza en rojo?': { has: /rojo.*jefe/ },
+    '¿Quién aprueba una pieza en rojo?': { has: /rojo.*jefe|aprueba el jefe/ },
     'Marca mis avisos como leídos': { tool: 'marcar_avisos_leidos', has: /avisos|al día/ },
   },
   boss: {
@@ -41,7 +41,8 @@ const EXPECTED: Record<Role & DemoUserKey, Record<string, Expect>> = {
     // The bulk approval, never «one by one».
     '¿Cómo apruebo todas las verdes de una vez?': { has: /«Te toca aprobar».*«Aprobar todas las verdes \(n\)»/, not: /una por una/ },
     // R4: the month of Redes, with its summary (the accountability, on top of Fin de mes) and the button to it.
-    '¿Cómo va el mes de Redes?': { has: /^El Resumen del mes es la rendición de cuentas de Redes/, go: '/redes/fin-de-mes' },
+    // Since the answers (D-89), his curated answer: the board of Redes, what is missing in each format.
+    '¿Cómo va el mes de Redes?': { has: /^El Resumen del mes es la rendición de cuentas de Redes|el tablero con lo que falta en cada formato/ },
     '¿Me muestras cómo se usa esta pantalla?': SHOW_SCREEN,
   },
   dispatch: {
@@ -53,7 +54,8 @@ const EXPECTED: Record<Role & DemoUserKey, Record<string, Expect>> = {
   politics: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
     '¿Qué puedo hacer en la plataforma?': { has: /registro de cada municipio/ },
-    '¿Quién decide si se hace un evento?': { has: /Jefe: tiene todo/ },
+    // The curated answer to política (D-89): «El jefe: califica la importancia de 1 a 10…».
+    '¿Quién decide si se hace un evento?': { has: /^El jefe: califica|Jefe: tiene todo/ },
     '¿Me muestras cómo se usa esta pantalla?': SHOW_SCREEN,
   },
   ivt: {
@@ -65,8 +67,9 @@ const EXPECTED: Record<Role & DemoUserKey, Record<string, Expect>> = {
   social: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
     // R4: the feed and the month's quota, each with its card and its screen.
-    '¿Cómo armo el feed?': { has: /^Para armar el feed del mes: Redes → Feed/, go: '/redes/feed' },
-    '¿Cuánto me falta del cupo?': { has: /^El cupo del mes: en la barra de secciones de Redes/, go: '/redes' },
+    // Since the answers (D-89), Redes' curated answers (with the feed's tutorial).
+    '¿Cómo armo el feed?': { has: /^Para armar el feed del mes: Redes → Feed|^Redes → «Feed»/ },
+    '¿Cuánto me falta del cupo?': { has: /^El cupo del mes: en la barra de secciones de Redes|de su cupo/, go: '/redes' },
     '¿Me muestras cómo se usa esta pantalla?': SHOW_SCREEN,
   },
   camera: {
