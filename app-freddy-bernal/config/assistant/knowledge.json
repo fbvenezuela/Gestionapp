@@ -217,7 +217,7 @@
     "admin"
    ],
    "title": "Qué hace el director de política en la plataforma",
-   "body": "Para qué: cargar los eventos y avances comunitarios de cada municipio para que el jefe y Despacho los pongan en la agenda. No pone fecha ni hora: eso lo hacen el jefe o Despacho. No ve la agenda con fecha y hora, ni piezas, copies, tweets o publicaciones. Entra con el código del correo y el doble factor. Inicio: Municipios. Cuando el jefe le pone fecha a su reporte, ve «Ya tiene fecha», nunca la fecha.",
+   "body": "Para qué: llevar el registro de cada municipio en fichas comunitarias (actividades, solicitudes, incidencias y avances) y decidir, con «¿Va a la agenda del jefe?», qué le manda al jefe y al despacho: prendido, «Guardar y avisar al jefe» y les llega «Por ponerle fecha»; apagado, «Guardar» y queda en el registro del municipio (una incidencia, por ejemplo). No pone fecha ni hora: eso lo hacen el jefe o Despacho. No ve la agenda con fecha y hora, ni piezas, copies, tweets o publicaciones. Entra con el código del correo y el doble factor. Inicio: Municipios. Cuando el jefe le pone fecha a su reporte, ve «Ya tiene fecha», nunca la fecha.",
    "tags": [
     "politica",
     "director de politica",
@@ -652,7 +652,7 @@
     "boss"
    ],
    "title": "Pedir una frase al jefe",
-   "body": "Si a una pieza le falta una frase del jefe, Redes o Administración la piden desde la pieza con «Pedir frase al jefe»: se anota el segundo del video y la frase que hace falta. El jefe graba el audio y lo sube; mientras tanto, en Hoy de Redes sale «Esperando frase del jefe».",
+   "body": "Si a una pieza le falta una frase del jefe, Administración la pide en la revisión de la pieza (Por aprobar → la pieza): «Pedir frase al jefe», escribe «Qué frase tiene que mandar el jefe por audio» (en un video, pausa donde va para anotar el segundo) y toca «Anotar pedido de frase». A Redes le llega el aviso y le pide la frase al jefe. Cuando llega el audio, se sube en la pieza en grande, en «Frases pedidas al jefe», con «Subir el audio del jefe»; mientras tanto, en Hoy de Redes sale «Esperando frase del jefe».",
    "tags": [
     "frase",
     "jefe",

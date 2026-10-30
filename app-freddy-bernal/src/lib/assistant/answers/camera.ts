@@ -37,7 +37,7 @@ export const CAMERA: Answer[] = [
   {
     id: 'gra-storyboard-ver',
     roles: ['camera'],
-    q: ['donde veo el storyboard que hizo redes para saber que tomas hacer', 'donde esta el storyboard', 'como veo el plan de redes', 'que tomas tengo que hacer', 'el storyboard de redes donde lo leo', 'donde leo el storyboard antes de salir', 'donde esta el plan de redes para grabar', 'que tengo que grabar segun redes', 'que tomas tengo que grabar', 'donde dice que grabar', 'que tomas necesita redes', 'como se que grabar para redes', 'lo que planeo redes', 'el plan que hizo redes'],
+    q: ['donde veo el storyboard que hizo redes para saber que tomas hacer', 'donde esta el storyboard', 'como veo el plan de redes', 'que tomas tengo que hacer', 'el storyboard de redes donde lo leo', 'donde leo el storyboard antes de salir', 'donde esta el plan de redes para grabar', 'que tengo que grabar segun redes', 'que tomas tengo que grabar', 'donde dice que grabar', 'que tomas necesita redes', 'como se que grabar para redes', 'lo que planeo redes', 'el plan que hizo redes', 'que tengo que grabar en el acto', 'como se que grabar en el evento', 'donde dice lo que hay que grabar'],
     a: 'En el evento, pestaña «Storyboard»: el plan de Redes, solo para leer. Cada bloque dice el plano, el ángulo, lo que dice el jefe, las tomas de apoyo y el dato.',
     go: '/agenda',
     tutorial: 'evento-grabacion',
@@ -427,7 +427,7 @@ export const CAMERA: Answer[] = [
   {
     id: 'gra-gps',
     roles: ['camera'],
-    q: ['¿La foto que subo lleva la ubicación del GPS?', 'las fotos llevan la ubicacion', 'se ve donde tome la foto', 'el video lleva gps', 'se ve donde grabe', 'el video lleva la ubicacion'],
+    q: ['¿La foto que subo lleva la ubicación del GPS?', 'las fotos llevan la ubicacion', 'se ve donde tome la foto', 'el video lleva gps', 'se ve donde grabe', 'el video lleva la ubicacion', 'las fotos guardan la ubicacion', 'la foto lleva gps', 'el gps queda en la foto', 'se sabe donde tome la foto'],
     a: 'Las fotos no: se limpian en el teléfono antes de subir (sin ubicación, cámara ni fecha). Los videos no se tocan: deja apagada la ubicación de la cámara.',
   },
   {
@@ -731,7 +731,7 @@ export const CAMERA: Answer[] = [
   {
     id: 'gra-cancelado',
     roles: ['camera'],
-    q: ['¿Por qué un evento dice «Cancelado»?', 'mi evento salio tachado', 'cancelaron mi evento', 'por que no se borra el evento cancelado', 'si esta cancelado voy a grabar', 'tengo que grabar un evento cancelado', 'cancelaron el evento voy igual', 'si el evento esta cancelado igual voy a grabar', 'cancelaron el evento que me tocaba grabar', 'me cancelaron un evento', 'mi evento lo cancelaron', 'el evento salio cancelado', 'me sale cancelado el evento'],
+    q: ['¿Por qué un evento dice «Cancelado»?', 'mi evento salio tachado', 'cancelaron mi evento', 'por que no se borra el evento cancelado', 'si esta cancelado voy a grabar', 'tengo que grabar un evento cancelado', 'cancelaron el evento voy igual', 'si el evento esta cancelado igual voy a grabar', 'cancelaron el evento que me tocaba grabar', 'me cancelaron un evento', 'mi evento lo cancelaron', 'el evento salio cancelado', 'me sale cancelado el evento', 'el evento salio cancelado lo grabo igual', 'esta cancelado pero ya estoy alla grabo', 'lo cancelaron igual lo grabo', 'me sale cancelado voy o no voy'],
     a: 'Lo cancelaron el jefe o el despacho: ya no se graba (si tienes dudas, pregúntale al despacho). Queda al final de la lista, tachado, y no se borra; adentro dice el motivo.',
     go: '/agenda',
   },
@@ -1071,5 +1071,35 @@ export const CAMERA: Answer[] = [
     roles: ['camera'],
     q: ['le puedo pedir a 360 que marque realizado', '360 sube el material por mi', 'puedes dejar mi nota tu', 'marca el evento realizado por mi', 'sube los videos tu'],
     a: 'No: yo no hago cosas por ti en la plataforma. «Marcar realizado», subir el material y dejar tu entrega los haces tú en el evento; te digo cómo, paso a paso.',
+  },
+  {
+    id: 'gra-que-llevar',
+    roles: ['camera'],
+    q: [
+      '¿Qué llevo a un acto?',
+      'que tengo que llevar a un evento',
+      'que equipo llevo para grabar',
+      'que llevo pa grabar manana',
+      'hay una lista de equipos',
+      'tengo que llevar el dron',
+      'la plataforma dice que equipo llevar',
+      'que necesito para grabar ese evento',
+    ],
+    a: 'La plataforma no tiene una lista de equipos: eso lo decides tú, o lo cuadras con el despacho. Lo que sí te dice es qué hay que grabar: la pestaña «Storyboard» trae los planos, los ángulos (ahí dice si va dron) y las tomas de apoyo, y la «Ficha», de qué es el acto y su «Protocolo». Al subir, el material aéreo va en la casilla «Dron».',
+    go: '/agenda',
+    tutorial: 'evento-grabacion',
+  },
+  {
+    id: 'gra-seguimiento-historia',
+    roles: ['camera'],
+    q: [
+      '¿Qué es el seguimiento de la historia?',
+      'que pongo en seguimiento',
+      'seguimiento que es',
+      'que significa seguimiento',
+      'para que es el campo seguimiento',
+    ],
+    a: '«Seguimiento» es un campo de las historias de Redes: lo que se hace después de publicarla (responder, repostear, medir). Tú no ves las piezas; lo tuyo es grabar, subir el material y dejar tu entrega en la pestaña «Material».',
+    go: '/agenda',
   },
 ];

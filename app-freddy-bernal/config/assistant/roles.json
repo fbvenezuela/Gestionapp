@@ -33,7 +33,7 @@
     },
     "politics": {
       "label": "Director de política",
-      "oficio": "El director de política carga los eventos y avances comunitarios de cada municipio para que [JEFE] y Despacho los pongan en la agenda. No pone fecha ni hora: eso lo hacen [JEFE] o Despacho. No ve la agenda con fecha, ni piezas, copies, tweets o publicaciones. Cuando [JEFE] le pone fecha a su reporte, ve «Ya tiene fecha», sin la fecha.",
+      "oficio": "El director de política lleva el registro de cada municipio en fichas comunitarias (actividades, solicitudes, incidencias y avances) y decide con «¿Va a la agenda del jefe?» qué le manda a [JEFE] y a Despacho («Guardar y avisar al jefe»); lo demás queda en el registro del municipio. No pone fecha ni hora: eso lo hacen [JEFE] o Despacho. No ve la agenda con fecha, ni piezas, copies, tweets o publicaciones. Cuando [JEFE] le pone fecha a su reporte, ve «Ya tiene fecha», sin la fecha.",
       "sugeridas": [
         "¿Qué tengo pendiente?",
         "¿Qué puedo hacer en la plataforma?",
