@@ -57,8 +57,11 @@ function CopyBox({ g, label, count = (_g, s) => plainLength(s) }: { g: Group; la
   );
 }
 
+// At /piezas/[id] the three lengths are edited below, in «Copies» (formula, voice and closing): one box per copy.
+export const COPIES_BELOW = 'El copy se escribe abajo, en «Copies»: el largo, el medio y el corto.';
+
 export function CaptionField({ label = CAPTION_LABEL, withCta = false }: { label?: string; withCta?: boolean }) {
-  const { saver } = useCard();
+  const { saver, ctx } = useCard();
   const more = useId();
   // X counts links and emojis its own way (twitter-text): loaded the first time «Threads y X» opens.
   const [count, setCount] = useState<Counter | undefined>(undefined);
@@ -68,6 +71,15 @@ export function CaptionField({ label = CAPTION_LABEL, withCta = false }: { label
   };
   const { cta, hashtags } = saver.details;
   const canBring = withCta && (cta.trim() || hashtags.trim()) && withCtaAndHashtags(saver.copies.long, cta, hashtags) !== saver.copies.long.trimEnd();
+  if (ctx.page) {
+    return (
+      <p className="text-sm text-text-2">
+        <a href="#copies" className="inline-flex min-h-11 items-center font-semibold text-accent-ink">
+          {COPIES_BELOW}
+        </a>
+      </p>
+    );
+  }
   return (
     <LockEdit part="copies" label={label} view={<LockedText text={saver.copies.long} />}>
       <div className="flex min-w-0 flex-col gap-2">

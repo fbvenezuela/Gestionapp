@@ -5,7 +5,7 @@ import { PageHeader, EmptyState } from '@/components/ui/page';
 import { Tip } from '@/components/ui/tip';
 import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
-import { PIECE_KIND } from '@/lib/data/labels';
+import { FORMAT } from '@/lib/domain/redes';
 import { canApprove as canApproveNow, getDeadlines, piecesInReview } from '@/lib/data/review';
 import { LEVELS, LEVEL_ORDER, reviewClock } from '@/lib/domain/review';
 import { cn } from '@/lib/cn';
@@ -70,12 +70,16 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
                       const clock = reviewClock(p.review_level, p.sent_to_review_at, data.deadlines);
                       return (
                         <li key={p.id}>
-                          <Link href={`/aprobar/${p.id}`} className="flex min-h-16 items-center gap-3 px-4 py-3 hover:bg-surface-2">
-                            <span className="min-w-0 flex-1">
+                          <Link href={`/aprobar/${p.id}`} className="flex min-h-16 flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3 hover:bg-surface-2">
+                            <span className="min-w-0 flex-1 basis-48">
                               <span className="block font-semibold">{p.title}</span>
-                              <span className="block truncate text-sm text-text-2">{PIECE_KIND[p.kind]} · v{p.current_version}{p.event_title ? ` · ${p.event_title}` : ''}</span>
+                              <span className="block truncate text-sm text-text-2">v{p.current_version}{p.event_title ? ` · ${p.event_title}` : ''}</span>
                             </span>
-                            {clock.text ? <Chip tone={clock.overdue ? 'danger' : canApprove ? 'warn' : 'neutral'}>{clock.text}</Chip> : null}
+                            <span className="flex flex-wrap items-center gap-1.5">
+                              <Chip tone="accent">{FORMAT[p.format]?.label ?? 'Pieza'}</Chip>
+                              {p.notices ? <Chip tone="warn">Tiene avisos</Chip> : null}
+                              {clock.text ? <Chip tone={clock.overdue ? 'danger' : canApprove ? 'warn' : 'neutral'}>{clock.text}</Chip> : null}
+                            </span>
                           </Link>
                         </li>
                       );

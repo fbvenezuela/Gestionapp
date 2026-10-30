@@ -205,9 +205,11 @@ function CardBody({ card, ctx, first, target, focusTitle, canUp, canDown, announ
                   <MoreHorizontal className="h-5 w-5" aria-hidden />
                 </summary>
                 <div className={cn(menuPanelClass, 'absolute right-0 z-30 mt-2 w-64 max-w-[calc(100vw-2rem)]')}>
-                  <Link href={`/piezas/${card.id}`} className={item}>
-                    <ExternalLink className="h-4 w-4" aria-hidden /> Abrir la pieza
-                  </Link>
+                  {ctx.page ? null : (
+                    <Link href={`/piezas/${card.id}`} className={item}>
+                      <ExternalLink className="h-4 w-4" aria-hidden /> Abrir la pieza
+                    </Link>
+                  )}
                   <button
                     type="button"
                     className={item}

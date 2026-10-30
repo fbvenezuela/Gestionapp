@@ -10,7 +10,8 @@ import { PageHeader } from '@/components/ui/page';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
-import { BOSS_DECISION, EVENT_KIND, EVENT_ORIGIN, WORK_STATUS, PIECE_STATUS, PIECE_KIND } from '@/lib/data/labels';
+import { BOSS_DECISION, EVENT_KIND, EVENT_ORIGIN, WORK_STATUS, PIECE_STATUS } from '@/lib/data/labels';
+import { FORMAT, isFormat } from '@/lib/domain/redes';
 import { fmtDateTime, fmtTime, fmtDay, dt } from '@/lib/time';
 import { cn } from '@/lib/cn';
 import { BossPanel, BriefEditor, CameraAssign, EventEditor, MarkDone, ScheduleEditor, WorkStatusSelect } from './event-client';
@@ -52,8 +53,8 @@ export default async function EventPage({ params, searchParams }: { params: Prom
       [id],
     );
     const pieces = has('admin', 'social', 'boss')
-      ? await sql.query<{ id: string; title: string; kind: string; status: string; current_version: number }>(
-          `select id, title, kind, status, current_version from public.pieces where event_id = $1 and deleted_at is null order by created_at`,
+      ? await sql.query<{ id: string; title: string; format: string; status: string; current_version: number }>(
+          `select id, title, format, status, current_version from public.pieces where event_id = $1 and deleted_at is null order by created_at`,
           [id],
         )
       : [];
@@ -287,18 +288,22 @@ export default async function EventPage({ params, searchParams }: { params: Prom
       ) : null}
 
       {tab === 'piezas' ? (
+        // R4 (D-60, D-61): each piece with its format; «Nueva pieza» asks the «Formato» and the «Mes» (never this date).
         <Card>
           <CardHeader title="Piezas de este evento" action={has('admin', 'social', 'boss') ? <LinkButton size="sm" href={`/piezas/nueva?evento=${ev.id}`}>Nueva pieza</LinkButton> : undefined} />
           {data.pieces.length ? (
             <ul className="divide-y divide-border">
               {data.pieces.map((p) => (
                 <li key={p.id}>
-                  <Link href={`/piezas/${p.id}`} className="flex min-h-14 items-center gap-3 px-4 py-3 hover:bg-surface-2">
-                    <span className="min-w-0 flex-1">
+                  <Link href={`/piezas/${p.id}`} className="flex min-h-14 flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3 hover:bg-surface-2">
+                    <span className="min-w-0 flex-1 basis-40">
                       <span className="block font-semibold">{p.title}</span>
-                      <span className="block text-sm text-text-2">{PIECE_KIND[p.kind]} · versión {p.current_version || '—'}</span>
+                      <span className="block text-sm text-text-2">Versión {p.current_version || '—'}</span>
                     </span>
-                    <Chip tone={PIECE_STATUS[p.status]?.tone}>{PIECE_STATUS[p.status]?.label}</Chip>
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      <Chip tone="accent">{isFormat(p.format) ? FORMAT[p.format].label : 'Pieza'}</Chip>
+                      <Chip tone={PIECE_STATUS[p.status]?.tone}>{PIECE_STATUS[p.status]?.label}</Chip>
+                    </span>
                   </Link>
                 </li>
               ))}

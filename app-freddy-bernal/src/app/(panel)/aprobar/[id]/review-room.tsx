@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle2, Mic, MessageSquare, RotateCcw } from 'lucide-react';
 import { addComment, requestVoiceLine, reviewPiece, setReviewLevel } from '@/lib/actions/pieces';
@@ -16,6 +16,8 @@ import { QUICK_REASONS, hasReason, toggleReason } from '@/lib/domain/review-reas
 
 // Quick check before approving, on the phone (from the diagnosis' approval flow).
 const CHECKS = ['Cada cifra tiene su fuente', 'No dice fecha ni hora del evento', 'Se ve y se oye bien (subtítulos, sonido)', 'Los tres copies están revisados'];
+// With open compliance notices (D-66), one more the screen asks for: the boss cannot approve without having read them.
+export const NOTICES_READ = 'Leí los avisos de cumplimiento';
 
 export function LevelPicker({ pieceId, level, canLower }: { pieceId: string; level: Level; canLower: boolean }) {
   const { run, pending } = useAction();
@@ -28,8 +30,11 @@ export function LevelPicker({ pieceId, level, canLower }: { pieceId: string; lev
   );
 }
 
-export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, canAskVoice, note, media }: {
+// `back`: where a decision lands (the card «Revisar» came from, or «Por aprobar»: afterReview in format-view.tsx).
+// `details`: the format's fields, read-only, under the file; `band`: the open notices, above the checklist.
+export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, canAskVoice, note, media, back = '/aprobar', details, band, noticeCount = 0 }: {
   pieceId: string; revision: number; canApprove: boolean; canRequestChanges: boolean; canAskVoice: boolean; note: string; media: { id: string; mime: string; drive?: boolean } | null;
+  back?: string; details?: ReactNode; band?: ReactNode; noticeCount?: number;
 }) {
   const router = useRouter();
   const { run, pending } = useAction();
@@ -44,7 +49,8 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
   const [mode, setMode] = useState<'comment' | 'voice'>('comment');
   const [atSecond, setAtSecond] = useState<number | null>(null);
   const [checked, setChecked] = useState<boolean[]>(CHECKS.map(() => false));
-  const allChecked = checked.every(Boolean);
+  const [noticesRead, setNoticesRead] = useState(false);
+  const allChecked = checked.every(Boolean) && (noticeCount === 0 || noticesRead);
   const isVideo = media && !media.mime.startsWith('image/');
   const src = media ? `/api/media/${media.id}?ver=1` : '';
   const { message: failure, attempt, watch, onError, retry } = useMediaFailure(src, media?.mime ?? '', !!media?.drive);
@@ -82,6 +88,8 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
         ) : (
           <p className="rounded-[var(--radius-control)] bg-surface-2 p-6 text-center text-text-2">Esta pieza no tiene archivo todavía.</p>
         )}
+
+        {details}
 
         {canAskVoice ? (
           <div className="flex gap-1" role="tablist">
@@ -135,6 +143,7 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
         ) : canApprove || canRequestChanges ? (
           <div className="flex flex-col gap-3">
             {note ? <p className="text-sm text-text-2">{note}</p> : null}
+            {band}
             {canApprove ? (
               <fieldset className="flex flex-col gap-1 rounded-[var(--radius-control)] border border-border p-3" data-tour="checklist">
                 <legend className="px-1 text-sm font-semibold">Antes de aprobar</legend>
@@ -144,11 +153,17 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
                     {c}
                   </label>
                 ))}
+                {noticeCount > 0 ? (
+                  <label className="flex min-h-10 items-center gap-3 text-[15px] font-semibold text-warn">
+                    <input type="checkbox" className="h-5 w-5 accent-accent" checked={noticesRead} onChange={(e) => setNoticesRead(e.target.checked)} />
+                    {NOTICES_READ}
+                  </label>
+                ) : null}
               </fieldset>
             ) : null}
             <div className="grid gap-2 sm:grid-cols-3">
               {canApprove ? (
-                <Button type="button" size="lg" data-tour="approve" disabled={pending || !allChecked} onClick={() => run(() => reviewPiece({ pieceId, decision: 'approved', comment, revision }), { success: 'Aprobada.', refresh: false, onOk: (r) => r.ok && router.push('/aprobar') })}>
+                <Button type="button" size="lg" data-tour="approve" disabled={pending || !allChecked} onClick={() => run(() => reviewPiece({ pieceId, decision: 'approved', comment, revision }), { success: 'Aprobada.', refresh: false, onOk: (r) => r.ok && router.push(back) })}>
                   <CheckCircle2 className="h-5 w-5" aria-hidden /> {allChecked ? 'Aprobar' : 'Marca la lista para aprobar'}
                 </Button>
               ) : null}
@@ -166,7 +181,7 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
                   }
                   const text = atSecond !== null ? `[${fmtSecond(atSecond)}] ${comment}` : comment;
                   const r = await run(() => reviewPiece({ pieceId, decision: 'changes_requested', comment: text, revision }), { success: 'Se pidieron los cambios.', refresh: false });
-                  if (r?.ok) router.push('/aprobar');
+                  if (r?.ok) router.push(back);
                 }}
               >
                 <RotateCcw className="h-5 w-5" aria-hidden /> Pedir cambios
@@ -179,6 +194,7 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
         ) : (
           <div className="flex flex-col gap-3">
             {note ? <p className="text-sm text-text-2">{note}</p> : null}
+            {band}
             <Button type="button" variant="secondary" disabled={pending || !comment.trim()} onClick={() => run(() => addComment({ pieceId, body: comment, atSecond }), { success: 'Comentario guardado.', onOk: () => setComment('') })}>
               Guardar comentario
             </Button>
