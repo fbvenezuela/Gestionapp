@@ -4,18 +4,26 @@ import { getPiece, fmtSecond } from '@/lib/data/pieces';
 import { PageHeader } from '@/components/ui/page';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
-import { LENGTH_GROUP, NETWORK_LABEL, PIECE_KIND, PIECE_STATUS } from '@/lib/data/labels';
+import { LENGTH_GROUP, NETWORK_LABEL, PIECE_STATUS } from '@/lib/data/labels';
 import { fmtDateTime } from '@/lib/time';
 import { canApprove as canApproveNow, getDeadlines } from '@/lib/data/review';
 import { LEVELS, reviewClock } from '@/lib/domain/review';
 import { ReviewRoom, LevelPicker } from './review-room';
 import { copyPreview, type SpecRow } from '@/lib/domain/copy-preview';
+import { FORMAT } from '@/lib/domain/redes';
+import { FormatView, NoticesBand, afterReview, backLabel } from './format-view';
 
 export const metadata = { title: 'Revisión' };
 
-export default async function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
+// The review room (R4, D-63, D-66, F5): the file, the format's fields read-only (a story's on-screen text and sticker as
+// «Lo que sale en la app»), the open compliance notices above «Antes de aprobar» with «Leí los avisos de cumplimiento»,
+// the copies as they will go out. «Revisar» from a card comes with ?volver=<the card>: a decision goes back there, only
+// when it is a Redes address (safeReturn); otherwise to «Por aprobar».
+export default async function ReviewPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ volver?: string }> }) {
   const s = await requireRole('boss', 'admin');
   const { id } = await params;
+  const { volver } = await searchParams;
+  const back = afterReview(volver);
   const { p, deadlines, specs, approver } = await db(s, async (sql) => ({
     p: await getPiece(sql, id),
     approver: await canApproveNow(sql),
@@ -23,6 +31,8 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
     specs: await sql.query<SpecRow>(`select network, label, copy_max_chars, length_group from public.network_specs order by network`),
   }));
   if (!p) notFound();
+  const card = p.card;
+  const f = FORMAT[p.format];
   const preview = copyPreview(p.copies, specs);
   const current = p.versions[0];
   const isBoss = s.roles.includes('boss');
@@ -33,9 +43,15 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   const canLevel = inReview && (isBoss || isAdmin);
   return (
     <>
-      <PageHeader back={{ href: '/aprobar', label: 'Por aprobar' }} title={p.title} subtitle={[PIECE_KIND[p.kind], p.event_title, `versión ${p.current_version}`].filter(Boolean).join(' · ')} />
+      <PageHeader
+        back={{ href: back, label: backLabel(back) }}
+        title={p.title}
+        subtitle={[f.label, p.event_title, `versión ${p.current_version}`].filter(Boolean).join(' · ')}
+      />
       <div className="mb-4 flex flex-wrap items-center gap-2">
+        <Chip tone="accent">{f.label}</Chip>
         <Chip tone={PIECE_STATUS[p.status]?.tone}>{PIECE_STATUS[p.status]?.label}</Chip>
+        {card?.notices.length ? <Chip tone="warn">Tiene avisos</Chip> : null}
         <Chip tone={LEVELS[p.review_level].tone}>{LEVELS[p.review_level].label}: aprueba {LEVELS[p.review_level].who}</Chip>
         {clock?.text ? <Chip tone={clock.overdue ? 'danger' : 'neutral'}>{clock.text}</Chip> : null}
         {canLevel ? <LevelPicker pieceId={p.id} level={p.review_level} canLower /> : null}
@@ -51,7 +67,12 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
             canAskVoice={isAdmin}
             note={inReview && !approver ? 'La aprueba el jefe. Tú puedes cambiar el nivel o comentar.' : ''}
             media={current?.media_asset_id ? { id: current.media_asset_id, mime: current.mime ?? '', drive: current.bucket === 'drive' } : null}
+            back={back}
+            details={card ? <FormatView card={card} /> : null}
+            band={card ? <NoticesBand notices={card.notices} /> : null}
+            noticeCount={card?.notices.length ?? 0}
           />
+          {p.format === 'story' ? null : (
           <Card>
             <CardHeader title="Copies: cómo saldrá" subtitle="Cada copy con las redes que lo usan y el máximo de letras de cada una." />
             <CardBody className="grid gap-5 xl:grid-cols-3">
@@ -84,6 +105,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
               })}
             </CardBody>
           </Card>
+          )}
         </div>
         <Card>
           <CardHeader title="Comentarios" />

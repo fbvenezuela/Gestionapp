@@ -1,6 +1,7 @@
 // The cards of Redes (R4, WP-C1, D-61 to D-70): what they say and decide, pure (no React, no server), so the card, the
 // section and the tests read the same words. The database decides who may do what; this only paints it first.
 
+import type { ReactNode } from 'react';
 import {
   FEED_FORMATS, FORMAT, NOT_SCHEDULED, OUTGOING, SLIDE_ROLES, suggestedRole, withMonth,
   type Format, type Month, type OutgoingPart, type SlideRole,
@@ -25,6 +26,9 @@ export type SectionCtx = {
   demo: boolean;
   userId: string;
   manualOrder: boolean; // «Subir» / «Bajar» only make sense in the order «A mano»
+  // The card in big at /piezas/[id] (WP-C2): the three copies are written there in «Copies» (#copies), so the card's
+  // caption gives way to a pointer; and «Enviar a aprobación» is the page's own, with its «Nivel de aprobación».
+  page?: { send: ReactNode };
 };
 
 /** The number chip of the header (D-69): «Reel #7» / «Reel · Sin programar» for what goes in the feed; the format's

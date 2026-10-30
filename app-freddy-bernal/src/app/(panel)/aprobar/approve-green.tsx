@@ -23,6 +23,8 @@ export function ApproveGreen({ pieces }: { pieces: { id: string; revision: numbe
             if (!r.ok) return;
             toast.success(r.data!.n === 1 ? 'Aprobada la verde.' : `Aprobadas ${r.data!.n} verdes.`);
             if (r.data!.skipped) toast.info(`${r.data!.skipped} cambiaron mientras tanto: ábrelas para revisarlas.`);
+            // Greens with open compliance notices are never approved this way (D-66).
+            if (r.data!.noticeText) toast.info(`${r.data!.noticeText}.`);
           },
         })
       }

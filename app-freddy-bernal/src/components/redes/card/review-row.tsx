@@ -39,14 +39,17 @@ export function ReviewRow({ first = false }: { first?: boolean }) {
           <>
             {card.changes ? <p className="text-sm font-semibold text-warn">Pidieron cambios: revísalos y vuelve a enviarla.</p> : null}
             <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                disabled={pending || card.blockers.length > 0}
-                aria-describedby={card.blockers.length ? blockersId : undefined}
-                onClick={() => run(() => sendToReview({ pieceId: card.id }), { success: 'Enviada al jefe para aprobar.' })}
-              >
-                <Send className="h-4 w-4" aria-hidden /> Enviar a aprobación
-              </Button>
+              {/* At /piezas/[id] the page's own «Enviar a aprobación» (with «Nivel de aprobación») goes here. */}
+              {ctx.page ? ctx.page.send : (
+                <Button
+                  type="button"
+                  disabled={pending || card.blockers.length > 0}
+                  aria-describedby={card.blockers.length ? blockersId : undefined}
+                  onClick={() => run(() => sendToReview({ pieceId: card.id }), { success: 'Enviada al jefe para aprobar.' })}
+                >
+                  <Send className="h-4 w-4" aria-hidden /> Enviar a aprobación
+                </Button>
+              )}
               {card.format !== 'story' ? (
                 <LinkButton href={`/piezas/${card.id}#copies`} variant="secondary">
                   <Sparkles className="h-4 w-4" aria-hidden /> Generar copies
