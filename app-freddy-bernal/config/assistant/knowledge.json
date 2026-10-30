@@ -65,7 +65,7 @@
    "key": "roles",
    "roles": null,
    "title": "Quién hace qué (resumen de roles)",
-   "body": "Seis roles. Jefe: tiene todo, hasta lo de Redes; hace su propia agenda con Despacho (crea eventos y visitas de obra, les pone fecha y hora, los mueve y los cancela), decide los eventos, se prepara para cada acto y aprueba todo lo que sale (piezas verdes, amarillas y rojas, y los tweets). Despacho: la agenda junto con el jefe y las fichas técnicas; crea eventos, pone fecha y hora (también a lo que llega a «Por ponerle fecha»), mueve, cancela y asigna quién graba. Director de política: carga los eventos y avances comunitarios por municipio. Director del IVT: carga la ficha de cada obra antes de la visita del jefe y ve la fecha de esas visitas. Grabación: graba sus eventos y sube el material crudo, el storyboard con el que grabó y una nota para el editor. Redes: arma el mes de contenido por formato (reels, posts, carruseles, historias, YouTube y el cierre de cada mes) y su feed, storyboard, piezas, copies, tweets, publicar y resultados; marca el diseño, la receptividad y los avisos de cumplimiento. Administración es el rol técnico: equipo, permisos y ajustes; lee la agenda pero no crea eventos ni pone fecha, puede hacer casi todo lo de Redes, nunca aprueba y no elimina piezas (solo el jefe las elimina; Administración las recupera).",
+   "body": "Seis roles. Jefe: tiene todo, hasta lo de Redes; hace su propia agenda con Despacho (crea eventos y visitas de obra, les pone fecha y hora, los mueve y los cancela), decide los eventos, se prepara para cada acto y aprueba todo lo que sale (piezas verdes, amarillas y rojas, y los tweets). Despacho: la agenda junto con el jefe y las fichas técnicas; crea eventos, pone fecha y hora (también a lo que llega a «Por ponerle fecha»), mueve, cancela y asigna quién graba. Director de política: carga los eventos y avances comunitarios por municipio. Director del IVT: carga la ficha de cada obra antes de la visita del jefe y ve la fecha de esas visitas. Grabación: graba sus eventos y sube el material ya limpio y en el archivo original, el storyboard con el que grabó y una nota para el editor. Redes: arma el mes de contenido por formato (reels, posts, carruseles, historias, YouTube y el cierre de cada mes) y su feed, storyboard, piezas, copies, tweets, publicar y resultados; marca el diseño, la receptividad y los avisos de cumplimiento. Administración es el rol técnico: equipo, permisos y ajustes; lee la agenda pero no crea eventos ni pone fecha, puede hacer casi todo lo de Redes, nunca aprueba y no elimina piezas (solo el jefe las elimina; Administración las recupera).",
    "tags": [
     "roles",
     "permisos",
@@ -89,7 +89,7 @@
    "key": "permisos",
    "roles": null,
    "title": "Tabla de permisos",
-   "body": "Ver la agenda con fecha y hora: el jefe, Despacho y Administración; Grabación solo sus eventos; el director del IVT solo las visitas a sus obras. Crear eventos y visitas de obra, ponerles fecha y hora, moverlos y cancelarlos: el jefe y Despacho (Administración solo lee la agenda; el IVT y política nunca ponen fecha). Fichas de obra: el director del IVT, el jefe, Despacho y Administración. Fichas comunitarias: el director de política, el jefe y Despacho (los contactos de quien reporta, solo ellos). Aceptar, rechazar y calificar eventos: solo el jefe. Asignar quién graba: el jefe, Despacho, Redes y Administración. Armar el storyboard: Redes, el jefe y Administración (los demás lo leen); Grabación sube el storyboard con el que grabó y deja una nota para el editor. Subir material crudo: Redes, el jefe, Administración y Grabación en sus eventos. Crear piezas, copies y mandar a aprobar: Redes, el jefe y Administración. Aprobar piezas (verdes, amarillas y rojas) y tweets, y pedir cambios: solo el jefe. Eliminar piezas: solo el jefe, con el doble factor (nada se borra de verdad; Administración las recupera en Ajustes → Cupo y pilares). Marcar el diseño, la receptividad y los avisos de cumplimiento: Redes y el jefe. Meses de contenido y feed: Redes, el jefe y Administración (borrar un mes, solo Redes y el jefe). Cupo y pilares: Administración, en Ajustes. Publicar a mano y cargar métricas: Redes, el jefe y Administración. Ver resultados: jefe, Redes y Administración. Biblioteca: Despacho, Redes, el jefe y Administración. Invitar personas, roles y ajustes: Administración, que nunca se da roles a sí misma ni puede ser también el jefe o Despacho.",
+   "body": "Ver la agenda con fecha y hora: el jefe, Despacho y Administración; Grabación solo sus eventos; el director del IVT solo las visitas a sus obras. Crear eventos y visitas de obra, ponerles fecha y hora, moverlos y cancelarlos: el jefe y Despacho (Administración solo lee la agenda; el IVT y política nunca ponen fecha). Fichas de obra: el director del IVT, el jefe, Despacho y Administración. Fichas comunitarias: el director de política, el jefe y Despacho (los contactos de quien reporta, solo ellos). Aceptar, rechazar y calificar eventos: solo el jefe. Asignar quién graba: el jefe, Despacho, Redes y Administración. Armar el storyboard: Redes, el jefe y Administración (los demás lo leen); Grabación sube el storyboard con el que grabó y deja una nota para el editor. Subir el material de un evento: Redes, el jefe, Administración y Grabación en sus eventos. Crear piezas, copies y mandar a aprobar: Redes, el jefe y Administración. Aprobar piezas (verdes, amarillas y rojas) y tweets, y pedir cambios: solo el jefe. Eliminar piezas: solo el jefe, con el doble factor (nada se borra de verdad; Administración las recupera en Ajustes → Cupo y pilares). Marcar el diseño, la receptividad y los avisos de cumplimiento: Redes y el jefe. Meses de contenido y feed: Redes, el jefe y Administración (borrar un mes, solo Redes y el jefe). Cupo y pilares: Administración, en Ajustes. Publicar a mano y cargar métricas: Redes, el jefe y Administración. Ver resultados: jefe, Redes y Administración. Biblioteca: Despacho, Redes, el jefe y Administración. Invitar personas, roles y ajustes: Administración, que nunca se da roles a sí misma ni puede ser también el jefe o Despacho.",
    "tags": [
     "permisos",
     "quien puede"
@@ -99,7 +99,7 @@
    "key": "no-tengo-permiso",
    "roles": null,
    "title": "Cuando una pantalla no te deja entrar",
-   "body": "Si abres una pantalla que no es de tu rol, la plataforma te devuelve a Hoy. No es una falla: cada rol ve solo lo suyo. Si de verdad la necesitas para tu trabajo, pídeselo a administración.",
+   "body": "Si abres una pantalla que no es de tu rol, la plataforma te lleva a tu inicio y te dice «Esa pantalla no es de tu rol. Te trajimos a tu inicio.» No es una falla: cada rol ve solo lo suyo. Si de verdad la necesitas para tu trabajo, pídeselo a administración.",
    "tags": [
     "permisos",
     "hoy",
@@ -315,7 +315,7 @@
     "camera"
    ],
    "title": "Marcar un evento como realizado",
-   "body": "Cuando el evento ya pasó, el jefe, Despacho o quien lo grabó lo marcan como realizado desde su ficha; Administración no lo marca. Así el material queda en la Biblioteca con su día y Redes ve solo ese día (nunca la hora). No se puede marcar un evento antes de que empiece.",
+   "body": "Un evento se marca como realizado desde su ficha cuando ya empezó: lo marcan el jefe, Despacho o quien lo grabó; Administración no lo marca. Así el material queda en la Biblioteca con su día y Redes ve solo ese día (nunca la hora). No se puede marcar un evento antes de que empiece.",
    "tags": [
     "realizado",
     "biblioteca",
@@ -525,7 +525,7 @@
     "boss"
    ],
    "title": "Cómo se crea una pieza",
-   "body": "En Redes, cada pieza se crea en la sección de su formato: el botón «Nuevo reel», «Nuevo post»… pone un borrador arriba, abierto; o «Crear» → Nueva pieza → «¿Qué quieres crear?» y se elige el formato. Desde un evento, en su pestaña Piezas, «Nueva pieza» pide el formato, el mes, la categoría y el título. Cada pieza es una tarjeta: el título y los campos de su formato se guardan solos, y se sube el archivo (el video y la portada, la imagen, las láminas o la foto o el clip). Cada archivo nuevo es una versión: un archivo subido no se reemplaza. Luego se escriben los copies y se manda a aprobar con «Enviar a aprobación», eligiendo verde, amarillo o rojo en la pieza en grande. Si piden cambios, se corrige y se sube una versión nueva: vuelve sola a revisión.",
+   "body": "En Redes, cada pieza se crea en la sección de su formato: el botón «Nuevo reel», «Nuevo post»… pone un borrador arriba, abierto; o «Crear» → Nueva pieza → «¿Qué quieres crear?» y se elige el formato. Desde un evento, en su pestaña Piezas, «Nueva pieza» pide el formato, el mes, la categoría y el título. Cada pieza es una tarjeta: el título y los campos de su formato se guardan solos, y se sube el archivo (el video y la portada, la imagen, las láminas o la foto o el clip). Cada archivo nuevo es una versión: un archivo subido no se reemplaza. Luego se escriben los copies y se manda a aprobar con «Enviar a aprobación», eligiendo verde, amarillo o rojo en la pieza en grande. Si el jefe pide cambios, se corrige (una versión nueva o los copies) y se toca «Enviar a aprobación» otra vez.",
    "tags": [
     "pieza",
     "crear",
@@ -667,7 +667,7 @@
     "admin"
    ],
    "title": "Qué hace Grabación en la plataforma",
-   "body": "Para qué: grabar los eventos asignados y dejarle al editor todo lo que necesita. Inicio: Hoy con sus eventos y los pasados sin material («Sube el material»). Menú: Hoy y Agenda (sus eventos). Ve solo los eventos que le asignaron, con su fecha, hora y dirección; lee la ficha y el storyboard para saber qué tomas hacen falta. Por cada evento, en la pestaña Material («Entrega de Grabación»): sube el material crudo por casilla, sube el storyboard con el que grabó (foto, PDF o escrito) y deja una nota para el editor (qué toma sirve, qué falló; sin hora, fecha, dirección ni teléfonos: Redes la lee). Descarga el material de sus eventos y marca el evento como realizado. No ve eventos que no le asignaron, no sube finales ni portadas ni sube a eventos ajenos, no ve piezas, tweets ni publicaciones y no edita la ficha, la fecha ni el storyboard del evento.",
+   "body": "Para qué: grabar los eventos asignados y dejarle al editor todo lo que necesita. Inicio: Hoy con sus eventos y los pasados sin material («Sube el material»). Menú: Hoy y Agenda (sus eventos). Ve solo los eventos que le asignaron, con su fecha, hora y dirección; lee la ficha y el storyboard para saber qué tomas hacen falta. Por cada evento, en la pestaña Material («Entrega de Grabación»): sube el material por casilla, ya limpio y en el archivo original, sube el storyboard con el que grabó (foto, PDF o escrito) y deja una nota para el editor (qué toma sirve, qué falló; sin hora, fecha, dirección ni teléfonos: Redes la lee). Descarga el material de sus eventos y marca el evento como realizado. No ve eventos que no le asignaron, no sube finales ni portadas ni sube a eventos ajenos, no ve piezas, tweets ni publicaciones y no edita la ficha, la fecha ni el storyboard del evento.",
    "tags": [
     "grabacion",
     "rol"
@@ -680,8 +680,8 @@
     "social",
     "admin"
    ],
-   "title": "Cómo se sube el material crudo",
-   "body": "Abrir el evento (Mis eventos o Agenda), pestaña Material, y subir cada archivo en su casilla: jefe hablando, dron, tomas de apoyo u otros. Si se va la señal o el internet, la subida sigue sola al volver. Un archivo subido no se reemplaza: si hubo un error, se sube el correcto y se avisa a Redes; quitar el equivocado lo hace administración. Después, marcar el evento como realizado.",
+   "title": "Cómo se sube el material",
+   "body": "Abrir el evento (Mis eventos o Agenda), pestaña Material, y subir cada archivo en su casilla: jefe hablando, dron, tomas de apoyo u otros, ya limpio (sin tiempos ni tomas muertas) y en el archivo original. Si se va la señal o el internet, la subida sigue sola al volver. Un archivo subido no se reemplaza: si hubo un error, se sube el correcto y se avisa a Redes; quitar el equivocado lo hace administración. Después, deja tu entrega: tu storyboard y la nota para el editor.",
    "tags": [
     "material",
     "subir",

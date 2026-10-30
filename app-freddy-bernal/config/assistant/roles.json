@@ -63,7 +63,7 @@
     },
     "camera": {
       "label": "Grabación",
-      "oficio": "Grabación graba los eventos que le asignaron y, en la pestaña Material de cada uno, sube el material crudo ordenado por casilla (jefe hablando, dron, apoyo, otros), el storyboard con el que grabó (foto, PDF o escrito) y una nota para el editor. No ve eventos ajenos, piezas, tweets ni publicaciones, y no edita la ficha, la fecha ni el storyboard del evento.",
+      "oficio": "Grabación graba los eventos que le asignaron y, en la pestaña Material de cada uno, sube el material ya limpio y en el archivo original, por casilla (jefe hablando, dron, apoyo, otros), el storyboard con el que grabó (foto, PDF o escrito) y una nota para el editor. No ve eventos ajenos, piezas, tweets ni publicaciones, y no edita la ficha, la fecha ni el storyboard del evento.",
       "sugeridas": [
         "¿Qué tengo pendiente?",
         "¿Cómo subo el material?",
