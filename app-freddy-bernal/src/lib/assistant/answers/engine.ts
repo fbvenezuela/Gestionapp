@@ -33,7 +33,8 @@ export type Entry = {
 };
 
 export type Confidence = 'strong' | 'weak' | 'none';
-export type Match = { entry: Entry; score: number; confidence: Confidence; text: string };
+// via: the way of asking or the text that matched best (for the tests and the panel: why 360 chose it).
+export type Match = { entry: Entry; score: number; confidence: Confidence; text: string; via: string };
 
 // ── Reading a question ─────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -55,6 +56,15 @@ const SHORTHAND: [RegExp, string][] = [
   [/\b(?:cel|telf|tlf|tel|tlfn|celu)\b/g, 'telefono'],
   [/\b(?:xfa|xfavor|porfa|porfis|plis|please)\b/g, 'por favor'],
   [/\b(?:toy)\b/g, 'estoy'],
+  [/\b(?:bn)\b/g, 'bien'],
+  [/\b(?:dps|dsp|dspues|despues)\b/g, 'despues'],
+  [/\b(?:kmo|cmo|komo)\b/g, 'como'],
+  [/\b(?:tng|tngo)\b/g, 'tengo'],
+  [/\b(?:nose)\b/g, 'no se'],
+  [/\b(?:porfavor)\b/g, 'por favor'],
+  [/\b(?:vdd)\b/g, 'verdad'],
+  [/\b(?:min|mins)\b/g, 'minutos'],
+  [/\b(?:pls|pliss)\b/g, 'por favor'],
   [/\b(?:ta)\b/g, 'esta'],
   [/\b(?:tan|stan)\b/g, 'estan'],
   [/\b(?:sta)\b/g, 'esta'],
@@ -78,6 +88,17 @@ const SHORTHAND: [RegExp, string][] = [
   [/\b(?:clave|claves|password|contrasenas?)\b/g, 'contrasena'],
   [/\b(?:aplicacion|aplicaciones|aplicacio)\b/g, 'app'],
   [/\b(?:copies)\b/g, 'copy'],
+  // The screen's pictures, said as people say them: the bell, the envelope, the pencil, the magnifier, the gear.
+  [/\b(?:campanit[ao]|campanaso)\b/g, 'campana'],
+  [/\b(?:sobrecito|sobresito|el sobre|cartica|cartita)\b/g, 'mensajes'],
+  [/\b(?:lapicito|lapicero|lapisito)\b/g, 'lapiz'],
+  [/\b(?:lupita)\b/g, 'lupa'],
+  [/\b(?:engranaje|engranajito|tuerquita|tuerca|ruedita)\b/g, 'ajustes'],
+  [/\b(?:casita)\b/g, 'inicio'],
+  [/\b(?:whatsapp|wasap|wassap|guasap|whats)\b/g, 'whatsapp'],
+  // A phone number is a phone: «los números de arriba» (counts on a screen) are not Mi perfil's «tu número de teléfono».
+  [/\bnumeros? (?:de|del) (?:telefonos?|celular)\b/g, 'telefono'],
+  [/\b(mis?|tus?|su) numero\b/g, '$1 telefono'],
   [/\bpara que\b/g, 'paraque'],
   [/\bdel? uno al? diez\b/g, 'de 1 a 10'],
   [/\b1 al 10\b/g, '1 a 10'],
@@ -96,12 +117,65 @@ const STOP = new Set(
     'hola porfa favor puedo puede pueden podemos podria podrian quiero quiere quieres necesito necesita tengo tienes tiene tienen tener hago haces hace hacen hacer ' +
     'voy vas va van vamos ir dime decir digo dice saber se sabes yo tu usted el ella ellos nosotros eh ah okey ok vale dale gracias epa buenas buenos dias tarde ' +
     'deberia debo debe hice hizo cuanto cuanta cuantos cuantas sera seria tan tanto pasa paso eso estoy estas estamos mucho mucha muchos poco nada ese cuando donde quien quienes ' +
-    'porque por que aja verdad realmente exactamente queda quedan quedo quede quedaron estaba estaban estuvo estaria').split(' '),
+    'porque por que aja verdad realmente exactamente queda quedan quedo quede quedaron estaba estaban estuvo estaria ' +
+    // What is said around a question and asks nothing (fillers, greetings, Venezuelan ways of talking).
+    'chamo chama chamito mana mano vaina broder bro mijo mija nojoda epale mira fijate disculpa disculpe perdon perdona oiga coye vez veces rapido rapidito vale ' +
+    // Polite ways of asking: they ask nothing themselves («¿podrías explicarme el procedimiento para…?»).
+    'podrias podrian puedes pudieras quisiera quisieramos gustaria explicame explicarme expliqueme explicame ayudame ayudarme ayudeme indicame indiqueme cuentame digame dices dime procedimiento amablemente urgente ' +
+    // The frame of a «¿cómo funciona…?», «¿para qué sirve…?», «¿qué significa…?»: the kind of question says it (askKind).
+    'funciona funcionan funcionar funcione sirve sirven servir significa significan significado').split(' '),
 );
 // Question words and negation: they shape a question («¿dónde…?», «¿quién…?», «no me llega») and weigh little.
-const LIGHT: Record<string, number> = { donde: 0.5, quien: 0.6, quienes: 0.6, cuando: 0.4, no: 0.6, nunca: 0.6, despues: 0.4, antes: 0.4, porque: 0.3, mio: 0.4, paraque: 0.5 };
+// «Error» only says it is a problem («hay un error en el copy» is about the copy): light too.
+const LIGHT: Record<string, number> = { donde: 0.5, quien: 0.6, quienes: 0.6, cuando: 0.4, no: 0.6, nunca: 0.6, despues: 0.4, antes: 0.4, porque: 0.3, mio: 0.4, paraque: 0.5, error: 1 };
 // The person's own («mi nombre», «mis avisos», «tu perfil»): one light word.
 const MINE = new Set(['mi', 'mis', 'tu', 'tus']);
+
+// What kind of question a text is (design §A): how something is done, what it is, who, where, why, whether one may,
+// what happens if, what goes in it, how many, when. A way of asking of another kind is another question, even with the
+// same words («¿quién aprueba los tweets?» is not «si Redes cambia un tweet aprobado…»; «¿cómo apruebo una pieza en
+// rojo?» is not «¿qué significa el rojo?»). Read on readable() text, without its «…» labels.
+export type AskKind = 'how' | 'what' | 'who' | 'where' | 'why' | 'may' | 'if' | 'list' | 'count' | 'when' | 'problem';
+const KIND_RES: [AskKind, RegExp][] = [
+  ['who', /\b(?:quien|quienes)\b/],
+  ['why', /^(?:(?:y|e|pero|entonces|oye|bueno|ok|aja|ya) )*(?:y )?(?:por que|porque)\b|\bpor que (?:no|me|le|se|nos|ya|sale|salen|aparece|dice|dicen|esta|estan|tengo|hay)\b/],
+  ['if', /\bque (?:pasa|hago|sucede|ocurre|hacemos) (?:si|cuando|con)\b|^(?:(?:y|e|pero|entonces|oye|bueno|ok) )*(?:y )?si\b|\by si\b/],
+  // Something that fails or that the platform will not let («no me deja publicar», «me sale un error que dice…»).
+  ['problem', /\b(?:error|errores|falla|fallo|no me deja|no me dejo|no deja|no me sale|no sale|no aparece|no me aparece|no carga|no funciona|no sirve|no llega|no me llega|no me acepta|no acepta|me rechaza|se tranco|se trabo|se pego|me sale que|me dice que|dice que (?:no|falta|es muy|esta))\b/],
+  ['where', /\b(?:donde|adonde|a donde|en que (?:parte|pantalla|lado|seccion|menu|boton|pestana))\b/],
+  ['how', /^(?:(?:y|e|pero|entonces|bueno|ok|ya) )*(?:ahora )?que hago(?: ahora)?$|\bcomo (?!(?:va|van|esta|estan|quedo|quedaron|salio|salieron|es|son|funciona\w*|asi|que)\b)(?!se (?:cuando|si|que|quien|donde)\b)[a-z]+|\bque (?:hago|hacemos|tengo que hacer|hay que hacer|debo hacer) (?:para|pa)\b|\b(?:los )?pasos (?:para|pa)\b|\b(?:la forma|la manera|el modo) de\b/],
+  ['what', /\bque (?:es|son|significa\w*|quiere decir|quieren decir)\b|^(?:(?:y|e|pero|entonces|oye|bueno|ok|aja|ya|hola) )*(?:y )?que (?:hace|hacen|sale en|salen en|hay en|dice|dicen|seria|serian|era|eran)\b|\bparaque (?:sirve\w*|es|son)\b|\bcomo funciona\w*\b|\bexplica\w*\b|\bde que se trata\b|\bque onda con\b/],
+  ['list', /\bque (?:pongo|ponemos|lleva|llevan|llevo|escribo|lleno|necesito|reviso|revisa|chequeo|verifico|miro|tomo en cuenta|tengo que (?:poner|llenar|escribir|llevar)|hay que (?:poner|llenar|escribir|llevar)|va en|van en)\b/],
+  ['may', /\b(?:puedo|podemos|se puede|pueden|puede|me deja|me dejan|nos deja|nos dejan|es posible|tengo permiso|se vale|esta permitido)\b/],
+  ['count', /\bcuant[oa]s?\b/],
+  ['when', /\bcuando\b/],
+];
+/** The kind of a question («¿cómo…?», «¿qué es…?», «¿quién…?»…), or null when it says none. */
+export function askKind(text: string): AskKind | null {
+  const t = text.replace(/«[^«»]*»/g, ' ');
+  return KIND_RES.find(([, re]) => re.test(t))?.[0] ?? null;
+}
+// How far apart two kinds are (1 = the same question): a «¿cómo…?» is close to a «¿dónde…?», a «¿puedo…?» or a «¿qué
+// pongo…?»; a «¿quién…?» or a «¿por qué…?» is another question altogether.
+const NEAR_KINDS: Record<string, number> = {
+  'how may': 0.97, 'how where': 0.97, 'how list': 0.97, 'where may': 0.97, 'count what': 0.97, 'when if': 0.97, 'list may': 0.97,
+  'problem why': 0.97, 'problem if': 0.97, 'problem how': 0.95, 'problem may': 0.95, 'why if': 0.95, 'what where': 0.95,
+  'what how': 0.92, 'what list': 0.9, 'what may': 0.9,
+};
+function kindFit(a: AskKind | null, b: AskKind | null): number {
+  if (!a || a === b) return 1;
+  // A way of asking of no kind («un chip rojo en la pieza») for a question of one: a little less than one of its kind.
+  if (!b) return NO_KIND;
+  return NEAR_KINDS[`${a} ${b}`] ?? NEAR_KINDS[`${b} ${a}`] ?? 0.86;
+}
+// What a way of asking of no kind weighs for a question of one.
+const NO_KIND = 0.95;
+// What a way of asking of the same kind as the question adds.
+const SAME_KIND = 0.04;
+// What the verb of a «¿cómo…?» weighs, against its weight as a word.
+const HEAD = 1.25;
+// What a curated answer written for the asker's role adds (one for everyone adds 0.03).
+const ROLE_OWN = 0.045;
 
 // Verbs whose root changes, and the same thing said two ways: read as one root.
 const IRREGULAR = new Map<string, string>(
@@ -128,7 +202,9 @@ const IRREGULAR = new Map<string, string>(
     empiezo: 'empez', empieza: 'empez', empiezan: 'empez', empezar: 'empez',
     consigo: 'consegu', consigue: 'consegu', conseguir: 'consegu',
     digo: 'dec', dice: 'dec', dicen: 'dec', dijo: 'dec', diga: 'dec',
-    doy: 'dar', da: 'dar', dan: 'dar', dar: 'dar', dio: 'dar', di: 'dar',
+    decision: 'decid', decisiones: 'decid',
+    pasarle: 'envi', pasarles: 'envi', pasale: 'envi', pasales: 'envi', pasarsela: 'envi', pasarselo: 'envi', pasarselas: 'envi', pasarselos: 'envi', pasasela: 'envi', pasaselo: 'envi',
+    doy: 'dar', da: 'dar', dan: 'dar', dar: 'dar', dio: 'dar', di: 'dar', darle: 'dar', darles: 'dar', darla: 'dar', darlo: 'dar', dale: 'dar', damos: 'dar',
     traigo: 'trae', traer: 'trae', trae: 'trae',
     llego: 'lleg', llega: 'lleg', llegan: 'lleg', llegar: 'lleg', llegue: 'lleg',
     escojo: 'escog', escoge: 'escog',
@@ -144,42 +220,74 @@ const IRREGULAR = new Map<string, string>(
     fotico: 'foto', foticos: 'foto', fotos: 'foto', foto: 'foto',
   }),
 );
-const SUFFIXES = 'amientos imientos amiento imiento aciones iciones acion icion adoras adores adora ador mente ando iendo aron ieron arian arias aria ados adas idos idas ado ada ido ida amos emos imos aban aba ian ar er ir an en as es os a e o s'.split(' ');
+const SUFFIXES = 'amientos imientos amiento imiento aciones iciones acion icion iones ion adoras adores adora ador mente ando iendo aron ieron arian arias aria ados adas idos idas ado ada ido ida amos emos imos aban aba ian ar er ir an en as es os a e o s'.split(' ');
+
+// How a root is spelled, said the same way: «aprovar» is «aprobar», «yegar» is «llegar», «aser» is «hacer»,
+// «rebisar» is «revisar» (b/v, s/z/c before e and i, ll/y, a silent h at the start), «rechacé» is «rechazar» (a root that
+// ends in c is the one in z). Both sides are read like this.
+const fold = (r: string) => r.replace(/v/g, 'b').replace(/z/g, 's').replace(/c(?=[ei])/g, 's').replace(/c$/, 's').replace(/ll/g, 'y').replace(/^h(?=[aeiou])/, '');
 
 /** A crude root of a word: «apruebo» and «aprobar», «fotos» and «foto», «publicación» and «publicar» are one. */
 export function rootOf(w: string): string {
   const irr = IRREGULAR.get(w);
-  if (irr) return irr;
+  if (irr) return fold(irr);
   // Clitics after an infinitive: «ponerle», «subirlo», «mandarles»; «publiqué» is «publicar», «pagué» is «pagar».
   const r = (w.length > 6 ? w.replace(/(ar|er|ir)(?:se)?(?:le|la|lo|les|las|los|me|te|nos)$/, '$1') : w).replace(/(?<=[a-z]{3})qu(e|en|es|emos)$/, 'c$1').replace(/(?<=[a-z]{3})gu(e|en|es|emos)$/, 'g$1');
-  for (const s of SUFFIXES) if (r.length - s.length >= 3 && r.endsWith(s)) return r.slice(0, -s.length);
-  return r;
+  for (const s of SUFFIXES) if (r.length - s.length >= 3 && r.endsWith(s)) return fold(r.slice(0, -s.length));
+  return fold(r);
 }
 
-// Two ways of saying the same thing: a word matches its group at 0.8.
+// Two ways of saying the same thing: a word matches its group at 0.8. Written as words (their roots are taken with
+// rootOf, so «chequear», «chequeo» and «chequeé» all land on the group); a word may be in two groups.
 const SYNONYMS: string[][] = [
-  ['sub', 'carg', 'mont', 'colg'],
-  ['cre', 'arm', 'mont'],
-  ['borr', 'elimin'],
-  ['cambi', 'modific', 'edit', 'correg', 'actualiz'],
-  ['mand', 'envi'],
-  ['ver', 'mir', 'leer'],
+  ['subir', 'cargar', 'montar', 'colgar', 'meter'],
+  ['crear', 'armar', 'montar'],
+  ['borrar', 'eliminar', 'tumbar', 'quitar', 'remover'],
+  ['cancelar', 'suspender', 'tumbar', 'anular'],
+  ['cambiar', 'modificar', 'editar', 'corregir', 'actualizar', 'arreglar'],
+  ['mandar', 'enviar'],
+  ['ver', 'mirar', 'leer', 'chequear', 'revisar', 'consultar'],
+  ['revisar', 'chequear', 'verificar'],
+  ['cuadrar', 'organizar', 'ordenar', 'acomodar', 'coordinar'],
+  ['buscar', 'encontrar', 'ubicar', 'hallar', 'lupa'],
+  ['prender', 'activar', 'encender'],
+  ['apagar', 'desactivar'],
+  ['dejar', 'permitir'],
+  ['tardar', 'demorar'],
+  ['link', 'enlace'],
+  ['gente', 'persona', 'muchachos', 'senores', 'chicos'],
+  ['foto', 'imagen'],
+  ['campana', 'avisos'],
+  ['lapiz', 'editar'],
+  ['importancia', 'prioridad'],
+  ['rodar', 'mover'],
+  ['grabar', 'filmar'],
+  ['aprobar', 'autorizar'],
+  ['rechazar', 'descartar'],
+  ['calificar', 'puntuar', 'evaluar'],
+  ['avisar', 'notificar'],
+  ['ajustes', 'configuracion'],
   // The obra fichas are the IVT's; the videos and the photos are the material.
-  ['obr', 'ivt'],
-  ['material', 'vide', 'foto'],
-  ['sal', 'aparec'],
-  ['entr', 'ingres'],
-  ['llen', 'complet'],
-  ['descarg', 'baj'],
-  ['agreg', 'met', 'anad', 'inclu'],
-  ['invit', 'agreg'],
-  ['quit', 'sac'],
-  ['equivoc', 'error', 'mal'],
-  ['nuev', 'otr'],
-  ['problem', 'fall', 'error'],
+  ['obra', 'ivt'],
+  ['material', 'video', 'foto'],
+  ['salir', 'aparecer'],
+  ['entrar', 'ingresar', 'loguear'],
+  ['llenar', 'completar', 'rellenar'],
+  ['descargar', 'bajar'],
+  ['agregar', 'meter', 'anadir', 'incluir', 'sumar'],
+  ['invitar', 'agregar'],
+  ['quitar', 'sacar'],
+  ['equivocar', 'error', 'mal'],
+  ['nuevo', 'otro'],
+  ['problema', 'falla', 'error'],
+  // The kinds of event people name («el material de la feria», «el acto se grabó»): for the help content, an event.
+  ['evento', 'acto', 'feria', 'asamblea', 'inauguracion', 'caravana', 'cabildo', 'conversatorio', 'foro', 'juramentacion', 'operativo', 'actividad', 'jornada'],
 ];
 const SYN = new Map<string, Set<string>>();
-for (const g of SYNONYMS) for (const r of g) SYN.set(r, new Set([...(SYN.get(r) ?? []), ...g.filter((x) => x !== r)]));
+for (const words of SYNONYMS) {
+  const g = [...new Set(words.map((w) => rootOf(w)))];
+  for (const r of g) SYN.set(r, new Set([...(SYN.get(r) ?? []), ...g.filter((x) => x !== r)]));
+}
 
 type Tok = { root: string; w: number; light: boolean };
 
@@ -196,13 +304,23 @@ export function tokens(text: string): string[] {
   return out;
 }
 
+/** A diminutive read as its word («numeritos», «cosita», «botoncito», «chiquitica», «ratico»): the root it would have. */
+export function undiminished(w: string): string | null {
+  const d = w.replace(/(?:ecit|cit|itic|it|tic)([oa]s?)$/, '$1');
+  return d !== w && d.length >= 3 ? rootOf(d) : null;
+}
+
 // How two roots match: the same (1), synonyms (0.8), or one is the other with a short ending («comunit» / «comunitari»,
 // «histori» / «historial» do not: they differ by more than a quarter).
 function likeness(a: string, b: string): number {
   if (a === b) return 1;
   if (SYN.get(a)?.has(b)) return 0.8;
-  if (a.length < 5 || b.length < 5) return 0;
+  // Done again is done: «reactivar» / «activar», «reenviar» / «enviar», «reprogramar» / «programar».
+  if ((a.startsWith('re') && a.slice(2) === b && b.length >= 4) || (b.startsWith('re') && b.slice(2) === a && a.length >= 4)) return 0.8;
   const [s, l] = a.length <= b.length ? [a, b] : [b, a];
+  // A diminutive is its word: «numerito» / «número», «campanita» / «campana», «botoncito» / «botón».
+  if (s.length >= 3 && l.startsWith(s) && /^(?:it|cit|ecit|ic|cic|ecic)$/.test(l.slice(s.length))) return 0.9;
+  if (a.length < 5 || b.length < 5) return 0;
   if (!l.startsWith(s)) return 0;
   return l.length - s.length <= Math.max(1, Math.floor(s.length / 4)) ? 0.85 : 0;
 }
@@ -452,12 +570,26 @@ function curatedEntries(list: Answer[], file: (a: Answer) => string): Entry[] {
 
 // ── The index ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
-type Doc = { entry: number; toks: Tok[]; total: number; kind: 'q' | 'doc'; labels: string[]; weight: number; label: boolean };
+// roles: only for whoever is told that text (a curated entry's answer per role); unset = whoever gets the entry.
+// quoted: the label a way of asking is about («¿Qué significa «Sube el material»?»), when it is most of it.
+type Doc = { entry: number; toks: Tok[]; total: number; kind: 'q' | 'doc'; labels: string[]; weight: number; label: boolean; text: string; ask: AskKind | null; quoted?: string; roles?: Role[] };
 // What a kind's text weighs as an answer: a line of the job or the day says less than a screen, a task or a question.
 const KIND_WEIGHT: Partial<Record<Kind, number>> = { job: 0.85, day: 0.85, with: 0.95, flow: 0.95, never: 0.95, line: 0.9 };
-type Index = { entries: Entry[]; docs: Doc[]; byKey: Map<string, number[]>; idf: Map<string, number>; unknown: number; labels: Map<string, number[]>; byId: Map<string, Entry>; asked: Map<string, Entry[]>; defines: Set<string> };
+type Index = { entries: Entry[]; docs: Doc[]; byKey: Map<string, number[]>; idf: Map<string, number>; unknown: number; labels: Map<string, number[]>; byId: Map<string, Entry>; asked: Map<string, Entry[]>; defines: Set<string>; whoLabels: RegExp | null; said: Set<string> };
 
 let INDEX: Index | null = null;
+
+/** Each text a curated entry says, with who is told it (unset: everyone who gets the entry). */
+function saidBy(e: Entry): [string, Role[] | undefined][] {
+  if (typeof e.a === 'string') return [[e.a, undefined]];
+  const a = e.a;
+  const all: Role[] = e.roles ?? [...TEAM_ROLES, 'admin'];
+  const keyed = all.filter((r) => typeof a[r] === 'string');
+  const out: [string, Role[] | undefined][] = keyed.map((r) => [a[r]!, [r]]);
+  const rest = all.filter((r) => !keyed.includes(r));
+  if (a.default && rest.length) out.push([a.default, rest]);
+  return out;
+}
 const key = (root: string) => root.slice(0, 4);
 
 /** The entries, built once (the guides and the curated answers do not change while the server runs). */
@@ -472,11 +604,16 @@ function index(): Index {
   const entries = [...curatedEntries(ANSWERS, (a) => files.get(a) ?? 'respuestas'), ...guideEntries(), ...sharedEntries(), ...flowEntries(), ...adminEntries()];
   // Document frequency per root, over the entries (each entry once).
   const df = new Map<string, number>();
-  const entryToks = entries.map((e) => new Set([...e.q, e.doc ?? ''].flatMap((t) => tokens(t))));
+  const entryToks = entries.map((e) => new Set([...e.q, e.doc ?? '', ...(e.kind === 'curated' ? saidBy(e).map(([t]) => t) : [])].flatMap((t) => tokens(t))));
   for (const set of entryToks) for (const r of set) df.set(r, (df.get(r) ?? 0) + 1);
   const n = entries.length;
   const idf = new Map<string, number>();
   for (const [r, c] of df) idf.set(r, Math.log(1 + n / c));
+  // A word only some ways of asking have, and no answer or guide text says («Kevin», «la ermita», «chamo»): an example
+  // detail of how it was asked, not what it is about. It weighs like a common word.
+  const said = new Set(entries.flatMap((e) => [e.doc ?? '', ...(e.kind === 'curated' ? saidBy(e).map(([t]) => t) : [typeof e.a === 'string' ? e.a : textFor(e.a, [...TEAM_ROLES, 'admin'])])]).flatMap((t) => tokens(t)));
+  const common = [...idf.values()].sort((a, b) => a - b)[Math.floor(idf.size * DETAIL_AT)] ?? 1;
+  for (const [r, w] of idf) if (!said.has(r) && w > common) idf.set(r, common);
   const weigh = (r: string): Tok => ({ root: r, w: r in LIGHT ? LIGHT[r] : idf.get(r) ?? Math.log(1 + n), light: r in LIGHT });
   const docs: Doc[] = [];
   const byKey = new Map<string, number[]>();
@@ -485,12 +622,14 @@ function index(): Index {
   const defines = new Set<string>();
   entries.forEach((e, k) => {
     for (const m of `${e.doc ?? ''} ${typeof e.a === 'string' ? e.a : (e.a.default ?? '')}`.matchAll(/«([^«»]{3,60})»:/g)) defines.add(`${k} ${readable(m[1])}`);
-    const add = (text: string, kind: 'q' | 'doc') => {
+    const add = (text: string, kind: 'q' | 'doc', roles?: Role[]) => {
       const toks = tokens(kind === 'doc' ? text.replace(/“[^”]*”/g, ' ') : text).map(weigh);
       if (!toks.length) return;
       const label = kind === 'q' && (e.kind === 'item' || e.kind === 'step' || e.kind === 'line' || e.kind === 'flow');
       const weight = label ? 0.8 : e.q.length || kind === 'q' ? 1 : (KIND_WEIGHT[e.kind] ?? 1);
-      const d = docs.push({ entry: k, toks, total: toks.reduce((s, t) => s + t.w, 0), kind, labels: [], weight, label }) - 1;
+      const named = kind === 'q' ? labelsOf(text)[0] : undefined;
+      const quoted = named && tokens(named).length * 5 >= toks.length * 3 ? readable(named) : undefined;
+      const d = docs.push({ entry: k, toks, total: toks.reduce((s, t) => s + t.w, 0), kind, labels: [], weight, label, text, ask: kind === 'q' ? askKind(readable(text)) : null, ...(quoted ? { quoted } : {}), ...(roles ? { roles } : {}) }) - 1;
       for (const t of toks) {
         const list = byKey.get(key(t.root)) ?? [];
         if (list.at(-1) !== d) list.push(d);
@@ -499,6 +638,8 @@ function index(): Index {
     };
     for (const q of e.q) add(q, 'q');
     if (e.doc) add(e.doc, 'doc');
+    // What a curated entry answers says the asked words too (design §A): one way, per role, as a guide's text does.
+    if (e.kind === 'curated') for (const [text, roles] of saidBy(e)) add(text, 'doc', roles);
     // The screen's labels it quotes (two words or more): asked by name, they point here.
     for (const l of new Set([...labelsOf(e.doc ?? ''), ...labelsOf(typeof e.a === 'string' ? e.a : ''), ...e.q.flatMap(labelsOf)])) {
       const p = readable(l.replace(/\(n\)/g, ' '));
@@ -509,7 +650,10 @@ function index(): Index {
   // Each way of asking, word for word: asked exactly like that, it is the answer.
   const asked = new Map<string, Entry[]>();
   for (const e of entries) for (const q of e.q) asked.set(readable(q), [...(asked.get(readable(q)) ?? []), e]);
-  INDEX = { entries, docs, byKey, idf, unknown: 0.6 * Math.log(1 + n), labels, byId: new Map(entries.map((e) => [e.id, e])), asked, defines };
+  // The labels that say «quién» («Quién graba»): named in a question, they do not make it a «¿quién…?».
+  const who = [...labels.keys()].filter((l) => /\bquien(?:es)?\b/.test(l));
+  const whoLabels = who.length ? new RegExp(`\\b(?:${who.map((l) => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'g') : null;
+  INDEX = { entries, docs, byKey, idf, unknown: 0.6 * Math.log(1 + n), labels, byId: new Map(entries.map((e) => [e.id, e])), asked, defines, whoLabels, said };
   return INDEX;
 }
 
@@ -535,15 +679,23 @@ export function knownLabels(): string[] {
 // fichas and never beats «No estoy seguro…» alone.
 export const STRONG = 0.62;
 export const WEAK = 0.45;
+// What the other kind of match adds to an entry's best (a way of asking and its text, design §A).
+const ALSO_SAID = 0.25;
+// Where a word that only ways of asking have is capped: the weight of the word at this share of the index (a common one).
+const DETAIL_AT = 0.2;
 
-export type FindOptions = { roles: Role[]; screen?: string | null; limit?: number; extra?: string };
+// names: words of names in the question (an event's, a piece's or a place's title, a person of the team): left out unless
+// the help content says them («la entrega» of Grabación stays; «El Mirador», «Kevin» go).
+export type FindOptions = { roles: Role[]; screen?: string | null; limit?: number; extra?: string; names?: string[] };
 
 // A question about what something is or where («¿qué es…?», «¿qué sale en…?»): a label named whole is what it asks.
 const WHAT_IS = /\b(?:que es|que son|que significa\w*|que quiere decir|que sale en|que hay en|que dice|paraque sirve|paraque es|donde esta|donde veo|que hago en|como (?:uso|funciona))\b/;
 // A question that asks what, how, where, who… (not yes or no).
 const WH_ASK = /^(?:y |pero |entonces |oye )?(?:que|como|donde|cuando|quien|quienes|cual|cuales|cuanto|cuantos|cuantas|por que|paraque|de que|en que|a que|con que)\b/;
 // Someone named in an answer: a role, the boss, administración.
-const NAMES_SOMEONE = /\b(?:jefe|despacho|politica|ivt|grabacion|redes|administracion|solo el)\b/;
+const NAMES_SOMEONE = /\b(?:jefe|despacho|politica|ivt|grabacion|redes|administracion|solo el|nadie|cualquiera|todos|todo el equipo)\b/;
+// An answer in «tú» names the person who asks («Tú, en Ajustes → Equipo…», «Lo haces tú…»).
+const NAMES_YOU = /(?<![\p{L}])tú(?![\p{L}])/iu;
 const forRoles = (e: Entry, roles: Role[]) => e.roles === null || e.roles.some((r) => roles.includes(r));
 
 /** The text of an entry for these roles: the asker's role key (team order, administración last), else `default`. */
@@ -563,22 +715,41 @@ const PROFILE = rootOf('perfil');
 // The kinds of thing a label names («la lista…», «el botón…», «la pestaña…»).
 const LABEL_KIND = new Set(['lista', 'boton', 'pestaña', 'casilla', 'seccion', 'pantalla', 'chip', 'opcion', 'campo', 'menu', 'aviso', 'tarjeta'].map((w) => rootOf(plain(w))));
 // What is asked, weighed (the follow-up's words at half), and its pairs of words in a row.
-type Asked = { toks: { root: string; w: number }[]; total: number; pairs: string[]; text: string; own: string[] };
-function askedOf(question: string, extra?: string): Asked | null {
+type Asked = { toks: { root: string; w: number }[]; total: number; pairs: string[]; text: string; own: string[]; kind: AskKind | null };
+function askedOf(question: string, extra?: string, names?: string[]): Asked | null {
   const ix = index();
-  const own = tokens(question);
+  // A word the index does not know, said as a diminutive («los numeritos», «la cosita»), is its word.
+  const dim = new Map<string, string>();
+  for (const w of readable(question).split(' ')) {
+    const r = rootOf(w);
+    if (r in LIGHT || ix.idf.has(r)) continue;
+    const u = undiminished(w);
+    if (u && ix.idf.has(u)) dim.set(r, u);
+  }
+  const skip = new Set((names ?? []).flatMap((w) => tokens(w)).filter((r) => !ix.said.has(r)));
+  const all = [...new Set(tokens(question).map((r) => dim.get(r) ?? r))];
+  // Without the names, unless less than two words that say something are left (then the name is what it is about).
+  const own = all.filter((r) => !skip.has(r) && !(r in LIGHT)).length >= 2 ? all.filter((r) => !skip.has(r)) : all;
   // «Mi nombre», «mi teléfono», «mis avisos»: the person's own things live in Mi perfil (not «el nombre» of a category).
-  const mine = own.some((r, k) => r === 'mio' && /^(?:nomb|tele|mail|avis|foto|cuen|dato)/.test(own[k + 1] ?? '')) && !own.includes(PROFILE);
+  const mine = own.some((r, k) => r === 'mio' && /^(?:nomb|tele|mail|abis|foto|cuen|dato)/.test(own[k + 1] ?? '')) && !own.includes(PROFILE);
   const more = [...(extra ? tokens(extra).filter((t) => !own.includes(t)) : []), ...(mine ? [PROFILE] : [])];
   const weigh = (r: string, half = false) => (r in LIGHT ? LIGHT[r] : ix.idf.get(r) ?? ix.unknown) * (half ? 0.5 : 1);
-  const toks = [...own.map((r) => ({ root: r, w: weigh(r) })), ...more.map((r) => ({ root: r, w: weigh(r, true) }))];
+  // The verb of a «¿cómo…?» is what is asked to do («¿cómo apruebo una pieza en rojo?» is about approving): it weighs
+  // more than the things around it.
+  const verb = /\bcomo (?:(?:se|le|lo|la|los|las|les|me|te|nos) )*([a-z]{3,})/.exec(readable(question))?.[1];
+  const head = verb && !STOP.has(verb) ? rootOf(verb) : null;
+  const toks = [...own.map((r) => ({ root: r, w: weigh(r) * (r === head ? HEAD : 1) })), ...more.map((r) => ({ root: r, w: weigh(r, true) }))];
   // Only the light words, or nothing: no real question (a «¿dónde?» alone).
   if (!toks.length || toks.every((t) => t.root in LIGHT)) return null;
-  return { toks, total: toks.reduce((n, t) => n + t.w, 0), pairs: own.slice(1).map((r, k) => `${own[k]} ${r}`), text: readable(question), own: own.filter((r) => !(r in LIGHT)) };
+  const text = readable(question);
+  const kind = askKind(ix.whoLabels ? text.replace(ix.whoLabels, ' ') : text);
+  return { toks, total: toks.reduce((n, t) => n + t.w, 0), pairs: own.slice(1).map((r, k) => `${own[k]} ${r}`), text, own: own.filter((r) => !(r in LIGHT)), kind };
 }
 
+// The light words that only say the kind of question (the kind decides those).
+const KIND_WORD = new Set(['donde', 'quien', 'quienes', 'cuando', 'porque', 'paraque']);
 // How well one text answers: a way of asking ('q') both ways, what an entry says ('doc') one way and less.
-function scoreDoc(a: Asked, toks: Tok[], total: number, kind: 'q' | 'doc'): number {
+function scoreDoc(a: Asked, toks: Tok[], total: number, kind: 'q' | 'doc', ask: AskKind | null = null): number {
   let got = 0;
   let found = 0;
   let first = toks.length;
@@ -592,7 +763,8 @@ function scoreDoc(a: Asked, toks: Tok[], total: number, kind: 'q' | 'doc'): numb
       if (l > m) [m, at] = [l, k];
     });
     if (!m) continue;
-    got += t.w * m;
+    // A word said another way («acto» / «evento») says as much as the commoner of the two.
+    got += (m < 1 ? Math.min(t.w, toks[at].w) : t.w) * m;
     if (!(t.root in LIGHT) || t.root === 'no') {
       found++;
       first = Math.min(first, at);
@@ -606,10 +778,18 @@ function scoreDoc(a: Asked, toks: Tok[], total: number, kind: 'q' | 'doc'): numb
   if (kind === 'q') {
     // How much of the paraphrase the question has: what is asked weighs more (F with beta 1.5).
     const cp = toks.reduce((n, u, k) => n + u.w * seen[k], 0) / total;
-    s = cq && cp ? (3.25 * cq * cp) / (2.25 * cp + cq) : 0;
-    // A way of asking of another kind («¿por qué no…?», «¿quién…?», «¿dónde…?» for a «¿cómo…?»): less.
-    const other = toks.filter((u) => u.light && !a.toks.some((t) => t.root === u.root)).length;
-    s *= Math.pow(0.9, Math.min(2, other));
+    // A long question has words no way of asking has (the story around it): the more it says, the more a way of asking
+    // that it says whole counts (beta from 1.5 down to 1).
+    const b2 = a.own.length >= 6 ? 1 : a.own.length >= 5 ? 1.5 : 2.25;
+    s = cq && cp ? ((1 + b2) * cq * cp) / (b2 * cp + cq) : 0;
+    // A way of asking of another kind («¿por qué no…?», «¿quién…?», «¿dónde…?» for a «¿cómo…?»): less; of the same
+    // kind, a little more. A light word of time or of one's own on one side only («después», «mío»): a little less. A
+    // «no» on one side only is another question altogether («no sube el video» is a problem, «¿cómo subo un video?» a
+    // how-to).
+    const other = toks.filter((u) => u.light && !KIND_WORD.has(u.root) && !a.toks.some((t) => t.root === u.root)).length;
+    const neg = toks.some((u) => u.root === 'no') !== a.toks.some((t) => t.root === 'no');
+    s *= Math.pow(0.9, Math.min(2, other)) * (neg ? 0.85 : 1) * kindFit(a.kind, ask);
+    if (s && a.kind && a.kind === ask) s += SAME_KIND;
   } else {
     // A long text has many words: it answers one way, at a discount that grows with its length, and better when the
     // words asked are close together in it.
@@ -627,9 +807,51 @@ function scoreDoc(a: Asked, toks: Tok[], total: number, kind: 'q' | 'doc'): numb
  * way and less. `extra`: topic words of the question before (a follow-up), at half weight.
  */
 export function findAnswers(question: string, o: FindOptions): Match[] {
+  const whole = rank(question, o);
+  const parts = partsOf(question);
+  if (!parts.length) return whole;
+  // Two questions in one, or a long story with the question in one sentence («redes puede ver mis reportes? no quiero q
+  // vean los datos de la gente»), or what an error says («me sale un error que dice que…»): each part is matched on its
+  // own too, a little lower than the whole; an entry keeps its best.
+  const by = new Map<string, Match>(whole.map((m) => [m.entry.id, m]));
+  for (const p of parts)
+    for (const m of rank(p, { ...o, limit: 4 })) {
+      const s = m.score * PART;
+      const was = by.get(m.entry.id);
+      if (!was || s > was.score) by.set(m.entry.id, { ...m, score: s, confidence: s >= STRONG ? 'strong' : s >= WEAK ? 'weak' : 'none' });
+    }
+  return [...by.values()].sort((a, b) => b.score - a.score).slice(0, o.limit ?? 8);
+}
+
+// What a part of a question weighs against the whole.
+const PART = 0.95;
+// What an error or a sign says, after «dice (que)»: what it is about.
+const SAYS = /\b(?:error|mensaje|aviso|letrero|cartel|cuadro|cuadrito|alerta|texto|rojo)\b[^?.!]*?\b(?:dice|decia|dijo|sale|salio|pone)(?: que)? (.+)$/;
+/** The parts of a question worth matching alone (its sentences, the clauses of a long one, what an error says). */
+function partsOf(question: string): string[] {
+  const t = plain(question);
+  const out: string[] = [];
+  const said = SAYS.exec(readable(question))?.[1];
+  if (said && tokens(said).length >= 2) out.push(said);
+  const pieces = String(question ?? '')
+    .split(/[?¿!¡.;]+|,\s+(?=\S+(?:\s+\S+){2,})/)
+    .map((x) => x.trim())
+    .filter((x) => x && plain(x) !== t && tokens(x).filter((r) => !(r in LIGHT)).length >= 2);
+  if (pieces.length >= 2 || (pieces.length === 1 && out.length)) out.push(...pieces.slice(0, 3));
+  else if (pieces.length === 1 && plain(pieces[0]).length < t.length - 8) out.push(pieces[0]);
+  return [...new Set(out)];
+}
+
+function rank(question: string, o: FindOptions): Match[] {
   const ix = index();
-  const a = askedOf(question, o.extra);
-  if (!a) return [];
+  const a = askedOf(question, o.extra, o.names);
+  if (!a) {
+    // Only light words («¿qué no debo hacer nunca?», «¿qué no hago yo?»): a way of asking said exactly like that, maybe
+    // without its «nunca» or «yo», is still the answer.
+    const t = readable(question);
+    const same = ix.asked.get(t) ?? ix.asked.get(t.replace(/\b(?:nunca|jamas|yo|aqui|nada|entonces)\b/g, ' ').replace(/\s+/g, ' ').trim()) ?? [];
+    return same.filter((e) => forRoles(e, o.roles)).slice(0, o.limit ?? 8).map((e) => ({ entry: e, score: STRONG + 0.1, confidence: 'strong' as const, text: textFor(e.a, o.roles), via: t }));
+  }
   // Candidates: the docs that share a key with a word asked.
   const cand = new Set<number>();
   for (const t of a.toks) for (const d of ix.byKey.get(key(t.root)) ?? []) cand.add(d);
@@ -639,20 +861,37 @@ export function findAnswers(question: string, o: FindOptions): Match[] {
   // A short question (up to three words that say something): every one of them counts. A text, or a button's name, that
   // lacks one is no sure answer («¿cómo pido cambios en un copy?» is not «¿Pedir cambios también?» of the design).
   const short = a.own.length <= 3;
-  const best = new Map<number, number>();
-  // The entries whose best match lacks a word of a short question: never sure, whatever they add below.
-  const partial = new Set<number>();
+  // Per entry, its best way of asking and its best text, each with whether it lacks a word of a short question.
+  const byQ = new Map<number, [number, boolean, number]>();
+  const byDoc = new Map<number, [number, boolean, number]>();
   for (const d of cand) {
     const doc = ix.docs[d];
-    if (!forRoles(ix.entries[doc.entry], o.roles)) continue;
-    let s = scoreDoc(a, doc.toks, doc.total, doc.kind) * doc.weight;
-    if (oneWord && doc.kind === 'doc') s = Math.min(s, STRONG - 0.01);
-    const lacks = short && (doc.kind === 'doc' || doc.label) && !a.own.every((r) => doc.toks.some((u) => likeness(r, u.root) > 0));
-    if (s && (best.get(doc.entry) === undefined || s > best.get(doc.entry)!)) {
-      best.set(doc.entry, s);
-      if (lacks) partial.add(doc.entry);
-      else partial.delete(doc.entry);
-    }
+    if (!forRoles(ix.entries[doc.entry], o.roles) || (doc.roles && !doc.roles.some((r) => o.roles.includes(r)))) continue;
+    // A way of asking about a label («¿Qué significa «Sube el material»?») is for a question that names it whole.
+    const s = scoreDoc(a, doc.toks, doc.total, doc.kind, doc.ask) * doc.weight * (doc.quoted && !` ${a.text} `.includes(` ${doc.quoted} `) ? 0.85 : 1);
+    if (!s) continue;
+    const has = a.own.filter((r) => doc.toks.some((u) => likeness(r, u.root) > 0)).length;
+    // A short question: a text or a button's name must say every word of it; a way of asking, at least half of them.
+    const lacks = short && ((doc.kind === 'doc' || doc.label) ? has < a.own.length : a.own.length >= 3 && has * 2 < a.own.length);
+    const into = doc.kind === 'q' ? byQ : byDoc;
+    const was = into.get(doc.entry);
+    if (!was || s > was[0]) into.set(doc.entry, [s, lacks, d]);
+  }
+  // An entry is as good as its best match, and a little better when the other kind says it too (a way of asking and
+  // what it answers: the answer that says the asked words is the one asked about).
+  const best = new Map<number, number>();
+  const via = new Map<number, number>();
+  // The entries whose best match lacks a word of a short question: never sure, whatever they add below.
+  const partial = new Set<number>();
+  for (const k of new Set([...byQ.keys(), ...byDoc.keys()])) {
+    const [q, qLacks, qd] = byQ.get(k) ?? [0, false, -1];
+    const [t, tLacks, td] = byDoc.get(k) ?? [0, false, -1];
+    via.set(k, q >= t ? qd : td);
+    let s = Math.max(q, t) + ALSO_SAID * Math.min(q, t);
+    // One word that says something answers strongly only from a way of asking, never from a text that has it.
+    if (oneWord && t > q) s = Math.min(s, STRONG - 0.01);
+    best.set(k, s);
+    if (q >= t ? qLacks : tLacks) partial.add(k);
   }
   // A label of the screen asked by name, whole («Hoy en la agenda», «Enviar igual»): its entries go first. A label
   // quoted by many entries says less («Tweets de la semana» is everywhere).
@@ -664,15 +903,20 @@ export function findAnswers(question: string, o: FindOptions): Match[] {
     // does not count.
     const total = a.toks.reduce((n, t) => n + (LABEL_KIND.has(t.root) ? 0 : t.w), 0) || a.total;
     const part = tokens(l).reduce((n, r) => n + (a.toks.find((t) => t.root === r)?.w ?? 0), 0) / total;
-    if (!quoted.includes(l) && !(part >= 0.6 && WHAT_IS.test(a.text))) continue;
+    // Named after a verb of filling or touching it («¿cómo lleno quién graba?», «¿qué pongo en a dónde se va?»): asked too.
+    const filled = new RegExp(`\\b(?:lleno|llenar|pongo|poner|marco|marcar|escribo|escribir|uso|usar|toco|tocar|elijo|elegir|activo|prendo|apago)\\b (?:en |el |la |los |las |lo de )?${l}\\b`).test(a.text);
+    if (!quoted.includes(l) && !filled && !(part >= 0.6 && WHAT_IS.test(a.text))) continue;
     const bonus = Math.min(0.24, 0.06 * l.split(' ').length) / Math.sqrt(Math.max(1, mine.length));
     // Asked what it is: the entry that says it («Antes de aprobar»: …) more.
     const what = WHAT_IS.test(a.text);
     for (const k of mine) if (best.has(k)) best.set(k, best.get(k)! + bonus + (what && ix.defines.has(`${k} ${l}`) ? 0.08 : 0));
   }
-  const who = a.toks.some((t) => t.root === 'quien' || t.root === 'quienes');
+  const who = a.kind === 'who';
   const wh = WH_ASK.test(a.text);
   const why = /\b(?:por que|porque|paraque)\b/.test(a.text);
+  const whereAsk = /\b(?:donde|en que parte|en que pantalla)\b/.test(a.text);
+  const explain = /\b(?:como funciona\w*|que es|que son|que significa\w*|paraque sirve|paraque es|que quiere decir)\b/.test(a.text);
+  const yesNo = !wh && /\b(?:puedo|podemos|puede|pueden|se puede|es posible|me deja|me dejan|tengo que|hay que|debo|es seguro|esta bien)\b/.test(a.text);
   const howTo = /^(?:y )?como (?!(?:va|van|esta|estan|quedo|salio|es|son)\b)/.test(a.text) || /\b(?:como (?:hago|se hace|le hago|lo hago)|que (?:tengo|hay) que hacer|que hago) para\b/.test(a.text);
   const exactly = new Set(ix.asked.get(a.text) ?? []);
   const out: Match[] = [];
@@ -681,7 +925,10 @@ export function findAnswers(question: string, o: FindOptions): Match[] {
     let s = s0;
     if (exactly.has(e)) s += 0.05;
     // «¿Quién…?» is answered by someone named, never by what a screen is.
-    if (who && (e.kind === 'screen' || !NAMES_SOMEONE.test(plain(textFor(e.a, o.roles))))) s *= 0.72;
+    // (its first clause, after a «No:» or a «Sí,» that a «¿quién…?» does not need: «No: solo el jefe elimina piezas»).
+    const first = textFor(e.a, o.roles).replace(/^(?:No|Sí)[.,:]\s*/, '').split(/[.:;]/)[0];
+    const namesFirst = NAMES_SOMEONE.test(plain(first)) || NAMES_YOU.test(first);
+    if (who && (e.kind === 'screen' || !namesFirst)) s *= 0.72;
     // «¿Cómo…?» is answered by a task or one of its steps (not by a line that happens to have its words).
     if (howTo && (e.kind === 'task' || e.kind === 'step')) s += e.kind === 'task' ? 0.05 : 0.02;
     // …and not by what a screen is (its name shares the words: «¿cómo subo la tanda?» and «Una tanda de tweets»).
@@ -689,12 +936,22 @@ export function findAnswers(question: string, o: FindOptions): Match[] {
     // The answer to another kind of question: a «No.» or a «Sí,» to a «¿qué…?» or a «¿quién…?»; a «Porque…» to what
     // does not ask why.
     const said = textFor(e.a, o.roles);
-    if (wh && !why && /^(?:No|Sí)[.,:]/.test(said)) s *= who ? 0.75 : 0.85;
+    // «¿Cómo…?» is answered by how, not by who does it («Tú, en Ajustes → Equipo…» answers «¿quién da los roles?»).
+    if (a.kind === 'how' && /^(?:Tú|El jefe|Solo el jefe|Redes|Grabación|El despacho|Administración)[,:]/.test(said)) s *= 0.9;
+    if (wh && !why && /^(?:No|Sí)[.,:]/.test(said) && !(who && namesFirst)) s *= who ? 0.75 : 0.85;
+    // «¿Puedo…?», «¿se puede…?»: an answer that says yes or no first is the direct one.
+    else if (yesNo && /^(?:No|Sí)\b/.test(said)) s += 0.05;
+    // «¿Dónde…?» is answered by where («En Ajustes → Equipo…», «… → «Nuevo post»»); «¿cómo funciona…?», «¿qué es…?» by
+    // what it is, not by where it is set.
+    const saysWhere = /^(?:En|Desde|Arriba|Abajo)\b/.test(said) || said.includes('→');
+    if (whereAsk && saysWhere) s += 0.04;
+    else if (explain && /^(?:En|Desde)\b/.test(said)) s *= 0.92;
     else if (!why && /^Porque\b/.test(said)) s *= 0.85;
     if (o.screen && e.screen && e.screen === o.screen) s += 0.04;
-    if (e.kind === 'curated') s += 0.03;
+    // A curated answer, more when it was written for the asker's role (not everyone's).
+    if (e.kind === 'curated') s += e.roles ? ROLE_OWN : 0.03;
     if (partial.has(k)) s = Math.min(s, STRONG - 0.01);
-    out.push({ entry: e, score: s, confidence: s >= STRONG ? 'strong' : s >= WEAK ? 'weak' : 'none', text: textFor(e.a, o.roles) });
+    out.push({ entry: e, score: s, confidence: s >= STRONG ? 'strong' : s >= WEAK ? 'weak' : 'none', text: textFor(e.a, o.roles), via: ix.docs[via.get(k)!]?.text ?? '' });
   }
   out.sort((x, y) => y.score - x.score);
   // One word, and another entry says it almost as well as the first («¿qué tengo que hacer para publicar?»: a question

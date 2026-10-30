@@ -135,7 +135,7 @@ const WITH_NUMBER = String.raw`(?:${words('calles calle carreras carrera avenida
 const WITH_NAME = String.raw`(?:${words('calle carrera avenida transversal vereda pasaje callejon prolongacion autopista carretera troncal sector urbanizacion barrio caserio aldea residencias edificio')}|${words('avda av cra urb edif')}\.?|${words('via')}\s+${words('a al hacia para')})`;
 const WITH_ARTICLE = String.raw`(?:${words('sector barrio urbanizacion caserio aldea avenida residencias quinta')}|${words('avda av urb')}\.?)`;
 // Capitalized words that follow a street word without being a place: networks, apps, fields.
-const NOT_PLACE = words('whatsapp instagram facebook tiktok telegram drive youtube threads twitter gmail zoom meet salud educacion publico publica privado privada comercio cultura deporte deportes turismo agricola electrico social productivo version');
+const NOT_PLACE = words('whatsapp instagram facebook tiktok telegram drive youtube threads twitter gmail zoom meet play store google apple android iphone chrome safari salud educacion publico publica privado privada comercio cultura deporte deportes turismo agricola electrico social productivo version');
 const START = String.raw`(?<![\p{L}\d])`;
 const END = String.raw`(?![\p{L}\d])`;
 // «15-B» or «15B» (not «10K», a race).
@@ -187,7 +187,7 @@ const LANDMARK_RULES: [RegExp, Replacer][] = [
 // a role or «mi…» («en Instagram», «en Material», «en la Agenda», «para Redes», «desde Mi perfil»). Too
 // broad for ordinary text: only on a question about an event, a notice about one, team material about
 // one in the prompt and what a model asks to tell the team.
-const NOT_NAMED = words('instagram facebook tiktok threads twitter youtube whatsapp telegram drive gmail zoom meet agenda hoy inicio material piezas pieza aprobar por_aprobar ajustes avisos biblioteca resultados copies storyboard ficha tweets publicar buzon equipo perfil asistente registro politica digital categorias formulas horarios marca buscar nuevo_evento nueva_pieza nueva_publicacion nueva_tanda eventos mis_eventos crear mas redes supervision despacho grabacion secretaria administracion mi mis canva capcut photoshop premiere lightroom google chrome excel word wetransfer meta');
+const NOT_NAMED = words('instagram facebook tiktok threads twitter youtube whatsapp telegram drive gmail zoom meet play play_store app_store google apple android iphone chrome safari agenda hoy inicio material piezas pieza aprobar por_aprobar ajustes avisos biblioteca resultados copies storyboard ficha tweets publicar buzon equipo perfil asistente registro politica digital categorias formulas horarios marca buscar nuevo_evento nueva_pieza nueva_publicacion nueva_tanda eventos mis_eventos crear mas redes supervision despacho grabacion secretaria administracion mi mis canva capcut photoshop premiere lightroom google chrome excel word wetransfer meta');
 // The things of the platform a Name can follow without being a place («en la pestaña Material»).
 const NOT_PLACE_NOUN = words('pestana pestaña pantalla menu boton seccion red redes cuenta grupo canal carpeta opcion campo casilla lista formato plantilla formula pieza video copy app aplicacion plataforma enlace link perfil ficha rol jefe senor señor gobernador doctor doctora licenciado licenciada profesor profesora companero companera compañero compañera hermano hermana');
 const NAMED_RULES: RegExp[] = [
