@@ -7,6 +7,7 @@ import { scrubTeamFicha, scrubTeamScript } from './guard';
 import { carriesWhen, hasDate, hasPlaceOrContact, redact, redactDeep, redactEventSpeech, redactLandmarks, redactQuoted } from './redact';
 import { fillHuecos, plain, sentences, HUECO, type Huecos } from './text';
 import { sectionCards } from '../guides';
+import { findAnswers } from './answers/engine';
 import { screenFor } from './screens';
 import { ANY_TOKEN, NO_TITLES, Placeholders, type TitleSet } from './titles';
 import { runTool, toSpecs, type Tool, type ToolCtx, type ToolRun, type TutorialLink } from './tools';
@@ -53,8 +54,9 @@ export type TurnContext = {
 // restore: on the model path, `text` carries the placeholders of the titles (titles.ts); this puts the
 // real names back for the person, after the filter and the nets have looked at the placeholders.
 // goTo: a screen the demo brain points to without a tool («¿dónde está la biblioteca?»). tutorial: one to start
-// («Ver el tutorial de Publicar»).
-export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[]; restore?: (t: string) => string; goTo?: string; tutorial?: TutorialLink };
+// («Ver el tutorial de Publicar»). fixed: the text is one of 360's answers (answers/engine.ts: the help content, static and
+// checked by its own tests), so the agenda net only looks for a concrete date, time, place or contact in it (index.ts).
+export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[]; restore?: (t: string) => string; goTo?: string; tutorial?: TutorialLink; fixed?: boolean };
 
 // ---------------------------------------------------------------------------
 // Which fichas go into this turn: the relevant ones, not all of them (a turn should weigh
@@ -243,11 +245,23 @@ export function sectionsFor(all: Ficha[] | null, screen: string | null | undefin
   return roles.flatMap((r) => all.filter((f) => f.key === sectionKey(screen, r)));
 }
 
-export function pickFichas(all: Ficha[], text: string, roles: Role[], max = 6, withMust = true): Ficha[] {
+/**
+ * The fichas for a turn: the role's and the agenda's always, then the ones most like the question. With `answers`, also
+ * that many entries of 360's answers (D-89, answers/engine.ts), the ones that answer it best for these roles, as fichas
+ * «Pregunta: … / Respuesta: …»: the model gets what the demo brain knows (the prompt's budget still cuts them).
+ */
+export function pickFichas(all: Ficha[], text: string, roles: Role[], max = 6, withMust = true, answers = 0): Ficha[] {
   const must = withMust ? all.filter((f) => f.key === 'guia:agenda-privada' || roles.some((r) => ROLE_FICHA[r] === f.key)) : [];
   const scored = scoreFichas(all, text).filter((x) => !must.includes(x.f) && x.n >= 2);
-  return [...must, ...scored.slice(0, max).map((x) => x.f)];
+  const fromAnswers = answers
+    ? findAnswers(text, { roles, limit: answers * 2 })
+        .filter((m) => m.confidence !== 'none' && !m.entry.may)
+        .slice(0, answers)
+        .map((m): Ficha => ({ key: `${ANSWER_PREFIX}${m.entry.id}`, title: `Pregunta: ${m.entry.q[0] ?? 'lo que dice la guía'}`, body: `Respuesta: ${m.text}`, tags: [], origin: 'plataforma' }))
+    : [];
+  return [...must, ...scored.slice(0, max).map((x) => x.f), ...fromAnswers];
 }
+export const ANSWER_PREFIX = 'respuesta:';
 
 /** The key of the person's role ficha (for «¿puedo…?» and «¿qué hago yo aquí?»). */
 export function roleFichaKeys(roles: Role[]): string[] {
@@ -312,7 +326,7 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string, 
     const general = ctx.knowledge.filter((x) => !isSection(x));
     const picked = [
       ...sectionsFor(ctx.knowledge, ctx.screen, ctx.roles).slice(0, 1),
-      ...pickFichas(general, `${question} ${ctx.history.filter((h) => h.who === 'persona').slice(-2).map((h) => h.body).join(' ')}`, ctx.roles, 4),
+      ...pickFichas(general, `${question} ${ctx.history.filter((h) => h.who === 'persona').slice(-2).map((h) => h.body).join(' ')}`, ctx.roles, 4, true, 3),
     ];
     if (!picked.length) L.push('No hay fichas sobre esto. Si te preguntan algo que no está aquí ni en una herramienta, dilo sin inventar.');
     let used = 0;
@@ -394,7 +408,9 @@ export function filterOutput(t: string, assistantName?: string): string {
 /** A separate check that what goes out is human text (manual §10): more than 8 characters, at
  * least half of them letters, and no runs of dots. «¡De nada!» passes; «ok» or «1234…» don't. */
 export function looksLikeText(t: string | null | undefined): boolean {
-  const s = String(t ?? '').trim();
+  // A clock time or a range of them («12:00–14:00») is a word here: the best hours to publish are mostly digits, and
+  // they once made a right answer read as broken (degraded).
+  const s = String(t ?? '').trim().replace(/\b\d{1,2}:\d{2}(?:\s*[–-]\s*\d{1,2}:\d{2})?/g, 'hora');
   if (s.length <= 8 || /[.…]{4,}/.test(s)) return false;
   const letters = (s.match(/\p{L}/gu) ?? []).length;
   return letters >= 3 && letters / s.length >= 0.5;
@@ -453,7 +469,7 @@ const PLACE_TOKEN = /\[{1,2}\s*[Ll]\s*\d{1,4}\s*\]{1,2}/;
 // them asks about a section (`sectionAsk`, computed on the question before guardQuestion() turns them into «[fecha]»):
 // breaksAgendaRule() does not take it for an event question. An event lookup, or (on the model path) an answer that
 // names an event, is still checked whole, those words included.
-const REDES_SECTION_NAMES = /\b(?:(?:qu[eé] es|qu[eé] va en|para qu[eé] (?:es|sirve)|secci[oó]n(?: de)?|piezas? de)(?: la| el)? fin de mes|resumen del mes|nuevo mes|borr(?:ar|o|a) (?:este|el) mes|(?:a|de) otro mes|mes de redes)\b/gi;
+const REDES_SECTION_NAMES = /\b(?:(?:qu[eé] es|qu[eé] va en|para qu[eé] (?:es|sirve)|secci[oó]n(?: de)?|piezas? de)(?: la| el)? fin de mes|resumen del mes|nuevo mes|(?:borr|vaci)(?:ar|o|a) (?:este|el) mes|(?:a|de) otro mes|mes de redes)\b/gi;
 export const withoutRedesNames = (question: string) => String(question ?? '').replace(REDES_SECTION_NAMES, ' la sección ');
 /** Whether a question is about events only through the names of Redes' sections (see REDES_SECTION_NAMES). */
 export function asksRedesSection(question: string, titles: TitleSet = NO_TITLES): boolean {

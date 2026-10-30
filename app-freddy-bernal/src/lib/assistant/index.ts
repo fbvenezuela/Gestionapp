@@ -28,7 +28,7 @@ import { escalate as realEscalate } from './escalate';
 import { aboutEvent, eventThread } from './events';
 import { localTurn } from './local';
 import { estimateCost, parseChain, type ChatOptions, type Link } from './providers';
-import { redact } from './redact';
+import { hasDateOrTime, hasPlaceOrContact, redact } from './redact';
 import { MESSAGES_MARK, messagesAsk } from './messages-ask';
 import { pickGoTo, screenFor, type GoTo } from './screens';
 import { MESSAGES_PER_HOUR, loadKnowledge, loadScripts, noteHeard, openTurn, saveTurn, type Reserve } from './store';
@@ -261,7 +261,10 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     // place or contact. The demo brain quotes the titles it looked up as they are (the person can see
     // them): those are masked for this check, like the model's placeholders.
     const checked = out.restore ? answer : new Placeholders({ events: titlesIn(out.calls), pieces: [], places: [] }).mask(answer);
-    if (breaksAgendaRule(checked, question, out.calls, seen, { answerToo: !!out.restore, sectionAsk: asksRedesSection(routing, seen) })) answer = AGENDA_FALLBACK;
+    // One of 360's answers (static help text: «Hoy en la agenda», «de noche» in «Horas de silencio») breaks the rule only
+    // with a concrete date, time, place or contact in it; anything else, by the whole net.
+    const breaks = out.fixed ? hasDateOrTime(checked) || hasPlaceOrContact(checked) : breaksAgendaRule(checked, question, out.calls, seen, { answerToo: !!out.restore, sectionAsk: asksRedesSection(routing, seen) });
+    if (breaks) answer = AGENDA_FALLBACK;
     // The promise net: says it told the team but avisar_al_equipo did not succeed → the server
     // tells them; if that fails too, the sentence changes (promising and not keeping is worse).
     const told = out.calls.some((c) => c.tool === 'avisar_al_equipo' && c.ok);

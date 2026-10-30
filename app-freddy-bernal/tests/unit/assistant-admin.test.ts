@@ -141,7 +141,8 @@ describe('el material de fábrica cumple sus reglas', () => {
   const files = fs.readdirSync('config/assistant').map((f) => fs.readFileSync(`config/assistant/${f}`, 'utf8'));
 
   it('nada del cliente en config/assistant ni en el código del asistente', () => {
-    const code = fs.readdirSync('src/lib/assistant').map((f) => fs.readFileSync(`src/lib/assistant/${f}`, 'utf8'));
+    // Its files and the answers' folder (D-89).
+    const code = fs.readdirSync('src/lib/assistant', { recursive: true, encoding: 'utf8' }).filter((f) => f.endsWith('.ts')).map((f) => fs.readFileSync(`src/lib/assistant/${f}`, 'utf8'));
     for (const text of [...files, ...code]) for (const w of clientWords) expect(text).not.toContain(w);
   });
 
