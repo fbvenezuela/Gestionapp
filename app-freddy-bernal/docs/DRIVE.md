@@ -187,6 +187,21 @@ recomiendo el script.
   lo que se elige o se importa de Drive, el navegador de Administración lee el formato justo después. Si no puede, las
   reglas por red dicen «revísalo a mano».
 
+## «Organizar por orden del feed» (29/10/2026, D-74): apagado
+Lo pidió el encargo de Redes por formato (§2.6) «cuando haya permisos». Está hecho y **apagado**: el botón no existe
+hasta que se cumplen las cuatro llaves.
+- **Las cuatro llaves:** la variable `REDES_DRIVE_ORGANIZE=true` (en Vercel, solo Production; hoy `false` en
+  `.env.example`), Drive como almacenamiento (`STORAGE_PROVIDER=drive`), Drive conectado (paso C) y Administración con
+  doble factor. Entonces sale en Ajustes → Google Drive.
+- **Qué hace:** por cada mes con algo puesto en el feed, una carpeta `Feed/Mes-<n>` (`n` es la posición del mes, no su
+  nombre) y la portada de cada pieza puesta se renombra con su número en el feed y su formato: `01 - Post.jpg`,
+  `02 - Reel.jpg`… **Sin el título:** los títulos traen lugares, y en Drive los nombres de archivo no llevan lugares
+  (regla 4). Se salta una pieza sin portada.
+- **Qué no hace:** no toca archivos que no creó la plataforma (permiso `drive.file`), no hace enlaces públicos y no
+  cambia nada de la app (ni el feed ni las piezas).
+- **Cómo se prueba:** `tests/unit/drive-organize.test.ts` (nombres, carpetas, sin título, se salta sin portada) y
+  `tests/e2e/drive-off.spec.ts` (con Drive apagado el botón no está). Con la cuenta real, después del paso C.
+
 ## «Descargar todo» y el cupo del día (27–28/10/2026)
 Lo pidió Hillary para el editor (encargo §5): bajar de una vez todo el material de una pauta. Está en la pestaña
 Material de cada evento («Descargar todo el material») y en la Biblioteca. Decisión: `DECISIONES.md` D-36.

@@ -2,7 +2,8 @@
 
 Actualizado: 29/10/2026 (seis roles, fichas, agenda compartida y entrega de Grabación: migraciones
 `20261027001500` a `20261028002300`; tercera vuelta: Mensajes, Ayuda y tutoriales, migraciones `20261028002350` y
-`20261028002400`; ronda 5: Mensajes como canales, `20261029090000`).
+`20261028002400`; ronda 4: Redes por formato, meses y feed, `20261029000100`; ronda 5: Mensajes como canales,
+`20261029090000`).
 
 ## Piezas
 - **Next.js 16 (App Router), React 19, TypeScript estricto, Tailwind 4.** Server Components para leer y server
@@ -46,7 +47,8 @@ app-freddy-bernal/
 | Configuración | `app_settings`, `categories` | Claves: `app.timezone`, `brand`, `municipalities`, `tweets.slots`, `tweets.per_day`, `tweets.low_stock_days`, `security.mfa_roles`, `publishing.enabled`, `upload.max_mb`, `publishing.default_collaborators`, `parishes` (vacío hasta la lista oficial) |
 | Agenda | `events`, `event_schedule` (privada), `event_brief`, `event_assignments`, `storyboards`, `storyboard_blocks`; vistas `event_calendar` y `agenda_to_schedule` (`security_invoker`) | Ver «Regla de fecha y hora». Desde el 27/10 `events` tiene `origin` (despacho, jefe, política, IVT), `kind` (evento, visita de obra, actividad comunitaria), cancelar sin borrar (`cancelled_at/by`, `cancel_reason`), `rev` y `updated_by`, y la ficha de la que nació (`obra_ficha_id` o `community_report_id`, a lo sumo una). `rev` también en la fecha, la ficha técnica y el storyboard |
 | Fichas (27/10) | `obra_fichas` (O-0001, IVT), `obra_ficha_private`, `community_reports` (R-0001, política), `community_report_private`, `ficha_updates` | Lo de terceros (nombres, teléfonos, dirección) solo en las `*_private`, con doble factor. `ficha_updates` es la historia: solo se agrega y de las privadas guarda solo el nombre del campo. «No aplica» / «Por confirmar» en la columna `marks` |
-| Material y piezas | `media_assets`, `recording_notes`, `pieces`, `piece_versions`, `copy_formulas`, `copies` | `copies` único por (pieza, largo). Un archivo tiene un solo dueño: un evento, una ficha de obra o un reporte. Tipos nuevos: `storyboard`, `before`, `progress`, `after`, `document`. `recording_notes`: la nota para el editor y el storyboard escrito de Grabación |
+| Material y piezas | `media_assets`, `recording_notes`, `pieces`, `piece_versions`, `copy_formulas`, `copies` | `copies` único por (pieza, largo). Un archivo tiene un solo dueño: un evento, una ficha de obra o un reporte. Tipos nuevos: `storyboard`, `before`, `progress`, `after`, `document`. `recording_notes`: la nota para el editor y el storyboard escrito de Grabación. Desde el 29/10 `pieces` tiene `format` (reel, post, carousel, story, youtube, month_end), `content_month_id`, `pillar`, `sort_order`, `rating` y la marca de diseño (`design_status`, `design_note`, `design_by`, `design_at`); `piece_versions.slide_asset_ids` guarda las láminas en orden (léelas con `to_jsonb(...)`: una lámina vacía vuelve como el texto `NULL` en postgres.js) |
+| Redes por formato (29/10) | `content_months` (los meses, con su nombre y orden; borrar es lógico), `feed_slots` (24 filas por mes que nacen con el mes: número 1–24 y pieza), `piece_details` (los campos de cada formato, con `rev`), `piece_notices` (avisos de cumplimiento; «Resuelto», no se borran) | Una pieza en un solo espacio y un número con una sola pieza (únicos diferidos `feed_slots_one_place`, `feed_slots_month_num`). Las funciones del feed bloquean mes → espacios → pieza, siempre en ese orden. Ver «Redes por formato» |
 | Revisión | `reviews`, `review_comments` (con segundo), `voice_line_requests` | Aprobación solo por `review_piece()` |
 | Tweets | `tweet_batches`, `tweets` | Trigger `guard_tweet` |
 | Publicación | `publications` (con `republish_of`, `collaborators`, `validation`), `publication_metrics` (fotos en el tiempo), `network_specs` | Trigger `guard_publication` |
@@ -111,7 +113,10 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 | `ficha_updates` | quien ve la ficha | la escribe la base; a mano, solo notas propias; la de un reporte, sin teléfonos |
 | `media_assets` | con su evento (`can_see_event`); sin dueño, el equipo de contenido; de una ficha, quien ve la ficha (Redes y Grabación solo fotos del antes y del avance de su visita, nunca documentos; de un reporte, admin solo las fotos y los documentos jefe, despacho y política) | admin, redes y jefe cualquier tipo sin ficha; grabación crudo y storyboard en sus eventos; fotos de obra: admin, jefe, despacho, IVT; evidencia de reporte: jefe, despacho, política |
 | `recording_notes` | admin, jefe y redes con el evento; grabación en los suyos | la propia: el jefe, o grabación en un evento asignado |
-| `pieces`, versiones, copies | equipo de contenido | admin, redes, jefe; aprobar solo `can_approve()` (función) |
+| `pieces`, versiones, copies | equipo de contenido | admin, redes, jefe; aprobar solo `can_approve()` (función); eliminar solo `remove_piece()` (el jefe con aal2); administración solo restaura (`guard_piece_soft_delete`) |
+| `content_months` | equipo de contenido | crear, renombrar: admin, redes, jefe; borrar solo con `delete_content_month()` (redes y jefe) |
+| `feed_slots` | equipo de contenido | nadie inserta (nacen con el mes); poner y mover solo por `feed_place()`, `feed_swap()`, `feed_clear()`, `move_piece_to_month()` |
+| `piece_details`, `piece_notices` | equipo de contenido | admin, redes, jefe (`redes_piece_rules`); textos sin teléfono, y sin fecha u hora de quien conoce la agenda |
 | `tweets` | equipo de contenido | admin, redes, jefe; aprobar solo `can_approve()` |
 | `publications`, métricas | equipo de contenido | admin, redes, jefe; publicada/programada solo si la pieza está aprobada |
 | `user_roles`, `invitations` | admin (y cada quien sus roles) | admin con aal2; nadie se da roles a sí mismo y una cuenta no junta admin con jefe o despacho (`guard_role_mix`, D-41); el rol de jefe solo lo da el sistema (`guard_boss_grant`, D-58) |
@@ -134,6 +139,30 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
    fichas y las búsquedas no usan esas columnas.
 7. Probado en `tests/rls` (sobre todo `por-rol.test.ts`: un bloque por cada frase de §8 del encargo del 27/10) y en
    `tests/e2e/por-rol.spec.ts` y `flows.spec.ts` (redes no ve horas en la lista ni en la ficha).
+
+## Redes por formato (D-60 a D-78; migración `20261029000100_redes_formatos.sql`)
+- **Rutas:** `/redes` (tablero; `?vista=trimestre`; `?crear=1` abre «¿Qué quieres crear?»), `/redes/<formato>` (`reels`,
+  `posts`, `carruseles`, `historias`, `youtube`, `fin-de-mes`; `#pieza-<id>` abre esa tarjeta), `/redes/feed`,
+  `/redes/buscar`, `/ajustes/contenido` (Cupo y pilares, administración con doble factor). `/piezas` lleva a `/redes`;
+  `/piezas/[id]` es la tarjeta en grande; `/piezas/nueva?evento=` crea desde un evento con «Formato» y «Mes». La sala
+  del jefe `/aprobar/[id]?volver=` vuelve a la tarjeta solo si la dirección pasa `safeReturn()`.
+- **El mes abierto** viaja en la dirección (`?mes=<uuid>`, `monthParam()`); tocar una pestaña además lo guarda en la
+  cookie `fb-redes-mes` (`chooseMonth`).
+- **Código:** dominio `src/lib/domain/redes.ts` (formatos, numeración del feed `cellToNumber()`, estados `displayState()`,
+  `OUTGOING`, `designHold()`, textos de la demo), `format-rules.ts`, `redes-dashboard.ts`; lecturas
+  `src/lib/data/redes.ts`; acciones `src/lib/actions/redes.ts`;
+  pantallas `src/components/redes/**` (`card/**`, `feed/**`, `dashboard/**`, `month-tabs.tsx`, `redes-nav.tsx`).
+- **Funciones de la base:** `feed_place()`, `feed_swap()`, `feed_clear()`, `move_piece_to_month()`,
+  `delete_content_month()`, `remove_piece()`; disparadores `redes_piece_rules` (quién cambia qué), `guard_piece_month`,
+  `guard_piece_title`, `guard_content_month`, `guard_piece_details`, `guard_piece_notice`, `guard_version_slides`,
+  `story_details_reopen_review` y `notices_reopen_review` (lo que vuelve al jefe), `guard_publication_design` (un diseño
+  desaprobado después de aprobar no sale) y `guard_redes_settings`. Ninguna lee la agenda.
+- **Claves de configuración:** `redes.quotas` (`{reel, post, carousel, story, youtube}`, 0–200) y `redes.pillars`
+  (hasta 12 `{key, name, tone}`); vacías en la configuración real, cinco pilares inventados en la demo.
+- **Drive:** «Organizar por orden del feed» (`src/lib/storage/drive/organize.ts`) solo con `REDES_DRIVE_ORGANIZE=true`,
+  Drive como almacenamiento y conectado, y administración con doble factor; carpetas `Feed/Mes-<n>` y `NN - Post.jpg`.
+- **Errores en español:** `friendlyDbError` traduce los únicos del feed y los choques (40P01/40001: «Otra persona
+  cambiaba el feed a la vez: vuelve a intentarlo.»).
 
 ## Mensajes (canales, D-79 a D-88; antes D-49 a D-59)
 - **Pantallas** (`src/app/(panel)/mensajes/**`): la lista (`page.tsx`: «Todo el equipo», mis canales y «Archivados»;
@@ -193,8 +222,11 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
   el editor → aviso a redes (solo el título) → el evento pasa a «Material listo» → biblioteca por día (cuando se marca
   realizado). «Descargar todo» baja uno por uno, a una carpeta o a descargas, con un `LEEME.txt` sin fechas
   (`src/lib/media/download-plan.ts`, `folder-sink.ts`, `one-by-one.ts`).
-- **Piezas:** redes crea la pieza → sube el final (versión) y la portada → «Escribir desde la ficha» con fórmula
-  (FAB/PAS/AIDA) en tres largos → «Enviar a aprobación».
+- **Redes por formato (D-60 a D-78):** redes crea la pieza en su sección (`/redes/<formato>`, «+ Nuevo …» o «¿Qué
+  quieres crear?») en el mes abierto → llena su tarjeta (los campos del formato) y sube el final (versión), la portada
+  o las láminas → «Generar copies» (`/piezas/[id]#copies`): «Escribir desde la ficha» con fórmula (FAB/PAS/AIDA) en
+  tres largos → «Enviar a aprobación» (dice qué falta) → el jefe «Revisar» y vuelve a la tarjeta → la pone en el feed
+  del mes → Publicar o «Ya lo publiqué» con link y captura. Tablero (`/redes`): `src/lib/domain/redes-dashboard.ts`.
 - **Aprobación:** el jefe (con doble factor) ve video y copies, comenta en un segundo, «Aprobar», «Pedir cambios» o
   «Pedir frase al jefe» → aviso a redes. «Aprobar todas las verdes» de un toque.
 - **Tweets:** subir .docx/.txt/.md o pegar → separar (numeración, separadores o líneas en blanco) → validar (largo con
@@ -266,6 +298,7 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 | `20261028002300_report_files_notes.sql` | Los documentos de un reporte, solo para política, despacho y jefe (admin ve las fotos y no sube); la historia de un reporte sin teléfonos (D-41) |
 | `20261028002350_boss_grant.sql` | Tercera vuelta: el rol de jefe solo lo da el sistema; aviso al jefe por cada rol del equipo que da una persona (D-58). En `fb-dev` desde el 29/10 |
 | `20261028002400_internal_chat.sql` | Tercera vuelta: Mensajes (seis tablas, sus funciones y RLS), `text_has_concrete_datetime()` (E1), nada para anon ni en Realtime (D-49 a D-57, D-59). En `fb-dev` desde el 29/10 |
+| `20261029000100_redes_formatos.sql` | Ronda 4: Redes por formato, meses y feed: `pieces.format` y lo de la tarjeta, `content_months`, `feed_slots`, `piece_details`, `piece_notices`; las funciones del feed y de los meses; lo que vuelve al jefe; retención por diseño desaprobado; eliminar solo el jefe (D-60 a D-78). Falta en `fb-dev` |
 | `20261029090000_chat_channels.sql` | Ronda 5: Mensajes como canales que arma el jefe, el jefe en todos por la base, sin aviso ni «Quién habla con quién»; lo que había queda en canales archivados (D-79 a D-88). Falta en `fb-dev` |
 
 ## Tareas programadas

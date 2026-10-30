@@ -188,3 +188,28 @@ que use `<Card>`, `Sheet`, el diálogo propio o los menús ya lo tiene.
   siguen girando, más despacio. El vidrio no se mueve.
 - Pruebas en el navegador: `tests/e2e/ui-glass.spec.ts` (estilos calculados: tarjetas esmeriladas y `<Card solid>`
   opaca, axe sin quedar ciego, cada caso sólido, menos movimiento y una pasada de axe en modo oscuro).
+
+## Redes por formato (29/10/2026, D-60 a D-78)
+La referencia que pidió Hillary se copió en la lógica y las pantallas, con la cara de la app (oliva, glass, 360 px
+primero); su comparación pantalla por pantalla está en `docs/capturas/mila-vs-fb/README.md`.
+- **Barra de secciones** (`src/components/redes/redes-nav.tsx`): arriba de cada pantalla de Redes, no a la izquierda;
+  Tablero, los seis formatos con «revisadas/cupo», «⚠ sin copy» e «imagen faltante» (con texto para lectores de
+  pantalla), Feed, Tweets y «Buscar en Redes». En el teléfono se desliza de lado dentro de sí misma (nunca la página).
+- **Pestañas de mes** debajo de la barra («Mes 1 · 3 de 8»), con «+ Nuevo mes» a la vista y «⋯» para cambiar el nombre o
+  borrar; debajo, la línea del cupo (informativa).
+- **Tarjetas** (`src/components/redes/card/**`, `<Card solid>` porque son listas largas): la cabecera es la misma en los
+  seis formatos (miniatura de 44 px que se ve aunque esté plegada, chip del número en el feed, chip del estado, título
+  editable, día de creación sin hora, pilar y «En Feed · Mes 1 #7»); «Plegar» y «⋯» con 44 px. En el teléfono empiezan
+  plegadas menos la primera; la tarjeta a la que se salta se abre, toma el foco y destella (sin destello con «menos
+  movimiento»). Lo aprobado que sale se ve en lectura con «Editar (vuelve al jefe)». Receptividad: 10 estrellas de
+  44 px, en dos filas de 5 debajo de 600 px. La banda «Antes de publicar:» es ámbar (`warn-soft`). Publicada, la
+  tarjeta se pone verde (`ok-soft`) con sus enlaces.
+- **Estados:** chip neutro «Borrador», azul «En revisión», verde «En revisión · ✓ Lista» y «Publicado»; nunca un selector.
+- **Feed** (`src/components/redes/feed/**`): rejilla de 3 × 8 en 4:5, el #1 abajo a la derecha; cada celda dice
+  «Espacio #NN» y su formato; lo publicado lleva marco verde de 4 px y «✓ Publicado» escrito (nunca solo el color). Una
+  cabecera de perfil de solo lectura con el círculo «FB» en el color de la marca, el nombre y el cargo de la
+  configuración. Las acciones de una celda salen en una hoja desde abajo; arrastrar solo con ratón.
+- **Tablero** (`src/components/redes/dashboard/**`): tabla con `caption` y encabezados en la computadora; en el teléfono,
+  un bloque por formato con sus siete números (cada número es un botón de 44 px; cero dice «¡al día!»).
+- **Tonos de pilares:** cada pilar elige uno de cuatro tonos de `tokens.css`: `neutral` (gris), `info` (azul), `accent`
+  (oliva) y `ok` (verde); el chip del pilar es una lista para cambiarlo ahí mismo. Sin colores fuera de los tokens.

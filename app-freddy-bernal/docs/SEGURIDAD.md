@@ -1,7 +1,8 @@
 # Seguridad (primera versión)
 
-Actualizado: 29/10/2026 (seis roles, fichas, agenda compartida; en la tercera vuelta, Mensajes y el rol de jefe solo
-por el sistema). Qué se hizo para blindar la plataforma y qué falta.
+Actualizado: 30/10/2026 (seis roles, fichas, agenda compartida; en la tercera vuelta, Mensajes y el rol de jefe solo
+por el sistema; ronda 4, Redes por formato; ronda 5, Mensajes como canales). Qué se hizo para blindar la plataforma y
+qué falta.
 
 ## Lo que ya está
 1. **RLS en todas las tablas.** Cada consulta de una persona corre con su rol y su sesión (`set local role
@@ -13,7 +14,9 @@ por el sistema). Qué se hizo para blindar la plataforma y qué falta.
      registro de cambios;
    - sin doble factor, el jefe no ve la agenda ni aprueba; solo el jefe aprueba (Supervisión salió el 27/10);
    - nadie publica sin aprobación (la base lo exige); nadie crea una pieza ya aprobada;
-   - solo administración borra (borrado lógico) y da roles; nadie se da roles a sí mismo;
+   - solo administración borra (borrado lógico) y da roles; nadie se da roles a sí mismo. **Excepción desde el 29/10
+     (D-70):** una pieza la elimina solo el jefe con doble factor (`remove_piece()`, borrado lógico) y administración
+     solo la recupera, ni con un cambio directo en la tabla (`guard_piece_soft_delete`);
    - quien graba solo sube material crudo y su storyboard a sus eventos asignados;
    - un usuario sin rol no ve nada (tampoco quien quedó sin rol al retirar Secretaría y Supervisión);
    - las cinco frases de §8 del encargo del 27/10, una por bloque en `por-rol.test.ts`: Redes no ve fecha ni hora; el
@@ -194,7 +197,32 @@ por el sistema). Qué se hizo para blindar la plataforma y qué falta.
     - **Nada para anon:** cada función nueva tiene `revoke all … from public, anon`; las que hablan de otras personas
       (sus roles, quién es jefe) tampoco son de `authenticated`. Nada nuevo en Realtime. Se fueron `chat_notice_ack`
       (el aviso aceptado) y `chat_rules` («Quién habla con quién») con sus reglas y permisos.
-19. **Códigos por la base:** el código de un evento (E-0001), de una obra (O-0001) y de un reporte (R-0001) lo pone la
+19. **Redes por formato (29/10, D-60 a D-78; `tests/rls/redes-formatos.test.ts`, en PGlite y Postgres 16).**
+    - **RLS en las cuatro tablas nuevas** (`content_months`, `feed_slots`, `piece_details`, `piece_notices`), con el
+      mismo equipo de contenido que las piezas (admin, redes, jefe). `tests/rls/rls-everywhere.test.ts` revisa que toda
+      tabla de `public` tenga RLS.
+    - **Feed y meses con bloqueos:** nadie inserta espacios (24 por mes nacen con él); la base no deja una pieza en dos
+      espacios ni un número con dos piezas, en ningún mes; las funciones bloquean siempre en el mismo orden (mes →
+      espacios → pieza) y cada persona recibe la verdad («el #7 anterior quedó sin programar») o «Otra persona cambiaba
+      el feed a la vez». Una pieza viva nunca queda en un mes borrado; borrar un mes no borra piezas y comprueba que el
+      número que vio la persona no cambió.
+    - **La regla de la agenda en lo que lee Redes (D-75):** nada nuevo lee `event_schedule`, `event_calendar` ni
+      `done_on`. El título de la pieza, el nombre del mes, la nota de diseño, los avisos y todos los campos de la tarjeta
+      (hashtags incluidos) nunca llevan un teléfono, y si quien escribe conoce la agenda, nunca una fecha u hora
+      concreta (`text_has_concrete_datetime()`, la misma regla de Mensajes). La fecha de una tarjeta es el día en que se
+      creó la pieza, sin hora; el mes y el espacio del feed los pone una persona, nunca se calculan con un evento.
+    - **Lo que vuelve al jefe:** cambiar los copies, el archivo o las láminas (y su orden), el título del reel y del
+      video de YouTube, el texto en pantalla y el sticker de la historia, o agregar o cambiar un aviso de cumplimiento en
+      una pieza aprobada la devuelve a revisión. Un aviso no se edita y se resuelve en el mismo paso.
+    - **Retención por diseño desaprobado (D-64):** si el diseño queda desaprobado después de la aprobación, la base no
+      deja programar ni «Ya lo publiqué», tampoco al sistema (`guard_publication_design`), hasta que el jefe vuelva a
+      aprobar. La marca que pone el jefe solo la quita o cambia el jefe.
+    - **Ajustes de Redes:** `redes.quotas` y `redes.pillars` los escribe solo administración con doble factor y la base
+      revisa su forma (`guard_redes_settings`). Drive «Organizar por orden del feed» está apagado
+      (`REDES_DRIVE_ORGANIZE=false`) y nunca pone el título en el nombre de un archivo.
+    - **Nada para anon:** cada función nueva tiene `revoke all … from public, anon` (lo revisa el catálogo de
+      `tests/rls/por-rol.test.ts`).
+20. **Códigos por la base:** el código de un evento (E-0001), de una obra (O-0001) y de un reporte (R-0001) lo pone la
     base: nadie mete una fecha en un código (empieza el nombre de cada archivo descargado) ni le quita el número al
     siguiente. Un evento ya realizado no cambia de fecha ni de lugar; un archivo nunca se pasa a otro evento o ficha.
 
@@ -210,8 +238,9 @@ por el sistema). Qué se hizo para blindar la plataforma y qué falta.
 - Doble factor también para redes y grabación antes de abrir la web.
 - Cuánto tiempo se guardan los datos de terceros de las fichas (y lo que quedó en el registro de cambios antes del
   28/10): por decidir (`PENDIENTES.md`).
-- Repetir en `fb-dev` las pruebas por rol con cuentas de prueba (las migraciones de la ronda del 27–28/10 ya están
-  aplicadas allí desde el 28/10; las dos de la tercera vuelta, Mensajes y el rol de jefe, todavía no).
+- Repetir en `fb-dev` las pruebas por rol con cuentas de prueba (las migraciones hasta `20261028002400` están
+  aplicadas allí desde el 29/10; faltan `20261029000100_redes_formatos.sql` y `20261029090000_chat_channels.sql`, en ese
+  orden, y después `npm run db:seed-client`).
 - Mensajes: aplicar en `fb-dev` la migración de canales (`20261029090000_chat_channels.sql`) y probar ahí dos personas
   en un canal desde dos teléfonos (en la demo cada servidor tiene su base, D-88), y en un Android real que el aviso de mensaje en la pantalla de bloqueo no lleve el texto.
 - Drive: probar con la cuenta real (paso C de `DRIVE.md`) que Google acepta las partes directas del teléfono y los

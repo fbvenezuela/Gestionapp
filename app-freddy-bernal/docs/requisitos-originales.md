@@ -359,3 +359,46 @@ son de Hillary; los mensajes completos no estaban en el repositorio.
   versión final; solo falta agregarle lo de los tweets». Resultados con miniaturas.
 - La cara: «La interfaz hay que hacerla más bonita, más glass, más UI design» (27/10; el 25/10: «glassmorphism»).
 - 25/10: no hacer guías nuevas hasta que ella pruebe cada rol.
+
+### 29/10/2026 — «Redes igual a la de Mila» (encargo de Juan, `PROMPT-REDES-COMO-MILA-2026-10-29`)
+
+Oscar, 29/10: «¿la página del cliente ya tiene todo exactamente igual a lo de Mila?». Hillary (27/10): «es la versión
+final; solo falta agregarle lo de los tweets» y «resultados también, con las miniaturas». La referencia es la plantilla
+limpia de esa plataforma: se copió la lógica y las pantallas, nunca su código, su contenido, su marca ni sus reglas de
+copy. Punto por punto (estado al 30/10/2026; decisiones D-60 a D-78):
+
+| Punto del encargo | Estado |
+|---|---|
+| §0 Modo demostración, sin correos, IA ni datos reales | Hecho: todo sigue en demo; Mes 1 con piezas inventadas para FB |
+| §0 Redes no ve fecha, hora ni dirección (en la base) | Hecho (D-75): nada nuevo lee la agenda; títulos, meses, campos y avisos sin fecha u hora de quien conoce la agenda; e2e por rol en tablero, secciones, feed y búsqueda |
+| §0 Nada se publica sin el jefe; lo que sale es lo aprobado | Hecho (D-61, D-63, D-64): lo que sale queda congelado; un diseño desaprobado después de aprobar no sale |
+| §0 Tweets, Resultados con miniaturas y «¿A qué hora nos va mejor?», Publicar con validación propia, sin Metricool | Se quedan; Publicar suma historias y carruseles (D-73). El día de la semana en «¿A qué hora…?» queda pendiente |
+| §0 Los seis roles; el jefe tiene todo, también Redes | Hecho: el jefe abre el tablero y todas las secciones |
+| §1 Se copia la lógica, no el código (tablas, RLS, roles de verdad) | Hecho: cuatro tablas con RLS (`20261029000100_redes_formatos.sql`) |
+| §2.1 Secciones por formato con tarjetas editables en el sitio | Hecho (D-60, D-61): Reels, Posts, Carruseles, Historias, YouTube, Fin de mes y Tweets |
+| §2.1 Cabecera con miniatura, fecha de creación y pilar | Hecho: la misma en los seis formatos, más número en el feed y estado |
+| §2.1 Pilares de FB | Se editan en Ajustes → Cupo y pilares; vacíos en la configuración real, cinco inventados en la demo (pregunta para Hillary) |
+| §2.1 Estados Borrador · En revisión · Programado · Publicado | Hecho (D-62): se calculan; una aprobada sin publicar dice «En revisión · ✓ Lista» |
+| §2.1 Crear, duplicar, plegar, reordenar; eliminar solo el jefe | Hecho (D-70): eliminar es solo del jefe con doble factor y no borra de verdad; administración recupera (pregunta: ¿Redes también?) |
+| §2.1 Lo que nace de un evento cae en su formato; los copies llenan el copy | Hecho: «Nueva pieza» desde el evento pide «Formato» y «Mes»; el largo es el caption, el medio Threads y el corto X |
+| §2.2 Pestañas de mes compartidas, cupo informativo, mover de mes, crear, renombrar, borrar sin borrar piezas | Hecho (D-67, D-68): una sola lista para secciones y feed; borrar un mes avisa cuántas piezas pasan al primero |
+| §2.3 Feed de 24 espacios por mes, selector, una pieza en un solo lugar, mover, vaciar, #1 abajo a la derecha, «Sin programar», chip «En Feed · Mes X #N», verde «✓ Publicado» | Hecho (D-69); la base no deja una pieza en dos espacios. El orden #1 abajo a la derecha es el del encargo (pregunta para Hillary) |
+| §2.4 «Revisado» = aprobación del jefe; «Publicado» = «Ya lo publiqué» con link y captura | Hecho (D-63) |
+| §2.4 Diseño aprobado / desaprobado con nota | Hecho (D-64): lo marcan el jefe y Redes (pregunta: ¿alguien más?) |
+| §2.4 Receptividad del 1 al 10 | Hecho (D-65): posts, reels y carruseles; el promedio va al tablero |
+| §2.4 Avisos de cumplimiento | Hecho (D-66): los pone Redes, el jefe los ve en su sala y marca que los leyó |
+| §2.5 Tablero: formatos × siete categorías, por mes o trimestre, cada número a la siguiente pieza, actividad, acciones rápidas y búsqueda | Hecho (D-71) |
+| §2.6 Drive «Organizar por orden del feed» detrás de un interruptor apagado | Hecho (D-74): `REDES_DRIVE_ORGANIZE=false`; nombra `01 - Post.jpg`, sin el título |
+| §3 Capturas lado a lado en `docs/capturas/mila-vs-fb/` | Hecho (D-78): 22 escenas a 1366 y 360 px con su comparación |
+| §3 Pruebas por rol (Redes sin fecha ni hora, solo el jefe aprueba, nada sale sin aprobación, el feed no deja una pieza en dos espacios, borrar un mes no borra piezas) | Hecho: RLS en PGlite y Postgres 16 y e2e por rol |
+| §3 Mes 1 lleno con piezas inventadas para FB | Hecho (D-76): 8 posts, 12 reels, 4 carruseles, 12 historias, 2 de YouTube y 1 de fin de mes; 21 de 24 espacios |
+| §4 IDEA, DECISIONES, requisitos y guía por usuario al día (sin mandarla) | Hecho; la guía se genera con `npm run docs:guides` |
+| §4 Preguntas para Hillary (cupo, pilares, quién aprueba el diseño, YouTube) | En `PENDIENTES.md`, al final |
+| `fb-dev` | Falta aplicar la migración y `npm run db:seed-client` |
+
+### 29/10/2026 — Mensajes como canales (Juan)
+
+«este aviso quítalo de todo donde salga, no tiene sentido que lo tengamos así, se siente como si estuviéramos espiando
+a las personas» y «podríamos algo tipo Slack o Discord, que sean canales de comunicación y el jefe pueda verlos todos,
+y luego él es el que decide quién va en cada canal». Hecho en la ronda 5 (D-79 a D-88): canales que arma el jefe, el
+jefe en todos y a la vista en la lista de miembros, sin aviso en ninguna parte.

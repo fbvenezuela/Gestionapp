@@ -36,6 +36,23 @@ Inspirado en el «estudio de contenido» que ya se hizo para otra clienta (Mila)
 - **Biblioteca de videos conectada con Google Drive.** Los videos que edita Hillary aparecen en la plataforma y el equipo los descarga desde ahí. La biblioteca incluye el copy, la portada y los hashtags de cada uno.
 - **Categorías:** todo el contenido usa la lista de categorías de Hillary del 20/10, en `requisitos-originales.md`: Gestión y obras, Bienestar social, Formación, Orden y comunidad, Economía y producción, Identidad tachirense, Deporte y recreación, Ambiente y Gobierno, con sus subcategorías.
 - **Aprobación:** antes de programar, una vista para que Fernando Alvarado (supervisión política) apruebe o comente. (Desde el 27/10 aprueba el jefe: `DECISIONES.md` D-30.)
+- **Redes por formato, meses y feed (29/10/2026; `DECISIONES.md` D-60 a D-78).** «Piezas» ya no es una lista suelta:
+  - **Tablero** (`/redes`): formatos contra siete categorías (Revisados, Por revisar, Diseño aprobado, Diseño
+    desaprobado, Publicado, Copy faltante, Imagen faltante), por mes o por trimestre; cada número lleva a la siguiente
+    pieza de esa casilla. Además, observaciones, actividad reciente, acciones rápidas y «Buscar en Redes».
+  - **Secciones:** Reels, Posts, Carruseles, Historias, YouTube y Fin de mes (y Tweets, como estaba). Cada pieza vive en
+    una sola sección y se edita en su **tarjeta**: miniatura, día de creación, pilar, estado y los campos de su formato
+    (tomas del reel, texto del arte del post, láminas del carrusel, sticker y texto en pantalla de la historia, guion de
+    YouTube, imágenes del cierre). `/piezas/[id]` es la misma tarjeta en grande.
+  - **Meses de contenido** con su cupo (informativo, en Ajustes → Cupo y pilares), una sola lista para todas las
+    secciones y el feed. Borrar un mes no borra piezas.
+  - **Feed** de 24 espacios por mes, numerado en el orden real de publicación (#1 abajo a la derecha); una pieza nunca
+    está en dos espacios.
+  - **Revisión por pieza:** «Revisado y listo para publicar» es la aprobación del jefe; «Publicado» es «Ya lo publiqué»
+    con link y captura; diseño aprobado o desaprobado con nota; receptividad del 1 al 10; avisos de cumplimiento
+    («Antes de publicar»). Los estados se calculan; lo que sale queda congelado al aprobar.
+  - **Fin de mes** con el «Resumen del mes» para el jefe (la rendición de cuentas).
+  - Drive «Organizar por orden del feed», apagado hasta tener permisos.
 
 ### 3.2 Trazabilidad de la gestión (pública; la sección estrella de la web)
 - Una **línea de tiempo** que se va construyendo sola con lo que se hace cada día: obras, entregas, visitas, reuniones.
@@ -124,7 +141,7 @@ tiene su doble factor. «Un solo perfil» (redes, grabación) es **un solo rol**
 | **Director de política** | William | Carga los eventos y avances comunitarios por municipio |
 | **Director del IVT** | Ángel (Instituto de Vialidad del Táchira) | Carga la ficha de cada obra antes de la visita del jefe |
 | **Grabación** | Un solo perfil | Graba y sube lo de cada pauta para el editor |
-| **Redes** | Hillary, Nesmaury, Larissa, Yessica | Piezas, copies, tweets, publicar y resultados |
+| **Redes** | Hillary, Nesmaury, Larissa, Yessica | Redes por formato (tablero, secciones, meses y feed), copies, tweets, publicar y resultados |
 
 **Administración:** rol técnico (invitar, ajustes, registro), no sale en la lista del equipo.
 
@@ -339,7 +356,8 @@ Revisado el 22/10 en la noche. Si choca con algo de arriba, manda esto (y `requi
 
 ### 11.5 Cómo trabajan de verdad (grupo de redes, 20 al 22/10)
 - **Prueban horarios y republican.** Cada publicación guarda su hora, y «Resultados» muestra a qué hora y qué día le va
-  mejor a cada red. Se puede marcar una publicación como **republicación** de otra (por ejemplo con otra portada) y
+  mejor a cada red. (Hoy «¿A qué hora nos va mejor?» va por franja horaria; el día de la semana queda pendiente:
+  `PENDIENTES.md`.) Se puede marcar una publicación como **republicación** de otra (por ejemplo con otra portada) y
   compararlas.
 - **Portadas:** se cambian en lote (por ejemplo las 40 de los últimos reels). La biblioteca guarda las portadas de cada
   pieza y su historial.

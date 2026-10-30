@@ -471,6 +471,7 @@ Cada decisión: qué, por qué y cómo se cambia. Las que hay que confirmar con 
 - **Lo demás de «Redes igual a Mila» espera:** el código de Mila apareció (`PENDIENTES.md` #11). Mila organiza Redes por
   formato (Reels, Carruseles, Historias, Feed); la nuestra, por paso. Rehacerla es grande y el encargo dice «no rehagas
   Redes a ciegas»: falta que Hillary confirme la tabla de diferencias.
+  **Cerrado el 29/10/2026:** Redes ya va por formato, meses y feed (D-60 a D-78).
 - **Cómo se cambia:** el orden, en `src/lib/domain/thumb-source.ts`.
 
 ## D-38. Glass más visible, sin perder lectura (27–28/10/2026)
@@ -887,6 +888,311 @@ comando, los mensajes no se borran).
   molestar.
 - **Cómo se cambia:** la tabla `chat_notice_ack` (se inserta la fila propia; no se borra); el texto en `CHAT_ACK_TEXT`.
 
+
+
+---------------------------------------------------------------------------------------------------------------------
+
+**Ronda 4 (29/10/2026): Redes por formato, meses y feed, como la referencia que pidió Hillary.** El encargo del 29/10
+(«Redes igual a la de Mila»): Redes por formato (Reels, Posts, Carruseles, Historias, YouTube, Fin de mes y Tweets), meses
+con cupo, un feed de 24 espacios por mes, revisión por pieza y un tablero. Se copió la lógica y las pantallas, nunca el
+código, el contenido, la marca ni las reglas de copy de la referencia. Migración nueva:
+`20261029000100_redes_formatos.sql` (cuatro tablas con RLS: `content_months`, `feed_slots`, `piece_details`,
+`piece_notices`; no edita ninguna aplicada; falta aplicarla en `fb-dev`). Nada cambia la aprobación del jefe, la regla de
+la agenda, Tweets ni la publicación manual. Las preguntas para Hillary siguen los valores por defecto de abajo
+(`PENDIENTES.md`, al final). Cierra lo que D-37 dejó esperando.
+
+## D-60. Redes por formato: dónde está cada cosa (29/10/2026)
+- **Qué:** `/redes` es el **Tablero de Redes** para Redes, el jefe y administración. Debajo, una barra de secciones
+  (`nav[aria-label="Secciones de Redes"]`): Tablero · Reels · Posts · Carruseles · Historias · YouTube · Fin de mes ·
+  Feed · Tweets, y un botón «Buscar en Redes». Cada ítem de formato lleva lo del mes abierto: «Posts 3/8» (revisadas de
+  su cupo), «⚠ 2» (sin copy) y la imagen faltante con su número (con texto para lectores de pantalla: «2 sin copy, 1 sin
+  imagen»), como la barra de la referencia. Todos sus enlaces llevan el mes abierto (`?mes=`). Cada sección es
+  `/redes/<sección>` (`reels`, `posts`, `carruseles`, `historias`, `youtube`, `fin-de-mes`); el feed es `/redes/feed`;
+  la búsqueda `/redes/buscar`. En el menú, «Piezas» se cambia por **«Redes»**
+  (Redes: Hoy, Agenda, Redes, Tweets, Publicar, Resultados, Biblioteca; en el teléfono Hoy, Agenda, Redes, Tweets y
+  «Más»). El jefe ya tenía «Redes»: ahora abre el tablero, que trae abajo «Lo demás de Redes» (Tweets, Publicar,
+  Resultados, Biblioteca con sus números, las mismas tarjetas de hoy). `/piezas` lleva a `/redes`. `/piezas/[id]` sigue
+  siendo la dirección de cada pieza (notificaciones, Mensajes, 360, Buscar, Publicar y Hoy la usan). «Crear» → «Nueva
+  pieza» abre «¿Qué quieres crear?» en el tablero (D-70); `/piezas/nueva` sigue para crear desde un evento, ahora con
+  «Formato» y «Mes». «Por aprobar» y el Inicio del jefe no se
+  mueven; el Inicio cuenta por formato.
+- **Por qué:** el encargo del 29/10 (§2.1) reparte «Piezas» en secciones; el resto de Redes (Publicar, Resultados, Tweets,
+  Biblioteca) ya funciona y Hillary lo quiere igual (§0). Cambiar la dirección de la pieza rompería los enlaces de
+  Mensajes, que la base reconoce por patrón (`internal_chat.sql:121`).
+- **Cómo se cambia:** `NAV` en `src/lib/roles.ts`; la barra en `src/components/redes/redes-nav.tsx`; las rutas en
+  `P/redes/**`.
+
+## D-61. Una pieza, un formato; qué sale queda congelado y qué es guion queda libre (29/10/2026)
+- **Qué:** columna nueva `pieces.format` (`reel`, `post`, `carousel`, `story`, `youtube`, `month_end`). Cada sección
+  muestra solo su formato. El formato se elige al crear y **no cambia cuando la pieza ya tiene archivo**. Por formato:
+  - **Reel:** título (sale como título del Short), copy, video 9:16, portada 9:16, «Referencia» (foto de cómo tiene que
+    verse: locación, encuadre, pose; solo planificación, no sale), **tomas** una por una («Lo que dice», «La acción»,
+    «Texto en pantalla»; «Traer del storyboard» las copia del evento), aprobado, publicado, receptividad.
+  - **Post:** texto del arte con su jerarquía (Antetítulo, Titular, Sellos, Letra pequeña), Concepto visual, Caption
+    (= copy largo), CTA, Hashtags, Notas de publicación, «Enlaces / referencias», imagen con «Proporción» 4:5 o 1:1.
+  - **Carrusel:** láminas en orden con su papel sugerido (Portada → Desarrollo → Resumen → CTA), cada una con su texto
+    y su imagen de 1080×1350; Hook, CTA, Caption (= copy largo) y Hashtags.
+  - **Historia:** «Idea original» (el campo principal, como en la referencia), Formato del sticker (Encuesta, Quiz,
+    Pregunta, Deslizador, Repost, Tip, Cuenta regresiva, Enlace, Detrás de cámaras, Otro), «Texto del sticker»
+    (pregunta u opciones), «Enlace del sticker» (solo `https://`), Texto en pantalla, Seguimiento, media 9:16 (foto o
+    clip). Nivel verde por defecto. El título queda chico en la cabecera (lo usan el selector, la búsqueda y la campana).
+  - **YouTube:** título (sale con el video), guion por tomas, descripción con capítulos (= copy largo), video 16:9 y
+    miniatura 16:9.
+  - **Fin de mes:** imágenes en orden con su título y su nota, y el copy. Sin cupo.
+  
+  **Lo que sale** queda congelado o vuelve al jefe: el archivo y la portada (versión, como hoy), **las imágenes del
+  carrusel y de Fin de mes** (lista ordenada dentro de la versión: cambiar una imagen o el orden crea una versión
+  nueva), los **copies** (como hoy), **el título del reel y del video de YouTube** (YouTube y Shorts lo publican) y, en
+  la historia, **el texto en pantalla y el sticker** (tipo, texto y enlace: se escriben en la app al publicar, así que
+  son lo que sale). **Lo que es guion o planificación** se edita libre y no devuelve la pieza: tomas, texto del arte,
+  concepto, hook, CTA, hashtags, notas, enlaces, idea original, referencia, proporción, seguimiento, textos de las
+  láminas, mes, espacio del feed, orden, pilar, receptividad y marcas de diseño. En el post, el carrusel, el reel y
+  YouTube, el copy es lo único que sale como texto: CTA y hashtags son ayudas que se pasan al copy con «Poner en el
+  copy» (eso sí lo devuelve si estaba aprobada, porque cambia el copy). En una pieza aprobada, lo que sale se ve en
+  lectura con el botón «Editar (vuelve al jefe)»: confirma una vez y después se guarda solo, sin diálogos mientras se
+  escribe.
+- **Por qué:** «lo que sale es exactamente lo aprobado» (§0) ya lo cuida la base con versiones, copies y
+  `guard_publication`; si el texto del arte cambia pero la imagen aprobada no, lo que sale es igual. Una segunda fuente
+  de caption rompería la comparación de `guard_publication`. Las historias son muchas y cortas: el verde las agrupa.
+- **Cómo se cambia:** la lista de formatos en `pieces_format_check` (migración nueva) y `FORMATS` en
+  `src/lib/domain/redes.ts`; qué devuelve al jefe, en `redes_piece_rules()`, `story_details_reopen_review()` y
+  `notices_reopen_review()`.
+
+## D-62. Estados: se calculan, nunca se ponen a mano (29/10/2026)
+- **Qué:** el chip de estado de cada tarjeta es: **Borrador** (borrador o con cambios pedidos, con la línea «Pidieron
+  cambios»), **En revisión** (esperando al jefe), **En revisión · ✓ Lista** en tono `ok` (aprobada sin publicación; la
+  fila de revisión dice ✓ «Revisado y listo para publicar»), **Programado** (aprobada con una publicación programada),
+  **Publicado** (con al menos una publicación hecha; la tarjeta se pone verde). Son los cuatro estados del pedido; el
+  «✓ Lista» evita que Redes espere al jefe por una pieza que ya aprobó (el tablero la cuenta en «Revisados»). `pieces.status` sigue con sus cinco valores. «Sin
+  programar» es solo del feed (pieza sin espacio).
+- **Por qué:** la referencia tiene un selector libre que se salta la revisión; aquí nada puede saltarse la aprobación
+  (§0), y `guard_publication` exige `status = 'approved'` para cada red.
+- **Cómo se cambia:** `displayState()` en `src/lib/domain/redes.ts`.
+
+## D-63. «Revisado y listo para publicar» es la aprobación del jefe; «Publicado» es «Ya lo publiqué» (29/10/2026)
+- **Qué:** en la tarjeta, la casilla «Revisado y listo para publicar» **muestra** la aprobación (✓ con «Aprobó el jefe»).
+  Al jefe, en una pieza en revisión, le sale «Revisar» → `/aprobar/[id]?volver=<la sección, el mes y #pieza-<id>>` (la
+  sala de revisión con su lista); al decidir vuelve a la tarjeta, que se abre y muestra ✓. No hay otra aprobación. En
+  un borrador o con cambios pedidos, la fila dice **«Enviar a aprobación»** con lo que falta en lista («Sube la imagen
+  4:5.», «Falta el copy largo.») y el enlace «Generar copies» (`/piezas/[id]#copies`). «Publicado» muestra las
+  publicaciones hechas; si no hay, el botón **«Ya lo publiqué»** abre un
+  diálogo: redes (cada una con su link), «Subir captura» y «Guardar». Crea publicaciones manuales ya publicadas con el
+  copy y la portada aprobados (la misma regla de hoy); sin aprobación, el botón está apagado con «Falta la aprobación
+  del jefe»; con el diseño desaprobado después de aprobar, apagado con «El diseño quedó desaprobado: el jefe tiene que
+  volver a verla» (y la base tampoco deja, D-64).
+- **Por qué:** §2.4 del pedido lo dice así; la base ya obliga link y copy aprobado.
+- **Cómo se cambia:** `markPublishedNow` en `src/lib/actions/publications.ts`; el diálogo en
+  `src/components/redes/card/published-dialog.tsx`.
+
+## D-64. Diseño aprobado / desaprobado, con nota (29/10/2026)
+- **Qué:** dos botones que se excluyen («Diseño aprobado», «Diseño desaprobado»; tocar el activo lo quita) y la nota
+  «¿Qué no le gustó del diseño?» (se ve al desaprobar o si hay nota). En todas las secciones. Los marcan **Redes y el
+  jefe**; queda quién y cuándo («Desaprobó: Yorman, hace 2 h»). Desaprobar avisa a Redes en la campana (no a quien lo
+  marcó). **No es la aprobación**: no cambia el estado ni deja publicar. Pero un diseño **desaprobado después de la
+  aprobación no sale**: la base no deja programar ni «Ya lo publiqué» hasta que el jefe vuelva a aprobar
+  (`approved_at` más nuevo que la marca). Cuando el jefe desaprueba una pieza aprobada, la pantalla le pregunta
+  «¿Pedir cambios también?» («Sí, pedir cambios» manda la nota como pedido de cambios). La desaprobación que puso el jefe
+  solo la quita o cambia el jefe.
+- **Por qué:** §2.4; es la opinión de diseño, como en la referencia, pero en la base y con nombre. Sin la retención, el
+  jefe desaprueba «la foto está oscura» y Redes ve «listo para publicar» igual.
+- **Cómo se cambia:** `redes_piece_rules()` (quién), `guard_publication_design()` (la retención), `setDesign` en
+  `src/lib/actions/redes.ts`.
+
+## D-65. Receptividad del 1 al 10 (29/10/2026)
+- **Qué:** estrellas «Receptividad del público (1 a 10)» solo en posts, reels y carruseles, con la etiqueta «Alta / Media
+  / Baja receptividad» o «Sin evaluar». La ponen Redes y el jefe. El promedio va al tablero y cuenta solo las piezas
+  puntuadas. Ayuda corta: «Cómo la recibió la gente en redes (comentarios, reacciones). No mide apoyo político.»
+- **Por qué:** §2.4; la referencia cuenta las no puntuadas como 0 en el feed (error que no copiamos).
+- **Cómo se cambia:** `pieces_rating_formats` y `redes_piece_rules()`; `receptivityLabel()` en el dominio.
+
+## D-66. Avisos de cumplimiento (29/10/2026)
+- **Qué:** cada pieza puede tener avisos («Antes de publicar»): tipo (Necesita autorización escrita · Verificar la fuente
+  y la fecha del dato · Remitir a un profesional · Tono de testimonio · Otro) y texto. Los ponen **Redes y el jefe**; se
+  ven como banda ámbar en la tarjeta, en la sala de revisión del jefe (arriba de «Aprobar», con una casilla más «Leí
+  los avisos de cumplimiento» que la pantalla exige) y en el paquete de Publicar. Se marcan «Resuelto» (no se borran);
+  no se puede cambiar el texto y resolverlo en el mismo paso.
+  Un aviso **nuevo o cambiado en una pieza aprobada la devuelve a revisión**. «Aprobar todas las verdes» se salta las
+  piezas con avisos abiertos («tiene avisos: ábrela»). Avisar al jefe en la campana.
+- **Por qué:** «Para un gobierno esto importa» (§2.4): el jefe no puede aprobar sin haberlos visto. Bloquear en la base
+  quitaría la decisión al jefe.
+- **Cómo se cambia:** tabla `piece_notices`; `notices_reopen_review()`; la casilla en `P/aprobar/[id]/review-room.tsx`.
+
+## D-67. Meses de contenido: una sola lista para secciones y feed (29/10/2026)
+- **Qué:** tabla `content_months`. Pestañas «Mes 1 · 3 de 8» (piezas de ese formato en el mes, de su cupo) en cada
+  sección y «Mes 1 · 21 de 24» en el feed, con el botón **«+ Nuevo mes»** visible después de las pestañas. Cambiar de
+  mes en una sección lo cambia en todas y en el feed: la dirección `?mes=` manda y **todo enlace de Redes la lleva**
+  (barra de secciones, acciones rápidas, saltos del tablero, chip «En Feed»); además, tocar una pestaña guarda el mes en
+  una cookie por persona con `chooseMonth` (una página no puede escribir cookies al abrirse, Next 16). Menú ⋯ de las
+  pestañas: «Cambiar nombre», «Borrar este mes». Una pieza viva siempre está en un mes vivo (la base lo cuida: sin mes
+  va al primero; a un mes borrado no se puede mover ni crear). Cada tarjeta trae «Mover a otro mes». Borrar un mes pregunta «¿Borrar «Mes 2»? Tiene 5 piezas (3 en el
+  feed). No se borra ninguna: pasan a «Mes 1» y las del feed quedan «Sin programar».»; la base comprueba que el número
+  no cambió y no deja borrar el último mes. Al mover de mes una pieza que está en el feed, su espacio se va con ella al
+  primer número libre del otro mes, o queda «Sin programar» si está lleno. Crean, renombran y mueven Redes, el jefe y
+  administración; borran un mes Redes y el jefe.
+- **Por qué:** §2.2–2.3. La referencia tiene dos listas unidas por posición, y eso mueve piezas al mes equivocado.
+- **Cómo se cambia:** `delete_content_month()`, `move_piece_to_month()`; el texto en `src/lib/domain/redes.ts`.
+
+## D-68. Cupo y pilares en Ajustes (29/10/2026)
+- **Qué:** página **Ajustes → Cupo y pilares** (`/ajustes/contenido`, administración con doble factor). Claves
+  `redes.quotas` (`{reel, post, carousel, story, youtube}`, enteros 0–200) y `redes.pillars` (lista de hasta 12
+  `{key, name, tone}`). Por defecto el cupo de la referencia; pilares vacíos en `config/clients/fb.json`; la demo trae
+  cinco inventados. El pilar de la pieza guarda la clave: renombrar un pilar no lo pierde; quitarlo deja la pieza «Sin
+  pilar». Las secciones muestran el cupo y, a administración, «Cambiar en Ajustes».
+- **Por qué:** «lo pone Hillary en Ajustes» (§2.1–2.2); Ajustes es de administración con doble factor. Pregunta 6 para Hillary.
+- **Cómo se cambia:** `guard_redes_settings()`; `KEYS`/`valueSchemas` de `src/lib/actions/settings.ts`. Para abrirlo a
+  Redes y al jefe: una política nueva en `app_settings` solo para esas dos claves.
+
+## D-69. Feed: 24 espacios por mes, una sola numeración, una pieza en un solo lugar (29/10/2026)
+- **Qué:** tabla `feed_slots` (mes, número 1–24, pieza). **El número es el orden real de publicación**: #1 abajo a la
+  derecha, #24 arriba a la izquierda, en una rejilla de 3 columnas × 8 filas; una sola función lo calcula para la celda,
+  el selector, el chip de la tarjeta, los avisos y Drive. Van posts, reels y carruseles (el 8/12/4 es el cupo, no un
+  molde). Celda vacía: «Elegir publicación · Espacio #NN» → selector (formato → título, con miniatura o «Sin media»;
+  «Ya en Mes X · #N» si está puesta; «De Mes 2» si es de otro mes). Celda llena: portada actual (cambia sola al subir
+  otra), número, receptividad y, si se publicó, **marco verde y «✓ Publicado»**; al tocarla, menú «Abrir la tarjeta»,
+  «Publicar antes (#N−1)», «Publicar después (#N+1)», «Cambiar de espacio», «Mover a otro mes», «Quitar del feed». Con
+  ratón también se arrastra para intercambiar. «Vaciar este mes» con confirmación. Nada de eso borra piezas. La tarjeta
+  dice «En Feed · Mes 1 #7» (lleva a su celda) o «Sin programar». Una línea en vivo anuncia los cambios («Movida al
+  #6»). La base no deja una pieza en dos espacios ni un número con dos piezas, en ningún mes; si dos personas llenan el
+  mismo espacio a la vez, las dos reciben la verdad («el #7 anterior quedó sin programar»). En escritorio, el clic en
+  una celda llena abre su tarjeta (como la referencia) y un «⋯» visible en la celda abre el menú; en el teléfono, tocar
+  abre el menú. Después de mover, el foco queda en la celda nueva y la hoja sigue abierta para seguir moviendo. Arriba,
+  una **cabecera de perfil de solo lectura** con lo que ya está en la configuración: círculo «FB» en el color de la
+  marca, «Freddy Bernal», «Gobernador del Táchira» y «21 publicaciones en Mes 1» (sin usuario, seguidores ni bio).
+- **Por qué:** §2.3; en la referencia los botones solo aparecen con el ratón encima y el arrastre no sirve con el dedo;
+  la numeración del código está al revés del pedido.
+- **Cómo se cambia:** `cellToNumber()` en `src/lib/domain/redes.ts`; `feed_place()`, `feed_swap()`, `feed_clear()`;
+  la cabecera en `src/components/redes/feed/feed-profile.tsx`.
+
+## D-70. Crear, duplicar, plegar, reordenar; eliminar solo el jefe (29/10/2026)
+- **Qué:** «+ Nuevo reel/post/…» en cada sección crea un borrador en el mes abierto, arriba, con la tarjeta abierta y el
+  título listo para escribir («Reel nuevo»): la tarjeta sale de la respuesta de la acción, sin ir a otra dirección.
+  «Crear» → «Nueva pieza», y «Crear» del tablero, abren **«¿Qué quieres crear?»** (Reel, Post, Carrusel, Historia,
+  Video de YouTube, Pieza de fin de mes, cada uno con su ayuda corta, y «Se creará en Mes 1»): un toque crea el borrador
+  y lleva a su sección con la tarjeta abierta. **Duplicar** (todas las secciones): copia
+  título « (copia)», mes, pilar, campos, copies, archivo actual y avisos abiertos; no copia espacio, marcas, receptividad
+  ni aprobación. **Plegar**: la cabecera queda con su miniatura; se recuerda por persona en el teléfono; en el teléfono
+  las tarjetas empiezan plegadas **menos la primera** de la sección; la tarjeta a la que se salta (`#pieza-<id>`: desde
+  el tablero, el chip «En Feed», la celda o al volver de «Revisar») se abre, se desplaza, toma el foco y destella. **Reordenar**: orden «A mano» con «Subir» y «Bajar» en el menú de la tarjeta (además
+  «Orden del feed», «Más recientes», «Más antiguas»). **Eliminar**: solo el jefe, con doble factor, confirmación
+  («¿Eliminar esta pieza? «…» sale de su sección y del feed. Administración puede recuperarla.»), borrado lógico; lo
+  programado vuelve a borrador (ya lo hace `withdraw_publications`). Administración **no** elimina (ni con un update
+  directo); solo **recupera**, en Ajustes → Cupo y pilares → «Piezas eliminadas» → «Recuperar» (vuelve a su mes, o al
+  primero si su mes ya no está; sin espacio en el feed).
+- **Por qué:** §2.1; regla «borrado solo lógico». Hoy solo administración borra (`guard_soft_delete`), por eso hace falta
+  una excepción propia y probada.
+- **Cómo se cambia:** `remove_piece()` y `guard_piece_soft_delete()`; si Hillary dice que Redes también elimina,
+  `can_approve()` pasa a `has_any_role(array['social','boss'])` en `remove_piece()` y en `guard_piece_soft_delete()`.
+
+## D-71. Tablero de Redes (29/10/2026)
+- **Qué:** tabla formatos (filas: Reels, Posts, Carruseles, Historias, YouTube, Fin de mes) × siete columnas, para el mes
+  o el trimestre elegido («Por mes» / «Por trimestre», con «Anterior» y «Siguiente»; trimestre = tres meses seguidos de
+  la lista):
+  | Columna | Cuenta |
+  |---|---|
+  | Revisados | aprobadas por el jefe (`status = 'approved'`) |
+  | Por revisar | todavía no aprobadas (borrador, cambios pedidos, en revisión) |
+  | Diseño aprobado / Diseño desaprobado | la marca de diseño |
+  | Publicado | con al menos una publicación hecha |
+  | Copy faltante | sin copy largo (Historias: sin «Texto en pantalla») |
+  | Imagen faltante | Post sin imagen; Reel y YouTube sin portada; Historia sin media; Carrusel y Fin de mes sin láminas o con alguna sin imagen |
+  
+  Cada número es un botón: la primera vez lleva a la primera pieza de esa casilla y **cada vez siguiente a la que sigue**
+  (vuelve al principio al terminar; se recuerda por persona en la pestaña). El salto va a
+  `/redes/<sección>?mes=<mes de esa pieza>#pieza-<id>` (en «Por trimestre» la pieza puede ser de otro mes) y abre esa
+  tarjeta. Cero: «Nada pendiente en esta categoría: ¡al
+  día!». Arriba: «Receptividad media N de 10 · N piezas puntuadas», «Listas para publicar», «Programadas». Debajo:
+  **Observaciones** (diseños desaprobados y avisos abiertos), **Actividad reciente** (12 últimas: creó, subió versión,
+  aprobó, pidió cambios, publicó, marcó diseño, puso un aviso; con «hace 5 min»), **Acciones rápidas** (Nuevo reel, post,
+  carrusel, historia, video de YouTube, pieza de fin de mes, Feed, Tweets de la semana) y la **búsqueda** «Buscar en
+  Redes» (títulos, campos, copies, avisos y tweets, agrupado por formato). La actividad sale de las tablas que cada uno
+  ya puede leer, nunca del registro de cambios (solo administración lo lee).
+- **Por qué:** §2.5; en la referencia el número vuelve siempre a la misma pieza, la búsqueda solo filtra la sección
+  abierta y «Copy faltante» cuenta todas las historias.
+- **Cómo se cambia:** `src/lib/domain/redes-dashboard.ts` (reglas), `src/lib/data/redes.ts` (lecturas).
+
+## D-72. Fin de mes y el resumen del mes (29/10/2026)
+- **Qué:** sección propia, sin cupo, con piezas de imágenes ordenadas (título y nota por imagen) y copy; pasa por la
+  aprobación como un carrusel. Arriba de la sección, **Resumen del mes** (se ve para todos, pensado para el jefe): por
+  formato, hechas de su cupo, aprobadas y publicadas; receptividad media; diseños desaprobados; avisos abiertos; y la
+  lista de lo publicado con miniatura. Es la rendición de cuentas del mes; se puede abrir también desde el Inicio del
+  jefe («Resumen del mes»).
+- **Por qué:** §2.1 «Para el jefe: el resumen del mes».
+- **Cómo se cambia:** `monthSummary()` en `src/lib/data/redes.ts`; `src/components/redes/month-summary.tsx`.
+
+## D-73. Historias y carruseles en Publicar (29/10/2026)
+- **Qué:** las reglas por red suman los formatos `story` (Instagram y Facebook, 9:16, foto o clip de hasta 60 s) y
+  `carousel` (Instagram hasta 20 imágenes, Facebook hasta 10, 4:5 o 1:1). La validación elige el formato de la red por
+  el formato de la pieza (Reel → reel/video/short; Post → photo; Carrusel y Fin de mes → carousel con cada lámina;
+  Historia → story; YouTube → video). Una red que no recibe ese formato sale con ✖ «Esta red no recibe historias».
+- **Por qué:** «Publicar con validación propia por red» (§0); hoy no hay `story` ni `carousel` en las reglas.
+- **Cómo se cambia:** `config/network-specs.json` (+ `npm run db:seed-client` en `fb-dev`), `validateFor` en
+  `src/lib/data/publish.ts`.
+
+## D-74. Drive: «Organizar por orden del feed», apagado (29/10/2026)
+- **Qué:** botón en Ajustes → Google Drive, solo si están las cuatro llaves: variable `REDES_DRIVE_ORGANIZE=true`, Drive
+  como almacenamiento (`storageProvider() === 'drive'`), Drive conectado y administración con doble factor. Hoy está
+  apagado y no se ve. Al usarlo: carpeta `Feed/Mes-<n>` por mes con algo puesto (`n` = posición del mes, no su nombre),
+  y la portada de cada pieza puesta se renombra `NN - Post.jpg` (número con dos cifras, formato en español). Sin el
+  título: los títulos traen lugares y la regla 4 de Drive no deja lugares en nombres de archivo. Solo archivos que creó
+  la app (permiso `drive.file`); nunca enlaces públicos.
+- **Por qué:** §2.6 «déjalo detrás de un interruptor apagado».
+- **Cómo se cambia:** `src/lib/storage/drive/organize.ts`; el nombre en `feedFileName()`.
+
+## D-75. La regla de la agenda en Redes por formato (29/10/2026)
+- **Qué:** nada nuevo lee `event_schedule`, `event_calendar` ni `done_on`; ninguna lectura nueva hace `select e.*`. Una
+  pieza que nace de un evento muestra solo el título del evento («Ver evento»). El mes y el espacio los pone una
+  persona: **nunca** se calculan con la fecha de un evento. La fecha de la tarjeta es la **fecha de creación de la
+  pieza**, solo el día («26 oct 2026»), sin hora; la actividad usa tiempos relativos («hace 2 h»). Textos que lee Redes
+  (título de la pieza, nombre del mes, nota de diseño, avisos, todos los campos de la tarjeta, hashtags incluidos): nunca
+  un teléfono (base); y si quien escribe conoce la agenda (jefe, despacho, IVT, Grabación, administración), nunca una
+  fecha u hora concreta (la misma regla de Mensajes, E1), comprobado en la base para cada uno. En la demo, las piezas sembradas tienen fecha de creación en días sin eventos.
+- **Por qué:** regla 4 de `PROMPT-APP-FREDDY-BERNAL.md` y §0 del pedido; la prueba e2e de Redes falla si aparece el día
+  de un evento o una hora.
+- **Cómo se cambia:** los CHECK `*_no_phone` y los disparadores que llaman `text_has_concrete_datetime()`
+  (`guard_piece_title`, `guard_content_month`, `guard_piece_details`, `guard_piece_notice`, `redes_piece_rules`).
+
+## D-76. Las piezas que ya existían y el Mes 1 de la demo (29/10/2026)
+- **Qué:** la migración pone el formato a las piezas que hay según su tipo (video y video corto → reel; foto y portada →
+  post; carrusel → carrusel). Sin mes, una pieza se ve en el primer mes. En `fb-dev`, `npm run db:seed-client` crea
+  «Mes 1» si no hay ninguno. La demo crea Mes 1, Mes 2 y Mes 3; las seis piezas de siempre (mismos ids y títulos) son
+  reels de Mes 1; y Mes 1 se llena con piezas inventadas para FB (8 posts, 12 reels, 4 carruseles, 12 historias, 2 de
+  YouTube, 1 de fin de mes), con 21 de los 24 espacios del feed ocupados (la fila de arriba libre, lo que viene), y con
+  un post y un carrusel **en revisión** para que el jefe pruebe «Revisar» fuera de Reels. Copies con las reglas de FB
+  (FAB, PAS y AIDA, «¡Saludos, Táchira!», «Por amor al Táchira»); nada de la referencia; sin nombres, teléfonos, fechas
+  ni horas. En la demo (cada servidor tiene su base, D-39): un aviso una vez por persona, con «Entendido» («En la
+  demostración, cada servidor guarda lo suyo: lo que creas o mueves puede no verse al recargar, con otra cuenta o en
+  otro teléfono. Lo sembrado siempre está.»); lo recién creado se abre en la misma pantalla; una pieza o miniatura
+  de otro servidor lo dice así en vez de «no encontrado» o una imagen rota (como Mensajes, D-57).
+- **Por qué:** §2.1 «lo que ya hay se conecta, no se tira» y §3 «llena el Mes 1». Lo primero que Hillary va a probar
+  (crear un reel, subir una imagen, armar el feed) es justo lo que la demo por servidor puede perder.
+- **Cómo se cambia:** `src/lib/db/seed-parts/redes.ts`; el aviso en `REDES_DEMO_NOTICE`.
+
+## D-77. Guías, tutoriales, 360 y documentos con las pantallas nuevas (29/10/2026)
+- **Qué:** la guía de Redes, la del jefe y la de administración, los flujos, los tutoriales, las pantallas de 360 y sus
+  fichas se rehacen con las etiquetas reales de las pantallas nuevas en el mismo cambio. Tutoriales nuevos: «Tablero de
+  Redes», «Una sección de Redes», «El feed del mes»; el de la pieza se queda. Flujo nuevo «El mes de Redes». Los
+  documentos se generan con `npm run docs:guides`.
+- **Por qué:** D-42 (una sola fuente); las pruebas exigen que cada etiqueta exista en `src/` y cada pantalla tenga guía.
+- **Cómo se cambia:** `src/lib/guides/**`, `config/assistant/**`, `src/lib/assistant/screens.ts`.
+
+## D-78. Capturas lado a lado y lo que quedó distinto (29/10/2026)
+- **Qué:** `docs/capturas/mila-vs-fb/` con pares de la plantilla limpia de la referencia (nunca su `index.html`, con
+  textos neutros inventados y tapando lo que quedó de su marca en la plantilla) y de la nuestra con datos inventados,
+  a 1366 y 360 px, y `README.md` con la tabla «igual / distinto / por qué». Lo distinto, a propósito: menú y textos en
+  español; estados calculados; aprobación y publicación de verdad; una sola lista de meses; numeración del pedido
+  (con las dos rejillas lado a lado); acciones del feed sin ratón; barra de secciones arriba y no a la izquierda (con
+  los mismos contadores); cabecera igual en todas las tarjetas; campos que la referencia no deja editar; cabecera de
+  perfil sin usuario, seguidores ni bio; post sin 9:16; sin «Ciudad», sin Metricool; borrar solo el jefe; nombres de
+  Drive sin título.
+- **Por qué:** §3 del pedido.
+- **Cómo quedó:** 22 escenas a 1366×900 y 360×780, del tamaño de la ventana salvo el feed (88 JPEG, menos de 5 MB). En
+  las de la referencia se taparon en gris su logotipo, su pie con el lema, el lema que la plantilla trae bajo «Reels» y
+  «YouTube», una línea del tablero escrita para su negocio y la foto de perfil del feed; ninguna se quedó fuera.
+- **Cómo se cambia:** `npm run capturas` (`scripts/capturas-fb.mts`) rehace las nuestras sobre la demo; las de la
+  referencia se tomaron una vez de su plantilla limpia, fuera del repositorio (es código de otro proyecto), y solo se
+  copiaron las imágenes ya limpias.
+
+---------------------------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------------------------
 

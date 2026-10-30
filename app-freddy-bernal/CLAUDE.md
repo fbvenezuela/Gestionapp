@@ -5,7 +5,7 @@
 Lee primero `PROMPT-APP-FREDDY-BERNAL.md` (reglas que no se rompen, §4) y `docs/IDEA.md`. Juan habla español de
 Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en español; el código en inglés.
 
-## Estado (28/10/2026)
+## Estado (30/10/2026)
 - **Fase 0 y Fase 1 construidas**, en modo demostración (base en memoria con datos inventados). Faltan las cuentas
   (Supabase, Vercel, Resend) para pasar a datos reales: ver `README.md` y `docs/PENDIENTES.md`.
 - Módulos: entrar por invitación + código + TOTP; Hoy por rol; agenda (calendario para jefe/despacho, lista sin fecha
@@ -38,6 +38,18 @@ Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en españo
   hay Redes o política, a «hoy»/«mañana» la app pregunta, E1; sin teléfonos; nada se borra); el rol de jefe solo por
   `npm run db:first-admin -- … --jefe`. Migraciones `20261028002350_boss_grant.sql` y
   `20261028002400_internal_chat.sql`. Preguntas en `docs/PENDIENTES.md`, al final.
+- **Ronda 4 (29–30/10; D-60 a D-78): Redes por formato, como la referencia que pidió Hillary** (encargo
+  `PROMPT-REDES-COMO-MILA-2026-10-29`; se copió la lógica y las pantallas, nunca su contenido, marca ni reglas de copy).
+  `/redes` es el tablero (formatos × siete categorías, por mes o trimestre; cada número lleva a la siguiente pieza);
+  secciones Reels, Posts, Carruseles, Historias, YouTube y Fin de mes con tarjetas que se editan en el sitio (lo que
+  sale queda congelado al aprobar: «Editar (vuelve al jefe)»); meses de contenido con cupo, una sola lista para
+  secciones y feed; feed de 24 espacios por mes, #1 abajo a la derecha, una pieza en un solo lugar (en la base);
+  «Revisado» = aprobación del jefe, «Publicado» = «Ya lo publiqué»; diseño aprobado/desaprobado con nota (un
+  desaprobado después de aprobar no sale), receptividad 1–10, avisos de cumplimiento; eliminar solo el jefe y
+  administración recupera; Ajustes → Cupo y pilares; Drive «Organizar por orden del feed» apagado
+  (`REDES_DRIVE_ORGANIZE`). Mes 1 sembrado con piezas inventadas para FB. Migración
+  `20261029000100_redes_formatos.sql` (falta en `fb-dev`). Capturas lado a lado y comparación en
+  `docs/capturas/mila-vs-fb/` (`npm run capturas`). Preguntas para Hillary en `docs/PENDIENTES.md`, al final.
 - **Ronda 5 (29/10; D-79 a D-88):** Mensajes son canales, como Slack: el jefe los arma (con doble factor), decide quién
   va y está en todos por la base; cada canal muestra quiénes están; **sin aviso** en ninguna parte (lo pidió Juan); sin
   directos, grupos ni «Quién habla con quién»; «Todo el equipo» sigue. Migración `20261029090000_chat_channels.sql`
@@ -71,10 +83,11 @@ factor; con `DATABASE_URL` nunca se activa. Playwright levanta dos servidores: 3
 ## Qué falta (siguiente sesión)
 1. `fb-dev` (Supabase, gratis) ya tiene las 29 migraciones, hasta `20261028002400`, y la configuración del cliente con
    los seis roles y el material de 360 de la tercera vuelta (aplicadas y verificadas el 29/10, `docs/PROMPT-SUPABASE.md`).
-   Falta lo de esa guía: los pasos de Juan en el panel (SMTP primero), las variables en Vercel y la primera entrada
-   (OTP, TOTP, Drive); después, probar Mensajes ahí con dos teléfonos.
-2. Respuestas de Hillary a las preguntas de la segunda vuelta (`docs/PENDIENTES.md`, al final) y, si confirma la tabla
-   de diferencias, Redes como Mila por partes (#11).
+   Faltan, con el OK de Juan y en este orden, `20261029000100_redes_formatos.sql` y `20261029090000_chat_channels.sql`,
+   y después `npm run db:seed-client`. Falta también lo de esa guía: los pasos de Juan en el panel (SMTP primero), las
+   variables en Vercel y la primera entrada (OTP, TOTP, Drive); después, probar Mensajes y Redes ahí con dos teléfonos.
+2. Respuestas de Hillary a las preguntas de Redes por formato (cupo, pilares, quién aprueba el diseño, YouTube, el #1
+   del feed…) y a las de la segunda vuelta (`docs/PENDIENTES.md`, al final).
 3. Fase 2: publicación automática (Meta, X, TikTok, YouTube), métricas por API, análisis con IA, Drive del cliente,
    reporte semanal en PDF, Realtime en «Hoy» y colas.
 4. Fase 3: web pública (indicadores, trazabilidad, obras, reportes con mapa, denuncias, ayudas, SEO).

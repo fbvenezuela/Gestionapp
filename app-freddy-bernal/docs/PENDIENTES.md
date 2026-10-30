@@ -1,6 +1,6 @@
 # Lo que falta decidir o conseguir (antes o durante la construcción)
 
-Actualizado: 23/10/2026; 28/10/2026: #8 (parroquias), #11 (código de Mila) y las preguntas de la segunda vuelta, al final. La plataforma interna ya está construida en modo demostración; lo de abajo es lo que falta para pasar a datos reales y lo que hay que decidir. Mientras no esté, la sesión de Claude Code avanza con lo que está entre paréntesis («por ahora») y lo deja marcado.
+Actualizado: 23/10/2026; 28/10/2026: #8 (parroquias), #11 (código de Mila) y las preguntas de la segunda vuelta, al final; 30/10/2026: #11 hecho (Redes por formato) y las preguntas de Redes para Hillary, al final. La plataforma interna ya está construida en modo demostración; lo de abajo es lo que falta para pasar a datos reales y lo que hay que decidir. Mientras no esté, la sesión de Claude Code avanza con lo que está entre paréntesis («por ahora») y lo deja marcado.
 
 ## Lo tiene que mandar alguien
 1. **Branding:** manual de identidad visual «F BERNAL», logos (incluido el de «Reporte Bernal 2.0»), colores y tipografías. Hillary preguntó el 22/10 si lo necesitas; le dijiste que sí. (Por ahora: paleta y logo provisionales, fáciles de cambiar en un solo archivo.)
@@ -46,6 +46,10 @@ Actualizado: 23/10/2026; 28/10/2026: #8 (parroquias), #11 (código de Mila) y la
     borrar sin vuelta y «Programar» sin aprobación) está lista, y **falta que Hillary la confirme** antes de rehacer
     Redes: el encargo dice «no rehagas Redes a ciegas». Capturas: ninguna obligatoria; sirve sobre todo la pantalla donde
     hoy ve los resultados.
+    **29–30/10: hecho.** El encargo del 29/10 pidió Redes igual a esa plataforma: Redes ya va por formato, con meses,
+    cupo, feed de 24 espacios, revisión por pieza y tablero (`DECISIONES.md` D-60 a D-78), sin copiar su contenido, su
+    marca ni sus reglas de copy. La comparación pantalla por pantalla está en `docs/capturas/mila-vs-fb/README.md`; las
+    preguntas que quedaron, al final.
 12. **El Drive del cliente:** permiso para leer la carpeta de los días y eventos (cuenta del cliente).
 13. **Fórmulas de copies:** que Hillary mande sus fórmulas y ejemplos buenos de cada red.
 14. **La ropa:** fotos de las prendas del jefe y ejemplos de lo que se pone en cada tipo de evento.
@@ -160,6 +164,7 @@ pruebe cada rol (lo pidió el 25/10).
 4. **Mila:** ¿el repositorio `escueladigitalusa-a11y/mila-proyecto` es la versión final? ¿Qué pantallas se copian y en
    qué orden? ¿Qué formatos usa el gobernador (¿«Fin de mes» sí o no?), qué cupos por mes, quién pone la valoración de
    1 a 10 y si «Diseño desaprobado + nota» es lo mismo que «Pedir cambios» del jefe? (#11)
+   *(Resuelta el 29/10: el encargo de Juan lo confirmó y Redes ya va por formato; las preguntas que quedaron, al final.)*
 5. **Grabación:** ¿cada persona ve solo los eventos que le asignaron (así está), o todos ven todo lo de Grabación?
 6. **Política y la fecha:** ¿el director de política debe ver la fecha de las actividades que nacen de sus reportes?
    (Por ahora: no; ve «Ya tiene fecha».)
@@ -169,7 +174,7 @@ pruebe cada rol (lo pidió el 25/10).
 **Lo que falta de nuestra parte:**
 - Las migraciones de esta ronda ya están en `fb-dev` (aplicadas y verificadas el 28/10, `PROMPT-SUPABASE.md`). Falta
   que Juan siga esa guía. Ahí se puede probar creando cosas entre roles (en la demo no: D-39).
-- Rehacer Redes como Mila, por partes, cuando Hillary confirme la tabla (#11).
+- ~~Rehacer Redes como Mila, por partes, cuando Hillary confirme la tabla (#11).~~ Hecho el 29–30/10 (D-60 a D-78).
 
 ## Nuevo (28/10/2026): tercera vuelta — guías, tutoriales y Mensajes
 Lo hecho está en `DECISIONES.md` D-42 a D-59. Las guías siguen sin mandarse a nadie: viven en la app («Mi cuenta» →
@@ -210,3 +215,35 @@ Lo hecho está en `DECISIONES.md` D-42 a D-59. Las guías siguen sin mandarse a 
   personas en un canal desde dos teléfonos (en la demo cada servidor tiene su base, D-88).
 - La lista manual de `DEMO.md` en un Android de verdad (teclado, Enter, aviso en la pantalla de bloqueo, tutorial).
 - Realtime para Mensajes cuando se pueda probar en `fb-dev` (hoy revisa cada 5 s, D-56).
+
+## Nuevo (29–30/10/2026): Redes por formato — preguntas para Hillary
+Lo hecho está en `DECISIONES.md` D-60 a D-78 y la comparación en `docs/capturas/mila-vs-fb/README.md`. Ninguna pregunta
+frena: lo que dice entre paréntesis ya está construido así y se cambia en un paso.
+1. **Cupo mensual de FB:** ¿8 posts, 12 reels, 4 carruseles, 30 historias y 4 videos de YouTube, o cuánto? (Por defecto
+   los de la referencia; se cambian en Ajustes → Cupo y pilares.)
+2. **Pilares de FB:** ¿cuáles son y en qué orden? (Vacíos en la configuración real; la demo trae cinco inventados.)
+3. **¿Quién aprueba el diseño?** ¿El jefe y Redes, o alguien más (por ejemplo, quien diseña)? (Hoy el jefe y Redes.)
+4. **¿YouTube aplica** en esta parte de Redes, o lo lleva Juan aparte? (Construido; se esconde sin migración.)
+5. **¿Redes también elimina piezas**, o solo el jefe? (Hoy solo el jefe, con doble factor; administración recupera.)
+6. ¿Tú entras como administración o como Redes? Si solo como Redes, ¿abrimos «Cupo y pilares» a Redes y al jefe?
+7. ¿«Fin de mes» es una pieza que se publica (un carrusel de cierre) y además el resumen para el jefe, como quedó?
+8. ¿Las historias entran en verde, para que el jefe las apruebe juntas? (Así está.)
+9. En Drive, ¿el nombre «01 - Post.jpg» sin el título les sirve? (El título trae lugares y la regla de privacidad no los
+   deja en nombres de archivo.)
+10. ¿Los avisos de cumplimiento deberían bloquear la publicación hasta que alguien los marque «Resuelto»? (Hoy avisan,
+    el jefe marca que los leyó y decide.)
+11. **Feed: el #1 abajo a la derecha** (el orden de Instagram, como dice el encargo), ¿así? La referencia lo dibuja con
+    el #1 abajo a la izquierda; en las capturas (pareja 10) están las dos rejillas. Se cambia en un solo lugar.
+12. ¿Qué **usuario de Instagram** va en la cabecera del feed? (Hoy salen el nombre y el cargo de la configuración, sin
+    usuario: no lo inventamos.)
+13. En las historias, **el texto en pantalla y el sticker vuelven al jefe si se cambian después de aprobar**, porque son
+    lo que sale. ¿Les parece bien, o el jefe solo aprueba la imagen y el texto lo decide Redes?
+
+**Lo que falta de nuestra parte:**
+- Aplicar en `fb-dev`, con el OK de Juan, `20261029000100_redes_formatos.sql` y después `20261029090000_chat_channels.sql`,
+  y correr `npm run db:seed-client` (crea «Mes 1», pasa ahí las piezas sin mes, suma las claves `redes.*`, los formatos
+  de historia y carrusel por red y el material nuevo de 360). Después, las pruebas por rol con cuentas de prueba.
+- **«¿A qué hora nos va mejor?» por día de la semana:** hoy va por franja horaria; el día queda pendiente (Resultados).
+- En la demo, lo que se crea o se mueve en Redes vive en un solo servidor (D-39, D-76): para probar creando entre roles
+  hace falta `fb-dev`.
+
