@@ -27,6 +27,9 @@ test('la demo sin Drive: Ajustes, el material y la Biblioteca quedan como antes'
   await page.goto('/ajustes/drive');
   await expect(page.getByRole('heading', { name: 'Drive no está activado' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Conectar Drive' })).toHaveCount(0);
+  // R4 (D-74): «Organizar por orden del feed» needs its four keys; with Drive off it does not exist.
+  await expect(page.getByRole('button', { name: 'Organizar por orden del feed' })).toHaveCount(0);
+  await expect(page.getByText('Organizar por orden del feed')).toHaveCount(0);
   await noSideScroll(page, '/ajustes/drive');
 
   await page.goto('/agenda');
