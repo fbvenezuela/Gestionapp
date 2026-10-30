@@ -323,8 +323,9 @@ Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene ad
     presupuesto del mensaje.
   - La respuesta sale con su botón: la pantalla de la entrada o la primera que nombra y que la persona puede abrir. Con
     una tarea, una pantalla o una curada sale su tutorial. A «¿y después?» le toca el paso siguiente. Son textos fijos
-    sin fechas, así que la red de salida (`index.ts`) solo les revisa fechas, lugares y contactos concretos, no «hoy» o
-    «de noche» dentro de una regla.
+    sin fechas, así que la red de salida (`index.ts`) solo les revisa fechas, horas, mapas, teléfonos, lugares y contactos
+    concretos (`concreteDateTime`, el mismo control que usa su prueba de contenido). No los cambia por un «hoy» o un «de
+    noche» dentro de una regla, ni por un «de 2 a 3 por día».
 - **Lo que cambió en el camino de la demo:**
   - **La negativa de la agenda, solo para la agenda de verdad.** La pregunta se lee sin las etiquetas de las pantallas
     que llevan una palabra de tiempo: «Por ponerle fecha», «Hoy en la agenda», «Horas de silencio», o cualquier texto
