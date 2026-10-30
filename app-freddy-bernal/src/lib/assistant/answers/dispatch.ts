@@ -168,7 +168,7 @@ export const DISPATCH: Answer[] = [
       'que campos tiene ponerle fecha',
       'que lleva la fecha de una ficha',
     ],
-    a: 'El «Título del evento» y «A dónde se va» (los ve todo el equipo, sin fecha ni hora), la «Fecha», la «Hora (Táchira)», la «Duración», la «Dirección exacta», «Cómo se llega», los «Contactos del sitio» y «Quién graba». Después, «Guardar la fecha».',
+    a: 'El «Título del evento» y «A dónde se va» (los ve todo el equipo, sin fecha ni hora), la «Fecha», la hora, la «Duración», la «Dirección exacta», «Cómo se llega», los «Contactos del sitio» y «Quién graba». Después, «Guardar la fecha».',
     go: '/agenda/por-fecha',
   },
   {
@@ -361,7 +361,7 @@ export const DISPATCH: Answer[] = [
       'hora tachira que significa',
       'en que hora pongo el evento',
     ],
-    a: 'En hora del Táchira: el campo dice «Hora (Táchira)» y el calendario también está en hora del Táchira.',
+    a: 'En hora local: la hora del evento y el calendario van en la misma hora para todo el equipo.',
     go: '/agenda',
   },
   {
@@ -726,7 +726,7 @@ export const DISPATCH: Answer[] = [
     id: 'desp-agenda',
     roles: ['dispatch'],
     q: ['como uso la agenda', 'enseñame como se usa la agenda', 'donde esta el calendario', 'que es la agenda', 'botones grandes de la agenda'],
-    a: 'La Agenda es el calendario que compartes con el jefe, en hora del Táchira. Arriba, los botones «Nuevo evento», «Visita de obra», «Por ponerle fecha» y «Por decidir»; tocas un evento para abrir su ficha.',
+    a: 'La Agenda es el calendario que compartes con el jefe, en hora local. Arriba, los botones «Nuevo evento», «Visita de obra», «Por ponerle fecha» y «Por decidir»; tocas un evento para abrir su ficha.',
     go: '/agenda',
     tutorial: 'agenda-calendario',
   },
@@ -1400,7 +1400,7 @@ export const DISPATCH: Answer[] = [
     id: 'desp-atajos-fecha',
     roles: ['dispatch'],
     q: ['para que son los botones hoy y mañana del evento', 'atajos de fecha', 'como pongo la fecha rapido', 'duracion del evento donde se pone'],
-    a: 'En «Fecha, hora y lugar exacto», los botones «Hoy» y «Mañana» ponen esa fecha de un toque; después la «Hora (Táchira)» y la «Duración».',
+    a: 'En «Fecha, hora y lugar exacto», los botones «Hoy» y «Mañana» ponen esa fecha de un toque; después la hora y la «Duración».',
     go: '/agenda/nuevo',
   },
   {

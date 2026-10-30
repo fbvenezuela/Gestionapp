@@ -683,7 +683,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-copies-cierre',
     roles: ['social'],
     q: ['¿Qué cierres puedo elegir para el copy?', 'que es el cierre del copy', 'como pongo pregunta a la comunidad', 'copy sin cierre', 'que es accion con destino'],
-    a: 'En «Cierre»: los de la marca (como “Por amor al Táchira”), «Pregunta a la comunidad», «Acción con destino (enlace, teléfono o dirección)» o «Sin cierre». Si eliges destino, escribe el destino tal cual va a salir.',
+    a: 'En «Cierre»: los de la marca (los que están en Ajustes), «Pregunta a la comunidad», «Acción con destino (enlace, teléfono o dirección)» o «Sin cierre». Si eliges destino, escribe el destino tal cual va a salir.',
     go: '/redes',
   },
   {
@@ -1103,7 +1103,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-publicar-pasos',
     roles: ['social'],
     q: ['¿Cómo publico una pieza aprobada?', 'como programo una publicacion', 'pasos para publicar', 'nueva publicacion como'],
-    a: 'Publicar → «Nueva publicación» → «¿Qué pieza vas a publicar?», eliges las redes (arregla lo que diga «No pasa»), el «Día» y la «Hora (Táchira)» y tocas «Programar en n redes». Después bajas el «Paquete para publicar», publicas a mano y marcas «Ya lo publiqué».',
+    a: 'Publicar → «Nueva publicación» → «¿Qué pieza vas a publicar?», eliges las redes (arregla lo que diga «No pasa»), el «Día» y la hora, y tocas «Programar en n redes». Después bajas el «Paquete para publicar», publicas a mano y marcas «Ya lo publiqué».',
     go: '/publicar/nueva',
     tutorial: 'publicar-nueva',
   },

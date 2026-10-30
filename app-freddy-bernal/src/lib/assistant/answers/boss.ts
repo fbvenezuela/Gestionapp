@@ -795,7 +795,7 @@ export const BOSS: Answer[] = [
     id: 'jefe-agenda-donde',
     roles: ['boss'],
     q: ['donde esta la agenda', 'donde esta el calendario', 'como abro mi agenda', 'enseñame la agenda', 'dnd veo el calendario'],
-    a: 'En el menú, Agenda: el calendario que compartes con el despacho, en hora del Táchira. También llegas desde Política con «Ver calendario» o desde tu Inicio con «Ver la agenda completa».',
+    a: 'En el menú, Agenda: el calendario que compartes con el despacho, en hora local. También llegas desde Política con «Ver calendario» o desde tu Inicio con «Ver la agenda completa».',
     go: '/agenda',
     tutorial: 'agenda-calendario',
   },
@@ -843,7 +843,7 @@ export const BOSS: Answer[] = [
     id: 'jefe-agenda-hora',
     roles: ['boss'],
     q: ['el calendario en que hora esta', 'la hora de la agenda es de venezuela', 'hora del tachira que significa', 'en que hora pongo los eventos'],
-    a: 'Todo va en hora del Táchira: el calendario y la «Hora (Táchira)» de cada evento.',
+    a: 'Todo va en hora local: el calendario y la hora de cada evento, la misma para todo el equipo.',
     go: '/agenda',
   },
   {
@@ -1938,7 +1938,7 @@ export const BOSS: Answer[] = [
     id: 'jefe-atajos-fecha',
     roles: ['boss'],
     q: ['para que son los botones hoy y mañana del evento', 'atajos de fecha', 'como pongo la fecha rapido', 'duracion del evento donde se pone'],
-    a: 'En «Fecha, hora y lugar exacto», los botones «Hoy» y «Mañana» ponen esa fecha de un toque; después la «Hora (Táchira)» y la «Duración».',
+    a: 'En «Fecha, hora y lugar exacto», los botones «Hoy» y «Mañana» ponen esa fecha de un toque; después la hora y la «Duración».',
     go: '/agenda/nuevo',
   },
   {
