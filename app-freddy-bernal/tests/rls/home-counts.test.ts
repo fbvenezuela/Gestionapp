@@ -82,4 +82,33 @@ describe('los contadores del inicio del jefe y de Redes', () => {
     // Without 2FA the boss does not read the schedule either.
     expect((await boss('boss', 'aal1')).politics.today).toBe(0);
   });
+
+  // R4 (D-60, D-71): the open month by format, the same pieces the sections show. Needs the R4 migration.
+  it('Redes por formato: el mes abierto cuenta sus piezas por formato (las mismas para Redes y el jefe)', async () => {
+    // Two new months, counted on the second: never the first month (pieces with no month are shown in the first).
+    const newMonth = () =>
+      t.as('social', async (sql) => {
+        const max = (await sql.one<{ n: number }>(`select coalesce(max(ordinal), 0)::int as n from public.content_months where deleted_at is null`))!.n;
+        return (await sql.one<{ id: string; label: string }>(`insert into public.content_months (label, ordinal) values ($1, $2) returning id, label`, [`Mes ${max + 1}`, max + 1]))!;
+      });
+    await newMonth();
+    const month = await newMonth();
+    const before = await t.as('social', (sql) => redesCounts(sql, month.id));
+    expect(before.month).toEqual(month);
+    expect(Object.values(before.byFormat).every((c) => c.total === 0)).toBe(true);
+    await t.as('social', async (sql) => {
+      for (const [format, kind] of [['post', 'photo'], ['post', 'photo'], ['story', 'short']]) {
+        await sql.query(`insert into public.pieces (kind, format, title, content_month_id) values ($1, $2, $3, $4)`, [kind, format, `Pieza de los contadores ${++n} (demo)`, month.id]);
+      }
+    });
+    const after = await t.as('social', (sql) => redesCounts(sql, month.id));
+    expect(after.byFormat.post).toEqual({ total: 2, inReview: 0, approved: 0, published: 0 });
+    expect(after.byFormat.story.total).toBe(1);
+    expect(after.byFormat.reel.total).toBe(0);
+    expect(await t.as('boss', (sql) => redesCounts(sql, month.id))).toEqual(after);
+    // No month asked (or one that is gone): the first month.
+    const first = await t.system((sql) => sql.one<{ id: string }>(`select id from public.content_months where deleted_at is null order by ordinal limit 1`));
+    expect((await t.as('social', (sql) => redesCounts(sql))).month?.id).toBe(first!.id);
+    expect((await t.as('social', (sql) => redesCounts(sql, '00000000-0000-4000-8000-000000000000'))).month?.id).toBe(first!.id);
+  });
 });

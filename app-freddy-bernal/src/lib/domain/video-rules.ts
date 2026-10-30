@@ -15,6 +15,9 @@ export type FormatRule = {
   max_fps?: number;
   video_codecs?: string[];
   audio_codecs?: string[];
+  // A carousel (R4, D-73): how many images it takes. min_items defaults to 2.
+  min_items?: number;
+  max_items?: number;
 };
 
 export type MediaFacts = {
@@ -107,4 +110,67 @@ export function checkVideo(network: string, formatName: string, rule: FormatRule
 
 export function copyIssue(network: string, length: number, max: number): Issue | null {
   return length > max ? { level: 'error', text: `${network}: el copy tiene ${length} caracteres y el máximo es ${max}. Acórtalo.` } : null;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Stories and carousels (R4, D-73): the network rules of the formats `story` (a photo or a clip, 9:16) and
+// `carousel` (several images, 4:5 or 1:1), in words. Fin de mes goes out as a carousel.
+// ---------------------------------------------------------------------------------------------------------------
+
+function fitsAspect(w: number, h: number, rule: FormatRule): boolean {
+  if (!rule.aspects?.length) return true;
+  const tol = rule.aspect_tolerance ?? 0.03;
+  return rule.aspects.some((a) => Math.abs(w / h - ratio(a)) / ratio(a) <= tol);
+}
+
+const shapeOf = (w: number, h: number) => (w / h > 1.05 ? 'horizontal' : w / h < 0.95 ? 'vertical' : 'cuadrada');
+
+/** A story: a photo or a clip. «La historia dura 75 s: Instagram deja hasta 60 s.» */
+export function checkStory(network: string, rule: FormatRule | undefined, m: MediaFacts): Issue[] {
+  if (!rule) return [{ level: 'warn', text: `${network}: no hay reglas guardadas para las historias. Revísalo a mano.` }];
+  const out: Issue[] = [];
+  if (!m.isImage) {
+    if (m.durationS == null) out.push({ level: 'warn', text: `${network}: no se pudo leer la duración del clip.` });
+    else if (rule.max_duration_s && m.durationS > rule.max_duration_s + 0.5) {
+      out.push({ level: 'error', text: `La historia dura ${Math.round(m.durationS)} s: ${network} deja hasta ${rule.max_duration_s} s.` });
+    }
+  }
+  if (m.width && m.height) {
+    if (!fitsAspect(m.width, m.height, rule)) {
+      out.push({ level: 'error', text: `${network}: la historia es ${shapeOf(m.width, m.height)} (${m.width}×${m.height}) y va vertical ${rule.aspects!.join(' o ')}, por ejemplo 1080×1920.` });
+    }
+  } else if (!m.isImage) out.push({ level: 'warn', text: `${network}: no se pudieron leer las medidas del clip.` });
+  if (m.sizeBytes != null && rule.max_size_mb && m.sizeBytes > rule.max_size_mb * 1024 * 1024) {
+    out.push({ level: 'error', text: `${network}: la historia pesa ${(m.sizeBytes / 1024 / 1024).toFixed(0)} MB y el máximo es ${rule.max_size_mb} MB.` });
+  }
+  return out;
+}
+
+/** A carousel: how many images and each one's shape. «Facebook deja hasta 10 imágenes: este carrusel tiene 12.»
+ * `slides` in order; a slide without its file (or not a picture) is said by its number. */
+export function checkCarousel(network: string, rule: FormatRule | undefined, slides: (MediaFacts | null)[]): Issue[] {
+  if (!rule) return [{ level: 'warn', text: `${network}: no hay reglas guardadas para los carruseles. Revísalo a mano.` }];
+  const out: Issue[] = [];
+  const n = slides.length;
+  const max = rule.max_items;
+  const min = rule.min_items ?? 2;
+  if (max && n > max) out.push({ level: 'error', text: `${network} deja hasta ${max} imágenes: este carrusel tiene ${n}.` });
+  if (n < min) out.push({ level: 'error', text: `${network}: un carrusel lleva al menos ${min} imágenes y este tiene ${n}.` });
+  slides.forEach((s, i) => {
+    if (!s) {
+      out.push({ level: 'error', text: `${network}: la lámina ${i + 1} no tiene imagen.` });
+      return;
+    }
+    if (!s.isImage) {
+      out.push({ level: 'error', text: `${network}: la lámina ${i + 1} no es una imagen.` });
+      return;
+    }
+    if (s.width && s.height && !fitsAspect(s.width, s.height, rule)) {
+      out.push({ level: 'error', text: `${network}: la lámina ${i + 1} es ${shapeOf(s.width, s.height)} (${s.width}×${s.height}) y aquí va ${rule.aspects!.join(' o ')}.` });
+    }
+    if (s.sizeBytes != null && rule.max_size_mb && s.sizeBytes > rule.max_size_mb * 1024 * 1024) {
+      out.push({ level: 'error', text: `${network}: la lámina ${i + 1} pesa ${(s.sizeBytes / 1024 / 1024).toFixed(0)} MB y el máximo es ${rule.max_size_mb} MB.` });
+    }
+  });
+  return out;
 }

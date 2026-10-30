@@ -144,6 +144,25 @@ export async function trashFile(token: string, fileId: string): Promise<void> {
 }
 
 /**
+ * Renames a file and leaves it in one folder (R4, «Organizar por orden del feed»). Only works on files the app made
+ * or was given (drive.file). It never shares anything: no permission is touched.
+ */
+export async function moveFile(token: string, fileId: string, name: string, folderId: string): Promise<void> {
+  if (!isDriveId(fileId) || !isDriveId(folderId)) throw new DriveError('not_found', 'bad_id');
+  const f = await json<{ parents?: string[] }>(await call(token, `${DRIVE_API}/files/${fileId}?${qs({ fields: 'id,parents' })}`));
+  const parents = (f.parents ?? []).filter(isDriveId);
+  const params: Record<string, string> = { fields: 'id' };
+  if (!parents.includes(folderId)) params.addParents = folderId;
+  const away = parents.filter((p) => p !== folderId);
+  if (away.length) params.removeParents = away.join(',');
+  await call(token, `${DRIVE_API}/files/${fileId}?${qs(params)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+    body: JSON.stringify({ name }),
+  });
+}
+
+/**
  * The file's bytes (alt=media). `range` is a single «bytes=a-b» or null for the whole file. The
  * body is NOT read here: the caller streams it. Aborting `signal` stops the transfer from Google.
  */

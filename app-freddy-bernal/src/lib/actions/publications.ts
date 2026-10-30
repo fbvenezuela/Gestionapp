@@ -2,13 +2,62 @@
 
 import { z } from 'zod';
 import { act, UserError } from './run';
-import { loadPublishContext, validateFor } from '../data/publish';
+import { loadPublishContext, validateFor, type PublishContext } from '../data/publish';
+import { DESIGN_HELD, NO_APPROVAL, designHold } from '../domain/redes';
 import type { Sql } from '../db';
 
 const uuid = z.string().uuid();
 const NETWORKS = ['instagram', 'facebook', 'tiktok', 'threads', 'x', 'youtube'] as const;
 // Links are shown as clickable evidence: only http(s).
 const postUrl = z.string().trim().url('Pega el link de la publicación.').max(500).refine((u) => /^https?:\/\//i.test(u), 'El link tiene que empezar con https://');
+
+const heldByDesign = (ctx: PublishContext) =>
+  designHold({ designStatus: ctx.piece.design_status, designAt: ctx.piece.design_at, approvedAt: ctx.piece.approved_at });
+
+/**
+ * «Ya lo publiqué» from the card (R4, D-63): the piece already went out in these networks; record each one, published
+ * now, with its link. What is recorded is what was approved: per network, the approved copy of its length and the
+ * approved version's cover, in the network format of the piece's format (guard_publication checks the same). Off
+ * without the boss's approval, and while the design stays disapproved after it (D-64). `evidenceId`: the screenshot,
+ * kept with the first network. The event moves to «Publicado» as with markPublished.
+ */
+export async function markPublishedNow(raw: unknown) {
+  return act(
+    z.object({
+      pieceId: uuid,
+      items: z
+        .array(z.object({ network: z.enum(NETWORKS), url: postUrl }))
+        .min(1, 'Elige al menos una red.')
+        .max(NETWORKS.length)
+        .refine((xs) => new Set(xs.map((x) => x.network)).size === xs.length, 'Cada red va una sola vez.'),
+      evidenceId: uuid.nullable().default(null),
+    }),
+    raw,
+    async (sql, i, s) => {
+      const ctx = await loadPublishContext(sql, i.pieceId);
+      if (!ctx) throw new UserError('Pieza no encontrada.');
+      if (ctx.piece.status !== 'approved') throw new UserError(`${NO_APPROVAL}.`);
+      if (heldByDesign(ctx)) throw new UserError(`${DESIGN_HELD}.`);
+      if (i.evidenceId) await checkEvidence(sql, i.evidenceId);
+      const ids: string[] = [];
+      for (const [n, it] of i.items.entries()) {
+        // Nothing blocks recording what already went out: the checks are kept with it, as on any publication.
+        const check = validateFor(ctx, it.network);
+        const r = await sql.one<{ id: string }>(
+          `insert into public.publications (piece_id, network, format, copy_body, cover_asset_id, status, mode, url, published_at, evidence_asset_id, validation)
+           values ($1, $2, $3, $4, $5, 'published', 'manual', $6, now(), $7, $8::text::jsonb) returning id`,
+          [i.pieceId, it.network, check.format, check.copy, ctx.version?.cover_asset_id ?? null, it.url, n === 0 ? i.evidenceId : null, JSON.stringify(check.issues)],
+        );
+        ids.push(r!.id);
+      }
+      const ev = await sql.one<{ event_id: string | null }>(`select event_id from public.pieces where id = $1`, [i.pieceId]);
+      // Redes and the boss move an event's work (the column guard); administración does not.
+      if (ev?.event_id && s.roles.some((x) => x === 'social' || x === 'boss')) await sql.query(`update public.events set work_status = 'published' where id = $1`, [ev.event_id]);
+      return { ids, message: ids.length === 1 ? '¡Listo! Quedó como publicada.' : `¡Listo! Quedó publicada en ${ids.length} redes.` };
+    },
+    { revalidate: ['/publicar', '/piezas', '/redes', '/resultados', '/hoy', '/jefe'] },
+  ).then((r) => (r.ok ? { ...r, message: r.data!.message } : r));
+}
 
 export async function createPublications(raw: unknown) {
   return act(
@@ -25,9 +74,11 @@ export async function createPublications(raw: unknown) {
       const ctx = await loadPublishContext(sql, i.pieceId);
       if (!ctx) throw new UserError('Pieza no encontrada.');
       if (ctx.piece.status !== 'approved') throw new UserError('La pieza no está aprobada por el jefe.');
+      // Said first in words; guard_publication_design refuses the same (D-64).
+      if (heldByDesign(ctx)) throw new UserError(`${DESIGN_HELD}.`);
       const ids: string[] = [];
       for (const it of i.items) {
-        const check = await validateFor(ctx, it.network, it.format);
+        const check = validateFor(ctx, it.network, it.format);
         if (check.issues.some((x) => x.level === 'error')) throw new UserError(check.issues.filter((x) => x.level === 'error').map((x) => x.text).join(' '));
         const r = await sql.one<{ id: string }>(
           `insert into public.publications (piece_id, network, format, copy_body, cover_asset_id, collaborators, scheduled_at, republish_of, status, mode, validation)
@@ -39,7 +90,7 @@ export async function createPublications(raw: unknown) {
       }
       return { ids };
     },
-    { revalidate: ['/publicar', '/piezas', '/hoy'] },
+    { revalidate: ['/publicar', '/piezas', '/redes', '/hoy'] },
   );
 }
 
@@ -58,7 +109,7 @@ export async function markPublished(raw: unknown) {
       // Redes and the boss move an event's work (the column guard); administración does not.
       if (r.event_id && s.roles.some((x) => x === 'social' || x === 'boss')) await sql.query(`update public.events set work_status = 'published' where id = $1`, [r.event_id]);
     },
-    { revalidate: ['/publicar', '/piezas', '/resultados', '/hoy'] },
+    { revalidate: ['/publicar', '/piezas', '/redes', '/resultados', '/hoy'] },
   );
 }
 

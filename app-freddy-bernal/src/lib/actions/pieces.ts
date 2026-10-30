@@ -3,52 +3,50 @@
 import { z } from 'zod';
 import { act, UserError } from './run';
 import { notify, usersWithRole } from '../notify';
+import { notifyReviewers } from './review-notify';
 import { brand } from '../client-config';
 import { buildCopies, copyLength, inventedNumbers, overLimits, type CopyOptions, type CopySet } from '../domain/copies';
-import { LEVELS, type Level } from '../domain/review';
+import type { Level } from '../domain/review';
+import { FORMAT, FORMATS, formatOfKind } from '../domain/redes';
+import { getCard } from '../data/redes';
 import type { Sql } from '../db/core';
 import { aiAvailable, aiCopies, AiUnavailable } from '../ai';
 
 const uuid = z.string().uuid();
 const level = z.enum(['verde', 'amarillo', 'rojo']);
 
-// Who has to look at a piece in review: the boss, at every level (public.can_approve()). Red rings as critical;
-// green is not emailed (he approves the greens all at once).
-async function notifyReviewers(pieceId: string, title: string, lvl: Level, why: string) {
-  const red = lvl === 'rojo';
-  await notify({
-    userIds: await usersWithRole('boss'),
-    kind: red ? 'review_red' : 'review_pending',
-    title: red ? 'Pieza en rojo por aprobar' : `Pieza por aprobar (${LEVELS[lvl].label.toLowerCase()})`,
-    body: `${title}${why ? ` · ${why}` : ''}`,
-    link: `/aprobar/${pieceId}`,
-    key: `review:${pieceId}:${Date.now()}`,
-    email: lvl !== 'verde',
-  });
-}
-
+// «Crear pieza» from an event (/piezas/nueva?evento=) or from anywhere: the format (R4, D-61) and the month the person
+// chose; with no month, the database puts it in the first one. Never from the event's date (D-75). `kind` alone
+// (before R4) still works: the format comes from it as the migration did.
 export async function createPiece(raw: unknown) {
   return act(
-    z.object({
-      eventId: uuid.nullable().or(z.literal('')).transform((v) => v || null),
-      kind: z.enum(['video', 'short', 'cover', 'carousel', 'photo']),
-      title: z.string().trim().min(3, 'Escribe un título.').max(140),
-      categoryId: uuid.nullable().or(z.literal('')).transform((v) => v || null),
-    }),
+    z
+      .object({
+        eventId: uuid.nullable().or(z.literal('')).transform((v) => v || null),
+        format: z.enum(FORMATS).optional(),
+        kind: z.enum(['video', 'short', 'cover', 'carousel', 'photo']).optional(),
+        monthId: uuid.nullable().or(z.literal('')).optional().transform((v) => v || null),
+        title: z.string().trim().min(3, 'Escribe un título.').max(140),
+        categoryId: uuid.nullable().or(z.literal('')).transform((v) => v || null),
+      })
+      .refine((v) => v.format || v.kind, 'Elige el formato.'),
     raw,
     async (sql, i, s) => {
+      const format = i.format ?? formatOfKind(i.kind!);
+      const kind = i.format ? FORMAT[i.format].kind : i.kind!;
       const r = await sql.one<{ id: string }>(
-        `insert into public.pieces (event_id, kind, title, category_id) values ($1, $2, $3, $4) returning id`,
-        [i.eventId, i.kind, i.title, i.categoryId],
+        `insert into public.pieces (event_id, kind, format, title, category_id, review_level, content_month_id)
+         values ($1, $2, $3, $4, $5, $6, $7) returning id`,
+        [i.eventId, kind, format, i.title, i.categoryId, FORMAT[format].defaultLevel, i.monthId],
       );
       // The event moves on with its piece. Redes and the boss move an event's work (the column guard); administración,
       // a technical role, does not (its piece is saved all the same).
       if (i.eventId && s.roles.some((x) => x === 'social' || x === 'boss')) {
         await sql.query(`update public.events set work_status = 'editing' where id = $1 and work_status in ('material', 'recording')`, [i.eventId]);
       }
-      return { id: r!.id };
+      return { id: r!.id, format };
     },
-    { revalidate: ['/piezas', '/hoy'] },
+    { revalidate: ['/piezas', '/redes', '/hoy'] },
   );
 }
 
@@ -60,14 +58,16 @@ export async function addVersion(raw: unknown) {
     async (sql, i) => {
       const p = await sql.one<{ current_version: number; status: string }>(`select current_version, status from public.pieces where id = $1`, [i.pieceId]);
       if (!p) throw new UserError('Pieza no encontrada.');
-      const prev = await sql.one<{ media_asset_id: string | null; cover_asset_id: string | null }>(
-        `select media_asset_id, cover_asset_id from public.piece_versions where piece_id = $1 order by version desc limit 1`,
+      const prev = await sql.one<{ media_asset_id: string | null; cover_asset_id: string | null; slide_asset_ids: (string | null)[] | null }>(
+        `select media_asset_id, cover_asset_id, slide_asset_ids from public.piece_versions where piece_id = $1 order by version desc limit 1`,
         [i.pieceId],
       );
       const v = p.current_version + 1;
-      await sql.query(`insert into public.piece_versions (piece_id, version, media_asset_id, cover_asset_id, notes) values ($1, $2, $3, $4, $5)`, [
-        i.pieceId, v, i.mediaId ?? prev?.media_asset_id ?? null, i.coverId ?? prev?.cover_asset_id ?? null, i.notes,
-      ]);
+      // A carousel's slides stay with the new version (R4): only the file or the cover changed.
+      await sql.query(
+        `insert into public.piece_versions (piece_id, version, media_asset_id, cover_asset_id, slide_asset_ids, notes) values ($1, $2, $3, $4, $5::uuid[], $6)`,
+        [i.pieceId, v, i.mediaId ?? prev?.media_asset_id ?? null, i.coverId ?? prev?.cover_asset_id ?? null, prev?.slide_asset_ids ?? [], i.notes],
+      );
       const after = await sql.one<{ id: string; title: string; status: string; review_level: Level }>(
         `update public.pieces set current_version = $2 where id = $1 returning id, title, status, review_level`,
         [i.pieceId, v],
@@ -76,23 +76,64 @@ export async function addVersion(raw: unknown) {
       const back = after && after.status === 'in_review' && (p.status === 'approved' || p.status === 'changes_requested');
       return { version: v, reopened: back ? { id: after.id, title: after.title, level: after.review_level } : null };
     },
-    { revalidate: ['/piezas', '/aprobar', '/hoy', '/jefe'] },
+    { revalidate: ['/piezas', '/redes', '/aprobar', '/hoy', '/jefe'] },
   ).then(async (r) => {
     if (r.ok && r.data!.reopened) await notifyReviewers(r.data!.reopened.id, r.data!.reopened.title, r.data!.reopened.level, `Versión nueva (${r.data!.version})`);
     return r;
   });
 }
 
+// The images of a carousel or of Fin de mes, in order (R4, D-61): a new version with them (slide_asset_ids, frozen with
+// the version like the file), its file and cover = the first slide with an image. Changing an image or the order of
+// an approved piece sends it back to the boss (the new version does it). null = a planned slide without its image.
+export async function setSlides(raw: unknown) {
+  return act(
+    z.object({
+      pieceId: uuid,
+      slides: z.array(uuid.nullable()).min(1, 'Deja al menos una lámina.').max(20, 'Hasta 20 láminas.'),
+      notes: z.string().max(1000).default(''),
+    }),
+    raw,
+    async (sql, i) => {
+      const p = await sql.one<{ current_version: number; status: string; format: string }>(
+        `select current_version, status, format from public.pieces where id = $1 and deleted_at is null`,
+        [i.pieceId],
+      );
+      if (!p) throw new UserError('Pieza no encontrada.');
+      if (p.format !== 'carousel' && p.format !== 'month_end') throw new UserError('Las láminas son de los carruseles y de fin de mes.');
+      const first = i.slides.find((x): x is string => !!x) ?? null;
+      const v = p.current_version + 1;
+      await sql.query(
+        `insert into public.piece_versions (piece_id, version, media_asset_id, cover_asset_id, slide_asset_ids, notes) values ($1, $2, $3, $3, $4::uuid[], $5)`,
+        [i.pieceId, v, first, i.slides, i.notes],
+      );
+      const after = await sql.one<{ id: string; title: string; status: string; review_level: Level }>(
+        `update public.pieces set current_version = $2 where id = $1 returning id, title, status, review_level`,
+        [i.pieceId, v],
+      );
+      const back = after && after.status === 'in_review' && (p.status === 'approved' || p.status === 'changes_requested');
+      return { version: v, reopened: back ? { id: after.id, title: after.title, level: after.review_level } : null };
+    },
+    { revalidate: ['/piezas', '/redes', '/aprobar', '/hoy', '/jefe'] },
+  ).then(async (r) => {
+    if (r.ok && r.data!.reopened) await notifyReviewers(r.data!.reopened.id, r.data!.reopened.title, r.data!.reopened.level, 'Cambiaron las láminas');
+    return r;
+  });
+}
+
+// «Enviar a aprobación» (D-63): what the card lists as missing (reviewBlockers, per format) stops it here too. With
+// no level, the piece keeps its own (a story is born green, A10).
 export async function sendToReview(raw: unknown) {
-  return act(z.object({ pieceId: uuid, level: level.default('amarillo') }), raw, async (sql, i) => {
-    const p = await sql.one<{ title: string; current_version: number }>(`select title, current_version from public.pieces where id = $1`, [i.pieceId]);
-    if (!p) throw new UserError('Pieza no encontrada.');
-    if (p.current_version < 1) throw new UserError('Sube primero el video o la imagen final.');
-    const copies = await sql.one<{ n: number }>(`select count(*)::int as n from public.copies where piece_id = $1 and body <> ''`, [i.pieceId]);
-    if (!copies?.n) throw new UserError('Faltan los copies.');
-    await sql.query(`update public.pieces set status = 'in_review', review_level = $2 where id = $1`, [i.pieceId, i.level]);
-    return { title: p.title, level: i.level, pieceId: i.pieceId };
-  }, { revalidate: ['/piezas', '/aprobar', '/hoy', '/jefe'] }).then(async (r) => {
+  return act(z.object({ pieceId: uuid, level: level.optional() }), raw, async (sql, i) => {
+    const card = await getCard(sql, i.pieceId);
+    if (!card) throw new UserError('Pieza no encontrada.');
+    if (card.blockers.length) throw new UserError(card.blockers[0]);
+    const r = (await sql.one<{ review_level: Level }>(
+      `update public.pieces set status = 'in_review', review_level = coalesce($2, review_level) where id = $1 returning review_level`,
+      [i.pieceId, i.level ?? null],
+    ))!;
+    return { title: card.title, level: r.review_level, pieceId: i.pieceId };
+  }, { revalidate: ['/piezas', '/redes', '/aprobar', '/hoy', '/jefe'] }).then(async (r) => {
     if (r.ok) await notifyReviewers(r.data!.pieceId, r.data!.title, r.data!.level, '');
     return r;
   });
@@ -116,19 +157,24 @@ export async function setReviewLevel(raw: unknown) {
 }
 
 // Green pieces: the boss approves all of them in one tap (each one still goes through
-// review_piece, so the database checks every one).
+// review_piece, so the database checks every one). A piece with an open compliance notice is never approved this way
+// (D-66): it is left out and counted apart («2 tienen avisos: ábrelas»).
 export async function approveGreen(raw: unknown) {
   return act(z.object({ pieces: z.array(z.object({ id: uuid, revision: z.number().int().min(0) })).min(1).max(50) }), raw, async (sql, i) => {
-    const rows = await sql.query<{ id: string; revision: number }>(
-      `select id, revision from public.pieces where id = any($1::uuid[]) and status = 'in_review' and review_level = 'verde' and deleted_at is null`,
+    const rows = await sql.query<{ id: string; revision: number; notices: number }>(
+      `select p.id, p.revision, (select count(*)::int from public.piece_notices n where n.piece_id = p.id and n.resolved_at is null) as notices
+         from public.pieces p
+        where p.id = any($1::uuid[]) and p.status = 'in_review' and p.review_level = 'verde' and p.deleted_at is null`,
       [i.pieces.map((p) => p.id)],
     );
     // Only what the boss saw: a piece that changed since the list loaded is skipped.
     const seen = new Map(i.pieces.map((p) => [p.id, p.revision]));
-    const ok = rows.filter((p) => seen.get(p.id) === p.revision);
+    const withNotices = rows.filter((p) => p.notices > 0).length;
+    const ok = rows.filter((p) => seen.get(p.id) === p.revision && p.notices === 0);
     for (const p of ok) await sql.query(`select public.review_piece($1, 'approved', '', $2)`, [p.id, p.revision]);
-    return { n: ok.length, skipped: i.pieces.length - ok.length };
-  }, { revalidate: ['/aprobar', '/piezas', '/hoy', '/jefe'] }).then(async (r) => {
+    const noticeText = withNotices ? (withNotices === 1 ? '1 tiene avisos: ábrela' : `${withNotices} tienen avisos: ábrelas`) : null;
+    return { n: ok.length, skipped: i.pieces.length - ok.length - withNotices, withNotices, noticeText };
+  }, { revalidate: ['/aprobar', '/piezas', '/redes', '/hoy', '/jefe'] }).then(async (r) => {
     if (r.ok && r.data!.n) {
       await notify({ userIds: await usersWithRole('social'), kind: 'piece_approved', title: `Aprobadas ${r.data!.n} piezas verdes`, body: 'Ya se pueden publicar.', link: '/publicar/nueva', key: `green:${Date.now()}` });
     }
