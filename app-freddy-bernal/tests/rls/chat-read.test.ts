@@ -1,13 +1,13 @@
 // Reading clears what is new, on a real Postgres too (TEST_DATABASE_URL): Postgres keeps created_at in microseconds,
 // the screen sends back the newest time it has in milliseconds (toISOString), and markRead() must still count the
 // message read. The in-memory database keeps milliseconds, so this only bites there. Through the action path, as the
-// screen does it: sendMessage() as Redes, then Grabación opens the conversation (conversation() + cursorOf()) and
-// markRead() with that time. The session and the push sender are mocked. All data here is invented.
+// screen does it: sendMessage() as Redes in «Grabación y Redes», then Grabación opens the channel (channel() +
+// cursorOf()) and markRead() with that time. The session and the push sender are mocked. All data here is invented.
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import type { Session } from '@/lib/auth/session';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
-import { chatDirectId } from '@/lib/db/seed-parts/chat';
-import { conversation, myConversations, unreadConversations } from '@/lib/data/chat';
+import { chatChannelId } from '@/lib/db/seed-parts/chat';
+import { channel, myChannels, unreadChannels } from '@/lib/data/chat';
 import { cursorOf } from '@/components/chat/chat-feed-core';
 import { makeTestDb, type TestDb } from './setup';
 
@@ -32,22 +32,18 @@ const sessionOf = (key: DemoUserKey): Session => {
 const as = (key: DemoUserKey) => {
   h.session = sessionOf(key);
 };
-const unread = (key: DemoUserKey) => t.as(key, (sql) => unreadConversations(sql));
-const rowOf = async (key: DemoUserKey, id: string) => (await t.as(key, (sql) => myConversations(sql, sessionOf(key)))).find((c) => c.id === id);
+const unread = (key: DemoUserKey) => t.as(key, (sql) => unreadChannels(sql));
+const rowOf = async (key: DemoUserKey, id: string) => (await t.as(key, (sql) => myChannels(sql, sessionOf(key)))).rows.find((c) => c.id === id);
 
 beforeAll(async () => {
   t = await makeTestDb();
   (globalThis as { __fbBackend?: Promise<unknown> }).__fbBackend = Promise.resolve(t.backend);
   chat = await import('@/lib/actions/chat');
-  for (const key of ['social', 'camera'] as const) {
-    as(key);
-    expect((await chat.acceptNotice()).ok).toBe(true);
-  }
 }, 120_000);
 
 describe('leer deja de contar como nuevo (con la hora en microsegundos de Postgres)', () => {
-  it('Redes escribe, Grabación abre la conversación: el sobre y la fila vuelven a cero', async () => {
-    const id = chatDirectId(t.ids.social, t.ids.camera);
+  it('Redes escribe, Grabación abre el canal (sin aceptar ningún aviso antes): el sobre y la fila vuelven a cero', async () => {
+    const id = chatChannelId('grabacion-y-redes');
     // What the seed left unread for Grabación here is read first, so the count below is only the new message.
     as('camera');
     expect((await chat.markRead({ conversationId: id })).ok).toBe(true);
@@ -61,7 +57,7 @@ describe('leer deja de contar como nuevo (con la hora en microsegundos de Postgr
 
     // Grabación opens it: the screen marks read up to its newest message, in milliseconds.
     as('camera');
-    const c = await t.as('camera', (sql) => conversation(sql, sessionOf('camera'), id));
+    const c = await t.as('camera', (sql) => channel(sql, sessionOf('camera'), id));
     const upTo = cursorOf(c!.items)!.at;
     expect(upTo).toMatch(/\.\d{3}Z$/);
     expect((await chat.markRead({ conversationId: id, upTo })).ok).toBe(true);
@@ -76,7 +72,7 @@ describe('leer deja de contar como nuevo (con la hora en microsegundos de Postgr
   });
 
   it('quien escribe deja leído lo anterior, y su propio mensaje no le cuenta', async () => {
-    const id = chatDirectId(t.ids.social, t.ids.camera);
+    const id = chatChannelId('grabacion-y-redes');
     as('camera');
     const sent = await chat.sendMessage({ conversationId: id, clientId: crypto.randomUUID(), body: 'Listo, la reviso. (prueba)' });
     expect(sent).toMatchObject({ ok: true, data: { kind: 'sent' } });

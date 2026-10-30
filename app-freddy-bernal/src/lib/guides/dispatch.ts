@@ -166,7 +166,7 @@ export const DISPATCH_GUIDE: RoleGuide = {
     { q: '¿Por qué mi evento dice «Por decidir»?', a: 'Porque lo que crea el despacho lo decide el jefe. Cuando lo acepta o lo rechaza, te llega el aviso.' },
     { q: '¿Qué pasa si el jefe y yo cambiamos lo mismo?', a: 'Queda lo último que se guardó. Te llega el aviso y lo de antes queda en el «Historial» del evento.' },
     { q: '¿Por qué no puedo subir material?', a: 'Porque el material lo sube Grabación. Tú ves los archivos del storyboard con el que grabó.' },
-    { q: '¿Puedo escribirle la hora a Redes?', a: 'No. Redes no ve la fecha ni la hora, y la plataforma no deja escribirlas en una conversación donde está Redes o política.' },
+    { q: '¿Puedo escribirle la hora a Redes?', a: 'No. Redes no ve la fecha ni la hora, y la plataforma no deja escribirlas en un canal donde está Redes o política.' },
     { q: 'Cancelé un evento por error, ¿se borró?', a: 'No: queda tachado en la agenda, con quién lo canceló y por qué. El jefe o el despacho lo traen con «Volver a la agenda».' },
   ],
 };

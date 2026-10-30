@@ -29,7 +29,7 @@ export const WELCOME_TOUR = 'bienvenida';
 export const welcomeText = (name: string) => `Hola, soy ${name.trim() || 'el asistente'}. ¿Te muestro cómo empezar?`;
 
 // Form screens and screens with a fixed action bar (as screen patterns): the strip would cover what is being filled.
-export const NO_OFFER_SCREENS = ['/agenda/nuevo', '/publicar/nueva', '/tweets/nueva', '/obras/nueva', '/reportes/nuevo', '/mensajes/nueva', '/mensajes/[id]', '/aprobar/[id]'];
+export const NO_OFFER_SCREENS = ['/agenda/nuevo', '/publicar/nueva', '/tweets/nueva', '/obras/nueva', '/reportes/nuevo', '/mensajes/canales/nuevo', '/mensajes/[id]', '/mensajes/[id]/editar', '/aprobar/[id]'];
 
 /** What the widget gets of each of the person's tutorials (assistant-mount.tsx): never their steps. */
 export type OfferTour = { id: string; screen: string; title: string; form?: boolean };

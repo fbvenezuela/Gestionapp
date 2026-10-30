@@ -1,6 +1,6 @@
-// Inside one conversation of Mensajes (/mensajes/<uuid>) the phone has no bottom bar: the box to write sits at the very
-// bottom and the messages get the room (R3, design §5.3, U11). The list of conversations, «Escribirle a alguien» and the
-// boss's pages keep it, and so does every other screen. Also: «Más» carries the tutorials' anchor.
+// Inside one channel of Mensajes (/mensajes/<uuid>) the phone has no bottom bar: the box to write sits at the very
+// bottom and the messages get the room (R3, design §5.3, U11). The list of channels, «Nuevo canal», «Editar canal» and
+// every other screen keep it. Also: «Más» carries the tutorials' anchor.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -30,8 +30,8 @@ describe('la barra de abajo en Mensajes', () => {
     expect(hidesBottomNav(`/mensajes/${UUID.toUpperCase()}/`)).toBe(true);
   });
 
-  it('sí sale en la lista, al escribirle a alguien, en las pantallas del jefe y en todo lo demás', () => {
-    for (const p of ['/mensajes', '/mensajes/nueva', '/mensajes/todas', '/mensajes/permisos', '/hoy', '/eventos/' + UUID, `/mensajes/${UUID}/otra`, '/mensajes/no-es-un-id']) {
+  it('sí sale en la lista, en «Nuevo canal», en «Editar canal» y en todo lo demás', () => {
+    for (const p of ['/mensajes', '/mensajes/canales/nuevo', `/mensajes/${UUID}/editar`, '/hoy', '/eventos/' + UUID, `/mensajes/${UUID}/otra`, '/mensajes/no-es-un-id']) {
       path = p;
       expect(bar(), p).toMatch(/^<nav aria-label="Menú"/);
       expect(hidesBottomNav(p), p).toBe(false);

@@ -34,11 +34,14 @@ Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en españo
 - **Tercera vuelta (28/10; D-42 a D-59):** guías por rol, flujos y tutoriales «mira aquí» desde una sola fuente
   (`src/lib/guides`, `/ayuda`, `npm run docs:guides` genera `docs/GUIA-POR-ROL.md`, `FLUJOS.md` y
   `GUIA-ADMINISTRACION.md`); 360 sabe la pantalla, ofrece el tutorial con una franja y nunca lee mensajes
-  (`app.caller`); **Mensajes** (directos, grupos y «Todo el equipo»): el jefe lee todas con doble factor,
-  administración y 360 ninguna, el jefe decide quién habla con quién, la base rechaza horas, fechas y mapas concretos
-  donde hay Redes o política (a «hoy»/«mañana» la app pregunta, E1), sin teléfonos, nada se borra; el rol de jefe solo
-  por `npm run db:first-admin -- … --jefe`. Migraciones `20261028002350_boss_grant.sql` y
+  (`app.caller`); **Mensajes** (administración y 360 no lo leen; la base rechaza horas, fechas y mapas concretos donde
+  hay Redes o política, a «hoy»/«mañana» la app pregunta, E1; sin teléfonos; nada se borra); el rol de jefe solo por
+  `npm run db:first-admin -- … --jefe`. Migraciones `20261028002350_boss_grant.sql` y
   `20261028002400_internal_chat.sql`. Preguntas en `docs/PENDIENTES.md`, al final.
+- **Ronda 5 (29/10; D-79 a D-88):** Mensajes son canales, como Slack: el jefe los arma (con doble factor), decide quién
+  va y está en todos por la base; cada canal muestra quiénes están; **sin aviso** en ninguna parte (lo pidió Juan); sin
+  directos, grupos ni «Quién habla con quién»; «Todo el equipo» sigue. Migración `20261029090000_chat_channels.sql`
+  (falta aplicarla en `fb-dev`).
 - Marca: oliva como color principal (D-21). Diagnóstico Digital 360 resumido en `docs/DIAGNOSTICO-360.md` (el ZIP es
   confidencial y no está en el repositorio).
 - Pruebas: Vitest (unidad + RLS) y Playwright a 360 px con axe. CI en `.github/workflows/ci.yml`.

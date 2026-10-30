@@ -584,17 +584,18 @@
   {
    "key": "mensajes",
    "roles": null,
-   "title": "Cómo le escribo a alguien del equipo",
-   "body": "Mensajes está en el sobre de arriba, junto a la campana: con «Escribirle a alguien» le escribes a una persona del equipo o armas un grupo, y en «Todo el equipo» le escribes a todos. El jefe puede leer todas las conversaciones; administración no las lee, y [ASISTENTE] tampoco. Lo que se escribe queda guardado y no se borra. Para hablar de un evento, una pieza o una ficha, pegas su dirección de la plataforma y cada quien la abre con sus permisos. Nunca van teléfonos: los contactos van en la ficha. Si conoces la agenda, no escribas fechas, horas ni mapas donde están Redes o política. En el teléfono, Enter hace un salto de línea y se envía con el botón. Una cuenta con administración no entra a Mensajes.",
+   "title": "Mensajes: los canales del equipo",
+   "body": "Mensajes está en el sobre de arriba, junto a la campana. Son canales, y cada quien ve solo los canales donde está: cada uno tiene su nombre, para qué es y arriba muestra quiénes están. El jefe arma los canales, decide quién va en cada uno y está en todos. En «Todo el equipo» están todos los del equipo. Para hablar de un evento, una pieza o una ficha, pegas su dirección de la plataforma y cada quien la abre con sus permisos. Nunca van teléfonos: los contactos van en la ficha. Si conoces la agenda, no escribas fechas, horas ni mapas donde están Redes o política. En el teléfono, Enter hace un salto de línea y se envía con el botón. Una cuenta con administración no entra a Mensajes.",
    "tags": [
     "mensajes",
     "mensaje",
     "chat",
     "red interna",
-    "escribirle",
-    "grupo",
+    "canal",
+    "canales",
+    "miembros",
+    "quién está",
     "todo el equipo",
-    "conversaciones",
     "sobre"
    ]
   },

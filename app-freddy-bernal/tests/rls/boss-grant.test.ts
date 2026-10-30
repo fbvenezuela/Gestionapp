@@ -121,8 +121,8 @@ describe('cada rol del equipo que da una persona le llega al jefe', () => {
     const notes = (await bossNotices()).slice(before);
     expect(notes).toEqual(
       expect.arrayContaining([
-        { user_id: t.ids.boss, title: 'Un rol nuevo en el equipo', body: 'Administración le dio el rol Grabación a Yorman Chacón.', link: '/mensajes/permisos' },
-        { user_id: t.ids.boss, title: 'Alguien nuevo en el equipo', body: 'Administración invitó a Persona Nueva (demo) como Redes.', link: '/mensajes/permisos' },
+        { user_id: t.ids.boss, title: 'Un rol nuevo en el equipo', body: 'Administración le dio el rol Grabación a Yorman Chacón.', link: '/mensajes' },
+        { user_id: t.ids.boss, title: 'Alguien nuevo en el equipo', body: 'Administración invitó a Persona Nueva (demo) como Redes.', link: '/mensajes' },
       ]),
     );
     // Only to the boss, and never an email (not even the part before the @).

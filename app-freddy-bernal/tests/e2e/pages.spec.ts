@@ -5,18 +5,18 @@ import { loginAs } from './helpers';
 // Every page of every role opens without errors and without serious accessibility issues. Redes by format (R4): the
 // board, its sections, the feed and the search open as themselves for Redes, the boss and administración; /piezas lands
 // on the board. Mensajes and Ayuda (R3):
-// every team role has its conversations and its guide; the boss also «Todas», «Quién habla con quién» and every
+// every team role has its channels and its guide; the boss also «Nuevo canal» and every
 // guide; Administración has Ayuda (its own guide apart, D-43) and never Mensajes (D-49, chat.spec.ts).
 const ROLES: Record<string, string[]> = {
   'admin@demo.test': ['/hoy', '/agenda', '/agenda?vista=mes', '/agenda?vista=dia', '/redes', '/redes/reels', '/redes/fin-de-mes', '/redes/feed', '/redes/buscar', '/tweets', '/publicar', '/resultados', '/biblioteca', '/aprobar', '/aprobar?tab=tweets', '/ajustes', '/ajustes/equipo', '/ajustes/categorias', '/ajustes/formulas', '/ajustes/horarios', '/ajustes/redes', '/ajustes/marca', '/ajustes/drive', '/ajustes/contenido', '/ajustes/buzon', '/ajustes/registro', '/avisos', '/perfil', '/buscar?q=puente', '/agenda/por-fecha', '/piezas/nueva', '/tweets/nueva', '/publicar/nueva', '/publicar/espontanea', '/ayuda', '/ayuda/administracion', '/ayuda/flujos', '/ayuda/redes'],
   // The boss «tiene todo, hasta lo de redes»: the Redes screens open for him too.
-  'jefe@demo.test': ['/jefe', '/jefe/politica', '/jefe/digital', '/redes', '/redes/posts', '/redes/feed', '/redes/buscar', '/agenda', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/agenda/por-fecha', '/resultados', '/aprobar', '/aprobar?tab=tweets', '/piezas/nueva', '/tweets', '/tweets/nueva', '/publicar', '/publicar/nueva', '/biblioteca', '/obras', '/obras/nueva', '/municipios', '/municipios/junin', '/reportes/nuevo', '/mensajes', '/mensajes/nueva', '/mensajes/todas', '/mensajes/permisos', '/ayuda', '/ayuda/jefe', '/ayuda/despacho', '/ayuda/politica', '/ayuda/ivt', '/ayuda/grabacion', '/ayuda/redes', '/ayuda/flujos'],
-  'despacho@demo.test': ['/hoy', '/agenda', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/agenda/por-fecha', '/biblioteca', '/obras', '/municipios', '/mensajes', '/mensajes/nueva', '/ayuda', '/ayuda/despacho'],
+  'jefe@demo.test': ['/jefe', '/jefe/politica', '/jefe/digital', '/redes', '/redes/posts', '/redes/feed', '/redes/buscar', '/agenda', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/agenda/por-fecha', '/resultados', '/aprobar', '/aprobar?tab=tweets', '/piezas/nueva', '/tweets', '/tweets/nueva', '/publicar', '/publicar/nueva', '/biblioteca', '/obras', '/obras/nueva', '/municipios', '/municipios/junin', '/reportes/nuevo', '/mensajes', '/mensajes/canales/nuevo', '/ayuda', '/ayuda/jefe', '/ayuda/despacho', '/ayuda/politica', '/ayuda/ivt', '/ayuda/grabacion', '/ayuda/redes', '/ayuda/flujos'],
+  'despacho@demo.test': ['/hoy', '/agenda', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/agenda/por-fecha', '/biblioteca', '/obras', '/municipios', '/mensajes', '/ayuda', '/ayuda/despacho'],
   // Fichas (§4.1 and §4.2): the IVT on its obra fichas, política on the municipalities. Both keep Hoy, Avisos and Perfil.
   'politica@demo.test': ['/municipios', '/municipios?vencidas=1', '/municipios/junin', '/municipios/torbes?tipo=event', '/reportes/nuevo', '/hoy', '/avisos', '/perfil', '/mensajes', '/ayuda', '/ayuda/politica'],
   'ivt@demo.test': ['/obras', '/obras?estado=to_schedule', '/obras/nueva', '/agenda', '/hoy', '/avisos', '/perfil', '/mensajes', '/ayuda', '/ayuda/ivt'],
-  'grabacion@demo.test': ['/hoy', '/agenda', '/mensajes', '/mensajes/nueva', '/ayuda', '/ayuda/grabacion'],
-  'redes@demo.test': ['/redes', '/redes/historias', '/redes/feed', '/redes/buscar', '/mensajes', '/mensajes/nueva', '/ayuda', '/ayuda/redes', '/ayuda/flujos'],
+  'grabacion@demo.test': ['/hoy', '/agenda', '/mensajes', '/ayuda', '/ayuda/grabacion'],
+  'redes@demo.test': ['/redes', '/redes/historias', '/redes/feed', '/redes/buscar', '/mensajes', '/ayuda', '/ayuda/redes', '/ayuda/flujos'],
 };
 
 for (const [email, pages] of Object.entries(ROLES)) {

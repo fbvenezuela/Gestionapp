@@ -50,7 +50,7 @@ export const ADMIN_GUIDE: AdminGuide = {
       screen: '/ajustes/registro',
       title: 'Registro de cambios',
       what: 'Quién cambió qué y cuándo, en toda la plataforma.',
-      youDo: ['Buscas un cambio por tipo o por persona.', 'De Mensajes sale solo que hubo un mensaje, quién y cuándo: nunca el texto, el nombre del grupo ni quiénes son.'],
+      youDo: ['Buscas un cambio por tipo o por persona.', 'De Mensajes sale solo que hubo un mensaje, un canal o un cambio de miembros, quién y cuándo: nunca el texto, el nombre del canal ni quiénes son.'],
     },
     {
       title: 'Ver como',
@@ -72,14 +72,14 @@ export const ADMIN_GUIDE: AdminGuide = {
     },
   ],
   notes: [
-    'Mensajes no es para administración: no lees las conversaciones del equipo, y una cuenta con administración no entra a Mensajes aunque tenga otro rol.',
+    'Mensajes no es para administración: no entras a los canales del equipo, y una cuenta con administración no entra a Mensajes aunque tenga otro rol.',
     'El rol de jefe no se da desde Equipo: se da con el comando de instalación (npm run db:first-admin con la opción --jefe). Cada rol del equipo que das le llega al jefe como aviso.',
     'Las guías del equipo no hablan de administración: esta guía es aparte.',
     'Nada sale hacia afuera mientras se prueba: los correos quedan en el «Buzón de correos» y nada se publica solo.',
   ],
   faq: [
     { q: 'Alguien perdió el teléfono, ¿qué hago?', a: 'En Equipo, «Cerrar sus sesiones» y «Reiniciar doble factor». La próxima vez que entre, lo activa de nuevo.' },
-    { q: '¿Por qué no puedo marcar «Jefe» en Equipo?', a: BOSS_GRANT_MESSAGE + ' Así nadie arma otra cuenta que apruebe o lea todos los mensajes.' },
+    { q: '¿Por qué no puedo marcar «Jefe» en Equipo?', a: BOSS_GRANT_MESSAGE + ' Así nadie arma otra cuenta que apruebe todo o esté en todos los canales.' },
     { q: '¿Puedo leer los mensajes del equipo?', a: 'No. Mensajes no tiene entrada para administración, ni con «Ver como», ni en el registro de cambios.' },
     { q: '¿Qué ve el equipo de lo que hago?', a: 'Cada rol que das le llega al jefe como aviso. Las personas saben que lees lo que le preguntan a 360: el panel de 360 lo dice.' },
   ],

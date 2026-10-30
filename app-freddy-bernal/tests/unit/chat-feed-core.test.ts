@@ -4,8 +4,8 @@
 // id (the «Enviando…» bubble is replaced by the real message, nothing twice). All data invented.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
-  CHAT_BADGE_MS, CHAT_FETCH_TIMEOUT_MS, CHAT_POLL_MS, createPoller, createSendQueue, cursorOf, mergeItems, newFromOthers, sinceUrl,
-  withTimeout, type FeedItem, type SendOutcome,
+  CHAT_BADGE_MS, CHAT_FETCH_TIMEOUT_MS, CHAT_POLL_MS, FEED_GONE, createPoller, createSendQueue, cursorOf, getFeed, mergeItems, newFromOthers,
+  sinceUrl, withTimeout, type FeedItem, type SendOutcome,
 } from '@/components/chat/chat-feed-core';
 import type { ChatItem } from '@/components/chat/chat-core';
 
@@ -244,5 +244,19 @@ describe('lo que hay en la pantalla', () => {
     expect(newFromOthers(cur, [msg('a', '2026-10-28T15:00:00.000Z')], 'yo')).toBe(false);
     expect(newFromOthers(cur, [msg('m', '2026-10-28T15:01:00.000Z', 'yo')], 'yo')).toBe(false);
     expect(newFromOthers(cur, [msg('b', '2026-10-28T15:01:00.000Z')], 'yo')).toBe(true);
+  });
+});
+
+// R5 (D-85): the boss takes the person out of the channel while it is open. The loop gets a 404 and the screen stops and
+// says «Ya no estás en este canal.»; any other failure is only «nothing this time».
+describe('cuando ya no está en el canal', () => {
+  const res = (status: number, body: unknown = {}) => vi.fn(async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
+
+  it('un 404 dice que el canal ya no es suyo; un 401 o un 500 no', async () => {
+    const signal = new AbortController().signal;
+    expect(await getFeed('/api/mensajes/x/nuevos', signal, res(404))).toBe(FEED_GONE);
+    expect(await getFeed('/api/mensajes/x/nuevos', signal, res(401))).toBeNull();
+    expect(await getFeed('/api/mensajes/x/nuevos', signal, res(500))).toBeNull();
+    expect(await getFeed('/api/mensajes/x/nuevos', signal, res(200, { items: [] }))).toEqual({ items: [] });
   });
 });

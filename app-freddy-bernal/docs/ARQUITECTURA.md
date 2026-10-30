@@ -1,8 +1,8 @@
 # Arquitectura
 
-Actualizado: 28/10/2026 (seis roles, fichas, agenda compartida y entrega de Grabación: migraciones
+Actualizado: 29/10/2026 (seis roles, fichas, agenda compartida y entrega de Grabación: migraciones
 `20261027001500` a `20261028002300`; tercera vuelta: Mensajes, Ayuda y tutoriales, migraciones `20261028002350` y
-`20261028002400`).
+`20261028002400`; ronda 5: Mensajes como canales, `20261029090000`).
 
 ## Piezas
 - **Next.js 16 (App Router), React 19, TypeScript estricto, Tailwind 4.** Server Components para leer y server
@@ -52,7 +52,7 @@ app-freddy-bernal/
 | Publicación | `publications` (con `republish_of`, `collaborators`, `validation`), `publication_metrics` (fotos en el tiempo), `network_specs` | Trigger `guard_publication` |
 | Avisos | `notifications`, `outbox`, `jobs`, `ai_usage` | Escritos por el servidor |
 | Auditoría | `audit_log` | Solo se agrega; trigger en todas las tablas de negocio |
-| Mensajes (28/10) | `chat_conversations` (directa, grupo o «Todo el equipo»), `chat_members` (fijos), `chat_messages` (con `agenda_clear`), `chat_reads` (leído y silencio propios), `chat_rules` (quién habla con quién, por pareja de roles), `chat_notice_ack` (el aviso aceptado) | Mensajes, miembros y el aviso aceptado solo se agregan (ni el sistema los borra: tampoco `TRUNCATE`). La auditoría guarda tabla, fila, quién y cuándo, nunca el texto, el nombre del grupo ni los miembros. Nada en Realtime. Ver «Mensajes» |
+| Mensajes (28/10; canales desde el 29/10) | `chat_conversations` (un canal con nombre, descripción y `archived_at`, o «Todo el equipo»), `chat_members` (`via` «picked» o «boss»; salir es `removed_at`/`removed_by`, volver es una fila nueva), `chat_messages` (con `agenda_clear`), `chat_reads` (leído y silencio propios) | Los mensajes solo se agregan; los miembros también (ni el sistema los borra: tampoco `TRUNCATE`). La auditoría guarda tabla, fila, quién y cuándo, nunca el texto, el nombre del canal ni los miembros. Nada en Realtime. Sin aviso ni reglas por pareja (se fueron `chat_notice_ack` y `chat_rules`). Ver «Mensajes» |
 | Google Drive y miniaturas | `drive_connection`, `drive_folders`, `media_drive`, `media_thumbs`, `drive_transfer`; función `drive_status()` | Solo el servidor (RLS activo, sin políticas, sin permisos para los roles de la API). Un archivo de Drive es una fila normal de `media_assets` con `bucket = 'drive'`. `media_thumbs` guarda también las miniaturas hechas en el teléfono (cualquier almacenamiento) |
 
 Índices en las columnas de búsqueda y orden (estado, fechas, claves foráneas). Borrado: columna `deleted_at` y
@@ -79,15 +79,19 @@ cambió qué), `agenda_last_writers()` (a quién avisar «cambió lo mismo que t
 `text_has_datetime()` (las mismas de la app); desde el 28/10 también `text_has_concrete_datetime()`, `chat_strip_refs()`,
 `chat_has_map()` y `chat_strip_timecodes()` (copias exactas en `src/lib/domain/chat.ts`).
 
-Mensajes (28/10, `20261028002400_internal_chat.sql`): `is_team_member()` (un rol del equipo y no administración),
-`chat_is_member(c)`, `chat_can_read(c)` (miembro con su doble factor, o el jefe con `can_approve()`; nunca administración ni 360),
-`chat_may_post(c)` (aviso aceptado, todas las parejas permitidas, «Solo el jefe escribe»), `chat_hides_agenda_for_me(c)`,
+Mensajes (28/10, `20261028002400_internal_chat.sql`; canales desde el 29/10, `20261029090000_chat_channels.sql`):
+`is_team_member()` (un rol del equipo y no administración), `chat_is_member(c)` (miembro actual, o «Todo el equipo»),
+`chat_can_read(c)` (miembro con su doble factor; el jefe lee porque está en todos los canales; nunca administración ni
+360), `chat_may_post(c)` (miembro, no archivado, «Solo el jefe escribe»), `chat_hides_agenda_for_me(c)`,
 `chat_reader_knows_agenda()`, `chat_by_assistant()` (la marca `app.caller = 'assistant'` de 360), y las que llama la app:
-`chat_start()`, `chat_team_channel()`, `chat_set_only_boss()`, `chat_people()`, `chat_member_list()`,
-`chat_hidden_marks()`. Internas, sin permiso para la API: `chat_team_roles()`, `chat_pair_allowed()`,
-`chat_author_knows_agenda()`, `chat_author_camera_only()`, `chat_hides_agenda()`. Disparadores: `chat_message_guard()`
-(la regla de teléfono y agenda al escribir, y `agenda_clear`), `chat_append_only()`, `guard_chat_conversation_update()`,
-`chat_stamp_rule()` y `audit_chat_row()`.
+`chat_team_channel()`, `chat_set_only_boss()`, `chat_people()` (solo el jefe), `chat_member_list()` (quién está ahora; quien
+salió solo como autor), `chat_hidden_marks()`, `chat_channel_create()`, `chat_channel_update()`,
+`chat_channel_set_members()`, `chat_channel_archive()` (las cuatro del jefe con doble factor). Internas, sin permiso para
+la API: `chat_team_roles()`, `chat_author_knows_agenda()`, `chat_author_camera_only()`, `chat_hides_agenda()`,
+`chat_channel_people()`. Disparadores: `chat_message_guard()` (teléfono y agenda al escribir, y `agenda_clear`, estricto
+donde no hay Redes ni política), `chat_append_only()`, `guard_chat_conversation_update()`, `guard_chat_channel_text()`,
+`guard_chat_member_change()`, `chat_channel_add_bosses()`, `chat_boss_role_change()` (disparador
+`zz_chat_boss_membership`, después de los guardias de roles) y `audit_chat_row()`.
 
 El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (solo el sistema da `boss`, en
 `user_roles` y en `invitations`), `notify_team_role_grant()` (aviso al jefe por cada rol del equipo que da una persona) y
@@ -111,11 +115,9 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 | `tweets` | equipo de contenido | admin, redes, jefe; aprobar solo `can_approve()` |
 | `publications`, métricas | equipo de contenido | admin, redes, jefe; publicada/programada solo si la pieza está aprobada |
 | `user_roles`, `invitations` | admin (y cada quien sus roles) | admin con aal2; nadie se da roles a sí mismo y una cuenta no junta admin con jefe o despacho (`guard_role_mix`, D-41); el rol de jefe solo lo da el sistema (`guard_boss_grant`, D-58) |
-| `chat_conversations`, `chat_members` | `chat_can_read()` | solo `chat_start()` y `chat_team_channel()`; «Solo el jefe escribe» con `chat_set_only_boss()` |
+| `chat_conversations`, `chat_members` | `chat_can_read()` (de `chat_members`, solo las filas actuales y la propia) | solo las funciones del jefe (`chat_channel_*`) y `chat_team_channel()`; «Solo el jefe escribe» con `chat_set_only_boss()`; el jefe entra solo por la base |
 | `chat_messages` | `chat_can_read()` y (`agenda_clear`, o quien conoce la agenda sin Redes ni política, o el jefe) | el autor con `chat_may_post()`; `chat_message_guard()` revisa y pone `agenda_clear`; nunca se cambia ni se borra |
 | `chat_reads` | las propias | las propias, de un miembro |
-| `chat_rules` | el equipo y el jefe | el jefe con aal2 (`can_approve()`) |
-| `chat_notice_ack` | la propia | la propia, de alguien del equipo; nunca se borra |
 | `audit_log`, `outbox` | admin (con aal2) | nadie (trigger / servidor) |
 
 ## Regla de fecha y hora (regla 4)
@@ -133,26 +135,33 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 7. Probado en `tests/rls` (sobre todo `por-rol.test.ts`: un bloque por cada frase de §8 del encargo del 27/10) y en
    `tests/e2e/por-rol.spec.ts` y `flows.spec.ts` (redes no ve horas en la lista ni en la ficha).
 
-## Mensajes (D-49 a D-59)
-- **Pantallas** (`src/app/(panel)/mensajes/**`): la lista, «Escribirle a alguien» (`nueva`), la conversación (`[id]`),
-  y para el jefe «Todas» y «Quién habla con quién» (`permisos`). Una cuenta con administración vuelve a su inicio con
-  «Esa pantalla no es de tu rol». El sobre de arriba (`ChatHeaderLink` + `ChatBadgeLive`) solo para el equipo.
-- **Lecturas:** `src/lib/data/chat.ts`, siempre dentro de `db(session, …)`. **Rutas GET del lazo:**
-  `/api/mensajes/[id]/nuevos` (lo nuevo de una conversación, cada 5 s con la pantalla a la vista) y
+## Mensajes (canales, D-79 a D-88; antes D-49 a D-59)
+- **Pantallas** (`src/app/(panel)/mensajes/**`): la lista (`page.tsx`: «Todo el equipo», mis canales y «Archivados»;
+  el jefe tiene «Nuevo canal»), el canal (`[id]`: el nombre, la descripción y «N personas», que abre la hoja
+  «Miembros»), y para el jefe con doble factor «Nuevo canal» (`canales/nuevo`) y «Editar canal» (`[id]/editar`: nombre,
+  descripción y miembros con un solo «Guardar», y archivar). Sin aviso en ninguna parte. Una cuenta con administración
+  vuelve a su inicio con «Esa pantalla no es de tu rol». El sobre de arriba (`ChatHeaderLink` + `ChatBadgeLive`) solo
+  para el equipo.
+- **Lecturas:** `src/lib/data/chat.ts` (`myChannels`, `channel`, `messagesSince`, `unreadChannels`, `channelEditor`,
+  `chatPeopleForBoss`), siempre dentro de `db(session, …)`. **Rutas GET del lazo:** `/api/mensajes/[id]/nuevos` (lo
+  nuevo de un canal, cada 5 s con la pantalla a la vista; 404 si ya no está en él, y la pantalla deja de preguntar) y
   `/api/mensajes/sin-leer` (el número del sobre, cada 30 s); sin sesión 401, sin Mensajes 404, `no-store`.
-- **Acciones:** `src/lib/actions/chat.ts`: `acceptNotice`, `startConversation`, `openTeamChannel`, `sendMessage` (con
-  `clientId` como id: un reintento no duplica; pregunta antes de enviar un tiempo del video de Grabación o una palabra
-  relativa como «mañana» a quien conoce la agenda, E1; sin `revalidatePath`), `markRead`, `setMuted`, `setRoleRule`,
-  `setOnlyBoss`. Enviar va directo, en una cola en orden, sin refrescar la página (`chat-feed-core.ts`).
-- **Dominio:** `src/lib/domain/chat.ts`: los textos fijos (avisos, rechazos, preguntas), las copias exactas de las
-  reglas de texto de la base y `pairAllowed()`, comparadas con `tests/unit/fixtures/chat-text-cases.ts`.
-- **Avisos:** `notifyChat()` (`src/lib/notify.ts`) manda push tipo `chat_message` sin el texto ni el nombre del grupo,
-  nunca a la campana ni por correo; se apaga en «Qué avisos quiero» → «Mensajes nuevos del equipo».
+- **Acciones:** `src/lib/actions/chat.ts`: `createChannel`, `saveChannel`, `archiveChannel` (del jefe), `openTeamChannel`,
+  `sendMessage` (con `clientId` como id: un reintento no duplica; pregunta antes un tiempo del video de Grabación o una
+  palabra relativa como «mañana» a quien conoce la agenda donde están Redes o política, E1; `gone` si ya no está en el
+  canal; sin `revalidatePath`), `markRead`, `setMuted`, `setOnlyBoss`. Enviar va directo, en una cola en orden, sin
+  refrescar la página (`chat-feed-core.ts`).
+- **Dominio:** `src/lib/domain/chat.ts`: los textos fijos (rechazos, preguntas, vacíos), las copias exactas de las reglas
+  de texto de la base, comparadas con `tests/unit/fixtures/chat-text-cases.ts`, y `chatChannelTextProblem()` para el
+  nombre y la descripción.
+- **Avisos:** `notifyChat()` (`src/lib/notify.ts`) manda push tipo `chat_message` a los miembros actuales, sin el texto
+  ni el nombre del canal, nunca a la campana ni por correo; se apaga en «Qué avisos quiero» → «Mensajes nuevos del
+  equipo».
 - **360 fuera:** ningún archivo de `src/lib/assistant`, `src/components/assistant`, `config/assistant` o la ruta del
   asistente toca Mensajes (`tests/unit/chat-isolation.test.ts`), y en la base lo que corre 360 lleva
   `app.caller = 'assistant'` (`src/lib/assistant/db.ts`), que las funciones de chat rechazan.
-- **Demo:** `src/lib/db/seed-parts/chat.ts` siembra con ids estables las 28 directas, un grupo, «Todo el equipo» y un
-  mensaje sin leer para cada persona del equipo (D-57).
+- **Demo:** `src/lib/db/seed-parts/chat.ts` siembra con ids estables «Todo el equipo» y cuatro canales (uno archivado),
+  con un canal sin leer para cada persona del equipo (D-88).
 
 ## Guías, tutoriales y Ayuda (D-42 a D-48)
 - **Una sola fuente:** `src/lib/guides/` (un archivo por rol, `shared.ts`, `admin.ts`, `flows.ts`, `sections.ts`,
@@ -256,6 +265,7 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 | `20261028002300_report_files_notes.sql` | Los documentos de un reporte, solo para política, despacho y jefe (admin ve las fotos y no sube); la historia de un reporte sin teléfonos (D-41) |
 | `20261028002350_boss_grant.sql` | Tercera vuelta: el rol de jefe solo lo da el sistema; aviso al jefe por cada rol del equipo que da una persona (D-58). En `fb-dev` desde el 29/10 |
 | `20261028002400_internal_chat.sql` | Tercera vuelta: Mensajes (seis tablas, sus funciones y RLS), `text_has_concrete_datetime()` (E1), nada para anon ni en Realtime (D-49 a D-57, D-59). En `fb-dev` desde el 29/10 |
+| `20261029090000_chat_channels.sql` | Ronda 5: Mensajes como canales que arma el jefe, el jefe en todos por la base, sin aviso ni «Quién habla con quién»; lo que había queda en canales archivados (D-79 a D-88). Falta en `fb-dev` |
 
 ## Tareas programadas
 - `/api/cron/tick` (con `CRON_SECRET`): aviso de tweets por acabarse (una vez al día) y publicaciones vencidas

@@ -1,7 +1,8 @@
 // «Para todos» (R3, design §7.3): what every role of the team shares — signing in, the top bar, the phone, no signal,
 // the date rule, Mensajes, 360 and Ayuda. Plain Venezuelan Spanish, «tú». «» only for what the screen says.
-// Administración is named only in Mensajes' notice and in 360's line (D-43): CHAT_NOTICE and ADMIN_SEES_360.
-import { CHAT_ACK_TEXT, CHAT_HIDDEN, CHAT_NOTICE, CHAT_NOTICE_LINE, CHAT_PHONE_TEXT } from '../domain/chat';
+// Administración is named only in 360's line (D-43): ADMIN_SEES_360. Mensajes has no notice (R5, D-79): the guides
+// explain the channels, and that each channel shows who is in it.
+import { CHAT_HIDDEN, CHAT_PHONE_TEXT } from '../domain/chat';
 import type { SharedTopic } from './types';
 
 // What 360's panel says under the box (WP-E, S8): who reads what you ask it.
@@ -16,9 +17,8 @@ export const MSG_RELATIVE =
   'Si escribes una palabra como “mañana” o “el lunes” donde está Redes o política, la plataforma te pregunta antes de enviar, con «Enviar igual» o «Corregir».';
 export const MSG_FREE =
   'Redes y política no conocen la agenda, así que escriben libre. Si ves un mensaje oculto, es que tenía una fecha o una hora de la agenda y no es para ti.';
-export const MSG_RULES =
-  '«Quién habla con quién» lo decide el jefe y vale para las conversaciones de Mensajes. No cambia «Todo el equipo» ni las notas de trabajo (la nota de Grabación para el editor, los comentarios de una pieza).';
-export const MSG_TO_BOSS = 'A todos se les permite escribirle al jefe, y el jefe le escribe a todos.';
+export const MSG_CHANNELS = 'Mensajes son canales: el jefe los arma, decide quién va en cada uno y está en todos. Cada canal muestra arriba quiénes están.';
+export const MSG_TEAM = 'En «Todo el equipo» están todos los del equipo, siempre.';
 export const MSG_LINKS =
   'Para hablar de un evento, una pieza o una ficha, pega su dirección de la plataforma: sale como una tarjetita con su título, y cada quien la abre con sus permisos.';
 export const MSG_PUSH =
@@ -40,7 +40,7 @@ export const SHARED: SharedTopic[] = [
     title: 'Lo de arriba de la pantalla',
     body: [
       '«Crear»: solo lo que tu rol puede crear. Grabación no tiene este botón.',
-      'El sobre: tus mensajes con el equipo, con el número de conversaciones que tienen algo nuevo.',
+      'El sobre: tus canales de Mensajes, con el número de canales que tienen algo nuevo.',
       'La campana: tus avisos, con el número de los que no has leído.',
       'La lupa (o «Buscar evento o pieza» en la computadora): buscas un evento o una pieza por su nombre o su lugar.',
       '«Mi cuenta»: «Mi perfil y avisos», «Ayuda y guías», «Ver el tutorial de esta pantalla», el «Modo sol» (más contraste y letra más grande para leer en la calle) y «Salir». Al salir se borran del teléfono los borradores.',
@@ -79,21 +79,19 @@ export const SHARED: SharedTopic[] = [
     id: 'mensajes',
     title: 'Mensajes',
     body: [
-      CHAT_NOTICE,
-      'Entras por el sobre de arriba. La primera vez sale un aviso que aceptas con «Entendido»: sin aceptarlo no puedes escribir.',
-      'Le escribes a una persona o armas un grupo (de 3 a 12 personas) con «Escribirle a alguien». En «Todo el equipo» escriben todos y lo lee todo el equipo.',
-      'En cada conversación dice: ' + CHAT_NOTICE_LINE,
-      'Un mensaje no se edita ni se borra. Por eso, antes de escribir, piensa si puede leerlo el jefe.',
+      'Entras por el sobre de arriba, junto a la campana. El número dice cuántos canales tienen algo nuevo.',
+      MSG_CHANNELS,
+      MSG_TEAM,
+      'Ves solo los canales donde estás. Toca «N personas» arriba de un canal para ver la lista de quiénes están.',
+      'Un mensaje no se edita ni se cambia después de enviarlo: revísalo antes de tocar el botón de enviar.',
       MSG_ENTER,
       MSG_PHONES,
       MSG_AGENDA,
       MSG_RELATIVE,
       MSG_FREE,
-      MSG_TO_BOSS,
-      MSG_RULES,
       MSG_LINKS,
       MSG_PUSH,
-      'Con «Silenciar» una conversación deja de sonar en tu teléfono; la sigues leyendo igual.',
+      'Con «Silenciar» un canal deja de sonar en tu teléfono; lo sigues leyendo igual.',
     ],
   },
   {
@@ -129,7 +127,7 @@ export function sharedFor(o: { messages: boolean }): SharedTopic[] {
   );
 }
 
-// The texts that may name Administración in a team guide (D-43): Mensajes' notices and 360's line.
-export const ADMIN_MENTIONS: string[] = [CHAT_NOTICE, CHAT_NOTICE_LINE, CHAT_ACK_TEXT, ADMIN_SEES_360];
+// The texts that may name Administración in a team guide (D-43): 360's line only (Mensajes has no notice, D-79).
+export const ADMIN_MENTIONS: string[] = [ADMIN_SEES_360];
 // What a hidden message says (the guides explain it; the screen draws it).
 export const HIDDEN_MESSAGE = CHAT_HIDDEN;

@@ -65,15 +65,23 @@ const PRIVACY_CHECKS: [string, string][] = [
   // 20261028002400_internal_chat.sql (Mensajes). The text never comes back in the error.
   ['chat_messages_no_phone', 'Los teléfonos no van en los mensajes: los contactos van en la ficha, con doble factor. Si es un número largo dentro de un enlace, pega la dirección de la plataforma o quita el número.'],
   ['chat_messages_no_agenda_when', 'Aquí está Redes o política: el mensaje no puede llevar una hora, una fecha ni un mapa. Escribe «lo antes posible» o «el día del evento».'],
-  ['chat_title_private', 'El nombre del grupo no lleva teléfonos, fechas, horas ni mapas: todos los del grupo lo leen siempre.'],
-  ['chat_conv_title_no_phone', 'El nombre del grupo no lleva teléfonos, fechas, horas ni mapas: todos los del grupo lo leen siempre.'],
-  ['chat_pair_not_allowed', 'El jefe no permite mensajes entre estas personas.'],
+  // 20261029090000_chat_channels.sql (Mensajes as channels): CHAT_TEXT_REFUSED and the boss's channel rules.
+  ['chat_title_private', 'El nombre y la descripción no llevan teléfonos, fechas, horas ni mapas: todos los del canal los leen siempre.'],
+  ['chat_desc_private', 'El nombre y la descripción no llevan teléfonos, fechas, horas ni mapas: todos los del canal los leen siempre.'],
+  ['chat_conv_title_no_phone', 'El nombre y la descripción no llevan teléfonos, fechas, horas ni mapas: todos los del canal los leen siempre.'],
+  ['chat_conv_desc_no_phone', 'El nombre y la descripción no llevan teléfonos, fechas, horas ni mapas: todos los del canal los leen siempre.'],
   ['chat_messages_len', 'El mensaje tiene que tener entre 1 y 2000 letras.'],
-  ['chat_conv_title_len', 'El nombre del grupo va de 1 a 60 letras.'],
+  ['chat_conv_title_len', 'El nombre del canal va de 1 a 60 letras.'],
+  ['chat_conv_desc_len', 'La descripción va hasta 140 letras.'],
+  ['chat_channel_needs_member', 'Elige al menos a una persona además de ti.'],
+  ['chat_channel_archived', 'Este canal está archivado: sácalo del archivo para cambiar quién está.'],
+  ['chat_boss_stays', 'El jefe está en todos los canales: no se puede quitar.'],
 ];
 
-// Mensajes: a message the policies refuse (the conversation closed, «Solo el jefe escribe», the notice not accepted).
-export const CHAT_POST_REFUSED = 'Ya no puedes escribir en esta conversación.';
+// Mensajes: a message the policies refuse (not in the channel any more, archived, «Solo el jefe escribe»).
+export const CHAT_POST_REFUSED = 'Ya no puedes escribir en este canal.';
+// Mensajes: one of the boss's channel functions refused (not the boss, or the boss without the second factor).
+export const CHAT_BOSS_ONLY = 'Para esto necesitas entrar con el doble factor.';
 
 // Turn a Postgres error into a short Spanish message for people.
 export function friendlyDbError(e: unknown): string {
@@ -83,6 +91,7 @@ export function friendlyDbError(e: unknown): string {
     // Our own guards raise with a readable Spanish message; keep it (the boss's role, 20261028002350_boss_grant.sql,
     // and a message of Mensajes, chat_message_guard()).
     if (/^[A-ZÁÉÍÓÚ¿¡]/.test(msg) && !/row-level security|permission denied/i.test(msg)) return msg;
+    if (/^chat: boss only/.test(msg)) return CHAT_BOSS_ONLY;
     if (/row-level security/i.test(msg) && /"chat_messages"/.test(msg)) return CHAT_POST_REFUSED;
     return 'No tienes permiso para hacer esto.';
   }

@@ -4,8 +4,9 @@ import { db } from '@/lib/auth/session';
 import { messagesSince } from '@/lib/data/chat';
 import { json, notFound, teamSession } from '../../route-core';
 
-// What is new in an open conversation (R3, D-56): the phone asks every 5 s while the screen is in view. As the person
-// (RLS: a member with 2FA or the boss with 2FA); a conversation they cannot read is 404, like one that does not exist.
+// What is new in an open channel (R3, D-56): the phone asks every 5 s while the screen is in view. As the person
+// (RLS: who is in the channel now, with 2FA); a channel they cannot read is 404, like one that does not exist (the
+// screen then says «Ya no estás en este canal.» and stops asking).
 export const dynamic = 'force-dynamic';
 
 const UUID = z.string().uuid();

@@ -27,7 +27,7 @@ export const TOURS: Tour[] = [
       { target: MENU, title: 'Tus pantallas', body: 'Aquí están las pantallas de tu trabajo; en el teléfono, abajo. Lo que no cabe en la barra está en «Más».' },
       { target: [anchor('create')], title: 'Crear', body: 'En «Crear» está solo lo que tu rol puede crear.' },
       { target: [anchor('bell')], title: 'Avisos', body: 'La campana te avisa de lo que espera por ti en tu trabajo.' },
-      { target: [anchor('messages')], title: 'Mensajes', body: 'Aquí le escribes al equipo. El jefe puede leer las conversaciones.' },
+      { target: [anchor('messages')], title: 'Mensajes', body: 'Aquí están tus canales con el equipo.' },
       { target: [anchor('account')], title: 'Tu cuenta', body: 'En «Mi cuenta» están tu perfil, el «Modo sol», «Ayuda y guías» y «Salir».' },
       // With `next`, the engine adds «Ahora tu pantalla de inicio» and the «Seguir» button to this last step.
       { target: ['[data-assistant-button]'], title: '360', body: 'Pregúntale a 360 lo que sea de la plataforma, cuando quieras.' },
@@ -39,11 +39,21 @@ export const TOURS: Tour[] = [
     roles: TEAM,
     title: 'Cómo se usa Mensajes',
     steps: [
-      { target: [anchor('chat-notice')], title: 'Quién lee', body: 'El jefe puede leer todas las conversaciones; administración y 360 no. Lo escrito queda y no se borra.' },
-      { target: [anchor('chat-team')], title: 'Todo el equipo', body: 'En «Todo el equipo» escriben todos y lo lee todo el equipo.' },
-      { target: [anchor('chat-list')], title: 'Tus conversaciones', body: 'Aquí están tus conversaciones; en negrita, las que tienen algo nuevo.' },
-      { target: [anchor('chat-new')], title: 'Escribir', body: 'Aquí está «Escribirle a alguien»: a una persona o a un grupo. Lo tocas cuando cierres el tutorial.' },
-      { target: [anchor('messages')], title: 'El sobre', body: 'El número del sobre te dice cuántas conversaciones tienen algo nuevo.' },
+      { target: [anchor('chat-team')], title: 'Todo el equipo', body: 'Aquí están todos los del equipo.' },
+      { target: [anchor('chat-list')], title: 'Tus canales', body: 'Aquí están los canales donde estás; en negrita, los que tienen algo nuevo.' },
+      // Only the boss has «Nuevo canal»: for the others the engine skips a step whose anchor is not on the screen.
+      { target: [anchor('chat-new-channel')], title: 'Nuevo canal', body: 'Aquí armas un canal y eliges quién va. Lo tocas cuando cierres el tutorial.' },
+      { target: [anchor('messages')], title: 'El sobre', body: 'El número del sobre te dice cuántos canales tienen algo nuevo.' },
+    ],
+  },
+  {
+    id: 'canal',
+    screen: '/mensajes/[id]',
+    roles: TEAM,
+    title: 'Cómo se usa un canal',
+    steps: [
+      { target: [anchor('chat-members')], title: 'Quién está', body: 'Aquí ves cuántos están en este canal; con un toque sale la lista con cada uno.' },
+      { target: [anchor('chat-composer')], title: 'Escribir', body: 'Escribes aquí y tocas el avioncito para enviar.' },
     ],
   },
   {

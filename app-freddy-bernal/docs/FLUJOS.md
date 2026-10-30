@@ -248,35 +248,32 @@ Lo hacen: Jefe, Despacho, Política, IVT, Grabación y Redes.
 
 ```mermaid
 flowchart TD
-  mensajes_acepta["Jefe, Despacho, Política, IVT, Grabación o Redes: La primera vez, lees el aviso y tocas «Entendido»."]
-  mensajes_acepta --> mensajes_escribe
-  mensajes_escribe["Jefe, Despacho, Política, IVT, Grabación o Redes: «Escribirle a alguien»: una persona o un grupo."]
-  mensajes_escribe --> mensajes_escribe_q{"¿El jefe permite mensajes entre esos roles?"}
-  mensajes_escribe_q -- No --> mensajes_escribe_b1["Esa persona no sale en la lista."]
-  mensajes_escribe_q -- Sí --> mensajes_escribe_b2["Escribes tu mensaje."]
-  mensajes_escribe_b2 --> mensajes_revisa
-  mensajes_revisa["Jefe, Despacho, IVT o Grabación: Si conoces la agenda y en la conversación está Redes o política, la plataforma revisa el texto."]
+  mensajes_arma["Jefe: Arma un canal con «Nuevo canal»: nombre, para qué es y quiénes van. Él está en todos."]
+  mensajes_arma --> mensajes_entra
+  mensajes_entra["Jefe, Despacho, Política, IVT, Grabación o Redes: El canal le sale en Mensajes a cada persona que está en él, con la lista de quiénes están."]
+  mensajes_entra --> mensajes_escribe
+  mensajes_escribe["Jefe, Despacho, Política, IVT, Grabación o Redes: Escribe en el canal."]
+  mensajes_escribe --> mensajes_revisa
+  mensajes_revisa["Jefe, Despacho, IVT o Grabación: Si conoces la agenda y en el canal está Redes o política, la plataforma revisa el texto."]
   mensajes_revisa --> mensajes_revisa_q{"¿Lleva una fecha, una hora, un mapa o un teléfono?"}
   mensajes_revisa_q -- Sí --> mensajes_revisa_b1["No lo deja enviar y dice cómo decirlo sin eso."]
   mensajes_revisa_b1 --> mensajes_escribe
   mensajes_revisa_q -- No --> mensajes_revisa_b2["Sale."]
   mensajes_revisa_b2 --> mensajes_llega
-  mensajes_llega["Jefe, Despacho, Política, IVT, Grabación o Redes: Le llega al teléfono “Mensaje nuevo”, sin el texto. Queda guardado y no se borra; el jefe puede leerlo."]
-  mensajes_llega --> mensajes_todos
-  mensajes_todos["Jefe: En «Todo el equipo» escriben todos. Si quiere que solo escriba él, prende «Solo el jefe escribe en Todo el equipo»."]
+  mensajes_llega["Jefe, Despacho, Política, IVT, Grabación o Redes: Les llega al teléfono “Mensaje nuevo”, sin el texto, a los que están en el canal."]
+  mensajes_llega --> mensajes_miembros
+  mensajes_miembros["Jefe: Si hace falta, cambia quién está en «Editar canal», o lo archiva cuando ya no se usa."]
 ```
 
-1. **Jefe, Despacho, Política, IVT, Grabación o Redes:** La primera vez, lees el aviso y tocas «Entendido». (`/mensajes`)
-2. **Jefe, Despacho, Política, IVT, Grabación o Redes:** «Escribirle a alguien»: una persona o un grupo. (`/mensajes/nueva`)
-   ¿El jefe permite mensajes entre esos roles?
-   - No → Esa persona no sale en la lista.
-   - Sí → Escribes tu mensaje.
-3. **Jefe, Despacho, IVT o Grabación:** Si conoces la agenda y en la conversación está Redes o política, la plataforma revisa el texto.
+1. **Jefe:** Arma un canal con «Nuevo canal»: nombre, para qué es y quiénes van. Él está en todos. (`/mensajes/canales/nuevo`)
+2. **Jefe, Despacho, Política, IVT, Grabación o Redes:** El canal le sale en Mensajes a cada persona que está en él, con la lista de quiénes están. (`/mensajes`)
+3. **Jefe, Despacho, Política, IVT, Grabación o Redes:** Escribe en el canal.
+4. **Jefe, Despacho, IVT o Grabación:** Si conoces la agenda y en el canal está Redes o política, la plataforma revisa el texto.
    ¿Lleva una fecha, una hora, un mapa o un teléfono?
-   - Sí → No lo deja enviar y dice cómo decirlo sin eso. Sigue en el paso 2.
+   - Sí → No lo deja enviar y dice cómo decirlo sin eso. Sigue en el paso 3.
    - No → Sale.
-4. **Jefe, Despacho, Política, IVT, Grabación o Redes:** Le llega al teléfono “Mensaje nuevo”, sin el texto. Queda guardado y no se borra; el jefe puede leerlo.
-5. **Jefe:** En «Todo el equipo» escriben todos. Si quiere que solo escriba él, prende «Solo el jefe escribe en Todo el equipo». (`/mensajes/permisos`)
+5. **Jefe, Despacho, Política, IVT, Grabación o Redes:** Les llega al teléfono “Mensaje nuevo”, sin el texto, a los que están en el canal.
+6. **Jefe:** Si hace falta, cambia quién está en «Editar canal», o lo archiva cuando ya no se usa.
 
 <a id="flujo-ayuda"></a>
 

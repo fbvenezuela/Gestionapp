@@ -27,8 +27,8 @@ function sessionOf(key: DemoUserKey, viewAs: Role | null = null): Session {
 // screen: the pattern the window sends; tutorial: the tutorial its button starts (null: no tutorial button).
 type Expect = { has?: RegExp; tool?: string; notTool?: string; go?: string; screen?: string; tutorial?: string | null };
 const READ_MSG: Expect = { has: /^No leo los mensajes del equipo/, go: '/mensajes', notTool: 'avisar_al_equipo', tutorial: null };
-const TELL_MSG: Expect = { has: /^Eso se lo escribes tú en Mensajes/, go: '/mensajes/nueva', notTool: 'avisar_al_equipo', tutorial: null };
-const HOW_MSG: Expect = { has: /«Escribirle a alguien»/, go: '/mensajes/nueva' };
+const TELL_MSG: Expect = { has: /^Eso se lo escribes tú en Mensajes, en un canal/, go: '/mensajes', notTool: 'avisar_al_equipo', tutorial: null };
+const HOW_MSG: Expect = { has: /Son canales/, go: '/mensajes' };
 const SHOW = (tutorial: string, screen?: string): Expect => ({ tool: 'ver_tutorial', tutorial, has: /paso a paso/, ...(screen ? { screen } : {}) });
 
 const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
@@ -48,7 +48,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['dile a Kevin que ya subí la pieza', TELL_MSG],
     ['¿cómo le escribo a Redes?', HOW_MSG],
     ['hazme la tarea', { has: /se me escapa|no opino/ }],
-    ['¿cómo decido quién habla con quién?', { go: '/ayuda/jefe?ver=pasos', has: /^Decidir quién habla con quién, paso a paso/ }],
+    ['¿cómo cambio quién está en un canal?', { go: '/ayuda/jefe?ver=pasos', has: /^Cambiar quién está en un canal, paso a paso/ }],
     // Still the notice the boss prepares (step 4), not a message; still support for administración.
     ['avísale a Redes que suban el material de la feria', { tool: 'preparar_aviso', notTool: 'ver_tutorial' }],
   ],
@@ -73,7 +73,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['necesito ayuda', SHOW('obras', '/obras')],
     // A screen with an id: the button is drawn by the window, on that screen (href null).
     ['¿qué hago aquí?', { screen: '/obras/[id]', tutorial: 'ficha-obra', has: /obra/ }],
-    ['¿cómo armo un grupo?', HOW_MSG],
+    ['¿cómo armo un canal?', HOW_MSG],
   ],
   social: [
     ['muéstrame cómo se usa Publicar', SHOW('publicar')],
@@ -88,7 +88,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Me muestras cómo se usa esta pantalla?', SHOW('evento-redes', '/eventos/[id]')],
     ['¿qué me quiso decir Kevin con eso?', READ_MSG],
     ['mándale un mensaje a Rubén', TELL_MSG],
-    ['¿quién puede leer mis mensajes?', { has: /El jefe puede leer todas las conversaciones/ }],
+    ['¿quién puede leer mis mensajes?', { has: /cada quien ve solo los canales donde está/ }],
     // A how-to of a thing, not of a screen: the ficha, as before.
     ['¿cómo funciona el semáforo?', { has: /Todo lo aprueba el jefe/, tutorial: null }],
   ],
@@ -140,7 +140,7 @@ describe('360 nunca lee ni manda mensajes (D-50, S8)', () => {
     for (const q of ['¿el jefe lee los mensajes?', '¿quién puede leer mis mensajes?', '¿dónde leo los mensajes?', '¿qué significa Mensaje oculto?', 'avisa a Redes que suban el material', 'mándales un aviso a todos', 'dile a administración que no puedo entrar', '¿qué dice el semáforo?', '¿qué me mandaron a grabar?', '¿Cómo hago los copies?']) {
       expect(messagesAsk(q), q).toBeNull();
     }
-    for (const q of ['¿Cómo le escribo a Redes?', '¿Cómo mando un mensaje?', '¿cómo armo un grupo?', '¿cómo hablo por la red interna?']) expect(asksHowToWrite(q), q).toBe(true);
+    for (const q of ['¿Cómo le escribo a Redes?', '¿Cómo mando un mensaje?', '¿cómo armo un grupo?', '¿cómo armo un canal?', '¿cómo hablo por la red interna?']) expect(asksHowToWrite(q), q).toBe(true);
     for (const q of ['¿Cómo escribo con la voz?', '¿cómo le mando la pieza al jefe?', '¿Cómo hago los copies?', 'dile a Kevin que ya está']) expect(asksHowToWrite(q), q).toBe(false);
   });
 

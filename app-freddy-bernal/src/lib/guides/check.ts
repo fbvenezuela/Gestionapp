@@ -63,6 +63,8 @@ export const LABEL_PATTERNS: { re: RegExp; source: string }[] = [
   { re: /^Quedan n días de tweets$/, source: 'Quedan ${stock.daysLeft} días de tweets' },
   { re: /^Falló la publicación en…$/, source: 'Falló la publicación en ${' },
   { re: /^(?:7|30|90) días$/, source: '{d} días' },
+  // Mensajes: how many are in a channel (peopleCount, src/components/chat/chat-core.ts).
+  { re: /^N personas$/, source: '${n} personas' },
 ];
 
 // Labels the screens build in code in a way a plain search cannot find, or say only to some people. Keep it short.

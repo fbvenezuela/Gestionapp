@@ -1,4 +1,4 @@
-// The SAME cases for the app's Mensajes text rules and the database's (20261028002400_internal_chat.sql):
+// The SAME cases for the app's Mensajes text rules and the database's (20261028002400_internal_chat.sql and 20261029090000_chat_channels.sql):
 //   * concrete: hasConcreteDateTime()  ⇔ public.text_has_concrete_datetime()  (E1: only concrete dates and times)
 //   * map:      hasMap()               ⇔ public.chat_has_map()
 //   * refs:     stripRefs()            ⇔ public.chat_strip_refs()
@@ -153,6 +153,13 @@ export const GUARD_CASES: GuardCase[] = [
   { text: 'Llego al mediodía', author: 'boss', hides: true, result: 'when' },
   { text: 'mañana a las 9 en la plaza', author: 'boss', hides: false, result: 'ok', agendaClear: false },
   { text: 'mañana a las 9 en la plaza', author: 'dispatch', hides: false, result: 'ok', agendaClear: false },
+  // R5 (D-85): without Redes or política a relative word marks the message too (whoever enters later reads the
+  // history, and «mañana» with the message's time is a date): the strict rule, text_has_datetime().
+  { text: 'mañana te mando la frase', author: 'boss', hides: false, result: 'ok', agendaClear: false },
+  { text: 'Mañana salimos temprano a la cancha de El Mirador', author: 'boss', hides: false, result: 'ok', agendaClear: false },
+  { text: 'el lunes lo revisamos', author: 'ivt', hides: false, result: 'ok', agendaClear: false },
+  { text: 'Ya subí la ficha', author: 'dispatch', hides: false, result: 'ok', agendaClear: true },
+  { text: 'en el 2:15 está la toma del dron', author: 'camera', hides: false, result: 'ok', agendaClear: true },
   // 21-22: despacho and the IVT where política reads.
   { text: 'el jueves a las 10', author: 'dispatch', hides: true, result: 'when' },
   { text: '23 de enero', author: 'ivt', hides: true, result: 'when' },

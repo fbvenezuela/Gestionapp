@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowDown } from 'lucide-react';
 import type { Role } from '@/lib/roles';
@@ -8,28 +8,32 @@ import { markRead, sendMessage, type SendData } from '@/lib/actions/chat';
 import { Card } from '@/components/ui/card';
 import { menuPanelClass } from '@/components/ui/menu-panel';
 import { cn } from '@/lib/cn';
+import { CHAT_REMOVED } from '@/lib/domain/chat';
+import { LinkButton } from '@/components/ui/button';
 import { readOnlyText, withDays, type ChatItem, type ReadOnly } from './chat-core';
 import {
-  CHAT_FETCH_TIMEOUT_MS, CHAT_POLL_MS, CHAT_SEND_TIMEOUT_MS, createPoller, createSendQueue, cursorOf, getJson, mergeItems,
-  newFromOthers, sinceUrl, withTimeout, type FeedItem, type SendOutcome, type SendQueue,
+  CHAT_FETCH_TIMEOUT_MS, CHAT_POLL_MS, CHAT_SEND_TIMEOUT_MS, FEED_GONE, createPoller, createSendQueue, cursorOf, getFeed, mergeItems,
+  newFromOthers, sinceUrl, withTimeout, type FeedItem, type Poller, type SendOutcome, type SendQueue,
 } from './chat-feed-core';
 import { ChatBubble, DaySeparator, NEW_MESSAGES_ID, NewSeparator } from './chat-bubble';
 import { ChatComposer, type ComposerApi, type SendJob } from './chat-composer';
-import { AckNeeded } from './chat-ack-dialog';
 import { CHAT_READ_EVENT } from './chat-badge-live';
 
-// One open conversation (R3, design §5.3): the log, the box and the loop. It opens on «Mensajes nuevos» if there are,
+// One open channel (R3 design §5.3, R5): the log, the box and the loop. It opens on «Mensajes nuevos» if there are,
 // otherwise at the end; what arrives while at the end keeps it at the end, otherwise «Hay mensajes nuevos ↓». What is
 // sent shows at once with «Enviando…» and goes in a queue in order (never with useAction: no page refresh, D-56); a send
 // stopped by the signal says «No se envió · Reintentar» with the same id; one the database refuses goes back to the box
-// with why. Reading here marks as read only for members (the boss reading someone else's marks nothing).
+// with why. If the boss takes the person out of the channel meanwhile (the loop gets a 404, or a send answers «gone»),
+// the whole thread gives way to «Ya no estás en este canal.» and the loop stops: nothing of it stays on the screen.
 
 const atEnd = () => window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 80;
 const toEnd = () => window.scrollTo({ top: document.documentElement.scrollHeight });
 
 export function ChatThread({
-  conversationId, me, myName, myRole, initial, more, moreHref, firstUnreadId, isMember, readOnly, hidesAgenda, agendaNote, authorRoles, showNames,
+  header, conversationId, me, myName, myRole, initial, more, moreHref, firstUnreadId, readOnly, hidesAgenda, agendaNote, authorRoles,
 }: {
+  // The channel's header (name, who is in it): it goes away with the rest when the person is taken out.
+  header?: ReactNode;
   conversationId: string;
   me: string;
   myName: string;
@@ -38,12 +42,10 @@ export function ChatThread({
   more: boolean;
   moreHref: string;
   firstUnreadId: string | null;
-  isMember: boolean;
   readOnly: ReadOnly | null;
   hidesAgenda: boolean;
   agendaNote: boolean;
   authorRoles: Role[];
-  showNames: boolean;
 }) {
   const [items, setItems] = useState<FeedItem[]>(initial);
   const [fromServer, setFromServer] = useState(initial);
@@ -57,13 +59,18 @@ export function ChatThread({
   const latest = useRef(items);
   const jobs = useRef(new Map<string, SendJob>());
   const composer = useRef<ComposerApi>(null);
+  const [gone, setGone] = useState(false);
+  const poll = useRef<Poller | null>(null);
+  const leave = () => {
+    poll.current?.stop();
+    setGone(true);
+  };
 
   useEffect(() => {
     latest.current = items;
   }, [items]);
 
   const read = (list: readonly FeedItem[]) => {
-    if (!isMember) return;
     const upTo = cursorOf(list)?.at;
     void markRead({ conversationId, upTo })
       .then(() => window.dispatchEvent(new Event(CHAT_READ_EVENT)))
@@ -84,7 +91,11 @@ export function ChatThread({
   useEffect(() => {
     const poller = createPoller({
       run: async (signal) => {
-        const r = await getJson<{ items: ChatItem[] }>(sinceUrl(conversationId, cursorOf(latest.current)), signal);
+        const r = await getFeed<{ items: ChatItem[] }>(sinceUrl(conversationId, cursorOf(latest.current)), signal);
+        if (r === FEED_GONE) {
+          leave();
+          return;
+        }
         if (!r?.items?.length) return;
         const fresh = newFromOthers(latest.current, r.items, me);
         const wasAtEnd = atEnd();
@@ -100,6 +111,7 @@ export function ChatThread({
       visible: () => document.visibilityState === 'visible',
       online: () => navigator.onLine,
     });
+    poll.current = poller;
     poller.start();
     const now = () => void poller.tick();
     const scrolled = () => {
@@ -132,6 +144,10 @@ export function ChatThread({
           setItems((cur) => cur.map((it) => (it.id === job.clientId ? { ...it, state: 'failed' } : it)));
           return;
         }
+        if (outcome.kind === 'sent' && outcome.result.kind === 'gone') {
+          leave();
+          return;
+        }
         if (outcome.kind === 'refused' || outcome.result.kind === 'confirm') {
           jobs.current.delete(job.clientId);
           setItems((cur) => cur.filter((it) => it.id !== job.clientId));
@@ -140,6 +156,7 @@ export function ChatThread({
           return;
         }
         const sent = outcome.result;
+        if (sent.kind !== 'sent') return;
         jobs.current.delete(job.clientId);
         setItems((cur) => {
           const mine = cur.find((it) => it.id === job.clientId);
@@ -169,8 +186,20 @@ export function ChatThread({
     queue.current?.retry(failed);
   };
 
+  if (gone) {
+    return (
+      <Card className="mx-auto mt-4 max-w-md p-6 text-center">
+        <p role="status" className="text-[15px] font-semibold">{CHAT_REMOVED}</p>
+        <LinkButton href="/mensajes" className="mt-4">
+          Ir a Mensajes
+        </LinkButton>
+      </Card>
+    );
+  }
+
   return (
     <>
+      {header}
       {/* Tall enough that the box below reaches the bottom of a tall screen (an iPad) even with few messages: the page
           header and the box take about 16rem; more than that only scrolls a little, and the box stays stuck below. */}
       <Card solid className="flex min-h-[max(50dvh,calc(100dvh_-_16rem))] flex-col">
@@ -189,7 +218,7 @@ export function ChatThread({
               <Fragment key={it.id}>
                 {day ? <DaySeparator label={day} /> : null}
                 {it.id === unreadMark ? <NewSeparator /> : null}
-                <ChatBubble item={it} own={it.authorId === me} showName={showNames} onRetry={retry} />
+                <ChatBubble item={it} own={it.authorId === me} showName onRetry={retry} />
               </Fragment>
             ))}
           </ol>
@@ -214,7 +243,7 @@ export function ChatThread({
         ) : null}
         {readOnly ? (
           <div role="status" className={cn(menuPanelClass, 'p-3 text-[15px] text-text')}>
-            {readOnly.reason === 'needs-ack' ? <AckNeeded /> : readOnlyText(readOnly)}
+            {readOnlyText(readOnly)}
           </div>
         ) : (
           <ChatComposer api={composer} conversationId={conversationId} hidesAgenda={hidesAgenda} agendaNote={agendaNote} authorRoles={authorRoles} onSend={send} />

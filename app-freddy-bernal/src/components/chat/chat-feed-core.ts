@@ -140,6 +140,18 @@ export async function getJson<T>(url: string, signal: AbortSignal, f: typeof fet
   return (await res.json()) as T;
 }
 
+// What the loop gets when the channel is no longer the person's (404: the boss took them out meanwhile).
+export const FEED_GONE = 'gone' as const;
+
+/** Like getJson(), but a 404 says the channel is not the person's any more (the screen stops and says so); any other
+ * failure is only «nothing this time». */
+export async function getFeed<T>(url: string, signal: AbortSignal, f: typeof fetch = fetch): Promise<T | typeof FEED_GONE | null> {
+  const res = await f(url, { signal, cache: 'no-store', credentials: 'same-origin', headers: { accept: 'application/json' } });
+  if (res.status === 404) return FEED_GONE;
+  if (!res.ok) return null;
+  return (await res.json()) as T;
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // Sending, in order
 // ---------------------------------------------------------------------------------------------------------------

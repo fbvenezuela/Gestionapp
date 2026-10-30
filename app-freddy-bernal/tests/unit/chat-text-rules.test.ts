@@ -3,12 +3,12 @@
 // both, and the migration that changes the SQL goes with it. All data here is invented.
 import { describe, expect, it } from 'vitest';
 import {
-  CHAT_RELATIVE_ASK, CHAT_ROLE_PAIRS, CHAT_TIMECODE_ASK, CHAT_WHEN_WARN, cameraOnly, chatAgendaClear, chatTextProblem, chatTitleProblem,
-  fillWord, firstConcreteDateTime, firstRelativeWhen, hasConcreteDateTime, hasMap, knowsAgenda, linkRefs, pairAllowed, previewOf,
+  CHAT_RELATIVE_ASK, CHAT_ROLE_NAME, CHAT_TIMECODE_ASK, CHAT_WHEN_WARN, cameraOnly, chatAgendaClear, chatChannelTextProblem, chatTextProblem,
+  fillWord, firstConcreteDateTime, firstRelativeWhen, hasConcreteDateTime, hasMap, knowsAgenda, linkRefs, previewOf,
   readerKnowsAgenda, stripRefs, stripTimecodes, timecodesIn,
 } from '@/lib/domain/chat';
 import { DEMO_USERS } from '@/lib/db/seed-demo';
-import { ROLES, type Role } from '@/lib/roles';
+import type { Role } from '@/lib/roles';
 import { CONCRETE_CASES, GUARD_CASES, MAP_CASES, REF_CASES, TIMECODE_CASES, UUID, chatGeneratedTexts } from './fixtures/chat-text-cases';
 
 const rolesOf = (key: string) => [...DEMO_USERS.find((u) => u.key === key)!.roles] as Role[];
@@ -34,7 +34,7 @@ describe('las reglas de texto de Mensajes (las mismas que revisa la base)', () =
       const p = chatTextProblem(c.text, { hidesAgenda: c.hides, authorRoles: roles, ...ok });
       const result = p === null ? 'ok' : p.kind;
       expect(result, `${c.author} ${c.hides ? 'con Redes' : 'sin Redes'}: ${c.text}`).toBe(c.result);
-      if (c.result === 'ok') expect(chatAgendaClear(c.text, roles), c.text).toBe(c.agendaClear);
+      if (c.result === 'ok') expect(chatAgendaClear(c.text, roles, c.hides), `${c.author} ${c.hides}: ${c.text}`).toBe(c.agendaClear);
     }
   });
 
@@ -82,8 +82,13 @@ describe('chatTextProblem(): lo que el compositor dice antes de enviar', () => {
     expect(chatTextProblem('en el 2:15 mañana', { hidesAgenda: true, authorRoles: camera, timecodeOk: true })).toEqual({ kind: 'when', word: '2:15' });
     expect(chatTextProblem('mañana 7:00 salimos', { hidesAgenda: true, authorRoles: camera, ...ok })).toEqual({ kind: 'when', word: '7:00' });
     expect(chatTextProblem('el sábado 9:30 en Catia', { hidesAgenda: true, authorRoles: camera, ...ok })).toEqual({ kind: 'when', word: 'sábado 9' });
-    expect(chatAgendaClear('mañana 7:00 salimos', camera)).toBe(false);
-    expect(chatAgendaClear('en el 2:15 está la toma', camera)).toBe(true);
+    expect(chatAgendaClear('mañana 7:00 salimos', camera, false)).toBe(false);
+    expect(chatAgendaClear('en el 2:15 está la toma', camera, false)).toBe(true);
+    // Where Redes or política read, what passed (the question answered) stays clear; without them, a relative word is
+    // kept from whoever enters later (D-85).
+    expect(chatAgendaClear('mañana te mando la frase', boss, true)).toBe(true);
+    expect(chatAgendaClear('mañana te mando la frase', boss, false)).toBe(false);
+    expect(chatAgendaClear('mañana te mando la frase', rolesOf('social'), false)).toBe(true);
     expect(chatTextProblem('a las 2:15 en la escuela', { hidesAgenda: true, authorRoles: camera })).toEqual({ kind: 'when', word: 'a las 2:15' });
     // Grabación with despacho too knows the whole agenda: no time codes for it.
     expect(chatTextProblem('en el 2:15 está la toma', { hidesAgenda: true, authorRoles: ['camera', 'dispatch'] })).toEqual({ kind: 'when', word: '2:15' });
@@ -112,17 +117,18 @@ describe('chatTextProblem(): lo que el compositor dice antes de enviar', () => {
     expect(firstRelativeWhen('Hoyos y Martín')).toBeNull();
   });
 
-  it('el nombre de un grupo: el modo estricto si están Redes o política', () => {
-    expect(chatTitleProblem('Obras y comunidad')).toBeNull();
-    expect(chatTitleProblem('Lo de mañana')).toEqual({ kind: 'when', word: 'mañana' });
-    // Whoever is in the group: a member may gain Redes or política later, and the name has no agenda_clear.
-    expect(chatTitleProblem('Petare 12/11 9am')).toEqual({ kind: 'when', word: '12/11' });
-    expect(chatTitleProblem('Plaza maps.google.com')).toEqual({ kind: 'when', word: 'un enlace de mapas' });
-    expect(chatTitleProblem('Vocera 0414-555-1234')).toEqual({ kind: 'phone', inLink: false });
+  it('el nombre y la descripción de un canal: siempre el modo estricto', () => {
+    expect(chatChannelTextProblem('Obras y comunidad')).toBeNull();
+    expect(chatChannelTextProblem('Tomas, material y piezas')).toBeNull();
+    expect(chatChannelTextProblem('Lo de mañana')).toEqual({ kind: 'when', word: 'mañana' });
+    // Whoever is in the channel: someone may enter or gain Redes or política later, and these have no agenda_clear.
+    expect(chatChannelTextProblem('Petare 12/11 9am')).toEqual({ kind: 'when', word: '12/11' });
+    expect(chatChannelTextProblem('Plaza maps.google.com')).toEqual({ kind: 'when', word: 'un enlace de mapas' });
+    expect(chatChannelTextProblem('Vocera 0414-555-1234')).toEqual({ kind: 'phone', inLink: false });
   });
 });
 
-describe('quién conoce la agenda y quién habla con quién (espejos de la base)', () => {
+describe('quién conoce la agenda (espejos de la base)', () => {
   it('knowsAgenda, cameraOnly y readerKnowsAgenda', () => {
     expect(knowsAgenda(['boss'])).toBe(true);
     expect(knowsAgenda(['admin'])).toBe(true);
@@ -138,25 +144,8 @@ describe('quién conoce la agenda y quién habla con quién (espejos de la base)
     expect(readerKnowsAgenda(['admin'])).toBe(false);
   });
 
-  it('las 10 parejas, en el orden del enum', () => {
-    expect(CHAT_ROLE_PAIRS).toHaveLength(10);
-    for (const p of CHAT_ROLE_PAIRS) expect(ROLES.indexOf(p.roleA), p.label).toBeLessThan(ROLES.indexOf(p.roleB));
-    expect(CHAT_ROLE_PAIRS.map((p) => p.label)).toContain('Redes ↔ Grabación');
-    expect(new Set(CHAT_ROLE_PAIRS.map((p) => `${p.roleA}:${p.roleB}`)).size).toBe(10);
-  });
-
-  it('pairAllowed: el jefe siempre, administración nunca, con dos roles gana la regla más restrictiva', () => {
-    const closed = [{ roleA: 'politics' as Role, roleB: 'social' as Role, allowed: false }, { roleA: 'ivt' as Role, roleB: 'social' as Role, allowed: true }];
-    expect(pairAllowed(['social'], ['politics'], [])).toBe(true);
-    expect(pairAllowed(['social'], ['politics'], closed)).toBe(false);
-    expect(pairAllowed(['politics'], ['social'], closed)).toBe(false);
-    expect(pairAllowed(['politics', 'ivt'], ['social'], closed)).toBe(false);
-    expect(pairAllowed(['ivt'], ['social'], closed)).toBe(true);
-    expect(pairAllowed(['boss'], ['social'], closed)).toBe(true);
-    expect(pairAllowed(['social'], ['boss'], [{ roleA: 'boss', roleB: 'social', allowed: false }])).toBe(true);
-    expect(pairAllowed(['admin', 'social'], ['camera'], [])).toBe(false);
-    expect(pairAllowed(['social'], [], [])).toBe(false);
-    expect(pairAllowed(['social'], ['social'], closed)).toBe(true);
+  it('los nombres cortos de los roles', () => {
+    expect(Object.values(CHAT_ROLE_NAME)).toEqual(['Despacho', 'Política', 'IVT', 'Redes', 'Grabación']);
   });
 });
 

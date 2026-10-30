@@ -144,10 +144,10 @@ export const TOUR_ANCHORS = [
   'notify-prefs',
   'quiet-hours',
   // Mensajes (base pages from Paso 0, hidden; then src/components/chat/*).
-  'chat-notice',
-  'chat-new',
+  'chat-new-channel',
   'chat-team',
   'chat-list',
+  'chat-members',
   'chat-composer',
   // Ayuda (base page from Paso 0, hidden; then src/app/(panel)/ayuda).
   'help-mine',

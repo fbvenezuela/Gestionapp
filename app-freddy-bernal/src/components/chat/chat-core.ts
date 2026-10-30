@@ -1,17 +1,18 @@
-// Mensajes (R3, D-49 to D-59): the pure pieces the screens share, on the server and in the phone. No React, no
-// database: names and roles as the screens say them, the shapes the pages and the GET routes hand to the client, what
-// a read-only conversation says, and how Enter behaves in the box. The rules themselves (what a message may say, who
-// talks to whom) are in src/lib/domain/chat.ts; the database decides.
+// Mensajes (R3, R5: channels, D-79 to D-88): the pure pieces the screens share, on the server and in the phone. No
+// React, no database: names and roles as the screens say them, the shapes the pages and the GET routes hand to the
+// client, what a read-only channel says, and how Enter behaves in the box. The rules themselves (what a message may
+// say) are in src/lib/domain/chat.ts; the database decides.
 import type { Role } from '@/lib/roles';
-import { CHAT_ROLE_NAME, type ChatPairRole } from '@/lib/domain/chat';
+import { CHAT_ROLE_NAME, type ChatRoleKey } from '@/lib/domain/chat';
 import { dt, fmtAt } from '@/lib/time';
 
 // ---------------------------------------------------------------------------------------------------------------
 // Names and roles
 // ---------------------------------------------------------------------------------------------------------------
 // The short names of the team's roles in Mensajes (ROLE_LABEL says «Director de despacho»: too long for a chip).
-export const CHAT_ROLE_SHORT: Record<'boss' | ChatPairRole, string> = { boss: 'Jefe', ...CHAT_ROLE_NAME };
-const ORDER: ('boss' | ChatPairRole)[] = ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'];
+export const CHAT_ROLE_SHORT: Record<'boss' | ChatRoleKey, string> = { boss: 'Jefe', ...CHAT_ROLE_NAME };
+export const CHAT_ROLE_ORDER: ('boss' | ChatRoleKey)[] = ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'];
+const ORDER = CHAT_ROLE_ORDER;
 
 /** The team roles of a person, short and in a fixed order: «Política · IVT». Empty for nobody of the team. */
 export function chatRoles(roles: readonly Role[]): string {
@@ -29,7 +30,8 @@ export const LINK_LOCKED = 'Algo que no puedes abrir';
 // ---------------------------------------------------------------------------------------------------------------
 // What the server hands to the screens (pages and /api/mensajes/*)
 // ---------------------------------------------------------------------------------------------------------------
-export type ChatMember = { id: string; name: string; roles: Role[]; active: boolean };
+// current: in the channel now (false: only the author of an old message). boss: has the boss's role.
+export type ChatMember = { id: string; name: string; roles: Role[]; active: boolean; current: boolean; boss: boolean };
 
 // A link to the platform in a message, with what it is («Evento») and the title as the READER sees it (null: «Algo
 // que no puedes abrir»).
@@ -43,7 +45,7 @@ export const LINK_KIND: Record<string, string> = {
   report: 'Reporte',
   publication: 'Publicación',
   tweets: 'Tweets',
-  chat: 'Mensajes',
+  chat: 'Canal',
 };
 
 // One message as the reader sees it. body null = «Mensaje oculto» (it had a date of the agenda and the reader does
@@ -58,33 +60,31 @@ export type ChatItem = {
   links: ChatLink[];
 };
 
-// Why there is no box to write in (D-50, D-51, D-59). null = there is one.
-export type ReadOnly =
-  | { reason: 'needs-ack' }
-  | { reason: 'boss-reader' }
-  | { reason: 'only-boss' }
-  | { reason: 'nobody-left' }
-  | { reason: 'pair-closed'; pair: [string, string] }
-  | { reason: 'closed' };
-
-export const CHAT_NEEDS_ACK = 'Para escribir, acepta el aviso.';
+// Why there is no box to write in (D-80, D-86). null = there is one.
+export type ReadOnly = { reason: 'archived' } | { reason: 'only-boss' } | { reason: 'closed' };
 
 /** The line in place of the box. */
 export function readOnlyText(r: ReadOnly): string {
   switch (r.reason) {
-    case 'needs-ack':
-      return CHAT_NEEDS_ACK;
-    case 'boss-reader':
-      return 'Estás leyendo como jefe. Aquí no escribes.';
+    case 'archived':
+      return 'Este canal está archivado: se lee, pero ya no se escribe.';
     case 'only-boss':
-      return 'Solo el jefe escribe en esta conversación.';
-    case 'nobody-left':
-      return 'Ya no queda nadie activo en esta conversación.';
-    case 'pair-closed':
-      return `El jefe cerró los mensajes entre ${r.pair[0]} y ${r.pair[1]}. Puedes leer lo anterior.`;
+      return 'Solo el jefe escribe en este canal.';
     default:
-      return 'Ya no puedes escribir en esta conversación.';
+      return 'Ya no puedes escribir en este canal.';
   }
+}
+
+/** «5 personas» / «1 persona». */
+export function peopleCount(n: number): string {
+  return n === 1 ? '1 persona' : `${n} personas`;
+}
+
+/** The first names of who is in a channel, the bosses first, for the line under its name: «Jefe (demo), Daniela,
+ * Yorman…» (at most `max` names, then «…»). */
+export function membersLine(members: readonly { name: string; boss: boolean }[], max = 4): string {
+  const names = members.map((m) => firstName(m.name));
+  return names.length > max ? `${names.slice(0, max).join(', ')}…` : names.join(', ');
 }
 
 // ---------------------------------------------------------------------------------------------------------------

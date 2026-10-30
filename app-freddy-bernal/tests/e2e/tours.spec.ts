@@ -399,57 +399,40 @@ test('el tutorial del evento va con su pestaña; uno de otra pantalla no se abre
   await expect(dialog(page)).toHaveCount(0);
 });
 
-// Mensajes' notice opens on its own until it is accepted: the tutorial waits for it to close and never rings what
-// sits under it. The IVT has not accepted it in this run (nothing here writes: Escape closes it without accepting).
-test.describe('Mensajes: el tutorial y el aviso que se acepta', () => {
+// Mensajes has no notice and no dialog to accept any more (R5, D-79): its tutorials open at once. For a person who is
+// not the boss, the step on «Nuevo canal» is skipped (its anchor is not on the screen). The channel's own tutorial
+// rings «Quién está» and the box. Read-only: nothing here writes.
+test.describe('Mensajes: los tutoriales salen de una vez, sin aviso que esperar', () => {
   test.use({ viewport: { width: 360, height: 640 } });
-  const notice = (page: Page) => page.getByRole('dialog', { name: 'Antes de escribir en Mensajes' });
 
-  test('con el aviso sin aceptar, el tutorial espera a que se cierre y no se monta encima', async ({ page }) => {
-    const tour = tourOf(['ivt'], 'mensajes');
-    await loginAs(page, 'ivt@demo.test');
-    await page.goto('/mensajes?tutorial=mensajes');
-    await expect(notice(page)).toBeVisible();
-    await expect(page).toHaveURL(/\/mensajes$/);
-    await page.waitForTimeout(1000);
-    await expect(dialog(page)).toHaveCount(0);
-    await page.keyboard.press('Escape');
-    await expect(notice(page)).toHaveCount(0);
-    await expect(dialog(page)).toBeVisible();
-    const end = await walk(page, tour, 'ivt');
-    await expect(end).toHaveText('Terminar');
-    await end.click();
-    await expect(dialog(page)).toHaveCount(0);
-  });
-
-  test('con el aviso ya cerrado, el tutorial sale de una vez', async ({ page }) => {
-    const tour = tourOf(['ivt'], 'mensajes');
-    await loginAs(page, 'ivt@demo.test');
-    await page.goto('/mensajes');
-    await expect(notice(page)).toBeVisible();
-    await page.keyboard.press('Escape');
-    await expect(notice(page)).toHaveCount(0);
-    // «Mi cuenta» → «Ver el tutorial…» on the same screen (fb:tour:start): no notice in the way now.
-    await page.getByLabel('Mi cuenta').click();
-    await page.locator('header details[open]').getByRole('button', { name: /^Ver el tutorial de esta pantalla$/ }).click();
-    await expect(dialog(page)).toBeVisible();
-    await walk(page, tour, 'ivt', { axe: false });
-    await page.keyboard.press('Escape');
-  });
-
-  for (const theme of ['vidrio', 'oscuro', 'Modo sol'] as const) {
-    test(`el aviso, abierto, sin problemas serios de accesibilidad (${theme})`, async ({ page }) => {
-      await loginAs(page, 'ivt@demo.test');
-      await page.goto('/hoy');
-      if (theme === 'oscuro') await page.emulateMedia({ colorScheme: 'dark' });
-      if (theme === 'Modo sol') await page.evaluate(() => localStorage.setItem('fb:sun', '1'));
-      await page.goto('/mensajes');
-      if (theme === 'Modo sol') await expect(page.locator('html')).toHaveAttribute('data-contrast', 'high');
-      await expect(notice(page)).toBeVisible();
-      await noSerious(page, `aviso de Mensajes (${theme})`);
-      await noSideScroll(page, `aviso de Mensajes (${theme})`);
-      await page.keyboard.press('Escape');
-      await page.evaluate(() => localStorage.removeItem('fb:sun'));
+  for (const [email, role] of [['ivt@demo.test', 'ivt'], ['jefe@demo.test', 'boss']] as const) {
+    test(`el de la lista (${role})`, async ({ page }) => {
+      const tour = tourOf([role], 'mensajes');
+      await loginAs(page, email);
+      await page.goto('/mensajes?tutorial=mensajes');
+      await expect(dialog(page)).toBeVisible();
+      await expect(page).toHaveURL(/\/mensajes$/);
+      await expect(page.locator('dialog[open]:not([data-tour-dialog])')).toHaveCount(0);
+      await expect(page.getByText('puede leer todas las conversaciones')).toHaveCount(0);
+      const shown = await shownSteps(page, tour);
+      expect(shown[tour.steps.findIndex((x) => x.target.includes('[data-tour="chat-new-channel"]'))]).toBe(role === 'boss');
+      const end = await walk(page, tour, role);
+      await expect(end).toHaveText('Terminar');
+      await end.click();
+      await expect(dialog(page)).toHaveCount(0);
     });
   }
+
+  test('el de un canal: quién está y la caja', async ({ page }) => {
+    const tour = tourOf(['camera'], 'canal');
+    await loginAs(page, 'grabacion@demo.test');
+    await page.goto('/mensajes');
+    await page.locator('[data-tour="chat-list"] a', { hasText: 'Grabación y Redes' }).click();
+    await page.waitForURL(/\/mensajes\/[0-9a-f-]{36}$/);
+    await page.goto(`${new URL(page.url()).pathname}?tutorial=canal`);
+    await expect(dialog(page)).toBeVisible();
+    const end = await walk(page, tour, 'camera');
+    await expect(end).toHaveText('Terminar');
+    await end.click();
+  });
 });

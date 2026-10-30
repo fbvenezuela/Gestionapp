@@ -35,12 +35,11 @@ export function SideNav({ items }: { items: NavItem[] }) {
   );
 }
 
-// Inside one conversation of Mensajes (/mensajes/<uuid>) the phone has no bottom bar: the box to write sits at the very
-// bottom and the messages get the room (R3, design §5.3, U11). The list, «Escribirle a alguien» and the boss's pages
-// keep it.
+// Inside one channel of Mensajes (/mensajes/<uuid>) the phone has no bottom bar: the box to write sits at the very
+// bottom and the messages get the room (R3, design §5.3, U11). The list, «Nuevo canal» and «Editar canal» keep it.
 const CHAT_THREAD = /^\/mensajes\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/?$/i;
 
-/** Whether the phone's bottom bar is left out on this screen (one conversation of Mensajes). */
+/** Whether the phone's bottom bar is left out on this screen (one channel of Mensajes). */
 export function hidesBottomNav(pathname: string | null): boolean {
   return CHAT_THREAD.test(pathname ?? '');
 }
