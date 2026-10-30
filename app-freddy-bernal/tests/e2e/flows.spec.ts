@@ -123,7 +123,14 @@ test('redes no puede publicar lo que no está aprobado', async ({ page }) => {
 async function approveWithChecklist(page: Page) {
   const approve = page.getByRole('button', { name: /Marca la lista para aprobar|^Aprobar$/ });
   await expect(approve).toBeDisabled();
-  for (const box of await page.getByRole('group', { name: 'Antes de aprobar' }).getByRole('checkbox').all()) await box.check();
+  // The room comes from a full page load: wait for its list, and tick it again if hydration reset the boxes (an
+  // unticked box keeps «Aprobar» off, so this still proves every box was ticked).
+  const checklist = page.getByRole('group', { name: 'Antes de aprobar' });
+  await expect(checklist.getByRole('checkbox').first()).toBeVisible();
+  await expect(async () => {
+    for (const box of await checklist.getByRole('checkbox').all()) await box.check();
+    await expect(page.getByRole('button', { name: 'Aprobar', exact: true })).toBeEnabled({ timeout: 2_000 });
+  }).toPass();
   await page.getByRole('button', { name: 'Aprobar', exact: true }).click();
   await expect(page).toHaveURL(/\/aprobar$/);
 }

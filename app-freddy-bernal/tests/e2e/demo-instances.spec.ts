@@ -157,6 +157,36 @@ test('los canales sembrados de Mensajes abren con el mismo id en los dos servido
   }
 });
 
+// Redes by format (R4, D-39, D-76): the months, the feed places and every seeded piece have the same ids on every
+// server, so Mes 1's feed and a seeded card open the same on the other one (what someone creates or moves there may
+// not: that is the demo, docs/DEMO.md).
+test('el feed de Mes 1 y una tarjeta sembrada abren iguales en los dos servidores', async ({ page }) => {
+  test.skip(!!process.env.E2E_BASE_URL, 'solo con los dos servidores locales');
+  await loginAs(page, 'redes@demo.test');
+  await page.goto('/redes/feed');
+  await shown(page, '/redes/feed');
+  const months = page.getByRole('navigation', { name: 'Meses de contenido' }).getByRole('link');
+  await expect(months.first()).toBeVisible();
+  const mes = new URL((await months.first().getAttribute('href'))!, 'http://x').searchParams.get('mes');
+  expect(mes).toMatch(/^[0-9a-f-]{36}$/);
+  const grid = async () => page.locator('main li[data-num]').evaluateAll((li) => li.map((x) => `${x.getAttribute('data-num')}:${x.getAttribute('data-piece') ?? ''}`));
+  const feed = `/redes/feed?mes=${mes}`;
+  await page.goto(feed);
+  await shown(page, feed);
+  const mine = await grid();
+  expect(mine).toHaveLength(24);
+  const placed = mine.filter((c) => !c.endsWith(':'));
+  expect(placed.length).toBeGreaterThan(0);
+  const res = await page.goto(`${other}${feed}`);
+  expect(res?.status()).toBe(200);
+  await shown(page, `${other}${feed}`);
+  expect(await grid()).toEqual(mine);
+  // The first piece of the feed, big (/piezas/[id]), on both servers.
+  const id = placed[0].split(':')[1];
+  await sameOnTheOther(page, `/piezas/${id}`);
+  await expect(page.getByText('se creó en otro servidor de la demostración')).toHaveCount(0);
+});
+
 // «Ir al inicio» goes to each person's own home: Hoy for despacho, Municipios for política (not Hoy for everyone).
 test('lo que no existe dice «No encontramos esto» en español y lleva al inicio de cada quien', async ({ page }) => {
   for (const [email, missing, home] of [

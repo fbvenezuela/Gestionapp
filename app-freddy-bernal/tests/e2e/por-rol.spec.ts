@@ -149,6 +149,15 @@ test('Redes no ve fecha ni hora: ni en la agenda, ni en el evento, ni en Hoy, ni
       noSchedule(text, of(href), `${href} ${tab}`, true);
     }
   }
+  // Redes by format (R4, D-75): the board, every section, the feed and the search show pieces born from these events
+  // without their day, time or address. Axe on the four screens of the design (§7.2); the rest only for the text.
+  const REDES = ['/redes', '/redes/reels', '/redes/feed', '/redes/buscar?q=a', '/redes/posts', '/redes/carruseles', '/redes/historias', '/redes/youtube', '/redes/fin-de-mes'];
+  for (const [i, path] of REDES.entries()) {
+    const text = await open(page, path, { axe: i < 4 });
+    expect(text, path).not.toMatch(CLOCK);
+    expect(text, path).not.toContain('hasta las');
+    for (const s of sched) noSchedule(text, s, path, true);
+  }
   // The agenda's own screens are not Redes'.
   for (const path of ['/agenda/por-fecha', '/agenda/nuevo', '/obras', '/municipios']) await closed(page, path, 'role');
   // Mensajes and its guide (R3); another role's guide is not its.
@@ -272,8 +281,9 @@ test('El jefe ve todo: llega a cada pantalla de cada rol, con la fecha y la hora
   };
   const obras = (await linksOn('/obras', '/obras/')).filter((h) => /\/obras\/[0-9a-f-]{36}$/.test(h));
   const reports = [...(await linksOn('/municipios/torbes', '/reportes/')), ...(await linksOn('/municipios/junin', '/reportes/'))].filter((h) => /[0-9a-f-]{36}$/.test(h));
-  // Each piece keeps its address (R4); until the sections of Redes list their cards, the search finds them all.
-  const pieces = (await linksOn('/buscar?q=a', '/piezas/')).filter((h) => /[0-9a-f-]{36}$/.test(h));
+  // Each piece keeps its address (R4): every card of a section opens it big («Abrir la pieza» in its menu).
+  const pieces = [...new Set([...(await linksOn('/redes/reels', '/piezas/')), ...(await linksOn('/redes/posts', '/piezas/')), ...(await linksOn('/redes/carruseles', '/piezas/'))])]
+    .filter((h) => /\/piezas\/[0-9a-f-]{36}$/.test(h));
   const tweets = (await linksOn('/tweets', '/tweets/')).filter((h) => /[0-9a-f-]{36}$/.test(h));
   const pubs = (await linksOn('/publicar', '/publicar/')).filter((h) => /[0-9a-f-]{36}$/.test(h));
   const events = [...new Set([...(await linksOn('/jefe/politica', '/eventos/')), ...(await linksOn('/biblioteca', '/eventos/'))])].filter((h) => /^\/eventos\/[0-9a-f-]{36}$/.test(h));
@@ -290,6 +300,8 @@ test('El jefe ve todo: llega a cada pantalla de cada rol, con la fecha y la hora
     // His agenda: the date and the time of every event, and he sees the tab of the ficha it was born from.
     expect(text, href).toMatch(CLOCK);
     const tabs = page.getByRole('navigation', { name: 'Secciones del evento' });
+    // Every event has its tabs: wait for them before counting (count() does not wait).
+    await expect(tabs.getByRole('link', { name: 'Storyboard' })).toBeVisible();
     const obraTab = (await tabs.getByRole('link', { name: 'Ficha de obra' }).count()) > 0;
     const reportTab = (await tabs.getByRole('link', { name: 'Reporte' }).count()) > 0;
     sawObraTab ||= obraTab;

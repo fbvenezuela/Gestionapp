@@ -147,7 +147,14 @@ test('Redes la vuelve a enviar desde su tarjeta; el jefe la aprueba con «Revisa
   await mine.getByRole('link', { name: 'Revisar' }).click();
   await expect(page).toHaveURL(new RegExp(`/aprobar/${id}\\?volver=`));
   await expect(page.locator('main').getByRole('link', { name: 'Carruseles' })).toHaveAttribute('href', back);
-  for (const box of await page.getByRole('group', { name: 'Antes de aprobar' }).getByRole('checkbox').all()) await box.check();
+  // The room comes from a full page load: wait for its list, and tick it again if hydration reset the boxes (an
+  // unticked box keeps «Aprobar» off, so this still proves every box was ticked).
+  const checklist = page.getByRole('group', { name: 'Antes de aprobar' });
+  await expect(checklist.getByRole('checkbox').first()).toBeVisible();
+  await expect(async () => {
+    for (const box of await checklist.getByRole('checkbox').all()) await box.check();
+    await expect(page.getByRole('button', { name: 'Aprobar', exact: true })).toBeEnabled({ timeout: 2_000 });
+  }).toPass();
   await page.getByRole('button', { name: 'Aprobar', exact: true }).click();
   await expect(page.getByText('Aprobada.').first()).toBeVisible();
   await page.waitForURL((u) => u.pathname === '/redes/carruseles');

@@ -25,7 +25,7 @@ const SUBTITLE: Record<Format, string> = {
   reel: 'Videos verticales 9:16: el video, la portada, las tomas y el copy.',
   post: 'Una imagen con su texto del arte, el caption y sus notas.',
   carousel: 'Láminas en orden, cada una con su texto y su imagen, y el caption.',
-  story: 'Contenido ágil entre publicaciones: idea, foto o clip, sticker y texto en pantalla.',
+  story: 'Las historias del día a día: idea, foto o clip, sticker y texto en pantalla.',
   youtube: 'Videos horizontales 16:9: el guion por tomas y la descripción con capítulos.',
   month_end: 'Las piezas del cierre del mes y el resumen para el jefe.',
 };

@@ -120,8 +120,10 @@ test('Biblioteca: miniaturas, «Elegir de Drive» y «Traer lo nuevo de Drive» 
 
 test('la pieza en Drive: «Descargar portada» baja por partes, y si Drive se desconecta el video dice por qué', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');
-  await page.goto('/buscar?q=Jornada de salud escolar');
-  await page.getByRole('link', { name: /^Jornada de salud escolar/ }).click();
+  // The reel lives in its section (R4); its own address is the card big, where the files go up.
+  await page.goto('/redes/reels');
+  const id = (await page.getByRole('article', { name: 'Jornada de salud escolar', exact: true }).getAttribute('id'))!.replace(/^pieza-/, '');
+  await page.goto(`/piezas/${id}`);
   await page.waitForURL(/\/piezas\/[0-9a-f-]{36}$/);
   const piece = page.url();
   await page.getByLabel('Subir video final (nueva versión)').setInputFiles(fixture('vertical-4s.mp4'));
