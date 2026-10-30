@@ -1,7 +1,8 @@
 // The two GET routes of Mensajes' loop (R3, D-56) and the reads behind them and behind the pages (src/lib/data/chat.ts),
 // with channels (R5), against a real in-memory database with the demo seed. The session is mocked: no session → 401
-// with no body; a bad id or a channel the person is not in → 404 (the same as one that does not exist, and the screen
-// then says «Ya no estás en este canal.»); an account with Administración → 404 (Mensajes is not for it) and never a
+// with no body; a bad id or a channel the person is not in → 404 (the same as one that does not exist; the screen keeps
+// asking); 410 only when the database says the boss took the person out (the screen then says «Ya no estás en este
+// canal.»); an account with Administración → 404 (Mensajes is not for it) and never a
 // row; the answers are never stored (no-store). All data here is invented.
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { NextRequest } from 'next/server';
@@ -115,12 +116,26 @@ describe('GET /api/mensajes/[id]/nuevos', () => {
     expect(items.slice(0, 2)).toMatchObject([{ author: 'Tú', role: 'Jefe' }, { author: 'Daniela Pernía', role: 'Redes' }]);
   });
 
-  it('quien el jefe saca del canal recibe 404 desde ese momento (la pantalla se lo dice y deja de preguntar)', async () => {
+  it('quien el jefe saca del canal recibe 410 desde ese momento (la pantalla se lo dice y deja de preguntar); si vuelve, 200', async () => {
     const x = await t.as('boss', async (sql) => (await sql.one<{ id: string }>(`select public.chat_channel_create('Salida (prueba)', null, $1::uuid[]) as id`, [[t.ids.camera2, t.ids.social2]]))!.id);
     as('camera2');
     expect((await get(x)).status).toBe(200);
     await t.as('boss', (sql) => sql.query(`select public.chat_channel_set_members($1, $2::uuid[])`, [x, [t.ids.social2]]));
+    const r = await get(x);
+    expect(r.status).toBe(410);
+    expect(r.headers.get('cache-control')).toMatch(/no-store/);
+    expect(await r.text()).toBe('');
+    // Someone who never was in it still gets 404 (nothing said about the channel).
+    as('politics');
     expect((await get(x)).status).toBe(404);
+    await t.as('boss', (sql) => sql.query(`select public.chat_channel_set_members($1, $2::uuid[])`, [x, [t.ids.social2, t.ids.camera2]]));
+    as('camera2');
+    expect((await get(x)).status).toBe(200);
+  });
+
+  it('en la demostración, un canal que este servidor no tiene es 404 (la pantalla sigue preguntando), nunca 410 (D-88)', async () => {
+    as('boss');
+    expect((await get(crypto.randomUUID())).status).toBe(404);
   });
 });
 

@@ -55,7 +55,9 @@ Con cualquier rol del equipo, en este orden:
 su base en memoria. Lo sembrado es igual en todos (mismos ids), pero un mensaje, un canal nuevo o un cambio de miembros
 vive solo en el servidor donde se hizo: con otra cuenta o en otro teléfono puede no verse, y un canal creado en otro
 servidor dice «Este canal no está en tu lista: o no estás en él, o se creó en otro servidor de la demostración.»
-(D-88). Dos personas en un canal desde dos teléfonos se prueba en `fb-dev`. La demo es una base de prueba con datos
+(D-88). Con el canal abierto, si la revisión de cada 5 s o un envío llega a otro servidor, la pantalla sigue como
+estaba (un envío devuelve el texto a la caja con esa misma frase): «Ya no estás en este canal.» sale solo cuando la
+base de ese servidor dice que el jefe te sacó. Dos personas en un canal desde dos teléfonos se prueba en `fb-dev`. La demo es una base de prueba con datos
 inventados: lo que se escribe ahí se pierde cuando el servidor se reinicia.
 
 **A mano, en un Android de verdad** (no se automatiza): el teclado no tapa la caja de escribir; Enter hace salto de

@@ -839,7 +839,7 @@ comando, los mensajes no se borran).
   tiene cómo probarse en la base en memoria ni en CI. Son 9 personas.
 - **Cómo se cambia:** `src/components/chat/chat-feed-core.ts` (`CHAT_POLL_MS`, `CHAT_BADGE_MS`,
   `CHAT_FETCH_TIMEOUT_MS`). Realtime (`postgres_changes`, que respeta RLS) cuando se pueda probar en `fb-dev`.
-- **Ajuste del 29/10 (R5):** igual (5 s el canal abierto, 30 s el sobre); el sobre cuenta canales no archivados con algo nuevo. Si el jefe saca a alguien mientras tiene el canal abierto, la revisión recibe 404 y la pantalla cambia a «Ya no estás en este canal.» y deja de preguntar.
+- **Ajuste del 29/10 (R5):** igual (5 s el canal abierto, 30 s el sobre); el sobre cuenta canales no archivados con algo nuevo. Si el jefe saca a alguien mientras tiene el canal abierto, la revisión recibe 410 y la pantalla cambia a «Ya no estás en este canal.» y deja de preguntar. Solo cuando la base lo confirma (`chat_was_removed()`: una fila suya con `removed_at` y ninguna actual); un 404 (en la demo, un canal creado en otro servidor, D-88) es «nada nuevo esta vez» y la pantalla sigue preguntando; al enviar, el texto vuelve a la caja (revisión 2 de R5).
 
 ## D-57. Mensajes en la demo: cada servidor tiene los suyos (28/10/2026) — **Reemplazada por D-79 a D-88 (29/10/2026)**: Mensajes son canales, sin aviso.
 - **Qué:** la demo trae conversaciones sembradas (inventadas, mismos ids en cada servidor): **todas las directas entre
@@ -959,7 +959,9 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
 - **Qué:** quien el jefe **agrega** lee lo que ya se escribió en el canal (como en Slack; «Editar canal» se lo dice al
   jefe), salvo los mensajes guardados de la agenda (D-52, también los de palabras relativas escritos sin Redes ni
   política). Quien el jefe **saca** deja de ver el canal entero y de recibir sus avisos; si lo tenía abierto, la pantalla
-  dice «Ya no estás en este canal.». Nadie se sale solo (para no oírlo, «Silenciar»). Nada se borra: salir es una marca
+  dice «Ya no estás en este canal.» (solo cuando la base confirma que lo sacaron, D-56). Guardar el canal no saca a
+  quien está desactivado (el editor no lo muestra): sigue en el canal, sin leer nada, hasta que administración lo
+  reactive (revisión 2 de R5). Nadie se sale solo (para no oírlo, «Silenciar»). Nada se borra: salir es una marca
   con la hora y quién lo sacó; volver es una fila nueva, con «Silenciar» apagado otra vez (su ajuste viejo no vuelve).
 - **Por qué:** es lo que se espera de un canal; guardar la historia de miembros cumple la regla de auditoría.
 - **Cómo se cambia:** `chat_channel_set_members()` y `removed_at` / `removed_by` de `chat_members`. Para que el que
@@ -976,7 +978,10 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
 - **Qué:** la migración convierte cada directa y cada grupo en un **canal archivado** con los mismos miembros más el
   jefe; las directas se llaman «Conversación de <nombre> y <nombre>». Nada se borra. En `fb-dev` no hay mensajes reales,
   así que en la práctica no convierte nada. Se eliminan `chat_notice_ack`, `chat_rules`, `chat_start()`,
-  `chat_pair_allowed()` y `chat_stamp_rule()` con sus reglas, disparadores y permisos (las filas del registro quedan). El
+  `chat_pair_allowed()` y `chat_stamp_rule()` con sus reglas, disparadores y permisos (las filas del registro quedan, y
+  Ajustes → Registro las nombra «Mensajes (antes de los canales)»). A los mensajes de las directas y grupos sin Redes ni
+  política se les aplica una vez la regla estricta de la agenda (D-52, ajuste del 29/10): un «mañana» de quien conoce la
+  agenda queda oculto, para que sacar del archivo y agregar a Redes o política no lo deje leer (revisión 2 de R5). El
   aviso al jefe por un rol nuevo abre `/mensajes` y los avisos viejos se corrigen.
 - **Por qué:** convertir y no borrar cumple «lo escrito queda»; archivados, nadie escribe donde antes no estaba el jefe.
 - **Cómo se cambia:** la sección 1 de la migración.

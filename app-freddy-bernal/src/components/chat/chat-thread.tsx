@@ -23,8 +23,9 @@ import { CHAT_READ_EVENT } from './chat-badge-live';
 // otherwise at the end; what arrives while at the end keeps it at the end, otherwise «Hay mensajes nuevos ↓». What is
 // sent shows at once with «Enviando…» and goes in a queue in order (never with useAction: no page refresh, D-56); a send
 // stopped by the signal says «No se envió · Reintentar» with the same id; one the database refuses goes back to the box
-// with why. If the boss takes the person out of the channel meanwhile (the loop gets a 404, or a send answers «gone»),
-// the whole thread gives way to «Ya no estás en este canal.» and the loop stops: nothing of it stays on the screen.
+// with why. If the boss takes the person out of the channel meanwhile (the loop gets a 410, or a send answers «gone»:
+// both only when the database says so, chat_was_removed), the whole thread gives way to «Ya no estás en este canal.»
+// and the loop stops: nothing of it stays on the screen. A 404 is only «nothing this time» (the demo, D-88).
 
 const atEnd = () => window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 80;
 const toEnd = () => window.scrollTo({ top: document.documentElement.scrollHeight });

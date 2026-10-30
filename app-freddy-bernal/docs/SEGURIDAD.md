@@ -173,7 +173,8 @@ por el sistema). Qué se hizo para blindar la plataforma y qué falta.
       (`text_has_concrete_datetime()`, `chat_has_map()`, copias exactas en la app). Las palabras relativas pasan, pero la
       app pregunta antes (E1). **Donde no hay Redes ni política**, el mensaje se guarda pero queda marcado
       (`agenda_clear` falso) también por una palabra relativa: el que entre después, o gane Redes o política, ve «Mensaje
-      oculto» y no un «mañana» que la hora del mensaje vuelve fecha. El nombre y la descripción de un canal siguen con la
+      oculto» y no un «mañana» que la hora del mensaje vuelve fecha; la migración aplica esa regla una vez a lo escrito
+      antes en directas y grupos sin Redes ni política (ahora canales archivados que el jefe puede reabrir). El nombre y la descripción de un canal siguen con la
       regla completa (`guard_chat_channel_text`), en todo canal.
     - **La agenda al leer:** un mensaje sin `agenda_clear` solo lo lee quien tiene jefe, despacho, IVT o Grabación **sin**
       Redes ni política (el jefe incluido); los demás ven «Mensaje oculto», nunca el texto. Cubre cambios de rol y de
@@ -186,7 +187,8 @@ por el sistema). Qué se hizo para blindar la plataforma y qué falta.
     - **Avisos al teléfono sin el texto:** «Mensaje nuevo · De <nombre> (<rol>)» a los miembros actuales que no lo
       silenciaron, nunca el texto ni el nombre del canal; no van a la campana ni por correo.
     - **Lecturas por rutas GET** como la persona (`db(session)`), con `Cache-Control: no-store` y sin guardarse en el
-      service worker; sin sesión 401, sin Mensajes o fuera del canal 404 (la pantalla abierta deja de preguntar). El
+      service worker; sin sesión 401, sin Mensajes o fuera del canal 404; 410 solo si la base confirma que el jefe lo sacó
+      (`chat_was_removed()`, que habla solo de uno mismo), y entonces la pantalla abierta deja de preguntar. El
       texto de un mensaje nunca se escribe en los registros del servidor ni se repite en un error. `<title>` nunca lleva
       un nombre ni un texto.
     - **Nada para anon:** cada función nueva tiene `revoke all … from public, anon`; las que hablan de otras personas

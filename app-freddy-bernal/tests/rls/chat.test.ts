@@ -469,6 +469,40 @@ describe('el jefe arma los canales (filas 21 a 35)', () => {
     await expect(as('camera2', (sql) => sql.query(`insert into public.chat_reads (conversation_id, user_id) values ($1, auth.uid()) on conflict (conversation_id, user_id) do update set last_read_at = now()`, [x]))).rejects.toThrow(/row-level security/);
   });
 
+  it('27b: guardar el canal no saca a quien está desactivado (el editor no lo muestra): vuelve a leerlo al reactivarlo', async () => {
+    // R5 review 2, point 3: the editor lists only the active team, so the list the boss sends never has her.
+    const x = await create('boss', 'Cancha nueva (demo)', ['camera', 'camera2']);
+    await setActive('camera2', false);
+    try {
+      expect((await memberIds('camera', x)).map((m) => m.user_id)).not.toContain(P.camera2);
+      await setMembers('boss', x, ['camera', 'social2']);
+      expect(await sys(`select removed_at is null as now from public.chat_members where conversation_id = $1 and user_id = $2`, [x, P.camera2])).toEqual([{ now: true }]);
+    } finally {
+      await setActive('camera2', true);
+    }
+    expect(await reads('camera2', x)).toBe(1);
+    expect((await memberIds('camera', x)).filter((m) => m.current).map((m) => m.user_id).sort()).toEqual([P.boss, P.camera, P.camera2, P.social2].sort());
+    // Active again, she is on the list, and a save without her takes her out.
+    await setMembers('boss', x, ['camera', 'social2']);
+    expect(await reads('camera2', x)).toBe(0);
+  });
+
+  it('27c: chat_was_removed() dice solo si a uno mismo lo sacaron del canal; nunca de otro, ni de uno donde nunca estuvo, ni a 360', async () => {
+    // R5 review 2, point 1: the open channel says «Ya no estás en este canal.» only then (anything else is «nothing
+    // this time»: in the demo a channel may live on another server, D-88).
+    const x = await create('boss', 'Salida y vuelta (demo)', ['camera', 'camera2']);
+    const removed = (who: Who, c: string = x) => as(who, async (sql) => (await sql.one<{ r: boolean }>(`select public.chat_was_removed($1) as r`, [c]))!.r);
+    expect(await removed('camera2')).toBe(false);
+    await setMembers('boss', x, ['camera']);
+    expect(await removed('camera2')).toBe(true);
+    expect(await removed('camera')).toBe(false);
+    expect(await removed('politics')).toBe(false);
+    expect(await removed('camera2', J)).toBe(false);
+    expect(await asAssistant('camera2', async (sql) => (await sql.one<{ r: boolean }>(`select public.chat_was_removed($1) as r`, [x]))!.r)).toBe(false);
+    await setMembers('boss', x, ['camera', 'camera2']);
+    expect(await removed('camera2')).toBe(false);
+  });
+
   it('30-31: al jefe no se le saca (ni por la tabla, ni el sistema, ni con la marca de confianza); nadie borra un miembro', async () => {
     await expect(as('boss', async (sql) => {
       await sql.query(`select set_config('app.trusted_update', 'on', true)`);
@@ -615,7 +649,7 @@ describe('listas, lo propio, el registro y el catálogo (filas 40 a 47)', () => 
       'chat_channel_add_bosses', 'chat_boss_role_change', 'audit_chat_row'];
     const API = ['is_team_member', 'chat_reader_knows_agenda', 'chat_by_assistant', 'text_has_concrete_datetime', 'chat_strip_refs', 'chat_has_map',
       'chat_strip_timecodes', 'chat_is_member', 'chat_can_read', 'chat_hides_agenda_for_me', 'chat_may_post', 'chat_team_channel', 'chat_set_only_boss',
-      'chat_people', 'chat_member_list', 'chat_hidden_marks', 'chat_channel_create', 'chat_channel_update', 'chat_channel_set_members', 'chat_channel_archive'];
+      'chat_people', 'chat_member_list', 'chat_was_removed', 'chat_hidden_marks', 'chat_channel_create', 'chat_channel_update', 'chat_channel_set_members', 'chat_channel_archive'];
     const rows = await sys<{ f: string; anon: boolean; auth: boolean }>(
       `select p.proname as f, has_function_privilege('anon', p.oid, 'EXECUTE') as anon, has_function_privilege('authenticated', p.oid, 'EXECUTE') as auth
          from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = any ($1::text[]) order by 1`,

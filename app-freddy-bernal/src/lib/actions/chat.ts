@@ -3,10 +3,12 @@
 import { z } from 'zod';
 import { act, UserError, type Result } from './run';
 import { friendlyDbError } from '../db/core';
+import { isDemo } from '../env';
 import { notifyChat } from '../notify';
+import { wasRemoved } from '../data/chat';
 import {
   CHAT_BODY_MAX, CHAT_DESC_MAX, CHAT_MEMBERS_MAX, CHAT_PHONE_LINK_TEXT, CHAT_PHONE_TEXT, CHAT_RELATIVE_ASK, CHAT_TEXT_REFUSED,
-  CHAT_TIMECODE_ASK, CHAT_TITLE_MAX, chatChannelTextProblem, chatTextProblem, fillWord, type ChatTextProblem,
+  CHAT_NOT_IN_LIST, CHAT_TIMECODE_ASK, CHAT_TITLE_MAX, chatChannelTextProblem, chatTextProblem, fillWord, type ChatTextProblem,
 } from '../domain/chat';
 
 // Mensajes: channels (R5, D-79 to D-88). Every action runs as the person (RLS); the database decides who reads and
@@ -76,7 +78,7 @@ const sendSchema = z.object({
 export type SendData =
   | { kind: 'sent'; id: string; createdAt: string; fresh: boolean }
   | { kind: 'confirm'; confirm: 'timecode' | 'relative'; word: string; question: string }
-  // The person is no longer in this channel (the boss took them out meanwhile): the screen says so and stops.
+  // The database says the boss took the person out of this channel meanwhile: the screen says so and stops.
   | { kind: 'gone' };
 
 /**
@@ -91,7 +93,12 @@ export async function sendMessage(raw: unknown): Promise<Result<SendData>> {
     // Already saved (a send repeated after a lost answer): the same message, nothing new.
     const same = await sql.one<{ id: string; created_at: Date }>(`select id, created_at from public.chat_messages where id = $1 and author_id = auth.uid()`, [i.clientId]);
     if (same) return { kind: 'sent', id: same.id, createdAt: new Date(same.created_at).toISOString(), fresh: false };
-    if (!(await sql.one<{ r: boolean }>(`select public.chat_can_read($1) as r`, [i.conversationId]))?.r) return { kind: 'gone' };
+    if (!(await sql.one<{ r: boolean }>(`select public.chat_can_read($1) as r`, [i.conversationId]))?.r) {
+      // «gone» only when the database says they were taken out; otherwise the text goes back to the box (in the demo
+      // the channel may live on another server, D-88: sending again may reach it). Nothing said about the channel.
+      if (await wasRemoved(sql, i.conversationId)) return { kind: 'gone' };
+      throw new UserError(isDemo() ? CHAT_NOT_IN_LIST : 'Ya no puedes escribir en este canal.');
+    }
     const hides = !!(await sql.one<{ h: boolean }>(`select public.chat_hides_agenda_for_me($1) as h`, [i.conversationId]))?.h;
     const p = chatTextProblem(i.body, { hidesAgenda: hides, authorRoles: s.roles, timecodeOk: i.timecodeOk, relativeOk: i.relativeOk });
     if (p?.kind === 'timecode') return { kind: 'confirm', confirm: 'timecode', word: p.word, question: fillWord(CHAT_TIMECODE_ASK, p.word) };

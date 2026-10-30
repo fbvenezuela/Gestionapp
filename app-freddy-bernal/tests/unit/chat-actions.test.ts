@@ -8,7 +8,7 @@ import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import type { Session } from '@/lib/auth/session';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import { CHAT_TEAM_ID, chatChannelId } from '@/lib/db/seed-parts/chat';
-import { CHAT_PHONE_LINK_TEXT, CHAT_PHONE_TEXT, CHAT_TEXT_REFUSED } from '@/lib/domain/chat';
+import { CHAT_NOT_IN_LIST, CHAT_PHONE_LINK_TEXT, CHAT_PHONE_TEXT, CHAT_TEXT_REFUSED } from '@/lib/domain/chat';
 import { makeTestDb, type TestDb } from '../rls/setup';
 
 const h = vi.hoisted(() => ({ session: null as unknown, pushes: [] as { recipients: { id: string }[]; n: Record<string, unknown> }[], revalidated: [] as string[] }));
@@ -205,9 +205,12 @@ describe('enviar', () => {
     expect(h.pushes).toEqual([]);
   });
 
-  it('en un canal donde nunca estuvo: «gone», sin decir nada del canal', async () => {
+  it('en un canal donde nunca estuvo: no es «gone» (la pantalla no se cierra) y no dice nada del canal', async () => {
+    // R5 review 2, point 1: in the demo the channel may live on another server (D-88); only a person the database says
+    // was taken out gets «gone». The text goes back to the box with the demo's neutral line.
     as('social');
-    expect(await send(J, 'el jueves a las 10')).toEqual({ ok: true, data: { kind: 'gone' } });
+    expect(await send(J, 'el jueves a las 10')).toEqual({ ok: false, error: CHAT_NOT_IN_LIST });
+    expect(await send(crypto.randomUUID(), 'Hola (prueba)')).toEqual({ ok: false, error: CHAT_NOT_IN_LIST });
   });
 });
 

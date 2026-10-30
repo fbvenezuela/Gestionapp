@@ -285,6 +285,13 @@ export async function messagesSince(sql: Sql, s: Session, id: string, after: { a
   return toItems(sql, msgs, marks, await membersOf(sql, id), s.userId);
 }
 
+/** Whether the database says I was taken out of this channel (a row of mine with removed_at and none current). Only
+ * then does an open channel say «Ya no estás en este canal.»: a channel I cannot read for any other reason (one made
+ * on another server of the demo, D-88) is only «nothing this time» (R5 review 2, point 1). */
+export async function wasRemoved(sql: Sql, id: string): Promise<boolean> {
+  return !!(await sql.one<{ r: boolean }>(`select public.chat_was_removed($1) as r`, [id]))?.r;
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // The boss's editor
 // ---------------------------------------------------------------------------------------------------------------

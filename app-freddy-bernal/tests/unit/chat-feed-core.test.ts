@@ -247,14 +247,16 @@ describe('lo que hay en la pantalla', () => {
   });
 });
 
-// R5 (D-85): the boss takes the person out of the channel while it is open. The loop gets a 404 and the screen stops and
-// says «Ya no estás en este canal.»; any other failure is only «nothing this time».
+// R5 (D-85): the boss takes the person out of the channel while it is open. The loop gets a 410 (the database said so)
+// and the screen stops and says «Ya no estás en este canal.»; any other failure, a 404 too (in the demo a channel made
+// on another server, D-88; R5 review 2, point 1), is only «nothing this time».
 describe('cuando ya no está en el canal', () => {
   const res = (status: number, body: unknown = {}) => vi.fn(async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
 
-  it('un 404 dice que el canal ya no es suyo; un 401 o un 500 no', async () => {
+  it('un 410 dice que el canal ya no es suyo; un 404, un 401 o un 500 no', async () => {
     const signal = new AbortController().signal;
-    expect(await getFeed('/api/mensajes/x/nuevos', signal, res(404))).toBe(FEED_GONE);
+    expect(await getFeed('/api/mensajes/x/nuevos', signal, res(410))).toBe(FEED_GONE);
+    expect(await getFeed('/api/mensajes/x/nuevos', signal, res(404))).toBeNull();
     expect(await getFeed('/api/mensajes/x/nuevos', signal, res(401))).toBeNull();
     expect(await getFeed('/api/mensajes/x/nuevos', signal, res(500))).toBeNull();
     expect(await getFeed('/api/mensajes/x/nuevos', signal, res(200, { items: [] }))).toEqual({ items: [] });

@@ -17,6 +17,9 @@
 --     agenda_clear of a message from someone who knows the agenda: a relative word («mañana», «el sábado») marks it
 --     too, so whoever with Redes or política is added later (or a member who gains either role) sees «Mensaje oculto»,
 --     never a «mañana» that its time turns into a date. Where Redes or política already read, E1 stays as it was.
+--     The messages written before this migration in a direct or group without Redes or política kept the old rule
+--     (a relative word left agenda_clear true); the strict rule is applied to them here, once, before they become
+--     channels the boss can take out of the archive and add Redes or política to (R5 review 2, point 2).
 --   * An archived channel is read by its members and nobody writes in it (D-86).
 --   * The agenda (D-52 with E1), phones (D-53), append-only messages (D-54), push without the text (D-55) and the
 --     5-second loop (D-56) stay as they were. chat_hides_agenda() now counts the CURRENT members only (a member who left
@@ -41,6 +44,28 @@ alter table public.chat_conversations
   add column archived_at timestamptz,
   add column archived_by uuid references public.profiles (id),
   add column updated_at timestamptz;
+
+-- The strict agenda rule (the one chat_message_guard() below keeps for a channel without Redes or política) on the
+-- messages of a direct or group where neither role was: a relative word («mañana», «el lunes») from whoever knows the
+-- agenda hides the message too, so nobody with Redes or política added later reads a «mañana» its time turns into a
+-- date. Only ever from true to false; the same text the guard looks at (references out, and Grabación's bare time
+-- codes out unless a relative day is also there). Messages are append-only: their guard is off for this one update.
+alter table public.chat_messages disable trigger chat_messages_immutable;
+with src as (
+  select x.id, public.chat_strip_refs(normalize(x.body, NFKC)) as raw, public.chat_author_camera_only(x.author_id) as cam
+    from public.chat_messages x join public.chat_conversations k on k.id = x.conversation_id
+   where x.agenda_clear and k.kind in ('direct', 'group')
+     and public.chat_author_knows_agenda(x.author_id)
+     and not exists (select 1 from public.chat_members m join public.user_roles ur on ur.user_id = m.user_id
+                      where m.conversation_id = k.id and ur.role::text in ('politics', 'social'))),
+stripped as (
+  select id, raw, case when cam then public.chat_strip_timecodes(raw) else raw end as cut from src),
+looked as (
+  select id, case when cut <> raw and public.text_has_datetime(cut) then raw else cut end as txt from stripped)
+update public.chat_messages x set agenda_clear = false
+  from looked l
+ where x.id = l.id and (public.text_has_datetime(l.txt) or public.chat_has_map(l.txt));
+alter table public.chat_messages enable trigger chat_messages_immutable;
 
 -- A direct had no name: «Conversación de Daniela y Kevin» (first names, as the screens said it), at most 60 letters.
 update public.chat_conversations k
@@ -205,6 +230,17 @@ language sql stable security definer set search_path = public as $$
    order by 5 desc, 2, 1
 $$;
 
+-- Whether I was taken out of this channel (a row of mine with removed_at and none current): only then does an open
+-- channel say «Ya no estás en este canal.» and stop asking. Anything else the person cannot read (2FA, a channel made
+-- on another server of the demo, D-88) is only «nothing this time» (R5 review 2, point 1). It says nothing about anyone
+-- else and nothing about a channel I was never in. Never for 360.
+create function public.chat_was_removed(c uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select not public.chat_by_assistant()
+     and exists (select 1 from public.chat_members m where m.conversation_id = c and m.user_id = auth.uid() and m.removed_at is not null)
+     and not exists (select 1 from public.chat_members m where m.conversation_id = c and m.user_id = auth.uid() and m.removed_at is null)
+$$;
+
 -- A member reads the rows of who is in the channel now (and their own): never the rows of who left.
 drop policy chat_members_select on public.chat_members;
 create policy chat_members_select on public.chat_members for select to authenticated
@@ -288,8 +324,12 @@ begin
   end if;
   v_people := public.chat_channel_people(p_members);
   perform set_config('app.trusted_update', 'on', true);
+  -- Only the people the editor shows (the active team, chat_member_list): someone deactivated, or left without a team
+  -- role, is not on the list the boss sends and stays a member, as they were, for when Administración brings them back
+  -- (R5 review 2, point 3). They read nothing meanwhile (chat_is_member() asks is_team_member()).
   update public.chat_members m set removed_at = now(), removed_by = me
    where m.conversation_id = c and m.removed_at is null and not (m.user_id = any (v_people))
+     and public.chat_team_roles(m.user_id) <> '{}'
      and not exists (select 1 from public.user_roles ur where ur.user_id = m.user_id and ur.role = 'boss');
   -- Whoever enters again starts with the phone's «Silenciar» off (their old setting does not come back, D-85).
   with entered as (
@@ -504,11 +544,11 @@ update public.notifications set link = '/mensajes' where kind = 'team_role_grant
 --    they call chat_can_read() and chat_may_post(), which changed above. No new grant on any table: channels and
 --    members are made only by the functions.
 -- ---------------------------------------------------------------------------------------------------------------
-revoke all on function public.chat_people(), public.chat_member_list(uuid), public.chat_channel_people(uuid[]),
+revoke all on function public.chat_people(), public.chat_member_list(uuid), public.chat_was_removed(uuid), public.chat_channel_people(uuid[]),
   public.chat_channel_create(text, text, uuid[]), public.chat_channel_update(uuid, text, text),
   public.chat_channel_set_members(uuid, uuid[]), public.chat_channel_archive(uuid, boolean) from public, anon;
 revoke all on function public.chat_channel_people(uuid[]) from authenticated;   -- internal: says who is a boss
-grant execute on function public.chat_people(), public.chat_member_list(uuid), public.chat_channel_create(text, text, uuid[]),
+grant execute on function public.chat_people(), public.chat_member_list(uuid), public.chat_was_removed(uuid), public.chat_channel_create(text, text, uuid[]),
   public.chat_channel_update(uuid, text, text), public.chat_channel_set_members(uuid, uuid[]),
   public.chat_channel_archive(uuid, boolean) to authenticated;
 revoke all on function public.guard_chat_channel_text(), public.guard_chat_member_change(),

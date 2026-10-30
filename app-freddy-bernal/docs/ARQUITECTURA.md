@@ -144,7 +144,8 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
   para el equipo.
 - **Lecturas:** `src/lib/data/chat.ts` (`myChannels`, `channel`, `messagesSince`, `unreadChannels`, `channelEditor`,
   `chatPeopleForBoss`), siempre dentro de `db(session, …)`. **Rutas GET del lazo:** `/api/mensajes/[id]/nuevos` (lo
-  nuevo de un canal, cada 5 s con la pantalla a la vista; 404 si ya no está en él, y la pantalla deja de preguntar) y
+  nuevo de un canal, cada 5 s con la pantalla a la vista; 410 solo si la base dice que el jefe lo sacó, `chat_was_removed()`,
+  y la pantalla deja de preguntar; cualquier otro canal que no puede leer es 404 y la pantalla sigue preguntando) y
   `/api/mensajes/sin-leer` (el número del sobre, cada 30 s); sin sesión 401, sin Mensajes 404, `no-store`.
 - **Acciones:** `src/lib/actions/chat.ts`: `createChannel`, `saveChannel`, `archiveChannel` (del jefe), `openTeamChannel`,
   `sendMessage` (con `clientId` como id: un reintento no duplica; pregunta antes un tiempo del video de Grabación o una
