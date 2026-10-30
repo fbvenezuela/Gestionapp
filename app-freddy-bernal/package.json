@@ -15,7 +15,8 @@
     "db:seed-client": "tsx scripts/seed-client.mts",
     "db:first-admin": "tsx scripts/create-first-admin.mts",
     "drive:import": "tsx scripts/drive-import/import.mts",
-    "docs:guides": "tsx scripts/guides-docs.mts"
+    "docs:guides": "tsx scripts/guides-docs.mts",
+    "capturas": "tsx scripts/capturas-fb.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.2.0",
