@@ -195,6 +195,54 @@ for (const size of SIZES) {
   });
 }
 
+// Redes by format (R4, design §6, §7.2): the board, a section and the feed, each walked at the three sizes with the
+// number of steps it must show there. The engine skips an anchor that is not on screen without a word (tour-core.ts),
+// so the count is what catches a step lost behind a folded card or a hidden wrapper: every step is on screen at every
+// size (the first card of a section never starts folded, so its checks are there on the phone too).
+const REDES_TOURS: { id: string; path: string; steps: Record<string, number> }[] = [
+  { id: 'redes', path: '/redes', steps: { '360×640': 5, 'iPad 810×1080': 5, '1024×768': 5 } },
+  { id: 'redes-seccion', path: '/redes/reels', steps: { '360×640': 6, 'iPad 810×1080': 6, '1024×768': 6 } },
+  { id: 'feed', path: '/redes/feed', steps: { '360×640': 4, 'iPad 810×1080': 4, '1024×768': 4 } },
+];
+
+for (const size of SIZES) {
+  test.describe(`Redes por formato a ${size.name}`, () => {
+    test.use({ viewport: size.viewport });
+
+    for (const r of REDES_TOURS) {
+      test(`${r.id}: ${r.steps[size.name]} pasos en ${r.path}, cada uno en su lugar`, async ({ page }) => {
+        const tour = tourOf(['social'], r.id);
+        expect(tour.steps.length).toBe(r.steps[size.name]);
+        await loginAs(page, 'redes@demo.test');
+        await page.goto(`${r.path}?tutorial=${r.id}`);
+        await expect(dialog(page)).toBeVisible();
+        await expect(page).toHaveURL(new RegExp(`${r.path}$`));
+        const shown = await shownSteps(page, tour);
+        expect(shown.filter(Boolean).length, `${r.id} a ${size.name}`).toBe(r.steps[size.name]);
+        await expect(page.getByRole('dialog', { name: new RegExp(`^Paso 1 de ${r.steps[size.name]} · `) })).toBeVisible();
+        const end = await walk(page, tour, 'social', { axe: size.name === '360×640' });
+        await expect(end).toHaveText('Terminar');
+        await end.click();
+        await expect(dialog(page)).toHaveCount(0);
+        expect(await storedProgress(page, r.id)).toEqual(['done']);
+      });
+    }
+  });
+}
+
+test('el jefe en una sección de Redes: el paso de la revisión le habla de «Revisar»', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  const tour = tourOf(['boss'], 'redes-seccion');
+  await loginAs(page, 'jefe@demo.test');
+  await page.goto('/redes/posts?tutorial=redes-seccion');
+  await expect(dialog(page)).toBeVisible();
+  expect((await shownSteps(page, tour)).filter(Boolean).length).toBe(tour.steps.length);
+  const last = await walk(page, tour, 'boss', { axe: false });
+  await expect(dialog(page).locator('p').first()).toContainText('«Revisar»');
+  await last.click();
+  await expect(dialog(page)).toHaveCount(0);
+});
+
 test.describe('el jefe en la computadora y en el iPad', () => {
   for (const viewport of [{ width: 1024, height: 768 }, { width: 810, height: 1080 }]) {
     test(`bienvenida a ${viewport.width}×${viewport.height}`, async ({ page }) => {

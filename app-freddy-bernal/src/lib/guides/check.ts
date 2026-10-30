@@ -63,6 +63,14 @@ export const LABEL_PATTERNS: { re: RegExp; source: string }[] = [
   { re: /^Quedan n días de tweets$/, source: 'Quedan ${stock.daysLeft} días de tweets' },
   { re: /^Falló la publicación en…$/, source: 'Falló la publicación en ${' },
   { re: /^(?:7|30|90) días$/, source: '{d} días' },
+  // Redes by format (R4): the month tabs, the feed's live line, its places and the card's chip, and the section bar.
+  { re: /^Mes n · x de y$/, source: '${label} · ${count} de ${quotaLabel}' },
+  { re: /^n de 24 espacios ocupados en este mes$/, source: 'de ${FEED_SIZE} espacios ocupados en este mes' },
+  { re: /^Espacio #nn$/, source: 'Espacio #${' },
+  { re: /^Ya en Mes n · #n$/, source: 'Ya en ${month} · #${n}' },
+  { re: /^En Feed · Mes n #n$/, source: 'En Feed · ${month} #${n}' },
+  { re: /^Movida al #n$/, source: 'Movida al #${n}' },
+  { re: /^n\/m$/, source: '${c.reviewed}/${c.quota}' },
 ];
 
 // Labels the screens build in code in a way a plain search cannot find, or say only to some people. Keep it short.

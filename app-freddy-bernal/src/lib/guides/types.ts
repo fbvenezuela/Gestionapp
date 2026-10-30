@@ -37,7 +37,7 @@ export type Tour = {
 
 // ── Flows between roles (design §7.4, D-44) ─────────────────────────────────────────────────────────────────────────
 
-// 'mes-redes' (R4): «El mes de Redes», written by WP-E.
+// 'mes-redes' (R4, D-77): «El mes de Redes».
 export type FlowId = 'evento' | 'obra' | 'comunitario' | 'tweets' | 'aprobacion' | 'entrega' | 'mensajes' | 'ayuda' | 'mes-redes';
 
 // One way out of a decision («Sí → …», «No, pide cambios → …»). `to` is the id of the step it goes to (a later one,

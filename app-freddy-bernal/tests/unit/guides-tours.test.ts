@@ -104,6 +104,24 @@ describe('el catálogo de tutoriales (§6.3)', () => {
     expect(tourHref(byId('pieza'), '/hoy')).toBeNull();
   });
 
+  it('Redes por formato (R4, §6): el tablero, una sección y el feed, con sus anclas, para Redes y el jefe', () => {
+    const byId = (id: string) => TOURS.find((t) => t.id === id)!;
+    const targets = (id: string) => byId(id).steps.map((s) => s.target[0]);
+    expect(byId('redes').screen).toBe('/redes');
+    expect(targets('redes')).toEqual(['nav[aria-label="Secciones de Redes"]', anchor('redes-matrix'), anchor('redes-period'), anchor('redes-search'), 'nav[aria-label="Crear en Redes"]']);
+    expect(byId('redes-seccion').screen).toBe('/redes/[formato]');
+    expect(targets('redes-seccion')).toEqual(['month-tabs', 'month-new', 'month-quota', 'new-piece', 'piece-card', 'card-checks'].map((a) => anchor(a as (typeof TOUR_ANCHORS)[number])));
+    expect(byId('feed').screen).toBe('/redes/feed');
+    expect(targets('feed')).toEqual(['month-tabs', 'feed-live', 'feed-clear-month', 'feed-grid'].map((a) => anchor(a as (typeof TOUR_ANCHORS)[number])));
+    for (const id of ['redes', 'redes-seccion', 'feed', 'pieza']) expect([...byId(id).roles].sort(), id).toEqual(['boss', 'social']);
+    // The section's checks say what each role does there: Redes sends, the boss also reviews.
+    const checks = byId('redes-seccion').steps.at(-1)!.body as Record<string, string>;
+    expect(checks.social).toContain('«Ya lo publiqué»');
+    expect(checks.boss).toContain('«Revisar»');
+    // The old ones are gone: no tutorial on /piezas, none on the hidden wrappers of Paso 0.
+    expect(TOURS.some((t) => t.screen === '/piezas')).toBe(false);
+  });
+
   it('SCREENS sigue teniendo todas las pantallas de los tutoriales', () => {
     const paths = new Set(SCREENS.map((s) => s.href));
     for (const t of TOURS) if (t.screen !== HOME_SCREEN) expect(paths.has(t.screen.split('?')[0]), t.id).toBe(true);

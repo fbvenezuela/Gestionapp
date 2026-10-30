@@ -147,8 +147,8 @@
     "en que va"
    ],
    "always": false,
-   "script": "Persona: como va la pieza de la cancha?\n[ASISTENTE]: Déjame ver. [usa estado_pieza] La pieza «[titulo]» está [estado]. ¿Quieres abrirla?\n[ASISTENTE]: «[titulo]» va en [estado]. Si necesitas que avance, revisa quién la aprueba según su color.\nSi hay varias → [ASISTENTE]: Encontré varias: [lista]. ¿Cuál de ellas?\nSi no la encuentra → [ASISTENTE]: No encontré ninguna pieza con ese nombre. ¿Me das otra palabra del título?",
-   "notes": "Si salen varias, pregunta cuál; no elige. Lo que no devuelve la herramienta no existe para el asistente."
+   "script": "Persona: como va la pieza de la cancha?\n[ASISTENTE]: Déjame ver. [usa estado_pieza] La pieza «[titulo]» está [estado]: es un [formato] de [mes], [espacio del feed o sin programar]. ¿Quieres abrir su tarjeta?\n[ASISTENTE]: «[titulo]» va en [estado]. Si necesitas que avance, revisa quién la aprueba según su color.\nSi hay varias → [ASISTENTE]: Encontré varias: [lista]. ¿Cuál de ellas?\nSi no la encuentra → [ASISTENTE]: No encontré ninguna pieza con ese nombre. ¿Me das otra palabra del título?",
+   "notes": "Si salen varias, pregunta cuál; no elige. El formato, el mes y el espacio del feed salen de la herramienta. Lo que no devuelve la herramienta no existe para el asistente."
   },
   {
    "key": "dias-tweets",
@@ -279,11 +279,32 @@
     "verde",
     "amarillo",
     "rojo",
-    "nivel de la pieza"
+    "nivel de la pieza",
+    "enviar a aprobacion"
    ],
    "always": false,
-   "script": "Persona: que color le pongo a la pieza?\n[ASISTENTE]: Verde si es rutina, amarillo si es lo normal y rojo si es sensible (política, crisis o aclaratorias). Todo lo aprueba [JEFE]; el color pone el plazo.\n[ASISTENTE]: Depende de lo delicada; todas las aprueba [JEFE], y las verdes de una vez. Si dudas, amarillo.\nSi dice «¿y si nadie responde?» → [ASISTENTE]: La falta de respuesta no es aprobación: la pieza sigue sin salir y la plataforma avisa de nuevo.",
+   "script": "Persona: que color le pongo a la pieza?\n[ASISTENTE]: Verde si es rutina, amarillo si es lo normal y rojo si es sensible (política, crisis o aclaratorias). Todo lo aprueba [JEFE]; el color pone el plazo.\n[ASISTENTE]: En la tarjeta de la pieza, «Enviar a aprobación»: si falta algo, te dice qué. El color (verde, amarillo o rojo) se elige en la pieza en grande; todas las aprueba [JEFE], y las verdes de una vez.\nSi dice «¿y si nadie responde?» → [ASISTENTE]: La falta de respuesta no es aprobación: la pieza sigue sin salir y la plataforma avisa de nuevo.",
    "notes": "Los plazos de cada color salen de la ficha del semáforo; no se inventan."
+  },
+  {
+   "key": "armar-feed",
+   "roles": [
+    "admin",
+    "social",
+    "boss"
+   ],
+   "topic": "Armar el feed del mes",
+   "triggers": [
+    "armar el feed",
+    "el feed",
+    "feed preview",
+    "orden del feed",
+    "espacio del feed",
+    "sin programar"
+   ],
+   "always": false,
+   "script": "Persona: como armo el feed?\n[ASISTENTE]: En Redes → Feed: tocas un espacio vacío, eliges el formato y luego el título. El #1, abajo a la derecha, es el primero que sale.\n[ASISTENTE]: El feed tiene 24 espacios por mes, en el orden en que se publican. Una pieza nunca está en dos: si ya está puesta, te pregunta si la mueves.\nSi dice «¿cómo la muevo?» → [ASISTENTE]: Tócala y usa «Publicar antes», «Publicar después» o «Cambiar de espacio». Quitarla del feed no la borra: queda «Sin programar».",
+   "notes": "Los números del feed salen de la pantalla; no se inventan. El orden lo pone una persona: nunca la fecha de un evento."
   },
   {
    "key": "no-puedo-publicar",
@@ -343,7 +364,7 @@
     "hashtags"
    ],
    "always": false,
-   "script": "Persona: como hago los copies?\n[ASISTENTE]: En la pieza, pestaña Copies: eliges la fórmula, la voz ([JEFE] o institucional) y el cierre, y salen los tres largos. La plantilla nunca inventa cifras.\n[ASISTENTE]: Los copies salen de la ficha técnica con la fórmula que elijas. Si falta un dato, te lo marca para que lo completes.\nSi dice «¿qué fórmula uso?» → [ASISTENTE]: Depende de la pieza; te digo de qué va cada una si quieres.",
+   "script": "Persona: como hago los copies?\n[ASISTENTE]: En la pieza en grande, en «Copies» (desde la tarjeta, «Generar copies»): eliges la fórmula, la voz ([JEFE] o institucional) y el cierre, y salen los tres largos. La plantilla nunca inventa cifras.\n[ASISTENTE]: Los copies salen de la ficha técnica con la fórmula que elijas. Si falta un dato, te lo marca para que lo completes.\nSi dice «¿qué fórmula uso?» → [ASISTENTE]: Depende de la pieza; te digo de qué va cada una si quieres.",
    "notes": "Las fórmulas activas salen de sus fichas automáticas."
   },
   {
@@ -405,18 +426,23 @@
   {
    "key": "avisos-telefono",
    "roles": null,
-   "topic": "Avisos al teléfono e instalar la app",
+   "topic": "Los avisos: al teléfono, instalar la app y marcarlos como leídos",
    "triggers": [
     "instalar la app",
     "pantalla de inicio",
     "avisos al telefono",
     "activar avisos",
     "notificaciones",
-    "como instalo"
+    "como instalo",
+    "marca mis avisos",
+    "avisos como leidos",
+    "marcar como leido",
+    "limpiar avisos",
+    "borrar avisos"
    ],
    "always": false,
-   "script": "Persona: como instalo la app?\n[ASISTENTE]: En el teléfono abre la plataforma en el navegador y toca «Agregar a la pantalla de inicio». Después activa los avisos desde Mi perfil.\n[ASISTENTE]: Agrégala a la pantalla de inicio desde el menú del navegador y queda como una app. En iPhone los avisos solo llegan así.",
-   "notes": "Los avisos nunca llevan fecha, hora ni lugar de un evento."
+   "script": "Persona: como instalo la app?\n[ASISTENTE]: En el teléfono abre la plataforma en el navegador y toca «Agregar a la pantalla de inicio». Después activa los avisos desde Mi perfil.\n[ASISTENTE]: Agrégala a la pantalla de inicio desde el menú del navegador y queda como una app. En iPhone los avisos solo llegan así.\nSi pide marcar sus avisos como leídos → [ASISTENTE]: Listo, marqué [cuantos] avisos como leídos. Si fue un error, administración lo puede deshacer. [usa marcar_avisos_leidos]",
+   "notes": "Los avisos nunca llevan fecha, hora ni lugar de un evento. Marcar como leídos: solo los avisos de quien pregunta; queda anotado y se puede deshacer."
   },
   {
    "key": "dictar",
@@ -432,21 +458,6 @@
    "always": false,
    "script": "Persona: puedo dictar en vez de escribir?\n[ASISTENTE]: Sí: en cualquier campo largo toca el micrófono del teclado del teléfono y habla. Después revisa lo que escribió.\n[ASISTENTE]: Claro, usa el micrófono del teclado. Ojo con nombres y cifras: revísalos antes de guardar.",
    "notes": "Es el dictado del teclado del teléfono; la plataforma no graba nada."
-  },
-  {
-   "key": "avisos-leidos",
-   "roles": null,
-   "topic": "Marcar los avisos como leídos",
-   "triggers": [
-    "marca mis avisos",
-    "avisos como leidos",
-    "marcar como leido",
-    "limpiar avisos",
-    "borrar avisos"
-   ],
-   "always": false,
-   "script": "Persona: marca mis avisos como leidos\n[ASISTENTE]: Listo, marqué [cuantos] avisos como leídos. [usa marcar_avisos_leidos]\n[ASISTENTE]: Hecho: tus avisos quedaron leídos. Si fue un error, administración lo puede deshacer. [usa marcar_avisos_leidos]",
-   "notes": "Solo los avisos de quien pregunta. Queda anotado y se puede deshacer."
   },
   {
    "key": "preparar-aviso",

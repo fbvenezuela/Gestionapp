@@ -167,9 +167,9 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿A qué hora publico en TikTok?', { tool: 'mejores_horas', has: /TikTok/ }],
     ['¿Por qué no me deja publicar esta pieza?', { has: /no está aprobada/ }],
     ['¿Cómo creo una pieza?', { has: /Nueva pieza/ }],
-    ['¿Cómo hago los copies?', { has: /pestaña Copies/ }],
-    ['¿Dónde están las plantillas de copies?', { has: /pestaña Copies/ }],
-    ['hay un error en el copy, ¿cómo lo corrijo?', { has: /pestaña Copies/ }],
+    ['¿Cómo hago los copies?', { has: /en «Copies»/ }],
+    ['¿Dónde están las plantillas de copies?', { has: /en «Copies»/ }],
+    ['hay un error en el copy, ¿cómo lo corrijo?', { has: /en «Copies»/ }],
     ['¿Cómo mando a aprobar una pieza?', { has: /manda a aprobar/ }],
     ['¿Qué color le pongo a la pieza?', { has: /verde si es rutina/ }],
     ['¿Cómo subo la tanda de tweets?', { has: /nueva tanda/ }],
@@ -184,7 +184,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     // que…?» how-tos, tweets and pieces that are not a count or a status.
     ['como llego a alto verde', A],
     ['como llego a la casa comunal alto verde', A],
-    ['que tengo que poner en el copy', { has: /pestaña Copies/, notTool: 'mis_pendientes' }],
+    ['que tengo que poner en el copy', { has: /en «Copies»/, notTool: 'mis_pendientes' }],
     ['que tengo que hacer para publicar', { has: /^En Publicar/, notTool: 'mis_pendientes' }],
     ['que tengo que hacer', { tool: 'mis_pendientes' }],
     ['que pasa si un tweet es muy largo', { has: /largos/, notTool: 'dias_de_tweets' }],
@@ -248,9 +248,9 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     // About an event, a loose ficha never answers it (it used to get the list of categories).
     ['propuse algo para el 15 en el liceo, ¿ya lo vieron?', A],
     // The event's name is not the topic: the copy is (and nothing of the event in the answer).
-    ['las viviendas son el día de la madre, ¿qué copy les hago?', { has: /pestaña Copies/ }],
-    ['como hago un copy para la jornada de salud', { has: /pestaña Copies/ }],
-    ['la escuelitica es el día de la madre, ¿qué copy hago?', { has: /pestaña Copies/ }],
+    ['las viviendas son el día de la madre, ¿qué copy les hago?', { has: /en «Copies»/ }],
+    ['como hago un copy para la jornada de salud', { has: /en «Copies»/ }],
+    ['la escuelitica es el día de la madre, ¿qué copy hago?', { has: /en «Copies»/ }],
     // Round 7: «es» before something that is not a deadline asks for the agenda.
     ['¿a qué hora es la invitación del alcalde?', A],
   ],

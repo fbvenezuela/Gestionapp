@@ -71,8 +71,8 @@ describe('el flujograma en la app', () => {
     expect(text(html('comunitario', ['dispatch'], ['dispatch']))).toContain('Abrir Por ponerle fecha');
   });
 
-  it('los ocho flujos se dibujan, y cada rama que vuelve dice a qué paso', () => {
-    expect(FLOWS.map((f) => f.id)).toEqual(['evento', 'obra', 'comunitario', 'tweets', 'aprobacion', 'entrega', 'mensajes', 'ayuda']);
+  it('los nueve flujos se dibujan (R4 suma «El mes de Redes»), y cada rama que vuelve dice a qué paso', () => {
+    expect(FLOWS.map((f) => f.id)).toEqual(['evento', 'obra', 'comunitario', 'tweets', 'aprobacion', 'mes-redes', 'entrega', 'mensajes', 'ayuda']);
     for (const f of FLOWS) {
       const ids = new Set(f.steps.map((s) => s.id));
       expect(ids.size, f.id).toBe(f.steps.length);

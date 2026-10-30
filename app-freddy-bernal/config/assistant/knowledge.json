@@ -65,7 +65,7 @@
    "key": "roles",
    "roles": null,
    "title": "Quién hace qué (resumen de roles)",
-   "body": "Seis roles. Jefe: tiene todo, hasta lo de Redes; hace su propia agenda con Despacho (crea eventos y visitas de obra, les pone fecha y hora, los mueve y los cancela), decide los eventos, se prepara para cada acto y aprueba todo lo que sale (piezas verdes, amarillas y rojas, y los tweets). Despacho: la agenda junto con el jefe y las fichas técnicas; crea eventos, pone fecha y hora (también a lo que llega a «Por ponerle fecha»), mueve, cancela y asigna quién graba. Director de política: carga los eventos y avances comunitarios por municipio. Director del IVT: carga la ficha de cada obra antes de la visita del jefe y ve la fecha de esas visitas. Grabación: graba sus eventos y sube el material crudo, el storyboard con el que grabó y una nota para el editor. Redes: storyboard, piezas, copies, tweets, publicar y resultados. Administración es el rol técnico: equipo, permisos y ajustes; lee la agenda pero no crea eventos ni pone fecha, puede hacer todo lo de Redes y nunca aprueba.",
+   "body": "Seis roles. Jefe: tiene todo, hasta lo de Redes; hace su propia agenda con Despacho (crea eventos y visitas de obra, les pone fecha y hora, los mueve y los cancela), decide los eventos, se prepara para cada acto y aprueba todo lo que sale (piezas verdes, amarillas y rojas, y los tweets). Despacho: la agenda junto con el jefe y las fichas técnicas; crea eventos, pone fecha y hora (también a lo que llega a «Por ponerle fecha»), mueve, cancela y asigna quién graba. Director de política: carga los eventos y avances comunitarios por municipio. Director del IVT: carga la ficha de cada obra antes de la visita del jefe y ve la fecha de esas visitas. Grabación: graba sus eventos y sube el material crudo, el storyboard con el que grabó y una nota para el editor. Redes: arma el mes de contenido por formato (reels, posts, carruseles, historias, YouTube y el cierre de cada mes) y su feed, storyboard, piezas, copies, tweets, publicar y resultados; marca el diseño, la receptividad y los avisos de cumplimiento. Administración es el rol técnico: equipo, permisos y ajustes; lee la agenda pero no crea eventos ni pone fecha, puede hacer casi todo lo de Redes, nunca aprueba y no elimina piezas (solo el jefe las elimina; Administración las recupera).",
    "tags": [
     "roles",
     "permisos",
@@ -89,7 +89,7 @@
    "key": "permisos",
    "roles": null,
    "title": "Tabla de permisos",
-   "body": "Ver la agenda con fecha y hora: el jefe, Despacho y Administración; Grabación solo sus eventos; el director del IVT solo las visitas a sus obras. Crear eventos y visitas de obra, ponerles fecha y hora, moverlos y cancelarlos: el jefe y Despacho (Administración solo lee la agenda; el IVT y política nunca ponen fecha). Fichas de obra: el director del IVT, el jefe, Despacho y Administración. Fichas comunitarias: el director de política, el jefe y Despacho (los contactos de quien reporta, solo ellos). Aceptar, rechazar y calificar eventos: solo el jefe. Asignar quién graba: el jefe, Despacho, Redes y Administración. Armar el storyboard: Redes, el jefe y Administración (los demás lo leen); Grabación sube el storyboard con el que grabó y deja una nota para el editor. Subir material crudo: Redes, el jefe, Administración y Grabación en sus eventos. Crear piezas, copies y mandar a aprobar: Redes, el jefe y Administración. Aprobar piezas (verdes, amarillas y rojas) y tweets, y pedir cambios: solo el jefe. Publicar a mano y cargar métricas: Redes, el jefe y Administración. Ver resultados: jefe, Redes y Administración. Biblioteca: Despacho, Redes, el jefe y Administración. Invitar personas, roles y ajustes: Administración, que nunca se da roles a sí misma ni puede ser también el jefe o Despacho.",
+   "body": "Ver la agenda con fecha y hora: el jefe, Despacho y Administración; Grabación solo sus eventos; el director del IVT solo las visitas a sus obras. Crear eventos y visitas de obra, ponerles fecha y hora, moverlos y cancelarlos: el jefe y Despacho (Administración solo lee la agenda; el IVT y política nunca ponen fecha). Fichas de obra: el director del IVT, el jefe, Despacho y Administración. Fichas comunitarias: el director de política, el jefe y Despacho (los contactos de quien reporta, solo ellos). Aceptar, rechazar y calificar eventos: solo el jefe. Asignar quién graba: el jefe, Despacho, Redes y Administración. Armar el storyboard: Redes, el jefe y Administración (los demás lo leen); Grabación sube el storyboard con el que grabó y deja una nota para el editor. Subir material crudo: Redes, el jefe, Administración y Grabación en sus eventos. Crear piezas, copies y mandar a aprobar: Redes, el jefe y Administración. Aprobar piezas (verdes, amarillas y rojas) y tweets, y pedir cambios: solo el jefe. Eliminar piezas: solo el jefe, con el doble factor (nada se borra de verdad; Administración las recupera en Ajustes → Cupo y pilares). Marcar el diseño, la receptividad y los avisos de cumplimiento: Redes y el jefe. Meses de contenido y feed: Redes, el jefe y Administración (borrar un mes, solo Redes y el jefe). Cupo y pilares: Administración, en Ajustes. Publicar a mano y cargar métricas: Redes, el jefe y Administración. Ver resultados: jefe, Redes y Administración. Biblioteca: Despacho, Redes, el jefe y Administración. Invitar personas, roles y ajustes: Administración, que nunca se da roles a sí misma ni puede ser también el jefe o Despacho.",
    "tags": [
     "permisos",
     "quien puede"
@@ -142,7 +142,7 @@
     "admin"
    ],
    "title": "Qué hace el jefe en la plataforma",
-   "body": "Tiene todo, hasta lo de Redes. Inicio: lo vencido en los municipios, «Te toca aprobar» y cuatro botones grandes con sus números: Política (la agenda, lo que espera su decisión y lo que espera fecha), Obras (las fichas del IVT por estado y por municipio), Redes (piezas en curso, listas para publicar, tweets programados y, debajo, las notas nuevas de Grabación: el título de cada evento, que abre su pestaña Material) y Digital (lo publicado, lo que viene y las vistas). Menú: Inicio, Agenda, Por aprobar, Redes y «Más» (Obras, Municipios, Digital). Redes es su puerta a las mismas pantallas del equipo de Redes: Piezas, Tweets, Publicar, Resultados y Biblioteca. Aprueba todo lo que sale: las verdes, todas de una vez con «Aprobar todas las verdes»; las amarillas y rojas, una por una después de marcar la lista de 4 chequeos; y los tweets. Puede pedir cambios o comentar cualquier pieza anotando el segundo exacto del video, cambiar el nivel de una pieza (incluso sacarla del rojo), calificar cada evento de 1 a 10 y aceptarlo o rechazarlo (Política o la ficha del evento), leer «Lo que voy a decir» en letra grande (modo lectura), ver la agenda completa y marcar un evento como realizado, ver lo publicado y cómo nos va (Digital y Resultados) y hacer lo de Redes: piezas, copies, tweets y publicaciones.",
+   "body": "Tiene todo, hasta lo de Redes. Inicio: lo vencido en los municipios, «Te toca aprobar» y cuatro botones grandes con sus números: Política (la agenda, lo que espera su decisión y lo que espera fecha), Obras (las fichas del IVT por estado y por municipio), Redes (el mes abierto por formato, con lo que espera su aprobación, las piezas en curso, las listas para publicar, los tweets programados, las notas nuevas de Grabación, que abren la pestaña Material de cada evento, y «Resumen del mes») y Digital (lo publicado, lo que viene y las vistas). Menú: Inicio, Agenda, Por aprobar, Redes y «Más» (Obras, Municipios, Digital). Redes es su puerta a las mismas pantallas del equipo de Redes: el tablero, las secciones por formato (Reels, Posts, Carruseles, Historias, YouTube y la del cierre de cada mes), el feed, Tweets, Publicar, Resultados y Biblioteca. Aprueba todo lo que sale: las verdes, todas de una vez con «Aprobar todas las verdes»; las amarillas y rojas, una por una después de marcar la lista de 4 chequeos; y los tweets. Puede pedir cambios o comentar cualquier pieza anotando el segundo exacto del video, cambiar el nivel de una pieza (incluso sacarla del rojo), calificar cada evento de 1 a 10 y aceptarlo o rechazarlo (Política o la ficha del evento), leer «Lo que voy a decir» en letra grande (modo lectura), ver la agenda completa y marcar un evento como realizado, ver lo publicado y cómo nos va (Digital y Resultados) y hacer lo de Redes: piezas, copies, el feed, tweets y publicaciones. Solo él elimina piezas (con el doble factor); si desaprueba el diseño de una pieza ya aprobada, no sale hasta que la vuelva a aprobar.",
    "tags": [
     "jefe",
     "rol"
@@ -333,10 +333,170 @@
     "admin"
    ],
    "title": "Qué hace Redes en la plataforma",
-   "body": "Para qué: convertir cada evento en piezas para las redes: storyboard, video final, copies, aprobación, publicación y resultados. Inicio: Hoy con cambios pedidos, eventos sin storyboard, material que llegó, piezas listas para publicar, días de tweets y lo trancado. Menú: Hoy, Eventos, Piezas, Tweets y «Más» (Publicar, Resultados, Biblioteca). «Crear»: pieza, tweets, publicación. No ve la fecha, la hora ni la dirección de los eventos, no aprueba piezas ni tweets, no publica nada no aprobado (ni con un copy o portada distintos a los aprobados), no baja el nivel de una pieza después de la primera revisión y no reemplaza archivos (se sube una versión nueva).",
+   "body": "Para qué: armar el mes de contenido por formato y su feed, y convertir cada evento en piezas para las redes: storyboard, archivo final, copies, aprobación, publicación y resultados. Inicio: Hoy con cambios pedidos, eventos sin storyboard, material que llegó, piezas listas para publicar, días de tweets y lo trancado. Menú: Hoy, Agenda (los eventos, sin fecha), Redes (el tablero, las secciones Reels, Posts, Carruseles, Historias, YouTube y la del cierre de cada mes, y el feed), Tweets y «Más» (Publicar, Resultados, Biblioteca). «Crear»: pieza, tweets, publicación. No ve la fecha, la hora ni la dirección de los eventos, no aprueba piezas ni tweets, no publica nada no aprobado (ni con un copy o portada distintos a los aprobados), no baja el nivel de una pieza después de la primera revisión no reemplaza archivos (se sube una versión nueva) y no elimina piezas: eso es del jefe.",
    "tags": [
     "redes",
     "rol"
+   ]
+  },
+  {
+   "key": "redes-por-formato",
+   "roles": [
+    "social",
+    "admin",
+    "boss"
+   ],
+   "title": "Redes por formato: dónde está cada pieza",
+   "body": "Las piezas están en Redes, cada una en la sección de su formato: Reels, Posts, Carruseles, Historias, YouTube y la del cierre de cada mes (Tweets va aparte). Arriba, la barra de secciones dice en cada formato lo revisado de su cupo y cuántas piezas no tienen copy o imagen, y lleva el mes abierto. Cada pieza es una tarjeta que se edita ahí mismo y se guarda sola: la miniatura, su número en el feed (o «Sin programar»), el título, el estado, el día en que se creó y el pilar; debajo, los campos de su formato, los avisos, el diseño, la receptividad y la revisión. Los estados se calculan solos: Borrador, En revisión (con «✓ Lista» cuando el jefe ya la aprobó), Programado y Publicado (la tarjeta se pone verde). En el teléfono las tarjetas empiezan plegadas, menos la primera. En los tres puntos de la tarjeta: abrir la pieza en grande, duplicarla, subirla o bajarla en la lista y cambiarla de mes. Eliminar una pieza: solo el jefe, con el doble factor; no se borra de verdad y Administración la recupera.",
+   "tags": [
+    "redes",
+    "formato",
+    "secciones",
+    "seccion",
+    "reels",
+    "posts",
+    "carruseles",
+    "historias",
+    "youtube",
+    "tarjeta",
+    "tarjetas",
+    "piezas",
+    "eliminar",
+    "borrar pieza"
+   ]
+  },
+  {
+   "key": "feed",
+   "roles": [
+    "social",
+    "admin",
+    "boss"
+   ],
+   "title": "El feed del mes",
+   "body": "Para armar el feed del mes: Redes → Feed, tocas un espacio vacío («Elegir publicación»), eliges el formato y luego el título. Son 24 espacios por mes, en el orden en que se publican: el #1, abajo a la derecha, es el primero que sale, y el #24 está arriba a la izquierda; van posts, reels y carruseles. Una pieza nunca está en dos espacios: si ya está puesta, dice «Ya en Mes 1 · #4» y pregunta si la mueves. Una pieza puesta se mueve con su menú: «Publicar antes», «Publicar después» o «Cambiar de espacio»; en la computadora también se arrastra. «Quitar del feed» y «Vaciar este mes» no borran piezas: quedan «Sin programar» y siguen en su sección. Lo publicado lleva marco verde y «✓ Publicado».",
+   "tags": [
+    "feed",
+    "feed preview",
+    "orden del feed",
+    "espacios",
+    "espacio",
+    "rejilla",
+    "sin programar",
+    "armar el feed"
+   ]
+  },
+  {
+   "key": "meses-cupo",
+   "roles": [
+    "social",
+    "admin",
+    "boss"
+   ],
+   "title": "Meses de contenido, cupo y pilares",
+   "body": "Las pestañas Mes 1, Mes 2… son las mismas en todas las secciones y en el feed: el mes que eliges sigue en las demás. «+ Nuevo mes» empieza el que sigue; en los tres puntos de las pestañas están «Cambiar nombre» y «Borrar este mes», que antes dice cuántas piezas tiene y no borra ninguna: pasan al primer mes que queda. Para mover una pieza de mes: en su tarjeta, tres puntos → «Mover a otro mes»; su espacio en el feed se va con ella. El cupo del mes: en la barra de secciones de Redes cada formato dice lo revisado de su cupo, y cada sección dice cuántas piezas lleva el mes de su cupo; es informativo, pasarse no bloquea nada. El cupo y los pilares los pone Administración en Ajustes → Cupo y pilares. Los pilares son los temas del contenido: el de cada pieza se elige en su tarjeta, y si se quita un pilar sus piezas quedan «Sin pilar».",
+   "tags": [
+    "mes",
+    "meses",
+    "cupo",
+    "cupo del mes",
+    "mover de mes",
+    "nuevo mes",
+    "borrar mes",
+    "pilar",
+    "pilares"
+   ]
+  },
+  {
+   "key": "revision-diseno",
+   "roles": [
+    "social",
+    "admin",
+    "boss"
+   ],
+   "title": "Revisión de una pieza y su diseño",
+   "body": "«Revisado y listo para publicar» es la aprobación del jefe, la de siempre: en la tarjeta se ve cuando la aprobó. «Enviar a aprobación» dice qué falta cuando está apagado. Al jefe, en una pieza en revisión, le sale «Revisar», que abre su revisión y lo devuelve a la tarjeta. «Diseño aprobado» y «Diseño desaprobado» (con «¿Qué no le gustó del diseño?») los marcan Redes y el jefe: no es la aprobación y no cambia el estado. Pero si el jefe desaprueba el diseño de una pieza ya aprobada, no se publica hasta que la vuelva a aprobar, y solo él quita esa marca; la plataforma le pregunta «¿Pedir cambios también?». En una pieza aprobada, lo que sale (el copy, el título del reel o del video, el archivo, las láminas, el texto en pantalla y el sticker de la historia) se ve en lectura con «Editar (vuelve al jefe)»: cambiarlo la devuelve al jefe; lo demás se cambia libre.",
+   "tags": [
+    "revisado",
+    "listo para publicar",
+    "diseno",
+    "diseño aprobado",
+    "diseño desaprobado",
+    "marca de diseno",
+    "volvio al jefe",
+    "editar aprobada"
+   ]
+  },
+  {
+   "key": "receptividad",
+   "roles": [
+    "social",
+    "admin",
+    "boss"
+   ],
+   "title": "Receptividad del público (1 a 10)",
+   "body": "En posts, reels y carruseles, la tarjeta trae diez estrellas: «Receptividad del público (1 a 10)», con Alta, Media o Baja receptividad, o «Sin evaluar». Mide cómo la recibió la gente en redes (comentarios, reacciones); no mide apoyo político. La ponen Redes y el jefe, y «Quitar» la borra. El promedio va al tablero y al feed, y cuenta solo las piezas puntuadas.",
+   "tags": [
+    "receptividad",
+    "estrellas",
+    "valoracion",
+    "puntuar",
+    "puntuacion"
+   ]
+  },
+  {
+   "key": "avisos-cumplimiento",
+   "roles": [
+    "social",
+    "admin",
+    "boss"
+   ],
+   "title": "Avisos de cumplimiento",
+   "body": "Cada pieza puede llevar avisos «Antes de publicar»: un testimonio que necesita autorización escrita, un dato al que hay que verificarle la fuente, remitir a un profesional, el tono de testimonio u otro. Los ponen Redes y el jefe en la tarjeta con «Agregar aviso», y se marcan «Resuelto» (no se borran). El jefe los ve arriba en su revisión y marca «Leí los avisos de cumplimiento» antes de aprobar; «Aprobar todas las verdes» se salta las que tienen avisos abiertos. Un aviso nuevo en una pieza aprobada la devuelve al jefe.",
+   "tags": [
+    "aviso de cumplimiento",
+    "avisos de cumplimiento",
+    "cumplimiento",
+    "antes de publicar",
+    "autorizacion",
+    "testimonio"
+   ]
+  },
+  {
+   "key": "tablero-redes",
+   "roles": [
+    "social",
+    "admin",
+    "boss"
+   ],
+   "title": "El tablero de Redes",
+   "body": "Redes abre el tablero: una tabla de formatos contra siete casillas (Revisados, Por revisar, Diseño aprobado, Diseño desaprobado, Publicado, Copy faltante e Imagen faltante), por mes o por trimestre, con flechas para pasar de uno a otro. Cada número lleva a una pieza de esa casilla, abierta en su sección, y la vez siguiente a la que sigue; un cero dice «¡al día!». Arriba, la receptividad media, las listas para publicar y las programadas; debajo, Observaciones (diseños desaprobados y avisos abiertos), Actividad reciente, Acciones rápidas para crear en el mes abierto y «Buscar en Redes» (títulos, campos, copies, avisos y tweets). Abajo, Lo demás de Redes: Tweets, Publicar, Resultados y Biblioteca.",
+   "tags": [
+    "tablero",
+    "tablero de redes",
+    "estado del contenido",
+    "copy faltante",
+    "imagen faltante",
+    "por revisar",
+    "trimestre",
+    "actividad reciente",
+    "buscar en redes"
+   ]
+  },
+  {
+   "key": "fin-de-mes",
+   "roles": [
+    "social",
+    "admin",
+    "boss"
+   ],
+   "title": "Fin de mes y el resumen del mes",
+   "body": "El Resumen del mes es la rendición de cuentas de Redes, arriba de la sección Fin de mes: por formato, lo hecho de su cupo, lo aprobado y lo publicado; la receptividad media, los diseños desaprobados, los avisos abiertos y lo publicado con su miniatura. También se abre desde el Inicio, en el botón Redes («Resumen del mes»). Fin de mes es una sección de Redes sin cupo: las piezas del cierre de cada mes, con sus imágenes en orden (cada una con su título y su nota) y su copy. Pasan por la aprobación como un carrusel.",
+   "tags": [
+    "fin de mes",
+    "cierre del mes",
+    "resumen del mes",
+    "rendicion de cuentas",
+    "resumen"
    ]
   },
   {
@@ -361,14 +521,17 @@
    "key": "crear-pieza",
    "roles": [
     "social",
-    "admin"
+    "admin",
+    "boss"
    ],
    "title": "Cómo se crea una pieza",
-   "body": "«Crear» → Nueva pieza (o desde el material del evento). Se elige el tipo, el título y la categoría, y se sube el video final y la portada. Cada archivo nuevo es una versión: un archivo subido no se reemplaza. Luego se escriben los copies y se manda a aprobar eligiendo verde, amarillo o rojo. Si piden cambios, se corrige y se sube una versión nueva: vuelve sola a revisión.",
+   "body": "En Redes, cada pieza se crea en la sección de su formato: el botón «Nuevo reel», «Nuevo post»… pone un borrador arriba, abierto; o «Crear» → Nueva pieza → «¿Qué quieres crear?» y se elige el formato. Desde un evento, en su pestaña Piezas, «Nueva pieza» pide el formato, el mes, la categoría y el título. Cada pieza es una tarjeta: el título y los campos de su formato se guardan solos, y se sube el archivo (el video y la portada, la imagen, las láminas o la foto o el clip). Cada archivo nuevo es una versión: un archivo subido no se reemplaza. Luego se escriben los copies y se manda a aprobar con «Enviar a aprobación», eligiendo verde, amarillo o rojo en la pieza en grande. Si piden cambios, se corrige y se sube una versión nueva: vuelve sola a revisión.",
    "tags": [
     "pieza",
     "crear",
-    "version"
+    "version",
+    "nueva pieza",
+    "formato"
    ]
   },
   {
@@ -379,7 +542,7 @@
     "boss"
    ],
    "title": "Cómo se escriben los copies",
-   "body": "En la pieza, pestaña Copies: se elige la fórmula (hay 9), la voz (la del jefe o institucional) y el cierre, y salen tres largos: largo (Instagram, TikTok y Facebook), medio (Threads) y corto (X). La plantilla nunca inventa cifras: usa lo que trae la ficha técnica y marca lo que falta. Cambiar un copy de una pieza aprobada la devuelve a revisión.",
+   "body": "En la pieza en grande, en «Copies» (en la tarjeta, «Generar copies» te lleva ahí): se elige la fórmula (hay 9), la voz (la del jefe o institucional) y el cierre, y salen tres largos: largo (Instagram, TikTok y Facebook), medio (Threads) y corto (X). En la tarjeta, el largo es el «Caption» y el medio y el corto están en «Threads y X»; «Poner en el copy» le suma el CTA y los hashtags. La plantilla nunca inventa cifras: usa lo que trae la ficha técnica y marca lo que falta. Cambiar un copy de una pieza aprobada la devuelve a revisión: en la tarjeta se edita con «Editar (vuelve al jefe)».",
    "tags": [
     "copies",
     "formula",
@@ -411,7 +574,7 @@
     "admin"
    ],
    "title": "Cómo se publica a mano",
-   "body": "En Publicar → nueva publicación: se eligen la pieza aprobada y las redes. La plataforma revisa duración, medidas, peso y largo del copy de cada red y muestra las mejores horas. Se descarga el paquete, se publica en la red y se marca «Ya lo publiqué» con el link. Solo se publica lo aprobado, tal cual se aprobó: si cambió el video o un copy, la pieza vuelve a revisión y lo programado vuelve a borrador. La publicación automática está apagada en esta fase.",
+   "body": "En Publicar → nueva publicación: se eligen la pieza aprobada y las redes. La plataforma revisa duración, medidas, peso y largo del copy de cada red y muestra las mejores horas. Se descarga el paquete, se publica en la red y se marca «Ya lo publiqué» con el link. Solo se publica lo aprobado, tal cual se aprobó: si cambió el video o un copy, la pieza vuelve a revisión y lo programado vuelve a borrador. La publicación automática está apagada en esta fase. En la tarjeta de una pieza aprobada también está «Ya lo publiqué»: se marca cada red con su link y una captura, y la tarjeta se pone verde.",
    "tags": [
     "publicar",
     "link",
@@ -425,7 +588,7 @@
     "admin"
    ],
    "title": "Por qué no deja publicar una pieza",
-   "body": "Las causas: la pieza no está aprobada (o volvió a revisión porque cambió el video o un copy), el copy o la portada no son los aprobados, o el video no cumple las reglas de esa red (duración, formato, medidas, peso o largo del copy). La pantalla de Publicar dice en rojo qué falla en cada red.",
+   "body": "Las causas por las que no deja publicar una pieza: no está aprobada (o volvió a revisión porque cambió el video o un copy), el copy o la portada no son los aprobados, el jefe desaprobó el diseño después de aprobarla (no sale hasta que la vuelva a aprobar), o el video no cumple las reglas de esa red (duración, formato, medidas, peso o largo del copy). La pantalla de Publicar dice en rojo qué falla en cada red; en la tarjeta, debajo del botón apagado, dice por qué.",
    "tags": [
     "publicar",
     "error",
@@ -468,7 +631,7 @@
     "admin"
    ],
    "title": "Cómo aprueba el jefe y qué revisar antes",
-   "body": "En Por aprobar las piezas salen agrupadas por color, con el video, los tres copies y el historial. Las verdes se aprueban todas juntas, con un toque, en el botón «Aprobar todas las verdes» (las que cambiaron mientras tanto se saltan). Antes de aprobar una pieza amarilla o roja, se revisa con la lista: cifras con fuente, sin fecha ni hora, se ve y se oye bien, copies revisados. Si trae un error o algo no va, se piden cambios con un comentario, anotando el segundo del video si hace falta. Una pieza delicada se puede subir a rojo. Los tweets se aprueban marcándolos en su pestaña.",
+   "body": "En Por aprobar las piezas salen agrupadas por color, con el video, los tres copies y el historial. Las verdes se aprueban todas juntas, con un toque, en el botón «Aprobar todas las verdes» (las que cambiaron mientras tanto se saltan). Antes de aprobar una pieza amarilla o roja, se revisa con la lista: cifras con fuente, sin fecha ni hora, se ve y se oye bien, copies revisados. Si trae un error o algo no va, se piden cambios con un comentario, anotando el segundo del video si hace falta. Una pieza delicada se puede subir a rojo. Los tweets se aprueban marcándolos en su pestaña. Si la pieza tiene avisos de cumplimiento, salen arriba y la lista pide también «Leí los avisos de cumplimiento»; «Aprobar todas las verdes» se salta las que tienen avisos. Desde la tarjeta de Redes, «Revisar» abre la misma revisión y, al decidir, vuelve a la tarjeta.",
    "tags": [
     "aprobar",
     "lista",
@@ -535,7 +698,7 @@
     "admin"
    ],
    "title": "Qué hace Administración en la plataforma",
-   "body": "Para qué: manejar el equipo, los permisos y los ajustes. Puede hacer todo lo de Redes, pero nunca aprueba. Inicio: Hoy, con lo de Redes y lo trancado. Menú: Hoy, Agenda, Piezas y «Más» (Por aprobar, Tweets, Publicar, Resultados, Biblioteca, Ajustes). Lee la agenda con fecha y hora, pero no crea eventos, no les pone fecha, no los mueve ni los cancela (eso es del jefe y Despacho); sí borra y restaura. No aprueba piezas ni tweets ni pide cambios con decisión formal (solo comenta), no ve los contactos de las fichas comunitarias, no se da roles a sí misma ni puede ser también el jefe o Despacho, no edita ni borra el registro de cambios y no enciende la publicación automática.",
+   "body": "Para qué: manejar el equipo, los permisos y los ajustes. Puede hacer todo lo de Redes, pero nunca aprueba. Inicio: Hoy, con lo de Redes y lo trancado. Menú: Hoy, Agenda, Por aprobar, Redes, Obras, Municipios, Tweets, Publicar, Resultados, Biblioteca y Ajustes (en el teléfono, lo que no cabe está en «Más»). Lee la agenda con fecha y hora, pero no crea eventos, no les pone fecha, no los mueve ni los cancela (eso es del jefe y Despacho); sí borra y restaura. No aprueba piezas ni tweets ni pide cambios con decisión formal (solo comenta), no ve los contactos de las fichas comunitarias, no se da roles a sí misma ni puede ser también el jefe o Despacho, no edita ni borra el registro de cambios y no enciende la publicación automática. Las piezas las elimina solo el jefe: Administración las recupera en Ajustes → Cupo y pilares → «Piezas eliminadas», donde también pone el cupo del mes y los pilares.",
    "tags": [
     "administracion",
     "rol"
@@ -563,7 +726,7 @@
     "admin"
    ],
    "title": "Qué se cambia en Ajustes",
-   "body": "Ajustes (solo Administración): Equipo, Categorías, Fórmulas de copies, Horarios de tweets y mejores horas, Reglas de video por red, Marca (textos, saludo, cierres y hashtags), Buzón (todos los correos que generó la plataforma; con datos de prueba no sale ninguno), Registro de cambios (quién hizo qué) y el Asistente (lo que sabe, cómo contesta y su nombre). «Ver como…» muestra los menús de otro rol para revisar, sin cambiar permisos.",
+   "body": "Ajustes (solo Administración): Equipo, Categorías, Fórmulas de copies, Horarios de tweets y mejores horas, Reglas de video por red, Marca (textos, saludo, cierres y hashtags), Cupo y pilares (el cupo del mes de cada formato, los pilares y las piezas eliminadas), Buzón (todos los correos que generó la plataforma; con datos de prueba no sale ninguno), Registro de cambios (quién hizo qué) y el Asistente (lo que sabe, cómo contesta y su nombre). «Ver como…» muestra los menús de otro rol para revisar, sin cambiar permisos.",
    "tags": [
     "ajustes",
     "configuracion"

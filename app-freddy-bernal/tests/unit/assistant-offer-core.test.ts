@@ -41,8 +41,9 @@ const tab = (): TabKV & { data: Map<string, string> } => {
   return { data, getItem: (k) => data.get(k) ?? null, setItem: (k, v) => void data.set(k, v) };
 };
 const QUIET: OfferMoment = { visibleMs: OFFER_DELAY_MS, editing: false, dialogOpen: false, panelOpen: false, tipVisible: false, noPermission: false, tourOpen: false };
-const PIEZAS: OfferTour = { id: 'piezas', screen: '/piezas', title: 'Cómo se usa Piezas' };
-const base = (s: KV, t: TabKV | null, over: Partial<Parameters<typeof shouldOffer>[0]> = {}) => ({ tour: PIEZAS, userId: U, store: s, tab: t, today: TODAY, screen: '/piezas', available: true, ...QUIET, ...over });
+// A tutorial of a screen with a pattern (R4: a section of Redes; «Piezas» became Redes by format).
+const SECCION: OfferTour = { id: 'redes-seccion', screen: '/redes/[formato]', title: 'Cómo se usa una sección de Redes' };
+const base = (s: KV, t: TabKV | null, over: Partial<Parameters<typeof shouldOffer>[0]> = {}) => ({ tour: SECCION, userId: U, store: s, tab: t, today: TODAY, screen: '/redes/[formato]', available: true, ...QUIET, ...over });
 
 describe('cuándo se ofrece (D-47)', () => {
   it('con todo en calma, a los 4 s, un tutorial de la pantalla con 2 pasos o más', () => {
@@ -72,18 +73,18 @@ describe('cuándo se ofrece (D-47)', () => {
   });
 
   it('cada tutorial una vez por persona: ya ofrecido, visto o terminado → no (la clave es el tutorial)', () => {
-    for (const [k, v] of [[offerKey(U, 'piezas'), TODAY], [tourKey(U, 'piezas'), 'seen'], [tourKey(U, 'piezas'), 'done']]) {
+    for (const [k, v] of [[offerKey(U, 'redes-seccion'), TODAY], [tourKey(U, 'redes-seccion'), 'seen'], [tourKey(U, 'redes-seccion'), 'done']]) {
       const s = store();
       s.setItem(k, v);
       expect(shouldOffer(base(s, tab())), k).toBe(false);
-      expect(shouldOffer(base(s, tab(), { tour: { ...PIEZAS, id: 'pieza' } })), k).toBe(true);
+      expect(shouldOffer(base(s, tab(), { tour: { ...SECCION, id: 'pieza' } })), k).toBe(true);
     }
   });
 
   it('nunca en pantallas de formulario o con barra fija, ni un tutorial de formulario, ni con menos de 2 pasos', () => {
     expect(NO_OFFER_SCREENS).toEqual(['/agenda/nuevo', '/publicar/nueva', '/tweets/nueva', '/obras/nueva', '/reportes/nuevo', '/mensajes/nueva', '/mensajes/[id]', '/aprobar/[id]']);
     for (const screen of NO_OFFER_SCREENS) expect(shouldOffer(base(store(), tab(), { screen })), screen).toBe(false);
-    expect(shouldOffer(base(store(), tab(), { tour: { ...PIEZAS, form: true } }))).toBe(false);
+    expect(shouldOffer(base(store(), tab(), { tour: { ...SECCION, form: true } }))).toBe(false);
     expect(shouldOffer(base(store(), tab(), { available: false }))).toBe(false);
     // Every form tutorial of the catalogue is marked so, and its screen is one of those.
     for (const t of TOURS.filter((x) => x.form)) expect(NO_OFFER_SCREENS, t.id).toContain(t.screen);
@@ -103,8 +104,8 @@ describe('lo que recuerda el teléfono (D-48)', () => {
   it('al salir la franja: el tutorial queda ofrecido, se gasta la del día y la de la pestaña', () => {
     const s = store();
     const t = tab();
-    markShown({ tourId: 'piezas', userId: U, store: s, tab: t, today: TODAY });
-    expect(s.data.get(offerKey(U, 'piezas'))).toBe(TODAY);
+    markShown({ tourId: 'redes-seccion', userId: U, store: s, tab: t, today: TODAY });
+    expect(s.data.get(offerKey(U, 'redes-seccion'))).toBe(TODAY);
     expect(readOfferState(s, U)).toEqual({ no: 0, off: false, dia: TODAY });
     expect(t.data.get(OFFER_SESSION_KEY)).toBe('1');
     expect(offerAllowed({ userId: U, store: s, tab: tab(), today: TODAY })).toBe(false);
@@ -130,11 +131,11 @@ describe('lo que recuerda el teléfono (D-48)', () => {
   it('«Volver a ofrecerme ayuda» (escribe {}) lo prende otra vez, sin borrar lo de cada tutorial', () => {
     const s = store();
     s.setItem(offerStateKey(U), JSON.stringify({ no: 2, off: true, dia: TODAY }));
-    s.setItem(offerKey(U, 'piezas'), TODAY);
+    s.setItem(offerKey(U, 'redes-seccion'), TODAY);
     s.setItem(offerStateKey(U), JSON.stringify({}));
     expect(readOfferState(s, U)).toEqual({ no: 0, off: false, dia: null });
     expect(offerAllowed({ userId: U, store: s, tab: tab(), today: TODAY })).toBe(true);
-    expect(tourOfferable({ tour: PIEZAS, userId: U, store: s, screen: '/piezas' })).toBe(false);
+    expect(tourOfferable({ tour: SECCION, userId: U, store: s, screen: '/redes/[formato]' })).toBe(false);
   });
 
   it('lo que no se entiende se lee como nada guardado; el día es el del teléfono', () => {
@@ -165,15 +166,15 @@ describe('cuál se ofrece: el motor sabe la pantalla y lo que se ve', () => {
   it('pregunta por cada uno y se queda con los que el motor dice, en su orden', () => {
     const target = new EventTarget();
     // A fake engine: on this screen, bienvenida (order 0) and hoy-redes (order 1); hoy-redes with too few steps now.
-    const answers: Record<string, { ok: boolean; order: number }> = { bienvenida: { ok: true, order: 0 }, 'hoy-redes': { ok: true, order: 1 }, piezas: { ok: false, order: -1 } };
+    const answers: Record<string, { ok: boolean; order: number }> = { bienvenida: { ok: true, order: 0 }, 'hoy-redes': { ok: true, order: 1 }, 'redes-seccion': { ok: false, order: -1 } };
     target.addEventListener(TOUR_CAN_EVENT, (e) => {
       const id = (e as CustomEvent<{ id: string }>).detail.id;
       const a = answers[id] ?? { ok: false, order: -1 };
       target.dispatchEvent(new CustomEvent(TOUR_CAN_ANSWER_EVENT, { detail: { id, ...a } }));
     });
-    expect(availableHere(['piezas', 'hoy-redes', 'bienvenida'], target as unknown as Window)).toEqual(['bienvenida', 'hoy-redes']);
+    expect(availableHere(['redes-seccion', 'hoy-redes', 'bienvenida'], target as unknown as Window)).toEqual(['bienvenida', 'hoy-redes']);
     // No engine mounted: nothing.
-    expect(availableHere(['piezas'], new EventTarget() as unknown as Window)).toEqual([]);
+    expect(availableHere(['redes-seccion'], new EventTarget() as unknown as Window)).toEqual([]);
     const tours: OfferTour[] = [
       { id: 'bienvenida', screen: '@home', title: 'Bienvenida' },
       { id: 'hoy-redes', screen: '/hoy', title: 'Cómo se usa Hoy' },

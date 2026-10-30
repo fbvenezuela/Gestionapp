@@ -11,6 +11,7 @@ import {
   LIMIT_TEXT,
   MAX_TOKENS,
   PROMISE_FALLBACK,
+  asksRedesSection,
   breaksAgendaRule,
   filterOutput,
   guardQuestion,
@@ -260,7 +261,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     // place or contact. The demo brain quotes the titles it looked up as they are (the person can see
     // them): those are masked for this check, like the model's placeholders.
     const checked = out.restore ? answer : new Placeholders({ events: titlesIn(out.calls), pieces: [], places: [] }).mask(answer);
-    if (breaksAgendaRule(checked, question, out.calls, seen, { answerToo: !!out.restore })) answer = AGENDA_FALLBACK;
+    if (breaksAgendaRule(checked, question, out.calls, seen, { answerToo: !!out.restore, sectionAsk: asksRedesSection(routing, seen) })) answer = AGENDA_FALLBACK;
     // The promise net: says it told the team but avisar_al_equipo did not succeed → the server
     // tells them; if that fails too, the sentence changes (promising and not keeping is worse).
     const told = out.calls.some((c) => c.tool === 'avisar_al_equipo' && c.ok);

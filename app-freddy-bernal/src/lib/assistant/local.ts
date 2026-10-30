@@ -128,6 +128,28 @@ const NOT_A_SCREEN = ['tutoriales', 'guia', 'guias', 'ayuda'];
 const ROLE_SUMMARY = /^guia:(?:roles|rol-[a-z]+)$/;
 const WHAT_HERE = /\bque (?:hago|se hace|hay que hacer|puedo hacer) (?:aqui|en esta pantalla|en esta parte)\b|\bpara que (?:sirve|es) (?:esta pantalla|esto|esta parte|esta seccion|aqui)\b|\bcomo funciona esta pantalla\b|\bque es esta pantalla\b|\bque (?:hago|se hace) en (?:la pantalla de |la pantalla |el |la |los |las )?(?!un |una )([a-z]+(?: [a-z]+)?)\b/;
 
+// R. Redes by format (R4, D-77): the feed, the months and their quota, the pillars, deleting a piece and Fin de mes have
+// their own guide cards and their own screen. Narrow phrases only («el feed», «mover de mes», «cupo», «pilar», «fin de
+// mes»): a word that is also an event's never gets here, and a when or a where went to the agenda's answer before.
+// `from`: the card's sentence that answers it (otherwise the one with the most words of the question); `go`: its
+// screen, for whoever can open it.
+type RedesTopic = { re: RegExp; key: string; from?: RegExp; go: (admin: boolean) => string };
+const REDES_TOPICS: RedesTopic[] = [
+  { re: /\b(?:borr|elimin)\w*(?: \w+){0,2} piezas?\b|\bpiezas? (?:eliminadas?|borradas?)\b/, key: 'redes-por-formato', from: /^Eliminar una pieza/, go: (admin) => (admin ? '/ajustes/contenido' : '/redes') },
+  { re: /\b(?:el|un|del|al|mi|tu|este|ese) feed\b|\bfeed preview\b/, key: 'feed', go: () => '/redes/feed' },
+  { re: /\bresumen del mes\b|\bmes de redes\b|\brendicion de cuentas\b/, key: 'fin-de-mes', from: /^El Resumen del mes/, go: () => '/redes/fin-de-mes' },
+  { re: /\b(?:que es|que va en|para que (?:es|sirve)|seccion(?: de)?|piezas? de)(?: la| el)? fin de mes\b/, key: 'fin-de-mes', from: /^Fin de mes es/, go: () => '/redes/fin-de-mes' },
+  // «Pilar» is also a name and «cupo» also a free place at an event: only «los pilares», «el pilar», «el cupo», «cupo
+  // del mes»… count.
+  { re: /\bpilares\b|\b(?:el|un|del|al|mi|tu|su|este|ese|cada|de|sin) pilar\b/, key: 'meses-cupo', from: /pilar/, go: (admin) => (admin ? '/ajustes/contenido' : '/redes') },
+  { re: /\b(?:el|del|al|mi|tu|su|este|ese) cupo\b|\bcupo (?:del|de) (?:mes|reels?|posts?|carruseles|historias|youtube)\b/, key: 'meses-cupo', from: /^El cupo/, go: (admin) => (admin ? '/ajustes/contenido' : '/redes') },
+  { re: /\b(?:mover|muevo|mueve|movemos|pasar|paso|cambiar|cambio)\b(?: \w+){0,3} (?:de|a otro) mes\b|\b(?:nuevo|otro) mes\b|\b(?:borr|elimin)\w* (?:un|el|este|ese) mes\b|\bmeses de contenido\b/, key: 'meses-cupo', go: () => '/redes' },
+];
+
+// The names of Redes that read like a when: «Fin de mes» (a section), «Resumen del mes», «+ Nuevo mes», «Borrar este
+// mes», «Mover a otro mes».
+const REDES_NAMES = /\b(?:fin de mes|resumen del mes|nuevo mes|este mes|otro mes|cada mes|mes de redes)\b/g;
+
 const BUILTIN: Record<string, string[]> = {
   'quien-eres': [
     'Me llamo [ASISTENTE] y te ayudo con la plataforma. ¿Qué necesitas?',
@@ -307,6 +329,22 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     const shown = (all?.tutoriales ?? []).filter((t) => t.id !== 'perfil').slice(0, 3).map((t) => `«${t.titulo}»`);
     if (shown.length) return done(`${screen ? 'Esa pantalla no tiene tutorial. ' : ''}Puedo mostrarte, paso a paso: ${list(shown)}. ¿Cuál? También están en el menú de tu cuenta, en «Ayuda y guías».`);
     return done('En el menú de tu cuenta, arriba a la derecha, «Ayuda y guías» tiene la guía de tu trabajo, pantalla por pantalla.', '/ayuda');
+  }
+
+  // R. Redes by format (REDES_TOPICS): its card, from the sentence that answers it, and its screen's button. Before the
+  // agenda's refusal: «¿qué es fin de mes?» names a section, not a day (REDES_NAMES are left out of the when check).
+  // Never with a when left, an event named or a «where is it» (that one gets the screen's own button, step 4b).
+  const redesTopic =
+    !carriesWhen(q.replace(REDES_NAMES, ' ')) && eventAt(i.question) < 0 && !navTarget(q, i.ctx.roles) ? REDES_TOPICS.find((t) => t.re.test(q)) : undefined;
+  const redesCard = redesTopic ? (knowledge ?? []).find((f) => f.key === `guia:${redesTopic.key}`) : undefined;
+  if (redesTopic && redesCard) {
+    const ss = sentences(fill(redesCard.body));
+    const ws = [...new Map(keyWords(q).map((w) => [stem(w), w])).values()];
+    const hitsOf = (t: string) => ws.filter((w) => hasWord(` ${canon(t)}`, w)).length;
+    let at = redesTopic.from ? ss.findIndex((t) => redesTopic.from!.test(t)) : -1;
+    if (at < 0) ss.forEach((t, k) => (at < 0 || hitsOf(t) > hitsOf(ss[at]) ? (at = k) : null));
+    const go = redesTopic.go(i.ctx.roles.includes('admin'));
+    return done(ss.slice(at, at + 2).join(' '), canOpen(go, i.ctx.roles) ? go : undefined);
   }
 
   // 2a. Best hours to publish (before the agenda: naming the event doesn't make it a schedule question).
@@ -502,7 +540,12 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     if (ps.length > 1) return done(`Encontré varias: ${list(ps.slice(0, 4).map((p) => `«${p.titulo}»`))}. ¿Cuál de ellas?`);
     const p = ps[0];
     const pub = Number(p.publicada_en_redes ?? 0);
-    return done(`La pieza «${p.titulo}» está ${String(p.estado).toLowerCase()} (semáforo ${p.semaforo}, versión ${p.version}).${pub ? ` Ya salió en ${count(pub, 'red', 'redes')}.` : ''}`);
+    // Where it lives in Redes (R4): «Es un reel de Mes 1, #7 del feed».
+    const kind = typeof p.formato === 'string' ? p.formato : '';
+    const where = kind
+      ? ` Es ${/^(?:Historia|Pieza)\b/.test(kind) ? 'una' : 'un'} ${kind.charAt(0).toLowerCase()}${kind.slice(1)}${p.mes ? ` de ${p.mes}` : ''}${p.espacio_feed ? `, ${p.espacio_feed}` : ''}.`
+      : '';
+    return done(`La pieza «${p.titulo}» está ${String(p.estado).toLowerCase()} (semáforo ${p.semaforo}, versión ${p.version}).${where}${pub ? ` Ya salió en ${count(pub, 'red', 'redes')}.` : ''}`);
   }
 
   // 9. Days of tweets: only how many days or tweets are left or wait («¿cuántos días de tweets quedan?»).

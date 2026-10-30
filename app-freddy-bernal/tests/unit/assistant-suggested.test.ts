@@ -23,8 +23,9 @@ function sessionOf(key: DemoUserKey): Session {
   };
 }
 
-// What each suggestion must bring: the tool it uses (if any) and words the answer must carry.
-type Expect = { tool?: string; has: RegExp; not?: RegExp };
+// What each suggestion must bring: the tool it uses (if any), words the answer must carry and, when it has one, the
+// screen of its «Ir a…» button.
+type Expect = { tool?: string; has: RegExp; not?: RegExp; go?: string };
 // R3 (design §8.4): each team role has «¿Me muestras cómo se usa esta pantalla?» (the window sends the screen; here
 // without one, 360 lists the tutorials it can show).
 const SHOW_SCREEN: Expect = { tool: 'ver_tutorial', has: /paso a paso: «Bienvenida»/ };
@@ -39,7 +40,8 @@ const EXPECTED: Record<Role & DemoUserKey, Record<string, Expect>> = {
     '¿Qué me toca aprobar?': { tool: 'mis_pendientes', has: /pendiente|aprobar/ },
     // The bulk approval, never «one by one».
     '¿Cómo apruebo todas las verdes de una vez?': { has: /verdes se aprueban todas juntas, con un toque/, not: /una por una/ },
-    '¿Cómo va una pieza?': { tool: 'estado_pieza', has: /¿Cuál pieza\?/ },
+    // R4: the month of Redes, with its summary (the accountability, on top of Fin de mes) and the button to it.
+    '¿Cómo va el mes de Redes?': { has: /^El Resumen del mes es la rendición de cuentas de Redes/, go: '/redes/fin-de-mes' },
     '¿Me muestras cómo se usa esta pantalla?': SHOW_SCREEN,
   },
   dispatch: {
@@ -62,8 +64,9 @@ const EXPECTED: Record<Role & DemoUserKey, Record<string, Expect>> = {
   },
   social: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
-    '¿Cuántos días de tweets quedan?': { tool: 'dias_de_tweets', has: /tweets/ },
-    '¿A qué hora publico en TikTok?': { tool: 'mejores_horas', has: /TikTok/ },
+    // R4: the feed and the month's quota, each with its card and its screen.
+    '¿Cómo armo el feed?': { has: /^Para armar el feed del mes: Redes → Feed/, go: '/redes/feed' },
+    '¿Cuánto me falta del cupo?': { has: /^El cupo del mes: en la barra de secciones de Redes/, go: '/redes' },
     '¿Me muestras cómo se usa esta pantalla?': SHOW_SCREEN,
   },
   camera: {
@@ -87,6 +90,7 @@ describe('preguntas sugeridas por rol (cerebro de demostración)', () => {
         if (e.tool) expect(r.did.map((d) => d.tool), q).toContain(e.tool);
         expect(r.answer, q).toMatch(e.has);
         if (e.not) expect(r.answer, q).not.toMatch(e.not);
+        if (e.go) expect(r.goTo?.href, q).toBe(e.go);
         expect(r.answer, q).not.toMatch(/no lo manejo|Eso no lo tengo claro/);
       }
     });

@@ -81,7 +81,7 @@ Decides la agenda y apruebas todo lo que sale. Nada se publica sin tu aprobació
 - Decidir lo que propone el despacho: en el evento, «Tu decisión», la importancia de 1 a 10 y «Aceptar» o «Rechazar».
 - Ponerle fecha, junto con el despacho, a las fichas que mandan el IVT y política («Ponerle fecha» o «No va»).
 - Leer «Lo que voy a decir» en el modo lectura antes de cada acto.
-- Mirar Digital: lo publicado, lo que viene y cómo nos va.
+- Mirar Digital: lo publicado, lo que viene y cómo nos va; y el mes de Redes, con su resumen al cierre.
 - Decidir quién habla con quién en Mensajes.
 
 **Nunca**
@@ -93,7 +93,7 @@ Decides la agenda y apruebas todo lo que sale. Nada se publica sin tu aprobació
 **Con quién trabajas**
 
 - **Despacho.** Comparten la agenda. Lo que crea el despacho te llega «Por decidir»; si los dos cambian lo mismo, gana lo último guardado y te avisamos.
-- **Redes.** Te manda piezas y tweets para aprobar. Tú apruebas o pides cambios; Redes publica.
+- **Redes.** Arma el mes de Redes por formato y su feed, y te manda piezas y tweets para aprobar. Tú apruebas o pides cambios; Redes publica.
 - **Grabación.** Graba tus eventos. Su nota para el editor sale en tu botón Redes, en «Notas de Grabación nuevas».
 - **IVT.** Prepara cada obra antes de tu visita: la ficha, las fotos y el diálogo FAB para leer.
 - **Política.** Te manda lo de la comunidad que va a tu agenda, con «Guardar y avisar al jefe».
@@ -127,13 +127,14 @@ Flujo: [El semáforo](FLUJOS.md#flujo-aprobacion) · Tutorial en la app: “Cóm
 #### Aprobar una amarilla o una roja
 _Cuándo:_ Las amarillas en 60 minutos, las rojas en 30.
 
-1. Toca la pieza en «Te toca aprobar» o en «Por aprobar».
-2. Mira el video. Si lo pausas, tu comentario queda en ese segundo.
-3. Si hace falta, toca un motivo rápido o escribe en «Qué hay que cambiar (o un comentario)».
-4. Revisa «Copies: cómo saldrá».
-5. Marca la lista «Antes de aprobar»: «Cada cifra tiene su fuente», «No dice fecha ni hora del evento», «Se ve y se oye bien (subtítulos, sonido)» y «Los tres copies están revisados».
-6. Toca «Aprobar». Si no va, «Pedir cambios» (le vuelve a Redes con tu comentario) o «Solo comentar».
-7. Si el color no es el correcto, «Cambiar nivel».
+1. Toca la pieza en «Te toca aprobar» o en «Por aprobar», o «Revisar» en su tarjeta de Redes.
+2. Mira el video o la imagen, y lo de su formato. Si pausas el video, tu comentario queda en ese segundo.
+3. Si tiene avisos, salen arriba («Antes de publicar»): léelos y marca «Leí los avisos de cumplimiento».
+4. Si hace falta, toca un motivo rápido o escribe en «Qué hay que cambiar (o un comentario)».
+5. Revisa «Copies: cómo saldrá».
+6. Marca la lista «Antes de aprobar»: «Cada cifra tiene su fuente», «No dice fecha ni hora del evento», «Se ve y se oye bien (subtítulos, sonido)» y «Los tres copies están revisados».
+7. Toca «Aprobar». Si no va, «Pedir cambios» (le vuelve a Redes con tu comentario) o «Solo comentar». Si llegaste desde la tarjeta, vuelves a ella.
+8. Si el color no es el correcto, «Cambiar nivel».
 
 Flujo: [El semáforo](FLUJOS.md#flujo-aprobacion) · Tutorial en la app: “Cómo se revisa una pieza”
 
@@ -210,14 +211,38 @@ _Cuándo:_ Cada semana.
 
 Flujo: [Un evento, de la agenda a la publicación](FLUJOS.md#flujo-evento) · Tutorial en la app: “Cómo se usa Digital”
 
-#### Hacer algo de Redes tú mismo
+#### Ver el mes de Redes y hacer algo tú mismo
 _Cuándo:_ Cuando quieras: tienes todo lo de Redes.
 
-1. Menú → Redes: las secciones por formato, el feed, Tweets, Publicar, Resultados y Biblioteca, con lo que espera en cada una.
-2. Desde ahí haces lo mismo que Redes: storyboard, piezas y copies, tweets, publicar a mano y cargar resultados.
-3. Si publicaste algo por tu cuenta, anótalo en Publicar → «Registrar lo que publicó el jefe».
+1. Menú → Redes: el tablero, con lo que falta en cada formato del mes. Cada número te lleva a la tarjeta de esa pieza.
+2. Arriba, la barra de secciones: «Reels», «Posts», «Carruseles», «Historias», «YouTube», «Fin de mes», «Feed» y «Tweets».
+3. Desde ahí haces lo mismo que Redes: storyboard, piezas y copies, el feed, tweets, publicar a mano y cargar resultados.
+4. Si publicaste algo por tu cuenta, anótalo en Publicar → «Registrar lo que publicó el jefe».
 
-Tutorial en la app: “Cómo se usa Redes”
+Flujo: [El mes de Redes](FLUJOS.md#flujo-mes-redes) · Tutorial en la app: “Cómo se usa Redes”
+
+#### Ver el resumen del mes
+_Cuándo:_ Al cierre de cada mes, o cuando quieras.
+
+1. Tu Inicio → botón Redes → «Resumen del mes», o Redes → «Fin de mes»: arriba está el «Resumen del mes».
+2. Por formato: lo hecho de su cupo, lo aprobado y lo publicado.
+3. Debajo, la receptividad media, los diseños desaprobados, los avisos abiertos y lo publicado, con su miniatura.
+
+Flujo: [El mes de Redes](FLUJOS.md#flujo-mes-redes)
+
+#### Desaprobar el diseño de una pieza
+_Cuándo:_ Cuando el arte no te gusta, aunque ya la hayas aprobado.
+
+1. En la tarjeta, «Diseño desaprobado», y escribe «¿Qué no le gustó del diseño?».
+2. Si la pieza ya estaba aprobada, te pregunta «¿Pedir cambios también?»: «Sí, pedir cambios» se la devuelve a Redes con tu nota; «No, solo marcar» la deja aprobada, pero no se publica hasta que la vuelvas a aprobar.
+3. Esa marca solo la quitas tú: tocas otra vez «Diseño desaprobado» o marcas «Diseño aprobado».
+
+#### Eliminar una pieza
+_Cuándo:_ Cuando una pieza ya no va. Solo tú eliminas.
+
+1. En su tarjeta: tres puntos → «Eliminar». Necesitas el doble factor.
+2. Confirma: sale de su sección y del feed, y lo programado vuelve a borrador.
+3. No se borra de verdad: se puede recuperar.
 
 #### Decidir quién habla con quién
 _Cuándo:_ Cuando haga falta.
@@ -250,22 +275,22 @@ Flujo: [Un reporte de la comunidad](FLUJOS.md#flujo-comunitario) · Tutorial en 
 ### Cada sección de la app
 | Sección | Para qué | Qué haces |
 |---|---|---|
-| **Inicio**<br>Inicio · `/jefe` | Tu pantalla de inicio: lo vencido, lo que te toca aprobar y cuatro botones grandes. | «Vencidas en los municipios», con «Ver todas».<br>«Te toca aprobar»: «Aprobar todas las verdes (n)», las amarillas y las rojas con su plazo, los tweets y «Ver todo en «Por aprobar»».<br>Política: los eventos de hoy, lo que espera tu decisión, lo que está por ponerle fecha y «Ver la agenda completa».<br>Obras: las fichas del IVT por etapa y por municipio, y «Ver los municipios».<br>Redes: las piezas en curso, las listas para publicar, los días de tweets y «Notas de Grabación nuevas».<br>Digital: lo publicado, lo programado y las vistas de la semana. |
+| **Inicio**<br>Inicio · `/jefe` | Tu pantalla de inicio: lo vencido, lo que te toca aprobar y cuatro botones grandes. | «Vencidas en los municipios», con «Ver todas».<br>«Te toca aprobar»: «Aprobar todas las verdes (n)», las amarillas y las rojas con su plazo, los tweets y «Ver todo en «Por aprobar»».<br>Política: los eventos de hoy, lo que espera tu decisión, lo que está por ponerle fecha y «Ver la agenda completa».<br>Obras: las fichas del IVT por etapa y por municipio, y «Ver los municipios».<br>Redes: el mes abierto por formato (cada uno con lo hecho de su cupo y lo que espera tu aprobación, y te lleva a su sección), las piezas en curso, las listas para publicar, los días de tweets, «Notas de Grabación nuevas» y «Resumen del mes».<br>Digital: lo publicado, lo programado y las vistas de la semana. |
 | **Política**<br>Inicio · `/jefe/politica` | Tu agenda: la compartes con el despacho. Se abre con el botón Política de tu Inicio. | Los botones grandes: «Nuevo evento», «Visita de obra», «Por ponerle fecha» y «Ver calendario».<br>«Por ponerle fecha (n)», con «Ver todas».<br>«Esperan tu decisión (n)»: lo abres y decides dentro del evento.<br>«Los próximos 7 días», con tu decisión y su importancia, y «Lo que voy a decir» cuando el storyboard ya tiene texto. |
 | **Agenda**<br>Agenda · `/agenda` | El calendario de la agenda, en hora del Táchira. La comparten el jefe y el despacho. | Arriba, los botones grandes: «Nuevo evento», «Visita de obra», «Por ponerle fecha» y «Por decidir» (te lleva a Política, para aceptar o rechazar).<br>«Anterior», «Hoy» y «Siguiente» para moverte; «Día», «Semana» o «Mes» para ver más o menos.<br>Tocas un evento para abrir su ficha.<br>Los colores: «Aceptado», «Por decidir», «Rechazado» y «Cancelado» (tachado, no se borra). |
 | **Nuevo evento o visita de obra**<br>Agenda · `/agenda/nuevo` | Para poner algo en tu agenda. Lo tuyo queda aceptado de una vez y el despacho se entera. | Entras por «Crear» → «Nuevo evento» o «Visita de obra» (o por los botones grandes de la agenda).<br>«El evento»: el título, «A dónde se va», el municipio, «De qué se trata», la categoría y la «Prioridad para el equipo».<br>«Fecha, hora y lugar exacto»: la fecha, la «Hora (Táchira)», la duración, la «Dirección exacta», «Cómo se llega» y los «Contactos del sitio». Si choca con otro evento te avisa; si va igual, marca «Guardar aunque choque con otro evento».<br>«Ficha técnica»: de qué es la obra o el acto, quién la dirige, quién es el encargado, qué se está logrando, los datos con su fuente, el protocolo y «Quién graba».<br>Tocas «Guardar evento» (o «Guardar visita de obra»).<br>No puedes: Poner la fecha, la hora o la dirección en el título o en «A dónde se va»: esos los ve todo el equipo, Redes también. |
 | **Por ponerle fecha**<br>Agenda · `/agenda/por-fecha` | Las fichas del IVT y los reportes de política que esperan fecha y hora. Al ponérsela, pasan a la agenda. | Cada tarjeta dice si es «Obra del IVT» o «Reporte comunitario», de dónde es y cuánto lleva esperando.<br>«Ver ficha» para leerla completa.<br>«Ponerle fecha»: revisas el «Título del evento» y «A dónde se va» (los ve todo el equipo), pones la fecha, la hora, la dirección y cómo se llega, eliges «Quién graba» y tocas «Guardar la fecha». Lo tuyo queda aceptado.<br>«No va»: escribes «Por qué no va» y tocas «Guardar». La obra queda archivada; el reporte queda en el registro del municipio. |
 | **Un evento**<br>Agenda · `/eventos/[id]` | Todo de un evento: de qué se trata, dónde y cuándo, la ficha técnica, el storyboard, el material y las piezas. | Arriba, los chips: el código, el tipo, cómo va, tu decisión y de dónde nació («Lo agregó el jefe», «Propuesto por Despacho»…).<br>«Tu decisión»: la importancia de 1 a 10 y «Aceptar» o «Rechazar». Le avisamos a quien lo propuso y al despacho.<br>La tarjeta de fecha y lugar: «Cambiar fecha o lugar» y, cuando ya empezó, «Marcar realizado».<br>«Mover» (otra fecha u hora) y «Cancelar» (queda tachado; «Volver a la agenda» lo trae). El motivo, sin fecha, hora ni teléfono.<br>Las pestañas: «Ficha» (ficha técnica, «¿En qué va?», «Quién graba» e «Historial»), «Ficha de obra» o «Reporte» si nació de una ficha, «Storyboard», «Material» y «Piezas».<br>«Modo lectura» para leer lo que vas a decir. |
 | **Modo lectura**<br>Agenda · `/eventos/[id]/lectura` | Lo que va a decir el jefe, en letra grande, para leer en el iPad o en el teléfono. | Se abre con «Modo lectura» en el evento o con «Lo que voy a decir» en Política.<br>«Letra más grande» y «Letra más pequeña»; «Desplazar solo» con la «Velocidad» que guste, y «Pausar».<br>Arriba, «Antes de hablar»: quién reportó y lo que debes saber antes de tomar la palabra.<br>Si la visita de obra no tiene discurso escrito, sale el diálogo FAB de la ficha del IVT.<br>«Salir del modo lectura» al terminar. |
-| **Por aprobar**<br>Por aprobar · `/aprobar` | Todo lo que espera tu aprobación. Nada se publica sin ella. | Las pestañas «Piezas (n)» y «Tweets (n)».<br>«Aprobar todas las verdes (n)»: las de rutina, de un toque.<br>Las amarillas y las rojas, por color y con su plazo: amarillo en 60 minutos, rojo en 30. Tocas una para revisarla.<br>Si vence el plazo, la pieza sigue sin aprobar y sale en «Trancado»: nunca sale sola. |
+| **Por aprobar**<br>Por aprobar · `/aprobar` | Todo lo que espera tu aprobación. Nada se publica sin ella. | Las pestañas «Piezas (n)» y «Tweets (n)».<br>«Aprobar todas las verdes (n)»: las de rutina, de un toque. Se salta las que tienen avisos de cumplimiento abiertos: esas las abres una por una.<br>Las amarillas y las rojas, por color y con su plazo: amarillo en 60 minutos, rojo en 30. Tocas una para revisarla.<br>Cada pieza dice su formato y, si le pusieron avisos, «Tiene avisos».<br>Si vence el plazo, la pieza sigue sin aprobar y sale en «Trancado»: nunca sale sola. |
 | **Por aprobar: los tweets**<br>Por aprobar · `/aprobar?tab=tweets` | Los tweets de la semana que mandó Redes. | Vienen todos marcados: desmarca los que no van.<br>Toca «Aprobar marcados». Si Redes cambia uno aprobado, vuelve aquí. |
-| **Revisar una pieza**<br>Por aprobar · `/aprobar/[id]` | Para mirar una pieza antes de aprobarla. | El video: si lo pausas, tu comentario queda en ese segundo.<br>«Qué hay que cambiar (o un comentario)», o los motivos rápidos («Muy largo», «Revisar ortografía», «Dice fecha u hora»…).<br>«Copies: cómo saldrá»: el texto de cada red.<br>«Antes de aprobar»: «Cada cifra tiene su fuente», «No dice fecha ni hora del evento», «Se ve y se oye bien (subtítulos, sonido)» y «Los tres copies están revisados». Hasta marcarlas, «Aprobar» dice «Marca la lista para aprobar».<br>«Aprobar», «Pedir cambios» (vuelve a Redes con tu comentario) o «Solo comentar».<br>«Cambiar nivel» si el color no es el correcto. |
-| **Redes**<br>Redes · `/redes` | Tu puerta a Redes: las secciones por formato, el feed y lo demás de Redes, con lo que espera en cada una. | Arriba, la barra de secciones: «Tablero», «Reels», «Posts», «Carruseles», «Historias», «YouTube», «Fin de mes», «Feed» y «Tweets», y «Buscar en Redes».<br>Una tarjeta por pantalla: Tweets, Publicar, Resultados y Biblioteca, con sus números.<br>Abajo, «Crear en Redes»: «Nueva pieza», «Tweets de la semana» y «Nueva publicación». |
-| **Una sección de Redes**<br>Redes · `/redes/[formato]` | Las piezas de un formato (reels, posts, carruseles, historias, videos de YouTube o fin de mes) en el mes que eliges. | Las pestañas de los meses y «+ Nuevo mes»: el mes que eliges sigue en las otras secciones y en el feed. |
-| **El feed del mes**<br>Redes · `/redes/feed` | Los espacios del feed del mes, en el orden en que se publican: el primero abajo a la derecha. | Se llega con «Feed», en la barra de secciones de Redes. |
-| **Buscar en Redes**<br>Redes · `/redes/buscar` | Para buscar en todo Redes: títulos, copies, avisos y tweets. | Se llega con «Buscar en Redes», en la barra de secciones. |
-| **Nueva pieza**<br>Redes · `/piezas/nueva` | Para crear una pieza. | Eliges el «Evento» (o «Sin evento»), el «Tipo», la «Categoría» y el «Título», y tocas «Crear pieza». |
-| **Una pieza**<br>Redes · `/piezas/[id]` | El archivo final, los copies y la aprobación de una pieza. | «Archivo final»: «Subir video final (nueva versión)» o «Subir imagen final (nueva versión)», y «Subir portada». Si ya estaba aprobada, vuelve a revisión.<br>«Copies»: eliges la «Fórmula», la «Voz» y el «Cierre» («Pregunta a la comunidad», una acción con destino o «Sin cierre»), y tocas «Escribir desde la ficha». Salen tres largos: solo con cifras de la ficha.<br>Revisas cada copy, lo corriges, «Guardar» y «Copiar».<br>«Nivel de aprobación»: verde (rutina), amarillo (normal) o rojo (sensible). Después, «Enviar a aprobación».<br>Si el jefe pidió cambios, arriba sale «Pidieron cambios» con lo que dijo. Corriges y la envías otra vez.<br>«Frases pedidas al jefe»: si hace falta su voz, aquí se sube con «Subir el audio del jefe».<br>«Ver evento» te lleva al evento de la pieza.<br>No puedes: Bajar el nivel que puso el jefe.<br>No puedes: Publicar una pieza que no está aprobada. |
+| **Revisar una pieza**<br>Por aprobar · `/aprobar/[id]` | Para mirar una pieza antes de aprobarla. Llegas desde «Por aprobar», desde tu Inicio o con «Revisar» en su tarjeta de Redes. | Arriba, su formato y, si tiene avisos, «Tiene avisos». El video o la imagen: si pausas el video, tu comentario queda en ese segundo.<br>Lo de su formato, para leer: el texto del arte, las tomas o las láminas en orden. En una historia, «Lo que sale en la app»: el texto en pantalla y el sticker, que también apruebas.<br>Si tiene avisos, salen arriba de la lista («Antes de publicar») y la lista pide también «Leí los avisos de cumplimiento».<br>«Qué hay que cambiar (o un comentario)», o los motivos rápidos («Muy largo», «Revisar ortografía», «Dice fecha u hora»…).<br>«Copies: cómo saldrá»: el texto de cada red.<br>«Antes de aprobar»: «Cada cifra tiene su fuente», «No dice fecha ni hora del evento», «Se ve y se oye bien (subtítulos, sonido)» y «Los tres copies están revisados». Hasta marcarlas, «Aprobar» dice «Marca la lista para aprobar».<br>«Aprobar», «Pedir cambios» (vuelve a Redes con tu comentario) o «Solo comentar». Si llegaste con «Revisar» desde una tarjeta, al decidir vuelves a esa tarjeta.<br>«Cambiar nivel» si el color no es el correcto. |
+| **Redes: el tablero**<br>Redes · `/redes` | Tu puerta a Redes: lo que falta en cada formato, por mes o por trimestre, lo último que pasó y lo demás de Redes. | Arriba, la barra de secciones: «Tablero», «Reels», «Posts», «Carruseles», «Historias», «YouTube», «Fin de mes», «Feed» y «Tweets», y «Buscar en Redes». Cada formato dice lo revisado de su cupo («n/m») y cuántas piezas no tienen copy o imagen. Lleva el mes que tienes abierto.<br>Las cifras: «Receptividad media» (solo de las piezas puntuadas), «Listas para publicar» y «Programadas».<br>«Estado del contenido»: cada formato con siete números: «Revisados», «Por revisar», «Diseño aprobado», «Diseño desaprobado», «Publicado», «Copy faltante» e «Imagen faltante». Cada número te lleva a una pieza de esa casilla, abierta en su sección; la vez siguiente, a la que sigue. Un cero dice «¡al día!».<br>«Por mes» o «Por trimestre», con las flechas para ir al anterior o al siguiente.<br>«Observaciones»: los diseños desaprobados y los avisos abiertos. «Actividad reciente»: lo último que pasó en Redes, con cuánto hace.<br>«Buscar en Redes»: títulos, campos de las tarjetas, copies, avisos y tweets.<br>«Acciones rápidas»: un toque crea un «Nuevo reel», un «Nuevo post», un «Nuevo carrusel», una «Nueva historia», un «Nuevo video de YouTube» o una «Nueva pieza de fin de mes» en el mes abierto y lo abre en su sección. También el «Feed», los «Tweets de la semana» y la «Nueva publicación».<br>Abajo, «Lo demás de Redes»: Tweets, Publicar, Resultados y Biblioteca, con sus números. |
+| **Una sección de Redes**<br>Redes · `/redes/[formato]` | Las piezas de un formato (reels, posts, carruseles, historias, videos de YouTube o fin de mes) en el mes que eliges, cada una como una tarjeta que se edita ahí mismo y se guarda sola. | Las pestañas de los meses y «+ Nuevo mes»: cada pestaña dice cuántas piezas tiene de su cupo («Mes n · x de y»), y el mes que eliges sigue en las otras secciones y en el feed.<br>En los tres puntos de las pestañas: «Cambiar nombre» y «Borrar este mes» (antes te dice cuántas piezas tiene; no se borra ninguna: pasan a otro mes).<br>Debajo, el cupo del mes de ese formato. Es informativo: pasarse no bloquea nada.<br>El botón de la sección («Nuevo reel», «Nuevo post»…) pone un borrador arriba, abierto y con el título listo para escribir. «Orden»: «A mano», «Orden del feed», «Más recientes» o «Más antiguas».<br>La cabecera de cada tarjeta: la miniatura, su número en el feed (o «Sin programar»), el título, el estado, el día en que se creó, el pilar y «En Feed · Mes n #n», que te lleva a su espacio en el feed.<br>Los estados se calculan solos: «Borrador», «En revisión», «En revisión · ✓ Lista» (aprobada y sin publicar), «Programado» y «Publicado» (la tarjeta se pone verde).<br>En el teléfono las tarjetas empiezan plegadas, menos la primera: «Desplegar» la abre y «Plegar» la cierra. Una tarjeta a la que llegas desde el tablero, el feed o la búsqueda se abre sola.<br>En los tres puntos de la tarjeta: «Abrir la pieza», «Duplicar», «Subir» y «Bajar» (con el orden «A mano»), «Mover a otro mes» y «Eliminar» (con el doble factor: sale de su sección y del feed, y se puede recuperar).<br>Reels: el «Título (sale como título del Short)», el «Video», la «Portada», la «Referencia» (la foto de cómo tiene que verse: no sale), las tomas («Agregar toma», cada una con «Lo que dice», «La acción» y «Texto en pantalla»; «Traer del storyboard» si nació de un evento) y el copy.<br>Posts: la «Proporción», la imagen, el «Texto del arte» («Antetítulo», «Titular», «Sellos» y «Letra pequeña»), el «Concepto visual», el «CTA», los «Hashtags», el caption, las «Notas de publicación» y «Enlaces / referencias». «Poner en el copy» pasa el CTA y los hashtags al caption.<br>Carruseles: las «Láminas» en orden (Portada, Desarrollo, Resumen y CTA), cada una con su imagen, su «Título de la lámina» y su «Texto de la lámina»; «Agregar lámina», «Antes», «Después» y «Quitar lámina». Debajo, el «Hook», el «CTA», los «Hashtags» y el caption.<br>Historias: la «Idea original», la foto o el clip vertical, el «Formato del sticker», el «Texto del sticker», el «Enlace del sticker» (solo enlaces seguros, con https), el «Texto en pantalla» y el «Seguimiento». Nacen en verde, para que el jefe las apruebe juntas.<br>YouTube: el «Título (sale con el video)», el «Video», la «Miniatura», el «Guion por tomas» y la «Descripción con capítulos (copy largo)».<br>Fin de mes: arriba, el «Resumen del mes» (lo hecho de cada cupo, lo aprobado, lo publicado, la receptividad, los diseños desaprobados y los avisos abiertos); debajo, las piezas del cierre, con sus «Imágenes del cierre» en orden (cada una con su título y su nota) y el copy. No tiene cupo.<br>Debajo de los campos: «Agregar aviso» y la banda «Antes de publicar»; «Diseño aprobado» y «Diseño desaprobado», con «¿Qué no le gustó del diseño?»; y en posts, reels y carruseles, la «Receptividad del público (1 a 10)».<br>La revisión: en un borrador, «Enviar a aprobación» (si falta algo, dice qué) y «Generar copies». En revisión, «Revisar» te lleva a revisarla y, al decidir, te devuelve a la tarjeta. Aprobada: «Revisado y listo para publicar».<br>Ya publicada a mano, «Ya lo publiqué»: cada red con su link, «Subir captura» y «Guardar». Sin la aprobación dice «Falta la aprobación del jefe».<br>En una pieza aprobada, lo que sale (el copy, el título del reel o del video, el archivo, las imágenes de las láminas, el texto en pantalla y el sticker de la historia) se ve en lectura: «Editar (vuelve al jefe)» lo abre, y la pieza vuelve a revisión. Lo demás se cambia libre. |
+| **El feed del mes**<br>Redes · `/redes/feed` | Los 24 espacios del feed del mes, en el orden en que se publican: el #1, abajo a la derecha, es el primero que sale, y el #24 está arriba a la izquierda. Van posts, reels y carruseles. | Las pestañas de los meses son las mismas de las secciones, con cuántos espacios tiene ocupados cada uno.<br>Arriba, «n de 24 espacios ocupados en este mes» y la receptividad media; ahí mismo se dice cada cambio («Movida al #n»).<br>Un espacio vacío dice «Elegir publicación» y su número («Espacio #nn»): eliges el formato y luego el título. Si la pieza ya está puesta, dice «Ya en Mes n · #n» y te pregunta si la mueves: una pieza nunca está en dos espacios.<br>Un espacio lleno muestra la portada actual, su número y la receptividad; lo publicado lleva marco verde y «Publicado».<br>En el teléfono, un espacio lleno abre su menú: «Abrir la tarjeta», «Publicar antes», «Publicar después», «Cambiar de espacio», «Mover a otro mes» y «Quitar del feed». En la computadora, el espacio abre su tarjeta y el botón de los tres puntos abre el menú; también puedes arrastrar una pieza sobre otra para cambiarlas de lugar.<br>«Vaciar este mes» deja todas las piezas del mes «Sin programar»: no se borra ninguna y siguen en su sección.<br>Arriba de los espacios, el nombre y el cargo de la cuenta, y cuántas publicaciones tiene el mes. |
+| **Buscar en Redes**<br>Redes · `/redes/buscar` | Para buscar en todo Redes: títulos, campos de las tarjetas, copies, avisos y tweets. | Escribes al menos dos letras y tocas «Buscar». También está en el tablero y en la barra de secciones, con «Buscar en Redes».<br>Los resultados salen agrupados por formato; cada uno abre su tarjeta, en su sección y en su mes. Un tweet abre su tanda. |
+| **Nueva pieza desde un evento**<br>Redes · `/piezas/nueva` | Para crear una pieza que nace de un evento. Desde Redes es más rápido con el botón de cada sección o con «¿Qué quieres crear?». | Llegas desde la pestaña «Piezas» del evento, con «Nueva pieza».<br>Eliges el «Evento» (o «Sin evento»), el «Formato» (cada uno con su ayuda), el «Mes», la «Categoría» y el «Título» (sin fecha ni hora: Redes lo lee), y tocas «Crear pieza». |
+| **Una pieza en grande**<br>Redes · `/piezas/[id]` | La misma tarjeta de su sección, en grande, con los copies, el archivo final, sus versiones y el historial. Se abre con «Abrir la pieza» o desde un aviso. | Arriba, la tarjeta con sus campos, los avisos, el diseño, la receptividad y la revisión. Ahí eliges el «Nivel de aprobación» (verde, amarillo o rojo) y tocas «Enviar a aprobación».<br>«Copies»: eliges la «Fórmula», la «Voz» y el «Cierre» («Pregunta a la comunidad», una acción con destino o «Sin cierre»), y tocas «Escribir desde la ficha». Salen tres largos (el largo es el caption), solo con cifras de la ficha. Revisas cada uno, lo corriges y «Guardar».<br>«Archivo final»: «Subir video final (nueva versión)» o «Subir imagen final (nueva versión)», y «Subir portada». En un carrusel y en fin de mes, las imágenes van lámina por lámina en la tarjeta. Si ya estaba aprobada, vuelve a revisión.<br>Si el jefe pidió cambios, arriba sale «Pidieron cambios» con lo que dijo. Corriges y la envías otra vez.<br>«Frases pedidas al jefe»: si hace falta su voz, aquí se sube con «Subir el audio del jefe».<br>«Publicaciones» y el «Historial de revisión»; «Ver evento» te lleva al evento de la pieza. |
 | **Tweets**<br>Redes · `/tweets` | Los tweets de la semana, repartidos por día y hora. | «Tweets de la semana» para subir la tanda nueva.<br>«Días cubiertos» y «Por salir»: si quedan pocos días, prepara la tanda siguiente.<br>Tocas un tweet: «Copiar texto», lo pegas en X y, ya publicado, pegas el link en «Pega el link del tweet» y tocas «Ya lo publiqué». También «Cambiar día y hora», «Agregar imagen de referencia» o «Saltar este tweet».<br>Abajo, «Tandas»: cada tanda con lo que tiene por aprobar y aprobado. |
 | **Tweets de la semana**<br>Redes · `/tweets/nueva` | Para convertir el documento de la semana en tweets repartidos y mandarlos al jefe. | «Subir el documento (.docx, .txt o .md)» o pega el texto, y toca «Separar tweets».<br>Ponle el «Nombre de la tanda». Revisa cada tweet: su categoría, «Partir», «Unir con el siguiente» o quitarlo. Si un link no abre, te lo dice.<br>Toca «Repartir en la semana y enviar a aprobación»: quedan de 2 a 3 por día y le llegan al jefe.<br>«Empezar de nuevo» borra lo separado; tu texto sigue ahí. |
 | **Una tanda de tweets**<br>Redes · `/tweets/[id]` | Una tanda: cuántos están por aprobar, aprobados y programados. | «Aprobar los n» si ya los leíste todos.<br>Con los aprobados, «Programar»: quedan en el tablero con «Copiar texto» y «Ya lo publiqué».<br>«Repartir de nuevo» cambia las horas; «Editar textos» y «Guardar texto» los corrige. Si cambias uno aprobado, vuelve al jefe. |
@@ -297,6 +322,7 @@ Flujo: [Un reporte de la comunidad](FLUJOS.md#flujo-comunitario) · Tutorial en 
 ### Flujos
 - [Un evento, de la agenda a la publicación](FLUJOS.md#flujo-evento)
 - [El semáforo](FLUJOS.md#flujo-aprobacion)
+- [El mes de Redes](FLUJOS.md#flujo-mes-redes)
 - [Tweets de la semana](FLUJOS.md#flujo-tweets)
 - [Una obra, de la ficha a la visita](FLUJOS.md#flujo-obra)
 - [Un reporte de la comunidad](FLUJOS.md#flujo-comunitario)
@@ -322,6 +348,12 @@ Sí, en «Todas», y todos lo saben porque lo dice el aviso de Mensajes. En las 
 
 **¿Cómo hago para que solo yo escriba en «Todo el equipo»?**
 En «Quién habla con quién», prende «Solo el jefe escribe en Todo el equipo».
+
+**¿Quién puede eliminar una pieza?**
+Solo tú, con el doble factor, desde los tres puntos de su tarjeta. No se borra de verdad: se puede recuperar.
+
+**¿Qué pasa si desapruebo el diseño de una pieza ya aprobada?**
+No se publica hasta que la vuelvas a aprobar. La plataforma te pregunta si también pides cambios, para que Redes la corrija.
 
 ## Despacho
 
@@ -855,14 +887,16 @@ Sí. Si escribes un tiempo del video (los minutos y los segundos), la plataforma
 **Crear:** Nueva pieza, Tweets de la semana, Nueva publicación · **Doble factor:** no · En la app: `/ayuda/redes`
 
 ### Tu trabajo
-Conviertes cada evento en piezas, tweets y publicaciones, y cuentas cómo nos va.
+Armas el mes de contenido por formato y su feed, conviertes cada evento en piezas, tweets y publicaciones, y cuentas cómo nos va.
 
 **Lo que haces**
 
+- Armar el mes de contenido por formato (reels, posts, carruseles, historias, YouTube y fin de mes) con su cupo, y el feed del mes.
 - Armar el storyboard de cada evento aceptado, para que Grabación sepa qué grabar.
-- Hacer las piezas: el archivo final, la portada y los copies desde la ficha, solo con cifras de la ficha.
+- Hacer las piezas en su tarjeta: el archivo, los campos de su formato y los copies desde la ficha, solo con cifras de la ficha.
 - Mandarlas a aprobación con su nivel, y corregir lo que el jefe pida.
-- Publicar a mano lo aprobado, dejar la evidencia y cargar los resultados.
+- Marcar el diseño, la receptividad y los avisos de cumplimiento de cada pieza.
+- Publicar a mano lo aprobado, marcar «Ya lo publiqué» con su link y cargar los resultados.
 - Preparar los tweets de la semana y publicarlos cada día.
 - Anotar lo que el jefe publica por su cuenta.
 
@@ -871,6 +905,7 @@ Conviertes cada evento en piezas, tweets y publicaciones, y cuentas cómo nos va
 - Pedir ni escribir la fecha, la hora o la dirección de un evento: Redes no las ve, y no van en una pieza.
 - Publicar algo sin aprobar.
 - Inventar cifras en un copy: si no está en la ficha, no se dice.
+- Eliminar piezas: eso es del jefe.
 
 **Con quién trabajas**
 
@@ -884,14 +919,16 @@ Conviertes cada evento en piezas, tweets y publicaciones, y cuentas cómo nos va
 - Cada día: Hoy, con «Lo que espera por mí» en orden.
 - Cada día: los tweets del tablero, con «Copiar texto» y «Ya lo publiqué».
 - Cada semana: la tanda de tweets nueva.
+- Cada mes: el mes nuevo con su cupo, su feed y, al cierre, la pieza de fin de mes.
 - Después de publicar: la evidencia y los resultados.
 
 ### Tu día
 1. Abres la plataforma y caes en Hoy.
 2. «Lo que espera por mí»: «Cambios», «Storyboard», «Material», «Publicar» y «Grabación», cada uno te lleva a lo que falta.
 3. «Trancado»: lo que se paró, como una publicación que falló o los pocos días de tweets.
-4. Los tweets del día, en Tweets.
-5. Lo aprobado, en Publicar; lo publicado, con sus resultados.
+4. En Redes, el tablero: lo que falta en cada formato del mes. Cada número te lleva a la tarjeta de esa pieza.
+5. Los tweets del día, en Tweets.
+6. Lo aprobado, en Publicar o con «Ya lo publiqué» en su tarjeta; lo publicado, con sus resultados.
 
 ### Paso a paso
 
@@ -915,25 +952,89 @@ _Cuándo:_ Cuando Hoy dice «Material» o «Grabación».
 
 Flujo: [La entrega de Grabación](FLUJOS.md#flujo-entrega) · Tutorial en la app: “Cómo se usa el material”
 
-#### Hacer una pieza y mandarla a aprobar
-_Cuándo:_ Cuando ya tienes el material.
+#### Hacer una pieza
+_Cuándo:_ Cuando ya tienes el material, o cuando toca llenar el mes.
 
-1. «Crear» → «Nueva pieza» (o la pestaña «Piezas» del evento): el «Evento», el «Tipo», la «Categoría» y el «Título», y «Crear pieza».
-2. «Subir video final (nueva versión)» o «Subir imagen final (nueva versión)», y «Subir portada».
-3. En «Copies», la «Fórmula», la «Voz» y el «Cierre», y «Escribir desde la ficha».
-4. Revisa los tres copies, corrige y toca «Guardar».
-5. Elige el «Nivel de aprobación» y toca «Enviar a aprobación».
+1. Desde la sección de su formato: el botón de la sección («Nuevo reel», «Nuevo post»…) pone un borrador arriba, abierto. O «Crear» → «Nueva pieza» → «¿Qué quieres crear?» y eliges el formato.
+2. Desde un evento: pestaña «Piezas» → «Nueva pieza»: el «Formato», el «Mes», la «Categoría» y el «Título», y «Crear pieza».
+3. Escribe el título y llena los campos de su formato en la tarjeta: se guardan solos.
+4. Sube el archivo en su espacio: el video y la portada, la imagen, las láminas o la foto o el clip.
+5. «Generar copies» → «Escribir desde la ficha»: revisa los tres copies y toca «Guardar».
 
-Flujo: [El semáforo](FLUJOS.md#flujo-aprobacion) · Tutorial en la app: “Cómo se usa una pieza”
+Flujo: [El mes de Redes](FLUJOS.md#flujo-mes-redes) · Tutorial en la app: “Cómo se usa una sección de Redes”
+
+#### Mandar una pieza a aprobación
+_Cuándo:_ Cuando la pieza está lista.
+
+1. En la tarjeta, abajo: «Enviar a aprobación». Si está apagado, debajo dice «Falta para enviarla:» y qué falta.
+2. Para elegir el «Nivel de aprobación» (verde, amarillo o rojo), abre la pieza en grande: tres puntos → «Abrir la pieza».
+3. La tarjeta pasa a «En revisión» y dice «Espera al jefe».
+4. Cuando el jefe la aprueba: «En revisión · ✓ Lista» y «Revisado y listo para publicar».
+
+Flujo: [El semáforo](FLUJOS.md#flujo-aprobacion) · Tutorial en la app: “Cómo se usa una sección de Redes”
 
 #### Corregir lo que pidió el jefe
 _Cuándo:_ Cuando Hoy dice «Cambios».
 
-1. Abre la pieza: arriba, «Pidieron cambios» con lo que dijo el jefe.
+1. Abre la tarjeta: arriba de la revisión dice «Pidieron cambios: revísalos y vuelve a enviarla.»; en la pieza en grande, «Pidieron cambios» con lo que dijo el jefe.
 2. Sube la versión nueva o corrige los copies.
 3. Toca «Enviar a aprobación» otra vez.
 
 Flujo: [El semáforo](FLUJOS.md#flujo-aprobacion) · Tutorial en la app: “Cómo se usa una pieza”
+
+#### Cambiar algo de una pieza aprobada
+_Cuándo:_ Cuando hay que corregir algo que el jefe ya aprobó.
+
+1. Lo que sale (el copy, el título del reel o del video, el archivo, las imágenes de las láminas, el texto en pantalla y el sticker de la historia) se ve en lectura.
+2. Toca «Editar (vuelve al jefe)» y confirma: el campo se abre y se guarda solo.
+3. La pieza vuelve a «En revisión» y le llega al jefe otra vez.
+4. Lo demás (las tomas, el texto del arte, las notas, el pilar, el mes y el espacio del feed) se cambia libre y no vuelve al jefe.
+
+Flujo: [El semáforo](FLUJOS.md#flujo-aprobacion)
+
+#### Armar el feed del mes
+_Cuándo:_ Cada mes, cuando ya hay posts, reels y carruseles.
+
+1. Redes → «Feed», y el mes en las pestañas.
+2. Toca un espacio vacío («Elegir publicación»): elige el formato y luego el título. El #1, abajo a la derecha, es el primero que sale.
+3. Si la pieza ya está en otro espacio, dice «Ya en Mes n · #n» y te pregunta si la mueves: nunca queda en dos.
+4. Para mover una: tócala → «Publicar antes», «Publicar después» o «Cambiar de espacio». En la computadora también la puedes arrastrar.
+5. «Quitar del feed» la deja «Sin programar»; «Vaciar este mes» vacía todo el mes. No se borra ninguna pieza.
+
+Flujo: [El mes de Redes](FLUJOS.md#flujo-mes-redes) · Tutorial en la app: “Cómo se usa el feed del mes”
+
+#### Empezar un mes o mover una pieza de mes
+_Cuándo:_ Al empezar cada mes, o cuando una pieza va en otro.
+
+1. «+ Nuevo mes», después de las pestañas de los meses, empieza el que sigue.
+2. En una tarjeta: tres puntos → «Mover a otro mes» y eliges el mes. Su espacio en el feed se va con ella (o queda «Sin programar» si ese feed está lleno).
+3. En los tres puntos de las pestañas: «Cambiar nombre» (sin fecha ni hora) o «Borrar este mes». Antes de borrar te dice cuántas piezas tiene; no se borra ninguna: pasan a otro mes.
+
+Flujo: [El mes de Redes](FLUJOS.md#flujo-mes-redes) · Tutorial en la app: “Cómo se usa una sección de Redes”
+
+#### Marcar el diseño de una pieza
+_Cuándo:_ Cuando revisas cómo quedó el arte.
+
+1. En la tarjeta, «Diseño aprobado» o «Diseño desaprobado». Tocar el que está marcado lo quita.
+2. Al desaprobar, escribe «¿Qué no le gustó del diseño?» y toca «Guardar nota».
+3. No es la aprobación: no cambia el estado. Pero si el jefe desaprueba el diseño de una pieza aprobada, no se publica hasta que la vuelva a aprobar, y esa marca solo la quita él.
+
+#### Poner un aviso de cumplimiento
+_Cuándo:_ Cuando una pieza necesita cuidado antes de salir: un testimonio, un dato, una autorización.
+
+1. En la tarjeta, «Agregar aviso»: el «Tipo de aviso» y «Qué hay que cuidar», y «Guardar aviso».
+2. Sale en la banda «Antes de publicar», y el jefe lo ve antes de aprobar. Si la pieza ya estaba aprobada, vuelve al jefe.
+3. Cuando ya se cuidó, «Resuelto». Los avisos no se borran.
+
+#### Marcar «Ya lo publiqué» desde la tarjeta
+_Cuándo:_ Cuando publicaste a mano una pieza aprobada.
+
+1. En la tarjeta aprobada, «Ya lo publiqué».
+2. Marca cada red donde salió y pega su link; si tienes la captura, «Subir captura».
+3. Toca «Guardar»: la tarjeta se pone verde y dice «Publicado».
+4. Si el botón está apagado, debajo dice por qué: «Falta la aprobación del jefe» o que el diseño quedó desaprobado.
+
+Flujo: [El mes de Redes](FLUJOS.md#flujo-mes-redes)
 
 #### Publicar a mano
 _Cuándo:_ Cuando Hoy dice «Publicar» (aprobada: lista para publicar).
@@ -990,15 +1091,15 @@ Flujo: [Un evento, de la agenda a la publicación](FLUJOS.md#flujo-evento) · Tu
 |---|---|---|
 | **Hoy**<br>Hoy · `/hoy` | Tu pantalla de inicio: lo que espera por ti, en orden, y lo que está trancado. | «Lo que espera por mí»: «Cambios» (el jefe pidió cambios), «Storyboard» (falta el storyboard), «Material» (llegó el material: arma la pieza), «Publicar» (aprobada: lista para publicar) y «Grabación» (notas nuevas).<br>«Trancado»: «Falló la publicación en…», «Esperando frase del jefe», «Quedan n días de tweets» y las piezas que vencieron sin aprobar.<br>Los números: «Cambios pedidos», «Listas para publicar» y «Días de tweets». |
 | **Eventos**<br>Agenda · `/agenda` | Hacia dónde va y de qué se trata cada evento, ordenados por lo que hace falta. Sin fecha ni hora. | Cada evento dice cómo va y si tiene storyboard («Storyboard listo» o «Falta storyboard») y material.<br>Los que esperan al jefe dicen «Por decidir»; los urgentes, «Urgente».<br>Lo ya realizado y lo rechazado no salen aquí: lo realizado está en la Biblioteca y en cada pieza, con «Ver evento». |
-| **Un evento**<br>Agenda · `/eventos/[id]` | De qué se trata un evento y qué le falta, sin fecha ni hora. | Pestaña «Ficha»: la ficha técnica para leer, «¿En qué va?» (lo cambias tú) y «Quién graba» (puedes asignar a Grabación).<br>Pestaña «Ficha de obra» si es una visita de obra (sin contactos ni documentos).<br>Pestaña «Storyboard»: el plan de lo que se graba.<br>Pestaña «Material»: lo que subió Grabación y su nota para el editor.<br>Pestaña «Piezas»: las piezas del evento y «Nueva pieza».<br>No puedes: Ver la fecha, la hora o la dirección del evento.<br>No puedes: Mover, cancelar o decidir el evento. |
+| **Un evento**<br>Agenda · `/eventos/[id]` | De qué se trata un evento y qué le falta, sin fecha ni hora. | Pestaña «Ficha»: la ficha técnica para leer, «¿En qué va?» (lo cambias tú) y «Quién graba» (puedes asignar a Grabación).<br>Pestaña «Ficha de obra» si es una visita de obra (sin contactos ni documentos).<br>Pestaña «Storyboard»: el plan de lo que se graba.<br>Pestaña «Material»: lo que subió Grabación y su nota para el editor.<br>Pestaña «Piezas»: las piezas del evento, cada una con su formato, y «Nueva pieza» (con el «Formato» y el «Mes»).<br>No puedes: Ver la fecha, la hora o la dirección del evento.<br>No puedes: Mover, cancelar o decidir el evento. |
 | **Un evento: la pestaña Storyboard**<br>Agenda · `/eventos/[id]?tab=storyboard` | El plan de lo que se graba y lo que va a decir el jefe. | «Lo que va a decir»: el texto que el jefe lee en el modo lectura. En una visita de obra, «Usar como discurso» trae el diálogo FAB.<br>«Agregar bloque»: el plano, el ángulo, lo que dice el jefe, las tomas de apoyo, el dato y su fuente.<br>«Guardar storyboard». Debajo, el «Historial del storyboard». |
 | **Un evento: la pestaña Material**<br>Agenda · `/eventos/[id]?tab=material` | Lo que subió Grabación, con su nota para el editor. | Arriba, la «Entrega de Grabación»: la nota para el editor y el storyboard con el que grabó.<br>«Descargar todo el material» a una carpeta.<br>Las casillas con cada parte, y «Finales y portadas» con los archivos de las piezas.<br>También puedes subir material, si hace falta. |
-| **Redes**<br>Redes · `/redes` | El tablero de Redes: las secciones por formato, el feed y lo demás de Redes, con lo que espera en cada una. | Arriba, la barra de secciones: «Tablero», «Reels», «Posts», «Carruseles», «Historias», «YouTube», «Fin de mes», «Feed» y «Tweets», y «Buscar en Redes».<br>Una tarjeta por pantalla: Tweets, Publicar, Resultados y Biblioteca, con sus números.<br>Abajo, «Crear en Redes»: «Nueva pieza», «Tweets de la semana» y «Nueva publicación». |
-| **Una sección de Redes**<br>Redes · `/redes/[formato]` | Las piezas de un formato (reels, posts, carruseles, historias, videos de YouTube o fin de mes) en el mes que eliges. | Las pestañas de los meses y «+ Nuevo mes»: el mes que eliges sigue en las otras secciones y en el feed. |
-| **El feed del mes**<br>Redes · `/redes/feed` | Los espacios del feed del mes, en el orden en que se publican: el primero abajo a la derecha. | Se llega con «Feed», en la barra de secciones de Redes. |
-| **Buscar en Redes**<br>Redes · `/redes/buscar` | Para buscar en todo Redes: títulos, copies, avisos y tweets. | Se llega con «Buscar en Redes», en la barra de secciones. |
-| **Nueva pieza**<br>Redes · `/piezas/nueva` | Para crear una pieza. | Eliges el «Evento» (o «Sin evento»), el «Tipo», la «Categoría» y el «Título», y tocas «Crear pieza». |
-| **Una pieza**<br>Redes · `/piezas/[id]` | El archivo final, los copies y la aprobación de una pieza. | «Archivo final»: «Subir video final (nueva versión)» o «Subir imagen final (nueva versión)», y «Subir portada». Si ya estaba aprobada, vuelve a revisión.<br>«Copies»: eliges la «Fórmula», la «Voz» y el «Cierre» («Pregunta a la comunidad», una acción con destino o «Sin cierre»), y tocas «Escribir desde la ficha». Salen tres largos: solo con cifras de la ficha.<br>Revisas cada copy, lo corriges, «Guardar» y «Copiar».<br>«Nivel de aprobación»: verde (rutina), amarillo (normal) o rojo (sensible). Después, «Enviar a aprobación».<br>Si el jefe pidió cambios, arriba sale «Pidieron cambios» con lo que dijo. Corriges y la envías otra vez.<br>«Frases pedidas al jefe»: si hace falta su voz, aquí se sube con «Subir el audio del jefe».<br>«Ver evento» te lleva al evento de la pieza.<br>No puedes: Bajar el nivel que puso el jefe.<br>No puedes: Publicar una pieza que no está aprobada. |
+| **Redes: el tablero**<br>Redes · `/redes` | El tablero de Redes: lo que falta en cada formato, por mes o por trimestre, y lo último que pasó. | Arriba, la barra de secciones: «Tablero», «Reels», «Posts», «Carruseles», «Historias», «YouTube», «Fin de mes», «Feed» y «Tweets», y «Buscar en Redes». Cada formato dice lo revisado de su cupo («n/m») y cuántas piezas no tienen copy o imagen. Lleva el mes que tienes abierto.<br>Las cifras: «Receptividad media» (solo de las piezas puntuadas), «Listas para publicar» y «Programadas».<br>«Estado del contenido»: cada formato con siete números: «Revisados», «Por revisar», «Diseño aprobado», «Diseño desaprobado», «Publicado», «Copy faltante» e «Imagen faltante». Cada número te lleva a una pieza de esa casilla, abierta en su sección; la vez siguiente, a la que sigue. Un cero dice «¡al día!».<br>«Por mes» o «Por trimestre», con las flechas para ir al anterior o al siguiente.<br>«Observaciones»: los diseños desaprobados y los avisos abiertos. «Actividad reciente»: lo último que pasó en Redes, con cuánto hace.<br>«Buscar en Redes»: títulos, campos de las tarjetas, copies, avisos y tweets.<br>«Acciones rápidas»: un toque crea un «Nuevo reel», un «Nuevo post», un «Nuevo carrusel», una «Nueva historia», un «Nuevo video de YouTube» o una «Nueva pieza de fin de mes» en el mes abierto y lo abre en su sección. También el «Feed», los «Tweets de la semana» y la «Nueva publicación».<br>Abajo, «Lo demás de Redes»: Tweets, Publicar, Resultados y Biblioteca, con sus números. |
+| **Una sección de Redes**<br>Redes · `/redes/[formato]` | Las piezas de un formato (reels, posts, carruseles, historias, videos de YouTube o fin de mes) en el mes que eliges, cada una como una tarjeta que se edita ahí mismo y se guarda sola. | Las pestañas de los meses y «+ Nuevo mes»: cada pestaña dice cuántas piezas tiene de su cupo («Mes n · x de y»), y el mes que eliges sigue en las otras secciones y en el feed.<br>En los tres puntos de las pestañas: «Cambiar nombre» y «Borrar este mes» (antes te dice cuántas piezas tiene; no se borra ninguna: pasan a otro mes).<br>Debajo, el cupo del mes de ese formato. Es informativo: pasarse no bloquea nada.<br>El botón de la sección («Nuevo reel», «Nuevo post»…) pone un borrador arriba, abierto y con el título listo para escribir. «Orden»: «A mano», «Orden del feed», «Más recientes» o «Más antiguas».<br>La cabecera de cada tarjeta: la miniatura, su número en el feed (o «Sin programar»), el título, el estado, el día en que se creó, el pilar y «En Feed · Mes n #n», que te lleva a su espacio en el feed.<br>Los estados se calculan solos: «Borrador», «En revisión», «En revisión · ✓ Lista» (aprobada y sin publicar), «Programado» y «Publicado» (la tarjeta se pone verde).<br>En el teléfono las tarjetas empiezan plegadas, menos la primera: «Desplegar» la abre y «Plegar» la cierra. Una tarjeta a la que llegas desde el tablero, el feed o la búsqueda se abre sola.<br>En los tres puntos de la tarjeta: «Abrir la pieza», «Duplicar», «Subir» y «Bajar» (con el orden «A mano») y «Mover a otro mes».<br>Reels: el «Título (sale como título del Short)», el «Video», la «Portada», la «Referencia» (la foto de cómo tiene que verse: no sale), las tomas («Agregar toma», cada una con «Lo que dice», «La acción» y «Texto en pantalla»; «Traer del storyboard» si nació de un evento) y el copy.<br>Posts: la «Proporción», la imagen, el «Texto del arte» («Antetítulo», «Titular», «Sellos» y «Letra pequeña»), el «Concepto visual», el «CTA», los «Hashtags», el caption, las «Notas de publicación» y «Enlaces / referencias». «Poner en el copy» pasa el CTA y los hashtags al caption.<br>Carruseles: las «Láminas» en orden (Portada, Desarrollo, Resumen y CTA), cada una con su imagen, su «Título de la lámina» y su «Texto de la lámina»; «Agregar lámina», «Antes», «Después» y «Quitar lámina». Debajo, el «Hook», el «CTA», los «Hashtags» y el caption.<br>Historias: la «Idea original», la foto o el clip vertical, el «Formato del sticker», el «Texto del sticker», el «Enlace del sticker» (solo enlaces seguros, con https), el «Texto en pantalla» y el «Seguimiento». Nacen en verde, para que el jefe las apruebe juntas.<br>YouTube: el «Título (sale con el video)», el «Video», la «Miniatura», el «Guion por tomas» y la «Descripción con capítulos (copy largo)».<br>Fin de mes: arriba, el «Resumen del mes» (lo hecho de cada cupo, lo aprobado, lo publicado, la receptividad, los diseños desaprobados y los avisos abiertos); debajo, las piezas del cierre, con sus «Imágenes del cierre» en orden (cada una con su título y su nota) y el copy. No tiene cupo.<br>Debajo de los campos: «Agregar aviso» y la banda «Antes de publicar»; «Diseño aprobado» y «Diseño desaprobado», con «¿Qué no le gustó del diseño?»; y en posts, reels y carruseles, la «Receptividad del público (1 a 10)».<br>La revisión: en un borrador, «Enviar a aprobación» (si falta algo, debajo dice «Falta para enviarla:» y qué) y «Generar copies». En revisión, «Espera al jefe». Aprobada: «Revisado y listo para publicar».<br>Ya publicada a mano, «Ya lo publiqué»: cada red con su link, «Subir captura» y «Guardar». Sin la aprobación dice «Falta la aprobación del jefe».<br>En una pieza aprobada, lo que sale (el copy, el título del reel o del video, el archivo, las imágenes de las láminas, el texto en pantalla y el sticker de la historia) se ve en lectura: «Editar (vuelve al jefe)» lo abre, y la pieza vuelve a revisión. Lo demás se cambia libre.<br>No puedes: Eliminar una pieza: eso es del jefe.<br>No puedes: Quitar la marca de diseño que puso el jefe: «Esta marca la puso el jefe: solo él la quita.» |
+| **El feed del mes**<br>Redes · `/redes/feed` | Los 24 espacios del feed del mes, en el orden en que se publican: el #1, abajo a la derecha, es el primero que sale, y el #24 está arriba a la izquierda. Van posts, reels y carruseles. | Las pestañas de los meses son las mismas de las secciones, con cuántos espacios tiene ocupados cada uno.<br>Arriba, «n de 24 espacios ocupados en este mes» y la receptividad media; ahí mismo se dice cada cambio («Movida al #n»).<br>Un espacio vacío dice «Elegir publicación» y su número («Espacio #nn»): eliges el formato y luego el título. Si la pieza ya está puesta, dice «Ya en Mes n · #n» y te pregunta si la mueves: una pieza nunca está en dos espacios.<br>Un espacio lleno muestra la portada actual, su número y la receptividad; lo publicado lleva marco verde y «Publicado».<br>En el teléfono, un espacio lleno abre su menú: «Abrir la tarjeta», «Publicar antes», «Publicar después», «Cambiar de espacio», «Mover a otro mes» y «Quitar del feed». En la computadora, el espacio abre su tarjeta y el botón de los tres puntos abre el menú; también puedes arrastrar una pieza sobre otra para cambiarlas de lugar.<br>«Vaciar este mes» deja todas las piezas del mes «Sin programar»: no se borra ninguna y siguen en su sección.<br>Arriba de los espacios, el nombre y el cargo de la cuenta, y cuántas publicaciones tiene el mes. |
+| **Buscar en Redes**<br>Redes · `/redes/buscar` | Para buscar en todo Redes: títulos, campos de las tarjetas, copies, avisos y tweets. | Escribes al menos dos letras y tocas «Buscar». También está en el tablero y en la barra de secciones, con «Buscar en Redes».<br>Los resultados salen agrupados por formato; cada uno abre su tarjeta, en su sección y en su mes. Un tweet abre su tanda. |
+| **Nueva pieza desde un evento**<br>Redes · `/piezas/nueva` | Para crear una pieza que nace de un evento. Desde Redes es más rápido con el botón de cada sección o con «¿Qué quieres crear?». | Llegas desde la pestaña «Piezas» del evento, con «Nueva pieza».<br>Eliges el «Evento» (o «Sin evento»), el «Formato» (cada uno con su ayuda), el «Mes», la «Categoría» y el «Título» (sin fecha ni hora: Redes lo lee), y tocas «Crear pieza». |
+| **Una pieza en grande**<br>Redes · `/piezas/[id]` | La misma tarjeta de su sección, en grande, con los copies, el archivo final, sus versiones y el historial. Se abre con «Abrir la pieza» o desde un aviso. | Arriba, la tarjeta con sus campos, los avisos, el diseño, la receptividad y la revisión. Ahí eliges el «Nivel de aprobación» (verde, amarillo o rojo) y tocas «Enviar a aprobación».<br>«Copies»: eliges la «Fórmula», la «Voz» y el «Cierre» («Pregunta a la comunidad», una acción con destino o «Sin cierre»), y tocas «Escribir desde la ficha». Salen tres largos (el largo es el caption), solo con cifras de la ficha. Revisas cada uno, lo corriges y «Guardar».<br>«Archivo final»: «Subir video final (nueva versión)» o «Subir imagen final (nueva versión)», y «Subir portada». En un carrusel y en fin de mes, las imágenes van lámina por lámina en la tarjeta. Si ya estaba aprobada, vuelve a revisión.<br>Si el jefe pidió cambios, arriba sale «Pidieron cambios» con lo que dijo. Corriges y la envías otra vez.<br>«Frases pedidas al jefe»: si hace falta su voz, aquí se sube con «Subir el audio del jefe».<br>«Publicaciones» y el «Historial de revisión»; «Ver evento» te lleva al evento de la pieza.<br>No puedes: Bajar el nivel que puso el jefe.<br>No puedes: Publicar una pieza que no está aprobada. |
 | **Tweets**<br>Tweets · `/tweets` | Los tweets de la semana, repartidos por día y hora. | «Tweets de la semana» para subir la tanda nueva.<br>«Días cubiertos» y «Por salir»: si quedan pocos días, prepara la tanda siguiente.<br>Tocas un tweet: «Copiar texto», lo pegas en X y, ya publicado, pegas el link en «Pega el link del tweet» y tocas «Ya lo publiqué». También «Cambiar día y hora», «Agregar imagen de referencia» o «Saltar este tweet».<br>Abajo, «Tandas»: cada tanda con lo que tiene por aprobar y aprobado. |
 | **Tweets de la semana**<br>Tweets · `/tweets/nueva` | Para convertir el documento de la semana en tweets repartidos y mandarlos al jefe. | «Subir el documento (.docx, .txt o .md)» o pega el texto, y toca «Separar tweets».<br>Ponle el «Nombre de la tanda». Revisa cada tweet: su categoría, «Partir», «Unir con el siguiente» o quitarlo. Si un link no abre, te lo dice.<br>Toca «Repartir en la semana y enviar a aprobación»: quedan de 2 a 3 por día y le llegan al jefe.<br>«Empezar de nuevo» borra lo separado; tu texto sigue ahí. |
 | **Una tanda de tweets**<br>Tweets · `/tweets/[id]` | Una tanda: cuántos están por aprobar, aprobados y programados. | Esperas a que el jefe los apruebe.<br>Con los aprobados, «Programar»: quedan en el tablero con «Copiar texto» y «Ya lo publiqué».<br>«Repartir de nuevo» cambia las horas; «Editar textos» y «Guardar texto» los corrige. Si cambias uno aprobado, vuelve al jefe. |
@@ -1018,6 +1119,7 @@ Flujo: [Un evento, de la agenda a la publicación](FLUJOS.md#flujo-evento) · Tu
 | **Cómo va el trabajo entre todos**<br>En «Mi cuenta» · `/ayuda/flujos` | Cómo pasa el trabajo de un rol a otro, paso a paso: un evento, una obra, un reporte de la comunidad, los tweets, el semáforo, la entrega de Grabación, Mensajes y la ayuda. | Tocas un flujo para verlo. Los pasos que son tuyos dicen «tú». |
 
 ### Flujos
+- [El mes de Redes](FLUJOS.md#flujo-mes-redes)
 - [Un evento, de la agenda a la publicación](FLUJOS.md#flujo-evento)
 - [El semáforo](FLUJOS.md#flujo-aprobacion)
 - [Tweets de la semana](FLUJOS.md#flujo-tweets)
@@ -1041,6 +1143,18 @@ La pieza sigue sin aprobar y sale en «Trancado». Nunca sale sola.
 
 **¿Se publica solo?**
 No, por ahora se publica a mano: bajas el paquete, publicas en la red y marcas «Ya lo publiqué».
+
+**¿Dónde están las piezas?**
+En Redes, cada una en la sección de su formato y en el mes que elijas: Reels, Posts, Carruseles, Historias, YouTube y Fin de mes.
+
+**¿Por qué volvió al jefe?**
+Porque cambió algo de lo que sale (el copy, el archivo, el título del reel o del video, las imágenes de las láminas, el texto en pantalla o el sticker de la historia) o le pusieron un aviso nuevo. Lo demás se cambia sin que vuelva.
+
+**¿Por qué no puedo marcar «Ya lo publiqué»?**
+Porque falta la aprobación del jefe, o porque el jefe desaprobó el diseño después de aprobarla: hasta que la vuelva a aprobar, no sale.
+
+**¿Puedo eliminar una pieza?**
+No: solo el jefe elimina piezas, y no se borran de verdad.
 
 ## Cómo probar en la demo
 En la versión de demostración tocas el rol en «Versión de demostración» y entras directo (`DEMO.md`). Todo es inventado. Lo que uno crea puede no verse con otro rol o en otro teléfono (`DECISIONES.md` D-39 y D-57).

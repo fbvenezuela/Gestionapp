@@ -11,6 +11,7 @@ Cómo pasa el trabajo de un rol a otro. GitHub dibuja cada diagrama; debajo va e
 - [Un reporte de la comunidad](#flujo-comunitario)
 - [Tweets de la semana](#flujo-tweets)
 - [El semáforo](#flujo-aprobacion)
+- [El mes de Redes](#flujo-mes-redes)
 - [La entrega de Grabación](#flujo-entrega)
 - [Cómo se habla en Mensajes](#flujo-mensajes)
 - [Cómo pedir ayuda](#flujo-ayuda)
@@ -39,7 +40,7 @@ flowchart TD
   evento_storyboard --> evento_material
   evento_material["Grabación: Graba, sube el material por casillas y deja su «Entrega de Grabación». Cuando ya empezó, «Marcar realizado»."]
   evento_material --> evento_pieza
-  evento_pieza["Redes: «Nueva pieza»: el archivo final, la portada y los copies con «Escribir desde la ficha»."]
+  evento_pieza["Redes: La pieza en la sección de su formato, o desde la pestaña «Piezas» del evento con «Nueva pieza» (el «Formato» y el «Mes»): el archivo, sus campos y los copies con «Escribir desde la ficha»."]
   evento_pieza --> evento_aprueba
   evento_aprueba["Jefe: La aprobación, con el semáforo: tiene su propio flujo."]
   evento_aprueba --> evento_publica
@@ -61,7 +62,7 @@ flowchart TD
 3. **Despacho, Jefe o Redes:** «Quién graba»: eligen a la persona de Grabación, y le llega el aviso.
 4. **Redes:** Pestaña «Storyboard»: el plan de lo que se graba, y «Guardar storyboard». (`/agenda`)
 5. **Grabación:** Graba, sube el material por casillas y deja su «Entrega de Grabación». Cuando ya empezó, «Marcar realizado». (`/agenda`)
-6. **Redes:** «Nueva pieza»: el archivo final, la portada y los copies con «Escribir desde la ficha». (`/piezas/nueva`)
+6. **Redes:** La pieza en la sección de su formato, o desde la pestaña «Piezas» del evento con «Nueva pieza» (el «Formato» y el «Mes»): el archivo, sus campos y los copies con «Escribir desde la ficha». (`/redes`)
 7. **Jefe:** La aprobación, con el semáforo: tiene su propio flujo. (`/aprobar`)
 8. **Redes:** «Nueva publicación» → «Programar en n redes» → publica a mano → «Ya lo publiqué». (`/publicar`)
 9. **Redes:** En la publicación, «Cargar resultados». (`/resultados`)
@@ -192,30 +193,70 @@ Lo hacen: Redes y Jefe.
 
 ```mermaid
 flowchart TD
-  aprobacion_envia["Redes: En la pieza, «Nivel de aprobación» y «Enviar a aprobación»."]
+  aprobacion_envia["Redes: En la tarjeta, «Enviar a aprobación» (el «Nivel de aprobación» se elige en la pieza en grande)."]
   aprobacion_envia --> aprobacion_envia_q{"¿De qué color es?"}
   aprobacion_envia_q -- Verde --> aprobacion_envia_b1["Rutina: el jefe las aprueba todas de un toque, en el día."]
   aprobacion_envia_b1 --> aprobacion_aprobada
   aprobacion_envia_q -- Amarillo o rojo --> aprobacion_envia_b2["Amarillo en 60 minutos, rojo en 30."]
   aprobacion_envia_b2 --> aprobacion_revisa
-  aprobacion_revisa["Jefe: Abre la pieza, la mira y marca «Antes de aprobar»."]
+  aprobacion_revisa["Jefe: Abre la pieza (o «Revisar» en su tarjeta), la mira, lee los avisos y marca «Antes de aprobar»."]
   aprobacion_revisa --> aprobacion_revisa_q{"¿La aprueba?"}
   aprobacion_revisa_q -- Sí --> aprobacion_revisa_b1["«Aprobar»."]
   aprobacion_revisa_b1 --> aprobacion_aprobada
   aprobacion_revisa_q -- No --> aprobacion_revisa_b2["«Pedir cambios»: a Redes le llega «Cambios», corrige y la envía otra vez."]
   aprobacion_revisa_b2 --> aprobacion_envia
-  aprobacion_aprobada["Redes: Le llega «Aprobada: lista para publicar». Si vence el plazo sin respuesta, sigue sin aprobar y sale en «Trancado»."]
+  aprobacion_aprobada["Redes: Le llega «Aprobada: lista para publicar» y la tarjeta dice «Revisado y listo para publicar». Si vence el plazo sin respuesta, sigue sin aprobar y sale en «Trancado»."]
 ```
 
-1. **Redes:** En la pieza, «Nivel de aprobación» y «Enviar a aprobación». (`/redes`)
+1. **Redes:** En la tarjeta, «Enviar a aprobación» (el «Nivel de aprobación» se elige en la pieza en grande). (`/redes`)
    ¿De qué color es?
    - Verde → Rutina: el jefe las aprueba todas de un toque, en el día. Sigue en el paso 3.
    - Amarillo o rojo → Amarillo en 60 minutos, rojo en 30.
-2. **Jefe:** Abre la pieza, la mira y marca «Antes de aprobar». (`/aprobar`)
+2. **Jefe:** Abre la pieza (o «Revisar» en su tarjeta), la mira, lee los avisos y marca «Antes de aprobar». (`/aprobar`)
    ¿La aprueba?
    - Sí → «Aprobar».
    - No → «Pedir cambios»: a Redes le llega «Cambios», corrige y la envía otra vez. Sigue en el paso 1.
-3. **Redes:** Le llega «Aprobada: lista para publicar». Si vence el plazo sin respuesta, sigue sin aprobar y sale en «Trancado». (`/publicar`)
+3. **Redes:** Le llega «Aprobada: lista para publicar» y la tarjeta dice «Revisado y listo para publicar». Si vence el plazo sin respuesta, sigue sin aprobar y sale en «Trancado». (`/publicar`)
+
+<a id="flujo-mes-redes"></a>
+
+## El mes de Redes
+Lo hacen: Redes y Jefe.
+
+```mermaid
+flowchart TD
+  mes_redes_mes["Redes: Elige el mes en las pestañas (o «+ Nuevo mes») y mira el cupo de cada formato."]
+  mes_redes_mes --> mes_redes_crea
+  mes_redes_crea["Redes: Crea las piezas en la sección de cada formato («Nuevo reel», «Nuevo post»…) y llena sus tarjetas: el archivo, los campos y los copies."]
+  mes_redes_crea --> mes_redes_feed
+  mes_redes_feed["Redes: Arma el «Feed»: cada espacio con su pieza, del n.º 1 abajo a la derecha al n.º 24 arriba a la izquierda."]
+  mes_redes_feed --> mes_redes_envia
+  mes_redes_envia["Redes: «Enviar a aprobación» en cada tarjeta, con sus avisos de cumplimiento si hacen falta."]
+  mes_redes_envia --> mes_redes_aprueba
+  mes_redes_aprueba["Jefe: «Revisar»: mira la pieza, lee los avisos y marca «Antes de aprobar»."]
+  mes_redes_aprueba --> mes_redes_aprueba_q{"¿La aprueba?"}
+  mes_redes_aprueba_q -- Sí --> mes_redes_aprueba_b1["«Aprobar»: la tarjeta dice «Revisado y listo para publicar»."]
+  mes_redes_aprueba_b1 --> mes_redes_publica
+  mes_redes_aprueba_q -- No --> mes_redes_aprueba_b2["«Pedir cambios»: vuelve a Redes con su comentario."]
+  mes_redes_aprueba_b2 --> mes_redes_crea
+  mes_redes_publica["Redes: Publica a mano y marca «Ya lo publiqué» en la tarjeta, con el link de cada red: se pone verde."]
+  mes_redes_publica --> mes_redes_tablero
+  mes_redes_tablero["Redes o Jefe: El tablero dice lo que falta en cada formato: «Por revisar», «Copy faltante», «Imagen faltante»."]
+  mes_redes_tablero --> mes_redes_cierre
+  mes_redes_cierre["Redes o Jefe: Al cierre, la pieza de «Fin de mes» y, arriba de esa sección, el «Resumen del mes» para el jefe."]
+```
+
+1. **Redes:** Elige el mes en las pestañas (o «+ Nuevo mes») y mira el cupo de cada formato. (`/redes`)
+2. **Redes:** Crea las piezas en la sección de cada formato («Nuevo reel», «Nuevo post»…) y llena sus tarjetas: el archivo, los campos y los copies. (`/redes`)
+3. **Redes:** Arma el «Feed»: cada espacio con su pieza, del #1 abajo a la derecha al #24 arriba a la izquierda. (`/redes/feed`)
+4. **Redes:** «Enviar a aprobación» en cada tarjeta, con sus avisos de cumplimiento si hacen falta.
+5. **Jefe:** «Revisar»: mira la pieza, lee los avisos y marca «Antes de aprobar». (`/aprobar`)
+   ¿La aprueba?
+   - Sí → «Aprobar»: la tarjeta dice «Revisado y listo para publicar».
+   - No → «Pedir cambios»: vuelve a Redes con su comentario. Sigue en el paso 2.
+6. **Redes:** Publica a mano y marca «Ya lo publiqué» en la tarjeta, con el link de cada red: se pone verde. (`/redes`)
+7. **Redes o Jefe:** El tablero dice lo que falta en cada formato: «Por revisar», «Copy faltante», «Imagen faltante». (`/redes`)
+8. **Redes o Jefe:** Al cierre, la pieza de «Fin de mes» y, arriba de esa sección, el «Resumen del mes» para el jefe. (`/redes`)
 
 <a id="flujo-entrega"></a>
 

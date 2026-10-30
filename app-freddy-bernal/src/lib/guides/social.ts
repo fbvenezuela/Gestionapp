@@ -1,4 +1,5 @@
-// Redes' guide (R3, design §7.2, §7.3): each event into pieces, tweets and publications, without ever its date.
+// Redes' guide (R3, design §7.2, §7.3; R4, D-77): the month of content by format and its feed, each event into pieces,
+// tweets and publications, without ever its date.
 import type { RoleGuide } from './types';
 import { ACCOUNT, TOP, accountFor, bibliotecaSection, eventSection, everyoneSections, menuGroup, messagesSections, redesSections } from './sections';
 
@@ -10,12 +11,14 @@ export const SOCIAL_GUIDE: RoleGuide = {
   label: 'Redes',
   account: accountFor('social', '/hoy', false),
   job: {
-    mission: 'Conviertes cada evento en piezas, tweets y publicaciones, y cuentas cómo nos va.',
+    mission: 'Armas el mes de contenido por formato y su feed, conviertes cada evento en piezas, tweets y publicaciones, y cuentas cómo nos va.',
     responsibilities: [
+      'Armar el mes de contenido por formato (reels, posts, carruseles, historias, YouTube y fin de mes) con su cupo, y el feed del mes.',
       'Armar el storyboard de cada evento aceptado, para que Grabación sepa qué grabar.',
-      'Hacer las piezas: el archivo final, la portada y los copies desde la ficha, solo con cifras de la ficha.',
+      'Hacer las piezas en su tarjeta: el archivo, los campos de su formato y los copies desde la ficha, solo con cifras de la ficha.',
       'Mandarlas a aprobación con su nivel, y corregir lo que el jefe pida.',
-      'Publicar a mano lo aprobado, dejar la evidencia y cargar los resultados.',
+      'Marcar el diseño, la receptividad y los avisos de cumplimiento de cada pieza.',
+      'Publicar a mano lo aprobado, marcar «Ya lo publiqué» con su link y cargar los resultados.',
       'Preparar los tweets de la semana y publicarlos cada día.',
       'Anotar lo que el jefe publica por su cuenta.',
     ],
@@ -23,6 +26,7 @@ export const SOCIAL_GUIDE: RoleGuide = {
       'Pedir ni escribir la fecha, la hora o la dirección de un evento: Redes no las ve, y no van en una pieza.',
       'Publicar algo sin aprobar.',
       'Inventar cifras en un copy: si no está en la ficha, no se dice.',
+      'Eliminar piezas: eso es del jefe.',
     ],
     worksWith: [
       { role: 'boss', what: 'Aprueba todo lo que sale. Te pide cambios o te aprueba; a veces publica por su cuenta.' },
@@ -34,6 +38,7 @@ export const SOCIAL_GUIDE: RoleGuide = {
       'Cada día: Hoy, con «Lo que espera por mí» en orden.',
       'Cada día: los tweets del tablero, con «Copiar texto» y «Ya lo publiqué».',
       'Cada semana: la tanda de tweets nueva.',
+      'Cada mes: el mes nuevo con su cupo, su feed y, al cierre, la pieza de fin de mes.',
       'Después de publicar: la evidencia y los resultados.',
     ],
   },
@@ -41,8 +46,9 @@ export const SOCIAL_GUIDE: RoleGuide = {
     'Abres la plataforma y caes en Hoy.',
     '«Lo que espera por mí»: «Cambios», «Storyboard», «Material», «Publicar» y «Grabación», cada uno te lleva a lo que falta.',
     '«Trancado»: lo que se paró, como una publicación que falló o los pocos días de tweets.',
+    'En Redes, el tablero: lo que falta en cada formato del mes. Cada número te lleva a la tarjeta de esa pieza.',
     'Los tweets del día, en Tweets.',
-    'Lo aprobado, en Publicar; lo publicado, con sus resultados.',
+    'Lo aprobado, en Publicar o con «Ya lo publiqué» en su tarjeta; lo publicado, con sus resultados.',
   ],
   tasks: [
     {
@@ -73,25 +79,112 @@ export const SOCIAL_GUIDE: RoleGuide = {
     },
     {
       id: 'pieza',
-      title: 'Hacer una pieza y mandarla a aprobar',
-      when: 'Cuando ya tienes el material.',
+      title: 'Hacer una pieza',
+      when: 'Cuando ya tienes el material, o cuando toca llenar el mes.',
       steps: [
-        '«Crear» → «Nueva pieza» (o la pestaña «Piezas» del evento): el «Evento», el «Tipo», la «Categoría» y el «Título», y «Crear pieza».',
-        '«Subir video final (nueva versión)» o «Subir imagen final (nueva versión)», y «Subir portada».',
-        'En «Copies», la «Fórmula», la «Voz» y el «Cierre», y «Escribir desde la ficha».',
-        'Revisa los tres copies, corrige y toca «Guardar».',
-        'Elige el «Nivel de aprobación» y toca «Enviar a aprobación».',
+        'Desde la sección de su formato: el botón de la sección («Nuevo reel», «Nuevo post»…) pone un borrador arriba, abierto. O «Crear» → «Nueva pieza» → «¿Qué quieres crear?» y eliges el formato.',
+        'Desde un evento: pestaña «Piezas» → «Nueva pieza»: el «Formato», el «Mes», la «Categoría» y el «Título», y «Crear pieza».',
+        'Escribe el título y llena los campos de su formato en la tarjeta: se guardan solos.',
+        'Sube el archivo en su espacio: el video y la portada, la imagen, las láminas o la foto o el clip.',
+        '«Generar copies» → «Escribir desde la ficha»: revisa los tres copies y toca «Guardar».',
+      ],
+      flow: 'mes-redes',
+      tour: 'redes-seccion',
+    },
+    {
+      id: 'enviar',
+      title: 'Mandar una pieza a aprobación',
+      when: 'Cuando la pieza está lista.',
+      steps: [
+        'En la tarjeta, abajo: «Enviar a aprobación». Si está apagado, debajo dice «Falta para enviarla:» y qué falta.',
+        'Para elegir el «Nivel de aprobación» (verde, amarillo o rojo), abre la pieza en grande: tres puntos → «Abrir la pieza».',
+        'La tarjeta pasa a «En revisión» y dice «Espera al jefe».',
+        'Cuando el jefe la aprueba: «En revisión · ✓ Lista» y «Revisado y listo para publicar».',
       ],
       flow: 'aprobacion',
-      tour: 'pieza',
+      tour: 'redes-seccion',
     },
     {
       id: 'cambios',
       title: 'Corregir lo que pidió el jefe',
       when: 'Cuando Hoy dice «Cambios».',
-      steps: ['Abre la pieza: arriba, «Pidieron cambios» con lo que dijo el jefe.', 'Sube la versión nueva o corrige los copies.', 'Toca «Enviar a aprobación» otra vez.'],
+      steps: [
+        'Abre la tarjeta: arriba de la revisión dice «Pidieron cambios: revísalos y vuelve a enviarla.»; en la pieza en grande, «Pidieron cambios» con lo que dijo el jefe.',
+        'Sube la versión nueva o corrige los copies.',
+        'Toca «Enviar a aprobación» otra vez.',
+      ],
       flow: 'aprobacion',
       tour: 'pieza',
+    },
+    {
+      id: 'editar-aprobada',
+      title: 'Cambiar algo de una pieza aprobada',
+      when: 'Cuando hay que corregir algo que el jefe ya aprobó.',
+      steps: [
+        'Lo que sale (el copy, el título del reel o del video, el archivo, las imágenes de las láminas, el texto en pantalla y el sticker de la historia) se ve en lectura.',
+        'Toca «Editar (vuelve al jefe)» y confirma: el campo se abre y se guarda solo.',
+        'La pieza vuelve a «En revisión» y le llega al jefe otra vez.',
+        'Lo demás (las tomas, el texto del arte, las notas, el pilar, el mes y el espacio del feed) se cambia libre y no vuelve al jefe.',
+      ],
+      flow: 'aprobacion',
+    },
+    {
+      id: 'feed',
+      title: 'Armar el feed del mes',
+      when: 'Cada mes, cuando ya hay posts, reels y carruseles.',
+      steps: [
+        'Redes → «Feed», y el mes en las pestañas.',
+        'Toca un espacio vacío («Elegir publicación»): elige el formato y luego el título. El #1, abajo a la derecha, es el primero que sale.',
+        'Si la pieza ya está en otro espacio, dice «Ya en Mes n · #n» y te pregunta si la mueves: nunca queda en dos.',
+        'Para mover una: tócala → «Publicar antes», «Publicar después» o «Cambiar de espacio». En la computadora también la puedes arrastrar.',
+        '«Quitar del feed» la deja «Sin programar»; «Vaciar este mes» vacía todo el mes. No se borra ninguna pieza.',
+      ],
+      flow: 'mes-redes',
+      tour: 'feed',
+    },
+    {
+      id: 'mes',
+      title: 'Empezar un mes o mover una pieza de mes',
+      when: 'Al empezar cada mes, o cuando una pieza va en otro.',
+      steps: [
+        '«+ Nuevo mes», después de las pestañas de los meses, empieza el que sigue.',
+        'En una tarjeta: tres puntos → «Mover a otro mes» y eliges el mes. Su espacio en el feed se va con ella (o queda «Sin programar» si ese feed está lleno).',
+        'En los tres puntos de las pestañas: «Cambiar nombre» (sin fecha ni hora) o «Borrar este mes». Antes de borrar te dice cuántas piezas tiene; no se borra ninguna: pasan a otro mes.',
+      ],
+      flow: 'mes-redes',
+      tour: 'redes-seccion',
+    },
+    {
+      id: 'diseno',
+      title: 'Marcar el diseño de una pieza',
+      when: 'Cuando revisas cómo quedó el arte.',
+      steps: [
+        'En la tarjeta, «Diseño aprobado» o «Diseño desaprobado». Tocar el que está marcado lo quita.',
+        'Al desaprobar, escribe «¿Qué no le gustó del diseño?» y toca «Guardar nota».',
+        'No es la aprobación: no cambia el estado. Pero si el jefe desaprueba el diseño de una pieza aprobada, no se publica hasta que la vuelva a aprobar, y esa marca solo la quita él.',
+      ],
+    },
+    {
+      id: 'aviso',
+      title: 'Poner un aviso de cumplimiento',
+      when: 'Cuando una pieza necesita cuidado antes de salir: un testimonio, un dato, una autorización.',
+      steps: [
+        'En la tarjeta, «Agregar aviso»: el «Tipo de aviso» y «Qué hay que cuidar», y «Guardar aviso».',
+        'Sale en la banda «Antes de publicar», y el jefe lo ve antes de aprobar. Si la pieza ya estaba aprobada, vuelve al jefe.',
+        'Cuando ya se cuidó, «Resuelto». Los avisos no se borran.',
+      ],
+    },
+    {
+      id: 'publicado',
+      title: 'Marcar «Ya lo publiqué» desde la tarjeta',
+      when: 'Cuando publicaste a mano una pieza aprobada.',
+      steps: [
+        'En la tarjeta aprobada, «Ya lo publiqué».',
+        'Marca cada red donde salió y pega su link; si tienes la captura, «Subir captura».',
+        'Toca «Guardar»: la tarjeta se pone verde y dice «Publicado».',
+        'Si el botón está apagado, debajo dice por qué: «Falta la aprobación del jefe» o que el diseño quedó desaprobado.',
+      ],
+      flow: 'mes-redes',
     },
     {
       id: 'publicar',
@@ -208,12 +301,16 @@ export const SOCIAL_GUIDE: RoleGuide = {
     ...everyoneSections('social').filter((x) => x.menu === TOP),
     ...everyoneSections('social').filter((x) => x.menu === ACCOUNT),
   ],
-  flows: ['evento', 'aprobacion', 'tweets', 'entrega', 'obra', 'mensajes', 'ayuda'],
+  flows: ['mes-redes', 'evento', 'aprobacion', 'tweets', 'entrega', 'obra', 'mensajes', 'ayuda'],
   faq: [
     { q: '¿Por qué no veo la fecha de los eventos?', a: 'Porque la agenda del jefe es información de seguridad: Redes ve los eventos sin fecha, sin hora y sin dirección. La base de datos lo cuida.' },
     { q: 'No encuentro un evento que ya pasó', a: 'Los eventos realizados no salen en tu lista. Ábrelo desde Hoy («Grabación»), la Biblioteca o la pieza, con «Ver evento».' },
     { q: '¿Puedo bajar el nivel de una pieza?', a: 'No: Redes puede subirlo, no bajarlo. El jefe lo cambia si hace falta.' },
     { q: '¿Qué pasa si vence el plazo de aprobación?', a: 'La pieza sigue sin aprobar y sale en «Trancado». Nunca sale sola.' },
     { q: '¿Se publica solo?', a: 'No, por ahora se publica a mano: bajas el paquete, publicas en la red y marcas «Ya lo publiqué».' },
+    { q: '¿Dónde están las piezas?', a: 'En Redes, cada una en la sección de su formato y en el mes que elijas: Reels, Posts, Carruseles, Historias, YouTube y Fin de mes.' },
+    { q: '¿Por qué volvió al jefe?', a: 'Porque cambió algo de lo que sale (el copy, el archivo, el título del reel o del video, las imágenes de las láminas, el texto en pantalla o el sticker de la historia) o le pusieron un aviso nuevo. Lo demás se cambia sin que vuelva.' },
+    { q: '¿Por qué no puedo marcar «Ya lo publiqué»?', a: 'Porque falta la aprobación del jefe, o porque el jefe desaprobó el diseño después de aprobarla: hasta que la vuelva a aprobar, no sale.' },
+    { q: '¿Puedo eliminar una pieza?', a: 'No: solo el jefe elimina piezas, y no se borran de verdad.' },
   ],
 };

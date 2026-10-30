@@ -9,6 +9,8 @@ import { tweetStock } from '../data/tweets';
 import { toSchedule } from '../data/events';
 import { obraStageCounts, overdueReports } from '../data/fichas';
 import { BOSS_DECISION, NETWORK_LABEL, PIECE_STATUS, WORK_STATUS } from '../data/labels';
+import { getNavCounts, getRedesSettings, monthContext } from '../data/redes';
+import { FEED_FORMATS, FORMAT, isFormat, type Format } from '../domain/redes';
 import { windowHint, type PublishingWindows } from '../domain/publishing-windows';
 import { bestTimes } from '../domain/best-times';
 import { dt, today } from '../time';
@@ -87,6 +89,20 @@ function bestMatches<T>(rows: T[], q: string, text: (r: T) => string, max = 5): 
 
 const has = (s: Session, ...r: Role[]) => r.some((x) => s.roles.includes(x));
 
+/** Where a piece lives in Redes (R4): «Reel», «Mes 1» and «#7 del feed de Mes 1» (or «sin programar»; only posts, reels
+ * and carousels go in the feed). */
+export function redesPlace(p: { format: string; month: string | null; feed_num: number | null; feed_month: string | null }): {
+  formato: string | null; mes: string | null; espacio_feed: string | null;
+} {
+  const f: Format | null = isFormat(p.format) ? p.format : null;
+  const inFeed = !!f && (FEED_FORMATS as readonly Format[]).includes(f);
+  return {
+    formato: f ? FORMAT[f].label : null,
+    mes: p.month,
+    espacio_feed: !inFeed ? null : p.feed_num ? `#${p.feed_num} del feed${p.feed_month && p.feed_month !== p.month ? ` de ${p.feed_month}` : ''}` : 'sin programar',
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Catalog
 // ---------------------------------------------------------------------------
@@ -111,6 +127,17 @@ export const TOOLS: Tool[] = [
         if (has(s, 'politics') && !has(s, 'boss')) push('Vencida', overdue);
         if (has(s, 'social', 'admin')) {
           push('El jefe pidió cambios', await sql.query(`select title from public.pieces where status = 'changes_requested' and deleted_at is null order by updated_at desc limit 5`));
+          // The open month of Redes (R4, D-71): how many pieces lack their copy or their image, as the board's
+          // «Copy faltante» and «Imagen faltante» count them (the same matrix), right after the changes asked.
+          const mc = await monthContext(sql, null);
+          if (mc.active) {
+            const counts = Object.values(await getNavCounts(sql, mc.active.id, (await getRedesSettings(sql)).quotas));
+            const pieces = (n: number) => `${n} ${n === 1 ? 'pieza' : 'piezas'} de ${mc.active!.label}`;
+            const copy = counts.reduce((n, c) => n + c.copyMissing, 0);
+            const image = counts.reduce((n, c) => n + c.imageMissing, 0);
+            if (copy) items.push({ que: 'Copy faltante', titulo: pieces(copy) });
+            if (image) items.push({ que: 'Imagen faltante', titulo: pieces(image) });
+          }
           push('Falta el storyboard', await sql.query(
             `select e.title from public.events e left join public.storyboards sb on sb.event_id = e.id
               where e.deleted_at is null and e.cancelled_at is null and e.boss_decision = 'accepted' and public.event_done_on(e.id) is null
@@ -196,7 +223,7 @@ export const TOOLS: Tool[] = [
   {
     name: 'estado_pieza',
     description:
-      'Cómo va una pieza (video, portada…) buscándola por palabras de su título: estado, color del semáforo, versión y si ya se publicó. Si devuelve varias, pregunta cuál. No aprueba ni cambia nada.',
+      'Cómo va una pieza (reel, post, carrusel, historia…) buscándola por palabras de su título: estado, color del semáforo, versión, si ya se publicó, su formato, su mes y su espacio en el feed. Si devuelve varias, pregunta cuál. No aprueba ni cambia nada.',
     parameters: { titulo: { type: 'string', description: 'Palabras del título de la pieza, tal como las dijo la persona.' } },
     required: ['titulo'],
     fromServer: [],
@@ -204,10 +231,23 @@ export const TOOLS: Tool[] = [
     level: 'cuenta',
     async run(a, ctx) {
       const rows = await db(ctx.session, (sql) =>
-        sql.query<{ id: string; title: string; status: string; review_level: string; current_version: number; approved_version: number | null; published: number }>(
-          `select p.id, p.title, p.status, p.review_level, p.current_version, p.approved_version,
+        sql.query<{
+          id: string; title: string; status: string; review_level: string; current_version: number; approved_version: number | null; published: number;
+          format: string; month: string | null; feed_num: number | null; feed_month: string | null;
+        }>(
+          // R4: its format, its month (the first live one when it has none) and its place in the feed. Never the agenda.
+          `with first as (select label from public.content_months where deleted_at is null order by ordinal limit 1)
+           select p.id, p.title, p.status, p.review_level, p.current_version, p.approved_version, p.format,
+                  coalesce(m.label, (select label from first)) as month, f.num as feed_num, f.month as feed_month,
                   (select count(*)::int from public.publications x where x.piece_id = p.id and x.status = 'published' and x.deleted_at is null) as published
-             from public.pieces p where p.deleted_at is null order by p.updated_at desc limit 300`,
+             from public.pieces p
+             left join public.content_months m on m.id = p.content_month_id and m.deleted_at is null
+             left join lateral (
+               select s.num, fm.label as month from public.feed_slots s
+                 join public.content_months fm on fm.id = s.month_id and fm.deleted_at is null
+                where s.piece_id = p.id limit 1
+             ) f on true
+            where p.deleted_at is null order by p.updated_at desc limit 300`,
         ),
       );
       if (!terms(String(a.titulo ?? '')).length) return { result: { encontradas: 0, piezas: [], falta: 'Pregunta qué pieza: una palabra de su título.' } };
@@ -223,6 +263,7 @@ export const TOOLS: Tool[] = [
             version: p.current_version,
             version_aprobada: p.approved_version,
             publicada_en_redes: p.published,
+            ...redesPlace(p),
           })),
         },
         goTo: found.length === 1 ? (editor ? `/piezas/${found[0].id}` : `/aprobar/${found[0].id}`) : found.length ? (editor ? '/redes' : '/aprobar') : null,

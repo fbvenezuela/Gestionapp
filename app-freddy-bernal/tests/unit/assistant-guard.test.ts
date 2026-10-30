@@ -294,8 +294,8 @@ describe('cerebro de demostración: la negativa sin la hora del título (S4) y e
   it('un error o un problema en el contenido no es soporte: contestan las fichas (S10, ronda 3)', async () => {
     const SUPPORT = /No hay teléfono de soporte/;
     const ask = (key: DemoUserKey, q: string) => handleTurn(sessionOf(key), { question: q }, LOCAL);
-    expect((await ask('boss', 'hay un error en el copy, ¿cómo lo corrijo?')).answer).toMatch(/^En la pieza, pestaña Copies/);
-    expect((await ask('social', '¿qué hago si hay un error en el copy de una pieza aprobada?')).answer).toMatch(/^Las causas: la pieza no está aprobada/);
+    expect((await ask('boss', 'hay un error en el copy, ¿cómo lo corrijo?')).answer).toMatch(/^En la pieza en grande, en «Copies»/);
+    expect((await ask('social', '¿qué hago si hay un error en el copy de una pieza aprobada?')).answer).toMatch(/^Las causas por las que no deja publicar una pieza: no está aprobada/);
     for (const key of ['social', 'politics', 'ivt', 'boss', 'admin'] as DemoUserKey[]) {
       for (const q of ['tengo un problema con el copy de la pieza, ¿qué hago?', '¿qué pasa si hay un error en un tweet publicado?']) {
         expect((await ask(key, q)).answer, `${key}: ${q}`).not.toMatch(SUPPORT);

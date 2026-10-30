@@ -182,6 +182,10 @@ function Host({ userId, roles, tours }: TourHostProps) {
   // The latest run for the listeners (kept in step by the handlers that change it, and by the effect below).
   const live = useRef<Run | null>(null);
   const place = useRef<{ seq: number; index: number; place: Place } | null>(null);
+  // Where the step's scroll leaves the page: the page may move after the step was planned (a notice or a tip that shows
+  // once the phone's storage is read pushes the target down, R4). With the scroll done and nothing of the target left
+  // to ring (off the screen, or under the card), the step is planned again, twice at most (measure).
+  const planned = useRef<{ key: string; y: number; again: number } | null>(null);
   const seq = useRef(0);
   const dialog = useRef<HTMLDialogElement>(null);
   const card = useRef<HTMLDivElement>(null);
@@ -336,9 +340,21 @@ function Host({ userId, roles, tours }: TourHostProps) {
     const vp = viewport();
     const bars = readBars();
     const target = el ? box(el.getBoundingClientRect()) : null;
-    const at = cardSpot(p.place, target, size, vp, bars);
-    const ring = target ? ringSpot(target, p.place, at.top, size, vp) : null;
-    const next: Spot = { seq: p.seq, index: p.index, place: p.place, card: at, ring };
+    let placeNow = p.place;
+    let at = cardSpot(placeNow, target, size, vp, bars);
+    let ring = target ? ringSpot(target, placeNow, at.top, size, vp) : null;
+    const plan0 = planned.current;
+    if (el && target && !ring && plan0?.key === `${p.seq}:${p.index}` && plan0.again < 2 && Math.abs(window.scrollY - plan0.y) < 2 && !isPinned(el as unknown as Element)) {
+      const plan = planStep(target, size, vp, bars, false);
+      const by = Math.abs(plan.scrollBy) >= 1 ? plan.scrollBy : 0;
+      planned.current = { key: plan0.key, y: window.scrollY + by, again: plan0.again + 1 };
+      place.current = { seq: p.seq, index: p.index, place: plan.place };
+      if (by) window.scrollBy({ top: by, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      placeNow = plan.place;
+      at = cardSpot(placeNow, target, size, vp, bars);
+      ring = ringSpot(target, placeNow, at.top, size, vp);
+    }
+    const next: Spot = { seq: p.seq, index: p.index, place: placeNow, card: at, ring };
     setSpot((prev) => (prev && JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
   });
 
@@ -353,6 +369,7 @@ function Host({ userId, roles, tours }: TourHostProps) {
       const target = el ? box(el.getBoundingClientRect()) : null;
       const plan = planStep(target, { width: c.offsetWidth, height: c.offsetHeight }, viewport(), readBars(), el ? isPinned(el as unknown as Element) : false);
       place.current = { seq: active.seq, index: active.index, place: plan.place };
+      planned.current = { key: `${active.seq}:${active.index}`, y: window.scrollY + (Math.abs(plan.scrollBy) >= 1 ? plan.scrollBy : 0), again: 0 };
       if (Math.abs(plan.scrollBy) >= 1) {
         const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         window.scrollBy({ top: plan.scrollBy, behavior: reduce ? 'auto' : 'smooth' });

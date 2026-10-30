@@ -3,7 +3,7 @@
   "roles": {
     "admin": {
       "label": "Administración",
-      "oficio": "Administración es el rol técnico: maneja el equipo, los permisos y los ajustes (Ajustes: Equipo, categorías, fórmulas, horarios, reglas por red, marca, Buzón y Registro de cambios) y puede hacer todo lo de Redes. Nunca aprueba piezas ni tweets: todo eso lo aprueba [JEFE].",
+      "oficio": "Administración es el rol técnico: maneja el equipo, los permisos y los ajustes (Ajustes: Equipo, categorías, fórmulas, horarios, reglas por red, marca, Buzón, Registro de cambios y Cupo y pilares) y puede hacer casi todo lo de Redes. Nunca aprueba piezas ni tweets (todo eso lo aprueba [JEFE]) y no elimina piezas: recupera las que eliminó [JEFE].",
       "sugeridas": [
         "¿Qué tengo pendiente?",
         "¿Cómo invito a alguien nuevo?",
@@ -13,11 +13,11 @@
     },
     "boss": {
       "label": "Jefe",
-      "oficio": "[JEFE] tiene todo, hasta lo de Redes. Hace su propia agenda con Despacho: crea eventos y visitas de obra, les pone fecha y hora, los mueve y los cancela. Decide qué eventos se hacen (Política: calificar de 1 a 10, aceptar o rechazar), se prepara con «Lo que voy a decir» y aprueba todo lo que sale: las piezas verdes, amarillas y rojas y los tweets (Por aprobar; las verdes, todas de una vez con un toque; las demás, con la lista de chequeo). También puede hacer piezas, copies, tweets, publicaciones y cargar resultados, como Redes.",
+      "oficio": "[JEFE] tiene todo, hasta lo de Redes. Hace su propia agenda con Despacho: crea eventos y visitas de obra, les pone fecha y hora, los mueve y los cancela. Decide qué eventos se hacen (Política: calificar de 1 a 10, aceptar o rechazar), se prepara con «Lo que voy a decir» y aprueba todo lo que sale: las piezas verdes, amarillas y rojas y los tweets (Por aprobar; las verdes, todas de una vez con un toque; las demás, con la lista de chequeo). También puede hacer piezas, copies, el feed, tweets, publicaciones y cargar resultados, como Redes; en Redes ve el tablero del mes y el resumen del mes, y solo él elimina piezas.",
       "sugeridas": [
         "¿Qué me toca aprobar?",
         "¿Cómo apruebo todas las verdes de una vez?",
-        "¿Cómo va una pieza?",
+        "¿Cómo va el mes de Redes?",
         "¿Me muestras cómo se usa esta pantalla?"
       ]
     },
@@ -53,11 +53,11 @@
     },
     "social": {
       "label": "Redes",
-      "oficio": "Redes convierte cada evento en piezas: storyboard, material, video final, copies (fórmula, voz y cierre), mandar a aprobar con su color, publicar a mano, tweets de la semana y resultados. Nunca ve la fecha, la hora ni la dirección de los eventos, y no aprueba: todo lo aprueba [JEFE].",
+      "oficio": "Redes arma el mes de contenido por formato (reels, posts, carruseles, historias, YouTube y fin de mes) con su cupo y su feed, y convierte cada evento en piezas: storyboard, material, la tarjeta de cada pieza con su archivo y sus campos, copies (fórmula, voz y cierre), mandar a aprobar con su color, publicar a mano («Ya lo publiqué»), tweets de la semana y resultados. Marca el diseño, la receptividad y los avisos de cumplimiento. Nunca ve la fecha, la hora ni la dirección de los eventos, no aprueba (todo lo aprueba [JEFE]) y no elimina piezas.",
       "sugeridas": [
         "¿Qué tengo pendiente?",
-        "¿Cuántos días de tweets quedan?",
-        "¿A qué hora publico en TikTok?",
+        "¿Cómo armo el feed?",
+        "¿Cuánto me falta del cupo?",
         "¿Me muestras cómo se usa esta pantalla?"
       ]
     },

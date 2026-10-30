@@ -34,7 +34,7 @@ export const FLOWS: Flow[] = [
       { id: 'graba', roles: ['dispatch', 'boss', 'social'], text: '«Quién graba»: eligen a la persona de Grabación, y le llega el aviso.' },
       { id: 'storyboard', roles: ['social'], text: 'Pestaña «Storyboard»: el plan de lo que se graba, y «Guardar storyboard».', href: '/agenda' },
       { id: 'material', roles: ['camera'], text: 'Graba, sube el material por casillas y deja su «Entrega de Grabación». Cuando ya empezó, «Marcar realizado».', href: '/agenda' },
-      { id: 'pieza', roles: ['social'], text: '«Nueva pieza»: el archivo final, la portada y los copies con «Escribir desde la ficha».', href: '/piezas/nueva' },
+      { id: 'pieza', roles: ['social'], text: 'La pieza en la sección de su formato, o desde la pestaña «Piezas» del evento con «Nueva pieza» (el «Formato» y el «Mes»): el archivo, sus campos y los copies con «Escribir desde la ficha».', href: '/redes' },
       { id: 'aprueba', roles: ['boss'], text: 'La aprobación, con el semáforo: tiene su propio flujo.', href: '/aprobar' },
       { id: 'publica', roles: ['social'], text: '«Nueva publicación» → «Programar en n redes» → publica a mano → «Ya lo publiqué».', href: '/publicar' },
       { id: 'resultados', roles: ['social'], text: 'En la publicación, «Cargar resultados».', href: '/resultados' },
@@ -145,7 +145,7 @@ export const FLOWS: Flow[] = [
       {
         id: 'envia',
         roles: ['social'],
-        text: 'En la pieza, «Nivel de aprobación» y «Enviar a aprobación».',
+        text: 'En la tarjeta, «Enviar a aprobación» (el «Nivel de aprobación» se elige en la pieza en grande).',
         href: '/redes',
         question: '¿De qué color es?',
         branches: [
@@ -156,7 +156,7 @@ export const FLOWS: Flow[] = [
       {
         id: 'revisa',
         roles: ['boss'],
-        text: 'Abre la pieza, la mira y marca «Antes de aprobar».',
+        text: 'Abre la pieza (o «Revisar» en su tarjeta), la mira, lee los avisos y marca «Antes de aprobar».',
         href: '/aprobar',
         question: '¿La aprueba?',
         branches: [
@@ -164,7 +164,32 @@ export const FLOWS: Flow[] = [
           { label: 'No', text: '«Pedir cambios»: a Redes le llega «Cambios», corrige y la envía otra vez.', to: 'envia' },
         ],
       },
-      { id: 'aprobada', roles: ['social'], text: 'Le llega «Aprobada: lista para publicar». Si vence el plazo sin respuesta, sigue sin aprobar y sale en «Trancado».', href: '/publicar' },
+      { id: 'aprobada', roles: ['social'], text: 'Le llega «Aprobada: lista para publicar» y la tarjeta dice «Revisado y listo para publicar». Si vence el plazo sin respuesta, sigue sin aprobar y sale en «Trancado».', href: '/publicar' },
+    ],
+  },
+  {
+    id: 'mes-redes',
+    title: 'El mes de Redes',
+    roles: ['social', 'boss'],
+    steps: [
+      { id: 'mes', roles: ['social'], text: 'Elige el mes en las pestañas (o «+ Nuevo mes») y mira el cupo de cada formato.', href: '/redes' },
+      { id: 'crea', roles: ['social'], text: 'Crea las piezas en la sección de cada formato («Nuevo reel», «Nuevo post»…) y llena sus tarjetas: el archivo, los campos y los copies.', href: '/redes' },
+      { id: 'feed', roles: ['social'], text: 'Arma el «Feed»: cada espacio con su pieza, del #1 abajo a la derecha al #24 arriba a la izquierda.', href: '/redes/feed' },
+      { id: 'envia', roles: ['social'], text: '«Enviar a aprobación» en cada tarjeta, con sus avisos de cumplimiento si hacen falta.' },
+      {
+        id: 'aprueba',
+        roles: ['boss'],
+        text: '«Revisar»: mira la pieza, lee los avisos y marca «Antes de aprobar».',
+        href: '/aprobar',
+        question: '¿La aprueba?',
+        branches: [
+          { label: 'Sí', text: '«Aprobar»: la tarjeta dice «Revisado y listo para publicar».', to: 'publica' },
+          { label: 'No', text: '«Pedir cambios»: vuelve a Redes con su comentario.', to: 'crea' },
+        ],
+      },
+      { id: 'publica', roles: ['social'], text: 'Publica a mano y marca «Ya lo publiqué» en la tarjeta, con el link de cada red: se pone verde.', href: '/redes' },
+      { id: 'tablero', roles: ['social', 'boss'], text: 'El tablero dice lo que falta en cada formato: «Por revisar», «Copy faltante», «Imagen faltante».', href: '/redes' },
+      { id: 'cierre', roles: ['social', 'boss'], text: 'Al cierre, la pieza de «Fin de mes» y, arriba de esa sección, el «Resumen del mes» para el jefe.', href: '/redes' },
     ],
   },
   {

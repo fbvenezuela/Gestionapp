@@ -448,8 +448,22 @@ const PLACE_TOKEN = /\[{1,2}\s*[Ll]\s*\d{1,4}\s*\]{1,2}/;
  * date or a place still breaks it. A title's placeholder is not a when (an event place's placeholder is
  * a where); ratios («4/5»), «Hoy» the screen and how long something takes don't count.
  */
-export function breaksAgendaRule(answer: string, question: string, calls: ToolRun[] = [], titles: TitleSet = NO_TITLES, o: { answerToo?: boolean } = {}): boolean {
-  if (!aboutEvents(question, calls, titles) && !(o.answerToo && mentionsEvent(answer, titles))) return false;
+// The names of Redes that read like a when (R4, D-77): the section «Fin de mes» asked about («¿qué es fin de mes?»),
+// «Resumen del mes», «+ Nuevo mes», «Borrar este mes», «Mover a otro mes». A question that is about events only through
+// them asks about a section (`sectionAsk`, computed on the question before guardQuestion() turns them into «[fecha]»):
+// breaksAgendaRule() does not take it for an event question. An event lookup, or (on the model path) an answer that
+// names an event, is still checked whole, those words included.
+const REDES_SECTION_NAMES = /\b(?:(?:qu[eé] es|qu[eé] va en|para qu[eé] (?:es|sirve)|secci[oó]n(?: de)?|piezas? de)(?: la| el)? fin de mes|resumen del mes|nuevo mes|borr(?:ar|o|a) (?:este|el) mes|(?:a|de) otro mes|mes de redes)\b/gi;
+export const withoutRedesNames = (question: string) => String(question ?? '').replace(REDES_SECTION_NAMES, ' la sección ');
+/** Whether a question is about events only through the names of Redes' sections (see REDES_SECTION_NAMES). */
+export function asksRedesSection(question: string, titles: TitleSet = NO_TITLES): boolean {
+  const without = withoutRedesNames(question);
+  return without !== String(question ?? '') && !aboutEvent(without, titles);
+}
+
+export function breaksAgendaRule(answer: string, question: string, calls: ToolRun[] = [], titles: TitleSet = NO_TITLES, o: { answerToo?: boolean; sectionAsk?: boolean } = {}): boolean {
+  const asked = o.sectionAsk ? calls.some((c) => c.tool === 'buscar_evento') : aboutEvents(question, calls, titles);
+  if (!asked && !(o.answerToo && mentionsEvent(answer, titles))) return false;
   if (PLACE_TOKEN.test(answer)) return true;
   const t = String(answer ?? '').replace(ANY_TOKEN, 'el evento');
   if (hasPlaceOrContact(t)) return true;

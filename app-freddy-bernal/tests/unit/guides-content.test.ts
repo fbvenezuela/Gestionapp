@@ -217,6 +217,45 @@ describe('Mensajes, dicho igual en todas las guías (§7.2)', () => {
   }
 });
 
+describe('Redes por formato en las guías (R4, D-77, §6)', () => {
+  it('Redes: armar el mes, el feed, mandar a aprobación, lo aprobado, el diseño, los avisos y «Ya lo publiqué», con su flujo', () => {
+    const g = guideFor('social');
+    for (const id of ['pieza', 'enviar', 'editar-aprobada', 'feed', 'mes', 'diseno', 'aviso', 'publicado']) expect(g.tasks.some((t) => t.id === id), id).toBe(true);
+    expect(g.tasks.find((t) => t.id === 'feed')!.tour).toBe('feed');
+    expect(g.faq.some((f) => f.q === '¿Por qué volvió al jefe?')).toBe(true);
+    expect(g.flows).toContain('mes-redes');
+    for (const screen of ['/redes', '/redes/[formato]', '/redes/feed', '/redes/buscar', '/piezas/nueva', '/piezas/[id]']) expect(g.sections.some((s) => s.screen === screen), screen).toBe(true);
+    expect(g.sections.some((s) => s.screen === '/piezas')).toBe(false);
+    // Redes never deletes a piece; the section says so.
+    expect(g.sections.find((s) => s.screen === '/redes/[formato]')!.cannot?.join(' ')).toContain('Eliminar una pieza');
+  });
+
+  it('el jefe: eliminar una pieza, el resumen del mes y desaprobar un diseño; la sala con los avisos y la vuelta a la tarjeta', () => {
+    const g = guideFor('boss');
+    for (const id of ['redes', 'eliminar-pieza', 'resumen-mes', 'diseno', 'aprobar-pieza']) expect(g.tasks.some((t) => t.id === id), id).toBe(true);
+    expect(g.tasks.find((t) => t.id === 'aprobar-pieza')!.steps.join(' ')).toContain('«Leí los avisos de cumplimiento»');
+    expect(g.tasks.find((t) => t.id === 'diseno')!.steps.join(' ')).toContain('«¿Pedir cambios también?»');
+    const room = g.sections.find((s) => s.screen === '/aprobar/[id]')!;
+    expect(room.youDo.join(' ')).toContain('«Leí los avisos de cumplimiento»');
+    expect(g.sections.find((s) => s.screen === '/redes/[formato]')!.youDo.join(' ')).toContain('«Eliminar»');
+  });
+
+  it('el flujo «El mes de Redes»: Redes crea por formato, arma el feed, el jefe aprueba, Redes publica, el tablero y el cierre', () => {
+    const f = FLOWS.find((x) => x.id === 'mes-redes')!;
+    expect(f.title).toBe('El mes de Redes');
+    expect(f.steps.map((s) => s.id)).toEqual(['mes', 'crea', 'feed', 'envia', 'aprueba', 'publica', 'tablero', 'cierre']);
+    expect(f.steps.find((s) => s.id === 'aprueba')!.roles).toEqual(['boss']);
+    for (const s of f.steps) if (s.href) expect(screenFor(s.href), s.href).not.toBeNull();
+  });
+
+  it('administración: «Cupo y pilares» y recuperar lo que eliminó el jefe; no elimina piezas', () => {
+    const s = ADMIN_GUIDE.sections.find((x) => x.screen === '/ajustes/contenido')!;
+    expect(s.title).toBe('Cupo y pilares');
+    expect(s.youDo.join(' ')).toContain('«Recuperar»');
+    expect(s.cannot?.join(' ')).toContain('Eliminar piezas');
+  });
+});
+
 describe('la guía de administración va aparte (D-43)', () => {
   it('sus pantallas son de administración y dice que no entra a Mensajes y que el rol de jefe no se da desde Equipo', () => {
     for (const s of ADMIN_GUIDE.sections) if (s.screen) expect(canOpen(s.screen, ['admin']), s.screen).toBe(true);

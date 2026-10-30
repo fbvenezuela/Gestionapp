@@ -30,9 +30,24 @@ export const ADMIN_GUIDE: AdminGuide = {
     { screen: '/ajustes/redes', title: 'Reglas por red', what: 'La duración, las medidas y el peso de video de cada red, con los que se revisa una publicación.', youDo: ['Cambias el número de una red cuando la red cambia sus reglas.'] },
     { screen: '/ajustes/marca', title: 'Marca', what: 'El nombre, los colores, los logos, el saludo, los cierres y los hashtags.', youDo: ['Cambias los textos de la marca que usan los copies.'] },
     {
+      screen: '/ajustes/contenido',
+      title: 'Cupo y pilares',
+      what: 'El cupo del mes de cada formato de Redes, los pilares del contenido y las piezas que eliminó el jefe.',
+      youDo: [
+        '«Cupo del mes»: cuántos reels, posts, carruseles, historias y videos de YouTube se planean por mes. Es informativo: pasarse no bloquea nada, y fin de mes no tiene cupo. Toca «Guardar cupo».',
+        '«Pilares»: los temas del contenido. «Agregar pilar», su nombre y su «Color»; subirlo, bajarlo o quitarlo, y «Guardar pilares». Cambiarle el nombre no lo quita de sus piezas; si lo quitas, quedan «Sin pilar».',
+        '«Piezas eliminadas»: las que eliminó el jefe. «Recuperar» la devuelve a su mes (o al primero, si su mes ya no está), sin espacio en el feed.',
+        'En cada sección de Redes, «Cambiar en Ajustes» te trae aquí.',
+      ],
+      cannot: ['Eliminar piezas: solo el jefe elimina, con el doble factor.'],
+    },
+    {
       title: 'Google Drive',
       what: 'Dónde se guardan los videos, la conexión y una prueba. Solo sale en Ajustes cuando el material va a Drive.',
-      youDo: ['Conectas la cuenta de Drive del cliente y pruebas que sube y baja.'],
+      youDo: [
+        'Conectas la cuenta de Drive del cliente y pruebas que sube y baja.',
+        '«Organizar por orden del feed» sale aquí solo cuando lo encienden en la configuración del servidor; hoy está apagado.',
+      ],
     },
     {
       screen: '/ajustes/asistente',
@@ -56,6 +71,16 @@ export const ADMIN_GUIDE: AdminGuide = {
       title: 'Ver como',
       what: 'Para ver los menús de otro rol, arriba (en el teléfono, dentro de «Mi cuenta»). Tus permisos no cambian.',
       youDo: ['Eliges un rol o «Mi vista». Mientras miras, sale una franja que lo dice.', 'Los tutoriales también siguen «Ver como»; Mensajes no.'],
+    },
+    {
+      screen: '/redes',
+      title: 'Redes',
+      what: 'Puedes hacer lo de Redes: el tablero, las secciones por formato, el feed, Tweets, Publicar y Resultados.',
+      youDo: [
+        'Creas, editas y mandas a aprobar piezas; creas meses, les cambias el nombre y armas el feed.',
+        'Marcar el diseño, la receptividad y los avisos de cumplimiento, y borrar un mes, son de Redes y del jefe: tú los ves.',
+      ],
+      cannot: ['Aprobar ni eliminar piezas: todo lo aprueba el jefe, y solo él elimina. Tú recuperas en «Cupo y pilares».'],
     },
     {
       screen: '/aprobar',
@@ -82,5 +107,7 @@ export const ADMIN_GUIDE: AdminGuide = {
     { q: '¿Por qué no puedo marcar «Jefe» en Equipo?', a: BOSS_GRANT_MESSAGE + ' Así nadie arma otra cuenta que apruebe o lea todos los mensajes.' },
     { q: '¿Puedo leer los mensajes del equipo?', a: 'No. Mensajes no tiene entrada para administración, ni con «Ver como», ni en el registro de cambios.' },
     { q: '¿Qué ve el equipo de lo que hago?', a: 'Cada rol que das le llega al jefe como aviso. Las personas saben que lees lo que le preguntan a 360: el panel de 360 lo dice.' },
+    { q: '¿Puedo eliminar una pieza?', a: 'No: solo el jefe elimina piezas. Tú la recuperas en Ajustes → «Cupo y pilares» → «Piezas eliminadas» → «Recuperar».' },
+    { q: '¿Dónde cambio el cupo del mes o los pilares?', a: 'En Ajustes → «Cupo y pilares», con el doble factor. El cupo es informativo: pasarse no bloquea nada.' },
   ],
 };

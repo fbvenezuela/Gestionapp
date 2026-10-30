@@ -326,7 +326,7 @@ export function eventSection(role: TeamRole, menu: string): S {
           'Pestaña «Ficha de obra» si es una visita de obra (sin contactos ni documentos).',
           'Pestaña «Storyboard»: el plan de lo que se graba.',
           'Pestaña «Material»: lo que subió Grabación y su nota para el editor.',
-          'Pestaña «Piezas»: las piezas del evento y «Nueva pieza».',
+          'Pestaña «Piezas»: las piezas del evento, cada una con su formato, y «Nueva pieza» (con el «Formato» y el «Mes»).',
         ],
         cannot: ['Ver la fecha, la hora o la dirección del evento.', 'Mover, cancelar o decidir el evento.'],
       };
@@ -461,23 +461,38 @@ export function municipiosSections(role: 'boss' | 'dispatch' | 'politics', menu:
 
 // ── Redes' screens (Redes, and the boss who «tiene todo») ──────────────────────────────────────────────────────────
 
+// Each format's section (R4, D-61): what its card carries, with the labels of src/components/redes/card/fields-*.tsx.
+const FORMAT_FIELDS: string[] = [
+  'Reels: el «Título (sale como título del Short)», el «Video», la «Portada», la «Referencia» (la foto de cómo tiene que verse: no sale), las tomas («Agregar toma», cada una con «Lo que dice», «La acción» y «Texto en pantalla»; «Traer del storyboard» si nació de un evento) y el copy.',
+  'Posts: la «Proporción», la imagen, el «Texto del arte» («Antetítulo», «Titular», «Sellos» y «Letra pequeña»), el «Concepto visual», el «CTA», los «Hashtags», el caption, las «Notas de publicación» y «Enlaces / referencias». «Poner en el copy» pasa el CTA y los hashtags al caption.',
+  'Carruseles: las «Láminas» en orden (Portada, Desarrollo, Resumen y CTA), cada una con su imagen, su «Título de la lámina» y su «Texto de la lámina»; «Agregar lámina», «Antes», «Después» y «Quitar lámina». Debajo, el «Hook», el «CTA», los «Hashtags» y el caption.',
+  'Historias: la «Idea original», la foto o el clip vertical, el «Formato del sticker», el «Texto del sticker», el «Enlace del sticker» (solo enlaces seguros, con https), el «Texto en pantalla» y el «Seguimiento». Nacen en verde, para que el jefe las apruebe juntas.',
+  'YouTube: el «Título (sale con el video)», el «Video», la «Miniatura», el «Guion por tomas» y la «Descripción con capítulos (copy largo)».',
+  'Fin de mes: arriba, el «Resumen del mes» (lo hecho de cada cupo, lo aprobado, lo publicado, la receptividad, los diseños desaprobados y los avisos abiertos); debajo, las piezas del cierre, con sus «Imágenes del cierre» en orden (cada una con su título y su nota) y el copy. No tiene cupo.',
+];
+
 export function redesSections(role: 'boss' | 'social', group: (label: string) => string): S[] {
   const boss = role === 'boss';
   const list: S[] = [
-    // Redes by format (R4, D-60): Paso 0 writes these short sections of the new screens; WP-E writes them in full with
-    // the real labels of each screen.
+    // Redes by format (R4, D-60 to D-77): the board, a section with its cards, the feed and the search, with the real
+    // labels of src/components/redes and src/app/(panel)/redes.
     {
       screen: '/redes',
       menu: group('Redes'),
-      title: 'Redes',
+      title: 'Redes: el tablero',
       tour: 'redes',
       what: boss
-        ? 'Tu puerta a Redes: las secciones por formato, el feed y lo demás de Redes, con lo que espera en cada una.'
-        : 'El tablero de Redes: las secciones por formato, el feed y lo demás de Redes, con lo que espera en cada una.',
+        ? 'Tu puerta a Redes: lo que falta en cada formato, por mes o por trimestre, lo último que pasó y lo demás de Redes.'
+        : 'El tablero de Redes: lo que falta en cada formato, por mes o por trimestre, y lo último que pasó.',
       youDo: [
-        'Arriba, la barra de secciones: «Tablero», «Reels», «Posts», «Carruseles», «Historias», «YouTube», «Fin de mes», «Feed» y «Tweets», y «Buscar en Redes».',
-        'Una tarjeta por pantalla: Tweets, Publicar, Resultados y Biblioteca, con sus números.',
-        'Abajo, «Crear en Redes»: «Nueva pieza», «Tweets de la semana» y «Nueva publicación».',
+        'Arriba, la barra de secciones: «Tablero», «Reels», «Posts», «Carruseles», «Historias», «YouTube», «Fin de mes», «Feed» y «Tweets», y «Buscar en Redes». Cada formato dice lo revisado de su cupo («n/m») y cuántas piezas no tienen copy o imagen. Lleva el mes que tienes abierto.',
+        'Las cifras: «Receptividad media» (solo de las piezas puntuadas), «Listas para publicar» y «Programadas».',
+        '«Estado del contenido»: cada formato con siete números: «Revisados», «Por revisar», «Diseño aprobado», «Diseño desaprobado», «Publicado», «Copy faltante» e «Imagen faltante». Cada número te lleva a una pieza de esa casilla, abierta en su sección; la vez siguiente, a la que sigue. Un cero dice «¡al día!».',
+        '«Por mes» o «Por trimestre», con las flechas para ir al anterior o al siguiente.',
+        '«Observaciones»: los diseños desaprobados y los avisos abiertos. «Actividad reciente»: lo último que pasó en Redes, con cuánto hace.',
+        '«Buscar en Redes»: títulos, campos de las tarjetas, copies, avisos y tweets.',
+        '«Acciones rápidas»: un toque crea un «Nuevo reel», un «Nuevo post», un «Nuevo carrusel», una «Nueva historia», un «Nuevo video de YouTube» o una «Nueva pieza de fin de mes» en el mes abierto y lo abre en su sección. También el «Feed», los «Tweets de la semana» y la «Nueva publicación».',
+        'Abajo, «Lo demás de Redes»: Tweets, Publicar, Resultados y Biblioteca, con sus números.',
       ],
     },
     {
@@ -485,46 +500,81 @@ export function redesSections(role: 'boss' | 'social', group: (label: string) =>
       menu: group('Redes'),
       title: 'Una sección de Redes',
       tour: 'redes-seccion',
-      what: 'Las piezas de un formato (reels, posts, carruseles, historias, videos de YouTube o fin de mes) en el mes que eliges.',
-      youDo: ['Las pestañas de los meses y «+ Nuevo mes»: el mes que eliges sigue en las otras secciones y en el feed.'],
+      what: 'Las piezas de un formato (reels, posts, carruseles, historias, videos de YouTube o fin de mes) en el mes que eliges, cada una como una tarjeta que se edita ahí mismo y se guarda sola.',
+      youDo: [
+        'Las pestañas de los meses y «+ Nuevo mes»: cada pestaña dice cuántas piezas tiene de su cupo («Mes n · x de y»), y el mes que eliges sigue en las otras secciones y en el feed.',
+        'En los tres puntos de las pestañas: «Cambiar nombre» y «Borrar este mes» (antes te dice cuántas piezas tiene; no se borra ninguna: pasan a otro mes).',
+        'Debajo, el cupo del mes de ese formato. Es informativo: pasarse no bloquea nada.',
+        'El botón de la sección («Nuevo reel», «Nuevo post»…) pone un borrador arriba, abierto y con el título listo para escribir. «Orden»: «A mano», «Orden del feed», «Más recientes» o «Más antiguas».',
+        'La cabecera de cada tarjeta: la miniatura, su número en el feed (o «Sin programar»), el título, el estado, el día en que se creó, el pilar y «En Feed · Mes n #n», que te lleva a su espacio en el feed.',
+        'Los estados se calculan solos: «Borrador», «En revisión», «En revisión · ✓ Lista» (aprobada y sin publicar), «Programado» y «Publicado» (la tarjeta se pone verde).',
+        'En el teléfono las tarjetas empiezan plegadas, menos la primera: «Desplegar» la abre y «Plegar» la cierra. Una tarjeta a la que llegas desde el tablero, el feed o la búsqueda se abre sola.',
+        boss
+          ? 'En los tres puntos de la tarjeta: «Abrir la pieza», «Duplicar», «Subir» y «Bajar» (con el orden «A mano»), «Mover a otro mes» y «Eliminar» (con el doble factor: sale de su sección y del feed, y se puede recuperar).'
+          : 'En los tres puntos de la tarjeta: «Abrir la pieza», «Duplicar», «Subir» y «Bajar» (con el orden «A mano») y «Mover a otro mes».',
+        ...FORMAT_FIELDS,
+        'Debajo de los campos: «Agregar aviso» y la banda «Antes de publicar»; «Diseño aprobado» y «Diseño desaprobado», con «¿Qué no le gustó del diseño?»; y en posts, reels y carruseles, la «Receptividad del público (1 a 10)».',
+        boss
+          ? 'La revisión: en un borrador, «Enviar a aprobación» (si falta algo, dice qué) y «Generar copies». En revisión, «Revisar» te lleva a revisarla y, al decidir, te devuelve a la tarjeta. Aprobada: «Revisado y listo para publicar».'
+          : 'La revisión: en un borrador, «Enviar a aprobación» (si falta algo, debajo dice «Falta para enviarla:» y qué) y «Generar copies». En revisión, «Espera al jefe». Aprobada: «Revisado y listo para publicar».',
+        'Ya publicada a mano, «Ya lo publiqué»: cada red con su link, «Subir captura» y «Guardar». Sin la aprobación dice «Falta la aprobación del jefe».',
+        'En una pieza aprobada, lo que sale (el copy, el título del reel o del video, el archivo, las imágenes de las láminas, el texto en pantalla y el sticker de la historia) se ve en lectura: «Editar (vuelve al jefe)» lo abre, y la pieza vuelve a revisión. Lo demás se cambia libre.',
+      ],
+      cannot: boss
+        ? undefined
+        : ['Eliminar una pieza: eso es del jefe.', 'Quitar la marca de diseño que puso el jefe: «Esta marca la puso el jefe: solo él la quita.»'],
     },
     {
       screen: '/redes/feed',
       menu: group('Redes'),
       title: 'El feed del mes',
-      what: 'Los espacios del feed del mes, en el orden en que se publican: el primero abajo a la derecha.',
-      youDo: ['Se llega con «Feed», en la barra de secciones de Redes.'],
+      tour: 'feed',
+      what: 'Los 24 espacios del feed del mes, en el orden en que se publican: el #1, abajo a la derecha, es el primero que sale, y el #24 está arriba a la izquierda. Van posts, reels y carruseles.',
+      youDo: [
+        'Las pestañas de los meses son las mismas de las secciones, con cuántos espacios tiene ocupados cada uno.',
+        'Arriba, «n de 24 espacios ocupados en este mes» y la receptividad media; ahí mismo se dice cada cambio («Movida al #n»).',
+        'Un espacio vacío dice «Elegir publicación» y su número («Espacio #nn»): eliges el formato y luego el título. Si la pieza ya está puesta, dice «Ya en Mes n · #n» y te pregunta si la mueves: una pieza nunca está en dos espacios.',
+        'Un espacio lleno muestra la portada actual, su número y la receptividad; lo publicado lleva marco verde y «Publicado».',
+        'En el teléfono, un espacio lleno abre su menú: «Abrir la tarjeta», «Publicar antes», «Publicar después», «Cambiar de espacio», «Mover a otro mes» y «Quitar del feed». En la computadora, el espacio abre su tarjeta y el botón de los tres puntos abre el menú; también puedes arrastrar una pieza sobre otra para cambiarlas de lugar.',
+        '«Vaciar este mes» deja todas las piezas del mes «Sin programar»: no se borra ninguna y siguen en su sección.',
+        'Arriba de los espacios, el nombre y el cargo de la cuenta, y cuántas publicaciones tiene el mes.',
+      ],
     },
     {
       screen: '/redes/buscar',
       menu: group('Redes'),
       title: 'Buscar en Redes',
-      what: 'Para buscar en todo Redes: títulos, copies, avisos y tweets.',
-      youDo: ['Se llega con «Buscar en Redes», en la barra de secciones.'],
+      what: 'Para buscar en todo Redes: títulos, campos de las tarjetas, copies, avisos y tweets.',
+      youDo: [
+        'Escribes al menos dos letras y tocas «Buscar». También está en el tablero y en la barra de secciones, con «Buscar en Redes».',
+        'Los resultados salen agrupados por formato; cada uno abre su tarjeta, en su sección y en su mes. Un tweet abre su tanda.',
+      ],
     },
     {
       screen: '/piezas/nueva',
       menu: group('Redes'),
-      title: 'Nueva pieza',
-      what: 'Para crear una pieza.',
-      youDo: ['Eliges el «Evento» (o «Sin evento»), el «Tipo», la «Categoría» y el «Título», y tocas «Crear pieza».'],
+      title: 'Nueva pieza desde un evento',
+      what: 'Para crear una pieza que nace de un evento. Desde Redes es más rápido con el botón de cada sección o con «¿Qué quieres crear?».',
+      youDo: [
+        'Llegas desde la pestaña «Piezas» del evento, con «Nueva pieza».',
+        'Eliges el «Evento» (o «Sin evento»), el «Formato» (cada uno con su ayuda), el «Mes», la «Categoría» y el «Título» (sin fecha ni hora: Redes lo lee), y tocas «Crear pieza».',
+      ],
     },
     {
       screen: '/piezas/[id]',
       menu: group('Redes'),
-      title: 'Una pieza',
+      title: 'Una pieza en grande',
       tour: 'pieza',
-      what: 'El archivo final, los copies y la aprobación de una pieza.',
+      what: 'La misma tarjeta de su sección, en grande, con los copies, el archivo final, sus versiones y el historial. Se abre con «Abrir la pieza» o desde un aviso.',
       youDo: [
-        '«Archivo final»: «Subir video final (nueva versión)» o «Subir imagen final (nueva versión)», y «Subir portada». Si ya estaba aprobada, vuelve a revisión.',
-        '«Copies»: eliges la «Fórmula», la «Voz» y el «Cierre» («Pregunta a la comunidad», una acción con destino o «Sin cierre»), y tocas «Escribir desde la ficha». Salen tres largos: solo con cifras de la ficha.',
-        'Revisas cada copy, lo corriges, «Guardar» y «Copiar».',
-        '«Nivel de aprobación»: verde (rutina), amarillo (normal) o rojo (sensible). Después, «Enviar a aprobación».',
+        'Arriba, la tarjeta con sus campos, los avisos, el diseño, la receptividad y la revisión. Ahí eliges el «Nivel de aprobación» (verde, amarillo o rojo) y tocas «Enviar a aprobación».',
+        '«Copies»: eliges la «Fórmula», la «Voz» y el «Cierre» («Pregunta a la comunidad», una acción con destino o «Sin cierre»), y tocas «Escribir desde la ficha». Salen tres largos (el largo es el caption), solo con cifras de la ficha. Revisas cada uno, lo corriges y «Guardar».',
+        '«Archivo final»: «Subir video final (nueva versión)» o «Subir imagen final (nueva versión)», y «Subir portada». En un carrusel y en fin de mes, las imágenes van lámina por lámina en la tarjeta. Si ya estaba aprobada, vuelve a revisión.',
         'Si el jefe pidió cambios, arriba sale «Pidieron cambios» con lo que dijo. Corriges y la envías otra vez.',
         '«Frases pedidas al jefe»: si hace falta su voz, aquí se sube con «Subir el audio del jefe».',
-        '«Ver evento» te lleva al evento de la pieza.',
+        '«Publicaciones» y el «Historial de revisión»; «Ver evento» te lleva al evento de la pieza.',
       ],
-      cannot: ['Bajar el nivel que puso el jefe.', 'Publicar una pieza que no está aprobada.'],
+      cannot: boss ? undefined : ['Bajar el nivel que puso el jefe.', 'Publicar una pieza que no está aprobada.'],
     },
     {
       screen: '/tweets',
@@ -658,8 +708,9 @@ export function approveSections(menu: string): S[] {
       what: 'Todo lo que espera tu aprobación. Nada se publica sin ella.',
       youDo: [
         'Las pestañas «Piezas (n)» y «Tweets (n)».',
-        '«Aprobar todas las verdes (n)»: las de rutina, de un toque.',
+        '«Aprobar todas las verdes (n)»: las de rutina, de un toque. Se salta las que tienen avisos de cumplimiento abiertos: esas las abres una por una.',
         'Las amarillas y las rojas, por color y con su plazo: amarillo en 60 minutos, rojo en 30. Tocas una para revisarla.',
+        'Cada pieza dice su formato y, si le pusieron avisos, «Tiene avisos».',
         'Si vence el plazo, la pieza sigue sin aprobar y sale en «Trancado»: nunca sale sola.',
       ],
     },
@@ -676,13 +727,15 @@ export function approveSections(menu: string): S[] {
       menu,
       title: 'Revisar una pieza',
       tour: 'aprobar-pieza',
-      what: 'Para mirar una pieza antes de aprobarla.',
+      what: 'Para mirar una pieza antes de aprobarla. Llegas desde «Por aprobar», desde tu Inicio o con «Revisar» en su tarjeta de Redes.',
       youDo: [
-        'El video: si lo pausas, tu comentario queda en ese segundo.',
+        'Arriba, su formato y, si tiene avisos, «Tiene avisos». El video o la imagen: si pausas el video, tu comentario queda en ese segundo.',
+        'Lo de su formato, para leer: el texto del arte, las tomas o las láminas en orden. En una historia, «Lo que sale en la app»: el texto en pantalla y el sticker, que también apruebas.',
+        'Si tiene avisos, salen arriba de la lista («Antes de publicar») y la lista pide también «Leí los avisos de cumplimiento».',
         '«Qué hay que cambiar (o un comentario)», o los motivos rápidos («Muy largo», «Revisar ortografía», «Dice fecha u hora»…).',
         '«Copies: cómo saldrá»: el texto de cada red.',
         '«Antes de aprobar»: «Cada cifra tiene su fuente», «No dice fecha ni hora del evento», «Se ve y se oye bien (subtítulos, sonido)» y «Los tres copies están revisados». Hasta marcarlas, «Aprobar» dice «Marca la lista para aprobar».',
-        '«Aprobar», «Pedir cambios» (vuelve a Redes con tu comentario) o «Solo comentar».',
+        '«Aprobar», «Pedir cambios» (vuelve a Redes con tu comentario) o «Solo comentar». Si llegaste con «Revisar» desde una tarjeta, al decidir vuelves a esa tarjeta.',
         '«Cambiar nivel» si el color no es el correcto.',
       ],
     },

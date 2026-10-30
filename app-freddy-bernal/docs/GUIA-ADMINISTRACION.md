@@ -51,10 +51,20 @@ El nombre, los colores, los logos, el saludo, los cierres y los hashtags.
 
 - Cambias los textos de la marca que usan los copies.
 
+### Cupo y pilares (`/ajustes/contenido`)
+El cupo del mes de cada formato de Redes, los pilares del contenido y las piezas que eliminó el jefe.
+
+- «Cupo del mes»: cuántos reels, posts, carruseles, historias y videos de YouTube se planean por mes. Es informativo: pasarse no bloquea nada, y fin de mes no tiene cupo. Toca «Guardar cupo».
+- «Pilares»: los temas del contenido. «Agregar pilar», su nombre y su «Color»; subirlo, bajarlo o quitarlo, y «Guardar pilares». Cambiarle el nombre no lo quita de sus piezas; si lo quitas, quedan «Sin pilar».
+- «Piezas eliminadas»: las que eliminó el jefe. «Recuperar» la devuelve a su mes (o al primero, si su mes ya no está), sin espacio en el feed.
+- En cada sección de Redes, «Cambiar en Ajustes» te trae aquí.
+- No puedes: Eliminar piezas: solo el jefe elimina, con el doble factor.
+
 ### Google Drive
 Dónde se guardan los videos, la conexión y una prueba. Solo sale en Ajustes cuando el material va a Drive.
 
 - Conectas la cuenta de Drive del cliente y pruebas que sube y baja.
+- «Organizar por orden del feed» sale aquí solo cuando lo encienden en la configuración del servidor; hoy está apagado.
 
 ### Asistente (`/ajustes/asistente`)
 Lo que sabe 360, cómo contesta y cómo le va.
@@ -81,6 +91,13 @@ Para ver los menús de otro rol, arriba (en el teléfono, dentro de «Mi cuenta�
 - Eliges un rol o «Mi vista». Mientras miras, sale una franja que lo dice.
 - Los tutoriales también siguen «Ver como»; Mensajes no.
 
+### Redes (`/redes`)
+Puedes hacer lo de Redes: el tablero, las secciones por formato, el feed, Tweets, Publicar y Resultados.
+
+- Creas, editas y mandas a aprobar piezas; creas meses, les cambias el nombre y armas el feed.
+- Marcar el diseño, la receptividad y los avisos de cumplimiento, y borrar un mes, son de Redes y del jefe: tú los ves.
+- No puedes: Aprobar ni eliminar piezas: todo lo aprueba el jefe, y solo él elimina. Tú recuperas en «Cupo y pilares».
+
 ### Por aprobar (`/aprobar`)
 Ves lo que espera al jefe, pero no apruebas: todo lo aprueba el jefe.
 
@@ -106,3 +123,9 @@ No. Mensajes no tiene entrada para administración, ni con «Ver como», ni en e
 
 **¿Qué ve el equipo de lo que hago?**
 Cada rol que das le llega al jefe como aviso. Las personas saben que lees lo que le preguntan a 360: el panel de 360 lo dice.
+
+**¿Puedo eliminar una pieza?**
+No: solo el jefe elimina piezas. Tú la recuperas en Ajustes → «Cupo y pilares» → «Piezas eliminadas» → «Recuperar».
+
+**¿Dónde cambio el cupo del mes o los pilares?**
+En Ajustes → «Cupo y pilares», con el doble factor. El cupo es informativo: pasarse no bloquea nada.

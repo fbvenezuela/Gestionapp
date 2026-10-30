@@ -147,6 +147,21 @@ test('los flujos: el índice y uno abierto, con «tú» en los pasos de Redes', 
   await noSerious(page, '/ayuda/flujos?f=tweets (oscuro)');
 });
 
+test('el flujo «El mes de Redes» (R4): sus pasos, con «tú» en los de Redes y la sección de cada uno', async ({ page }) => {
+  await loginAs(page, 'redes@demo.test');
+  const month = FLOWS.find((f) => f.id === 'mes-redes')!;
+  await page.goto('/ayuda/flujos');
+  await page.getByRole('link', { name: new RegExp(`^${month.title}`) }).click();
+  await expect(page).toHaveURL(/\/ayuda\/flujos\?f=mes-redes$/);
+  const list = page.getByRole('list', { name: `${month.title}, ${month.steps.length} pasos` });
+  await expect(list.locator(':scope > li')).toHaveCount(month.steps.length);
+  await expect(list.getByText(' · tú')).toHaveCount(month.steps.filter((s) => s.roles.includes('social')).length);
+  // The feed's step opens the feed; the boss's step («Revisar») has no link for Redes.
+  await expect(list.locator('a[href="/redes/feed"]').first()).toBeVisible();
+  await expect(list.locator('a[href="/aprobar"]')).toHaveCount(0);
+  await check(page, '/ayuda/flujos?f=mes-redes');
+});
+
 test('el tutorial de Ayuda corre sobre la pantalla y cuenta sus pasos', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');
   await page.goto('/ayuda?tutorial=ayuda');

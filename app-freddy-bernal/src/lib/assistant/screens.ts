@@ -5,7 +5,7 @@
 import type { Role } from '../roles';
 import { CHAT_SCREENS } from '../chat-screens';
 import { HELP_SCREENS } from '../guides/screens';
-import { REDES_SCREENS } from '../redes-screens';
+import { REDES_SCREENS, redesSectionLabel } from '../redes-screens';
 import { plain } from './text';
 
 export type Screen = {
@@ -32,9 +32,9 @@ const BASE_SCREENS: Screen[] = [
   { href: '/obras/nueva', label: 'Nueva ficha de obra', roles: ['admin', 'boss', 'dispatch', 'ivt'], file: '(panel)/obras/nueva/page.tsx', phrases: ['nueva ficha de obra', 'cargar una obra', 'cargar la ficha de la obra'], nav: ['nueva ficha de obra'], about: 'en «Crear», arriba' },
   { href: '/municipios', label: 'Municipios', roles: ['admin', 'boss', 'dispatch', 'politics'], file: '(panel)/municipios/page.tsx', phrases: ['los municipios', 'reportes por municipio', 'fichas vencidas'], nav: ['municipios', 'vencidas'], about: 'los eventos y avances de cada municipio, con lo vencido arriba' },
   { href: '/reportes/nuevo', label: 'Nueva ficha comunitaria', roles: ['boss', 'dispatch', 'politics'], file: '(panel)/reportes/nuevo/page.tsx', phrases: ['nueva ficha comunitaria', 'reporte comunitario', 'cargar un reporte'], nav: ['ficha comunitaria', 'nuevo reporte'], about: 'en «Crear», arriba' },
-  { href: '/aprobar', label: 'Por aprobar', roles: ['boss', 'admin'], file: '(panel)/aprobar/page.tsx', phrases: ['por aprobar', 'aprobar las verdes', 'aprobar los tweets'], nav: ['por aprobar', 'aprobar', 'apruebo', 'aprueba', 'boton de aprobar', 'semaforo', 'piezas'], about: 'las piezas que esperan aprobación salen por color; abres una y ahí está el botón Aprobar' },
+  { href: '/aprobar', label: 'Por aprobar', roles: ['boss', 'admin'], file: '(panel)/aprobar/page.tsx', phrases: ['por aprobar', 'aprobar las verdes', 'aprobar los tweets'], nav: ['por aprobar', 'aprobar', 'apruebo', 'aprueba', 'boton de aprobar', 'semaforo'], about: 'las piezas que esperan aprobación salen por color; abres una y ahí está el botón Aprobar' },
   // «Piezas» became the board of Redes by format (R4, D-60): /piezas only sends here.
-  { href: '/redes', label: 'Redes', roles: ['admin', 'social', 'boss'], file: '(panel)/redes/page.tsx', phrases: ['pantalla de redes', 'la parte de redes', 'el area de redes', 'inicio de redes', 'las piezas', 'lista de piezas', 'tus piezas', 'tablero de redes'], nav: ['redes', 'area de redes', 'parte de redes', 'piezas', 'mis piezas', 'reels', 'posts', 'carruseles', 'historias', 'fin de mes', 'tablero'], about: 'el tablero de Redes: reels, posts, carruseles, historias, YouTube, fin de mes, el feed y los tweets' },
+  { href: '/redes', label: 'Redes', roles: ['admin', 'social', 'boss'], file: '(panel)/redes/page.tsx', phrases: ['pantalla de redes', 'la parte de redes', 'el area de redes', 'inicio de redes', 'las piezas', 'lista de piezas', 'tus piezas', 'tablero de redes'], nav: ['redes', 'area de redes', 'parte de redes', 'piezas', 'mis piezas', 'reels', 'posts', 'carruseles', 'historias', 'fin de mes', 'tablero'], about: 'el tablero y una sección por formato (reels, posts, carruseles, historias, YouTube y fin de mes), el feed y los tweets' },
   { href: '/piezas/nueva', label: 'Nueva pieza', roles: ['admin', 'social', 'boss'], file: '(panel)/piezas/nueva/page.tsx', phrases: ['nueva pieza', 'crear una pieza', 'crea la pieza'], nav: ['nueva pieza'], about: 'en «Crear», arriba' },
   { href: '/tweets', label: 'Tweets', roles: ['admin', 'social', 'boss'], file: '(panel)/tweets/page.tsx', phrases: ['los tweets', 'tweets de la semana', 'dias de tweets'], nav: ['tweets', 'tuits'], about: 'los tweets de la semana' },
   { href: '/tweets/nueva', label: 'Nueva tanda de tweets', roles: ['admin', 'social', 'boss'], file: '(panel)/tweets/nueva/page.tsx', phrases: ['subir la tanda', 'nueva tanda', 'cargar los tweets', 'pegar el documento'], nav: ['nueva tanda', 'tanda'], about: 'se pega o se sube el documento de la semana' },
@@ -159,7 +159,7 @@ export function screensIn(text: string): Screen[] {
  */
 export function pickGoTo(roles: Role[], o: { toolHrefs?: (string | null | undefined)[]; answer?: string; question?: string }): GoTo | null {
   for (const href of o.toolHrefs ?? []) {
-    if (href && canOpen(href, roles)) return { href, label: screenFor(href)!.label };
+    if (href && canOpen(href, roles)) return { href, label: redesSectionLabel(href) ?? screenFor(href)!.label };
   }
   // An answer that names several screens (the list of Ajustes) points to none of them.
   for (const text of [o.answer, o.question]) {

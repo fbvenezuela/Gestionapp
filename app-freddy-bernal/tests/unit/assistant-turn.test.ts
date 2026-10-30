@@ -326,7 +326,7 @@ describe('cerebro de demostración (sin IA)', () => {
     }
     expect((await ask('social', '¿Hoy sale la pieza de la cancha?')).answer).toMatch(/^La pieza «Cancha techada de El Mirador» está/);
     // How-tos and screens.
-    expect((await ask('boss', '¿Dónde queda el copy?')).answer).toMatch(/pestaña Copies/);
+    expect((await ask('boss', '¿Dónde queda el copy?')).answer).toMatch(/en «Copies»/);
     expect((await ask('ivt', '¿Dónde es que se cambia la contraseña?')).answer).toMatch(/En «Entrar»/);
     expect((await ask('admin', '¿Dónde está el material de la feria?')).answer).toMatch(/pestaña Material/);
     for (const [key, q] of [

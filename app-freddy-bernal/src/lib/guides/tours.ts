@@ -81,7 +81,7 @@ export const TOURS: Tour[] = [
       { target: ['#approve-title'], title: 'Te toca aprobar', body: 'Lo que espera tu aprobación, por color y con su plazo. Nada sale sin ti.' },
       { target: [anchor('approve-green')], title: 'Las verdes', body: 'Las verdes son de rutina: con este botón las apruebas todas de una vez.' },
       { target: ['#tile-politica-title'], title: 'Política', body: 'Tu agenda: lo que espera tu decisión, lo que está por ponerle fecha y lo que vas a decir.' },
-      { target: [anchor('grabacion-notes'), '#tile-redes-title'], title: 'Redes', body: 'Las piezas, los tweets y las notas nuevas que dejó Grabación para quien edita.' },
+      { target: [anchor('grabacion-notes'), '#tile-redes-title'], title: 'Redes', body: 'El mes de Redes por formato, los tweets, las notas nuevas de Grabación y el resumen del mes.' },
       { target: ['#tile-digital-title'], title: 'Digital', body: 'Lo publicado, lo que viene y cómo nos va.' },
     ],
   },
@@ -180,19 +180,19 @@ export const TOURS: Tour[] = [
       { target: [anchor('digital-upcoming')], title: 'Lo que viene', body: 'Lo que ya está programado.' },
     ],
   },
-  // Redes by format (R4, design §6): `redes` and `redes-seccion` are provisional from Paso 0 (on what the screens show
-  // today); WP-E writes them with the board's and the cards' anchors, and adds `feed`.
+  // Redes by format (R4, design §6): the board. Every step is on screen at 360, 810 and 1024 px (tours.spec.ts counts
+  // them per size: the engine skips a hidden anchor silently).
   {
     id: 'redes',
     screen: '/redes',
     roles: ['boss', 'social'],
     title: 'Cómo se usa Redes',
     steps: [
-      { target: ['nav[aria-label="Secciones de Redes"]'], title: 'Las secciones', body: 'Cada formato tiene su sección: reels, posts, carruseles, historias, YouTube y fin de mes. Después, el feed y los tweets.' },
-      { target: ['#hub-tweets-title'], title: 'Tweets', body: 'Cuántos días de tweets quedan y cuántos esperan aprobación.' },
-      { target: ['#hub-publicar-title'], title: 'Publicar', body: 'Lo aprobado, listo para publicar a mano.' },
-      { target: ['#hub-resultados-title'], title: 'Resultados', body: 'Cómo nos va, y lo que todavía no tiene sus números.' },
-      { target: ['nav[aria-label="Crear en Redes"]'], title: 'Crear', body: 'Una pieza, los tweets de la semana o una publicación nueva.' },
+      { target: ['nav[aria-label="Secciones de Redes"]'], title: 'Las secciones', body: 'Una sección por formato, con lo revisado de su cupo y lo que le falta. Después, el feed y los tweets.' },
+      { target: [anchor('redes-matrix')], title: 'Estado del contenido', body: 'Cada formato con siete números. Cada número te lleva a una pieza de esa casilla; la vez siguiente, a la que sigue.' },
+      { target: [anchor('redes-period')], title: 'Mes o trimestre', body: 'El tablero por mes o por trimestre, con las flechas para ir al anterior o al siguiente.' },
+      { target: [anchor('redes-search')], title: 'Buscar en Redes', body: 'Aquí buscas en títulos, campos, copies, avisos y tweets de todo Redes.' },
+      { target: ['nav[aria-label="Crear en Redes"]'], title: 'Acciones rápidas', body: 'Un reel, un post, una historia o cualquier formato, nuevo en el mes abierto y abierto en su sección.' },
     ],
   },
 
@@ -498,10 +498,31 @@ export const TOURS: Tour[] = [
     roles: ['social', 'boss'],
     title: 'Cómo se usa una sección de Redes',
     steps: [
-      { target: [anchor('month-tabs')], title: 'Los meses', body: 'Cada mes con sus piezas. El mes que eliges sigue en las otras secciones y en el feed.' },
+      { target: [anchor('month-tabs')], title: 'Los meses', body: 'Cada mes con sus piezas de su cupo. El mes que eliges sigue en las otras secciones y en el feed.' },
       { target: [anchor('month-new')], title: 'Nuevo mes', body: 'Aquí está «+ Nuevo mes», para empezar el mes que sigue.' },
-      { target: [anchor('new-piece')], title: 'Una pieza nueva', body: 'Desde aquí empiezas una pieza de esta sección.' },
-      { target: [anchor('piece-card')], title: 'Cada tarjeta', body: 'Cada pieza es una tarjeta: su archivo, sus campos y cómo va.' },
+      { target: [anchor('month-quota')], title: 'El cupo', body: 'Cuántas piezas de este formato lleva el mes, de su cupo. Pasarse no bloquea nada.' },
+      { target: [anchor('new-piece')], title: 'Una pieza nueva', body: 'Desde aquí pones un borrador arriba, abierto y con el título listo para escribir.' },
+      { target: [anchor('piece-card')], title: 'Cada tarjeta', body: 'Cada pieza es una tarjeta: su miniatura, su estado, su pilar y los campos de su formato. Se guarda sola.' },
+      {
+        target: [anchor('card-checks')],
+        title: 'La revisión',
+        body: {
+          social: 'Aquí la mandas a aprobación (si falta algo, te dice qué), ves si el jefe la aprobó y marcas «Ya lo publiqué».',
+          boss: 'Aquí se manda a aprobación; cuando te espera, «Revisar» te lleva a revisarla. Ya publicada, «Ya lo publiqué».',
+        },
+      },
+    ],
+  },
+  {
+    id: 'feed',
+    screen: '/redes/feed',
+    roles: ['social', 'boss'],
+    title: 'Cómo se usa el feed del mes',
+    steps: [
+      { target: [anchor('month-tabs')], title: 'Los meses', body: 'Los mismos meses de las secciones, con cuántos espacios tiene ocupados cada uno.' },
+      { target: [anchor('feed-live')], title: 'Cómo va', body: 'Cuántos espacios están ocupados y la receptividad media. Aquí también se dice cada cambio.' },
+      { target: [anchor('feed-clear-month')], title: 'Vaciar este mes', body: 'Deja todas las piezas del mes sin espacio. No borra ninguna: siguen en su sección.' },
+      { target: [anchor('feed-grid')], title: 'El feed', body: 'El #1, abajo a la derecha, es el primero que sale. Un espacio vacío se llena con «Elegir publicación».' },
     ],
   },
   {
