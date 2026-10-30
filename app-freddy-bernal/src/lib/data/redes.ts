@@ -353,6 +353,18 @@ export async function getMonthCounts(sql: Sql, of: Format | 'feed'): Promise<Rec
   return out;
 }
 
+/** «Borrar este mes» (D-67), said before asking: per live month, its live pieces of every format (the number
+ * delete_content_month checks) and its filled feed places (they become «Sin programar»). */
+export async function getMonthTotals(sql: Sql): Promise<Record<string, { pieces: number; placed: number }>> {
+  const rows = await sql.query<{ id: string; pieces: number; placed: number }>(
+    `select m.id,
+            (select count(*)::int from public.pieces p where p.content_month_id = m.id and p.deleted_at is null) as pieces,
+            (select count(*)::int from public.feed_slots s where s.month_id = m.id and s.piece_id is not null) as placed
+       from public.content_months m where m.deleted_at is null`,
+  );
+  return Object.fromEntries(rows.map((r) => [r.id, { pieces: r.pieces, placed: r.placed }]));
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // Feed (D-69)
 // ---------------------------------------------------------------------------------------------------------------

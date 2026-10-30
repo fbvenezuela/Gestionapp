@@ -73,20 +73,44 @@ test('quien graba sube el material por partes a su evento', async ({ page }) => 
   await expect(page.getByText('Jefe hablando 1', { exact: true })).toBeVisible({ timeout: 30_000 });
 });
 
-test('redes crea la pieza, sube el final, escribe los copies y la manda a aprobar', async ({ page }) => {
+// The piece of the event is a card of its section (R4, WP-C1): the final video goes up in the card, the copies are
+// written from the event's ficha at the piece (/piezas/[id]#copies) and the card sends it to the boss.
+test('redes sube el final en la tarjeta de Reels, escribe los copies y la manda a aprobar', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');
-  // Until the sections of Redes list their cards (WP-C1), the piece is found with the search (R4: /piezas went away).
-  await page.goto('/buscar?q=Jornada de salud escolar');
-  await page.getByRole('link', { name: 'Jornada de salud escolar' }).click();
-  await expect(page).toHaveURL(/\/piezas\/[0-9a-f-]{36}$/);
-  await page.getByLabel('Subir video final (nueva versión)').setInputFiles(fixture('vertical-4s.mp4'));
-  await expect(page.getByText('Nueva versión guardada.')).toBeVisible({ timeout: 30_000 });
+  await page.goto('/redes/reels');
+  const card = page.getByRole('article', { name: 'Jornada de salud escolar', exact: true });
+  const body = page.locator(`#${await card.getAttribute('id')}-body`);
+  // On the phone the cards after the first start folded.
+  await expect(async () => {
+    if (await body.isVisible()) return;
+    const unfold = card.getByRole('button', { name: 'Desplegar' });
+    if (await unfold.count()) await unfold.click();
+    await expect(body).toBeVisible({ timeout: 1500 });
+  }).toPass({ timeout: 20_000 });
+  await expect(card.getByRole('button', { name: 'Enviar a aprobación' })).toBeDisabled();
+  await expect(card.getByText('Sube el video final.')).toBeVisible();
+  await card.getByRole('button', { name: 'Subir video' }).click();
+  await card.getByLabel('Subir video').setInputFiles(fixture('vertical-4s.mp4'));
+  await expect(page.getByText('Video guardado.').first()).toBeVisible({ timeout: 30_000 });
+  await expect(card.getByText('Sube el video final.')).toHaveCount(0);
+  await card.getByRole('link', { name: 'Generar copies' }).click();
+  await expect(page).toHaveURL(/\/piezas\/[0-9a-f-]{36}#copies$/);
   await page.getByRole('button', { name: 'Escribir desde la ficha' }).click();
   await expect(page.getByText(/Copies listos desde la ficha/)).toBeVisible();
   await page.waitForLoadState('networkidle');
   await expect(page.getByLabel('Largo')).toHaveValue(/Saludos, Táchira/);
-  await page.getByRole('button', { name: 'Enviar a aprobación' }).click();
-  await expect(page.getByText('Enviada al jefe para aprobar.')).toBeVisible();
+  await page.goto('/redes/reels');
+  const again = page.getByRole('article', { name: 'Jornada de salud escolar', exact: true });
+  const send = again.getByRole('button', { name: 'Enviar a aprobación' });
+  await expect(async () => {
+    const unfold = again.getByRole('button', { name: 'Desplegar' });
+    if (!(await send.isVisible()) && (await unfold.count())) await unfold.click();
+    await expect(send).toBeVisible({ timeout: 1500 });
+  }).toPass({ timeout: 20_000 });
+  await expect(send).toBeEnabled();
+  await send.click();
+  await expect(page.getByText('Enviada al jefe para aprobar.').first()).toBeVisible();
+  await expect(again.getByText('Espera al jefe')).toBeVisible();
 });
 
 test('redes no puede publicar lo que no está aprobado', async ({ page }) => {

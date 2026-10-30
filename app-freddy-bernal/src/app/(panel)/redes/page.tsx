@@ -5,8 +5,10 @@ import { LinkButton } from '@/components/ui/button';
 import { HubTile } from '@/components/home/hub-tile';
 import { RedesNav } from '@/components/redes/redes-nav';
 import { DemoNotice } from '@/components/redes/demo-notice';
+import { CreateSheet } from '@/components/redes/create-sheet';
 import { redesCounts } from '@/lib/data/home-counts';
-import { monthParam } from '@/lib/domain/redes';
+import { monthContext } from '@/lib/data/redes';
+import { monthParam, withMonth } from '@/lib/domain/redes';
 
 export const metadata = { title: 'Redes' };
 
@@ -18,9 +20,12 @@ const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 // Paso 0 (integrator): the hub of before without the «Piezas» tile (its pieces go to the sections), the section bar and
 // the board's tutorial anchors, hidden. WP-D builds the board (and «¿Qué quieres crear?» with ?crear=1) and removes
 // each hidden anchor it replaces.
-export default async function RedesHub({ searchParams }: { searchParams: Promise<{ mes?: string }> }) {
+export default async function RedesHub({ searchParams }: { searchParams: Promise<{ mes?: string; crear?: string }> }) {
   const s = await requireRole('admin', 'social', 'boss');
-  const monthId = monthParam((await searchParams).mes);
+  const sp = await searchParams;
+  const monthId = monthParam(sp.mes);
+  // «Crear» → «Nueva pieza» (/redes?crear=1) opens «¿Qué quieres crear?» (WP-C1's sheet); nothing is created on load.
+  const create = sp.crear === '1' ? await db(s, (sql) => monthContext(sql, monthId)) : null;
   // What waits for the boss opens where he approves; Redes (who does not approve) goes to its own screen.
   const approver = s.roles.some((r) => r === 'boss' || r === 'admin');
   const c = await db(s, (sql) => redesCounts(sql));
@@ -29,6 +34,7 @@ export default async function RedesHub({ searchParams }: { searchParams: Promise
       <PageHeader title="Redes" subtitle="Las mismas pantallas que usa el equipo de Redes, con lo que espera en cada una." />
       <RedesNav active="dashboard" monthId={monthId} />
       <DemoNotice userId={s.userId} />
+      {create ? <CreateSheet defaultOpen monthId={create.active?.id ?? null} monthLabel={create.active?.label ?? ''} closeHref={withMonth('/redes', monthId)} /> : null}
       <div data-tour="redes-period" hidden />
       <div data-tour="redes-matrix" hidden />
       <div data-tour="redes-observations" hidden />

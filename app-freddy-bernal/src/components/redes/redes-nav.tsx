@@ -27,7 +27,7 @@ export function navCountText(f: Format, c: NavCount): string {
 
 const pill = (current: boolean) =>
   cn(
-    'inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-sm font-semibold',
+    'relative inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-sm font-semibold',
     current ? 'border-accent bg-accent text-on-accent' : 'border-border bg-surface text-text-2 hover:bg-surface-2 hover:text-text',
   );
 

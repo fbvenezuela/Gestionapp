@@ -1,10 +1,13 @@
 // The section bar of Redes (R4, D-60, F1, F2), rendered without a server: the nine sections and «Buscar en Redes» in
 // one named <nav>, the current one marked, every link with the open month, and each format's numbers said for screen
 // readers too («Posts: 3 de 8 revisados, 2 sin copy, 1 sin imagen»). Invented numbers.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { RedesNav, navCountText } from '@/components/redes/redes-nav';
+
+// The month tabs answer taps (WP-C1: «+ Nuevo mes», «⋯»): rendered here without the app's router.
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: () => {}, refresh: () => {}, replace: () => {} }), usePathname: () => '/redes/posts' }));
 import { MonthTabs, monthTabLabel } from '@/components/redes/month-tabs';
 import { sectionHref } from '@/lib/domain/redes';
 
