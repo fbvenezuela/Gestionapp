@@ -1301,3 +1301,27 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
   servidor) está en `docs/DEMO.md`, no en la pantalla.
 - **Por qué:** D-02/D-39: cada servidor de Vercel tiene su base en memoria.
 - **Cómo se cambia:** `src/lib/db/seed-parts/chat.ts`; el texto en `CHAT_NOT_IN_LIST`.
+
+## D-89. 360 contesta con sus respuestas: las guías, «Para todos», los flujos y las respuestas curadas (30/10/2026)
+- **Qué:** 360 tiene un índice de respuestas (`src/lib/assistant/answers/engine.ts`) hecho con lo que la plataforma ya
+  explica: las guías por rol (el trabajo, lo que se hace y lo que no, el día, las tareas con sus pasos, cada pantalla y
+  sus preguntas), «Para todos», los flujos y la guía de administración. Encima van las respuestas curadas
+  (`answers/*.ts`), con varias formas de preguntar y una respuesta por rol. La demo contesta con la mejor entrada cuando
+  es segura. Con IA, las mejores entradas entran como fichas. Además se ordenó el camino de la demo:
+  - la negativa de la agenda, solo para una trampa de verdad, aunque tenga etiquetas alrededor;
+  - las herramientas, solo en su pregunta;
+  - «¿puedo…?» con el «no puedes» del rol;
+  - lo que se sube, por rol;
+  - administración sin la oferta de avisarse a sí misma;
+  - la charla y 360 mismo;
+  - los conteos en `mis_pendientes`.
+  Los detalles están en `docs/ASISTENTE.md`, «Respuestas de 360».
+- **Por qué:** «que 360 sepa y pueda responder toda posible pregunta de cada usuario». Con 2694 preguntas calificadas,
+  la base contestaba bien el 32 %. Casi todo lo que faltaba ya estaba escrito en las guías, pero 360 no lo leía.
+- **Reglas que no cambian:** 360 nunca da la fecha, la hora, la dirección, el camino ni los contactos de un evento, a
+  nadie. Las respuestas son textos fijos sin fechas, y una prueba lo revisa. 360 nunca lee ni manda Mensajes, y nunca
+  pide ni muestra códigos. La red de salida sigue revisando fechas, lugares y contactos concretos en esos textos fijos.
+  Una respuesta débil nunca le gana a «No estoy seguro…».
+- **Cómo se cambia:** una respuesta que falta va en `answers/<rol>.ts`; su prueba de contenido revisa etiquetas, fechas y
+  nombres. Los umbrales están en `engine.ts`: `STRONG` 0,62 y `WEAK` 0,45. La débil sola, `WEAK_ALONE` 0,52, está en
+  `local.ts`. Si se sube `STRONG`, contestan más las fichas; si se baja, más el índice.
