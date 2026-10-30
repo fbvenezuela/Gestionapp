@@ -16,25 +16,28 @@ export const MESSAGES_TELL_TEXT = 'Eso se lo escribes tú en Mensajes, en un can
 // An account with Administración is out of Mensajes (D-82).
 export const MESSAGES_ADMIN_TEXT = 'Mensajes es solo para el equipo: una cuenta con administración no entra, y yo no leo ni mando mensajes.';
 
-const NOUN = String.raw`(?:mensajes?|mensajitos?|chats?|conversacion(?:es)?)`;
+const NOUN = String.raw`(?:mensajes?|mensajitos?|msjs?|chats?|conversacion(?:es)?|canal|canales)`;
 // Asked to 360: «lee», «léeme», «resúmeme», «revisa», «¿puedes leer…?».
 const READ_VERB = String.raw`(?:lee|leeme|leelo|leelos|leela|leelas|lees|leas|leer|leerme|revisa|revisame|revisalo|resume|resumeme|resumes|resumir|resumirme|resumen|chequea|chequeame)`;
 const FILLER = String.raw`(?:el|la|los|las|lo|mis|tus|sus|ese|esa|este|esta|esos|esas|estos|estas|un|una|ultimo|ultimos|ultima|ultimas|nuevo|nuevos|nueva|nuevas|de|del|que|me|todo|todos|todas)`;
-const READ = new RegExp(String.raw`\b${READ_VERB}(?: ${FILLER})* ${NOUN}\b`);
+// «Resúmeme lo que hablaron en el canal de Obras»: what was said in a channel, a few words later.
+const READ = new RegExp(String.raw`\b${READ_VERB}(?: ${FILLER})* ${NOUN}\b|\b${READ_VERB} (?:lo que|que) (?:\w+ ){0,3}(?:hablaron|dijeron|escribieron|pusieron|mandaron|conversaron|hablamos|dijimos) (?:\w+ ){0,2}${NOUN}\b`);
 // «¿Quién lee los mensajes?», «¿el jefe lee los mensajes?», «¿cómo leo…?», «¿dónde leo…?»: how Mensajes works
 // (the guide card), not a request to 360.
 const NOT_TO_ME = new RegExp(String.raw`\b(?:como|donde|en que (?:parte|pantalla)|puedo|podemos|se puede|se pueden|quien|quienes|jefe|administracion|admin|redes|despacho|politica|ivt|grabacion|alguien|nadie|otros)\b(?: (?:no|si|tambien|ya))?(?: (?:puede|pueden|puedo|podemos|va a|van a|deberia|tiene que|tienen que))? (?:me )?${READ_VERB}\b`);
 // What someone wrote or meant: these verbs are only ever about messages.
 const WROTE = /\bque (?:me |nos |te |le |les )?(?:escribio|escribieron|respondio|respondieron|contesto|contestaron|quiso decir|quisieron decir|quiere decir con)\b/;
 // What it says, said or put, with a word of Mensajes («¿qué dice el mensaje de Kevin?», «¿qué puso Rubén en el grupo?»).
-const SAID = new RegExp(String.raw`\bque (?:me |nos |te |le |les )?(?:dice|dicen|decia|dijo|dijeron|puso|pusieron|mando|mandaron)\b.*\b(?:${NOUN}|grupo|todo el equipo)\b`);
+const SAID = new RegExp(String.raw`\bque (?:me |nos |te |le |les )?(?:dice|dicen|decia|dijo|dijeron|puso|pusieron|mando|mandaron|hablaron|escribieron)\b.*\b(?:${NOUN}|grupo|todo el equipo)\b`);
 // A label of the screen, not what someone wrote.
 const LABEL = /\bmensajes? (?:oculto|nuevos?)\b/;
 
 // «Dile / mándale (un mensaje) / escríbele / pregúntale a <alguien> que…», not to administración (support).
 const TELL_VERB = String.raw`(?:dile|digale|decile|dila|diles|mandale|mandales|enviale|enviales|escribele|escribeles|preguntale|preguntales|comentale|comentales|recuerdale|recuerdales)`;
-const TELL = new RegExp(String.raw`\b${TELL_VERB}(?: (?:un|una|el|este|ese) (?:mensaje|mensajito|recado|nota))? (?:a|al|para) (?!(?:la )?(?:administracion|admin|soporte)\b)[a-z]+`);
-const SEND_ONE = new RegExp(String.raw`\b(?:manda|envia|escribe|mandame|enviame|escribeme|deja|dejale)(?:le|les)? (?:un |una )?(?:mensaje|mensajito) (?:a|al|para) (?!(?:la )?(?:administracion|admin|soporte)\b)[a-z]+`);
+const TELL = new RegExp(String.raw`\b${TELL_VERB}(?: (?:un|una|el|este|ese) (?:mensaje|mensajito|msj|mje|recado|nota))? (?:a|al|para) (?!(?:la )?(?:administracion|admin|soporte)\b)[a-z]+`);
+// «Avísale al jefe que…», «avísale a Kevin que…»: a message to someone (to a whole role it is a notice, step 4).
+const TELL_ONE = /\bavisale (?:al jefe|a (?!(?:redes|despacho|politica|ivt|grabacion|todos|todo|administracion|admin|soporte|equipo|la|el|los|las)\b)[a-z]+) que\b/;
+const SEND_ONE = new RegExp(String.raw`\b(?:manda|envia|escribe|mandame|enviame|escribeme|deja|dejale)(?:le|les)? (?:un |una )?(?:mensaje|mensajito|msj|mje) (?:a|al|para) (?!(?:la )?(?:administracion|admin|soporte)\b)[a-z]+`);
 const BY_MESSAGE = new RegExp(String.raw`\bavisa(?:le|les)?\b.*\bpor (?:${NOUN}|el chat|la red interna)\b`);
 // A notice for a whole role (step 4 of the demo brain): not a message.
 const NOTICE = /\bavisos?\b/;
@@ -57,7 +60,7 @@ export type MessagesAsk = 'read' | 'tell';
 export function messagesAsk(text: string): MessagesAsk | null {
   const q = plain(text);
   if (!q) return null;
-  if (!NOTICE.test(q) && (TELL.test(q) || SEND_ONE.test(q) || BY_MESSAGE.test(q))) return 'tell';
+  if (!NOTICE.test(q) && (TELL.test(q) || TELL_ONE.test(q) || SEND_ONE.test(q) || BY_MESSAGE.test(q))) return 'tell';
   if (LABEL.test(q)) return null;
   if (WROTE.test(q) || SAID.test(q)) return 'read';
   if (READ.test(q) && !NOT_TO_ME.test(q)) return 'read';

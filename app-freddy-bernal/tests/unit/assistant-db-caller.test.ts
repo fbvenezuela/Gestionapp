@@ -13,7 +13,8 @@ import type { Role } from '@/lib/roles';
 import { ASSISTANT_CALLER, asAssistant, db, system } from '@/lib/assistant/db';
 
 const dir = 'src/lib/assistant';
-const files = fs.readdirSync(dir).map((f) => path.join(dir, f));
+// Its files and the answers' folder (D-89).
+const files = fs.readdirSync(dir, { recursive: true, encoding: 'utf8' }).filter((f) => f.endsWith('.ts')).map((f) => path.join(dir, f));
 const read = (f: string) => fs.readFileSync(f, 'utf8');
 // Opening the database: the person's db(), withUser, withSystem, asUser, asSystem or the backend.
 const OPENS = /import\s*\{[^}]*\b(db|withUser|withSystem|asUser|asSystem|getBackend)\b[^}]*\}\s*from\s*['"](?:\.\.\/auth\/session|\.\.\/db(?:\/core|\/index)?|@\/lib\/auth\/session|@\/lib\/db(?:\/core|\/index)?)['"]/;

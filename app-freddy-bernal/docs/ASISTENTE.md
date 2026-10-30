@@ -272,6 +272,94 @@ Mensajes del todo.
   - el panel de la ventana lleva una línea fija: «Administración ve lo que le preguntas a {nombre}; no pegues aquí
     mensajes del equipo.».
 
+## Respuestas de 360 (desde el 30/10/2026, D-89)
+Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene además un **índice de respuestas**
+(`src/lib/assistant/answers/engine.ts`) armado con todo lo que la plataforma ya explica, en las palabras de sus pantallas.
+- **De dónde sale.** De las guías por rol (`src/lib/guides`): el trabajo de cada rol, lo que hace y lo que no, con quién
+  trabaja, su día, cada tarea con sus pasos, cada pantalla (qué es y qué se hace ahí) y sus preguntas. También de «Para
+  todos», de los flujos y de la guía de administración. Encima van las **respuestas curadas**
+  (`src/lib/assistant/answers/{todos,admin,boss,dispatch,politics,ivt,social,camera}.ts`, el formato en `types.ts`):
+  cada una trae al menos tres formas de preguntar y su respuesta por rol. Las revisa `assistant-answers-content.test.ts`:
+  etiquetas que existen, sin fechas, horas, direcciones, teléfonos ni nombres de la demo. Mensajes solo entra para el
+  equipo: a administración, la línea del sobre le dice que no es para ella. Lo que un rol no puede o nunca hace lleva
+  `may`, y solo contesta «¿puedo…?». El índice se arma una vez por servidor y cada pregunta tarda mucho menos de 20 ms
+  (hay una prueba).
+- **Cómo compara.** Las dos partes se leen igual, sin tildes. La pregunta pasa por `readable()`: «q», «pa», «xq»,
+  «msj», «cel», «camarógrafo» → Grabación, «gobernador» → el jefe, «x» → Twitter. Cada palabra queda en su raíz
+  (`rootOf()`: apruebo/aprobar, pongo/ponerle, publiqué/publicar). Hay sinónimos: subir/cargar/montar, borrar/eliminar,
+  cambiar/editar/corregir, mandar/enviar y otros. Las palabras raras pesan más.
+  - **Una forma de preguntar** cuenta en los dos sentidos. Pesa más cuánto de la pregunta tiene.
+  - **El texto de una respuesta** cuenta en un solo sentido, y menos mientras más largo sea.
+  - **Puntos a favor:**
+    - dos palabras seguidas como se preguntaron;
+    - una etiqueta nombrada entera, si está entre «» o se pregunta qué es («¿qué sale en Hoy en la agenda?»); suma más
+      la entrada que dice qué es esa etiqueta («Antes de aprobar»: …);
+    - la pantalla donde está la persona;
+    - una tarea o un paso, cuando la pregunta es un «¿cómo…?»;
+    - la pregunta escrita igual a una de las formas de preguntar;
+    - una respuesta curada.
+  - **Puntos en contra:**
+    - un «¿quién…?» contestado por un texto que no nombra a nadie;
+    - un «No.» o un «Sí,» para un «¿qué…?», o un «Porque…» para lo que no pregunta por qué;
+    - una pantalla como respuesta a un «¿cómo…?».
+  - **Casos especiales:**
+    - Una sola palabra que solo aparece en un texto nunca da una respuesta segura. Tampoco una sola palabra que varias
+      entradas dicen casi igual de bien.
+    - En una pregunta corta (hasta tres palabras que dicen algo), un texto o el nombre de un botón al que le falta una
+      de ellas no es seguro. Por ejemplo, «¿cómo pido cambios en un copy?» no es «¿Pedir cambios también?» del diseño.
+    - «Mi nombre», «mi teléfono» o «mis avisos» llevan a Mi perfil.
+    - Una pregunta que sigue a otra («¿y después?», «¿y quién lo aprueba?») se lee con las palabras de la anterior, a la
+      mitad de su peso, salvo después de una pregunta sobre un evento.
+  - **Segura** desde 0,62 y **débil** desde 0,45. Una débil sola contesta solo desde 0,52, y solo si ninguna ficha ni
+    tarea contesta: nunca le gana a «No estoy seguro…» con una adivinanza.
+- **Dónde se usa** (`local.ts`, la demo y la cadena caída):
+  - una respuesta segura contesta antes del paso viejo de las fichas si queda al menos 0,08 por encima de las tres
+    mejores fichas medidas igual, frase por frase (`scoreFicha`);
+  - una respuesta segura también contesta en el paso de las fichas si le gana a la mejor ficha (la ficha del equipo suma
+    0,08);
+  - nunca contesta en lugar de una herramienta (pendientes, cómo va una pieza, tweets, mejores horas, reglas de video,
+    marcar avisos), del soporte, de lo que se sube por rol ni de una pregunta junto a un evento que no sea un «¿cómo…?»;
+  - con la IA, `pickFichas` suma hasta 3 respuestas como fichas «Pregunta: … / Respuesta: …» dentro del mismo
+    presupuesto del mensaje.
+  - La respuesta sale con su botón: la pantalla de la entrada o la primera que nombra y que la persona puede abrir. Con
+    una tarea, una pantalla o una curada sale su tutorial. A «¿y después?» le toca el paso siguiente. Son textos fijos
+    sin fechas, así que la red de salida (`index.ts`) solo les revisa fechas, horas, mapas, teléfonos, lugares y contactos
+    concretos (`concreteDateTime`, el mismo control que usa su prueba de contenido). No los cambia por un «hoy» o un «de
+    noche» dentro de una regla, ni por un «de 2 a 3 por día».
+- **Lo que cambió en el camino de la demo:**
+  - **La negativa de la agenda, solo para la agenda de verdad.** La pregunta se lee sin las etiquetas de las pantallas
+    que llevan una palabra de tiempo: «Por ponerle fecha», «Hoy en la agenda», «Horas de silencio», o cualquier texto
+    entre «». Sin «», esas etiquetas solo se quitan cuando se pregunta qué son o dónde están; algunas se quitan siempre,
+    porque nunca son la agenda («Horas de silencio», «Vaciar este mes»…).
+    - Una regla sobre la fecha (`META`: quién la ve, cómo se pone, si se puede escribir en una nota o en un título) se
+      contesta.
+    - Una trampa sí recibe la negativa: cuándo, dónde, cómo llegar o los contactos de un evento en particular (un
+      título, un lugar, «lo de…», «la feria», el jefe llegando). La recibe aunque tenga etiquetas alrededor, y 360
+      nunca da ese dato.
+    - «¿Cuándo aprueban la pieza del puente?» es trabajo, no agenda.
+    - `buscar_evento` corre solo cuando se nombra un evento, nunca por la palabra «evento» sola.
+  - **Las herramientas, solo en su pregunta.**
+    - «aviso de cumplimiento» no marca avisos como leídos;
+    - un tweet no es una pieza;
+    - un «¿cómo hago una historia para Instagram?» no trae las mejores horas;
+    - los conteos («¿cuántas vencidas tengo?», «¿qué tengo que subir hoy?») van a `mis_pendientes`, también para
+      Grabación.
+    - Las mejores horas ya no salen como «degradado»: `looksLikeText` lee las horas como texto.
+  - **«¿Puedo…?»** se contesta con el «no puedes» del rol («No: eso lo hace…»), o con la frase de su ficha de rol en
+    segunda persona («No ves piezas…»). Esa frase sirve solo si dice el verbo preguntado. A «¿puedes aprobar las verdes
+    por mí?» 360 responde que no, y cómo se hace.
+  - **Subir, por rol.** El jefe y despacho: lo suben Grabación o Redes. Política y el IVT: las fotos y los documentos
+    de su ficha.
+  - **Administración** nunca recibe la oferta de avisarse a sí misma: su «No estoy seguro…» le manda a su guía y su
+    respuesta de soporte dice que le llegan los avisos del equipo. Un «¿qué es esto?» en sus pantallas dice para qué es
+    cada una.
+  - **360 mismo y la charla:** qué sabe hacer y qué no, quién ve lo que se le pregunta, que no actúa por nadie,
+    «¿cómo estás?», un insulto (con calma) y «ok».
+  - **Mensajes:** «resúmeme lo que hablaron en el canal…» y «avísale al jefe que…» se contestan con el botón a
+    Mensajes, nunca con una lectura.
+  - **Otros:** «¿qué es esto?» y «no entiendo» dan la pantalla donde está la persona, con su tutorial; un «¿Se publica
+    solo?» respondido a un «¿qué tengo que hacer…?» va sin su «No,».
+
 ## Datos (migración `20261025000900_assistant.sql`)
 Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: solo el servidor las toca.
 - `assistant_knowledge` (fichas): `id, roles app_role[] null` (null = todos los roles), `title, body, tags text[],

@@ -9,7 +9,7 @@ import { withSystem } from '@/lib/db';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import type { Role } from '@/lib/roles';
 import { handleTurn } from '@/lib/assistant';
-import { NOT_SURE } from '@/lib/assistant/local';
+import { NOT_SURE, NOT_SURE_ADMIN } from '@/lib/assistant/local';
 
 function sessionOf(key: DemoUserKey): Session {
   const u = DEMO_USERS.find((x) => x.key === key)!;
@@ -20,7 +20,8 @@ function sessionOf(key: DemoUserKey): Session {
 // carry; agenda: the refusal and nothing else; unsure: «No estoy seguro…» (no ficha answers it well).
 type Expect = { has?: RegExp; tool?: string; notTool?: string; go?: string; agenda?: true; unsure?: true };
 // Round 6: how a change to an event in general is done (its place too), the cambiar-evento ficha.
-const CHANGE: Expect = { has: /cambian el título, el lugar, la fecha/ };
+// Since the answers (D-89), also the guide's own step («Mover», «Cambiar fecha o lugar»).
+const CHANGE: Expect = { has: /cambian el título, el lugar, la fecha|«Mover»|«Cambiar fecha o lugar»/ };
 const REFUSAL = /no lo manejo|no la tengo/;
 const A: Expect = { agenda: true };
 
@@ -35,13 +36,13 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Dónde cambio los horarios de los tweets?', { go: '/ajustes/horarios' }],
     ['llevame a ajustes', { go: '/ajustes' }],
     ['¿Cómo le quito el acceso a alguien?', { has: /desactiva a quien ya no está/ }],
-    ['¿Cómo cambio el rol de alguien?', { has: /se cambian los roles/ }],
-    ['¿Cómo le cierro la sesión a alguien que perdió el teléfono?', { has: /se cierran sus sesiones/ }],
-    ['¿Qué es el buzón?', { has: /Buzón \(todos los correos/ }],
-    ['¿Cómo confirmo un aviso que preparó el asistente?', { has: /por confirmar/ }],
+    ['¿Cómo cambio el rol de alguien?', { has: /«Cambiar» los roles/ }],
+    ['¿Cómo le cierro la sesión a alguien que perdió el teléfono?', { has: /«Cerrar sus sesiones»/ }],
+    ['¿Qué es el buzón?', { has: /Buzón \(todos los correos|Buzón de correos: todos los correos/ }],
+    ['¿Cómo confirmo un aviso que preparó el asistente?', { has: /[Pp]or confirmar/ }],
     ['Marca mis avisos como leídos', { tool: 'marcar_avisos_leidos' }],
     ['¿Cuántos días de tweets quedan?', { tool: 'dias_de_tweets', has: /tweets/ }],
-    ['¿Puedo aprobar una pieza?', { has: /^No aprueba piezas/ }],
+    ['¿Puedo aprobar una pieza?', { has: /^No apruebas piezas/ }],
     ['como cambio el logo', { unsure: true }],
     ['¿A qué hora es la feria?', A],
     // Round 6: the more specific screen named, and «quién hizo qué».
@@ -56,31 +57,32 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['cuantas piezas tengo por aprobar', { tool: 'mis_pendientes', has: /aprobar/ }],
     ['¿Qué tengo hoy?', { tool: 'mis_pendientes' }],
     ['¿Cómo acepto un evento?', { has: /Política.*califica de 1 a 10/ }],
-    ['¿Cómo rechazo una propuesta?', { has: /acepta o rechaza/ }],
+    ['¿Cómo rechazo una propuesta?', { has: /«Rechazar»/ }],
     ['¿Dónde veo cómo nos va?', { go: '/resultados' }],
     ['¿Dónde está Política?', { go: '/jefe/politica' }],
     ['¿Dónde leo lo que voy a decir?', { go: '/jefe/politica' }],
     ['¿Qué es «Lo que voy a decir»?', { has: /letra grande/ }],
     ['¿Cómo apruebo una pieza en rojo?', { has: /lista de chequeo/ }],
     ['¿Cómo pido cambios en una pieza?', { has: /pedir cambios/ }],
-    ['¿Puedo aprobar las verdes?', { has: /^Aprueba todo lo que sale: las verdes, todas de una vez/ }],
+    ['¿Puedo aprobar las verdes?', { has: /^Apruebas todo lo que sale: las verdes, todas de una vez/ }],
     ['¿Cómo saco una pieza del rojo?', { has: /sacarla del rojo/ }],
     ['¿Cómo va la pieza del agua?', { tool: 'estado_pieza', has: /Aclaratoria/ }],
     ['a que hora es el acto de mañana', A],
     // Round 6: how-tos about tweets and pieces go to the fichas; a screen of his own first.
-    ['quien aprueba los tweets', { has: /Jefe: .*aprueba todo lo que sale .*tweets/, notTool: 'dias_de_tweets' }],
+    // Since the answers (D-89), the boss may get his own step («toca «Aprobar marcados»»).
+    ['quien aprueba los tweets', { has: /Jefe: .*aprueba todo lo que sale .*tweets|«Aprobar marcados»/, notTool: 'dias_de_tweets' }],
     ['que reviso antes de aprobar una pieza en rojo', { has: /lista: cifras con fuente/, notTool: 'estado_pieza' }],
     ['donde veo lo que se publico', { go: '/jefe/digital' }],
     // Since 27/10/2026 the boss approves everything (what Supervisión did is his).
-    ['¿Cómo apruebo las verdes de una vez?', { has: /verdes se aprueban todas juntas, con un toque/ }],
+    ['¿Cómo apruebo las verdes de una vez?', { has: /«Te toca aprobar».*«Aprobar todas las verdes \(n\)»/ }],
     // His approvals come by level (red, yellow, green): since R4 the demo has a red and three yellow ones first.
     ['¿Cuántas piezas tengo en verde?', { tool: 'mis_pendientes', has: /Lo primero: te toca aprobar \(rojo\): «[^»]+», te toca aprobar \(amarillo\)/ }],
     ['¿Qué reviso antes de aprobar?', { has: /lista: cifras con fuente/ }],
     ['¿Dónde está el botón de aprobar?', { go: '/aprobar', has: /botón Aprobar/ }],
     ['donde apruebo', { go: '/aprobar' }],
     ['¿Dónde se ve el semáforo?', { go: '/aprobar' }],
-    ['¿Qué pasa si no apruebo a tiempo?', { has: /La falta de respuesta no es aprobación/ }],
-    ['¿Cómo apruebo los tweets?', { has: /El jefe los aprueba/ }],
+    ['¿Qué pasa si no apruebo a tiempo?', { has: /La falta de respuesta no es aprobación|sigue sin aprobar: nunca sale sola/ }],
+    ['¿Cómo apruebo los tweets?', { has: /El jefe los aprueba|«Aprobar marcados»/ }],
     ['¿Cómo pido cambios en un copy?', { has: /piden cambios con un comentario/ }],
     ['¿Cómo subo una pieza a rojo?', { has: /se sube a rojo/ }],
     ['que significa el rojo', { has: /rojo, como todas, las aprueba el jefe/ }],
@@ -95,9 +97,9 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Cómo creo un evento?', { go: '/agenda/nuevo', has: /Nuevo evento/ }],
     ['¿Cómo duplico un evento?', { has: /No hay botón para duplicar/ }],
     // The boss and despacho cancel from the event's page («Cancelar», with its reason) and bring it back (cambios del 27/10).
-    ['¿Cómo cancelo un evento?', { has: /tocan «Cancelar» en su ficha/ }],
+    ['¿Cómo cancelo un evento?', { has: /«Cancelar»/ }],
     ['¿Cómo borro un evento?', { has: /lo hace Administración, que también lo puede restaurar/ }],
-    ['¿Cómo cambio la fecha de un evento?', { has: /cambian el título, el lugar, la fecha/ }],
+    ['¿Cómo cambio la fecha de un evento?', CHANGE],
     ['¿Cómo asigno a quien graba?', { has: /Quién graba/ }],
     ['¿Cómo cambio quién graba un evento?', { has: /Quién graba/ }],
     ['¿Cómo marco un evento como realizado?', { has: /realizado/ }],
@@ -105,14 +107,14 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Dónde veo el calendario?', { go: '/agenda' }],
     ['¿Dónde está la biblioteca?', { go: '/biblioteca' }],
     ['¿Cuántos eventos esperan la decisión del jefe?', { tool: 'eventos_por_decidir', has: /decisión del jefe/ }],
-    ['¿Puedo ver las piezas?', { has: /^No ve piezas/ }],
-    ['¿Cómo descargo el material de un evento?', { has: /descargar el material/ }],
+    ['¿Puedo ver las piezas?', { has: /^No ves piezas/ }],
+    ['¿Cómo descargo el material de un evento?', { has: /descargar el material|«Descargar todo»/ }],
     ['¿Qué pasa si dos eventos chocan?', { has: /choca/ }],
     ['¿Dónde queda la escuela Los Andes?', A],
     // Round 6: «¿cómo hago…?» is how one is created; the place of an event in general is a how-to too.
     ['como hago un evento nuevo', { has: /^Para crear un evento/, go: '/agenda/nuevo' }],
     ['como veo los eventos pasados', { has: /Biblioteca/ }],
-    ['que tengo que llenar en la ficha tecnica', { has: /protocolo/, notTool: 'mis_pendientes' }],
+    ['que tengo que llenar en la ficha tecnica', { has: /protocolo|Completar la ficha técnica/, notTool: 'mis_pendientes' }],
     ['como cambio el lugar de un evento', CHANGE],
     ['como cambio el lugar del evento', CHANGE],
     ['como cambio la direccion de un evento', CHANGE],
@@ -123,10 +125,10 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
   politics: [
     // Its overdue reports, as on its Municipios (the demo has one).
     ['¿Qué tengo pendiente?', { tool: 'mis_pendientes', has: /vencida: «.+»\. Todo eso está en Municipios/ }],
-    ['¿Qué puedo hacer yo en la plataforma?', { has: /eventos y avances comunitarios de cada municipio/ }],
+    ['¿Qué puedo hacer yo en la plataforma?', { has: /registro de cada municipio/ }],
     ['¿Puedo ver la agenda?', { has: /no está en tu menú/ }],
     ['¿Dónde está la agenda?', { has: /no está en tu menú/ }],
-    ['¿Puedo ver las piezas?', { has: /^No ve la agenda con fecha y hora, ni piezas/ }],
+    ['¿Puedo ver las piezas?', { has: /^No ves la agenda con fecha y hora, ni piezas/ }],
     ['¿Quién decide si se hace un evento?', { has: /Jefe: tiene todo/ }],
     ['¿Quién aprueba las piezas?', { has: /el jefe las aprueba/ }],
     ['¿Qué es el doble factor?', { has: /el director de política/ }],
@@ -147,7 +149,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Qué hace el director del IVT?', { has: /ficha de cada obra/ }],
     // «Mis visitas de obra» (the shared agenda): the dates of the visits to its obras only.
     ['¿Puedo ver la agenda?', { has: /La Agenda está en el menú/ }],
-    ['¿Puedo ver las piezas?', { has: /^No ve piezas, copies, tweets ni publicaciones/ }],
+    ['¿Puedo ver las piezas?', { has: /^No ves piezas, copies, tweets ni publicaciones/ }],
     ['¿Quién decide si se hace un evento?', { has: /Jefe: tiene todo/ }],
     ['¿Qué es el doble factor?', { has: /el director del IVT/ }],
     ['¿Cómo cambio mi contraseña?', { has: /no hay contraseñas/ }],
@@ -158,7 +160,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['Marca mis avisos como leídos', { tool: 'marcar_avisos_leidos' }],
     ['¿A qué hora es el recorrido del puente?', A],
     ['¿Dónde queda la escuela Los Andes?', A],
-    ['¿Puedo poner la fecha de la visita?', A],
+    // A rule about the date, not a date (D-89): who puts it, said by the guide.
+    ['¿Puedo poner la fecha de la visita?', { has: /^No puedes poner la fecha/ }],
     ['como llego a alto verde', A],
   ],
   social: [
@@ -170,10 +173,10 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Cómo hago los copies?', { has: /en «Copies»/ }],
     ['¿Dónde están las plantillas de copies?', { has: /en «Copies»/ }],
     ['hay un error en el copy, ¿cómo lo corrijo?', { has: /en «Copies»/ }],
-    ['¿Cómo mando a aprobar una pieza?', { has: /manda a aprobar/ }],
+    ['¿Cómo mando a aprobar una pieza?', { has: /«Enviar a aprobación»/ }],
     ['¿Qué color le pongo a la pieza?', { has: /verde si es rutina/ }],
-    ['¿Cómo subo la tanda de tweets?', { has: /nueva tanda/ }],
-    ['¿Cómo registro lo que publicó el jefe?', { has: /Lo que publicó el jefe/ }],
+    ['¿Cómo subo la tanda de tweets?', { has: /nueva tanda|tanda nueva/ }],
+    ['¿Cómo registro lo que publicó el jefe?', { has: /[Ll]o que publicó el jefe/ }],
     ['¿Cómo cargo las métricas?', { has: /CSV/ }],
     ['me salió un error que dice que el copy es muy largo', { has: /largo del copy/ }],
     ['me sale un error que dice que el video pesa mucho', { tool: 'reglas_de_video' }],
@@ -185,7 +188,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['como llego a alto verde', A],
     ['como llego a la casa comunal alto verde', A],
     ['que tengo que poner en el copy', { has: /en «Copies»/, notTool: 'mis_pendientes' }],
-    ['que tengo que hacer para publicar', { has: /^En Publicar/, notTool: 'mis_pendientes' }],
+    ['que tengo que hacer para publicar', { has: /^En Publicar|^Publicar a mano/, notTool: 'mis_pendientes' }],
     ['que tengo que hacer', { tool: 'mis_pendientes' }],
     ['que pasa si un tweet es muy largo', { has: /largos/, notTool: 'dias_de_tweets' }],
     ['cuantos tweets salen por dia', { has: /2 o 3 por día/, notTool: 'dias_de_tweets' }],
@@ -198,7 +201,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
   camera: [
     ['¿Qué tengo pendiente?', { tool: 'mis_pendientes', has: /pendiente/ }],
     ['¿Cómo subo el material?', { has: /Material.*casilla/ }],
-    ['como subo las fotos', { has: /pestaña Material/ }],
+    ['como subo las fotos', { has: /pestaña «?Material/ }],
     ['¿Qué pasa si se va la señal subiendo un video?', { has: /sigue sola/ }],
     ['¿Cuánto puede durar un video para TikTok?', { tool: 'reglas_de_video', has: /segundos/ }],
     ['¿Cuánto pesa máximo un video?', { tool: 'reglas_de_video' }],
@@ -207,7 +210,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Cómo marco el evento como realizado?', { has: /realizado/ }],
     ['¿Qué hago si subí un archivo equivocado?', { has: /no se reemplaza/ }],
     ['¿En qué casilla va el dron?', { has: /casilla/ }],
-    ['¿Puedo ver las piezas?', { has: /no ve piezas/ }],
+    ['¿Puedo ver las piezas?', { has: /no ves piezas/ }],
     ['¿Cómo activo los avisos?', { has: /Mi perfil/ }],
     // The agenda, however it is said: a step of one's own at an event, a distinctive word of its title, a
     // place by its name, the boss coming, a when no time word knows.
@@ -288,8 +291,10 @@ describe('preguntas de todos los días, rol por rol (cerebro de demostración)',
           continue;
         }
         expect(r.answer, who).not.toMatch(REFUSAL);
-        if (e.unsure) expect(r.answer, who).toBe(NOT_SURE);
-        else expect(r.answer, who).not.toBe(NOT_SURE);
+        // Administración is never offered to tell administración (D-89): its own «no estoy seguro».
+        const unsure = role === 'admin' ? NOT_SURE_ADMIN : NOT_SURE;
+        if (e.unsure) expect(r.answer, who).toBe(unsure);
+        else expect(r.answer, who).not.toBe(unsure);
         if (e.tool) expect(tools, who).toContain(e.tool);
         if (e.notTool) expect(tools, who).not.toContain(e.notTool);
         if (e.go) expect(r.goTo?.href, who).toBe(e.go);
