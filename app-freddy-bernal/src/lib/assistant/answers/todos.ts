@@ -68,7 +68,7 @@ export const TODOS: Answer[] = [
       default:
         'Revisa la carpeta de spam y que el correo esté bien escrito (si no, «Usar otro correo»). Tiene que ser el correo con el que te invitaron. Espera un minuto y pide otro con «Mandarme el código». Si sigue sin llegar, dímelo y le aviso a administración.',
       admin:
-        'Revisa la carpeta de spam y que el correo esté bien escrito (si no, «Usar otro correo»). Espera un minuto y pide otro con «Mandarme el código». Si sigue sin llegar, pídele a otra persona de administración que lo revise.',
+        'Mientras se prueba la plataforma, ningún correo sale: quedan en Ajustes → «Buzón de correos». Si ya salen, revisa spam y que el correo esté bien escrito (si no, «Usar otro correo»), espera un minuto y pide otro con «Mandarme el código».',
     },
   },
   {
@@ -110,8 +110,8 @@ export const TODOS: Answer[] = [
     a: {
       camera: 'No: Grabación entra solo con el código del correo. El doble factor lo usan el jefe, el despacho, política y el IVT, porque ven información delicada.',
       social: 'No: Redes entra solo con el código del correo. El doble factor lo usan el jefe, el despacho, política y el IVT, porque ven información delicada.',
-      admin: 'Sí: administración usa el doble factor, igual que el jefe, el despacho, política y el IVT. Redes y Grabación entran solo con el código del correo.',
-      default: 'Sí: tu rol ve información delicada, así que además del código del correo usas el «Código de tu aplicación». Redes y Grabación entran solo con el código del correo.',
+      admin: 'Tú sí: administración usa el doble factor, igual que el jefe, el despacho, política y el IVT. Redes y Grabación no: entran solo con el código del correo.',
+      default: 'Tú sí: tu rol ve información delicada, así que además del código del correo usas el «Código de tu aplicación». Redes y Grabación no: entran solo con el código del correo.',
     },
   },
   {
@@ -315,7 +315,7 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-menu-telefono',
     roles: null,
-    q: ['dónde está el menú en el teléfono', 'donde estan las pantallas en el cel', 'no encuentro el menu', 'el menu de abajo', 'como me muevo en el telefono', 'qué pantallas tengo'],
+    q: ['dónde está el menú en el teléfono', 'donde estan las pantallas en el cel', 'no encuentro el menu', 'el menu de abajo', 'como me muevo en el telefono', 'que pantallas tengo en el menu'],
     a: {
       boss: 'Abajo, la barra: Inicio, Agenda, Por aprobar, Redes y «Más» (Obras, Municipios y Digital). Arriba están «Crear», el sobre de Mensajes, la campana y «Mi cuenta».',
       dispatch: 'Abajo, la barra: Hoy, Agenda, Obras, Municipios y Biblioteca. Arriba están «Crear», el sobre de Mensajes, la campana y «Mi cuenta».',
@@ -350,7 +350,7 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-modo-sol',
     roles: null,
-    q: ['qué es el modo sol', 'como pongo la letra mas grande que en la calle no veo nada', 'no se ve la pantalla con el sol', 'más contraste', 'letra grande', 'modo sol donde esta'],
+    q: ['qué es el modo sol', 'como pongo la letra mas grande que en la calle no veo nada', 'no se ve la pantalla con el sol', 'más contraste', 'letra grande', 'modo sol donde esta', 'la letra se ve muy chiquita en la calle', 'no veo bien la pantalla afuera', 'agrandar la letra', 'la letra es muy pequeña', 'con el sol no leo nada'],
     a: 'Arriba a la derecha, «Mi cuenta» → «Modo sol»: más contraste y letra más grande para leer en la calle. Se apaga en el mismo lugar.',
   },
   {
@@ -476,7 +476,7 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-guia-sin-senal',
     roles: null,
-    q: ['puedo ver la guia sin internet', 'la guia no me abre sin internet', 'los tutoriales funcionan sin señal', 'descargar la guía al telefono', 'guardar la guia en el telefono'],
+    q: ['puedo ver la guia sin internet', 'la guia no me abre sin internet', 'los tutoriales funcionan sin señal', 'descargar la guía al telefono', 'guardar la guia en el telefono', 'sin internet no me abre la guia', 'la guia no carga sin datos', 'abrir la guia sin señal'],
     a: 'No: la guía y los tutoriales necesitan señal. La plataforma no guarda páginas en el teléfono, por privacidad.',
   },
   {
@@ -484,6 +484,49 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['empece en el telefono puedo seguir en la computadora', 'lo que escribí en el cel sale en la pc', 'el borrador se ve en otro telefono', 'dónde quedan los borradores'],
     a: 'Lo que no has guardado queda solo en ese teléfono o esa computadora. Toca «Guardar» con señal y ya lo ves desde cualquier lado.',
+  },
+  // ── La demostración (D-39) ──────────────────────────────────────────────────────────────────────────────────────
+  {
+    id: 'todo-demo-servidor',
+    roles: null,
+    q: [
+      'dice que se creo en otro servidor de la demostracion',
+      'que es eso de otro servidor de la demo',
+      'la pieza que cree no aparece en la demo',
+      'en la demo no sale lo que hice hace rato',
+      'la miniatura esta en otro servidor',
+      'por que en la demo desaparece lo que subo',
+    ],
+    a: 'Es un límite de la demostración: cada servidor tiene su base, y lo que creas o subes vive solo en el servidor donde se hizo. Si después te contesta otro, no lo encuentra. Lo más seguro es probar sobre lo que ya viene cargado; con los datos reales esto no pasa.',
+  },
+  {
+    id: 'todo-demo-reinicio',
+    roles: null,
+    q: [
+      'se reinicio la demo y se perdio todo lo que hice',
+      'se borro todo en la demo',
+      'la demo volvio a como estaba',
+      'por que se borran mis cosas en la demo',
+      'los datos de la demo son de verdad',
+      'lo que escribo en la demo se guarda',
+    ],
+    a: 'La demostración es una base de prueba con datos inventados, en memoria: cuando el servidor se reinicia, vuelve a los datos inventados y lo que hiciste se pierde. Con los datos reales no pasa.',
+  },
+  {
+    id: 'todo-demo-entrar',
+    roles: null,
+    q: [
+      'como entro como redes en la demo para probar',
+      'entrar a la demo con otro rol',
+      'como pruebo la demo',
+      'cuales son los usuarios de la demo',
+      'que es version de demostracion',
+      'entrar sin codigo en la demo',
+    ],
+    a: {
+      default: 'En «Entrar», en la lista «Versión de demostración», tocas el rol y entras directo, sin código ni doble factor: es un atajo solo para probar. Con los datos reales no existe.',
+      admin: 'En «Entrar», en la lista «Versión de demostración», tocas el rol y entras directo, sin código (atajo solo para probar; con los datos reales no existe). Sin salir de tu cuenta, «Ver como» te muestra los menús de ese rol.',
+    },
   },
 
   // ── Avisos y Mi perfil ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -581,8 +624,11 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-resumen-diario',
     roles: null,
-    q: ['qué es el resumen diario por correo', 'me llega un correo cada dia', 'quitar el resumen diario', 'quiero un resumen por correo'],
-    a: 'Es una opción de «Qué avisos quiero», en Mi perfil: «Resumen diario por correo». La marcas o la desmarcas y tocas «Guardar».',
+    q: ['qué es el resumen diario por correo', 'me llega un correo cada dia', 'quitar el resumen diario', 'quiero un resumen por correo', 'el resumen diario por correo donde llega', 'cada cuanto llega el resumen'],
+    a: {
+      default: 'Es una opción de «Qué avisos quiero», en Mi perfil: «Resumen diario por correo». La marcas o la desmarcas y tocas «Guardar».',
+      admin: 'Es una opción de «Qué avisos quiero», en Mi perfil: «Resumen diario por correo» (la marcas y tocas «Guardar»). Mientras se prueba la plataforma, ese correo no sale: queda en Ajustes → «Buzón de correos».',
+    },
     go: '/perfil',
   },
   {
@@ -849,7 +895,7 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-msj-rojo',
     roles: null,
-    q: ['me sale en rojo no puede ir aqui', 'mientras escribo sale una palabra en rojo', 'el mensaje dice que algo no puede ir', 'me salió en rojo y no sé por qué en el canal'],
+    q: ['me sale en rojo no puede ir aqui', 'mientras escribo sale una palabra en rojo', 'el mensaje dice que algo no puede ir', 'en el canal me salio una palabra en rojo'],
     a: {
       default:
         'La plataforma te avisa mientras escribes cuando pones una fecha, una hora o un mapa en un canal donde está Redes o política: sale “… no puede ir aquí” con esa palabra. Quítala y escribe “el día del evento” o “lo antes posible”. Un teléfono tampoco va.',
@@ -1166,7 +1212,7 @@ export const TODOS: Answer[] = [
     q: ['como apago la franja esa que dice te muestro esta pantalla', 'no quiero que 360 me ofrezca ayuda', 'quitar te muestro esta pantalla', 'que no me salga mas la ayuda', 'como apago lo de te muestro esta pantalla'],
     a: {
       default: 'Ciérrala con la X («Ahora no»). Si la cierras dos veces, deja de ofrecer en ese teléfono. Nunca se abre sola, y se vuelve a prender en «Ayuda y guías».',
-      admin: 'A administración no le sale esa franja: sus pantallas no tienen tutorial.',
+      admin: 'A administración casi nunca le sale: sus pantallas no tienen tutorial. Si te sale (con «Ver como»), ciérrala con la X: a la segunda deja de ofrecer en ese teléfono, y «Volver a ofrecerme ayuda», en «Ayuda y guías», la trae.',
     },
   },
   {
@@ -1227,7 +1273,7 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-guia-pantallas',
     roles: null,
-    q: ['que se hace en cada pantalla', 'para que sirve cada pantalla', 'explicame las pantallas', 'que hace cada boton'],
+    q: ['que se hace en cada pantalla', 'para que sirve cada pantalla de mi menu', 'explicame las pantallas', 'que hace cada boton'],
     a: {
       default: '«Mi cuenta» → «Ayuda y guías» → «Qué se hace en cada pantalla»: cada pantalla de tu menú, con sus botones y lo que no puedes hacer ahí.',
       admin: 'En la «Guía de administración» («Ayuda y guías») está cada pantalla de Ajustes, con lo que haces ahí y lo que no.',
@@ -1396,8 +1442,15 @@ export const TODOS: Answer[] = [
       'necesitas mi codigo?',
       'dame la contraseña de la muchacha de redes',
       'cual es la clave del wifi de la oficina',
+      'pasame el codigo de entrada de otra cuenta',
+      'dame el codigo de la cuenta de despacho',
+      'cual es la clave de kevin',
+      'dime el codigo de alguien',
     ],
-    a: 'Yo no tengo ni pido códigos ni claves, y no entro por nadie. El código del correo y el de tu aplicación son solo tuyos: no se los pases a nadie, ni a mí; escríbelos tú en «Entrar». Y en la plataforma no hay contraseñas.',
+    a: {
+      default: 'Yo no tengo ni pido códigos ni claves, y no entro por nadie. El código del correo y el de tu aplicación son solo tuyos: no se los pases a nadie, ni a mí; escríbelos tú en «Entrar». Y en la plataforma no hay contraseñas.',
+      admin: 'Yo no tengo ni doy códigos ni claves, y en la plataforma no hay contraseñas. El código de entrada le llega a cada persona a su correo (mientras se prueba, ningún correo sale: quedan en el «Buzón de correos»). Si cambió de teléfono, en Equipo, «Reiniciar doble factor».',
+    },
   },
   {
     id: 'todo-360-donde',
