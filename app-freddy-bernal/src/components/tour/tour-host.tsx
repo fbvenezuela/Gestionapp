@@ -130,10 +130,10 @@ function whenIdle(ms = 4000): Promise<void> {
 
 const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
-// A dialog of the page itself is open, or is about to open on its own (Mensajes' notice, marked data-blocks-tour until
-// the person closes it once: its effect may run after the tutorial's): the tutorial would ring what sits under it.
-// The tutorial's own card does not count.
-const pageDialogOpen = () => !!document.querySelector('dialog[open]:not([data-tour-dialog]), dialog[data-blocks-tour]');
+// A dialog of the page itself is open, or the page is still placing itself (anything marked data-blocks-tour, such as a
+// channel before its jump to «Mensajes nuevos»: its effect may run after the tutorial's): the tutorial would ring what
+// sits under it, or where it was. The tutorial's own card does not count.
+const pageDialogOpen = () => !!document.querySelector('dialog[open]:not([data-tour-dialog]), [data-blocks-tour]');
 
 // Waits until no dialog of the page is open (closed with its button or Escape), at most `ms`.
 function whenNoDialog(ms = 10 * 60_000): Promise<void> {

@@ -61,6 +61,9 @@ export function ChatThread({
   const jobs = useRef(new Map<string, SendJob>());
   const composer = useRef<ComposerApi>(null);
   const [gone, setGone] = useState(false);
+  // Until the channel has jumped to «Mensajes nuevos» or to the end, a tutorial waits (data-blocks-tour): started at the
+  // same time, it would ring the header where it was before the jump.
+  const [placed, setPlaced] = useState(false);
   const poll = useRef<Poller | null>(null);
   const leave = () => {
     poll.current?.stop();
@@ -83,7 +86,9 @@ export function ChatThread({
     const sep = document.getElementById(NEW_MESSAGES_ID);
     if (sep) sep.scrollIntoView({ block: 'start' });
     else toEnd();
+    const frame = requestAnimationFrame(() => setPlaced(true));
     read(latest.current);
+    return () => cancelAnimationFrame(frame);
     // Only when the conversation opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
@@ -203,7 +208,7 @@ export function ChatThread({
       {header}
       {/* Tall enough that the box below reaches the bottom of a tall screen (an iPad) even with few messages: the page
           header and the box take about 16rem; more than that only scrolls a little, and the box stays stuck below. */}
-      <Card solid className="flex min-h-[max(50dvh,calc(100dvh_-_16rem))] flex-col">
+      <Card solid className="flex min-h-[max(50dvh,calc(100dvh_-_16rem))] flex-col" data-blocks-tour={placed ? undefined : ''}>
         {more ? (
           <div className="border-b border-border p-2 text-center">
             <Link href={moreHref} scroll={false} className="inline-flex min-h-11 items-center px-3 text-sm font-semibold text-accent-ink underline underline-offset-2">
