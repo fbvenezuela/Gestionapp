@@ -3,7 +3,9 @@ import { driveOverview } from '@/lib/data/drive';
 import { getClientConfig } from '@/lib/client-config';
 import { fmtDateTime } from '@/lib/time';
 import { PageHeader } from '@/components/ui/page';
+import { env } from '@/lib/env';
 import { DriveSettings } from './drive-settings';
+import { OrganizeFeed } from './organize-feed';
 
 export const metadata = { title: 'Google Drive' };
 
@@ -36,6 +38,8 @@ export default async function DrivePage({ searchParams }: { searchParams: Promis
         justConnected={o.enabled && sp.ok === '1' && o.status === 'ok'}
         error={error}
       />
+      {/* R4 (D-74): only with its four keys; off today, so it does not exist on the page. */}
+      {env.redesDriveOrganize && o.enabled && o.status === 'ok' && s.roles.includes('admin') && s.mfaOk ? <OrganizeFeed /> : null}
     </>
   );
 }

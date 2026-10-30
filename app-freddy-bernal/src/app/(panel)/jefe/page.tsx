@@ -13,10 +13,21 @@ import { overdueReports } from '@/lib/data/fichas';
 import { OverdueReports } from '@/components/fichas/overdue-reports';
 import { bossCounts, redesCounts } from '@/lib/data/home-counts';
 import { freshNoteEvents } from '@/lib/data/recording';
+import { getRedesSettings, monthCookie } from '@/lib/data/redes';
+import { FORMAT, QUOTA_FORMATS, sectionHref, withMonth } from '@/lib/domain/redes';
 
 export const metadata = { title: 'Inicio' };
 
 const nf = new Intl.NumberFormat('es-VE');
+// The Redes tile's words for each format's count («9 reels de 12», «1 pieza de fin de mes»).
+const FORMAT_NOUN = {
+  reel: ['reel', 'reels'],
+  post: ['post', 'posts'],
+  carousel: ['carrusel', 'carruseles'],
+  story: ['historia', 'historias'],
+  youtube: ['video de YouTube', 'videos de YouTube'],
+  month_end: ['pieza de fin de mes', 'piezas de fin de mes'],
+} as const;
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 // Grabación's new notes shown by title in the Redes tile; the rest are one tap away in «Hoy» (up to 10 there).
 const SHOWN_NOTES = 3;
@@ -31,7 +42,9 @@ export default async function BossHome() {
   const t0 = today();
   const counts = await db(s, async (sql) => ({
     tiles: await bossCounts(sql, t0.toUTC().toISO()!, t0.plus({ days: 1 }).toUTC().toISO()!),
-    redes: await redesCounts(sql),
+    // The Redes tile counts the open month by format (the boss's last month in Redes, else the first one).
+    redes: await redesCounts(sql, await monthCookie()),
+    quotas: (await getRedesSettings(sql)).quotas,
     // What Grabación left for the editor in the last days (§5), the same events as «Notas de Grabación nuevas» in Hoy:
     // the boss edits too, and he lands here, not in Hoy. Titles only (never when it was written). Administración does
     // not get it in Hoy either.
@@ -167,6 +180,22 @@ export default async function BossHome() {
           subtitle="Piezas, tweets, publicaciones y resultados"
           icon={Megaphone}
           tone="accent"
+          // R4 (D-60, D-72): the open month by format, each opening its section in that month; the same number as the
+          // section's month tab («Mes 1 · 9 de 12»), and how many wait for him.
+          grid={
+            redes.month
+              ? [...QUOTA_FORMATS, 'month_end' as const].map((f) => {
+                  const n = redes.byFormat[f];
+                  const quota = f === 'month_end' ? null : counts.quotas[f];
+                  return {
+                    href: sectionHref(FORMAT[f].slug, redes.month!.id),
+                    value: n.total,
+                    label: `${plural(n.total, FORMAT_NOUN[f][0], FORMAT_NOUN[f][1])}${quota === null ? '' : ` de ${quota}`}${n.inReview ? ` · ${n.inReview} por aprobar` : ''}`,
+                    tone: n.inReview ? ('warn' as const) : undefined,
+                  };
+                })
+              : []
+          }
           counters={[
             { href: '/redes', value: redes.pieces.active, label: plural(redes.pieces.active, 'pieza en curso', 'piezas en curso') },
             { href: '/publicar', value: redes.publish.ready, label: plural(redes.publish.ready, 'lista para publicar', 'listas para publicar'), tone: 'ok' },
@@ -185,7 +214,17 @@ export default async function BossHome() {
                 }
               : null
           }
-        />
+        >
+          {redes.month ? (
+            <Link
+              href={withMonth('/redes/fin-de-mes', redes.month.id)}
+              className="mt-1 flex min-h-14 items-center gap-2 rounded-[var(--radius-control)] px-3 text-base font-semibold text-accent-ink hover:bg-surface-2"
+            >
+              <span className="flex-1">Resumen del mes · {redes.month.label}</span>
+              <ChevronRight className="h-5 w-5 shrink-0" aria-hidden />
+            </Link>
+          ) : null}
+        </HubTile>
         <HubTile
           id="tile-digital"
           href="/jefe/digital"

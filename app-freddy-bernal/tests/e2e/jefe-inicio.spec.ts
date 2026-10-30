@@ -127,6 +127,39 @@ test.describe('en el iPad (1024×768)', () => {
     expect(await stat(page, 'Publicado esta semana')).toBe(published.n);
   });
 
+  test('el botón de Redes cuenta el mes por formato (el número de cada sección) y abre el «Resumen del mes»', async ({ page }) => {
+    await loginAs(page, 'jefe@demo.test');
+    await page.goto('/jefe');
+    const redes = tile(page, 'Redes');
+    // One count per format of the open month, each the same number as that section's month tab («Mes 1 · 8 de 8»).
+    const FORMATS: [string, string, string][] = [
+      ['posts?', 'posts', 'Posts'],
+      ['reels?', 'reels', 'Reels'],
+      ['carrusel(es)?', 'carruseles', 'Carruseles'],
+      ['historias?', 'historias', 'Historias'],
+      ['videos? de YouTube', 'youtube', 'YouTube'],
+    ];
+    for (const [words, slug, heading] of FORMATS) {
+      const c = await counter(redes, `${words} de \\d+(?: · \\d+ por aprobar)?`);
+      const href = (await c.link.getAttribute('href'))!;
+      expect(href).toMatch(new RegExp(`^/redes/${slug}\\?mes=[0-9a-f-]{36}$`));
+      const quota = Number((await c.link.innerText()).match(/ de (\d+)/)![1]);
+      await page.goto(href);
+      await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
+      await expect(page.getByRole('navigation', { name: 'Meses de contenido' }).getByRole('link', { name: `Mes 1 · ${c.n} de ${quota}` })).toHaveAttribute('aria-current', 'page');
+      await page.goto('/jefe');
+    }
+    // What waits for him in a format is said there too (the demo has a post and a carousel in review).
+    await expect(redes.getByRole('link', { name: /^\d+ posts? de \d+ · \d+ por aprobar$/ })).toBeVisible();
+    const summary = redes.getByRole('link', { name: /^Resumen del mes · Mes 1$/ });
+    await expect(summary).toHaveAttribute('href', /^\/redes\/fin-de-mes\?mes=[0-9a-f-]{36}$/);
+    await summary.click();
+    await expect(page.getByRole('heading', { name: 'Resumen del mes · Mes 1' })).toBeVisible();
+    // No hour in the tile: its counts are by format, never by date.
+    await page.goto('/jefe');
+    expect(await tile(page, 'Redes').innerText()).not.toMatch(TIME_RE);
+  });
+
   test('un toque en el inicio aprueba todas las verdes, sin ventanas, y Redes las ve listas para publicar', async ({ page }) => {
     let nativeDialog = false;
     page.on('dialog', (d) => {
@@ -166,7 +199,8 @@ test.describe('en el iPad (1024×768)', () => {
     await expect(tile(page, 'Piezas')).toHaveCount(0);
     const sections = page.getByRole('navigation', { name: 'Secciones de Redes' });
     await expect(sections.getByRole('link', { name: 'Tablero' })).toHaveAttribute('aria-current', 'page');
-    await expect(sections.getByRole('link', { name: 'Reels' })).toHaveAttribute('href', '/redes/reels');
+    // Every link of the bar carries the open month (R4, F2): the board opens on it too.
+    await expect(sections.getByRole('link', { name: /^Reels/ })).toHaveAttribute('href', /^\/redes\/reels\?mes=[0-9a-f-]{36}$/);
     await expect(page.getByRole('navigation', { name: 'Menú principal' }).getByRole('link', { name: 'Redes' })).toHaveAttribute('aria-current', 'page');
     // What waits for the boss opens where he approves.
     await expect((await counter(tile(page, 'Tweets'), 'por aprobar')).link).toHaveAttribute('href', '/aprobar?tab=tweets');
@@ -217,7 +251,7 @@ test.describe('en el teléfono (360 px)', () => {
     // A section of Redes, from the bar that scrolls inside itself: the boss's menu still marks «Redes».
     const sections = page.getByRole('navigation', { name: 'Secciones de Redes' });
     await sections.getByRole('link', { name: 'Posts' }).click();
-    await expect(page).toHaveURL(/\/redes\/posts$/);
+    await expect(page).toHaveURL(/\/redes\/posts\?mes=[0-9a-f-]{36}$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Posts' })).toBeVisible();
     await expect(bar.getByRole('link', { name: 'Redes' })).toHaveAttribute('aria-current', 'page');
     await fitsWidth(page, '/redes/posts en el teléfono');
