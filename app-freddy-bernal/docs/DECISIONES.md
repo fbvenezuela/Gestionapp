@@ -685,7 +685,7 @@ comando, los mensajes no se borran).
 - **Cómo se cambia:** si hace falta seguirlo entre equipos o que el jefe vea quién terminó, una tabla
   `tutorial_progress(user_id, tour_id, done_at)` con RLS de filas propias.
 
-## D-49. La red interna se llama «Mensajes»: directos, grupos y «Todo el equipo» (28/10/2026)
+## D-49. La red interna se llama «Mensajes»: directos, grupos y «Todo el equipo» (28/10/2026) — **Reemplazada por D-79 a D-88 (29/10/2026)**: Mensajes son canales, sin aviso.
 - **Qué:** tres tipos de conversación: **directa** (dos personas; una sola por pareja), **grupo** (de 3 a 12
   personas, con nombre, lo arma cualquiera del equipo) y **«Todo el equipo»** (una sola; todos los del equipo activos
   son parte). Los miembros de una directa o un grupo quedan fijos al crearla (para sumar a alguien se arma otro grupo).
@@ -698,7 +698,7 @@ comando, los mensajes no se borran).
 - **Cómo se cambia:** `chat_start()`, `chat_team_channel()` e `is_team_member()` en una migración nueva; los tamaños
   en `src/lib/domain/chat.ts`.
 
-## D-50. Quién lee los mensajes (28/10/2026)
+## D-50. Quién lee los mensajes (28/10/2026) — **Reemplazada por D-79 a D-88 (29/10/2026)**: Mensajes son canales, sin aviso.
 - **Qué:**
   - cada miembro lee sus conversaciones (con doble factor si su rol lo pide: jefe, despacho, política, IVT), salvo los
     mensajes que tenían una fecha de la agenda si no la conoce (D-52: «Mensaje oculto»);
@@ -723,7 +723,7 @@ comando, los mensajes no se borran).
   nueva lee «Todo el equipo» desde el principio.
 - **Cómo se cambia:** `chat_can_read()` en una migración nueva.
 
-## D-51. Quién habla con quién lo decide el jefe (28/10/2026) — **Confirmar con Juan** (parejas cerradas de entrada)
+## D-51. Quién habla con quién lo decide el jefe (28/10/2026) — **Confirmar con Juan** (parejas cerradas de entrada) — **Reemplazada por D-79 a D-88 (29/10/2026)**: Mensajes son canales, sin aviso.
 - **Qué:**
   - solo el jefe, con doble factor, cambia las reglas, en «Mensajes → Quién habla con quién» (administración no);
   - **por defecto todos hablan con todos**; las reglas son por pareja de roles distintos: las 10 parejas entre los
@@ -794,6 +794,7 @@ comando, los mensajes no se borran).
   semana también se rechacen): cambiar `text_has_concrete_datetime` por `text_has_datetime` en `chat_message_guard()`
   (migración nueva) y quitar la pregunta del compositor (el caso `relative` de `chatTextProblem()` y su `relativeOk`
   en `sendMessage`).
+- **Ajuste del 29/10 (R5):** dice «canal» donde decía «conversación» y cuenta solo a los miembros **actuales**. En un canal **sin** Redes ni política, el mensaje de quien conoce la agenda queda con `agenda_clear` falso también por una palabra relativa («mañana», «el lunes»): quien entre después (D-85) o gane Redes o política ve «Mensaje oculto», nunca un «mañana» que la hora del mensaje vuelve fecha. Donde ya están Redes o política, E1 sigue igual.
 
 ## D-53. Teléfonos: nunca en un mensaje (28/10/2026)
 - **Qué:** la base rechaza un mensaje o un nombre de grupo que parezca tener un teléfono (`text_has_phone`), en
@@ -815,6 +816,7 @@ comando, los mensajes no se borran).
 - **Por qué:** regla 3 (auditoría y borrado lógico; nadie podría borrar con `guard_soft_delete` porque administración
   no ve los mensajes). Los enlaces reutilizan el RLS de cada pantalla sin columnas nuevas.
 - **Cómo se cambia:** el permiso de borrar exigiría otra columna y otra regla (pregunta en `PENDIENTES.md`).
+- **Ajuste del 29/10 (R5):** igual, sin la frase «la gente lo sabe antes de escribir»: ya no hay aviso (D-79).
 
 ## D-55. Avisos de mensajes: al teléfono, sin el texto (28/10/2026)
 - **Qué:** un mensaje nuevo avisa por push (tipo `chat_message`) a los miembros que no lo silenciaron, con título
@@ -824,6 +826,7 @@ comando, los mensajes no se borran).
   nuevos del equipo».
 - **Por qué:** la pantalla de bloqueo muestra título y cuerpo, y el teléfono puede ser compartido; regla 8.
 - **Cómo se cambia:** `notifyChat()` en `src/lib/notify.ts`; `summaryPayload()` en `src/lib/push/deliver.ts`.
+- **Ajuste del 29/10 (R5):** el aviso va a los miembros **actuales** del canal que no lo silenciaron (quien salió no recibe nada), nunca en un canal archivado; dice «Mensaje nuevo · De Daniela (Redes)» o «Del jefe», nunca el texto ni el nombre del canal.
 
 ## D-56. Cómo llegan los mensajes: revisión periódica por rutas GET (28/10/2026)
 - **Qué:** la conversación abierta pide lo nuevo cada 5 s mientras la pantalla está a la vista y hay señal; el número
@@ -836,8 +839,9 @@ comando, los mensajes no se borran).
   tiene cómo probarse en la base en memoria ni en CI. Son 9 personas.
 - **Cómo se cambia:** `src/components/chat/chat-feed-core.ts` (`CHAT_POLL_MS`, `CHAT_BADGE_MS`,
   `CHAT_FETCH_TIMEOUT_MS`). Realtime (`postgres_changes`, que respeta RLS) cuando se pueda probar en `fb-dev`.
+- **Ajuste del 29/10 (R5):** igual (5 s el canal abierto, 30 s el sobre); el sobre cuenta canales no archivados con algo nuevo. Si el jefe saca a alguien mientras tiene el canal abierto, la revisión recibe 410 y la pantalla cambia a «Ya no estás en este canal.» y deja de preguntar. Solo cuando la base lo confirma (`chat_was_removed()`: una fila suya con `removed_at` y ninguna actual); un 404 (en la demo, un canal creado en otro servidor, D-88) es «nada nuevo esta vez» y la pantalla sigue preguntando; al enviar, el texto vuelve a la caja (revisión 2 de R5).
 
-## D-57. Mensajes en la demo: cada servidor tiene los suyos (28/10/2026)
+## D-57. Mensajes en la demo: cada servidor tiene los suyos (28/10/2026) — **Reemplazada por D-79 a D-88 (29/10/2026)**: Mensajes son canales, sin aviso.
 - **Qué:** la demo trae conversaciones sembradas (inventadas, mismos ids en cada servidor): **todas las directas entre
   las 8 personas del equipo** (28; las que no tienen mensajes no salen en la lista hasta el primero, así «Escribirle a
   alguien» abre el mismo id en cualquier servidor), un grupo, «Todo el equipo» y **un mensaje sin leer para cada una de
@@ -871,8 +875,9 @@ comando, los mensajes no se borran).
   quedan): si no, el alta las copiaría sin preguntar (revisión del 29/10, `tests/rls/boss-grant-pending.test.ts`).
 - **Cómo se cambia:** `guard_boss_grant()` y `notify_team_role_grant()` en una migración nueva; `roleGrantProblem()`
   en `src/lib/roles.ts`; `scripts/first-admin.ts` y `scripts/create-first-admin.mts`.
+- **Ajuste del 29/10 (R5):** el aviso al jefe abre `/mensajes` (antes «Quién habla con quién»); dar el rol de jefe también lo mete en todos los canales (D-81). El rol importa porque el jefe aprueba todo y está en todos los canales.
 
-## D-59. El aviso de Mensajes se acepta una vez antes de escribir (28/10/2026)
+## D-59. El aviso de Mensajes se acepta una vez antes de escribir (28/10/2026) — **Reemplazada por D-79 a D-88 (29/10/2026)**: Mensajes son canales, sin aviso.
 - **Qué:** la primera vez que alguien entra a Mensajes ve un diálogo: «El jefe puede leer todas las conversaciones. Lo
   que escribes queda guardado y no se borra. Administración y 360 no las leen.» (en la demo, más la línea de D-57) con
   «Entendido». Se guarda en `chat_notice_ack`, donde cada persona ve solo su fila (sin rama de administración). Sin
@@ -881,3 +886,112 @@ comando, los mensajes no se borran).
 - **Por qué:** «todos ven un aviso» se anunció; aceptarlo una vez es la forma de saber que lo vieron, sin volver a
   molestar.
 - **Cómo se cambia:** la tabla `chat_notice_ack` (se inserta la fila propia; no se borra); el texto en `CHAT_ACK_TEXT`.
+
+
+---------------------------------------------------------------------------------------------------------------------
+
+**Ronda 5 (29/10/2026): Mensajes como canales, sin aviso.** Lo pidió Juan el 29/10 sobre el aviso «El jefe puede leer
+todas las conversaciones…»: «este aviso quítalo de todo donde salga, no tiene sentido que lo tengamos así, se siente
+como si estuviéramos espiando a las personas», y después: «no pongas aviso, simplemente deja el canal de comunicación
+ahí y ya, es más, podríamos algo tipo Slack o Discord, que sean canales de comunicación y el jefe pueda verlos todos, y
+luego él es el que decide quién va en cada canal y en base a eso cada quien ve lo que tiene permiso, pero el jefe está
+en todos». D-79 a D-88 (R4 usa D-60 a D-78). Migración nueva: `20261029090000_chat_channels.sql` (no edita ninguna
+aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-56 y D-58. La enmienda E1 sigue igual.
+
+## D-79. Mensajes son canales, sin aviso (29/10/2026)
+- **Qué:** dos tipos: **canales** (nombre, descripción corta y miembros) y **«Todo el equipo»** (uno; están todos los del
+  equipo activos sin que nadie los agregue). No hay directos ni grupos que arme cualquiera. **No hay aviso en ninguna
+  parte**: ni arriba de Mensajes, ni bajo el título, ni junto a la caja, ni diálogo para aceptar, ni línea de la
+  demostración. Cada canal muestra arriba **quiénes están** («N personas» y los primeros nombres; al tocarlo, la lista
+  «Miembros» con el jefe primero). Se entra por el sobre con el número de canales con algo nuevo; cada canal tiene su
+  número de no leídos y cada persona puede **silenciarlo**.
+- **Por qué:** el aviso «se siente como si estuviéramos espiando a las personas». Con canales, lo que decía el aviso lo
+  dice la lista de miembros, como en Slack y Discord.
+- **Cómo se cambia:** `chat_conversations.kind` y `chat_members` en la migración; los textos en `src/lib/domain/chat.ts`.
+
+## D-80. El jefe arma los canales y decide quién va (con doble factor) (29/10/2026)
+- **Qué:** solo el jefe con doble factor **crea** un canal (nombre de 1 a 60 letras, descripción opcional de hasta 140,
+  al menos una persona además de él), le **cambia** el nombre y la descripción, **elige y cambia** quién está (en
+  «Editar canal», con un solo «Guardar»; si quita a alguien la pantalla pregunta antes: «Kevin deja de ver este canal,
+  también lo anterior.»), lo **archiva** o lo saca del archivo, y prende «Solo el jefe escribe» (en un canal o en «Todo
+  el equipo»). Nadie más. Un canal de dos (el jefe y una persona) solo lo arma el jefe y siempre lo incluye. El nombre y
+  la descripción nunca llevan teléfono, fecha, hora ni mapa (los leen todos los del canal, siempre). Las personas en
+  «Nuevo canal» y «Editar canal» salen agrupadas por rol. Sin doble factor la pantalla lo dice («Para esto necesitas
+  entrar con el doble factor.») en lugar del formulario.
+- **Por qué:** «él es el que decide quién va en cada canal». Doble factor, como todo lo que hace el jefe.
+- **Cómo se cambia:** `chat_channel_create`, `chat_channel_update`, `chat_channel_set_members`, `chat_channel_archive`,
+  `chat_set_only_boss`; `src/lib/actions/chat.ts` (`createChannel`, `saveChannel`, `archiveChannel`).
+
+## D-81. El jefe está en todos los canales, siempre, y se ve (29/10/2026)
+- **Qué:** la base mete a cada persona con el rol de jefe en **cada canal** que se crea y en **todos los que existen**
+  (archivados también) cuando el sistema le da el rol (D-58). Al jefe no se le saca de un canal (ni la pantalla, ni la
+  tabla, ni el sistema). Si le quitan el rol, sale de los canales donde estaba solo por ser jefe. Una cuenta de
+  administración nunca entra (el disparador va después de `guard_role_mix`, por eso se llama `zz_chat_boss_membership`).
+  Un jefe con el perfil desactivado sigue siendo miembro para la base, pero no sale en las listas ni en «N personas».
+- **Por qué:** «el jefe está en todos». Que lo haga la base evita un canal sin él; verlo en la lista reemplaza al aviso.
+- **Cómo se cambia:** `chat_channel_add_bosses()`, `chat_boss_role_change()` y `guard_chat_member_change()`.
+
+## D-82. Quién lee: los miembros de cada canal, nadie más (29/10/2026)
+- **Qué:** cada persona ve y lee **solo los canales donde está** (con doble factor si su rol lo pide) y «Todo el equipo».
+  Los demás no le salen ni por nombre (un enlace pegado a un canal ajeno dice «Algo que no puedes abrir»). El jefe lee
+  porque es miembro de todos: **no hay rama de «leer todas»**. **Administración:** ninguno (una cuenta con
+  administración no entra a Mensajes aunque tenga otro rol ni puede ser miembro). **360:** ninguno (`app.caller`). El
+  registro guarda que hubo un mensaje, un canal o un cambio de miembros, quién y cuándo; nunca el texto, el nombre ni
+  quiénes. Un miembro ve quién está **ahora**: nunca quién salió, cuándo ni quién lo sacó (alguien que salió solo se
+  nombra como autor de un mensaje viejo).
+- **Por qué:** «cada quien ve lo que tiene permiso». Se cumple en la base (RLS), no en la pantalla.
+- **Cómo se cambia:** `chat_is_member()`, `chat_can_read()`, `chat_member_list()` y la política `chat_members_select`.
+
+## D-83. «Todo el equipo» se queda (29/10/2026)
+- **Qué:** un canal fijo con todos los del equipo activos, automático; no se renombra, no lleva descripción y no se
+  archiva. El jefe puede prender «Solo el jefe escribe». Lo crea la base la primera vez que alguien lo abre; la demo lo
+  trae sembrado.
+- **Por qué:** es el canal de avisos generales del equipo; automático para que nunca falte nadie.
+- **Cómo se cambia:** `chat_team_channel()` y la rama `kind = 'team'` de `chat_is_member()`.
+
+## D-84. Sin directos, sin grupos, sin «Quién habla con quién» (29/10/2026)
+- **Qué:** nadie le escribe aparte a otra persona ni arma grupos: se habla en los canales que arma el jefe. Se fueron la
+  pantalla de parejas de roles, la tabla `chat_rules`, «Escribirle a alguien» y «Todas».
+- **Por qué:** «que sean canales»; el jefe decide con nombres, no con reglas por rol.
+- **Cómo se cambia:** volver a tener directos exigiría otro tipo en `chat_conversations.kind` y su regla de lectura.
+
+## D-85. Entrar y salir de un canal (29/10/2026) — **Confirmar con Juan** (si el que entra lee lo anterior)
+- **Qué:** quien el jefe **agrega** lee lo que ya se escribió en el canal (como en Slack; «Editar canal» se lo dice al
+  jefe), salvo los mensajes guardados de la agenda (D-52, también los de palabras relativas escritos sin Redes ni
+  política). Quien el jefe **saca** deja de ver el canal entero y de recibir sus avisos; si lo tenía abierto, la pantalla
+  dice «Ya no estás en este canal.» (solo cuando la base confirma que lo sacaron, D-56). Guardar el canal no saca a
+  quien está desactivado (el editor no lo muestra): sigue en el canal, sin leer nada, hasta que administración lo
+  reactive (revisión 2 de R5). Nadie se sale solo (para no oírlo, «Silenciar»). Nada se borra: salir es una marca
+  con la hora y quién lo sacó; volver es una fila nueva, con «Silenciar» apagado otra vez (su ajuste viejo no vuelve).
+- **Por qué:** es lo que se espera de un canal; guardar la historia de miembros cumple la regla de auditoría.
+- **Cómo se cambia:** `chat_channel_set_members()` y `removed_at` / `removed_by` de `chat_members`. Para que el que
+  entra lea solo desde que entró, la regla de lectura miraría `created_at` de su fila.
+
+## D-86. Archivar un canal (29/10/2026)
+- **Qué:** el jefe archiva un canal que ya no se usa (pregunta antes: «¿Archivar «…»? Nadie podrá escribir en él…»):
+  pasa a «Archivados», plegado al final; sus miembros lo siguen leyendo, nadie escribe (el jefe tampoco), no suma al
+  sobre y sus miembros no cambian. «Sacar del archivo» lo devuelve tal cual. No se borra.
+- **Por qué:** limpiar la lista sin perder lo escrito (D-54).
+- **Cómo se cambia:** `archived_at` y `chat_channel_archive()`; `chat_may_post()` mira `archived_at`.
+
+## D-87. Lo que ya existía: canales archivados; se van el aviso y las reglas (29/10/2026)
+- **Qué:** la migración convierte cada directa y cada grupo en un **canal archivado** con los mismos miembros más el
+  jefe; las directas se llaman «Conversación de <nombre> y <nombre>». Nada se borra. En `fb-dev` no hay mensajes reales,
+  así que en la práctica no convierte nada. Se eliminan `chat_notice_ack`, `chat_rules`, `chat_start()`,
+  `chat_pair_allowed()` y `chat_stamp_rule()` con sus reglas, disparadores y permisos (las filas del registro quedan, y
+  Ajustes → Registro las nombra «Mensajes (antes de los canales)»). A los mensajes de las directas y grupos sin Redes ni
+  política se les aplica una vez la regla estricta de la agenda (D-52, ajuste del 29/10): un «mañana» de quien conoce la
+  agenda queda oculto, para que sacar del archivo y agregar a Redes o política no lo deje leer (revisión 2 de R5). El
+  aviso al jefe por un rol nuevo abre `/mensajes` y los avisos viejos se corrigen.
+- **Por qué:** convertir y no borrar cumple «lo escrito queda»; archivados, nadie escribe donde antes no estaba el jefe.
+- **Cómo se cambia:** la sección 1 de la migración.
+
+## D-88. Mensajes en la demo: canales sembrados, sin línea de demostración (29/10/2026)
+- **Qué:** la demo trae canales inventados con ids fijos: «Todo el equipo», «Grabación y Redes», «Obras y comunidad»,
+  «Jefe y despacho» (de dos) y uno archivado, «Jornada de salud». Cada una de las 8 personas tiene **un canal sin leer**.
+  No hay línea de demostración en Mensajes. Un canal que esa persona no puede abrir (no está en él, o se creó en otro
+  servidor de la demostración) dice una sola cosa: «Este canal no está en tu lista: o no estás en él, o se creó en otro
+  servidor de la demostración.». Lo que la demo no puede mostrar (dos teléfonos, un canal nuevo visto desde otro
+  servidor) está en `docs/DEMO.md`, no en la pantalla.
+- **Por qué:** D-02/D-39: cada servidor de Vercel tiene su base en memoria.
+- **Cómo se cambia:** `src/lib/db/seed-parts/chat.ts`; el texto en `CHAT_NOT_IN_LIST`.

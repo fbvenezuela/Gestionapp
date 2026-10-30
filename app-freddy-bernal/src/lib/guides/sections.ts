@@ -2,8 +2,8 @@
 // roles share are written once here, with what changes per role; each role's file (boss.ts…) picks its screens and
 // groups them under its menu entries. «» only for what the screen says; no concrete dates, phones or demo names.
 import { navFor, type TeamRole } from '../roles';
-import { MSG_AGENDA, MSG_ENTER, MSG_FREE, MSG_LINKS, MSG_PHONES, MSG_RELATIVE, MSG_RULES, MSG_TO_BOSS } from './shared';
-import { CHAT_NOTICE, CHAT_NOTICE_LINE, CHAT_COMPOSER_LINE } from '../domain/chat';
+import { MSG_AGENDA, MSG_CHANNELS, MSG_ENTER, MSG_FREE, MSG_LINKS, MSG_PHONES, MSG_RELATIVE } from './shared';
+import { CHAT_ADD_READS_BEFORE, CHAT_BOSS_ALWAYS } from '../domain/chat';
 import type { RoleGuide, SectionGuide } from './types';
 
 type S = SectionGuide;
@@ -49,82 +49,69 @@ const knows = (role: TeamRole) => role === 'boss' || role === 'dispatch' || role
 
 export function messagesSections(role: TeamRole): S[] {
   const agenda = knows(role) ? [MSG_AGENDA, MSG_RELATIVE] : [MSG_FREE];
+  const boss = role === 'boss';
   const list: S[] = [
     {
       screen: '/mensajes',
       menu: TOP,
       title: 'Mensajes',
       tour: 'mensajes',
-      what: 'Tus conversaciones con el equipo: con una persona, en grupo y «Todo el equipo». Se abre con el sobre de arriba.',
+      what: 'Tus canales con el equipo y «Todo el equipo». Se abre con el sobre de arriba.',
       youDo: [
-        'Arriba de la lista está siempre el aviso: ' + CHAT_NOTICE,
-        'La primera vez aceptas ese aviso con «Entendido». Sin aceptarlo puedes leer, pero no escribir.',
-        'La primera fila es «Todo el equipo»; debajo, tus conversaciones. En negrita, las que tienen algo nuevo.',
-        'Para empezar una, toca «Escribirle a alguien».',
-        ...(role === 'boss' ? ['Arriba tienes tres pestañas: «Mías», «Todas» y «Quién habla con quién».'] : []),
+        'La primera fila es «Todo el equipo»; debajo, tus canales. En negrita, los que tienen algo nuevo.',
+        'Los canales archivados están al final, en «Archivados»: se leen, pero ya no se escribe en ellos.',
+        boss ? 'Arriba tienes «Nuevo canal».' : 'Los canales los arma el jefe; si te hace falta uno, pídeselo.',
       ],
-    },
-    {
-      screen: '/mensajes/nueva',
-      menu: TOP,
-      title: 'Escribirle a alguien',
-      what: 'Para empezar una conversación con una persona o armar un grupo.',
-      youDo: [
-        '«Una persona»: tocas a quien le quieres escribir y se abre su conversación (si ya existía, la misma).',
-        '«Un grupo»: marcas de 2 a 11 personas, le pones un «Nombre del grupo» y tocas «Crear grupo». Las personas del grupo quedan fijas: para sumar a alguien se arma otro.',
-        'Si el jefe no permite mensajes entre tu rol y otro, esas personas no salen en la lista.',
-        MSG_TO_BOSS,
-      ],
-      cannot: ['Poner teléfonos, fechas, horas o mapas en el nombre del grupo.'],
     },
     {
       screen: '/mensajes/[id]',
       menu: TOP,
-      title: 'Una conversación',
-      what: 'Los mensajes de una conversación, del más viejo al más nuevo. Abre donde dice «Mensajes nuevos» o al final.',
+      title: 'Un canal',
+      tour: 'canal',
+      what: 'Los mensajes de un canal, del más viejo al más nuevo. Abre donde dice «Mensajes nuevos» o al final.',
       youDo: [
-        'Bajo el título dice: ' + CHAT_NOTICE_LINE,
+        'Arriba están el nombre, para qué es el canal y «N personas»: tócalo para ver quiénes están.',
         'Arriba, «Ver anteriores» trae los mensajes más viejos.',
-        'Si todavía no aceptaste el aviso, no hay caja para escribir: tocas «Ver el aviso» y «Entendido».',
-        `Escribes abajo, en la caja. Pegada a ella dice: ${CHAT_COMPOSER_LINE}.`,
+        'Escribes abajo, en la caja.',
         MSG_ENTER,
         'Tu mensaje sale al momento con “Enviando…”. Si se fue la señal, dice que no se envió y tocas «Reintentar».',
         MSG_PHONES,
         ...agenda,
         MSG_LINKS,
         'En el menú de los tres puntos: «Silenciar» (deja de sonar en tu teléfono) o «Quitar el silencio».',
-        ...(role === 'boss' ? ['En un grupo o en «Todo el equipo», ese menú también tiene «Solo el jefe escribe»: los demás leen y solo tú escribes.'] : []),
-        MSG_RULES,
+        ...(boss ? ['En el menú de los tres puntos también tienes «Solo el jefe escribe», «Editar canal» y «Archivar».'] : []),
+        MSG_CHANNELS,
       ],
-      cannot: ['Editar ni borrar un mensaje: lo escrito queda.', 'Mandar fotos, audios o archivos: para eso están el material y las piezas.'],
+      cannot: ['Editar o borrar un mensaje.', 'Mandar fotos, audios o archivos: para eso están el material y las piezas.'],
     },
   ];
-  if (role === 'boss') {
+  if (boss) {
     list.push(
       {
-        screen: '/mensajes/todas',
+        screen: '/mensajes/canales/nuevo',
         menu: TOP,
-        title: 'Todas las conversaciones',
-        what: 'Todas las conversaciones del equipo, para leerlas. Todos saben que puedes: lo dice el aviso de Mensajes.',
+        title: 'Nuevo canal',
+        what: 'Para armar un canal: nombre, para qué es y quiénes van.',
         youDo: [
-          'Abres la que quieras y la lees. En las que no eres parte no escribes, y tu lectura no las marca como leídas para nadie.',
-          'Las que son tuyas llevan «Eres parte».',
+          'Le pones un «Nombre del canal» de hasta 60 letras y, si quieres, una «Descripción corta» de hasta 140.',
+          'Marcas a quienes van: están agrupados por su rol.',
+          `La primera fila eres tú, ya marcada: ${CHAT_BOSS_ALWAYS}`,
+          'Tocas «Crear canal» y se abre el canal.',
         ],
+        cannot: ['Poner teléfonos, fechas, horas o mapas en el nombre o la descripción.'],
       },
       {
-        screen: '/mensajes/permisos',
+        screen: '/mensajes/[id]/editar',
         menu: TOP,
-        title: 'Quién habla con quién',
-        what: 'Decides qué roles pueden escribirse en Mensajes. Al principio todos hablan con todos.',
+        title: 'Editar canal',
+        what: 'Para cambiar el nombre, para qué es y quiénes están en un canal, o archivarlo.',
         youDo: [
-          'Cada fila es una pareja de roles, con los nombres de las personas de cada uno. El interruptor dice «Pueden escribirse» o «No pueden».',
-          'Al cerrar una pareja la plataforma te pregunta antes: lo que ya se escribieron se sigue leyendo, pero no podrán escribir más.',
-          'Con dos roles gana la regla más cerrada: si una persona es de política y del IVT y cierras Redes con política, no le escribe a Redes.',
-          'Un grupo solo se arma si todas las parejas del grupo pueden hablar.',
-          'En «Todo el equipo» escriben todos; las parejas no cuentan ahí. Si quieres que solo escribas tú, prende «Solo el jefe escribe en Todo el equipo».',
-          MSG_TO_BOSS,
+          'Cambias el nombre o la descripción, marcas o desmarcas a las personas y tocas «Guardar»: todo se guarda junto.',
+          CHAT_ADD_READS_BEFORE,
+          'Si quitas a alguien, la plataforma te pregunta antes de guardar.',
+          'Con «Archivar canal» nadie escribe más en él y se sigue leyendo en «Archivados». «Sacar del archivo» lo devuelve tal cual.',
         ],
-        cannot: ['Cambiar las notas de trabajo (la nota de Grabación para el editor, los comentarios de una pieza): las reglas son solo para Mensajes.'],
+        cannot: ['Sacarte a ti de un canal: el jefe está en todos.', 'Cambiar «Todo el equipo»: ahí están todos.'],
       },
     );
   }

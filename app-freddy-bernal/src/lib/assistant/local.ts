@@ -259,7 +259,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // An account with Administración is out of Mensajes (D-49: canOpen says so).
   const msgs = messagesAsk(i.question);
   const inMensajes = canOpen('/mensajes', i.ctx.roles);
-  if (msgs === 'tell') return inMensajes ? done(MESSAGES_TELL_TEXT, '/mensajes/nueva') : done(MESSAGES_ADMIN_TEXT);
+  if (msgs === 'tell') return inMensajes ? done(MESSAGES_TELL_TEXT, '/mensajes') : done(MESSAGES_ADMIN_TEXT);
 
   // 1. A person, please: notice for real, then say so.
   if (/\b(hablar con (alguien|una persona|un humano|administracion|el equipo|alguien del equipo)|quiero (una persona|un humano|hablar con)|pasame con|necesito (a alguien|una persona|ayuda de alguien|hablar con)|que me (llame|escriba) alguien|llamar a alguien)\b/.test(q)) {
@@ -273,11 +273,11 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // M1. What a message of the team says: 360 does not read them (D-50). Kept only as a mark (index.ts).
   if (msgs === 'read') return inMensajes ? done(MESSAGES_READ_TEXT, '/mensajes') : done(MESSAGES_ADMIN_TEXT);
 
-  // M2. How to write to someone of the team: the guide card of Mensajes and the button to «Escribirle a alguien».
+  // M2. How to write to someone of the team: the guide card of Mensajes and the button to Mensajes (R5: channels).
   if (asksHowToWrite(i.question)) {
     if (!inMensajes) return done(MESSAGES_ADMIN_TEXT);
     const card = (knowledge ?? []).find((f) => f.key === 'guia:mensajes');
-    return done(card ? sentences(fill(card.body)).slice(0, 2).join(' ') : 'En el sobre de arriba, junto a la campana, está Mensajes: ahí tocas «Escribirle a alguien». El jefe puede leer las conversaciones.', '/mensajes/nueva');
+    return done(card ? sentences(fill(card.body)).slice(0, 2).join(' ') : 'En el sobre de arriba, junto a la campana, está Mensajes: ahí están tus canales, y cada canal muestra quiénes están.', '/mensajes');
   }
 
   // S. What this screen is for, for this role («¿qué hago aquí?», «¿qué se hace en Publicar?»): its section card and

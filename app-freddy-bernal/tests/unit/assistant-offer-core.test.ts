@@ -82,7 +82,7 @@ describe('cuándo se ofrece (D-47)', () => {
   });
 
   it('nunca en pantallas de formulario o con barra fija, ni un tutorial de formulario, ni con menos de 2 pasos', () => {
-    expect(NO_OFFER_SCREENS).toEqual(['/agenda/nuevo', '/publicar/nueva', '/tweets/nueva', '/obras/nueva', '/reportes/nuevo', '/mensajes/nueva', '/mensajes/[id]', '/aprobar/[id]']);
+    expect(NO_OFFER_SCREENS).toEqual(['/agenda/nuevo', '/publicar/nueva', '/tweets/nueva', '/obras/nueva', '/reportes/nuevo', '/mensajes/canales/nuevo', '/mensajes/[id]', '/mensajes/[id]/editar', '/aprobar/[id]']);
     for (const screen of NO_OFFER_SCREENS) expect(shouldOffer(base(store(), tab(), { screen })), screen).toBe(false);
     expect(shouldOffer(base(store(), tab(), { tour: { ...SECCION, form: true } }))).toBe(false);
     expect(shouldOffer(base(store(), tab(), { available: false }))).toBe(false);

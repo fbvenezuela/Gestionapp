@@ -71,6 +71,8 @@ export const LABEL_PATTERNS: { re: RegExp; source: string }[] = [
   { re: /^En Feed · Mes n #n$/, source: 'En Feed · ${month} #${n}' },
   { re: /^Movida al #n$/, source: 'Movida al #${n}' },
   { re: /^n\/m$/, source: '${c.reviewed}/${c.quota}' },
+  // Mensajes: how many are in a channel (peopleCount, src/components/chat/chat-core.ts).
+  { re: /^N personas$/, source: '${n} personas' },
 ];
 
 // Labels the screens build in code in a way a plain search cannot find, or say only to some people. Keep it short.

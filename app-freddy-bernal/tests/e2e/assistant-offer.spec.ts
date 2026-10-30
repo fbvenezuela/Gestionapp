@@ -148,7 +148,7 @@ test('una X: ese tutorial no vuelve; la segunda X lo apaga en este teléfono y l
   await expect(strip(page)).toBeVisible({ timeout: 8_000 });
 });
 
-test('no sale en una pantalla de formulario, ni mientras se escribe, ni en una conversación de Mensajes', async ({ page }) => {
+test('no sale en una pantalla de formulario, ni mientras se escribe, ni en un canal de Mensajes', async ({ page }) => {
   await loginAs(page, 'despacho@demo.test');
   await page.goto('/agenda/nuevo');
   await expectNoStrip(page);
@@ -166,16 +166,11 @@ test('no sale en una pantalla de formulario, ni mientras se escribe, ni en una c
   await expect(strip(page)).toBeVisible({ timeout: 8_000 });
   await strip(page).getByRole('button', { name: 'Ahora no' }).click();
 
-  // A conversation fills the screen: no 360 button and no strip (U11).
+  // A channel fills the screen: no 360 button and no strip (U11). No notice or dialog on the way (R5).
   await nextDayNewTab(page);
   await page.goto('/mensajes');
-  // The notice (not accepted yet) opens by itself once the page is live: wait for it, then read without accepting.
   await expect(page.locator('main [data-tour="chat-list"]')).toBeVisible();
-  if (await page.locator('dialog', { hasText: 'Antes de escribir en Mensajes' }).count()) {
-    await expect(page.getByRole('dialog', { name: 'Antes de escribir en Mensajes' })).toBeVisible();
-    await page.keyboard.press('Escape');
-    await expect(page.getByRole('dialog', { name: 'Antes de escribir en Mensajes' })).toHaveCount(0);
-  }
+  await expect(page.locator('dialog[open]')).toHaveCount(0);
   await page.locator('[data-tour="chat-list"] a[href^="/mensajes/"]').first().click();
   await page.waitForURL(/\/mensajes\/[0-9a-f-]{36}/);
   await expectNoStrip(page, 5_000);

@@ -3,15 +3,18 @@
 import { z } from 'zod';
 import { act, UserError, type Result } from './run';
 import { friendlyDbError } from '../db/core';
+import { isDemo } from '../env';
 import { notifyChat } from '../notify';
+import { wasRemoved } from '../data/chat';
 import {
-  CHAT_BODY_MAX, CHAT_GROUP_MAX, CHAT_GROUP_MIN, CHAT_PHONE_LINK_TEXT, CHAT_PHONE_TEXT, CHAT_RELATIVE_ASK, CHAT_ROLE_NAME,
-  CHAT_ROLE_PAIRS, CHAT_TIMECODE_ASK, CHAT_TITLE_MAX, chatTextProblem, chatTitleProblem, fillWord, type ChatTextProblem,
+  CHAT_BODY_MAX, CHAT_DESC_MAX, CHAT_MEMBERS_MAX, CHAT_PHONE_LINK_TEXT, CHAT_PHONE_TEXT, CHAT_RELATIVE_ASK, CHAT_TEXT_REFUSED,
+  CHAT_NOT_IN_LIST, CHAT_TIMECODE_ASK, CHAT_TITLE_MAX, chatChannelTextProblem, chatTextProblem, fillWord, type ChatTextProblem,
 } from '../domain/chat';
 
-// Mensajes (R3, design §4.3). Every action runs as the person (RLS); the database decides who reads and writes
-// (20261028002400_internal_chat.sql) and these only say it first, in Spanish. A message's text is never logged and
-// never comes back in an error. sendMessage is called straight from the phone's send queue (not with useAction, which
+// Mensajes: channels (R5, D-79 to D-88). Every action runs as the person (RLS); the database decides who reads and
+// writes (20261028002400_internal_chat.sql and 20261029090000_chat_channels.sql) and these only say it first, in
+// Spanish. Only the boss with 2FA makes a channel and decides who is in it. A message's text is never logged and never
+// comes back in an error. sendMessage is called straight from the phone's send queue (not with useAction, which
 // refreshes the whole page) and revalidates nothing.
 
 const uuid = z.string().uuid();
@@ -22,32 +25,41 @@ function refusal(p: ChatTextProblem): string {
   return friendlyDbError({ code: '23514', message: 'chat_messages_no_agenda_when' });
 }
 
-// «Lo lee el jefe»: accepted once, before writing (D-59).
-export async function acceptNotice() {
-  return act(z.object({}), {}, async (sql) => {
-    await sql.query(`insert into public.chat_notice_ack (user_id) values (auth.uid()) on conflict (user_id) do nothing`);
-  }, { revalidate: ['/mensajes'] });
+const titleSchema = z.string().trim().min(1, `El nombre del canal va de 1 a ${CHAT_TITLE_MAX} letras.`).max(CHAT_TITLE_MAX, `El nombre del canal va de 1 a ${CHAT_TITLE_MAX} letras.`);
+const descSchema = z.string().trim().max(CHAT_DESC_MAX, `La descripción va hasta ${CHAT_DESC_MAX} letras.`).optional();
+const membersSchema = z.array(uuid).min(1, 'Elige al menos a una persona.').max(CHAT_MEMBERS_MAX, `Un canal es de hasta ${CHAT_MEMBERS_MAX} personas, además del jefe.`);
+
+// The name and the description: never a phone, a date, a time or a map (the database's guard_chat_channel_text()).
+function checkTexts(title: string, description: string | undefined) {
+  if (chatChannelTextProblem(title) || (description && chatChannelTextProblem(description))) throw new UserError(CHAT_TEXT_REFUSED);
 }
 
-const startSchema = z.object({
-  kind: z.enum(['direct', 'group']),
-  memberIds: z.array(uuid).min(1, 'Elige a alguien.').max(CHAT_GROUP_MAX - 1, `Un grupo es de ${CHAT_GROUP_MIN} a ${CHAT_GROUP_MAX} personas, contándote.`),
-  title: z.string().trim().max(CHAT_TITLE_MAX, `El nombre del grupo va de 1 a ${CHAT_TITLE_MAX} letras.`).optional(),
-});
+/** «Nuevo canal» (the boss with 2FA): a name, a short description and who goes. The bosses are in it on their own. */
+export async function createChannel(raw: unknown): Promise<Result<{ id: string }>> {
+  return act(z.object({ title: titleSchema, description: descSchema, memberIds: membersSchema }), raw, async (sql, i) => {
+    checkTexts(i.title, i.description);
+    const row = await sql.one<{ id: string }>(`select public.chat_channel_create($1, $2, $3::uuid[]) as id`, [i.title, i.description || null, [...new Set(i.memberIds)]]);
+    return { id: row!.id, message: 'Listo: se creó el canal.' };
+  }, { revalidate: ['/mensajes'] }).then(withMessage);
+}
 
-/** One person (the direct that exists, or a new one) or a new group; the screen then opens it. */
-export async function startConversation(raw: unknown): Promise<Result<{ id: string }>> {
-  return act(startSchema, raw, async (sql, i, s) => {
-    const others = [...new Set(i.memberIds)].filter((x) => x !== s.userId);
-    if (i.kind === 'direct' && others.length !== 1) throw new UserError('Elige a una persona.');
-    if (i.kind === 'group') {
-      if (others.length + 1 < CHAT_GROUP_MIN || others.length + 1 > CHAT_GROUP_MAX) throw new UserError(`Un grupo es de ${CHAT_GROUP_MIN} a ${CHAT_GROUP_MAX} personas, contándote.`);
-      if (!i.title) throw new UserError('Ponle un nombre al grupo.');
-      if (chatTitleProblem(i.title)) throw new UserError(friendlyDbError({ code: '23514', message: 'chat_title_private' }));
-    }
-    const row = await sql.one<{ id: string }>(`select public.chat_start($1, $2::uuid[], $3) as id`, [i.kind, others, i.kind === 'group' ? i.title : null]);
-    return { id: row!.id };
-  }, { revalidate: ['/mensajes'] });
+/** «Editar canal» (the boss with 2FA): the name, the description and who is in it, saved together. Whoever is taken
+ * out stops reading the channel (also what came before); whoever is added reads it all (D-85). */
+export async function saveChannel(raw: unknown) {
+  return act(z.object({ id: uuid, title: titleSchema, description: descSchema, memberIds: membersSchema.optional() }), raw, async (sql, i) => {
+    checkTexts(i.title, i.description);
+    await sql.query(`select public.chat_channel_update($1, $2, $3)`, [i.id, i.title, i.description || null]);
+    if (i.memberIds) await sql.query(`select public.chat_channel_set_members($1, $2::uuid[])`, [i.id, [...new Set(i.memberIds)]]);
+    return { message: 'Listo: se guardó el canal.' };
+  }, { revalidate: ['/mensajes'] }).then(withMessage);
+}
+
+/** Archive a channel (nobody writes in it; its members still read it) or take it out of the archive. */
+export async function archiveChannel(raw: unknown) {
+  return act(z.object({ id: uuid, archived: z.boolean() }), raw, async (sql, i) => {
+    await sql.query(`select public.chat_channel_archive($1, $2)`, [i.id, i.archived]);
+    return { message: i.archived ? 'Listo: el canal quedó archivado.' : 'Listo: el canal volvió a la lista.' };
+  }, { revalidate: ['/mensajes'] }).then(withMessage);
 }
 
 /** «Todo el equipo»: the database makes it the first time someone opens it. */
@@ -65,7 +77,9 @@ const sendSchema = z.object({
 
 export type SendData =
   | { kind: 'sent'; id: string; createdAt: string; fresh: boolean }
-  | { kind: 'confirm'; confirm: 'timecode' | 'relative'; word: string; question: string };
+  | { kind: 'confirm'; confirm: 'timecode' | 'relative'; word: string; question: string }
+  // The database says the boss took the person out of this channel meanwhile: the screen says so and stops.
+  | { kind: 'gone' };
 
 /**
  * Sends a message with the phone's own id (clientId): sending it again never makes a second one. Before writing, the
@@ -79,6 +93,12 @@ export async function sendMessage(raw: unknown): Promise<Result<SendData>> {
     // Already saved (a send repeated after a lost answer): the same message, nothing new.
     const same = await sql.one<{ id: string; created_at: Date }>(`select id, created_at from public.chat_messages where id = $1 and author_id = auth.uid()`, [i.clientId]);
     if (same) return { kind: 'sent', id: same.id, createdAt: new Date(same.created_at).toISOString(), fresh: false };
+    if (!(await sql.one<{ r: boolean }>(`select public.chat_can_read($1) as r`, [i.conversationId]))?.r) {
+      // «gone» only when the database says they were taken out; otherwise the text goes back to the box (in the demo
+      // the channel may live on another server, D-88: sending again may reach it). Nothing said about the channel.
+      if (await wasRemoved(sql, i.conversationId)) return { kind: 'gone' };
+      throw new UserError(isDemo() ? CHAT_NOT_IN_LIST : 'Ya no puedes escribir en este canal.');
+    }
     const hides = !!(await sql.one<{ h: boolean }>(`select public.chat_hides_agenda_for_me($1) as h`, [i.conversationId]))?.h;
     const p = chatTextProblem(i.body, { hidesAgenda: hides, authorRoles: s.roles, timecodeOk: i.timecodeOk, relativeOk: i.relativeOk });
     if (p?.kind === 'timecode') return { kind: 'confirm', confirm: 'timecode', word: p.word, question: fillWord(CHAT_TIMECODE_ASK, p.word) };
@@ -115,8 +135,7 @@ export async function sendMessage(raw: unknown): Promise<Result<SendData>> {
 
 const readSchema = z.object({ conversationId: uuid, upTo: z.string().datetime({ offset: true }).optional() });
 
-/** Read up to `upTo` (the newest message on my screen) or now. Only members: the boss reading someone else's
- * conversation marks nothing for anyone. `upTo` comes from the screen in milliseconds (toISOString) while Postgres keeps
+/** Read up to `upTo` (the newest message on my screen) or now. Only who is in the channel now. `upTo` comes from the screen in milliseconds (toISOString) while Postgres keeps
  * microseconds: it is moved to the full time of the newest message (or hidden mark) within that millisecond, or the
  * message read would still count as new. */
 export async function markRead(raw: unknown) {
@@ -139,51 +158,28 @@ export async function markRead(raw: unknown) {
   });
 }
 
-/** Silence a conversation (its messages do not ring the phone), or not. */
+/** Silence a channel (its messages do not ring the phone), or not. */
 export async function setMuted(raw: unknown) {
   return act(z.object({ conversationId: uuid, muted: z.boolean() }), raw, async (sql, i) => {
     const member = await sql.one<{ m: boolean }>(`select public.chat_is_member($1) as m`, [i.conversationId]);
-    if (!member?.m) throw new UserError('Solo silencias tus conversaciones.');
+    if (!member?.m) throw new UserError('Solo silencias tus canales.');
     // A first row starts unread (what I have not opened stays new).
     await sql.query(
       `insert into public.chat_reads (conversation_id, user_id, last_read_at, muted) values ($1, auth.uid(), '-infinity', $2)
        on conflict (conversation_id, user_id) do update set muted = excluded.muted`,
       [i.conversationId, i.muted],
     );
-    return { message: i.muted ? 'Listo: esta conversación ya no suena en tu teléfono.' : 'Listo: esta conversación vuelve a sonar.' };
+    return { message: i.muted ? 'Listo: este canal ya no suena en tu teléfono.' : 'Listo: este canal vuelve a sonar.' };
   }, { revalidate: ['/mensajes'] }).then(withMessage);
 }
 
-const pairKeys = CHAT_ROLE_PAIRS.map((p) => `${p.roleA}:${p.roleB}`);
-const ruleSchema = z
-  .object({ roleA: z.string(), roleB: z.string(), allowed: z.boolean() })
-  .refine((r) => pairKeys.includes(`${r.roleA}:${r.roleB}`), 'Esa pareja no existe.');
-
-/** «Quién habla con quién»: the boss (2FA, RLS) opens or closes a pair of roles. */
-export async function setRoleRule(raw: unknown) {
-  return act(ruleSchema, raw, async (sql, i) => {
-    await sql.query(
-      `insert into public.chat_rules (role_a, role_b, allowed) values ($1::public.app_role, $2::public.app_role, $3)
-       on conflict (role_a, role_b) do update set allowed = excluded.allowed`,
-      [i.roleA, i.roleB, i.allowed],
-    );
-    const a = CHAT_ROLE_NAME[i.roleA as keyof typeof CHAT_ROLE_NAME];
-    const b = CHAT_ROLE_NAME[i.roleB as keyof typeof CHAT_ROLE_NAME];
-    return {
-      message: i.allowed
-        ? `Listo: ${a} y ${b} ya pueden escribirse.`
-        : `Listo: ${a} y ${b} ya no pueden escribirse. En Todo el equipo siguen escribiendo todos.`,
-    };
-  }, { revalidate: ['/mensajes'] }).then(withMessage);
-}
-
-/** «Solo el jefe escribe» in a group or in «Todo el equipo» ('team': made first if it does not exist yet). */
+/** «Solo el jefe escribe» in a channel or in «Todo el equipo» ('team': made first if it does not exist yet). */
 export async function setOnlyBoss(raw: unknown) {
   return act(z.object({ conversationId: z.union([uuid, z.literal('team')]), value: z.boolean() }), raw, async (sql, i) => {
     const id = i.conversationId === 'team' ? (await sql.one<{ id: string }>(`select public.chat_team_channel() as id`))!.id : i.conversationId;
     const kind = (await sql.one<{ kind: string }>(`select kind from public.chat_conversations where id = $1`, [id]))?.kind;
     await sql.query(`select public.chat_set_only_boss($1, $2)`, [id, i.value]);
-    const where = kind === 'team' ? 'en Todo el equipo' : 'en este grupo';
+    const where = kind === 'team' ? 'en Todo el equipo' : 'en este canal';
     return { message: i.value ? `Listo: ${where} solo escribe el jefe.` : `Listo: ${where} escriben todos otra vez.` };
   }, { revalidate: ['/mensajes'] }).then(withMessage);
 }

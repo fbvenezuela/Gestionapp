@@ -7,7 +7,7 @@
 Administración es el rol técnico: invita al equipo y le da sus roles, cuida los ajustes de la plataforma y el asistente 360. No decide, no aprueba y no escribe en la agenda. En la app: `/ayuda/administracion` (solo administración).
 
 ## Lo que no es de administración
-- Mensajes no es para administración: no lees las conversaciones del equipo, y una cuenta con administración no entra a Mensajes aunque tenga otro rol.
+- Mensajes no es para administración: no entras a los canales del equipo, y una cuenta con administración no entra a Mensajes aunque tenga otro rol.
 - El rol de jefe no se da desde Equipo: se da con el comando de instalación (npm run db:first-admin con la opción --jefe). Cada rol del equipo que das le llega al jefe como aviso.
 - Las guías del equipo no hablan de administración: esta guía es aparte.
 - Nada sale hacia afuera mientras se prueba: los correos quedan en el «Buzón de correos» y nada se publica solo.
@@ -83,7 +83,7 @@ Todos los correos que generó la plataforma. Mientras se prueba, ninguno sale: q
 Quién cambió qué y cuándo, en toda la plataforma.
 
 - Buscas un cambio por tipo o por persona.
-- De Mensajes sale solo que hubo un mensaje, quién y cuándo: nunca el texto, el nombre del grupo ni quiénes son.
+- De Mensajes sale solo que hubo un mensaje, un canal o un cambio de miembros, quién y cuándo: nunca el texto, el nombre del canal ni quiénes son.
 
 ### Ver como
 Para ver los menús de otro rol, arriba (en el teléfono, dentro de «Mi cuenta»). Tus permisos no cambian.
@@ -116,7 +116,7 @@ Lees la agenda, «Por ponerle fecha», las obras y los municipios.
 En Equipo, «Cerrar sus sesiones» y «Reiniciar doble factor». La próxima vez que entre, lo activa de nuevo.
 
 **¿Por qué no puedo marcar «Jefe» en Equipo?**
-El rol de jefe lo da el comando de instalación. Así nadie arma otra cuenta que apruebe o lea todos los mensajes.
+El rol de jefe lo da el comando de instalación. Así nadie arma otra cuenta que apruebe todo o esté en todos los canales.
 
 **¿Puedo leer los mensajes del equipo?**
 No. Mensajes no tiene entrada para administración, ni con «Ver como», ni en el registro de cambios.

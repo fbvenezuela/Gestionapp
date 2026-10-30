@@ -2,7 +2,7 @@
 // replaces the first in the tray. For Mensajes (R3, D-55) it counts the new MESSAGES (there is no row in «Avisos»),
 // says «Tienes N mensajes nuevos» and opens Mensajes; never a message's text. Web Push is mocked. All data invented.
 import { describe, it, expect, beforeAll, vi } from 'vitest';
-import { chatDirectId } from '@/lib/db/seed-parts/chat';
+import { chatChannelId } from '@/lib/db/seed-parts/chat';
 import { makeTestDb, type TestDb } from '../rls/setup';
 
 const sendNotification = vi.fn();
@@ -45,7 +45,7 @@ describe('Mensajes agrupados en el teléfono', () => {
   it('el segundo mensaje en 10 minutos no suena: cuenta los mensajes nuevos de los demás, sin el texto', async () => {
     sendNotification.mockReset();
     sendNotification.mockResolvedValue({ statusCode: 201 });
-    const c = chatDirectId(t.ids.social, t.ids.camera);
+    const c = chatChannelId('grabacion-y-redes');
     await t.system(async (sql) => {
       await sql.query(`insert into public.push_subscriptions (user_id, endpoint, p256dh, auth) values ($1, $2, $3, $4)`, [t.ids.camera, EP, KEY, AUTH]);
     });

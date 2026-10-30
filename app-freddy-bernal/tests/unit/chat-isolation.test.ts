@@ -13,8 +13,8 @@ const files = (dir: string): string[] =>
 const read = (f: string) => fs.readFileSync(f, 'utf8');
 
 // What would let 360 reach Mensajes.
-const CHAT_TABLES = /\bchat_(conversations|members|messages|reads|rules|notice_ack)\b/;
-const CHAT_FUNCTIONS = /\bchat_(start|people|member_list|hidden_marks|team_channel|can_read|may_post|set_only_boss)\b/;
+const CHAT_TABLES = /\bchat_(conversations|members|messages|reads)\b/;
+const CHAT_FUNCTIONS = /\bchat_(people|member_list|hidden_marks|team_channel|can_read|may_post|set_only_boss|is_member|channel_\w+)\b/;
 const CHAT_CODE = /from\s+['"](?:@\/lib\/(?:data|actions|domain)\/chat|(?:\.\.\/)+(?:lib\/)?(?:data|actions|domain)\/chat|@\/components\/chat\/[^'"]*)['"]/;
 const CHAT_ROUTES = /\/api\/mensajes/;
 

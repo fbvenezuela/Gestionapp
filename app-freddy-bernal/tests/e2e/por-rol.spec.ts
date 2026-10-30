@@ -1,6 +1,7 @@
 import { test, expect, type Browser, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { loginAs } from './helpers';
+import { chatChannelId } from '../../src/lib/db/seed-parts/chat';
 
 // §8 of the change request, «Pruebas por rol», on the phone (360 px) with axe: each person walks its own screens and
 // sees what the database gives it (tests/rls/por-rol.test.ts proves the database side). The date, time and address
@@ -82,12 +83,13 @@ async function schedulesOf(browser: Browser, hrefs: string[]): Promise<Sched[]> 
   return out;
 }
 
-// Mensajes and Ayuda (R3) for a team role: the conversations (the notice to accept may be open on top) and the guide.
+// Mensajes and Ayuda (R3, R5) for a team role: the channels (no notice anywhere) and the guide.
 // The guide never has a clock; the messages' own times are not checked against CLOCK (each message shows when it was
 // written), only that no event's address or end time is there (D-52: the database keeps the agenda out of them).
 async function mensajesYAyuda(page: Page, slug: string, sched: Sched[] = []) {
-  for (const path of ['/mensajes', '/mensajes/nueva']) {
+  for (const path of ['/mensajes']) {
     const text = (await open(page, path)).toLowerCase();
+    expect(text, path).not.toContain('puede leer todas las conversaciones');
     for (const s of sched) for (const piece of [s.until, s.address]) if (piece) expect(text, `${path}: «${piece}»`).not.toContain(piece.toLowerCase());
   }
   for (const path of ['/ayuda', `/ayuda/${slug}`, `/ayuda/${slug}?ver=pantallas`, '/ayuda/flujos']) {
@@ -95,8 +97,8 @@ async function mensajesYAyuda(page: Page, slug: string, sched: Sched[] = []) {
     expect(text, path).not.toMatch(CLOCK);
     for (const s of sched) noSchedule(text, s, path);
   }
-  // Only the boss reads «Todas» and decides who talks with whom.
-  for (const path of ['/mensajes/todas', '/mensajes/permisos']) await closed(page, path, 'role');
+  // Only the boss arms channels and decides who is in each one.
+  for (const path of ['/mensajes/canales/nuevo', `/mensajes/${chatChannelId('grabacion-y-redes')}/editar`]) await closed(page, path, 'role');
 }
 
 // None of the agenda's strings of this event on the page. `done`: the day it was done may show (D-06), never its
@@ -242,7 +244,7 @@ test('Solo jefe y despacho la ponen: «Ponerle fecha» y los botones de la agend
   await closed(page, '/agenda/nuevo', 'role');
   // Administración has its own guide and is not in Mensajes (D-43, D-49).
   await open(page, '/ayuda/administracion', { quotes: true });
-  for (const path of ['/mensajes', '/mensajes/todas', '/mensajes/permisos']) await closed(page, path, 'role');
+  for (const path of ['/mensajes', '/mensajes/canales/nuevo', `/mensajes/${chatChannelId('grabacion-y-redes')}`]) await closed(page, path, 'role');
   await page.context().clearCookies();
   // Grabación and Redes do not reach the agenda's writing screens at all.
   for (const email of ['grabacion@demo.test', 'redes2@demo.test']) {
@@ -258,8 +260,8 @@ test('El jefe ve todo: llega a cada pantalla de cada rol, con la fecha y la hora
   const screens = ['/jefe', '/jefe/politica', '/jefe/digital', '/hoy', '/agenda', '/agenda?vista=dia', '/agenda?vista=mes', '/agenda/por-fecha', '/agenda/nuevo',
     '/aprobar', '/aprobar?tab=tweets', '/redes', '/redes/reels', '/redes/feed', '/redes/buscar', '/tweets', '/publicar', '/resultados', '/biblioteca', '/obras', '/obras?estado=to_schedule',
     '/municipios', '/municipios/torbes', '/reportes/nuevo', '/obras/nueva', '/avisos', '/perfil',
-    // R3: Mensajes with «Todas» and «Quién habla con quién», Ayuda with every role's guide and the flows.
-    '/mensajes', '/mensajes/nueva', '/mensajes/todas', '/mensajes/permisos', '/ayuda', '/ayuda/flujos',
+    // R5: Mensajes with «Nuevo canal» and «Editar canal»; Ayuda with every role's guide and the flows.
+    '/mensajes', '/mensajes/canales/nuevo', `/mensajes/${chatChannelId('obras-y-comunidad')}`, `/mensajes/${chatChannelId('obras-y-comunidad')}/editar`, '/ayuda', '/ayuda/flujos',
     ...['jefe', 'despacho', 'politica', 'ivt', 'grabacion', 'redes'].map((slug) => `/ayuda/${slug}`)];
   for (const path of screens) await open(page, path, { axe: false, quotes: path.startsWith('/ayuda') });
   // Every detail page those lists lead to: each obra, each report of a municipality, each piece, tweet batch and

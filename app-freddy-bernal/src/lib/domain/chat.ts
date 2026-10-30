@@ -1,6 +1,7 @@
-// Mensajes, the team's internal network (R3, D-49 to D-59): the pure rules and the texts, one source for the pages,
-// the actions, the guides and the tests. The database decides (supabase/migrations/20261028002400_internal_chat.sql);
-// what is here only says it first, in Spanish, and paints the screens.
+// Mensajes, the team's channels (R3 D-52 to D-56, R5 D-79 to D-88): the pure rules and the texts, one source for the
+// pages, the actions, the guides and the tests. The database decides (supabase/migrations/20261028002400_internal_chat.sql
+// and 20261029090000_chat_channels.sql); what is here only says it first, in Spanish, and paints the screens.
+// There is no notice anywhere (D-79): each channel shows who is in it, and that is what tells people who reads.
 //
 // The text rules are EXACT copies of the database's, compared on tests/unit/fixtures/chat-text-cases.ts and on
 // generated texts (tests/rls/chat.test.ts): a change here is a change there, with a new migration.
@@ -12,33 +13,39 @@
 // through, and the composer asks first (CHAT_RELATIVE_ASK) to whoever knows the agenda where Redes or política read.
 
 import { DATETIME_PATTERNS, firstDateTime, looksLikeDateTime } from '@/lib/push/text';
-import { ROLES, type Role, type TeamRole } from '@/lib/roles';
+import type { Role, TeamRole } from '@/lib/roles';
 import { phonesIn } from './phones';
 
 // ---------------------------------------------------------------------------------------------------------------
-// Sizes (the database's CHECKs and chat_start())
+// Sizes (the database's CHECKs)
 // ---------------------------------------------------------------------------------------------------------------
 export const CHAT_BODY_MAX = 2000;
-export const CHAT_GROUP_MIN = 3;
-export const CHAT_GROUP_MAX = 12;
 export const CHAT_TITLE_MAX = 60;
+export const CHAT_DESC_MAX = 140;
+// The most people the boss puts in a channel at once (besides the bosses).
+export const CHAT_MEMBERS_MAX = 50;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Texts
 // ---------------------------------------------------------------------------------------------------------------
-// On top of /mensajes and /mensajes/nueva, always.
-export const CHAT_NOTICE = 'El jefe puede leer todas las conversaciones. Administración no las lee, y 360 tampoco. Lo que se escribe queda guardado y no se borra.';
-// Under the title of each conversation.
-export const CHAT_NOTICE_LINE = 'El jefe puede leer esta conversación. Administración y 360 no.';
-// Next to the box.
-export const CHAT_COMPOSER_LINE = 'Lo lee el jefe · queda guardado, no se borra';
-// The notice accepted once before writing (D-59).
-export const CHAT_ACK_TEXT = 'El jefe puede leer todas las conversaciones. Lo que escribes queda guardado y no se borra. Administración y 360 no las leen.';
-export const CHAT_DEMO_NOTICE = 'En la demostración, lo nuevo (mensajes, grupos y los cambios de «Quién habla con quién») puede no verse con otra cuenta o en otro teléfono. No escribas nada real: en la demostración cualquiera que entre como jefe lo lee.';
-// Only to whoever knows the agenda, only where Redes or política read (U13).
+// Only to whoever knows the agenda, only where Redes or política read (U13); and to the boss choosing members.
 export const CHAT_AGENDA_NOTE = 'Aquí está Redes o política: sin fechas, horas, ni cuándo sales o llegas.';
 export const CHAT_HIDDEN = 'Mensaje oculto: tenía una fecha o una hora de la agenda.';
-export const CHAT_OTHER_SERVER = 'Esta conversación se creó en otro servidor de la demostración. Prueba con las que ya están.';
+// A channel the person cannot open: not in it, or (in the demo) made on another server. One text for both (D-88).
+export const CHAT_NOT_IN_LIST = 'Este canal no está en tu lista: o no estás en él, o se creó en otro servidor de la demostración.';
+// The open channel when the boss takes the person out of it meanwhile.
+export const CHAT_REMOVED = 'Ya no estás en este canal.';
+// The list when there is nothing but «Todo el equipo» (a member) or no channel yet (the boss).
+export const CHAT_EMPTY_MEMBER = 'Por ahora estás en «Todo el equipo». El jefe arma los canales y decide quién va en cada uno.';
+export const CHAT_EMPTY_BOSS = 'Todavía no hay canales. Toca «Nuevo canal» para armar el primero.';
+// Under «Todo el equipo», in the list and on its header.
+export const CHAT_TEAM_LINE = 'Todos los del equipo.';
+// The boss's fixed row when choosing members.
+export const CHAT_BOSS_ALWAYS = 'Tú estás en todos los canales.';
+// Over the members' list in «Editar canal».
+export const CHAT_ADD_READS_BEFORE = 'Quien agregues verá lo que ya se escribió en el canal. Quien quites deja de verlo.';
+// A channel's name or description with a phone, a date, a time or a map (guard_chat_channel_text()).
+export const CHAT_TEXT_REFUSED = 'El nombre y la descripción no llevan teléfonos, fechas, horas ni mapas: todos los del canal los leen siempre.';
 // {w} = the word found. While writing (a concrete date, time or map: the database refuses it).
 export const CHAT_WHEN_WARN = '“{w}” no puede ir aquí';
 // Before sending, Grabación with a bare time code («2:15»).
@@ -229,20 +236,22 @@ export function chatTextProblem(text: string, ctx: ChatTextContext): ChatTextPro
   return null;
 }
 
-/** What chat_message_guard() keeps in agenda_clear for a message that passes: false when its author knows the agenda
- * and it has a concrete date, time or map (in a conversation without Redes or política). */
-export function chatAgendaClear(text: string, authorRoles: readonly Role[]): boolean {
-  if (!knowsAgenda(authorRoles)) return true;
+/** What chat_message_guard() keeps in agenda_clear for a message that passes. Where Redes or política read
+ * (`hidesAgenda`), a relative word passed the question (E1) and the message stays clear. In a channel without them,
+ * whoever is added later reads the history, so the strict rule marks it: a concrete date, time or map, and also a
+ * relative word («mañana», «el lunes») from whoever knows the agenda (D-85). */
+export function chatAgendaClear(text: string, authorRoles: readonly Role[], hidesAgenda: boolean): boolean {
+  if (!knowsAgenda(authorRoles) || hidesAgenda) return true;
   const { t } = agendaText(stripRefs((text ?? '').normalize('NFKC')), authorRoles);
-  return !(hasConcreteDateTime(t) || hasMap(t));
+  return !(looksLikeDateTime(t) || hasMap(t));
 }
 
 /**
- * Why a group's name is not saved: a phone, a date, a time or a map, whoever is in the group (the strict rule of
- * chat_start(): nobody is asked before a name is saved, everyone in it reads it every time, and a name has no
- * agenda_clear, so a member who gains Redes or política later still reads it).
+ * Why a channel's name or description is not saved: a phone, a date, a time or a map, whoever is in the channel (the
+ * strict rule of guard_chat_channel_text(): nobody is asked before they are saved, everyone in it reads them every
+ * time, and they have no agenda_clear, so whoever is added later, or gains Redes or política, still reads them).
  */
-export function chatTitleProblem(title: string): ChatTextProblem | null {
+export function chatChannelTextProblem(title: string): ChatTextProblem | null {
   const phones = phonesIn(title ?? '');
   if (phones.length) return { kind: 'phone', inLink: phoneInLink((title ?? '').normalize('NFKC'), phones) };
   if (looksLikeDateTime(title ?? '')) return { kind: 'when', word: firstDateTime(title ?? '') ?? '' };
@@ -251,44 +260,16 @@ export function chatTitleProblem(title: string): ChatTextProblem | null {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// Who talks to whom (D-51)
+// The short names of the team's roles (chips in Mensajes)
 // ---------------------------------------------------------------------------------------------------------------
-export type ChatPairRole = Exclude<TeamRole, 'boss'>;
-// The names on «Quién habla con quién».
-export const CHAT_ROLE_NAME: Record<ChatPairRole, string> = {
+export type ChatRoleKey = Exclude<TeamRole, 'boss'>;
+export const CHAT_ROLE_NAME: Record<ChatRoleKey, string> = {
   dispatch: 'Despacho',
   politics: 'Política',
   ivt: 'IVT',
   social: 'Redes',
   camera: 'Grabación',
 };
-const enumOrder = (r: Role) => ROLES.indexOf(r);
-const PAIR_ROLES = (Object.keys(CHAT_ROLE_NAME) as ChatPairRole[]).sort((a, b) => enumOrder(a) - enumOrder(b));
-
-// The 10 pairs of different roles, role_a < role_b in the enum's order (as chat_rules keeps them).
-export const CHAT_ROLE_PAIRS: { roleA: ChatPairRole; roleB: ChatPairRole; label: string }[] = PAIR_ROLES.flatMap((a, i) =>
-  PAIR_ROLES.slice(i + 1).map((b) => ({ roleA: a, roleB: b, label: `${CHAT_ROLE_NAME[a]} ↔ ${CHAT_ROLE_NAME[b]}` })),
-);
-
-export type ChatRule = { roleA: Role; roleB: Role; allowed: boolean };
-
-/** Whether two people may write to each other: chat_pair_allowed(). The boss always; an admin account never; with two
- * roles the most restrictive rule wins. */
-export function pairAllowed(rolesA: readonly Role[], rolesB: readonly Role[], rules: readonly ChatRule[]): boolean {
-  const team = (rs: readonly Role[]) => (rs.includes('admin') ? [] : rs.filter((r) => r === 'boss' || (PAIR_ROLES as readonly Role[]).includes(r)));
-  const a = team(rolesA);
-  const b = team(rolesB);
-  if (!a.length || !b.length) return false;
-  if (a.includes('boss') || b.includes('boss')) return true;
-  const closed = new Set(rules.filter((r) => !r.allowed).map((r) => `${r.roleA}:${r.roleB}`));
-  for (const x of a) {
-    for (const y of b) {
-      const [lo, hi] = enumOrder(x) <= enumOrder(y) ? [x, y] : [y, x];
-      if (closed.has(`${lo}:${hi}`)) return false;
-    }
-  }
-  return true;
-}
 
 // ---------------------------------------------------------------------------------------------------------------
 // Links to the platform inside a message (D-54)

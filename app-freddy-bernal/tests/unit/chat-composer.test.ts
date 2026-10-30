@@ -1,5 +1,5 @@
 // The box to write in Mensajes (R3, design §5.3, U12, E1): on a phone Enter is a new line and only the button sends;
-// the fixed line «Lo lee el jefe…» is always there; the agenda note only where it applies; what is said while writing
+// no fixed line under it any more (R5, D-79: no notice anywhere); the agenda note only where it applies; what is said while writing
 // (a phone, a concrete date or time) and what is only asked before sending (a relative word, a time code). Rendered
 // on the server as the page does (renderToStaticMarkup). All data invented.
 import { describe, it, expect } from 'vitest';
@@ -7,7 +7,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ChatComposer, liveWarning } from '@/components/chat/chat-composer';
 import { enterSends, newClientId } from '@/components/chat/chat-core';
-import { CHAT_AGENDA_NOTE, CHAT_COMPOSER_LINE, CHAT_PHONE_LINK_TEXT, CHAT_PHONE_TEXT, chatTextProblem } from '@/lib/domain/chat';
+import { CHAT_AGENDA_NOTE, CHAT_PHONE_LINK_TEXT, CHAT_PHONE_TEXT, chatTextProblem } from '@/lib/domain/chat';
 
 const box = (over: Partial<Parameters<typeof ChatComposer>[0]> = {}) =>
   renderToStaticMarkup(
@@ -32,13 +32,13 @@ describe('Enter', () => {
 });
 
 describe('la caja', () => {
-  it('lleva su nombre, «Enviar» de 44 px, la línea fija y el ancla del tutorial', () => {
+  it('lleva su nombre, «Enviar» de 44 px y el ancla del tutorial; ninguna línea de aviso', () => {
     const html = box();
     expect(html).toContain('data-tour="chat-composer"');
     expect(html).toContain('<label for="');
     expect(html).toContain('>Tu mensaje</label>');
     expect(html).toMatch(/<button type="submit"[^>]*aria-label="Enviar"[^>]*class="[^"]*h-11 w-11/);
-    expect(html).toContain(CHAT_COMPOSER_LINE);
+    expect(html).not.toMatch(/Lo lee el jefe|no se borra|puede leer/);
     expect(html).toMatch(/text-base/);
     expect(html).not.toContain(CHAT_AGENDA_NOTE);
   });

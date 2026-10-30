@@ -17,9 +17,11 @@ const TABLE: Record<string, string> = {
   obra_fichas: 'Ficha de obra', obra_ficha_private: 'Contactos de obra', community_reports: 'Ficha comunitaria',
   community_report_private: 'Contactos del reporte', ficha_updates: 'Historia de ficha',
   recording_notes: 'Nota de grabación',
-  // Mensajes: the audit keeps only that something happened, who and when; never a text, a name or the members (D-50).
-  chat_conversations: 'Conversación', chat_members: 'Miembro de una conversación', chat_messages: 'Mensaje',
-  chat_notice_ack: 'Aceptación del aviso de Mensajes', chat_rules: 'Regla de Mensajes',
+  // Mensajes: the audit keeps only that something happened, who and when; never a text, a name or the members (D-82).
+  chat_conversations: 'Canal', chat_members: 'Miembro de un canal', chat_messages: 'Mensaje',
+  // The two tables of Mensajes before the channels (dropped by 20261029090000_chat_channels.sql): their old rows stay in
+  // the registry, under one neutral name, never the raw table name (R5 review 2, point 4).
+  chat_notice_ack: 'Mensajes (antes de los canales)', chat_rules: 'Mensajes (antes de los canales)',
 };
 const ACTION: Record<string, string> = { insert: 'creó', update: 'cambió', delete: 'quitó', soft_delete: 'borró', mfa_reset: 'reinició' };
 // One summary row of 20261027001600_six_roles.sql: the retired roles keep their names here (history).

@@ -68,7 +68,7 @@ describe('el botón que lleva a la pantalla', () => {
 // with Administración (D-49).
 describe('R3: Mensajes, Ayuda y cualquier [param]', () => {
   it('las rutas nuevas están, con frases de dos palabras o más', () => {
-    for (const href of ['/mensajes', '/mensajes/nueva', '/mensajes/todas', '/mensajes/permisos', '/mensajes/[id]', '/ayuda', '/ayuda/flujos', '/ayuda/administracion', '/ayuda/[id]']) {
+    for (const href of ['/mensajes', '/mensajes/canales/nuevo', '/mensajes/[id]', '/mensajes/[id]/editar', '/ayuda', '/ayuda/flujos', '/ayuda/administracion', '/ayuda/[id]']) {
       expect(SCREENS.some((s) => s.href === href), href).toBe(true);
     }
   });
@@ -79,13 +79,16 @@ describe('R3: Mensajes, Ayuda y cualquier [param]', () => {
     expect(screenFor('/eventos/abc/lectura')?.href).toBe('/eventos/[id]/lectura');
     expect(screenFor('/eventos/abc/otra')).toBeNull();
     expect(screenFor('/mensajes/abc')?.href).toBe('/mensajes/[id]');
-    // Exact paths first: /mensajes/nueva is not a conversation.
-    expect(screenFor('/mensajes/nueva')?.href).toBe('/mensajes/nueva');
+    // Exact paths first: /mensajes/canales/nuevo is not a channel; a channel's editor is its own screen.
+    expect(screenFor('/mensajes/canales/nuevo')?.href).toBe('/mensajes/canales/nuevo');
+    expect(screenFor('/mensajes/abc/editar')?.href).toBe('/mensajes/[id]/editar');
   });
 
   it('Mensajes no se abre con administración, aunque tenga un rol del equipo; Ayuda sí', () => {
     expect(canOpen('/mensajes', ['social'])).toBe(true);
-    expect(canOpen('/mensajes/nueva', ['admin', 'social'])).toBe(false);
+    expect(canOpen('/mensajes/canales/nuevo', ['admin', 'boss'])).toBe(false);
+    expect(canOpen('/mensajes/canales/nuevo', ['social'])).toBe(false);
+    expect(canOpen('/mensajes/canales/nuevo', ['boss'])).toBe(true);
     expect(canOpen('/mensajes/abc', ['admin', 'boss'])).toBe(false);
     expect(canOpen('/ayuda', ['admin'])).toBe(true);
     expect(pickGoTo(['admin', 'social'], { toolHrefs: ['/mensajes'], answer: '' })).toBeNull();

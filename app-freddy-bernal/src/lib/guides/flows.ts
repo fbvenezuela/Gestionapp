@@ -209,30 +209,21 @@ export const FLOWS: Flow[] = [
     title: 'Cómo se habla en Mensajes',
     roles: ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'],
     steps: [
-      { id: 'acepta', roles: ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'], text: 'La primera vez, lees el aviso y tocas «Entendido».', href: '/mensajes' },
-      {
-        id: 'escribe',
-        roles: ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'],
-        text: '«Escribirle a alguien»: una persona o un grupo.',
-        href: '/mensajes/nueva',
-        question: '¿El jefe permite mensajes entre esos roles?',
-        branches: [
-          { label: 'No', text: 'Esa persona no sale en la lista.' },
-          { label: 'Sí', text: 'Escribes tu mensaje.', to: 'revisa' },
-        ],
-      },
+      { id: 'arma', roles: ['boss'], text: 'Arma un canal con «Nuevo canal»: nombre, para qué es y quiénes van. Él está en todos.', href: '/mensajes/canales/nuevo' },
+      { id: 'entra', roles: ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'], text: 'El canal le sale en Mensajes a cada persona que está en él, con la lista de quiénes están.', href: '/mensajes' },
+      { id: 'escribe', roles: ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'], text: 'Escribe en el canal.' },
       {
         id: 'revisa',
         roles: ['boss', 'dispatch', 'ivt', 'camera'],
-        text: 'Si conoces la agenda y en la conversación está Redes o política, la plataforma revisa el texto.',
+        text: 'Si conoces la agenda y en el canal está Redes o política, la plataforma revisa el texto.',
         question: '¿Lleva una fecha, una hora, un mapa o un teléfono?',
         branches: [
           { label: 'Sí', text: 'No lo deja enviar y dice cómo decirlo sin eso.', to: 'escribe' },
           { label: 'No', text: 'Sale.', to: 'llega' },
         ],
       },
-      { id: 'llega', roles: ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'], text: 'Le llega al teléfono “Mensaje nuevo”, sin el texto. Queda guardado y no se borra; el jefe puede leerlo.' },
-      { id: 'todos', roles: ['boss'], text: 'En «Todo el equipo» escriben todos. Si quiere que solo escriba él, prende «Solo el jefe escribe en Todo el equipo».', href: '/mensajes/permisos' },
+      { id: 'llega', roles: ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'], text: 'Les llega al teléfono “Mensaje nuevo”, sin el texto, a los que están en el canal.' },
+      { id: 'miembros', roles: ['boss'], text: 'Si hace falta, cambia quién está en «Editar canal», o lo archiva cuando ya no se usa.' },
     ],
   },
   {

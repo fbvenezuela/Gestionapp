@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { loginAs } from './helpers';
 import { FLOWS, GUIDE_TITLES, guideFor } from '../../src/lib/guides';
 import type { TeamRole } from '../../src/lib/roles';
+import { MSG_CHANNELS } from '../../src/lib/guides/shared';
 
 // Ayuda y guías (R3, D-42, D-43, D-44, design §5.4, §9.2): /ayuda and the role's guide with its three tabs for every
 // role at 360 px, with axe and without sideways scroll; the boss opens the six guides; Grabación cannot open Redes'
@@ -49,7 +50,8 @@ for (const p of TEAM) {
     await expect(page.getByRole('heading', { name: 'Tutoriales de mis pantallas' })).toBeVisible();
     await expect(page.locator('a[href*="?tutorial=bienvenida"]')).toHaveAttribute('href', `${p.home}?tutorial=bienvenida`);
     await page.locator('#para-todos summary', { hasText: 'Mensajes' }).click();
-    await expect(page.locator('#para-todos')).toContainText('El jefe puede leer todas las conversaciones');
+    await expect(page.locator('#para-todos')).toContainText(MSG_CHANNELS);
+    await expect(page.locator('#para-todos')).not.toContainText('puede leer todas las conversaciones');
     // Only the boss (and Administración) see every role's guide.
     await expect(page.getByRole('heading', { name: 'La guía de cada persona' })).toHaveCount(p.role === 'boss' ? 1 : 0);
     await check(page, '/ayuda');

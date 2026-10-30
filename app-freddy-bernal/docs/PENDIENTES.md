@@ -181,25 +181,32 @@ Lo hecho está en `DECISIONES.md` D-42 a D-59. Las guías siguen sin mandarse a 
 2. **«Hoy» y «mañana» en Mensajes:** ¿lo dejamos así (la base rechaza horas, fechas y mapas concretos; a «hoy»,
    «mañana» o un día de la semana la app pregunta «¿dice cuándo va el jefe?» antes de enviar) o el modo estricto, donde
    también se rechazan? (Así está: el primero. D-52, enmienda E1.)
-3. **Quién habla con quién:** ¿alguna pareja cerrada de entrada (por ejemplo Redes ↔ Política)? (Todos hablan con
-   todos. D-51.)
-4. **Excepciones:** ¿hace falta cerrar entre dos personas («Daniela y Elio no») o entre gente del mismo rol («Redes con
-   Redes»)? (No existen. D-51.)
+3. *(Ya no aplica desde el 29/10: «Quién habla con quién» se fue; Mensajes son canales que arma el jefe, D-84.)*
+4. *(Ya no aplica desde el 29/10: el jefe decide quién va en cada canal, por nombre, D-80.)*
 5. **Cuánto se guardan los mensajes** y si se podrá borrar algo a pedido (un dato escrito por error). (Se guardan y no
    se borran. D-54.)
 6. **Fotos y audios en los mensajes**, ¿en una fase siguiente? (Hoy solo texto y enlaces de la plataforma.)
-7. **Registro de cambios:** ¿está bien que administración vea que hubo un mensaje (quién y cuándo, sin el texto ni a
-   quién) y los cambios de reglas? (Así está. D-50.)
-8. **Nombres a la vista:** ¿está bien que todo el equipo vea los nombres y roles de los demás para escribirles? (Así
-   está.)
+7. **Registro de cambios:** ¿está bien que administración vea que hubo un mensaje, un canal o un cambio de miembros
+   (quién y cuándo, sin el texto, el nombre del canal ni quiénes)? (Así está. D-82.)
+8. **Nombres a la vista:** ¿está bien que cada canal muestre los nombres y roles de quienes están en él? (Así está: es
+   lo que reemplaza al aviso, D-79.)
 9. **Guías sin señal:** ¿hace falta leerlas sin señal? (Hoy no: el teléfono no guarda páginas con datos de la persona.)
-10. **«Todo el equipo»:** ¿también debería seguir «Quién habla con quién»? (No; el jefe tiene «Solo el jefe escribe».)
+10. *(Ya no aplica desde el 29/10: no hay «Quién habla con quién»; en «Todo el equipo» el jefe tiene «Solo el jefe
+    escribe».)*
 11. **Administración con un rol del equipo:** si alguna cuenta real tiene las dos cosas, ¿de acuerdo con que use otra
-    cuenta para Mensajes? (Así está. D-49.)
+    cuenta para Mensajes? (Así está. D-82.)
 12. **Hillary:** ¿los tutoriales y Mensajes entran en su prueba por rol de la demo antes de mandar las guías?
 
+**Preguntas nuevas sobre Mensajes como canales (29/10, D-79 a D-88):**
+13. **Canales de entrada:** ¿armamos de entrada algunos canales en la base real, además de «Todo el equipo» (por
+    ejemplo «Grabación y Redes» u «Obras y comunidad», como en la demo)? (Hoy no: los arma el jefe.)
+14. **El que entra lee lo anterior:** ¿está bien que quien el jefe agrega a un canal lea lo que ya se escribió ahí, como
+    en Slack? (Así está, salvo lo guardado de la agenda. D-85.) La otra opción: que lea solo desde que entró.
+15. **Quién arma los canales:** ¿alguien más que el jefe (por ejemplo el despacho) debería poder armar canales o cambiar
+    quién está? (Hoy no: solo el jefe con doble factor. D-80.)
+
 **Lo que falta de nuestra parte:**
-- Probar en `fb-dev` dos personas conversando desde dos teléfonos (las dos migraciones nuevas ya están ahí desde el
-  29/10; en la demo cada servidor tiene su base, D-57).
+- Aplicar en `fb-dev` la migración de canales `20261029090000_chat_channels.sql` (con el OK de Juan) y probar ahí dos
+  personas en un canal desde dos teléfonos (en la demo cada servidor tiene su base, D-88).
 - La lista manual de `DEMO.md` en un Android de verdad (teclado, Enter, aviso en la pantalla de bloqueo, tutorial).
 - Realtime para Mensajes cuando se pueda probar en `fb-dev` (hoy revisa cada 5 s, D-56).

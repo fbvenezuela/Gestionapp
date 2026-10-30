@@ -1,7 +1,7 @@
 // The guides' content keeps its rules (R3, D-42, design §7.2, U16, U17): every screen a role opens has its section,
 // every «…» is a label that exists on a screen (or a counted one, or a chip built in code), no concrete date or
-// time, no phone, no demo name, Administración only in Mensajes' notice and 360's line, and Mensajes explained the
-// same way in every guide. A guide that drifts from the screens fails here, not in front of the team.
+// time, no phone, no demo name, Administración only in 360's line, and Mensajes explained the same way in every guide:
+// channels the boss arms and is in, each showing who is in it, and NO notice anywhere (R5, D-79). A guide that drifts from the screens fails here, not in front of the team.
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,8 +17,7 @@ import {
   hasPhone,
   quotedLabels,
 } from '@/lib/guides/check';
-import { ADMIN_MENTIONS, MSG_AGENDA, MSG_ENTER, MSG_FREE, MSG_PHONES, MSG_RELATIVE, MSG_RULES } from '@/lib/guides/shared';
-import { CHAT_COMPOSER_LINE, CHAT_NOTICE, CHAT_NOTICE_LINE } from '@/lib/domain/chat';
+import { ADMIN_MENTIONS, MSG_AGENDA, MSG_CHANNELS, MSG_ENTER, MSG_FREE, MSG_PHONES, MSG_RELATIVE, MSG_TEAM } from '@/lib/guides/shared';
 import type { RoleGuide, TourText } from '@/lib/guides';
 
 // ── Every text of the help content, with where it is ───────────────────────────────────────────────────────────────
@@ -117,8 +116,8 @@ describe('sin datos concretos (U17)', () => {
     expect(hits).toEqual([]);
   });
 
-  it('las guías del equipo nombran a administración solo en el aviso de Mensajes y en la línea de 360 (D-43)', () => {
-    const hits = [...TEAM_TEXTS, ...TOUR_TEXTS.filter((t) => t.where !== 'tutorial mensajes')].filter((t) => {
+  it('las guías del equipo nombran a administración solo en la línea de 360 (D-43; Mensajes ya no tiene aviso)', () => {
+    const hits = [...TEAM_TEXTS, ...TOUR_TEXTS].filter((t) => {
       let rest = t.text;
       for (const m of ADMIN_MENTIONS) rest = rest.replace(m, ' ');
       return /administraci[oó]n|\badmin\b/i.test(rest);
@@ -194,25 +193,29 @@ describe('cada pantalla de cada rol tiene su sección', () => {
   });
 });
 
-describe('Mensajes, dicho igual en todas las guías (§7.2)', () => {
-  it('«Para todos» dice quién lee, que queda, Enter, sin teléfonos, la agenda y «Quién habla con quién»', () => {
+describe('Mensajes, dicho igual en todas las guías (§7.2, R5)', () => {
+  it('«Para todos» dice que son canales del jefe, «Todo el equipo», Enter, sin teléfonos y la agenda; ningún aviso', () => {
     const body = SHARED.find((t) => t.id === 'mensajes')!.body.join(' ');
-    for (const s of [CHAT_NOTICE, MSG_ENTER, MSG_PHONES, MSG_AGENDA, MSG_RELATIVE, MSG_FREE, MSG_RULES]) expect(body).toContain(s);
+    for (const s of [MSG_CHANNELS, MSG_TEAM, MSG_ENTER, MSG_PHONES, MSG_AGENDA, MSG_RELATIVE, MSG_FREE]) expect(body).toContain(s);
+    expect(body).toContain('«N personas»');
   });
 
   for (const role of TEAM_ROLES) {
-    it(`${guideFor(role).label}: su sección de Mensajes y la de una conversación`, () => {
+    it(`${guideFor(role).label}: su sección de Mensajes y la de un canal`, () => {
       const g = guideFor(role);
       const list = g.sections.find((s) => s.screen === '/mensajes')!;
-      expect(list.youDo.join(' ')).toContain(CHAT_NOTICE);
+      expect(list.youDo.join(' ')).toContain('«Todo el equipo»');
       const conv = g.sections.find((s) => s.screen === '/mensajes/[id]')!;
+      expect(conv.tour).toBe('canal');
       const text = [conv.what, ...conv.youDo, ...(conv.cannot ?? [])].join(' ');
-      for (const s of [CHAT_NOTICE_LINE, CHAT_COMPOSER_LINE, MSG_ENTER, MSG_PHONES, MSG_RULES]) expect(text).toContain(s);
-      // Who knows the agenda is told not to write it; Redes and política, why a message may be hidden.
+      for (const s of [MSG_CHANNELS, MSG_ENTER, MSG_PHONES]) expect(text).toContain(s);
       const knows = role === 'boss' || role === 'dispatch' || role === 'ivt' || role === 'camera';
       expect(text.includes(MSG_AGENDA)).toBe(knows);
       expect(text.includes(MSG_FREE)).toBe(!knows);
-      expect(text).toMatch(/no se borra|ni borrar/);
+      // The boss alone arms and edits channels.
+      const boss = role === 'boss';
+      expect(g.sections.some((s) => s.screen === '/mensajes/canales/nuevo')).toBe(boss);
+      expect(g.sections.some((s) => s.screen === '/mensajes/[id]/editar')).toBe(boss);
     });
   }
 });
@@ -253,6 +256,46 @@ describe('Redes por formato en las guías (R4, D-77, §6)', () => {
     expect(s.title).toBe('Cupo y pilares');
     expect(s.youDo.join(' ')).toContain('«Recuperar»');
     expect(s.cannot?.join(' ')).toContain('Eliminar piezas');
+  });
+});
+
+// R5 (D-79): what Juan asked to take away everywhere. Only the Mensajes texts are searched (the chat domain and
+// components, the Mensajes pages, the Mensajes parts of the guides, 360's Mensajes texts and its card): «no se borra» and
+// «Entendido» are fine elsewhere (the tips, Redes, the fichas).
+describe('el aviso de Mensajes no sale en ninguna parte (R5)', () => {
+  const BANNED = /puede leer|pueden leer|lo lee el jefe|no se borra|Quién habla con quién|Escribirle a alguien|Todas las conversaciones|Entendido|acepta(?:r)? el aviso|no escribas nada real/i;
+  const files = (dir: string): string[] =>
+    fs.readdirSync(dir, { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? files(path.join(dir, d.name)) : [path.join(dir, d.name)]));
+
+  it('ni en el código de Mensajes', () => {
+    const root = process.cwd();
+    const sources = [
+      'src/lib/domain/chat.ts', 'src/lib/data/chat.ts', 'src/lib/actions/chat.ts', 'src/lib/chat-screens.ts', 'src/lib/assistant/messages-ask.ts',
+      ...files(path.join(root, 'src/components/chat')).map((f) => path.relative(root, f)),
+      ...files(path.join(root, 'src/app/(panel)/mensajes')).map((f) => path.relative(root, f)),
+      ...files(path.join(root, 'src/app/api/mensajes')).map((f) => path.relative(root, f)),
+    ];
+    const hits = sources.filter((f) => BANNED.test(fs.readFileSync(path.join(root, f), 'utf8')));
+    expect(hits).toEqual([]);
+    for (const gone of ['nueva', 'todas', 'permisos']) expect(fs.existsSync(path.join(root, 'src/app/(panel)/mensajes', gone)), gone).toBe(false);
+  });
+
+  it('ni en las partes de Mensajes de las guías, los flujos, los tutoriales ni la ficha de 360', () => {
+    const texts: string[] = [
+      ...SHARED.find((t) => t.id === 'mensajes')!.body,
+      ...SHARED.find((t) => t.id === 'arriba')!.body,
+      ...TEAM_ROLES.flatMap((r) => guideFor(r).sections.filter((s) => s.screen.startsWith('/mensajes')).flatMap((s) => [s.title, s.what, ...s.youDo, ...(s.cannot ?? [])])),
+      ...TEAM_ROLES.flatMap((r) => guideFor(r).tasks.filter((t) => t.flow === 'mensajes').flatMap((t) => [t.title, t.when, ...t.steps])),
+      ...TEAM_ROLES.flatMap((r) => guideFor(r).faq.filter((f) => /mensaje|canal/i.test(f.q + f.a)).flatMap((f) => [f.q, f.a])),
+      ...FLOWS.find((f) => f.id === 'mensajes')!.steps.flatMap((s) => [s.text, s.question ?? '', ...(s.branches ?? []).map((b) => b.text)]),
+      ...TOUR_TEXTS.filter((t) => /mensajes|canal|bienvenida/.test(t.where)).map((t) => t.text),
+      ...ADMIN_GUIDE.notes, ...ADMIN_GUIDE.faq.flatMap((f) => [f.q, f.a]),
+    ];
+    const card = (JSON.parse(fs.readFileSync(path.join(process.cwd(), 'config/assistant/knowledge.json'), 'utf8')) as { knowledge: { key: string; body: string; title: string }[] })
+      .knowledge.find((c) => c.key === 'mensajes')!;
+    expect(texts.length).toBeGreaterThan(40);
+    expect([...texts, card.title, card.body].filter((x) => BANNED.test(x))).toEqual([]);
+    expect(card.body).toContain('El jefe arma los canales');
   });
 });
 

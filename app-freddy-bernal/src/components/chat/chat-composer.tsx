@@ -9,13 +9,13 @@ import { buttonVariants } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { menuPanelClass } from '@/components/ui/menu-panel';
 import {
-  CHAT_AGENDA_NOTE, CHAT_BODY_MAX, CHAT_COMPOSER_LINE, CHAT_PHONE_LINK_TEXT, CHAT_PHONE_TEXT, CHAT_RELATIVE_ASK, CHAT_TIMECODE_ASK,
+  CHAT_AGENDA_NOTE, CHAT_BODY_MAX, CHAT_PHONE_LINK_TEXT, CHAT_PHONE_TEXT, CHAT_RELATIVE_ASK, CHAT_TIMECODE_ASK,
   CHAT_WHEN_WARN, chatTextProblem, fillWord, type ChatTextProblem,
 } from '@/lib/domain/chat';
 import { CHAT_COUNTER_FROM, enterSends, newClientId } from './chat-core';
 
-// The box to write (R3, design §5.3): at the very bottom of the conversation, with the line «Lo lee el jefe · queda
-// guardado, no se borra» always under it. On a phone Enter is a new line and only the button sends (U12). What is
+// The box to write (R3, design §5.3): at the very bottom of the channel, with no fixed line under it (R5, D-79: who
+// reads is the channel's member list). On a phone Enter is a new line and only the button sends (U12). What is
 // typed is kept in the phone per person (useDraft) until it is sent. Each message carries its own id from the first
 // letter (clientId): a send repeated after a lost answer is the same message.
 // The agenda (D-52 with E1), only for who knows it where Redes or política read: a concrete date, time or map is said
@@ -121,7 +121,7 @@ export function ChatComposer({
   }));
 
   const counter = text.length >= CHAT_COUNTER_FROM;
-  const described = [`${ids}-line`, agendaNote ? `${ids}-agenda` : null, `${ids}-warn`, error ? `${ids}-error` : null, counter ? `${ids}-count` : null].filter(Boolean).join(' ');
+  const described = [agendaNote ? `${ids}-agenda` : null, `${ids}-warn`, error ? `${ids}-error` : null, counter ? `${ids}-count` : null].filter(Boolean).join(' ');
 
   return (
     <form
@@ -174,14 +174,11 @@ export function ChatComposer({
           {warning ?? ''}
         </p>
         {agendaNote ? <p id={`${ids}-agenda`}>{CHAT_AGENDA_NOTE}</p> : null}
-        <div className="flex items-start justify-between gap-2">
-          <p id={`${ids}-line`}>{CHAT_COMPOSER_LINE}</p>
-          {counter ? (
-            <span id={`${ids}-count`} aria-live="polite" className="shrink-0 tabular">
-              {text.length}/{CHAT_BODY_MAX}
-            </span>
-          ) : null}
-        </div>
+        {counter ? (
+          <span id={`${ids}-count`} aria-live="polite" className="self-end tabular">
+            {text.length}/{CHAT_BODY_MAX}
+          </span>
+        ) : null}
       </div>
     </form>
   );

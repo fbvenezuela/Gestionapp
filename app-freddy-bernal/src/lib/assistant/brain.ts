@@ -332,7 +332,7 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string, 
   // A screen with an id is named by its pattern («Abrir el evento» is a button's label, not a screen's name).
   const where = here && (ctx.screen!.includes('[') ? `la pantalla de una sola cosa, ${ctx.screen}` : `la pantalla «${here.label}» (${ctx.screen})`);
   if (where) L.push(`Está en ${where}. «Aquí» o «esta pantalla» es esa. Para enseñarle cómo se usa, llama a ver_tutorial con esa pantalla.`);
-  L.push('No lees ni mandas los mensajes del equipo (Mensajes): si te piden qué dice uno o que le digas algo a alguien, di que eso se escribe en Mensajes y que el jefe puede leerlos.');
+  L.push('No lees ni mandas los mensajes del equipo (Mensajes): si te piden qué dice uno o que le digas algo a alguien, di que eso se escribe en Mensajes, en un canal donde esté esa persona.');
 
   // 6. Examples: «ASÍ CONTESTAS».
   if (ctx.scripts.length) {

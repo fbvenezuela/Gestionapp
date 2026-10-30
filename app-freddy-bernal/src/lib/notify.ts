@@ -104,11 +104,14 @@ export async function notifyChat(m: { messageId: string }) {
       [m.messageId],
     );
     if (!msg) return null;
-    // Active people of the team (never an admin account), members of this conversation, not the author, not muted.
+    // Active people of the team (never an admin account), in this channel NOW (whoever was taken out hears nothing),
+    // not the author, not muted. Never for an archived channel (nobody writes there; just in case).
     const recipients = await sql.query<{ id: string; notify_prefs: Record<string, unknown> | null }>(
       `select p.id, p.notify_prefs from public.profiles p
         where p.id <> $2 and p.active and p.deleted_at is null and public.chat_team_roles(p.id) <> '{}'
-          and ($3::text = 'team' or exists (select 1 from public.chat_members cm where cm.conversation_id = $1 and cm.user_id = p.id))
+          and not exists (select 1 from public.chat_conversations k where k.id = $1 and k.archived_at is not null)
+          and ($3::text = 'team' or exists (select 1 from public.chat_members cm
+                                             where cm.conversation_id = $1 and cm.user_id = p.id and cm.removed_at is null))
           and not exists (select 1 from public.chat_reads r where r.conversation_id = $1 and r.user_id = p.id and r.muted)
         order by p.id`,
       [msg.conversation_id, msg.author_id, msg.kind],

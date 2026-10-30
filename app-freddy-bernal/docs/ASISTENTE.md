@@ -205,7 +205,7 @@ regla de arriba, estas capas quedan de segunda línea.
   mejores horas (se permiten), una fecha o un lugar no. Se acepta que un plazo de trabajo dicho con hora junto a un
   evento («¿hasta qué hora subo el material del acto?») reciba la frase de la agenda: mejor perder ese dato que filtrar uno.
 
-## Ayuda, tutoriales y Mensajes (desde el 28/10/2026, D-46, D-47 y D-50)
+## Ayuda, tutoriales y Mensajes (desde el 28/10/2026, D-46, D-47 y D-50; canales desde el 29/10, D-82)
 La tercera vuelta le dio a 360 la pantalla, los tutoriales y las guías por rol (`src/lib/guides`, D-42), y le cerró
 Mensajes del todo.
 - **Sabe la pantalla.** La ventana manda `pantalla`: solo el patrón de la dirección (`screenPattern()`: los uuid pasan
@@ -221,14 +221,16 @@ Mensajes del todo.
 - **Cerebro de demostración** (`local.ts`), en este orden con lo de antes:
   - la regex de fuera de tema ya no tiene «política» ni «tarea» («¿cómo califico los eventos en Política?» se contesta;
     «hazme la tarea» y «¿qué opinas de la política?» siguen fuera de tema);
-  - **M3, «dile / mándale / escríbele / pregúntale a X que…»** (antes del paso 1): «Eso se lo escribes tú en Mensajes:
-    yo no leo ni mando mensajes, y el jefe puede leerlos.» con el botón a «Escribirle a alguien». Nunca escala ni
+  - **M3, «dile / mándale / escríbele / pregúntale a X que…»** (antes del paso 1): «Eso se lo escribes tú en Mensajes,
+    en un canal donde esté esa persona: yo no leo ni mando mensajes.» con el botón a Mensajes. Nunca escala ni
     prepara un aviso. «Dile a administración que no puedo entrar» sigue siendo soporte, y «avísale a Redes que…» sigue
     siendo el aviso que prepara el jefe o administración (`preparar_aviso`);
   - **M1, «léeme / resúmeme los mensajes», «¿qué me escribió Daniela?»** (después del paso 1): «No leo los mensajes del
-    equipo: son entre ustedes, y el jefe puede leerlos. Te dejo el botón para abrir Mensajes.»;
-  - **M2, «¿cómo le escribo a Redes?», «¿cómo armo un grupo?»**: la ficha `mensajes` y el botón a «Escribirle a
-    alguien». A una cuenta con administración: «Mensajes es solo para el equipo…»;
+    equipo: son de cada canal, para los que están en él. Te dejo el botón para abrir Mensajes.»;
+  - **M2, «¿cómo le escribo a Redes?», «¿cómo armo un canal?»**: la ficha `mensajes` («Mensajes: los canales del
+    equipo»; sin aviso sobre quién lee: cada canal muestra quiénes están) y el botón a Mensajes. Al jefe, «¿cómo cambio
+    quién está en un canal?» le trae su «Paso a paso». A una cuenta con administración: «Mensajes es solo para el
+    equipo…»;
   - **S, «¿qué hago aquí?», «¿para qué sirve esta pantalla?», «¿qué se hace en X?»**: la sección de esa pantalla para
     su rol (de la guía) y el botón del tutorial si hay;
   - **T, «tutorial», «paso a paso», «enséñame a usar», «muéstrame esta pantalla», «me perdí», «ayuda» sola, o «cómo se

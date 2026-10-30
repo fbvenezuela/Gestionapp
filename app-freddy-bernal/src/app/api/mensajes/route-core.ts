@@ -20,4 +20,7 @@ export async function teamSession(): Promise<Gate> {
 
 export const notFound = () => new NextResponse(null, { status: 404, headers: NO_STORE });
 
+// The person was taken out of this channel (the database says so: chat_was_removed). No body.
+export const gone = () => new NextResponse(null, { status: 410, headers: NO_STORE });
+
 export const json = (data: unknown) => NextResponse.json(data, { headers: NO_STORE });

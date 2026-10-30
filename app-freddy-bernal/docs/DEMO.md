@@ -32,30 +32,33 @@ Con cualquier rol del equipo, en este orden:
    «Paso a paso», «Cada pantalla»), «Qué se hace en cada pantalla», «Cómo va el trabajo entre todos» (los 8 flujos, con
    «tú» en tus pasos) y «Tutoriales de mis pantallas». El jefe ve además «La guía de cada persona» (las seis);
    Administración tiene la suya aparte («Guía de administración»).
-3. **Mensajes.** El sobre arriba, junto a la campana, con «1 sin leer» o más (cada persona del equipo tiene uno
-   sembrado). La primera vez sale el aviso «El jefe puede leer todas las conversaciones…» → «Entendido» (con Escape
-   lees, pero no escribes). Abre una conversación y escribe; «Escribirle a alguien» → «Una persona» o «Un grupo» (de 2
-   a 11 personas más tú, con nombre). El ⋯ de la conversación silencia el teléfono.
-4. **La regla de la agenda en Mensajes** (entra como `jefe@demo.test` y abre la conversación con Yorman, de Redes):
+3. **Mensajes.** El sobre arriba, junto a la campana, con «1 sin leer» (cada persona del equipo tiene un canal sin
+   leer). Son canales: «Todo el equipo» y los que armó el jefe; cada quien ve solo los suyos (Daniela, de Redes, ve
+   «Grabación y Redes» y el archivado «Jornada de salud», nunca «Jefe y despacho»). Abre un canal: arriba dice «N
+   personas»; tócalo y sale la lista «Miembros», con el jefe primero. Escribe. El ⋯ del canal silencia el teléfono.
+4. **La regla de la agenda en Mensajes** (entra como `jefe@demo.test` y abre «Grabación y Redes», donde está Redes):
    escribe «mañana sale la pieza» → la app pregunta «“mañana”: ¿dice cuándo va el jefe? Si es de la agenda, no va
    aquí.» con «Enviar igual» y «Corregir» (E1, D-52); escribe «a las 10:30» → lo avisa mientras escribes y la base no
    lo deja enviar (el texto se queda en la caja). Un teléfono no se manda con nadie. Con `grabacion@demo.test`, un
    «2:15» suelto pregunta si es un tiempo del video («Sí, es del video»).
-5. **Lo del jefe:** «Mensajes» → «Todas» (lee una conversación ajena, sin caja y sin marcarla como leída) y «Quién
-   habla con quién» (cierra Redes ↔ Grabación, mira que Redes ya no escribe ahí, y ábrelo otra vez; «Solo el jefe
-   escribe en Todo el equipo»). En la campana le llega un aviso cuando Administración da un rol del equipo («Un rol
+5. **Lo del jefe:** «Mensajes» → «Nuevo canal»: nombre, para qué es y quiénes van (él está en todos, ya marcado).
+   En el canal, ⋯ → «Editar canal»: agrega o quita gente (si quita a alguien, pregunta antes) y «Guardar»; ⋯ →
+   «Archivar» (pregunta antes) lo manda a «Archivados»; «Solo el jefe escribe» en un canal o en «Todo el equipo». En la
+   campana le llega un aviso cuando Administración da un rol del equipo («Un rol
    nuevo en el equipo») o invita a alguien («Alguien nuevo en el equipo»).
 6. **Administración** (`admin@demo.test`): no tiene el sobre, y `/mensajes` la devuelve a su inicio con «Esa pantalla
    no es de tu rol». En Equipo, la casilla «Jefe» está apagada: el rol de jefe lo da el comando de instalación (D-58).
 7. **360 y Mensajes:** pregúntale «¿qué me escribió Daniela?» o «dile a Kevin que ya subí la pieza»: contesta que no
    lee ni manda mensajes, con el botón a Mensajes. «Muéstrame cómo se usa esta pantalla» trae «Ver el tutorial de…».
 
-**Lo que la demo no puede mostrar de Mensajes:** cada servidor de Vercel tiene su base en memoria. Lo sembrado es igual
-en todos (mismos ids), pero un mensaje, un grupo nuevo o un cambio de «Quién habla con quién» vive solo en el servidor
-donde se hizo: con otra cuenta o en otro teléfono puede no verse, y un grupo creado en otro servidor dice «Esta
-conversación se creó en otro servidor de la demostración. Prueba con las que ya están.» (D-57). Dos personas
-conversando desde dos teléfonos se prueba en `fb-dev`. **No escribas nada real:** en la demo cualquiera que entre como
-jefe lo lee. En la demo cada persona ve el aviso la primera vez (nadie lo tiene aceptado).
+**Lo que la demo no puede mostrar de Mensajes (para Hillary; la pantalla no lo dice):** cada servidor de Vercel tiene
+su base en memoria. Lo sembrado es igual en todos (mismos ids), pero un mensaje, un canal nuevo o un cambio de miembros
+vive solo en el servidor donde se hizo: con otra cuenta o en otro teléfono puede no verse, y un canal creado en otro
+servidor dice «Este canal no está en tu lista: o no estás en él, o se creó en otro servidor de la demostración.»
+(D-88). Con el canal abierto, si la revisión de cada 5 s o un envío llega a otro servidor, la pantalla sigue como
+estaba (un envío devuelve el texto a la caja con esa misma frase): «Ya no estás en este canal.» sale solo cuando la
+base de ese servidor dice que el jefe te sacó. Dos personas en un canal desde dos teléfonos se prueba en `fb-dev`. La demo es una base de prueba con datos
+inventados: lo que se escribe ahí se pierde cuando el servidor se reinicia.
 
 **A mano, en un Android de verdad** (no se automatiza): el teclado no tapa la caja de escribir; Enter hace salto de
 línea y solo el botón «Enviar» manda; el aviso de un mensaje en la pantalla de bloqueo dice «Mensaje nuevo · De …» sin
@@ -76,10 +79,9 @@ el texto; un tutorial con el teclado cerrado (el anillo cae sobre lo que señala
 - Con redes abierto en un teléfono y el jefe en otro: redes nunca ve la hora; el jefe sí.
 - Redes no puede aprobar: el botón no está, y aunque lo intente por la API, la base lo rechaza.
 - El IVT y política no tienen «Ponerle fecha»; solo el jefe y el despacho la ponen (también en la base).
-- Ajustes → Registro de cambios: quién hizo qué (de Mensajes, solo que hubo un mensaje, quién y cuándo: nunca el
-  texto, el nombre del grupo ni los miembros).
-- Mensajes: Administración no lee ninguna conversación ni entra; 360 tampoco; el jefe lee todas (con doble factor
-  fuera de la demo).
+- Ajustes → Registro de cambios: quién hizo qué (de Mensajes, solo que hubo un mensaje, un canal o un cambio de
+  miembros, quién y cuándo: nunca el texto, el nombre del canal ni los miembros).
+- Mensajes: cada quien lee solo sus canales; el jefe está en todos; administración y 360 no entran.
 
 ## Límites de la demostración
 - La base es en memoria: si el servidor se reinicia (pasa en Vercel), vuelve a los datos inventados.

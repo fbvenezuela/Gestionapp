@@ -1,46 +1,44 @@
 import { redirect } from 'next/navigation';
-import { MessagesSquare, PenSquare } from 'lucide-react';
+import { Hash, Plus } from 'lucide-react';
 import { requireRole, db } from '@/lib/auth/session';
 import { homeFor } from '@/lib/roles';
-import { isDemo } from '@/lib/env';
-import { myConversations, noticeAccepted } from '@/lib/data/chat';
+import { CHAT_EMPTY_BOSS, CHAT_EMPTY_MEMBER } from '@/lib/domain/chat';
+import { myChannels } from '@/lib/data/chat';
 import { noPermissionUrl } from '@/components/shell/no-permission';
 import { PageHeader, EmptyState } from '@/components/ui/page';
 import { LinkButton } from '@/components/ui/button';
-import { ChatNotice } from '@/components/chat/chat-notice';
-import { ChatAckDialog } from '@/components/chat/chat-ack-dialog';
-import { ChatTabs } from '@/components/chat/chat-tabs';
-import { ConversationList } from '@/components/chat/conversation-list';
+import { ChannelList } from '@/components/chat/channel-list';
 
 export const metadata = { title: 'Mensajes' };
 
-// Mensajes (R3, D-49): the person's conversations; for the boss also «Todas» and «Quién habla con quién». The notice
-// is always on top (D-50) and the first time a dialog asks to accept it (D-59).
+// Mensajes (R5, D-79): «Todo el equipo» and the channels the person is in. The boss arms them («Nuevo canal») and is
+// in every one. No notice: each channel shows who is in it.
 export default async function MessagesPage() {
   const s = await requireRole('boss', 'dispatch', 'politics', 'ivt', 'camera', 'social');
-  // An account with Administración is out of Mensajes even with a team role (D-49).
+  // An account with Administración is out of Mensajes even with a team role (D-82).
   if (s.roles.includes('admin')) redirect(noPermissionUrl(homeFor(s.roles)));
-  const { rows, accepted } = await db(s, async (sql) => ({ rows: await myConversations(sql, s), accepted: await noticeAccepted(sql) }));
-  const demo = isDemo();
-  const others = rows.filter((r) => r.kind !== 'team');
-  const write = (
-    <span data-tour="chat-new">
-      <LinkButton href="/mensajes/nueva">
-        <PenSquare className="h-4 w-4" aria-hidden /> Escribirle a alguien
+  const { rows, archived } = await db(s, (sql) => myChannels(sql, s));
+  const boss = s.roles.includes('boss');
+  const channels = rows.filter((r) => r.kind !== 'team').length + archived.length;
+  const newChannel = (
+    <span data-tour="chat-new-channel">
+      <LinkButton href="/mensajes/canales/nuevo">
+        <Plus className="h-4 w-4" aria-hidden /> Nuevo canal
       </LinkButton>
     </span>
   );
   return (
     <>
-      <ChatAckDialog accepted={accepted} demo={demo} />
-      <PageHeader title="Mensajes" actions={write} />
-      {s.roles.includes('boss') ? <ChatTabs current="mias" /> : null}
-      <ChatNotice demo={demo} />
-      <ConversationList rows={rows} />
-      {others.length === 0 ? (
-        <div className="mt-4">
-          <EmptyState icon={<MessagesSquare className="h-8 w-8" />} title="Todavía no tienes conversaciones." action={<LinkButton href="/mensajes/nueva" variant="secondary">Escribirle a alguien</LinkButton>} />
-        </div>
+      <PageHeader title="Mensajes" actions={boss ? newChannel : undefined} />
+      <ChannelList rows={rows} archived={archived} />
+      {channels === 0 ? (
+        boss ? (
+          <div className="mt-4">
+            <EmptyState icon={<Hash className="h-8 w-8" />} title={CHAT_EMPTY_BOSS} />
+          </div>
+        ) : (
+          <p className="mt-4 px-1 text-[15px] text-text-2">{CHAT_EMPTY_MEMBER}</p>
+        )
       ) : null}
     </>
   );

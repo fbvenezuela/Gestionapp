@@ -35,6 +35,6 @@ npm run db:first-admin -- <correo> "<nombre>" --jefe   # el jefe
 ```
 
 Desde el 28/10 el rol de jefe **solo** lo da el sistema (este comando, la semilla o una migración): Administración no
-lo da en Equipo ni en una invitación, porque el jefe lee todas las conversaciones de Mensajes y aprueba todo
+lo da en Equipo ni en una invitación, porque el jefe aprueba todo y está en todos los canales de Mensajes
 (`DECISIONES.md` D-58). Cada rol del equipo que da una persona le llega al jefe como aviso en la campana. Aquí se anota
 solo que la cuenta existe (rol y fecha), nunca su clave ni su código.
