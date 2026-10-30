@@ -13,13 +13,13 @@ import { PUBLISH_NETWORKS } from './card-core';
 
 // «Ya lo publiqué» from the card (D-63): the networks where it went out, each with its link, and the screenshot. What is
 // recorded is what the boss approved (markPublishedNow takes the approved copy and cover; the database checks it). The
-// card turns green.
+// card turns green. `exclude`: the networks already recorded («Agregar otra red», one network at a time).
 type Net = (typeof PUBLISH_NETWORKS)[keyof typeof PUBLISH_NETWORKS][number];
 
-export function PublishedDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+export function PublishedDialog({ open, onOpenChange, exclude = [] }: { open: boolean; onOpenChange: (o: boolean) => void; exclude?: readonly string[] }) {
   const { card } = useCard();
   const { run, pending } = useAction();
-  const nets = PUBLISH_NETWORKS[card.format];
+  const nets = PUBLISH_NETWORKS[card.format].filter((n) => !exclude.includes(n));
   const [chosen, setChosen] = useState<Partial<Record<Net, string>>>({ [nets[0]]: '' });
   const [evidence, setEvidence] = useState<string | null>(null);
   const items = (Object.entries(chosen) as [Net, string][]).map(([network, url]) => ({ network, url: url.trim() }));

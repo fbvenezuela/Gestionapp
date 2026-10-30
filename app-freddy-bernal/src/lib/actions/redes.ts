@@ -10,7 +10,7 @@ import type { Level } from '../domain/review';
 import type { Session } from '../auth/session';
 import { phonesIn } from '../domain/phones';
 import { hasConcreteDateTime, knowsAgenda } from '../domain/chat';
-import { FORMAT, FORMATS, MONTH_COOKIE, NOTICE_KINDS, STICKERS, nextMonthLabel, sectionHref, type Format } from '../domain/redes';
+import { FORMAT, FORMATS, MONTH_COOKIE, NOTICE_KINDS, STALE_CARD, STICKERS, nextMonthLabel, sectionHref, type Format } from '../domain/redes';
 import { getCard, getRedesSettings } from '../data/redes';
 
 // Redes por formato (R4, D-60 to D-78): the actions of the sections, the cards, the months and the feed. Every one
@@ -206,8 +206,6 @@ const detailsPatch = z
 const shot = z.object({ says: text(1000).default(''), action: text(1000).default(''), on_screen: text(300).default('') }).strict();
 const slide = z.object({ role: z.enum(['cover', 'body', 'summary', 'cta']).default('body'), title: text(120).default(''), text: text(1000).default('') }).strict();
 
-const STALE = 'Otra persona cambió esta tarjeta. Recarga para ver lo último.';
-
 /** Inserts the row (rev 0 = none yet) or updates it only if nobody changed it since (rev). JSON columns as text. */
 async function writeDetails(sql: Sql, pieceId: string, rev: number, cols: Record<string, unknown>): Promise<number> {
   const keys = Object.keys(cols);
@@ -221,7 +219,7 @@ async function writeDetails(sql: Sql, pieceId: string, rev: number, cols: Record
        on conflict (piece_id) do nothing returning rev`,
       [pieceId, ...keys.map(val)],
     );
-    if (!r) throw new UserError(STALE);
+    if (!r) throw new UserError(STALE_CARD);
     return r.rev;
   }
   const r = await sql.one<{ rev: number }>(
@@ -229,7 +227,7 @@ async function writeDetails(sql: Sql, pieceId: string, rev: number, cols: Record
       where piece_id = $1 and rev = $2 returning rev`,
     [pieceId, rev, ...keys.map(val)],
   );
-  if (!r) throw new UserError(STALE);
+  if (!r) throw new UserError(STALE_CARD);
   return r.rev;
 }
 

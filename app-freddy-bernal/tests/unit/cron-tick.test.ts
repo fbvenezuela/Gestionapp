@@ -127,6 +127,41 @@ describe('cron tick', () => {
     expect(await marked()).toEqual(new Set(late));
   });
 
+  it('«Toca publicar» nunca sale de una pieza con el diseño desaprobado después de aprobarla (D-64)', async () => {
+    const [held, free] = await t.system(async (sql) => {
+      const ids: string[] = [];
+      for (const name of ['retenido', 'libre']) {
+        const p = (await sql.one<{ id: string }>(
+          `insert into public.pieces (kind, format, title, status, current_version, review_level, created_by) values ('photo', 'post', $1, 'in_review', 1, 'verde', $2) returning id`,
+          [`Post ${name} por el diseño (demo)`, t.ids.social],
+        ))!;
+        await sql.query(`insert into public.copies (piece_id, length_group, body) values ($1, 'long', 'Copy largo (demo).'), ($1, 'medium', 'Copy medio (demo).'), ($1, 'short', 'Copy corto (demo).')`, [p.id]);
+        ids.push(p.id);
+      }
+      return ids;
+    });
+    for (const id of [held, free]) {
+      await t.as('boss', (sql) => sql.query(`select public.review_piece($1, 'approved', 'Bien.')`, [id]));
+      await t.system((sql) =>
+        sql.query(
+          `insert into public.publications (piece_id, network, format, status, mode, scheduled_at, copy_body)
+           select $1, 'facebook', 'photo', 'scheduled', 'manual', now() - interval '1 minute', c.body
+             from public.copies c join public.network_specs s on s.length_group = c.length_group where c.piece_id = $1 and s.network = 'facebook'`,
+          [id],
+        ),
+      );
+    }
+    await t.system(async (sql) => {
+      // A row still scheduled when the design was disapproved (a person's mark sends it back to draft; the system's
+      // does not): the tick must leave it alone all the same.
+      await sql.query(`update public.pieces set design_status = 'disapproved', design_at = now() + interval '1 second' where id = $1`, [held]);
+    });
+    const titles = () => (h.notices as Notice[]).filter((n) => n.kind === 'publish_due').map((n) => n.title);
+    await tick();
+    expect(titles()).toContain('Toca publicar «Post libre por el diseño (demo)»');
+    expect(titles()).not.toContain('Toca publicar «Post retenido por el diseño (demo)»');
+  });
+
   it('si la pieza sale de revisión y vuelve mientras sale el aviso, la ronda nueva no queda marcada y tiene su propio aviso', async () => {
     const id = await t.system(async (sql) => {
       const p = await sql.one<{ id: string }>(

@@ -542,6 +542,11 @@ describe('las lecturas del tablero', () => {
     const found = await t.as('social', (sql) => data.searchRedes(sql, 'Saludos'));
     expect(found.groups.find((g) => g.key === 'post')?.items[0]).toMatchObject({ where: 'Copy' });
     expect((await t.as('social', (sql) => data.searchRedes(sql, 'a'))).total).toBe(0);
+    // On the phone people type without accents: «como pedir» finds «Cómo pedir un operativo», and the other way round.
+    for (const q of ['como pedir', 'CÓMO PEDÍR', 'Cómo pedir']) {
+      const hit = (await t.as('social', (sql) => data.searchRedes(sql, q))).groups.find((g) => g.key === 'carousel')?.items.find((x) => x.title === 'Cómo pedir un operativo');
+      expect(hit, q).toMatchObject({ where: 'Título', snippet: 'Cómo pedir un operativo' });
+    }
     // politics and the IVT read nothing of Redes (RLS).
     expect(await t.as('politics', (sql) => data.getMonths(sql))).toEqual([]);
   });
@@ -552,6 +557,33 @@ describe('las lecturas del tablero', () => {
       const src = fs.readFileSync(path.join(process.cwd(), f), 'utf8');
       expect(src, f).not.toMatch(/event_schedule|event_calendar|done_on|\be\.\*|place_name|exact_address|starts_at/);
     }
+  });
+});
+
+describe('dos imágenes subidas a la vez', () => {
+  // Each upload sends only its place (slot); the server merges it into the current version under the piece's lock, so
+  // the second never brings back the list the first one saw (and a move meanwhile is kept).
+  it('quedan las dos, cada una en su lámina, y lo demás como estaba', async () => {
+    const m = await newMonth();
+    const id = await newPiece('carousel', m.id, { copy: true });
+    const [a1, a2, a3] = [await asset(), await asset(), await asset()];
+    as('social');
+    ok(await pieces.setSlides({ pieceId: id, slides: [null, null, null, null] }));
+    const [r1, r2] = await Promise.all([
+      pieces.setSlides({ pieceId: id, slot: { index: 0, assetId: a1, count: 4 } }),
+      pieces.setSlides({ pieceId: id, slot: { index: 1, assetId: a2, count: 4 } }),
+    ]);
+    ok(r1);
+    ok(r2);
+    let c = (await card('social', id))!;
+    expect(c.version?.slideIds).toEqual([a1, a2, null, null]);
+    expect(c.version?.n).toBe(3);
+    // A slot past the end grows the list to it; the cover is the first image.
+    ok(await pieces.setSlides({ pieceId: id, slot: { index: 5, assetId: a3, count: 4 } }));
+    c = (await card('social', id))!;
+    expect(c.version?.slideIds).toEqual([a1, a2, null, null, null, a3]);
+    expect(c.thumbIds[0]).toBe(a1);
+    expect(await pieces.setSlides({ pieceId: id })).toMatchObject({ ok: false });
   });
 });
 

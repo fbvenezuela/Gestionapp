@@ -10,12 +10,14 @@ import { NETWORK_LABEL } from '@/lib/data/labels';
 import { DESIGN_HELD, FORMAT, NO_APPROVAL, sectionHref } from '@/lib/domain/redes';
 import { useCard } from './card-context';
 import { PublishedDialog } from './published-dialog';
+import { PUBLISH_NETWORKS } from './card-core';
 
 // The card's review row (D-62, D-63, F5, F8): «Revisado y listo para publicar» IS the boss's approval (review_piece),
 // never another tick; «Publicado» is «Ya lo publiqué» with its link and screenshot. A draft or a piece with changes
 // asked says «Enviar a aprobación» with what is still missing (the same list sendToReview checks) and «Generar copies»;
 // in review the boss gets «Revisar» (his review room, coming back to this card), everyone else «Espera al jefe».
-// «Ya lo publiqué» is off without the approval, and while the design stays disapproved after it (D-64).
+// «Ya lo publiqué» is off without the approval, and while the design stays disapproved after it (D-64). Publishing by
+// hand goes one network at a time: once something is recorded, «Agregar otra red» records the networks still missing.
 export function reviewHref(pieceId: string, slug: string, monthId: string | null): string {
   return `/aprobar/${pieceId}?volver=${encodeURIComponent(sectionHref(slug, monthId, pieceId))}`;
 }
@@ -28,6 +30,8 @@ export function ReviewRow({ first = false }: { first?: boolean }) {
   const inReview = card.status === 'in_review';
   const approved = card.status === 'approved';
   const done = card.pubs.filter((p) => p.status === 'published');
+  const doneNets = done.map((p) => p.network);
+  const missing = PUBLISH_NETWORKS[card.format].filter((n) => !doneNets.includes(n));
   const off = !approved ? NO_APPROVAL : card.designHold ? DESIGN_HELD : null;
   const blockersId = `pieza-${card.id}-blockers`;
   const offId = `pieza-${card.id}-publish-off`;
@@ -113,6 +117,19 @@ export function ReviewRow({ first = false }: { first?: boolean }) {
                 </li>
               ))}
             </ul>
+            {missing.length ? (
+              <>
+                <Button type="button" variant="secondary" size="md" className="self-start" disabled={!!off} aria-describedby={off ? offId : undefined} onClick={() => setOpen(true)}>
+                  Agregar otra red
+                </Button>
+                {off ? (
+                  <p id={offId} className="text-sm text-text-2">
+                    {off}.
+                  </p>
+                ) : null}
+                {open ? <PublishedDialog open={open} onOpenChange={setOpen} exclude={doneNets} /> : null}
+              </>
+            ) : null}
           </>
         ) : (
           <>

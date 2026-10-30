@@ -129,7 +129,7 @@ describe('resultados en el teléfono', () => {
 // R4, WP-C2: the review room, the piece in big, «Nueva pieza» and Cupo y pilares
 // ---------------------------------------------------------------------------------------------------------------
 const { FormatView, NoticesBand, afterReview, backLabel, OUT_IN_APP } = await import('@/app/(panel)/aprobar/[id]/format-view');
-const { ReviewRoom, NOTICES_READ } = await import('@/app/(panel)/aprobar/[id]/review-room');
+const { ReviewRoom, NOTICES_READ, STORY_CHECK } = await import('@/app/(panel)/aprobar/[id]/review-room');
 const { PieceBig } = await import('@/app/(panel)/piezas/[id]/piece-big');
 const { FINAL_FILE, levelOptions } = await import('@/app/(panel)/piezas/[id]/piece-client');
 const { NewPieceForm } = await import('@/app/(panel)/piezas/nueva/new-piece-form');
@@ -247,6 +247,16 @@ describe('la sala de revisión (R4): lo que el jefe aprueba de cada formato', ()
     const plain = html(createElement(ReviewRoom, { ...props, band: createElement(NoticesBand, { notices: [] }), noticeCount: 0 }));
     expect(plain).not.toContain('Antes de publicar:');
     expect(plain).not.toContain(NOTICES_READ);
+  });
+
+  it('«Antes de aprobar» de una historia revisa el texto en pantalla y el sticker, no copies que no tiene', () => {
+    const props = { pieceId: ID, revision: 1, canApprove: true, canRequestChanges: true, canAskVoice: false, note: '', media: null, back: '/aprobar' };
+    const story = text(html(createElement(ReviewRoom, { ...props, format: 'story' })));
+    expect(story).toContain(STORY_CHECK);
+    expect(story).not.toContain('Los tres copies están revisados');
+    const post = text(html(createElement(ReviewRoom, { ...props, format: 'post' })));
+    expect(post).toContain('Los tres copies están revisados');
+    expect(post).not.toContain(STORY_CHECK);
   });
 
   it('administración ve los avisos aunque no apruebe', () => {

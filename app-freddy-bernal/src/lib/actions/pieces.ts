@@ -89,25 +89,45 @@ export async function addVersion(raw: unknown) {
 // an approved piece sends it back to the boss (the new version does it). null = a planned slide without its image.
 export async function setSlides(raw: unknown) {
   return act(
-    z.object({
-      pieceId: uuid,
-      slides: z.array(uuid.nullable()).min(1, 'Deja al menos una lámina.').max(20, 'Hasta 20 láminas.'),
-      notes: z.string().max(1000).default(''),
-    }),
+    z
+      .object({
+        pieceId: uuid,
+        slides: z.array(uuid.nullable()).min(1, 'Deja al menos una lámina.').max(20, 'Hasta 20 láminas.').optional(),
+        // One image just uploaded into place `index` (0-based) of a list of `count`: merged into the CURRENT version
+        // under the piece's lock, so two uploads at once (or a move meanwhile) never undo each other.
+        slot: z.object({ index: z.number().int().min(0).max(19), assetId: uuid, count: z.number().int().min(1).max(20) }).optional(),
+        notes: z.string().max(1000).default(''),
+      })
+      .refine((x) => !!x.slides !== !!x.slot, 'Faltan las láminas.'),
     raw,
     async (sql, i) => {
+      // Locked: saves of the same piece go one after the other, each on the version the one before left.
       const p = await sql.one<{ current_version: number; status: string; format: string }>(
-        `select current_version, status, format from public.pieces where id = $1 and deleted_at is null`,
+        `select current_version, status, format from public.pieces where id = $1 and deleted_at is null for update`,
         [i.pieceId],
       );
       if (!p) throw new UserError('Pieza no encontrada.');
       if (p.format !== 'carousel' && p.format !== 'month_end') throw new UserError('Las láminas son de los carruseles y de fin de mes.');
-      const first = i.slides.find((x): x is string => !!x) ?? null;
       const v = p.current_version + 1;
-      await sql.query(
-        `insert into public.piece_versions (piece_id, version, media_asset_id, cover_asset_id, slide_asset_ids, notes) values ($1, $2, $3, $3, $4::uuid[], $5)`,
-        [i.pieceId, v, first, i.slides, i.notes],
-      );
+      if (i.slot) {
+        // Arrays are 1-based in SQL. The list keeps its length (or grows to the place), every other place as it is.
+        await sql.query(
+          `with cur as (select coalesce((select slide_asset_ids from public.piece_versions where piece_id = $1 and version = $3), '{}'::uuid[]) as ids),
+                next as (select array(select case when g = $4 then $5::uuid else cur.ids[g] end
+                                        from cur, generate_series(1, greatest($6, cardinality(cur.ids), $4)) g order by g) as ids from cur)
+           insert into public.piece_versions (piece_id, version, media_asset_id, cover_asset_id, slide_asset_ids, notes)
+           select $1, $2, f.id, f.id, next.ids, $7
+             from next left join lateral (select x as id from unnest(next.ids) with ordinality u(x, o) where x is not null order by o limit 1) f on true`,
+          [i.pieceId, v, p.current_version, i.slot.index + 1, i.slot.assetId, i.slot.count, i.notes],
+        );
+      } else {
+        const slides = i.slides!;
+        const first = slides.find((x): x is string => !!x) ?? null;
+        await sql.query(
+          `insert into public.piece_versions (piece_id, version, media_asset_id, cover_asset_id, slide_asset_ids, notes) values ($1, $2, $3, $3, $4::uuid[], $5)`,
+          [i.pieceId, v, first, slides, i.notes],
+        );
+      }
       const after = await sql.one<{ id: string; title: string; status: string; review_level: Level }>(
         `update public.pieces set current_version = $2 where id = $1 returning id, title, status, review_level`,
         [i.pieceId, v],

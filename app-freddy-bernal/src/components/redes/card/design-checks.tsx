@@ -15,8 +15,9 @@ import { fieldId } from './card-fields';
 // «Diseño aprobado» / «Diseño desaprobado» with its note (D-64): one excludes the other and tapping the active one
 // clears it. Redes and the boss mark it; it is never the approval (it does not change the state), but a design the boss
 // disapproves after approving does not go out until he approves again. When the boss marked it disapproved, only he
-// lifts it: Redes reads it («Desaprobó: el jefe»). The boss disapproving an approved piece is asked «¿Pedir cambios
-// también?», which sends his note as changes asked (the review of always).
+// lifts it: Redes reads it («Desaprobó: el jefe»). The boss disapproving an approved piece first writes his note (the
+// mark is saved with «Guardar nota»), then is asked «¿Pedir cambios también?», which sends that note as changes asked
+// (the review of always).
 export const DESIGN_NOTE_LABEL = '¿Qué no le gustó del diseño?';
 
 export function DesignChecks({ first = false }: { first?: boolean }) {
@@ -31,17 +32,21 @@ export function DesignChecks({ first = false }: { first?: boolean }) {
     setNote(card.design.note);
   }
   const [noteOpen, setNoteOpen] = useState(false);
+  // The boss tapped «Diseño desaprobado» on an approved piece: the mark waits for his note.
+  const [asking, setAsking] = useState(false);
   const bossMark = card.design.byBoss && status === 'disapproved' && !ctx.perms.boss;
   const canEdit = ctx.perms.mark && !bossMark;
   const who = card.design.byBoss ? 'el jefe' : card.design.by;
   const noteId = fieldId(card.id, 'design-note');
-  const showNote = status === 'disapproved' || noteOpen || !!card.design.note;
+  const showNote = status === 'disapproved' || noteOpen || asking || !!card.design.note;
+  const askFirst = ctx.perms.boss && card.status === 'approved';
 
   const mark = (next: 'approved' | 'disapproved' | null, text = note) =>
     run(() => setDesign({ pieceId: card.id, status: next, note: next === 'disapproved' ? text : next === null ? '' : text }), {
       onOk: async (r) => {
         if (!r.ok) return;
         announce(r.message ?? 'Marca de diseño guardada');
+        setAsking(false);
         if (next === 'disapproved') setNoteOpen(true);
         if (r.data?.askChanges) {
           const yes = await confirm({
@@ -69,7 +74,10 @@ export function DesignChecks({ first = false }: { first?: boolean }) {
           aria-pressed={status === 'approved'}
           disabled={!canEdit || pending}
           className={cn(status === 'approved' && 'border-ok bg-ok-soft text-ok')}
-          onClick={() => void mark(status === 'approved' ? null : 'approved')}
+          onClick={() => {
+            setAsking(false);
+            void mark(status === 'approved' ? null : 'approved');
+          }}
         >
           <ThumbsUp className="h-4 w-4" aria-hidden /> Diseño aprobado
         </Button>
@@ -80,7 +88,17 @@ export function DesignChecks({ first = false }: { first?: boolean }) {
           aria-pressed={status === 'disapproved'}
           disabled={!canEdit || pending}
           className={cn(status === 'disapproved' && 'border-danger bg-danger-soft text-danger')}
-          onClick={() => void mark(status === 'disapproved' ? null : 'disapproved')}
+          onClick={() => {
+            if (status !== 'disapproved' && askFirst) {
+              // His reason goes with the mark and, if he asks for changes, to Redes: the note comes first.
+              setAsking(true);
+              announce('Escribe qué no le gustó del diseño y toca «Guardar nota».');
+              requestAnimationFrame(() => document.getElementById(noteId)?.focus());
+              return;
+            }
+            setAsking(false);
+            void mark(status === 'disapproved' ? null : 'disapproved');
+          }}
         >
           <ThumbsDown className="h-4 w-4" aria-hidden /> Diseño desaprobado
         </Button>
@@ -103,8 +121,8 @@ export function DesignChecks({ first = false }: { first?: boolean }) {
               variant="secondary"
               size="md"
               className="self-start"
-              disabled={pending || note === card.design.note}
-              onClick={() => void mark(status ?? 'disapproved', note)}
+              disabled={pending || (!asking && note === card.design.note)}
+              onClick={() => void mark(asking ? 'disapproved' : (status ?? 'disapproved'), note)}
             >
               Guardar nota
             </Button>

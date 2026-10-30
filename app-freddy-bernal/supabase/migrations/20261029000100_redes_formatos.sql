@@ -289,6 +289,8 @@ create trigger rev_piece_details before insert or update on public.piece_details
 -- the agenda writes no concrete date or time (Redes reads it).
 create function public.guard_piece_details()
 returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  written text;
 begin
   if tg_op = 'UPDATE' and new.piece_id is distinct from old.piece_id then
     raise exception 'Los campos no se pasan a otra pieza.' using errcode = '42501';
@@ -311,13 +313,44 @@ begin
                         and m.mime like 'image/%') then
     raise exception 'La referencia tiene que ser una imagen ya subida.' using errcode = '42501';
   end if;
-  if auth.uid() is not null and public.chat_author_knows_agenda(auth.uid())
-     and public.text_has_concrete_datetime(
-           new.art_overline || ' ' || new.art_headline || ' ' || new.art_seals || ' ' || new.art_fine_print || ' '
-           || new.visual_concept || ' ' || new.hook || ' ' || new.cta || ' ' || new.hashtags || ' '
-           || new.publication_notes || ' ' || new.on_screen || ' ' || new.follow_up || ' ' || new.sticker_text || ' '
-           || new.sticker_url || ' ' || new.idea || ' ' || new.links || ' ' || new.shots::text || ' '
-           || new.slides::text) then
+  if auth.uid() is null or not public.chat_author_knows_agenda(auth.uid()) then return new; end if;
+  -- Only what this person writes: a field that changed, a shot or slide that was not there. Text someone else wrote
+  -- (Redes may cite «del 12 de marzo») never locks the card for the boss, nor does a copy of a whole card («Duplicar»):
+  -- it adds nothing Redes does not read already.
+  if tg_op = 'INSERT' then
+    if exists (select 1 from public.piece_details d
+                where (d.art_overline, d.art_headline, d.art_seals, d.art_fine_print, d.visual_concept, d.hook, d.cta,
+                       d.hashtags, d.publication_notes, d.on_screen, d.follow_up, d.sticker_text, d.sticker_url, d.idea,
+                       d.links, d.shots, d.slides)
+                    = (new.art_overline, new.art_headline, new.art_seals, new.art_fine_print, new.visual_concept, new.hook,
+                       new.cta, new.hashtags, new.publication_notes, new.on_screen, new.follow_up, new.sticker_text,
+                       new.sticker_url, new.idea, new.links, new.shots, new.slides)) then
+      return new;
+    end if;
+    written := concat_ws(' ', new.art_overline, new.art_headline, new.art_seals, new.art_fine_print, new.visual_concept,
+      new.hook, new.cta, new.hashtags, new.publication_notes, new.on_screen, new.follow_up, new.sticker_text,
+      new.sticker_url, new.idea, new.links, new.shots::text, new.slides::text);
+  else
+    written := concat_ws(' ',
+      case when new.art_overline is distinct from old.art_overline then new.art_overline end,
+      case when new.art_headline is distinct from old.art_headline then new.art_headline end,
+      case when new.art_seals is distinct from old.art_seals then new.art_seals end,
+      case when new.art_fine_print is distinct from old.art_fine_print then new.art_fine_print end,
+      case when new.visual_concept is distinct from old.visual_concept then new.visual_concept end,
+      case when new.hook is distinct from old.hook then new.hook end,
+      case when new.cta is distinct from old.cta then new.cta end,
+      case when new.hashtags is distinct from old.hashtags then new.hashtags end,
+      case when new.publication_notes is distinct from old.publication_notes then new.publication_notes end,
+      case when new.on_screen is distinct from old.on_screen then new.on_screen end,
+      case when new.follow_up is distinct from old.follow_up then new.follow_up end,
+      case when new.sticker_text is distinct from old.sticker_text then new.sticker_text end,
+      case when new.sticker_url is distinct from old.sticker_url then new.sticker_url end,
+      case when new.idea is distinct from old.idea then new.idea end,
+      case when new.links is distinct from old.links then new.links end,
+      (select string_agg(e::text, ' ') from jsonb_array_elements(new.shots) e where not (old.shots @> jsonb_build_array(e))),
+      (select string_agg(e::text, ' ') from jsonb_array_elements(new.slides) e where not (old.slides @> jsonb_build_array(e))));
+  end if;
+  if public.text_has_concrete_datetime(written) then
     raise exception 'Redes lee esta tarjeta: escríbela sin fecha ni hora.' using errcode = 'P0001';
   end if;
   return new;
@@ -460,6 +493,13 @@ begin
   if new.design_status is distinct from old.design_status or new.design_note is distinct from old.design_note then
     new.design_by := auth.uid();
     new.design_at := now();
+    -- Disapproved after the boss's approval: what was scheduled goes back to draft (guard_publication_design refuses
+    -- scheduling it again until he approves again), so no reminder and no publisher acts on a held design.
+    if new.design_status = 'disapproved' and (new.approved_at is null or new.design_at > new.approved_at) then
+      update public.publications
+         set status = 'draft', failure_reason = 'El diseño quedó desaprobado: prográmala cuando el jefe la vuelva a aprobar.'
+       where piece_id = new.id and status = 'scheduled' and deleted_at is null;
+    end if;
   else
     new.design_by := old.design_by;
     new.design_at := old.design_at;
@@ -644,7 +684,7 @@ begin
 end $$;
 
 -- Delete a month: Redes and the boss. Refuses the last month and a stale count; empties its places; its pieces go to
--- the first month left. Returns how many pieces moved.
+-- the first month left. Returns how many pieces moved. It locks every live month FOR UPDATE (in ordinal order).
 create function public.delete_content_month(m uuid, expected int)
 returns int language plpgsql security definer set search_path = public as $$
 declare
@@ -654,7 +694,9 @@ begin
   if not public.has_any_role(array['social', 'boss']::public.app_role[]) then
     raise exception 'Solo Redes y el jefe borran un mes.' using errcode = '42501';
   end if;
-  perform 1 from public.content_months where id = m and deleted_at is null for update;
+  -- Every live month, in order: two deletes at once wait for each other, so at least one month always stays.
+  perform 1 from public.content_months where deleted_at is null order by ordinal, id for update;
+  perform 1 from public.content_months where id = m and deleted_at is null;
   if not found then raise exception 'Ese mes ya no está.' using errcode = 'P0001'; end if;
   select id into target from public.content_months where deleted_at is null and id <> m order by ordinal limit 1;
   if target is null then raise exception 'Debe quedar al menos un mes.' using errcode = 'P0001'; end if;

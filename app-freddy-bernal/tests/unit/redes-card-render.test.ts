@@ -184,6 +184,14 @@ describe('la fila de revisión', () => {
     expect(html).toContain('href="https://example.org/demo/post"');
     expect(text(html)).toContain('Publicado');
     expect(text(html)).not.toContain('Ya lo publiqué');
+    // One network at a time: the ones still missing go with «Agregar otra red»; with every network, nothing more.
+    expect(text(html)).toContain('Agregar otra red');
+    expect(button(html, 'Agregar otra red')).not.toMatch(OFF);
+    const all = render(card({
+      format: 'carousel', status: 'approved', displayState: 'published', ready: true, chip: { label: 'Publicado', tone: 'ok' },
+      pubs: (['instagram', 'facebook'] as const).map((network, n) => ({ id: `p${n}`, network, status: 'published', url: 'https://example.org/demo/post', evidenceId: null })),
+    }));
+    expect(text(all)).not.toContain('Agregar otra red');
   });
 });
 

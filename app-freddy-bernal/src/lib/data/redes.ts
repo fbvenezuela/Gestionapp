@@ -581,12 +581,18 @@ export function snippetOf(text: string, q: string, span = 60): string {
   return `${from > 0 ? '…' : ''}${t.slice(from, to)}${to < t.length ? '…' : ''}`;
 }
 
+// The same folding in SQL (no unaccent extension needed): accented letters to their plain ones, both cases (lower()
+// leaves them alone under the C collation). Anything else (an emoji) matches as itself.
+const ACCENTED = 'ÁÀÄÂÉÈËÊÍÌÏÎÓÒÖÔÚÙÜÛÑÇáàäâéèëêíìïîóòöôúùüûñç';
+const PLAIN = 'AAAAEEEEIIIIOOOOUUUUNCaaaaeeeeiiiioooouuuunc';
+const folded = (col: string) => `translate(${col}, '${ACCENTED}', '${PLAIN}')`;
+
 /** «Buscar en Redes» (D-71): titles, card fields, copies, notices and tweets, by format. At least 2 letters; % and _
- * are taken as letters; 50 of each kind at most. */
+ * are taken as letters; accents and case do not matter («como pedir» finds «Cómo pedir»); 50 of each kind at most. */
 export async function searchRedes(sql: Sql, q: string): Promise<{ q: string; total: number; groups: SearchGroup[] }> {
   const term = (q ?? '').trim().slice(0, 100);
   if (term.length < 2) return { q: term, total: 0, groups: [] };
-  const like = `%${term.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+  const like = `%${fold(term).replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
   const pieces = await sql.query<{ id: string; title: string; format: string; month_id: string | null; fields: string; copies: string | null; notices: string | null }>(
     `with first as (select id from public.content_months where deleted_at is null order by ordinal limit 1),
      hay as (
@@ -600,12 +606,12 @@ export async function searchRedes(sql: Sql, q: string): Promise<{ q: string; tot
          from public.pieces p left join public.piece_details d on d.piece_id = p.id
         where p.deleted_at is null)
      select id, title, format, month_id, fields, copies, notices from hay
-      where title ilike $1 escape '\\' or fields ilike $1 escape '\\' or copies ilike $1 escape '\\' or notices ilike $1 escape '\\'
+      where ${['title', 'fields', 'copies', 'notices'].map((c) => `${folded(c)} ilike $1 escape '\\'`).join(' or ')}
       order by created_at desc, id limit 50`,
     [like],
   );
   const tweets = await sql.query<{ id: string; batch_id: string; body: string }>(
-    `select id, batch_id, body from public.tweets where deleted_at is null and body ilike $1 escape '\\' order by created_at desc, id limit 50`,
+    `select id, batch_id, body from public.tweets where deleted_at is null and ${folded('body')} ilike $1 escape '\\' order by created_at desc, id limit 50`,
     [like],
   );
   const groups: SearchGroup[] = [];

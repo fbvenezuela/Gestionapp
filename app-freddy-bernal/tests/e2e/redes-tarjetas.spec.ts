@@ -143,6 +143,39 @@ test('Redes: el post con su texto del arte, enlaces, proporción 1:1 y caption; 
   await expect(again.getByLabel('Proporción')).toHaveValue('1:1');
 });
 
+test('Redes: si un guardado falla en el camino, lo escrito no se pierde aunque siga escribiendo en otro campo', async ({ page }) => {
+  await loginAs(page, 'redes@demo.test');
+  await page.goto('/redes/posts');
+  const c = card(page, 'Así pides una jornada de salud');
+  await open(c);
+  // The first save that carries the headline gets a gateway error on the way (Next retries a cut signal by itself, so
+  // the failure that reaches the card is an answer like this one).
+  let cut = 0;
+  await page.route('**/redes/posts**', async (route) => {
+    const req = route.request();
+    if (req.method() === 'POST' && req.headers()['next-action'] && !cut && (req.postData() ?? '').includes('Pide tu jornada (prueba)')) {
+      cut++;
+      return route.fulfill({ status: 502, contentType: 'text/plain', body: 'Bad gateway' });
+    }
+    return route.continue();
+  });
+  await c.getByLabel('Titular').fill('Pide tu jornada (prueba)');
+  await expect(page.getByText('No se pudo guardar. Revisa la señal: lo escrito sigue en este teléfono.').first()).toBeVisible({ timeout: 15_000 });
+  expect(cut).toBe(1);
+  // Typing on in another field: the next save carries both.
+  await c.getByLabel('Antetítulo').fill('Salud (prueba)');
+  await expect(c.getByText('Guardado', { exact: true })).toBeVisible({ timeout: 15_000 });
+  await expect(c.getByLabel('Titular')).toHaveValue('Pide tu jornada (prueba)');
+  await page.unroute('**/redes/posts**');
+  // From the server, not from this phone's copy.
+  await page.evaluate(() => Object.keys(localStorage).filter((k) => k.includes('redes:card:')).forEach((k) => localStorage.removeItem(k)));
+  await page.reload();
+  const again = card(page, 'Así pides una jornada de salud');
+  await open(again);
+  await expect(again.getByLabel('Titular')).toHaveValue('Pide tu jornada (prueba)');
+  await expect(again.getByLabel('Antetítulo')).toHaveValue('Salud (prueba)');
+});
+
 test('Redes: mover a otro mes y volver; el mes elegido sigue de Posts a Reels; la barra dice «N/8»', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');
   await page.goto('/redes/posts');
@@ -332,13 +365,19 @@ test('el jefe elimina un borrador y desaparece; desaprueba el diseño de una apr
 
   const c = card(page, 'Así trabajan los bomberos del estado');
   await open(c);
+  // On an approved piece the note comes first: no question yet, the box opens with the cursor in it.
   await c.getByRole('button', { name: 'Diseño desaprobado' }).click();
+  const note = c.getByLabel('¿Qué no le gustó del diseño?');
+  await expect(note).toBeFocused();
   const ask = page.getByRole('dialog', { name: '¿Pedir cambios también?' });
-  await ask.getByRole('button', { name: 'No, solo marcar' }).click();
-  await expect(c.getByRole('button', { name: 'Diseño desaprobado' })).toHaveAttribute('aria-pressed', 'true');
-  await c.getByLabel('¿Qué no le gustó del diseño?').fill('La foto se ve oscura en el teléfono (prueba).');
+  await expect(ask).toHaveCount(0);
+  await expect(c.getByRole('button', { name: 'Diseño desaprobado' })).toHaveAttribute('aria-pressed', 'false');
+  await note.fill('La foto se ve oscura en el teléfono (prueba).');
   await c.getByRole('button', { name: 'Guardar nota' }).click();
+  await ask.getByRole('button', { name: 'No, solo marcar' }).click();
   await expect(page.getByText('Diseño marcado como desaprobado').first()).toBeVisible();
+  await expect(c.getByRole('button', { name: 'Diseño desaprobado' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(note).toHaveValue('La foto se ve oscura en el teléfono (prueba).');
 });
 
 test('Redes: con el diseño desaprobado por el jefe, «Ya lo publiqué» está apagado y dice por qué', async ({ page }) => {

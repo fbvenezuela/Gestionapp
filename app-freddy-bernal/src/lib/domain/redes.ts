@@ -71,6 +71,8 @@ export const notReceived = (network: string, f: Format) => `${network}: esta red
 // Why «Ya lo publiqué» and Publicar are off (D-63, D-64): the same words on the card and in the actions.
 export const NO_APPROVAL = 'Falta la aprobación del jefe';
 export const DESIGN_HELD = 'El diseño quedó desaprobado: el jefe tiene que volver a verla';
+/** A card's save made on an old rev (someone saved after it was read): refused, and the card does not send it again. */
+export const STALE_CARD = 'Otra persona cambió esta tarjeta. Recarga para ver lo último.';
 
 // ---------------------------------------------------------------------------------------------------------------
 // Months (D-67): one list for the sections and the feed.

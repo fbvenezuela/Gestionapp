@@ -182,6 +182,7 @@ export const SOCIAL_GUIDE: RoleGuide = {
         'En la tarjeta aprobada, «Ya lo publiqué».',
         'Marca cada red donde salió y pega su link; si tienes la captura, «Subir captura».',
         'Toca «Guardar»: la tarjeta se pone verde y dice «Publicado».',
+        'Si después la publicas en otra red, en la misma tarjeta: «Agregar otra red».',
         'Si el botón está apagado, debajo dice por qué: «Falta la aprobación del jefe» o que el diseño quedó desaprobado.',
       ],
       flow: 'mes-redes',

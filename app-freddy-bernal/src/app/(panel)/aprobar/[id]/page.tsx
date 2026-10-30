@@ -71,6 +71,7 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
             details={card ? <FormatView card={card} /> : null}
             band={card ? <NoticesBand notices={card.notices} /> : null}
             noticeCount={card?.notices.length ?? 0}
+            format={p.format}
           />
           {p.format === 'story' ? null : (
           <Card>

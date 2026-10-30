@@ -112,15 +112,18 @@ export function summaryPayload(count: number, latest: { title: string; body: str
 
 // Unread notices of this kind since the last push that rang (one minute of slack for the notice that caused it,
 // which is stored just before the push goes out). For Mensajes: the messages from others, in conversations of theirs
-// they did not silence, newer than what they read.
+// they did not silence, newer than what they read. Never a channel they were taken out of (removed_at: they hear
+// nothing of it, not even how busy it is) nor an archived one, as in notifyChat.
 const GROUPED_COUNT = `select t.user_id, count(x.id)::int as n from public.notify_throttle t
      left join public.notifications x on x.user_id = t.user_id and x.kind = $3 and x.read_at is null
        and x.created_at >= t.sent_at - interval '1 minute'
     where t.user_id = any($1::uuid[]) and t.kind = $2 group by t.user_id`;
 const CHAT_GROUPED_COUNT = `select t.user_id, count(x.id)::int as n from public.notify_throttle t
      left join public.chat_messages x on x.author_id <> t.user_id and x.created_at >= t.sent_at - interval '1 minute'
-       and (exists (select 1 from public.chat_members m where m.conversation_id = x.conversation_id and m.user_id = t.user_id)
+       and (exists (select 1 from public.chat_members m where m.conversation_id = x.conversation_id and m.user_id = t.user_id
+                     and m.removed_at is null)
             or exists (select 1 from public.chat_conversations k where k.id = x.conversation_id and k.kind = 'team'))
+       and not exists (select 1 from public.chat_conversations k where k.id = x.conversation_id and k.archived_at is not null)
        and not exists (select 1 from public.chat_reads r where r.conversation_id = x.conversation_id and r.user_id = t.user_id
                         and (r.muted or r.last_read_at >= x.created_at))
     where t.user_id = any($1::uuid[]) and t.kind = $2 group by t.user_id`;

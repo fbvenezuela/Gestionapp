@@ -38,6 +38,15 @@ export function SlidesEditor({ kind }: { kind: 'carousel' | 'month_end' }) {
     setLocal({ from: version, ids });
     return run(() => setSlideImages({ pieceId: card.id, slides: ids }), { success });
   };
+  // An upload finishes on its own time (another may finish first, or the order may have changed meanwhile): only its
+  // place is sent, and the server sets it in the current version, so nothing another save did is undone.
+  const saveSlot = (i: number, id: string, success: string) => {
+    setLocal((prev) => {
+      const base = prev && prev.from === version ? prev.ids : server;
+      return { from: version, ids: padImages(base, Math.max(n, i + 1)).map((x, j) => (j === i ? id : x)) };
+    });
+    return run(() => setSlideImages({ pieceId: card.id, slot: { index: i, assetId: id, count: n } }), { success });
+  };
   const saveTexts = (next: SlideText[]) => saver.setSlides(next.map((t, i) => ({ ...t, role: t.role ?? suggestedRole(i, next.length) })), true);
 
   const add = () => {
@@ -97,7 +106,7 @@ export function SlidesEditor({ kind }: { kind: 'carousel' | 'month_end' }) {
                 eventId={card.event?.id ?? null}
                 demo={ctx.demo}
                 readOnly={locked}
-                onUploaded={(a) => void saveImages(padImages(images, n).map((x, j) => (j === i ? a.id : x)), `${Noun} ${i + 1} guardada.`)}
+                onUploaded={(a) => void saveSlot(i, a.id, `${Noun} ${i + 1} guardada.`)}
               />
               {!images[i] ? <p className="text-xs font-semibold text-warn">Sin imagen</p> : null}
               <div className="flex flex-col gap-1">

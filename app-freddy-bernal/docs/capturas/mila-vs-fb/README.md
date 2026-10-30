@@ -10,7 +10,7 @@ Capturas de la plantilla limpia de la referencia (sin su contenido) y de la demo
   logotipo). No se copió nada de su contenido, de su marca ni de sus reglas de copy. Ninguna captura se quedó fuera:
   todas se pudieron limpiar.
 - **FB:** `npm run capturas` (`scripts/capturas-fb.mts`) sobre la demo, con datos inventados, entrando como Redes y como
-  el jefe, a 1366×900 y a 360×780. Abre diálogos y los cierra; no guarda ni cambia nada. Los consejos de la pantalla y
+  el jefe, a 1366×900 (con ratón) y a 360×780 (como un teléfono: con el dedo, sin ratón). Abre diálogos y los cierra; no guarda ni cambia nada. Los consejos de la pantalla y
   el aviso de la demo se dan por vistos para que no tapen la escena.
 - Archivos: `NN-escena-referencia-1366.jpg`, `NN-escena-fb-1366.jpg` y lo mismo con `-360`.
 - Mensajes no está en la referencia: en FB son canales que arma el jefe, con el jefe en todos y sin aviso (D-79).
@@ -103,7 +103,7 @@ Capturas de la plantilla limpia de la referencia (sin su contenido) y de la demo
 
 **Igual:** Láminas en orden (portada, desarrollo, resumen, CTA), cada una con su texto y su imagen 1080×1350; hook, CTA y caption.
 
-**Distinto:** Al aprobar, las imágenes y el orden de las láminas quedan congelados; los textos de planificación siguen libres. Se pueden traer del storyboard.
+**Distinto:** Al aprobar, las imágenes y el orden de las láminas quedan congelados; los textos de planificación siguen libres.
 
 **Por qué:** Lo que se publica es lo que el jefe vio.
 
@@ -155,7 +155,7 @@ Capturas de la plantilla limpia de la referencia (sin su contenido) y de la demo
 
 **Igual:** 24 espacios fijos por mes (8 posts, 12 reels y 4 carruseles), «Elegir publicación» en los vacíos, marco verde «✓ Publicado», el número y el formato en cada celda, «Vaciar este mes», «+ Nuevo mes» y la línea de ocupados con la receptividad.
 
-**Distinto:** La numeración: en FB el #1 está abajo a la derecha y el #24 arriba a la izquierda; en la referencia el #1 está abajo a la izquierda (ver las rejillas de abajo). La cabecera de perfil muestra el nombre y el cargo de la configuración del cliente, sin usuario, seguidores ni biografía. Cada celda tiene su «⋯» visible: en el teléfono se toca y sale el menú (Publicar antes, Publicar después, Cambiar de espacio, Mover a otro mes, Quitar del feed). Arrastrar es solo con ratón. Las pestañas de mes son las mismas de las secciones.
+**Distinto:** La numeración: en FB el #1 está abajo a la derecha y el #24 arriba a la izquierda; en la referencia el #1 está abajo a la izquierda (ver las rejillas de abajo). La cabecera de perfil muestra el nombre y el cargo de la configuración del cliente, sin usuario, seguidores ni biografía. En la computadora, un «⋯» visible en cada celda; en el teléfono, se toca la celda y sale el menú (Publicar antes, Publicar después, Cambiar de espacio, Mover a otro mes, Quitar del feed). Arrastrar es solo con ratón. Las pestañas de mes son las mismas de las secciones.
 
 **Por qué:** El encargo pide el #1 abajo a la derecha, el orden de Instagram (pregunta 11: se cambia en un solo lugar). No inventamos un usuario de Instagram (pregunta 12). En el teléfono no hay ratón para arrastrar; el teclado usa los mismos botones.
 

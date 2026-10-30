@@ -721,7 +721,7 @@ export function approveSections(menu: string): S[] {
         'Si tiene avisos, salen arriba de la lista («Antes de publicar») y la lista pide también «Leí los avisos de cumplimiento».',
         '«Qué hay que cambiar (o un comentario)», o los motivos rápidos («Muy largo», «Revisar ortografía», «Dice fecha u hora»…).',
         '«Copies: cómo saldrá»: el texto de cada red.',
-        '«Antes de aprobar»: «Cada cifra tiene su fuente», «No dice fecha ni hora del evento», «Se ve y se oye bien (subtítulos, sonido)» y «Los tres copies están revisados». Hasta marcarlas, «Aprobar» dice «Marca la lista para aprobar».',
+        '«Antes de aprobar»: «Cada cifra tiene su fuente», «No dice fecha ni hora del evento», «Se ve y se oye bien (subtítulos, sonido)» y «Los tres copies están revisados» (en una historia, «El texto en pantalla y el sticker están revisados»). Hasta marcarlas, «Aprobar» dice «Marca la lista para aprobar».',
         '«Aprobar», «Pedir cambios» (vuelve a Redes con tu comentario) o «Solo comentar». Si llegaste con «Revisar» desde una tarjeta, al decidir vuelves a esa tarjeta.',
         '«Cambiar nivel» si el color no es el correcto.',
       ],

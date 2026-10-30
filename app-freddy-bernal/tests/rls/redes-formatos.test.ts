@@ -407,6 +407,34 @@ describe('el feed: 24 espacios por mes, una pieza en un solo lugar', () => {
     expect(await at(M3, 9)).toBe(qq);
     await q('social', `select public.feed_clear($1)`, [M3]);
   });
+
+  // Two sessions at once: A moves piece P from #3 to #6 (allow_move) and holds; B swaps P to #4 from the place it read
+  // before A's move. B waits for #3, then finds P gone from it and says so; P ends in exactly one place.
+  it.runIf(!!process.env.TEST_DATABASE_URL)('58b dos personas mueven la misma pieza a la vez: la segunda espera y recibe «Otra persona movió esta pieza»', async () => {
+    const a = await piece('post', 'Post A movido por dos');
+    const b = await piece('post', 'Post B quieto');
+    await place('social', M3, 3, a);
+    await place('social', M3, 4, b);
+    let release!: () => void;
+    const hold = new Promise<void>((r) => (release = r));
+    let moved!: () => void;
+    const first = new Promise<void>((r) => (moved = r));
+    const sa = as('social', async (sql) => {
+      await sql.query(`select public.feed_place($1, 6::smallint, $2, true)`, [M3, a]);
+      moved();
+      await hold;
+    });
+    await first;
+    // Caught at once: if B did not wait and went through, its «expected an error» is the failure, not an unhandled one.
+    const sb = errorOf(as('social2', (sql) => sql.query(`select public.feed_swap($1, 4::smallint)`, [a]))).catch((e: Err) => e);
+    await new Promise((r) => setTimeout(r, 300));
+    release();
+    await sa;
+    expect((await sb).message).toMatch(/^Otra persona movió esta pieza hace un momento/);
+    expect([await at(M3, 3), await at(M3, 4), await at(M3, 6)]).toEqual([null, b, a]);
+    expect(await slotsOf(a)).toEqual([{ month_id: M3, num: 6 }]);
+    await q('social', `select public.feed_clear($1)`, [M3]);
+  });
 });
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -675,10 +703,14 @@ describe('marcas de diseño, receptividad y avisos', () => {
     const p = await approved('post', 'Post retenido por el diseño');
     const scheduled = (await schedule(p.id, p.cover))!.id;
     await q('boss', `update public.pieces set design_status = 'disapproved', design_note = 'La foto está oscura' where id = $1`, [p.id]);
+    // What was already scheduled goes back to draft at once (no reminder, no publisher acts on it), saying why.
+    expect(await sysOne(`select status, failure_reason from public.publications where id = $1`, [scheduled])).toEqual({
+      status: 'draft', failure_reason: 'El diseño quedó desaprobado: prográmala cuando el jefe la vuelva a aprobar.',
+    });
+    await refused(q('social', `update public.publications set status = 'scheduled' where id = $1`, [scheduled]), '42501', /^El diseño quedó desaprobado/);
     await refused(publish('social', p.id, p.cover), '42501', /^El diseño quedó desaprobado después de la aprobación/);
     await refused(q('social', `update public.publications set status = 'published', published_at = now(), url = 'https://example.org/demo/y' where id = $1`, [scheduled]), '42501', /^El diseño quedó desaprobado/);
     await q('boss', `select public.review_piece($1, 'changes_requested', 'Cambia la foto.')`, [p.id]);
-    expect(await pubStatus(scheduled)).toBe('draft');
     await send(p.id);
     await approve(p.id);
     expect(await publish('social', p.id, p.cover)).toMatchObject({ id: expect.any(String) });
@@ -754,6 +786,31 @@ describe('textos que lee Redes: sin fecha ni hora de quien conoce la agenda', ()
     await refused(q('admin', `update public.pieces set title = 'Recorrido a las 3 pm' where id = $1`, [p]), 'P0001', /^Redes lee el título/);
   });
 
+  it('59 una fecha que escribió Redes no traba la tarjeta para el jefe: solo cuenta lo que él cambia, y «Duplicar» la copia', async () => {
+    const p = await piece('reel', 'Reel con una fuente fechada');
+    await q('social', `insert into public.piece_details (piece_id, links, shots) values ($1, 'Fuente: boletín del 12 de marzo', $2::text::jsonb)`, [
+      p, JSON.stringify([{ says: 'Dato del 12 de marzo', action: '', on_screen: '' }]),
+    ]);
+    await q('boss', `update public.piece_details set post_ratio = '1:1', hashtags = '#Tachira' where piece_id = $1`, [p]);
+    await q('boss', `update public.piece_details set shots = shots || $2::text::jsonb where piece_id = $1`, [p, JSON.stringify([{ says: 'Toma nueva', action: '', on_screen: '' }])]);
+    await refused(q('boss', `update public.piece_details set shots = shots || $2::text::jsonb where piece_id = $1`, [p, JSON.stringify([{ says: 'Grabamos a las 10:30', action: '', on_screen: '' }])]), 'P0001', /^Redes lee esta tarjeta/);
+    await refused(q('admin', `update public.piece_details set cta = 'Recorrido a las 3 pm' where piece_id = $1`, [p]), 'P0001', /^Redes lee esta tarjeta/);
+    // «Duplicar» by the boss or administración: the same text, on a new piece.
+    for (const who of ['boss', 'admin'] as const) {
+      const copy = await piece('reel', `Reel copiado por ${who}`, M3, who);
+      // The columns duplicatePiece copies (src/lib/actions/redes.ts).
+      await q(who, `insert into public.piece_details (piece_id, art_overline, art_headline, art_seals, art_fine_print, visual_concept, hook, cta, hashtags,
+                                                     publication_notes, sticker, sticker_text, sticker_url, on_screen, follow_up, idea, links, post_ratio,
+                                                     reference_asset_id, shots, slides)
+                    select $2, art_overline, art_headline, art_seals, art_fine_print, visual_concept, hook, cta, hashtags, publication_notes, sticker,
+                           sticker_text, sticker_url, on_screen, follow_up, idea, links, post_ratio, reference_asset_id, shots, slides
+                      from public.piece_details where piece_id = $1`, [p, copy]);
+      await refused(q(who, `update public.piece_details set links = links || ' y del 13 de marzo' where piece_id = $1`, [copy]), 'P0001', /^Redes lee esta tarjeta/);
+    }
+    const own = await piece('reel', 'Reel nuevo del jefe', M3, 'boss');
+    await refused(q('boss', `insert into public.piece_details (piece_id, links) values ($1, 'Fuente: boletín del 12 de marzo')`, [own]), 'P0001', /^Redes lee esta tarjeta/);
+  });
+
   it('55 el jefe no pone hora en los hashtags, la idea, los enlaces ni el texto del sticker', async () => {
     const p = await piece('story', 'Historia que edita el jefe');
     await q('boss', `insert into public.piece_details (piece_id, idea) values ($1, 'Una idea')`, [p]);
@@ -782,4 +839,37 @@ describe('cupo y pilares en Ajustes', () => {
     expect(await set('redes.quotas', { reel: 10, post: 8, carousel: 4, story: 30, youtube: 2 })).toHaveLength(1);
     expect(await set('redes.pillars', [{ key: 'obras', name: 'Obras que se ven', tone: 'accent' }])).toHaveLength(1);
   });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// Two deletes of the last two months at once (a database of its own: it ends with one month). Only on a real Postgres.
+describe('borrar los dos últimos meses a la vez', () => {
+  it.runIf(!!process.env.TEST_DATABASE_URL)('18b la segunda espera y recibe «Debe quedar al menos un mes»: siempre queda uno', async () => {
+    const own = await makeTestDb();
+    const sysq = (text: string, p: unknown[] = []) => own.system((sql) => sql.query<Row>(text, p));
+    // Only two live months, with no piece at all (the system empties the demo: no person, no guard). A piece of either,
+    // even a deleted one, would make the two deletes wait for each other through its foreign key anyway.
+    await sysq(`update public.feed_slots set piece_id = null where piece_id is not null`);
+    await sysq(`update public.pieces set deleted_at = coalesce(deleted_at, now()), content_month_id = null`);
+    const live = await sysq(`select id from public.content_months where deleted_at is null order by ordinal`);
+    for (const m of live.slice(2)) await own.as('social', (sql) => sql.query(`select public.delete_content_month($1, 0)`, [m.id]));
+    const [x, y] = (await sysq(`select id from public.content_months where deleted_at is null order by ordinal`)).map((r) => r.id as string);
+    expect(y).toBeDefined();
+    let release!: () => void;
+    const hold = new Promise<void>((r) => (release = r));
+    let deleted!: () => void;
+    const first = new Promise<void>((r) => (deleted = r));
+    const sa = own.as('social', async (sql) => {
+      await sql.query(`select public.delete_content_month($1, 0)`, [x]);
+      deleted();
+      await hold;
+    });
+    await first;
+    const sb = errorOf(own.as('boss', (sql) => sql.query(`select public.delete_content_month($1, 0)`, [y]))).catch((e: Err) => e);
+    await new Promise((r) => setTimeout(r, 300));
+    release();
+    await sa;
+    expect((await sb).message).toBe('Debe quedar al menos un mes.');
+    expect((await sysq(`select id from public.content_months where deleted_at is null`)).map((r) => r.id)).toEqual([y]);
+  }, 120_000);
 });

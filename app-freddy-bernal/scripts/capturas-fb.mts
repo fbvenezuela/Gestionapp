@@ -240,9 +240,14 @@ const SCENES: Scene[] = [
 ];
 
 // Every context: 360's offer of tutorials off, the tips and the demo notice already seen on this «phone» (they are part
-// of the app, but they would cover what each scene compares).
+// of the app, but they would cover what each scene compares). The 360 one is a phone (a finger, no mouse: the screens
+// that change with the pointer, like the feed's «⋯», show what a phone shows), as the e2e finger tests do.
 async function newSession(browser: Browser, who: Who, size: Size): Promise<Page> {
-  const ctx = await browser.newContext({ baseURL: BASE, viewport: { width: size.w, height: size.h }, locale: 'es-VE', timezoneId: 'America/Caracas', deviceScaleFactor: 1 });
+  const phone = size.w < 600;
+  const ctx = await browser.newContext({
+    baseURL: BASE, viewport: { width: size.w, height: size.h }, locale: 'es-VE', timezoneId: 'America/Caracas', deviceScaleFactor: 1,
+    hasTouch: phone, isMobile: phone,
+  });
   await ctx.addInitScript(() => {
     const get = Storage.prototype.getItem;
     Storage.prototype.getItem = function (key: string) {

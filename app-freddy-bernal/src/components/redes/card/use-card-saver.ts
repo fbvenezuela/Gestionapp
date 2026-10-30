@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { saveDetails, saveShots, saveSlideTexts, saveTitle } from '@/lib/actions/redes';
 import { saveCopy } from '@/lib/actions/pieces';
 import { draftStorageKey } from '@/lib/hooks/use-draft';
+import { STALE_CARD } from '@/lib/domain/redes';
 import type { CardData, CardDetails, Shot } from '@/lib/data/redes';
 import type { SlideText } from './card-core';
 
@@ -23,6 +24,17 @@ type Pending = { patch: Patch; shots?: Shot[]; slides?: SlideText[]; title?: str
 type Draft = Pending & { rev: number };
 
 const empty = (): Pending => ({ patch: {}, copies: {} });
+
+/** What did not reach the server goes back in front of what was typed since (the newer value of a field wins). */
+function requeue(failed: Pending, now: Pending): Pending {
+  return {
+    patch: { ...failed.patch, ...now.patch },
+    shots: now.shots ?? failed.shots,
+    slides: now.slides ?? failed.slides,
+    title: now.title ?? failed.title,
+    copies: { ...failed.copies, ...now.copies },
+  };
+}
 const isEmpty = (p: Pending) =>
   !Object.keys(p.patch).length && p.shots === undefined && p.slides === undefined && p.title === undefined && !Object.keys(p.copies).length;
 
@@ -61,32 +73,38 @@ export function useCardSaver(card: CardData, userId: string) {
       let failed = false;
       let back = false;
       let refresh = false;
-      const done = (r: { ok: boolean; error?: string; message?: string; data?: unknown }) => {
+      // What has not reached the server yet: each part leaves it once saved. A cut signal (the action throws) or a
+      // refusal keeps it, and it goes back in front of what was typed since, so the next save carries it and the
+      // phone's copy keeps it. Only «another person changed this card» drops it (resending would step on that change).
+      const left: Pending = { ...p, patch: { ...p.patch }, copies: { ...p.copies } };
+      const done = (r: { ok: boolean; error?: string; message?: string; data?: unknown }, drop: () => void) => {
         if (!r.ok) {
           failed = true;
           toast.error(r.error ?? 'No se pudo guardar.');
+          if (r.error === STALE_CARD) drop();
           return false;
         }
+        drop();
         if (r.message === 'Volvió al jefe') back = true;
         return true;
       };
       try {
-        if (p.title !== undefined) done(await saveTitle({ pieceId: card.id, title: p.title }));
+        if (p.title !== undefined) done(await saveTitle({ pieceId: card.id, title: p.title }), () => delete left.title);
         if (Object.keys(p.patch).length) {
           const r = await saveDetails({ pieceId: card.id, rev: rev.current, patch: p.patch });
-          if (done(r) && r.ok) rev.current = r.data!.rev;
+          if (done(r, () => (left.patch = {})) && r.ok) rev.current = r.data!.rev;
         }
         if (p.shots) {
           const r = await saveShots({ pieceId: card.id, rev: rev.current, shots: p.shots });
-          if (done(r) && r.ok) rev.current = r.data!.rev;
+          if (done(r, () => delete left.shots) && r.ok) rev.current = r.data!.rev;
         }
         if (p.slides) {
           const r = await saveSlideTexts({ pieceId: card.id, rev: rev.current, slides: p.slides });
-          if (done(r) && r.ok) rev.current = r.data!.rev;
+          if (done(r, () => delete left.slides) && r.ok) rev.current = r.data!.rev;
         }
         for (const g of Object.keys(p.copies) as Group[]) {
           const r = await saveCopy({ pieceId: card.id, group: g, body: p.copies[g]! });
-          if (done(r)) {
+          if (done(r, () => delete left.copies[g])) {
             refresh = true; // saveCopy does not refresh Redes: the card's «what is missing» comes from the server
             if (r.ok && r.data?.reopened) back = true;
           }
@@ -97,13 +115,14 @@ export function useCardSaver(card: CardData, userId: string) {
       } finally {
         inFlight.current--;
       }
+      if (!isEmpty(left)) pending.current = requeue(left, pending.current);
       if (back) toast.info('Volvió al jefe');
       if (back || refresh) router.refresh();
       const busy = inFlight.current > 0 || !isEmpty(pending.current);
       setState(failed ? 'error' : busy ? 'saving' : 'saved');
       setSavedRev(rev.current);
       setDirty(busy);
-      if (!failed) keepDraft();
+      keepDraft();
     },
     [card.id, keepDraft, router],
   );
@@ -229,12 +248,14 @@ export function useCardSaver(card: CardData, userId: string) {
     if (details.rev > rev.current) rev.current = details.rev;
   }, [details.rev]);
 
-  // Leaving the page or the tab: what is waiting goes now.
+  // Leaving the page or the tab: what is waiting goes now. The signal coming back: what a cut kept goes too.
   useEffect(() => {
     const out = () => void flush();
     window.addEventListener('pagehide', out);
+    window.addEventListener('online', out);
     return () => {
       window.removeEventListener('pagehide', out);
+      window.removeEventListener('online', out);
       out();
     };
   }, [flush]);

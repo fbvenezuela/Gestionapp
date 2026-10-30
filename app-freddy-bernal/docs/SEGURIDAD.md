@@ -216,7 +216,8 @@ qué falta.
       una pieza aprobada la devuelve a revisión. Un aviso no se edita y se resuelve en el mismo paso.
     - **Retención por diseño desaprobado (D-64):** si el diseño queda desaprobado después de la aprobación, la base no
       deja programar ni «Ya lo publiqué», tampoco al sistema (`guard_publication_design`), hasta que el jefe vuelva a
-      aprobar. La marca que pone el jefe solo la quita o cambia el jefe.
+      aprobar; lo que ya estaba programado vuelve a borrador en ese momento (`redes_piece_rules`) y el aviso de «Toca
+      publicar» no sale. La marca que pone el jefe solo la quita o cambia el jefe.
     - **Ajustes de Redes:** `redes.quotas` y `redes.pillars` los escribe solo administración con doble factor y la base
       revisa su forma (`guard_redes_settings`). Drive «Organizar por orden del feed» está apagado
       (`REDES_DRIVE_ORGANIZE=false`) y nunca pone el título en el nombre de un archivo.

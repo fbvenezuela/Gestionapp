@@ -61,13 +61,16 @@ async function tick() {
     return stock.daysLeft;
   });
 
-  // 2) Publications whose time has come.
+  // 2) Publications whose time has come. Never one held by its design (disapproved after the boss's last approval,
+  // D-64: the same rule as guard_publication_design, which would refuse marking it published anyway).
   await step('duePublications', async () => {
     const due = await withSystem((sql) =>
       sql.query<{ id: string; network: string; format: string; copy_body: string; collaborators: string[]; mode: string; title: string }>(
         `select x.id, x.network, x.format, x.copy_body, x.collaborators, x.mode, p.title from public.publications x join public.pieces p on p.id = x.piece_id
           where x.status = 'scheduled' and x.scheduled_at <= now() and x.deleted_at is null
-            and p.status = 'approved' and p.deleted_at is null limit 50`,
+            and p.status = 'approved' and p.deleted_at is null
+            and not (p.design_status = 'disapproved' and p.design_at is not null and p.design_at > coalesce(p.approved_at, '-infinity'))
+          limit 50`,
       ),
     );
     const social = await usersWithRole('social');

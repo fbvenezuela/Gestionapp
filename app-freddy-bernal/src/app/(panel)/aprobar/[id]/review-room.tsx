@@ -14,8 +14,11 @@ import { cn } from '@/lib/cn';
 import { MediaFailure, useMediaFailure } from '@/components/media/media-preview';
 import { QUICK_REASONS, hasReason, toggleReason } from '@/lib/domain/review-reasons';
 
-// Quick check before approving, on the phone (from the diagnosis' approval flow).
+// Quick check before approving, on the phone (from the diagnosis' approval flow). A story has no copy: what goes out
+// is its on-screen text and its sticker, so that is what the boss checks instead.
 const CHECKS = ['Cada cifra tiene su fuente', 'No dice fecha ni hora del evento', 'Se ve y se oye bien (subtítulos, sonido)', 'Los tres copies están revisados'];
+export const STORY_CHECK = 'El texto en pantalla y el sticker están revisados';
+export const checksFor = (format: string | null | undefined): string[] => (format === 'story' ? [...CHECKS.slice(0, 3), STORY_CHECK] : CHECKS);
 // With open compliance notices (D-66), one more the screen asks for: the boss cannot approve without having read them.
 export const NOTICES_READ = 'Leí los avisos de cumplimiento';
 
@@ -32,10 +35,11 @@ export function LevelPicker({ pieceId, level, canLower }: { pieceId: string; lev
 
 // `back`: where a decision lands (the card «Revisar» came from, or «Por aprobar»: afterReview in format-view.tsx).
 // `details`: the format's fields, read-only, under the file; `band`: the open notices, above the checklist.
-export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, canAskVoice, note, media, back = '/aprobar', details, band, noticeCount = 0 }: {
+export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, canAskVoice, note, media, back = '/aprobar', details, band, noticeCount = 0, format = null }: {
   pieceId: string; revision: number; canApprove: boolean; canRequestChanges: boolean; canAskVoice: boolean; note: string; media: { id: string; mime: string; drive?: boolean } | null;
-  back?: string; details?: ReactNode; band?: ReactNode; noticeCount?: number;
+  back?: string; details?: ReactNode; band?: ReactNode; noticeCount?: number; format?: string | null;
 }) {
+  const checks = checksFor(format);
   const router = useRouter();
   const { run, pending } = useAction();
   const video = useRef<HTMLVideoElement>(null);
@@ -48,7 +52,7 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
   };
   const [mode, setMode] = useState<'comment' | 'voice'>('comment');
   const [atSecond, setAtSecond] = useState<number | null>(null);
-  const [checked, setChecked] = useState<boolean[]>(CHECKS.map(() => false));
+  const [checked, setChecked] = useState<boolean[]>(checks.map(() => false));
   const [noticesRead, setNoticesRead] = useState(false);
   const allChecked = checked.every(Boolean) && (noticeCount === 0 || noticesRead);
   const isVideo = media && !media.mime.startsWith('image/');
@@ -147,7 +151,7 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
             {canApprove ? (
               <fieldset className="flex flex-col gap-1 rounded-[var(--radius-control)] border border-border p-3" data-tour="checklist">
                 <legend className="px-1 text-sm font-semibold">Antes de aprobar</legend>
-                {CHECKS.map((c, n) => (
+                {checks.map((c, n) => (
                   <label key={c} className="flex min-h-10 items-center gap-3 text-[15px]">
                     <input type="checkbox" className="h-5 w-5 accent-accent" checked={checked[n]} onChange={(e) => setChecked(checked.map((v, k) => (k === n ? e.target.checked : v)))} />
                     {c}
