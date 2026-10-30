@@ -274,15 +274,18 @@ describe('cerebro de demostración: la negativa sin la hora del título (S4) y e
 
   it('soporte: no hay teléfono; se ofrece avisar a administración (primera pregunta y después de otra)', async () => {
     const SUPPORT = /^No hay teléfono de soporte en la plataforma; si algo falla, le aviso a administración\. ¿/;
+    // Administración is never offered to tell administración (D-89): what happens when someone of the team asks.
+    const SUPPORT_ADMIN = /^No hay teléfono de soporte en la plataforma: cuando algo le falla a alguien del equipo y me pide ayuda, te aviso a ti/;
     const asks = ['¿cuál es el teléfono de soporte?', '¿cuál es el número de soporte?', '¿a quién llamo?', '¿a quién llamo si tengo un problema?', 'tengo una falla con la app', 'me sale un error al subir'];
     for (const key of ['social', 'politics', 'ivt', 'admin'] as DemoUserKey[]) {
+      const expected = key === 'admin' ? SUPPORT_ADMIN : SUPPORT;
       for (const q of asks) {
         const fresh = await handleTurn(sessionOf(key), { question: q }, LOCAL);
-        expect(fresh.answer, `${key}: ${q}`).toMatch(SUPPORT);
+        expect(fresh.answer, `${key}: ${q}`).toMatch(expected);
         // As a second turn, after a question about something else: the earlier topic doesn't win.
         const before = await handleTurn(sessionOf(key), { question: '¿cómo subo un video?' }, LOCAL);
         const second = await handleTurn(sessionOf(key), { question: q, conversationId: before.conversationId }, LOCAL);
-        expect(second.answer, `${key} (segunda): ${q}`).toMatch(SUPPORT);
+        expect(second.answer, `${key} (segunda): ${q}`).toMatch(expected);
       }
     }
     // «Sí» to that offer: administración is told for real.
@@ -304,13 +307,19 @@ describe('cerebro de demostración: la negativa sin la hora del título (S4) y e
   });
 
   it('«¿cómo subo un video?» desde un rol que no sube: quién sube y dónde', async () => {
-    for (const key of ['politics', 'ivt', 'dispatch', 'boss'] as DemoUserKey[]) {
+    for (const key of ['dispatch', 'boss'] as DemoUserKey[]) {
       const r = await handleTurn(sessionOf(key), { question: '¿cómo subo un video?' }, LOCAL);
-      expect(r.answer, key).toMatch(/^Los videos y las fotos los suben Grabación o Redes, en la pestaña Material del evento\./);
+      expect(r.answer, key).toMatch(/^Los videos y las fotos los suben Grabación o Redes, en la pestaña Material del evento/);
     }
+    // Política and the IVT do upload, to their own fichas (D-89): the photos and documents, after saving it.
+    const politics = await handleTurn(sessionOf('politics'), { question: '¿cómo subo un video?' }, LOCAL);
+    expect(politics.answer).toMatch(/^Las fotos y los documentos de tu ficha comunitaria se suben después de guardarla.*Grabación o Redes/);
+    const ivt = await handleTurn(sessionOf('ivt'), { question: '¿cómo subo un video?' }, LOCAL);
+    expect(ivt.answer).toMatch(/^Las fotos y los documentos de una obra se suben después de guardar la ficha.*Grabación o Redes/);
     for (const key of ['camera', 'social'] as DemoUserKey[]) {
       const r = await handleTurn(sessionOf(key), { question: '¿cómo subo un video?' }, LOCAL);
-      expect(r.answer, key).toMatch(/Material/);
+      // Redes uploads the final video in the piece (its guide, D-89), or material in the event.
+      expect(r.answer, key).toMatch(key === 'social' ? /Material|«Archivo final»/ : /Material/);
       expect(r.answer, key).not.toMatch(/los suben Grabación o Redes/);
     }
   });
