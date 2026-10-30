@@ -297,8 +297,10 @@ describe('cerebro de demostración: la negativa sin la hora del título (S4) y e
   it('un error o un problema en el contenido no es soporte: contestan las fichas (S10, ronda 3)', async () => {
     const SUPPORT = /No hay teléfono de soporte/;
     const ask = (key: DemoUserKey, q: string) => handleTurn(sessionOf(key), { question: q }, LOCAL);
-    expect((await ask('boss', 'hay un error en el copy, ¿cómo lo corrijo?')).answer).toMatch(/^En la pieza en grande, en «Copies»/);
-    expect((await ask('social', '¿qué hago si hay un error en el copy de una pieza aprobada?')).answer).toMatch(/^Las causas por las que no deja publicar una pieza: no está aprobada/);
+    // Since the answers (D-89): how a copy is fixed (in «Copies», or «Editar (vuelve al jefe)» when it was approved).
+    // The boss may also ask Redes for it («Pedir cambios»).
+    expect((await ask('boss', 'hay un error en el copy, ¿cómo lo corrijo?')).answer).toMatch(/«Copies»|«Editar \(vuelve al jefe\)»|«Pedir cambios»/);
+    expect((await ask('social', '¿qué hago si hay un error en el copy de una pieza aprobada?')).answer).toMatch(/«Editar \(vuelve al jefe\)»|^Las causas por las que no deja publicar una pieza: no está aprobada/);
     for (const key of ['social', 'politics', 'ivt', 'boss', 'admin'] as DemoUserKey[]) {
       for (const q of ['tengo un problema con el copy de la pieza, ¿qué hago?', '¿qué pasa si hay un error en un tweet publicado?']) {
         expect((await ask(key, q)).answer, `${key}: ${q}`).not.toMatch(SUPPORT);
@@ -307,10 +309,12 @@ describe('cerebro de demostración: la negativa sin la hora del título (S4) y e
   });
 
   it('«¿cómo subo un video?» desde un rol que no sube: quién sube y dónde', async () => {
-    for (const key of ['dispatch', 'boss'] as DemoUserKey[]) {
-      const r = await handleTurn(sessionOf(key), { question: '¿cómo subo un video?' }, LOCAL);
-      expect(r.answer, key).toMatch(/^Los videos y las fotos los suben Grabación o Redes, en la pestaña Material del evento/);
-    }
+    const dispatch = await handleTurn(sessionOf('dispatch'), { question: '¿cómo subo un video?' }, LOCAL);
+    expect(dispatch.answer).toMatch(/^Los videos y las fotos de un evento los suben Grabación, Redes o el jefe, en la pestaña Material del evento/);
+    // The boss uploads like Redes (D-89: the event's Material tab lets him): his own answer, never «pásaselo a Redes».
+    const boss = await handleTurn(sessionOf('boss'), { question: '¿cómo subo un video?' }, LOCAL);
+    expect(boss.answer).toMatch(/Material/);
+    expect(boss.answer).not.toMatch(/pásaselo a Redes/);
     // Política and the IVT do upload, to their own fichas (D-89): the photos and documents, after saving it.
     const politics = await handleTurn(sessionOf('politics'), { question: '¿cómo subo un video?' }, LOCAL);
     expect(politics.answer).toMatch(/^Las fotos y los documentos de tu ficha comunitaria se suben después de guardarla.*Grabación o Redes/);

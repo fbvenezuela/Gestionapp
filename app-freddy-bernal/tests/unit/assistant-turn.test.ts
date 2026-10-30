@@ -328,7 +328,8 @@ describe('cerebro de demostración (sin IA)', () => {
     // How-tos and screens.
     expect((await ask('boss', '¿Dónde queda el copy?')).answer).toMatch(/en «Copies»/);
     expect((await ask('ivt', '¿Dónde es que se cambia la contraseña?')).answer).toMatch(/En «Entrar»/);
-    expect((await ask('admin', '¿Dónde está el material de la feria?')).answer).toMatch(/pestaña Material/);
+    // Since the answers (D-89), also the Biblioteca (the material of the events already done, by day).
+    expect((await ask('admin', '¿Dónde está el material de la feria?')).answer).toMatch(/pestaña Material|En la Biblioteca/);
     for (const [key, q] of [
       ['politics', '¿Dónde queda Ajustes?'],
       ['camera', '¿Cuándo hay que grabar con dron?'],

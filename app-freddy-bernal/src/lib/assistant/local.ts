@@ -3,13 +3,13 @@ import { TEAM_ROLES } from '../roles';
 import { GUIDE_SLUGS } from '../guides/slugs';
 import { AGENDA_FALLBACK, canon, hasWord, isSection, keyWords, makesOne, roleFichaKeys, scoreFichas, sectionsFor, stem, type BrainOutput, type ChosenScript, type TurnContext } from './brain';
 import { EVENT_NOUNS, GOAL, PLATFORM, WORK, aboutEvent, asksAboutPublishing, asksPlace, asksRoute, asksSchedule, asksWhenWhere, eventAt, eventSignals, eventThread, goesOn, namedTitleWords, namesPlatform, spoken, withoutAgendaThings, withoutWhenWhere } from './events';
-import { STRONG, WEAK, entryById, entryForScreen, findAnswers, knownLabels, scoreFicha, textFor, tokens, type Match } from './answers/engine';
+import { STRONG, WEAK, askKind, entryById, entryForScreen, findAnswers, knownLabels, readable, scoreFicha, textFor, tokens, type Match } from './answers/engine';
 import { NOTICE_MAX, NOTICE_TOO_LONG, noticeIssues } from './guard';
 import { coverOf, taskAnswer, taskFor, type GuideTask } from './guide-help';
 import { MESSAGES_ADMIN_TEXT, MESSAGES_READ_TEXT, MESSAGES_TELL_TEXT, asksHowToWrite, messagesAsk } from './messages-ask';
 import { carriesWhen, hasDateOrTime, safeTitle } from './redact';
 import { canOpen, navTarget, screenFor, screenNamed, screensIn } from './screens';
-import { NO_TITLES, loadTitles, type TitleSet } from './titles';
+import { NO_TITLES, loadTitles, peopleWords, type TitleSet } from './titles';
 import { contract, fillHuecos, plain, sentences, HUECO } from './text';
 import { runTool, type Tool, type ToolCtx, type ToolRun, type TutorialLink } from './tools';
 
@@ -86,6 +86,18 @@ export function secondPerson(text: string): string {
 const SELF = /\bmis? (?:numero|telefono|celular|correo|cuenta|clave|contrasena|perfil|acceso|usuario|codigo|pendientes|tareas)\b|\b(?:telefono|numero|correo) de (?:soporte|administracion)\b|\bsoporte\b|\bsi (?:tengo|hay|me sale) (?:un |algun )?(?:problemas?|error|falla)\b|\bque hay que hacer\b/;
 // «Lo de la cancha»: an event by another name (whoever can't see it gets no title match).
 const LO_DE = /\blo del?\b/;
+/**
+ * «Lo de la cancha» names an event; «lo de por ponerle fecha», «lo de contactos del sitio», «lo del copy», «lo de esperan
+ * al jefe en Hoy» name a label, a screen or a thing of the platform (D-89): no event lookup, no refusal for them.
+ */
+export function loDeEvent(text: string): boolean {
+  const p = plain(text);
+  const m = LO_DE.test(p) ? /\blo del? (.+)$/.exec(p) : null;
+  if (!m) return false;
+  const rest = m[1];
+  if (PLATFORM.test(rest) || screensIn(rest).length) return false;
+  return !knownLabels().some((l) => rest === l || rest.startsWith(`${l} `));
+}
 // How it is done, not how one is going: about events in general («¿qué tomas hago en un acto?», «¿cómo
 // veo los eventos pasados?») or any «¿cómo + verb?» but how it is going («¿cómo va…?», «¿cómo quedó…?»).
 // The fichas answer those; the event lookup is for one event.
@@ -113,12 +125,15 @@ const VIDEO_RULES = /\b(?:cuanto (?:puede )?dur\w*|duracion|medidas|reglas de vi
 const CONTENT = String.raw`\b(?:piezas?|videos?|material|copy|copies|storyboard|fotos?|tomas|reels?|tweets?|tuits?|tanda|portadas?|formato|archivos?|version|titulo|texto|duracion|peso|medidas)\b`;
 const TROUBLE = String.raw`(?:tengo|tenemos|hay|me sale|me salio|me da|me dio|tuve) (?:un |una |algun |alguna )?(?:problemas?|fallas?|errores|error)`;
 const APP_TROUBLE = String.raw`${TROUBLE}(?:$| (?:con|en) (?:la |el |mi )?(?:app|aplicacion|plataforma|pagina|sistema|web|asistente|cuenta|clave|contrasena|codigo|acceso|sesion|conexion|internet)\b| (?:al|cuando|para) (?:entrar|iniciar|ingresar|abrir|subir|cargar|guardar|descargar|entro|inicio|ingreso|abro|subo|cargo|guardo|descargo)\b| que\b(?![^.?!]*${CONTENT})| (?:tecnico|raro)\b| (?:a quien|que hago|me ayudas)\b)`;
-const SUPPORT = new RegExp(String.raw`\b(?:soporte|mesa de ayuda)\b|\b(?:telefono|numero|correo|contacto) de (?:soporte|ayuda|administracion)\b|^(?:y )?a quien (?:llamo|le escribo|le aviso|acudo|le pregunto)$|\ba quien (?:llamo|le escribo|le aviso|acudo|le pregunto) (?:si|cuando)\b|\b${APP_TROUBLE}`);
-// Uploading a video, a photo or the material: only Grabación, Redes and administración do it.
+const SUPPORT = new RegExp(String.raw`\b(?:soporte|mesa de ayuda)\b|\b(?:telefono|numero|correo|contacto) de (?:soporte|ayuda|administracion)\b|^(?:y )?a quien (?:llamo|le escribo|le aviso|acudo|le pregunto)$|\ba quien (?:llamo|le escribo|le aviso|acudo|le pregunto) (?:si|cuando)\b(?![^?.!]*\b(?:llegue|llego|llegar|vaya|voy|alla|ahi|al sitio|a la obra|al evento|a la visita|al acto|a la actividad)\b)|\b${APP_TROUBLE}`);
+// Uploading a video, a photo or the material: Grabación, Redes, administración and the boss (he «hace lo de Redes»: the
+// event's Material tab lets him) do it.
 const UPLOAD = /\b(?:como|donde|quien|quienes) (?:se )?(?:sube|subo|suben|subimos|cargo|carga|cargan|subir|cargar)\b|\b(?:subir|cargar) (?:un |el |la |los |las )?(?:videos?|fotos?|material)\b/;
 const UPLOAD_WHAT = /\b(?:videos?|fotos?|material|materiales|grabacion|archivos?|tomas)\b/;
-const UPLOADERS = new Set(['admin', 'social', 'camera']);
+const UPLOADERS = new Set(['admin', 'social', 'camera', 'boss']);
 // «Me sale un error que dice que el video pesa mucho»: the app checking the video against a network's rules.
+// «Me sale un error que dice que el copy es muy largo»: the network's limit of characters (D-89).
+const COPY_TOO = /\b(?:error|dice que|me sale|me salio|no me deja|no deja|no pasa)\b.*\bcopy\b.*\b(?:muy largo|no cabe|se pasa|caracteres)\b/;
 const VIDEO_TOO = /\bvideos?\b.*\b(?:pesa|pesado|muy grande|dura mucho|muy largo|muy corto|no cumple)\b|\b(?:pesa|pesado|muy grande|dura mucho|muy largo|muy corto)\b.*\bvideos?\b/;
 // «Márcame los avisos como leídos», «limpia mis avisos»: an order (level «hace»). Not «¿puedo borrar un aviso de
 // cumplimiento?» (a question about Redes' avisos), nor how it is done.
@@ -143,6 +158,10 @@ const NAME_ONLY = /^(?:(?:hola|buenas|buenos dias|buenas tardes|buenas noches|ep
 // Not «recorrido» alone: a recorrido is also an event («el recorrido del puente»).
 const TUTORIAL_WORD = /\b(?:tutorial(?:es)?|paso a paso|recorrido guiado)\b/;
 const SHOW_ME = /\b(?:ensename|ensenarme|me ensenas|me puedes ensenar|muestrame|mostrarme|me muestras|me puedes mostrar)(?: (?:a usar|como (?!(?:va|van|quedo|quedaron|esta|estan|sigue|siguen|anda|andan|le fue|salio|salieron)\b)|(?:la |esta )?pantalla|el tutorial)|$)/;
+// «Enséñame la agenda», «muéstrame Publicar»: a screen after «enséñame» (screenNamed decides whether it is one).
+const SHOW_SCREEN = /\b(?:ensename|ensenarme|me ensenas|muestrame|mostrarme|me muestras)(?: (?:la|el|los|las|mi|mis|tu|esta|este))? ([a-z]+(?: [a-z]+)?)$/;
+// The words that ask for a tutorial, left out to find what it is about.
+const TUTORIAL_TOPIC_WORDS = /\b(?:hay|tienes|existe|un|una|el|algun|alguno|tutorial(?:es)?|paso a paso|recorrido guiado|para|de|sobre|como)\b/g;
 const LOST = /^(?:no entiendo|no le entiendo|no entiendo nada|no entiendo esto|no se que hacer|no se que hago)$|\b(?:me perdi|estoy perdid[oa]|no se (?:como )?usar|no se como (?:se )?usa|no entiendo como (?:se )?usa|no entiendo (?:esta pantalla|la app|la aplicacion|la plataforma))\b|^(?:(?:hola|epa|buenas) )?(?:necesito |quiero |me das |dame )?(?:una )?ayuda(?: (?:por favor|porfa|aqui|con (?:la|esta) (?:app|aplicacion|plataforma|pantalla)))?$|\bnecesito ayuda (?:con|para usar) (?:la|esta) (?:app|aplicacion|plataforma|pantalla)\b/;
 const HOW_USED = /\bcomo (?:se )?(?:usa|usan|uso|funciona|funcionan)\b/;
 const THIS_SCREEN = /\b(?:esta pantalla|esta parte|esta seccion|aqui|esto)\b/;
@@ -153,7 +172,7 @@ const NOT_A_SCREEN = ['tutoriales', 'guia', 'guias', 'ayuda'];
 // is for, for this role, and its tutorial.
 // The cards that say who does what (all the roles, or one role's summary): not a how-to.
 const ROLE_SUMMARY = /^guia:(?:roles|rol-[a-z]+)$/;
-const WHAT_HERE = /\bque (?:hago|se hace|hay que hacer|puedo hacer) (?:aqui|en esta pantalla|en esta parte)\b|\bpara que (?:sirve|es) (?:esta pantalla|esto|esta parte|esta seccion|aqui)\b|\bcomo funciona esta pantalla\b|\bque es esta pantalla\b|\bque (?:hago|se hace) en (?:la pantalla de |la pantalla |el |la |los |las )?(?!un |una )([a-z]+(?: [a-z]+)?)\b|^(?:y )?(?:que es esto|esto que es|esto para que es|para que es esto|que es aqui|y ahora que hago|ahora que hago|que hago ahora|que hago con esto)$/;
+const WHAT_HERE = /\bque (?:hago|se hace|hay que hacer|puedo hacer) (?:aqui|en esta pantalla|en esta parte)\b|\bpara que (?:sirve|es) (?:esta pantalla|esto|esta parte|esta seccion|aqui)\b|\bcomo funciona esta pantalla\b|\bque es esta pantalla\b|\bque (?:hago|se hace) en (?:la pantalla de |la pantalla |el |la |los |las )?(?!un |una )([a-z]+(?: [a-z]+)?)\b|^(?:y )?(?:que es esto|esto que es|esto para que es|para que es esto|que es aqui|y ahora que hago|ahora que hago|que hago ahora|que hago con esto)$|^(?:y )?(?:esto|esta pantalla|esta parte|aqui)(?: (?:pa|para) que (?:es|sirve)| que es| que hago| como funciona)?$|^(?:y )?(?:que hago|que se hace|que hay|que puedo hacer) (?:aqui|aca|en esta pantalla)$/;
 
 // R. Redes by format (R4, D-77): the feed, the months and their quota, the pillars, deleting a piece and Fin de mes have
 // their own guide cards and their own screen. Narrow phrases only («el feed», «mover de mes», «cupo», «pilar», «fin de
@@ -173,9 +192,17 @@ const REDES_TOPICS: RedesTopic[] = [
   { re: /\b(?:mover|muevo|mueve|movemos|pasar|paso|cambiar|cambio)\b(?: \w+){0,3} (?:de|a otro) mes\b|\b(?:nuevo|otro) mes\b|\b(?:borr|elimin)\w* (?:un|el|este|ese) mes\b|\bmeses de contenido\b/, key: 'meses-cupo', go: () => '/redes' },
 ];
 
+// The words that only ask to go to a screen or to see it («llévame a», «¿dónde está…?», «ábreme…»): what a question says
+// beyond them and the screen's name is what it really asks.
+const GO_WORDS = new Set(tokens('llevame llevarme lleva llevas abre abreme abrir abro ir vamos muestrame mostrar ver veo encuentro encontrar busco buscar entro entrar queda pantalla seccion parte boton menu opcion donde esta estan aparece sale salen'));
+const beyondScreen = (text: string, names: string[]) => {
+  const own = new Set(tokens(names.join(' ')));
+  return tokens(text).filter((r) => !own.has(r) && !GO_WORDS.has(r) && r !== 'donde' && r !== 'mio');
+};
+
 // What is clearly out of the platform (not «política» alone nor «tarea»; ronda R3). Since the answers (D-89) also the
 // weather, the dollar, sports, the lottery: «¿va a llover hoy en la ciudad?» is not a place of the agenda.
-const OFF_TOPIC = /\b(chiste|opinas|elecciones|partido politico|deberes|poema|clima|llover|lluvia|llovera|dolar|dolares|bolivares|tasa del dia|futbol|beisbol|loteria|horoscopo|receta|sueldo|salario)\b|\bque tiempo (?:va a hacer|hace)\b|\bcuanto me pagan\b|\bopinas? de (?:la )?politica\b|\bhaz(?:me)? (?:la|mi) tarea\b|\bcuanto (?:esta|cuesta) el dolar\b/;
+const OFF_TOPIC = /\b(chiste|opinas|elecciones|partido politico|deberes|poema|clima|llover|lluvia|llovera|dolar|dolares|bolivares|tasa del dia|futbol|beisbol|loteria|horoscopo|receta|sueldo|salario)\b|\bque tiempo (?:va a hacer|hace)\b|\bcuanto (?:me pagan|pagan|gana|ganan|cobra|cobran)\b|\bopinas? de (?:la )?politica\b|\bhaz(?:me)? (?:la|mi) tarea\b|\bcuanto (?:esta|cuesta) el dolar\b/;
 
 // The names of Redes that read like a when: «Fin de mes» (a section), «Resumen del mes», «+ Nuevo mes», «Borrar este
 // mes», «Mover a otro mes».
@@ -203,7 +230,7 @@ const META = new RegExp(
     String.raw`\b(?:puedo|podemos|se puede|me deja|me dejan|deja|dejan|tengo que|hay que|debo) (?:\w+ ){0,1}(?:poner|cambiar|mover|escribir|editar|corregir|agregar|quitar|anotar|meter|mandar|dictar|reprogramar|cancelar|subir|decir|pasar|compartir|ver)\w*\b`,
     String.raw`\bpueden? (?:leer|ver|escribir|entrar|mandar|aprobar|borrar|eliminar|editar|cambiar|crear)\b`,
     // Where something is done or put in the platform (a verb of one's own, not of being somewhere), where a list is.
-    String.raw`\bdonde (?:le |lo |la |los |las )?(?!(?:grabo|llego|voy|paro|estoy|salgo|quedo|espero|estaciono|duermo|como|tengo|entro|paso)\b)[a-z]{3,}o\b`,
+    String.raw`\bdonde (?:le |lo |la |los |las )?(?!(?:grabo|llego|voy|paro|estoy|salgo|quedo|espero|estaciono|duermo|como|tengo|entro|paso)\b)[a-z]{2,}o\b`,
     String.raw`\bdonde se (?:cambia|cambian|pone|ponen|ve|ven|edita|configura|activa|sube|suben|marca|toca|escribe|anota|guarda|busca|lee|recupera|confirma|aprueba|descarga|elige|apaga)\b`,
     String.raw`\bdonde (?:estan|esta|veo|encuentro|quedan|salen|aparecen) (?:los|las|mis|tus|todos los|todas las) `,
     // What a label or a word means, what goes instead of a date.
@@ -216,20 +243,53 @@ const META = new RegExp(
     // A conditional («cuando entra», «cuando escribo»), the phone that rings, the time zone, a missing button.
     String.raw`\bcuando (?:le |me |lo |la )?(?:entra|entro|escribo|escribe|pongo|pone|subo|sube|toco|abro|abre|guardo|mando|marco|creo|crea|acepta|rechaza|aprueba)\b`,
     String.raw`\b(?:suena|suene|sonar|suenan|silencio)\b|\b(?:en|con) (?:que|cual) (?:hora|horario|zona)\b|\bno (?:veo|me sale|aparece|encuentro) (?:el|la) (?:boton|opcion|pestana)\b`,
+    // D-89, said other ways: what something says on the screen, what is not let or does not show, how one knows, the
+    // difference between two things, whether it goes to the agenda, who changed it, what a role sees of it, the time zone.
+    String.raw`\b(?:me|le|nos) (?:sale|salio|salen|salieron|aparece|aparecio|dice|dijo)\b|\bpor que (?:me |le |nos )?(?:salio|aparecio|dijo)\b`,
+    String.raw`\bno (?:me |le |nos |se )?(?:deja|dejan|dejo|permite|prende|prendio|activa|aparece|aparecen|aparecio|sale|salen|salio|carga|abre|llego|llega|llegan|llegaron)\b`,
+    String.raw`\bcomo (?:se|sabre|saber|me doy cuenta|veo) (?:si|cuando|que)\b|\b(?:que|cual) (?:es la )?diferencia\b|\bes lo mismo\b`,
+    String.raw`\b(?:va|van|iria|irian|entra|entran|pasa|pasan) (?:a|para|pa|pal) (?:la )?agenda\b|\b(?:quien|quienes) (?:le |lo |la )?(?:cambio|movio|puso|creo|cancelo|borro|edito|toco|modifico)\b`,
+    String.raw`\bque (?:ve|ven|sabe|saben|recibe|reciben|le llega|les llega) (?:redes|grabacion|politica|el ivt|el despacho|el jefe|administracion|los demas|el equipo)\b|\bven? lo mismo\b`,
+    String.raw`\b(?:le |les )?(?:puso|pusieron|ha puesto|han puesto|pone|ponen|pongo|ponga|pido|pide|pedir) (?:la )?fecha\b|\bno (?:ha|han) (?:aprobado|decidido|dicho|aceptado|contestado|respondido)\b`,
+    String.raw`\b(?:en|al|el) (?:titulo|nombre|nota|motivo|copy|mensaje|comentario|caption)\b.*\b(?:pongo|puedo poner|escribo|le pongo)\b|\b(?:le )?pongo (?:en|al) (?:el )?(?:titulo|nombre|nota|motivo|copy|mensaje|comentario)\b`,
+    String.raw`\ben hora de\b|\bhora local\b|\bzona horaria\b|\bcuando (?:la |lo )?quiero\b|\bcuando estoy\b|\b(?:anoto|pongo|registro|marco|subo|reporto) donde\b`,
+    String.raw`\b(?:puedo|podemos|se puede|me deja|me dejan) (?:\w+ ){0,1}(?:crear|aprobar|borrar|eliminar|asignar|invitar|archivar|leer|abrir|salir|salirme)\w*\b|\bse (?:me |le )?(?:borro|perdio|pierde|borra)\b|\bcual (?:se )?queda\b`,
+    // Where someone sees a thing («¿y eso dónde lo ve el jefe?»), what happens after an action of one's own («si guardo
+    // sin mandarlo, ¿dónde queda?»), a when that is a state or someone's step («cuando ya está lista», «cuando el jefe la
+    // apruebe»), being told («¿me avisas cuando…?»), not finding something.
+    String.raw`\bdonde (?:lo |la |los |las |le |les )(?:ve|ven|lee|leen|pone|ponen|encuentra|encuentran|guarda|guardan|marca|marcan|sube|suben|cambia|cambian)\b`,
+    String.raw`\bsi (?:lo |la |le |los |las )?(?:guardo|mando|borro|archivo|cancelo|rechazo|subo|pongo|cambio|quito|apago|guardas|mandas|toco|marco|apruebo|acepto|elimino|publico|desactivo)\b`,
+    String.raw`\bcuando (?:ya )?(?:este|esten|tenga|tengan|termine|terminen|haya|hayan|acabe|lo tenga|la tenga)\b|\bcuando (?:ya )?(?:esta|estan) (?:list[oa]s?|complet[oa]s?|terminad[oa]s?|hech[oa]s?)\b`,
+    String.raw`\bcuando (?:el jefe |redes |grabacion |el despacho |administracion |alguien |me |le |lo |la )?(?:apruebe|aprueben|acepte|acepten|rechace|rechacen|publique|publiquen|suba|suban|mande|manden|conteste|responda|lea|lean|vea|vean|cambie|cambien|ponga|pongan|termine)\b`,
+    String.raw`\b(?:me|nos|te|le) (?:avisas|avisa|avisaras|notificas|notifica)\b|\bno (?:encuentro|consigo|ubico|hallo)\b`,
   ].join('|'),
 );
+// Where something is seen in the app, or when a step of the platform happens («¿dónde veo cómo va el trabajo entre todos?»,
+// «¿cuándo puedo armar el diálogo FAB?», «¿cuándo sale el reel?»): a rule, but only when no event is named (D-89): «¿dónde
+// veo lo de la cancha?» or «¿cuándo puedo ir a la feria?» keep the refusal.
+const META_SOFT = /\bdonde (?:veo|leo|encuentro|reviso|consigo|busco|miro|abro|esta|estan|queda|quedan|sale|salen|aparece|aparecen|lo veo|la veo|los veo|las veo)\b|\bcuando (?:puedo|se puede|podemos|debo|tengo que|hay que|sale|salen|se publica|se publican|se aprueba|se aprueban|llega|llegan|aparece|aparecen|lo ve|la ve|lo ven|la ven|lo lee|la lee)\b/;
 // When or where an event is, asked as such («¿a qué hora es…?», «¿dónde queda…?», «¿cuándo llega…?»): a META word
 // next to it does not make it a rule.
-const VALUE_ASK = /\b(?:cuando|a que hora|que dia|que fecha|donde|en que lugar) (?:es|son|sera|seran|empieza|empiezan|arranca|arrancan|llega|llegan|sale|salen|queda|quedan|va a ser|se hace|se hara|nos vemos|hay que estar|tengo que estar|me toca|toca|grabo|grabamos|salimos|vamos|termina)\b|\bdonde (?:esta|estan) (?:el|la|lo|ese|esa|este|esta)\b|\b(?:la direccion|el telefono|los telefonos|el numero|el contacto|los contactos) (?:de|del) (?:la|el|los|las|lo) /;
+const VALUE_ASK = /\b(?:cuando|a que hora|que dia|que fecha) (?:viene|vienen|va|van|vendra|vendran|ira|iran|pasa|pasan|estara|estaran|visita|visitara)\b|\b(?:cuando|a que hora|que dia|que fecha|donde|en que lugar) (?:es|son|sera|seran|empieza|empiezan|arranca|arrancan|llega|llegan|sale|salen|queda|quedan|va a ser|se hace|se hara|nos vemos|hay que estar|tengo que estar|me toca|toca|grabo|grabamos|salimos|vamos|termina)\b|\bdonde (?:esta|estan) (?:el|la|lo|ese|esa|este|esta)\b|\b(?:la direccion|el telefono|los telefonos|el numero|el contacto|los contactos) (?:de|del) (?:la|el|los|las|lo) (?!eventos\b|actividades\b|visitas\b|contactos\b)/;
+// Which event comes first, or whether one is on a day («tengo dos eventos seguidos, ¿cuál es primero?», «me preguntó si el
+// acto es mañana o pasado»): its schedule, asked another way.
+const ORDER_ASK = /\b(?:cual|que) (?:evento |actividad |acto )?(?:es|va|viene|toca) (?:primero|antes|despues|de primero|de ultimo)\b|\ben que orden\b/;
+// Whom to call or ask for at a site («¿a quién llamo cuando llegue a la obra?», «¿con quién hablo allá?»): its contacts.
+const CONTACT_ASK = /\ba quien (?:llamo|le hablo|busco|contacto|le pregunto|le escribo|le aviso|pregunto)\b.*\b(?:llegue|llego|llegar|alla|ahi|en el sitio|al sitio)\b|\bcon quien (?:hablo|me comunico|me entiendo) (?:alla|ahi|en el sitio|cuando llegue|al llegar)\b|\b(?:quien|quienes) (?:me|nos) (?:recibe|reciben|espera|esperan) (?:alla|ahi|en|cuando)\b/;
+const WHEN_INSIDE = /\bsi (?:el|la|lo|los|las) .{0,60}\b(?:es|son|sera|va a ser|queda|cae) (?:manana|hoy|pasado|esta semana|la otra semana|el (?:lunes|martes|miercoles|jueves|viernes|sabado|domingo))\b/;
 // An event in particular: an event word with an article that points to one («la feria», «el acto de entrega»), not the
 // agenda (a screen) nor Grabación's «entrega».
 const DEFINITE_EVENT = new RegExp(String.raw`\b(?:el|la|los|las|este|esta|estos|estas|ese|esa|esos|esas|del|al|aquel|aquella)\s+(?!agenda\b|entrega de grabacion\b)(?:${EVENT_NOUNS})\b`);
-// The screens' labels that read like a when («Por ponerle fecha», «Hoy en la agenda», «Horas de silencio», «Ya tiene
-// fecha», «Fecha estimada de entrega», «Vaciar este mes»): every «…» the help content quotes with a time word, never
-// one that names the agenda's data (a place, a contact, the way there). Matched without accents or case. Written
-// without «», they go only when the question asks what one is or where («¿qué sale en hoy en la agenda?»): «¿qué hay
-// hoy en la agenda?», «¿qué hay a fin de mes?» or «los próximos 7 días» are still the agenda. A few never are: SAFE.
-const TIME_IN_LABEL = /\b(?:fecha|fechas|hora|horas|hoy|mes|meses|dia|dias|semana|manana|noche|agenda|calendario|realizado|tiempo|proximos)\b/;
+// An event word that names one by itself («la feria», «el acto»), not the generic ones of a rule («el evento que creé»,
+// «una visita», «la agenda»): those need a title, a place, a date or «lo de…» to be one event.
+const NAMED_EVENT = new RegExp(String.raw`\b(?:el|la|los|las|este|esta|estos|estas|ese|esa|esos|esas|del|al|aquel|aquella)\s+(?!(?:agenda|entrega de grabacion|eventos?|actividad|actividades|visitas?(?: de obra)?)\b)(?:${EVENT_NOUNS})\b`);
+// The boss going somewhere or coming («¿el jefe ya fue a la ermita?», «¿viene el jefe?»): his agenda.
+const BOSS_GOES = /\b(?:fue|va|van|viene|vienen|vino|llega|llego|llegara|ira|iria|vendra|estuvo|estara|visita|visito|visitara|pasa por|paso por)\b(?! a [a-z]+(?:ar|er|ir)\b)/;
+// The screens' labels («Por ponerle fecha», «Hoy en la agenda», «Esperan al jefe», «Guardar aunque choque»): every «…» the
+// help content quotes. Written without «», they go only when the question asks what one is, where it is or how it is
+// filled («¿qué sale en hoy en la agenda?», «¿qué es lo de esperan al jefe?»): «¿qué hay hoy en la agenda?», «¿qué hay a fin
+// de mes?» or «los próximos 7 días» are still the agenda. The labels that name the agenda's data (a place, a contact, the
+// way there) only when they end the question. Matched without accents or case. A few never are the agenda: SAFE.
 const DATA_IN_LABEL = /\b(?:direccion|lugar|contactos?|llega|llegar|sitio|mapa|donde)\b/;
 const LOOSE: Record<string, string> = { a: '[aá]', e: '[eé]', i: '[ií]', o: '[oó]', u: '[uúü]', n: '[nñ]' };
 const SAFE_LABELS = ['horas de silencio', 'por ponerle fecha', 'ponerle fecha', 'ya tiene fecha', 'fecha estimada de entrega', 'vaciar este mes', 'borrar este mes', 'mover a otro mes', 'guardar la fecha', 'guardar la nueva fecha', 'cambiar fecha o lugar'];
@@ -240,17 +300,35 @@ const looseRe = (labels: string[]) =>
     .map((l) => l.split(' ').map((w) => [...w].map((c) => LOOSE[c] ?? c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('')).join('[^\\p{L}\\p{N}]+'))
     .join('|');
 let TIME_LABELS: RegExp | null = null;
+let DATA_LABELS: RegExp | null = null;
 let SAFE_RE: RegExp | null = null;
+const loose = (t: string) => t.split('').map((c) => LOOSE[c] ?? c).join('');
+// Between «¿qué es…?» and the label: «eso de», «lo de», «el botón», «la lista»… («q es eso d hoy en la agenda»).
+const LABEL_LEAD = String.raw`(?:(?:eso|esto|lo)\s+(?:de|del|que dice)\s+|(?:el|la|los|las|un|una)\s+)?(?:(?:boton|lista|pestana|seccion|chip|tarjeta|casilla|opcion|campo|letrero|cartel)\s+(?:de\s+|del\s+)?)?`;
+// The scale of importance or receptividad («del 1 al 10», «de uno a diez»): never a date.
+const SCALE = /\b(?:del?\s+)?(?:1|uno)\s+(?:al?|-)\s+(?:10|diez)\b/gi;
 /** The text without the screens' labels that carry a time word (see above): what is left asks the question. */
 export function withoutLabels(text: string): string {
+  // Since the answers (D-89), asked what a label is («¿qué es «Esperan al jefe»?», «¿para qué es Por ponerle fecha?»), any
+  // label of the screens after «¿qué es…?»; a label of the agenda's data («Contactos del sitio», «A dónde se va») only when
+  // it ends the question (what it is, never the data of an event).
   TIME_LABELS ??= new RegExp(
-    `(?<![\\p{L}\\p{N}])(${WHAT_IS.split('').map((c) => LOOSE[c] ?? c).join('')})\\s+(?:(?:el|la|los|las|un|una)\\s+)?(?:${looseRe(knownLabels().filter((l) => TIME_IN_LABEL.test(l) && !DATA_IN_LABEL.test(l)))})(?![\\p{L}\\p{N}])`,
+    `(?<![\\p{L}\\p{N}])(${loose(WHAT_IS)})\\s+${loose(LABEL_LEAD)}(?:${looseRe(knownLabels().filter((l) => !DATA_IN_LABEL.test(l)))})(?![\\p{L}\\p{N}])`,
+    'giu',
+  );
+  DATA_LABELS ??= new RegExp(
+    `(?<![\\p{L}\\p{N}])(${loose(WHAT_IS)})\\s+${loose(LABEL_LEAD)}(?:${looseRe(knownLabels().filter((l) => DATA_IN_LABEL.test(l)))})(?=\\s*(?:en\\s+(?:hoy|inicio|la\\s+agenda|el\\s+calendario|el\\s+evento|un\\s+evento|mi\\s+evento|la\\s+tarjeta|la\\s+ficha|la\\s+pantalla|mis\\s+eventos))?\\s*[?¿!.]*\\s*$)`,
     'giu',
   );
   SAFE_RE ??= new RegExp(`(?<![\\p{L}\\p{N}])(?:${looseRe([...SAFE_LABELS])})(?![\\p{L}\\p{N}])`, 'giu');
   return String(text ?? '')
+    .replace(/(?<![\p{L}\p{N}])q(?![\p{L}\p{N}])/giu, 'que')
+    .replace(/(?<![\p{L}\p{N}])d(?![\p{L}\p{N}])/giu, 'de')
+    .replace(/(?<![\p{L}\p{N}])pa(?![\p{L}\p{N}])/giu, 'para')
     .replace(/«[^«»]{1,80}»|"[^"]{1,80}"|“[^”]{1,80}”/g, ' ')
+    .replace(SCALE, ' ')
     .replace(TIME_LABELS, '$1 ')
+    .replace(DATA_LABELS, '$1 ')
     .replace(SAFE_RE, ' ')
     .replace(/\bmes \d+(?:\s*·?\s*#?\d+)?\b/gi, ' ')
     .replace(/\s+/g, ' ')
@@ -259,7 +337,7 @@ export function withoutLabels(text: string): string {
 
 // «¿Puedes publicar / aprobar … por mí?»: 360 does not act for anyone.
 const ACT_FOR_ME = {
-  re: /\b(?:puedes|podrias|me puedes|me podrias|tu puedes) (?:\w+ )?(?:publicar|subir|aprobar|mandar|enviar|borrar|eliminar|cambiar|crear|programar|cancelar|mover|escribir|editar|marcar|asignar)\b(?!.*\bavisos?\b)/,
+  re: /\b(?:puedes|podrias|me puedes|me podrias|tu puedes) (?:\w+ )?(?:publicar|subir|aprobar|mandar|enviar|borrar|eliminar|cambiar|crear|programar|cancelar|mover|escribir|editar|marcar|asignar|llenar|redactar|hacer)\b(?!.*\bavisos?\b)|^(?:(?:por favor|porfa|oye|360) )?(?:escribeme|redactame|armame|preparame|creame|generame|llename|hazme) (?:un|una|el|la|los|las|mi)\b(?! tarea\b)(?!.*\b(?:hora|fecha|direccion|lugar|donde|contactos?|telefonos?)\b)/,
   say: () => ['No: yo no publico, ni subo, ni apruebo, ni cambio nada por ti, y tampoco mando mensajes. Te digo dónde se hace y cómo, y te llevo a la pantalla.'],
 };
 // 360 itself and small talk (design §B): what it can do, who reads what you ask it, whether it keeps it, that it does
@@ -447,11 +525,15 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       .filter((m) => !m.entry.may || mayI)
       .map((m): Match => (mayI && m.entry.may ? { ...m, score: m.score + 0.08, confidence: m.score + 0.08 >= STRONG ? 'strong' : m.score + 0.08 >= WEAK ? 'weak' : 'none' } : m))
       .sort((a, b) => b.score - a.score);
-  const ownFound = fits(findAnswers(i.question, { roles: i.ctx.roles, screen: i.ctx.screen }));
+  // The names in the question (the titles of events, pieces and places this person can see, the team's names) are not
+  // what it asks: the answers are matched without them, the way events.ts reads them (D-89).
+  const seenNow = await titles();
+  const names = [...namedTitleWords(typed, seenNow.events), ...namedTitleWords(typed, seenNow.pieces), ...namedTitleWords(typed, seenNow.places), ...peopleWords(seenNow.people ?? [])];
+  const ownFound = fits(findAnswers(i.question, { roles: i.ctx.roles, screen: i.ctx.screen, names }));
   // After a turn about an event, what goes on with it stays with the steps below (the refusal, how the event goes).
   const followsEvent = !!before && !!eventThread(earlier).at(-1) && goesOn(i.question);
   const goesOnWith = !!before && (ELLIPTIC.test(q) || keyWords(q).length <= 2) && (tokens(q).length > 0 || NEXT_ASK.test(q)) && !eventThread(earlier).at(-1) && ownFound[0]?.confidence !== 'strong';
-  const found = goesOnWith ? fits(findAnswers(i.question, { roles: i.ctx.roles, screen: i.ctx.screen, extra: before })) : ownFound;
+  const found = goesOnWith ? fits(findAnswers(i.question, { roles: i.ctx.roles, screen: i.ctx.screen, extra: before, names })) : ownFound;
   const best: Match | null = found[0] ?? null;
   const strong = best?.confidence === 'strong';
   // An answer said: up to about 460 letters, by whole sentences; its screen's button for whoever can open it, or the
@@ -465,18 +547,27 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     }
     return out || `${t.slice(0, 457).replace(/\s+\S*$/, '')}…`;
   };
-  const sayEntry = async (m: Match) => {
-    const e = NEXT_ASK.test(q) && m.entry.next ? (entryById(m.entry.next) ?? m.entry) : m.entry;
+  const sayEntry = async (m: Match, follow = true) => {
+    const e = follow && NEXT_ASK.test(q) && m.entry.next ? (entryById(m.entry.next) ?? m.entry) : m.entry;
     // An answer to a yes-or-no question («¿Se publica solo?» → «No, por ahora…») said to a «¿qué…?», «¿cómo…?»: without
     // its «No,» or «Sí,».
     const said = fill(textFor(e.a, i.ctx.roles));
     const text = clip(WH_ASK.test(q) ? said.replace(/^(?:No|Sí)[,:] (\p{L})/u, (_, c: string) => c.toUpperCase()) : said);
     // A step or a line without a screen of its own: the first screen it names that this person can open.
     const named = e.go ? [] : screensIn(text).filter((x) => !x.href.includes('[') && canOpen(x.href, i.ctx.roles)).map((x) => ({ x, at: Math.min(...x.phrases.map((p) => ` ${plain(text)} `.indexOf(` ${plain(p)} `)).filter((n) => n >= 0)) }));
-    const go = e.go && canOpen(e.go, i.ctx.roles) ? e.go : named.sort((a, b) => a.at - b.at)[0]?.x.href;
+    // «Ajustes → «Cupo y pilares»» names two screens: the more specific one («/ajustes/contenido», not «/ajustes»).
+    const specific = named.filter((n) => !named.some((m) => m !== n && m.x.href.startsWith(`${n.x.href}/`)));
+    const go = e.go && canOpen(e.go, i.ctx.roles) ? e.go : specific.sort((a, b) => a.at - b.at)[0]?.x.href;
     const tour = e.tutorial && (e.kind === 'task' || e.kind === 'screen' || e.kind === 'curated') && offered('ver_tutorial') ? ((await call('ver_tutorial', { tutorial: e.tutorial })).tutorial ?? null) : null;
     return { ...(tour?.href ? done(text, undefined, tour) : done(text, go)), fixed: true };
   };
+
+  // «¿Y después?»: the step that comes after what answered the question before (a task, a step of one or of a flow).
+  if (NEXT_ASK.test(q) && goesOnWith) {
+    const prev = findAnswers(before, { roles: i.ctx.roles, screen: i.ctx.screen, names }).find((m) => m.entry.next && m.score >= WEAK);
+    const next = prev?.entry.next ? entryById(prev.entry.next) : undefined;
+    if (prev && next) return sayEntry({ ...prev, entry: next, text: textFor(next.a, i.ctx.roles) }, false);
+  }
 
   // M2. How to write to someone of the team: the guide card of Mensajes and the button to Mensajes (R5: channels).
   if (asksHowToWrite(i.question)) {
@@ -508,7 +599,14 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // agenda's refusal: «el tutorial de la agenda» is not a question about a date. Never with a when in it, never
   // support («necesito ayuda, me sale un error»).
   const screenAsked = screenNamed(q, i.ctx.roles, NOT_A_SCREEN);
-  const strongAsk = TUTORIAL_WORD.test(q) || SHOW_ME.test(q) || LOST.test(q);
+  // «Enséñame la agenda», «muéstrame Publicar»: a screen named after «enséñame» is its tutorial (D-89).
+  const showScreen = SHOW_SCREEN.exec(q);
+  const strongAsk = TUTORIAL_WORD.test(q) || SHOW_ME.test(q) || LOST.test(q) || (!!showScreen && !!screenAsked && !PENDING.test(q));
+  // «¿Hay tutorial para crear eventos?»: the tutorial of what is named (a task, a curated answer, a screen), from the
+  // answers, before the tutorial of the screen the person is on or the list.
+  const topicTour = TUTORIAL_WORD.test(q) && !screenAsked
+    ? findAnswers(q.replace(TUTORIAL_TOPIC_WORDS, ' '), { roles: i.ctx.roles, screen: i.ctx.screen, limit: 5 }).find((m) => m.entry.tutorial && m.score >= WEAK && !m.entry.may)?.entry.tutorial
+    : undefined;
   // «¿Cómo se usa Publicar?» names the screen by its label or a phrase of it; «¿cómo funciona el semáforo?» (a word
   // that leads to Por aprobar) asks about the thing (the fichas).
   const byName = !!screenAsked && [screenAsked.label, ...screenAsked.phrases].some((p) => ` ${q} `.includes(` ${plain(p)} `));
@@ -519,7 +617,8 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     if (screenAsked && !canOpen(screenAsked.href, i.ctx.roles)) return done(`${screenAsked.label} no es de tu rol, así que no tiene tutorial para ti. En el menú de tu cuenta, «Ayuda y guías» tiene la guía de tu trabajo.`);
     const welcome = WELCOME.test(q);
     const screen = welcome ? null : screenAsked?.href ?? i.ctx.screen ?? null;
-    const r = await call('ver_tutorial', welcome ? { tutorial: 'bienvenida' } : screen ? { pantalla: screen } : {});
+    const byTopic = topicTour && !welcome ? await runTool('ver_tutorial', { tutorial: topicTour }, i.tools, i.toolCtx) : null;
+    const r = byTopic?.ok && byTopic.tutorial ? (calls.push(byTopic), byTopic) : await call('ver_tutorial', welcome ? { tutorial: 'bienvenida' } : screen ? { pantalla: screen } : {});
     if (!r.ok) return done(`No pude revisarlo: ${r.error}`);
     const res = r.result as Listed;
     if (r.tutorial) {
@@ -545,6 +644,10 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const redesTopic =
     !carriesWhen(q.replace(REDES_NAMES, ' ')) && eventAt(i.question) < 0 && !navTarget(q, i.ctx.roles) ? REDES_TOPICS.find((t) => t.re.test(q)) : undefined;
   const redesCard = redesTopic ? (knowledge ?? []).find((f) => f.key === `guia:${redesTopic.key}`) : undefined;
+  // A strong curated answer that says it better than the section's card (measured the same way) answers instead (D-89).
+  // Not for «¿qué es…?» of a section with its own sentence («Fin de mes es una sección…»): the card says what it is.
+  const redesBeaten = !!redesCard && strong && best!.entry.kind === 'curated' && best!.score > scoreFicha(i.question, redesCard) + 0.02 && !(redesTopic?.from && askKind(readable(q)) === 'what');
+  if (redesTopic && redesCard && redesBeaten) return sayEntry(best!);
   if (redesTopic && redesCard) {
     const ss = sentences(fill(redesCard.body));
     const ws = [...new Map(keyWords(q).map((w) => [stem(w), w])).values()];
@@ -552,7 +655,9 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     let at = redesTopic.from ? ss.findIndex((t) => redesTopic.from!.test(t)) : -1;
     if (at < 0) ss.forEach((t, k) => (at < 0 || hitsOf(t) > hitsOf(ss[at]) ? (at = k) : null));
     const go = redesTopic.go(i.ctx.roles.includes('admin'));
-    return done(ss.slice(at, at + 2).join(' '), canOpen(go, i.ctx.roles) ? go : undefined);
+    // The platform's card of a Redes section is static help text («El Resumen del mes es…»): the net checks it like the
+    // answers. One the team edited goes through the whole net.
+    return { ...done(ss.slice(at, at + 2).join(' '), canOpen(go, i.ctx.roles) ? go : undefined), fixed: redesCard.origin !== 'equipo' };
   }
 
   // 2a. Best hours to publish (before the agenda: naming the event doesn't make it a schedule question).
@@ -567,8 +672,9 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     return done(`${n.red}: ${n.consejo}${m ? ` Lo que mejor nos ha ido: ${String(m.mejor_franja).toLowerCase()}${m.pocos_datos ? ' (todavía con pocos datos)' : ''}.` : ''} Es un consejo: nunca bloquea la publicación.`);
   }
 
-  // 2b. Where the Agenda screen is (navigation, not an event's place).
-  if (agendaScreen) {
+  // 2b. Where the Agenda screen is (navigation, not an event's place). A question about how it works («¿cómo veo la
+  // agenda por semana?», «¿cómo veo la agenda de otro?») is the answers' when one says it for sure.
+  if (agendaScreen && !(strong && beyondScreen(q, ['agenda']).length)) {
     return done(
       canOpen('/agenda', i.ctx.roles)
         ? 'La Agenda está en el menú: ahí ves lo que tu rol tiene permiso de ver.'
@@ -589,8 +695,31 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // answering those never leaks; a real trap (below) still gets the refusal.
   const bare = withoutLabels(typed);
   const bareQ = withoutLabels(i.question);
-  const meta = META.test(spoken(bare)) && !VALUE_ASK.test(spoken(bare));
-  const self = SELF.test(q) && !LO_DE.test(q);
+  // One event in particular, asked about (a trap needs it): a title or a place this person can see, a placeholder, the
+  // agenda's data, «lo de…», an event word that points to one («la feria»), the boss as the subject.
+  const pointsToOne = async () => {
+    const p = spoken(bare);
+    const g = eventSignals(bare, await titles());
+    return g.has('title') || g.has('place') || g.has('token') || g.has('agenda') || loDeEvent(p) || DEFINITE_EVENT.test(p) || (g.has('subject') && !namesPlatform(p));
+  };
+  const one = await pointsToOne();
+  // The same without the boss as a subject («si guardo sin mandarlo al jefe, ¿dónde queda?» names no event).
+  const oneThing = one && (await (async () => {
+    const p = spoken(bare);
+    const g = eventSignals(bare, await titles());
+    return g.has('title') || g.has('place') || g.has('token') || g.has('agenda') || loDeEvent(p) || DEFINITE_EVENT.test(p) || BOSS_GOES.test(p);
+  })());
+  // A rule, not a value (META, also read with the shorthand: «xq no le puede poner fecha»); a where in the app or a when of
+  // a step (META_SOFT) only when no event is named.
+  // A value asked of one event (VALUE_ASK: «¿a qué hora es…?», «si el acto es mañana») beats a rule's words; with no event
+  // named, the rule's words win («si guardo sin mandarlo al jefe, ¿dónde queda?»).
+  const metaText = [spoken(bare), readable(bare)];
+  const valueWords = VALUE_ASK.test(spoken(bare)) || WHEN_INSIDE.test(spoken(bare)) || CONTACT_ASK.test(spoken(bare));
+  // (a sesión, a campaña, a registro said without what makes them the screen is the agenda's too: «¿dónde queda mi sesión de
+  // fotos?»).
+  const agendaish = withoutAgendaThings(q).replace(/\s+/g, ' ').trim() !== q.replace(/\s+/g, ' ').trim();
+  const meta = (metaText.some((t) => META.test(t)) && (!oneThing || !valueWords)) || (!one && eventAt(bareQ) < 0 && !agendaish && metaText.some((t) => META_SOFT.test(t)));
+  const self = SELF.test(q) && !loDeEvent(q);
   const whenWhere = asksWhenWhere(bareQ) && !publishing && !(self && eventAt(bareQ) < 0) && !meta;
   // The way there («¿cómo hago para llegar a…?») is asked like a where, but only an event makes it the agenda.
   const route = asksRoute(bareQ) && !publishing && !meta;
@@ -612,15 +741,20 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // A trap (D-89): it asks when, where, the way or the contacts of an event in particular (a title or a place this
   // person can see, «lo de…», an event word that points to one, «la feria», a date or a place said, the boss coming),
   // and it is no rule about the date. Always the refusal.
-  const valueAsk = (asksSchedule(bareQ) || asksPlace(bareQ) || asksRoute(bareQ)) && !publishing;
-  const pointsToOne = async () => {
-    const p = spoken(bare);
-    const g = eventSignals(bare, await titles());
-    return g.has('title') || g.has('place') || g.has('token') || g.has('agenda') || (LO_DE.test(p) && !PLATFORM.test(p)) || DEFINITE_EVENT.test(p) || (g.has('subject') && !namesPlatform(p));
+  // «Si el acto es mañana o pasado», «¿cuál es primero?» are a when asked another way (D-89).
+  const valueAsk = (asksSchedule(bareQ) || asksPlace(bareQ) || asksRoute(bareQ) || WHEN_INSIDE.test(spoken(bare)) || CONTACT_ASK.test(spoken(bare)) || (ORDER_ASK.test(spoken(bare)) && eventAt(bareQ) >= 0)) && !publishing;
+  // One event in particular (D-89): a title or a place this person can see, a placeholder, a place said, «lo de…», or an
+  // event word that names one («la feria»); a date said only with an event word. «El evento que creé», «un evento» of a
+  // rule, «esta semana» alone are not.
+  const namesOne = async (text: string) => {
+    const g = eventSignals(text, await titles());
+    const p = spoken(text);
+    return g.has('title') || g.has('place') || g.has('token') || g.has('agenda') || (g.has('when') && !namesPlatform(p) && !/\b(?:360|asistente)\b/.test(p)) || loDeEvent(p) || NAMED_EVENT.test(p) || (g.has('subject') && BOSS_GOES.test(p));
   };
   const workFirst = (WORK.exec(q)?.index ?? -1) >= 0 && (eventAt(bareQ) < 0 || (WORK.exec(q)?.index ?? 0) < eventAt(bareQ)) && !asksPlace(bareQ);
-  const trap = valueAsk && !meta && !noticeToGroup && !workFirst && (await pointsToOne());
-  const asking = ((whenWhere || route || stepWhen) && !noticeToGroup && !ownWork && !howChange) || trap;
+  // Whom to ask for at a site is always its contacts: the refusal, event named or not.
+  const trap = (valueAsk && !meta && !noticeToGroup && !workFirst && one) || CONTACT_ASK.test(spoken(bare));
+  const asking = ((whenWhere || route || stepWhen || (ORDER_ASK.test(spoken(bare)) && eventAt(bareQ) >= 0)) && !noticeToGroup && !ownWork && !howChange) || trap;
   const rest = withoutWhenWhere(bare);
   const lookup = asking && rest && offered('buscar_evento') ? await runTool('buscar_evento', { texto: rest }, i.tools, i.toolCtx) : null;
   const evs = lookup?.ok ? (((lookup.result as R | undefined)?.eventos as R[] | undefined) ?? []) : [];
@@ -630,10 +764,10 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // A title or an event's place this person can see counts too, by the shared detector («¿cómo llego a
   // Alto Verde?», where the lookup reads titles only).
   const visible = asking && !evs.length && eventFrom < 0 ? await namesVisible() : false;
-  const named = eventFrom >= 0 || evs.length > 0 || visible || (LO_DE.test(q) && !PLATFORM.test(q));
+  const named = eventFrom >= 0 || evs.length > 0 || visible || loDeEvent(q);
   // A step of one's own needs one event itself (a lookup that finds it, an event word, «lo de…»), not
   // events in general («¿dónde veo mis eventos?»).
-  const stepNamed = !stepWhen || evs.length > 0 || visible || (eventFrom >= 0 && !GENERIC_EVENT.test(q)) || (LO_DE.test(q) && !PLATFORM.test(q));
+  const stepNamed = !stepWhen || evs.length > 0 || visible || (eventFrom >= 0 && !GENERIC_EVENT.test(q)) || loDeEvent(q);
   const workFrom = WORK.exec(q)?.index ?? -1;
   const aboutWork = workFrom >= 0 && (eventFrom < 0 || workFrom < eventFrom);
   // The refusal first, then what can be said, and the open question (if any) at the end.
@@ -652,20 +786,30 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
 
   // The intents of the data tools, read once (their steps below): a strong answer does not take their place.
   const quotedTitle = /[«"“]([^»"”]+)[»"”]/.exec(typed)?.[1];
-  const loDe = LO_DE.test(q) && !WORK.test(q);
+  const loDe = loDeEvent(q) && !WORK.test(q);
   const status = PIECE_STATUS.test(q) && !/\btweets?\b/.test(q);
   // Only a status asked, a quoted title or «la pieza de/del X»: «¿qué reviso antes de aprobar una pieza en
   // rojo?» or «¿una pieza puede tener varias versiones?» are how-tos (the fichas); a tweet is never a piece.
   const aboutPiece = !howTo && !/\b(?:tweets?|tuits?)\b/.test(q) && !/\bque pasa si\b/.test(q) && ((/\bpiezas?\b/.test(q) && (status || !!quotedTitle || PIECE_NAMED.test(q))) || (status && eventFrom < 0 && !loDe));
   const tweetsLeft = /\b(tweets?|tuits?)\b/.test(q) && TWEETS_LEFT.test(q) && !howTo && !mayI && !/\b(aprobar|apruebo|aprueba|como subo|subir|cargar)\b/.test(q);
-  const videoRules = (VIDEO_RULES.test(q) && !/\b(?:donde|como) (?:lo |la |los |las )?(?:actualizo|cambio|edito|modifico|configuro|pongo)\b/.test(q)) || VIDEO_TOO.test(q);
-  // «¿Qué tengo que subir hoy?» reads like a how-to, but it asks for the list.
-  const pending = (!howTo && PENDING.test(q)) || COUNTS.test(q);
-  const decide = !howTo && TO_DECIDE.test(q) && SOME_EVENTS.test(q);
+  const videoRules = (VIDEO_RULES.test(q) && !/\b(?:donde|como) (?:lo |la |los |las )?(?:actualizo|cambio|edito|modifico|configuro|pongo)\b/.test(q)) || VIDEO_TOO.test(q) || COPY_TOO.test(q);
+  // «¿Qué tengo que subir hoy?» reads like a how-to, but it asks for the list. A question that names «pendiente» or
+  // «decidir» while asking what something is, how it works, why, where or who («¿qué significa pendiente?», «¿dónde veo lo
+  // que espera mi decisión?») is the answers'.
+  const explains = ['what', 'how', 'why', 'where', 'who', 'if', 'list'].includes(askKind(readable(q)) ?? '');
+  const agendaAsked = /\b(?:en|de) (?:la|mi) agenda\b/.test(q) && carriesWhen(i.question);
+  const pending = ((!howTo && !explains && PENDING.test(q)) || COUNTS.test(q)) && !agendaAsked;
+  const decide = !howTo && !explains && TO_DECIDE.test(q) && SOME_EVENTS.test(q);
   const nav = navTarget(q, i.ctx.roles);
   // A screen asked for gives way to an answer that says where it really is («¿dónde cambio cuántos tweets salen por
   // día?» is Horarios, not Tweets).
-  const navFirst = !!nav && !(strong && best!.entry.go && !best!.entry.go.startsWith('/ayuda') && best!.entry.go !== nav.href && canOpen(best!.entry.go, i.ctx.roles) && best!.score >= 0.8);
+  // A question that says more than where a screen is («¿dónde le cambio el nivel a una pieza?»), with a strong answer about
+  // that same screen: the answer says it, with the screen's button (D-89).
+  const navMore = !!nav && beyondScreen(q, [nav.label, ...nav.phrases]).length > 0;
+  // (a «¿dónde…?» only to an answer that says where: «Es el nivel de cada pieza…» does not).
+  const answerSaysWhere = !!best && (/^(?:En|Desde|Arriba|Abajo)\b/.test(best.text) || /→|\ben (?:la|el) (?:pestaña|pieza|evento|ficha|tarjeta|revisión|pantalla|menú|sección)\b|\ben (?:Ajustes|Mi perfil|Política|Redes|Hoy|Agenda|Mensajes|Publicar|Municipios|Obras)\b/.test(best.text));
+  const navSame = !!nav && !!best && (best.entry.go === nav.href || screensIn(best.text).some((x) => x.href === nav.href)) && (askKind(readable(q)) !== 'where' || answerSaysWhere);
+  const navFirst = !!nav && !(strong && best!.score >= 0.8 && best!.entry.go && !best!.entry.go.startsWith('/ayuda') && best!.entry.go !== nav.href && canOpen(best!.entry.go, i.ctx.roles)) && !(strong && navMore && navSame && best!.score >= 0.75);
   const chatter = (GREETING.test(q) || THANKS.test(q)) && q.length < 40;
   const upload = UPLOAD.test(q) && UPLOAD_WHAT.test(q) && !i.ctx.roles.some((r) => UPLOADERS.has(r));
   const yesNo = !mayI || (!!best && (best.entry.may || best.entry.kind === 'faq' || best.entry.kind === 'curated' || best.entry.kind === 'never'));
@@ -676,8 +820,16 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // the best ficha (the team's own cards too: theirs wins a tie).
   const cardScore = Math.max(0, ...(knowledge?.length ? scoreFichas(knowledge, i.question).slice(0, 3) : []).filter((c) => c.n >= MIN_FICHA_SCORE).map((c) => scoreFicha(i.question, c.f) + (c.f.origin === 'equipo' ? 0.08 : 0)));
   // Nor next to an event when it does not ask how something is done (the steps below keep «¿qué hay a fin de mes?»).
-  const nearEvent = (aboutEvent(bare, await titles()) || aboutEvent(bareQ, await titles())) && !meta && !(howTo || HOW_ANY.test(q) || GENERIC_EVENT.test(q) || WORK.test(q));
-  if (strong && !intent && !(valueAsk && !meta) && !followsEvent && !nearEvent && best!.score > cardScore + 0.08) return sayEntry(best!);
+  // A question of the help kind (how, what, may, why, who, what goes in it…) next to an event word that asks nothing of
+  // the event («¿qué reviso antes de aprobar la pieza de la feria?», «¿cómo subo el material del acto?»): the answers.
+  const helpAsk = ['how', 'what', 'may', 'why', 'if'].includes(askKind(readable(q)) ?? '') && !valueAsk && !PIECE_STATUS.test(q);
+  const nearEvent = (aboutEvent(bare, await titles()) || aboutEvent(bareQ, await titles())) && !meta && !(howTo || HOW_ANY.test(q) || GENERIC_EVENT.test(q) || WORK.test(q) || helpAsk) && ((await namesOne(bare)) || (await namesOne(bareQ)));
+  // A when or a where that is no rule, about one event named, keeps the steps below (the refusal).
+  // Only a follow-up of a thread that was not about an event («¿y dónde está eso?» after «¿qué es el modo sol?») gets past
+  // a when or a where with no event named.
+  const namedBefore = namedTitleWords(lastSaid, seenNow.events).size > 0;
+  const valueLeft = valueAsk && !meta && (one || eventAt(bareQ) >= 0 || !goesOnWith || namedBefore);
+  if (strong && !intent && !valueLeft && !followsEvent && !nearEvent && best!.score > cardScore + 0.08) return sayEntry(best!);
 
   if (asking && named && stepNamed && (!aboutWork || asksPlace(bareQ)) && !OFF_TOPIC.test(q)) {
     if (lookup) calls.push(lookup);
@@ -697,12 +849,12 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   }
 
   // 2d. Uploading, asked by a role that does not upload an event's material: who does it and where, and what this role
-  // does upload (D-89: política and the IVT upload the photos and documents of their fichas; the boss and despacho
-  // those of an obra or a community report).
+  // does upload (D-89: política and the IVT upload the photos and documents of their fichas; despacho those of an obra or
+  // a community report). The boss uploads like Redes (UPLOADERS): his answers say how.
   if (UPLOAD.test(q) && UPLOAD_WHAT.test(q) && !i.ctx.roles.some((r) => UPLOADERS.has(r))) {
     if (i.ctx.roles.includes('politics')) return done('Las fotos y los documentos de tu ficha comunitaria se suben después de guardarla, en la ficha: en «Evidencias», «Subir fotos del antes», «Subir fotos del después» y «Subir documentos». El material de los eventos lo suben Grabación o Redes.');
     if (i.ctx.roles.includes('ivt')) return done('Las fotos y los documentos de una obra se suben después de guardar la ficha, en la ficha: «Subir fotos del antes», «Subir fotos del avance» y «Subir documentos». El material de las visitas lo suben Grabación o Redes.');
-    return done('Los videos y las fotos los suben Grabación o Redes, en la pestaña Material del evento: si tienes un archivo, pásaselo a Redes. Desde tu rol sí subes las fotos y los documentos de una ficha de obra o de un reporte comunitario, en la ficha.');
+    return done('Los videos y las fotos de un evento los suben Grabación, Redes o el jefe, en la pestaña Material del evento: si tienes un archivo, pásaselo a Redes. Desde tu rol sí subes las fotos y los documentos de una ficha de obra o de un reporte comunitario, en la ficha.');
   }
 
   // 3. Mark my notices as read (level «hace», recorded and undoable).
@@ -830,6 +982,14 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     const r = await call('reglas_de_video', network() ? { red: network() } : {});
     if (!r.ok) return done(`No pude revisarlo: ${r.error}`);
     const nets = ((r.result as R).redes as R[]) ?? [];
+    // A story goes only to Instagram and Facebook: both, without asking which (D-89).
+    if (!network() && /\bhistorias?\b/.test(q)) {
+      const story = nets
+        .map((n) => ({ red: String(n.red), f: ((n.formatos as R[]) ?? []).find((f) => /^(?:story|historia)/i.test(String(f.formato))) }))
+        .filter((x) => x.f)
+        .map((x) => [`en ${x.red}`, x.f!.duracion_segundos ? `de ${x.f!.duracion_segundos} segundos` : '', x.f!.proporcion ? `en ${x.f!.proporcion}` : '', x.f!.peso_maximo_mb ? `hasta ${x.f!.peso_maximo_mb} MB` : ''].filter(Boolean).join(' '));
+      if (story.length) return done(`Las historias salen solo en Instagram y Facebook: ${list(story)}. Al publicar, la plataforma lo revisa sola.`);
+    }
     if (!network()) return done(`¿Para qué red? Cada una tiene sus medidas: ${list(nets.map((n) => String(n.red)))}.`);
     const n = nets[0];
     if (!n) return done('No hay reglas guardadas para esa red.');
@@ -886,7 +1046,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // salud?» is about the copy). Unless it asks how something is done, a ficha must answer it well;
   // otherwise 360 gives the agenda's answer (step 17), never a loose ficha («¿hay barro en…?»). A work
   // product named with it is what is asked.
-  const eventTurn = (aboutEvent(bare, seen) || aboutEvent(bareQ, seen)) && !meta;
+  const eventTurn = (aboutEvent(bare, seen) || aboutEvent(bareQ, seen)) && !meta && ((await namesOne(bare)) || (await namesOne(bareQ)) || (valueAsk && (one || asksSchedule(bareQ) || !namesPlatform(q))));
   const eventName = eventTurn ? titleWords : new Set<string>();
   const topic = eventName.size ? plain(whenless).split(' ').filter((w) => !eventName.has(w)).join(' ') : whenless;
   // The work named with it («¿cuándo se publica lo de la cancha?», «¿qué copy le hago?») is the topic.
@@ -934,7 +1094,8 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // «¿Puedo…?»: the person's role ficha says what the role does and does not do. Its sentence answers when
   // it has at least half the words asked («¿puedo ver las piezas?» → «No ve piezas…»).
   // …and says the verb asked («¿puedo borrar un archivo?» is not «sube el material… en el archivo original»).
-  if (mayI && words.length) {
+  // A strong answer of the index (what the role may or never does, a curated one) says it first (D-89).
+  if (mayI && words.length && !(best && strong && !strict && yesNo)) {
     const own = (knowledge ?? []).find((f) => roleFichaKeys(i.ctx.roles).includes(f.key ?? ''));
     const a = own ? answerFrom(own.body) : null;
     const verb = tokens(MAY_VERB.exec(q)?.[1] ?? '');
@@ -964,12 +1125,18 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // a weak one never answers (it would beat «No estoy seguro…» with a guess). Never next to an event that is not a how-to.
   const fichaOk = !!top && !loose && top.n >= MIN_FICHA_SCORE * (strict ? 1.5 : 1) && top.cover >= MIN_FICHA_COVER * (strict ? 2 : 1);
   const fichaScore = fichaOk ? scoreFicha(topic, top!.f) + (top!.f.origin === 'equipo' ? 0.08 : 0) : 0;
-  if (best && strong && !strict && yesNo && best.score > fichaScore + 0.02) return sayEntry(best);
+  // Never for when or where an event is (a value asked that is no rule): those keep the steps below and the refusal.
+  if (best && strong && (!strict || helpAsk) && yesNo && !valueLeft && best.score > fichaScore + 0.02) return sayEntry(best);
   // A weak answer that still says most of what is asked (WEAK_ALONE), when no ficha or task answers at all, before «No
   // estoy seguro…».
-  const weakAlone = !!best && !strong && !strict && yesNo && !fichaOk && !task && best.score >= WEAK_ALONE;
+  // …and only through a way of asking (a weak match on an answer's text alone is a guess): the best such match, when it is
+  // close to the best of all.
+  const weakPick = best ? found.find((m) => m.score >= Math.max(WEAK_ALONE, best.score - 0.06) && m.entry.q.includes(m.via)) : undefined;
+  const weakAlone = !!weakPick && !strong && (!strict || helpAsk) && yesNo && !valueLeft && !fichaOk && !task;
   if (task && top && (top.cover < 1 || (ROLE_SUMMARY.test(top.f.key ?? '') && coverOf(top.f.title, [...new Set(keyWords(topic))]) < 1))) return byTask(task);
-  if (top && !loose && top.n >= MIN_FICHA_SCORE * (strict ? 1.5 : 1) && top.cover >= MIN_FICHA_COVER * (strict ? 2 : 1)) return done(answerFrom(top.f.body).text);
+  // A ficha of the platform is static help text (like the answers, D-89): the net checks it for concrete dates, phones and
+  // places only. One the team wrote goes through the whole net.
+  if (top && !loose && top.n >= MIN_FICHA_SCORE * (strict ? 1.5 : 1) && top.cover >= MIN_FICHA_COVER * (strict ? 2 : 1)) return { ...done(answerFrom(top.f.body).text), fixed: top.f.origin !== 'equipo' && !eventTurn && !valueAsk && !whenWhere && !route };
   if (task) return byTask(task);
 
   // 16. The best chosen script with a variant that needs no data, only when the question said one of its
@@ -982,6 +1149,6 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
 
   // 17. About an event: the agenda's answer (what 360 can't say of it is there, for whom may see it).
   // Otherwise not sure: say so and offer to tell administración (a «sí» tells them for real, step 0).
-  if (weakAlone) return sayEntry(best!);
+  if (weakAlone) return sayEntry(weakPick!);
   return strict ? refuse() : done(isAdmin ? NOT_SURE_ADMIN : NOT_SURE);
 }
