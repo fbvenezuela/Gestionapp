@@ -298,8 +298,8 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 | `20261028002300_report_files_notes.sql` | Los documentos de un reporte, solo para política, despacho y jefe (admin ve las fotos y no sube); la historia de un reporte sin teléfonos (D-41) |
 | `20261028002350_boss_grant.sql` | Tercera vuelta: el rol de jefe solo lo da el sistema; aviso al jefe por cada rol del equipo que da una persona (D-58). En `fb-dev` desde el 29/10 |
 | `20261028002400_internal_chat.sql` | Tercera vuelta: Mensajes (seis tablas, sus funciones y RLS), `text_has_concrete_datetime()` (E1), nada para anon ni en Realtime (D-49 a D-57, D-59). En `fb-dev` desde el 29/10 |
-| `20261029000100_redes_formatos.sql` | Ronda 4: Redes por formato, meses y feed: `pieces.format` y lo de la tarjeta, `content_months`, `feed_slots`, `piece_details`, `piece_notices`; las funciones del feed y de los meses; lo que vuelve al jefe; retención por diseño desaprobado; eliminar solo el jefe (D-60 a D-78). Falta en `fb-dev` |
-| `20261029090000_chat_channels.sql` | Ronda 5: Mensajes como canales que arma el jefe, el jefe en todos por la base, sin aviso ni «Quién habla con quién»; lo que había queda en canales archivados (D-79 a D-88). Falta en `fb-dev` |
+| `20261029000100_redes_formatos.sql` | Ronda 4: Redes por formato, meses y feed: `pieces.format` y lo de la tarjeta, `content_months`, `feed_slots`, `piece_details`, `piece_notices`; las funciones del feed y de los meses; lo que vuelve al jefe; retención por diseño desaprobado; eliminar solo el jefe (D-60 a D-78). En `fb-dev` desde el 30/10 |
+| `20261029090000_chat_channels.sql` | Ronda 5: Mensajes como canales que arma el jefe, el jefe en todos por la base, sin aviso ni «Quién habla con quién»; lo que había queda en canales archivados (D-79 a D-88). En `fb-dev` desde el 30/10 |
 
 ## Tareas programadas
 - `/api/cron/tick` (con `CRON_SECRET`): aviso de tweets por acabarse (una vez al día) y publicaciones vencidas

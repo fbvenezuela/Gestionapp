@@ -48,12 +48,12 @@ Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en españo
   desaprobado después de aprobar no sale), receptividad 1–10, avisos de cumplimiento; eliminar solo el jefe y
   administración recupera; Ajustes → Cupo y pilares; Drive «Organizar por orden del feed» apagado
   (`REDES_DRIVE_ORGANIZE`). Mes 1 sembrado con piezas inventadas para FB. Migración
-  `20261029000100_redes_formatos.sql` (falta en `fb-dev`). Capturas lado a lado y comparación en
+  `20261029000100_redes_formatos.sql` (en `fb-dev` desde el 30/10). Capturas lado a lado y comparación en
   `docs/capturas/mila-vs-fb/` (`npm run capturas`). Preguntas para Hillary en `docs/PENDIENTES.md`, al final.
 - **Ronda 5 (29/10; D-79 a D-88):** Mensajes son canales, como Slack: el jefe los arma (con doble factor), decide quién
   va y está en todos por la base; cada canal muestra quiénes están; **sin aviso** en ninguna parte (lo pidió Juan); sin
   directos, grupos ni «Quién habla con quién»; «Todo el equipo» sigue. Migración `20261029090000_chat_channels.sql`
-  (falta aplicarla en `fb-dev`).
+  (en `fb-dev` desde el 30/10).
 - Marca: oliva como color principal (D-21). Diagnóstico Digital 360 resumido en `docs/DIAGNOSTICO-360.md` (el ZIP es
   confidencial y no está en el repositorio).
 - Pruebas: Vitest (unidad + RLS) y Playwright a 360 px con axe. CI en `.github/workflows/ci.yml`.
@@ -81,11 +81,11 @@ Usuarios demo en `docs/DEMO.md`. En demo, `DEMO_SHORTCUTS` (activo por defecto) 
 factor; con `DATABASE_URL` nunca se activa. Playwright levanta dos servidores: 3100 estricto y 3101 con atajos.
 
 ## Qué falta (siguiente sesión)
-1. `fb-dev` (Supabase, gratis) ya tiene las 29 migraciones, hasta `20261028002400`, y la configuración del cliente con
-   los seis roles y el material de 360 de la tercera vuelta (aplicadas y verificadas el 29/10, `docs/PROMPT-SUPABASE.md`).
-   Faltan, con el OK de Juan y en este orden, `20261029000100_redes_formatos.sql` y `20261029090000_chat_channels.sql`,
-   y después `npm run db:seed-client`. Falta también lo de esa guía: los pasos de Juan en el panel (SMTP primero), las
-   variables en Vercel y la primera entrada (OTP, TOTP, Drive); después, probar Mensajes y Redes ahí con dos teléfonos.
+1. `fb-dev` (Supabase, gratis) ya tiene las 31 migraciones, hasta `20261029090000`, y la configuración del cliente al
+   día (cupo y pilares de Redes, «Mes 1», historias y carruseles por red, el material de 360), aplicadas y verificadas
+   contra el código el 30/10 (`docs/PROMPT-SUPABASE.md`). Falta lo de esa guía: los pasos de Juan en el panel (SMTP
+   primero), las variables en Vercel y la primera entrada (OTP, TOTP, Drive); después, probar Mensajes y Redes ahí con
+   dos teléfonos.
 2. Respuestas de Hillary a las preguntas de Redes por formato (cupo, pilares, quién aprueba el diseño, YouTube, el #1
    del feed…) y a las de la segunda vuelta (`docs/PENDIENTES.md`, al final).
 3. Fase 2: publicación automática (Meta, X, TikTok, YouTube), métricas por API, análisis con IA, Drive del cliente,

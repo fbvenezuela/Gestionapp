@@ -897,7 +897,7 @@ comando, los mensajes no se borran).
 con cupo, un feed de 24 espacios por mes, revisión por pieza y un tablero. Se copió la lógica y las pantallas, nunca el
 código, el contenido, la marca ni las reglas de copy de la referencia. Migración nueva:
 `20261029000100_redes_formatos.sql` (cuatro tablas con RLS: `content_months`, `feed_slots`, `piece_details`,
-`piece_notices`; no edita ninguna aplicada; falta aplicarla en `fb-dev`). Nada cambia la aprobación del jefe, la regla de
+`piece_notices`; no edita ninguna aplicada; en `fb-dev` desde el 30/10). Nada cambia la aprobación del jefe, la regla de
 la agenda, Tweets ni la publicación manual. Las preguntas para Hillary siguen los valores por defecto de abajo
 (`PENDIENTES.md`, al final). Cierra lo que D-37 dejó esperando.
 

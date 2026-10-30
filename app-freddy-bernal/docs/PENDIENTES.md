@@ -211,8 +211,8 @@ Lo hecho está en `DECISIONES.md` D-42 a D-59. Las guías siguen sin mandarse a 
     quién está? (Hoy no: solo el jefe con doble factor. D-80.)
 
 **Lo que falta de nuestra parte:**
-- Aplicar en `fb-dev` la migración de canales `20261029090000_chat_channels.sql` (con el OK de Juan) y probar ahí dos
-  personas en un canal desde dos teléfonos (en la demo cada servidor tiene su base, D-88).
+- Probar en `fb-dev` dos personas en un canal desde dos teléfonos (la migración de canales ya está ahí desde el 30/10;
+  en la demo cada servidor tiene su base, D-88).
 - La lista manual de `DEMO.md` en un Android de verdad (teclado, Enter, aviso en la pantalla de bloqueo, tutorial).
 - Realtime para Mensajes cuando se pueda probar en `fb-dev` (hoy revisa cada 5 s, D-56).
 
@@ -240,9 +240,8 @@ frena: lo que dice entre paréntesis ya está construido así y se cambia en un 
     lo que sale. ¿Les parece bien, o el jefe solo aprueba la imagen y el texto lo decide Redes?
 
 **Lo que falta de nuestra parte:**
-- Aplicar en `fb-dev`, con el OK de Juan, `20261029000100_redes_formatos.sql` y después `20261029090000_chat_channels.sql`,
-  y correr `npm run db:seed-client` (crea «Mes 1», pasa ahí las piezas sin mes, suma las claves `redes.*`, los formatos
-  de historia y carrusel por red y el material nuevo de 360). Después, las pruebas por rol con cuentas de prueba.
+- Las pruebas por rol en `fb-dev` con cuentas de prueba (las dos migraciones y la configuración nueva ya están ahí
+  desde el 30/10: «Mes 1», claves `redes.*`, historias y carruseles por red y el material nuevo de 360).
 - **«¿A qué hora nos va mejor?» por día de la semana:** hoy va por franja horaria; el día queda pendiente (Resultados).
 - En la demo, lo que se crea o se mueve en Redes vive en un solo servidor (D-39, D-76): para probar creando entre roles
   hace falta `fb-dev`.
