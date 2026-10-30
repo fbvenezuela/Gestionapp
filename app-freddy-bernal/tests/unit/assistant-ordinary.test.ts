@@ -73,7 +73,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['donde veo lo que se publico', { go: '/jefe/digital' }],
     // Since 27/10/2026 the boss approves everything (what Supervisión did is his).
     ['¿Cómo apruebo las verdes de una vez?', { has: /verdes se aprueban todas juntas, con un toque/ }],
-    ['¿Cuántas piezas tengo en verde?', { tool: 'mis_pendientes', has: /te toca aprobar \(verde\)/ }],
+    // His approvals come by level (red, yellow, green): since R4 the demo has a red and three yellow ones first.
+    ['¿Cuántas piezas tengo en verde?', { tool: 'mis_pendientes', has: /Lo primero: te toca aprobar \(rojo\): «[^»]+», te toca aprobar \(amarillo\)/ }],
     ['¿Qué reviso antes de aprobar?', { has: /lista: cifras con fuente/ }],
     ['¿Dónde está el botón de aprobar?', { go: '/aprobar', has: /botón Aprobar/ }],
     ['donde apruebo', { go: '/aprobar' }],

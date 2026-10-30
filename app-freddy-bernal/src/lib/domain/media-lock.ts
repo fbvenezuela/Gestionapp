@@ -1,6 +1,8 @@
 // Why a file can never be removed (pure, so it can be tested). `ref` is the SQL expression of
 // the media id (a column like `m.id`, or a parameter like `$1::uuid`). Runs as the user: RLS
 // applies to pieces, versions, publications and voice lines (admin, who removes, sees them all).
+// A version's files are its final file, its cover and the images of a carousel or a month-end piece
+// (slide_asset_ids, R4: frozen with the version like the rest).
 //   published  — a scheduled or published post uses it: its cover, its evidence, or any
 //                version of its piece (we do not know which version went out, so all of them).
 //   approved   — the approved version of a piece (or the current one of an approved piece).
@@ -23,14 +25,14 @@ export function mediaLockSql(ref: string): string {
                     and (x.cover_asset_id = ${ref} or x.evidence_asset_id = ${ref}))
       or exists (select 1 from public.publications x join public.piece_versions v on v.piece_id = x.piece_id
                   where x.deleted_at is null and x.status in ('scheduled', 'published')
-                    and (v.media_asset_id = ${ref} or v.cover_asset_id = ${ref})) then 'published'
+                    and (v.media_asset_id = ${ref} or v.cover_asset_id = ${ref} or ${ref} = any (v.slide_asset_ids))) then 'published'
     when exists (select 1 from public.piece_versions v join public.pieces p on p.id = v.piece_id
                   where p.deleted_at is null
                     and (v.version = p.approved_version or (p.status = 'approved' and v.version = p.current_version))
-                    and (v.media_asset_id = ${ref} or v.cover_asset_id = ${ref})) then 'approved'
+                    and (v.media_asset_id = ${ref} or v.cover_asset_id = ${ref} or ${ref} = any (v.slide_asset_ids))) then 'approved'
     when exists (select 1 from public.piece_versions v join public.pieces p on p.id = v.piece_id
                   where p.deleted_at is null and p.status = 'in_review' and v.version = p.current_version
-                    and (v.media_asset_id = ${ref} or v.cover_asset_id = ${ref})) then 'in_review'
+                    and (v.media_asset_id = ${ref} or v.cover_asset_id = ${ref} or ${ref} = any (v.slide_asset_ids))) then 'in_review'
     when exists (select 1 from public.voice_line_requests r join public.pieces p on p.id = r.piece_id
                   where p.deleted_at is null and r.status = 'received' and r.audio_asset_id = ${ref}) then 'voice_line'
   end)`;

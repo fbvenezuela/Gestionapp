@@ -192,6 +192,56 @@ describe('aprobación: nada se publica sin el jefe', () => {
   });
 });
 
+// R4 (20261029000100_redes_formatos.sql): the same rule for every format of the seeded Mes 1, and the design the boss
+// disapproved after approving holds a publication back until he approves again.
+describe('aprobación por formato: nada se publica sin el jefe', () => {
+  const pieceNamed = async (title: string) =>
+    (await t.system((sql) =>
+      sql.one<{ id: string; cover: string | null; long: string | null }>(
+        `select p.id, v.cover_asset_id as cover, (select c.body from public.copies c where c.piece_id = p.id and c.length_group = 'long') as long
+           from public.pieces p left join public.piece_versions v on v.piece_id = p.id and v.version = p.current_version
+          where p.title = $1 and p.deleted_at is null`,
+        [title],
+      ),
+    ))!;
+  const markPublished = (who: 'social' | 'boss', p: { id: string; cover: string | null; long: string | null }, network = 'instagram', format = 'photo') =>
+    t.as(who, (sql) =>
+      sql.query(
+        `insert into public.publications (piece_id, network, format, status, mode, url, copy_body, cover_asset_id, published_at)
+         values ($1, $2, $3, 'published', 'manual', 'https://example.org/demo/prueba', $4, $5, now()) returning id`,
+        [p.id, network, format, p.long ?? '', p.cover],
+      ),
+    );
+
+  it('un post y un carrusel en revisión no se publican; aprobados, sí (con su copy y su portada)', async () => {
+    await fails(markPublished('social', await pieceNamed('La vecina que volvió a tener agua')));
+    await fails(markPublished('social', await pieceNamed('Cómo pedir un operativo'), 'instagram', 'carousel'));
+    expect(await markPublished('social', await pieceNamed('Tips para ahorrar agua'))).toHaveLength(1);
+    expect(await markPublished('social', await pieceNamed('Cinco obras del mes'), 'instagram', 'carousel')).toHaveLength(1);
+  });
+
+  it('una historia aprobada cuyo texto en pantalla cambia vuelve al jefe y ya no se programa', async () => {
+    const s = await pieceNamed('Pregúntale al equipo');
+    await t.as('social', (sql) => sql.query(`update public.piece_details set on_screen = 'Pregúntanos lo que sea' where piece_id = $1`, [s.id]));
+    const st = await t.system((sql) => sql.one<{ status: string }>(`select status from public.pieces where id = $1`, [s.id]));
+    expect(st?.status).toBe('in_review');
+    await expect(
+      t.as('social', (sql) =>
+        sql.query(`insert into public.publications (piece_id, network, format, status, scheduled_at, copy_body) values ($1, 'instagram', 'story', 'scheduled', now() + interval '1 day', '')`, [s.id]),
+      ),
+    ).rejects.toThrow(/no está aprobada/);
+  });
+
+  it('el diseño que el jefe desaprueba después de aprobar no sale; cuando vuelve a aprobar, sí', async () => {
+    const p = await pieceNamed('Así trabajan los bomberos del estado');
+    await t.as('boss', (sql) => sql.query(`update public.pieces set design_status = 'disapproved', design_note = 'Probar otra foto.' where id = $1`, [p.id]));
+    await expect(markPublished('social', p)).rejects.toThrow(/diseño quedó desaprobado/);
+    await expect(markPublished('boss', p)).rejects.toThrow(/diseño quedó desaprobado/);
+    await t.as('boss', (sql) => sql.query(`select public.review_piece($1, 'approved', 'Ya está bien.')`, [p.id]));
+    expect(await markPublished('social', p)).toHaveLength(1);
+  });
+});
+
 describe('semáforo de aprobación', () => {
   const red = () => t.system((sql) => sql.one<{ id: string }>(`select id from public.pieces where review_level = 'rojo' and status = 'in_review' limit 1`));
   const draftWithFile = async (level = 'amarillo') => {

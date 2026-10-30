@@ -2,6 +2,8 @@
 // the demo has a picture the platform can serve, the boss's own post shows its screenshot, and a screenshot can be
 // added to a post (when registering the boss's post, or afterwards) only once and only if it is a screenshot.
 // The demo pictures are invented and abstract. Session mocked as in flows-actions.test.ts.
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import type { Session } from '@/lib/auth/session';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
@@ -56,7 +58,10 @@ const screenshot = (who: DemoUserKey, over: { kind?: string; mime?: string; even
 
 describe('las miniaturas de la demostración', () => {
   it('son JPEG inventados que pasan la misma revisión que una miniatura subida (≤ 320 px, ≤ 256 KB, sin EXIF)', () => {
-    for (const name of Object.values(DEMO_THUMBS)) {
+    // Those of Redes too (src/lib/db/demo-assets/redes-*.jpg, scripts/make-demo-thumbs.mts).
+    const redes = fs.readdirSync(path.join(process.cwd(), 'src', 'lib', 'db', 'demo-assets')).filter((f) => /^redes-.*\.jpg$/.test(f)).sort();
+    expect(redes).toHaveLength(12);
+    for (const name of [...Object.values(DEMO_THUMBS), ...redes]) {
       const b = new Uint8Array(demoThumbBytes(name));
       expect(checkUploadThumb(b), name).toEqual({ ok: true, mime: 'image/jpeg' });
       expect(Buffer.from(b).includes(Buffer.from('Exif')), name).toBe(false);
@@ -84,10 +89,15 @@ describe('las miniaturas de la demostración', () => {
     const piece = rows.filter((r) => r.origin !== 'boss_spontaneous');
     expect(piece.length).toBeGreaterThanOrEqual(5);
     for (const r of piece) {
+      // The cover it went out with, else the approved version's; a story has none: its photo or its clip's frame.
       const first = pubThumbOf(r).ids[0];
-      expect(first).toBe(r.thumb_vcover_id);
-      expect(Buffer.from((await stored(first))!.bytes).equals(demoThumbBytes(DEMO_THUMBS.cover))).toBe(true);
+      expect(first, r.title).toBe(r.thumb_cover_id ?? r.thumb_vcover_id ?? r.thumb_vmedia_id);
+      expect((await stored(first))?.mime, r.title).toBe('image/jpeg');
     }
+    // The court's (core.ts) shows its cover picture.
+    const court = piece.filter((r) => r.title === 'Cancha techada de El Mirador');
+    expect(court.length).toBeGreaterThanOrEqual(5);
+    for (const r of court) expect(Buffer.from((await stored(pubThumbOf(r).ids[0]))!.bytes).equals(demoThumbBytes(DEMO_THUMBS.cover))).toBe(true);
   });
 
   it('Grabación no ve publicaciones (ni sus miniaturas)', async () => {

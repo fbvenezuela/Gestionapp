@@ -70,7 +70,24 @@ const PRIVACY_CHECKS: [string, string][] = [
   ['chat_pair_not_allowed', 'El jefe no permite mensajes entre estas personas.'],
   ['chat_messages_len', 'El mensaje tiene que tener entre 1 y 2000 letras.'],
   ['chat_conv_title_len', 'El nombre del grupo va de 1 a 60 letras.'],
+  // 20261029000100_redes_formatos.sql (Redes por formato): everything here is read by Redes.
+  ['pieces_design_note_no_phone', 'No se guardó: la nota del diseño tiene algo que parece un teléfono, y Redes la lee. Quítalo; si es una cifra, escríbela con puntos: 1.500.000.'],
+  ['piece_details_no_phone', 'No se guardó: la tarjeta tiene algo que parece un teléfono, y Redes la lee. Quítalo; si es una cifra, escríbela con puntos: 1.500.000.'],
+  ['piece_notices_no_phone', 'No se guardó: el aviso tiene algo que parece un teléfono, y Redes lo lee. Quítalo: los contactos van en la ficha, con doble factor.'],
+  ['content_months_label_no_phone', 'No se guardó: el nombre del mes tiene algo que parece un teléfono, y todo Redes lo lee.'],
+  ['piece_details_sticker_url', 'El enlace del sticker empieza con https:// y no lleva espacios.'],
 ];
+
+// Unique constraints with their own words (checked before the generic «Eso ya existe.»). The feed's are deferred:
+// they fail at COMMIT, which act() still catches (backend.transaction waits for the COMMIT inside its try).
+const UNIQUE_CHECKS: [string, string][] = [
+  ['feed_slots_one_place', 'Esa pieza acaba de quedar en otro espacio. Mira el feed y vuelve a intentarlo.'],
+  ['feed_slots_month_num', 'Otra persona acaba de usar ese espacio. Mira el feed y vuelve a intentarlo.'],
+];
+
+// Two people changing the same rows at once (a deadlock, 40P01, or a serialization failure, 40001): the feed is where
+// that happens (every feed function locks month, places and piece in the same order, but a crossing can still happen).
+export const CONFLICT_TEXT = 'Otra persona cambiaba el feed a la vez: vuelve a intentarlo.';
 
 // Mensajes: a message the policies refuse (the conversation closed, «Solo el jefe escribe», the notice not accepted).
 export const CHAT_POST_REFUSED = 'Ya no puedes escribir en esta conversación.';
@@ -86,7 +103,11 @@ export function friendlyDbError(e: unknown): string {
     if (/row-level security/i.test(msg) && /"chat_messages"/.test(msg)) return CHAT_POST_REFUSED;
     return 'No tienes permiso para hacer esto.';
   }
-  if (err?.code === '23505') return 'Eso ya existe.';
+  if (err?.code === '23505') {
+    for (const [constraint, text] of UNIQUE_CHECKS) if (msg.includes(constraint)) return text;
+    return 'Eso ya existe.';
+  }
+  if (err?.code === '40P01' || err?.code === '40001') return CONFLICT_TEXT;
   if (err?.code === '23514') {
     // The database's own privacy checks (20261028002100_privacy_hardening.sql): the app refuses the same before
     // saving; this is what the person reads if a text gets past it anyway.

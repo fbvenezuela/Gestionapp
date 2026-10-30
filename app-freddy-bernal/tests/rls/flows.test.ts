@@ -80,6 +80,30 @@ describe('lo que está en revisión, publicado o grabado por el jefe tampoco se 
     expect(await lockOf(v!.media_asset_id)).toBe('in_review');
   });
 
+  // R4 (20261029000100_redes_formatos.sql): a carousel's images are in its version (slide_asset_ids), frozen with it.
+  it('las láminas de un carrusel publicado, aprobado o en revisión quedan bloqueadas; las de un borrador no', async () => {
+    const slides = async (title: string) =>
+      (await t.system((sql) =>
+        sql.one<{ ids: string[] }>(
+          `select to_jsonb(array_remove(v.slide_asset_ids, null)) as ids from public.piece_versions v join public.pieces p on p.id = v.piece_id
+            where p.title = $1 and v.version = p.current_version`,
+          [title],
+        ),
+      ))!.ids;
+    const cases: [string, string | null, number][] = [
+      ['Paso a paso: reportar una falla', 'published', 4],
+      ['Cinco obras del mes', 'approved', 5],
+      ['Cómo pedir un operativo', 'in_review', 4],
+      ['Cuidemos a los abuelos', null, 2],
+    ];
+    for (const [title, lock, n] of cases) {
+      const ids = await slides(title);
+      expect(ids, title).toHaveLength(n);
+      // Not only the first image (also the version's main file and cover): the last one, which is only a slide.
+      expect(await lockOf(ids[ids.length - 1]), title).toBe(lock);
+    }
+  });
+
   it('el audio que el jefe grabó para una pieza, ya recibido, queda bloqueado; uno cancelado no', async () => {
     const piece = await t.system((sql) => sql.one<{ id: string }>(`select id from public.pieces where title = 'Jornada de salud escolar'`));
     const audio = async () =>
@@ -108,7 +132,8 @@ describe('lo que está en revisión, publicado o grabado por el jefe tampoco se 
     const p1 = (await t.system((sql) =>
       sql.one<{ id: string; event_id: string; media_asset_id: string; cover_asset_id: string }>(
         `select p.id, p.event_id, v.media_asset_id, v.cover_asset_id from public.pieces p join public.piece_versions v on v.piece_id = p.id and v.version = p.approved_version
-          where p.status = 'approved' and exists (select 1 from public.publications x where x.piece_id = p.id and x.status = 'published' and x.deleted_at is null) limit 1`,
+          where p.status = 'approved' and exists (select 1 from public.publications x where x.piece_id = p.id and x.status = 'published' and x.deleted_at is null)
+            and p.title = 'Cancha techada de El Mirador'`, // the court (core.ts): since R4 other pieces went out too, some without a cover
       ),
     ))!;
     expect(await lockOf(p1.media_asset_id)).toBe('published');
