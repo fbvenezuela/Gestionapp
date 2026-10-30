@@ -22,9 +22,9 @@ export async function loadPublishContext(sql: Sql, pieceId: string) {
   if (!row) return null;
   const format: Format = row.format && isFormat(row.format) ? row.format : formatOfKind(row.kind);
   const piece = { ...row, format };
-  // What goes out is the approved version's file, cover and slides.
+  // What goes out is the approved version's file, cover and slides (to_jsonb: postgres.js reads a NULL slide as 'NULL').
   const version = await sql.one<{ media_asset_id: string | null; cover_asset_id: string | null; slide_asset_ids: (string | null)[] | null }>(
-    `select media_asset_id, cover_asset_id, slide_asset_ids from public.piece_versions where piece_id = $1 and version = $2`,
+    `select media_asset_id, cover_asset_id, to_jsonb(slide_asset_ids) as slide_asset_ids from public.piece_versions where piece_id = $1 and version = $2`,
     [pieceId, piece.status === 'approved' && piece.approved_version ? piece.approved_version : piece.current_version],
   );
   const media = version?.media_asset_id

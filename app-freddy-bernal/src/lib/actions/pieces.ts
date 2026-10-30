@@ -59,11 +59,12 @@ export async function addVersion(raw: unknown) {
       const p = await sql.one<{ current_version: number; status: string }>(`select current_version, status from public.pieces where id = $1`, [i.pieceId]);
       if (!p) throw new UserError('Pieza no encontrada.');
       const prev = await sql.one<{ media_asset_id: string | null; cover_asset_id: string | null; slide_asset_ids: (string | null)[] | null }>(
-        `select media_asset_id, cover_asset_id, slide_asset_ids from public.piece_versions where piece_id = $1 order by version desc limit 1`,
+        `select media_asset_id, cover_asset_id, to_jsonb(slide_asset_ids) as slide_asset_ids from public.piece_versions where piece_id = $1 order by version desc limit 1`,
         [i.pieceId],
       );
       const v = p.current_version + 1;
-      // A carousel's slides stay with the new version (R4): only the file or the cover changed.
+      // A carousel's slides stay with the new version (R4): only the file or the cover changed. (Read through to_jsonb:
+      // postgres.js reads a NULL slide as the text 'NULL'.)
       await sql.query(
         `insert into public.piece_versions (piece_id, version, media_asset_id, cover_asset_id, slide_asset_ids, notes) values ($1, $2, $3, $4, $5::uuid[], $6)`,
         [i.pieceId, v, i.mediaId ?? prev?.media_asset_id ?? null, i.coverId ?? prev?.cover_asset_id ?? null, prev?.slide_asset_ids ?? [], i.notes],

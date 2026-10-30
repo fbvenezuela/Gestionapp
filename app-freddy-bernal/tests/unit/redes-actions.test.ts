@@ -554,3 +554,31 @@ describe('las lecturas del tablero', () => {
     }
   });
 });
+
+describe('una lámina sin imagen', () => {
+  // postgres.js (the real database) hands a NULL element of a uuid[] back as the text 'NULL'; PGlite as null. The
+  // reads go through to_jsonb so a planned slide stays empty on both (with TEST_DATABASE_URL this runs on Postgres).
+  it('se lee vacía, nunca como un id, en la tarjeta, en el tablero, en Publicar y al subir otra versión', async () => {
+    const m = await newMonth();
+    const id = await newPiece('carousel', m.id, { copy: true });
+    const a = await asset();
+    as('social');
+    ok(await pieces.setSlides({ pieceId: id, slides: [null, a] }));
+    const c = (await card('social', id))!;
+    expect(c.version?.slideIds).toEqual([null, a]);
+    expect(c.thumbIds).toEqual([a]);
+    expect(c.blockers.join(' ')).toMatch(/lámina 1/i);
+    const row = (await t.as('social', (sql) => data.getDashboard(sql, [m.id]))).rows.find((r) => r.id === id)!;
+    expect(row.slides).toEqual([null, a]);
+    const { loadPublishContext } = await import('@/lib/data/publish');
+    const ctx = (await t.as('social', (sql) => loadPublishContext(sql, id)))!;
+    expect(ctx.slides[0]).toBeNull();
+    expect(ctx.slides[1]).toMatchObject({ mime: 'image/jpeg' });
+    as('social');
+    ok(await pieces.addVersion({ pieceId: id, mediaId: null, coverId: null }));
+    expect((await card('social', id))!.version?.slideIds).toEqual([null, a]);
+    ok(await redes.feedPlace({ monthId: m.id, num: 5, pieceId: id }));
+    const cell = (await t.as('social', (sql) => data.getFeed(sql, m.id))).cells.find((x) => x.num === 5)!;
+    expect(cell.piece?.thumbIds).toEqual([a]);
+  });
+});

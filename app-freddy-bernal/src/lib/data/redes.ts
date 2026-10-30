@@ -190,11 +190,12 @@ async function loadCards(sql: Sql, where: string, params: unknown[], order: stri
        from public.piece_details where piece_id = any($1::uuid[])`,
     [ids],
   );
+  // slide_asset_ids always through to_jsonb: postgres.js reads a NULL element of a uuid[] as the text 'NULL' (PGlite as null).
   const versions = await sql.query<{
     piece_id: string; version: number; media_asset_id: string | null; cover_asset_id: string | null; slide_asset_ids: (string | null)[] | null;
     media_mime: string | null; media_w: number | null; media_h: number | null; slide_dims: (Dims | null)[] | null;
   }>(
-    `select v.piece_id, v.version, v.media_asset_id, v.cover_asset_id, v.slide_asset_ids, m.mime as media_mime, m.width as media_w, m.height as media_h,
+    `select v.piece_id, v.version, v.media_asset_id, v.cover_asset_id, to_jsonb(v.slide_asset_ids) as slide_asset_ids, m.mime as media_mime, m.width as media_w, m.height as media_h,
             (select coalesce(jsonb_agg(jsonb_build_object('w', s.width, 'h', s.height) order by a.ord), '[]'::jsonb)
                from unnest(v.slide_asset_ids) with ordinality a(id, ord) left join public.media_assets s on s.id = a.id) as slide_dims
        from public.piece_versions v
@@ -368,7 +369,7 @@ export async function getFeed(sql: Sql, monthId: string | null): Promise<{ cells
         num: number; piece_id: string | null; format: string | null; title: string | null; status: string | null; rating: number | null;
         cover_asset_id: string | null; media_asset_id: string | null; media_mime: string | null; slide_asset_ids: (string | null)[] | null;
       }>(
-        `select s.num, p.id as piece_id, p.format, p.title, p.status, p.rating, v.cover_asset_id, v.media_asset_id, m.mime as media_mime, v.slide_asset_ids
+        `select s.num, p.id as piece_id, p.format, p.title, p.status, p.rating, v.cover_asset_id, v.media_asset_id, m.mime as media_mime, to_jsonb(v.slide_asset_ids) as slide_asset_ids
            from public.feed_slots s
            left join public.pieces p on p.id = s.piece_id and p.deleted_at is null
            left join public.piece_versions v on v.piece_id = p.id and v.version = p.current_version
@@ -419,7 +420,7 @@ export async function getFeedPicker(sql: Sql, monthId: string | null): Promise<R
      select p.id, p.title, p.format, coalesce(p.content_month_id, (select id from first)) as month_id,
             coalesce(m.label, (select label from first)) as month_label,
             coalesce(p.content_month_id, (select id from first)) is not distinct from $1::uuid as is_here,
-            v.cover_asset_id, v.media_asset_id, mm.mime as media_mime, v.slide_asset_ids,
+            v.cover_asset_id, v.media_asset_id, mm.mime as media_mime, to_jsonb(v.slide_asset_ids) as slide_asset_ids,
             s.num as place_num, sm.label as place_month
        from public.pieces p
        left join public.content_months m on m.id = p.content_month_id
@@ -461,7 +462,7 @@ async function dashRows(sql: Sql, monthIds: string[]): Promise<DashPiece[]> {
     `with first as (select id from public.content_months where deleted_at is null order by ordinal limit 1)
      select p.id, p.format, p.title, p.status, p.design_status, p.design_note, p.rating, p.current_version,
             coalesce(p.content_month_id, (select id from first)) as month_id,
-            m.mime as media_mime, m.width as media_w, m.height as media_h, v.cover_asset_id, v.slide_asset_ids,
+            m.mime as media_mime, m.width as media_w, m.height as media_h, v.cover_asset_id, to_jsonb(v.slide_asset_ids) as slide_asset_ids,
             coalesce(c.body, '') as long_copy, coalesce(d.on_screen, '') as on_screen, coalesce(d.post_ratio, '4:5') as post_ratio,
             exists (select 1 from public.publications x where x.piece_id = p.id and x.deleted_at is null and x.status = 'published') as published
        from public.pieces p
@@ -636,7 +637,7 @@ export async function getMonthSummary(sql: Sql, monthId: string | null, quotas?:
     : 0;
   const pubRows = ids.length
     ? await sql.query<{ id: string; title: string; format: string; cover_asset_id: string | null; media_asset_id: string | null; media_mime: string | null; slide_asset_ids: (string | null)[] | null; networks: string[] | null }>(
-        `select p.id, p.title, p.format, v.cover_asset_id, v.media_asset_id, m.mime as media_mime, v.slide_asset_ids,
+        `select p.id, p.title, p.format, v.cover_asset_id, v.media_asset_id, m.mime as media_mime, to_jsonb(v.slide_asset_ids) as slide_asset_ids,
                 (select array_agg(distinct x.network order by x.network) from public.publications x
                   where x.piece_id = p.id and x.status = 'published' and x.deleted_at is null) as networks
            from public.pieces p
