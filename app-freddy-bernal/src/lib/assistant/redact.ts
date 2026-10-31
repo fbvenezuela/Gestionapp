@@ -184,10 +184,10 @@ const LANDMARK_RULES: [RegExp, Replacer][] = [
 // Somewhere said only by its name or by a bare landmark, after a word that says where: «en la Hacienda El
 // Trapiche», «desde Pueblo Nuevo», «hasta San Cristóbal», «pa Alto Verde», «sale de la plaza», «en la
 // escuela»; or by any kind of place with its name («en el hotel Tamá»). Not a network, an app, a screen,
-// a role or «mi…» («en Instagram», «en Material», «en la Agenda», «para Redes», «desde Mi perfil»). Too
-// broad for ordinary text: only on a question about an event, a notice about one, team material about
-// one in the prompt and what a model asks to tell the team.
-const NOT_NAMED = words('instagram facebook tiktok threads twitter youtube whatsapp telegram drive gmail zoom meet play play_store app_store google apple android iphone chrome safari agenda hoy inicio material piezas pieza aprobar por_aprobar ajustes avisos biblioteca resultados copies storyboard ficha tweets publicar buzon equipo perfil asistente registro politica digital categorias formulas horarios marca buscar nuevo_evento nueva_pieza nueva_publicacion nueva_tanda eventos mis_eventos crear mas redes supervision despacho grabacion secretaria administracion mi mis canva capcut photoshop premiere lightroom google chrome excel word wetransfer meta');
+// a role or «mi…» («en Instagram», «en Material», «en la Agenda», «para Redes», «desde Mi perfil»,
+// «en Mensajes»). Too broad for ordinary text: only on a question about an event, a notice about one,
+// team material about one in the prompt and what a model asks to tell the team.
+const NOT_NAMED = words('instagram facebook tiktok threads twitter youtube whatsapp telegram drive gmail zoom meet play play_store app_store google apple android iphone chrome safari agenda hoy inicio material piezas pieza aprobar por_aprobar ajustes avisos biblioteca resultados copies storyboard ficha tweets publicar buzon equipo perfil asistente registro politica digital categorias formulas horarios marca buscar nuevo_evento nueva_pieza nueva_publicacion nueva_tanda eventos mis_eventos crear mas redes supervision despacho grabacion secretaria administracion mensajes conversaciones obras municipios reportes ayuda guias feed tablero reels posts carruseles historias fin_de_mes mi mis canva capcut photoshop premiere lightroom google chrome excel word wetransfer meta');
 // The things of the platform a Name can follow without being a place («en la pestaña Material»).
 const NOT_PLACE_NOUN = words('pestana pestaña pantalla menu boton seccion red redes cuenta grupo canal carpeta opcion campo casilla lista formato plantilla formula pieza video copy app aplicacion plataforma enlace link perfil ficha rol jefe senor señor gobernador doctor doctora licenciado licenciada profesor profesora companero companera compañero compañera hermano hermana');
 const NAMED_RULES: RegExp[] = [

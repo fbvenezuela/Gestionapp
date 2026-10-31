@@ -188,8 +188,9 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Cómo subo la tanda de tweets?', { has: /nueva tanda|tanda nueva|«Separar tweets»/ }],
     ['¿Cómo registro lo que publicó el jefe?', { has: /[Ll]o que publicó el jefe/ }],
     ['¿Cómo cargo las métricas?', { has: /CSV/ }],
-    // D-89: the network's limit of characters (the video rules tool says each network's).
-    ['me salió un error que dice que el copy es muy largo', { tool: 'reglas_de_video' }],
+    // D-89 (last pass): with no network named, how a copy too long is fixed («No pasa» on each network); with one, its
+    // limit (the video rules tool).
+    ['me salió un error que dice que el copy es muy largo', { notTool: 'reglas_de_video', has: /«No pasa»/ }],
     ['me sale un error que dice que el video pesa mucho', { tool: 'reglas_de_video' }],
     ['¿Cuánto puede durar un reel?', { tool: 'reglas_de_video', has: /segundos/ }],
     ['donde publico a mano', { go: '/publicar' }],
@@ -244,13 +245,14 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Dónde es la sesión de fotos?', A],
     ['¿Cuándo es la campaña?', A],
     // Round 7: other forms of its word; what to bring is in no ficha («Ningún aviso lleva…» is not an
-    // answer), so next to an event it is the agenda's answer, and in general 360 is not sure.
+    // answer), so next to an event it is the agenda's answer. In general (D-89, last pass) Grabación's honest curated
+    // answer: the platform has no list of equipment, the storyboard and the ficha say what to record.
     ['la canchitica es en semana santa, ¿qué llevo?', A],
     ['el canchón es en semana santa, ¿qué llevo?', A],
     ['el techado es en semana santa, que llevo', A],
     ['¿qué llevo a la cancha?', A],
     ['¿dónde queda mi sesión de fotos?', A],
-    ['¿qué tengo que llevar a un acto?', { unsure: true }],
+    ['¿qué tengo que llevar a un acto?', { has: /no tiene una lista de equipos/ }],
     // R3: nor «tarea».
     ['¿Cómo marco una tarea como hecha?', { has: /realizado/ }],
   ],

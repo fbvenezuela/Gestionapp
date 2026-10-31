@@ -48,6 +48,8 @@ const SHORTHAND: [RegExp, string][] = [
   [/\bstan\b/g, 'estan'],
   [/\b(?:sta|ta)\b/g, 'esta'],
   [/\b(?:kmo|cmo|komo)\b/g, 'como'],
+  [/\b(?:kien|qien)\b/g, 'quien'],
+  [/\b(?:kienes|qienes)\b/g, 'quienes'],
   [/\b(?:kiero|kero|qiero)\b/g, 'quiero'],
   [/\b(?:tng|tngo)\b/g, 'tengo'],
   [/\b(?:msj|msje|mje)\b/g, 'mensaje'],

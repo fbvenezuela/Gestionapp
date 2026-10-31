@@ -82,7 +82,7 @@ Todos los correos que generó la plataforma. Mientras se prueba, ninguno sale: q
 ### Registro de cambios (`/ajustes/registro`)
 Quién cambió qué y cuándo, en toda la plataforma.
 
-- Buscas un cambio por tipo o por persona.
+- Lees los cambios del más nuevo al más viejo, con quién, qué y cuándo; abajo, «Ver más antiguos» trae los anteriores. No tiene buscador ni filtro.
 - De Mensajes sale solo que hubo un mensaje, un canal o un cambio de miembros, quién y cuándo: nunca el texto, el nombre del canal ni quiénes son.
 
 ### Ver como

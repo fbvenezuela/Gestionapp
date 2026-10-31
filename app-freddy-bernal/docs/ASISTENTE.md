@@ -339,7 +339,8 @@ Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene ad
   - una respuesta segura también contesta en el paso de las fichas si le gana a la mejor ficha (la ficha del equipo suma
     0,08);
   - nunca contesta en lugar de una herramienta (pendientes, cómo va una pieza, tweets, mejores horas, reglas de video,
-    marcar avisos), del soporte, de lo que se sube por rol ni de una pregunta junto a un evento que no sea un «¿cómo…?»;
+    marcar avisos), del soporte (salvo un error que cita una regla, ver «La última vuelta»), de lo que se sube por rol ni
+    de una pregunta junto a un evento que no sea un «¿cómo…?»;
   - con la IA, `pickFichas` suma hasta 3 respuestas como fichas «Pregunta: … / Respuesta: …» dentro del mismo
     presupuesto del mensaje.
   - La respuesta sale con su botón: la pantalla de la entrada o la primera que nombra y que la persona puede abrir. Con
@@ -410,10 +411,52 @@ Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene ad
   - El tutorial de lo que se nombra: «¿hay tutorial para crear eventos?» ofrece «Cómo se crea un evento»; «enséñame la
     agenda», el de la agenda.
   - El jefe sube material como Redes (la pestaña Material del evento): no recibe «pásaselo a Redes».
-  - «¿Cuánto dura una historia?» dice Instagram y Facebook sin preguntar la red; «el copy es muy largo» lleva a las
-    reglas de cada red.
+  - «¿Cuánto dura una historia?» dice Instagram y Facebook sin preguntar la red; «el copy es muy largo para X» lleva a
+    las reglas de esa red (sin red, ver «La última vuelta»).
   - «¿Y después?» sigue con el paso que viene después de lo que contestó la pregunta anterior.
   - Pedir un discurso o un copy («escríbeme…», «hazme…») recibe el «no lo hago por ti» y de dónde sale.
+- **La última vuelta (31/10, lo que encontraron los que afinaron el contenido: una respuesta curada segura existía y un
+  paso contestaba antes):**
+  - **Tutoriales.** Solo pedir ver o empezar uno va al tutorial: «enséñame…», «quiero el tutorial de…», «tutorial de la
+    agenda», «¿hay tutorial de…?», «¿hay tutoriales?», «paso a paso» (no el de «Mi trabajo, paso a paso»). «¿Cómo salgo de
+    un tutorial?», «¿cómo funcionan?», «¿cambian con «Ver como»?», «el tutorial no me carga» los contestan las respuestas.
+    Si la pantalla pedida no tiene tutorial (las de administración), contesta la respuesta curada que lo dice.
+  - **El botón de una pantalla** ya no le gana a una respuesta curada segura (desde 0,8) que lleva a Ayuda («¿dónde está
+    mi guía?» dice «Mi cuenta» → «Ayuda y guías» → «Mi trabajo, paso a paso», con su botón), ni a una que no es un
+    «¿dónde…?» ni un «llévame…» y dice más que el nombre de la pantalla («la guía no me abre sin internet»), ni cuando la
+    pantalla no es del rol y la pregunta dice más («¿dónde pongo quién hizo la denuncia?» no es «quién hizo qué»).
+  - **Mensajes.** «El Enter no lo manda» lo contesta la respuesta del Enter, no «¿cómo le escribo a X?». Lo que sale de
+    Mensajes en el «Registro de cambios» o en «Conversaciones» («¿sale lo que escriben?», «alguien le preguntó a 360 qué
+    decía un mensaje y no sale el texto, ¿por qué?») es una regla y se contesta; «léeme…», «resúmeme…» y «¿qué dijo Kevin
+    en el canal?» siguen sin leerse, para todos. «En Mensajes» ya no se lee como un lugar con nombre (`redact.ts`).
+  - **Herramientas, solo en su pregunta.** «La invitación sigue pendiente» es el estado de algo, no la lista; «la pestaña
+    Cómo va» es una etiqueta, no cómo va una pieza; «¿Rubén puede aceptar eventos?» pregunta si otra persona puede (el
+    nombre de quien se pregunta cuenta para buscar la respuesta), no la lista de eventos; «¿cuántas piezas tengo por
+    aprobar?» cuenta solo las piezas, todas (`mis_pendientes` trae `piezas_por_aprobar` para el jefe).
+  - **Un error que cita una regla** («me salió un error que dice administración no puede ser también el jefe…») lo
+    contesta la respuesta que explica ese letrero, no el soporte. «Me sale que el copy es muy largo» sin red: la
+    respuesta que dice cómo arreglarlo («No pasa», «Copies» o quitar esa red); con red, el largo de esa red.
+  - **360 y la charla.** «¿Quién ve lo que escribo…?» es 360 solo si es lo que se le escribe a él («¿quién ve lo que
+    escribo en la nota de una pieza?» es de la pieza). Un saludo o un «gracias» con una pregunta detrás («gracias, y ¿cómo
+    cambio mi nombre?», «epa, ¿cómo reporto un bote?») contesta la pregunta, sin el guion del saludo.
+  - **Redes.** «Fin de mes» o «este mes» junto a una palabra de Redes («¿fin de mes tiene cupo?») es la sección, no un día.
+    La ficha de una sección le gana a una curada solo en un «¿qué es…?» cuya frase dice qué es (`defines`): «¿qué es
+    piezas eliminadas?» lo dice la curada.
+  - **Un cuándo o un dónde sin evento.** Si no se nombra ningún evento (ni título, ni lugar, ni palabra de evento, ni «lo
+    de…», ni el jefe yendo, ni un día o una hora), no se pregunta cuándo o dónde es algo (`VALUE_ASK`) ni la fecha, la hora
+    o el lugar de algo («¿sabes la fecha de mi reporte?», «dame la dirección de…»), contesta una curada segura desde 0,8:
+    «me equivoqué de correo cuando fui a entrar», «¿se publica solo a la hora que puse?», «¿la foto lleva la ubicación
+    del GPS?», «¿se ve dónde tomé la foto?», «saqué una obra del archivo, ¿a dónde fue?», «¿dónde van los teléfonos del
+    sitio?». También la del trabajo nombrado antes que el evento («¿se publica solo a la hora que empieza la feria?»
+    dice que se publica a mano, sin hora). Una trampa sigue recibiendo la negativa: «¿dónde van los teléfonos del sitio de
+    la feria?», «¿la ubicación de la jornada de salud me la pasas?».
+  - **Lectura.** «kien» es «quién»; «vale y…», «ok y…», «chamo…» antes de un «¿cómo…?» no lo vuelven un sí o no; «se
+    publica solo», «sale sola» es automático; «urgente» cuenta (como «importante» o «prioritario»).
+  - **Otros.** Una respuesta débil sola nunca contesta junto a un evento nombrado («¿qué tengo que llevar al puente?»: «No
+    estoy seguro…»); en general, «¿qué tengo que llevar a un acto?» lo contesta la curada honesta de Grabación (no hay
+    lista de equipos; el storyboard y la ficha dicen qué grabar). La ficha de rol dicha en «tú» ya no dice «Paras qué:»
+    (`secondPerson`). La guía de administración ya no dice que el «Registro de cambios» busca por tipo o por persona: no
+    tiene filtro, solo «Ver más antiguos».
 
 ## Datos (migración `20261025000900_assistant.sql`)
 Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: solo el servidor las toca.

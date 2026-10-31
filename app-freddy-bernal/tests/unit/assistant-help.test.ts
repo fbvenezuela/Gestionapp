@@ -93,8 +93,9 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['mándale un mensaje a Rubén', TELL_MSG],
     // D-89: the curated answer («Lo leen solo los que están en ese canal…, y el jefe está en todos»).
     ['¿quién puede leer mis mensajes?', { has: /solo los que están en ese canal|cada quien ve solo los canales donde está/ }],
-    // A how-to of a thing, not of a screen: the ficha, as before.
-    ['¿cómo funciona el semáforo?', { has: /Todo lo aprueba el jefe/, tutorial: null }],
+    // A how-to of a thing, not of a screen: no tutorial. Since D-89 (last pass), Redes' curated answer says what each
+    // level means (verde, amarillo, rojo), where the old ficha only said who approves.
+    ['¿cómo funciona el semáforo?', { has: /verde.*amarillo.*rojo/, tutorial: null }],
   ],
   camera: [
     ['muéstrame cómo se usa esta pantalla', SHOW('evento-grabacion', '/eventos/[id]')],

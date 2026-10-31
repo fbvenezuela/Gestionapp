@@ -31,6 +31,13 @@ const WROTE = /\bque (?:me |nos |te |le |les )?(?:escribio|escribieron|respondio
 const SAID = new RegExp(String.raw`\bque (?:me |nos |te |le |les )?(?:dice|dicen|decia|dijo|dijeron|puso|pusieron|mando|mandaron|hablaron|escribieron)\b.*\b(?:${NOUN}|grupo|todo el equipo)\b`);
 // A label of the screen, not what someone wrote.
 const LABEL = /\bmensajes? (?:oculto|nuevos?)\b/;
+// How Mensajes shows up somewhere else (administración's «Registro de cambios», the «Conversaciones» of 360, what someone
+// asked 360), asked as a rule («¿sale…?», «¿yo lo veo?», «¿por qué no sale el texto?»): about the platform, not a request
+// to read (D-89). «Léeme…», «resúmeme…», «¿qué dijo Kevin en el canal?» still are.
+const ELSEWHERE = /\b(?:registro|conversaciones|lo que preguntan)\b|\ble (?:pregunt\w*|dijo|dijeron|escribio|escribieron) a (?:360|asistente|el asistente)\b/;
+const AS_RULE = /\b(?:sale|salen|salio|muestra|muestran|aparece|aparecen|se ve|se ven|veo|lo veo|ves|se guarda|se guardan|queda|quedan|por que|puedo ver|puedo leer|se puede ver)\b/;
+// Asked to 360 itself: «léeme…», «resúmeme…», «¿puedes leer…?».
+const READ_ME = new RegExp(String.raw`^(?:(?:oye|porfa|por favor|360|y) )*(?:lee|leeme|leelo|leelos|leela|leelas|revisa|revisame|resume|resumeme|chequea|chequeame)\b|\b(?:puedes|podrias|me puedes) (?:leer|leerme|resumir|resumirme|revisar)\b`);
 
 // «Dile / mándale (un mensaje) / escríbele / pregúntale a <alguien> que…», not to administración (support).
 const TELL_VERB = String.raw`(?:dile|digale|decile|dila|diles|mandale|mandales|enviale|enviales|escribele|escribeles|preguntale|preguntales|comentale|comentales|recuerdale|recuerdales)`;
@@ -55,7 +62,8 @@ const HOW_WRITE = new RegExp(
 );
 
 // A channel's management or a message the platform held: not how to write to someone.
-const NOT_HOW_WRITE = /\b(?:canal|canales|grupo|grupos|no me deja|no me dejo|no puedo|no se (?:manda|envia|puede|mando|envio)|oculto|oculta|ocultaron|enviar igual|corregir|solo el jefe|archiv\w*|edit\w*|borr\w*|elimin\w*|bloque\w*)\b/;
+// The Enter key and the send button too («como mando el mensaje si el enter no lo manda»): the answers say it.
+const NOT_HOW_WRITE = /\b(?:canal|canales|grupo|grupos|no me deja|no me dejo|no puedo|no se (?:manda|envia|puede|mando|envio)|no lo (?:manda|envia|mando|envio)|enter|salto de linea|avioncito|boton de enviar|oculto|oculta|ocultaron|enviar igual|corregir|solo el jefe|archiv\w*|edit\w*|borr\w*|elimin\w*|bloque\w*)\b/;
 
 export type MessagesAsk = 'read' | 'tell';
 
@@ -65,8 +73,9 @@ export function messagesAsk(text: string): MessagesAsk | null {
   if (!q) return null;
   if (!NOTICE.test(q) && (TELL.test(q) || TELL_ONE.test(q) || SEND_ONE.test(q) || BY_MESSAGE.test(q))) return 'tell';
   if (LABEL.test(q)) return null;
-  if (WROTE.test(q) || SAID.test(q)) return 'read';
-  if (READ.test(q) && !NOT_TO_ME.test(q)) return 'read';
+  const rule = ELSEWHERE.test(q) && AS_RULE.test(q) && !READ_ME.test(q);
+  if ((WROTE.test(q) || SAID.test(q)) && !rule) return 'read';
+  if (READ.test(q) && !NOT_TO_ME.test(q) && !rule) return 'read';
   return null;
 }
 

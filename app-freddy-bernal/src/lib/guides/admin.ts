@@ -65,7 +65,7 @@ export const ADMIN_GUIDE: AdminGuide = {
       screen: '/ajustes/registro',
       title: 'Registro de cambios',
       what: 'Quién cambió qué y cuándo, en toda la plataforma.',
-      youDo: ['Buscas un cambio por tipo o por persona.', 'De Mensajes sale solo que hubo un mensaje, un canal o un cambio de miembros, quién y cuándo: nunca el texto, el nombre del canal ni quiénes son.'],
+      youDo: ['Lees los cambios del más nuevo al más viejo, con quién, qué y cuándo; abajo, «Ver más antiguos» trae los anteriores. No tiene buscador ni filtro.', 'De Mensajes sale solo que hubo un mensaje, un canal o un cambio de miembros, quién y cuándo: nunca el texto, el nombre del canal ni quiénes son.'],
     },
     {
       title: 'Ver como',

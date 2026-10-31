@@ -3385,6 +3385,7 @@ export const BOSS: Answer[] = [
       'tengo poco tiempo que reviso primero',
       'que hago primero',
       'tengo cinco minutos que es lo mas importante',
+      'tengo 5 minutos que es lo mas urgente',
       'por donde empiezo',
       'que es lo prioritario hoy',
       'que no puede esperar',

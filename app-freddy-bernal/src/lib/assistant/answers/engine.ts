@@ -43,6 +43,8 @@ export type Match = { entry: Entry; score: number; confidence: Confidence; text:
 const SHORTHAND: [RegExp, string][] = [
   [/\b(?:q|k|ke|qe)\b/g, 'que'],
   [/\b(?:xq|pq|porq|xk|pk|porke|xque)\b/g, 'por que'],
+  [/\b(?:kien|qien)\b/g, 'quien'],
+  [/\b(?:kienes|qienes)\b/g, 'quienes'],
   [/\b(?:kndo|qndo|cndo|cuado|kuando|cdo)\b/g, 'cuando'],
   [/\b(?:onde|aonde|adonde|dnd|dnde|dond)\b/g, 'donde'],
   [/\bd\b/g, 'de'],
@@ -100,6 +102,8 @@ const SHORTHAND: [RegExp, string][] = [
   [/\bnumeros? (?:de|del) (?:telefonos?|celular)\b/g, 'telefono'],
   [/\b(mis?|tus?|su) numero\b/g, '$1 telefono'],
   [/\bpara que\b/g, 'paraque'],
+  // «Se publica solo», «sale sola»: by itself, with nobody doing it («solo» alone is a filler).
+  [/\b(se (?:publica|publican|sube|suben|manda|mandan|envia|envian|programa)|sale|salen) (?:sol[oa]s?|solit[oa]s?)\b/g, '$1 automatico'],
   [/\bdel? uno al? diez\b/g, 'de 1 a 10'],
   [/\b1 al 10\b/g, '1 a 10'],
 ];
@@ -121,7 +125,7 @@ const STOP = new Set(
     // What is said around a question and asks nothing (fillers, greetings, Venezuelan ways of talking).
     'chamo chama chamito mana mano vaina broder bro mijo mija nojoda epale mira fijate disculpa disculpe perdon perdona oiga coye vez veces rapido rapidito vale ' +
     // Polite ways of asking: they ask nothing themselves («¿podrías explicarme el procedimiento para…?»).
-    'podrias podrian puedes pudieras quisiera quisieramos gustaria explicame explicarme expliqueme explicame ayudame ayudarme ayudeme indicame indiqueme cuentame digame dices dime procedimiento amablemente urgente ' +
+    'podrias podrian puedes pudieras quisiera quisieramos gustaria explicame explicarme expliqueme explicame ayudame ayudarme ayudeme indicame indiqueme cuentame digame dices dime procedimiento amablemente ' +
     // The frame of a «¿cómo funciona…?», «¿para qué sirve…?», «¿qué significa…?»: the kind of question says it (askKind).
     'funciona funcionan funcionar funcione sirve sirven servir significa significan significado').split(' '),
 );
@@ -260,6 +264,8 @@ const SYNONYMS: string[][] = [
   ['campana', 'avisos'],
   ['lapiz', 'editar'],
   ['importancia', 'prioridad'],
+  // «¿Qué es lo más urgente?» is what goes first («lo más importante», «lo prioritario»).
+  ['urgente', 'importante', 'prioritario'],
   ['rodar', 'mover'],
   ['grabar', 'filmar'],
   ['aprobar', 'autorizar'],
@@ -690,8 +696,8 @@ export type FindOptions = { roles: Role[]; screen?: string | null; limit?: numbe
 
 // A question about what something is or where («¿qué es…?», «¿qué sale en…?»): a label named whole is what it asks.
 const WHAT_IS = /\b(?:que es|que son|que significa\w*|que quiere decir|que sale en|que hay en|que dice|paraque sirve|paraque es|donde esta|donde veo|que hago en|como (?:uso|funciona))\b/;
-// A question that asks what, how, where, who… (not yes or no).
-const WH_ASK = /^(?:y |pero |entonces |oye )?(?:que|como|donde|cuando|quien|quienes|cual|cuales|cuanto|cuantos|cuantas|por que|paraque|de que|en que|a que|con que)\b/;
+// A question that asks what, how, where, who… (not yes or no), maybe after a word that opens it («vale y cómo sé si…»).
+const WH_ASK = /^(?:(?:y|e|pero|entonces|oye|vale|ok|okey|bueno|mira|chamo|epa|aja|ya|disculpa|perdon) )*(?:que|como|donde|cuando|quien|quienes|cual|cuales|cuanto|cuantos|cuantas|por que|paraque|de que|en que|a que|con que)\b/;
 // Someone named in an answer: a role, the boss, administración.
 const NAMES_SOMEONE = /\b(?:jefe|despacho|politica|ivt|grabacion|redes|administracion|solo el|nadie|cualquiera|todos|todo el equipo)\b/;
 // An answer in «tú» names the person who asks («Tú, en Ajustes → Equipo…», «Lo haces tú…»).

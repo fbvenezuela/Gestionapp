@@ -191,12 +191,14 @@ export const TOOLS: Tool[] = [
           if (waitingDate) items.push({ que: 'Esperan fecha (la ponen el jefe o el despacho)', titulo: `${waitingDate} ${waitingDate === 1 ? 'obra' : 'obras'} por ponerle fecha` });
         }
         const unread = await sql.one<{ n: number }>(`select count(*)::int as n from public.notifications where read_at is null`);
-        return { items, unread: unread?.n ?? 0 };
+        // How many pieces wait for the boss, all of them (the list above shows the first 8): «¿cuántas piezas tengo por aprobar?».
+        const toApprove = has(s, 'boss') ? ((await sql.one<{ n: number }>(`select count(*)::int as n from public.pieces where status = 'in_review' and deleted_at is null`))?.n ?? 0) : null;
+        return { items, unread: unread?.n ?? 0, toApprove };
       });
       const seen = new Set<string>();
       const all = out.items.filter((i) => !seen.has(i.que + i.titulo) && seen.add(i.que + i.titulo));
       return {
-        result: { total: all.length, pendientes: all.slice(0, 12), avisos_sin_leer: out.unread },
+        result: { total: all.length, pendientes: all.slice(0, 12), avisos_sin_leer: out.unread, ...(out.toApprove === null ? {} : { piezas_por_aprobar: out.toApprove }) },
         // Their home: the boss's Inicio, Municipios for política, Obras for the IVT, Hoy for the rest.
         goTo: homeFor(s.roles),
       };

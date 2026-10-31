@@ -10,8 +10,8 @@ import { withSystem } from '@/lib/db';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import type { Role } from '@/lib/roles';
 import { handleTurn } from '@/lib/assistant';
-import { NOT_SURE, NOT_SURE_ADMIN } from '@/lib/assistant/local';
-import { MESSAGES_READ_TEXT, MESSAGES_TELL_TEXT } from '@/lib/assistant/messages-ask';
+import { NOT_SURE, NOT_SURE_ADMIN, secondPerson } from '@/lib/assistant/local';
+import { MESSAGES_ADMIN_TEXT, MESSAGES_READ_TEXT, MESSAGES_TELL_TEXT } from '@/lib/assistant/messages-ask';
 
 function sessionOf(key: DemoUserKey): Session {
   const u = DEMO_USERS.find((x) => x.key === key)!;
@@ -129,6 +129,16 @@ const CLASSES: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿me avisas a qué hora llega el jefe a la cancha?', A],
     ['si guardo la ficha, ¿a qué hora es la feria?', A],
     ['qué es «Hoy en la agenda»? y a qué hora es lo de la cancha', A],
+    // (last pass) The guide's own curated answer, with its tutorial of Ayuda, not the bare «Te dejo el botón para ir».
+    ['¿Dónde está mi guía?', { has: /«Mi trabajo, paso a paso»/, not: /Te dejo el botón para ir/ }],
+    // «¿Rubén puede…?» asks whether another person may, not for the list of events waiting.
+    ['¿Rubén puede aceptar eventos?', { notTool: 'eventos_por_decidir', has: /^No: decidir es solo tuyo/ }],
+    // Pieces counted when it says pieces (all of them, not the whole list).
+    ['¿cuántas piezas tengo por aprobar?', { tool: 'mis_pendientes', has: /^Tienes \d+ piezas? por aprobar/ }],
+    // «vale y…» opens a «¿cómo…?»: the answer that says how he knows, not the «No:» of another question.
+    ['vale y ¿cómo sé si Redes ya publicó lo que aprobé?', { has: /«Publicado»/ }],
+    // «5 min» and «reuniones» are not the agenda: what goes first in his Inicio.
+    ['chamo tengo 5 min entre reuniones, ¿qué es lo más urgente?', { has: /«Te toca aprobar»/, not: /No estoy seguro/ }],
   ],
   dispatch: [
     ['que es Guardar aunque choque', { has: /choca/, not: REFUSAL }],
@@ -138,6 +148,11 @@ const CLASSES: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿La importancia del 1 al 10 la pongo yo?', { has: /^No/, not: REFUSAL }],
     ['que dice como se llega en la feria', A],
     ['¿Cuándo va el gobernador a la escuela Los Andes?', A],
+    // (last pass) The Enter key is the answers', not «¿cómo le escribo a alguien?»; the site's phones as a field, not one event's.
+    ['le doy enter y no se manda el mensaje', { has: /Enter hace un salto de línea/ }],
+    ['¿cómo funcionan los tutoriales?', { has: /«Siguiente» y «Atrás»/ }],
+    ['¿dónde van los teléfonos del sitio?', { has: /«Contactos del sitio»/, not: REFUSAL }],
+    ['¿dónde van los teléfonos del sitio de la feria?', A],
   ],
   social: [
     ['como archivo un canal', { has: /jefe/, not: /^Mensajes está en el sobre/ }],
@@ -145,21 +160,68 @@ const CLASSES: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿cuánto dura una historia?', { tool: 'reglas_de_video', has: /Instagram y Facebook/, not: /¿Para qué red\?/ }],
     ['kevin me pregunto si el acto de las viviendas es mañana o pasado, tu sabes?', A],
     ['chamo pasame la direccion del acto d mañana', A],
+    // (last pass) The copy too long with no network: how to fix it; with a network, its limit.
+    ['me sale que el copy es muy largo', { notTool: 'reglas_de_video', has: /«No pasa»/ }],
+    ['me sale un error que dice que el copy es muy largo para x', { tool: 'reglas_de_video', has: /caracteres/ }],
+    // Who reads a piece's note (not what is asked to 360).
+    ['¿quién ve lo que escribo en la nota de una pieza?', { has: /Redes, el jefe y administración/, not: /Administración ve lo que me preguntas/ }],
+    // «¿Se publica solo…?» is a rule, also with «la hora que puse»; next to the feria it says no hour either.
+    ['¿se publica solo a la hora que puse?', { has: /a mano/ }],
+    ['¿se publica solo a la hora que empieza la feria?', { has: /a mano/ }],
+    ['¿qué dijo Kevin en el canal de Redes?', { is: MESSAGES_READ_TEXT }],
+    ['¿a qué hora empieza la feria? quiero publicar justo ahí', A],
   ],
   camera: [
     ['tengo dos eventos seguidos, cual es primero', A],
     ['donde stan mis eventos', { go: '/agenda', not: REFUSAL }],
     ['pa q es «Quién graba»? y a q hora es la jornada de salud', A],
+    // (last pass) A question about the tutorials themselves; the GPS of a photo is no event's place.
+    ['¿cómo salgo de un tutorial?', { has: /«Salir del tutorial»/ }],
+    ['¿la foto que subo lleva la ubicación del GPS?', { has: /sin ubicación/, not: REFUSAL }],
+    ['¿la ubicación de la jornada de salud me la pasas?', A],
+    ['me equivoqué de casilla cuando fui a la cancha, ¿a qué hora es?', A],
   ],
   ivt: [
     ['a quien llamo cuando llegue a la obra', A],
     ['la gente de la comunidad me pregunta cuando viene el gobernador q les digo', A],
     ['¿Cómo le mando la ficha al jefe cuando ya está lista?', { has: /«Guardar y avisar al jefe»/, not: REFUSAL }],
     ['q me falta x hacer hoy', { tool: 'mis_pendientes' }],
+    // (last pass) Thanks and then a question: the question. «Cuando fui a entrar» is no event's when.
+    ['gracias, y ¿cómo cambio mi nombre?', { has: /«Nombre»/ }],
+    ['me equivoqué de correo cuando fui a entrar', { has: /«Usar otro correo»/, not: REFUSAL }],
+    ['las fotos que subo llevan la ubicación del teléfono', { has: /sin la ubicación/, not: REFUSAL }],
+    ['kien decide si el jefe va a mi obra', { has: /«Por ponerle fecha»/, not: /^Jefe: tiene todo/ }],
+    ['saqué una obra del archivo, ¿a dónde fue a parar?', { has: /«Borradores»/, not: REFUSAL }],
+    ['¿a dónde fue el jefe? me dijeron que a la obra de la escuela', A],
   ],
   politics: [
     ['si guardo sin mandarlo al jefe donde queda', { not: REFUSAL }],
     ['redes puede ver mis reportes? no quiero q vean los datos de la gente', { has: /^No/ }],
+    // (last pass) «dónde la tomé» is no event's place; a greeting before a question; the date of one's report keeps the refusal.
+    ['¿se ve en la foto dónde la tomé?', { has: /sin la ubicación/, not: REFUSAL }],
+    ['epa como reporto un bote de aguas negras', { has: /ficha comunitaria/, not: /^¡Hola/ }],
+    ['¿y sabes la fecha de mi reporte?', A],
+  ],
+  admin: [
+    // (last pass) Tutorials: how they work and «Ver como» are the answers'; administración's screens have none.
+    ['¿los tutoriales cambian si uso Ver como?', { has: /siguen «Ver como»/ }],
+    ['hay tutorial de ajustes', { has: /no tienen tutorial/ }],
+    ['muéstrame cómo se usa esta pantalla', { screen: '/ajustes/equipo', has: /no tienen tutorial/, not: /^Sí/ }],
+    // Its guide, with the guide's own button; the guide without signal is a problem, not the way to Ayuda.
+    ['¿Dónde está mi guía?', { has: /«Guía de administración»/, go: '/ayuda/administracion' }],
+    ['la guía no me abre sin internet', { has: /necesitan señal/ }],
+    // Mensajes in the Registro de cambios or in «Conversaciones»: rules, answered; reading a channel is still refused.
+    ['¿El registro de cambios muestra lo que escriben en Mensajes?', { has: /Nunca el texto/ }],
+    ['alguien le preguntó a 360 qué decía un mensaje y en Conversaciones no sale el texto, ¿por qué?', { has: /se guarda sin el texto/ }],
+    ['léeme los mensajes del canal de Redes', { is: MESSAGES_ADMIN_TEXT }],
+    // The state of an invitation, the «Cómo va» tab and an error that quotes a rule are no tool and no support.
+    ['la invitación sigue pendiente', { notTool: 'mis_pendientes', has: /«Invitaciones sin aceptar»/ }],
+    ['¿qué muestra la pestaña Cómo va?', { screen: '/ajustes/asistente', notTool: 'estado_pieza', has: /«Cómo va» muestra/ }],
+    ['me salió un error que dice administración no puede ser también el jefe ni el despacho', { has: /^Es la regla/, not: /teléfono de soporte/ }],
+    // Redes' cards say less than these.
+    ['¿Fin de mes tiene cupo?', { has: /^No: fin de mes no tiene cupo/ }],
+    ['donde se guardan los videos', { has: /Drive/, not: REFUSAL }],
+    ['¿qué es piezas eliminadas?', { has: /«Recuperar»/ }],
   ],
 };
 
@@ -201,6 +263,12 @@ describe('360 con sus respuestas: la negativa solo para la agenda de verdad, y c
       }
     });
   }
+
+  it('la ficha de rol dicha en «tú» no conjuga «Para qué:» ni lo que hace una cosa', () => {
+    expect(secondPerson('Para qué: grabar los eventos asignados. Ve solo los eventos que le asignaron; no sale hasta que la vuelva a aprobar.')).toBe(
+      'Para qué: grabar los eventos asignados. Ves solo los eventos que le asignaron; no sale hasta que la vuelva a aprobar.',
+    );
+  });
 
   it('un «no estoy seguro» del equipo sigue ofreciendo avisar a administración', async () => {
     const r = await handleTurn(sessionOf('camera'), { question: 'como cocino una arepa' }, { chain: [] });
