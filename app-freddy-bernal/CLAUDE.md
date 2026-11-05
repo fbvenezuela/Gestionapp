@@ -5,7 +5,7 @@
 Lee primero `PROMPT-APP-FREDDY-BERNAL.md` (reglas que no se rompen, §4) y `docs/IDEA.md`. Juan habla español de
 Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en español; el código en inglés.
 
-## Estado (30/10/2026)
+## Estado (05/11/2026)
 - **Fase 0 y Fase 1 construidas**, en modo demostración (base en memoria con datos inventados). Faltan las cuentas
   (Supabase, Vercel, Resend) para pasar a datos reales: ver `README.md` y `docs/PENDIENTES.md`.
 - Módulos: entrar por invitación + código + TOTP; Hoy por rol; agenda (calendario para jefe/despacho, lista sin fecha
@@ -54,6 +54,13 @@ Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en españo
   va y está en todos por la base; cada canal muestra quiénes están; **sin aviso** en ninguna parte (lo pidió Juan); sin
   directos, grupos ni «Quién habla con quién»; «Todo el equipo» sigue. Migración `20261029090000_chat_channels.sql`
   (en `fb-dev` desde el 30/10).
+- **360 contesta lo que pregunta cada rol (30/10–05/11; D-89):** índice de respuestas (`src/lib/assistant/answers/`):
+  unas 1.400 respuestas curadas, escritas como pregunta la gente y con texto por rol, más todo lo de las guías
+  (pantallas, tareas, preguntas, «Para todos», flujos, administración). La negativa de la agenda solo para el cuándo o
+  el dónde de un evento (también dicho de otra forma: «¿en qué escuela es…?», «¿es lejos?»), y todo título que 360
+  muestra va sin su lugar. Medido con preguntas nuevas de personas que no vieron nada: 76 % bien (antes 32 %), 0
+  inseguras en 978 preguntas y en 329 ataques. Prueba de ataque: `tests/unit/assistant-redteam.test.ts`; contenido:
+  `tests/unit/assistant-answers-content.test.ts`. Los bancos de preguntas no están en el repositorio.
 - Marca: oliva como color principal (D-21). Diagnóstico Digital 360 resumido en `docs/DIAGNOSTICO-360.md` (el ZIP es
   confidencial y no está en el repositorio).
 - Pruebas: Vitest (unidad + RLS) y Playwright a 360 px con axe. CI en `.github/workflows/ci.yml`.
@@ -85,7 +92,10 @@ factor; con `DATABASE_URL` nunca se activa. Playwright levanta dos servidores: 3
    día (cupo y pilares de Redes, «Mes 1», historias y carruseles por red, el material de 360), aplicadas y verificadas
    contra el código el 30/10 (`docs/PROMPT-SUPABASE.md`). Falta lo de esa guía: los pasos de Juan en el panel (SMTP
    primero), las variables en Vercel y la primera entrada (OTP, TOTP, Drive); después, probar Mensajes y Redes ahí con
-   dos teléfonos.
+   dos teléfonos. **Pendiente en `fb-dev`:** 9 fichas de 360 cambiaron el 05/11 (roles, permisos, no-tengo-permiso,
+   rol-politica, marcar-realizado, crear-pieza, frase-jefe, rol-grabacion, subir-material). El 05/11 la conexión de
+   Supabase rechazó la clave de la base y no se pudieron subir: con la conexión de vuelta, se aplican con «no pisar»
+   (lo mismo que hace `seedAssistant`) y se comparan con `config/assistant/knowledge.json`.
 2. Respuestas de Hillary a las preguntas de Redes por formato (cupo, pilares, quién aprueba el diseño, YouTube, el #1
    del feed…) y a las de la segunda vuelta (`docs/PENDIENTES.md`, al final).
 3. Fase 2: publicación automática (Meta, X, TikTok, YouTube), métricas por API, análisis con IA, Drive del cliente,
