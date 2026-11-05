@@ -186,10 +186,13 @@ test.describe('en el teléfono (360 px)', () => {
   test('un reporte de política espera fecha; el jefe se la pone; política ve «Ya tiene fecha», sin la fecha', async ({ page, browser }) => {
     await loginAs(page, 'jefe@demo.test');
     const report = 'Asamblea con los voceros del sector La Ermita (demo)';
-    const url = await putDate(page, report, '16:20', 'report', 'Sector La Ermita (demo)');
+    // The time it gets must not be the clock's while the test runs: the report's history shows when things happened,
+    // and «4:20» there is not the agenda (it failed once at 4:20 p. m.).
+    const { time, shown } = timeAwayFromNow(['16:20', '15:47', '14:53']);
+    const url = await putDate(page, report, time, 'report', 'Sector La Ermita (demo)');
     await expect(page.getByRole('heading', { level: 1, name: report })).toBeVisible();
     await expect(page.getByText('Actividad comunitaria', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText(/4:20/).first()).toBeVisible();
+    await expect(page.getByText(shown).first()).toBeVisible();
     await fitsWidth(page, '/eventos/[id] actividad comunitaria');
     await noSerious(page, '/eventos/[id] actividad comunitaria');
 
@@ -198,14 +201,14 @@ test.describe('en el teléfono (360 px)', () => {
     await pol.page.locator('main a[href^="/reportes/"]').filter({ hasText: report }).first().click();
     await expect(pol.page).toHaveURL(/\/reportes\/[0-9a-f-]{36}$/);
     await expect(pol.page.getByText('Ya tiene fecha. La ven el jefe y el despacho en la agenda.')).toBeVisible();
-    await expect(pol.page.getByText(/4:20/)).toHaveCount(0);
+    await expect(pol.page.getByText(shown)).toHaveCount(0);
     await noSerious(pol.page, '/reportes/[id] para política');
     // The activity itself, from its municipality: still no date.
     await pol.page.goto('/municipios/torbes');
     await pol.page.locator('main a[href^="/eventos/"]').filter({ hasText: report }).first().click();
     await expect(pol.page.getByRole('heading', { level: 1, name: report })).toBeVisible();
     await expect(pol.page.getByText('Ya tiene fecha. La ven el jefe y el despacho en la agenda.')).toBeVisible();
-    await expect(pol.page.getByText(/4:20/)).toHaveCount(0);
+    await expect(pol.page.getByText(shown)).toHaveCount(0);
     await fitsWidth(pol.page, '/eventos/[id] para política');
     await noSerious(pol.page, '/eventos/[id] para política');
     await pol.ctx.close();
@@ -213,3 +216,14 @@ test.describe('en el teléfono (360 px)', () => {
     await cancel(page, url);
   });
 });
+
+/** The first of these times (24 h, Caracas) whose «h:mm» is not the clock's in the next 20 minutes, and its pattern. */
+function timeAwayFromNow(times: string[]): { time: string; shown: RegExp } {
+  const label = (m: number) => `${((Math.floor(m / 60) + 11) % 12) + 1}:${String(m % 60).padStart(2, '0')}`;
+  const now = new Date();
+  const nowMin = (now.getUTCHours() * 60 + now.getUTCMinutes() - 240 + 1440) % 1440; // Venezuela: UTC−4, no DST
+  const soon = new Set(Array.from({ length: 21 }, (_, k) => label((nowMin + k) % 1440)));
+  const time = times.find((t) => !soon.has(label(Number(t.slice(0, 2)) * 60 + Number(t.slice(3))))) ?? times[0];
+  const shown = label(Number(time.slice(0, 2)) * 60 + Number(time.slice(3)));
+  return { time, shown: new RegExp(`\\b${shown}\\b`) };
+}
