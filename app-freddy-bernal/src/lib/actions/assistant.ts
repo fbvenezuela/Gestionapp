@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { requireSession, type Session } from '../auth/session';
 import * as admin from '../assistant/admin';
 import { guardQuestion } from '../assistant/brain';
-import { redact, redactQuoted } from '../assistant/redact';
+import { placeSafeTitle, redact, redactQuoted, safeTitle } from '../assistant/redact';
 import { loadTitles, withTitleHoles } from '../assistant/titles';
 import {
   PANEL_PATH,
@@ -110,7 +110,12 @@ export async function saveAnswerAsExample(raw: unknown) {
     // The answer quotes titles as they are and the script goes to the AI provider in every matching
     // turn: titles, and the names in them, become «[titulo]» (the scripts' data hueco) and the rest gets
     // every lock. What still names one event is refused by saveScript (a script is never about one).
-    const titles = await loadTitles(s);
+    // 360 quotes a title without its place (or, next to a when or a where, in its safest form, red team 05/11): those forms
+    // become «[titulo]» too (of two words or more: «Entrega» alone is an ordinary word).
+    const seen = await loadTitles(s);
+    const placesOf = (k: number) => (seen.places[k] ? [seen.places[k], ...seen.places] : seen.places);
+    const shownForms = seen.events.flatMap((t, k) => [placeSafeTitle(t, placesOf(k)), safeTitle(t, placesOf(k))]).filter((t) => t && !seen.events.includes(t) && t.split(/\s+/).filter((w) => w.length >= 4).length >= 2);
+    const titles = { ...seen, events: [...seen.events, ...new Set(shownForms)] };
     const answer = redactQuoted(withTitleHoles(pair.answer.body, titles, { names: true }));
     const question = guardQuestion(redact(withTitleHoles(pair.question, titles, { names: true })), titles);
     const draft = scriptFromAnswer(question, answer, name);

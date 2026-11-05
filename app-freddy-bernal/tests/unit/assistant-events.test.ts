@@ -564,8 +564,8 @@ describe('con cadena de modelos: lo que habla de un evento nunca llega al provee
       expect(r.answer, `${key}: ${q}`).not.toMatch(/No encontré ningún evento|Encontré varios|está en «/);
       expect(r.degraded, `${key}: ${q}`).toBe(false);
     }
-    // How one event is going is still the event lookup.
-    expect((await handleTurn(sessionOf('social'), { question: '¿cómo va lo de la cancha?' }, { chain: [] })).answer).toMatch(/^El evento «Entrega de la cancha techada de El Mirador» está en «/);
+    // How one event is going is still the event lookup (its title without its place, red team 05/11).
+    expect((await handleTurn(sessionOf('social'), { question: '¿cómo va lo de la cancha?' }, { chain: [] })).answer).toMatch(/^El evento «Entrega de la cancha techada» está en «/);
   });
 
   it('la pregunta que sigue a una sobre un evento también es de 360; la de después vuelve al modelo, sin aquella en el hilo', async () => {

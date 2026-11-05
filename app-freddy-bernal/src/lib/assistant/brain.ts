@@ -56,7 +56,9 @@ export type TurnContext = {
 // goTo: a screen the demo brain points to without a tool («¿dónde está la biblioteca?»). tutorial: one to start
 // («Ver el tutorial de Publicar»). fixed: the text is one of 360's answers (answers/engine.ts: the help content, static and
 // checked by its own tests), so the agenda net only looks for a concrete date, time, place or contact in it (index.ts).
-export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[]; restore?: (t: string) => string; goTo?: string; tutorial?: TutorialLink; fixed?: boolean };
+// shown: the event titles the demo brain quoted as it showed them (without their place, red team 05/11): the output net
+// masks them like the titles its tools returned.
+export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[]; restore?: (t: string) => string; goTo?: string; tutorial?: TutorialLink; fixed?: boolean; shown?: string[] };
 
 // ---------------------------------------------------------------------------
 // Which fichas go into this turn: the relevant ones, not all of them (a turn should weigh

@@ -261,7 +261,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     // The agenda rule, once more in code: an answer about events never carries a date, time, day,
     // place or contact. The demo brain quotes the titles it looked up as they are (the person can see
     // them): those are masked for this check, like the model's placeholders.
-    const checked = out.restore ? answer : new Placeholders({ events: titlesIn(out.calls), pieces: [], places: [] }).mask(answer);
+    const checked = out.restore ? answer : new Placeholders({ events: [...titlesIn(out.calls), ...(out.shown ?? [])], pieces: [], places: [] }).mask(answer);
     // One of 360's answers (static help text: «Hoy en la agenda», «de noche» in «Horas de silencio», «de 2 a 3 por día»)
     // breaks the rule only with a concrete date, time, map, phone, place or contact in it, by the same check its content
     // test uses (guides/check); anything else, by the whole net.

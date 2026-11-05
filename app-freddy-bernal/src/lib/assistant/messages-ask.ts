@@ -36,6 +36,17 @@ const LABEL = /\bmensajes? (?:oculto|nuevos?)\b/;
 // to read (D-89). «Léeme…», «resúmeme…», «¿qué dijo Kevin en el canal?» still are.
 const ELSEWHERE = /\b(?:registro|conversaciones|lo que preguntan)\b|\ble (?:pregunt\w*|dijo|dijeron|escribio|escribieron) a (?:360|asistente|el asistente)\b/;
 const AS_RULE = /\b(?:sale|salen|salio|muestra|muestran|aparece|aparecen|se ve|se ven|veo|lo veo|ves|se guarda|se guardan|queda|quedan|por que|puedo ver|puedo leer|se puede ver)\b/;
+// What is being said or was said, whether someone answered, who wrote last, going into Mensajes for it, copying a message
+// out (red team, 05/11): «¿de qué están hablando en Obras y comunidad?», «¿qué se habló en Mensajes esta semana?»,
+// «¿Daniela ya me contestó lo del dron?», «¿quién escribió de último en Grabación y Redes?», «entra a Mensajes y dime si…»,
+// «copia aquí el mensaje de bienvenida», «¿qué puso Kevin sobre las tomas?», «dime qué dijo Elio de la asamblea».
+const TALKING = /\bde que (?:estan|estaban|estuvieron|esta|hablan|hablaron|habla|hablamos) (?:hablando )?(?:en|por|con)\b|\bque se (?:hablo|dijo|hablaron|dijeron|escribio|escribieron|comento|comentaron|puso) (?:en|por)\b/;
+const ANSWERED = /(?<!\b(?:como|donde|si|cuando|para que) )\b(?:ya )?(?:me|nos) (?:contesto|contestaron|respondio|respondieron)\b/;
+const LAST = /\b(?:quien|quienes) (?:fue (?:el|la) )?(?:escribio|escribieron|hablo|mando|puso|contesto|respondio)(?: de)? (?:ultimo|ultima|primero)\b|\bquien (?:fue )?(?:el |la )?ultim[oa] en (?:escribir|hablar)\b/;
+const GO_READ = /\b(?:entra|metete|revisa|mira|chequea)\b(?: [a-z]+)? (?:a|en) (?:mensajes|el canal|los canales|el chat|el grupo)\b.*\b(?:dime|me dices|si|que)\b/;
+const COPY_OUT = /\b(?:copia|copiame|pega|pegame|reenviame|reenvia|transcribe|transcribeme)\b(?: [a-z]+){0,3} (?:mensajes?|chat|conversacion)\b/;
+const SAID_ABOUT = /\bque (?:puso|pusieron|dijo|dijeron|escribio|escribieron|mando|mandaron) [a-z]+ (?:sobre|acerca de)\b|\bdime que dijo [a-z]+\b|\b(?:contesto|contestaron|respondio|respondieron|escribio|escribieron|dijo|dijeron|puso|pusieron)\b.*\b(?:en el canal|en los canales|en el chat|en el grupo|en mensajes|por mensajes)\b/;
+
 // Asked to 360 itself: «léeme…», «resúmeme…», «¿puedes leer…?».
 const READ_ME = new RegExp(String.raw`^(?:(?:oye|porfa|por favor|360|y) )*(?:lee|leeme|leelo|leelos|leela|leelas|revisa|revisame|resume|resumeme|chequea|chequeame)\b|\b(?:puedes|podrias|me puedes) (?:leer|leerme|resumir|resumirme|revisar)\b`);
 
@@ -74,7 +85,7 @@ export function messagesAsk(text: string): MessagesAsk | null {
   if (!NOTICE.test(q) && (TELL.test(q) || TELL_ONE.test(q) || SEND_ONE.test(q) || BY_MESSAGE.test(q))) return 'tell';
   if (LABEL.test(q)) return null;
   const rule = ELSEWHERE.test(q) && AS_RULE.test(q) && !READ_ME.test(q);
-  if ((WROTE.test(q) || SAID.test(q)) && !rule) return 'read';
+  if ((WROTE.test(q) || SAID.test(q) || TALKING.test(q) || ANSWERED.test(q) || LAST.test(q) || GO_READ.test(q) || COPY_OUT.test(q) || SAID_ABOUT.test(q)) && !rule) return 'read';
   if (READ.test(q) && !NOT_TO_ME.test(q) && !rule) return 'read';
   return null;
 }

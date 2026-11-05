@@ -516,12 +516,77 @@ export function carriesHour(text: string): boolean {
 
 const PLACEHOLDER_RUN = /[\s,;:·-]*(?:\b(?:a|al|el|la|los|las|lo|en|de|del|desde|hasta|para|entre|y|o|por|frente|lado|cerca|junto|detr[aá]s|delante)\s+){0,5}\[(?:fecha|hora|direccion|numero|correo)\]/giu;
 
+// ── An event title without its place (red team, 05/11) ──────────────────────────────────────────────────────────────
+// Titles carry the place («Feria de emprendedores en la plaza central», «Jornada de salud en la escuela Los Andes»,
+// «Recorrido por la rehabilitación del puente La Quebrada», «Entrega de la cancha techada de El Mirador»): quoted next to
+// «¿en qué escuela es…?» they answer it. What goes, before anything else: the event's own place and any place the person
+// sees (as written in «A dónde se va», whole or by its name after the kind of place: «El Mirador» of «Cancha comunal El
+// Mirador»), with the little words that led to it; a kind of place after «en» («en la plaza central», «en el urbanismo
+// Nuevo Amanecer»); a Name after «en» («en Táriba»); a kind of place with its Name after «de» or alone («del puente La
+// Quebrada», «escuela Zamorano»); and an area («de la zona alta»). The subject stays («la cancha techada», «las viviendas»).
+const PLACE_NOUN = words('plaza plazoleta escuela colegio liceo universidad urbanismo urbanizacion puente cancha comunidad sector barrio casa_comunal parroquia municipio caserio aldea pueblo estadio polideportivo gimnasio iglesia capilla sede modulo mercado ambulatorio hospital clinica cdi parque redoma terminal comando auditorio teatro monumento salon hacienda finca alcaldia gobernacion galpon avenida calle carretera via unidad_educativa centro_comercial');
+const ZONE_ADJ = words('alta baja norte sur este oeste centro central rural urbana industrial');
+const LEAD_IN = String.raw`(?:(?:\s*,)?\s*(?:${words('en de del desde hacia hasta por junto_a frente_a cerca_de')})\s+(?:${words('el la los las')}\s+)?)`;
+const TITLE_PLACE_RULES: RegExp[] = [
+  // «en la plaza central», «en el urbanismo Nuevo Amanecer», «en la casa comunal Alto Verde».
+  new RegExp(String.raw`(?:\s*,)?\s*${words('en desde hacia junto_a frente_a cerca_de')}\s+(?:${words('el la los las')}\s+)?${PLACE_NOUN}(?:\s+${LANDMARK_ADJ})?(?:\s+(?:${words('de del')}\s+)?${NAME})?${END}`, 'gu'),
+  // «en Táriba», «en La Ermita» (not «en Instagram», «en Hoy»).
+  new RegExp(String.raw`(?:\s*,)?\s*${words('en')}\s+(?:${words('el la los las')}\s+)?(?!${NOT_NAMED}${END})\p{Lu}\p{L}+(?:\s+(?:(?:de|del|la|las|los|el|y)\s+)*\p{Lu}\p{L}*)*`, 'gu'),
+  // «del puente La Quebrada», «de la escuela Los Andes», «del sector Las Palmas», «escuela Zamorano».
+  new RegExp(String.raw`(?:(?:\s*,)?\s*(?:${words('de del por')})\s+(?:${words('el la los las')}\s+)?|(?<=\p{L})\s+)${PLACE_NOUN}(?:\s+${LANDMARK_ADJ})?\s+(?:${words('de del')}\s+)?${NAME}`, 'gu'),
+  // «de la zona alta», «en la zona norte».
+  new RegExp(String.raw`(?:\s*,)?\s*${words('de del en')}\s+(?:${words('la el')}\s+)?${words('zona zonas')}\s+${ZONE_ADJ}${END}`, 'gu'),
+];
+const PLACE_KIND_LEAD = new RegExp(String.raw`^(?:${PLACE_NOUN})(?:\s+${LANDMARK_ADJ})?\s+(?:(?:de|del)\s+)?`, 'iu');
+const foldPlain = (s: string) => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+// A place as written in any case and with or without its accents («Táriba» in «Toma aérea Tariba»).
+const LOOSE_LETTER: Record<string, string> = { a: '[aá]', e: '[eé]', i: '[ií]', o: '[oó]', u: '[uúü]', n: '[nñ]' };
+const looseOf = (s: string) => foldPlain(s).split(' ').map((w) => [...w].map((c) => LOOSE_LETTER[c] ?? c).join('')).join(String.raw`[^\p{L}\p{N}]+`);
+/** What a place is named by in a title: the place whole, and its name after the kind of place («El Mirador», «Los Andes»). */
+type PlaceForm = { form: string; folded: string };
+const formsCache = new Map<string, PlaceForm[]>();
+function placeForms(place: string): PlaceForm[] {
+  const key = String(place ?? '');
+  const hit = formsCache.get(key);
+  if (hit) return hit;
+  const p = key.replace(/\s*\((?:demo)\)\s*/gi, ' ').replace(/\s+/g, ' ').trim();
+  const out: PlaceForm[] = [];
+  if (foldPlain(p).replace(/\s/g, '').length >= 4) {
+    out.push({ form: p, folded: foldPlain(p) });
+    const core = p.replace(PLACE_KIND_LEAD, '').trim();
+    // The name alone only when it says something: two words or a Name («El Mirador», «Pirineos»), never an adjective
+    // («central» of «Plaza central»).
+    if (core && core !== p && (/\s/.test(core) || (/^\p{Lu}/u.test(core) && core.length >= 5)) && !new RegExp(`^${LANDMARK_ADJ}$`, 'iu').test(core)) out.push({ form: core, folded: foldPlain(core) });
+  }
+  if (formsCache.size >= 20_000) formsCache.clear();
+  formsCache.set(key, out);
+  return out;
+}
 /**
- * An event title as it can be quoted next to a when or a where: without its date, time, day, place
- * or contacts (and the little words that led to them). Empty when nothing worth quoting is left.
+ * The title without its place (above): the event's own and the ones the person sees (`places`, only those the title
+ * names are tried), and the place phrases of any title. The little words left dangling at the end go too.
  */
-export function safeTitle(title: string): string {
-  let t = redactQuoted(title);
+export function withoutPlaces(title: string, places: readonly string[] = []): string {
+  let t = String(title ?? '');
+  const folded = ` ${foldPlain(t)} `;
+  const tried = new Set<string>();
+  for (const place of places) {
+    for (const { form, folded: f } of placeForms(place)) {
+      if (tried.has(f) || !folded.includes(` ${f} `)) continue;
+      tried.add(f);
+      // With its kind of place right before it («del puente La Quebrada»), not past the subject («de la cancha techada de
+      // El Mirador» keeps «de la cancha techada»).
+      t = t.replace(new RegExp(String.raw`${LEAD_IN}?(?:(?:${PLACE_NOUN})\s+)?(?<![\p{L}\d])${looseOf(form)}(?![\p{L}\d])`, 'giu'), ' ');
+    }
+  }
+  for (const re of TITLE_PLACE_RULES) t = t.replace(re, ' ');
+  for (let i = 0; i < 3; i++) t = t.replace(/[\s,;:·-]+(?:de|del|en|a|al|por|para|con|desde|hasta|hacia|y|o|e|la|el|los|las|lo|frente|junto|cerca)\s*$/iu, '');
+  return t.replace(/\s{2,}/g, ' ').trim();
+}
+
+/** A title quoted by 360 as it is shown (cleaned of placeholders and the little words before them). */
+function tidyTitle(text: string): string {
+  let t = text;
   for (let i = 0; i < 4; i++) {
     const next = t.replace(PLACEHOLDER_RUN, '');
     if (next === t) break;
@@ -534,4 +599,30 @@ export function safeTitle(title: string): string {
     .replace(/^[\s,;:·.-]+|[\s,;:·-]+$/g, '')
     .trim();
   return /\p{L}{3}/u.test(t) ? t : '';
+}
+
+/**
+ * An event title as 360 shows it in any answer (how it is going, a list, the pending ones): without its place (the
+ * event's own, any the person sees, the place phrases of a title, an address) and without a contact typed into it. The
+ * subject stays («Entrega de la cancha techada»); its day or hour, which the person sees in the title, only go next to a
+ * when or a where (safeTitle). Empty when nothing worth quoting is left.
+ */
+export function placeSafeTitle(title: string, places: readonly string[] = []): string {
+  return tidyTitle(apply(withoutPlaces(title, places), ['contact', 'place']));
+}
+
+/**
+ * An event title as it can be quoted next to a when or a where: without its date, time, day, place
+ * or contacts (and the little words that led to them): placeSafeTitle() and then every rule (a landmark with its adjective
+ * goes too). Empty when nothing worth quoting is left.
+ */
+export function safeTitle(title: string, places: readonly string[] = []): string {
+  return tidyTitle(redactQuoted(withoutPlaces(title, places)));
+}
+
+/** A place the person sees (whole, or by its name after the kind of place) is in the text and not in `except`. */
+export function namesKnownPlace(text: string, places: readonly string[], except = ''): boolean {
+  const t = ` ${foldPlain(text)} `;
+  const e = ` ${foldPlain(except)} `;
+  return places.some((p) => placeForms(p).some(({ folded }) => folded.length >= 4 && t.includes(` ${folded} `) && !e.includes(` ${folded} `)));
 }

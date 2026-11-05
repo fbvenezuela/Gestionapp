@@ -234,7 +234,8 @@ describe('lo que se le enseña (S2, S9): guiones y fichas', () => {
     const id = await addEvent(title);
     try {
       const t = await handleTurn(sessionOf('social'), { question: '¿Cómo va el evento de Tariba?' }, LOCAL);
-      expect(t.answer).toContain(`«${title}»`);
+      // 360 quotes it without its place (red team, 05/11); the hour the person sees in the title stays.
+      expect(t.answer).toContain('«Toma aérea Tariba 9.30»');
       const conv = (await admin.getConversation(A, t.conversationId!))!;
       const answer = conv.messages.find((m) => m.who === 'asistente')!;
       const r = await actions.saveAnswerAsExample({ conversationId: conv.id, messageId: answer.id });

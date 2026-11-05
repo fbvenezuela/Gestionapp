@@ -420,6 +420,14 @@ export class Placeholders {
     ({ kindOf: this.kindOf, original: this.original, find: this.find } = knownFor(set ?? NO_TITLES));
   }
 
+  /** The places a title may name: its event's own first (loadTitles reads them side by side), then all the person sees. */
+  private placesOf(title: string): string[] {
+    const events = Array.isArray(this.titles.events) ? this.titles.events : [];
+    const places = Array.isArray(this.titles.places) ? this.titles.places : [];
+    const k = events.indexOf(title);
+    return k >= 0 && places[k] ? [places[k], ...places] : places;
+  }
+
   /** How many names it knows. */
   get size(): number {
     return this.kindOf.size;
@@ -463,7 +471,7 @@ export class Placeholders {
           .replace(LOOSE_TOKEN, (_m, _open, k: string, n: string) => {
             const kind = k.toUpperCase() as Kind;
             const hit = this.byToken.get(`${kind}${Number(n)}`);
-            const shown = !hit || kind === 'L' ? '' : o.scrub ? safeTitle(hit.text) : hit.text;
+            const shown = !hit || kind === 'L' ? '' : o.scrub ? safeTitle(hit.text, this.placesOf(hit.text)) : hit.text;
             return shown ? `«${shown}»` : FALLBACK[kind];
           })
           .replace(STRAY, 'eso'),

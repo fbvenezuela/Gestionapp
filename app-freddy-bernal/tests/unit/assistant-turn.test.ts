@@ -356,10 +356,14 @@ describe('cerebro de demostración (sin IA)', () => {
     ] as [DemoUserKey, string][]) {
       expect((await ask(key, q)).answer, q).not.toMatch(/no lo manejo|no la tengo/);
     }
-    // Their own list, with a day named.
+    // Their own list, with a day named: the list has no dates, so never as that day's (red team, 05/11); with no day, the list.
     const rec = await ask('camera', '¿Qué me toca grabar el viernes?');
-    expect(rec.did).toEqual([{ tool: 'mis_pendientes' }]);
-    expect(rec.answer).toMatch(/^Tienes 1 pendiente/);
+    expect(rec.did).toEqual([]);
+    expect(rec.answer).toMatch(/no lo manejo/);
+    expect(rec.answer).toMatch(/Tus pendientes van sin fecha/);
+    const own = await ask('camera', '¿Qué me toca grabar?');
+    expect(own.did).toEqual([{ tool: 'mis_pendientes' }]);
+    expect(own.answer).toMatch(/^Tienes 1 pendiente/);
     // A notice to a group is prepared (or sent to whom prepares them), unless it carries a date or a time.
     const notice = await ask('admin', 'Mándales un aviso a redes de que hoy suben el material de la entrega');
     expect(notice.did).toEqual([{ tool: 'preparar_aviso' }]);
@@ -404,11 +408,12 @@ describe('cerebro de demostración (sin IA)', () => {
       expect(r.did, q).toEqual([]);
       expect(r.answer, q).toMatch(/no puede llevar la fecha, la hora/);
     }
-    // A place in an event's title: masked before it is stored, still found by the demo brain.
+    // A place in an event's title: masked before it is stored, still found by the demo brain (and quoted without it, red
+    // team 05/11).
     const ev = await withSystem((sql) => sql.one<{ id: string }>(`insert into public.events (title, boss_decision, created_by) values ('Entrega de bombonas en el barrio San Carlos', 'accepted', $1) returning id`, [ADMIN_ID]));
     try {
       const r = await ask('social', '¿cómo va el evento del barrio San Carlos?');
-      expect(r.answer).toMatch(/^El evento «Entrega de bombonas en el barrio San Carlos» está en/);
+      expect(r.answer).toMatch(/^El evento «Entrega de bombonas» está en/);
       const q = await withSystem((sql) => sql.one<{ body: string }>(`select body from public.assistant_messages where conversation_id = $1 and who = 'persona'`, [r.conversationId]));
       expect(q!.body).toBe('¿cómo va el evento del [direccion]?');
     } finally {
