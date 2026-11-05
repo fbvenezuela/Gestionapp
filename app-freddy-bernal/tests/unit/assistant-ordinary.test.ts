@@ -51,6 +51,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     // Round 6: the more specific screen named, and «quién hizo qué».
     ['donde veo los avisos que dejo preparados el asistente', { go: '/ajustes/asistente', has: /^El panel del asistente: .*por confirmar|«Por confirmar»/ }],
     ['donde veo quien borro una pieza', { go: '/ajustes/registro', has: /quién hizo qué/ }],
+    // Administración gets the «hablar con una persona» notices: it is never told «ya le avisé a administración».
+    ['quiero hablar con una persona', { go: '/ajustes/asistente', has: /«Pidieron una persona»/, notTool: 'avisar_al_equipo' }],
   ],
   boss: [
     ['¿Qué me toca aprobar?', { tool: 'mis_pendientes', has: /aprobar/ }],

@@ -647,6 +647,10 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
 
   // 1. A person, please: notice for real, then say so.
   if (/\b(hablar con (alguien|una persona|un humano|administracion|el equipo|alguien del equipo)|quiero (una persona|un humano|hablar con)|pasame con|necesito (a alguien|una persona|ayuda de alguien|hablar con)|que me (llame|escriba) alguien|llamar a alguien)\b/.test(q)) {
+    // Administración is who gets these notices: never «ya le avisé a administración» to administración itself.
+    if (i.ctx.roles.includes('admin') && !TEAM_ROLES.some((r) => i.ctx.roles.includes(r))) {
+      return done('Esos pedidos te llegan a ti: en Ajustes → Asistente, pestaña «Conversaciones», con el filtro «Pidieron una persona». Si la ayuda la necesitas tú, escríbele a otra persona de administración.', '/ajustes/asistente');
+    }
     if (offered('avisar_al_equipo')) {
       const r = await call('avisar_al_equipo', { motivo: 'Pidió hablar con alguien del equipo.' });
       if (r.ok) return done(pick(variants('hablar-persona')));
