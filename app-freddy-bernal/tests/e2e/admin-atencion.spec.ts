@@ -25,6 +25,8 @@ const shared = { reference: '', secret: '', caseUrl: '', fileUrl: '' };
 let net = 20 + Math.floor(Math.random() * 200);
 
 async function axe(page: Page, where: string) {
+  // A toast that is fading out is not part of the screen (the other specs wait for it too).
+  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 15_000 });
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = r.violations
     .filter((v) => v.impact === 'serious' || v.impact === 'critical')

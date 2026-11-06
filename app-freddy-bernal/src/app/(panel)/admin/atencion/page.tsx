@@ -115,9 +115,14 @@ function AdminDesk() {
             Administración no lee las solicitudes ni sus contactos (D-93). Aquí armas lo que la atención necesita para funcionar: las áreas, quién
             está en cada una, el área y los días de cada categoría, los plazos por prioridad y cuándo avisar de un caso sin movimiento.
           </p>
-          <Link href="/admin/atencion/areas" className="inline-flex min-h-11 w-fit items-center rounded-[var(--radius-control)] bg-accent px-4 font-semibold text-on-accent hover:bg-accent-hover">
-            Áreas y plazos
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/admin/atencion/areas" className="inline-flex min-h-11 w-fit items-center rounded-[var(--radius-control)] bg-accent px-4 font-semibold text-on-accent hover:bg-accent-hover">
+              Áreas y plazos
+            </Link>
+            <Link href="/admin/atencion/registro" className="inline-flex min-h-11 items-center font-semibold text-accent-ink underline-offset-2 hover:underline">
+              Registro de atención
+            </Link>
+          </div>
           <p className="text-text-2">
             Las personas de la atención (coordinación, responsables de área, denuncias y auditoría) se invitan en{' '}
             <Link href="/ajustes/equipo" className="font-semibold text-accent-ink underline-offset-2 hover:underline">Ajustes → Equipo</Link>, siempre con doble
