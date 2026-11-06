@@ -8,6 +8,7 @@ import { revalidateWebSettings } from '../web/revalidate';
 import { normalizeOldPath, safeTarget, REDIRECT_STATUSES } from '../web/redirects';
 import { SITE_SETTING_SCHEMAS } from '../web/site-settings';
 import { redirectableFrom } from '../web/cms/paths';
+import { spanishIssue } from '../web/cms/drafts';
 
 // The library's words, the site's settings and the redirects of old addresses (design §3, §6): AS THE PERSON, with RLS
 // deciding (the library: editors, the publisher and the boss; settings and redirects: Administración, the publisher
@@ -82,11 +83,8 @@ export async function saveSiteSetting(raw: unknown): Promise<Result> {
   const r = await act(z.object({ key: z.enum(SETTING_KEYS), value: z.unknown() }), raw, async (sql, i) => {
     const ok = await sql.one<{ ok: boolean }>(`select public.can_manage_site() as ok`);
     if (!ok?.ok) throw new UserError('Los ajustes del sitio los cambian administración, quien aprueba la web o el jefe, con doble factor.');
-    const v = (SETTINGS[i.key] as z.ZodType).safeParse(i.value);
-    if (!v.success) {
-      const issue = v.error.issues[0];
-      throw new UserError(SETTING_PROBLEM[i.key] ?? (issue?.message && /^[A-ZÁÉÍÓÚ¿¡]/.test(issue.message) ? issue.message : 'Revisa los datos.'));
-    }
+    const v = (SETTINGS[i.key] as z.ZodType).safeParse(i.value, { error: spanishIssue });
+    if (!v.success) throw new UserError(SETTING_PROBLEM[i.key] ?? v.error.issues[0]?.message ?? 'Revisa los datos.');
     await sql.query(
       `insert into public.web_settings (key, value, is_public) values ($1, $2::text::jsonb, true)
        on conflict (key) do update set value = excluded.value`,

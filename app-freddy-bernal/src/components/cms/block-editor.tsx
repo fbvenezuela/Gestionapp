@@ -114,7 +114,10 @@ export function BlockEditor({ value, onChange }: { value: unknown; onChange: (bl
     setList(next);
     onChange(next);
   };
-  const name = (b: B, i: number) => `${BLOCK_LABEL[b.type]}${summary(b) ? ` «${summary(b).slice(0, 40)}»` : ''} (bloque ${i + 1})`;
+  const name = (b: B, i: number) => {
+    const sum = summary(b);
+    return `${BLOCK_LABEL[b.type]}${sum && sum !== BLOCK_LABEL[b.type] ? ` «${sum.slice(0, 40)}»` : ''} (bloque ${i + 1})`;
+  };
 
   const move = (i: number, d: -1 | 1) => {
     const next = [...list];

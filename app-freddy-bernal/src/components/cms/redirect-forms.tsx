@@ -108,9 +108,7 @@ export function RedirectRowForm({ r }: { r: { id: string; from: string; to: stri
     <div className="flex flex-col gap-2">
       {dialog}
       <div className="grid gap-2 sm:grid-cols-[1fr_9rem]">
-        <Field label={<span className="sr-only">Lleva a</span>} htmlFor={`${id}-to`}>
-          <Input id={`${id}-to`} value={to} onChange={(e) => setTo(e.target.value)} maxLength={500} className="font-mono text-[15px]" aria-label={`Destino de ${r.from}`} />
-        </Field>
+        <Input id={`${id}-to`} value={to} onChange={(e) => setTo(e.target.value)} maxLength={500} className="font-mono text-[15px]" aria-label={`Destino de ${r.from}`} />
         <Select value={status} onChange={(e) => setStatus(e.target.value)} aria-label={`Tipo de la redirección de ${r.from}`}>
           {STATUS.map(([v]) => (
             <option key={v} value={v}>

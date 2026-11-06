@@ -3,7 +3,7 @@
 // reads, the chips of an item's state, scheduling in the Táchira's time zone, the social card, which old addresses a
 // redirect can serve and the server's checks of an uploaded file.
 import { describe, expect, it } from 'vitest';
-import { textNode, type TextNode } from '@/lib/web/blocks';
+import { textNode, type TextNode, type TextRun } from '@/lib/web/blocks';
 import { SNAPSHOT, WEB_KINDS, parseSnapshot } from '@/lib/web/schema';
 import { editToNodes, inlineToMarkup, markupToInline, markupToRuns, nodesToEdit, plainText, runsToMarkup } from '@/lib/web/cms/markup';
 import { dayIn, draftProblems, emptyDraft, fieldPath, mediaIdsIn, readinessIssues, snapshotIssues } from '@/lib/web/cms/drafts';
@@ -45,13 +45,14 @@ describe('el texto con formato: el marcado del editor y los párrafos de la web'
   });
 
   it('el estilo cruzado y un enlace en negrita sobreviven a la ida y vuelta', () => {
-    for (const runs of [
+    const cases: TextRun[][] = [
       [{ text: 'a', bold: true }, { text: 'b', italic: true }],
       [{ text: 'a', italic: true }, { text: 'b', bold: true }],
       [{ text: 'a', bold: true, italic: true }, { text: 'b', bold: true }],
       [{ text: 'Ver', bold: true, href: '/gestion' }, { text: ' ahora' }],
       [{ text: 'un ) raro', href: 'https://ejemplo.test/x(1)' }],
-    ]) {
+    ];
+    for (const runs of cases) {
       const back = markupToRuns(runsToMarkup(runs));
       expect(back.map((r) => r.text).join('')).toBe(runs.map((r) => r.text).join(''));
       expect(back.map((r) => [!!r.bold, !!r.italic, !!r.href])).toEqual(runs.map((r) => [!!r.bold, !!r.italic, !!r.href]));

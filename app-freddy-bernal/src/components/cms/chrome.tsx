@@ -82,7 +82,7 @@ export function KindTabs({ current, counts }: { current?: WebKind; counts: Parti
               )}
             >
               {s.label}
-              <span className="tabular text-xs opacity-80">{counts[s.kind] ?? 0}</span>
+              <span className="tabular text-xs">{counts[s.kind] ?? 0}</span>
             </Link>
           </li>
         ))}

@@ -33,12 +33,9 @@ type Search = Promise<Record<string, string | string[] | undefined>>;
 function Bar({ id, title, detail, canDecide }: { id: string; title: string; detail: string; canDecide: boolean }) {
   return (
     <div role="region" aria-label="Vista previa" className="sticky top-0 z-50 bg-action text-on-action shadow-md">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5 sm:px-6">
-        <p className="font-bold">Vista previa: no está publicado</p>
-        <p className="text-sm">
-          {title} · {detail}
-        </p>
-        <span className="ml-auto flex flex-wrap gap-x-4">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 px-4 py-1 sm:px-6">
+        <p className="font-bold leading-tight">Vista previa: no está publicado</p>
+        <span className="ml-auto flex flex-wrap gap-x-4 text-[15px]">
           <Link href={ADMIN_WEB.edit(id)} className="inline-flex min-h-11 items-center font-semibold underline decoration-2 underline-offset-4">
             Volver al editor
           </Link>
@@ -48,6 +45,9 @@ function Bar({ id, title, detail, canDecide }: { id: string; title: string; deta
             </Link>
           ) : null}
         </span>
+        <p className="w-full pb-1 text-xs sm:text-sm">
+          {title} · {detail}
+        </p>
       </div>
     </div>
   );

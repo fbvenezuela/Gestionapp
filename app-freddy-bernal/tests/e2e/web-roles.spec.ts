@@ -34,7 +34,9 @@ for (const p of PEOPLE) {
     await page.goto('/panel');
     await expect(page).toHaveURL(new RegExp(`${p.home}$`));
     await expect(page.getByRole('heading', { level: 1, name: p.heading })).toBeVisible();
-    await expect(page.getByText('Se arma en la siguiente etapa.')).toBeVisible();
+    // The website's administrator is built (/admin/web: its sections); the attention desk's screen is the next one's.
+    if (p.home === '/admin/web') await expect(page.getByRole('navigation', { name: 'Secciones de la web' })).toBeVisible();
+    else await expect(page.getByText('Se arma en la siguiente etapa.')).toBeVisible();
     const bar = page.getByRole('navigation', { name: 'Menú' });
     await expect(bar.getByRole('link')).toHaveText([p.item]);
     // No 360, no Mensajes, no «Crear».
