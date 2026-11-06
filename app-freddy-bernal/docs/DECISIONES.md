@@ -1344,5 +1344,6 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
   Recepción por lo que ya se hizo afuera.
 - **IA:** apagada hasta el OK legal (D-26). El borrador del guion sale de una plantilla con las palabras de la ficha
   (sin cifras inventadas, §4.7); el día que se prenda, la IA entra en el mismo botón.
-- Menú: jefe, despacho, Redes y administración en «Más»; Grabación en su barra. Política y el IVT no ven eventos, así
+- Menú: despacho, Redes y administración en «Más»; Grabación en su barra. **El jefe la tiene dentro de «Digital»** (arriba,
+  con el dibujo y «Ver todas las salas»), no como botón aparte (Juan, 06/11). Política y el IVT no ven eventos, así
   que no tienen oficina.

@@ -45,6 +45,16 @@ test('el jefe aprueba el guion y la actividad sigue (ya tenía storyboard: pasa 
   await expect(page.locator('#sala-recording').getByText(EVENT)).toBeVisible();
 });
 
+test('el jefe tiene la oficina dentro de «Digital», no como botón aparte', async ({ page }) => {
+  await loginAs(page, 'jefe@demo.test');
+  await page.goto('/jefe/digital');
+  await expect(page.getByRole('heading', { name: 'La oficina' })).toBeVisible();
+  await expect(page.getByRole('group', { name: /diez salas/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /^7\. Oficina del jefe/ })).toHaveAttribute('href', '/oficina#sala-approval');
+  await expect(page.getByRole('link', { name: 'Oficina', exact: true })).toHaveCount(0);
+  await axe(page);
+});
+
 test('política no tiene la oficina', async ({ page }) => {
   await loginAs(page, 'politica@demo.test');
   await expect(page.getByRole('link', { name: 'Oficina' })).toHaveCount(0);

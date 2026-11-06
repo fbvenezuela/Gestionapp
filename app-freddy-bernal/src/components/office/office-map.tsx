@@ -26,7 +26,8 @@ export const ROOM_SPOT: Record<Room, [number, number, number, number]> = {
 
 const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(3)}%`;
 
-export function OfficeMap({ counts, mine }: { counts: Record<Room, number>; mine?: Room[] }) {
+// `base`: where a label leads; the room's list is on /oficina (the boss sees the picture in «Digital» too).
+export function OfficeMap({ counts, mine, base = '' }: { counts: Record<Room, number>; mine?: Room[]; base?: string }) {
   return (
     <div className="-mx-2 overflow-x-auto sm:mx-0" role="group" aria-label="Dibujo de la oficina con sus diez salas">
       <div className="relative min-w-[720px] [container-type:inline-size]">
@@ -48,7 +49,7 @@ export function OfficeMap({ counts, mine }: { counts: Record<Room, number>; mine
           return (
             <a
               key={room}
-              href={`#sala-${room}`}
+              href={`${base}#sala-${room}`}
               aria-label={`${k + 1}. ${info.label}: ${n === 1 ? '1 actividad' : `${n} actividades`}. ${CREW_LABEL[info.crew]}.`}
               className={cn(
                 'absolute flex items-center gap-[0.4em] whitespace-nowrap rounded-full bg-slate pl-[0.7em] pr-[0.25em] font-bold leading-none text-on-slate',

@@ -7,6 +7,9 @@ import { NETWORK_LABEL } from '@/lib/data/labels';
 import { fmtDateTime } from '@/lib/time';
 import { PUB_THUMB_COLUMNS, PUB_THUMB_JOINS, pubThumbOf, type PubThumbCols } from '@/lib/data/pub-thumbs';
 import { PubThumb } from '@/app/(panel)/resultados/pub-thumb';
+import { OfficeMap } from '@/components/office/office-map';
+import { byRoom, officeItems } from '@/lib/data/office';
+import { ROOMS, type Room } from '@/lib/domain/office';
 
 export const metadata = { title: 'Digital' };
 
@@ -26,12 +29,24 @@ export default async function BossDigital() {
       `select x.id, p.title, x.network, x.scheduled_at from public.publications x join public.pieces p on p.id = x.piece_id
         where x.status = 'scheduled' and x.deleted_at is null and x.scheduled_at > now() order by x.scheduled_at limit 10`,
     ),
+    // «La oficina» (06/11/2026): the boss sees it here, at the top of Digital (Juan); the rooms' lists are on /oficina.
+    office: await officeItems(sql),
     inReview: (await sql.one<{ n: number }>(`select count(*)::int as n from public.pieces where status = 'in_review' and deleted_at is null`))!.n,
   }));
   const views = data.published.reduce((a, p) => a + (p.views ?? 0), 0);
+  const rooms = byRoom(data.office);
+  const counts = Object.fromEntries(ROOMS.map((r) => [r, rooms[r].length])) as Record<Room, number>;
   return (
     <>
       <PageHeader title="Digital" back={{ href: '/jefe', label: 'Inicio' }} actions={<LinkButton href="/resultados" size="lg" variant="secondary" data-tour="see-results">Ver resultados</LinkButton>} />
+      <Card className="mb-6 p-2 sm:p-4" aria-labelledby="office-title" role="region">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2 px-2">
+          <h2 id="office-title" className="text-xl font-bold">La oficina</h2>
+          <LinkButton href="/oficina" variant="secondary">Ver todas las salas</LinkButton>
+        </div>
+        <OfficeMap counts={counts} mine={['approval']} base="/oficina" />
+        <p className="mt-2 px-2 text-sm text-text-2 sm:hidden">Desliza el dibujo de lado para ver toda la oficina.</p>
+      </Card>
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3" data-tour="digital-stats">
         <Stat label="Publicado esta semana" value={data.published.length} />
         <Stat label="Vistas esta semana" value={nf.format(views)} />
