@@ -102,7 +102,12 @@ describe('lo publicado, como anon', () => {
   it('ajustes públicos, redirecciones internas, 29 municipios, 10 categorías y lo atendido sin datos de nadie', async () => {
     const s = await anon((sql) => publicSettings(sql));
     expect(s['site.demo_banner']).toBe('Versión de prueba: el contenido es inventado.');
-    expect(s['site.social_accounts']).toEqual([]);
+    // The accounts of the diagnosis (docs/diagnostico.md §8), all «por confirmar»: the site decides what to show.
+    const accounts = s['site.social_accounts'] as { verified: boolean }[];
+    expect(accounts.length).toBeGreaterThan(0);
+    expect(accounts.every((a) => a.verified === false)).toBe(true);
+    // The old addresses whose destination the diagnosis decided are seeded (config/clients/fb.json «web.redirects»).
+    expect(await anon((sql) => redirectFor(sql, '/2014/07/biografia'))).toEqual({ to: '/gobernador', status: 301 });
     await asSystem(t.backend, (sql) => sql.query(`insert into public.web_redirects (from_path, to_path, source) values ('/2024/05/nota-vieja', '/actualidad/nota-nueva', 'importador')`));
     expect(await anon((sql) => redirectFor(sql, '/2024/05/nota-vieja'))).toEqual({ to: '/actualidad/nota-nueva', status: 301 });
     expect(await anon((sql) => redirectFor(sql, '/no-existe'))).toBeNull();

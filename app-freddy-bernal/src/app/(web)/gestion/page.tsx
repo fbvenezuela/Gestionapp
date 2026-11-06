@@ -15,7 +15,7 @@ import { getSite } from '@/lib/web/site';
 
 // Gestión (design §2, IDEA §3.2 «trazabilidad»): the work and actions of the government. Two views of the same items:
 //   Obras            cards with their state, filtered by municipio, categoría and estado (GET parameters);
-//   Línea de tiempo  everything, newest first, grouped by month, with a filter by DATE ONLY (Hillary: no tag filters).
+//   Línea de tiempo  everything, newest first, grouped by month, with a filter by DATE ONLY (IDEA §3.2: no tag filters).
 // States are what can be said for sure (anunciado, en ejecución, concluido); a percentage or an amount appears only
 // with its documented source.
 export const revalidate = 60;

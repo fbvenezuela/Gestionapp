@@ -71,17 +71,30 @@ describe('la semilla de la web pública', () => {
     }
   });
 
-  it('nada real que no deba ir en un repositorio público: sin correos, teléfonos, enlaces, cuentas ni parroquias', async () => {
+  it('nada real que no deba ir en un repositorio público: sin correos, teléfonos, contactos ni parroquias; las cuentas del diagnóstico, todas por confirmar', async () => {
     const cfg = getClientConfig();
     const text = JSON.stringify({ participation: cfg.participation, web: cfg.web });
     expect(text).not.toMatch(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
-    expect(text).not.toMatch(/https?:\/\//);
-    expect(cfg.web.settings['site.social_accounts']).toEqual([]);
+    // The only addresses are the public accounts and the portal the diagnosis found (docs/diagnostico.md §8), over https
+    // and «por confirmar»: production shows none of them until the team verifies them (src/lib/web/site-settings.ts).
+    const PUBLIC_HOSTS = ['www.youtube.com', 'www.instagram.com', 'x.com', 'www.facebook.com', 'www.tiktok.com', 'www.threads.com', 'mastodon.social', 'freddybernalrosales.wordpress.com', 'tachira.gob.ve'];
+    const links = text.match(/https?:\/\/[^"\s]+/g) ?? [];
+    expect(links.length).toBeGreaterThan(0);
+    for (const l of links) {
+      const u = new URL(l);
+      expect(u.protocol, l).toBe('https:');
+      expect(PUBLIC_HOSTS, l).toContain(u.hostname);
+    }
+    const accounts = cfg.web.settings['site.social_accounts'] as { verified: boolean }[];
+    expect(accounts.every((a) => a.verified === false)).toBe(true);
+    expect(cfg.web.settings['site.institutional_portal']).toMatchObject({ verified: false });
     expect(cfg.web.settings['site.contacts']).toEqual([]);
+    expect(cfg.web.settings['site.whatsapp_channel']).toBeNull();
     expect(Object.keys(cfg.parishes).filter((k) => !k.startsWith('$'))).toEqual([]);
     const { db } = await createMemoryDb();
     try {
-      const r = await db.query<{ phone: boolean }>(`select public.text_has_phone($1) as phone`, [text]);
+      // A profile's number inside its address is not a phone: the addresses are checked above, the rest here.
+      const r = await db.query<{ phone: boolean }>(`select public.text_has_phone($1) as phone`, [text.replace(/https:\/\/[^"\s]+/g, '')]);
       expect(r.rows[0].phone).toBe(false);
     } finally {
       await db.close();

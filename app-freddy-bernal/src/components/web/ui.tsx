@@ -34,7 +34,7 @@ export function Eyebrow({ className, children }: { className?: string; children:
   return <p className={cn('text-sm font-semibold uppercase tracking-[0.08em] text-accent-ink', className)}>{children}</p>;
 }
 
-export const cardClass = 'rounded-[var(--radius-card)] border border-border bg-surface shadow-[var(--glass-shadow)]';
+export { boxClass, cardClass } from './surfaces';
 
 /** Underlined text link in the content's color, with room to tap. */
 export const textLinkClass = 'font-semibold text-accent-ink underline decoration-2 underline-offset-4 hover:decoration-accent';
@@ -42,7 +42,8 @@ export const textLinkClass = 'font-semibold text-accent-ink underline decoration
 const BUTTON = {
   action: 'bg-action text-on-action hover:bg-action-hover',
   olive: 'bg-accent text-on-accent hover:bg-accent-hover',
-  outline: 'border-2 border-accent bg-surface text-text hover:bg-accent-soft',
+  // Transparent inside its border: it sits the same on the ivory page, on a white card and on the 404's glass card.
+  outline: 'border-2 border-accent text-text hover:bg-accent-soft',
   ghost: 'text-text underline decoration-2 underline-offset-4 hover:bg-surface',
   light: 'bg-on-charcoal text-charcoal hover:bg-ivory',
 } as const;

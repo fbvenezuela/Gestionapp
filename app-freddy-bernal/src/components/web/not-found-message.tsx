@@ -8,7 +8,7 @@ import { ButtonLink, Container, textLinkClass, WebLink } from './ui';
 export function NotFoundMessage() {
   return (
     <Container className="py-16 sm:py-24">
-      <div className="glass-card mx-auto max-w-2xl rounded-[var(--radius-card)] p-8 sm:p-12">
+      <div className="glass-card rounded-[var(--radius-card)] mx-auto max-w-2xl p-8 sm:p-12">
         <SearchXIcon className="h-10 w-10 text-accent-ink" />
         <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Esta página no existe</h1>
         <p className="mt-3 text-lg leading-relaxed text-text-2">

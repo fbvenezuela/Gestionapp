@@ -7,7 +7,7 @@ import { JsonLd } from '@/components/web/json-ld';
 import { Figure, MediaImage, photoOf } from '@/components/web/media';
 import { RichText } from '@/components/web/rich-text';
 import { Breadcrumbs } from '@/components/web/states';
-import { ButtonLink, Container, SafeLink, SectionHeading } from '@/components/web/ui';
+import { boxClass, ButtonLink, Container, SafeLink, SectionHeading } from '@/components/web/ui';
 import { getItem, listItems } from '@/lib/web/cache';
 import { fmtDay } from '@/lib/web/format';
 import { aboutHref } from '@/lib/web/links';
@@ -108,7 +108,7 @@ export default async function NewsItemPage({ params }: { params: Params }) {
             </ul>
           ) : null}
           {d.sources?.length ? (
-            <section aria-labelledby="fuentes" className="mt-10 rounded-[var(--radius-card)] border border-border bg-surface p-6">
+            <section aria-labelledby="fuentes" className={`${boxClass} mt-10 p-6`}>
               <h2 id="fuentes" className="text-lg font-semibold text-text">
                 Fuentes
               </h2>

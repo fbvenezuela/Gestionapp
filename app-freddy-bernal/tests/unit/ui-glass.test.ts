@@ -474,8 +474,15 @@ describe('glass: teléfonos débiles', () => {
     expect(GLASS_SCRIPT).not.toMatch(/#[0-9a-f]{3,8}\b/i);
   });
 
-  it('corre en el layout raíz (también en entrar y en las páginas públicas)', () => {
-    expect(read('src/app/layout.tsx')).toContain('<GlassScript />');
+  it('corre en el marco del panel (también en entrar y en las páginas públicas de la plataforma), nunca en la web pública', () => {
+    // Since `/` is the public website (D-91), the panel's frame (glass switch, «Sin señal», toasts, service worker) lives in
+    // PanelChrome, which wraps every group of the panel; the website keeps its own light frame without panel scripts.
+    expect(read('src/components/shell/panel-chrome.tsx')).toContain('<GlassScript />');
+    for (const layout of ['src/app/(panel)/layout.tsx', 'src/app/(auth)/layout.tsx', 'src/app/(publico)/layout.tsx']) {
+      expect(read(layout), layout).toContain('<PanelChrome>');
+    }
+    expect(read('src/app/layout.tsx')).not.toContain('GlassScript');
+    expect(read('src/app/(web)/layout.tsx')).not.toMatch(/PanelChrome|GlassScript/);
     expect(read('src/components/shell/glass-script.tsx')).toMatch(/applyGlass\(document\.documentElement, navigator\b/);
   });
 });

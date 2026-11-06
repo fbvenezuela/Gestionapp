@@ -8,7 +8,7 @@ import { cn } from '@/lib/cn';
 import type { MuniNames } from '../cards';
 import { Time } from '../cards';
 import { RichText } from '../rich-text';
-import { Badge, cardClass, SafeLink, WebLink } from '../ui';
+import { Badge, boxClass, cardClass, SafeLink, WebLink } from '../ui';
 
 // The synchronous views of the blocks that read data (the async blocks fetch, these draw; tests render these with fake
 // items). Rules of design §3 live here: an indicator shows ONLY with its source, a notice ONLY while it applies (with
@@ -101,7 +101,7 @@ export function FaqView({ items }: { items: WebItem<'faq'>[] }) {
   if (!items.length) return null;
   const sorted = [...items].sort((a, b) => (a.data.order ?? 1000) - (b.data.order ?? 1000) || a.data.title.localeCompare(b.data.title, 'es'));
   return (
-    <ul className="divide-y divide-border rounded-[var(--radius-card)] border border-border bg-surface">
+    <ul className={cn(boxClass, 'divide-y divide-border')}>
       {sorted.map((f) => (
         <li key={f.id}>
           <details className="group px-5 sm:px-6">

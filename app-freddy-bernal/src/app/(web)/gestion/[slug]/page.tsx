@@ -6,7 +6,7 @@ import { municipalityNames, VideoFrame } from '@/components/web/blocks/data';
 import { Figure, MediaImage, photoOf } from '@/components/web/media';
 import { RichText } from '@/components/web/rich-text';
 import { Breadcrumbs } from '@/components/web/states';
-import { Badge, ButtonLink, Container, SectionHeading } from '@/components/web/ui';
+import { Badge, boxClass, ButtonLink, Container, SectionHeading } from '@/components/web/ui';
 import { getItem, listItems } from '@/lib/web/cache';
 import { fmtDay, fmtMoney } from '@/lib/web/format';
 import { aboutHref } from '@/lib/web/links';
@@ -106,7 +106,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
             ) : null}
           </div>
           <aside className="flex flex-col gap-6 lg:col-span-5" aria-label="Datos de la obra">
-            <dl className="grid gap-4 rounded-[var(--radius-card)] border border-border bg-surface p-6 text-base">
+            <dl className={`${boxClass} grid gap-4 p-6 text-base`}>
               <Fact label="Dónde">{[muni, d.place].filter(Boolean).join(' · ') || 'Por precisar'}</Fact>
               {d.beneficiaries ? <Fact label="Para quién">{d.beneficiaries}</Fact> : null}
               {d.organization ? <Fact label="Organismo responsable">{d.organization}</Fact> : null}

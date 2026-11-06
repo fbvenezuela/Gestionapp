@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
+import { boxClass } from './surfaces';
 import { WebLink } from './ui';
 
 // The fields of the website's filter and search forms (GET: they work without JavaScript and the result is a link that
@@ -94,7 +95,7 @@ export function FilterForm({
   children: ReactNode;
 }) {
   return (
-    <form method="get" action={action} role={search ? 'search' : undefined} aria-label={label} className={cn('rounded-[var(--radius-card)] border border-border bg-surface p-5 sm:p-6', className)}>
+    <form method="get" action={action} role={search ? 'search' : undefined} aria-label={label} className={cn(boxClass, 'p-5 sm:p-6', className)}>
       {children}
     </form>
   );

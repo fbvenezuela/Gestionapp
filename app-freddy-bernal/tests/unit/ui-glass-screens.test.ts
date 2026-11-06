@@ -11,7 +11,7 @@ import { DateTime } from 'luxon';
 import { TZ } from '@/lib/time';
 import PanelError from '@/app/(panel)/error';
 import PanelNotFound from '@/app/(panel)/not-found';
-import RootNotFound from '@/app/not-found';
+import { NotFoundMessage } from '@/components/web/not-found-message';
 import { MonthView, TimeGrid } from '@/components/agenda/calendar';
 
 const read = (f: string) => fs.readFileSync(path.join(process.cwd(), f), 'utf8');
@@ -20,13 +20,14 @@ const files = (dir: string): string[] =>
 const html = <P extends object>(c: ComponentType<P>, props: P) => renderToStaticMarkup(createElement(c, props));
 
 // A card drawn by hand: the corner of a card, the border and the plain white background (not bg-surface-2, which is an
-// inner box). Only the base components in src/components/ui may draw a surface.
+// inner box). Only the base components may draw a surface: src/components/ui for the panel and, for the public website
+// (solid and editorial by design, D-91; the glass stays in the panel), its surfaces in src/components/web/surfaces.ts.
 const HAND_CARD = /rounded-\[var\(--radius-card\)\] border border-border bg-surface(?![-\w/])/;
+const SURFACE_BASES = [path.join('src', 'components', 'ui'), path.join('src', 'components', 'web', 'surfaces.ts')];
 
 describe('glass en las pantallas sueltas', () => {
   it('nadie arma una tarjeta a mano fuera de los componentes base', () => {
-    const base = path.join('src', 'components', 'ui');
-    expect(files('src').filter((f) => !f.startsWith(base) && HAND_CARD.test(read(f)))).toEqual([]);
+    expect(files('src').filter((f) => !SURFACE_BASES.some((b) => f.startsWith(b)) && HAND_CARD.test(read(f)))).toEqual([]);
   });
 
   it('las esquinas salen de los tokens (nada de rounded-[6px])', () => {
@@ -54,7 +55,9 @@ describe('glass en las pantallas sueltas', () => {
     const pages: [string, string][] = [
       ['error', html(PanelError, { error: new Error('prueba'), reset: () => {} })],
       ['no encontrado (panel)', html(PanelNotFound, {})],
-      ['no encontrado', html(RootNotFound, {})],
+      // An address no route answers gets the public website's 404 (D-91: `/` is the website), inside the website's frame,
+      // which draws the <main>; the card is the same glass card.
+      ['no encontrado', html(NotFoundMessage, {})],
     ];
     for (const [name, out] of pages) {
       expect(out, name).toMatch(/<div class="glass-card rounded-\[var\(--radius-card\)\] /);
@@ -63,7 +66,9 @@ describe('glass en las pantallas sueltas', () => {
     }
     expect(pages[0][1]).toContain('Algo no cargó');
     expect(pages[1][1]).toContain('No encontramos esto');
-    expect(pages[2][1]).toMatch(/^<main /);
+    expect(pages[2][1]).toContain('Esta página no existe');
+    const root = read('src/app/not-found.tsx');
+    expect(root).toMatch(/<PublicChrome site=\{site\}>\s*<NotFoundMessage \/>\s*<\/PublicChrome>/);
   });
 
   it('el calendario (mes, semana y día) es una grilla larga: <Card solid>, sin desenfoque detrás', () => {

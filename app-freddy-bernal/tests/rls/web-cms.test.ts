@@ -95,12 +95,22 @@ describe('las páginas base y los catálogos del cliente', () => {
     expect(await sysOne<{ n: number }>(`select count(*)::int as n from public.web_versions v join public.web_items i on i.id = v.item_id where i.kind = 'page'`)).toEqual({ n: 6 });
   });
 
-  it('los ajustes del sitio sin cuentas, contactos ni portal inventados', async () => {
+  it('los ajustes del sitio: las cuentas del diagnóstico, todas por confirmar; sin contactos, WhatsApp ni portal verificados', async () => {
     const s = Object.fromEntries((await sys<{ key: string; value: unknown }>(`select key, value from public.web_settings`)).map((r) => [r.key, r.value]));
-    expect(s['site.social_accounts']).toEqual([]);
+    // docs/diagnostico.md §8: the accounts the team has to confirm. None is verified, so production shows none and
+    // JSON-LD sameAs stays empty until the team verifies them; the abandoned YouTube channel is inactive (never shown).
+    const accounts = s['site.social_accounts'] as { handle: string; url: string; verified: boolean; active: boolean }[];
+    expect(accounts.length).toBeGreaterThan(0);
+    for (const a of accounts) {
+      expect(a.verified, a.handle).toBe(false);
+      expect(a.url, a.handle).toMatch(/^https:\/\//);
+    }
+    expect(accounts.find((a) => a.handle === '@FreddyBernalOficial')).toMatchObject({ active: false });
+    expect(accounts.find((a) => a.handle === '@FreddyBernal.oficial')).toMatchObject({ active: true });
+    expect(s['site.youtube_channel']).toMatchObject({ handle: '@FreddyBernal.oficial', verified: false });
+    expect(s['site.institutional_portal']).toMatchObject({ verified: false });
     expect(s['site.contacts']).toEqual([]);
     expect(s['site.whatsapp_channel']).toBeNull();
-    expect(s['site.institutional_portal']).toBeNull();
     expect(s['site.identity']).toMatchObject({ wordmark: 'Freddy Bernal · Gobernador del Táchira' });
   });
 });
