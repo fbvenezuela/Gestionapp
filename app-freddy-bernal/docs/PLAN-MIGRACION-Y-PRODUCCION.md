@@ -162,7 +162,7 @@ Inventario de `docs/diagnostico.md` §1 y §5. Todas responden **301** (permanen
 | # | Paso | Quién | Detalle |
 |---|---|---|---|
 | 1 | **Proyecto de Supabase de producción** | Juan | Uno nuevo (`fb-prod`) o decidir que `fb-dev` pasa a serlo. Plan Pro si se importan todas las fotos (§2). Región junto a Vercel (`iad1`) |
-| 2 | **Migraciones** | Juan con Claude | Todas las de `supabase/migrations`, en orden, como `postgres` (README «Conectar las cuentas»). Las de la web: `20261106000050` a `20261106000300`, `20261106100100` y `20261106300100`. No se edita una ya aplicada |
+| 2 | **Migraciones** | Juan con Claude | Todas las de `supabase/migrations`, en orden, como `postgres` (README «Conectar las cuentas»). Las de la web: `20261106000050` a `20261106000300`, `20261106100100`, `20261106300100` y las dos de la revisión de seguridad (`20261106400100`, `20261106400200`). No se edita una ya aplicada |
 | 3 | **Baldes** | Juan | La migración `20261106000100` crea `web-public` (**público**) y `participacion-privado` (**privado**). Mirar en Storage que existan y que `participacion-privado` no sea público |
 | 4 | **Data API** | Juan | El esquema `citizen` **nunca** se agrega a los expuestos. Comprobar que el rol de `DATABASE_URL` puede hacer `set role anon` (desde aquí **no se pudo comprobar**) |
 | 5 | **Configuración del cliente** | Juan | `DATABASE_URL=... npm run db:seed-client` |
@@ -199,7 +199,8 @@ Inventario de `docs/diagnostico.md` §1 y §5. Todas responden **301** (permanen
 **Antes de importar**
 - [ ] Proyecto de Supabase de producción, con plan acorde al espacio de las fotos.
 - [ ] Todas las migraciones aplicadas; `citizen` no expuesto; baldes creados (`participacion-privado` privado).
-- [ ] Una copia de la base **antes** de importar (Supabase → Database → Backups, o `pg_dump`).
+- [ ] Una copia de la base **antes** de importar (Supabase → Database → Backups, o `pg_dump`; cómo, en
+      `docs/COPIAS-Y-RECUPERACION.md`).
 - [ ] La prueba (`npm run web:import -- --limit 20`) con el reporte mirado.
 
 **Revisión de los borradores (por cada nota que se publique)**

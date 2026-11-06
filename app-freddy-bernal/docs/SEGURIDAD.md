@@ -262,10 +262,14 @@ al final). Qué se hizo para blindar la plataforma y qué falta.
 ## Lo que falta (antes de producción)
 - Web pública: poner `PARTICIPATION_PEPPER` y `PARTICIPATION_DATA_KEY` en Vercel (Production) antes de abrir la
   participación; comprobar en `fb-dev` que el usuario de `DATABASE_URL` puede `set role anon` y que `citizen` no está en
-  los esquemas expuestos; aplicar ahí `20261106000050` a `20261106000300`, `20261106100100` y las dos de la revisión
-  (`20261106400100`, `20261106400200`); ClamAV (o pasar «sin analizar» a revisión manual) antes de servir archivos de
-  ciudadanos; Turnstile encendido antes de anunciar la web; consulta legal del aviso de privacidad y del tiempo de
-  retención. Lo demás que quedó de la revisión del 06/11 está al final de este documento.
+  los esquemas expuestos; aplicar ahí `20261106000050` a `20261106000300`, `20261106100100`, la del importador
+  (`20261106300100`) y las dos de la revisión (`20261106400100`, `20261106400200`); ClamAV (o pasar «sin analizar» a
+  revisión manual) antes de servir archivos de ciudadanos; Turnstile encendido antes de anunciar la web; consulta legal
+  del aviso de privacidad y del tiempo de retención. Lo demás que quedó de la revisión del 06/11 está al final de este
+  documento.
+- Copias de seguridad: el plan de pago (el gratis no tiene copias automáticas), la copia propia semanal de la base y de
+  los archivos, las dos claves de la participación guardadas fuera del repositorio y una restauración de prueba antes
+  de abrir (`COPIAS-Y-RECUPERACION.md`).
 - Configurar en Supabase: SMTP de Resend, plantilla del correo con `{{ .Token }}`, expiración de sesión,
   «inactivity timeout», MFA TOTP activado y registro abierto **apagado** (ver `README.md`).
 - Activar **Deployment Protection** en Vercel para las versiones de prueba.
