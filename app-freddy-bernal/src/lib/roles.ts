@@ -55,11 +55,18 @@ export const RETIRED_ROLES = ['secretary', 'supervisor'] as const satisfies read
 // account as Administración (except the editor). Not in INVITABLE_ROLES yet: the panel's Equipo screen gives the team
 // and Administración until the web's admin screens arrive.
 export const WEB_ROLES = ['writer', 'web_publisher', 'attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor'] as const satisfies readonly Role[];
+// Its two halves: the website's content (/admin/web) and the citizen requests (/admin/atencion).
+export const WEB_CONTENT_ROLES = ['writer', 'web_publisher'] as const satisfies readonly Role[];
+export const ATTENTION_ROLES = ['attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor'] as const satisfies readonly Role[];
+// Always with the second factor, whatever the editable list 'security.mfa_roles' says: every gate of the web and the
+// attention desk asks the token for it (is_aal2(), 20261106000100_web_publica.sql), so without it they would see nothing.
+export const MFA_ALWAYS: readonly Role[] = WEB_ROLES;
 // In the enum, not assignable.
 export const FUTURE_ROLES = ['aid_operator'] as const satisfies readonly Role[];
 
 export type TeamRole = (typeof TEAM_ROLES)[number];
 export type InvitableRole = (typeof INVITABLE_ROLES)[number];
+export type WebRole = (typeof WEB_ROLES)[number];
 
 export function isTeamRole(r: string | null | undefined): r is TeamRole {
   return (TEAM_ROLES as readonly string[]).includes(r ?? '');
@@ -67,6 +74,10 @@ export function isTeamRole(r: string | null | undefined): r is TeamRole {
 
 export function isInvitableRole(r: string | null | undefined): r is InvitableRole {
   return (INVITABLE_ROLES as readonly string[]).includes(r ?? '');
+}
+
+export function isWebRole(r: string | null | undefined): r is WebRole {
+  return (WEB_ROLES as readonly string[]).includes(r ?? '');
 }
 
 // Administración never holds the boss's or despacho's role in the same account: only the boss approves and only the
@@ -120,6 +131,10 @@ export const NAV: NavItem[] = [
   { href: '/resultados', label: 'Resultados', icon: 'chart', roles: ['admin', 'social'] },
   { href: '/biblioteca', label: 'Biblioteca', icon: 'folder', roles: ['admin', 'social', 'dispatch'], mobile: ['dispatch'] },
   { href: '/jefe/digital', label: 'Digital', icon: 'sparkles', roles: ['boss'] },
+  // The public website and the citizen attention desk (D-91, D-93): their own screens, inside the panel. Not the team's
+  // menus: the editors and publishers get «Web», the four roles of the attention desk get «Atención».
+  { href: '/admin/web', label: 'Web', icon: 'globe', roles: ['writer', 'web_publisher'], mobile: ['writer', 'web_publisher'] },
+  { href: '/admin/atencion', label: 'Atención', icon: 'inbox', roles: [...ATTENTION_ROLES], mobile: [...ATTENTION_ROLES] },
   { href: '/ajustes', label: 'Ajustes', icon: 'settings', roles: ['admin'], mobile: ['admin'] },
 ];
 
@@ -166,11 +181,16 @@ export function navFor(roles: Role[]) {
 }
 
 // Where each person lands. The boss on his Inicio; the Director del IVT on the obra fichas and the Director de
-// política on the municipalities (cambios del 27/10/2026, §4), when that is their only role.
+// política on the municipalities (cambios del 27/10/2026, §4), when that is their only role. The web's and the attention
+// desk's people (D-91) on their screen when that is all they do: the requests first (they have due dates), then the
+// website. Someone of the team who also edits the web keeps the team's home.
 export function homeFor(roles: Role[]): string {
   if (roles.includes('boss') && !roles.includes('admin')) return '/jefe';
   if (roles.length && roles.every((r) => r === 'ivt')) return '/obras';
   if (roles.length && roles.every((r) => r === 'politics')) return '/municipios';
+  if (roles.length && roles.every((r) => isWebRole(r))) {
+    return roles.some((r) => (ATTENTION_ROLES as readonly Role[]).includes(r)) ? '/admin/atencion' : '/admin/web';
+  }
   return '/hoy';
 }
 

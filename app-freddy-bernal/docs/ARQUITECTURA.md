@@ -3,7 +3,7 @@
 Actualizado: 29/10/2026 (seis roles, fichas, agenda compartida y entrega de Grabación: migraciones
 `20261027001500` a `20261028002300`; tercera vuelta: Mensajes, Ayuda y tutoriales, migraciones `20261028002350` y
 `20261028002400`; ronda 4: Redes por formato, meses y feed, `20261029000100`; ronda 5: Mensajes como canales,
-`20261029090000`).
+`20261029090000`; 06/11: la base de la web pública y la atención ciudadana, `20261106000050` a `20261106000300`).
 
 ## Piezas
 - **Next.js 16 (App Router), React 19, TypeScript estricto, Tailwind 4.** Server Components para leer y server
@@ -33,10 +33,11 @@ app-freddy-bernal/
 │   └── shim/               # Solo demo/pruebas: esquema auth falso y tablas de login demo
 ├── src/
 │   ├── app/(auth)/         # Entrar, doble factor, sin acceso
-│   ├── app/(panel)/        # Hoy, jefe, agenda, eventos, obras, municipios, reportes, redes, piezas, aprobar, tweets, publicar, resultados, biblioteca, ajustes, mensajes, ayuda
-│   ├── app/api/            # Descarga firmada (y por tramos desde Drive), miniaturas, subida demo (TUS), Drive (conexión, partes por la plataforma), cron, asistente, mensajes (lecturas GET del lazo)
+│   ├── app/(panel)/        # Hoy, jefe, agenda, eventos, obras, municipios, reportes, redes, piezas, aprobar, tweets, publicar, resultados, biblioteca, ajustes, mensajes, ayuda; admin/web y admin/atencion (la web y la atención, D-91)
+│   ├── app/panel/          # La entrada del equipo: a su inicio o a entrar (la app instalada abre aquí)
+│   ├── app/api/            # Descarga firmada (y por tramos desde Drive), miniaturas, subida demo (TUS), Drive (conexión, partes por la plataforma), cron, asistente, mensajes (lecturas GET del lazo), archivos de la web (pública) y de la atención (con RLS)
 │   ├── components/         # UI (tokens), shell, agenda, media, tweets, assistant, chat (Mensajes), tour (motor de tutoriales), guides (Ayuda y flujogramas)
-│   └── lib/                # db, auth, actions (server actions), data (lecturas), domain (lógica pura), ai, publish, email, assistant, guides (guías, flujos y tutoriales: una sola fuente)
+│   └── lib/                # db, auth, actions (server actions), data (lecturas), domain (lógica pura), ai, publish, email, assistant, guides (guías, flujos y tutoriales: una sola fuente); web (esquemas de la web, lecturas públicas y llamadas ciudadanas), participation (comprobante, llaves, cifrado, archivos, CSV, PDF)
 └── tests/                  # unit (Vitest), rls (Vitest), e2e (Playwright 360 px + axe)
 ```
 
@@ -55,6 +56,8 @@ app-freddy-bernal/
 | Avisos | `notifications`, `outbox`, `jobs`, `ai_usage` | Escritos por el servidor |
 | Auditoría | `audit_log` | Solo se agrega; trigger en todas las tablas de negocio |
 | Mensajes (28/10; canales desde el 29/10) | `chat_conversations` (un canal con nombre, descripción y `archived_at`, o «Todo el equipo»), `chat_members` (`via` «picked» o «boss»; salir es `removed_at`/`removed_by`, volver es una fila nueva), `chat_messages` (con `agenda_clear`), `chat_reads` (leído y silencio propios) | Los mensajes solo se agregan; los miembros también (ni el sistema los borra: tampoco `TRUNCATE`). La auditoría guarda tabla, fila, quién y cuándo, nunca el texto, el nombre del canal ni los miembros. Nada en Realtime. Sin aviso ni reglas por pareja (se fueron `chat_notice_ack` y `chat_rules`). Ver «Mensajes» |
+| Web pública (06/11) | `web_items` (borrador y lo publicado, con sus filtros), `web_versions` (solo se agregan), `web_media` (biblioteca pública, texto alternativo obligatorio), `web_settings`, `web_redirects`, `territories` | Ver «Web pública y atención ciudadana». anon lee columna por columna lo publicado y vivo |
+| Atención ciudadana (06/11) | `areas`, `area_members`, `request_categories`, `requests`, `request_supports`, `request_contacts` (cifrado, sin permisos), `request_events` y `request_messages` (solo se agregan), `request_attachments`, `attended_publications`, `rate_limits` | Nadie escribe directo: funciones de la base. La auditoría guarda quién, cuándo y qué campos, nunca el contenido |
 | Google Drive y miniaturas | `drive_connection`, `drive_folders`, `media_drive`, `media_thumbs`, `drive_transfer`; función `drive_status()` | Solo el servidor (RLS activo, sin políticas, sin permisos para los roles de la API). Un archivo de Drive es una fila normal de `media_assets` con `bucket = 'drive'`. `media_thumbs` guarda también las miniaturas hechas en el teléfono (cualquier almacenamiento) |
 
 Índices en las columnas de búsqueda y orden (estado, fechas, claves foráneas). Borrado: columna `deleted_at` y
@@ -193,6 +196,37 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 - **Demo:** `src/lib/db/seed-parts/chat.ts` siembra con ids estables «Todo el equipo» y cuatro canales (uno archivado),
   con un canal sin leer para cada persona del equipo (D-88).
 
+## Web pública y atención ciudadana (D-90 a D-96; migraciones `20261106000050` a `20261106000300`)
+- **Quién entra por dónde:** el equipo por `withUser` (RLS con sus claims); el público y el ciudadano sin cuenta por
+  **`withAnon`** (`src/lib/db`: el rol `anon`, sin claims, una transacción propia, nunca dentro de otra). anon tiene
+  permisos por columna sobre lo publicado de `web_items`, `web_settings` (filas públicas), `web_redirects`,
+  `territories` y `request_categories` activos y `attended_publications` publicadas, y ninguna función de `public`.
+- **El esquema `citizen`** (`20261106000300_citizen.sql`): `similar_requests`, `submit_request`, `support_request`,
+  `lookup_request`, `add_citizen_message`, `add_request_attachment`, `request_attachment`, `confirm_request` y
+  `request_stats`, SECURITY DEFINER, solo para anon, con límites persistentes (`rate_limits`) por dispositivo y por red.
+  **Nunca** se agrega a los esquemas expuestos de la Data API. Errores: `P0429` límite, `22023` llave o comprobante
+  mal formado, `P0001` mensaje para la persona (`friendlyDbError`).
+- **Contenido** (`src/lib/web/`): `schema.ts` (lo que guarda cada tipo: página, noticia, obra, episodio, documento,
+  aviso, pregunta, indicador; sin cifra sin fuente), `blocks.ts` (los 15 bloques y el texto estructurado; enlaces solo
+  https, http, mailto o rutas propias), `public.ts` (lecturas como anon: listas con filtros y búsqueda, por dirección,
+  por ids, ajustes, redirecciones, municipios, categorías, lo atendido). Publicar es de la base: `publish_web_item()`,
+  `return_web_item()`, `cancel_web_schedule()`, `archive_web_item()`, `unarchive_web_item()`, `restore_web_version()`.
+- **Participación** (`src/lib/participation/`): `receipt-code.ts` (clave de 80 bits en Crockford y código, también en el
+  navegador), `keys.ts` (HMAC con `PARTICIPATION_PEPPER` de la clave, del dispositivo y de la red), `contact-crypto.ts`
+  (AES-256-GCM con `PARTICIPATION_DATA_KEY`), `lookup-cookie.ts` (la galleta de 30 min de «Consultar»),
+  `turnstile.ts`, `files.ts` (tipo por bytes, tamaño, cantidad, limpieza de metadatos), `csv.ts`, `pdf.ts` (el
+  comprobante, escrito a mano), `input.ts` (lo que manda el formulario y los nombres de tipos, estados y prioridades).
+  Las llamadas a `citizen.*`, con argumentos por nombre: `src/lib/web/participation.ts`.
+- **Archivos** (`src/lib/storage/`): dos baldes lógicos (`buckets.ts`): `web-public` (la biblioteca, se sirve por su
+  dirección pública de Supabase o, en la demo, por `/api/archivos/web/<clave>` con caché de un año) y
+  `participacion-privado` (nunca público: `/api/archivos/atencion/<id>` revisa sesión, doble factor y RLS; en
+  producción redirige a un enlace firmado de 60 s). `participation-files.ts` revisa, limpia y guarda; `scanner.ts`:
+  `ATTACHMENT_SCANNER=clamav` (clamd INSTREAM) o `none`; en producción solo se descarga lo «limpio».
+- **Local con datos que se quedan** (D-94): `LOCAL_DATA_DIR` → PGlite en disco sembrado una vez (`local-data.ts`) y los
+  archivos de la demo debajo (`local-files.ts`, `demo-store.ts`).
+- **Demo:** `src/lib/db/seed-parts/web*.ts` (gente de los roles nuevos siempre; el contenido y las 60 solicitudes solo en
+  el servidor de la demo: `seedDemo(…, { webContent: true })`), ids fijos.
+
 ## Guías, tutoriales y Ayuda (D-42 a D-48)
 - **Una sola fuente:** `src/lib/guides/` (un archivo por rol, `shared.ts`, `admin.ts`, `flows.ts`, `sections.ts`,
   `tours.ts`; las anclas `data-tour` en la lista cerrada de `anchors.ts`). De ahí salen `/ayuda`, `/ayuda/[rol]` (tres
@@ -300,11 +334,17 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 | `20261028002400_internal_chat.sql` | Tercera vuelta: Mensajes (seis tablas, sus funciones y RLS), `text_has_concrete_datetime()` (E1), nada para anon ni en Realtime (D-49 a D-57, D-59). En `fb-dev` desde el 29/10 |
 | `20261029000100_redes_formatos.sql` | Ronda 4: Redes por formato, meses y feed: `pieces.format` y lo de la tarjeta, `content_months`, `feed_slots`, `piece_details`, `piece_notices`; las funciones del feed y de los meses; lo que vuelve al jefe; retención por diseño desaprobado; eliminar solo el jefe (D-60 a D-78). En `fb-dev` desde el 30/10 |
 | `20261029090000_chat_channels.sql` | Ronda 5: Mensajes como canales que arma el jefe, el jefe en todos por la base, sin aviso ni «Quién habla con quién»; lo que había queda en canales archivados (D-79 a D-88). En `fb-dev` desde el 30/10 |
+| `20261106000050_web_roles_enum.sql` | Web pública: los roles `web_publisher`, `attention_coordinator` y `auditor` (D-93). No está en `fb-dev` |
+| `20261106000100_web_publica.sql` | Los seis roles de la web y la atención se dan; puertas con doble factor del token; territorios, contenido, versiones, biblioteca, ajustes, redirecciones; funciones de publicar; lo que lee anon; baldes de Storage (D-90, D-93, D-96). No está en `fb-dev` |
+| `20261106000200_participacion.sql` | Áreas, categorías, solicitudes y todo alrededor, la máquina de estados y las funciones del equipo, auditoría sin contenido (D-92). No está en `fb-dev` |
+| `20261106000300_citizen.sql` | El esquema `citizen`: lo que hace el ciudadano sin cuenta, solo para anon (D-96). No está en `fb-dev` |
 
 ## Tareas programadas
 - `/api/cron/tick` (con `CRON_SECRET`): aviso de tweets por acabarse (una vez al día) y publicaciones vencidas
   (recordatorio en modo manual; en modo API, publica con el adaptador). Con Drive, además, marca como fallidas las
-  subidas abandonadas hace más de 8 días (Google cierra la subida a la semana).
+  subidas abandonadas hace más de 8 días (Google cierra la subida a la semana). La web: marca «Publicado» lo programado
+  cuya hora llegó (`web_items_flip_scheduled()`; el público ya lo ve por `publish_at`), borra las ventanas viejas de los
+  límites (`prune_rate_limits()`) y vuelve a revisar los archivos que quedaron en cuarentena (con `ATTACHMENT_SCANNER`).
 - Vercel Cron diario (`vercel.json`). Para cada 5 minutos: `pg_cron` + `pg_net` en Supabase:
   ```sql
   select cron.schedule('fb-tick', '*/5 * * * *', $$

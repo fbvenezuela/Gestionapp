@@ -15,6 +15,25 @@ npm run dev            # http://localhost:3000 — sin DATABASE_URL arranca en m
 ```
 Con datos reales: copia `.env.example` a `.env.local` y llena las variables (o `npx vercel env pull`).
 
+El panel del equipo empieza en **`/panel`** (manda a cada persona a su inicio, o a entrar); la app instalada en el
+teléfono también abre ahí. `/` será la web pública del gobernador (D-91).
+
+### En local con datos que se quedan (sin Docker, D-94)
+```bash
+LOCAL_DATA_DIR=./.data npm run dev    # o ponlo en .env.local
+```
+- La primera vez arma la base de la demostración (PGlite en `./.data/pglite`) con los mismos datos inventados de
+  siempre y la siembra **una sola vez** (la marca es `./.data/pglite.json`). Desde ahí, lo que hagas queda al reiniciar.
+- Los archivos de la demo también quedan: `./.data/files/web-public` (la biblioteca de la web),
+  `./.data/files/participacion-privado` (los archivos de las solicitudes) y `./.data/uploads` (el material del panel).
+- Si el código trae una migración nueva, se aplica sola al arrancar (y se recarga la configuración del cliente).
+- Una sola copia de la app por carpeta (`./.data/pglite.lock`): para dos servidores, dos carpetas. `next build` no la
+  usa.
+- Para empezar de cero, o si la base local se daña: para el servidor y borra la carpeta.
+- Entras igual que en la demo: «Entrar como…» con el rol que quieras (`docs/DEMO.md`). `.data/` no va al repositorio.
+- `docker-compose.yml` trae lo opcional (un Postgres desechable para las pruebas de RLS y ClamAV para revisar los
+  archivos); no se probó en el entorno donde se escribió.
+
 ## Pruebas
 ```bash
 npm run lint && npm run typecheck
@@ -75,6 +94,10 @@ Hoy hay un proyecto, `fb-dev` (`docs/CUENTAS.md`). Lo que falta, paso a paso y c
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`,
      `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_MODE`, `CRON_SECRET`, y si hay IA: `AI_ENABLED`, `AI_MODEL`,
      `ANTHROPIC_API_KEY`, `AI_MONTHLY_CAP_USD`.
+   - La web pública y la atención ciudadana (con `DATABASE_URL`, sin estas dos no se guarda ningún comprobante ni
+     contacto): `PARTICIPATION_PEPPER` y `PARTICIPATION_DATA_KEY` (cómo generarlas en `.env.example`); después
+     `SITE_URL`, y `TURNSTILE_SITE_KEY`/`TURNSTILE_SECRET_KEY` cuando haya cuenta de Cloudflare. `SITE_INDEXABLE`
+     solo con el OK de Juan. El esquema `citizen` **nunca** se agrega a los esquemas expuestos de la Data API.
    - **Para la demostración sin cuentas:** no pongas `DATABASE_URL`; solo `SESSION_SECRET` (una cadena larga al azar).
 3. Settings → Deployment Protection: activar para las versiones de prueba.
 4. Settings → Functions: región `iad1` (la misma de la base).

@@ -35,7 +35,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       <SunModeScript />
       <LiveRefresh />
       <aside className="sticky top-0 hidden h-dvh flex-col gap-4 overflow-y-auto glass-card rounded-none border-0 border-r border-border shadow-none p-4 lg:flex">
-        <Link href="/" className="flex items-center gap-2 px-1">
+        <Link href="/panel" className="flex items-center gap-2 px-1">
           <span className="grid h-9 w-9 place-items-center rounded-[var(--radius-control)] bg-accent font-bold text-on-accent">{brand.logoText}</span>
           <span className="text-[15px] font-bold leading-tight">{brand.shortName}</span>
         </Link>
@@ -49,7 +49,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
 
       <div className="flex min-w-0 flex-col">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-2 border-b border-border glass-bar px-4">
-          <Link href="/" className="flex items-center gap-2 lg:hidden">
+          <Link href="/panel" className="flex items-center gap-2 lg:hidden">
             <span className="grid h-9 w-9 place-items-center rounded-[var(--radius-control)] bg-accent font-bold text-on-accent">{brand.logoText}</span>
             <span className="sr-only">{brand.appName}</span>
           </Link>

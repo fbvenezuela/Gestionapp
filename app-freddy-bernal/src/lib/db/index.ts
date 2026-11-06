@@ -30,18 +30,28 @@ function postgresBackend(url: string): Backend {
 }
 
 async function createDemoBackend(): Promise<Backend> {
-  const { createMemoryDb } = await import('./pglite');
   const { seedClient } = await import('./seed-client');
   const { seedDemo } = await import('./seed-demo');
   const { withStableIds } = await import('./stable-ids');
+  // Same ids on every server, so a link made by one opens on another (./stable-ids.ts). With the website's demo content
+  // and the citizen requests (seed-parts/web.ts).
+  const seed = (backend: Backend) =>
+    asSystem(backend, (sql) =>
+      withStableIds(sql, async () => {
+        await seedClient(sql);
+        await seedDemo(sql, env.appTz, { webContent: true });
+      }),
+    );
+  // LOCAL_DATA_DIR (D-94): the same demo on disk, seeded once and kept across restarts. Not while `next build` runs
+  // (its workers would share the folder): the build gets the in-memory one, as always.
+  if (env.localDataDir && process.env.NEXT_PHASE !== 'phase-production-build') {
+    const { openLocalDb } = await import('./local-data');
+    const local = await openLocalDb(env.localDataDir, { seed, refresh: (backend) => asSystem(backend, (sql) => seedClient(sql)) });
+    return local.backend;
+  }
+  const { createMemoryDb } = await import('./pglite');
   const { backend } = await createMemoryDb();
-  // Same ids on every server, so a link made by one opens on another (./stable-ids.ts).
-  await asSystem(backend, (sql) =>
-    withStableIds(sql, async () => {
-      await seedClient(sql);
-      await seedDemo(sql, env.appTz);
-    }),
-  );
+  await seed(backend);
   return backend;
 }
 

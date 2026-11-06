@@ -7,13 +7,15 @@ import { seedFichaPhotos, seedFichas } from './seed-parts/fichas';
 import { seedHandoff } from './seed-parts/handoff';
 import { seedRedes } from './seed-parts/redes';
 import { seedThumbs } from './seed-parts/thumbs';
+import { seedWebContent, seedWebPeople } from './seed-parts/web';
+import { WEB_DEMO_USERS } from './seed-parts/web-people';
 
 // INVENTED demonstration data. No real people, phones, addresses or cases.
 // Emails use the reserved `.test` domain, so nothing can ever be delivered to them.
 // Never run against production. The six team roles plus Administración (27/10/2026); the parts of the seed
 // are in ./seed-parts.
 
-export const DEMO_USERS = [
+const TEAM_DEMO_USERS = [
   { id: '00000000-0000-4000-8000-000000000001', key: 'admin', email: 'admin@demo.test', name: 'Carla Méndez', roles: ['admin'], label: 'Administración' },
   { id: '00000000-0000-4000-8000-000000000002', key: 'boss', email: 'jefe@demo.test', name: 'Jefe (demo)', roles: ['boss'], label: 'El jefe' },
   { id: '00000000-0000-4000-8000-000000000003', key: 'dispatch', email: 'despacho@demo.test', name: 'Rubén Contreras', roles: ['dispatch'], label: 'Director de despacho' },
@@ -25,11 +27,19 @@ export const DEMO_USERS = [
   { id: '00000000-0000-4000-8000-000000000008', key: 'camera2', email: 'grabacion2@demo.test', name: 'Mariela Ostos', roles: ['camera'], label: 'Grabación' },
 ] as const;
 
-export type DemoUserKey = (typeof DEMO_USERS)[number]['key'];
+// «Entrar como…» lists them all: the team first.
+export const DEMO_USERS = [...TEAM_DEMO_USERS, ...WEB_DEMO_USERS] as const;
 
-export async function seedDemo(sql: Sql, tz = 'America/Caracas'): Promise<Record<DemoUserKey, string>> {
+export type DemoUserKey = (typeof DEMO_USERS)[number]['key'];
+export { WEB_DEMO_USERS };
+
+/**
+ * The demo's invented data. `webContent`: also the public website's content and the ~60 citizen requests
+ * (seed-parts/web.ts), what the demo server shows; the RLS tests start without them.
+ */
+export async function seedDemo(sql: Sql, tz = 'America/Caracas', opts: { webContent?: boolean } = {}): Promise<Record<DemoUserKey, string>> {
   const ids = {} as Record<DemoUserKey, string>;
-  for (const u of DEMO_USERS) {
+  for (const u of TEAM_DEMO_USERS) {
     await sql.query(`insert into public.invitations (email, full_name, roles) values ($1, $2, $3::public.app_role[])`, [
       u.email,
       u.name,
@@ -57,6 +67,8 @@ export async function seedDemo(sql: Sql, tz = 'America/Caracas'): Promise<Record
   await seedFichaPhotos(ctx);
   await seedChat(ctx);
   await seedRedes(ctx);
+  await seedWebPeople(ctx);
+  if (opts.webContent) await seedWebContent(ctx);
 
   return ids;
 }

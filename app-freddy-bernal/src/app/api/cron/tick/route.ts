@@ -10,6 +10,7 @@ import { LEVELS, reviewClock } from '@/lib/domain/review';
 import { DIGEST_HOUR, runDailyDigest } from '@/lib/push/digest-run';
 import { assistantHealthCheck } from '@/lib/assistant';
 import { storageProvider } from '@/lib/storage/provider';
+import { rescanQuarantine } from '@/lib/storage/participation-files';
 
 // Scheduled work. Called by Vercel Cron (see vercel.json, daily) and/or by Supabase pg_cron +
 // pg_net every 5 minutes (migration 20261025000800_push.sql) with the CRON_SECRET bearer.
@@ -99,7 +100,14 @@ async function tick() {
   // 5) Assistant health: too many degraded answers in the last hour → one notice to admin.
   await step('assistant', () => assistantHealthCheck());
 
-  // 6) Drive uploads abandoned for more than 8 days: Google drops a resumable session after a
+  // 6) The public website (D-90): scheduled items whose time came read «Publicado» in the panel (the public already sees
+  // them, by publish_at); rate-limit windows older than two days go; files left in quarantine by a failed scan are
+  // scanned again (only with ATTACHMENT_SCANNER=clamav).
+  await step('webScheduled', async () => (await withSystem((sql) => sql.one<{ n: number }>(`select public.web_items_flip_scheduled() as n`)))!.n);
+  await step('rateLimits', async () => (await withSystem((sql) => sql.one<{ n: number }>(`select public.prune_rate_limits() as n`)))!.n);
+  await step('quarantine', () => rescanQuarantine());
+
+  // 7) Drive uploads abandoned for more than 8 days: Google drops a resumable session after a
   // week (an unfinished session never becomes a file), so the row fails and its sealed URL goes.
   if (storageProvider() === 'drive') {
     await step('driveStaleUploads', () =>

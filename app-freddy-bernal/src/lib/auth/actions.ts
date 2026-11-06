@@ -89,14 +89,14 @@ export async function verifyCode(_: ActionState, form: FormData): Promise<Action
     });
     if (!uid) return { error: 'El código no es correcto o ya venció. Pide uno nuevo.' };
     await startDemoSession(uid, demoShortcuts() ? 'aal2' : 'aal1');
-    redirect('/');
+    redirect('/panel');
   }
 
   const { supabaseServer } = await import('../supabase/server');
   const supabase = await supabaseServer();
   const { error } = await supabase.auth.verifyOtp({ email: email.data, token: code.data, type: 'email' });
   if (error) return { error: 'El código no es correcto o ya venció. Pide uno nuevo.' };
-  redirect('/');
+  redirect('/panel');
 }
 
 async function startDemoSession(uid: string, aal: 'aal1' | 'aal2') {
@@ -116,7 +116,7 @@ export async function demoQuickLogin(email: string): Promise<ActionState> {
   );
   if (!uid) return { error: 'Ese usuario de prueba no existe.' };
   await startDemoSession(uid, 'aal2');
-  redirect('/');
+  redirect('/panel');
 }
 
 export async function signOut() {
@@ -145,7 +145,7 @@ const qrFor = (uri: string) => QRCode.toDataURL(uri, { margin: 1, width: 220 });
 export async function mfaEnroll(): Promise<MfaSetup> {
   const s = await getSession();
   if (!s) redirect('/entrar');
-  if (s.mfaOk) redirect('/');
+  if (s.mfaOk) redirect('/panel');
 
   if (env.dataMode === 'demo') {
     // Demo keeps one secret per person until it is verified (as it always did).
@@ -188,7 +188,7 @@ export async function mfaVerify(_: ActionState, form: FormData): Promise<ActionS
     });
     if (!ok) return { error: 'El código no coincide. Mira que la hora del teléfono esté bien y usa el código que se ve ahora.' };
     store.set(DEMO_COOKIE, signSession({ ...s, aal: 'aal2' }), cookieOpts);
-    redirect('/');
+    redirect('/panel');
   }
 
   const factorId = String(form.get('factorId') ?? '');
@@ -196,5 +196,5 @@ export async function mfaVerify(_: ActionState, form: FormData): Promise<ActionS
   const supabase = await supabaseServer();
   const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code: code.data });
   if (error) return { error: 'El código no coincide. Mira que la hora del teléfono esté bien y usa el código que se ve ahora.' };
-  redirect('/');
+  redirect('/panel');
 }

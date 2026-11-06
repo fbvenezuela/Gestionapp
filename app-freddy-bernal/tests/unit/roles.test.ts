@@ -1,25 +1,29 @@
 // The six roles in the code (cambios del 27/10/2026): the TypeScript lists mirror the database enum, the team is
 // exactly six, Administración is apart, the retired roles are gone from every menu, and the demo has a button for
-// each team role.
+// each role. The web's and the attention desk's six (D-93) have their own screen, home and second factor.
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { createMemoryDb } from '@/lib/db/pglite';
 import {
+  ATTENTION_ROLES,
   CREATE_ITEMS,
   FUTURE_ROLES,
   INVITABLE_ROLES,
+  MFA_ALWAYS,
   NAV,
   RETIRED_ROLES,
   ROLES,
   ROLE_LABEL,
   TEAM_ROLES,
+  WEB_CONTENT_ROLES,
   WEB_ROLES,
   createFor,
   homeFor,
   isInvitableRole,
   isNavActive,
   isTeamRole,
+  isWebRole,
   navFor,
   type Role,
 } from '@/lib/roles';
@@ -86,13 +90,39 @@ describe('los roles del código son los de la base', () => {
 describe('menús', () => {
   const retired = (rs: readonly Role[]) => rs.filter((r) => (RETIRED_ROLES as readonly string[]).includes(r));
 
-  it('ningún menú ni botón de «Crear» nombra un rol retirado o de la fase 3', () => {
+  it('ningún menú ni botón de «Crear» nombra un rol retirado o de la fase 3 (los de la web solo tienen su pantalla)', () => {
     for (const n of NAV) {
       expect(retired(n.roles), n.href).toEqual([]);
       expect(retired(n.mobile ?? []), n.href).toEqual([]);
-      for (const r of n.roles) expect(isInvitableRole(r), `${n.href} ${r}`).toBe(true);
+      // The team and Administración; the web's and the attention desk's roles only in their own two items (D-91).
+      for (const r of n.roles) expect(isInvitableRole(r) || (isWebRole(r) && n.href.startsWith('/admin/')), `${n.href} ${r}`).toBe(true);
+      for (const r of FUTURE_ROLES) expect(n.roles, n.href).not.toContain(r);
     }
     for (const c of CREATE_ITEMS) for (const r of c.roles) expect(isInvitableRole(r), `${c.href} ${r}`).toBe(true);
+  });
+
+  it('la web y la atención ciudadana (D-91, D-93): su pantalla en el menú y su inicio; el menú del equipo no cambia', () => {
+    for (const r of WEB_CONTENT_ROLES) {
+      expect(navFor([r]).visible.map((n) => n.href), r).toEqual(['/admin/web']);
+      expect(homeFor([r]), r).toBe('/admin/web');
+    }
+    for (const r of ATTENTION_ROLES) {
+      expect(navFor([r]).visible.map((n) => n.href), r).toEqual(['/admin/atencion']);
+      expect(navFor([r]).mobile.map((n) => n.label), r).toEqual(['Atención']);
+      expect(homeFor([r]), r).toBe('/admin/atencion');
+      expect(createFor([r]), r).toEqual([]);
+    }
+    // Both halves: the requests first (they have due dates); someone of the team keeps the team's home.
+    expect(homeFor(['writer', 'attention_coordinator'])).toBe('/admin/atencion');
+    expect(navFor(['writer', 'attention_coordinator']).visible.map((n) => n.label)).toEqual(['Web', 'Atención']);
+    expect(homeFor(['social', 'writer'])).toBe('/hoy');
+    expect(homeFor(['admin', 'writer'])).toBe('/hoy');
+    expect(homeFor(['boss', 'web_publisher'])).toBe('/jefe');
+    for (const r of [...TEAM_ROLES, 'admin'] as const) {
+      expect(navFor([r]).visible.some((n) => n.href.startsWith('/admin/')), r).toBe(false);
+    }
+    // Always with the second factor, whatever the editable list says (the database asks the token for it).
+    expect([...MFA_ALWAYS].sort()).toEqual([...WEB_ROLES].sort());
   });
 
   it('el menú del jefe: Inicio, Agenda, Por aprobar, Redes, Obras, Municipios y Digital (§3)', () => {
@@ -213,9 +243,17 @@ describe('doble factor y demostración', () => {
     for (const r of RETIRED_ROLES) expect(mfa, r).not.toContain(r);
   });
 
-  it('un botón por rol del equipo, con datos inventados', () => {
+  it('el doble factor lo piden también los seis roles de la web y la atención (config del cliente)', () => {
+    const mfa = getClientConfig().mfaRoles as string[];
+    for (const r of WEB_ROLES) expect(mfa, r).toContain(r);
+  });
+
+  it('un botón por rol del equipo y por rol de la web y la atención, con datos inventados', () => {
     const roles = new Set(DEMO_USERS.flatMap((u) => [...u.roles]));
-    expect([...roles].sort()).toEqual([...INVITABLE_ROLES].sort());
+    expect([...roles].sort()).toEqual([...INVITABLE_ROLES, ...WEB_ROLES].sort());
+    // A responsible in each of two areas, and the team first in «Entrar como…».
+    expect(DEMO_USERS.filter((u) => (u.roles as readonly string[]).includes('reports_operator'))).toHaveLength(2);
+    expect(DEMO_USERS.slice(0, 9).every((u) => u.roles.every((r) => isInvitableRole(r)))).toBe(true);
     expect(DEMO_USERS.find((u) => u.key === 'politics')).toMatchObject({ id: '00000000-0000-4000-8000-000000000010', email: 'politica@demo.test', label: 'Director de política' });
     expect(DEMO_USERS.find((u) => u.key === 'ivt')).toMatchObject({ id: '00000000-0000-4000-8000-000000000011', email: 'ivt@demo.test', label: 'Director del IVT' });
     for (const u of DEMO_USERS) {

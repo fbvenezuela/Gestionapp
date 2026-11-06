@@ -12,6 +12,16 @@ test('los botones son los seis roles del equipo y Administración; ya no Secreta
   }
 });
 
+// The website's and the attention desk's people (D-93), after the team, under their own heading.
+test('después del equipo, «La web y la atención ciudadana» con una persona por rol nuevo', async ({ page }) => {
+  await page.goto('/entrar');
+  await expect(page.getByText('La web y la atención ciudadana', { exact: true })).toBeVisible();
+  for (const label of ['Editor de la web', 'Aprobador de la web', 'Coordinador de atención', 'Responsable de área · Servicios públicos',
+    'Responsable de área · Vialidad y transporte', 'Operador de denuncias', 'Consulta y auditoría']) {
+    await expect(page.getByRole('button', { name: new RegExp(`^Entrar como ${label}`) }), label).toBeVisible();
+  }
+});
+
 // The «name · email» line is long: on a 360 px phone the rows used to run past the card and the page scrolled sideways.
 test('la lista de roles cabe en un teléfono de 360 px, sin moverse hacia los lados', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 780 });
@@ -32,6 +42,9 @@ test('un toque por rol, sin código ni doble factor', async ({ page }) => {
     ['Director del IVT', '/obras', /^Fichas de obra$/],
     ['Administración', '/hoy', /Hola, Carla/],
     ['Redes', '/hoy', /Hola, (Daniela|Yorman)/],
+    // The web's and the attention desk's: their own screen (D-91).
+    ['Editor de la web', '/admin/web', /^La web$/],
+    ['Coordinador de atención', '/admin/atencion', /^Atención ciudadana$/],
   ] as const) {
     await page.context().clearCookies();
     await page.goto('/entrar');

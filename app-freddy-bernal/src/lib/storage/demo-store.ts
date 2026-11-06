@@ -2,10 +2,11 @@ import 'server-only';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { env } from '../env';
 
-// Demo-only file storage on the server's temp disk (lost on restart). Real projects
-// use Supabase Storage. Paths come from media_assets.storage_path (uuid-based).
-const ROOT = path.join(os.tmpdir(), 'fb-demo-uploads');
+// Demo-only file storage on the server's temp disk (lost on restart), or under LOCAL_DATA_DIR when set (D-94: kept with
+// the database on disk). Real projects use Supabase Storage. Paths come from media_assets.storage_path (uuid-based).
+const ROOT = env.localDataDir ? path.resolve(env.localDataDir, 'uploads') : path.join(os.tmpdir(), 'fb-demo-uploads');
 
 export function demoFilePath(storagePath: string) {
   const clean = storagePath.replace(/\.\./g, '').replace(/^\/+/, '');

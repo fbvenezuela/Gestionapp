@@ -30,7 +30,8 @@ export async function login(page: Page, email: string) {
 // Demo TOTP: the first time, taps «Mostrar el código QR», reads the secret shown under the QR and
 // computes the current code. Later logins only ask for the code.
 export async function passMfa(page: Page, email: string) {
-  await page.waitForURL((u) => u.pathname !== '/' && !u.pathname.startsWith('/entrar'), { timeout: 20_000 });
+  // `/panel` (and `/`) only send on to the person's home or to the second factor (D-91): wait past them.
+  await page.waitForURL((u) => u.pathname !== '/' && u.pathname !== '/panel' && !u.pathname.startsWith('/entrar'), { timeout: 20_000 });
   if (!page.url().includes('/doble-factor')) return;
   const secrets = readSecrets();
   let secret = secrets[email];

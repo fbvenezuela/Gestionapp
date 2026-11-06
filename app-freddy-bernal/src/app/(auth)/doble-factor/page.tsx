@@ -10,7 +10,7 @@ export const metadata = { title: 'Doble factor' };
 export default async function MfaPage() {
   const s = await getSession();
   if (!s) redirect('/entrar');
-  if (s.mfaOk) redirect('/');
+  if (s.mfaOk) redirect('/panel');
   // Read only: drawing this page never enrolls. The QR is made when the person taps the button.
   const st = await mfaStatus(s.userId);
 

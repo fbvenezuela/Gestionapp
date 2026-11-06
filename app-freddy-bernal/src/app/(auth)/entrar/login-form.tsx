@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { Field, Input } from '@/components/ui/field';
 
-type DemoUser = { email: string; label: string; name: string };
+type DemoUser = { email: string; label: string; name: string; web?: boolean };
 
 export function LoginForm({ demoUsers, quick }: { demoUsers: DemoUser[] | null; quick: boolean }) {
   const [reqState, reqAction, reqPending] = useActionState<ActionState, FormData>(requestCode, {});
@@ -88,8 +88,9 @@ export function LoginForm({ demoUsers, quick }: { demoUsers: DemoUser[] | null; 
             {/* One column that can shrink (minmax(0, 1fr)): an auto column would take the width of the longest
                 «name · email» line and push the rows past a 360 px phone. */}
             <ul className="grid grid-cols-1 gap-2">
-              {demoUsers.map((u) => (
+              {demoUsers.map((u, i) => (
                 <li key={u.email}>
+                  {u.web && !demoUsers[i - 1]?.web ? <p className="mb-2 mt-3 text-sm font-semibold">La web y la atención ciudadana</p> : null}
                   <button
                     type="button"
                     disabled={quickPending}

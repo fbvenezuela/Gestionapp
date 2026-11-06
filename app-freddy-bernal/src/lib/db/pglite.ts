@@ -24,17 +24,26 @@ export function pgliteBackend(db: PGlite): Backend {
   };
 }
 
-// A fresh in-memory database with the Supabase shim and all migrations applied.
-export async function createMemoryDb(): Promise<{ db: PGlite; backend: Backend }> {
-  const db = new PGlite();
+// The Supabase shim, every migration and the demo's sign-in tables, on an empty database. Returns the migrations'
+// names (the local database on disk keeps them, src/lib/db/local-data.ts).
+export async function applySchema(db: PGlite): Promise<string[]> {
   await db.exec(readShim());
+  const names: string[] = [];
   for (const m of readMigrations()) {
     try {
       await db.exec(m.sql);
     } catch (e) {
       throw new Error(`Migration ${m.name} failed: ${(e as Error).message}`);
     }
+    names.push(m.name);
   }
   await db.exec(readDemoAuth());
+  return names;
+}
+
+// A fresh in-memory database with the Supabase shim and all migrations applied.
+export async function createMemoryDb(): Promise<{ db: PGlite; backend: Backend }> {
+  const db = new PGlite();
+  await applySchema(db);
   return { db, backend: pgliteBackend(db) };
 }

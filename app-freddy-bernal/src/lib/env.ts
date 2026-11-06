@@ -78,6 +78,40 @@ export const env = {
     // 10 GB of origin transfer and pauses the project past it. 0 = no cap (Pro).
     transferCapGb: Number(process.env.DRIVE_TRANSFER_CAP_GB ?? '7'),
   },
+  // Local work with data that stays (D-94): the demo database as a PGlite on disk (seeded once) and the demo's files,
+  // under this folder. Empty = as always (in memory, the temp disk). Never with DATABASE_URL (src/lib/db/local-data.ts).
+  localDataDir: process.env.LOCAL_DATA_DIR ?? '',
+  // The public website (D-91, D-95): its address (canonical links, sitemap, Open Graph) and whether search engines may
+  // index it. Off until production and Juan's decision: robots, meta and X-Robots-Tag say noindex.
+  site: {
+    url: process.env.SITE_URL ?? '',
+    indexable: flag('SITE_INDEXABLE'),
+  },
+  // Citizen participation (D-92, D-96). Server only. The pepper keys the HMAC of the receipt's secret and of the rate
+  // limit's device and network keys; the data key encrypts the contact (AES-256-GCM). Demo mode uses fixed demo values;
+  // with DATABASE_URL nothing is stored without them (src/lib/participation/keys.ts and contact-crypto.ts).
+  participation: {
+    pepper: process.env.PARTICIPATION_PEPPER ?? '',
+    dataKey: process.env.PARTICIPATION_DATA_KEY ?? '',
+    previousDataKeys: process.env.PARTICIPATION_DATA_KEYS_PREVIOUS ?? '',
+  },
+  // Cloudflare Turnstile on the public forms: only when both keys are set; otherwise off (the honeypot and the
+  // persistent limits stay). The site key reaches the browser through the page; the secret never does.
+  turnstile: {
+    siteKey: process.env.TURNSTILE_SITE_KEY ?? '',
+    secretKey: process.env.TURNSTILE_SECRET_KEY ?? '',
+  },
+  // The two logical buckets of the website (design §6) and the scanner of the private files.
+  buckets: {
+    webPublic: process.env.STORAGE_BUCKET_WEB_PUBLIC || 'web-public',
+    participation: process.env.STORAGE_BUCKET_PARTICIPATION || 'participacion-privado',
+  },
+  attachments: {
+    scanner: (process.env.ATTACHMENT_SCANNER === 'clamav' ? 'clamav' : 'none') as 'clamav' | 'none',
+    clamavHost: process.env.CLAMAV_HOST || '127.0.0.1',
+    clamavPort: Number(process.env.CLAMAV_PORT || '3310'),
+    clamavTimeoutMs: Number(process.env.CLAMAV_TIMEOUT_MS || '15000'),
+  },
 };
 
 export function isDemo() {

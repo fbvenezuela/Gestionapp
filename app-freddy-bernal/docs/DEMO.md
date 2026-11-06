@@ -1,4 +1,4 @@
-# Recorrido de demostración (seis roles desde el 27/10; guías y tutoriales desde el 28/10; Redes por formato y Mensajes por canales desde el 29/10)
+# Recorrido de demostración (seis roles desde el 27/10; guías y tutoriales desde el 28/10; Redes por formato y Mensajes por canales desde el 29/10; los roles de la web y la atención desde el 06/11)
 
 **Link:** el de la versión de prueba de Vercel (ver `README.md`, «Publicar la demostración»). En local:
 `npm run build && npm start` → http://localhost:3000.
@@ -104,6 +104,39 @@ el texto; un tutorial con el teclado cerrado (el anillo cae sobre lo que señala
 - Ajustes → Registro de cambios: quién hizo qué (de Mensajes, solo que hubo un mensaje, un canal o un cambio de
   miembros, quién y cuándo: nunca el texto, el nombre del canal ni los miembros).
 - Mensajes: cada quien lee solo sus canales; el jefe está en todos; administración y 360 no entran.
+
+## La web pública y la atención ciudadana (06/11): lo que ya hay
+La base está lista (D-90 a D-96); las pantallas llegan en las siguientes etapas. Hoy, en «Entrar como…», bajo «La web y
+la atención ciudadana», hay una persona de cada rol nuevo (todas inventadas, siempre con doble factor fuera de los
+atajos). Cada una entra a su pantalla (por ahora, de espera, con lo que puede leer contado por la base):
+
+| Rol | Correo | Qué ver hoy |
+|---|---|---|
+| Editor de la web | `web.editora@demo.test` | **Web**: borradores, lo que espera aprobación, programado y publicado. No ve solicitudes |
+| Aprobador de la web | `web.aprobador@demo.test` | **Web**, lo mismo; él publica (en la siguiente etapa, con sus botones) |
+| Coordinador de atención | `atencion.coordinacion@demo.test` | **Atención**: las 60 solicitudes de prueba, denuncias también (por revisar, en atención, resueltas, vencidas) |
+| Responsable de área · Servicios públicos | `atencion.servicios@demo.test` | **Atención**: solo lo de su área o lo asignado a él, nunca denuncias |
+| Responsable de área · Vialidad y transporte | `atencion.vialidad@demo.test` | **Atención**: lo mismo, de vialidad y transporte |
+| Operador de denuncias | `atencion.denuncias@demo.test` | **Atención**: solo las denuncias |
+| Consulta y auditoría | `consulta@demo.test` | **Atención**: todo menos las denuncias, sin poder cambiar nada |
+
+Lo sembrado (todo con «(demo)»): 12 noticias publicadas (una más programada para dentro de dos días, un borrador y una
+esperando aprobación), 14 obras en varios municipios y en los tres estados (una con un cambio esperando aprobación: el
+público sigue viendo lo aprobado), 6 programas del Reporte Bernal (sin video real), 8 documentos con su PDF de prueba
+(tres Semanarios), 4 avisos (uno vencido), 10 preguntas frecuentes, 4 indicadores con fuente inventada, las seis
+páginas base publicadas y 60 solicitudes de los seis tipos con su historia, notas, respuestas, apoyos, archivos de
+prueba («sin analizar») y 7 publicadas en «lo atendido».
+
+**Comprobantes de prueba** para «Consultar mi solicitud» (cuando esté la pantalla; el año es el en curso):
+
+| Código | Clave | Qué es |
+|---|---|---|
+| `AC-<año>-DEMR01` | `K7QM-2HXP-9WRT-4BNE` | Reporte de un hueco en atención, con tres apoyos y un duplicado unido |
+| `AC-<año>-DEMR02` | `R3PS-W8N2-DEMV-7QKA` | Reporte resuelto: espera que la persona confirme |
+| `AC-<año>-DEMR03` | `H4JX-5ZTB-9CNF-W2YE` | Reporte que requiere información: se le puede agregar |
+
+`/panel` es la entrada del equipo desde ya (la app instalada abre ahí); `/` sigue igual hasta que llegue la web.
+Para trabajar en tu computadora sin perder lo hecho: `LOCAL_DATA_DIR=./.data npm run dev` (`README.md`).
 
 ## Límites de la demostración
 - La base es en memoria: si el servidor se reinicia (pasa en Vercel), vuelve a los datos inventados.

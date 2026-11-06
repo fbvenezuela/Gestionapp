@@ -6,7 +6,10 @@ export default function manifest(): MetadataRoute.Manifest {
     name: brand.appName,
     short_name: brand.shortName,
     description: 'Plataforma interna del equipo',
-    start_url: '/',
+    // The panel's entry (D-91): `/` is the public website. The id stays the old start address, so the app already
+    // installed on a phone is the same app and simply opens here from now on.
+    id: '/',
+    start_url: '/panel',
     display: 'standalone',
     background_color: '#F7F7F5',
     theme_color: brand.themeColor,

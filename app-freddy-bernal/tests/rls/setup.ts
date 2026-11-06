@@ -38,11 +38,12 @@ async function postgresBackend(url: string): Promise<Backend> {
   };
 }
 
-export async function makeTestDb(): Promise<TestDb> {
+// `webContent`: also the public website's demo content and the citizen requests (seed-parts/web.ts), as the demo server.
+export async function makeTestDb(opts: { webContent?: boolean } = {}): Promise<TestDb> {
   const backend = process.env.TEST_DATABASE_URL ? await postgresBackend(process.env.TEST_DATABASE_URL) : (await createMemoryDb()).backend;
   const ids = await asSystem(backend, async (sql) => {
     await seedClient(sql);
-    return seedDemo(sql);
+    return seedDemo(sql, 'America/Caracas', { webContent: !!opts.webContent });
   });
   return {
     backend,

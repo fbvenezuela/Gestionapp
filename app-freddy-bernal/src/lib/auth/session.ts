@@ -6,7 +6,7 @@ import { demoShortcuts, env } from '../env';
 import { withSystem, withUser, type Claims, type Sql } from '../db';
 import { DEMO_COOKIE, readSession } from './cookie';
 import { revokedSession } from './revoke';
-import { homeFor, isTeamRole, type Role } from '../roles';
+import { homeFor, isTeamRole, MFA_ALWAYS, type Role } from '../roles';
 import { noPermissionUrl } from '../../components/shell/no-permission';
 
 export type Session = {
@@ -85,7 +85,8 @@ export const getSession = cache(async (): Promise<Session | null> => {
     return { p, roles: roles.map((r) => r.role), mfaRoles: mfaRoles?.value ?? [] };
   });
   if (!info.p) return null;
-  const mfaRequired = info.roles.some((r) => info.mfaRoles.includes(r));
+  // The web's and the attention desk's roles always (MFA_ALWAYS): the database asks their token for it anyway.
+  const mfaRequired = info.roles.some((r) => info.mfaRoles.includes(r) || MFA_ALWAYS.includes(r));
   const store = await cookies();
   // Only the six team roles: an old cookie naming a retired role is ignored.
   const va = store.get('fb_view_as')?.value;

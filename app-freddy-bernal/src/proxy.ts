@@ -24,6 +24,7 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
+// The public media library's files (api/archivos/web) need no session either.
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|sw.js|offline.html|manifest.webmanifest|icon|apple-icon|.*\\.(?:png|jpg|svg|ico)$).*)'],
+  matcher: ['/((?!_next/static|_next/image|sw.js|offline.html|manifest.webmanifest|icon|apple-icon|api/archivos/web/|.*\\.(?:png|jpg|svg|ico)$).*)'],
 };

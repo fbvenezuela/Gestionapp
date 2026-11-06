@@ -13,7 +13,7 @@ async function seededIds(): Promise<{ ids: string[]; defaults: string[] }> {
   await asSystem(backend, (sql) =>
     withStableIds(sql, async () => {
       await seedClient(sql);
-      await seedDemo(sql);
+      await seedDemo(sql, 'America/Caracas', { webContent: true });
     }),
   );
   const tables = await db.query<{ t: string }>(
@@ -40,8 +40,11 @@ describe('la demo tiene los mismos ids en todos los servidores', () => {
     // The fichas part of the seed (obras, reports, their contacts and history) too.
     // ... and Grabación's handoff (its note for the editor, §5).
     // ... and Redes por formato (months, their 24 feed places, card fields, notices).
+    // ... and the public website and the attention desk (seed-parts/web.ts): content, versions, files, requests and all
+    // around them.
     for (const t of ['obra_fichas', 'obra_ficha_private', 'community_reports', 'community_report_private', 'ficha_updates', 'recording_notes',
-      'content_months', 'feed_slots', 'piece_details', 'piece_notices']) {
+      'content_months', 'feed_slots', 'piece_details', 'piece_notices', 'web_items', 'web_versions', 'web_media', 'area_members', 'requests',
+      'request_events', 'request_messages', 'request_supports', 'request_contacts', 'request_attachments', 'attended_publications']) {
       expect(a.ids.some((x) => x.startsWith(`public.${t}:`)), t).toBe(true);
     }
     expect(b.ids).toEqual(a.ids);

@@ -1,12 +1,13 @@
 # Seguridad (primera versión)
 
-Actualizado: 30/10/2026 (seis roles, fichas, agenda compartida; en la tercera vuelta, Mensajes y el rol de jefe solo
-por el sistema; ronda 4, Redes por formato; ronda 5, Mensajes como canales). Qué se hizo para blindar la plataforma y
-qué falta.
+Actualizado: 06/11/2026 (seis roles, fichas, agenda compartida; en la tercera vuelta, Mensajes y el rol de jefe solo
+por el sistema; ronda 4, Redes por formato; ronda 5, Mensajes como canales; 06/11, la base de la web pública y la
+atención ciudadana). Qué se hizo para blindar la plataforma y qué falta.
 
 ## Lo que ya está
 1. **RLS en todas las tablas.** Cada consulta de una persona corre con su rol y su sesión (`set local role
-   authenticated`). Ningún permiso se decide en el navegador. El rol `anon` no lee ninguna tabla.
+   authenticated`). Ningún permiso se decide en el navegador. El rol `anon` solo lee, columna por columna, lo publicado
+   de la web pública (punto 21).
 2. **Pruebas que intentan lo prohibido** (`tests/rls/rls.test.ts` y, desde el 27/10, `por-rol.test.ts`, `roles.test.ts`,
    `retire-roles.test.ts`, `fichas.test.ts`, `agenda-shared.test.ts`, `recording.test.ts`, `privacy-hardening.test.ts` y
    `round-review.test.ts`), en Postgres en memoria y en Postgres 16 real en la CI. Entre otras:
@@ -227,7 +228,39 @@ qué falta.
     base: nadie mete una fecha en un código (empieza el nombre de cada archivo descargado) ni le quita el número al
     siguiente. Un evento ya realizado no cambia de fecha ni de lugar; un archivo nunca se pasa a otro evento o ficha.
 
+21. **La web pública y la atención ciudadana (06/11, D-90 a D-96).**
+    - **El público con RLS:** `withAnon` corre como `anon`, sin claims: permisos por columna sobre lo publicado y vivo
+      (nunca un borrador, nada programado antes de su hora), ninguna función de `public`, ninguna solicitud. Lo que
+      hace un ciudadano va por el esquema `citizen` (SECURITY DEFINER, solo anon, contesta lo mínimo, `not_found` igual
+      exista o no). **El esquema `citizen` nunca se expone en la Data API de Supabase.**
+    - **El comprobante:** la clave (80 bits) la hace el navegador y solo su HMAC con `PARTICIPATION_PEPPER` llega a la
+      base; ninguna columna de la API la lee. La consulta va por POST (nunca en la dirección) y deja una galleta cifrada
+      de 30 minutos, httpOnly, SameSite=Strict y solo bajo `/atencion/consultar`. Sin pimienta, producción no guarda ni
+      consulta comprobantes.
+    - **El contacto:** cifrado en la app (AES-256-GCM, `PARTICIPATION_DATA_KEY`, el nombre del campo en los datos
+      autenticados, rotación con ids); `request_contacts` no tiene permisos para nadie: solo `request_contact()`, que
+      deja en el registro quién lo miró. La clave fija de la demo solo existe en la demo; producción sin clave no guarda
+      contactos.
+    - **Abuso:** límites persistentes por dispositivo (galleta propia) y por red (la IP como HMAC, IPv6 por su /64), un
+      intento fallido de consulta también cuenta; campo trampa; Turnstile cuando haya claves. Las llaves salen de
+      `x-real-ip` / `x-forwarded-for`, que solo son confiables detrás del proxy de la plataforma (Vercel): fuera de él,
+      el límite por red es una segunda línea.
+    - **Archivos:** tipo por los primeros bytes y la extensión (JPG, PNG, WebP, PDF), 8 MB, 3 por envío y 12 por
+      solicitud, nombre al azar; las fotos sin metadatos (GPS, cámara, XMP, IPTC, comentarios, texto de PNG) antes de
+      guardarse. El balde privado se sirve solo por `/api/archivos/atencion/<id>` (sesión, doble factor y RLS de la
+      solicitud; en producción un enlace firmado de 60 s), con `sandbox`, `nosniff`, sin caché ni índice; un PDF
+      siempre se descarga. El revisor (`ATTACHMENT_SCANNER=clamav`) decide: producción solo sirve «limpio»; la demo,
+      también «sin analizar» con aviso; nunca «cuarentena» ni «infectado». Lo retirado por moderación no se sirve más.
+    - **El CSV** que se exporte lleva un apóstrofo delante de lo que empiece con = + - @, tabulador o retorno
+      (`src/lib/participation/csv.ts`).
+    - **Texto de la web:** estructurado, sin HTML; los enlaces solo a https, http, mailto o rutas propias
+      (`src/lib/web/blocks.ts`). Las direcciones viejas solo redirigen dentro del sitio.
+
 ## Lo que falta (antes de producción)
+- Web pública: poner `PARTICIPATION_PEPPER` y `PARTICIPATION_DATA_KEY` en Vercel (Production) antes de abrir la
+  participación; comprobar en `fb-dev` que el usuario de `DATABASE_URL` puede `set role anon` y que `citizen` no está en
+  los esquemas expuestos; aplicar ahí `20261106000050` a `20261106000300`; ClamAV (o pasar «sin analizar» a revisión
+  manual) antes de servir archivos de ciudadanos; consulta legal del aviso de privacidad y del tiempo de retención.
 - Configurar en Supabase: SMTP de Resend, plantilla del correo con `{{ .Token }}`, expiración de sesión,
   «inactivity timeout», MFA TOTP activado y registro abierto **apagado** (ver `README.md`).
 - Activar **Deployment Protection** en Vercel para las versiones de prueba.

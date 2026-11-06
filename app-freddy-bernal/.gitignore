@@ -17,6 +17,8 @@ playwright-report/
 tests/e2e/.state/
 tests/fixtures/large/
 .demo-uploads/
+# Local work with data that stays (LOCAL_DATA_DIR, D-94): the demo database on disk and its files. Never in git.
+.data/
 .DS_Store
 *.log
 public/mediainfo/

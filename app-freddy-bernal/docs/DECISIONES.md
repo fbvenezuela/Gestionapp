@@ -1325,3 +1325,129 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
 - **Cómo se cambia:** una respuesta que falta va en `answers/<rol>.ts`; su prueba de contenido revisa etiquetas, fechas y
   nombres. Los umbrales están en `engine.ts`: `STRONG` 0,62 y `WEAK` 0,45. La débil sola, `WEAK_ALONE` 0,52, está en
   `local.ts`. Si se sube `STRONG`, contestan más las fichas; si se baja, más el índice.
+
+## D-90. La web pública va dentro de la misma app, sin Payload CMS (06/11/2026)
+- **Qué:** la web nueva del gobernador, su administrador y la participación ciudadana se construyen en esta misma app
+  (Next.js + Postgres con RLS), no con un CMS aparte. El CMS es propio: contenido por bloques, borrador y lo publicado,
+  versiones, aprobación, programación y biblioteca de fotos, todo en la base (`20261106000100_web_publica.sql`):
+  - Cada contenido (`web_items`) guarda el **borrador** (lo que se edita) y lo **publicado** (exactamente lo que se
+    aprobó, lo único que lee el público). Publicar, programar, archivar y desarchivar solo con las funciones de la base
+    y solo quien aprueba la web o el jefe; el editor toca el borrador y lo manda a aprobación.
+  - No hay estado «aprobado»: publicar **es** aprobar (nada lo pondría nunca).
+  - Lo que ya está en vivo se publica de nuevo ahora; no se programa (hay una sola foto por contenido: programarlo
+    bajaría lo que está en vivo hasta esa hora). Lo nuevo sí se programa.
+  - El SEO (título, descripción, imagen, canónica) vive dentro del borrador: también pasa por la aprobación.
+  - Las fotos y archivos que nombra un contenido quedan **congelados** al publicar (clave, texto alternativo, pie,
+    crédito, punto de interés): cambiar la biblioteca nunca cambia una página en vivo, y el público nunca lee la
+    biblioteca. El texto alternativo es obligatorio en la base.
+  - Cada borrador guardado es una versión (solo se agregan); «Volver a esta versión» la copia al borrador, nunca a lo
+    publicado, y lo puede hacer quien edita.
+  - Las formas de cada tipo y de cada bloque, en zod: `src/lib/web/schema.ts` y `src/lib/web/blocks.ts` (texto
+    estructurado, sin HTML; enlaces solo a https, http, mailto o una dirección de esta web).
+- **Por qué:** las reglas del repositorio (RLS en la base, `db(session)`, una sola entrada del equipo con invitación,
+  código y doble factor) y el encargo del 6/11 («dentro de la misma app»). Payload traería otra autenticación, otro
+  administrador y otra capa de datos que salta la RLS, y su compatibilidad con Next 16.4 / React 19.3 no está probada.
+- **Cómo se cambia:** una migración nueva; los esquemas en `src/lib/web/`.
+
+## D-91. Las direcciones: la web en `/`, el panel en `/panel` (06/11/2026)
+- **Qué:** `/` pasa a ser la portada pública (en la siguiente etapa; hoy sigue mandando al equipo a su inicio). El panel
+  conserva sus direcciones y su entrada es **`/panel`** (con sesión, al inicio del rol; sin sesión, a entrar). La app
+  instalada abre `/panel` (el `id` del manifiesto sigue siendo `/`: es la misma app instalada). Los redirects internos
+  del panel (entrar, doble factor, el logo, «Ir al inicio») ya van a `/panel`. El administrador de la web vive en
+  **`/admin/web`** (contenido) y **`/admin/atencion`** (solicitudes), dentro del panel (misma sesión, menú y doble
+  factor); por ahora son pantallas de espera con los conteos que la persona puede leer. `/acerca`, `/privacidad` y
+  `/condiciones` son de la plataforma interna (las registró Google para Drive): no se tocan. Las legales de la web:
+  `/aviso-de-privacidad`, `/condiciones-de-participacion`, `/accesibilidad`.
+- **Por qué:** una sola app con dos caras; el teléfono del equipo sigue abriendo su panel.
+- **Cómo se cambia:** `src/app/panel/page.tsx`, `src/app/manifest.ts`, `NAV` y `homeFor()` en `src/lib/roles.ts`.
+
+## D-92. Seis tipos de solicitud; la denuncia, privada de punta a punta (06/11/2026)
+- **Qué:** reporte (un problema en la ciudad), petición, acotación, sugerencia, reconocimiento y **denuncia**. Ninguno es
+  un servicio de emergencias (lo dice cada formulario). No hay muro público: lo enviado es privado; en público solo hay
+  cifras y «lo atendido», que publica la coordinación sin datos de la persona (el nombre solo con su permiso, si no
+  iniciales; una denuncia, solo «Denuncia atendida en el municipio X»).
+  - Una denuncia la leen **solo** el operador de denuncias y la coordinación de atención: ni el jefe ni auditoría (para
+    ellos cuenta solo en los totales por tipo y estado). Nunca lleva punto en el mapa ni referencia exacta, solo
+    municipio y sector.
+  - «¿Te sumas?»: antes de enviar, `citizen.similar_requests` dice cuántos reportes abiertos del mismo problema hay a
+    100 m (o en el mismo municipio y sector) y sumarse da un comprobante propio. El mismo problema en el mismo sitio no
+    se abre más de tres veces: el cuarto se suma solo al primero. Lo que escribe quien se suma lo lee solo el equipo, y
+    su consulta nunca muestra el título ni el texto de la otra persona.
+  - La máquina de estados está en la base (`set_request_state`): motivo obligatorio para requiere información,
+    derivado, no procede, cerrado, resuelto (es la justificación de la resolución) y cualquier reapertura.
+  - El código (`AC-2026-K7QM2H`) lo hace la base, al azar y sin orden.
+  - Las áreas, quién está en cada una y las categorías las lleva administración; la coordinación las lee.
+- **Por qué:** la unión de los dos encargos del 6/11; «nada de una denuncia es público».
+- **Cómo se cambia:** `20261106000200_participacion.sql` y `20261106000300_citizen.sql` (con una migración nueva).
+
+## D-93. Los roles de la web y de la atención (06/11/2026)
+- **Qué:**
+
+  | Rol (enum) | Nombre | Puede |
+  |---|---|---|
+  | `admin` | Administración | Ajustes, personas, áreas, catálogos y ajustes del sitio; nunca lee casos ni publica |
+  | `writer` | Editor de la web | Crear y editar contenido y fotos, mandarlo a aprobación; nunca publica ni ve casos |
+  | `web_publisher` | Aprobador de la web | Revisar, publicar, programar, archivar y volver a versiones (el jefe también) |
+  | `attention_coordinator` | Coordinador de atención | Todas las solicitudes, denuncias también; asignar, unir, prioridad, fecha comprometida, cifras, exportar, «lo atendido» |
+  | `reports_operator` | Responsable de área | Lo de su área o lo asignado a él (nunca denuncias): responder, notas, estados, evidencias |
+  | `complaints_operator` | Operador de denuncias | Solo denuncias |
+  | `auditor` | Consulta y auditoría | Leer solicitudes (sin el contacto de nadie) y su registro de cambios |
+
+  El jefe publica la web y ve las cifras. `aid_operator` sigue sin usarse.
+  - Siempre con **doble factor**: cada puerta de la base lo pide al token (`is_aal2()`), no a la lista editable, y la
+    app lo exige para estos seis aunque alguien los saque de `security.mfa_roles` (`MFA_ALWAYS`).
+  - Administración no comparte cuenta con el aprobador ni con los roles de la atención (como con el jefe y el despacho,
+    D-41); el editor sí.
+  - No son roles del equipo: no tienen 360, guías, tutoriales ni Mensajes. Su menú es «Web» o «Atención» y su inicio,
+    esa pantalla (si además tienen un rol del equipo, conservan el inicio del equipo; con los dos de la web, primero
+    «Atención»: tiene plazos).
+  - Todavía no se dan desde Ajustes → Equipo (`INVITABLE_ROLES`): llega con las pantallas del administrador. En la demo
+    hay una persona por rol y un responsable en cada una de dos áreas (`docs/DEMO.md`).
+  - El rol `admin` sigue llamándose «Administración» (el diseño lo llamaba «Superadministrador»): el equipo ya lo
+    conoce así y sus permisos son los de la tabla.
+- **Por qué:** cada quien ve lo suyo y lo hace cumplir la base.
+- **Cómo se cambia:** `src/lib/roles.ts` (nombres, menús, inicio); los permisos, con una migración nueva.
+
+## D-94. En local con datos que se quedan, sin Docker (06/11/2026)
+- **Qué:** `LOCAL_DATA_DIR=./.data` guarda la base de la demostración como un PGlite en disco, sembrado **una sola
+  vez** (la marca `pglite.json` se escribe al terminar: un arranque que murió a medias empieza de cero), y los
+  archivos de la demo debajo (`files/`, `uploads/`). Al arrancar con una migración nueva, se aplica sola. Un servidor por
+  carpeta (`pglite.lock`). Sin la variable, todo como siempre (la demo de Vercel y las pruebas en memoria). Se entra con
+  los atajos y códigos de la demo. Producción sigue siendo Supabase (Postgres, Auth y Storage). `docker-compose.yml`
+  trae lo opcional (Postgres para las pruebas de RLS, ClamAV), sin probar aquí.
+- **Por qué:** poder trabajar varios días con la web y la atención sin perder lo hecho, sin instalar nada.
+- **Cómo se cambia:** `src/lib/db/local-data.ts`, `src/lib/storage/local-files.ts`.
+
+## D-95. El contenido de prueba se marca y nunca va a producción (06/11/2026)
+- **Qué:** noticias, obras, episodios, documentos, avisos, preguntas, indicadores y solicitudes de prueba salen solo de
+  la semilla de la demo (`src/lib/db/seed-parts/web*.ts`) y todos sus títulos terminan en «(demo)». La web pública
+  muestra en la demo una franja fija («Versión de prueba: el contenido es inventado.») y no se indexa (robots, meta y
+  `X-Robots-Tag`) salvo con `SITE_INDEXABLE=true` (producción y decisión de Juan). Nada de biografía, fotos, teléfonos,
+  correos, horarios, cuentas o parroquias inventadas: espacios «por completar» que se llenan desde el administrador.
+  Los episodios no nombran ningún video real (sin código de YouTube); los documentos son PDF pequeños hechos al sembrar;
+  las fuentes dicen que la cifra es inventada; los contactos de prueba van cifrados con la clave de la demo, en el
+  dominio reservado `.test`. Tres comprobantes de prueba (`docs/DEMO.md`) abren su caso en «Consultar mi solicitud».
+- **Por qué:** el repositorio es público y la web se enseña antes de la consulta legal.
+- **Cómo se cambia:** `src/lib/db/seed-parts/web-content.ts` y `web-requests.ts`; la franja en `site.demo_banner`.
+
+## D-96. El público lee con RLS también: el rol anon y el esquema citizen (06/11/2026)
+- **Qué:** `withAnon(fn)` (`src/lib/db`) corre como el rol `anon`, sin claims y con RLS, en su propia transacción
+  (como `withUser`; nunca dentro de otra). anon lee, columna por columna, solo lo publicado y vivo, los ajustes
+  públicos, las redirecciones, los municipios y categorías activos y «lo atendido» (`src/lib/web/public.ts`); nunca
+  una solicitud. Lo que hace un ciudadano sin cuenta va por las funciones del esquema **`citizen`**
+  (`src/lib/web/participation.ts`), que revisan todo y contestan lo mínimo; un código o clave equivocados dicen siempre
+  `not_found`. El esquema `citizen` **nunca** se expone en la Data API de Supabase: solo lo llama la app.
+  - La clave del comprobante (80 bits, cuatro grupos de Crockford) la hace el navegador; a la base llega solo su HMAC
+    con `PARTICIPATION_PEPPER` (también las llaves del límite: la galleta del dispositivo y la red, nunca la IP). En
+    producción, sin pimienta no hay comprobantes.
+  - El contacto se cifra en la app (AES-256-GCM con `PARTICIPATION_DATA_KEY`, el campo en los datos autenticados) y
+    nadie lo lee de la tabla: solo `request_contact()`, que deja constancia de quién lo miró. En producción, sin clave
+    no se guarda un contacto; en la demo hay una clave fija.
+  - Límites persistentes por dispositivo y por red (`participation.rate_limits`); un intento fallido de consulta también
+    cuenta.
+  - Los archivos: dos baldes (`web-public`, público y en caché; `participacion-privado`, nunca público, solo por las
+    rutas que revisan quién es con RLS), revisados por tipo real, tamaño y metadatos; el revisor (`ATTACHMENT_SCANNER`)
+    decide qué se descarga: en producción solo «limpio».
+- **Por qué:** «lo hace cumplir la base, no la pantalla», también para quien no tiene cuenta.
+- **Cómo se cambia:** `20261106000300_citizen.sql` (con una migración nueva), `src/lib/participation/`,
+  `src/lib/storage/`.
