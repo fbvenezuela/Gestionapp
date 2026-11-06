@@ -15,11 +15,11 @@ const B = 37; // half a cell, down
 const DEPTH = 1.25; // a room's depth
 const FRONT = 2.55; // where the front row starts: the hall in between is 1.3 deep, with the belt in the middle
 const DMAX = FRONT + DEPTH;
-const OX = DMAX * A + 30;
-const OY = 160;
+const OX = DMAX * A + 70;
+const OY = 190;
 const WALL = 140;
-const W = (5 + DMAX) * A + 60;
-const H = OY + (5 + DMAX) * B + 40;
+const W = (5 + DMAX) * A + 140;
+const H = OY + (5 + DMAX) * B + 70;
 const LANE_BACK = 1.7; // the belt going right, in front of the back rooms
 const LANE_FRONT = 2.12; // and coming back, in front of the front rooms
 const AISLE_BACK = 1.42; // where people walk
@@ -551,10 +551,15 @@ export function OfficeMap({ counts, mine, base = '' }: { counts: Record<Room, nu
 
         {front.map(room)}
 
-        {/* The labels, last, on top of everything: number, name and the real count; each one opens its room */}
+        {/* The labels outside the office, like an anatomy plate (Juan, 06/11): the back rooms' above the wall, the front
+            rooms' under the floor, each with a thin line to its room. Number, name and the real count; each opens its room. */}
         {ROOMS.map((r, k) => {
           const [c, r0] = ROOM_CELL[r];
-          const [x, y] = P(c + 0.5, r0 + DEPTH);
+          const isBack = r0 === 0;
+          const [x, ay] = P(c + 0.5, isBack ? 0.55 : r0 + 0.75);
+          // Straight up to just above the wall, or straight down to just under the floor, at the same x.
+          const across = (x - OX) / A;
+          const ly = isBack ? OY + across * B - WALL - 24 : OY + (across + 2 * DMAX) * B + 34;
           const n = counts[r] ?? 0;
           const info = ROOM[r];
           const name = `${k + 1} ${info.label}`;
@@ -566,10 +571,12 @@ export function OfficeMap({ counts, mine, base = '' }: { counts: Record<Room, nu
               className="o-label"
               aria-label={`${k + 1}. ${info.label}: ${n === 1 ? '1 actividad' : `${n} actividades`}. ${CREW_LABEL[info.crew]}.`}
             >
-              <rect x={x - w / 2} y={y - 9} width={w} height={15} rx={7.5} fill="var(--c-slate)" opacity={0.92} stroke={mine?.includes(r) ? 'var(--c-accent)' : 'none'} strokeWidth={2} />
-              <text x={x - 6} y={y + 2} textAnchor="middle" fontSize={8.5} fontWeight={700} fill="var(--c-on-slate)">{name}</text>
-              <circle cx={x + w / 2 - 8} cy={y - 1.5} r={6} fill={n > 0 ? 'var(--c-accent)' : 'var(--c-surface-2)'} />
-              <text x={x + w / 2 - 8} y={y + 1.6} textAnchor="middle" fontSize={8} fontWeight={800} fill={n > 0 ? 'var(--c-on-accent)' : 'var(--c-text-2)'}>{n}</text>
+              <line x1={x} y1={ay} x2={x} y2={ly + (isBack ? 6 : -9)} stroke="var(--c-slate)" strokeWidth={0.9} opacity={0.6} />
+              <circle cx={x} cy={ay} r={3} fill="var(--c-slate)" stroke="var(--c-surface)" strokeWidth={1.2} />
+              <rect x={x - w / 2} y={ly - 9} width={w} height={15} rx={7.5} fill="var(--c-slate)" stroke={mine?.includes(r) ? 'var(--c-accent)' : 'none'} strokeWidth={2} />
+              <text x={x - 6} y={ly + 2} textAnchor="middle" fontSize={8.5} fontWeight={700} fill="var(--c-on-slate)">{name}</text>
+              <circle cx={x + w / 2 - 8} cy={ly - 1.5} r={6} fill={n > 0 ? 'var(--c-accent)' : 'var(--c-surface-2)'} />
+              <text x={x + w / 2 - 8} y={ly + 1.6} textAnchor="middle" fontSize={8} fontWeight={800} fill={n > 0 ? 'var(--c-on-accent)' : 'var(--c-text-2)'}>{n}</text>
             </a>
           );
         })}
