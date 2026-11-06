@@ -406,7 +406,7 @@ export async function runImport(o: RunOptions): Promise<Report> {
     // A file brought for this post exists only if the draft uses it (past the 24 of the gallery it is not kept); one
     // the library already had always does.
     const freshIds = new Set(resolved.flatMap((r) => (r.fresh ? [r.fresh.id] : [])));
-    const kept = (r: Resolved) => !!r.mediaId && (!freshIds.has(r.mediaId) || used.has(r.mediaId));
+    const kept = (r: Resolved): r is Resolved & { mediaId: string } => !!r.mediaId && (!freshIds.has(r.mediaId) || used.has(r.mediaId));
     try {
       // One transaction for the post: its photos, the draft, where it came from and its redirects.
       return await asSystem(o.db!, async (sql) => {
