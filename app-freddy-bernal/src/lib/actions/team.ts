@@ -5,17 +5,29 @@ import { z } from 'zod';
 import { InviteEmail } from '@emails/templates';
 import { act, UserError } from './run';
 import { env } from '../env';
-import { withSystem } from '../db';
+import { withSystem, withUser } from '../db';
+import { requireSession } from '../auth/session';
 import { endAuthSessions } from '../auth/revoke';
 import { brand } from '../client-config';
 import { sendEmail } from '../email/send';
 import { INVITABLE_ROLES, ROLE_LABEL, roleGrantProblem, type Role } from '../roles';
 
-const inviteSchema = z.object({
-  email: z.string().trim().toLowerCase().email('Escribe un correo válido.'),
-  fullName: z.string().trim().min(2, 'Escribe el nombre.').max(120),
-  role: z.enum(INVITABLE_ROLES, 'Ese rol no es del equipo.'),
-});
+const inviteSchema = z
+  .object({
+    email: z.string().trim().toLowerCase().email('Escribe un correo válido.'),
+    fullName: z.string().trim().min(2, 'Escribe el nombre.').max(120),
+    role: z.enum(INVITABLE_ROLES, 'Ese rol no se da desde aquí.'),
+    // A «Responsable de área» (D-93) sees and attends its areas' requests: at least one, chosen here.
+    areaIds: z.array(z.string().uuid('Área inválida.')).max(20).default([]),
+  })
+  .refine((v) => v.role !== 'reports_operator' || v.areaIds.length > 0, { message: 'Elige al menos un área para el responsable.', path: ['areaIds'] });
+
+// The areas of a responsible (Administración with the second factor: can_manage_catalogs(), area_members' policy).
+async function joinAreas(sql: Parameters<Parameters<typeof withUser>[1]>[0], userId: string, areaIds: string[]) {
+  for (const areaId of areaIds) {
+    await sql.query(`insert into public.area_members (area_id, user_id) values ($1, $2) on conflict (area_id, user_id) do nothing`, [areaId, userId]);
+  }
+}
 
 export async function inviteUser(raw: unknown) {
   return act(inviteSchema, raw, async (sql, input, s) => {
@@ -31,6 +43,7 @@ export async function inviteUser(raw: unknown) {
       if (!existing.roles?.includes(input.role)) {
         await sql.query(`insert into public.user_roles (user_id, role, granted_by) values ($1, $2, auth.uid()) on conflict do nothing`, [existing.id, input.role]);
       }
+      if (input.role === 'reports_operator') await joinAreas(sql, existing.id, input.areaIds);
     } else {
       // A new account: only the boss's role is out (the system gives it; guard_boss_grant refuses it too).
       const problem = roleGrantProblem({ isSelf: false, roles: [], role: input.role });
@@ -45,6 +58,7 @@ export async function inviteUser(raw: unknown) {
   }, { revalidate: ['/ajustes/equipo'] }).then(async (r) => {
     if (!r.ok) return r;
     const input = inviteSchema.parse(raw);
+    let areasLost = false;
     if (!r.data?.existing) {
       // Create the sign-in account; the database trigger assigns the invited role.
       if (env.dataMode === 'demo') {
@@ -54,6 +68,19 @@ export async function inviteUser(raw: unknown) {
         const { error } = await supabaseAdmin().auth.admin.createUser({ email: input.email, email_confirm: true, user_metadata: { full_name: input.fullName } });
         if (error && !/already/i.test(error.message)) return { ok: false as const, error: 'No se pudo crear la cuenta. Revisa la configuración de Supabase.' };
       }
+      // The account exists now (the sign-in trigger made its profile with the invited role): its areas, as Administración.
+      if (input.role === 'reports_operator' && input.areaIds.length) {
+        const s = await requireSession();
+        try {
+          await withUser(s.claims, async (sql) => {
+            const p = await sql.one<{ id: string }>(`select id from public.profiles where email = $1`, [input.email]);
+            if (p) await joinAreas(sql, p.id, input.areaIds);
+          });
+        } catch (e) {
+          console.error('[equipo] áreas del responsable:', (e as Error).message);
+          areasLost = true;
+        }
+      }
     }
     await sendEmail({
       to: input.email,
@@ -62,11 +89,12 @@ export async function inviteUser(raw: unknown) {
       element: createElement(InviteEmail, { appName: brand.appName, name: input.fullName, roleLabel: ROLE_LABEL[input.role], url: `${env.appUrl}/entrar` }),
       idempotencyKey: `invite:${input.email}:${input.role}:${new Date().toISOString().slice(0, 13)}`,
     });
+    if (areasLost) return { ok: true as const, message: 'Invitación enviada, pero no se guardaron sus áreas: agrégalas con «Cambiar».' };
     return { ok: true as const, message: r.data?.existing ? 'Rol agregado.' : 'Invitación enviada.' };
   });
 }
 
-const roleSchema = z.object({ userId: z.string().uuid(), role: z.enum(INVITABLE_ROLES, 'Ese rol no es del equipo.'), on: z.boolean() });
+const roleSchema = z.object({ userId: z.string().uuid(), role: z.enum(INVITABLE_ROLES, 'Ese rol no se da desde aquí.'), on: z.boolean() });
 
 export async function setRole(raw: unknown) {
   return act(roleSchema, raw, async (sql, input, s) => {

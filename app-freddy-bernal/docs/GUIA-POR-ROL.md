@@ -66,7 +66,7 @@ Son seis roles: el jefe, el despacho, política, el IVT, Grabación y Redes. Par
 
 ## Jefe
 
-**Inicio:** `/jefe` · **Menú:** Inicio, Agenda, Por aprobar, Redes, Obras, Municipios, Digital · **En el teléfono:** Inicio, Agenda, Por aprobar, Redes, Más (en «Más»: Obras, Municipios, Digital)  
+**Inicio:** `/jefe` · **Menú:** Inicio, Agenda, Por aprobar, Redes, Obras, Municipios, Digital, Web, Atención · **En el teléfono:** Inicio, Agenda, Por aprobar, Redes, Más (en «Más»: Obras, Municipios, Digital, Web, Atención)  
 **Crear:** Nuevo evento, Visita de obra, Ficha de obra, Ficha comunitaria, Nueva pieza, Tweets de la semana, Nueva publicación · **Doble factor:** sí · En la app: `/ayuda/jefe`
 
 ### Tu trabajo

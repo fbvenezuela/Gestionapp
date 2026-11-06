@@ -2,7 +2,7 @@
 // input schemas the server actions validate with, and how a real answer becomes a script.
 // No I/O here: the panel pages, its client editors and src/lib/actions/assistant.ts share it.
 import { z } from 'zod';
-import { INVITABLE_ROLES, ROLES, ROLE_LABEL, isInvitableRole, type Role } from '@/lib/roles';
+import { STAFF_ROLES, ROLES, ROLE_LABEL, isStaffRole, type Role } from '@/lib/roles';
 
 export const PANEL_PATH = '/ajustes/asistente';
 
@@ -49,7 +49,7 @@ export function pageParam(v: unknown): number {
 // Roles (who a ficha or script is for). Empty = every role. Only the six team roles and
 // Administración: the retired and phase-3 roles don't use the assistant.
 // ---------------------------------------------------------------------------
-export const TEAM_ROLE_CHOICES = INVITABLE_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }));
+export const TEAM_ROLE_CHOICES = STAFF_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }));
 
 export function rolesText(roles: readonly string[] | null | undefined): string {
   if (!roles?.length) return 'Todos los roles';
@@ -73,7 +73,7 @@ const id = z.string().regex(UUID, 'Falta un id válido.');
 const teamRoles = z
   .array(z.enum(ROLES))
   .max(ROLES.length)
-  .refine((rs) => rs.every((r) => isInvitableRole(r)), 'Algún rol no es del equipo.')
+  .refine((rs) => rs.every((r) => isStaffRole(r)), 'Algún rol no es del equipo.')
   .default([]);
 const heardIds = z.array(id).max(500).default([]);
 const text = (what: string, max: number) =>

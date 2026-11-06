@@ -15,6 +15,7 @@ import {
   RETIRED_ROLES,
   ROLES,
   ROLE_LABEL,
+  STAFF_ROLES,
   TEAM_ROLES,
   WEB_CONTENT_ROLES,
   WEB_ROLES,
@@ -22,8 +23,11 @@ import {
   homeFor,
   isInvitableRole,
   isNavActive,
+  isStaffRole,
   isTeamRole,
   isWebRole,
+  roleGrantProblem,
+  ADMIN_WEB_MIX_MESSAGE,
   navFor,
   type Role,
 } from '@/lib/roles';
@@ -67,17 +71,33 @@ describe('los roles del código son los de la base', () => {
 
   it('el equipo son seis; Administración aparte; ni retirados ni de la fase 3', () => {
     expect([...TEAM_ROLES]).toEqual(['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social']);
-    expect([...INVITABLE_ROLES].sort()).toEqual([...TEAM_ROLES, 'admin'].sort());
-    // The web and the attention desk (D-93): given by the database since 20261106000100_web_publica.sql, never team
-    // roles, and not in the panel's Equipo list until the web's admin screens arrive.
+    // The team and Administración: who the assistant 360 serves (its cards, scripts and notices).
+    expect([...STAFF_ROLES].sort()).toEqual([...TEAM_ROLES, 'admin'].sort());
+    // The web and the attention desk (D-93): given by the database since 20261106000100_web_publica.sql and, since the
+    // attention desk's admin (W3), from Ajustes → Equipo; never team roles, never the assistant's.
     expect([...WEB_ROLES]).toEqual(['writer', 'web_publisher', 'attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor']);
-    for (const r of [...RETIRED_ROLES, ...FUTURE_ROLES, ...WEB_ROLES]) {
+    expect([...INVITABLE_ROLES].sort()).toEqual([...STAFF_ROLES, ...WEB_ROLES].sort());
+    for (const r of [...RETIRED_ROLES, ...FUTURE_ROLES]) {
       expect(isInvitableRole(r), r).toBe(false);
       expect(isTeamRole(r), r).toBe(false);
     }
+    for (const r of WEB_ROLES) {
+      expect(isInvitableRole(r), r).toBe(true);
+      expect(isTeamRole(r), r).toBe(false);
+      expect(isStaffRole(r), r).toBe(false);
+    }
     expect(isTeamRole('admin')).toBe(false);
     expect(isInvitableRole('admin')).toBe(true);
-    expect([...RETIRED_ROLES, ...FUTURE_ROLES, ...INVITABLE_ROLES, ...WEB_ROLES].sort()).toEqual([...ROLES].sort());
+    expect([...RETIRED_ROLES, ...FUTURE_ROLES, ...INVITABLE_ROLES].sort()).toEqual([...ROLES].sort());
+  });
+
+  it('Administración no comparte cuenta con quien publica la web ni con los roles que leen solicitudes (el editor sí)', () => {
+    for (const r of ['web_publisher', 'attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor'] as const) {
+      expect(roleGrantProblem({ isSelf: false, roles: ['admin'], role: r }), r).toBe(ADMIN_WEB_MIX_MESSAGE);
+      expect(roleGrantProblem({ isSelf: false, roles: [r], role: 'admin' }), r).toBe(ADMIN_WEB_MIX_MESSAGE);
+    }
+    expect(roleGrantProblem({ isSelf: false, roles: ['admin'], role: 'writer' })).toBeNull();
+    expect(roleGrantProblem({ isSelf: false, roles: ['social'], role: 'attention_coordinator' })).toBeNull();
   });
 
   it('cada valor tiene su nombre en español', () => {
@@ -95,10 +115,10 @@ describe('menús', () => {
       expect(retired(n.roles), n.href).toEqual([]);
       expect(retired(n.mobile ?? []), n.href).toEqual([]);
       // The team and Administración; the web's and the attention desk's roles only in their own two items (D-91).
-      for (const r of n.roles) expect(isInvitableRole(r) || (isWebRole(r) && n.href.startsWith('/admin/')), `${n.href} ${r}`).toBe(true);
+      for (const r of n.roles) expect(isStaffRole(r) || (isWebRole(r) && n.href.startsWith('/admin/')), `${n.href} ${r}`).toBe(true);
       for (const r of FUTURE_ROLES) expect(n.roles, n.href).not.toContain(r);
     }
-    for (const c of CREATE_ITEMS) for (const r of c.roles) expect(isInvitableRole(r), `${c.href} ${r}`).toBe(true);
+    for (const c of CREATE_ITEMS) for (const r of c.roles) expect(isStaffRole(r), `${c.href} ${r}`).toBe(true);
   });
 
   it('la web y la atención ciudadana (D-91, D-93): su pantalla en el menú y su inicio; el menú del equipo no cambia', () => {
@@ -118,24 +138,45 @@ describe('menús', () => {
     expect(homeFor(['social', 'writer'])).toBe('/hoy');
     expect(homeFor(['admin', 'writer'])).toBe('/hoy');
     expect(homeFor(['boss', 'web_publisher'])).toBe('/jefe');
-    for (const r of [...TEAM_ROLES, 'admin'] as const) {
+    // The team's menus do not change, but the boss's and Administración's: «Web» and «Atención» (D-93), in «Más».
+    for (const r of TEAM_ROLES.filter((x) => x !== 'boss')) {
       expect(navFor([r]).visible.some((n) => n.href.startsWith('/admin/')), r).toBe(false);
+    }
+    for (const r of ['boss', 'admin'] as const) {
+      expect(navFor([r]).more.filter((n) => n.href.startsWith('/admin/')).map((n) => n.label), r).toEqual(['Web', 'Atención']);
+      expect(navFor([r]).mobile.some((n) => n.href.startsWith('/admin/')), r).toBe(false);
+    }
+    // Each one where its permissions are: the boss approves and publishes (/admin/web); Administración only changes the
+    // site's settings and redirects, so its «Web» opens the settings and stays marked on the web's other screens.
+    expect(navFor(['boss']).more.find((n) => n.label === 'Web')?.href).toBe('/admin/web');
+    const adminMenu = navFor(['admin']).visible;
+    const adminWeb = adminMenu.find((n) => n.label === 'Web')!;
+    expect(adminWeb.href).toBe('/admin/web/ajustes');
+    for (const path of ['/admin/web', '/admin/web/ajustes', '/admin/web/redirecciones']) {
+      expect(adminMenu.filter((n) => isNavActive(path, n, adminMenu)).map((n) => n.label), path).toEqual(['Web']);
+    }
+    expect(adminMenu.filter((n) => isNavActive('/admin/atencion/areas', n, adminMenu)).map((n) => n.label)).toEqual(['Atención']);
+    // One «Web» per menu: Administración that also edits the web gets the editor's; no menu repeats a label.
+    expect(navFor(['admin', 'writer']).visible.filter((n) => n.label === 'Web').map((n) => n.href)).toEqual(['/admin/web']);
+    for (const rs of [...ROLES.map((r) => [r]), ['admin', 'writer'], ['boss', 'web_publisher'], ['admin', 'social']] as Role[][]) {
+      const labels = navFor(rs).visible.map((n) => n.label);
+      expect(new Set(labels).size, rs.join('+')).toBe(labels.length);
     }
     // Always with the second factor, whatever the editable list says (the database asks the token for it).
     expect([...MFA_ALWAYS].sort()).toEqual([...WEB_ROLES].sort());
   });
 
-  it('el menú del jefe: Inicio, Agenda, Por aprobar, Redes, Obras, Municipios y Digital (§3)', () => {
+  it('el menú del jefe: Inicio, Agenda, Por aprobar, Redes, Obras, Municipios, Digital, Web y Atención (§3, D-93)', () => {
     const { visible } = navFor(['boss']);
-    expect(visible.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Redes', 'Obras', 'Municipios', 'Digital']);
-    expect(visible.map((n) => n.href)).toEqual(['/jefe', '/agenda', '/aprobar', '/redes', '/obras', '/municipios', '/jefe/digital']);
+    expect(visible.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Redes', 'Obras', 'Municipios', 'Digital', 'Web', 'Atención']);
+    expect(visible.map((n) => n.href)).toEqual(['/jefe', '/agenda', '/aprobar', '/redes', '/obras', '/municipios', '/jefe/digital', '/admin/web', '/admin/atencion']);
     expect(visible.map((n) => n.label)).not.toContain('Hoy');
   });
 
-  it('en el teléfono del jefe caben Inicio, Agenda, Por aprobar y Redes, más «Más» con Obras, Municipios y Digital', () => {
+  it('en el teléfono del jefe caben Inicio, Agenda, Por aprobar y Redes, más «Más» con Obras, Municipios, Digital, Web y Atención', () => {
     const { visible, mobile, more } = navFor(['boss']);
     expect(mobile.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Redes']);
-    expect(more.map((n) => n.label)).toEqual(['Obras', 'Municipios', 'Digital']);
+    expect(more.map((n) => n.label)).toEqual(['Obras', 'Municipios', 'Digital', 'Web', 'Atención']);
     // Five cells at most on a 360 px phone: four items and «Más».
     expect(mobile.length + (more.length ? 1 : 0)).toBe(5);
     expect([...mobile, ...more]).toEqual(visible);
@@ -178,10 +219,10 @@ describe('menús', () => {
     expect(social.more.map((n) => n.label)).toEqual(['Publicar', 'Resultados', 'Biblioteca']);
     // Administración: the same with Redes where Piezas was, on the phone too.
     const admin = navFor(['admin']);
-    expect(admin.visible.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Por aprobar', 'Redes', 'Obras', 'Municipios', 'Tweets', 'Publicar', 'Resultados', 'Biblioteca', 'Ajustes']);
+    expect(admin.visible.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Por aprobar', 'Redes', 'Obras', 'Municipios', 'Tweets', 'Publicar', 'Resultados', 'Biblioteca', 'Web', 'Atención', 'Ajustes']);
     expect(admin.mobile.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Redes', 'Ajustes']);
-    // The boss's menu does not change.
-    expect(navFor(['boss']).visible.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Redes', 'Obras', 'Municipios', 'Digital']);
+    // The boss's menu: the same Redes (only Web and Atención were added, D-93).
+    expect(navFor(['boss']).visible.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Redes', 'Obras', 'Municipios', 'Digital', 'Web', 'Atención']);
     // Whoever has Tweets in the menu sees Tweets marked there, never the hub too; a section of Redes marks Redes.
     const both = navFor(['boss', 'social']).visible;
     expect(both.filter((n) => isNavActive('/tweets', n, both)).map((n) => n.label)).toEqual(['Tweets']);
@@ -250,10 +291,10 @@ describe('doble factor y demostración', () => {
 
   it('un botón por rol del equipo y por rol de la web y la atención, con datos inventados', () => {
     const roles = new Set(DEMO_USERS.flatMap((u) => [...u.roles]));
-    expect([...roles].sort()).toEqual([...INVITABLE_ROLES, ...WEB_ROLES].sort());
+    expect([...roles].sort()).toEqual([...INVITABLE_ROLES].sort());
     // A responsible in each of two areas, and the team first in «Entrar como…».
     expect(DEMO_USERS.filter((u) => (u.roles as readonly string[]).includes('reports_operator'))).toHaveLength(2);
-    expect(DEMO_USERS.slice(0, 9).every((u) => u.roles.every((r) => isInvitableRole(r)))).toBe(true);
+    expect(DEMO_USERS.slice(0, 9).every((u) => u.roles.every((r) => isStaffRole(r)))).toBe(true);
     expect(DEMO_USERS.find((u) => u.key === 'politics')).toMatchObject({ id: '00000000-0000-4000-8000-000000000010', email: 'politica@demo.test', label: 'Director de política' });
     expect(DEMO_USERS.find((u) => u.key === 'ivt')).toMatchObject({ id: '00000000-0000-4000-8000-000000000011', email: 'ivt@demo.test', label: 'Director del IVT' });
     for (const u of DEMO_USERS) {

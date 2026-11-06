@@ -3,7 +3,7 @@ import { menuRoles, type Session } from '../auth/session';
 import { db, system } from './db';
 import { friendlyDbError } from '../db/core';
 import { usersWithRole } from '../notify';
-import { INVITABLE_ROLES, ROLE_LABEL, TEAM_ROLES, homeFor, type Role } from '../roles';
+import { STAFF_ROLES, ROLE_LABEL, TEAM_ROLES, homeFor, type Role } from '../roles';
 import { HOME_SCREEN, tourHref, toursForRoles, type Tour } from '../guides';
 import { tweetStock } from '../data/tweets';
 import { toSchedule } from '../data/events';
@@ -417,7 +417,7 @@ export const TOOLS: Tool[] = [
     description:
       'Deja PREPARADO un aviso para todo un rol (o para todo el equipo). No lo manda: queda pendiente hasta que administración lo confirme en el panel. Di a cuántas personas iría y que falta la confirmación. Sin fechas, horas, días, lugares ni contactos de ningún evento: si los trae, no se prepara.',
     parameters: {
-      rol: { type: 'string', description: 'A quién va: un rol del equipo, o «todos».', enum: [...INVITABLE_ROLES, 'todos'] },
+      rol: { type: 'string', description: 'A quién va: un rol del equipo, o «todos».', enum: [...STAFF_ROLES, 'todos'] },
       texto: { type: 'string', description: 'El aviso, corto y claro, como lo leerá la gente.' },
     },
     required: ['rol', 'texto'],
@@ -438,7 +438,7 @@ export const TOOLS: Tool[] = [
       const body = redactContacts(texto).trim().slice(0, NOTICE_MAX);
       if (body.length < 3) throw new ToolError('Falta el texto del aviso.');
       const people = new Set<string>();
-      for (const r of rol === 'todos' ? INVITABLE_ROLES : [rol]) for (const id of await usersWithRole(r)) people.add(id);
+      for (const r of rol === 'todos' ? STAFF_ROLES : [rol]) for (const id of await usersWithRole(r)) people.add(id);
       const label = rol === 'todos' ? 'todo el equipo' : ROLE_LABEL[rol as Role];
       const row = await system((sql) =>
         sql.one<{ id: string }>(
