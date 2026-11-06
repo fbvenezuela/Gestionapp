@@ -260,3 +260,50 @@
   --glass-shadow: none;
   --glass-shadow-pop: none;
 }
+
+/* «La oficina» (06/11/2026): the palette of the office drawing (src/components/office/office-map.tsx). It is an
+   illustration, the same in light, dark and «Modo sol»: warm floor and walls, wood, glass with the olive of the brand,
+   skin and hair tones, and the screens. Never used for text. */
+:root {
+  --c-office-floor: #ebe8df;
+  --c-office-floor-line: #dcd8cc;
+  --c-office-rug-1: #e3e6c6;
+  --c-office-rug-2: #efe3c4;
+  --c-office-rug-3: #dfe7d6;
+  --c-office-wall: #f8f7f2;
+  --c-office-wall-side: #e6e4da;
+  --c-office-wall-top: #ffffff;
+  --c-office-glass: #d6e6dc;
+  --c-office-glass-2: #c3d9cc;
+  --c-office-sky: #e9f1e4;
+  --c-office-city: #b9cdbf;
+  --c-office-city-2: #a7bfae;
+  --c-office-wood: #d7b48a;
+  --c-office-wood-dark: #b58f64;
+  --c-office-white: #ffffff;
+  --c-office-white-2: #eceae3;
+  --c-office-white-3: #d9d6cc;
+  --c-office-metal: #3a3f3b;
+  --c-office-metal-2: #565c57;
+  --c-office-screen: #1c221f;
+  --c-office-glow: #d9f2b4;
+  --c-office-glow-2: #ffe08a;
+  --c-office-glow-3: #9fe0d0;
+  --c-office-skin-1: #f2c9a6;
+  --c-office-skin-2: #c98d63;
+  --c-office-skin-3: #8f5c3c;
+  --c-office-hair-1: #2a1d16;
+  --c-office-hair-2: #6b4527;
+  --c-office-hair-3: #9a9a94;
+  --c-office-pants: #2e3530;
+  --c-office-shirt-1: #7f8630;
+  --c-office-shirt-2: #f2e6c9;
+  --c-office-shirt-3: #4c5a4f;
+  --c-office-shirt-4: #ffffff;
+  --c-office-shirt-5: #b4bb5c;
+  --c-office-leaf: #6f8a3a;
+  --c-office-leaf-2: #93ad4f;
+  --c-office-pot: #f2f0ea;
+  --c-office-rec: #d93a3a;
+  --c-office-shadow: rgba(47, 51, 18, 0.16);
+}
