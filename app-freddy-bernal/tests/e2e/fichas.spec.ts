@@ -18,7 +18,7 @@ async function fitsWidth(page: Page, where: string) {
 
 test('el IVT: sus fichas de obra, la ficha O-0001 con su diálogo FAB y una ficha nueva sin fecha', async ({ page }) => {
   await loginAs(page, 'ivt@demo.test');
-  await page.goto('/');
+  await page.goto('/panel');
   await expect(page).toHaveURL(/\/obras$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Fichas de obra' })).toBeVisible();
   await expect(page.getByRole('heading', { name: /^Por ponerle fecha \(\d+\)$/ })).toBeVisible();
@@ -70,7 +70,7 @@ test('el IVT: sus fichas de obra, la ficha O-0001 con su diálogo FAB y una fich
 
 test('política: los municipios con lo vencido arriba, un municipio y la ficha comunitaria nueva', async ({ page }) => {
   await loginAs(page, 'politica@demo.test');
-  await page.goto('/');
+  await page.goto('/panel');
   await expect(page).toHaveURL(/\/municipios$/);
   const overdue = page.getByRole('region', { name: /Vencidas en los municipios/ });
   await expect(overdue).toBeVisible();

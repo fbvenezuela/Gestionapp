@@ -4,7 +4,7 @@ import { TZ } from '../time';
 // How the public website writes dates, numbers and sizes: always in the Táchira's time zone (America/Caracas), in
 // Spanish of Venezuela, with plain spaces (the same text on the server and in the browser). Pure.
 
-const ODD_SPACES = /[  ]/g;
+const ODD_SPACES = /[\u00a0\u202f]/g;
 const out = (s: string) => s.replace(ODD_SPACES, ' ');
 
 function parse(v: string): DateTime | null {

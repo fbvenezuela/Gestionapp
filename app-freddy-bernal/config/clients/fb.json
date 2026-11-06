@@ -908,6 +908,19 @@
    "areaServed": "Táchira",
    "country": "Venezuela"
   },
+  "redirects": {
+   "$comment": "Direcciones de la web vieja (WordPress) con su destino ya decidido en docs/diagnostico.md §5; entran a web_redirects (301) al sembrar, sin pisar lo que haya. Las de cada artículo, categoría y etiqueta las genera el importador.",
+   "items": [
+    {
+     "from": "/2014/07/biografia",
+     "to": "/gobernador"
+    },
+    {
+     "from": "/feed",
+     "to": "/actualidad"
+    }
+   ]
+  },
   "settings": {
    "site.navigation": [
     {

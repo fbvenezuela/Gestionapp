@@ -22,7 +22,7 @@ export function withQuery(path: string, params: Record<string, string | number |
 
 /** A day from the address («2026-11-04»), only if it is a real day; else ''. */
 export function dayParam(v: string | string[] | undefined): string {
-  const s = textParam(v, 10);
+  const s = textParam(v, 40);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return '';
   const d = new Date(`${s}T00:00:00Z`);
   return !Number.isNaN(d.getTime()) && d.toISOString().startsWith(s) ? s : '';

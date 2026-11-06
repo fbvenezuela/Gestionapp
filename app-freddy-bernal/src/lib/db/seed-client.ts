@@ -161,6 +161,12 @@ async function seedWebPublica(sql: Sql, cfg: ClientConfig) {
       JSON.stringify(page.draft),
     ]);
   }
+
+  // The old site's addresses whose destination the diagnosis already decided (docs/diagnostico.md §5); the importer adds
+  // the rest. Never over what the team changed by hand.
+  for (const r of cfg.web.redirects.items) {
+    await sql.query(`insert into public.web_redirects (from_path, to_path, source) values ($1, $2, 'manual') on conflict (from_path) do nothing`, [r.from, r.to]);
+  }
 }
 
 // «San Cristóbal» → «san-cristobal» (territories' slugs, used in the public site's addresses and filters).
