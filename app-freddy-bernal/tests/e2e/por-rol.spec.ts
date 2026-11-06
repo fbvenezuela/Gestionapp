@@ -61,8 +61,14 @@ async function other(browser: Browser, email: string) {
   return { ctx, page };
 }
 
-const eventLinks = async (page: Page) =>
-  page.locator('main a[href^="/eventos/"]').evaluateAll((as) => [...new Set(as.map((a) => (a as HTMLAnchorElement).getAttribute('href')!.split('?')[0]))]);
+// The page itself, not the loading skeleton ((panel)/loading.tsx): React reveals a streamed page a moment after «load»
+// (it batches the reveals), so the links are read once the skeleton is gone.
+const settled = (page: Page) => expect(page.locator('main [aria-busy="true"]')).toHaveCount(0);
+
+const eventLinks = async (page: Page) => {
+  await settled(page);
+  return page.locator('main a[href^="/eventos/"]').evaluateAll((as) => [...new Set(as.map((a) => (a as HTMLAnchorElement).getAttribute('href')!.split('?')[0]))]);
+};
 
 // The boss reads each event's date, time and address on its page (the schedule card at the top).
 async function schedulesOf(browser: Browser, hrefs: string[]): Promise<Sched[]> {
@@ -277,6 +283,7 @@ test('El jefe ve todo: llega a cada pantalla de cada rol, con la fecha y la hora
   // publication, and every event (with each of its tabs and the read mode).
   const linksOn = async (path: string, prefix: string) => {
     await page.goto(path);
+    await settled(page);
     return page.locator(`main a[href^="${prefix}"]`).evaluateAll((as) => [...new Set(as.map((a) => (a as HTMLAnchorElement).getAttribute('href')!.split('?')[0]))]);
   };
   const obras = (await linksOn('/obras', '/obras/')).filter((h) => /\/obras\/[0-9a-f-]{36}$/.test(h));
