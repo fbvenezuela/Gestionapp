@@ -326,8 +326,12 @@ export async function runImport(o: RunOptions): Promise<Report> {
         report.photos[got.reason === 'unsupported' ? 'unsupported' : 'failed']++;
         continue;
       }
-      // The same photo under another address (the post's photo again inside the text): one file in the library.
-      const twin = await read((sql) => mediaBySha(sql, o.site, got.sha256), null);
+      // The same photo under another address (the post's photo again inside the text, or in another post): one file in
+      // the library. One brought a moment ago for this same post is not in the database yet: it is looked up here.
+      const sibling = resolved.find((r) => r.mediaId && r.storageKey && r.remember?.sha256 === got.sha256);
+      const twin = sibling
+        ? { mediaId: sibling.mediaId!, storageKey: sibling.storageKey! }
+        : await read((sql) => mediaBySha(sql, o.site, got.sha256), null);
       if (twin) {
         report.photos.reused++;
         resolved.push({ want, role, mediaId: twin.mediaId, storageKey: twin.storageKey, fresh: null, remember: { sha256: got.sha256 } });
@@ -399,12 +403,16 @@ export async function runImport(o: RunOptions): Promise<Report> {
       throw new Error(`el borrador no cumple el esquema (${i?.path.join('.')}: ${i?.message})`);
     }
     const used = new Set([draft.coverId, ...(draft.galleryIds ?? [])].filter(Boolean));
+    // A file brought for this post exists only if the draft uses it (past the 24 of the gallery it is not kept); one
+    // the library already had always does.
+    const freshIds = new Set(resolved.flatMap((r) => (r.fresh ? [r.fresh.id] : [])));
+    const kept = (r: Resolved) => !!r.mediaId && (!freshIds.has(r.mediaId) || used.has(r.mediaId));
     try {
       // One transaction for the post: its photos, the draft, where it came from and its redirects.
       return await asSystem(o.db!, async (sql) => {
         for (const r of resolved) {
           if (r.fresh && used.has(r.fresh.id)) await insertMedia(sql, r.fresh);
-          if (r.remember && r.mediaId && (!r.fresh || used.has(r.fresh.id))) {
+          if (r.remember && kept(r)) {
             await rememberMedia(sql, { site: o.site, key: r.want.key, url: r.want.url, oldPath: r.want.oldPath, mediaId: r.mediaId, sha256: r.remember.sha256 });
           }
         }
@@ -436,7 +444,7 @@ export async function runImport(o: RunOptions): Promise<Report> {
         if (plan.oldPath) countRedirect('posts', await upsertRedirect(sql, plan.oldPath, to));
         countRedirect('shortlinks', await upsertRedirect(sql, `/?p=${plan.sourceId}`, to));
         for (const r of resolved) {
-          if (r.remember && r.storageKey && r.want.oldPath && (!r.fresh || used.has(r.fresh.id))) {
+          if (r.remember && r.storageKey && r.want.oldPath && kept(r)) {
             countRedirect('photos', await upsertRedirect(sql, r.want.oldPath, `/api/archivos/web/${r.storageKey}`));
           }
         }

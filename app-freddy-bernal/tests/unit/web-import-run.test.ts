@@ -232,4 +232,31 @@ describe('el importador contra la base', () => {
     expect(store.files.size).toBe(filesBefore);
     expect(nm.flags.media_skipped).toBe(1);
   });
+
+  it('la misma foto dos veces en un artículo (la portada otra vez en el texto, sin su id) es un solo archivo y no se repite en la galería', async () => {
+    site.media.set(9010, wpMedia(9010, 'gemela.png'));
+    site.files.set(`${UP}/gemela.png`, pngOf(340, 220));
+    site.files.set(`${UP}/gemela-copia.png`, pngOf(340, 220));
+    site.posts.push(
+      wpPost(507, 'nota-con-su-portada-en-el-texto', {
+        featured_media: 9010,
+        content: { rendered: `<p>Texto (prueba).</p><p><img src="${UP}/gemela-copia.png" alt=""></p>` },
+      }),
+    );
+    const r = await run({ apply: true });
+    expect(r.errors).toEqual([]);
+    const nota = (await item('nota-con-su-portada-en-el-texto'))!;
+    expect(nota.draft.coverId).toBeTruthy();
+    expect(nota.draft.galleryIds).toEqual([]);
+    const remembered = await sys<{ source_key: string; media_id: string }>(
+      `select source_key, media_id::text as media_id from public.web_import_media where source_key = any ($1::text[]) order by source_key`,
+      [['id:9010', `url:${UP}/gemela-copia.png`]],
+    );
+    expect(remembered.map((k) => k.media_id)).toEqual([nota.draft.coverId, nota.draft.coverId]);
+    const portada = await redirect('/wp-content/uploads/2026/03/gemela.png');
+    expect(portada).toMatchObject({ source: 'importador' });
+    expect(await redirect('/wp-content/uploads/2026/03/gemela-copia.png')).toEqual(portada);
+    // Again: nothing of it changes.
+    expect((await run({ apply: true })).posts.find((p) => p.id === 507)?.action).toBe('unchanged');
+  });
 });
