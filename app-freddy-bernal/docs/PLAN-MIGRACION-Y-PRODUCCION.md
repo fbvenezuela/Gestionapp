@@ -163,7 +163,7 @@ Inventario de `docs/diagnostico.md` §1 y §5. Todas responden **301** (permanen
 |---|---|---|---|
 | 1 | **Proyecto de Supabase de producción** | Juan | Uno nuevo (`fb-prod`) o decidir que `fb-dev` pasa a serlo. Plan Pro si se importan todas las fotos (§2). Región junto a Vercel (`iad1`) |
 | 2 | **Migraciones** | Juan con Claude | Todas las de `supabase/migrations`, en orden, como `postgres` (README «Conectar las cuentas»). Las de la web: `20261106000050` a `20261106000300`, `20261106100100`, `20261106300100` y las dos de la revisión de seguridad (`20261106400100`, `20261106400200`). No se edita una ya aplicada |
-| 3 | **Baldes** | Juan | La migración `20261106000100` crea `web-public` (**público**) y `participacion-privado` (**privado**). Mirar en Storage que existan y que `participacion-privado` no sea público |
+| 3 | **Baldes** | Juan | La migración `20261106000110` crea `web-public` (**público**) y `participacion-privado` (**privado**). Mirar en Storage que existan y que `participacion-privado` no sea público |
 | 4 | **Data API** | Juan | El esquema `citizen` **nunca** se agrega a los expuestos. Comprobar que el rol de `DATABASE_URL` puede hacer `set role anon` (desde aquí **no se pudo comprobar**) |
 | 5 | **Configuración del cliente** | Juan | `DATABASE_URL=... npm run db:seed-client` |
 | 6 | **Variables en Vercel** (producción) | Juan | Ver la tabla de abajo. Nunca en el repositorio |
