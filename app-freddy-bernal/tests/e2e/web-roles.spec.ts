@@ -34,7 +34,9 @@ for (const p of PEOPLE) {
     await page.goto('/panel');
     await expect(page).toHaveURL(new RegExp(`${p.home}$`));
     await expect(page.getByRole('heading', { level: 1, name: p.heading })).toBeVisible();
-    await expect(page.getByText('Se arma en la siguiente etapa.')).toBeVisible();
+    // «Atención» is built (W3): its inbox, never a placeholder.
+    if (p.home === '/admin/web') await expect(page.getByText('Se arma en la siguiente etapa.')).toBeVisible();
+    else await expect(page.getByText('Se arma en la siguiente etapa.')).toHaveCount(0);
     const bar = page.getByRole('navigation', { name: 'Menú' });
     await expect(bar.getByRole('link')).toHaveText([p.item]);
     // No 360, no Mensajes, no «Crear».

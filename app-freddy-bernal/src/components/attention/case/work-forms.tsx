@@ -63,7 +63,8 @@ export function ContactReveal({ id, anonymous, canErase }: { id: string; anonymo
       ) : contact === null ? (
         <p className={sectionHint} role="status">No dejó contacto (o se borró a su pedido).</p>
       ) : (
-        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[15px]" role="status">
+        <div role="status">
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[15px]">
           <dt className="font-semibold">Nombre</dt>
           <dd className="[overflow-wrap:anywhere]">{contact.name ?? '—'}</dd>
           <dt className="font-semibold">Correo</dt>
@@ -73,6 +74,7 @@ export function ContactReveal({ id, anonymous, canErase }: { id: string; anonymo
           <dt className="font-semibold">Prefiere</dt>
           <dd>{CONTACT_CHANNEL_LABEL[contact.preferredChannel as ContactChannel] ?? '—'}</dd>
         </dl>
+        </div>
       )}
       {canErase ? (
         <details>

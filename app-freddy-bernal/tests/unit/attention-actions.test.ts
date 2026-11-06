@@ -260,7 +260,7 @@ describe('los correos de estado', () => {
     // Delivering, it goes once per contact, with its idempotency key.
     const ok = vi.fn(async () => ({ stored: true, sent: true }));
     expect(await email.sendStatusEmails({ requestId: r.id, kind: 'state', state: 'en_atencion', key: 'prueba' }, { send: ok, plan: () => ({ queue: true, delivers: true }) })).toBe(1);
-    expect(ok.mock.calls[0][0]).toMatchObject({ to: r.email, idempotencyKey: expect.stringMatching(/^atencion-state:prueba:[0-9a-f-]{36}$/) });
+    expect((ok.mock.calls as unknown as [Record<string, unknown>][])[0][0]).toMatchObject({ to: r.email, idempotencyKey: expect.stringMatching(/^atencion-state:prueba:[0-9a-f-]{36}$/) });
   });
 
   it('una solicitud anónima no recibe nada; a quien se sumó le llega solo el cambio de estado, con su propio código', async () => {
