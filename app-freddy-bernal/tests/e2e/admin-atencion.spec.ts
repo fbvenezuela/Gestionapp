@@ -240,6 +240,15 @@ test('auditoría lo lee sin el contacto y sin poder tocarlo; exporta sin contact
   expect(text.split('\r\n')[0]).not.toMatch(/Correo|Teléfono/);
   expect(text).toContain(shared.reference);
   expect(text).not.toContain(`vecina.${RUN}@demo.test`);
+
+  // The desk's record: who looked at the contact (the coordinator, in the first test) and who exported, never what.
+  await page.goto('/admin/atencion/registro');
+  await expect(page.getByRole('heading', { level: 1, name: 'Registro de atención' })).toBeVisible();
+  const record = page.getByRole('listitem').filter({ hasText: 'vio el contacto de' }).filter({ hasText: shared.reference });
+  await expect(record.first()).toContainText('Coordinación de atención (demo)');
+  await expect(page.getByRole('listitem').filter({ hasText: /exportó \d+ solicitudes en CSV, sin contactos/ }).first()).toBeVisible();
+  await expect(page.getByText(`vecina.${RUN}@demo.test`)).toHaveCount(0);
+  await axe(page, 'registro de atención');
 });
 
 test('la coordinación: tablero, cifras, mapa, áreas y respuestas guardadas en el teléfono y en la computadora, con axe', async ({ page }) => {

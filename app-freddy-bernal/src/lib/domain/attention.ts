@@ -49,6 +49,8 @@ export function deskAccess(roles: readonly AnyRole[]) {
     seesAreas: has(roles, 'admin', 'attention_coordinator', 'auditor', 'boss'),
     /** The reply templates: whoever answers reads them; the coordinator writes them. */
     templates: has(roles, 'attention_coordinator', 'reports_operator', 'complaints_operator'),
+    /** The desk's audit trail (who looked at a contact, who exported, what changed): the auditor and Administración. */
+    auditLog: has(roles, 'auditor', 'admin'),
   };
 }
 export type DeskAccess = ReturnType<typeof deskAccess>;

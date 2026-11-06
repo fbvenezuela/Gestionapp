@@ -175,7 +175,11 @@ describe('cada rol con lo suyo (D-93)', () => {
     expect(deskAccess(['auditor'])).toMatchObject({ readsCases: true, works: false, stats: true, exports: true, exportsContacts: false, templates: false });
     expect(deskAccess(['boss'])).toMatchObject({ readsCases: true, works: false, stats: true, exports: false });
     expect(deskAccess(['admin'])).toMatchObject({ readsCases: false, works: false, catalogs: true, seesAreas: true, stats: false });
-    expect(deskAccess(['writer'])).toMatchObject({ readsCases: false, works: false, catalogs: false, seesAreas: false });
+    expect(deskAccess(['writer'])).toMatchObject({ readsCases: false, works: false, catalogs: false, seesAreas: false, auditLog: false });
+    // The desk's record: the auditor and Administración (the audit_log policies), never the coordinator.
+    expect(deskAccess(['auditor']).auditLog).toBe(true);
+    expect(deskAccess(['admin']).auditLog).toBe(true);
+    expect(deskAccess(['attention_coordinator']).auditLog).toBe(false);
   });
 
   it('una denuncia solo la buscan la coordinación y denuncias', () => {

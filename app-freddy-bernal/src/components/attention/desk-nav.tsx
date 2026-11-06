@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/cn';
 import type { DeskAccess } from '@/lib/domain/attention';
 
-export type DeskTab = 'bandeja' | 'tablero' | 'mapa' | 'cifras' | 'areas' | 'respuestas';
+export type DeskTab = 'bandeja' | 'tablero' | 'mapa' | 'cifras' | 'areas' | 'respuestas' | 'registro';
 
 // The tabs of «Atención» (one menu item for the four roles of the desk, D-93): each person sees the tabs of what they
 // may do. Links, so they work with the keyboard and without JavaScript; they wrap on a 360 px phone.
@@ -14,6 +14,7 @@ export function DeskNav({ access, current }: { access: DeskAccess; current: Desk
     { key: 'cifras', href: '/admin/atencion/estadisticas', label: 'Cifras', show: access.stats },
     { key: 'areas', href: '/admin/atencion/areas', label: 'Áreas y plazos', show: access.seesAreas },
     { key: 'respuestas', href: '/admin/atencion/plantillas', label: 'Respuestas guardadas', show: access.templates },
+    { key: 'registro', href: '/admin/atencion/registro', label: 'Registro', show: access.auditLog },
   ];
   const visible = tabs.filter((t) => t.show);
   if (visible.length < 2) return null;
