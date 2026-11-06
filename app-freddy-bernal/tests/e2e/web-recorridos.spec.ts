@@ -222,6 +222,37 @@ test.describe('un caso de cada tipo se manda y se sigue con su código, en el te
   });
 });
 
+// --- The public site's own CSP (no 'unsafe-eval') ---------------------------------------------------------------------
+
+test('el formulario de punta a punta y la consulta no rompen la CSP de la web (nada de eval en el navegador)', async ({ browser }) => {
+  const c = await citizen(browser);
+  const page = c.page;
+  // Every document of this browser counts what its CSP refused (Lighthouse showed one on /atencion/nueva on 06/11: zod's
+  // probe of `new Function`; src/lib/participation/input.ts turns it off in the browser).
+  await page.addInitScript(() => {
+    const w = window as unknown as { __csp: string[] };
+    w.__csp = [];
+    document.addEventListener('securitypolicyviolation', (e) => w.__csp.push(`${e.violatedDirective} ${e.blockedURI}`));
+  });
+  const refused = () => page.evaluate(() => (window as unknown as { __csp: string[] }).__csp);
+  const k: Kind = { tipo: 'sugerencia', label: 'Sugerencia', type: /^Sugerencia/, category: /^Transporte/, categoryName: 'Transporte', heading: 'Recibimos tu sugerencia', servicesArea: false };
+  await fillForm(page, k, { title: `Sugerencia sin eval ${RUN} (prueba)`, description: 'El formulario valida en el teléfono sin pedirle a la CSP nada prohibido (prueba).', sector: `Sector csp ${RUN}` });
+  // The browser's own checks still work (they are zod's, without its speed-up): a short title is refused on the spot.
+  await page.getByLabel(/^Título/).fill('No');
+  await next(page);
+  await expect(page.getByText(/de 3 a 140/).first()).toBeVisible();
+  await page.getByLabel(/^Título/).fill(`Sugerencia sin eval ${RUN} (prueba)`);
+  await toContactStep(page);
+  await page.getByLabel(/Enviar como anónimo/).check();
+  await page.getByLabel(/Leí el aviso de privacidad/).check();
+  await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+  const { reference, secret } = await readReceipt(page);
+  expect(await refused(), '/atencion/nueva').toEqual([]);
+  await openCase(page, reference, secret);
+  expect(await refused(), '/atencion/consultar').toEqual([]);
+  await c.ctx.close();
+});
+
 // --- Journeys 3 to 9 on a computer -------------------------------------------------------------------------------------
 
 test.describe('de punta a punta en la computadora: llega, se asigna, se pide información, la persona responde con una foto, se resuelve y se cierra', () => {
