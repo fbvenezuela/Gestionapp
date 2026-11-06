@@ -84,6 +84,9 @@ export const newsSnapshot = z.object({
   galleryIds: z.array(uuid).max(24).optional(),
   sources: z.array(source).max(20).optional(),
   topics: z.array(text(40).min(1)).max(12).optional(),
+  // A YouTube video of the note (the site shows it with the lite player, after the text). The importer of the old
+  // site puts here the first video an article had (scripts/web-import).
+  youtubeId: z.string().regex(/^[A-Za-z0-9_-]{11}$/, 'El código del video de YouTube tiene 11 caracteres.').nullable().optional(),
 });
 
 export const projectSnapshot = z.object({

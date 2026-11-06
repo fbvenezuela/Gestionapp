@@ -56,6 +56,11 @@ export function NewsArticle({ item, site, munis, related }: { item: WebItem<'new
         </Container>
         <Container className="max-w-3xl py-10">
           <RichText nodes={d.body} />
+          {d.youtubeId ? (
+            <div className="mt-10">
+              <VideoFrame youtubeId={d.youtubeId} title={d.title} poster={cover} />
+            </div>
+          ) : null}
           {gallery.length ? (
             <ul className="mt-10 grid grid-cols-2 gap-3">
               {gallery.map((m) => (

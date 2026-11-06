@@ -41,11 +41,33 @@ export function normalizeOldPath(pathname: string): string | null {
   return p.length >= 2 && p.length <= 500 ? p : null;
 }
 
-/** The candidates a path is stored under: as written and with its final slash (the importer may keep it). */
+// WordPress serves every photo in several sizes («foto-300x200.jpg», «foto-scaled.jpg»): the importer keeps one redirect
+// per original (scripts/web-import), and a size is looked up as its original.
+const WP_SIZE = /-(?:\d{1,5}x\d{1,5}|scaled|rotated|e\d{10,13})(?=\.[A-Za-z0-9]{2,5}$)/;
+
+/** The candidates a path is stored under: as written and with its final slash (the importer may keep it); with its
+ * escapes in lower case (WordPress writes «%c3%b1», a browser may send «%C3%B1»); and, for an old upload, its original. */
 export function lookupKeys(path: string): string[] {
   const p = normalizeOldPath(path);
   if (!p) return [];
-  return p.includes('?') ? [p] : [p, `${p}/`];
+  const forms = [p, p.replace(/%[0-9A-F]{2}/g, (m) => m.toLowerCase())];
+  if (/^\/wp-content\/uploads\//.test(p)) {
+    let base = p;
+    for (let k = 0; k < 2 && WP_SIZE.test(base); k++) base = base.replace(WP_SIZE, '');
+    forms.push(base);
+  }
+  const out = new Set<string>();
+  for (const f of forms) {
+    out.add(f);
+    if (!f.includes('?')) out.add(`${f}/`);
+  }
+  return [...out];
+}
+
+/** An old address that answers 410 («ya no existe») instead of 404 when the redirects do not know it: the old site's
+ * files (/wp-content/…). Search engines then drop them sooner. Everything else is a plain 404. */
+export function goneWhenMissing(path: string): boolean {
+  return /^\/wp-content\//.test(path);
 }
 
 /** A target from the table, only if it is an address of this site (no open redirect, ever). */

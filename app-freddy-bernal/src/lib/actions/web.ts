@@ -9,6 +9,7 @@ import { TZ } from '../time';
 import { itemPath } from '../web/routes';
 import { SNAPSHOT, WEB_KINDS, slug as slugSchema, slugFromTitle, type WebKind } from '../web/schema';
 import { draftProblems, emptyDraft, issueText, mediaIdsIn } from '../web/cms/drafts';
+import { ALT_PLACEHOLDER_PREFIX } from '../web/import-marks';
 import { localToUtc } from '../web/cms/schedule';
 
 // The website's content (design §3, D-90, D-93): every write AS THE PERSON (act → withUser, RLS on) and the database
@@ -143,6 +144,19 @@ async function archivedMediaIn(sql: Sql, draft: unknown): Promise<number> {
   return (await sql.one<{ n: number }>(`select count(*)::int as n from public.web_media where id = any ($1::uuid[]) and archived_at is not null`, [ids]))!.n;
 }
 
+/** Photos the importer of the old site brought without alternative text (it wrote «[Por escribir] …»): the database
+ * refuses to publish them (guard_web_item_ready); here it is said first, in words. */
+async function placeholderAltIn(sql: Sql, draft: unknown): Promise<number> {
+  const ids = mediaIdsIn(draft);
+  if (!ids.length) return 0;
+  return (await sql.one<{ n: number }>(
+    `select count(*)::int as n from public.web_media where id = any ($1::uuid[]) and kind = 'image' and left(btrim(alt), $2) = $3`,
+    [ids, ALT_PLACEHOLDER_PREFIX.length, ALT_PLACEHOLDER_PREFIX],
+  ))!.n;
+}
+const placeholderText = (n: number, verb: string) =>
+  `${n === 1 ? 'Una foto de este contenido no tiene' : `${n} fotos de este contenido no tienen`} su texto alternativo todavía (dice «${ALT_PLACEHOLDER_PREFIX}»): escríbelo en la biblioteca antes de ${verb}.`;
+
 /** «Enviar a aprobación»: only a whole draft (the kind's schema and the site's rules), never with an archived photo. */
 export async function submitWebItem(raw: unknown): Promise<Result<{ rev: number }>> {
   const after: { sent?: Ref; actor?: string } = {};
@@ -156,6 +170,8 @@ export async function submitWebItem(raw: unknown): Promise<Result<{ rev: number 
       throw new UserError(`Antes de enviarlo falta esto: ${issueText(problems[0])}${problems.length > 1 ? ` (y ${problems.length - 1} más)` : ''}`);
     }
     if (await archivedMediaIn(sql, it.draft)) throw new UserError('Una foto o un archivo de este contenido está archivado en la biblioteca: cámbialo antes de enviarlo.');
+    const noAlt = await placeholderAltIn(sql, it.draft);
+    if (noAlt) throw new UserError(placeholderText(noAlt, 'enviarlo'));
     const row = await sql.one<{ rev: number }>(`update public.web_items set status = 'in_review' where id = $1 returning rev`, [it.id]);
     after.sent = refOf(it);
     after.actor = s.userId;
@@ -193,6 +209,8 @@ export async function publishWebItem(raw: unknown): Promise<Result<PublishResult
     if (it.rev !== i.rev) throw new UserError('El contenido cambió mientras lo revisabas. Ábrelo de nuevo para ver lo último.');
     const problems = draftProblems(it.kind, it.draft);
     if (problems.length) throw new UserError(`Todavía no se puede publicar: ${issueText(problems[0])}`);
+    const noAlt = await placeholderAltIn(sql, it.draft);
+    if (noAlt) throw new UserError(placeholderText(noAlt, 'publicarlo'));
     let at: string | null = null;
     if (i.at) {
       at = localToUtc(i.at, TZ);
