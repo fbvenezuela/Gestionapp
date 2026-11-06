@@ -100,3 +100,19 @@ describe('la auditoría no muestra lo que RLS le guarda a quien la lee', () => {
     expect(JSON.stringify(banner)).toMatch(/Versión de prueba \(revisión\)/);
   });
 });
+
+describe('las funciones ciudadanas solo le contestan a la app', () => {
+  it('una llamada por la Data API de Supabase (llega con request.headers) se niega; la de la app, igual que siempre', async () => {
+    const viaApi = (q: string, p: unknown[]) =>
+      t.anon(async (sql) => {
+        await sql.query(`select set_config('request.headers', '{"host":"proyecto.supabase.co","x-forwarded-for":"203.0.113.9"}', true)`);
+        return sql.one(q, p);
+      });
+    const lookupQ = `select citizen.lookup_request('AC-2026-AAAAAA', $1, $2, $3) as v`;
+    await expect(viaApi(lookupQ, ['0'.repeat(64), rateKey(), rateKey()])).rejects.toMatchObject({ code: '42501' });
+    await expect(viaApi(`select citizen.similar_requests($1, $2, $3) as v`, [rateKey(), rateKey(), t.category('agua')])).rejects.toMatchObject({ code: '42501' });
+    // From the app it answers as before.
+    expect(await anonOne(lookupQ, ['0'.repeat(64), rateKey(), rateKey()])).toEqual({ status: 'not_found' });
+    expect((await submit(t, { sector: 'Sector de la revisión C (prueba)' })).status).toBe('ok');
+  });
+});
