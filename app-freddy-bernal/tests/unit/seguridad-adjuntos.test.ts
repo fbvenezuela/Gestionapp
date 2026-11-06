@@ -15,6 +15,7 @@ import { makeTestDb, type TestDb } from '../rls/setup';
 import { jpegWithGps, png } from './fixtures/photos';
 
 const h = vi.hoisted(() => ({
+  trust: (process.env.TRUST_PROXY_HEADERS = 'true'),
   jar: new Map<string, { value: string }>(),
   ip: '198.51.100.1',
   afters: [] as (() => unknown)[],
@@ -67,7 +68,6 @@ let muni: (name: string) => string;
 let net = 1;
 
 beforeAll(async () => {
-  process.env.TRUST_PROXY_HEADERS = 'true';
   t = await makeTestDb({ webContent: true });
   (globalThis as { __fbBackend?: Promise<unknown> }).__fbBackend = Promise.resolve(t.backend);
   actions = await import('@/lib/actions/participation');

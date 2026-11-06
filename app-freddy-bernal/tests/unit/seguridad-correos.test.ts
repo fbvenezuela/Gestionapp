@@ -11,6 +11,7 @@ import { generateSecret } from '@/lib/participation/receipt-code';
 import { makeTestDb, type TestDb } from '../rls/setup';
 
 const h = vi.hoisted(() => ({
+  trust: (process.env.TRUST_PROXY_HEADERS = 'true'),
   jar: new Map<string, { value: string }>(),
   ip: '192.0.2.1',
   afters: [] as (() => unknown)[],
@@ -49,7 +50,6 @@ let inbox: typeof import('@/lib/auth/demo-inbox');
 let net = 1;
 
 beforeAll(async () => {
-  process.env.TRUST_PROXY_HEADERS = 'true';
   t = await makeTestDb({ webContent: true });
   (globalThis as { __fbBackend?: Promise<unknown> }).__fbBackend = Promise.resolve(t.backend);
   actions = await import('@/lib/actions/participation');

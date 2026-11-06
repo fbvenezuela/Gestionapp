@@ -61,14 +61,31 @@ export function deviceKey(deviceId: string, cfg?: PepperConfig): string {
 
 // --- The network key ------------------------------------------------------------------------------------------------
 /**
- * The visitor's address as the platform's proxy reports it (Vercel sets x-real-ip and the first x-forwarded-for entry
- * itself; elsewhere these headers can be forged, so the network limit is a second line after the device one). '' when
- * there is none.
+ * Whether the network headers were written by a proxy in front of the app, not by the visitor: on Vercel (VERCEL is
+ * set on its servers, and it writes x-real-ip and x-forwarded-for itself with the visitor's address), or behind a proxy
+ * of our own that the operator says writes X-Real-IP from the connection (TRUST_PROXY_HEADERS=true; nginx with
+ * `proxy_set_header X-Real-IP $remote_addr`, for instance). Anywhere else anyone can send them.
  */
-export function clientIp(headers: Pick<Headers, 'get'>): string {
-  const real = headers.get('x-real-ip')?.trim();
-  if (real) return real;
-  return headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '';
+export function trustsProxyHeaders(e: Record<string, string | undefined> = process.env): boolean {
+  return !!e.VERCEL || e.TRUST_PROXY_HEADERS === 'true' || e.TRUST_PROXY_HEADERS === '1';
+}
+
+/**
+ * The visitor's address, for the network limit ('' when there is none). Trusted headers: x-real-ip, else the first
+ * x-forwarded-for entry. Otherwise never x-real-ip (it passes through a proxy that does not overwrite it) and the LAST
+ * x-forwarded-for entry: the closest hop, which Next writes from the connection when nobody sent one, and which a
+ * proxy that appends puts last; the first one is whatever the visitor wrote. (The security review of 06/11: with the
+ * first entry or x-real-ip trusted everywhere, a script sending another address on each try, and no device cookie,
+ * never met a limit outside Vercel. A server exposed with no proxy at all cannot know the address: docs/SEGURIDAD.md.)
+ */
+export function clientIp(headers: Pick<Headers, 'get'>, trusted: boolean = trustsProxyHeaders()): string {
+  if (trusted) {
+    const real = headers.get('x-real-ip')?.trim();
+    if (real) return real;
+    return headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '';
+  }
+  const hops = (headers.get('x-forwarded-for') ?? '').split(',').map((x) => x.trim()).filter(Boolean);
+  return hops.at(-1) ?? '';
 }
 
 /** IPv4 as is; IPv4 inside IPv6 as IPv4; IPv6 by its /64 (one home or phone line can change the rest freely). */

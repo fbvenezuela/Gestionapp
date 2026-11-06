@@ -4,7 +4,7 @@
 // without its keys, a fake Cloudflare here: nothing goes out).
 import { describe, expect, it } from 'vitest';
 import { CROCKFORD, REFERENCE_PATTERN, SECRET_PATTERN, crockfordFromBytes, generateSecret, newReference, normalizeReference, normalizeSecret } from '@/lib/participation/receipt-code';
-import { ParticipationConfigError, clientIp, deviceKey, ipKey, isDeviceId, networkOf, newDeviceId, participationPepper, secretDigest } from '@/lib/participation/keys';
+import { ParticipationConfigError, clientIp, deviceKey, ipKey, isDeviceId, networkOf, newDeviceId, participationPepper, secretDigest, trustsProxyHeaders } from '@/lib/participation/keys';
 import { openLookup, sealLookup, LOOKUP_MINUTES, lookupCookieOptions } from '@/lib/participation/lookup-cookie';
 import { turnstileEnabled, verifyTurnstile } from '@/lib/participation/turnstile';
 
@@ -88,9 +88,10 @@ describe('la huella (HMAC) y la pimienta', () => {
 
 describe('la red del visitante', () => {
   it('la dirección que da el proxy de la plataforma; IPv6 por su /64; IPv4 dentro de IPv6 como IPv4', () => {
-    expect(clientIp(new Headers({ 'x-real-ip': '190.0.2.10', 'x-forwarded-for': '1.1.1.1' }))).toBe('190.0.2.10');
-    expect(clientIp(new Headers({ 'x-forwarded-for': '190.0.2.10, 10.0.0.1' }))).toBe('190.0.2.10');
-    expect(clientIp(new Headers())).toBe('');
+    expect(clientIp(new Headers({ 'x-real-ip': '190.0.2.10', 'x-forwarded-for': '1.1.1.1' }), true)).toBe('190.0.2.10');
+    expect(clientIp(new Headers({ 'x-forwarded-for': '190.0.2.10, 10.0.0.1' }), true)).toBe('190.0.2.10');
+    expect(clientIp(new Headers(), true)).toBe('');
+    expect(clientIp(new Headers(), false)).toBe('');
     expect(networkOf('190.0.2.10')).toBe('190.0.2.10');
     expect(networkOf('::ffff:190.0.2.10')).toBe('190.0.2.10');
     expect(networkOf('2001:db8:1:2:3:4:5:6')).toBe('2001:db8:1:2::/64');
@@ -146,5 +147,25 @@ describe('Turnstile', () => {
       throw new Error('sin red');
     }) as typeof fetch;
     expect(await verifyTurnstile('token', '', { secretKey: 's', fetchImpl: broken })).toBe(false);
+  });
+});
+
+describe('quién escribió la dirección (revisión de seguridad del 06/11)', () => {
+  it('en Vercel, o con TRUST_PROXY_HEADERS, se cree lo que dice el proxy', () => {
+    expect(trustsProxyHeaders({ VERCEL: '1' })).toBe(true);
+    expect(trustsProxyHeaders({ TRUST_PROXY_HEADERS: 'true' })).toBe(true);
+    expect(trustsProxyHeaders({})).toBe(false);
+    expect(trustsProxyHeaders({ TRUST_PROXY_HEADERS: 'false' })).toBe(false);
+  });
+
+  it('en otro servidor, x-real-ip y la primera entrada de x-forwarded-for los escribe cualquiera: no cuentan', () => {
+    // A script that sends a new address on each try gets the same network every time.
+    const tries = ['203.0.113.1', '203.0.113.2', '198.51.100.7'].map((fake) =>
+      clientIp(new Headers({ 'x-real-ip': fake, 'x-forwarded-for': `${fake}, 190.0.2.10` }), false),
+    );
+    expect(new Set(tries)).toEqual(new Set(['190.0.2.10']));
+    // What Next writes from the connection when nobody sent the header.
+    expect(clientIp(new Headers({ 'x-forwarded-for': '190.0.2.10' }), false)).toBe('190.0.2.10');
+    expect(clientIp(new Headers({ 'x-real-ip': '203.0.113.1' }), false)).toBe('');
   });
 });
