@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { connection } from 'next/server';
 import { ArrowRight, ChevronDown, ClipboardList, KeyRound, Lock, MessagesSquare, PhoneCall, Search, Send } from 'lucide-react';
 import { REQUEST_TYPES } from '@/lib/participation/input';
-import { Band, BtnLink, Eyebrow, Notice, PageIntro } from '@/components/participation/kit';
+import { Band, BtnLink, Eyebrow, Notice, PageIntro, webCard } from '@/components/participation/kit';
 import { ParticipationNav } from '@/components/participation/participation-nav';
 import { RichTextLite } from '@/components/participation/rich-text-lite';
 import { DENUNCIA_TEXT, STATE_PLAIN, TYPE_COPY, USUAL_PATH } from '@/components/participation/words';
@@ -186,7 +186,7 @@ export default async function AttentionPage() {
             </h2>
           </div>
           {faqs.length ? (
-            <div className="flex flex-col divide-y divide-border rounded-[var(--radius-card)] border border-border bg-surface">
+            <div className={cn(webCard, 'flex flex-col divide-y divide-border')}>
               {faqs.map((f) => (
                 <details key={f.id} className="group p-5 sm:p-6">
                   <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold [&::-webkit-details-marker]:hidden">
@@ -241,7 +241,7 @@ export default async function AttentionPage() {
       </Band>
 
       <Band aria-labelledby="atendido-enlace">
-        <div className="flex flex-col items-start gap-4 rounded-[var(--radius-card)] border border-border bg-surface p-6 shadow-[var(--glass-shadow)] sm:flex-row sm:items-center sm:justify-between sm:p-8">
+        <div className={cn(webCard, 'flex flex-col items-start gap-4 p-6 shadow-[var(--glass-shadow)] sm:flex-row sm:items-center sm:justify-between sm:p-8')}>
           <div>
             <h2 id="atendido-enlace" className="text-2xl font-bold">
               Lo atendido

@@ -20,13 +20,18 @@ const files = (dir: string): string[] =>
 const html = <P extends object>(c: ComponentType<P>, props: P) => renderToStaticMarkup(createElement(c, props));
 
 // A card drawn by hand: the corner of a card, the border and the plain white background (not bg-surface-2, which is an
-// inner box). Only the base components in src/components/ui may draw a surface.
+// inner box). Only the base components in src/components/ui may draw a surface. The public website is not the panel
+// (D-90, design §1): its cards are editorial, with no glass, and they too are drawn in one place only, its own kit
+// (webCard in src/components/participation/kit.tsx).
 const HAND_CARD = /rounded-\[var\(--radius-card\)\] border border-border bg-surface(?![-\w/])/;
+const PUBLIC_KIT = path.join('src', 'components', 'participation', 'kit.tsx');
 
 describe('glass en las pantallas sueltas', () => {
   it('nadie arma una tarjeta a mano fuera de los componentes base', () => {
     const base = path.join('src', 'components', 'ui');
-    expect(files('src').filter((f) => !f.startsWith(base) && HAND_CARD.test(read(f)))).toEqual([]);
+    expect(files('src').filter((f) => !f.startsWith(base) && f !== PUBLIC_KIT && HAND_CARD.test(read(f)))).toEqual([]);
+    // The website's kit draws its card surface once, in webCard.
+    expect(read(PUBLIC_KIT).match(new RegExp(HAND_CARD.source, 'g'))).toHaveLength(1);
   });
 
   it('las esquinas salen de los tokens (nada de rounded-[6px])', () => {

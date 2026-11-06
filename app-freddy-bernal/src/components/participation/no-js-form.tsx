@@ -5,7 +5,7 @@ import { sendRequestWithoutJs } from '@/lib/actions/participation';
 import { REQUEST_TYPES, CONTACT_CHANNEL_LABEL, type RequestType } from '@/lib/participation/input';
 import type { PublicCategory, Territory } from '@/lib/web/public';
 import { cn } from '@/lib/cn';
-import { FieldBox, FieldError, Notice, buttonStyle, describedBy, inputStyle } from './kit';
+import { FieldBox, FieldError, Notice, buttonStyle, describedBy, inputStyle, webCard } from './kit';
 import { Honeypot } from './contact-fields';
 import { DENUNCIA_TEXT, EMERGENCY_TEXT, TYPE_COPY } from './words';
 
@@ -31,7 +31,7 @@ export function NoJsForm({
 
   if (turnstileOn) {
     return (
-      <section aria-labelledby="sinjs-apagado" className="flex flex-col gap-4 rounded-[var(--radius-card)] border border-border bg-surface p-6">
+      <section aria-labelledby="sinjs-apagado" className={cn(webCard, 'flex flex-col gap-4 p-6')}>
         <h2 id="sinjs-apagado" className="text-2xl font-bold text-text">
           Para enviar, activa JavaScript
         </h2>
@@ -78,7 +78,7 @@ export function NoJsForm({
   const type = (v.type as RequestType) || presetType || '';
 
   return (
-    <form action={action} className="relative flex flex-col gap-6 rounded-[var(--radius-card)] border border-border bg-surface p-5 sm:p-8">
+    <form action={action} className={cn(webCard, 'relative flex flex-col gap-6 p-5 sm:p-8')}>
       <input type="hidden" name="submissionKey" value={v.submissionKey || formKey} />
       <input type="hidden" name="linkedItemId" value={v.linkedItemId || linkedItemId || ''} />
       <p className="text-[15px] text-text-2">Tu navegador no tiene JavaScript activo: aquí va el formulario completo en una sola página, sin archivos ni mapa.</p>

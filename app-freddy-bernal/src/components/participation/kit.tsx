@@ -88,9 +88,15 @@ export function Notice({ tone = 'info', title, children, className, role }: { to
   );
 }
 
+/**
+ * The public site's card surface (design §1: a discreet border on white, over the ivory page), drawn only here. The
+ * panel's cards are glass (src/components/ui/card.tsx); the website's are these, with no blur.
+ */
+export const webCard = 'rounded-[var(--radius-card)] border border-border bg-surface';
+
 /** An elegant card: discreet border, soft shadow, generous padding. */
 export function Panel({ className, ...props }: ComponentProps<'div'>) {
-  return <div className={cn('rounded-[var(--radius-card)] border border-border bg-surface p-5 shadow-[var(--glass-shadow)] sm:p-8', className)} {...props} />;
+  return <div className={cn(webCard, 'p-5 shadow-[var(--glass-shadow)] sm:p-8', className)} {...props} />;
 }
 
 export const inputStyle =

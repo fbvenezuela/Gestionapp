@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
-import { Band, BtnLink, PageIntro, inputStyle, buttonStyle } from '@/components/participation/kit';
+import { Band, BtnLink, PageIntro, inputStyle, buttonStyle, webCard } from '@/components/participation/kit';
 import { ParticipationNav } from '@/components/participation/participation-nav';
 import { TYPE_COPY, dayDate, longDate } from '@/components/participation/words';
 import { isRequestType } from '@/components/participation/form-core';
@@ -62,7 +62,7 @@ export default async function AttendedPage({ searchParams }: { searchParams: Pro
       </Band>
 
       <Band className="pt-2 sm:pt-4">
-        <form method="get" action="/atencion/atendido" className="grid gap-4 rounded-[var(--radius-card)] border border-border bg-surface p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <form method="get" action="/atencion/atendido" className={cn(webCard, 'grid gap-4 p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end')}>
           <div className="flex flex-col gap-2">
             <label htmlFor="filtro-municipio" className="text-base font-semibold text-text">
               Municipio
@@ -170,7 +170,8 @@ function AttendedCard({ it, featured, muni, cat }: { it: AttendedItem; featured:
   return (
     <li
       className={cn(
-        'rounded-[var(--radius-card)] border border-border bg-surface p-5 shadow-[var(--glass-shadow)] sm:p-6',
+        webCard,
+        'p-5 shadow-[var(--glass-shadow)] sm:p-6',
         featured && 'border-accent bg-accent-soft sm:p-8',
         denuncia && 'bg-surface-2',
       )}

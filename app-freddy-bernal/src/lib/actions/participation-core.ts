@@ -277,8 +277,8 @@ export function sameOrigin(req: Request): boolean {
 /**
  * The largest file this deployment takes. 8 MB is the rule (design §4, the database's check); on Vercel a function's
  * request body stops at 4.5 MB, so there a file goes up to 4 MB (photos are re-encoded in the browser and stay well
- * under it; a heavier PDF needs the direct upload to Supabase Storage, docs/PENDIENTES.md). The form says the same
- * limit before uploading.
+ * under it; a heavier PDF would need a direct upload to Supabase Storage with a signed upload URL, not built yet: a
+ * pending item for docs/PENDIENTES.md). The form says the same limit before uploading.
  */
 export function maxAttachmentBytes(platform: string | undefined = process.env.VERCEL): number {
   return platform ? 4 * 1024 * 1024 : ATTACHMENT_LIMITS.maxBytes;
