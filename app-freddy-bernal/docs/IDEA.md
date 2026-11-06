@@ -1,6 +1,6 @@
 # La plataforma de Freddy Bernal: la idea completa
 
-Actualizado: 22/10/2026 (noche: §4 y §5 nuevos, §11 con lo que faltaba de los audios del 12 y 14/10 y de los grupos). 28/10/2026: §4 con los seis roles de la ronda del 27/10. Lo armó Juan con lo que pidió Hillary (Impulso Digital) entre el 12 y el 22 de octubre. El texto literal de cada pedido está en `requisitos-originales.md`. Lo que está por decidir está en `PENDIENTES.md`. El modelo visual, en `DISENO.md`.
+Actualizado: 22/10/2026 (noche: §4 y §5 nuevos, §11 con lo que faltaba de los audios del 12 y 14/10 y de los grupos). 28/10/2026: §4 con los seis roles de la ronda del 27/10. 06/11/2026: §12, lo que quedó hecho de la web pública. Lo armó Juan con lo que pidió Hillary (Impulso Digital) entre el 12 y el 22 de octubre. El texto literal de cada pedido está en `requisitos-originales.md`. Lo que está por decidir está en `PENDIENTES.md`. El modelo visual, en `DISENO.md`.
 
 ## 1. Para quién y para qué
 - **Cliente:** Freddy Bernal, gobernador del Táchira (Venezuela). Sus videos y mensajes abren con «¡Saludos, Táchira!». Canal de YouTube @FreddyBernal.oficial, cuenta de X @freddybernal_ve. El programa de videos se llama «Reporte Bernal 2.0».
@@ -150,7 +150,9 @@ tiene su doble factor. «Un solo perfil» (redes, grabación) es **un solo rol**
 - Solo el jefe y el despacho ponen fecha (D-32). El IVT y política cargan fichas; al jefe y al despacho les llegan como
   «Por ponerle fecha» (D-33). El IVT ve la fecha de sus visitas, política nunca (D-34, D-35).
 - Los roles de la web pública (redactor, operadores de reportes, denuncias y ayudas) siguen previstos para la fase 3;
-  todavía no se pueden dar.
+  todavía no se pueden dar. **06/11/2026:** ya existen y se dan desde Ajustes → Equipo, siempre con doble factor: editor
+  y aprobador de la web, coordinador de atención, responsable de área, operador de denuncias y consulta y auditoría
+  (`DECISIONES.md` D-93). El operador de ayudas sigue sin usarse (§12).
 - Qué ve y qué hace cada rol, paso a paso: `GUIA-POR-ROL.md` (no se manda todavía).
 
 ### La tabla de antes (22/10; reemplazada el 27/10)
@@ -389,3 +391,26 @@ muchos clientes adentro.
   (`docs/COSTOS.md`).
 - Mientras llega su presupuesto, se avanza con las cuentas del equipo (15/10). Cada cuenta abierta se anota en
   `docs/CUENTAS.md` sin claves (Oscar, 22/10).
+
+## 12. Lo que quedó hecho de la web pública (06/11/2026)
+Construido dentro de la misma app y probado en la versión de prueba, con datos inventados (`DECISIONES.md` D-90 a D-97).
+Cómo se usa: `GUIA-WEB.md`, `MANUAL-ADMIN-WEB.md` y `MANUAL-ATENCION.md`. Lo que falta para abrirla: `PENDIENTES.md`
+(W1–W11, T1–T9). Las pruebas y sus límites: `INFORME-PRUEBAS-WEB.md`.
+
+| Lo pedido | Lo que quedó | Lo que no (todavía) |
+|---|---|---|
+| **§3.2 Trazabilidad** | `/gestion`: obras y acciones con municipio, categoría, estado (anunciada, en ejecución o concluida), fotos y evidencias, y su ficha; la **línea de tiempo** va por mes, lo más nuevo primero, con **filtro solo por fecha**. El editor de la web crea y edita sin borrar y sin publicar (lo publica quien aprueba) | Un perfil por vocero o municipio que solo cargue lo suyo; la foto «mejorada» con IA (sin el OK legal ni el prompt de Hillary) |
+| **§3.3 Reportes con mapa** | Sin cuenta y en cuatro pasos cortos: qué, dónde (municipio, sector y, si la persona quiere, su punto en un mapa que carga solo al tocarlo), detalle con hasta 3 fotos o PDF (sin ubicación ni datos ocultos) y contacto opcional. **«¿Te sumas?»** solo con el número, y el cuarto del mismo problema en el mismo lugar se suma solo. Los estados recibido → en revisión → asignado → en atención → resuelto, y la foto del después como evidencia | El aviso «inmediato» por correo: sale solo cuando haya dominio para enviar (T7); mientras, la persona recibe su código y su clave en pantalla y en un PDF |
+| **§3.4 Denuncias** | Un tipo propio, privado de punta a punta: solo el operador de denuncias y la coordinación lo leen; nunca un punto exacto ni un mapa; el aviso de acudir también a las autoridades; en público, solo «Denuncia atendida en el municipio X» | Los datos de las autoridades competentes (W8). El formulario pide lo del encargo del 6/11 (categoría, lugar aproximado y relato): implicados, víctimas y pruebas van en el relato y los adjuntos, sin campos aparte |
+| **§3.5 Ayudas** | Una petición («una ayuda, un trámite, algo para la comunidad») entra como cualquier solicitud y se atiende en «Atención» | El registro de entregas y el rol de operador de ayudas (§4), y medir el formulario con el volumen de §11.1 (400 a 500 cada dos o tres días) |
+| **§3.6 Lo atendido** | La coordinación publica lo resuelto con un resumen sin datos; el nombre solo con permiso, si no iniciales. Sale en `/atencion/atendido` (por municipio y categoría) y en la portada; cambia al publicar | Un feed que se mueva solo mientras alguien escribe su solicitud |
+| **§3.7 Agenda** | Interna, ya estaba (Fase 1 y la ronda del 27/10); la web no la muestra | — |
+| **§3.8 La web** | Portada con mensaje, accesos grandes (reporte, petición, acotación, denuncia, consultar), lo hecho (cifras solo con fuente), lo atendido, obras, el último Reporte Bernal (video liviano, del canal de los ajustes), noticias, avisos y canales. **SEO:** datos estructurados `Person` y `GovernmentOrganization` (y `NewsArticle`), títulos y descripciones propios, sitemap, robots y vista para compartir. Todo se edita sin código, por bloques, con aprobación | El dominio y Search Console (W2, W3); abrirla a los buscadores (W1); la biografía y las fotos oficiales (W6) |
+| **§11.1 Cada quien ve lo suyo** | Nadie ve lo de otro: la persona sigue lo suyo con su código y su clave; en público solo cifras y lo atendido; lo hace cumplir la base (RLS) también para quien no tiene cuenta | El perfil del ciudadano (se decidió sin cuenta) |
+| **§11.2 Indicadores** | Cada cifra con su fuente (sin fuente no sale); dos las cuenta la plataforma (solicitudes atendidas y obras concluidas) y enlazan la lista que las respalda | Las cifras reales y sus fuentes, que manda el equipo |
+| **§11.4 YouTube** | `/reporte-bernal` con los episodios y el canal correcto desde los ajustes | Los episodios reales (el equipo los carga) |
+| **§11.6 Repetible** | Las páginas base, los ajustes del sitio, las categorías, las áreas y los plazos salen de `config/clients/fb.json` | — |
+| **§9 Seguridad** | RLS en todas las tablas nuevas con pruebas por rol, doble factor siempre, contactos cifrados, registro de quién vio un contacto o exportó, aviso de privacidad y casilla de consentimiento, límites y campo trampa, archivos revisados por su tipo real y sin metadatos, una revisión de seguridad (`SEGURIDAD.md`), y el procedimiento de copias (`COPIAS-Y-RECUPERACION.md`) | Turnstile (W4), el revisor de archivos (T4), la consulta legal (W9) |
+
+La web vieja (freddybernaloficial.com) entra con el importador como borradores, sin correos ni teléfonos, con sus
+redirecciones 301 (D-97, `PLAN-MIGRACION-Y-PRODUCCION.md`); no se migró nada todavía.
