@@ -449,14 +449,14 @@ export const TODOS: Answer[] = [
       'como cambio de pantalla en el telefono',
     ],
     a: {
-      boss: 'Abajo, la barra: Inicio, Agenda, Por aprobar, Redes y «Más» (Obras, Municipios y Digital). Arriba están «Crear», el sobre de Mensajes, la campana y «Mi cuenta».',
+      boss: 'Abajo, la barra: Inicio, Agenda, Por aprobar, Redes y «Más» (Obras, Municipios, Digital, Web y Atención). Arriba están «Crear», el sobre de Mensajes, la campana y «Mi cuenta».',
       dispatch: 'Abajo, la barra: Hoy, Agenda, Obras, Municipios y Biblioteca. Arriba están «Crear», el sobre de Mensajes, la campana y «Mi cuenta».',
       politics: 'Abajo está Municipios, tu pantalla. Arriba están «Crear» (para la ficha comunitaria), el sobre de Mensajes, la campana y «Mi cuenta».',
       ivt: 'Abajo, la barra: Agenda (tus visitas de obra) y Obras. Arriba están «Crear», el sobre de Mensajes, la campana y «Mi cuenta».',
       camera: 'Abajo, la barra: Hoy y Agenda. Arriba están el sobre de Mensajes, la campana y «Mi cuenta» (Grabación no tiene «Crear»).',
       social: 'Abajo, la barra: Hoy, Agenda, Redes, Tweets y «Más» (Publicar, Resultados y Biblioteca). Arriba están «Crear», el sobre de Mensajes, la campana y «Mi cuenta».',
       admin:
-        'Abajo, la barra: Hoy, Agenda, Redes, Ajustes y «Más» con el resto (Por aprobar, Obras, Municipios, Tweets, Publicar, Resultados y Biblioteca). Arriba están «Crear», la campana y «Mi cuenta».',
+        'Abajo, la barra: Hoy, Agenda, Redes, Ajustes y «Más» con el resto (Por aprobar, Obras, Municipios, Tweets, Publicar, Resultados, Biblioteca, Web y Atención). Arriba están «Crear», la campana y «Mi cuenta».',
     },
   },
   {
@@ -465,9 +465,9 @@ export const TODOS: Answer[] = [
     q: ['no veo todas las pantallas abajo en el telefono', 'que es el boton mas', 'dónde están las otras pantallas', 'falta una pantalla en la barra', 'qué hay en más'],
     a: {
       default: 'Tus pantallas caben todas en la barra de abajo, así que no tienes «Más». Si una pantalla no está en tu barra, es de otro rol.',
-      boss: 'La barra de abajo no tiene lugar para todo: la última dice «Más» y adentro están Obras, Municipios y Digital.',
+      boss: 'La barra de abajo no tiene lugar para todo: la última dice «Más» y adentro están Obras, Municipios, Digital, Web y Atención.',
       social: 'La barra de abajo no tiene lugar para todo: la última dice «Más» y adentro están Publicar, Resultados y Biblioteca.',
-      admin: 'La barra de abajo no tiene lugar para todo: la última dice «Más» y adentro están Por aprobar, Obras, Municipios, Tweets, Publicar, Resultados y Biblioteca.',
+      admin: 'La barra de abajo no tiene lugar para todo: la última dice «Más» y adentro están Por aprobar, Obras, Municipios, Tweets, Publicar, Resultados, Biblioteca, Web y Atención.',
     },
   },
   {

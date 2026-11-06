@@ -177,7 +177,7 @@ export const BOSS: Answer[] = [
       'que hay en mas',
       'dnd esta digital en el telefono',
     ],
-    a: 'En el teléfono, la barra de abajo trae Inicio, Agenda, Por aprobar, Redes y «Más»; adentro de «Más» están Obras, Municipios y Digital. En la computadora salen todas en el menú de la izquierda.',
+    a: 'En el teléfono, la barra de abajo trae Inicio, Agenda, Por aprobar, Redes y «Más»; adentro de «Más» están Obras, Municipios, Digital, Web y Atención. En la computadora salen todas en el menú de la izquierda.',
   },
   {
     id: 'jefe-biblioteca-donde',
