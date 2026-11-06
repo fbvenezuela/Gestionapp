@@ -900,12 +900,23 @@
   }
  },
  "web": {
-  "$comment": "Web pública (D-90 a D-96, 06/11/2026). Ajustes iniciales del sitio: sin cuentas de redes, contactos, WhatsApp ni portal hasta que se carguen verificados desde el administrador (el diagnóstico dirá cuáles son). site.identity y site.structured_data salen de brand al sembrar. Las páginas base entran como BORRADOR: salen a la web solo cuando quien aprueba las publica. Los textos marcados «pending» son lo que el equipo completa antes de abrir la web.",
+  "$comment": "Web pública (D-90 a D-96, 06/11/2026). Ajustes iniciales del sitio: sin contactos ni WhatsApp hasta que se carguen verificados desde el administrador. Las cuentas de redes, el canal de YouTube y el portal institucional son los que encontró el diagnóstico (docs/diagnostico.md §8), todos «por confirmar» (verified: false): en producción la web muestra solo los que el equipo verifique; la versión de prueba los muestra marcados «por confirmar»; el portal sale solo verificado; los inactivos (active: false) nunca salen, y el YouTube viejo nunca es el canal del programa. site.identity y site.structured_data salen de brand al sembrar (structuredData completa el cargo y el nombre oficial del organismo). Las páginas base entran como BORRADOR: salen a la web solo cuando quien aprueba las publica. Los textos marcados «pending» son lo que el equipo completa antes de abrir la web.",
+  "structuredData": {
+   "$comment": "Datos estructurados (JSON-LD Person y GovernmentOrganization) mientras el equipo no los cambie en el administrador (site.structured_data). sameAs sale solo de las cuentas verificadas.",
+   "jobTitle": "Gobernador del estado Táchira",
+   "organizationName": "Gobernación del estado Táchira",
+   "areaServed": "Táchira",
+   "country": "Venezuela"
+  },
   "settings": {
    "site.navigation": [
     {
      "label": "Inicio",
      "path": "/"
+    },
+    {
+     "label": "El gobernador",
+     "path": "/gobernador"
     },
     {
      "label": "Gestión",
@@ -920,11 +931,7 @@
      "path": "/reporte-bernal"
     },
     {
-     "label": "El gobernador",
-     "path": "/gobernador"
-    },
-    {
-     "label": "Participa",
+     "label": "Atención ciudadana",
      "path": "/atencion"
     },
     {
@@ -954,10 +961,112 @@
     ]
    },
    "site.contacts": [],
-   "site.social_accounts": [],
+   "site.social_accounts": [
+    {
+     "network": "youtube",
+     "label": "YouTube",
+     "handle": "@FreddyBernal.oficial",
+     "url": "https://www.youtube.com/@FreddyBernal.oficial",
+     "verified": false,
+     "active": true,
+     "note": "Canal activo: ahí sale Reporte Bernal (diagnóstico, 06/11/2026)."
+    },
+    {
+     "network": "instagram",
+     "label": "Instagram",
+     "handle": "@freddybernalven",
+     "url": "https://www.instagram.com/freddybernalven/",
+     "verified": false,
+     "active": true,
+     "note": "Enlazada en la web vieja."
+    },
+    {
+     "network": "x",
+     "label": "X",
+     "handle": "@FreddyBernal",
+     "url": "https://x.com/FreddyBernal",
+     "verified": false,
+     "active": true,
+     "note": "Enlazada en la web vieja."
+    },
+    {
+     "network": "facebook",
+     "label": "Facebook",
+     "handle": "Freddy Alirio Bernal Rosales",
+     "url": "https://www.facebook.com/Freddy-Alirio-Bernal-Rosales-100079248706206",
+     "verified": false,
+     "active": true,
+     "note": "Enlazada en la web vieja; según el diagnóstico es un perfil personal, no una página."
+    },
+    {
+     "network": "tiktok",
+     "label": "TikTok",
+     "handle": "@freddybernalr",
+     "url": "https://www.tiktok.com/@freddybernalr",
+     "verified": false,
+     "active": true,
+     "note": "Escrita en el banner de la web vieja, sin enlace."
+    },
+    {
+     "network": "tiktok",
+     "label": "TikTok",
+     "handle": "@freddybernalvzla",
+     "url": "https://www.tiktok.com/@freddybernalvzla",
+     "verified": false,
+     "active": true,
+     "note": "Cuenta secundaria según el diagnóstico."
+    },
+    {
+     "network": "threads",
+     "label": "Threads",
+     "handle": "@freddybernalven",
+     "url": "https://www.threads.com/@freddybernalven",
+     "verified": false,
+     "active": true,
+     "note": "Según el diagnóstico (M01)."
+    },
+    {
+     "network": "youtube",
+     "label": "YouTube (canal anterior)",
+     "handle": "@FreddyBernalOficial",
+     "url": "https://www.youtube.com/@FreddyBernalOficial",
+     "verified": false,
+     "active": false,
+     "note": "Sin videos nuevos desde hace meses: no se enlaza y nunca es el canal del programa."
+    },
+    {
+     "network": "mastodon",
+     "label": "Mastodon",
+     "handle": "@FreddyBernal",
+     "url": "https://mastodon.social/@FreddyBernal",
+     "verified": false,
+     "active": false,
+     "note": "Sin publicar desde junio de 2020: no se enlaza."
+    },
+    {
+     "network": "blog",
+     "label": "Blog (WordPress)",
+     "handle": "freddybernalrosales",
+     "url": "https://freddybernalrosales.wordpress.com/",
+     "verified": false,
+     "active": false,
+     "note": "Abandonado desde 2016: no se enlaza."
+    }
+   ],
    "site.whatsapp_channel": null,
-   "site.institutional_portal": null,
-   "site.youtube_channel": null,
+   "site.institutional_portal": {
+    "label": "Portal de la Gobernación del Táchira",
+    "url": "https://tachira.gob.ve",
+    "verified": false,
+    "note": "Visto en el diagnóstico (M01, M07). Sale en la web solo cuando el equipo lo verifique."
+   },
+   "site.youtube_channel": {
+    "label": "Canal de YouTube de Reporte Bernal",
+    "handle": "@FreddyBernal.oficial",
+    "url": "https://www.youtube.com/@FreddyBernal.oficial",
+    "verified": false,
+    "note": "El canal activo del programa. El canal viejo (@FreddyBernalOficial) no se usa."
+   },
    "site.demo_banner": "Versión de prueba: el contenido es inventado.",
    "site.emergency_notice": "Esto no es un servicio de emergencias: si hay una emergencia o una vida en peligro, llama a los servicios de emergencia.",
    "site.denuncia_notice": "Tu denuncia es privada: solo la leen el operador de denuncias y la coordinación de atención. Si es un delito, acude también a las autoridades competentes."

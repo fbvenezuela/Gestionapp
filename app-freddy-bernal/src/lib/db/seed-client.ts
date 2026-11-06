@@ -146,9 +146,9 @@ async function seedWebPublica(sql: Sql, cfg: ClientConfig) {
   const settings: Record<string, unknown> = {
     ...cfg.web.settings,
     'site.identity': { name: b.clientName, title: b.clientTitle, region: b.region, greeting: b.greeting, wordmark: `${b.clientName} · ${b.clientTitle}` },
-    // JSON-LD Person / GovernmentOrganization: sameAs comes from the verified accounts; the organization's official
-    // name is «por completar» until the team confirms it.
-    'site.structured_data': { personName: b.clientName, jobTitle: b.clientTitle, organizationName: '' },
+    // JSON-LD Person / GovernmentOrganization: sameAs comes from the verified accounts; the job title and the organization's
+    // name start from the config (web.structuredData) and the team confirms them in the administrator.
+    'site.structured_data': { personName: b.clientName, jobTitle: cfg.web.structuredData.jobTitle, organizationName: cfg.web.structuredData.organizationName },
   };
   for (const [key, value] of Object.entries(settings)) {
     if (key.startsWith('$')) continue;
