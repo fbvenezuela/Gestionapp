@@ -101,6 +101,9 @@ export const NAV: NavItem[] = [
   { href: '/agenda', label: 'Agenda', icon: 'calendar', roles: ['admin', 'boss', 'dispatch', 'social', 'camera', 'ivt'], mobile: ['admin', 'boss', 'dispatch', 'social', 'camera', 'ivt'] },
   { href: '/aprobar', label: 'Por aprobar', icon: 'check', roles: ['boss', 'admin'], mobile: ['boss'] },
   { href: '/redes', label: 'Redes', icon: 'megaphone', roles: ['admin', 'social', 'boss'], mobile: ['admin', 'social', 'boss'], also: ['/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca'] },
+  // «La oficina» (06/11/2026): the content line drawn as an office. Whoever sees the events (can_see_event); política
+  // and the IVT see none, so they do not get an empty office.
+  { href: '/oficina', label: 'Oficina', icon: 'office', roles: ['admin', 'boss', 'dispatch', 'social', 'camera'], mobile: ['camera'] },
   { href: '/obras', label: 'Obras', icon: 'hardhat', roles: ['admin', 'boss', 'dispatch', 'ivt'], mobile: ['dispatch', 'ivt'] },
   { href: '/municipios', label: 'Municipios', icon: 'map', roles: ['admin', 'boss', 'dispatch', 'politics'], mobile: ['dispatch', 'politics'] },
   { href: '/tweets', label: 'Tweets', icon: 'message', roles: ['admin', 'social'], mobile: ['social'] },

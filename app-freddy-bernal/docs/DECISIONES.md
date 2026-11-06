@@ -1325,3 +1325,22 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
 - **Cómo se cambia:** una respuesta que falta va en `answers/<rol>.ts`; su prueba de contenido revisa etiquetas, fechas y
   nombres. Los umbrales están en `engine.ts`: `STRONG` 0,62 y `WEAK` 0,45. La débil sola, `WEAK_ALONE` 0,52, está en
   `local.ts`. Si se sube `STRONG`, contestan más las fichas; si se baja, más el índice.
+
+## D-90. La oficina: la línea de contenido dibujada como una oficina isométrica (06/11/2026)
+- **Pedido de Juan:** una sala isométrica donde se hace todo el trabajo para el jefe: Recepción → Guionistas →
+  Storyboard → Grabación → Editor en línea (líder humano) → Editor brutal → aprobación del jefe → Copywriting →
+  Publicador → Analizador. Respuestas del 06/11: **pantalla nueva en la app**, **mezcla** (la IA propone y una persona
+  revisa) y **todo el equipo la ve**.
+- `/oficina`: el dibujo (SVG con los tokens, liviano y con modo oscuro) y debajo las diez salas con qué hace cada una,
+  quién trabaja, un ejemplo inventado y sus actividades (solo título y código: nunca cuándo ni dónde). `/oficina/[id]`:
+  el recorrido de una actividad y el trabajo de su sala.
+- Lo nuevo vive en `event_office` (migración `20261106000100_office.sql`): el guion (borrador → lo aprueba solo el jefe,
+  con doble factor; si se cambia después, vuelve al jefe), «Ya está limpio» y «Edición lista» (la brutal espera la
+  limpia). Escriben el jefe y Redes. Las demás salas leen lo que ya existe (storyboard, material, piezas, copies,
+  publicaciones). `office_facts()` da solo cuentas y sí/no, igual para todos los que ven el evento.
+- La sala sale de `officeRoom()` (`src/lib/domain/office.ts`); una actividad de antes de la oficina no vuelve a
+  Recepción por lo que ya se hizo afuera.
+- **IA:** apagada hasta el OK legal (D-26). El borrador del guion sale de una plantilla con las palabras de la ficha
+  (sin cifras inventadas, §4.7); el día que se prenda, la IA entra en el mismo botón.
+- Menú: jefe, despacho, Redes y administración en «Más»; Grabación en su barra. Política y el IVT no ven eventos, así
+  que no tienen oficina.

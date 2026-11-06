@@ -93,15 +93,15 @@ describe('menús', () => {
 
   it('el menú del jefe: Inicio, Agenda, Por aprobar, Redes, Obras, Municipios y Digital (§3)', () => {
     const { visible } = navFor(['boss']);
-    expect(visible.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Redes', 'Obras', 'Municipios', 'Digital']);
-    expect(visible.map((n) => n.href)).toEqual(['/jefe', '/agenda', '/aprobar', '/redes', '/obras', '/municipios', '/jefe/digital']);
+    expect(visible.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Redes', 'Oficina', 'Obras', 'Municipios', 'Digital']);
+    expect(visible.map((n) => n.href)).toEqual(['/jefe', '/agenda', '/aprobar', '/redes', '/oficina', '/obras', '/municipios', '/jefe/digital']);
     expect(visible.map((n) => n.label)).not.toContain('Hoy');
   });
 
   it('en el teléfono del jefe caben Inicio, Agenda, Por aprobar y Redes, más «Más» con Obras, Municipios y Digital', () => {
     const { visible, mobile, more } = navFor(['boss']);
     expect(mobile.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Redes']);
-    expect(more.map((n) => n.label)).toEqual(['Obras', 'Municipios', 'Digital']);
+    expect(more.map((n) => n.label)).toEqual(['Oficina', 'Obras', 'Municipios', 'Digital']);
     // Five cells at most on a 360 px phone: four items and «Más».
     expect(mobile.length + (more.length ? 1 : 0)).toBe(5);
     expect([...mobile, ...more]).toEqual(visible);
@@ -139,15 +139,15 @@ describe('menús', () => {
     expect(NAV.some((n) => n.label === 'Piezas')).toBe(false);
     // Redes: Hoy, Agenda, Redes, Tweets, Publicar, Resultados, Biblioteca; on the phone Hoy, Agenda, Redes, Tweets and «Más».
     const social = navFor(['social']);
-    expect(social.visible.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Redes', 'Tweets', 'Publicar', 'Resultados', 'Biblioteca']);
+    expect(social.visible.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Redes', 'Oficina', 'Tweets', 'Publicar', 'Resultados', 'Biblioteca']);
     expect(social.mobile.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Redes', 'Tweets']);
-    expect(social.more.map((n) => n.label)).toEqual(['Publicar', 'Resultados', 'Biblioteca']);
+    expect(social.more.map((n) => n.label)).toEqual(['Oficina', 'Publicar', 'Resultados', 'Biblioteca']);
     // Administración: the same with Redes where Piezas was, on the phone too.
     const admin = navFor(['admin']);
-    expect(admin.visible.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Por aprobar', 'Redes', 'Obras', 'Municipios', 'Tweets', 'Publicar', 'Resultados', 'Biblioteca', 'Ajustes']);
+    expect(admin.visible.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Por aprobar', 'Redes', 'Oficina', 'Obras', 'Municipios', 'Tweets', 'Publicar', 'Resultados', 'Biblioteca', 'Ajustes']);
     expect(admin.mobile.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Redes', 'Ajustes']);
     // The boss's menu does not change.
-    expect(navFor(['boss']).visible.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Redes', 'Obras', 'Municipios', 'Digital']);
+    expect(navFor(['boss']).visible.map((n) => n.label)).toEqual(['Inicio', 'Agenda', 'Por aprobar', 'Redes', 'Oficina', 'Obras', 'Municipios', 'Digital']);
     // Whoever has Tweets in the menu sees Tweets marked there, never the hub too; a section of Redes marks Redes.
     const both = navFor(['boss', 'social']).visible;
     expect(both.filter((n) => isNavActive('/tweets', n, both)).map((n) => n.label)).toEqual(['Tweets']);
@@ -189,10 +189,10 @@ describe('menús', () => {
       expect(hrefs, r).not.toContain('/obras');
       expect(hrefs, r).not.toContain('/municipios');
     }
-    // Despacho fits its five in the phone bar.
+    // Despacho: with «Oficina» (06/11/2026) it has six; the bar keeps four and «Más» has the other two.
     const d = navFor(['dispatch']);
-    expect(d.mobile.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Obras', 'Municipios', 'Biblioteca']);
-    expect(d.more).toEqual([]);
+    expect(d.mobile.map((n) => n.label)).toEqual(['Hoy', 'Agenda', 'Obras', 'Municipios']);
+    expect(d.more.map((n) => n.label)).toEqual(['Oficina', 'Biblioteca']);
   });
 
   it('«Por aprobar» es del jefe (y administración lo mira); ya no hay supervisión', () => {

@@ -61,6 +61,10 @@ Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en españo
   muestra va sin su lugar. Medido con preguntas nuevas de personas que no vieron nada: 76 % bien (antes 32 %), 0
   inseguras en 978 preguntas y en 329 ataques. Prueba de ataque: `tests/unit/assistant-redteam.test.ts`; contenido:
   `tests/unit/assistant-answers-content.test.ts`. Los bancos de preguntas no están en el repositorio.
+- **La oficina (06/11; D-90):** `/oficina` dibuja la línea de contenido como una oficina isométrica de diez salas
+  (Recepción a Analizador) con cada actividad en la suya; `/oficina/[id]` tiene el guion (lo aprueba solo el jefe) y
+  los botones del editor en línea y el brutal. Tabla `event_office` y `office_facts()` en
+  `20261106000100_office.sql` (**falta aplicarla en `fb-dev`**). IA apagada: el borrador sale de la ficha.
 - Marca: oliva como color principal (D-21). Diagnóstico Digital 360 resumido en `docs/DIAGNOSTICO-360.md` (el ZIP es
   confidencial y no está en el repositorio).
 - Pruebas: Vitest (unidad + RLS) y Playwright a 360 px con axe. CI en `.github/workflows/ci.yml`.
