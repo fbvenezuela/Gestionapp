@@ -134,8 +134,21 @@ export const PRIORITY_TONE: Record<RequestPriority, Tone> = { baja: 'neutral', n
 /** The states the board shows as columns (the finished ones go together in a last column). */
 export const BOARD_COLUMNS: readonly RequestState[] = ['recibido', 'en_revision', 'asignado', 'en_atencion', 'requiere_informacion', 'derivado', 'resuelto'];
 
-/** A move the board offers with one tap: no reason, no note. The rest go through the case page. */
-export const quickMoves = (from: RequestState) => nextStates(from).filter((n) => !n.needsReason && !n.needsNote);
+// The usual next step of each state, the one the board offers with one tap (when it needs no reason and no message).
+const NATURAL_NEXT: Partial<Record<RequestState, RequestState>> = {
+  recibido: 'en_revision',
+  en_revision: 'en_atencion',
+  asignado: 'en_atencion',
+  requiere_informacion: 'en_revision',
+  derivado: 'en_atencion',
+};
+
+/** The board's one-tap move: the usual next step, when it needs no reason and no note. The rest, on the case page. */
+export function quickMoves(from: RequestState): NextState[] {
+  const to = NATURAL_NEXT[from];
+  const n = to ? nextStates(from).find((x) => x.state === to && !x.needsReason && !x.needsNote) : undefined;
+  return n ? [n] : [];
+}
 
 // --- The inbox's filters (from the address, GET) ----------------------------------------------------------------------
 

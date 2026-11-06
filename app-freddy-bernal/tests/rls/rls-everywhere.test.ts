@@ -17,7 +17,9 @@ type Table = { name: string; rls: boolean; policies: number; api: boolean };
 
 const WEB_TABLES = ['territories', 'web_items', 'web_versions', 'web_media', 'web_settings', 'web_redirects', 'areas', 'area_members',
   'request_categories', 'requests', 'request_supports', 'request_contacts', 'request_events', 'request_messages', 'request_attachments',
-  'attended_publications', 'rate_limits'];
+  'attended_publications', 'rate_limits',
+  // The attention desk's administrator (20261106100100_atencion_admin.sql).
+  'request_reply_templates', 'request_alerts'];
 
 describe('RLS en todas las tablas', () => {
   it('cada tabla de public tiene RLS (76: las cuatro de Redes por formato y las diecisiete de la web, sin las dos que Mensajes por canales quitó)', async () => {
@@ -41,7 +43,7 @@ describe('RLS en todas las tablas', () => {
     }
     for (const name of WEB_TABLES) expect(rows.find((r) => r.name === name), name).toMatchObject({ rls: true });
     // The contact and the rate limits: no API role touches them at all (only the definer functions).
-    for (const name of ['request_contacts', 'rate_limits']) expect(rows.find((r) => r.name === name), name).toMatchObject({ api: false, policies: 0 });
+    for (const name of ['request_contacts', 'rate_limits', 'request_alerts']) expect(rows.find((r) => r.name === name), name).toMatchObject({ api: false, policies: 0 });
   });
 
   it('anon no tiene privilegios de tabla en public ni escribe nada; solo lee, columna por columna, lo publicado (D-96)', async () => {

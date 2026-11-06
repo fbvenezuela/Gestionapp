@@ -116,12 +116,12 @@ export async function inboxPage(sql: Sql, f: InboxFilters, userId: string): Prom
   return { rows: rows.map(toRow), total, page, pages };
 }
 
-/** The board: the open cases with the filters (up to 40 per state), and the finished ones counted. */
+/** The board: the cases with the filters, the newest 12 of each state (the list has the rest). */
 export async function boardRows(sql: Sql, f: InboxFilters, userId: string): Promise<InboxRow[]> {
   const w = whereOf(f, userId);
   const rows = await sql.query<RawRow & { rn: number }>(
     `select * from (select ${ROW}, row_number() over (partition by r.state order by r.created_at desc, r.id) as rn ${JOINS} ${w.sql}) x
-      where x.rn <= 40 order by x.created_at desc, x.id`,
+      where x.rn <= 12 order by x.created_at desc, x.id`,
     w.params,
   );
   return rows.map(toRow);

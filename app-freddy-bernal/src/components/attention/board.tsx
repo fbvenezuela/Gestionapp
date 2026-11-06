@@ -8,7 +8,7 @@ import { QuickMove } from './quick-move';
 
 // The board by state (design §5): one column per state while the case is open, plus «Resuelto»; the finished ones
 // (cerrado, no procede) are counted with a link to the list. On the phone the columns go one under the other; from the
-// laptop up, side by side (the board scrolls sideways inside its own box, never the page). Up to 40 cards per column
+// laptop up, side by side (the board scrolls sideways inside its own box, never the page). Up to 12 cards per column
 // (the newest); the list has the rest. Who works the case moves it with the buttons; who only reads sees no buttons.
 export function Board({ f, rows, counts }: { f: InboxFilters; rows: InboxRow[]; counts: Record<RequestState, number> }) {
   const finished = counts.cerrado + counts.no_procede;
