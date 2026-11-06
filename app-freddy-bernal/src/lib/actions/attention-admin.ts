@@ -2,7 +2,8 @@
 
 import { z } from 'zod';
 import { act, UserError } from './run';
-import { DEFAULT_STALE_DAYS } from '../domain/attention';
+import type { Sql } from '../db';
+import { DEFAULT_STALE_DAYS, deskAccess } from '../domain/attention';
 
 // What keeps the attention desk running (D-93, /admin/atencion/areas and /admin/atencion/plantillas): the areas and who
 // is in each (Administración), the categories' default area and due days (Administración), the due days by priority
@@ -12,6 +13,18 @@ import { DEFAULT_STALE_DAYS } from '../domain/attention';
 
 const PATHS = { revalidate: ['/admin/atencion'] };
 const uuid = (message = 'Dato inválido.') => z.string().uuid(message);
+
+/**
+ * act() for what keeps the desk running: the app checks first the role it takes (Administración for the areas, the
+ * categories and the settings; the coordinator for the saved replies) with the second factor, then the database's
+ * policies decide again. Hiding a form is never the control.
+ */
+function keep<I, T>(need: 'catalogs' | 'coordinator', schema: z.ZodType<I>, raw: unknown, fn: (sql: Sql, input: I) => Promise<T>, opts: { revalidate?: string[] } = PATHS) {
+  return act(schema, raw, async (sql, input, s) => {
+    if (!s.mfaOk || !deskAccess(s.roles)[need]) throw new UserError('No tienes permiso para hacer esto.');
+    return fn(sql, input);
+  }, opts);
+}
 const slugOf = (name: string) =>
   name
     .normalize('NFD')
@@ -31,7 +44,7 @@ const areaSchema = z.object({
 });
 
 export async function saveArea(raw: unknown) {
-  return act(areaSchema, raw, async (sql, i) => {
+  return keep('catalogs', areaSchema, raw, async (sql, i) => {
     if (i.id) {
       const r = await sql.query(`update public.areas set name = $2, description = $3, active = $4 where id = $1 returning id`, [i.id, i.name, i.description, i.active]);
       if (!r.length) throw new UserError('No tienes permiso para cambiar las áreas.');
@@ -49,7 +62,7 @@ export async function saveArea(raw: unknown) {
 
 /** A responsible joins an area (or leaves it). Only people with «Responsable de área» are offered. */
 export async function setAreaMember(raw: unknown) {
-  return act(z.object({ areaId: uuid('Área inválida.'), userId: uuid('Persona inválida.'), on: z.boolean() }), raw, async (sql, i) => {
+  return keep('catalogs', z.object({ areaId: uuid('Área inválida.'), userId: uuid('Persona inválida.'), on: z.boolean() }), raw, async (sql, i) => {
     if (i.on) {
       await sql.query(`insert into public.area_members (area_id, user_id) values ($1, $2) on conflict (area_id, user_id) do nothing`, [i.areaId, i.userId]);
     } else {
@@ -70,7 +83,7 @@ const categorySchema = z.object({
 
 /** The area a new request of this category goes to, and how many days the team commits to. */
 export async function saveCategoryDefaults(raw: unknown) {
-  return act(categorySchema, raw, async (sql, i) => {
+  return keep('catalogs', categorySchema, raw, async (sql, i) => {
     const r = await sql.query(`update public.request_categories set default_area_id = $2, default_due_days = $3, active = $4 where id = $1 returning id`, [
       i.id,
       i.defaultAreaId,
@@ -94,7 +107,7 @@ const settingsSchema = z.object({
 
 /** Due days by priority (the shorter of these and the category's wins) and the days without movement before a notice. */
 export async function saveDeskSettings(raw: unknown) {
-  return act(settingsSchema, raw, async (sql, i) => {
+  return keep('catalogs', settingsSchema, raw, async (sql, i) => {
     const byPriority = Object.fromEntries((['urgente', 'alta', 'normal', 'baja'] as const).filter((k) => i[k] !== null).map((k) => [k, i[k]]));
     for (const [key, value] of [
       ['participation.due_days_by_priority', byPriority],
@@ -123,7 +136,7 @@ const templateSchema = z.object({
 
 /** The coordinator writes the replies the team uses most (they go to the person: plain words, no data of anyone). */
 export async function saveReplyTemplate(raw: unknown) {
-  return act(templateSchema, raw, async (sql, i) => {
+  return keep('coordinator', templateSchema, raw, async (sql, i) => {
     if (i.id) {
       const r = await sql.query(`update public.request_reply_templates set kind = $2, title = $3, body = $4, sort = $5, active = $6 where id = $1 returning id`, [
         i.id,

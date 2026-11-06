@@ -154,6 +154,27 @@ describe('atender un caso de punta a punta', () => {
     expect(await A.changeRequestState({ id: r.id, state: 'en_revision' })).toEqual({ ok: false, error: NOT_YOURS });
   });
 
+  it('la app pregunta el rol antes que la base: el jefe y auditoría leen el caso, pero no lo trabajan ni ven el contacto, y nada queda escrito', async () => {
+    const r = await newRequest({ category: 'agua' });
+    const events = () => sysOne<{ n: number }>(`select count(*)::int as n from public.request_events where request_id = $1`, [r.id]);
+    const before = await events();
+    for (const key of ['boss', 'auditView'] as DemoUserKey[]) {
+      as(key);
+      // RLS lets them read it (the boss and the auditor read the desk) …
+      expect(await t.as(key, (sql) => sql.one(`select id from public.requests where id = $1`, [r.id])), key).toEqual({ id: r.id });
+      // … and the app says no before the database is asked to change anything.
+      expect(await A.changeRequestState({ id: r.id, state: 'en_revision' }), key).toEqual({ ok: false, error: NOT_YOURS });
+      expect(await A.setRequestPriority({ id: r.id, priority: 'alta' }), key).toEqual({ ok: false, error: NOT_YOURS });
+      expect(await A.findDuplicates({ id: r.id, q: '' }), key).toEqual({ ok: false, error: NOT_YOURS });
+      expect(await A.revealContact({ id: r.id }), key).toEqual({ ok: false, error: 'No puedes ver el contacto de esta solicitud.' });
+      expect(await admin.saveReplyTemplate({ kind: 'public_reply', title: `Intento de ${key}`, body: 'Un texto para la persona (prueba).' }), key).toEqual({ ok: false, error: 'No tienes permiso para hacer esto.' });
+      expect(await admin.saveArea({ name: `Intento de ${key}` }), key).toEqual({ ok: false, error: 'No tienes permiso para hacer esto.' });
+    }
+    expect(await events()).toEqual(before);
+    expect(await sysOne(`select count(*)::int as n from public.audit_log where action = 'contact_view' and row_id = $1`, [r.id])).toEqual({ n: 0 });
+    expect(await sysOne(`select count(*)::int as n from public.request_reply_templates where title like 'Intento de %'`)).toEqual({ n: 0 });
+  });
+
   it('«Ver contacto»: la coordinación lo lee descifrado y queda registrado quién lo miró', async () => {
     const r = await newRequest();
     as('attention');

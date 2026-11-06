@@ -7,7 +7,7 @@ import { openContact } from '../participation/contact-crypto';
 import { env } from '../env';
 import { queueStatusEmails } from './attention-email';
 import { duplicateCandidates } from '../data/attention';
-import { REDACT_FIELDS, REQUEST_PRIORITIES, REQUEST_STATES, REQUEST_TYPES, type RequestState } from '../domain/attention';
+import { REDACT_FIELDS, REQUEST_PRIORITIES, REQUEST_STATES, REQUEST_TYPES, deskAccess, type RequestState } from '../domain/attention';
 
 // What the team does with a citizen request (design §5, /admin/atencion). Every action runs AS THE PERSON (act():
 // zod, RLS, Spanish messages) and calls the database's own functions (20261106000200_participacion.sql): each one checks
@@ -22,6 +22,19 @@ const NOT_YOURS = 'No encontramos esa solicitud o no te toca atenderla.';
 const uuid = (message = 'Solicitud inválida.') => z.string().uuid(message);
 const reason = (max = 2000) => z.string().trim().max(max, `El motivo va hasta ${max} letras.`).optional().default('');
 const opt = (s: string) => (s ? s : null);
+const NO_CONTACT = 'No puedes ver el contacto de esta solicitud.';
+
+/**
+ * act() for the work on a case. The app checks first that this person works cases (the coordinator, a responsible of
+ * an area, the denuncias operator) with the second factor; then the database decides again on THIS case (RLS and its
+ * functions: another area's case, a denuncia for a responsible, a closed one…). Hiding a button is never the control.
+ */
+function work<I, T>(schema: z.ZodType<I>, raw: unknown, fn: (sql: Sql, input: I) => Promise<T>, opts: { revalidate?: string[] } = {}, refusal = NOT_YOURS) {
+  return act(schema, raw, async (sql, input, s) => {
+    if (!s.mfaOk || !deskAccess(s.roles).works) throw new UserError(refusal);
+    return fn(sql, input);
+  }, opts);
+}
 
 /** The state this person reads now, or the one refusal (a case they may not read is not found). */
 async function currentState(sql: Sql, id: string): Promise<RequestState> {
@@ -44,7 +57,7 @@ const stateSchema = z.object({
 
 /** A change of state (the database's machine; the reason where it asks for it; `note` goes to the person). */
 export async function changeRequestState(raw: unknown) {
-  const r = await act(stateSchema, raw, async (sql, input) => {
+  const r = await work(stateSchema, raw, async (sql, input) => {
     const from = await currentState(sql, input.id);
     if (from === input.state) throw new UserError('Ya está en ese estado.');
     await sql.query(`select public.set_request_state($1, $2, $3, $4)`, [input.id, input.state, opt(input.reason), opt(input.note)]);
@@ -61,7 +74,7 @@ export async function changeRequestState(raw: unknown) {
 const assignSchema = z.object({ id: uuid(), areaId: uuid('Área inválida.').nullable(), assigneeId: uuid('Persona inválida.').nullable(), reason: reason() });
 
 export async function assignRequest(raw: unknown) {
-  const r = await act(assignSchema, raw, async (sql, input) => {
+  const r = await work(assignSchema, raw, async (sql, input) => {
     const from = await currentState(sql, input.id);
     await sql.query(`select public.assign_request($1, $2, $3, $4)`, [input.id, input.areaId, input.assigneeId, opt(input.reason)]);
     const to = await currentState(sql, input.id);
@@ -74,7 +87,7 @@ export async function assignRequest(raw: unknown) {
 // --- Priority, due date, kind -------------------------------------------------------------------------------------------
 
 export async function setRequestPriority(raw: unknown) {
-  return act(z.object({ id: uuid(), priority: z.enum(REQUEST_PRIORITIES, 'Elige la prioridad.'), reason: reason() }), raw, async (sql, input) => {
+  return work(z.object({ id: uuid(), priority: z.enum(REQUEST_PRIORITIES, 'Elige la prioridad.'), reason: reason() }), raw, async (sql, input) => {
     await currentState(sql, input.id);
     await sql.query(`select public.set_request_priority($1, $2, $3)`, [input.id, input.priority, opt(input.reason)]);
   }, PATHS);
@@ -88,7 +101,7 @@ const dueSchema = z.object({
 });
 
 export async function setRequestDue(raw: unknown) {
-  return act(dueSchema, raw, async (sql, input) => {
+  return work(dueSchema, raw, async (sql, input) => {
     await currentState(sql, input.id);
     await sql.query(
       `select public.set_request_due($1, case when $2::date is null then null else (($2::date + 1)::timestamp at time zone $3) - interval '1 second' end, $4)`,
@@ -99,7 +112,7 @@ export async function setRequestDue(raw: unknown) {
 
 export async function reclassifyRequest(raw: unknown) {
   const s = z.object({ id: uuid(), type: z.enum(REQUEST_TYPES, 'Elige el tipo.'), categoryId: uuid('Elige la categoría.'), reason: z.string().trim().min(1, 'Escribe el motivo.').max(2000) });
-  return act(s, raw, async (sql, input) => {
+  return work(s, raw, async (sql, input) => {
     await currentState(sql, input.id);
     await sql.query(`select public.reclassify_request($1, $2, $3, $4)`, [input.id, input.type, input.categoryId, input.reason]);
   }, PATHS);
@@ -115,7 +128,7 @@ const messageSchema = z.object({
 
 /** An internal note (never seen by the person), a reply to the person, or «Pedir más información». */
 export async function addRequestMessage(raw: unknown) {
-  const r = await act(messageSchema, raw, async (sql, input) => {
+  const r = await work(messageSchema, raw, async (sql, input) => {
     await currentState(sql, input.id);
     const m = await sql.one<{ id: string }>(`select public.add_request_message($1, $2, $3) as id`, [input.id, input.kind, input.body]);
     return { messageId: m!.id, kind: input.kind };
@@ -132,7 +145,7 @@ export async function addRequestMessage(raw: unknown) {
 // --- Files ---------------------------------------------------------------------------------------------------------------
 
 export async function shareEvidence(raw: unknown) {
-  return act(z.object({ attachmentId: uuid('Archivo inválido.'), shared: z.boolean() }), raw, async (sql, input) => {
+  return work(z.object({ attachmentId: uuid('Archivo inválido.'), shared: z.boolean() }), raw, async (sql, input) => {
     await sql.query(`select public.set_request_attachment_shared($1, $2)`, [input.attachmentId, input.shared]);
     return { shared: input.shared };
   }, PATHS);
@@ -140,7 +153,7 @@ export async function shareEvidence(raw: unknown) {
 
 export async function withholdAttachment(raw: unknown) {
   const s = z.object({ attachmentId: uuid('Archivo inválido.'), reason: z.string().trim().min(1, 'Escribe el motivo.').max(1000, 'El motivo va hasta 1000 letras.') });
-  return act(s, raw, async (sql, input) => {
+  return work(s, raw, async (sql, input) => {
     await sql.query(`select public.withhold_request_attachment($1, $2)`, [input.attachmentId, input.reason]);
   }, PATHS);
 }
@@ -149,7 +162,7 @@ export async function withholdAttachment(raw: unknown) {
 
 /** Open cases of the same kind to merge with: by code, by words, or (nothing typed) the same category and municipality. */
 export async function findDuplicates(raw: unknown) {
-  return act(z.object({ id: uuid(), q: z.string().trim().max(80).default('') }), raw, async (sql, input) => {
+  return work(z.object({ id: uuid(), q: z.string().trim().max(80).default('') }), raw, async (sql, input) => {
     const c = await sql.one<{ id: string; type: (typeof REQUEST_TYPES)[number]; category_id: string; municipality_id: string | null }>(
       `select id, type, category_id, municipality_id from public.requests where id = $1`,
       [input.id],
@@ -164,7 +177,7 @@ const mergeSchema = z.object({ id: uuid(), into: uuid('Elige el caso que se qued
 
 /** The duplicate (`id`) closes into the case that stays (`into`); both keep their history; the supports move and count. */
 export async function mergeRequest(raw: unknown) {
-  const r = await act(mergeSchema, raw, async (sql, input) => {
+  const r = await work(mergeSchema, raw, async (sql, input) => {
     await currentState(sql, input.id);
     await sql.query(`select public.merge_request($1, $2, $3)`, [input.id, input.into, input.reason]);
     return { eventId: await lastEvent(sql, input.id, 'merged') };
@@ -177,7 +190,7 @@ export async function mergeRequest(raw: unknown) {
 
 export async function redactRequestField(raw: unknown) {
   const s = z.object({ id: uuid(), field: z.enum(REDACT_FIELDS, 'Elige el dato.'), reason: z.string().trim().min(1, 'Escribe el motivo.').max(2000) });
-  return act(s, raw, async (sql, input) => {
+  return work(s, raw, async (sql, input) => {
     await currentState(sql, input.id);
     await sql.query(`select public.redact_request($1, $2, $3)`, [input.id, input.field, input.reason]);
   }, PATHS);
@@ -185,7 +198,7 @@ export async function redactRequestField(raw: unknown) {
 
 export async function redactRequestMessage(raw: unknown) {
   const s = z.object({ messageId: uuid('Mensaje inválido.'), reason: z.string().trim().min(1, 'Escribe el motivo.').max(2000) });
-  return act(s, raw, async (sql, input) => {
+  return work(s, raw, async (sql, input) => {
     await sql.query(`select public.redact_request_message($1, $2)`, [input.messageId, input.reason]);
   }, PATHS);
 }
@@ -193,7 +206,7 @@ export async function redactRequestMessage(raw: unknown) {
 /** Spam (advertising, nonsense, abuse): «No procede» marked as spam, kept. No email to the sender. */
 export async function markRequestSpam(raw: unknown) {
   const s = z.object({ id: uuid(), reason: z.string().trim().min(1, 'Escribe el motivo.').max(2000) });
-  return act(s, raw, async (sql, input) => {
+  return work(s, raw, async (sql, input) => {
     await currentState(sql, input.id);
     await sql.query(`select public.mark_request_spam($1, $2)`, [input.id, input.reason]);
   }, PATHS);
@@ -205,19 +218,25 @@ export type RevealedContact = { name: string | null; email: string | null; phone
 
 /** «Ver contacto»: who works the case reads it; the database writes who looked, and when, in the audit log. */
 export async function revealContact(raw: unknown) {
-  return act(z.object({ id: uuid() }), raw, async (sql, input): Promise<RevealedContact> => {
-    const row = await sql.one<{ name_enc: string | null; email_enc: string | null; phone_enc: string | null; preferred_channel: string }>(
-      `select name_enc, email_enc, phone_enc, preferred_channel from public.request_contact($1)`,
-      [input.id],
-    );
-    return row ? openContact(row) : null;
-  });
+  return work(
+    z.object({ id: uuid() }),
+    raw,
+    async (sql, input): Promise<RevealedContact> => {
+      const row = await sql.one<{ name_enc: string | null; email_enc: string | null; phone_enc: string | null; preferred_channel: string }>(
+        `select name_enc, email_enc, phone_enc, preferred_channel from public.request_contact($1)`,
+        [input.id],
+      );
+      return row ? openContact(row) : null;
+    },
+    {},
+    NO_CONTACT,
+  );
 }
 
 /** The person asked that their contact be erased (privacy notice): the coordinator does it, with the reason. */
 export async function eraseContact(raw: unknown) {
   const s = z.object({ id: uuid(), reason: z.string().trim().min(1, 'Escribe el motivo.').max(2000) });
-  return act(s, raw, async (sql, input) => {
+  return work(s, raw, async (sql, input) => {
     await currentState(sql, input.id);
     await sql.query(`select public.erase_request_contact($1, $2, null)`, [input.id, input.reason]);
   }, PATHS);
@@ -233,7 +252,7 @@ const attendedSchema = z.object({
 
 /** The public summary of a resolved case (a denuncia: the database writes «Denuncia atendida en el municipio X»). */
 export async function publishAttended(raw: unknown) {
-  return act(attendedSchema, raw, async (sql, input) => {
+  return work(attendedSchema, raw, async (sql, input) => {
     await currentState(sql, input.id);
     await sql.query(`select public.publish_attended($1, $2, $3)`, [input.id, input.summary, opt(input.displayName)]);
   }, { revalidate: ['/admin/atencion', '/atencion/atendido'] });
@@ -241,7 +260,7 @@ export async function publishAttended(raw: unknown) {
 
 export async function withdrawAttended(raw: unknown) {
   const s = z.object({ id: uuid(), reason: z.string().trim().min(1, 'Escribe el motivo.').max(1000, 'El motivo va hasta 1000 letras.') });
-  return act(s, raw, async (sql, input) => {
+  return work(s, raw, async (sql, input) => {
     await currentState(sql, input.id);
     await sql.query(`select public.withdraw_attended($1, $2)`, [input.id, input.reason]);
   }, { revalidate: ['/admin/atencion', '/atencion/atendido'] });
