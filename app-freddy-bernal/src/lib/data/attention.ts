@@ -402,9 +402,9 @@ export type MapPoint = { id: string; reference: string; lat: number; lng: number
  * The map (design §5): the cases with a point the person consented to, never a denuncia (the database never stores one
  * for them either); the rest of what this person reads, counted by municipality. Same filters as the inbox.
  */
-export async function mapData(sql: Sql, f: InboxFilters, userId: string) {
+export async function mapData(sql: Sql, f: InboxFilters, userId: string, opts: { openOnly?: boolean } = {}) {
   const w = whereOf(f, userId);
-  const and = w.sql ? `${w.sql} and` : 'where';
+  const and = `${w.sql ? `${w.sql} and` : 'where'}${opts.openOnly ? ` r.state not in ${DONE} and` : ''}`;
   const points = await sql.query<{ id: string; reference: string; lat: string; lng: string; state: RequestState; category_name: string }>(
     `select r.id, r.reference, r.lat::text as lat, r.lng::text as lng, r.state, c.name as category_name
        from public.requests r join public.request_categories c on c.id = r.category_id

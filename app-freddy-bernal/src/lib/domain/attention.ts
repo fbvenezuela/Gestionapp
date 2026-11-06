@@ -53,6 +53,14 @@ export function deskAccess(roles: readonly AnyRole[]) {
 }
 export type DeskAccess = ReturnType<typeof deskAccess>;
 
+/** The kinds of request this person can find (a denuncia only for the coordinator and the denuncias operator). */
+export function typesFor(roles: readonly AnyRole[]): RequestType[] {
+  if (has(roles, 'attention_coordinator')) return [...REQUEST_TYPES];
+  const others = has(roles, 'reports_operator', 'auditor', 'boss');
+  const denuncias = has(roles, 'complaints_operator');
+  return REQUEST_TYPES.filter((t) => (t === 'denuncia' ? denuncias : others));
+}
+
 // --- The state machine --------------------------------------------------------------------------------------------------
 
 /** recibido → en_revision → asignado → en_atencion → resuelto → cerrado, plus requiere_informacion, derivado, no_procede. */
