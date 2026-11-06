@@ -5,5 +5,11 @@ useDefault = true
 [allowlist]
 description = "Demo-only values with no real access"
 # Fake push-subscription «auth» value used only by the tests (no real subscription behind it).
-regexes = ['''demo-only-not-a-secret-change-me''', '''tBHItJI5svbpez7KI4CCXg''']
+# Then the three invented demo receipts (AC-<año>-DEMR01..03, docs/DEMO.md): seeded only by the demo server, never in
+# a real database, and published on purpose so anyone can try «Consultar mi solicitud». Exact values only, so a real
+# receipt's key pasted by mistake is still caught.
+regexes = [
+  '''demo-only-not-a-secret-change-me''', '''tBHItJI5svbpez7KI4CCXg''',
+  '''K7QM-2HXP-9WRT-4BNE''', '''R3PS-W8N2-DEMV-7QKA''', '''H4JX-5ZTB-9CNF-W2YE''',
+]
 paths = ['''app-freddy-bernal/diseno/.*''', '''app-freddy-bernal/package-lock\.json''']
