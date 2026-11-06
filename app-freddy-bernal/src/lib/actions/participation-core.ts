@@ -25,9 +25,9 @@ import { REQUEST_TYPE_LABEL, requestInput, type RequestInput, type RequestType }
 import { crockfordFromBytes, normalizeSecret } from '../participation/receipt-code';
 import { turnstileEnabled, verifyTurnstile } from '../participation/turnstile';
 import { addCitizenAttachment, submitRequest, type RateKeys, type ReceiptGrant, type ReceiptKeys } from '../web/participation';
-import { bucketStore } from '../storage/buckets';
-import { scanStoredAttachment, storePrivateFile } from '../storage/participation-files';
+import { dropPrivateFile, preparePrivateFile, putPrivateFile, scanStoredAttachment } from '../storage/participation-files';
 import { ATTACHMENT_LIMITS } from '../participation/files';
+import { readFormCapped } from '../request-body';
 import { today } from '../time';
 import { eventDateProblem, type FieldErrors, type SendResult } from './participation-types';
 
@@ -230,26 +230,32 @@ export async function closeConsultation() {
 export type AttachOutcome = { status: 200; id: string } | { status: 400 | 404 | 409 | 413 | 422 | 429 | 500 | 503; error: string };
 
 /**
- * One file of a request (with the request, or with one of the person's messages): checked and cleaned
- * (storePrivateFile: extension, size, first bytes, metadata), registered with the receipt (citizen.add_request_attachment
- * checks the receipt, the limits and the counts), scanned after the response. When the database refuses it, the stored
- * copy is removed: nothing stays in the private bucket without its row.
+ * One file of a request (with the request, or with one of the person's messages): checked and cleaned in memory
+ * (preparePrivateFile: extension, size, first bytes, pixels, metadata), registered with the receipt
+ * (citizen.add_request_attachment checks the receipt, the rate limit, the counts and the state) and only then written
+ * to the private bucket, inside the same transaction: a wrong receipt or a person over the limit never makes the server
+ * store anything, and a write that fails takes the row back. Scanned after the response.
  */
 export async function attachFile(g: ReceiptGrant, keys: RateKeys, file: { name: string; bytes: Uint8Array }, messageId: string | null): Promise<AttachOutcome> {
-  const stored = await storePrivateFile(file.name, file.bytes);
-  if (!stored.ok) return { status: 422, error: stored.error };
-  const f = stored.file;
-  const drop = () => bucketStore('participacion-privado').remove(f.storageKey).catch(() => {});
+  const prepared = preparePrivateFile(file.name, file.bytes);
+  if (!prepared.ok) return { status: 422, error: prepared.error };
+  const f = prepared.file;
+  let written = false;
   try {
-    const r = await withAnon((sql) => addCitizenAttachment(sql, g, keys, { ...f, messageId }));
-    if (r.status !== 'ok') {
-      await drop();
-      return { status: 404, error: NOT_FOUND_TEXT };
-    }
+    const r = await withAnon(async (sql) => {
+      const row = await addCitizenAttachment(sql, g, keys, { storageKey: f.storageKey, mime: f.mime, bytes: f.bytes, scanStatus: f.scanStatus, messageId });
+      if (row.status === 'ok') {
+        await putPrivateFile(f);
+        written = true;
+      }
+      return row;
+    });
+    if (r.status !== 'ok') return { status: 404, error: NOT_FOUND_TEXT };
     after(() => scanStoredAttachment(r.id, f.storageKey));
     return { status: 200, id: r.id };
   } catch (e) {
-    await drop();
+    // The row did not commit: a copy already written goes too (nothing stays in the bucket without its row).
+    if (written) await dropPrivateFile(f.storageKey);
     const fail = failureOf(e, 'archivo');
     if (fail.code === 'rate') return { status: 429, error: fail.error };
     if (fail.code === 'config') return { status: 503, error: fail.error };
@@ -303,15 +309,11 @@ export async function handleUpload(
 ): Promise<Response> {
   if (!sameOrigin(req)) return jsonResponse(403, { ok: false, error: 'No permitido.' });
   const max = maxAttachmentBytes();
-  const length = Number(req.headers.get('content-length') ?? '0');
-  // The body is read only up to the file's limit plus its form fields.
-  if (length > max + 64 * 1024) return jsonResponse(413, { ok: false, error: sizeText(max) });
-  let form: FormData;
-  try {
-    form = await req.formData();
-  } catch {
-    return jsonResponse(400, { ok: false, error: 'No llegó el archivo. Vuelve a intentarlo.' });
-  }
+  // The body is read only up to the file's limit plus its form fields, with or without Content-Length.
+  const body = await readFormCapped(req, max + 64 * 1024);
+  if (!body.ok && body.reason === 'too_big') return jsonResponse(413, { ok: false, error: sizeText(max) });
+  if (!body.ok) return jsonResponse(400, { ok: false, error: 'No llegó el archivo. Vuelve a intentarlo.' });
+  const form = body.form;
   const file = form.get('file');
   if (!file || typeof file === 'string') return jsonResponse(400, { ok: false, error: 'No llegó el archivo. Vuelve a intentarlo.' });
   if (file.size > max) return jsonResponse(413, { ok: false, error: sizeText(max) });

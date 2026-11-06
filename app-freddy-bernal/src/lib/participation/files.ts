@@ -9,7 +9,9 @@ import { stripPhotoMetadata, type PhotoKind } from '../media/photo-meta';
 // a page (always downloaded, with the sandbox headers) and production serves it only once the scanner says «limpio».
 // Pure (no Node imports): the form can run the same checks before uploading.
 
-export const ATTACHMENT_LIMITS = { maxBytes: 8 * 1024 * 1024, perSend: 3, perRequest: 12 } as const;
+// A photo's size in pixels too (its header says it; nothing is decoded on the server): a file of a few kilobytes can
+// claim 50 000 × 50 000 pixels and hang the browser of whoever opens it. The same bounds as the media library.
+export const ATTACHMENT_LIMITS = { maxBytes: 8 * 1024 * 1024, perSend: 3, perRequest: 12, maxSide: 12_000, maxPixels: 60_000_000 } as const;
 
 export type AttachmentType =
   | { mime: 'image/jpeg'; ext: 'jpg'; kind: 'image'; photo: PhotoKind }
@@ -58,6 +60,9 @@ export function cleanAttachment(bytes: Uint8Array, type: AttachmentType): CleanA
   if (type.kind === 'pdf') return { ok: true, bytes, width: null, height: null };
   const clean = stripPhotoMetadata(type.photo, bytes);
   if (!clean) return { ok: false, error: 'No pudimos preparar esa foto. Vuelve a elegirla desde la galería o tómala de nuevo.' };
+  if (Math.max(clean.width, clean.height) > ATTACHMENT_LIMITS.maxSide || clean.width * clean.height > ATTACHMENT_LIMITS.maxPixels) {
+    return { ok: false, error: 'La foto es demasiado grande: mándala desde la galería del teléfono o tómala de nuevo.' };
+  }
   return { ok: true, bytes: clean.bytes, width: clean.width, height: clean.height };
 }
 
