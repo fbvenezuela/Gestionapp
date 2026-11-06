@@ -33,9 +33,25 @@ beforeAll(async () => {
   ))!.id;
 }, 120_000);
 
+describe('event_office: la lectura de la recepción', () => {
+  it('Redes guarda la lectura; el guion no empieza hasta que el jefe la aprueba', async () => {
+    await t.as('social', (sql) => sql.query(`insert into public.event_office (event_id, rx_what, reception_status) values ($1, 'Bacheo de la calle (prueba)', 'draft')`, [ev]));
+    await expect(t.as('social', (sql) => sql.query(`update public.event_office set script = 'Toma 1 (prueba)', script_status = 'draft' where event_id = $1`, [ev]))).rejects.toThrow(/lectura de la recepción/);
+    await expect(t.as('social', (sql) => sql.query(`update public.event_office set reception_status = 'approved' where event_id = $1`, [ev]))).rejects.toThrow(/Solo el jefe/);
+    await t.as('boss', (sql) => sql.query(`update public.event_office set reception_status = 'approved' where event_id = $1`, [ev]));
+    expect(await t.system((sql) => sql.one(`select reception_status, reception_approved_by from public.event_office where event_id = $1`, [ev]))).toMatchObject({ reception_status: 'approved', reception_approved_by: t.ids.boss });
+  });
+
+  it('cambiar una lectura aprobada la devuelve al jefe', async () => {
+    await t.as('social', (sql) => sql.query(`update public.event_office set rx_research = 'Reseñas de Google de la zona (prueba)' where event_id = $1`, [ev]));
+    expect((await t.system((sql) => sql.one<{ reception_status: string }>(`select reception_status from public.event_office where event_id = $1`, [ev])))!.reception_status).toBe('draft');
+    await t.as('boss', (sql) => sql.query(`update public.event_office set reception_status = 'approved' where event_id = $1`, [ev]));
+  });
+});
+
 describe('event_office: el guion', () => {
   it('Redes guarda un borrador; el jefe lo aprueba y queda su nombre', async () => {
-    await t.as('social', (sql) => sql.query(`insert into public.event_office (event_id, script, script_status) values ($1, 'Toma 1: llegada (prueba)', 'draft')`, [ev]));
+    await t.as('social', (sql) => sql.query(`update public.event_office set script = 'Toma 1: llegada (prueba)', script_status = 'draft' where event_id = $1`, [ev]));
     expect((await row(ev))!.script_status).toBe('draft');
     await t.as('boss', (sql) => sql.query(`update public.event_office set script_status = 'approved' where event_id = $1`, [ev]));
     expect(await row(ev)).toMatchObject({ script_status: 'approved', script_approved_by: t.ids.boss });

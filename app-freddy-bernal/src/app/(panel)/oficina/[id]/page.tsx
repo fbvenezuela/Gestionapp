@@ -1,15 +1,15 @@
 import { notFound } from 'next/navigation';
 import { Check } from 'lucide-react';
 import { requireRole, db, menuRoles } from '@/lib/auth/session';
-import { officeItem, officeScript } from '@/lib/data/office';
-import { CREW_LABEL, ROOM, ROOMS, roomIndex, type Room } from '@/lib/domain/office';
+import { officeItem, officeReception, officeScript, type OfficeReception } from '@/lib/data/office';
+import { CREW_LABEL, hasFicha, ROOM, RX_QUESTIONS, ROOMS, roomIndex, type Room } from '@/lib/domain/office';
 import { PageHeader } from '@/components/ui/page';
 import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import type { Role } from '@/lib/roles';
-import { EditStep, ScriptPanel } from './office-client';
+import { EditStep, ReceptionPanel, ScriptPanel } from './office-client';
 
 export const metadata = { title: 'Actividad en la oficina' };
 
@@ -23,10 +23,10 @@ export default async function OfficeItemPage({ params }: { params: Promise<{ id:
   const s = await requireRole('admin', 'boss', 'dispatch', 'social', 'camera');
   const data = await db(s, async (sql) => {
     const item = await officeItem(sql, id);
-    return item ? { item, script: await officeScript(sql, id) } : null;
+    return item ? { item, script: await officeScript(sql, id), reception: await officeReception(sql, id) } : null;
   });
   if (!data) notFound();
-  const { item, script } = data;
+  const { item, script, reception } = data;
   const roles = menuRoles(s);
   const content = has(roles, 'boss', 'social', 'admin');
   const here = roomIndex(item.room);
@@ -65,9 +65,11 @@ export default async function OfficeItemPage({ params }: { params: Promise<{ id:
         </div>
         <p className="mt-1 text-[15px]">{info.does}</p>
         <div className="mt-3">
-          <RoomWork room={item.room} id={item.id} roles={roles} content={content} script={script} cleanDone={item.facts.cleanDone} brutalDone={item.facts.brutalDone} />
+          <RoomWork room={item.room} id={item.id} roles={roles} content={content} script={script} reception={reception} cleanDone={item.facts.cleanDone} brutalDone={item.facts.brutalDone} />
         </div>
       </Card>
+
+      {item.room !== 'reception' && reception.status !== 'none' ? <ReadingCard reception={reception} /> : null}
 
       {item.room !== 'reception' && item.room !== 'script' && script.status !== 'none' ? (
         <Card className="p-4">
@@ -83,12 +85,62 @@ export default async function OfficeItemPage({ params }: { params: Promise<{ id:
   );
 }
 
+// The ficha as it came (the reception reads it before anything else).
+function FichaSummary({ reception }: { reception: OfficeReception }) {
+  const b = reception.brief;
+  const rows: [string, string][] = [
+    ['Qué se hizo', b.work],
+    ['Quién la lleva', [b.ledBy, b.inCharge].filter((x) => x.trim()).join(' · ')],
+    ['Lo logrado', b.achievements],
+    ['Los datos', b.keyFacts],
+  ];
+  const shown = rows.filter(([, v]) => v.trim());
+  return shown.length ? (
+    <dl className="mb-3 grid gap-1 rounded-[var(--radius-control)] bg-surface-2 p-3 text-[15px]">
+      <dt className="label-caps">La ficha</dt>
+      {shown.map(([k, v]) => (
+        <dd key={k}><span className="font-semibold">{k}:</span> {v}</dd>
+      ))}
+    </dl>
+  ) : (
+    <p className="mb-3 rounded-[var(--radius-control)] bg-warn-soft p-3 text-[15px] text-warn">Esta actividad llegó sin ficha: solo el título.</p>
+  );
+}
+
+// The reading the boss approved, for the rooms after the reception.
+function ReadingCard({ reception }: { reception: OfficeReception }) {
+  const r = reception.reception;
+  const answers = RX_QUESTIONS.filter((q) => r[q.key].trim());
+  return (
+    <Card className="p-4">
+      <details>
+        <summary className="min-h-11 cursor-pointer content-center text-lg font-bold">La lectura de la recepción</summary>
+        <FichaSummary reception={reception} />
+        {answers.map((q) => (
+          <p key={q.key} className="text-[15px]"><span className="font-semibold">{q.label}</span> {r[q.key]}</p>
+        ))}
+        {r.research.trim() ? <p className="mt-2 whitespace-pre-line text-[15px]"><span className="font-semibold">Lo que se encontró afuera:</span> {r.research}</p> : null}
+      </details>
+    </Card>
+  );
+}
+
 function RoomWork({
-  room, id, roles, content, script, cleanDone, brutalDone,
-}: { room: Room; id: string; roles: Role[]; content: boolean; script: { script: string; status: 'none' | 'draft' | 'approved' }; cleanDone: boolean; brutalDone: boolean }) {
+  room, id, roles, content, script, reception, cleanDone, brutalDone,
+}: { room: Room; id: string; roles: Role[]; content: boolean; script: { script: string; status: 'none' | 'draft' | 'approved' }; reception: OfficeReception; cleanDone: boolean; brutalDone: boolean }) {
   const boss = has(roles, 'boss');
   switch (room) {
     case 'reception':
+      return (
+        <div>
+          <FichaSummary reception={reception} />
+          {content ? (
+            <ReceptionPanel eventId={id} initial={reception.reception} status={reception.status} needsAnswers={!hasFicha(reception.brief)} canApprove={boss} />
+          ) : (
+            <p className="text-[15px] text-text-2">{reception.status === 'draft' ? 'La lectura espera que el jefe la apruebe.' : 'Redes prepara la lectura de la actividad.'}</p>
+          )}
+        </div>
+      );
     case 'script':
       return content ? (
         <ScriptPanel eventId={id} initial={script.script} status={script.status} canApprove={boss} />

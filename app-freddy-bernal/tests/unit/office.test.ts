@@ -1,18 +1,20 @@
 // «La oficina» (06/11/2026): which room an activity is in, the script's first draft and the drawing's cells. Pure.
 import { describe, expect, it } from 'vitest';
-import { officeRoom, ROOM, ROOMS, scriptDraft, type OfficeFacts } from '@/lib/domain/office';
+import { hasFicha, officeRoom, receptionGaps, ROOM, ROOMS, scriptDraft, type OfficeFacts } from '@/lib/domain/office';
 import { myRooms } from '@/lib/domain/office-roles';
 import { ROOM_SPOT } from '@/components/office/office-map';
 
 const base: OfficeFacts = {
-  tracked: true, scriptStatus: 'none', cleanDone: false, brutalDone: false, shots: 0, rawMedia: 0,
+  tracked: true, receptionStatus: 'approved', scriptStatus: 'none', cleanDone: false, brutalDone: false, shots: 0, rawMedia: 0,
   pieces: 0, piecesInReview: 0, piecesApproved: 0, piecesApprovedWithCopies: 0, published: 0,
 };
 const room = (f: Partial<OfficeFacts>) => officeRoom({ ...base, ...f });
 
 describe('la sala de cada actividad', () => {
   it('sigue la línea, paso por paso', () => {
-    expect(room({})).toBe('reception');
+    expect(room({ receptionStatus: 'none' })).toBe('reception');
+    expect(room({ receptionStatus: 'draft' })).toBe('reception');
+    expect(room({})).toBe('script');
     expect(room({ scriptStatus: 'draft' })).toBe('script');
     expect(room({ scriptStatus: 'approved' })).toBe('storyboard');
     expect(room({ scriptStatus: 'approved', shots: 3 })).toBe('recording');
@@ -35,6 +37,24 @@ describe('la sala de cada actividad', () => {
 
   it('un video en revisión espera al jefe aunque falte marcar un paso', () => {
     expect(room({ scriptStatus: 'approved', shots: 1, rawMedia: 1, pieces: 1, piecesInReview: 1 })).toBe('approval');
+  });
+});
+
+describe('la recepción', () => {
+  const empty = { work: '', ledBy: '', inCharge: '', achievements: '', keyFacts: '' };
+  const none = { what: '', beneficiaries: '', responsible: '', research: '' };
+  it('sin ficha pide las tres preguntas; con ficha no', () => {
+    expect(hasFicha(empty)).toBe(false);
+    expect(receptionGaps(empty, none)).toHaveLength(3);
+    expect(receptionGaps(empty, { ...none, what: 'Bacheo de la calle (prueba)', beneficiaries: 'Los vecinos del sector', responsible: 'La alcaldía, sin cifra' })).toEqual([]);
+    expect(receptionGaps({ ...empty, work: 'Techo nuevo de la cancha', achievements: 'Cancha techada' }, none)).toEqual([]);
+    expect(hasFicha({ ...empty, work: 'Solo esto' })).toBe(false);
+  });
+
+  it('sin ficha, el borrador del guion usa las respuestas de la recepción', () => {
+    const s = scriptDraft({ title: 'Bacheo (demo)', work: '', ledBy: '', achievements: '', keyFacts: '' }, { what: 'Tapar los huecos de la calle 5', beneficiaries: 'Los vecinos', responsible: 'Cuadrilla de vialidad', research: '' });
+    expect(s).toContain('Tapar los huecos de la calle 5');
+    expect(s).toContain('Cuadrilla de vialidad');
   });
 });
 

@@ -18,5 +18,20 @@ export async function seedOffice(ctx: SeedCtx): Promise<void> {
   );
   if (!ev) return;
   const script = scriptDraft({ title: ev.title, work: ev.work ?? '', ledBy: ev.led_by ?? '', achievements: ev.achievements ?? '', keyFacts: ev.key_facts ?? '' });
-  await sql.query(`insert into public.event_office (event_id, script, script_status, updated_by) values ($1, $2, 'draft', $3)`, [eventId, script, ids.social]);
+  // Its reading, already approved by the boss (the script starts after it): invented answers and an invented search.
+  await sql.query(
+    `insert into public.event_office (event_id, rx_what, rx_beneficiaries, rx_responsible, rx_research, reception_status, reception_approved_by,
+                                      script, script_status, updated_by)
+     values ($1, $2, $3, $4, $5, 'approved', $6, $7, 'draft', $8)`,
+    [
+      eventId,
+      'Mesa de trabajo con los productores de café de la zona alta (demo).',
+      'Las familias productoras del sector (demo; la cifra la confirma despacho).',
+      'Secretaría de Economía (demo). Inversión y tiempo: no se saben todavía.',
+      'Reseñas de Google del sector: se quejan de la vía de acceso en lluvia (demo, Google Maps).\nTikTok, «café zona alta Táchira»: videos de la cosecha y del precio (demo).',
+      ids.boss,
+      script,
+      ids.social,
+    ],
+  );
 }

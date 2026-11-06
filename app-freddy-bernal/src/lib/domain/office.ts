@@ -34,8 +34,8 @@ export const ROOM: Record<Room, RoomInfo> = {
     label: 'Recepción',
     who: 'Despacho',
     crew: 'person',
-    does: 'Llega la actividad que va a visitar el jefe, con su ficha.',
-    example: 'Entrega de un módulo de salud: qué se hizo, quién lo lleva y los datos que hay que decir.',
+    does: 'Llega la actividad con su ficha. Si viene vacía, se hacen 3 preguntas y se busca afuera (solo en el Táchira). El jefe aprueba la lectura.',
+    example: '«Bacheo en la calle 5»: qué se va a hacer, quién se beneficia, quién lo hizo y con cuánto; reseñas de Google de la zona y lo que dice la gente en TikTok, con su fuente.',
   },
   script: {
     label: 'Guionistas',
@@ -114,6 +114,7 @@ export type ScriptStatus = (typeof SCRIPT_STATUSES)[number];
 // reader who sees the event).
 export type OfficeFacts = {
   tracked: boolean; // the activity has its office row (it went through the office); older ones are inferred
+  receptionStatus: ScriptStatus;
   scriptStatus: ScriptStatus;
   cleanDone: boolean;
   brutalDone: boolean;
@@ -139,7 +140,10 @@ export function officeRoom(f: OfficeFacts): Room {
   if (f.published > 0) return 'analytics';
   if (f.piecesApproved > 0) return f.piecesApprovedWithCopies > 0 ? 'publishing' : 'copywriting';
   if (f.piecesInReview > 0) return 'approval';
-  if (script === 'none') return 'reception';
+  // The boss approves the reception's reading before the script starts (Juan, 06/11/2026).
+  if (f.tracked && f.receptionStatus !== 'approved') return 'reception';
+  // Reading approved and no script yet: the script room. An activity with no office row has not been read yet.
+  if (script === 'none') return f.tracked ? 'script' : 'reception';
   if (script === 'draft') return 'script';
   if (f.shots === 0) return 'storyboard';
   if (f.rawMedia === 0) return 'recording';
@@ -154,11 +158,49 @@ export function roomIndex(r: Room) {
 
 export const SCRIPT_MAX = 6000;
 
+// ---------------------------------------------------------------------------
+// The reception (Juan, 06/11/2026): with a ficha, its data; with no ficha or an almost empty one, at least three open
+// questions, then what was found outside, only in the Táchira unless the work is national. Nothing invented.
+// ---------------------------------------------------------------------------
+export const RX_MAX = 2000;
+export const RX_RESEARCH_MAX = 6000;
+export const RX_MIN = 10;
+
+export type Brief = { work: string; ledBy: string; inCharge: string; achievements: string; keyFacts: string };
+export type Reception = { what: string; beneficiaries: string; responsible: string; research: string };
+
+export const RX_QUESTIONS: { key: 'what' | 'beneficiaries' | 'responsible'; label: string; hint: string }[] = [
+  { key: 'what', label: '¿De qué se trata?', hint: 'Qué se va a hacer o a entregar, y dónde (el sector o la comunidad).' },
+  { key: 'beneficiaries', label: '¿Quién se beneficia?', hint: 'Cuántas familias o personas y qué comunidad, si se sabe.' },
+  { key: 'responsible', label: '¿Quién la hizo, con cuánto y en cuánto tiempo?', hint: 'El responsable, la inversión y el tiempo de la obra, si se saben. Si no, dilo.' },
+];
+
+/** A ficha counts as full when at least two of its main parts have something in them. */
+export function hasFicha(b: Brief): boolean {
+  const parts = [b.work, b.achievements, b.keyFacts, `${b.ledBy}${b.inCharge}`];
+  return parts.filter((x) => x.trim().length > 0).length >= 2;
+}
+
+/** What is still missing before the reading goes to the boss (empty list: it can go). */
+export function receptionGaps(b: Brief, r: Reception): string[] {
+  if (hasFicha(b)) return [];
+  return RX_QUESTIONS.filter((q) => r[q.key].trim().length < RX_MIN).map((q) => q.label);
+}
+
 /**
  * The script's first draft, from the ficha's own words (§4.7: no number that is not in the ficha; if something is
  * missing, the draft says so). One shot per line, so the storyboard room can take them one by one.
  */
-export function scriptDraft(b: { title: string; work: string; ledBy: string; achievements: string; keyFacts: string }): string {
+export function scriptDraft(b: { title: string; work: string; ledBy: string; achievements: string; keyFacts: string }, r?: Reception): string {
+  // With no ficha, the reception's answers stand in for it.
+  if (r) {
+    b = {
+      ...b,
+      work: b.work.trim() || r.what,
+      ledBy: b.ledBy.trim() || r.responsible,
+      achievements: b.achievements.trim() || r.beneficiaries,
+    };
+  }
   const missing = '(falta en la ficha)';
   const or = (s: string) => (s.trim() ? s.trim() : missing);
   return [

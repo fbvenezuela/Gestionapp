@@ -1341,6 +1341,9 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
   limpia). Escriben el jefe y Redes; **«Ya está limpio» solo el jefe** (Juan, 06/11: el líder humano es él). Sin
   nombres en las salas, solo el puesto; política y el IVT sin oficina; IA apagada (respuestas de Juan del 06/11). Las demás salas leen lo que ya existe (storyboard, material, piezas, copies,
   publicaciones). `office_facts()` da solo cuentas y sí/no, igual para todos los que ven el evento.
+- **Recepción (06/11, dictado de Juan, `docs/AGENTES-OFICINA.md`):** la lectura de la actividad (la ficha; sin ficha,
+  tres preguntas obligatorias; lo encontrado afuera con su fuente, solo en el Táchira) y **el jefe la aprueba** antes del
+  guion. En `event_office` (`rx_*`, `reception_status`), con las mismas reglas que el guion.
 - La sala sale de `officeRoom()` (`src/lib/domain/office.ts`); una actividad de antes de la oficina no vuelve a
   Recepción por lo que ya se hizo afuera.
 - **IA:** apagada hasta el OK legal (D-26). El borrador del guion sale de una plantilla con las palabras de la ficha

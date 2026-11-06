@@ -1,7 +1,11 @@
 -- «La oficina» (pedido del 06/11/2026): the content line for each activity of the boss, drawn as an isometric office.
 -- Most rooms read what already exists (storyboard, material, pieces, copies, publications, metrics). Three steps had
 -- nowhere to live, and get it here, one row per event:
---   * the script (guion): a draft from the ficha that the boss approves before the storyboard;
+--   * the reception's reading (Juan, 06/11): with no ficha, at least three open questions answered (what it is, who
+--     benefits, who did it with its investment and time), plus what was found outside (Google reviews of the area,
+--     complaints, TikTok), with its source and only in the Táchira unless the work is national. Nothing invented. The
+--     boss approves the reading; only then the script starts;
+--   * the script (guion): a draft from the reading that the boss approves before the storyboard;
 --   * «Editor en línea»: the boss himself marks the video clean (dead time and flaws out): Juan, 06/11, «solo yo»;
 --   * «Editor brutal»: the final edit (animations, effects, sound, subtitles) is ready for the boss.
 -- Who writes: the boss and Redes (is_content_team, as pieces). Only the boss approves the script (can_approve()), and a
@@ -10,6 +14,12 @@
 
 create table public.event_office (
   event_id uuid primary key references public.events (id),
+  rx_what text not null default '' check (char_length(rx_what) <= 2000),
+  rx_beneficiaries text not null default '' check (char_length(rx_beneficiaries) <= 2000),
+  rx_responsible text not null default '' check (char_length(rx_responsible) <= 2000),
+  rx_research text not null default '' check (char_length(rx_research) <= 6000),
+  reception_status text not null default 'none' check (reception_status in ('none', 'draft', 'approved')),
+  reception_approved_by uuid references public.profiles (id),
   script text not null default '' check (char_length(script) <= 6000),
   script_status text not null default 'none' check (script_status in ('none', 'draft', 'approved')),
   script_approved_by uuid references public.profiles (id),
@@ -19,7 +29,8 @@ create table public.event_office (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   check (script_status = 'none' or btrim(script) <> ''),
-  check (script_status = 'approved' or script_approved_by is null)
+  check (script_status = 'approved' or script_approved_by is null),
+  check (reception_status = 'approved' or reception_approved_by is null)
 );
 select public.wire_standard_triggers('public.event_office', false, true);
 
@@ -30,6 +41,25 @@ begin
   new.updated_by := auth.uid();
   if tg_op = 'UPDATE' and new.event_id is distinct from old.event_id then
     raise exception 'La fila de la oficina no cambia de actividad.' using errcode = '42501';
+  end if;
+  -- The reading: approving it is the boss's; changing an approved reading sends it back to him.
+  if new.reception_status = 'approved' and (tg_op = 'INSERT' or old.reception_status <> 'approved'
+       or (new.rx_what, new.rx_beneficiaries, new.rx_responsible, new.rx_research)
+          is distinct from (old.rx_what, old.rx_beneficiaries, old.rx_responsible, old.rx_research)) then
+    if public.can_approve() then
+      new.reception_approved_by := auth.uid();
+    elsif tg_op = 'UPDATE' and old.reception_status = 'approved' then
+      new.reception_status := 'draft';
+      new.reception_approved_by := null;
+    else
+      raise exception 'Solo el jefe aprueba la lectura de la recepción.' using errcode = '42501';
+    end if;
+  end if;
+  if new.reception_status <> 'approved' then new.reception_approved_by := null; end if;
+  -- The script starts once the boss approved the reading.
+  if new.script_status <> 'none' and new.reception_status <> 'approved'
+     and (tg_op = 'INSERT' or new.script_status is distinct from old.script_status or new.script is distinct from old.script) then
+    raise exception 'Primero el jefe aprueba la lectura de la recepción.';
   end if;
   -- Approving is the boss's (with his second factor). Anyone else saving an approved script sends it back to draft.
   if new.script_status = 'approved' and (tg_op = 'INSERT' or old.script_status <> 'approved' or new.script is distinct from old.script) then
@@ -73,12 +103,13 @@ create policy eo_update on public.event_office for update to authenticated
 -- the video is). Accepted, live, not cancelled.
 create function public.office_facts()
 returns table (
-  event_id uuid, tracked boolean, script_status text, clean_done boolean, brutal_done boolean,
+  event_id uuid, tracked boolean, reception_status text, script_status text, clean_done boolean, brutal_done boolean,
   shots int, raw_media int, pieces int, pieces_in_review int, pieces_approved int, pieces_approved_with_copies int, published int
 )
 language sql stable security definer set search_path = public as $$
   select e.id,
          o.event_id is not null,
+         coalesce(o.reception_status, 'none'),
          coalesce(o.script_status, 'none'),
          coalesce(o.clean_done, false),
          coalesce(o.brutal_done, false),

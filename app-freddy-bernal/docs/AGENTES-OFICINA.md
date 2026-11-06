@@ -31,7 +31,13 @@ con su fuente, y lo que todavía falta saber.
 - Inventar datos: ni cifras, ni nombres, ni beneficiados. Si no se sabe, se dice que falta.
 - Buscar fuera del Táchira, salvo una obra o entrega nacional.
 
-**Quién aprueba.** **El jefe aprueba la lectura de la recepción.** Recién entonces pasa a Guionistas.
+**Quién aprueba.** **El jefe aprueba la lectura de la recepción.** Recién entonces pasa a Guionistas. (Juan y el jefe
+son la misma aprobación en la app: el rol de jefe.)
+
+**En la app (06/11):** hecho. La ficha arriba; si no hay ficha (o trae menos de dos partes), las tres preguntas son
+obligatorias; «Lo que se encontró afuera» con su fuente; «Guardar y mandar al jefe» y «Aprobar la lectura». La base no
+deja empezar el guion sin la lectura aprobada, y una lectura aprobada que cambia vuelve al jefe. Sin ficha, el borrador
+del guion usa las respuestas. La búsqueda la hace una persona mientras la IA siga apagada.
 
 ## 2. Guionistas
 
@@ -179,5 +185,4 @@ Pendiente: Juan todavía no lo dictó. Primera idea (06/11): revisa las métrica
 - **Recepción:** cuando haya agente de IA, ¿puede buscar solo en internet, o también entrar a TikTok? (Buscar en redes
   necesita su permiso y su cuenta.)
 - **Analizador:** falta dictarlo.
-- **Aprobaciones:** «el jefe» aprueba el guion y el storyboard impreso, y Juan aprueba los copies y los videos. ¿Juan y
-  el jefe son la misma aprobación en la app, o son dos personas distintas que aprueban cosas distintas?
+- ~~Aprobaciones~~: respondido el 06/11: Juan y el jefe son la misma aprobación (el rol de jefe).
