@@ -117,7 +117,7 @@ bajan en una prueba). La web tenía ese día **5.372 artículos** (5.367 en la m
 | Muestra | Artículos | Fotos (portada + en el texto) | Se bajarían | Peso | Sin texto alternativo | De otras páginas | Datos personales quitados | Otras señales |
 |---|---|---|---|---|---|---|---|---|
 | Los 10 más nuevos (4–6/11/2026) | 10 | 22 (10 + 12) | 22 | ≈5,5 MB | 22 | 0 | 0 | — |
-| Los 18 con correos Gmail (2017–2026) | 18 | 34 (16 + 18) | 34 | ≈3,1 MB | 34 | 0 | **27 correos y 7 teléfonos, en los 18** | 2 artículos de 2017 cuya foto principal ya no existe en la web vieja |
+| Los 18 con correos Gmail (2017–2026) | 18 | 34 (16 + 18) | 34 | ≈3,1 MB | 34 | 0 | **27 correos (en los 18) y 7 teléfonos (en 4)**: los 18 quedan señalados | 2 artículos de 2017 cuya foto principal ya no existe en la web vieja |
 | 40 repartidos (2015, 2018, 2021, 2024) | 40 | 82 (34 + 48) | 81 | ≈13,5 MB | 81 | 1 | 0 | 2 direcciones de más de 120 letras recortadas; 1 publicación de X que quedó como cita y enlace |
 
 **Cómo queda una nota (muestra de los 10 más nuevos):** `/2026/11/<dirección>` → `/actualidad/<la misma dirección>`;
@@ -247,5 +247,6 @@ Inventario de `docs/diagnostico.md` §1 y §5. Todas responden **301** (permanen
 - La web nueva no filtra por mes: los archivos de mes van a `/actualidad`.
 - La tabla de redirecciones tendrá unas 25.000 filas con todo importado (artículos, `?p=`, etiquetas y fotos). Por eso
   la web ya no la lee entera: busca cada dirección vieja por sí sola (por el índice de la tabla) y recuerda la
-  respuesta un minuto. No se midió con 25.000 filas reales.
+  respuesta un minuto (también el «no está»: cada dirección vieja distinta que no existe cuesta una consulta corta a la
+  base). No se midió con 25.000 filas reales.
 - Los nombres de personas en las notas no se detectan solos.
