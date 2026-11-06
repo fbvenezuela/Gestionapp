@@ -364,8 +364,8 @@ arregló tiene una prueba que falla con el código anterior y pasa con el nuevo.
   niega la base (`tests/rls/web-atencion*.test.ts`, `web-ciudadano.test.ts` y `seguridad-web.test.ts`).
 - **Adivinar:** el código tiene 30 bits al azar por año y la clave 80; la respuesta es la misma para un código que no
   existe y para una clave mala; los intentos fallidos cuentan y, pasado el límite, la negativa deshace su intento pero
-  el contador sigue arriba (prueba). La diferencia de tiempo entre «no existe» y «clave mala» es una búsqueda por
-  índice: no se puede medir a través de la red con 10 intentos cada 15 minutos.
+  el contador sigue arriba (prueba). La diferencia de tiempo entre «no existe» y «clave mala» es una sola búsqueda por
+  índice en los dos casos: no se midió, pero con 10 intentos cada 15 minutos no es práctico medirla a través de la red.
 - **La galleta de la consulta:** cifrada y autenticada (AES-256-GCM con una clave sacada de la pimienta), lleva el código
   y la huella de la clave, 30 minutos, httpOnly, SameSite=Strict y solo bajo `/atencion/consultar` (e2e). No abre otro
   caso: cada archivo y cada mensaje se busca en la base con ese comprobante.
@@ -382,8 +382,8 @@ arregló tiene una prueba que falla con el código anterior y pasa con el nuevo.
   Next 16.4); en Vercel, una cabecera Host que no es del proyecto no llega a la app (así enruta Vercel; no se pudo
   comprobar en un despliegue). El importador no está en esta base: no se pudo revisar.
 - **Archivos:** el tipo se decide por los primeros bytes, nunca SVG; se sirven con su tipo fijo, `nosniff`, `sandbox`
-  y sin caché (e2e); un PDF privado siempre se descarga. El servidor no decodifica imágenes: no hay bombas de
-  descompresión del lado del servidor.
+  y sin caché (en el código; el «sin caché» de las negativas, también en e2e); un PDF privado siempre se descarga. El
+  servidor no decodifica imágenes: no hay bombas de descompresión del lado del servidor.
 - **SECURITY DEFINER:** todas las funciones de `public` y `citizen` tienen su search_path fijo, y los roles de la API
   no pueden crear objetos en esos esquemas (prueba nueva).
 - **Un editor cambiando el estado de algo programado:** la base lo deja pasar a «borrador», pero las pantallas leen el
