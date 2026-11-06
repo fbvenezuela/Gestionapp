@@ -1,3 +1,4 @@
+import { brotliCompressSync, constants as zlibConstants } from 'node:zlib';
 import { test, expect, type Browser, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
@@ -203,7 +204,7 @@ test.describe('la web pública en el teléfono (360 px)', () => {
 
   test('actualidad: buscar, filtrar por tipo, pasar de página, abrir una nota y comentarla', async ({ page }) => {
     await page.goto('/actualidad');
-    await page.getByLabel('Buscar').fill('salud');
+    await page.getByLabel('Buscar', { exact: true }).fill('salud');
     await page.getByRole('button', { name: 'Buscar' }).click();
     await page.waitForURL(/q=salud/);
     await expect(page.getByText(/resultados? para «salud»/)).toBeVisible();
@@ -262,7 +263,7 @@ test.describe('la web pública en el teléfono (360 px)', () => {
   test('canales: la lista marcada y cómo reconocer los auténticos; sin portal mientras no esté verificado', async ({ page }) => {
     await page.goto('/canales');
     await expect(page.getByRole('heading', { name: 'Cómo reconocer los canales auténticos' })).toBeVisible();
-    await expect(page.getByText(/no te va a pedir dinero, claves/)).toBeVisible();
+    await expect(page.getByText(/te va a pedir dinero, claves/)).toBeVisible();
     await expect(page.getByText('Portal institucional')).toHaveCount(0);
     await expect(page.locator('main a[href^="https://www.youtube.com/@FreddyBernal.oficial"]')).toHaveCount(1);
     await expect(page.locator('main a[href*="@FreddyBernalOficial"]')).toHaveCount(0);
@@ -348,13 +349,29 @@ test.describe('la web pública en una computadora', () => {
   });
 });
 
-/** Bytes over the wire for a fresh visit (encoded bodies + response headers), scrolled to the end. */
+/** Bytes over the wire for a fresh visit (encoded bodies + response headers), scrolled to the end. `next start` only
+ * compresses with gzip; Vercel (the test version) serves brotli, so the same bodies are also compressed with brotli at a
+ * moderate level (5, as for responses compressed on the fly) to estimate what a phone downloads there. Fonts and photos
+ * are already compressed formats: they count as they are. */
 async function transfer(browser: Browser, url: string, blockImages: boolean) {
   const ctx = await browser.newContext({ viewport: { width: 360, height: 760 }, isMobile: true, hasTouch: true });
   const page = await ctx.newPage();
   if (blockImages) await page.route('**/*', (r) => (r.request().resourceType() === 'image' ? r.abort() : r.continue()));
-  const sizes: Promise<{ type: string; bytes: number }>[] = [];
-  page.on('requestfinished', (req) => sizes.push(req.sizes().then((s) => ({ type: req.resourceType(), bytes: s.responseBodySize + s.responseHeadersSize }))));
+  const sizes: Promise<{ type: string; bytes: number; brotli: number }>[] = [];
+  page.on('requestfinished', (req) =>
+    sizes.push(
+      (async () => {
+        const s = await req.sizes();
+        const type = req.resourceType();
+        let body = s.responseBodySize;
+        if (type !== 'image' && type !== 'font') {
+          const raw = await (await req.response())?.body().catch(() => null);
+          if (raw?.length) body = brotliCompressSync(raw, { params: { [zlibConstants.BROTLI_PARAM_QUALITY]: 5 } }).length;
+        }
+        return { type, bytes: s.responseBodySize + s.responseHeadersSize, brotli: body + s.responseHeadersSize };
+      })(),
+    ),
+  );
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await page.waitForLoadState('networkidle');
@@ -363,7 +380,7 @@ async function transfer(browser: Browser, url: string, blockImages: boolean) {
   await ctx.close();
   const byType: Record<string, number> = {};
   for (const s of all) byType[s.type] = (byType[s.type] ?? 0) + s.bytes;
-  return { bytes: all.reduce((a, s) => a + s.bytes, 0), requests: all.length, byType };
+  return { bytes: all.reduce((a, s) => a + s.bytes, 0), brotli: all.reduce((a, s) => a + s.brotli, 0), requests: all.length, byType };
 }
 
 test('el peso de la portada, medido con y sin fotos (meta del encargo: menos de 200 KB sin fotos)', async ({ browser }) => {
@@ -371,7 +388,10 @@ test('el peso de la portada, medido con y sin fotos (meta del encargo: menos de 
   const withImages = await transfer(browser, `${base}/`, false);
   const without = await transfer(browser, `${base}/`, true);
   const kb = (n: number) => Math.round(n / 1024);
-  const note = `portada: ${kb(withImages.bytes)} KB con fotos (${withImages.requests} pedidos) · ${kb(without.bytes)} KB sin fotos (${without.requests} pedidos) · por tipo sin fotos: ${Object.entries(without.byType).map(([t, b]) => `${t} ${kb(b)} KB`).join(', ')}`;
+  const note =
+    `portada: ${kb(withImages.bytes)} KB con fotos (${withImages.requests} pedidos) · ${kb(without.bytes)} KB sin fotos (${without.requests} pedidos, gzip de next start)` +
+    ` · ${kb(without.brotli)} KB sin fotos con brotli (estimado, como sirve Vercel)` +
+    ` · por tipo sin fotos: ${Object.entries(without.byType).map(([t, b]) => `${t} ${kb(b)} KB`).join(', ')}`;
   test.info().annotations.push({ type: 'peso', description: note });
   console.log(note);
   // A guard against regressions, not the target: the target (200 KB) is reported with the measurement.

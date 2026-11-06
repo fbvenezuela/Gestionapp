@@ -134,10 +134,17 @@ export function PageIntro({ eyebrow, title, intro, children }: { eyebrow?: strin
   );
 }
 
-/** «Por confirmar» next to an account the team has not verified yet (only the test version shows them). */
-export function UnverifiedMark({ dark = false }: { dark?: boolean }) {
+/** «Por confirmar» next to an account the team has not verified yet (only the test version shows them). No margin of
+ * its own: the row that holds it sets the gap, so it lines up the same whether it fits beside the name or wraps. */
+export function UnverifiedMark({ dark = false, className }: { dark?: boolean; className?: string }) {
   return (
-    <span className={cn('ml-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold', dark ? 'border border-on-charcoal text-on-charcoal' : 'bg-warn-soft text-warn')}>
+    <span
+      className={cn(
+        'inline-flex w-fit shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold',
+        dark ? 'border border-on-charcoal text-on-charcoal' : 'bg-warn-soft text-warn',
+        className,
+      )}
+    >
       por confirmar
     </span>
   );

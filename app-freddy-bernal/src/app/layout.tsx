@@ -1,11 +1,26 @@
 import type { Metadata, Viewport } from 'next';
 import { Montserrat } from 'next/font/google';
 import { brand } from '@/lib/client-config';
+import { env } from '@/lib/env';
 import './globals.css';
 
 const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-montserrat', display: 'swap' });
 
+/** Absolute addresses for what a page shares (the default image of src/app/opengraph-image.tsx is at the root): the
+ * website's address (SITE_URL), else the app's. A malformed SITE_URL never takes the app down. */
+function baseUrl(): URL {
+  for (const candidate of [env.site.url, env.appUrl, 'http://localhost:3000']) {
+    try {
+      if (candidate) return new URL(candidate);
+    } catch {
+      // try the next one
+    }
+  }
+  return new URL('http://localhost:3000');
+}
+
 export const metadata: Metadata = {
+  metadataBase: baseUrl(),
   title: { default: brand.appName, template: `%s · ${brand.shortName}` },
   description: 'Plataforma interna del equipo: agenda, material, piezas, aprobación y publicaciones.',
   robots: { index: false, follow: false },

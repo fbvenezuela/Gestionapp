@@ -15,7 +15,7 @@ import { RichText } from '@/components/web/rich-text';
 import { SafeLink } from '@/components/web/ui';
 import { BlockView, opensWithHero } from '@/components/web/blocks';
 import { CtaBlock, GalleryBlock, HeroBlock, ImageBlock, SafeButton, TextBlock, isPendingText } from '@/components/web/blocks/simple';
-import { AttendedView, FaqView, IndicatorsView, NoticesView } from '@/components/web/blocks/views';
+import { AttendedView, FaqView, IndicatorsView, NoticesView, indicatorListHref } from '@/components/web/blocks/views';
 import { focalPosition, PLACEHOLDER_TEXT } from '@/components/web/media';
 import { StatsView, STAT_DEFINITIONS } from '@/components/web/stats';
 import { ChannelPills, orderedChannels } from '@/components/web/channels';
@@ -143,6 +143,17 @@ describe('las reglas de los datos', () => {
     expect(out).toContain('Fuente: Informe de vivienda');
     expect(out).not.toContain('Sin fuente');
     expect(html(h(IndicatorsView, { items: [item('indicator', { title: 'X', value: 1, source: null })] }))).toBe('');
+  });
+
+  it('una cifra que cuenta la plataforma lleva a su lista; una escrita a mano no lleva a ninguna parte', () => {
+    expect(indicatorListHref('projects_concluded')).toBe('/gestion?estado=concluido');
+    expect(indicatorListHref('attended_requests')).toBe('/atencion/atendido');
+    expect(indicatorListHref(null)).toBeNull();
+    const counted = html(h(IndicatorsView, { items: [item('indicator', { title: 'Obras concluidas', value: 42, source: { label: 'Gestión' }, computedFrom: 'projects_concluded' }, 'c')] }));
+    expect(counted).toContain('href="/gestion?estado=concluido"');
+    expect(counted).toContain('Ver la lista');
+    const manual = html(h(IndicatorsView, { items: [item('indicator', { title: 'Prótesis', value: 320, source: { label: 'Informe' } }, 'd')] }));
+    expect(manual).not.toContain('Ver la lista');
   });
 
   it('un aviso vencido no sale; uno vigente dice cuándo se actualizó y hasta cuándo', () => {

@@ -98,13 +98,13 @@ export async function VideoBlock({ data, ctx }: { data: BlockData<'video'>; ctx:
               Ver todos los episodios
             </WebLink>
             {channel ? (
-              <span className="inline-flex flex-wrap items-center">
+              <span className="flex flex-col items-start">
                 <a
                   href={channel.url}
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-11 items-center gap-1 font-semibold text-on-charcoal underline decoration-2 underline-offset-4 focus-visible:outline-on-charcoal"
+                  className="inline-flex min-h-11 flex-wrap items-center gap-x-1 wrap-anywhere font-semibold text-on-charcoal underline decoration-2 underline-offset-4 focus-visible:outline-on-charcoal"
                 >
-                  Canal de YouTube {channel.handle} <ExternalLinkIcon className="h-4 w-4" />
+                  Canal de YouTube {channel.handle} <ExternalLinkIcon className="h-4 w-4 shrink-0" />
                 </a>
                 {channel.verified ? null : <UnverifiedMark dark />}
               </span>

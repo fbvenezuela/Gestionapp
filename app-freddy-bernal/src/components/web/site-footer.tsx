@@ -39,13 +39,15 @@ export function SiteFooter({ site }: { site: Site }) {
         <div className="md:col-span-4">
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-[0.08em]">Canales oficiales</h2>
           {channels.length ? (
-            <ul className="flex flex-col gap-1">
+            <ul className="flex flex-col gap-2">
+              {/* Each account on its own line and the «por confirmar» mark always under it: the same place for every
+                  account, however long its name. */}
               {channels.map((c) => (
-                <li key={c.url} className="flex flex-wrap items-center gap-x-1">
-                  <a href={c.url} rel="noopener noreferrer nofollow" className={footLink}>
-                    {c.networkLabel}
-                    {c.handle ? <span className="ml-1.5">{c.handle}</span> : null}
-                    <ArrowUpRightIcon className="ml-1 h-4 w-4" />
+                <li key={c.url} className="flex flex-col items-start">
+                  <a href={c.url} rel="noopener noreferrer nofollow" className={`${footLink} flex-wrap gap-x-1.5 wrap-anywhere`}>
+                    <span className="font-semibold">{c.networkLabel}</span>
+                    {c.handle ? <span>{c.handle}</span> : null}
+                    <ArrowUpRightIcon className="h-4 w-4 shrink-0" />
                   </a>
                   {c.verified ? null : <UnverifiedMark dark />}
                 </li>

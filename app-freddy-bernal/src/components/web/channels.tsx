@@ -37,7 +37,7 @@ export function ChannelCards({ channels, className }: { channels: PublicChannel[
           <a
             href={c.url}
             rel={c.verified ? 'noopener noreferrer' : 'noopener noreferrer nofollow'}
-            className="inline-flex min-h-11 items-center gap-1 break-all text-lg font-semibold text-text underline-offset-4 after:absolute after:inset-0 hover:underline"
+            className="inline-flex min-h-11 items-center gap-1 wrap-anywhere text-lg font-semibold text-text underline-offset-4 after:absolute after:inset-0 hover:underline"
           >
             {c.handle || c.label}
             <ArrowUpRightIcon className="h-4 w-4 shrink-0" />
@@ -49,20 +49,21 @@ export function ChannelCards({ channels, className }: { channels: PublicChannel[
   );
 }
 
-/** The compact version (a block of a page): one pill per account; the full cards live on /canales. */
+/** The compact version (a block of a page): one pill per account; the full cards live on /canales. A long name wraps
+ * inside its pill (a phone of 360 px never scrolls sideways). */
 export function ChannelPills({ channels }: { channels: PublicChannel[] }) {
   return (
     <ul className="flex flex-wrap gap-3">
       {channels.map((c) => (
-        <li key={c.url}>
+        <li key={c.url} className="max-w-full">
           <a
             href={c.url}
             rel={c.verified ? 'noopener noreferrer' : 'noopener noreferrer nofollow'}
-            className="inline-flex min-h-12 items-center gap-2 rounded-full border border-border bg-surface px-4 text-base text-text shadow-[var(--glass-shadow)] hover:border-accent"
+            className="inline-flex min-h-12 max-w-full flex-wrap items-center gap-x-2 gap-y-1 rounded-3xl border border-border bg-surface px-4 py-2 text-base text-text shadow-[var(--glass-shadow)] hover:border-accent"
           >
             <span className="font-semibold">{c.networkLabel}</span>
-            <span className="text-text-2">{c.handle || c.label}</span>
-            {c.verified ? <BadgeCheckIcon className="h-4 w-4 text-ok" /> : <span className="rounded-full bg-warn-soft px-2 py-0.5 text-xs font-semibold text-warn">por confirmar</span>}
+            <span className="min-w-0 wrap-anywhere text-text-2">{c.handle || c.label}</span>
+            {c.verified ? <BadgeCheckIcon className="h-4 w-4 text-ok" /> : <UnverifiedMark />}
           </a>
         </li>
       ))}

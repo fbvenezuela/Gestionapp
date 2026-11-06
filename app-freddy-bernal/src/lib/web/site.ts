@@ -6,9 +6,18 @@ import { normalizeSite, type Site } from './site-settings';
 
 export type { Site, NavLink, PublicChannel, Contact } from './site-settings';
 
-/** Where the public website lives (canonical links, sitemap, Open Graph): SITE_URL, else the app's address. */
+/** Where the public website lives (canonical links, sitemap, Open Graph): SITE_URL, else the app's address. Only an
+ * http(s) address counts: a malformed SITE_URL falls back to the app's address instead of breaking every page. */
 export function siteBaseUrl(): string {
-  return (env.site.url || env.appUrl).replace(/\/+$/, '');
+  for (const candidate of [env.site.url, env.appUrl]) {
+    try {
+      const u = new URL(candidate);
+      if (u.protocol === 'https:' || u.protocol === 'http:') return `${u.origin}${u.pathname}`.replace(/\/+$/, '');
+    } catch {
+      // try the next one
+    }
+  }
+  return 'http://localhost:3000';
 }
 
 /** The public website's settings as the pages show them (once per request; cached as anon with the tag web:settings).

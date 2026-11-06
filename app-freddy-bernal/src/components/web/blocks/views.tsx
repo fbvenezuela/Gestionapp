@@ -3,16 +3,25 @@ import type { AttendedItem, WebItem } from '@/lib/web/cache';
 import { indicatorShown, noticeActive, NOTICE_CATEGORIES } from '@/lib/web/schema';
 import { REQUEST_TYPE_LABEL, type RequestType } from '@/lib/participation/input';
 import { fmtDay, fmtMoment, fmtNumber } from '@/lib/web/format';
+import { ATTENTION } from '@/lib/web/links';
 import { cn } from '@/lib/cn';
 import type { MuniNames } from '../cards';
 import { Time } from '../cards';
 import { RichText } from '../rich-text';
-import { Badge, cardClass, SafeLink } from '../ui';
+import { Badge, cardClass, SafeLink, WebLink } from '../ui';
 
 // The synchronous views of the blocks that read data (the async blocks fetch, these draw; tests render these with fake
 // items). Rules of design §3 live here: an indicator shows ONLY with its source, a notice ONLY while it applies (with
 // when it was updated and until when), «lo atendido» carries no data of any person (the database publishes only the
 // anonymized summary: a name only with consent, else initials; a denuncia only as «denuncia atendida en …»).
+
+/** The list behind a figure that the platform counts by itself (the brief: «al tocarlos, la lista»); a figure written by
+ * hand has no list of its own on the site, so it links nowhere. */
+export function indicatorListHref(computedFrom: WebItem<'indicator'>['data']['computedFrom']): string | null {
+  if (computedFrom === 'projects_concluded') return '/gestion?estado=concluido';
+  if (computedFrom === 'attended_requests') return ATTENTION.attended;
+  return null;
+}
 
 export function IndicatorsView({ items }: { items: WebItem<'indicator'>[] }) {
   const shown = items.filter((i) => indicatorShown(i.data));
@@ -21,6 +30,7 @@ export function IndicatorsView({ items }: { items: WebItem<'indicator'>[] }) {
     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {shown.map((i) => {
         const d = i.data;
+        const list = indicatorListHref(d.computedFrom);
         return (
           <li key={i.id} className="flex flex-col gap-2 rounded-[var(--radius-card)] bg-surface p-6">
             <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-text">
@@ -28,6 +38,11 @@ export function IndicatorsView({ items }: { items: WebItem<'indicator'>[] }) {
               {d.unit ? <span className="text-xl font-semibold leading-tight">{d.unit}</span> : null}
             </p>
             <p className="text-lg font-semibold leading-snug text-text">{d.title}</p>
+            {list ? (
+              <WebLink href={list} className="inline-flex min-h-11 w-fit items-center font-semibold text-accent-ink underline decoration-2 underline-offset-4">
+                Ver la lista<span className="sr-only">: {d.title}</span>
+              </WebLink>
+            ) : null}
             <p className="mt-auto text-sm leading-relaxed text-text-2">
               Fuente: {d.source!.url ? <SafeLink href={d.source!.url} className="underline underline-offset-4">{d.source!.label}</SafeLink> : d.source!.label}
               {d.asOf ? <> · al {fmtDay(d.asOf)}</> : null}
