@@ -44,7 +44,7 @@ describe('qué archivo es: la extensión y los primeros bytes', () => {
   });
 
   it('3 por envío y 12 por solicitud; un nombre al azar con su extensión', () => {
-    expect(ATTACHMENT_LIMITS).toEqual({ maxBytes: 8 * 1024 * 1024, perSend: 3, perRequest: 12 });
+    expect(ATTACHMENT_LIMITS).toEqual({ maxBytes: 8 * 1024 * 1024, perSend: 3, perRequest: 12, maxSide: 12_000, maxPixels: 60_000_000 });
     expect(attachmentRoom({ thisSend: 0, request: 0 })).toBe(3);
     expect(attachmentRoom({ thisSend: 2, request: 2 })).toBe(1);
     expect(attachmentRoom({ thisSend: 0, request: 11 })).toBe(1);
