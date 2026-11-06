@@ -21,7 +21,7 @@ import {
   participationPepper,
 } from '../participation/keys';
 import { LOOKUP_COOKIE, lookupCookieOptions, openLookup, sealLookup, type LookupGrant } from '../participation/lookup-cookie';
-import { REQUEST_TYPE_LABEL, requestInput, type RequestInput, type RequestType } from '../participation/input';
+import { requestInput, type RequestInput } from '../participation/input';
 import { crockfordFromBytes, normalizeSecret } from '../participation/receipt-code';
 import { turnstileEnabled, verifyTurnstile } from '../participation/turnstile';
 import { addCitizenAttachment, submitRequest, type RateKeys, type ReceiptGrant, type ReceiptKeys } from '../web/participation';
@@ -144,7 +144,7 @@ export type Sent = Extract<SendResult, { ok: true }>;
 export async function sendChecked(input: RequestInput, receipt: ReceiptKeys, keys: RateKeys): Promise<Sent | Failure> {
   try {
     const r = await withAnon((sql) => submitRequest(sql, input, receipt, keys));
-    const emailed = queueReceiptEmail(wantsEmail(input.anonymous ? null : input.contact), r.reference, r.kind, input.type);
+    const emailed = queueReceiptEmail(wantsEmail(input.anonymous ? null : input.contact), r.reference, r.kind);
     return { ok: true, reference: r.reference, kind: r.kind, sentAt: new Date().toISOString(), emailed };
   } catch (e) {
     if (e instanceof ParticipationConfigError && input.contact && !input.anonymous) {
@@ -180,17 +180,19 @@ export function confirmationPlan(to: string, mode: 'demo' | 'supabase' = env.dat
 
 /**
  * The confirmation email (outbox first; it leaves the platform only when email is configured to send, src/lib/email):
- * the reference and how to follow it, NEVER the secret. After the response, outside the anon transaction. Answers
- * whether it is on its way to the person (the receipt says «Te enviamos un correo» only then).
+ * the reference and how to follow it, NEVER the secret, and never the kind of request (like the status emails): an
+ * inbox or a phone's lock screen is seen by others, and «Recibimos tu denuncia» there could put the person at risk
+ * (the security review of 06/11). After the response, outside the anon transaction. Answers whether it is on its way
+ * to the person (the receipt says «Te enviamos un correo» only then).
  */
-export function queueReceiptEmail(to: string, reference: string, kind: 'request' | 'support', type: RequestType): boolean {
+export function queueReceiptEmail(to: string, reference: string, kind: 'request' | 'support'): boolean {
   const plan = confirmationPlan(to);
   if (!plan.queue) return false;
   const support = kind === 'support';
   const body = [
     support
       ? `Te sumaste a un reporte que ya estaba abierto. Tu código para seguirlo es ${reference}.`
-      : `Recibimos tu ${REQUEST_TYPE_LABEL[type].toLowerCase()}. Tu código es ${reference}.`,
+      : `Recibimos tu solicitud. Tu código es ${reference}.`,
     'Para ver cómo va, entra a «Consultar mi solicitud» con tu código y la clave que viste al enviar. Por seguridad, la clave no va en este correo y nadie del equipo la tiene.',
     'Esto no es un servicio de emergencias: en una emergencia, llama a los servicios de emergencia locales.',
   ].join('\n');

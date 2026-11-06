@@ -162,7 +162,7 @@ describe('los archivos de la persona: la base decide antes de guardar nada', () 
       body: stream,
       headers: { origin: 'http://localhost', 'content-type': 'multipart/form-data; boundary=revision' },
       duplex: 'half',
-    } as RequestInit & { duplex: 'half' });
+    } as unknown as ConstructorParameters<typeof NextRequest>[1]);
     expect(req.headers.get('content-length')).toBeNull();
     const res = await upload.POST(req);
     expect(res.status).toBe(413);
