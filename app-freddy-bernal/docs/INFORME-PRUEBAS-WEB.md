@@ -4,12 +4,10 @@ Lo que se probó de la web nueva del gobernador (`/`), la participación ciudada
 web (`/admin/web`) y el de la atención (`/admin/atencion`), cómo se probó, los números que salieron y **lo que no se
 pudo comprobar**. Todo en modo demostración: datos inventados, base en memoria, nada sale a personas reales.
 
-> **BORRADOR EN CURSO** — faltan los números de la corrida completa de punta a punta, el barrido de axe y la prueba del
-> modo local. Este aviso se quita cuando estén.
-
 ## En corto
 
-- **Pasa:** las pruebas de unidad y de RLS (2.859), el lint, el chequeo de tipos y el armado (`npm run build`).
+- **Pasa todo:** las pruebas de unidad y de RLS (2.859), el lint, el chequeo de tipos, el armado y **las 311 pruebas
+  de punta a punta** (6 omitidas, las de Google Drive simulado; 0 fallan).
 - **Los diez recorridos** del encargo largo y los del encargo del 6/11 tienen cada uno su prueba de punta a punta que
   los recorre de verdad en el navegador (tabla en §3). Se agregó `tests/e2e/web-recorridos.spec.ts` para los que
   estaban cubiertos solo en parte.
@@ -18,7 +16,11 @@ pudo comprobar**. Todo en modo demostración: datos inventados, base en memoria,
   buscadores que no la muestren (D-95); sin esa única regla, el SEO da 100.
 - **Peso de la portada:** 219 KB con gzip (lo que sirve `next start`) y unos 204 KB con brotli (estimado, como sirve
   Vercel). **La meta del encargo, menos de 200 KB sin fotos, no se cumple por poco** (§5).
-- **Se arreglaron cuatro cosas** que salieron al medir y al mirar las capturas (§8).
+- **axe:** 0 problemas de accesibilidad, de ningún nivel, en 68 pantallas (las públicas y las del administrador, a 360
+  px y en computadora).
+- **Modo local:** con `LOCAL_DATA_DIR=./.data`, una solicitud con foto y una nota del equipo siguen ahí después de
+  apagar y prender el servidor (§10).
+- **Se arreglaron cinco cosas** que salieron al medir y al mirar las capturas (§8).
 - **No se pudo comprobar** nada de producción: Supabase real, Vercel, el revisor de archivos (ClamAV), Turnstile, los
   correos, el volumen real de datos ni fotos reales (§11).
 
@@ -41,20 +43,45 @@ con Supabase.
 
 | Comprobación | Resultado |
 |---|---|
-| `npm test` (unidad + RLS) | **209 archivos: 2.859 pasan, 3 omitidas** (las mismas de antes), en 310 s |
+| `npm test` (unidad + RLS) | **209 archivos: 2.859 pasan, 3 omitidas** (las mismas de antes), en 315 s, sobre el código final |
 | `npm run lint` | sin errores ni avisos |
 | `npm run typecheck` | sin errores |
-| `npm run build` | arma sin errores |
-| De punta a punta completo (`npm run test:e2e`) | _pendiente_ |
+| `npm run build` | arma sin errores (también con `LOCAL_DATA_DIR=./.data`, §10) |
+| De punta a punta completo (`npm run test:e2e`) | **317 pruebas: 311 pasan, 6 omitidas, 0 fallan**, en 23,4 min. Las 6 omitidas son las de Google Drive simulado, que solo corren con `STORAGE_PROVIDER=drive` y `DRIVE_FAKE=1` (no son de la web) |
+| Después del último arreglo (§8.5) | se repitieron `admin-atencion`, `web-recorridos` y `web-roles`: 40 pasan |
 
 De la web y la atención hay 7 archivos de RLS (`web-cms`, `web-cms-admin`, `web-ciudadano`, `web-atencion`,
-`web-atencion-admin`, `web-import`, `seguridad-web`) y unos 35 de unidad (`web-*`, `participation-*`, `attention-*`,
-`seguridad-*`, `storage-*`); de punta a punta, `web-publica`, `participacion`, `admin-web`, `admin-atencion`,
-`web-roles`, `seguridad-web` y `web-recorridos`.
+`web-atencion-admin`, `web-import`, `seguridad-web`) y 37 de unidad (`web-*`, `participation-*`, `attention-*`,
+`seguridad-*` y dos de `storage-*`); de punta a punta, 91 pruebas en `web-publica` (21), `participacion` (18),
+`admin-web` (8), `admin-atencion` (8), `web-roles` (7), `seguridad-web` (4) y `web-recorridos` (25).
 
 ## 3. Los recorridos y su prueba
 
-_pendiente_
+Cada recorrido se hace en el navegador como lo haría la persona: con sus botones y sus campos, sin atajos por dentro.
+«Teléfono» es a 360 px; «computadora», a 1280 px. Los archivos están en `tests/e2e/`.
+
+| # | Recorrido | Prueba (archivo › prueba) | Dónde | Resultado |
+|---|---|---|---|---|
+| 1 | El editor crea una noticia, la mira en vista previa y quien aprueba la publica | `admin-web` › «el editor crea una noticia con su foto…» y «quien aprueba la publica y aparece en /actualidad…»; `web-recorridos` › «una noticia en la computadora…» (2 pruebas: además, antes de aprobarla no está en la web, y al archivarla sale) | teléfono y computadora | pasa |
+| 2 | Se cambia y se reordena una sección de la portada y se publica | `admin-web` › «el editor cambia y reordena bloques de la portada; quien aprueba lo publica y la portada lo muestra» y «volver a una versión…» | teléfono | pasa |
+| 3 | Una persona manda una solicitud con un archivo | `participacion` › «un reporte con una foto…» (teléfono) y «…de punta a punta, en la computadora»; `web-recorridos` › «1) una persona manda una petición con un PDF…» | teléfono y computadora | pasa |
+| 4 | La coordinación la recibe y la asigna | `admin-atencion` › «la coordinación recibe una solicitud enviada desde el formulario público y la asigna»; `web-recorridos` › «2) la coordinación la recibe por su código, ve el contacto, la asigna… y le sube la prioridad» | teléfono y computadora | pasa |
+| 5 | El responsable responde y cambia el estado | `admin-atencion` › «el responsable del área responde, deja una nota interna y cambia el estado»; `web-recorridos` › «3) el responsable pide más información…» y «4) …le contesta, la atiende y la resuelve…» | teléfono y computadora | pasa |
+| 6 | La persona consulta y agrega información | `admin-atencion` › «la persona consulta: ve la respuesta (nunca la nota interna) y agrega información»; `participacion` › «un reporte con una foto…»; `web-recorridos` › «3) …la persona la ve en su consulta y responde con una foto» (texto **y** archivo) | teléfono y computadora | pasa |
+| 7 | El equipo resuelve y la historia queda | `admin-atencion` › «el equipo lo resuelve con evidencia, la persona lo ve y la historia completa queda»; `web-recorridos` › «5) la persona confirma que se resolvió; la coordinación la cierra y la historia completa queda, también para la persona» (cada paso, en orden) | teléfono y computadora | pasa |
+| 8 | Alguien sin permiso no abre el caso, sus archivos, sus notas internas ni la exportación | `admin-atencion` › «un responsable de otra área, el editor de la web y alguien de fuera no abren el caso, sus archivos ni la exportación» y «auditoría lo lee sin el contacto…»; `admin-web` › «quien no es de la web no entra…»; `web-recorridos` › «6) un id cambiado no revela nada…» y «…el responsable de servicios ve solo los de su área y nunca una denuncia» | teléfono y computadora | pasa |
+| 9 | Una clave mala o un id cambiado no revelan nada | `participacion` › «clave mala, código alterado o inventado: siempre la misma respuesta…»; `seguridad-web` › «los archivos: un comprobante malo recibe el «no encontrado» de siempre…»; `web-recorridos` › «6) un id cambiado no revela nada: otra consulta, la cookie alterada, un id inventado o un caso de otra área» | teléfono y computadora | pasa |
+| 10 | Un envío repetido no crea otra solicitud | `participacion` › «un reintento (la respuesta se perdió) no crea otra solicitud: vuelve el mismo código»; `web-recorridos` › «con JavaScript: la respuesta se pierde… la coordinación ve una sola» y «sin JavaScript: el mismo formulario llega dos veces… la coordinación ve una sola» | teléfono | pasa |
+| 6/11 | Un caso de cada tipo (reporte, petición, acotación, sugerencia, reconocimiento, denuncia) se sigue con su código | `web-recorridos` › 12 pruebas «teléfono: …» y «computadora: …» (comprobante, consulta con código y clave en minúsculas, solo lo suyo, la denuncia privada) y «la coordinación recibe los doce con su tipo…»; `participacion` › «una … llega y da su comprobante» | teléfono y computadora | pasa |
+| 6/11 | Atenderlo en el panel hasta resolverlo | los recorridos 4 a 7 | teléfono y computadora | pasa |
+| 6/11 | Editar un bloque de la portada, aprobarlo y verlo publicado | el recorrido 2 | teléfono | pasa |
+
+Lo que agrega `web-recorridos.spec.ts` (25 pruebas) que antes faltaba: cada tipo **seguido con su código** (antes, solo
+el reporte); agregar un **archivo** desde la consulta; el pedido de más información y su respuesta; la confirmación de
+la persona y el cierre con la historia completa; abrir el archivo de **otra** persona con una consulta propia abierta,
+con la galleta alterada o con ids inventados; contar que un envío repetido deja **una sola** solicitud (con y sin
+JavaScript); la noticia en la computadora y su archivo; que el formulario no rompa su CSP; y que los archivos de la
+consulta se lean en el teléfono.
 
 ## 4. Lighthouse en el teléfono
 
@@ -109,19 +136,31 @@ La demo **no tiene fotos**, así que con fotos y sin fotos pesan lo mismo.
 
 ## 6. Accesibilidad (axe)
 
-_pendiente_
+- **En las pruebas de punta a punta**, axe revisa las pantallas principales de la web, del formulario, de la consulta y
+  de los dos administradores, a 360 px y en computadora, y la prueba falla con cualquier problema grave o crítico (WCAG
+  2.0 A y AA): pasaron todas.
+- **Barrido completo** (aparte, con las reglas WCAG 2.0 y 2.1 A y AA más las «buenas prácticas» de axe, y contando
+  también los problemas moderados y menores): 68 pantallas — las 19 páginas públicas y una consulta abierta, y 14 del
+  administrador (editor, aprobador, coordinación, la ficha de un caso, auditoría), cada una a 360 px y a 1280 px.
+  **Resultado: 0 problemas** (críticos 0, graves 0, moderados 0, menores 0). Para comprobar que el barrido sí encuentra
+  problemas, se pasó igual por una página hecha mal a propósito: encontró 9.
+- **Lighthouse:** accesibilidad 100 en las cuatro páginas medidas (§4).
+- **Lo que esto no cubre:** un programa solo encuentra una parte de los problemas de accesibilidad. No se probó con un
+  lector de pantalla de verdad ni con personas (§11). Lo que sí revisan otras pruebas: «Saltar al contenido» es lo
+  primero con el teclado, el menú del teléfono abre y se cierra con el teclado, el foco va al resumen de errores y al
+  comprobante, y nada se sale de la pantalla hacia los lados.
 
 ## 7. Capturas
 
 Se tomaron capturas de página completa de las 19 páginas públicas, el formulario paso a paso (con errores y con el
 comprobante), una consulta abierta, y 19 pantallas del administrador (editor, aprobador, coordinación, auditoría y
 denuncias), a 360 px y a 1280 px, más 5 páginas públicas en modo oscuro: 97 capturas contando las de después de los
-arreglos, guardadas **fuera del repositorio** (en la carpeta de trabajo de esta sesión). En cada una se buscó, además, con un programa, cualquier
-elemento que se saliera de la pantalla hacia los lados: **ninguno**.
+arreglos, guardadas **fuera del repositorio** (en la carpeta de trabajo de esta sesión). En cada una se buscó, además,
+con un programa, cualquier elemento que se saliera de la pantalla hacia los lados: **ninguno**.
 
-Al mirarlas se encontraron y arreglaron tres cosas (§8.2 a §8.4). Lo que quedó, a propósito o por menor:
-- El botón para elegir archivo de la evidencia del equipo es el del navegador: en este Chromium dice «Choose File»; en
-  un teléfono o una computadora en español dice «Elegir archivo».
+Al mirarlas se encontraron y arreglaron cuatro cosas (§8.2 a §8.5). Lo que quedó, a propósito o por menor:
+- El botón para elegir archivo de la evidencia del equipo y los campos de fecha son los del navegador: en este Chromium
+  (en inglés) dicen «Choose File» y «mm/dd/yyyy»; en un teléfono o una computadora en español salen en español.
 - En la tarjeta de vista previa para redes del editor, la dirección dice `localhost:3000` porque aquí no hay
   `SITE_URL`; en producción dice la dirección de la web.
 - Al pedir más información, el historial del equipo muestra la pregunta dos veces: como el mensaje que lee la persona y
@@ -146,6 +185,12 @@ Al mirarlas se encontraron y arreglaron tres cosas (§8.2 a §8.4). Lo que qued�
    alto y el historial ocupa lo que sobra.
 4. **En la computadora, prioridad, fecha comprometida y la búsqueda de casos iguales** quedaban apretadas en la columna
    angosta (la ayuda en cinco renglones, «Guardar fecha» partido en dos) (`93f887d`): ahí van una debajo de la otra.
+5. **En la computadora, el código de cada solicitud en la bandeja se partía en tres** («AC-» / «2026-» / «RQ8FZM»)
+   (`ff7c287`): ahora va en un renglón. Este arreglo llegó después de la corrida completa; se repitieron las pruebas de
+   la bandeja (§2).
+
+Además, solo en las pruebas: la revisión de axe de `web-recorridos.spec.ts` espera a que la página tenga su título
+antes de revisar (§11, la observación sin causa encontrada).
 
 ## 9. Revisión de seguridad
 
@@ -175,7 +220,45 @@ y `web-recorridos.spec.ts` agrega pruebas de punta a punta de ids cambiados (§3
 
 ## 10. En local, con datos que se quedan
 
-_pendiente_
+Para trabajar en una computadora sin cuentas ni Docker, con los datos inventados de la demo y lo que uno haga encima
+(D-94). Se comprobó así, en este contenedor:
+
+```bash
+cd app-freddy-bernal
+npm install                                  # la primera vez
+LOCAL_DATA_DIR=./.data npm run build
+LOCAL_DATA_DIR=./.data npm start             # la web en http://localhost:3000
+```
+
+- **La web:** http://localhost:3000 · **el panel:** http://localhost:3000/panel · **entrar:** http://localhost:3000/entrar
+  (la tarjeta «Versión de demostración»: un toque por rol, sin código ni doble factor; quién es quién en
+  `docs/DEMO.md`).
+- **Para que solo la abra esta computadora:** `LOCAL_DATA_DIR=./.data npm start -- -H 127.0.0.1` (si no, escucha en
+  toda la red y cualquiera de la red puede entrar como cualquier rol).
+- **Para parar:** Ctrl+C. **Para volver:** el mismo `npm start` (no hace falta armar otra vez si el código no cambió).
+- **Para empezar de cero:** con la app parada, borrar la carpeta `.data`.
+- **Acceso inicial seguro:** el modo local y la demo son **solo para probar** (cualquiera que llegue al servidor entra
+  con cualquier rol, y la clave de contactos de la demo está en el repositorio): nunca datos reales. El primer
+  administrador de verdad se crea solo en producción, con `npm run db:first-admin` (README, «Primer administrador»):
+  sin contraseñas, con código por correo y doble factor.
+
+**Lo que se comprobó (06/11, en este contenedor):**
+1. `LOCAL_DATA_DIR=./.data npm run build` armó sin errores; `LOCAL_DATA_DIR=./.data npm start` quedó escuchando en
+   http://localhost:3000.
+2. La primera página que necesitó la base la armó en `.data/pglite` y la sembró **una vez** con los datos inventados
+   (unos 5 s esa primera vez; la marca `.data/pglite.json` guarda la hora de la siembra).
+3. Desde el formulario, a 360 px, se mandó un reporte **con una foto**; dio su código y su clave. La coordinación
+   (entrando con un toque) lo encontró por su código y le dejó una nota interna.
+4. Se apagó el servidor (se libera `.data/pglite.lock`) y se prendió otra vez, ahora con `-H 127.0.0.1`.
+5. Con el código y la clave, la consulta abrió: «Recibida», con su título, y **la foto se bajó** (la guarda
+   `.data/files/participacion-privado`). La coordinación vio el caso **con su nota interna**; la bandeja contaba lo
+   mismo que antes de apagar (59 en la vista de siempre) y la hora de la siembra no cambió: **no volvió a sembrar ni
+   perdió nada**.
+6. Con `-H 127.0.0.1`, la dirección de la red del contenedor no respondió: solo la abre esta computadora.
+
+Una observación: `npm run build` con `LOCAL_DATA_DIR` escribe en `.data/files` los 16 archivos de ejemplo de la demo (8
+PDF y 8 fotos), los mismos (con los mismos nombres) que después usa la base local; la base no la toca. No hace daño. La
+carpeta `.data` de esta prueba se borró al terminar.
 
 ## 11. Lo que no se pudo comprobar
 
@@ -204,6 +287,7 @@ Todo lo de esta sección **no se probó**; lo que el informe dice de ello es lo 
   con fotos, ni cómo se ven las páginas con ellas.
 - **Teléfonos y navegadores reales.** Solo Chromium simulando un teléfono; no Safari en un iPhone, ni Firefox, ni
   Android de gama baja, ni una red lenta de verdad (solo simulada en Lighthouse).
+- **El modo local en Windows o Mac.** Se probó en Linux (este contenedor), no en las computadoras del equipo.
 - **Lectores de pantalla.** axe y Lighthouse revisan lo que se puede revisar con un programa; nadie navegó con
   TalkBack, VoiceOver o NVDA.
 - **Buscadores.** Con `SITE_INDEXABLE=true` (sitemap, Search Console, cómo sale el gobernador en Google): no se probó;
