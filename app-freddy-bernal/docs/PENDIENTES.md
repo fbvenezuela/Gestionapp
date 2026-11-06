@@ -246,3 +246,21 @@ frena: lo que dice entre paréntesis ya está construido así y se cambia en un 
 - En la demo, lo que se crea o se mueve en Redes vive en un solo servidor (D-39, D-76): para probar creando entre roles
   hace falta `fb-dev`.
 
+## Nuevo (06/11/2026): migrar la web vieja y salir a producción
+El importador está listo y probado (D-97); **no se migró nada todavía**. El orden completo, la lista para marcar y cómo
+volver atrás: `docs/PLAN-MIGRACION-Y-PRODUCCION.md`. Lo que falta y quién:
+1. **Pedro Poller:** el DNS de freddybernaloficial.com (bajar el TTL, apuntar a Vercel, `www` → sin `www`), el registro
+   TXT de Search Console y guardar el hosting viejo unas semanas para poder volver atrás. Antes, el día que se
+   congele la web vieja (Prensa deja de publicar en WordPress).
+2. **Juan:** el proyecto de Supabase de producción con plan para las fotos (≈1,7 GB estimados con todo; el gratis da
+   1 GB), las variables de Vercel (`PARTICIPATION_PEPPER`, `PARTICIPATION_DATA_KEY`, `SITE_URL`…), las claves de
+   Turnstile (Cloudflare) y un revisor de archivos (ClamAV en un servidor aparte u otro servicio: sin él, en producción
+   los archivos que manda la gente no se descargan).
+3. **El equipo de la web:** revisar los borradores importados: escribir el texto alternativo de casi todas las fotos
+   (15.442 de 15.444 no lo tienen), reescribir donde quedó «[correo retirado]» o «[teléfono retirado]» (los 18
+   artículos con correos Gmail, 4 con teléfonos en la muestra), mirar nombres de personas en las notas de sucesos, y
+   decidir qué se publica (¿también Nacionales e Internacionales, unas 800?).
+4. **Consulta legal** antes de abrir.
+5. **No se pudo comprobar desde aquí:** el importador escribiendo en un Supabase real (su balde incluido), que el rol
+   de `DATABASE_URL` pueda `set role anon`, Search Console y la duración real de la importación completa (≈3–4 horas).
+

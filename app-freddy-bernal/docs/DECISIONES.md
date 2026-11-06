@@ -1451,3 +1451,28 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
 - **Por qué:** «lo hace cumplir la base, no la pantalla», también para quien no tiene cuenta.
 - **Cómo se cambia:** `20261106000300_citizen.sql` (con una migración nueva), `src/lib/participation/`,
   `src/lib/storage/`.
+
+## D-97. La web vieja entra como borradores, con lo que falta marcado y la base de guardia (06/11/2026)
+- **Qué:** `npm run web:import` (`scripts/web-import/`) trae los artículos de freddybernaloficial.com desde su API
+  pública como **noticias en borrador**: nunca publica. Plan completo en `docs/PLAN-MIGRACION-Y-PRODUCCION.md`.
+  - **Prueba por omisión:** sin `--apply` no escribe nada (ni filas, ni archivos); con `--apply` escribe en
+    `DATABASE_URL` (Supabase) o en `LOCAL_DATA_DIR`, como el sistema, igual que la semilla del cliente.
+  - **De dónde vino** cada borrador y cada foto (`web_import_items`, `web_import_media`, migración
+    `20261106300100_web_importador.sql`): otra corrida actualiza solo lo que **nadie tocó** (el `rev` del contenido es
+    el que dejó el importador) y nunca lo publicado, archivado, en revisión o editado. El equipo de la web lo lee con
+    RLS (el editor dice «Traído de la web vieja» y qué revisar); nadie lo escribe por la API.
+  - **El texto se convierte, no se pega:** el texto estructurado de la web (sin HTML); YouTube pasa a ser el video de
+    la nota (campo nuevo `youtubeId` de la noticia); redes, tablas e inserciones se vuelven enlaces o listas.
+  - **Datos personales:** correos, teléfonos y cédulas salen con una marca («[correo retirado]»…). **Fotos sin texto
+    alternativo:** entran con «[Por escribir] …» (la base exige el texto; el importador no lo inventa). La base no
+    publica ni lo uno ni lo otro (`guard_web_item_ready`), y el editor lo dice antes.
+  - **Redirecciones 301** de cada dirección vieja importada (artículo, `?p=`, categoría, etiqueta, mes, foto); una
+    hecha a mano nunca se pisa; un archivo viejo que no se trajo responde **410**; los tamaños de WordPress de una
+    foto, las páginas de una lista y el feed de un artículo encuentran la suya. La web busca cada dirección vieja por
+    el índice (unas 25.000 filas con todo importado), no la tabla entera.
+  - El feed va a `/actualidad`, no a la portada: así lo siembra ya la configuración del cliente
+    (`config/clients/fb.json`, `web.redirects`, según `docs/diagnostico.md` §5), y una redirección sembrada no se pisa.
+- **Por qué:** «trae lo que se pueda como borradores, sin el correo personal, con las redirecciones 301» (encargo del
+  6/11, §8), en un repositorio público (nada de la web vieja va a git) y sin publicar nada que nadie revisó.
+- **Cómo se cambia:** `scripts/web-import/` (lo que trae y cómo), `src/lib/web/import-marks.ts` (las marcas, con la
+  misma migración: una migración nueva si cambian), `src/lib/web/redirects.ts` y `redirect-map.ts` (las búsquedas).
