@@ -141,15 +141,16 @@ const plainOf = (runs: readonly TextRun[]) => runs.map((r) => r.text).join('');
 const isPlain = (runs: readonly TextRun[]) => runs.every((r) => !r.bold && !r.italic && !r.href);
 const collapse = (s: string) => s.replace(INVISIBLE, '').replace(SPACES, ' ').trim();
 
-/** Cut a text into pieces of at most `max` characters, at a space when there is one near the end. */
+/** Cut a text into pieces of at most `max` characters, after a space when there is one near the end (the space stays
+ * with the first piece, so two pieces that end up in the same paragraph still read as two words). */
 function chunks(text: string, max: number): string[] {
   const out: string[] = [];
   let rest = text;
   while (rest.length > max) {
-    let cut = rest.lastIndexOf(' ', max);
-    if (cut < max * 0.6) cut = max;
-    out.push(rest.slice(0, cut).trimEnd());
-    rest = rest.slice(cut).trimStart();
+    const space = rest.lastIndexOf(' ', max - 1);
+    const cut = space >= max * 0.6 ? space + 1 : max;
+    out.push(rest.slice(0, cut));
+    rest = rest.slice(cut);
   }
   if (rest) out.push(rest);
   return out;

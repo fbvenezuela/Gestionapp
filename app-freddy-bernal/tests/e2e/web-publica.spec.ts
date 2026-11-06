@@ -323,6 +323,17 @@ test.describe('buscadores, cabeceras y direcciones viejas', () => {
     expect(search.headers()['location']).toMatch(/\/actualidad\?q=agua$/);
     await page.goto('/2014/07/biografia/');
     await expect(page).toHaveURL(/\/gobernador$/);
+    // The importer's rules (D-97): a later page of an old list, the feed, and an old file that was not brought (410).
+    const paged = await page.request.get('/page/3/', { maxRedirects: 0 });
+    expect(paged.status()).toBe(301);
+    expect(paged.headers()['location']).toMatch(/\/actualidad$/);
+    const feed = await page.request.get('/feed/', { maxRedirects: 0 });
+    expect(feed.status()).toBe(301);
+    expect(feed.headers()['location']).toMatch(/\/actualidad$/);
+    const gone = await page.request.get('/wp-content/uploads/2019/01/foto-no-traida-300x200.jpg', { maxRedirects: 0 });
+    expect(gone.status()).toBe(410);
+    expect(gone.headers()['x-robots-tag']).toBe('noindex');
+    expect((await page.request.get('/2026/03/una-nota-que-no-existe', { maxRedirects: 0 })).status()).toBe(404);
   });
 
   test('sitemap.xml: solo lo publicado (secciones, notas y obras), nunca el panel', async ({ page }) => {

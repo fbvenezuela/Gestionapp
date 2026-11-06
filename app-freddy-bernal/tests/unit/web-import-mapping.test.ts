@@ -191,7 +191,14 @@ describe('las fotos', () => {
       ['https://sitio-viejo.test/anim.gif', new Uint8Array([0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 1, 0, 1, 0, 0, 0, 0])],
       ['https://sitio-viejo.test/mini.png', pngOf(40, 40)],
     ]);
-    const http = { bytes: async (url: string) => files.get(url) ?? null };
+    const http = {
+      bytes: async (url: string) => {
+        if (url.includes('prohibida')) throw new Error('La web vieja respondió 403.');
+        return files.get(url) ?? null;
+      },
+    };
+    // The old site refusing one photo never stops the post: it goes without it, or with its second address.
+    expect(await fetchPhoto(http, { ...wantFromImage({ src: 'https://sitio-viejo.test/prohibida.png', alt: '', caption: '', attachmentId: null, linkHref: null }, HOSTS), fallbackUrl: null })).toEqual({ ok: false, reason: 'failed' });
     const want = (url: string, fallbackUrl: string | null = null) => ({ ...wantFromImage({ src: url, alt: '', caption: '', attachmentId: null, linkHref: null }, HOSTS), url, fallbackUrl });
     const ok = await fetchPhoto(http, want('https://sitio-viejo.test/buena.png'));
     expect(ok).toMatchObject({ ok: true, mime: 'image/png', ext: 'png', width: 320, height: 200 });

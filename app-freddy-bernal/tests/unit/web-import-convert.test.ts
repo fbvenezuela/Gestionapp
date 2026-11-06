@@ -172,6 +172,8 @@ describe('datos personales y límites', () => {
     const items = Array.from({ length: 60 }, (_, i) => `<li>punto ${i}</li>`).join('');
     const c = conv(`<p>${long}</p><p>${styled}</p><ul>${items}</ul>`);
     expect(c.body.filter((n) => n.type === 'paragraph').length).toBeGreaterThanOrEqual(4);
+    // Cut at spaces: no two words glued together, none lost.
+    expect(bodyText(c.body.slice(0, 3)).split(' ').filter((w) => w === 'palabra')).toHaveLength(1200);
     expect(c.body.filter((n) => n.type === 'list').map((n) => (n as { items: unknown[] }).items.length)).toEqual([50, 10]);
     valid(c.body);
     const many = conv(Array.from({ length: 260 }, (_, i) => `<p>Párrafo ${i}</p>`).join(''));

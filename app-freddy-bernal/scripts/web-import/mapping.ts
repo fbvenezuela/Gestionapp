@@ -268,7 +268,7 @@ export function draftOf(plan: PostPlan, media: { coverId: string | null; gallery
   return {
     title: plan.title,
     ...(plan.excerpt ? { excerpt: plan.excerpt } : {}),
-    date: plan.date,
+    ...(/^\d{4}-\d{2}-\d{2}$/.test(plan.date) ? { date: plan.date } : {}),
     category: plan.category,
     ...(plan.author ? { author: plan.author } : {}),
     municipalityId: null,

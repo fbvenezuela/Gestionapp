@@ -250,13 +250,20 @@ export async function runImport(o: RunOptions): Promise<Report> {
     return out;
   }
 
-  /** The draft with its photos: the post's photo (or the first one) on top, the rest in the gallery (at most 24). */
+  /** The draft with its photos: the post's photo (or the first one) on top, the rest in the gallery (at most 24). A
+   * draft past what the database keeps (512 KB) loses its last paragraphs, flagged. */
   function draftFor(plan: PostPlan, resolved: Resolved[]) {
     const ids = resolved.filter((r) => r.mediaId).map((r) => ({ id: r.mediaId!, role: r.role }));
     const coverId = ids.find((r) => r.role === 'cover')?.id ?? ids[0]?.id ?? null;
     const gallery = [...new Set(ids.map((r) => r.id).filter((id) => id !== coverId))];
     if (gallery.length > 24) plan.flags.add('gallery_truncated');
-    return draftOf(plan, { coverId, galleryIds: gallery.slice(0, 24) });
+    let draft = draftOf(plan, { coverId, galleryIds: gallery.slice(0, 24) });
+    while (JSON.stringify(draft).length > 450_000 && plan.body.length > 1) {
+      plan.body = plan.body.slice(0, Math.floor(plan.body.length * 0.9));
+      plan.flags.add('text_truncated');
+      draft = draftOf(plan, { coverId, galleryIds: gallery.slice(0, 24) });
+    }
+    return draft;
   }
 
   async function importOne(plan: PostPlan, wpMedia: Map<number, WpMedia>): Promise<Action> {

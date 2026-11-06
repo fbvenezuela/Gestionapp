@@ -149,7 +149,7 @@ export function wantFromImage(img: FoundImage, ownHosts: readonly string[]): Pho
 
 export type FetchedPhoto =
   | { ok: true; bytes: Uint8Array; mime: string; ext: string; width: number; height: number; sha256: string }
-  | { ok: false; reason: 'missing' | 'unsupported' | 'unreadable' | 'too_big' | 'too_small' };
+  | { ok: false; reason: 'missing' | 'unsupported' | 'unreadable' | 'too_big' | 'too_small' | 'failed' };
 
 export interface BytesSource {
   bytes(url: string, maxBytes: number): Promise<Uint8Array | null>;
@@ -157,7 +157,9 @@ export interface BytesSource {
 
 const MAX_DOWNLOAD = 15 * 1024 * 1024;
 
-/** Downloads a photo (or its second address) and checks it like an upload of the team. Never throws for a bad file. */
+/** Downloads a photo (or its second address) and checks it like an upload of the team. Never throws for a bad file nor
+ * for a photo the old site refuses or fails to send: the post is imported without it (flagged) and the next run tries
+ * again. */
 export async function fetchPhoto(http: BytesSource, want: PhotoWant): Promise<FetchedPhoto> {
   let last: FetchedPhoto = { ok: false, reason: 'missing' };
   for (const url of [want.url, want.fallbackUrl].filter((u): u is string => !!u)) {
@@ -165,11 +167,8 @@ export async function fetchPhoto(http: BytesSource, want: PhotoWant): Promise<Fe
     try {
       bytes = await http.bytes(url, MAX_DOWNLOAD);
     } catch (e) {
-      if ((e as Error).name === 'TooBigError') {
-        last = { ok: false, reason: 'too_big' };
-        continue;
-      }
-      throw e;
+      last = { ok: false, reason: (e as Error).name === 'TooBigError' ? 'too_big' : 'failed' };
+      continue;
     }
     if (!bytes) continue;
     // Out of Vercel: the library's own limit (10 MB), not the 4 MB of a request.
