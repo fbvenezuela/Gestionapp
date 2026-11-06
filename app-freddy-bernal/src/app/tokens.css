@@ -25,6 +25,14 @@
   --c-slate: #111111;      /* brand Negro (was a bluish slate; the brand excludes blue) */
   --c-on-slate: #f1f1ef;
   --c-olive: #7f8630;
+  /* Public website (D-95): the brand naranja for the citizen actions, ivory and charcoal for the editorial pages. */
+  --c-action: #fe5a03;      /* fills with charcoal text: 6.0:1 */
+  --c-action-hover: #e85002;
+  --c-on-action: #111111;
+  --c-action-ink: #a63a00;  /* orange for text on light backgrounds: 6.0:1 on ivory */
+  --c-ivory: #faf7ef;
+  --c-charcoal: #22231f;
+  --c-on-charcoal: #f4f2ea;
   --c-ok: #036a4b;          /* ok, warn and danger a hair darker (27/10, ok and warn again 28/10) so they keep AA over
                                the blobs, also right under a card's shadow */
   --c-ok-soft: #e7f8f1;
@@ -74,6 +82,13 @@
     --c-slate: #0b0b0b;
     --c-on-slate: #f1f1ef;
     --c-olive: #b4bb5c;
+    --c-action: #ff7a33;
+    --c-action-hover: #ff8f52;
+    --c-on-action: #111111;
+    --c-action-ink: #ff9a5c;
+    --c-ivory: #1a1c17;
+    --c-charcoal: #0e0f0c;
+    --c-on-charcoal: #f1f1ef;
     --c-ok: #34d399;
     --c-ok-soft: #0f2a21;
     --c-warn: #fbbf24;
@@ -114,6 +129,13 @@
   --c-slate: #0b0b0b;
   --c-on-slate: #f1f1ef;
   --c-olive: #b4bb5c;
+  --c-action: #ff7a33;
+  --c-action-hover: #ff8f52;
+  --c-on-action: #111111;
+  --c-action-ink: #ff9a5c;
+  --c-ivory: #1a1c17;
+  --c-charcoal: #0e0f0c;
+  --c-on-charcoal: #f1f1ef;
   --c-ok: #34d399;
   --c-ok-soft: #0f2a21;
   --c-warn: #fbbf24;
@@ -161,6 +183,13 @@
   --c-slate: #000000;
   --c-on-slate: #ffffff;
   --c-olive: #3f4318;
+  --c-action: #c94500;
+  --c-action-hover: #b23c00;
+  --c-on-action: #ffffff;
+  --c-action-ink: #8a3000;
+  --c-ivory: #ffffff;
+  --c-charcoal: #000000;
+  --c-on-charcoal: #ffffff;
   --c-ok: #03543d;
   --c-ok-soft: #e3f5ec;
   --c-warn: #6e3500;
@@ -202,6 +231,13 @@
     --c-slate: #ffffff;
     --c-on-slate: #000000;
     --c-olive: #d4da7f;
+    --c-action: #ff9a5c;
+    --c-action-hover: #ffb07f;
+    --c-on-action: #000000;
+    --c-action-ink: #ffb07f;
+    --c-ivory: #000000;
+    --c-charcoal: #000000;
+    --c-on-charcoal: #ffffff;
     --c-ok: #6ee7b7;
     --c-ok-soft: #052e22;
     --c-warn: #fcd34d;
@@ -240,6 +276,13 @@
   --c-slate: #ffffff;
   --c-on-slate: #000000;
   --c-olive: #d4da7f;
+  --c-action: #ff9a5c;
+  --c-action-hover: #ffb07f;
+  --c-on-action: #000000;
+  --c-action-ink: #ffb07f;
+  --c-ivory: #000000;
+  --c-charcoal: #000000;
+  --c-on-charcoal: #ffffff;
   --c-ok: #6ee7b7;
   --c-ok-soft: #052e22;
   --c-warn: #fcd34d;

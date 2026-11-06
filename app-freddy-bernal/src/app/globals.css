@@ -20,6 +20,13 @@
   --color-accent-soft: var(--c-accent-soft);
   --color-on-accent: var(--c-on-accent);
   --color-accent-ink: var(--c-accent-ink);
+  --color-action: var(--c-action);
+  --color-action-hover: var(--c-action-hover);
+  --color-on-action: var(--c-on-action);
+  --color-action-ink: var(--c-action-ink);
+  --color-ivory: var(--c-ivory);
+  --color-charcoal: var(--c-charcoal);
+  --color-on-charcoal: var(--c-on-charcoal);
   --color-slate: var(--c-slate);
   --color-on-slate: var(--c-on-slate);
   --color-olive: var(--c-olive);
