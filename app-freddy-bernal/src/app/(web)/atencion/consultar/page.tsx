@@ -6,6 +6,8 @@ import { LookupForm } from '@/components/participation/lookup-form';
 import { CaseView } from '@/components/participation/case-view';
 import { FocusOnMount } from '@/components/participation/focus-on-mount';
 import { loadConsultation } from '../_lib/data';
+import { DemoDataWarning } from '@/components/participation/demo-warning';
+import { isDemo } from '@/lib/env';
 
 export const metadata: Metadata = {
   title: 'Consultar mi solicitud',
@@ -26,6 +28,7 @@ export default async function ConsultPage() {
         <Band inner="max-w-3xl">
           <ParticipationNav current="consultar" />
           <FocusOnMount targetId="caso-titulo" />
+          <DemoDataWarning demo={isDemo()} className="mb-6" />
           <CaseView view={c.view} maxFileBytes={maxAttachmentBytes()} />
         </Band>
       </div>
