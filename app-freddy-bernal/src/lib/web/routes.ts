@@ -36,6 +36,8 @@ export const PANEL_SEGMENTS = [
 const OTHER_SEGMENTS = [
   '_next', 'api', '.well-known', 'manifest.webmanifest', 'icon.png', 'apple-icon.png', 'favicon.ico', 'sw.js', 'offline.html',
   'icon-192.png', 'icon-512.png', 'google124ecda45c0fc1d3.html',
+  // Copied into public/ by the postinstall (scripts/copy-wasm.mjs; git-ignored): the video checker's WebAssembly.
+  'mediainfo',
 ];
 
 export const APP_SEGMENTS: ReadonlySet<string> = new Set([...PUBLIC_SEGMENTS, ...PUBLIC_FILES, ...PANEL_SEGMENTS, ...OTHER_SEGMENTS]);
