@@ -1360,6 +1360,8 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
   `/aviso-de-privacidad`, `/condiciones-de-participacion`, `/accesibilidad`.
 - **Por qué:** una sola app con dos caras; el teléfono del equipo sigue abriendo su panel.
 - **Cómo se cambia:** `src/app/panel/page.tsx`, `src/app/manifest.ts`, `NAV` y `homeFor()` en `src/lib/roles.ts`.
+- **Después (06/11):** `/` ya es la portada pública (`src/app/(web)/page.tsx`) y `/admin/web` y `/admin/atencion` ya
+  tienen sus pantallas (D-98, D-99). La vista previa de un borrador vive en `src/app/(vista-previa)/`.
 
 ## D-92. Seis tipos de solicitud; la denuncia, privada de punta a punta (06/11/2026)
 - **Qué:** reporte (un problema en la ciudad), petición, acotación, sugerencia, reconocimiento y **denuncia**. Ninguno es
@@ -1402,7 +1404,10 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
     esa pantalla (si además tienen un rol del equipo, conservan el inicio del equipo; con los dos de la web, primero
     «Atención»: tiene plazos).
   - Todavía no se dan desde Ajustes → Equipo (`INVITABLE_ROLES`): llega con las pantallas del administrador. En la demo
-    hay una persona por rol y un responsable en cada una de dos áreas (`docs/DEMO.md`).
+    hay una persona por rol y un responsable en cada una de dos áreas (`docs/DEMO.md`). **Después (06/11):** ya se dan
+    desde Ajustes → Equipo, en «Web y atención ciudadana (siempre con doble factor)»; un responsable de área se invita
+    con al menos un área («Cambiar» las edita después). El «Web» de Administración abre «Ajustes del sitio» y el del jefe,
+    la web; los dos tienen también «Atención».
   - El rol `admin` sigue llamándose «Administración» (el diseño lo llamaba «Superadministrador»): el equipo ya lo
     conoce así y sus permisos son los de la tabla.
 - **Por qué:** cada quien ve lo suyo y lo hace cumplir la base.
@@ -1476,3 +1481,54 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
   6/11, §8), en un repositorio público (nada de la web vieja va a git) y sin publicar nada que nadie revisó.
 - **Cómo se cambia:** `scripts/web-import/` (lo que trae y cómo), `src/lib/web/import-marks.ts` (las marcas, con la
   misma migración: una migración nueva si cambian), `src/lib/web/redirects.ts` y `redirect-map.ts` (las búsquedas).
+
+## D-98. El administrador de la web: lo que se decidió al construirlo (06/11/2026)
+- **Qué** (`/admin/web`; uso en `docs/MANUAL-ADMIN-WEB.md`):
+  - **Los ajustes del sitio salen al momento, sin aprobación** (navegación, pie, contactos, cuentas, WhatsApp, portal,
+    YouTube, identidad, datos estructurados y los avisos). Los cambian Administración, quien aprueba la web y el jefe.
+    A cambio, cada contacto, cuenta o canal lleva su marca «Verificado»/«Verificada» y «Activa»: en producción solo
+    sale lo activo y verificado; en la demo también lo «por confirmar», marcado. Las notas de cada cuenta van en
+    `site.internal_notes`, que no es público.
+  - **La dirección de algo ya publicado** solo la cambia quien aprueba o el jefe; la vieja queda llevando a la nueva con
+    un 301 y las redirecciones anteriores se reescriben para que no haya cadenas.
+  - **El texto es estructurado**, nunca HTML: una caja por parte (párrafo, título, subtítulo, lista, cita, «por
+    completar») y, adentro, solo `**negrita**`, `*cursiva*` y `[texto](enlace)`, que los botones escriben.
+  - **Dos personas a la vez:** cada guardado sube el `rev` del contenido; quien guarda sobre un cambio ajeno recibe un
+    aviso de conflicto, y publicar exige el mismo `rev` que se revisó. Lo que no se guardó queda solo en ese equipo.
+  - **La biblioteca vive en el balde público desde que se sube** (lo decidió la revisión de seguridad, `SEGURIDAD.md`):
+    nombres al azar que no se pueden listar; nunca archivos de la gente que escribe a Atención; un archivo subido por
+    error se archiva y se borra a mano en Supabase Storage.
+  - **Avisos** (campana y teléfono, nunca correo): al enviar, a quien aprueba la web; al decidir, a quien lo envió. El
+    jefe no recibe el aviso de «Por aprobar» (lo ve en la lista) — **Confirmar con Juan** si lo quiere.
+  - **Redirecciones:** solo hacia direcciones de esta web; nunca desde una dirección que la web ya responde; una hecha a
+    mano nunca la pisa el importador.
+- **Por qué:** «nada se publica sin aprobación» para el contenido; los ajustes son datos de operación que cambian poco y
+  ya llevan su verificación, y esperar una aprobación para corregir un teléfono equivocado sería peor.
+- **Cómo se cambia:** `src/lib/actions/web.ts`, `web-site.ts`, `web-core.ts` y `src/lib/web/cms/`.
+
+## D-99. La atención: lo que se decidió al construirla (06/11/2026)
+- **Qué** (`/admin/atencion`; uso en `docs/MANUAL-ATENCION.md`):
+  - **La fecha comprometida es interna:** la persona nunca la ve. Sale sola como el menor entre los días de la
+    categoría y los de la prioridad (hoy, 15 por categoría; urgente 2 y alta 5), y la coordinación la cambia a mano.
+    Administración ajusta los días en «Áreas y plazos».
+  - **El motivo de un estado es interno;** lo que lee la persona es el «Mensaje para la persona» (obligatorio solo al
+    pedir información). El tablero mueve de un toque solo los pasos que no piden motivo.
+  - **Los correos de estado** (después de una respuesta, un pedido de información, un cambio de estado o una unión)
+    dicen qué pasó y que entre a «Consultar mi solicitud»: nunca el texto del equipo, el tipo de solicitud ni la clave.
+    Salen por el buzón; con datos reales, solo si el correo de verdad se puede entregar, y el buzón guarda la dirección
+    enmascarada (la revisión de seguridad del 06/11).
+  - **Los avisos internos** de un caso vencido o sin movimiento (5 días por omisión) llegan una vez al día por caso,
+    desde las 7:00, a la coordinación y a su responsable, por la campana y el teléfono (nunca por correo), con solo el
+    código.
+  - **El CSV** usa «;» entre columnas y UTF-8 con BOM (para Excel en español), ninguna celda ejecuta fórmulas, no lleva
+    descripciones, mensajes ni archivos, llega hasta 5.000 filas y cada exportación queda registrada. El contacto, solo
+    para la coordinación y caso por caso en el registro; auditoría nunca.
+  - **El mapa** muestra solo los puntos que la persona marcó con su permiso, y nunca una denuncia.
+  - **La moderación nunca descarta una crítica:** spam es «No procede» sin escribirle a quien la envió; retirar un dato,
+    un mensaje o un archivo deja en la historia qué y por qué, nunca lo que decía.
+  - Auditoría y el jefe leen las notas internas de lo que pueden ver — **Confirmar con Juan** (`docs/PENDIENTES.md`
+    W11).
+- **Por qué:** no prometer lo que no depende del equipo; que nada que diga el tipo o el contenido de una solicitud
+  quede en un buzón o en la pantalla de un teléfono; y que cada mirada a un dato personal deje rastro.
+- **Cómo se cambia:** `src/lib/domain/attention.ts` (la máquina de estados, los textos y las definiciones de las
+  cifras), `src/lib/actions/attention*.ts`, `src/lib/data/attention*.ts`; lo de la base, con una migración nueva.
