@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { officeRoom, ROOM, ROOMS, scriptDraft, type OfficeFacts } from '@/lib/domain/office';
 import { myRooms } from '@/lib/domain/office-roles';
-import { ROOM_CELL } from '@/components/office/office-map';
+import { ROOM_SPOT } from '@/components/office/office-map';
 
 const base: OfficeFacts = {
   tracked: true, scriptStatus: 'none', cleanDone: false, brutalDone: false, shots: 0, rawMedia: 0,
@@ -50,10 +50,21 @@ describe('el borrador del guion', () => {
 });
 
 describe('las salas', () => {
-  it('diez salas, cada una con su lugar en el dibujo y su ejemplo', () => {
+  it('diez salas, cada una con su etiqueta en el dibujo (sin pisarse) y su ejemplo', () => {
     expect(ROOMS).toHaveLength(10);
-    const cells = new Set(ROOMS.map((r) => ROOM_CELL[r].join(',')));
-    expect(cells.size).toBe(10);
+    const boxes = ROOMS.map((r) => ROOM_SPOT[r]);
+    for (const [x0, y0, x1, y1] of boxes) {
+      expect(x0).toBeLessThan(x1);
+      expect(y0).toBeLessThan(y1);
+      expect(x1).toBeLessThanOrEqual(1672);
+      expect(y1).toBeLessThanOrEqual(941);
+    }
+    for (let a = 0; a < boxes.length; a++)
+      for (let b = a + 1; b < boxes.length; b++) {
+        const [p, q] = [boxes[a]!, boxes[b]!];
+        const apart = p[2] <= q[0] || q[2] <= p[0] || p[3] <= q[1] || q[3] <= p[1];
+        expect(apart, `${ROOMS[a]} y ${ROOMS[b]}`).toBe(true);
+      }
     for (const r of ROOMS) expect(ROOM[r].example.length).toBeGreaterThan(10);
   });
 

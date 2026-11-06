@@ -1331,7 +1331,9 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
   Storyboard → Grabación → Editor en línea (líder humano) → Editor brutal → aprobación del jefe → Copywriting →
   Publicador → Analizador. Respuestas del 06/11: **pantalla nueva en la app**, **mezcla** (la IA propone y una persona
   revisa) y **todo el equipo la ve**.
-- `/oficina`: el dibujo (SVG con los tokens, liviano y con modo oscuro) y debajo las diez salas con qué hace cada una,
+- `/oficina`: el dibujo que eligió Juan el 06/11 (`public/oficina`, WebP de 64 KB para el teléfono y 125 KB para la
+  computadora), con etiquetas vivas encima de las dibujadas: el número de cada sala es el real y lleva a su lista. En el
+  teléfono el dibujo se desliza de lado para que las etiquetas se lean. Debajo las diez salas con qué hace cada una,
   quién trabaja, un ejemplo inventado y sus actividades (solo título y código: nunca cuándo ni dónde). `/oficina/[id]`:
   el recorrido de una actividad y el trabajo de su sala.
 - Lo nuevo vive en `event_office` (migración `20261106000100_office.sql`): el guion (borrador → lo aprueba solo el jefe,

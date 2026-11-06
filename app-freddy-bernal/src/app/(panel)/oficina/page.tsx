@@ -27,9 +27,10 @@ export default async function OfficePage() {
       <Card className="p-2 sm:p-4">
         <OfficeMap counts={counts} mine={mine} />
         <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 px-2 text-sm text-text-2">
+          <span className="sm:hidden">Desliza el dibujo de lado para ver toda la oficina.</span>
           <span className="inline-flex items-center gap-1"><User className="h-4 w-4" aria-hidden /> Trabaja una persona</span>
           <span className="inline-flex items-center gap-1"><Bot className="h-4 w-4" aria-hidden /> La IA propone y una persona revisa</span>
-          {mine.length ? <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm bg-accent-soft ring-1 ring-border" aria-hidden /> Tus salas</span> : null}
+          {mine.length ? <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-5 rounded-full bg-slate ring-2 ring-accent" aria-hidden /> Tus salas</span> : null}
         </p>
       </Card>
 
