@@ -40,6 +40,18 @@ describe('friendlyDbError: lo que dice la base, en palabras', () => {
     expect(friendlyDbError(err('23514', 'new row violates check constraint "pieces_rating_range"'))).toBe('Algún dato no es válido o es muy largo.');
   });
 
+  it('la web pública y la atención: el texto alternativo, lo atendido sin datos, las redirecciones y el límite de envíos', () => {
+    const cases: [string, RegExp][] = [
+      ['web_media_image_alt', /^Falta el texto alternativo de la foto/],
+      ['attended_no_contact', /^No se publicó: el resumen tiene algo que parece un teléfono o un correo/],
+      ['web_redirects_to_path_check', /^La redirección va a una dirección de esta web/],
+    ];
+    for (const [constraint, text] of cases) {
+      expect(friendlyDbError(err('23514', `new row for relation "x" violates check constraint "${constraint}"`)), constraint).toMatch(text);
+    }
+    expect(friendlyDbError(err('P0429', 'Hiciste muchos intentos seguidos. Espera un rato y vuelve a intentarlo.'))).toMatch(/^Hiciste muchos intentos/);
+  });
+
   it('los mensajes propios de la base pasan tal cual (P0001 y los 42501 que empiezan con mayúscula)', () => {
     expect(friendlyDbError(err('P0001', 'Ya en Mes 1 · #4'))).toBe('Ya en Mes 1 · #4');
     expect(friendlyDbError(err('42501', 'Eliminar una pieza es del jefe («Eliminar» en la tarjeta); recuperarla es de administración.'))).toMatch(/^Eliminar una pieza es del jefe/);

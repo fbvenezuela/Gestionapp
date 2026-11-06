@@ -14,6 +14,7 @@ import {
   ROLES,
   ROLE_LABEL,
   TEAM_ROLES,
+  WEB_ROLES,
   createFor,
   homeFor,
   isInvitableRole,
@@ -63,13 +64,16 @@ describe('los roles del código son los de la base', () => {
   it('el equipo son seis; Administración aparte; ni retirados ni de la fase 3', () => {
     expect([...TEAM_ROLES]).toEqual(['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social']);
     expect([...INVITABLE_ROLES].sort()).toEqual([...TEAM_ROLES, 'admin'].sort());
-    for (const r of [...RETIRED_ROLES, ...FUTURE_ROLES]) {
+    // The web and the attention desk (D-93): given by the database since 20261106000100_web_publica.sql, never team
+    // roles, and not in the panel's Equipo list until the web's admin screens arrive.
+    expect([...WEB_ROLES]).toEqual(['writer', 'web_publisher', 'attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor']);
+    for (const r of [...RETIRED_ROLES, ...FUTURE_ROLES, ...WEB_ROLES]) {
       expect(isInvitableRole(r), r).toBe(false);
       expect(isTeamRole(r), r).toBe(false);
     }
     expect(isTeamRole('admin')).toBe(false);
     expect(isInvitableRole('admin')).toBe(true);
-    expect([...RETIRED_ROLES, ...FUTURE_ROLES, ...INVITABLE_ROLES].sort()).toEqual([...ROLES].sort());
+    expect([...RETIRED_ROLES, ...FUTURE_ROLES, ...INVITABLE_ROLES, ...WEB_ROLES].sort()).toEqual([...ROLES].sort());
   });
 
   it('cada valor tiene su nombre en español', () => {

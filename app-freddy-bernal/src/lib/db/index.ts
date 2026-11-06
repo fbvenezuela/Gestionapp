@@ -1,7 +1,7 @@
 import 'server-only';
 import postgres from 'postgres';
 import { env } from '../env';
-import { asSystem, asUser, type Backend, type Claims, type Row, type Sql } from './core';
+import { asAnon, asSystem, asUser, type Backend, type Claims, type Row, type Sql } from './core';
 import { pgTls } from './ssl';
 
 export type { Sql, Claims } from './core';
@@ -57,6 +57,12 @@ export function getBackend(): Promise<Backend> {
 
 export async function withUser<T>(claims: Claims, fn: (sql: Sql) => Promise<T>): Promise<T> {
   return asUser(await getBackend(), claims, fn);
+}
+
+// The public site and the citizen functions (D-96): as `anon`, RLS on, whoever is signed in. Never nested inside
+// withUser or withSystem (the demo database runs one transaction at a time).
+export async function withAnon<T>(fn: (sql: Sql) => Promise<T>): Promise<T> {
+  return asAnon(await getBackend(), fn);
 }
 
 // Bypasses RLS. Only for server tasks with no user behind them (emails, cron, sign-in bookkeeping).

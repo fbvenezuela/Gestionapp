@@ -38,6 +38,17 @@ export async function asUser<T>(backend: Backend, claims: Claims, fn: (sql: Sql)
   });
 }
 
+// The public website and the citizen without an account (D-96): the role `anon`, no claims, RLS on. It reads only what
+// is published (web_items, web_settings, web_redirects, territories, request_categories, attended_publications) and
+// calls the functions of the schema `citizen`; it never reads a request (20261106000300_citizen.sql).
+export async function asAnon<T>(backend: Backend, fn: (sql: Sql) => Promise<T>): Promise<T> {
+  return backend.transaction(async (sql) => {
+    await sql.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ role: 'anon' })]);
+    await sql.query('set local role anon');
+    return fn(sql);
+  });
+}
+
 export async function asSystem<T>(backend: Backend, fn: (sql: Sql) => Promise<T>): Promise<T> {
   return backend.transaction(async (sql) => {
     await sql.query(`select set_config('request.jwt.claims', '', true)`);
@@ -82,6 +93,10 @@ const PRIVACY_CHECKS: [string, string][] = [
   ['piece_notices_no_phone', 'No se guardó: el aviso tiene algo que parece un teléfono, y Redes lo lee. Quítalo: los contactos van en la ficha, con doble factor.'],
   ['content_months_label_no_phone', 'No se guardó: el nombre del mes tiene algo que parece un teléfono, y todo Redes lo lee.'],
   ['piece_details_sticker_url', 'El enlace del sticker empieza con https:// y no lleva espacios.'],
+  // 20261106000100_web_publica.sql and 20261106000200_participacion.sql (the public website and the attention desk).
+  ['web_media_image_alt', 'Falta el texto alternativo de la foto: describe en pocas palabras lo que se ve (lo leen los lectores de pantalla).'],
+  ['attended_no_contact', 'No se publicó: el resumen tiene algo que parece un teléfono o un correo. Lo atendido sale sin datos de nadie.'],
+  ['web_redirects_to_path_check', 'La redirección va a una dirección de esta web: empieza con / y no lleva espacios.'],
 ];
 
 // Unique constraints with their own words (checked before the generic «Eso ya existe.»). The feed's are deferred:
@@ -117,6 +132,8 @@ export function friendlyDbError(e: unknown): string {
     return 'Eso ya existe.';
   }
   if (err?.code === '40P01' || err?.code === '40001') return CONFLICT_TEXT;
+  // The citizen functions' persistent limits (20261106000300_citizen.sql) say it in their own words.
+  if (err?.code === 'P0429' && msg) return msg;
   if (err?.code === '23514') {
     // The database's own privacy checks (20261028002100_privacy_hardening.sql): the app refuses the same before
     // saving; this is what the person reads if a text gets past it anyway.

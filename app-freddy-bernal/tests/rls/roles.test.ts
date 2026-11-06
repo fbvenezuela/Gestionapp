@@ -14,7 +14,10 @@ const fails = async (p: Promise<unknown>, msg?: RegExp) => {
   if (msg) await expect(p).rejects.toThrow(msg);
   else await expect(p).rejects.toThrow();
 };
-const RETIRED_AND_FUTURE = ['supervisor', 'secretary', 'writer', 'reports_operator'] as const;
+// The retired roles and the one phase-3 role still unused. The web's and the attention desk's (writer, web_publisher,
+// attention_coordinator, reports_operator, complaints_operator, auditor) are given since 20261106000100_web_publica.sql
+// (tests/rls/web-cms.test.ts).
+const RETIRED_AND_FUTURE = ['supervisor', 'secretary', 'aid_operator'] as const;
 
 // A fresh piece with a file and its three copies, sent to review at that level by Redes.
 async function inReview(level: 'verde' | 'amarillo' | 'rojo', who: DemoUserKey = 'social') {
@@ -33,8 +36,8 @@ const mfaList = async () => (await t.system((sql) => sql.one<{ value: string[] }
 const setMfaList = (value: unknown) =>
   t.system((sql) => sql.query(`update public.app_settings set value = $1::text::jsonb where key = 'security.mfa_roles'`, [JSON.stringify(value)]));
 
-describe('solo se dan los seis roles y Administración', () => {
-  it('administración no da un rol retirado ni uno de la fase 3; la base tampoco lo acepta del sistema', async () => {
+describe('solo se dan los seis roles, Administración y los de la web (D-93)', () => {
+  it('administración no da un rol retirado ni el de ayudas (sin usar); la base tampoco lo acepta del sistema', async () => {
     for (const role of RETIRED_AND_FUTURE) {
       await fails(t.as('admin', (sql) => sql.query(`insert into public.user_roles (user_id, role) values ($1, $2)`, [t.ids.social2, role])));
       await fails(t.system((sql) => sql.query(`insert into public.user_roles (user_id, role) values ($1, $2)`, [t.ids.social2, role])));

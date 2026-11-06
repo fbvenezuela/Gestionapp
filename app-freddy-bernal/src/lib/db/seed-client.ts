@@ -1,8 +1,9 @@
 import type { Sql } from './core';
-import { getClientConfig, networkSpecsSeed, type CategorySeed } from '../client-config';
+import { getClientConfig, networkSpecsSeed, type CategorySeed, type ClientConfig } from '../client-config';
 import { seedAssistant } from '../assistant/seed';
 
-// Upserts the client configuration (categories, formulas, settings, network rules, the first content month).
+// Upserts the client configuration (categories, formulas, settings, network rules, the first content month, and the
+// public website's territories, attention catalogues, site settings and skeleton pages).
 // Safe to run on production: it is configuration, not test data. Idempotent.
 export async function seedClient(sql: Sql, brandKey?: string) {
   const cfg = getClientConfig(brandKey);
@@ -27,6 +28,9 @@ export async function seedClient(sql: Sql, brandKey?: string) {
     // Redes por formato (D-68): the monthly quota and the content pillars, changed in Ajustes → Cupo y pilares.
     'redes.quotas': cfg.redes.quotas,
     'redes.pillars': cfg.redes.pillars,
+    // Citizen participation (D-92): the public functions' limits and the due date by priority.
+    'participation.rate_limits': cfg.participation.rateLimits,
+    'participation.due_days_by_priority': cfg.participation.dueDaysByPriority,
   };
   for (const [key, value] of Object.entries(settings)) {
     await sql.query(
@@ -83,6 +87,8 @@ export async function seedClient(sql: Sql, brandKey?: string) {
       where content_month_id is null and deleted_at is null`,
   );
 
+  await seedWebPublica(sql, cfg);
+
   // Assistant: guide fichas and factory scripts (config/assistant), «no pisar».
   await seedAssistant(sql);
   await sql.query(`select set_config('app.assistant_skip_refresh', '', true)`);
@@ -100,6 +106,71 @@ export function parishesSetting(map: Record<string, unknown>): Record<string, st
   return Object.fromEntries(
     Object.entries(map).filter((e): e is [string, string[]] => !e[0].startsWith('$') && Array.isArray(e[1]) && e[1].every((x) => typeof x === 'string')),
   );
+}
+
+// Web pública (D-90 to D-96): the territories (the config's municipalities; parishes only when the official list is
+// there, D-35), the attention desk's areas and categories, the site's settings and the skeleton pages. The pages go in
+// as DRAFTS: they reach the public only when the publisher (or the boss) publishes them. «No pisar»: what the team
+// changed stays as it is.
+async function seedWebPublica(sql: Sql, cfg: ClientConfig) {
+  for (const [i, name] of cfg.municipalities.entries()) {
+    await sql.query(`insert into public.territories (kind, name, slug, sort) values ('municipality', $1, $2, $3) on conflict do nothing`, [
+      name,
+      slugify(name),
+      i,
+    ]);
+  }
+  for (const [municipality, parishes] of Object.entries(parishesSetting(cfg.parishes))) {
+    const parent = await sql.one<{ id: string }>(`select id from public.territories where kind = 'municipality' and name = $1`, [municipality]);
+    if (!parent) continue;
+    for (const [i, name] of parishes.entries()) {
+      await sql.query(
+        `insert into public.territories (kind, parent_id, name, slug, sort) values ('parish', $1, $2, $3, $4) on conflict do nothing`,
+        [parent.id, name, slugify(name), i],
+      );
+    }
+  }
+
+  for (const a of cfg.participation.areas) {
+    await sql.query(`insert into public.areas (slug, name, description) values ($1, $2, $3) on conflict do nothing`, [a.slug, a.name, a.description]);
+  }
+  for (const [i, c] of cfg.participation.categories.entries()) {
+    await sql.query(
+      `insert into public.request_categories (slug, name, description, default_area_id, default_due_days, sort)
+       values ($1, $2, $3, (select id from public.areas where slug = $4), $5, $6) on conflict do nothing`,
+      [c.slug, c.name, c.description, c.area, c.dueDays, i],
+    );
+  }
+
+  const b = cfg.brand;
+  const settings: Record<string, unknown> = {
+    ...cfg.web.settings,
+    'site.identity': { name: b.clientName, title: b.clientTitle, region: b.region, greeting: b.greeting, wordmark: `${b.clientName} · ${b.clientTitle}` },
+    // JSON-LD Person / GovernmentOrganization: sameAs comes from the verified accounts; the organization's official
+    // name is «por completar» until the team confirms it.
+    'site.structured_data': { personName: b.clientName, jobTitle: b.clientTitle, organizationName: '' },
+  };
+  for (const [key, value] of Object.entries(settings)) {
+    if (key.startsWith('$')) continue;
+    await sql.query(`insert into public.web_settings (key, value) values ($1, $2::text::jsonb) on conflict (key) do nothing`, [key, JSON.stringify(value)]);
+  }
+
+  for (const page of cfg.web.pages) {
+    await sql.query(`insert into public.web_items (kind, slug, draft) values ('page', $1, $2::text::jsonb) on conflict (kind, slug) do nothing`, [
+      page.slug,
+      JSON.stringify(page.draft),
+    ]);
+  }
+}
+
+// «San Cristóbal» → «san-cristobal» (territories' slugs, used in the public site's addresses and filters).
+export function slugify(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 async function upsertCategory(sql: Sql, kind: string, parent: string | null, name: string, emoji: string | null, sort: number) {

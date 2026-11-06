@@ -597,8 +597,13 @@
   "dispatch",
   "politics",
   "ivt",
+  "writer",
+  "web_publisher",
+  "attention_coordinator",
+  "reports_operator",
   "complaints_operator",
-  "aid_operator"
+  "aid_operator",
+  "auditor"
  ],
  "uploadMaxMb": 10240,
  "drive": {
@@ -742,5 +747,755 @@
    "avoidDays": [],
    "note": "1 episodio a la semana."
   }
+ },
+ "participation": {
+  "$comment": "Atención ciudadana (D-92, D-93, 06/11/2026). Áreas y categorías iniciales: el equipo las cambia en el administrador. dueDays y dueDaysByPriority son un valor inicial para que haya fecha comprometida (gana el más corto). Los límites de envío protegen los formularios públicos, por dispositivo y por red.",
+  "areas": [
+   {
+    "slug": "servicios-publicos",
+    "name": "Servicios públicos",
+    "description": "Agua, electricidad y alumbrado, aseo y servicios comunitarios."
+   },
+   {
+    "slug": "vialidad-transporte",
+    "name": "Vialidad y transporte",
+    "description": "Calles, carreteras, puentes y transporte público."
+   },
+   {
+    "slug": "salud-educacion",
+    "name": "Salud y educación",
+    "description": "Centros de salud, escuelas y liceos."
+   },
+   {
+    "slug": "atencion-general",
+    "name": "Atención general",
+    "description": "Peticiones, sugerencias, reconocimientos y lo que no va en otra área."
+   }
+  ],
+  "categories": [
+   {
+    "slug": "agua",
+    "name": "Agua",
+    "description": "Falta de agua, tuberías rotas, bote de aguas blancas o negras.",
+    "area": "servicios-publicos",
+    "dueDays": 15
+   },
+   {
+    "slug": "electricidad-alumbrado",
+    "name": "Electricidad y alumbrado",
+    "description": "Fallas de luz, postes, transformadores y alumbrado público.",
+    "area": "servicios-publicos",
+    "dueDays": 15
+   },
+   {
+    "slug": "vialidad",
+    "name": "Vialidad",
+    "description": "Huecos, calles y carreteras dañadas, puentes, drenajes.",
+    "area": "vialidad-transporte",
+    "dueDays": 15
+   },
+   {
+    "slug": "salud",
+    "name": "Salud",
+    "description": "Centros de salud, ambulatorios, medicinas y atención médica.",
+    "area": "salud-educacion",
+    "dueDays": 15
+   },
+   {
+    "slug": "educacion",
+    "name": "Educación",
+    "description": "Escuelas y liceos: infraestructura, servicios y comedores.",
+    "area": "salud-educacion",
+    "dueDays": 15
+   },
+   {
+    "slug": "transporte",
+    "name": "Transporte",
+    "description": "Rutas, unidades y paradas de transporte público.",
+    "area": "vialidad-transporte",
+    "dueDays": 15
+   },
+   {
+    "slug": "ambiente-aseo",
+    "name": "Ambiente y aseo",
+    "description": "Basura, aseo urbano, quemas, árboles y espacios verdes.",
+    "area": "servicios-publicos",
+    "dueDays": 15
+   },
+   {
+    "slug": "servicios-comunitarios",
+    "name": "Servicios comunitarios",
+    "description": "Gas, canchas, plazas y otros servicios de la comunidad.",
+    "area": "servicios-publicos",
+    "dueDays": 15
+   },
+   {
+    "slug": "seguridad",
+    "name": "Seguridad",
+    "description": "Situaciones de inseguridad en la comunidad. Si es una emergencia, llama a los servicios de emergencia.",
+    "area": "atencion-general",
+    "dueDays": 15
+   },
+   {
+    "slug": "otros",
+    "name": "Otros",
+    "description": "Lo que no está en las demás categorías.",
+    "area": "atencion-general",
+    "dueDays": 15
+   }
+  ],
+  "dueDaysByPriority": {
+   "urgente": 2,
+   "alta": 5
+  },
+  "rateLimits": {
+   "submit_device": {
+    "limit": 5,
+    "minutes": 60
+   },
+   "submit_ip": {
+    "limit": 20,
+    "minutes": 1440
+   },
+   "similar_device": {
+    "limit": 30,
+    "minutes": 15
+   },
+   "similar_ip": {
+    "limit": 120,
+    "minutes": 15
+   },
+   "lookup_device": {
+    "limit": 10,
+    "minutes": 15
+   },
+   "lookup_ip": {
+    "limit": 30,
+    "minutes": 15
+   },
+   "message_device": {
+    "limit": 10,
+    "minutes": 60
+   },
+   "message_ip": {
+    "limit": 40,
+    "minutes": 1440
+   },
+   "attach_device": {
+    "limit": 20,
+    "minutes": 60
+   },
+   "attach_ip": {
+    "limit": 60,
+    "minutes": 1440
+   },
+   "download_device": {
+    "limit": 60,
+    "minutes": 15
+   },
+   "download_ip": {
+    "limit": 200,
+    "minutes": 15
+   }
+  }
+ },
+ "web": {
+  "$comment": "Web pública (D-90 a D-96, 06/11/2026). Ajustes iniciales del sitio: sin cuentas de redes, contactos, WhatsApp ni portal hasta que se carguen verificados desde el administrador (el diagnóstico dirá cuáles son). site.identity y site.structured_data salen de brand al sembrar. Las páginas base entran como BORRADOR: salen a la web solo cuando quien aprueba las publica. Los textos marcados «pending» son lo que el equipo completa antes de abrir la web.",
+  "settings": {
+   "site.navigation": [
+    {
+     "label": "Inicio",
+     "path": "/"
+    },
+    {
+     "label": "Gestión",
+     "path": "/gestion"
+    },
+    {
+     "label": "Actualidad",
+     "path": "/actualidad"
+    },
+    {
+     "label": "Reporte Bernal",
+     "path": "/reporte-bernal"
+    },
+    {
+     "label": "El gobernador",
+     "path": "/gobernador"
+    },
+    {
+     "label": "Participa",
+     "path": "/atencion"
+    },
+    {
+     "label": "Transparencia",
+     "path": "/transparencia"
+    },
+    {
+     "label": "Canales",
+     "path": "/canales"
+    }
+   ],
+   "site.footer": {
+    "about": "",
+    "legal": [
+     {
+      "label": "Aviso de privacidad",
+      "path": "/aviso-de-privacidad"
+     },
+     {
+      "label": "Condiciones de participación",
+      "path": "/condiciones-de-participacion"
+     },
+     {
+      "label": "Accesibilidad",
+      "path": "/accesibilidad"
+     }
+    ]
+   },
+   "site.contacts": [],
+   "site.social_accounts": [],
+   "site.whatsapp_channel": null,
+   "site.institutional_portal": null,
+   "site.youtube_channel": null,
+   "site.demo_banner": "Versión de prueba: el contenido es inventado.",
+   "site.emergency_notice": "Esto no es un servicio de emergencias: si hay una emergencia o una vida en peligro, llama a los servicios de emergencia.",
+   "site.denuncia_notice": "Tu denuncia es privada: solo la leen el operador de denuncias y la coordinación de atención. Si es un delito, acude también a las autoridades competentes."
+  },
+  "pages": [
+   {
+    "slug": "inicio",
+    "draft": {
+     "title": "Inicio",
+     "excerpt": "La gestión del gobernador del Táchira, las noticias, el Reporte Bernal y la participación ciudadana.",
+     "blocks": [
+      {
+       "id": "portada",
+       "type": "hero",
+       "visible": true,
+       "data": {
+        "title": "¡Saludos, Táchira!",
+        "text": "Por completar desde el administrador: un mensaje corto del gobernador.",
+        "mediaId": null
+       }
+      },
+      {
+       "id": "participa",
+       "type": "participation",
+       "visible": true,
+       "data": {
+        "title": "¿Qué quieres hacer?"
+       }
+      },
+      {
+       "id": "indicadores",
+       "type": "indicators",
+       "visible": true,
+       "data": {
+        "title": "Lo hecho",
+        "ids": []
+       }
+      },
+      {
+       "id": "atendido",
+       "type": "attended",
+       "visible": true,
+       "data": {
+        "title": "Lo atendido",
+        "limit": 6
+       }
+      },
+      {
+       "id": "gestion",
+       "type": "projects",
+       "visible": true,
+       "data": {
+        "title": "Gestión y obras",
+        "limit": 6
+       }
+      },
+      {
+       "id": "reporte",
+       "type": "video",
+       "visible": true,
+       "data": {
+        "title": "Reporte Bernal",
+        "latestEpisode": true
+       }
+      },
+      {
+       "id": "actualidad",
+       "type": "news",
+       "visible": true,
+       "data": {
+        "title": "Actualidad",
+        "limit": 4
+       }
+      },
+      {
+       "id": "avisos",
+       "type": "notices",
+       "visible": true,
+       "data": {
+        "title": "Avisos de servicio"
+       }
+      },
+      {
+       "id": "canales",
+       "type": "channels",
+       "visible": true,
+       "data": {
+        "title": "Canales oficiales"
+       }
+      }
+     ],
+     "seo": {
+      "title": "Freddy Bernal, gobernador del Táchira",
+      "description": "La gestión, las obras, las noticias y el Reporte Bernal del gobernador del Táchira, y la participación ciudadana."
+     }
+    }
+   },
+   {
+    "slug": "gobernador",
+    "draft": {
+     "title": "El gobernador",
+     "excerpt": "Freddy Bernal, gobernador del Táchira.",
+     "blocks": [
+      {
+       "id": "portada",
+       "type": "hero",
+       "visible": true,
+       "data": {
+        "title": "Freddy Bernal",
+        "text": "Gobernador del Táchira.",
+        "mediaId": null
+       }
+      },
+      {
+       "id": "biografia",
+       "type": "text",
+       "visible": true,
+       "data": {
+        "content": [
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Biografía"
+         },
+         {
+          "type": "pending",
+          "text": "Por completar desde el administrador: una biografía verificada, con sus fuentes. No se publica nada que no esté confirmado."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Trayectoria"
+         },
+         {
+          "type": "pending",
+          "text": "Por completar: los cargos y sus fechas, verificados."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Prioridades de la gestión"
+         },
+         {
+          "type": "pending",
+          "text": "Por completar: las prioridades que apruebe el equipo."
+         }
+        ]
+       }
+      },
+      {
+       "id": "prensa",
+       "type": "documents",
+       "visible": true,
+       "data": {
+        "title": "Kit de prensa",
+        "ids": []
+       }
+      }
+     ],
+     "seo": {
+      "title": "Freddy Bernal, gobernador del Táchira",
+      "description": "Quién es Freddy Bernal, gobernador del estado Táchira, Venezuela: biografía, trayectoria y prioridades de su gestión."
+     }
+    }
+   },
+   {
+    "slug": "atencion",
+    "draft": {
+     "title": "Participa",
+     "excerpt": "Reporta un problema, haz una petición, deja una acotación o una denuncia, y sigue tu caso con tu código.",
+     "blocks": [
+      {
+       "id": "portada",
+       "type": "hero",
+       "visible": true,
+       "data": {
+        "title": "Participa",
+        "text": "Cuéntanos lo que pasa en tu comunidad y sigue tu caso con tu código.",
+        "mediaId": null
+       }
+      },
+      {
+       "id": "participa",
+       "type": "participation",
+       "visible": true,
+       "data": {
+        "title": "¿Qué quieres hacer?"
+       }
+      },
+      {
+       "id": "como-funciona",
+       "type": "text",
+       "visible": true,
+       "data": {
+        "content": [
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Cómo funciona"
+         },
+         {
+          "type": "list",
+          "items": [
+           "Cuéntanos qué pasa y dónde. Si quieres, deja una foto.",
+           "Recibes un código y una clave: guárdalos.",
+           "El equipo lo revisa y lo pasa al área que corresponde.",
+           "Consulta el avance cuando quieras con tu código y tu clave."
+          ]
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Qué esperar"
+         },
+         {
+          "type": "paragraph",
+          "text": "El equipo te responde en tu caso. Si dejaste cómo contactarte, te avisamos cuando cambie el estado. Nada de lo que envías es público."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "No es un servicio de emergencias"
+         },
+         {
+          "type": "paragraph",
+          "text": "Si hay una emergencia o una vida en peligro, llama a los servicios de emergencia."
+         },
+         {
+          "type": "pending",
+          "text": "Por completar antes de publicar: los números oficiales de emergencia del estado."
+         }
+        ]
+       }
+      },
+      {
+       "id": "preguntas",
+       "type": "faq",
+       "visible": true,
+       "data": {
+        "title": "Preguntas frecuentes",
+        "group": "atencion"
+       }
+      },
+      {
+       "id": "canales",
+       "type": "channels",
+       "visible": true,
+       "data": {
+        "title": "Canales oficiales"
+       }
+      }
+     ],
+     "seo": {
+      "title": "Participa: reportes, peticiones y denuncias",
+      "description": "Reporta un problema de tu comunidad, haz una petición, deja una acotación o una denuncia al equipo del gobernador del Táchira, y sigue tu caso con tu código."
+     }
+    }
+   },
+   {
+    "slug": "aviso-de-privacidad",
+    "draft": {
+     "title": "Aviso de privacidad",
+     "excerpt": "Qué datos pide esta web cuando participas, para qué, quién los ve y cómo pedir que se borren.",
+     "blocks": [
+      {
+       "id": "aviso",
+       "type": "text",
+       "visible": true,
+       "data": {
+        "content": [
+         {
+          "type": "pending",
+          "text": "Texto inicial: el equipo y la consulta legal lo revisan y lo completan antes de abrir la web al público."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Qué pedimos"
+         },
+         {
+          "type": "paragraph",
+          "text": "Solo lo necesario para atender lo que nos cuentas: el tipo de solicitud, la categoría, el lugar (municipio y sector, y el punto en el mapa solo si das permiso), lo que pasó y, si quieres, fotos o documentos."
+         },
+         {
+          "type": "paragraph",
+          "text": "Tu nombre y cómo contactarte son opcionales. Puedes enviar sin ellos: en ese caso guarda tu código y tu clave, porque son la única forma de seguir el caso."
+         },
+         {
+          "type": "paragraph",
+          "text": "Nunca pedimos afiliación política, número de cédula ni otros datos que no hagan falta para atender."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Para qué"
+         },
+         {
+          "type": "paragraph",
+          "text": "Para atender tu solicitud, responderte y, si nos diste cómo, avisarte cuando cambie su estado. Las cifras de la web (cuántas solicitudes llegan y cuántas se resuelven) se calculan sin datos de personas."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Quién lo ve"
+         },
+         {
+          "type": "paragraph",
+          "text": "Solo las personas del equipo que atienden tu solicitud, según su área. Una denuncia la leen solo el operador de denuncias y la coordinación de atención. Nada de lo que envías es público."
+         },
+         {
+          "type": "paragraph",
+          "text": "Lo atendido puede publicarse en la web como un resumen sin tus datos: tu nombre aparece solo si lo autorizas; si no, tus iniciales. De una denuncia solo se publica que fue atendida y en qué municipio."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Cómo lo cuidamos"
+         },
+         {
+          "type": "list",
+          "items": [
+           "Tu contacto se guarda cifrado y aparte del resto.",
+           "A las fotos se les quitan la ubicación y los datos ocultos antes de guardarlas.",
+           "Los archivos van a un almacenamiento privado y se abren con enlaces que vencen.",
+           "El equipo entra con doble factor y cada acción queda registrada."
+          ]
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Cuánto tiempo se guarda"
+         },
+         {
+          "type": "pending",
+          "text": "Por completar antes de publicar: cuánto tiempo se guarda cada dato, según la consulta legal."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Cómo pedir que se borre"
+         },
+         {
+          "type": "pending",
+          "text": "Por completar antes de publicar: el canal oficial para pedir que se borren tus datos de contacto y en cuánto tiempo se responde."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Cookies"
+         },
+         {
+          "type": "paragraph",
+          "text": "La web usa solo cookies técnicas: una para limitar los envíos repetidos desde un mismo dispositivo y otra, de 30 minutos, para mostrarte tu solicitud después de consultarla. No hay cookies de publicidad. Los videos de YouTube y el mapa se cargan solo si los tocas."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Responsable"
+         },
+         {
+          "type": "pending",
+          "text": "Por completar antes de publicar: el nombre oficial del organismo responsable de los datos y su dirección institucional."
+         }
+        ]
+       }
+      }
+     ],
+     "seo": {
+      "title": "Aviso de privacidad",
+      "description": "Qué datos pide la web del gobernador del Táchira al participar, para qué, quién los ve y cómo pedir que se borren."
+     }
+    }
+   },
+   {
+    "slug": "condiciones-de-participacion",
+    "draft": {
+     "title": "Condiciones de participación",
+     "excerpt": "Cómo funcionan los reportes, las peticiones, las acotaciones y las denuncias, y lo que se publica.",
+     "blocks": [
+      {
+       "id": "condiciones",
+       "type": "text",
+       "visible": true,
+       "data": {
+        "content": [
+         {
+          "type": "pending",
+          "text": "Texto inicial: el equipo y la consulta legal lo revisan antes de abrir la web al público."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Qué es"
+         },
+         {
+          "type": "paragraph",
+          "text": "Un canal para reportar problemas de tu comunidad, hacer peticiones, dejar acotaciones, sugerencias o reconocimientos, y presentar denuncias ante el equipo del gobernador."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "No es un servicio de emergencias"
+         },
+         {
+          "type": "paragraph",
+          "text": "Si hay una emergencia o una vida en peligro, llama a los servicios de emergencia. Lo que envías aquí no se atiende al instante."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Tu código y tu clave"
+         },
+         {
+          "type": "paragraph",
+          "text": "Al enviar recibes un código y una clave. Guárdalos: con ellos consultas tu caso. Si los pierdes y no dejaste cómo contactarte, el equipo no puede recuperarlos."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Respeto"
+         },
+         {
+          "type": "paragraph",
+          "text": "Se reciben críticas y quejas. No se aceptan insultos, amenazas ni datos personales de otras personas (teléfonos, direcciones, fotos de rostros sin permiso). El equipo puede retirar esos datos o marcar como «no procede» un mensaje abusivo, y cada una de esas acciones queda registrada con su motivo."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Denuncias"
+         },
+         {
+          "type": "paragraph",
+          "text": "Una denuncia es privada: solo la leen el operador de denuncias y la coordinación de atención. Si se trata de un delito, acude también a las autoridades competentes."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Lo que se publica"
+         },
+         {
+          "type": "paragraph",
+          "text": "Las solicitudes no se publican. El equipo puede publicar un resumen de lo atendido sin tus datos: con tu nombre solo si lo autorizas; si no, tus iniciales."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Reportes repetidos"
+         },
+         {
+          "type": "paragraph",
+          "text": "Si ya hay reportes del mismo problema cerca, te ofrecemos sumarte. El mismo problema en el mismo lugar no se abre más de tres veces: desde el cuarto envío se suma al primero, y recibes tu propio código para seguirlo."
+         },
+         {
+          "type": "pending",
+          "text": "Por completar antes de publicar: el organismo responsable, cómo se avisan los cambios de estas condiciones y la fecha de la última revisión."
+         }
+        ]
+       }
+      }
+     ],
+     "seo": {
+      "title": "Condiciones de participación",
+      "description": "Cómo funcionan los reportes, las peticiones, las acotaciones y las denuncias en la web del gobernador del Táchira."
+     }
+    }
+   },
+   {
+    "slug": "accesibilidad",
+    "draft": {
+     "title": "Accesibilidad",
+     "excerpt": "Lo que cuidamos para que cualquier persona pueda usar esta web, y cómo avisarnos si algo no funciona.",
+     "blocks": [
+      {
+       "id": "accesibilidad",
+       "type": "text",
+       "visible": true,
+       "data": {
+        "content": [
+         {
+          "type": "pending",
+          "text": "Texto inicial: se completa con los resultados de la revisión de accesibilidad antes de abrir la web al público."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Nuestro compromiso"
+         },
+         {
+          "type": "paragraph",
+          "text": "Queremos que cualquier persona pueda usar esta web, desde el teléfono o la computadora, con buena o con mala conexión. La meta es cumplir las pautas WCAG 2.2 en el nivel AA."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Lo que cuidamos al construirla"
+         },
+         {
+          "type": "list",
+          "items": [
+           "Contraste de colores suficiente, en modo claro y oscuro.",
+           "Que todo se pueda usar con el teclado y que se vea dónde está el foco.",
+           "Texto alternativo en las fotos y etiquetas en los formularios.",
+           "Páginas livianas: los videos y el mapa se cargan solo si los tocas.",
+           "Que se vea bien desde pantallas de 360 píxeles."
+          ]
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Límites conocidos"
+         },
+         {
+          "type": "pending",
+          "text": "Por completar antes de publicar: lo que falta según la revisión (herramientas automáticas y pruebas con personas)."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Si algo no te funciona"
+         },
+         {
+          "type": "paragraph",
+          "text": "Cuéntanos con una acotación desde «Participa»: dinos en qué página y qué pasó."
+         },
+         {
+          "type": "pending",
+          "text": "Por completar antes de publicar: la fecha de la última revisión."
+         }
+        ]
+       }
+      }
+     ],
+     "seo": {
+      "title": "Accesibilidad",
+      "description": "Cómo cuida la accesibilidad la web del gobernador del Táchira y cómo avisar si algo no funciona."
+     }
+    }
+   }
+  ]
  }
 }

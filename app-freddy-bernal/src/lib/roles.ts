@@ -13,9 +13,12 @@ export const ROLES = [
   'supervisor',
   'camera',
   'writer',
+  'web_publisher',
+  'attention_coordinator',
   'reports_operator',
   'complaints_operator',
   'aid_operator',
+  'auditor',
 ] as const;
 export type Role = (typeof ROLES)[number];
 
@@ -30,10 +33,14 @@ export const ROLE_LABEL: Record<Role, string> = {
   social: 'Redes',
   supervisor: 'Supervisión política',
   camera: 'Grabación',
-  writer: 'Redactor',
-  reports_operator: 'Operador de reportes',
+  // The public website and the citizen attention desk (D-93, 06/11/2026).
+  writer: 'Editor de la web',
+  web_publisher: 'Aprobador de la web',
+  attention_coordinator: 'Coordinador de atención',
+  reports_operator: 'Responsable de área',
   complaints_operator: 'Operador de denuncias',
   aid_operator: 'Operador de ayudas',
+  auditor: 'Consulta y auditoría',
 };
 
 // The team (cambios del 27/10/2026): six roles, «más nada». The lists in «Ver como…», the guides and the assistant.
@@ -43,8 +50,13 @@ export const TEAM_ROLES = ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'soc
 export const INVITABLE_ROLES = [...TEAM_ROLES, 'admin'] as const satisfies readonly Role[];
 // No longer given; their history stays.
 export const RETIRED_ROLES = ['secretary', 'supervisor'] as const satisfies readonly Role[];
-// Phase 3 (public site): in the enum, not assignable yet.
-export const FUTURE_ROLES = ['writer', 'reports_operator', 'complaints_operator', 'aid_operator'] as const satisfies readonly Role[];
+// The public website and the citizen attention desk (D-93): the database gives them since
+// 20261106000100_web_publica.sql (user_roles_assignable, guard_invitation_roles), always with 2FA and never in the same
+// account as Administración (except the editor). Not in INVITABLE_ROLES yet: the panel's Equipo screen gives the team
+// and Administración until the web's admin screens arrive.
+export const WEB_ROLES = ['writer', 'web_publisher', 'attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor'] as const satisfies readonly Role[];
+// In the enum, not assignable.
+export const FUTURE_ROLES = ['aid_operator'] as const satisfies readonly Role[];
 
 export type TeamRole = (typeof TEAM_ROLES)[number];
 export type InvitableRole = (typeof INVITABLE_ROLES)[number];
