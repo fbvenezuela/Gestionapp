@@ -92,7 +92,10 @@ export default async function AttentionCasePage({ params }: { params: Promise<{ 
         </p>
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_23rem]">
+      {/* On a computer the right column (state, area, files…) is much taller than the left one: the left column's first
+          two rows keep their own height and the last one (the history, at its top) takes what is left, so «Lo que llegó»
+          is never stretched into a tall empty card. */}
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_23rem] lg:grid-rows-[auto_auto_1fr]">
         {/* What arrived */}
         <Card className="lg:col-start-1">
           <CardHeader title="Lo que llegó" subtitle={`El ${fmtDateTime(r.createdAt)}`} />
@@ -364,7 +367,7 @@ export default async function AttentionCasePage({ params }: { params: Promise<{ 
         ) : null}
 
         {/* The history */}
-        <div className="lg:col-start-1">
+        <div className="lg:col-start-1 lg:self-start">
           <Timeline detail={detail} />
         </div>
       </div>

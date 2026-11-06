@@ -386,7 +386,7 @@ export function RequestForm({ municipalities, categories, linked, presetType, to
       {v.linkedItemId ? (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface p-4">
           <Link2 className="h-5 w-5 shrink-0 text-accent-ink" aria-hidden />
-          <p className="min-w-0 flex-1 text-[15px] text-text">
+          <p className="min-w-0 grow basis-40 text-[15px] text-text">
             <span className="block text-sm font-semibold text-text-2">{linkedTitle ? `Tu solicitud es sobre esta ${linkedTitle.kindLabel.toLowerCase()}` : 'Tu solicitud es sobre un contenido de esta web'}</span>
             {linkedTitle ? (
               <a href={linkedTitle.href} className="font-semibold text-accent-ink underline underline-offset-2">

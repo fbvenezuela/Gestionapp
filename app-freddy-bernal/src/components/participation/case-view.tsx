@@ -191,7 +191,7 @@ function Files({ files }: { files: CitizenAttachment[] }) {
         return (
           <li key={f.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3">
             <Icon className="h-5 w-5 shrink-0 text-accent-ink" aria-hidden />
-            <span className="min-w-0 flex-1 text-[15px]">
+            <span className="min-w-0 grow basis-40 text-[15px]">
               <span className="block font-medium text-text">{label}</span>
               <span className="block text-sm text-text-2">
                 {fileSize(f.bytes)} · {longDate(f.at)}

@@ -255,7 +255,7 @@ function FileRow({ f, onRetry }: { f: ReceiptFile; onRetry: () => void }) {
   return (
     <li className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3">
       <Icon className="h-5 w-5 shrink-0 text-accent-ink" aria-hidden />
-      <span className="min-w-0 flex-1">
+      <span className="min-w-0 grow basis-40">
         <span className="block truncate text-[15px] font-medium text-text">{f.name}</span>
         <span className={cn('block text-sm', f.status === 'failed' ? 'font-medium text-danger' : f.status === 'done' ? 'text-ok' : 'text-text-2')}>
           {f.size ? `${fileSize(f.size)} · ` : ''}

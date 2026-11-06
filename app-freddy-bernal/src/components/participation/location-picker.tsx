@@ -65,7 +65,7 @@ export function LocationPicker({ point, onChange, error }: { point: Point | null
         ) : null}
         {point ? (
           <div className="flex flex-wrap items-center gap-3 rounded-xl bg-accent-soft px-4 py-3 text-[15px] text-text">
-            <span className="min-w-0 flex-1">
+            <span className="min-w-0 grow basis-40">
               <strong className="font-semibold">Punto guardado con tu permiso.</strong>{' '}
               <span className="tabular">
                 {point.lat.toFixed(5)}, {point.lng.toFixed(5)}

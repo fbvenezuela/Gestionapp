@@ -25,6 +25,7 @@ const RUN = Math.random().toString(36).slice(2, 7);
 const REF = /^AC-\d{4}-[0-9A-HJKMNP-TV-Z]{6}$/;
 const SECRET_RE = /^[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4}){3}$/;
 const NOT_FOUND = 'No encontramos una solicitud con esos datos.';
+const DEMR02 = { reference: `AC-${YEAR}-DEMR02`, secret: 'R3PS-W8N2-DEMV-7QKA' };
 const DEMR03 = { reference: `AC-${YEAR}-DEMR03`, secret: 'H4JX-5ZTB-9CNF-W2YE' };
 const DENUNCIA_TEXT = /Tu denuncia es privada de punta a punta/;
 const PHONE = { viewport: { width: 360, height: 760 }, isMobile: true, hasTouch: true };
@@ -250,6 +251,22 @@ test('el formulario de punta a punta y la consulta no rompen la CSP de la web (n
   expect(await refused(), '/atencion/nueva').toEqual([]);
   await openCase(page, reference, secret);
   expect(await refused(), '/atencion/consultar').toEqual([]);
+  await c.ctx.close();
+});
+
+test('en el teléfono, cada archivo de la consulta se lee entero: el botón «Descargar» baja si no cabe al lado', async ({ browser }) => {
+  // The screenshots of 06/11 showed «3 KB · 17 de octubre de 2026 · sin revisión antivirus…» one word per line, squeezed
+  // by the button at 360 px.
+  const c = await citizen(browser);
+  await openCase(c.page, DEMR02.reference, DEMR02.secret);
+  const rows = c.page.getByRole('list', { name: 'Archivos', exact: true }).getByRole('listitem');
+  expect(await rows.count()).toBeGreaterThan(0);
+  for (const row of await rows.all()) {
+    const text = (await row.locator(':scope > span').first().boundingBox())!;
+    const box = (await row.boundingBox())!;
+    expect(text.width, `${await row.innerText()}`).toBeGreaterThan(box.width * 0.6);
+  }
+  await noSideScroll(c.page, 'archivos de la consulta (360)');
   await c.ctx.close();
 });
 

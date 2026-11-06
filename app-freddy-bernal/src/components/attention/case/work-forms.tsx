@@ -226,6 +226,8 @@ export function AssignForm({
 
 // --- Priority, due date and kind (the coordination) ---------------------------------------------------------------------------
 
+// Side by side from the tablet up; on a computer this lives in the case page's narrow right column, so it stacks again
+// (side by side there, the hint ran one word per line and «Guardar fecha» broke in two).
 export function PriorityDueForm({ id, priority, due }: { id: string; priority: RequestPriority; due: string | null }) {
   const { run, pending } = useAction();
   const [p, setP] = useState<RequestPriority>(priority);
@@ -234,7 +236,7 @@ export function PriorityDueForm({ id, priority, due }: { id: string; priority: R
   return (
     <div className="flex flex-col gap-4">
       <form
-        className="flex flex-col gap-2 sm:flex-row sm:items-end"
+        className="flex flex-col gap-2 sm:flex-row sm:items-end lg:flex-col lg:items-stretch"
         onSubmit={(e) => {
           e.preventDefault();
           run(() => setRequestPriority({ id, priority: p }), { success: 'Prioridad guardada.' });
@@ -247,10 +249,10 @@ export function PriorityDueForm({ id, priority, due }: { id: string; priority: R
             ))}
           </Select>
         </Field>
-        <Button type="submit" variant="secondary" disabled={pending || p === priority}>Guardar prioridad</Button>
+        <Button type="submit" variant="secondary" className="lg:self-start" disabled={pending || p === priority}>Guardar prioridad</Button>
       </form>
       <form
-        className="flex flex-col gap-2 sm:flex-row sm:items-end"
+        className="flex flex-col gap-2 sm:flex-row sm:items-end lg:flex-col lg:items-stretch"
         onSubmit={(e) => {
           e.preventDefault();
           run(() => setRequestDue({ id, due: d || null }), { success: d ? 'Fecha comprometida guardada.' : 'Se quitó la fecha comprometida.' });
@@ -259,7 +261,7 @@ export function PriorityDueForm({ id, priority, due }: { id: string; priority: R
         <Field label="Fecha comprometida" htmlFor={ids.d} className="flex-1" hint="Vale hasta el final de ese día.">
           <Input id={ids.d} type="date" value={d} onChange={(e) => setD(e.target.value)} />
         </Field>
-        <Button type="submit" variant="secondary" disabled={pending || d === (due ?? '')}>Guardar fecha</Button>
+        <Button type="submit" variant="secondary" className="lg:self-start" disabled={pending || d === (due ?? '')}>Guardar fecha</Button>
       </form>
     </div>
   );

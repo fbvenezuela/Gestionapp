@@ -126,8 +126,9 @@ export function MergePanel({ id, reference }: { id: string; reference: string })
     <div className="flex flex-col gap-3">
       {dialog}
       <p className={hint}>Si es el mismo problema que otro caso abierto del mismo tipo: se unen y los dos guardan su historia. El repetido se cierra y apunta al que se queda; sus apoyos pasan y cuentan allí.</p>
+      {/* Side by side from the tablet up; stacked again in the case page's narrow column on a computer. */}
       <form
-        className="flex flex-col gap-2 sm:flex-row sm:items-end"
+        className="flex flex-col gap-2 sm:flex-row sm:items-end lg:flex-col lg:items-stretch"
         onSubmit={(e) => {
           e.preventDefault();
           run(() => findDuplicates({ id, q }), { refresh: false, onOk: (r) => setFound(((r as { data?: Candidate[] }).data ?? []) as Candidate[]) });
@@ -136,7 +137,7 @@ export function MergePanel({ id, reference }: { id: string; reference: string })
         <Field label="Buscar el otro caso" htmlFor={ids.q} className="flex-1" hint="Por código o por palabras del título. Vacío: los de la misma categoría y municipio.">
           <Input id={ids.q} value={q} onChange={(e) => setQ(e.target.value)} type="search" autoComplete="off" />
         </Field>
-        <Button type="submit" variant="secondary" disabled={pending}>
+        <Button type="submit" variant="secondary" className="lg:self-start" disabled={pending}>
           <Search className="h-4 w-4" aria-hidden /> Buscar
         </Button>
       </form>
