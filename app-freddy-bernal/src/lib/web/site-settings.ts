@@ -82,6 +82,11 @@ const SCHEMAS = {
 type Key = keyof typeof SCHEMAS;
 type Value<K extends Key> = z.infer<(typeof SCHEMAS)[K]>;
 
+/** The shape of each setting: the administrator's settings screen checks a value with these before saving it. */
+export const SITE_SETTING_SCHEMAS = SCHEMAS;
+export type SiteSettingKey = Key;
+export type SiteSettingValue<K extends Key> = Value<K>;
+
 export type NavLink = z.infer<typeof navLink>;
 export type Contact = z.infer<typeof contact>;
 /** An account or channel as the public pages show it (already filtered by the rule above). */
