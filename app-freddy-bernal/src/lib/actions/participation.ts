@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import { z } from 'zod';
 import { withAnon } from '../db';
 import { ParticipationConfigError, clientIp, deviceKey, ipKey } from '../participation/keys';
-import { CONTACT_CHANNELS, contactInput, type RequestInput } from '../participation/input';
+import { contactInput, type RequestInput } from '../participation/input';
 import { normalizeSecret } from '../participation/receipt-code';
 import { addCitizenMessage, confirmRequest, lookupRequest, receiptGrant, similarRequests, supportRequest } from '../web/participation';
 import {
@@ -27,8 +27,9 @@ import {
   rateKeys,
   sendChecked,
   turnstilePasses,
+  wantsEmail,
 } from './participation-core';
-import { HONEYPOT_FIELD, type CaseActionState, type LookupState, type NoJsState, type SendResult, type SimilarResult } from './participation-types';
+import { HONEYPOT_FIELD, chosenChannel, type CaseActionState, type LookupState, type NoJsState, type SendResult, type SimilarResult } from './participation-types';
 
 // The citizen's actions on the public website (D-92, D-96, design §4): no account, so no act() (it needs a session).
 // Each one checks its input with zod (the form's own schema, requestInput, the same the browser runs), then the
@@ -70,7 +71,7 @@ const text = (fd: FormData, name: string) => {
   return typeof v === 'string' ? v : '';
 };
 const checked = (fd: FormData, name: string) => fd.get(name) === 'on' || fd.get(name) === 'true';
-const FORM_FIELDS = ['type', 'categoryId', 'municipalityId', 'parishId', 'sector', 'locationReference', 'title', 'description', 'eventDate', 'name', 'email', 'phone', 'channel', 'linkedItemId'] as const;
+const FORM_FIELDS = ['submissionKey', 'type', 'categoryId', 'municipalityId', 'parishId', 'sector', 'locationReference', 'title', 'description', 'eventDate', 'name', 'email', 'phone', 'channel', 'linkedItemId'] as const;
 
 /** The plain form's fields as the request the schema checks. */
 function inputFromForm(fd: FormData): Record<string, unknown> {
@@ -78,7 +79,7 @@ function inputFromForm(fd: FormData): Record<string, unknown> {
   const name = text(fd, 'name').trim();
   const email = text(fd, 'email').trim();
   const phone = text(fd, 'phone').trim();
-  const channel = (CONTACT_CHANNELS as readonly string[]).includes(text(fd, 'channel')) ? text(fd, 'channel') : 'none';
+  const channel = chosenChannel({ email, phone, channel: text(fd, 'channel') });
   const hasContact = !!(name || email || phone);
   return {
     type: text(fd, 'type'),
@@ -198,7 +199,8 @@ export async function joinReport(raw: unknown): Promise<SendResult> {
       return supportRequest(sql, target, receipt, keys, { note: p.data.note, contact });
     });
     if (!r) return { ok: false, error: 'Ese reporte ya no está abierto: sigue con el tuyo.', code: 'not_found' };
-    if (contact?.email) queueReceiptEmail(contact.email, r.reference, r.kind, 'reporte');
+    const email = wantsEmail(contact);
+    if (email) queueReceiptEmail(email, r.reference, r.kind, 'reporte');
     return { ok: true, reference: r.reference, kind: r.kind, sentAt: new Date().toISOString() };
   } catch (e) {
     if (e instanceof ParticipationConfigError && contact) return { ok: false, error: NO_CONTACT_KEY_TEXT, code: 'config', fieldErrors: { contact: NO_CONTACT_KEY_TEXT } };

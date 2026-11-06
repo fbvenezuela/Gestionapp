@@ -27,8 +27,9 @@ import { turnstileEnabled, verifyTurnstile } from '../participation/turnstile';
 import { addCitizenAttachment, submitRequest, supportRequest, type RateKeys, type ReceiptGrant, type ReceiptKeys } from '../web/participation';
 import { bucketStore } from '../storage/buckets';
 import { scanStoredAttachment, storePrivateFile } from '../storage/participation-files';
+import { ATTACHMENT_LIMITS } from '../participation/files';
 import { today } from '../time';
-import type { FieldErrors, SendResult } from './participation-types';
+import { eventDateProblem, type FieldErrors, type SendResult } from './participation-types';
 
 // What the citizen's server actions (participation.ts) and the attention routes (src/app/api/atencion,
 // src/app/(web)/atencion/consultar/…) share: the rate limit's keys (the first-party device cookie and the network), the
@@ -110,17 +111,6 @@ export const honeypotTripped = (value: unknown) => typeof value === 'string' && 
 /** «YYYY-MM-DD» in Táchira's calendar. */
 export const todayIso = () => today().toISODate()!;
 
-/** The database's own rule for the date of the event (citizen.submit_request), said before calling it. */
-export function eventDateProblem(date: string | null, now: string = todayIso()): string | null {
-  if (!date) return null;
-  const d = Date.parse(`${date}T00:00:00Z`);
-  const t = Date.parse(`${now}T00:00:00Z`);
-  if (Number.isNaN(d) || !new Date(d).toISOString().startsWith(date)) return 'Revisa la fecha del hecho.';
-  if (d > t + 86_400_000) return 'La fecha del hecho no puede ser en el futuro.';
-  if (d < t - 3650 * 86_400_000) return 'Revisa la fecha del hecho: va hasta diez años atrás.';
-  return null;
-}
-
 /** The whole form, checked with the same schema as the browser plus the date rule. */
 export function checkRequest(raw: unknown): { ok: true; input: RequestInput } | Failure {
   const parsed = requestInput.safeParse(raw);
@@ -128,7 +118,7 @@ export function checkRequest(raw: unknown): { ok: true; input: RequestInput } | 
     const fieldErrors = fieldErrorsOf(parsed.error.issues);
     return { ok: false, error: 'Revisa los datos marcados.', code: 'validation', fieldErrors };
   }
-  const dateProblem = eventDateProblem(parsed.data.eventDate);
+  const dateProblem = eventDateProblem(parsed.data.eventDate, todayIso());
   if (dateProblem) return { ok: false, error: 'Revisa los datos marcados.', code: 'validation', fieldErrors: { eventDate: dateProblem } };
   return { ok: true, input: parsed.data };
 }
@@ -157,7 +147,7 @@ export type Sent = { ok: true; reference: string; kind: 'request' | 'support'; s
 export async function sendChecked(input: RequestInput, receipt: ReceiptKeys, keys: RateKeys): Promise<Sent | Failure> {
   try {
     const r = await withAnon((sql) => submitRequest(sql, input, receipt, keys));
-    const email = !input.anonymous ? input.contact?.email : '';
+    const email = wantsEmail(input.anonymous ? null : input.contact);
     if (email) queueReceiptEmail(email, r.reference, r.kind, input.type);
     return { ok: true, reference: r.reference, kind: r.kind, sentAt: new Date().toISOString() };
   } catch (e) {
@@ -179,7 +169,8 @@ export async function supportChecked(
 ): Promise<Sent | Failure> {
   try {
     const r = await withAnon((sql) => supportRequest(sql, requestId, receipt, keys, extra));
-    if (extra.contact?.email) queueReceiptEmail(extra.contact.email, r.reference, r.kind, 'reporte');
+    const email = wantsEmail(extra.contact);
+    if (email) queueReceiptEmail(email, r.reference, r.kind, 'reporte');
     return { ok: true, reference: r.reference, kind: r.kind, sentAt: new Date().toISOString() };
   } catch (e) {
     if (e instanceof ParticipationConfigError && extra.contact) {
@@ -188,6 +179,11 @@ export async function supportChecked(
     }
     return failureOf(e, 'apoyo');
   }
+}
+
+/** The address the confirmation goes to: the person's email, unless they chose «Que no me contacten». */
+export function wantsEmail(contact: RequestInput['contact'] | undefined): string {
+  return contact && contact.channel !== 'none' ? contact.email : '';
 }
 
 /** Where the person follows the case (the public site's address, else the app's). */
@@ -287,8 +283,17 @@ export function sameOrigin(req: Request): boolean {
   return site === null || site === 'same-origin' || site === 'none';
 }
 
-/** The body is read only up to this size: a file and its form fields. */
-export const MAX_UPLOAD_BODY = 8 * 1024 * 1024 + 64 * 1024;
+/**
+ * The largest file this deployment takes. 8 MB is the rule (design §4, the database's check); on Vercel a function's
+ * request body stops at 4.5 MB, so there a file goes up to 4 MB (photos are re-encoded in the browser and stay well
+ * under it; a heavier PDF needs the direct upload to Supabase Storage, docs/PENDIENTES.md). The form says the same
+ * limit before uploading.
+ */
+export function maxAttachmentBytes(platform: string | undefined = process.env.VERCEL): number {
+  return platform ? 4 * 1024 * 1024 : ATTACHMENT_LIMITS.maxBytes;
+}
+
+const sizeText = (bytes: number) => `El archivo pasa de ${Math.round(bytes / (1024 * 1024))} MB: manda uno más liviano.`;
 
 export const isUuid = (v: unknown): v is string => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 
@@ -306,8 +311,10 @@ export async function handleUpload(
   messageIdOf: (form: FormData) => string | null = () => null,
 ): Promise<Response> {
   if (!sameOrigin(req)) return jsonResponse(403, { ok: false, error: 'No permitido.' });
+  const max = maxAttachmentBytes();
   const length = Number(req.headers.get('content-length') ?? '0');
-  if (length > MAX_UPLOAD_BODY) return jsonResponse(413, { ok: false, error: 'El archivo pasa de 8 MB: manda uno más liviano.' });
+  // The body is read only up to the file's limit plus its form fields.
+  if (length > max + 64 * 1024) return jsonResponse(413, { ok: false, error: sizeText(max) });
   let form: FormData;
   try {
     form = await req.formData();
@@ -316,7 +323,7 @@ export async function handleUpload(
   }
   const file = form.get('file');
   if (!file || typeof file === 'string') return jsonResponse(400, { ok: false, error: 'No llegó el archivo. Vuelve a intentarlo.' });
-  if (file.size > 8 * 1024 * 1024) return jsonResponse(413, { ok: false, error: 'El archivo pasa de 8 MB: manda uno más liviano.' });
+  if (file.size > max) return jsonResponse(413, { ok: false, error: sizeText(max) });
   const grant = await grantOf(form);
   if (!grant) return jsonResponse(404, { ok: false, error: NOT_FOUND_TEXT });
   const messageId = messageIdOf(form);
