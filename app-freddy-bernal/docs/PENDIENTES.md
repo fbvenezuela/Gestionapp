@@ -1,6 +1,6 @@
 # Lo que falta decidir o conseguir (antes o durante la construcción)
 
-Actualizado: 23/10/2026; 28/10/2026: #8 (parroquias), #11 (código de Mila) y las preguntas de la segunda vuelta, al final; 30/10/2026: #11 hecho (Redes por formato) y las preguntas de Redes para Hillary, al final. La plataforma interna ya está construida en modo demostración; lo de abajo es lo que falta para pasar a datos reales y lo que hay que decidir. Mientras no esté, la sesión de Claude Code avanza con lo que está entre paréntesis («por ahora») y lo deja marcado.
+Actualizado: 23/10/2026; 28/10/2026: #8 (parroquias), #11 (código de Mila) y las preguntas de la segunda vuelta, al final; 30/10/2026: #11 hecho (Redes por formato) y las preguntas de Redes para Hillary, al final; 06/11/2026: la web pública y la atención ciudadana (W1–W11 y T1–T9), al final. La plataforma interna ya está construida en modo demostración; lo de abajo es lo que falta para pasar a datos reales y lo que hay que decidir. Mientras no esté, la sesión de Claude Code avanza con lo que está entre paréntesis («por ahora») y lo deja marcado.
 
 ## Lo tiene que mandar alguien
 1. **Branding:** manual de identidad visual «F BERNAL», logos (incluido el de «Reporte Bernal 2.0»), colores y tipografías. Hillary preguntó el 22/10 si lo necesitas; le dijiste que sí. (Por ahora: paleta y logo provisionales, fáciles de cambiar en un solo archivo.)
@@ -20,13 +20,20 @@ Actualizado: 23/10/2026; 28/10/2026: #8 (parroquias), #11 (código de Mila) y la
 
 ## Lo tienen que decidir Hillary, Leo o el cliente
 1. **¿Se muestran los nombres de las personas ayudadas** en el feed público? Recomendado: solo con su permiso; si no, iniciales.
+   **06/11:** así quedó en «Lo atendido» (D-92): el nombre solo con su permiso, si no iniciales; una denuncia, solo
+   «Denuncia atendida en el municipio X».
 2. **Denuncias:** ¿quién las atiende y a qué entidad se derivan las graves? Nada de una denuncia sería público.
+   **06/11:** las atiende el rol «Operador de denuncias» con la coordinación (D-92, D-93). Falta a qué autoridades se
+   derivan y sus datos verificados (W8, al final).
 3. **Fotos mejoradas con IA:** recomendado que solo corrijan luz y nitidez, con la etiqueta «foto mejorada» y la original guardada. Una foto de obra que cambia lo que muestra se vuelve en contra.
 4. **¿Quién aprueba lo que se publica?** ¿Fernando Alvarado para todo, o solo para lo político?
    **27/10:** Hillary: lo aprueba el jefe (D-30). Queda preguntar si alguien aprueba en su nombre y si Fernando sigue
    revisando (ver al final).
 5. **Cuenta del ciudadano:** ¿se reporta sin cuenta (más fácil) o con verificación por teléfono (menos spam)?
+   **06/11:** sin cuenta, con un código y una clave para seguir el caso; contra el spam, campo trampa, límites y
+   Turnstile cuando haya claves (W4).
 6. **Notificaciones a la gente:** ¿solo correo y aviso en la web, o también WhatsApp o SMS (tienen costo)?
+   **06/11:** por ahora solo correo (cuando haya dominio, T7) y lo que la persona ve en «Consultar mi solicitud».
 7. **Cuántos tweets al día y en qué horas** (Hillary dijo 4 o 5).
 8. **Dónde se aloja la base de datos** (región de Supabase) y cuánto tiempo se guardan los datos personales.
 9. **Prioridad:** recomendado empezar por el estudio de contenido (es lo que Hillary pide ya) y luego la muestra pública (trazabilidad y mapa de reportes). Confirmar.
@@ -78,6 +85,7 @@ Actualizado: 23/10/2026; 28/10/2026: #8 (parroquias), #11 (código de Mila) y la
     **27/10:** igual para Grabación («un solo perfil»): un rol, un usuario por persona (D-29).
 20. **Reportes cercanos sin mostrar los de otros** (§11.1 de `IDEA.md`). Recomendado: solo «ya hay N reportes de esto a
     menos de 100 m, ¿te sumas?», sin fotos, textos ni nombres. Confirmar.
+    **06/11:** construido así (D-92): solo el número, y el cuarto del mismo problema en el mismo lugar se suma solo.
 21. **Permisos de las redes para publicar solos.** Cada una pide lo suyo y tarda:
     - Meta: app de desarrollador, verificación del negocio y revisión de permisos de publicación.
     - TikTok: hasta que auditan la app, lo publicado sale como privado.
@@ -263,4 +271,45 @@ volver atrás: `docs/PLAN-MIGRACION-Y-PRODUCCION.md`. Lo que falta y quién:
 4. **Consulta legal** antes de abrir.
 5. **No se pudo comprobar desde aquí:** el importador escribiendo en un Supabase real (su balde incluido), que el rol
    de `DATABASE_URL` pueda `set role anon`, Search Console y la duración real de la importación completa (≈3–4 horas).
+
+## Nuevo (06/11/2026): la web pública y la atención ciudadana — lo que falta y por qué
+La web, su administrador («Web») y la atención («Atención») están construidos y probados en la versión de prueba, con
+datos inventados (D-90 a D-97; las pruebas y sus límites, en `docs/INFORME-PRUEBAS-WEB.md`). Lo de abajo es lo que falta
+para usarlos con gente de verdad. Mientras no esté, la web sigue en la versión de prueba y sin buscadores.
+
+**Lo tiene que decidir o mandar alguien**
+
+| # | Qué falta | Por qué, y qué pasa mientras | Quién |
+|---|---|---|---|
+| W1 | **La decisión de abrir la web** al público y a los buscadores (`SITE_INDEXABLE=true`) | Es decisión de Juan, después de lo de esta lista. Mientras, la web dice «Versión de prueba» y pide a los buscadores que no la muestren | Juan |
+| W2 | **El dominio y el hosting**: el DNS de freddybernaloficial.com hacia Vercel, `www` y `http` con 301, y el hosting viejo guardado unas semanas para volver atrás | Sin eso la web nueva vive en la dirección de prueba de Vercel. Orden y detalle: `docs/PLAN-MIGRACION-Y-PRODUCCION.md` §4 | Pedro Poller |
+| W3 | **Search Console**: el registro TXT del dominio (o la etiqueta con `GOOGLE_SITE_VERIFICATION`) y enviar el sitemap | Sin eso Google tarda más en entender la web nueva y no se ve qué páginas fallan. Si la web vieja ya estaba verificada, **no se pudo comprobar** desde aquí | Pedro Poller y Juan |
+| W4 | **Las claves de Cloudflare Turnstile** (`TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`) | Mientras, los formularios se cuidan con un campo trampa y límites por dispositivo y por red, que son gruesos (`docs/SEGURIDAD.md`). Encenderlo y ajustar los límites antes de anunciar la web | Juan |
+| W5 | **Las cuentas oficiales verificadas**: cuáles de la lista de `docs/diagnostico.md` §8 son del gobernador, cuál es el canal de WhatsApp y si se enlaza tachira.gob.ve | En producción solo salen las marcadas «Verificada» y «Activa» (Ajustes del sitio); hoy todas están «por confirmar» y solo salen, marcadas, en la versión de prueba | El equipo de redes con Juan |
+| W6 | **La biografía, los cargos, las prioridades, el mensaje de la portada y las fotos oficiales**; el logo en vector | No se inventa nada: hoy son espacios «Por completar» y fotos «por subir desde el administrador». Se cargan desde «Web» y la biblioteca | El equipo, con el texto aprobado |
+| W7 | **La lista oficial de parroquias** (las 66 de los 29 municipios, D-35) | Mientras, la persona escribe a mano «parroquia, localidad o sector» y un error de escritura parte los conteos. Cuando llegue, va a la configuración del cliente | El equipo de William o Juan |
+| W8 | **Los contactos de las autoridades** a las que se dirige una denuncia, y los **números oficiales de emergencia** del estado | El encargo pide decir «acude a las autoridades, con sus datos». Mientras, no se da ningún nombre ni número que nadie verificó (Ajustes del sitio → «Aviso de las denuncias» y contactos verificados) | El equipo |
+| W9 | **La consulta legal**: aviso de privacidad (qué se guarda, cuánto tiempo, a quién se le pide borrar un dato, el organismo responsable), condiciones de participación, el manejo de las denuncias y las amenazas, y el uso de las notas y fotos viejas | Las páginas legales tienen espacios «Por completar antes de publicar». Sin la consulta no se abre la web ni se guardan datos reales | Juan |
+| W10 | **Las personas reales por rol**: quién edita la web, quién aprueba, quién coordina la atención, los responsables de cada área, quién lleva las denuncias y quién audita; y si las cuatro áreas de prueba son las de verdad | Sin eso nadie atiende. Se invitan en Ajustes → Equipo, siempre con doble factor; las áreas y los días, en «Áreas y plazos» | Juan con el despacho |
+| W11 | **Por decidir con el equipo:** el jefe lee todas las solicitudes que no son denuncias; el jefe y auditoría leen las notas internas; auditoría ve en el registro la historia de las denuncias (nunca su texto) | Así está construido (D-93). Se cambia con una migración si el equipo dice otra cosa | Juan |
+
+**Lo que falta de nuestra parte (técnico)**
+
+| # | Qué falta | Por qué, y qué pasa mientras |
+|---|---|---|
+| T1 | **Aplicar las migraciones de la web en `fb-dev`**: `20261106000050`, `000100`, `000200`, `000300`, `100100`, `300100`, `400100` y `400200` | El 05/11 la conexión de Supabase rechazó la contraseña de la base y no se pudo subir nada. Con la conexión de vuelta: aplicarlas en orden, comprobar que el rol de `DATABASE_URL` puede `set role anon` y que el esquema `citizen` no está expuesto (las dos cosas **no se pudieron comprobar**) |
+| T2 | **El proyecto de producción** con plan de pago | El plan gratis no tiene copias automáticas (`docs/COPIAS-Y-RECUPERACION.md`) ni cabe la biblioteca vieja completa (≈1,7 GB) |
+| T3 | **`PARTICIPATION_PEPPER` y `PARTICIPATION_DATA_KEY`** generadas, puestas en Vercel y guardadas aparte | Sin ellas, con datos reales no se guarda ningún comprobante ni contacto. Si se pierden, no se recuperan |
+| T4 | **Un revisor de archivos** (ClamAV en un servidor aparte u otro servicio) y `ATTACHMENT_SCANNER=clamav` | Vercel no puede correr ClamAV. Sin revisor, en producción los archivos que manda la gente quedan «sin analizar» y **no se abren** |
+| T5 | **Subir directo al almacenamiento** los archivos de más de 4 MB | Vercel corta cada envío a unos 4,5 MB: hoy, en Vercel, los PDF de la biblioteca, los adjuntos de la gente y las evidencias van hasta 4 MB (fuera de Vercel, 20 MB los PDF y 8 MB los adjuntos) |
+| T6 | **Un proveedor de mapas** para mucho tráfico | Los mapas usan los cuadros públicos de OpenStreetMap, cuyas reglas no permiten tráfico alto. Bien para la prueba y el equipo; con la web abierta, un proveedor con su cuenta |
+| T7 | **El envío de correos con dominio propio** (Resend y los registros del DNS, #17) | Sin eso, con datos reales no sale ningún correo a la gente: siguen su caso solo en «Consultar mi solicitud» |
+| T8 | **Volver a cifrar los contactos viejos** al rotar la clave de datos | Hoy la clave vieja queda en `PARTICIPATION_DATA_KEYS_PREVIOUS` para seguir leyéndolos |
+| T9 | La tarea de cada 5 minutos con `pg_cron` en el proyecto real | Con solo la tarea diaria de Vercel (7:00 a. m.), lo programado igual sale a su hora, pero un archivo que quedó «en cuarentena» porque el revisor no contestó se vuelve a revisar una vez al día |
+
+**Lo que no hace todavía** (pequeño, ninguno frena): el aviso de «Por aprobar» al jefe (lo ve en la lista); comparar
+palabra por palabra; programar un cambio a algo ya publicado; fotos HEIC o AVIF; arrastrar tarjetas en el tablero;
+filtros guardados; un CSV de más de 5.000 filas; «Agregar información» sin JavaScript; filtrar `/actualidad` por mes;
+las fotos importadas en su lugar del texto (van a la galería); importar los 17 PDF viejos; reconocer nombres de
+personas en lo importado.
 
