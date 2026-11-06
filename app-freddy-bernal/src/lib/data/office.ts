@@ -33,11 +33,19 @@ const toItem = (r: FactsRow): OfficeItem => {
 // office_facts() already leaves cancelled events out; said again here, where the list is made.
 const FACTS_SQL = `select f.*, e.code, e.title from public.office_facts() f join public.events e on e.id = f.event_id and e.cancelled_at is null`;
 
+// Until a database has the office's migration (20261106000100_office.sql), the office is empty instead of breaking
+// the screens that show it («Digital» of the boss among them). Asked first: a failed query would abort the transaction.
+async function officeReady(sql: Sql): Promise<boolean> {
+  return !!(await sql.one<{ ok: boolean }>(`select to_regprocedure('public.office_facts()') is not null as ok`))?.ok;
+}
+
 export async function officeItems(sql: Sql): Promise<OfficeItem[]> {
+  if (!(await officeReady(sql))) return [];
   return (await sql.query<FactsRow>(`${FACTS_SQL} order by e.code desc`)).map(toItem);
 }
 
 export async function officeItem(sql: Sql, id: string): Promise<OfficeItem | null> {
+  if (!(await officeReady(sql))) return null;
   const r = await sql.one<FactsRow>(`${FACTS_SQL} where f.event_id = $1`, [id]);
   return r ? toItem(r) : null;
 }

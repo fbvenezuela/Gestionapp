@@ -119,3 +119,20 @@ describe('office_facts: dónde está cada actividad', () => {
     for (const c of cols.map((x) => x.name)) expect(c).not.toMatch(/start|end|date|time|place|address|_at$/);
   });
 });
+
+describe('una base sin la migración de la oficina', () => {
+  it('la oficina sale vacía en vez de romper la pantalla', async () => {
+    const items = await t.system(async (sql) => {
+      await sql.query(`alter function public.office_facts() rename to office_facts_away`);
+      try {
+        const out = await officeItems(sql);
+        // The same transaction keeps working afterwards (nothing was aborted).
+        await sql.query(`select 1`);
+        return out;
+      } finally {
+        await sql.query(`alter function public.office_facts_away() rename to office_facts`);
+      }
+    });
+    expect(items).toEqual([]);
+  });
+});
