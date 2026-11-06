@@ -324,12 +324,15 @@ test.describe('buscadores, cabeceras y direcciones viejas', () => {
     await page.goto('/2014/07/biografia/');
     await expect(page).toHaveURL(/\/gobernador$/);
     // The importer's rules (D-97): a later page of an old list, the feed, and an old file that was not brought (410).
-    const paged = await page.request.get('/page/3/', { maxRedirects: 0 });
+    // (With the final slash Next first answers 308 to the address without it, then the 301 comes.)
+    const paged = await page.request.get('/page/3', { maxRedirects: 0 });
     expect(paged.status()).toBe(301);
     expect(paged.headers()['location']).toMatch(/\/actualidad$/);
-    const feed = await page.request.get('/feed/', { maxRedirects: 0 });
+    const feed = await page.request.get('/feed', { maxRedirects: 0 });
     expect(feed.status()).toBe(301);
     expect(feed.headers()['location']).toMatch(/\/actualidad$/);
+    await page.goto('/page/3/');
+    await expect(page).toHaveURL(/\/actualidad$/);
     const gone = await page.request.get('/wp-content/uploads/2019/01/foto-no-traida-300x200.jpg', { maxRedirects: 0 });
     expect(gone.status()).toBe(410);
     expect(gone.headers()['x-robots-tag']).toBe('noindex');
