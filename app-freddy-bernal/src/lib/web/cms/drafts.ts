@@ -1,5 +1,6 @@
 import type { core } from 'zod';
 import { BLOCK_LABEL, type BlockType } from '../blocks';
+import { marksText, removedMarksIn } from '../import-marks';
 import { SNAPSHOT, type WebKind } from '../schema';
 
 // The drafts of the website's administrator (design §3): how a new item starts, the names of its fields in the team's
@@ -53,7 +54,7 @@ const COMMON: Record<string, string> = {
 
 export const FIELD_LABELS: Record<WebKind, Record<string, string>> = {
   page: { ...COMMON },
-  news: { ...COMMON, author: 'Firma', body: 'Texto', galleryIds: 'Galería' },
+  news: { ...COMMON, author: 'Firma', body: 'Texto', galleryIds: 'Galería', youtubeId: 'Video de YouTube' },
   project: {
     ...COMMON, state: 'Estado', place: 'Parroquia, localidad o sector', description: 'De qué se trata', beneficiaries: 'Para quién',
     organization: 'Organismo responsable', investment: 'Inversión', progress: 'Avance', dates: 'Fechas', evidenceIds: 'Evidencias',
@@ -152,6 +153,12 @@ export function readinessIssues(kind: WebKind, value: unknown): Issue[] {
   }
   if (kind === 'notice' && typeof v.updatedAt === 'string' && typeof v.expiresAt === 'string' && Date.parse(v.expiresAt) <= Date.parse(v.updatedAt)) {
     out.push({ path: FIELD_LABELS.notice.expiresAt, message: 'El aviso vence antes de su actualización: revisa las fechas.' });
+  }
+  // What the importer of the old site took out (an email, a phone, an ID number) left a mark: a person rewrites that
+  // sentence (src/lib/web/import-marks.ts; the database refuses to publish it anyway).
+  const marks = removedMarksIn(v);
+  if (marks.length) {
+    out.push({ path: '', message: `Quedó ${marksText(marks)} donde el importador quitó un dato personal: reescribe esa frase.` });
   }
   return out;
 }

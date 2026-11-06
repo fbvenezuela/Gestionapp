@@ -26,6 +26,10 @@ public/mediainfo/
 .drive-import/
 scripts/drive-import/*.json
 scripts/drive-import/.no-subir
+# Importer of the old website (scripts/web-import): its reports name every old post. Never in git (it refuses to write
+# them inside the repository anyway).
+scripts/web-import/*.json
+.web-import/
 
 # Google OAuth client files (client_secret_*.json): never in git. The values go to Vercel / .env.local.
 client_secret*.json

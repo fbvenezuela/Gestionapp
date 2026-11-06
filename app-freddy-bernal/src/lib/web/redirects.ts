@@ -7,6 +7,8 @@
 //   * The home with WordPress's queries: «/?s=agua» is a search (it goes to /actualidad?q=agua, no table needed) and
 //     «/?p=123», «/?page_id=…», «/?cat=…», «/?tag=…» are looked up as written («/?p=123»).
 //   * A section's missing item («/actualidad/titulo-viejo») is looked up by its page before answering 404.
+//   * WordPress's variants: a list's later pages and a page's feed are looked up as the page; a photo in one of
+//     WordPress's sizes as its original (lookupKeys). An old file the redirects do not know answers 410 (proxy.ts).
 
 import { firstSegment, isKnownSegment } from './routes';
 
@@ -30,8 +32,18 @@ export function legacyPlan(pathname: string, search: URLSearchParams): LegacyPla
   }
   if (isKnownSegment(firstSegment(pathname))) return { kind: 'none' };
   const path = normalizeOldPath(pathname);
-  return path ? { kind: 'lookup', path } : { kind: 'none' };
+  if (!path) return { kind: 'none' };
+  // WordPress's pages of a list («/categoria/salud/page/3», «/page/2») and the feed of a page («/2026/11/nota/feed»)
+  // are the page they belong to; the bare «/feed» has its own redirect.
+  const base = path.replace(WP_VARIANT, '');
+  if (base !== path) {
+    if (base) return { kind: 'lookup', path: base };
+    if (path.startsWith('/page/')) return { kind: 'search', to: '/actualidad' };
+  }
+  return { kind: 'lookup', path };
 }
+
+const WP_VARIANT = /\/(?:page\/\d{1,5}|feed(?:\/(?:rss2?|atom|rdf))?)$/;
 
 /** «/2026/11/una-nota/» and «/2026/11/una-nota» are the same old address: without the last slash, at most 500
  * characters, never «//host». Null when it cannot be an address of this site. */
@@ -41,11 +53,33 @@ export function normalizeOldPath(pathname: string): string | null {
   return p.length >= 2 && p.length <= 500 ? p : null;
 }
 
-/** The candidates a path is stored under: as written and with its final slash (the importer may keep it). */
+// WordPress serves every photo in several sizes («foto-300x200.jpg», «foto-scaled.jpg»): the importer keeps one redirect
+// per original (scripts/web-import), and a size is looked up as its original.
+const WP_SIZE = /-(?:\d{1,5}x\d{1,5}|scaled|rotated|e\d{10,13})(?=\.[A-Za-z0-9]{2,5}$)/;
+
+/** The candidates a path is stored under: as written and with its final slash (the importer may keep it); with its
+ * escapes in lower case (WordPress writes «%c3%b1», a browser may send «%C3%B1»); and, for an old upload, its original. */
 export function lookupKeys(path: string): string[] {
   const p = normalizeOldPath(path);
   if (!p) return [];
-  return p.includes('?') ? [p] : [p, `${p}/`];
+  const forms = [p, p.replace(/%[0-9A-F]{2}/g, (m) => m.toLowerCase())];
+  if (/^\/wp-content\/uploads\//.test(p)) {
+    let base = p;
+    for (let k = 0; k < 2 && WP_SIZE.test(base); k++) base = base.replace(WP_SIZE, '');
+    forms.push(base);
+  }
+  const out = new Set<string>();
+  for (const f of forms) {
+    out.add(f);
+    if (!f.includes('?')) out.add(`${f}/`);
+  }
+  return [...out];
+}
+
+/** An old address that answers 410 («ya no existe») instead of 404 when the redirects do not know it: the old site's
+ * files (/wp-content/…). Search engines then drop them sooner. Everything else is a plain 404. */
+export function goneWhenMissing(path: string): boolean {
+  return /^\/wp-content\//.test(path);
 }
 
 /** A target from the table, only if it is an address of this site (no open redirect, ever). */

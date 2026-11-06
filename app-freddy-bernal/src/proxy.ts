@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import { legacyPlan, safeTarget, redirectStatus, type RedirectStatus } from '@/lib/web/redirects';
+import { goneWhenMissing, legacyPlan, safeTarget, redirectStatus, type RedirectStatus } from '@/lib/web/redirects';
 import { isPublicPath } from '@/lib/web/routes';
 
 // Runs before every page. Three jobs, cheapest first:
@@ -8,7 +8,8 @@ import { isPublicPath } from '@/lib/web/routes';
 //      would be a 404) or a WordPress query on «/» («/?p=123», «/?s=agua») is looked up — the redirects live in
 //      web_redirects, read by /api/web/redireccion (kept in memory a minute there), and each answer is remembered here a
 //      minute too, so a crawler going through old links does not hit the database. A hit answers 301; a miss falls
-//      through to the 404 page. No ordinary request pays for any of this.
+//      through to the 404 page, except an old file (/wp-content/…) the importer did not bring: 410, gone for good. No
+//      ordinary request pays for any of this.
 //   2. The public website (the home and its sections) needs no session: nothing else is done for it.
 //   3. Keeps the Supabase session cookies of the panel fresh. Authorization itself happens in the pages (requireSession)
 //      and in the database (RLS), never here.
@@ -47,6 +48,13 @@ export async function proxy(request: NextRequest) {
   if (plan.kind === 'lookup') {
     const hit = await lookupRedirect(request, plan.path);
     if (hit) return NextResponse.redirect(new URL(hit.to, request.url), hit.status);
+    // A file of the old site that was not brought (docs/PLAN-MIGRACION-Y-PRODUCCION.md): gone for good, not «not found».
+    if (goneWhenMissing(plan.path)) {
+      return new NextResponse('Este archivo de la web anterior ya no está disponible.', {
+        status: 410,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600', 'X-Robots-Tag': 'noindex' },
+      });
+    }
     return NextResponse.next();
   }
   if (isPublicPath(pathname)) return NextResponse.next();

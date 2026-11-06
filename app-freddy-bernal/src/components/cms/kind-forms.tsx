@@ -68,8 +68,9 @@ export function NewsForm({ draft, set }: Props) {
       <Group title="Texto">
         <RichTextEditor label="Texto de la nota" value={draft.body} onChange={(nodes) => set({ body: nodes })} />
       </Group>
-      <Group title="Fotos, fuentes y temas">
+      <Group title="Fotos, video, fuentes y temas">
         <MediaListField label="Galería" value={draft.galleryIds} onChange={(ids) => set({ galleryIds: ids })} hint="Fotos al final de la nota (opcional)." />
+        <TextField label="Video de YouTube (su código)" value={draft.youtubeId} onChange={(v) => set({ youtubeId: v.trim() || null })} max={11} mono hint="Las 11 letras que van después de «v=» en el enlace del video (opcional). Sale después del texto." />
         <SourcesField label="Fuentes" value={draft.sources} onChange={(v) => set({ sources: v })} hint="De dónde sale lo que dice la nota: una institución, un documento, un enlace." />
         <TagsField label="Temas" value={draft.topics} onChange={(v) => set({ topics: v })} />
       </Group>

@@ -107,6 +107,17 @@ Hoy hay un proyecto, `fb-dev` (`docs/CUENTAS.md`). Lo que falta, paso a paso y c
 2. Domains → agregar el dominio y poner en su DNS los registros SPF, DKIM y DMARC (cuando Pedro Poller pase el DNS,
    o con un dominio nuevo).
 
+## Traer la web vieja (importador)
+Los artículos de freddybernaloficial.com entran como **borradores** (nunca publicados), con sus fotos en la
+biblioteca y las redirecciones de sus direcciones viejas. Todo el plan, con la salida a producción:
+`docs/PLAN-MIGRACION-Y-PRODUCCION.md`.
+```bash
+npm run web:import                         # prueba: lee la web vieja y NO escribe nada
+npm run web:import -- --apply --limit 20   # escribe 20 (DATABASE_URL de Supabase, o LOCAL_DATA_DIR con la app cerrada)
+npm run web:import -- --help               # todas las opciones (--since, --ids, --no-media, --report…)
+```
+Nada de la web vieja va al repositorio: el reporte (`--report`) se guarda fuera de él.
+
 ## Volver a la versión anterior (Instant Rollback)
 En Vercel → Deployments → la versión buena → «…» → **Instant Rollback**. Es inmediato y no toca la base. Si una
 migración rompió algo, se arregla con una migración nueva (nunca editando una ya aplicada).

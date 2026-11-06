@@ -58,6 +58,7 @@ app-freddy-bernal/
 | Mensajes (28/10; canales desde el 29/10) | `chat_conversations` (un canal con nombre, descripción y `archived_at`, o «Todo el equipo»), `chat_members` (`via` «picked» o «boss»; salir es `removed_at`/`removed_by`, volver es una fila nueva), `chat_messages` (con `agenda_clear`), `chat_reads` (leído y silencio propios) | Los mensajes solo se agregan; los miembros también (ni el sistema los borra: tampoco `TRUNCATE`). La auditoría guarda tabla, fila, quién y cuándo, nunca el texto, el nombre del canal ni los miembros. Nada en Realtime. Sin aviso ni reglas por pareja (se fueron `chat_notice_ack` y `chat_rules`). Ver «Mensajes» |
 | Web pública (06/11) | `web_items` (borrador y lo publicado, con sus filtros), `web_versions` (solo se agregan), `web_media` (biblioteca pública, texto alternativo obligatorio), `web_settings`, `web_redirects`, `territories` | Ver «Web pública y atención ciudadana». anon lee columna por columna lo publicado y vivo |
 | Atención ciudadana (06/11) | `areas`, `area_members`, `request_categories`, `requests`, `request_supports`, `request_contacts` (cifrado, sin permisos), `request_events` y `request_messages` (solo se agregan), `request_attachments`, `attended_publications`, `rate_limits` | Nadie escribe directo: funciones de la base. La auditoría guarda quién, cuándo y qué campos, nunca el contenido |
+| Importador de la web vieja (06/11) | `web_import_items` (artículo viejo → borrador, con el `rev` que dejó el importador y qué revisar), `web_import_media` (foto vieja → archivo de la biblioteca) | Solo el importador (el sistema) escribe; el equipo de la web lee. Ver «Importador de la web vieja» |
 | Google Drive y miniaturas | `drive_connection`, `drive_folders`, `media_drive`, `media_thumbs`, `drive_transfer`; función `drive_status()` | Solo el servidor (RLS activo, sin políticas, sin permisos para los roles de la API). Un archivo de Drive es una fila normal de `media_assets` con `bucket = 'drive'`. `media_thumbs` guarda también las miniaturas hechas en el teléfono (cualquier almacenamiento) |
 
 Índices en las columnas de búsqueda y orden (estado, fechas, claves foráneas). Borrado: columna `deleted_at` y
@@ -226,6 +227,15 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
   archivos de la demo debajo (`local-files.ts`, `demo-store.ts`).
 - **Demo:** `src/lib/db/seed-parts/web*.ts` (gente de los roles nuevos siempre; el contenido y las 60 solicitudes solo en
   el servidor de la demo: `seedDemo(…, { webContent: true })`), ids fijos.
+- **Importador de la web vieja** (D-97, `docs/PLAN-MIGRACION-Y-PRODUCCION.md`): `npm run web:import`
+  (`scripts/web-import/`: `wp-client.ts` lee la API de WordPress con cortesía y solo de la propia web; `html.ts` y
+  `convert.ts` pasan el HTML al texto estructurado; `pii.ts` quita correos, teléfonos y cédulas; `media.ts` elige y
+  revisa las fotos con `checkWebMediaFile`; `mapping.ts` arma el borrador y las direcciones; `run.ts` decide y escribe;
+  `store.ts`, la base y el balde). Escribe como el sistema y solo con `--apply`; recuerda la procedencia en
+  `web_import_items` y `web_import_media` (`20261106300100_web_importador.sql`), que el equipo de la web lee con RLS.
+  `guard_web_item_ready` no deja publicar una foto con «[Por escribir]» ni un texto con las marcas
+  (`src/lib/web/import-marks.ts`). Las redirecciones viejas se buscan una por una (`redirect-map.ts`); un archivo viejo
+  que no se trajo responde 410 (`proxy.ts`).
 
 ## Guías, tutoriales y Ayuda (D-42 a D-48)
 - **Una sola fuente:** `src/lib/guides/` (un archivo por rol, `shared.ts`, `admin.ts`, `flows.ts`, `sections.ts`,
@@ -338,6 +348,7 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 | `20261106000100_web_publica.sql` | Los seis roles de la web y la atención se dan; puertas con doble factor del token; territorios, contenido, versiones, biblioteca, ajustes, redirecciones; funciones de publicar; lo que lee anon; baldes de Storage (D-90, D-93, D-96). No está en `fb-dev` |
 | `20261106000200_participacion.sql` | Áreas, categorías, solicitudes y todo alrededor, la máquina de estados y las funciones del equipo, auditoría sin contenido (D-92). No está en `fb-dev` |
 | `20261106000300_citizen.sql` | El esquema `citizen`: lo que hace el ciudadano sin cuenta, solo para anon (D-96). No está en `fb-dev` |
+| `20261106300100_web_importador.sql` | De dónde vino cada borrador y foto importados de la web vieja (`web_import_items`, `web_import_media`, lectura con RLS para el equipo de la web, sin escritura por la API) y `guard_web_item_ready`: no se publica «[Por escribir]» ni las marcas de datos quitados (D-97). No está en `fb-dev` |
 
 ## Tareas programadas
 - `/api/cron/tick` (con `CRON_SECRET`): aviso de tweets por acabarse (una vez al día) y publicaciones vencidas
