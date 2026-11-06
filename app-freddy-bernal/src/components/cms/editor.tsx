@@ -213,7 +213,7 @@ export function Editor({
                     : 'Ya está publicado: la dirección la cambia quien aprueba la web (y deja la vieja llevando aquí).'
                 }
               />
-              {slugEditable && typeof value.draft.title === 'string' && value.draft.title.trim() && slugFromTitle(value.draft.title) !== value.slug ? (
+              {slugEditable && !item.hasPublished && typeof value.draft.title === 'string' && value.draft.title.trim() && slugFromTitle(value.draft.title) !== value.slug ? (
                 <Button type="button" size="sm" variant="ghost" className="self-start" onClick={() => setValue((x) => ({ ...x, slug: slugFromTitle(String(x.draft.title)) }))}>
                   Usar el título como dirección
                 </Button>

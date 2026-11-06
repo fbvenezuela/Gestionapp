@@ -27,6 +27,13 @@ type ItemRow = {
 const ITEM = `id, kind, slug, status, rev, draft, draft_version, published is not null as has_published, archived_at, submitted_by`;
 type Ref = { id: string; kind: WebKind; slug: string; title: string; draftVersion: number };
 
+/** The database's own gate for drafts (can_edit_web: the editor, the publisher and the boss, with 2FA), said in words
+ * before RLS would quietly match nothing. */
+async function mayEdit(sql: Sql): Promise<void> {
+  const r = await sql.one<{ ok: boolean }>(`select public.can_edit_web() as ok`);
+  if (!r?.ok) throw new UserError('Escriben la web el editor, quien aprueba la web y el jefe, con doble factor.');
+}
+
 async function load(sql: Sql, id: string, lock = false): Promise<ItemRow> {
   const it = await sql.one<ItemRow>(`select ${ITEM} from public.web_items where id = $1${lock ? ' for update' : ''}`, [id]);
   if (!it) throw new UserError(NOT_FOUND_TEXT);
@@ -50,6 +57,7 @@ const createInput = z.object({
 /** «Nuevo»: a draft with the kind's starting fields and a free address made from the title. */
 export async function createWebItem(raw: unknown): Promise<Result<{ id: string }>> {
   return act(createInput, raw, async (sql, i) => {
+    await mayEdit(sql);
     const base = slugFromTitle(i.title);
     const taken = new Set(
       (await sql.query<{ slug: string }>(`select slug from public.web_items where kind = $1 and (slug = $2 or slug like $2 || '-%')`, [i.kind, base])).map((r) => r.slug),
@@ -79,6 +87,7 @@ export type SaveResult = { rev: number; draftVersion: number; status: string; pr
 export async function saveWebDraft(raw: unknown): Promise<Result<SaveResult>> {
   const after: { moved?: { kind: WebKind; from: string; to: string } } = {};
   const r = await act(saveInput, raw, async (sql, i) => {
+    await mayEdit(sql);
     const it = await load(sql, i.id, true);
     if (it.archived_at) throw new UserError('Está archivado: quien aprueba lo desarchiva antes de cambiarlo.');
     if (it.rev !== i.rev) throw new UserError(CONFLICT_TEXT);
@@ -138,6 +147,7 @@ async function archivedMediaIn(sql: Sql, draft: unknown): Promise<number> {
 export async function submitWebItem(raw: unknown): Promise<Result<{ rev: number }>> {
   const after: { sent?: Ref; actor?: string } = {};
   const r = await act(z.object({ id: uuid }), raw, async (sql, i, s) => {
+    await mayEdit(sql);
     const it = await load(sql, i.id, true);
     if (it.archived_at) throw new UserError('Está archivado: quien aprueba lo desarchiva antes de mandarlo.');
     if (it.status === 'in_review') return { rev: it.rev };
@@ -158,6 +168,7 @@ export async function submitWebItem(raw: unknown): Promise<Result<{ rev: number 
 /** «Retirar de revisión»: back to the draft, to keep working on it before the publisher looks. */
 export async function withdrawWebItem(raw: unknown): Promise<Result<{ rev: number }>> {
   return act(z.object({ id: uuid }), raw, async (sql, i) => {
+    await mayEdit(sql);
     const it = await load(sql, i.id, true);
     if (it.status !== 'in_review') throw new UserError('Ese contenido no está esperando aprobación.');
     const row = await sql.one<{ rev: number }>(`update public.web_items set status = 'draft' where id = $1 returning rev`, [it.id]);

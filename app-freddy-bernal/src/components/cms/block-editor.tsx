@@ -214,22 +214,15 @@ export function BlockEditor({ value, onChange }: { value: unknown; onChange: (bl
                   </Button>
                   {!readOnly ? (
                     <>
-                      <Button {...ref(`${b.id}:up`)} type="button" size="sm" variant="secondary" onClick={() => move(i, -1)} disabled={i === 0}>
-                        <ArrowUp className="h-4 w-4" aria-hidden /> Subir<span className="sr-only"> {name(b, i)}</span>
+                      <Button {...ref(`${b.id}:up`)} type="button" size="sm" variant="secondary" onClick={() => move(i, -1)} disabled={i === 0} aria-label={`Subir ${name(b, i)}`} title="Subir">
+                        <ArrowUp className="h-4 w-4" aria-hidden /> <span className="hidden sm:inline">Subir</span>
                       </Button>
-                      <Button {...ref(`${b.id}:down`)} type="button" size="sm" variant="secondary" onClick={() => move(i, 1)} disabled={i === list.length - 1}>
-                        <ArrowDown className="h-4 w-4" aria-hidden /> Bajar<span className="sr-only"> {name(b, i)}</span>
+                      <Button {...ref(`${b.id}:down`)} type="button" size="sm" variant="secondary" onClick={() => move(i, 1)} disabled={i === list.length - 1} aria-label={`Bajar ${name(b, i)}`} title="Bajar">
+                        <ArrowDown className="h-4 w-4" aria-hidden /> <span className="hidden sm:inline">Bajar</span>
                       </Button>
-                      <Button type="button" size="sm" variant="secondary" onClick={() => toggle(i)} aria-pressed={!b.visible}>
+                      <Button type="button" size="sm" variant="secondary" onClick={() => toggle(i)} aria-label={`${b.visible ? 'Ocultar' : 'Mostrar'} ${name(b, i)}`} title={b.visible ? 'Ocultar' : 'Mostrar'}>
                         {b.visible ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
-                        {b.visible ? 'Ocultar' : 'Mostrar'}
-                        <span className="sr-only"> {name(b, i)}</span>
-                      </Button>
-                      <Button type="button" size="sm" variant="secondary" onClick={() => duplicate(i)}>
-                        <Copy className="h-4 w-4" aria-hidden /> Duplicar<span className="sr-only"> {name(b, i)}</span>
-                      </Button>
-                      <Button type="button" size="sm" variant="danger" onClick={() => remove(i)}>
-                        <Trash2 className="h-4 w-4" aria-hidden /> Eliminar<span className="sr-only"> {name(b, i)}</span>
+                        <span className="hidden sm:inline">{b.visible ? 'Ocultar' : 'Mostrar'}</span>
                       </Button>
                     </>
                   ) : null}
@@ -239,6 +232,16 @@ export function BlockEditor({ value, onChange }: { value: unknown; onChange: (bl
                 <div id={formId} className="flex flex-col gap-4 border-t border-border p-3 sm:p-4">
                   <p className="text-sm text-text-2">{BLOCK_HELP[b.type]}</p>
                   <BlockForm block={b} set={(p) => setData(i, p)} />
+                  {!readOnly ? (
+                    <div className="flex flex-wrap gap-2 border-t border-border pt-3">
+                      <Button type="button" size="sm" variant="secondary" onClick={() => duplicate(i)}>
+                        <Copy className="h-4 w-4" aria-hidden /> Duplicar<span className="sr-only"> {name(b, i)}</span>
+                      </Button>
+                      <Button type="button" size="sm" variant="danger" onClick={() => remove(i)}>
+                        <Trash2 className="h-4 w-4" aria-hidden /> Eliminar el bloque<span className="sr-only"> {name(b, i)}</span>
+                      </Button>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </li>

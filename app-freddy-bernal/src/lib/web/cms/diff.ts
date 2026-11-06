@@ -76,7 +76,10 @@ const BLOCK_DATA_LABELS: Record<string, string> = {
 
 function fieldChanges(kind: WebKind, before: Obj, after: Obj): FieldChange[] {
   const labels = FIELD_LABELS[kind];
-  const keys = [...new Set([...Object.keys(labels), ...Object.keys(before), ...Object.keys(after)])].filter((k) => k !== 'blocks');
+  // The search-engine fields last: what the page says comes first.
+  const keys = [...new Set([...Object.keys(labels), ...Object.keys(before), ...Object.keys(after)])]
+    .filter((k) => k !== 'blocks')
+    .sort((a, b) => Number(a === 'seo') - Number(b === 'seo'));
   const out: FieldChange[] = [];
   for (const k of keys) {
     if (k === 'seo') {
