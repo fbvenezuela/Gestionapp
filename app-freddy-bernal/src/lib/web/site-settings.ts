@@ -96,6 +96,8 @@ export type Site = {
   region: string;
   greeting: string;
   wordmark: string;
+  /** The weekly program's name (the client's brand), for the episodes' page when the navigation does not name it. */
+  programName: string;
   navigation: NavLink[];
   legal: NavLink[];
   about: string;
@@ -172,6 +174,7 @@ export function normalizeSite(raw: Record<string, unknown>, opts: SiteOptions): 
     region: identity.region ?? cfg.brand.region,
     greeting: identity.greeting ?? cfg.brand.greeting,
     wordmark: identity.wordmark || `${identity.name} · ${identity.title}`,
+    programName: cfg.brand.programName,
     navigation: get('site.navigation'),
     legal: footer.legal,
     about: footer.about,
@@ -187,4 +190,9 @@ export function normalizeSite(raw: Record<string, unknown>, opts: SiteOptions): 
     person: { name: structured.personName || identity.name, jobTitle: structured.jobTitle || sd.jobTitle },
     organization: { name: structured.organizationName || sd.organizationName, areaServed: sd.areaServed, country: sd.country },
   };
+}
+
+/** The label the site's navigation gives an address («/reporte-bernal» → «Reporte Bernal»), or the fallback. */
+export function navLabel(site: Pick<Site, 'navigation'>, path: string, fallback: string): string {
+  return site.navigation.find((n) => n.path === path)?.label ?? fallback;
 }

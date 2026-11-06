@@ -1,0 +1,66 @@
+import { ArrowRightIcon, FileQuestionMarkIcon, MegaphoneIcon, MessageSquareTextIcon, SearchIcon, ShieldAlertIcon, TriangleAlertIcon } from './icons';
+import { REQUEST_TYPE_HINT } from '@/lib/participation/input';
+import { ATTENTION, newRequestHref, REPORT_HREF } from '@/lib/web/links';
+import { cn } from '@/lib/cn';
+import { cardClass, Container, SectionHeading, textLinkClass, WebLink } from './ui';
+
+// The big accesses to citizen participation (the brief's «cuatro accesos grandes» and design §2): «Hacer un reporte» in
+// the brand's orange, then a petition, an acotación and a denuncia, and «Consultar mi solicitud». Each one opens the
+// form on its kind (?tipo=…, the citizen pages). «Not an emergency service» is said right here, where people act.
+
+const SECONDARY = [
+  { href: newRequestHref('peticion'), title: 'Hacer una petición', hint: REQUEST_TYPE_HINT.peticion, Icon: FileQuestionMarkIcon },
+  { href: newRequestHref('acotacion'), title: 'Dejar una acotación', hint: REQUEST_TYPE_HINT.acotacion, Icon: MessageSquareTextIcon },
+  { href: newRequestHref('denuncia'), title: 'Hacer una denuncia', hint: REQUEST_TYPE_HINT.denuncia, Icon: ShieldAlertIcon },
+  { href: ATTENTION.lookup, title: 'Consultar mi solicitud', hint: 'Con el código y la clave que recibiste al enviarla.', Icon: SearchIcon },
+] as const;
+
+export function ParticipationActions({ title, emergencyNotice, as = 'h2' }: { title: string; emergencyNotice: string; as?: 'h1' | 'h2' }) {
+  return (
+    <section className="bg-surface py-14 sm:py-20">
+      <Container>
+        <SectionHeading title={title} as={as} intro="Sin crear una cuenta. Recibes un código para seguir tu caso, y nada de lo que envías es público." />
+        <div className="grid gap-4 lg:grid-cols-12">
+          <WebLink
+            href={REPORT_HREF}
+            className="group flex min-h-64 flex-col justify-between gap-6 rounded-[var(--radius-card)] bg-action p-7 text-on-action shadow-[var(--glass-shadow)] hover:bg-action-hover sm:p-9 lg:col-span-5"
+          >
+            <MegaphoneIcon className="h-9 w-9" />
+            <span>
+              <span className="block text-3xl font-bold leading-tight tracking-tight sm:text-4xl">Hacer un reporte</span>
+              <span className="mt-3 block text-lg leading-relaxed">{REQUEST_TYPE_HINT.reporte}</span>
+            </span>
+            <span className="inline-flex items-center gap-2 font-semibold" aria-hidden>
+              Empezar <ArrowRightIcon className="h-5 w-5 transition-transform motion-safe:group-hover:translate-x-1" />
+            </span>
+          </WebLink>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:col-span-7">
+            {SECONDARY.map(({ href, title: label, hint, Icon }) => (
+              <li key={href}>
+                <WebLink href={href} className={cn(cardClass, 'group flex h-full min-h-40 flex-col gap-3 p-6 hover:border-accent')}>
+                  <Icon className="h-7 w-7 text-accent-ink" />
+                  <span className="text-xl font-semibold leading-snug text-text">{label}</span>
+                  <span className="text-base leading-relaxed text-text-2">{hint}</span>
+                </WebLink>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <p className="mt-8 text-base leading-relaxed text-text-2">
+          ¿Una sugerencia o un agradecimiento?{' '}
+          <WebLink href={ATTENTION.newRequest} className={textLinkClass}>
+            También puedes dejarlos aquí
+          </WebLink>
+          .{' '}
+          <WebLink href="/gestion" className={textLinkClass}>
+            Explorar la gestión
+          </WebLink>
+        </p>
+        <p className="mt-4 flex items-start gap-2 rounded-2xl bg-warn-soft px-4 py-3 text-base font-medium leading-relaxed text-warn">
+          <TriangleAlertIcon className="mt-0.5 h-5 w-5 shrink-0" />
+          {emergencyNotice}
+        </p>
+      </Container>
+    </section>
+  );
+}

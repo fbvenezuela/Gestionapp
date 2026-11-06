@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Montserrat } from 'next/font/google';
-import { Toaster } from 'sonner';
 import { brand } from '@/lib/client-config';
-import { OfflineBanner } from '@/components/shell/offline-banner';
-import { SwRegister } from '@/components/shell/sw-register';
-import { GlassScript } from '@/components/shell/glass-script';
 import './globals.css';
 
 const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-montserrat', display: 'swap' });
@@ -24,16 +20,13 @@ export const viewport: Viewport = {
   themeColor: brand.themeColor,
 };
 
+// The root of both faces of the app: the public website (src/app/(web), its own light frame) and the team's panel
+// (its groups wrap themselves in PanelChrome: glass switch, «Sin señal», toasts and the service worker). Nothing here
+// runs in the browser.
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es-VE" className={montserrat.variable} suppressHydrationWarning>
-      <body className="min-h-dvh antialiased">
-        <GlassScript />
-        <OfflineBanner />
-        {children}
-        <Toaster position="top-center" richColors closeButton />
-        <SwRegister />
-      </body>
+      <body className="min-h-dvh antialiased">{children}</body>
     </html>
   );
 }

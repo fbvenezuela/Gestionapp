@@ -13,7 +13,7 @@ import { WEB_REVALIDATE, WEB_REVALIDATE_SLOW, WEB_TAG } from './tags';
 // What the public website reads, always as anon (D-96), kept in Next's data cache with tags (tags.ts): a page asks here
 // and the database is read again only after WEB_REVALIDATE seconds or when revalidate.ts says something changed. The
 // cache holds plain JSON (dates as ISO text). React's cache() makes each read happen once per request (the layout, the
-// page and its metadata ask for the same things).
+// page and its metadata ask for the same things); it is keyed by text, so two calls with equal filters share it.
 //
 // Errors: while `next build` prerenders the pages, a database that cannot be read (for instance, one without the web's
 // migrations yet) gives empty sections and a warning, so the build of the whole app does not fail; the page is read
@@ -39,24 +39,36 @@ async function read<T>(what: string, fn: () => Promise<T>, empty: T): Promise<T>
   }
 }
 
-/** A page of published items of a kind (filters, search, order) and how many there are. */
-export const listItems = cache(<K extends WebKind>(f: ListFilter & { kind: K }): Promise<{ items: WebItem<K>[]; total: number }> =>
-  read(
+/** The same filter always gives the same text (keys in order, empty ones out): the key of both caches. */
+export function filterKey(f: ListFilter): string {
+  const entries = Object.entries(f)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+    .sort(([a], [b]) => a.localeCompare(b));
+  return JSON.stringify(Object.fromEntries(entries));
+}
+
+const listByKey = cache((key: string): Promise<{ items: WebItem[]; total: number }> => {
+  const f = JSON.parse(key) as ListFilter;
+  return read(
     `lista ${f.kind}`,
     unstable_cache(
       async () => {
         const r = await withAnon((sql) => publishedList(sql, f));
         return { items: r.items.map(plain), total: r.total };
       },
-      ['web-list-v1', JSON.stringify(f)],
+      ['web-list-v1', key],
       { tags: [WEB_TAG.all, WEB_TAG.kind(f.kind)], revalidate: WEB_REVALIDATE },
     ),
     { items: [], total: 0 },
-  ),
-);
+  );
+});
 
-/** One published item by its address, or null. */
-export const getItem = cache(<K extends WebKind>(kind: K, slug: string): Promise<WebItem<K> | null> =>
+/** A page of published items of a kind (filters, search, order) and how many there are. */
+export function listItems<K extends WebKind>(f: ListFilter & { kind: K }): Promise<{ items: WebItem<K>[]; total: number }> {
+  return listByKey(filterKey(f)) as Promise<{ items: WebItem<K>[]; total: number }>;
+}
+
+const itemBySlug = cache((kind: WebKind, slug: string): Promise<WebItem | null> =>
   read(
     `${kind}/${slug}`,
     unstable_cache(
@@ -71,19 +83,26 @@ export const getItem = cache(<K extends WebKind>(kind: K, slug: string): Promise
   ),
 );
 
-/** Published items by id (a block's references), in the order given; the missing ones are left out. */
-export const itemsByIds = cache((ids: string[]): Promise<WebItem[]> =>
-  ids.length
-    ? read(
-        'referencias',
-        unstable_cache(async () => (await withAnon((sql) => publishedByIds(sql, ids))).map(plain), ['web-ids-v1', ids.join(',')], {
-          tags: [WEB_TAG.all],
-          revalidate: WEB_REVALIDATE,
-        }),
-        [],
-      )
-    : Promise.resolve([]),
+/** One published item by its address, or null. */
+export function getItem<K extends WebKind>(kind: K, slug: string): Promise<WebItem<K> | null> {
+  return itemBySlug(kind, slug) as Promise<WebItem<K> | null>;
+}
+
+const itemsByKey = cache((key: string): Promise<WebItem[]> =>
+  read(
+    'referencias',
+    unstable_cache(async () => (await withAnon((sql) => publishedByIds(sql, key.split(',')))).map(plain), ['web-ids-v1', key], {
+      tags: [WEB_TAG.all],
+      revalidate: WEB_REVALIDATE,
+    }),
+    [],
+  ),
 );
+
+/** Published items by id (a block's references), in the order given; the missing ones are left out. */
+export function itemsByIds(ids: readonly string[]): Promise<WebItem[]> {
+  return ids.length ? itemsByKey(ids.join(',')) : Promise.resolve([]);
+}
 
 /** The public rows of web_settings, by key (site.ts turns them into what the pages show). */
 export const rawSettings = cache((): Promise<Record<string, unknown>> =>

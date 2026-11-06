@@ -11,7 +11,15 @@ export function siteBaseUrl(): string {
   return (env.site.url || env.appUrl).replace(/\/+$/, '');
 }
 
-/** The public website's settings as the pages show them (once per request; cached as anon with the tag web:settings). */
-export const getSite = cache(async (): Promise<Site> =>
-  normalizeSite(await rawSettings(), { demo: isDemo(), indexable: env.site.indexable, baseUrl: siteBaseUrl() }),
-);
+/** The public website's settings as the pages show them (once per request; cached as anon with the tag web:settings).
+ * If the settings cannot be read, the starting values of the client's config: the header, the footer and the 404 page
+ * still show (the page's own content decides whether it can). */
+export const getSite = cache(async (): Promise<Site> => {
+  const opts = { demo: isDemo(), indexable: env.site.indexable, baseUrl: siteBaseUrl() };
+  try {
+    return normalizeSite(await rawSettings(), opts);
+  } catch (e) {
+    console.error('[web] no se pudieron leer los ajustes del sitio; se usan los iniciales:', (e as Error).message);
+    return normalizeSite({}, opts);
+  }
+});

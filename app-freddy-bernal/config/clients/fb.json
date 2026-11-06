@@ -1111,7 +1111,7 @@
        "visible": true,
        "data": {
         "title": "Lo atendido",
-        "limit": 6
+        "limit": 3
        }
       },
       {
@@ -1120,7 +1120,7 @@
        "visible": true,
        "data": {
         "title": "Gestión y obras",
-        "limit": 6
+        "limit": 3
        }
       },
       {
@@ -1227,7 +1227,7 @@
       }
      ],
      "seo": {
-      "title": "Freddy Bernal, gobernador del Táchira",
+      "title": "Quién es Freddy Bernal, gobernador del Táchira",
       "description": "Quién es Freddy Bernal, gobernador del estado Táchira, Venezuela: biografía, trayectoria y prioridades de su gestión."
      }
     }
