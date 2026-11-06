@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { FileText, ImageIcon, X } from 'lucide-react';
+import { FileText, ImageIcon, Paperclip, X } from 'lucide-react';
 import { ATTACHMENT_ACCEPT, FILES_PER_SEND } from '@/lib/actions/participation-types';
 import { cn } from '@/lib/cn';
 import { prepareFile } from './files-client';
@@ -54,9 +54,9 @@ export function FilePicker({
 
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-base font-semibold text-text">
+      <p className="text-base font-semibold text-text">
         {label} <span className="font-normal text-text-2">(opcional)</span>
-      </label>
+      </p>
       <p id={`${id}-hint`} className="-mt-1 text-[15px] leading-snug text-text-2">
         {hintText}
       </p>
@@ -65,18 +65,30 @@ export function FilePicker({
           Antes elegiste {remembered.join(', ')}. El navegador no guarda archivos al recargar: vuelve a elegirlos si quieres enviarlos.
         </p>
       ) : null}
-      <input
-        ref={input}
-        id={id}
-        type="file"
-        multiple
-        accept={ATTACHMENT_ACCEPT}
-        disabled={room <= 0 || busy > 0}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy(id, { hint: true, error })}
-        onChange={(e) => void pick(e.currentTarget.files)}
-        className="block w-full min-h-12 rounded-[var(--radius-control)] border border-dashed border-border bg-surface p-2 text-[15px] text-text file:mr-3 file:min-h-10 file:cursor-pointer file:rounded-[var(--radius-control)] file:border-0 file:bg-accent file:px-4 file:font-semibold file:text-on-accent disabled:opacity-60"
-      />
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          ref={input}
+          id={id}
+          type="file"
+          multiple
+          accept={ATTACHMENT_ACCEPT}
+          disabled={room <= 0 || busy > 0}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy(id, { hint: true, error })}
+          onChange={(e) => void pick(e.currentTarget.files)}
+          className="peer sr-only"
+        />
+        <label
+          htmlFor={id}
+          className="inline-flex min-h-12 cursor-pointer items-center gap-2 rounded-[var(--radius-control)] border-2 border-dashed border-accent bg-surface px-4 py-2 text-[15px] font-semibold text-text hover:bg-accent-soft peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus peer-disabled:cursor-not-allowed peer-disabled:opacity-60"
+        >
+          <Paperclip className="h-5 w-5 text-accent-ink" aria-hidden />
+          {files.length ? 'Agregar otro archivo' : 'Elegir fotos o documentos'}
+        </label>
+        <span className="text-sm text-text-2">
+          {files.length ? `${files.length} de ${FILES_PER_SEND}` : 'Ningún archivo elegido'}
+        </span>
+      </div>
       <p role="status" aria-live="polite" className={cn('text-[15px] text-text-2', !busy && 'sr-only')}>
         {busy ? `Preparando ${busy === 1 ? 'un archivo' : `${busy} archivos`}…` : ''}
       </p>

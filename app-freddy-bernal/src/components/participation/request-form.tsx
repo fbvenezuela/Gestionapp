@@ -531,7 +531,7 @@ export function RequestForm({ municipalities, categories, linked, presetType, to
 
 function ReviewRow({ label, children, onEdit }: { label: string; children: ReactNode; onEdit: () => void }) {
   return (
-    <div className="flex items-start gap-3">
+    <div className="flex items-center gap-3">
       <dt className="w-20 shrink-0 font-semibold text-text-2">{label}</dt>
       <dd className="min-w-0 flex-1 break-words text-text">{children}</dd>
       <dd>
@@ -553,7 +553,7 @@ function Stepper({ step, onGo }: { step: Step; onGo: (s: Step) => void }) {
         const body = (
           <>
             <span className={cn('block h-1.5 rounded-full', done || current ? 'bg-accent' : 'bg-border')} aria-hidden />
-            <span className={cn('mt-2 flex items-center gap-1 text-sm', current ? 'font-bold text-text' : 'text-text-2')}>
+            <span className={cn('mt-2 flex items-center gap-1 text-xs sm:text-sm', current ? 'font-bold text-text' : 'text-text-2')}>
               {done ? <Check className="h-4 w-4 text-accent-ink" aria-hidden /> : <span aria-hidden>{s.n}.</span>}
               <span className="truncate">{s.label}</span>
             </span>
@@ -562,7 +562,7 @@ function Stepper({ step, onGo }: { step: Step; onGo: (s: Step) => void }) {
         return (
           <li key={s.n} aria-current={current ? 'step' : undefined}>
             {done ? (
-              <button type="button" onClick={() => onGo(s.n)} className="block min-h-11 w-full text-left" aria-label={`Volver al paso ${s.n}: ${s.label}`}>
+              <button type="button" onClick={() => onGo(s.n)} className="flex min-h-11 w-full flex-col justify-start text-left" aria-label={`Volver al paso ${s.n}: ${s.label}`}>
                 {body}
               </button>
             ) : (

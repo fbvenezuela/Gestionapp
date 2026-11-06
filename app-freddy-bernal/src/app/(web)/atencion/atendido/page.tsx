@@ -123,7 +123,7 @@ export default async function AttendedPage({ searchParams }: { searchParams: Pro
           <div className="mt-6 flex flex-col gap-10">
             {groups.map((g, gi) => (
               <section key={g.month} aria-labelledby={`mes-${gi}`} className="grid gap-4 md:grid-cols-[12rem_1fr] md:gap-8">
-                <h2 id={`mes-${gi}`} className="text-lg font-bold capitalize text-accent-ink md:sticky md:top-24 md:self-start">
+                <h2 id={`mes-${gi}`} className="text-lg font-bold text-accent-ink first-letter:uppercase md:sticky md:top-24 md:self-start">
                   {g.month}
                 </h2>
                 <ol className="flex flex-col gap-4">

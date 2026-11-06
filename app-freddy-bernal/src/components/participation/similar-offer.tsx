@@ -28,7 +28,7 @@ export function SimilarOffer({ count, onJoin, onSkip }: { count: number; onJoin:
           Sí, me sumo
         </Btn>
         <Btn tone="soft" size="lg" onClick={onSkip}>
-          No, es otro problema: sigo con el mío
+          No, es otro problema
         </Btn>
       </div>
     </div>

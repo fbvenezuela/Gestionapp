@@ -83,7 +83,7 @@ export default async function AttentionPage() {
             const big = t === 'reporte';
             const dark = t === 'denuncia';
             return (
-              <li key={t} className={cn(big && 'sm:col-span-2 lg:row-span-2 lg:col-span-1', dark && 'sm:col-span-2 lg:col-span-2')}>
+              <li key={t} className={cn(big && 'sm:col-span-2 lg:row-span-2 lg:col-span-1', dark && 'sm:col-span-2 lg:col-span-3')}>
                 <Link
                   href={`/atencion/nueva?tipo=${t}`}
                   className={cn(

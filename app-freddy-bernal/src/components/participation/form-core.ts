@@ -160,12 +160,48 @@ export function errorsOf(issues: readonly { path: readonly PropertyKey[]; messag
   return out;
 }
 
+const PLACEHOLDER_UUID = '00000000-0000-4000-8000-000000000000';
+
+/**
+ * zod runs the schema's cross-field rules (the municipality a reporte needs, the denuncia's place, the location's
+ * permission, a coherent contact) only once every field passes on its own. To say them on the step that owns them, the
+ * form checks a copy where each field that failed on its own holds a valid stand-in that changes none of those rules.
+ */
+function standInsFor(input: Record<string, unknown>, issues: readonly { path: readonly PropertyKey[] }[]): Record<string, unknown> {
+  const bad = new Set(issues.map((i) => i.path.map(String).join('.')));
+  const out: Record<string, unknown> = { ...input };
+  if (bad.has('categoryId')) out.categoryId = PLACEHOLDER_UUID;
+  if (bad.has('title')) out.title = 'xxx';
+  if (bad.has('description')) out.description = 'xxxxxxxxxx';
+  if (bad.has('privacyAccepted')) out.privacyAccepted = true;
+  if (bad.has('eventDate')) out.eventDate = null;
+  if (bad.has('sector')) out.sector = '';
+  if (bad.has('locationReference')) out.locationReference = 'x';
+  const c = input.contact as Record<string, string> | null;
+  if (c) {
+    out.contact = {
+      ...c,
+      ...(bad.has('contact.name') ? { name: 'x' } : {}),
+      ...(bad.has('contact.email') ? { email: 'a@b.co' } : {}),
+      ...(bad.has('contact.phone') ? { phone: '0000000' } : {}),
+    };
+  }
+  return out;
+}
+
 /** Every problem of the whole form (the same schema as the server, plus the date rule with Táchira's today). */
 export function validate(v: FormValues, today: string): FieldErrors {
-  const r = requestInput.safeParse(toInput(v));
+  const input = toInput(v);
+  const r = requestInput.safeParse(input);
   const errors = r.success ? {} : errorsOf(r.error.issues);
+  if (!r.success && v.type) {
+    const again = requestInput.safeParse(standInsFor(input, r.error.issues));
+    if (!again.success) for (const [k, m] of Object.entries(errorsOf(again.error.issues))) errors[k] ??= m;
+  }
   const date = eventDateProblem(v.eventDate || null, today);
   if (date) errors.eventDate ??= date;
+  // The category's question shows once the kind is chosen: one thing at a time.
+  if (!v.type) delete errors.categoryId;
   return errors;
 }
 

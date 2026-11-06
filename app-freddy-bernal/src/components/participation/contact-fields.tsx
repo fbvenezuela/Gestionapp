@@ -21,7 +21,7 @@ export function ContactFields({ v, set, errors }: { v: FormValues; set: (p: Part
       <legend className="text-xl font-bold text-text">
         ¿Cómo te contactamos? <span className="text-base font-normal text-text-2">(opcional)</span>
       </legend>
-      <p className="-mt-2 text-[15px] leading-relaxed text-text-2">
+      <p className="text-[15px] leading-relaxed text-text-2">
         Con un contacto, el equipo puede pedirte un dato o contarte cómo va. Se guarda cifrado y solo lo ve quien atiende tu solicitud.
       </p>
 
@@ -61,7 +61,7 @@ export function ContactFields({ v, set, errors }: { v: FormValues; set: (p: Part
               aria-describedby={describedBy('f-contact-name', { error: errors['contact.name'] })}
             />
           </FieldBox>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5">
             <FieldBox id="f-contact-email" label="Correo" optional error={errors['contact.email']}>
               <input
                 id="f-contact-email"

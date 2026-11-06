@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { CheckCircle2, Copy, Download, FileText, ImageIcon, Printer, RotateCcw } from 'lucide-react';
 import { receiptPdf } from '@/lib/participation/pdf';
 import { cn } from '@/lib/cn';
@@ -113,20 +113,20 @@ export function ReceiptView({
         <dl className="mt-5 grid gap-5 sm:grid-cols-2">
           <div>
             <dt className="text-[15px] font-semibold text-text-2">Tu código</dt>
-            <dd className="mt-1 break-all font-mono text-2xl font-bold tracking-wider text-text sm:text-3xl" data-testid="comprobante-codigo">
-              {receipt.reference}
+            <dd className="mt-1 font-mono text-[1.35rem] font-bold tracking-wide text-text sm:text-3xl sm:tracking-wider" data-testid="comprobante-codigo">
+              <Breakable text={receipt.reference} />
             </dd>
           </div>
           <div>
             <dt className="text-[15px] font-semibold text-text-2">Tu clave</dt>
-            <dd className="mt-1 break-all font-mono text-2xl font-bold tracking-wider text-text sm:text-3xl" data-testid="comprobante-clave">
-              {receipt.secret}
+            <dd className="mt-1 font-mono text-[1.35rem] font-bold tracking-wide text-text sm:text-3xl sm:tracking-wider" data-testid="comprobante-clave">
+              <Breakable text={receipt.secret} />
             </dd>
           </div>
-          <div className="sm:col-span-2 text-[15px] text-text-2">
-            {support ? `Apoyo a un reporte (${typeLabel})` : typeLabel} · enviada el {longDateTime(receipt.sentAt)}
-          </div>
         </dl>
+        <p className="mt-4 text-[15px] text-text-2">
+          {support ? `Apoyo a un reporte (${typeLabel})` : typeLabel} · enviada el {longDateTime(receipt.sentAt)}
+        </p>
         <p className="mt-5 rounded-xl bg-warn-soft p-3 text-[15px] leading-snug text-text">
           <strong className="font-semibold">Guárdalos ahora.</strong> La clave se muestra solo esta vez y nadie del equipo la tiene: sin ella no se puede
           consultar la solicitud. No la compartas.
@@ -221,6 +221,24 @@ export function ReceiptView({
         )}
       </div>
     </div>
+  );
+}
+
+/** A code that may wrap only after its dashes (never in the middle of a group). */
+function Breakable({ text }: { text: string }) {
+  const parts = text.split('-');
+  return (
+    <>
+      {parts.map((p, i) => (
+        <Fragment key={i}>
+          <span className="whitespace-nowrap">
+            {p}
+            {i < parts.length - 1 ? '-' : ''}
+          </span>
+          {i < parts.length - 1 ? <wbr /> : null}
+        </Fragment>
+      ))}
+    </>
   );
 }
 

@@ -138,6 +138,23 @@ describe('enviar una solicitud', () => {
     expect(h.afters).toHaveLength(0);
   });
 
+  it('«que no me contacten» se respeta: con correo y canal «ninguno», no sale el correo de confirmación', async () => {
+    const r = await actions.sendRequest({ ...receipt(), input: report({ contact: { name: 'Ana Prueba', email: 'ana.prueba@demo.test', phone: '', channel: 'none' } }) });
+    expect(r.ok).toBe(true);
+    expect(h.afters).toHaveLength(0);
+  });
+
+  it('sobre un contenido publicado guarda a qué se refiere; uno sin publicar se rechaza con su motivo', async () => {
+    const live = (await sys<{ id: string }>(`select id from public.web_items where kind = 'project' and slug = 'rehabilitacion-avenida-principal-demo'`))!;
+    const draft = (await sys<{ id: string }>(`select id from public.web_items where kind = 'news' and slug = 'balance-del-mes-demo'`))!;
+    const ok = await actions.sendRequest({ ...receipt(), input: report({ type: 'acotacion', linkedItemId: live.id, anonymous: true, contact: null }) });
+    expect(ok).toMatchObject({ ok: true });
+    const row = (await sys<{ linked_item_id: string }>(`select linked_item_id from public.requests where reference = $1`, [(ok as { reference: string }).reference]))!;
+    expect(row.linked_item_id).toBe(live.id);
+    const refused = await actions.sendRequest({ ...receipt(), input: report({ type: 'acotacion', linkedItemId: draft.id, anonymous: true, contact: null }) });
+    expect(refused).toMatchObject({ ok: false, error: 'El contenido al que se refiere ya no está publicado.' });
+  });
+
   it('el mismo envío dos veces (un reintento) da el mismo código y una sola fila; otra clave con la misma llave no crea nada', async () => {
     const r0 = receipt();
     const input = report();
@@ -401,6 +418,21 @@ describe('los archivos', () => {
     expect(privateFiles()).toBe(before);
     const malformed = await upload.POST(post('http://localhost/api/atencion/adjuntos', { reference: 'AC-x', secret: 'y', file: photo() }));
     expect(malformed.status).toBe(404);
+  });
+
+  it('en Vercel (el cuerpo de una función llega a 4,5 MB) un archivo va hasta 4 MB, y se dice antes de leerlo', async () => {
+    const { maxAttachmentBytes } = await import('@/lib/actions/participation-core');
+    expect(maxAttachmentBytes(undefined)).toBe(8 * 1024 * 1024);
+    expect(maxAttachmentBytes('1')).toBe(4 * 1024 * 1024);
+    vi.stubEnv('VERCEL', '1');
+    try {
+      const big = new File([new Uint8Array(5 * 1024 * 1024)], 'grande.pdf', { type: 'application/pdf' });
+      const res = await upload.POST(post('http://localhost/api/atencion/adjuntos', { reference: `AC-${YEAR}-DEMR03`, secret: DEMR03.secret, file: big }));
+      expect(res.status).toBe(413);
+      expect(((await res.json()) as { error: string }).error).toBe('El archivo pasa de 4 MB: manda uno más liviano.');
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it('tipo falso, otro sitio y el cuarto archivo de un envío se rechazan', async () => {
