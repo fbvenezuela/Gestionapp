@@ -38,7 +38,9 @@ export default defineConfig({
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : [
-        { command: `npx next start -p ${port}`, port, env: { DEMO_SHORTCUTS: 'false' }, reuseExistingServer: !process.env.CI, timeout: 120_000 },
-        { command: `npx next start -p ${shortcutsPort}`, port: shortcutsPort, env: { DEMO_SHORTCUTS: 'true' }, reuseExistingServer: !process.env.CI, timeout: 120_000 },
+        // TRUST_PROXY_HEADERS: the test runner stands for the platform's proxy, giving each test a network of its own
+        // with x-real-ip (src/lib/participation/keys.ts trusts that header only on Vercel or with this variable).
+        { command: `npx next start -p ${port}`, port, env: { DEMO_SHORTCUTS: 'false', TRUST_PROXY_HEADERS: 'true' }, reuseExistingServer: !process.env.CI, timeout: 120_000 },
+        { command: `npx next start -p ${shortcutsPort}`, port: shortcutsPort, env: { DEMO_SHORTCUTS: 'true', TRUST_PROXY_HEADERS: 'true' }, reuseExistingServer: !process.env.CI, timeout: 120_000 },
       ],
 });

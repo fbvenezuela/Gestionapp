@@ -18,7 +18,9 @@ import { localFilesRoot } from '@/lib/storage/local-files';
 import { makeTestDb, type TestDb } from '../rls/setup';
 import { SECRET, contains, jpegWithGps } from './fixtures/photos';
 
+// The tests stand for the platform's proxy (they write x-real-ip): src/lib/participation/keys.ts trusts it only then.
 const h = vi.hoisted(() => ({
+  trust: (process.env.TRUST_PROXY_HEADERS = 'true'),
   jar: new Map<string, { value: string; opts?: Record<string, unknown> }>(),
   ip: '203.0.113.1',
   afters: [] as (() => unknown)[],

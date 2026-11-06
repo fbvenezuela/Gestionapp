@@ -4,6 +4,7 @@ import { withUser } from '@/lib/db';
 import { friendlyDbError } from '@/lib/db/core';
 import { toMediaInfo } from '@/lib/data/web-admin';
 import { bucketStore } from '@/lib/storage/buckets';
+import { readFormCapped } from '@/lib/request-body';
 import { ALT_MISSING, checkWebMediaFile, maxMediaBytes, sameSite, type WebMediaKind } from '@/lib/web/cms/media-file';
 
 // Uploading a photo or a PDF to the public media library (design §3, §6): one file per POST (multipart «file» with its
@@ -24,14 +25,11 @@ export async function POST(req: NextRequest) {
   if (!sameSite(req.headers, req.url)) return json(403, { ok: false, error: 'No permitido.' });
   const s = await getSession();
   if (!s || !s.mfaOk) return json(401, { ok: false, error: 'Entra de nuevo para subir archivos.' });
-  const length = Number(req.headers.get('content-length') ?? '0');
-  if (length > maxMediaBytes('document') + 64 * 1024) return json(413, { ok: false, error: 'El archivo es muy pesado para subirlo.' });
-  let form: FormData;
-  try {
-    form = await req.formData();
-  } catch {
-    return json(400, { ok: false, error: 'No llegó el archivo. Vuelve a intentarlo.' });
-  }
+  // The body is read with a cap, with or without Content-Length (src/lib/request-body.ts).
+  const body = await readFormCapped(req, maxMediaBytes('document') + 64 * 1024);
+  if (!body.ok && body.reason === 'too_big') return json(413, { ok: false, error: 'El archivo es muy pesado para subirlo.' });
+  if (!body.ok) return json(400, { ok: false, error: 'No llegó el archivo. Vuelve a intentarlo.' });
+  const form = body.form;
   const file = form.get('file');
   if (!file || typeof file === 'string') return json(400, { ok: false, error: 'No llegó el archivo. Vuelve a intentarlo.' });
   const kind: WebMediaKind = form.get('kind') === 'document' ? 'document' : 'image';

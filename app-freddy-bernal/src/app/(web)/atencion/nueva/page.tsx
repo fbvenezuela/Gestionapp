@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import { connection } from 'next/server';
-import { env } from '@/lib/env';
+import { env, isDemo } from '@/lib/env';
 import { SITE_NAME, maxAttachmentBytes, todayIso } from '@/lib/actions/participation-core';
 import { turnstileEnabled } from '@/lib/participation/turnstile';
 import { Band, PageIntro } from '@/components/participation/kit';
 import { ParticipationNav } from '@/components/participation/participation-nav';
 import { RequestForm } from '@/components/participation/request-form';
 import { NoJsForm } from '@/components/participation/no-js-form';
+import { DemoDataWarning } from '@/components/participation/demo-warning';
 import { isRequestType } from '@/components/participation/form-core';
 import { TYPE_COPY } from '@/components/participation/words';
 import { loadFormCatalog, loadLinkedItem } from '../_lib/data';
@@ -36,6 +37,7 @@ export default async function NewRequestPage({ searchParams }: { searchParams: P
           title={title}
           lead="Son cuatro pasos cortos y no hace falta cuenta. Lo que escribes se guarda en este teléfono mientras llenas el formulario, aunque se vaya la señal."
         />
+        <DemoDataWarning demo={isDemo()} className="mt-6 max-w-3xl" />
       </Band>
       <Band className="pt-4 sm:pt-6" inner="grid gap-10 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
         <div className="js-only min-w-0 max-w-3xl">
@@ -69,7 +71,11 @@ export default async function NewRequestPage({ searchParams }: { searchParams: P
           </div>
           <div className="flex flex-col gap-1">
             <h2 className="text-base font-bold">Solo lo necesario</h2>
-            <p className="text-text-2">Nunca te pedimos cédula ni afiliación. El contacto es opcional y se guarda cifrado.</p>
+            <p className="text-text-2">
+              {isDemo()
+                ? 'Nunca te pedimos cédula ni afiliación. El contacto es opcional; en la versión real se guarda cifrado.'
+                : 'Nunca te pedimos cédula ni afiliación. El contacto es opcional y se guarda cifrado.'}
+            </p>
           </div>
           <div className="flex flex-col gap-1">
             <h2 className="text-base font-bold">Fotos sin datos ocultos</h2>
