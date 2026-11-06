@@ -44,7 +44,7 @@ export default async function ConsultPage() {
         />
       </Band>
       <Band className="pt-4 sm:pt-6" inner="grid max-w-5xl gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <Panel>
+        <Panel className="lg:self-start">
           <LookupForm notice={notice} />
         </Panel>
         <aside className="flex flex-col gap-4 text-[15px] leading-relaxed text-text">

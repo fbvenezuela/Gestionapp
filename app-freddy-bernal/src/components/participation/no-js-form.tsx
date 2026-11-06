@@ -16,7 +16,7 @@ import { DENUNCIA_TEXT, EMERGENCY_TEXT, TYPE_COPY } from './words';
  * gets the same receipt. One page, no files and no map (they need JavaScript); the receipt is shown right here.
  */
 export function NoJsForm({
-  municipalities, categories, formKey, linkedItemId, presetType, today,
+  municipalities, categories, formKey, linkedItemId, presetType, today, turnstileOn = false,
 }: {
   municipalities: Territory[];
   categories: PublicCategory[];
@@ -24,8 +24,25 @@ export function NoJsForm({
   linkedItemId: string | null;
   presetType: RequestType | null;
   today: string;
+  /** Turnstile is configured: its check needs JavaScript, so a form without it could never be sent. */
+  turnstileOn?: boolean;
 }) {
   const [state, action] = useActionState(sendRequestWithoutJs, null);
+
+  if (turnstileOn) {
+    return (
+      <section aria-labelledby="sinjs-apagado" className="flex flex-col gap-4 rounded-[var(--radius-card)] border border-border bg-surface p-6">
+        <h2 id="sinjs-apagado" className="text-2xl font-bold text-text">
+          Para enviar, activa JavaScript
+        </h2>
+        <p className="text-[15px] leading-relaxed text-text">
+          Tu navegador no tiene JavaScript activo, y la comprobación de que no eres un robot lo necesita. Actívalo en los ajustes del navegador, o abre esta
+          página en otro navegador.
+        </p>
+        <p className="text-[15px] text-text-2">{EMERGENCY_TEXT}</p>
+      </section>
+    );
+  }
 
   if (state?.status === 'sent') {
     return (

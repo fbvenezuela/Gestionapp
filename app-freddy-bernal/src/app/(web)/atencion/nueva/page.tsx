@@ -59,6 +59,7 @@ export default async function NewRequestPage({ searchParams }: { searchParams: P
             linkedItemId={linked?.id ?? null}
             presetType={presetType}
             today={today}
+            turnstileOn={turnstileEnabled()}
           />
         </noscript>
         <aside className="flex flex-col gap-5 text-[15px] leading-relaxed text-text lg:sticky lg:top-24" aria-label="Lo que necesitas saber">
