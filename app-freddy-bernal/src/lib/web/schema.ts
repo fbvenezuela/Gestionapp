@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { blocks, externalUrl, richText, safeHref } from './blocks';
 
 // What each kind of content holds (design §3): the DRAFT the editors save and the snapshot the publisher publishes
-// (web_items.draft / published, 20261106000100_web_publica.sql). The database reads a few top-level keys when it
+// (web_items.draft / published, 20261106000110_web_publica.sql). The database reads a few top-level keys when it
 // publishes (title, excerpt, date «YYYY-MM-DD», municipalityId, category, state) to fill its filters, and freezes every
 // web_media id it finds. The rest is the app's: validated here before saving and before rendering. No figure without its
 // source: an investment, a progress percentage or an indicator's value carry where they come from. Pure.

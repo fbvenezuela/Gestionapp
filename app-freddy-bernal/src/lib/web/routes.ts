@@ -29,7 +29,7 @@ export const PUBLIC_FILES = ['robots.txt', 'sitemap.xml', 'opengraph-image', 'tw
 export const PANEL_SEGMENTS = [
   'acerca', 'privacidad', 'condiciones',
   'admin', 'agenda', 'ajustes', 'aprobar', 'avisos', 'ayuda', 'biblioteca', 'buscar', 'doble-factor', 'entrar', 'eventos', 'hoy', 'jefe',
-  'mensajes', 'municipios', 'obras', 'panel', 'perfil', 'piezas', 'publicar', 'redes', 'reportes', 'resultados', 'sin-acceso', 'tweets',
+  'mensajes', 'municipios', 'obras', 'oficina', 'panel', 'perfil', 'piezas', 'publicar', 'redes', 'reportes', 'resultados', 'sin-acceso', 'tweets',
 ] as const;
 
 // Framework folders, the API, the root files of src/app (icons, manifest) and the files of public/.

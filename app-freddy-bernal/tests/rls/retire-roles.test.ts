@@ -221,7 +221,7 @@ describe('se retiran Secretaría y Supervisión política sin perder historia', 
 
   it('el doble factor pide política e IVT, ya no supervisión, en el ajuste que ya existía', async () => {
     const v = await sys((sql) => sql.one<{ value: string[] }>(`select value from public.app_settings where key = 'security.mfa_roles'`));
-    // And, since 20261106000100_web_publica.sql, the roles of the web and of the attention desk.
+    // And, since 20261106000110_web_publica.sql, the roles of the web and of the attention desk.
     expect([...v!.value].sort()).toEqual(['admin', 'attention_coordinator', 'auditor', 'boss', 'complaints_operator', 'dispatch', 'ivt', 'politics',
       'reports_operator', 'web_publisher', 'writer']);
     expect(v!.value).not.toContain('supervisor');

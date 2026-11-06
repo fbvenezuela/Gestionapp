@@ -93,7 +93,7 @@ const PRIVACY_CHECKS: [string, string][] = [
   ['piece_notices_no_phone', 'No se guardó: el aviso tiene algo que parece un teléfono, y Redes lo lee. Quítalo: los contactos van en la ficha, con doble factor.'],
   ['content_months_label_no_phone', 'No se guardó: el nombre del mes tiene algo que parece un teléfono, y todo Redes lo lee.'],
   ['piece_details_sticker_url', 'El enlace del sticker empieza con https:// y no lleva espacios.'],
-  // 20261106000100_web_publica.sql and 20261106000200_participacion.sql (the public website and the attention desk).
+  // 20261106000110_web_publica.sql and 20261106000200_participacion.sql (the public website and the attention desk).
   ['web_media_image_alt', 'Falta el texto alternativo de la foto: describe en pocas palabras lo que se ve (lo leen los lectores de pantalla).'],
   ['attended_no_contact', 'No se publicó: el resumen tiene algo que parece un teléfono o un correo. Lo atendido sale sin datos de nadie.'],
   ['web_redirects_to_path_check', 'La redirección va a una dirección de esta web: empieza con / y no lleva espacios.'],

@@ -51,7 +51,7 @@ export const STAFF_ROLES = [...TEAM_ROLES, 'admin'] as const satisfies readonly 
 // No longer given; their history stays.
 export const RETIRED_ROLES = ['secretary', 'supervisor'] as const satisfies readonly Role[];
 // The public website and the citizen attention desk (D-93): the database gives them since
-// 20261106000100_web_publica.sql (user_roles_assignable, guard_invitation_roles), always with 2FA and never in the same
+// 20261106000110_web_publica.sql (user_roles_assignable, guard_invitation_roles), always with 2FA and never in the same
 // account as Administración (except the editor). No 360, guides, tutorials or Mensajes: they are not the team.
 export const WEB_ROLES = ['writer', 'web_publisher', 'attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor'] as const satisfies readonly Role[];
 // What admin can give in Ajustes → Equipo: the team, Administración and the web's and the attention desk's roles (a
@@ -62,7 +62,7 @@ export const INVITABLE_ROLES = [...STAFF_ROLES, ...WEB_ROLES] as const satisfies
 export const WEB_CONTENT_ROLES = ['writer', 'web_publisher'] as const satisfies readonly Role[];
 export const ATTENTION_ROLES = ['attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor'] as const satisfies readonly Role[];
 // Always with the second factor, whatever the editable list 'security.mfa_roles' says: every gate of the web and the
-// attention desk asks the token for it (is_aal2(), 20261106000100_web_publica.sql), so without it they would see nothing.
+// attention desk asks the token for it (is_aal2(), 20261106000110_web_publica.sql), so without it they would see nothing.
 export const MFA_ALWAYS: readonly Role[] = WEB_ROLES;
 // In the enum, not assignable.
 export const FUTURE_ROLES = ['aid_operator'] as const satisfies readonly Role[];
@@ -137,6 +137,10 @@ export const NAV: NavItem[] = [
   { href: '/agenda', label: 'Agenda', icon: 'calendar', roles: ['admin', 'boss', 'dispatch', 'social', 'camera', 'ivt'], mobile: ['admin', 'boss', 'dispatch', 'social', 'camera', 'ivt'] },
   { href: '/aprobar', label: 'Por aprobar', icon: 'check', roles: ['boss', 'admin'], mobile: ['boss'] },
   { href: '/redes', label: 'Redes', icon: 'megaphone', roles: ['admin', 'social', 'boss'], mobile: ['admin', 'social', 'boss'], also: ['/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca'] },
+  // «La oficina» (06/11/2026): the content line drawn as an office. Whoever sees the events (can_see_event); política
+  // and the IVT see none, so they do not get an empty office. The boss has it in his menu and also at the top of
+  // «Digital» (Juan, 06/11).
+  { href: '/oficina', label: 'Oficina', icon: 'office', roles: ['admin', 'boss', 'dispatch', 'social', 'camera'], mobile: ['camera'] },
   { href: '/obras', label: 'Obras', icon: 'hardhat', roles: ['admin', 'boss', 'dispatch', 'ivt'], mobile: ['dispatch', 'ivt'] },
   { href: '/municipios', label: 'Municipios', icon: 'map', roles: ['admin', 'boss', 'dispatch', 'politics'], mobile: ['dispatch', 'politics'] },
   { href: '/tweets', label: 'Tweets', icon: 'message', roles: ['admin', 'social'], mobile: ['social'] },

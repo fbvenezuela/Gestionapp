@@ -5,6 +5,7 @@ import { seedChat } from './seed-parts/chat';
 import { seedCore } from './seed-parts/core';
 import { seedFichaPhotos, seedFichas } from './seed-parts/fichas';
 import { seedHandoff } from './seed-parts/handoff';
+import { seedOffice } from './seed-parts/office';
 import { seedRedes } from './seed-parts/redes';
 import { seedThumbs } from './seed-parts/thumbs';
 import { seedWebContent, seedWebPeople } from './seed-parts/web';
@@ -67,6 +68,7 @@ export async function seedDemo(sql: Sql, tz = 'America/Caracas', opts: { webCont
   await seedFichaPhotos(ctx);
   await seedChat(ctx);
   await seedRedes(ctx);
+  await seedOffice(ctx);
   await seedWebPeople(ctx);
   if (opts.webContent) await seedWebContent(ctx);
 

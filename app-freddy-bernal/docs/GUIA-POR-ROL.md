@@ -66,7 +66,7 @@ Son seis roles: el jefe, el despacho, política, el IVT, Grabación y Redes. Par
 
 ## Jefe
 
-**Inicio:** `/jefe` · **Menú:** Inicio, Agenda, Por aprobar, Redes, Obras, Municipios, Digital, Web, Atención · **En el teléfono:** Inicio, Agenda, Por aprobar, Redes, Más (en «Más»: Obras, Municipios, Digital, Web, Atención)  
+**Inicio:** `/jefe` · **Menú:** Inicio, Agenda, Por aprobar, Redes, Oficina, Obras, Municipios, Digital, Web, Atención · **En el teléfono:** Inicio, Agenda, Por aprobar, Redes, Más (en «Más»: Oficina, Obras, Municipios, Digital, Web, Atención)  
 **Crear:** Nuevo evento, Visita de obra, Ficha de obra, Ficha comunitaria, Nueva pieza, Tweets de la semana, Nueva publicación · **Doble factor:** sí · En la app: `/ayuda/jefe`
 
 ### Tu trabajo
@@ -355,7 +355,7 @@ No se publica hasta que la vuelvas a aprobar. La plataforma te pregunta si tambi
 
 ## Despacho
 
-**Inicio:** `/hoy` · **Menú:** Hoy, Agenda, Obras, Municipios, Biblioteca · **En el teléfono:** Hoy, Agenda, Obras, Municipios, Biblioteca  
+**Inicio:** `/hoy` · **Menú:** Hoy, Agenda, Oficina, Obras, Municipios, Biblioteca · **En el teléfono:** Hoy, Agenda, Obras, Municipios, Más (en «Más»: Oficina, Biblioteca)  
 **Crear:** Nuevo evento, Visita de obra, Ficha de obra, Ficha comunitaria · **Doble factor:** sí · En la app: `/ayuda/despacho`
 
 ### Tu trabajo
@@ -487,7 +487,7 @@ Flujo: [Un reporte de la comunidad](FLUJOS.md#flujo-comunitario) · Tutorial en 
 | **Municipios**<br>Municipios · `/municipios` | Los eventos, avances e incidencias de cada municipio, con lo vencido arriba. | Arriba, «Vencidas en los municipios»: las que pasaron su fecha de seguimiento y no están finalizadas ni suspendidas.<br>«Nueva ficha comunitaria» para cargar un reporte.<br>Los números: «Abiertas», «En ejecución», «Finalizadas» y «Vencidas».<br>Filtras por municipio, parroquia, tipo, estado o prioridad, o «Solo las vencidas», y tocas «Filtrar»; «Quitar los filtros» lo limpia.<br>Abajo, los municipios: tocas uno para ver todo en orden de fecha, por parroquia. También salen sus obras. |
 | **Nueva ficha comunitaria**<br>Municipios · `/reportes/nuevo` | El reporte de una actividad o situación de la comunidad, por grupos. | Diez grupos, de «Persona que reporta» a «Evidencias y observaciones». Si una pregunta no va, «No aplica»; si falta saberlo, «Por confirmar».<br>«¿Va a la agenda del jefe?»: prendido, el botón dice «Guardar y avisar al jefe» y le llega al jefe y al despacho «Por ponerle fecha». Apagado, «Guardar» y queda en el registro del municipio.<br>Las fotos y los documentos se suben después de guardar, en la ficha.<br>No puedes: Poner teléfonos fuera de los contactos. |
 | **Una ficha comunitaria**<br>Municipios · `/reportes/[id]` | Todo de un reporte: sus datos, si va a la agenda del jefe, su estado, las evidencias y la historia. | «Editar» para corregirla.<br>«Agenda del jefe»: la fecha, o «Ponerle fecha» si va a la agenda y todavía no la tiene.<br>«Estado»: eliges el «Nuevo estado», escribes el «Motivo o avance (opcional)» y tocas «Cambiar estado». Cada cambio queda en la historia.<br>«Evidencias»: «Subir fotos del antes», «Subir fotos del después» y «Subir documentos». Los documentos los ven solo política, el jefe y el despacho.<br>«Historia»: «Agregar una nota» y «Guardar nota», sin teléfonos ni nombres de quien reporta.<br>Los contactos de «Persona que reporta» se ven con el doble factor. |
-| **Biblioteca**<br>Biblioteca · `/biblioteca` | El material por día y por evento, como una carpeta compartida. | «Buscar por evento o lugar».<br>Los días con sus eventos y sus archivos; lo que todavía no tiene día está en «En preparación (todavía sin día)».<br>«Descargar todo» de un evento baja su material a una carpeta, sin fechas en los nombres. |
+| **Biblioteca**<br>Biblioteca (en el teléfono, en «Más») · `/biblioteca` | El material por día y por evento, como una carpeta compartida. | «Buscar por evento o lugar».<br>Los días con sus eventos y sus archivos; lo que todavía no tiene día está en «En preparación (todavía sin día)».<br>«Descargar todo» de un evento baja su material a una carpeta, sin fechas en los nombres. |
 | **Mensajes**<br>Arriba, en todas las pantallas · `/mensajes` | Tus canales con el equipo y «Todo el equipo». Se abre con el sobre de arriba. | La primera fila es «Todo el equipo»; debajo, tus canales. En negrita, los que tienen algo nuevo.<br>Los canales archivados están al final, en «Archivados»: se leen, pero ya no se escribe en ellos.<br>Los canales los arma el jefe; si te hace falta uno, pídeselo. |
 | **Un canal**<br>Arriba, en todas las pantallas · `/mensajes/[id]` | Los mensajes de un canal, del más viejo al más nuevo. Abre donde dice «Mensajes nuevos» o al final. | Arriba están el nombre, para qué es el canal y «N personas»: tócalo para ver quiénes están.<br>Arriba, «Ver anteriores» trae los mensajes más viejos.<br>Escribes abajo, en la caja.<br>En el teléfono, la tecla Enter hace un salto de línea: el mensaje sale cuando tocas el botón de enviar (el avioncito de papel).<br>Tu mensaje sale al momento con “Enviando…”. Si se fue la señal, dice que no se envió y tocas «Reintentar».<br>Los teléfonos no van en los mensajes: los contactos van en la ficha, con doble factor.<br>Quien conoce la agenda (el jefe, el despacho, el IVT y Grabación) no escribe fechas, horas ni mapas donde está Redes o política: la plataforma no lo deja.<br>Si escribes una palabra como “mañana” o “el lunes” donde está Redes o política, la plataforma te pregunta antes de enviar, con «Enviar igual» o «Corregir».<br>Para hablar de un evento, una pieza o una ficha, pega su dirección de la plataforma: sale como una tarjetita con su título, y cada quien la abre con sus permisos.<br>En el menú de los tres puntos: «Silenciar» (deja de sonar en tu teléfono) o «Quitar el silencio».<br>Mensajes son canales: el jefe los arma, decide quién va en cada uno y está en todos. Cada canal muestra arriba quiénes están.<br>No puedes: Editar o borrar un mensaje.<br>No puedes: Mandar fotos, audios o archivos: para eso están el material y las piezas. |
 | **Avisos**<br>Arriba, en todas las pantallas · `/avisos` | Los avisos de tu trabajo. Se abren con la campana de arriba, que dice cuántos no has leído. | Tocas un aviso para ir a lo que dice.<br>«Marcar todo como leído» deja la campana en cero. |
@@ -761,7 +761,7 @@ La subida sigue sola cuando vuelve. Lo que escribiste queda guardado en el telé
 
 ## Grabación
 
-**Inicio:** `/hoy` · **Menú:** Hoy, Agenda · **En el teléfono:** Hoy, Agenda  
+**Inicio:** `/hoy` · **Menú:** Hoy, Agenda, Oficina · **En el teléfono:** Hoy, Agenda, Oficina  
 **Crear:** no tiene el botón · **Doble factor:** no · En la app: `/ayuda/grabacion`
 
 ### Tu trabajo
@@ -877,7 +877,7 @@ Sí. Si escribes un tiempo del video (los minutos y los segundos), la plataforma
 
 ## Redes
 
-**Inicio:** `/hoy` · **Menú:** Hoy, Agenda, Redes, Tweets, Publicar, Resultados, Biblioteca · **En el teléfono:** Hoy, Agenda, Redes, Tweets, Más (en «Más»: Publicar, Resultados, Biblioteca)  
+**Inicio:** `/hoy` · **Menú:** Hoy, Agenda, Redes, Oficina, Tweets, Publicar, Resultados, Biblioteca · **En el teléfono:** Hoy, Agenda, Redes, Tweets, Más (en «Más»: Oficina, Publicar, Resultados, Biblioteca)  
 **Crear:** Nueva pieza, Tweets de la semana, Nueva publicación · **Doble factor:** no · En la app: `/ayuda/redes`
 
 ### Tu trabajo

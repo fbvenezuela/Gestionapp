@@ -15,7 +15,7 @@ const fails = async (p: Promise<unknown>, msg?: RegExp) => {
   else await expect(p).rejects.toThrow();
 };
 // The retired roles and the one phase-3 role still unused. The web's and the attention desk's (writer, web_publisher,
-// attention_coordinator, reports_operator, complaints_operator, auditor) are given since 20261106000100_web_publica.sql
+// attention_coordinator, reports_operator, complaints_operator, auditor) are given since 20261106000110_web_publica.sql
 // (tests/rls/web-cms.test.ts).
 const RETIRED_AND_FUTURE = ['supervisor', 'secretary', 'aid_operator'] as const;
 

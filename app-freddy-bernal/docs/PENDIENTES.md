@@ -179,6 +179,10 @@ pruebe cada rol (lo pidió el 25/10).
 7. **Datos de terceros:** ¿cuánto tiempo se guardan los nombres y teléfonos de las fichas? (Ver #8 de la lista de
    decisiones: tiempo de los datos personales.)
 
+**La oficina (06/11/2026, D-100), para Juan:**
+Respondido por Juan el 06/11: el **editor en línea es el jefe** (solo él marca «Ya está limpio»); **sin nombres**,
+solo el puesto; **política y el IVT no ven la oficina**; **la IA sigue apagada** (plantilla con la ficha).
+
 **Lo que falta de nuestra parte:**
 - Las migraciones de esta ronda ya están en `fb-dev` (aplicadas y verificadas el 28/10, `PROMPT-SUPABASE.md`). Falta
   que Juan siga esa guía. Ahí se puede probar creando cosas entre roles (en la demo no: D-39).

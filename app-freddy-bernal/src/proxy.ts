@@ -83,7 +83,7 @@ export async function proxy(request: NextRequest) {
 // uploads (/wp-content/…) are matched on purpose: an imported photo has a redirect to its new address.
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|sw.js|offline.html|manifest.webmanifest|icon|apple-icon|api/archivos/web/|api/web/|.*\\.(?:png|jpg|svg|ico)$).*)',
+    '/((?!_next/static|_next/image|sw.js|offline.html|manifest.webmanifest|icon|apple-icon|api/archivos/web/|api/web/|.*\\.(?:png|jpg|webp|svg|ico)$).*)',
     '/wp-content/:path*',
   ],
 };

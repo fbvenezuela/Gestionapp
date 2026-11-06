@@ -3,7 +3,7 @@ import path from 'node:path';
 import { env } from '../env';
 import { insideFolder, localFilesRoot, readIfExists, writeAtomic } from './local-files';
 
-// The website's two logical buckets (design §6, 20261106000100_web_publica.sql §9):
+// The website's two logical buckets (design §6, 20261106000110_web_publica.sql §9):
 //   web-public             the media library (photos, PDFs of documents): public, never changes once uploaded.
 //   participacion-privado  the citizens' files and the team's evidence: never public.
 // With DATABASE_URL they are the Supabase buckets of those names (STORAGE_BUCKET_* to rename them), written with the

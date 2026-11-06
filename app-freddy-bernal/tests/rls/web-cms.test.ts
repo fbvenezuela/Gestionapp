@@ -1,4 +1,4 @@
-// The public website's content (20261106000100_web_publica.sql, D-90, D-93, D-96): every role and anon try what is not
+// The public website's content (20261106000110_web_publica.sql, D-90, D-93, D-96): every role and anon try what is not
 // theirs against the database. Drafts never reach anon; only the publisher or the boss publish, schedule, archive;
 // editors touch the draft only; versions and the audit keep the history without the content.
 import { describe, it, expect, beforeAll } from 'vitest';

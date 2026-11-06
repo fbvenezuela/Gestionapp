@@ -1,4 +1,4 @@
-import { BarChart3, CalendarDays, CheckCircle2, Film, FolderOpen, Globe, HardHat, Home, Inbox, MapPinned, Megaphone, MessageSquareText, Send, Settings, Sparkles, Sun, type LucideIcon } from 'lucide-react';
+import { BarChart3, Building2, CalendarDays, CheckCircle2, Film, FolderOpen, Globe, HardHat, Home, Inbox, MapPinned, Megaphone, MessageSquareText, Send, Settings, Sparkles, Sun, type LucideIcon } from 'lucide-react';
 
 export const NAV_ICONS: Record<string, LucideIcon> = {
   home: Home,
@@ -17,4 +17,5 @@ export const NAV_ICONS: Record<string, LucideIcon> = {
   settings: Settings,
   globe: Globe,
   inbox: Inbox,
+  office: Building2,
 };

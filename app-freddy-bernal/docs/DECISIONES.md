@@ -1329,7 +1329,7 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
 ## D-90. La web pública va dentro de la misma app, sin Payload CMS (06/11/2026)
 - **Qué:** la web nueva del gobernador, su administrador y la participación ciudadana se construyen en esta misma app
   (Next.js + Postgres con RLS), no con un CMS aparte. El CMS es propio: contenido por bloques, borrador y lo publicado,
-  versiones, aprobación, programación y biblioteca de fotos, todo en la base (`20261106000100_web_publica.sql`):
+  versiones, aprobación, programación y biblioteca de fotos, todo en la base (`20261106000110_web_publica.sql`):
   - Cada contenido (`web_items`) guarda el **borrador** (lo que se edita) y lo **publicado** (exactamente lo que se
     aprobó, lo único que lee el público). Publicar, programar, archivar y desarchivar solo con las funciones de la base
     y solo quien aprueba la web o el jefe; el editor toca el borrador y lo manda a aprobación.
@@ -1532,3 +1532,35 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
   quede en un buzón o en la pantalla de un teléfono; y que cada mirada a un dato personal deje rastro.
 - **Cómo se cambia:** `src/lib/domain/attention.ts` (la máquina de estados, los textos y las definiciones de las
   cifras), `src/lib/actions/attention*.ts`, `src/lib/data/attention*.ts`; lo de la base, con una migración nueva.
+
+## D-100. La oficina: la línea de contenido dibujada como una oficina isométrica (06/11/2026)
+- **Número:** se escribió como D-90 en `main`; al juntarlo con la web pública (que ya usaba D-90 a D-99) pasó a D-100.
+- **Pedido de Juan:** una sala isométrica donde se hace todo el trabajo para el jefe: Recepción → Guionistas →
+  Storyboard → Grabación → Editor en línea (líder humano) → Editor brutal → aprobación del jefe → Copywriting →
+  Publicador → Analizador. Respuestas del 06/11: **pantalla nueva en la app**, **mezcla** (la IA propone y una persona
+  revisa) y **todo el equipo la ve**.
+- `/oficina`: la oficina dibujada a mano en SVG, **gigante, de lujo y estilo fábrica**, con los nombres de las salas
+  por fuera, como una lámina de anatomía (Juan, 06/11): paredes oscuras con
+  dorado, piso de mármol, y por el medio una cinta transportadora que pasa por todas las salas en orden, con una máquina
+  en cada sala y cajas que van de Recepción al Analizador. Antes: (Juan, 06/11: «que tengan movimiento… que caminen por su oficina, que
+  trabajen»): diez salas con su mobiliario, gente que trabaja en su puesto (teclea, presenta a cámara) y gente que camina
+  por el pasillo llevando el trabajo de una sala a la otra; pantallas, luz de grabación y gráficos que se mueven. Colores
+  de `--c-office-*` en `tokens.css`; sin imagen que bajar; con «reducir movimiento» todo queda quieto. Las etiquetas
+  tienen el número real y llevan a la lista de su sala. En el teléfono el dibujo se desliza de lado. Debajo las diez salas con qué hace cada una,
+  quién trabaja, un ejemplo inventado y sus actividades (solo título y código: nunca cuándo ni dónde). `/oficina/[id]`:
+  el recorrido de una actividad y el trabajo de su sala.
+- Lo nuevo vive en `event_office` (migración `20261106000100_office.sql`): el guion (borrador → lo aprueba solo el jefe,
+  con doble factor; si se cambia después, vuelve al jefe), «Ya está limpio» y «Edición lista» (la brutal espera la
+  limpia). Escriben el jefe y Redes; **«Ya está limpio» solo el jefe** (Juan, 06/11: el líder humano es él). Sin
+  nombres en las salas, solo el puesto; política y el IVT sin oficina; IA apagada (respuestas de Juan del 06/11). Las demás salas leen lo que ya existe (storyboard, material, piezas, copies,
+  publicaciones). `office_facts()` da solo cuentas y sí/no, igual para todos los que ven el evento.
+- **Recepción (06/11, dictado de Juan, `docs/AGENTES-OFICINA.md`):** la lectura de la actividad (la ficha; sin ficha,
+  tres preguntas obligatorias; lo encontrado afuera con su fuente, solo en el Táchira) y **el jefe la aprueba** antes del
+  guion. En `event_office` (`rx_*`, `reception_status`), con las mismas reglas que el guion.
+- La sala sale de `officeRoom()` (`src/lib/domain/office.ts`); una actividad de antes de la oficina no vuelve a
+  Recepción por lo que ya se hizo afuera.
+- **IA:** apagada hasta el OK legal (D-26). El borrador del guion sale de una plantilla con las palabras de la ficha
+  (sin cifras inventadas, §4.7); el día que se prenda, la IA entra en el mismo botón.
+- Menú: despacho, Redes y administración en «Más»; Grabación en su barra. **El jefe la tiene en su menú («Oficina», en «Más» en
+  el teléfono) y también arriba de «Digital»** con el dibujo y «Ver todas las salas» (Juan, 06/11). Política y el IVT no ven eventos, así
+  que no tienen oficina.

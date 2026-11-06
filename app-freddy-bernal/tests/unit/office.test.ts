@@ -1,0 +1,97 @@
+// «La oficina» (06/11/2026): which room an activity is in, the script's first draft and the drawing's cells. Pure.
+import { describe, expect, it } from 'vitest';
+import { hasFicha, officeRoom, receptionGaps, ROOM, ROOMS, scriptDraft, type OfficeFacts } from '@/lib/domain/office';
+import { myRooms } from '@/lib/domain/office-roles';
+import { ROOM_CELL } from '@/components/office/office-map';
+
+const base: OfficeFacts = {
+  tracked: true, receptionStatus: 'approved', scriptStatus: 'none', cleanDone: false, brutalDone: false, shots: 0, rawMedia: 0,
+  pieces: 0, piecesInReview: 0, piecesApproved: 0, piecesApprovedWithCopies: 0, published: 0,
+};
+const room = (f: Partial<OfficeFacts>) => officeRoom({ ...base, ...f });
+
+describe('la sala de cada actividad', () => {
+  it('sigue la línea, paso por paso', () => {
+    expect(room({ receptionStatus: 'none' })).toBe('reception');
+    expect(room({ receptionStatus: 'draft' })).toBe('reception');
+    expect(room({})).toBe('script');
+    expect(room({ scriptStatus: 'draft' })).toBe('script');
+    expect(room({ scriptStatus: 'approved' })).toBe('storyboard');
+    expect(room({ scriptStatus: 'approved', shots: 3 })).toBe('recording');
+    expect(room({ scriptStatus: 'approved', shots: 3, rawMedia: 2 })).toBe('clean_cut');
+    expect(room({ scriptStatus: 'approved', shots: 3, rawMedia: 2, cleanDone: true })).toBe('brutal_edit');
+    expect(room({ scriptStatus: 'approved', shots: 3, rawMedia: 2, cleanDone: true, brutalDone: true })).toBe('approval');
+    expect(room({ scriptStatus: 'approved', shots: 3, rawMedia: 2, cleanDone: true, brutalDone: true, pieces: 1, piecesInReview: 1 })).toBe('approval');
+    expect(room({ scriptStatus: 'approved', shots: 3, rawMedia: 2, cleanDone: true, brutalDone: true, pieces: 1, piecesApproved: 1 })).toBe('copywriting');
+    expect(room({ pieces: 1, piecesApproved: 1, piecesApprovedWithCopies: 1 })).toBe('publishing');
+    expect(room({ pieces: 1, piecesApproved: 1, published: 2 })).toBe('analytics');
+  });
+
+  it('una actividad de antes de la oficina no vuelve a Recepción por lo que ya se hizo afuera', () => {
+    const old = { tracked: false };
+    expect(room({ ...old })).toBe('reception');
+    expect(room({ ...old, shots: 1 })).toBe('recording');
+    expect(room({ ...old, shots: 2, rawMedia: 2 })).toBe('clean_cut');
+    expect(room({ ...old, shots: 2, rawMedia: 2, pieces: 1, piecesInReview: 1 })).toBe('approval');
+  });
+
+  it('un video en revisión espera al jefe aunque falte marcar un paso', () => {
+    expect(room({ scriptStatus: 'approved', shots: 1, rawMedia: 1, pieces: 1, piecesInReview: 1 })).toBe('approval');
+  });
+});
+
+describe('la recepción', () => {
+  const empty = { work: '', ledBy: '', inCharge: '', achievements: '', keyFacts: '' };
+  const none = { what: '', beneficiaries: '', responsible: '', research: '' };
+  it('sin ficha pide las tres preguntas; con ficha no', () => {
+    expect(hasFicha(empty)).toBe(false);
+    expect(receptionGaps(empty, none)).toHaveLength(3);
+    expect(receptionGaps(empty, { ...none, what: 'Bacheo de la calle (prueba)', beneficiaries: 'Los vecinos del sector', responsible: 'La alcaldía, sin cifra' })).toEqual([]);
+    expect(receptionGaps({ ...empty, work: 'Techo nuevo de la cancha', achievements: 'Cancha techada' }, none)).toEqual([]);
+    expect(hasFicha({ ...empty, work: 'Solo esto' })).toBe(false);
+  });
+
+  it('sin ficha, el borrador del guion usa las respuestas de la recepción', () => {
+    const s = scriptDraft({ title: 'Bacheo (demo)', work: '', ledBy: '', achievements: '', keyFacts: '' }, { what: 'Tapar los huecos de la calle 5', beneficiaries: 'Los vecinos', responsible: 'Cuadrilla de vialidad', research: '' });
+    expect(s).toContain('Tapar los huecos de la calle 5');
+    expect(s).toContain('Cuadrilla de vialidad');
+  });
+});
+
+describe('el borrador del guion', () => {
+  it('usa solo lo que dice la ficha y dice lo que falta', () => {
+    const s = scriptDraft({ title: 'Entrega de un módulo (demo)', work: 'Pintura y techo', ledBy: '', achievements: 'Techo nuevo', keyFacts: '' });
+    expect(s).toContain('Pintura y techo');
+    expect(s).toContain('Techo nuevo');
+    expect(s.match(/\(falta en la ficha\)/g)).toHaveLength(2);
+    expect(s).not.toMatch(/\d{2,}/);
+    expect(s.split('\n').filter((l) => l.startsWith('Toma'))).toHaveLength(5);
+  });
+});
+
+describe('las salas', () => {
+  it('diez salas, cada una en su lugar del dibujo (cinco atrás, cinco adelante) y con su ejemplo', () => {
+    expect(ROOMS).toHaveLength(10);
+    const cells = new Set(ROOMS.map((r) => ROOM_CELL[r].join(',')));
+    expect(cells.size).toBe(10);
+    expect(ROOMS.filter((r) => ROOM_CELL[r][1] === 0)).toHaveLength(5);
+    // The two editors and the boss's office side by side (Juan, 06/11: «deberían estar cerca»).
+    expect(Math.abs(ROOM_CELL.clean_cut[0] - ROOM_CELL.brutal_edit[0])).toBe(0);
+    expect(Math.abs(ROOM_CELL.brutal_edit[0] - ROOM_CELL.approval[0])).toBe(1);
+    for (const r of ROOMS) expect(ROOM[r].example.length).toBeGreaterThan(10);
+  });
+
+  it('el editor en línea y la oficina del jefe son de personas; la IA solo propone', () => {
+    expect(ROOM.clean_cut.crew).toBe('person');
+    expect(ROOM.approval.crew).toBe('person');
+    expect(ROOM.script.crew).toBe('ai_and_person');
+  });
+
+  it('las salas de cada rol', () => {
+    expect(myRooms(['boss'])).toEqual(['clean_cut', 'approval']);
+    expect(myRooms(['social'])).not.toContain('clean_cut');
+    expect(myRooms(['dispatch'])).toEqual(['reception']);
+    expect(myRooms(['camera'])).toContain('recording');
+    expect(myRooms(['politics'])).toEqual([]);
+  });
+});

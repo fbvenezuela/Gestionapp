@@ -1,7 +1,7 @@
 // RLS on every table (PROMPT §4 rule 3; design R4 §3.2 row 44): every table of the public schema has row level
 // security on and at least one policy or no grant to the API roles, after all the migrations (the four of Redes por
 // formato included: content_months, feed_slots, piece_details, piece_notices; R5's Mensajes as channels drops
-// chat_rules and chat_notice_ack; the public website's seventeen, 20261106000100 to 20261106000300). A new table without
+// chat_rules and chat_notice_ack; the public website's seventeen, 20261106000110 to 20261106000300). A new table without
 // RLS fails here before it reaches a database. Views are not tables: event_calendar runs as whoever reads it
 // (por-rol.test.ts).
 import { describe, expect, it, beforeAll } from 'vitest';
