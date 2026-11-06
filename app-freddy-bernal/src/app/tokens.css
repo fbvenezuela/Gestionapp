@@ -262,17 +262,19 @@
 }
 
 /* «La oficina» (06/11/2026): the palette of the office drawing (src/components/office/office-map.tsx). It is an
-   illustration, the same in light, dark and «Modo sol»: warm floor and walls, wood, glass with the olive of the brand,
-   skin and hair tones, and the screens. Never used for text. */
+   illustration, the same in light, dark and «Modo sol»: a luxury factory (06/11: «gigante, espaciosa, de lujo, estilo
+   fábrica con cajas y máquinas»): marble floor with gold inlay, dark walls with gold, wood, glass with the olive of the
+   brand, the conveyor belt with its boxes and machines, skin and hair tones, and the screens. Never used for text,
+   except the gold title on the dark wall. */
 :root {
-  --c-office-floor: #ebe8df;
-  --c-office-floor-line: #dcd8cc;
+  --c-office-floor: #efece4;
+  --c-office-floor-line: #d8c48f;
   --c-office-rug-1: #e3e6c6;
   --c-office-rug-2: #efe3c4;
   --c-office-rug-3: #dfe7d6;
-  --c-office-wall: #f8f7f2;
-  --c-office-wall-side: #e6e4da;
-  --c-office-wall-top: #ffffff;
+  --c-office-wall: #2c332b;
+  --c-office-wall-side: #232922;
+  --c-office-wall-top: #c8a24c;
   --c-office-glass: #d6e6dc;
   --c-office-glass-2: #c3d9cc;
   --c-office-sky: #e9f1e4;
@@ -306,4 +308,15 @@
   --c-office-pot: #f2f0ea;
   --c-office-rec: #d93a3a;
   --c-office-shadow: rgba(47, 51, 18, 0.16);
+  --c-office-gold: #c8a24c;
+  --c-office-gold-2: #e6cb85;
+  --c-office-box: #c99a5b;
+  --c-office-box-2: #a97c45;
+  --c-office-box-top: #e0bd86;
+  --c-office-tape: #f3e3bf;
+  --c-office-belt: #262a27;
+  --c-office-belt-2: #4a514b;
+  --c-office-belt-line: #6c746d;
+  --c-office-hazard: #f2c230;
+  --c-office-go: #55c46a;
 }

@@ -1,22 +1,29 @@
 import type { ReactNode } from 'react';
 import { CREW_LABEL, ROOM, ROOMS, type Room } from '@/lib/domain/office';
 
-// «La oficina» (pedido del 06/11/2026), drawn by hand in isometric view: ten rooms in two rows with a corridor in the
-// middle, big windows, and people who work in their place (they type, look at their screens, present to the camera)
-// while others walk the corridor carrying the work from one room to the next. Plain SVG with the office palette of
+// «La oficina» (pedido del 06/11/2026), drawn by hand in isometric view as a luxury factory («gigante, espaciosa, de
+// lujo, estilo fábrica con cajas y máquinas que pasan las cajas»): ten rooms in two rows, dark walls with gold and big
+// windows, a marble floor, and down the wide middle a conveyor belt that runs through every room in the order of the
+// work, with a machine at each room and boxes riding from the reception to the analyst. People work in their place
+// (they type, look at their screens, present to the camera) while others walk the aisles carrying the work. Plain SVG with the office palette of
 // tokens.css: light on a cheap phone, no picture to download. People and screens move with CSS and SVG animations;
 // with «reduce motion» everything stays still and nobody walks. Each room's label is a link to its list below (or on
 // /oficina, `base`), with the real count. Nothing here says when or where.
 
 const A = 64; // half a cell, across
 const B = 37; // half a cell, down
-const OX = 3 * A + 30;
-const OY = 140;
-const WALL = 120;
-const W = 8 * A + 60;
-const H = OY + 8 * B + 40;
-const DEPTH = 1.15; // a room's depth; the corridor goes from 1.15 to 1.85
-const FRONT = 1.85;
+const DEPTH = 1.25; // a room's depth
+const FRONT = 2.55; // where the front row starts: the hall in between is 1.3 deep, with the belt in the middle
+const DMAX = FRONT + DEPTH;
+const OX = DMAX * A + 30;
+const OY = 160;
+const WALL = 140;
+const W = (5 + DMAX) * A + 60;
+const H = OY + (5 + DMAX) * B + 40;
+const LANE_BACK = 1.7; // the belt going right, in front of the back rooms
+const LANE_FRONT = 2.12; // and coming back, in front of the front rooms
+const AISLE_BACK = 1.42; // where people walk
+const AISLE_FRONT = 2.4;
 
 type Pt = [number, number];
 // Floor point (i across to the right, j across to the left) lifted z pixels.
@@ -327,11 +334,103 @@ function Furniture({ room, c, r0 }: { room: Room; c: number; r0: number }) {
 
 // People walking the corridor, carrying the work from one room to the next and back, with a pause at each end.
 const WALKERS: { from: [number, number]; to: [number, number]; n: number; carry: 'folder' | 'tablet' | 'laptop'; dur: number; begin: number }[] = [
-  { from: [0.6, 1.42], to: [1.55, 1.42], n: 4, carry: 'folder', dur: 11, begin: 0 }, // the reading, to the scriptwriters
-  { from: [2.5, 1.5], to: [3.5, 1.5], n: 3, carry: 'tablet', dur: 12, begin: 2 }, // the storyboard, to the recording
-  { from: [4.45, 1.62], to: [3.55, 1.62], n: 1, carry: 'laptop', dur: 10, begin: 4 }, // the final edit, to the boss
-  { from: [2.4, 1.56], to: [1.4, 1.56], n: 0, carry: 'folder', dur: 13, begin: 6 }, // the copies, to the publisher
+  { from: [0.6, AISLE_BACK], to: [1.55, AISLE_BACK], n: 4, carry: 'folder', dur: 11, begin: 0 }, // the reading, to the scriptwriters
+  { from: [2.5, AISLE_BACK], to: [3.5, AISLE_BACK], n: 3, carry: 'tablet', dur: 12, begin: 2 }, // the storyboard, to the recording
+  { from: [4.45, AISLE_FRONT], to: [3.55, AISLE_FRONT], n: 1, carry: 'laptop', dur: 10, begin: 4 }, // the final edit, to the boss
+  { from: [2.4, AISLE_FRONT], to: [1.4, AISLE_FRONT], n: 0, carry: 'folder', dur: 13, begin: 6 }, // the copies, to the publisher
 ];
+
+// The belt: right in front of the back rooms, a turn at the end, and back in front of the front rooms.
+const BELT_START = 0.2;
+const BELT_END = 4.82;
+const BELT_Z = 7;
+const BELT_PATH: Pt[] = [P(BELT_START, LANE_BACK, BELT_Z + 6), P(BELT_END, LANE_BACK, BELT_Z + 6), P(BELT_END, LANE_FRONT, BELT_Z + 6), P(BELT_START, LANE_FRONT, BELT_Z + 6)];
+const BOXES = 12;
+const BOX_DUR = 36;
+
+const BELT = { top: v('belt'), left: v('belt-2'), right: v('belt-2') };
+function Belt({ lane, dir }: { lane: number; dir: 1 | -1 }) {
+  const j = lane - 0.11;
+  const [x1, y1] = P(BELT_START - 0.1, lane, BELT_Z + 6);
+  const [x2, y2] = P(BELT_END + 0.1, lane, BELT_Z + 6);
+  return (
+    <g>
+      {Array.from({ length: 10 }, (_, k) => BELT_START + k * 0.5).map((i) => (
+        <g key={i}>
+          <line x1={P(i, j + 0.03)[0]} y1={P(i, j + 0.03)[1]} x2={P(i, j + 0.03, BELT_Z)[0]} y2={P(i, j + 0.03, BELT_Z)[1]} stroke={v('metal')} strokeWidth={1.4} />
+          <line x1={P(i, j + 0.19)[0]} y1={P(i, j + 0.19)[1]} x2={P(i, j + 0.19, BELT_Z)[0]} y2={P(i, j + 0.19, BELT_Z)[1]} stroke={v('metal')} strokeWidth={1.4} />
+        </g>
+      ))}
+      <Box i={BELT_START - 0.1} j={j} w={BELT_END - BELT_START + 0.2} d={0.22} h={6} z={BELT_Z} f={BELT} />
+      {/* The belt's surface running, and the hazard stripe on its edge */}
+      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={v('belt-line')} strokeWidth={3} strokeDasharray="2 6" className={dir === 1 ? 'o-run' : 'o-run-back'} />
+      <line x1={P(BELT_START - 0.1, j + 0.22, BELT_Z + 3)[0]} y1={P(BELT_START - 0.1, j + 0.22, BELT_Z + 3)[1]} x2={P(BELT_END + 0.1, j + 0.22, BELT_Z + 3)[0]} y2={P(BELT_END + 0.1, j + 0.22, BELT_Z + 3)[1]} stroke={v('hazard')} strokeWidth={2} strokeDasharray="5 5" />
+    </g>
+  );
+}
+
+// A machine over the belt in front of a room: two posts, a gold beam, a press that goes up and down and a green light.
+function Machine({ i, lane, n }: { i: number; lane: number; n: number }) {
+  const [lx, ly] = P(i, lane, 40);
+  return (
+    <g>
+      <Box i={i - 0.035} j={lane - 0.2} w={0.07} d={0.07} h={32} f={METAL} />
+      <Box i={i - 0.06} j={lane - 0.2} w={0.12} d={0.4} h={5} z={32} f={{ top: v('gold-2'), left: v('gold'), right: v('gold') }} />
+      <g className="o-press" style={{ animationDelay: `${(n % 5) * 0.37}s` }}>
+        <line x1={P(i, lane, 32)[0]} y1={P(i, lane, 32)[1]} x2={P(i, lane, 26)[0]} y2={P(i, lane, 26)[1]} stroke={v('metal-2')} strokeWidth={2.4} />
+        <Box i={i - 0.05} j={lane - 0.05} w={0.1} d={0.1} h={5} z={21} f={METAL} />
+      </g>
+      <circle cx={lx} cy={ly} r={2.2} fill={v('go')} className="o-blink" style={{ animationDelay: `${(n % 3) * 0.4}s` }} />
+      <Box i={i - 0.035} j={lane + 0.13} w={0.07} d={0.07} h={32} f={METAL} />
+    </g>
+  );
+}
+
+// A cardboard box with its tape, drawn around (0, 0): the belt carries it with animateMotion.
+function Parcel() {
+  const s = 0.075;
+  const h = 11;
+  const o = P(0, 0);
+  const R = (i: number, j: number, z = 0): Pt => {
+    const [x, y] = P(i, j, z);
+    return [x - o[0], y - o[1]];
+  };
+  return (
+    <g>
+      <polygon points={pts(R(-s, s), R(s, s), R(s, s, h), R(-s, s, h))} fill={v('box')} />
+      <polygon points={pts(R(s, -s), R(s, s), R(s, s, h), R(s, -s, h))} fill={v('box-2')} />
+      <polygon points={pts(R(-s, -s, h), R(s, -s, h), R(s, s, h), R(-s, s, h))} fill={v('box-top')} />
+      <line x1={R(-s, 0, h)[0]} y1={R(-s, 0, h)[1]} x2={R(s, 0, h)[0]} y2={R(s, 0, h)[1]} stroke={v('tape')} strokeWidth={2} />
+    </g>
+  );
+}
+
+// People walking an aisle (behind the belt or in front of it), carrying the work and back, with a pause at each end.
+function Walkers({ which }: { which: 'back' | 'front' }) {
+  const lane = which === 'back' ? AISLE_BACK : AISLE_FRONT;
+  return (
+    <g className="o-walkers">
+      {WALKERS.filter((w) => w.from[1] === lane).map((w, k) => {
+        const [x1, y1] = P(w.from[0], w.from[1]);
+        const [x2, y2] = P(w.to[0], w.to[1]);
+        return (
+          <g key={k}>
+            <animateMotion
+              dur={`${w.dur}s`}
+              begin={`${w.begin}s`}
+              repeatCount="indefinite"
+              calcMode="linear"
+              keyPoints="0;1;1;0;0"
+              keyTimes="0;0.42;0.5;0.92;1"
+              path={`M0,0 L${(x2 - x1).toFixed(1)},${(y2 - y1).toFixed(1)}`}
+            />
+            <Standing at={[x1, y1]} n={w.n} walk carry={w.carry} />
+          </g>
+        );
+      })}
+    </g>
+  );
+}
 
 export function OfficeMap({ counts, mine, base = '' }: { counts: Record<Room, number>; mine?: Room[]; base?: string }) {
   const back = ROOMS.filter((r) => ROOM_CELL[r][1] === 0).sort((a, b) => ROOM_CELL[a][0] - ROOM_CELL[b][0]);
@@ -344,15 +443,14 @@ export function OfficeMap({ counts, mine, base = '' }: { counts: Record<Room, nu
       <g key={r}>
         <polygon points={pts(P(c + 0.05, r0 + 0.05), P(c + 0.95, r0 + 0.05), P(c + 0.95, r0 + DEPTH - 0.05), P(c + 0.05, r0 + DEPTH - 0.05))} fill={rug} opacity={mine?.includes(r) ? 1 : 0.75} stroke={mine?.includes(r) ? 'var(--c-accent)' : 'none'} strokeWidth={2} />
         {/* A low glass partition on the room's left side */}
-        {c > 0 ? <polygon points={pts(P(c, r0), P(c, r0 + DEPTH), P(c, r0 + DEPTH, 26), P(c, r0, 26))} fill={v('glass')} opacity={0.55} stroke={v('white')} strokeWidth={0.8} /> : null}
+        {c > 0 ? <polygon points={pts(P(c, r0), P(c, r0 + DEPTH), P(c, r0 + DEPTH, 26), P(c, r0, 26))} fill={v('glass')} opacity={0.55} stroke={v('gold')} strokeWidth={0.9} /> : null}
         <Furniture room={r} c={c} r0={r0} />
       </g>
     );
   };
-  const [tx, ty] = P(0.15, 0, WALL - 16);
   return (
     <div className="-mx-2 overflow-x-auto sm:mx-0" role="group" aria-label="Dibujo de la oficina con sus diez salas">
-      <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full min-w-[720px] select-none" aria-hidden={false}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full min-w-[900px] select-none" aria-hidden={false}>
         <style>{`
           @keyframes o-type { from { transform: translateY(0) } to { transform: translateY(-0.9px) } }
           @keyframes o-breathe { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-0.8px) } }
@@ -362,6 +460,12 @@ export function OfficeMap({ counts, mine, base = '' }: { counts: Record<Room, nu
           @keyframes o-bar { 0%,100% { transform: scaleY(1) } 50% { transform: scaleY(.6) } }
           @keyframes o-sway { 0%,100% { transform: skewX(0) } 50% { transform: skewX(1.5deg) } }
           @keyframes o-spin { to { transform: rotate(360deg) } }
+          @keyframes o-run { to { stroke-dashoffset: -16 } }
+          @keyframes o-run-back { to { stroke-dashoffset: 16 } }
+          @keyframes o-press { 0%,60%,100% { transform: translateY(0) } 75% { transform: translateY(9px) } }
+          .o-run { animation: o-run .6s linear infinite }
+          .o-run-back { animation: o-run-back .6s linear infinite }
+          .o-press { animation: o-press 3s ease-in-out infinite }
           .o-type { animation: o-type .45s ease-in-out infinite alternate }
           .o-breathe { animation: o-breathe 3s ease-in-out infinite }
           .o-leg-a, .o-leg-b { transform-box: fill-box; transform-origin: top; animation: o-step .42s ease-in-out infinite alternate }
@@ -372,7 +476,7 @@ export function OfficeMap({ counts, mine, base = '' }: { counts: Record<Room, nu
           .o-sway { transform-box: fill-box; transform-origin: bottom; animation: o-sway 5s ease-in-out infinite }
           .o-spin { transform-box: fill-box; transform-origin: center; animation: o-spin 3s linear infinite }
           @media (prefers-reduced-motion: reduce) {
-            .o-type, .o-breathe, .o-leg-a, .o-leg-b, .o-flicker, .o-blink, .o-bar, .o-sway, .o-spin { animation: none }
+            .o-type, .o-breathe, .o-leg-a, .o-leg-b, .o-flicker, .o-blink, .o-bar, .o-sway, .o-spin, .o-run, .o-run-back, .o-press { animation: none }
             .o-walkers, .o-motion { display: none }
           }
           .o-label:focus-visible rect { stroke: var(--c-focus); stroke-width: 2.5 }
@@ -380,65 +484,70 @@ export function OfficeMap({ counts, mine, base = '' }: { counts: Record<Room, nu
         `}</style>
 
         {/* Floor */}
-        <polygon points={pts(P(0, 0), P(5, 0), P(5, 3), P(0, 3))} fill={v('floor')} />
-        {[0.5, 1, 1.5, 2, 2.5].map((j) => <line key={j} x1={P(0, j)[0]} y1={P(0, j)[1]} x2={P(5, j)[0]} y2={P(5, j)[1]} stroke={v('floor-line')} strokeWidth={0.6} />)}
-        {[1, 2, 3, 4].map((i) => <line key={i} x1={P(i, 0)[0]} y1={P(i, 0)[1]} x2={P(i, 3)[0]} y2={P(i, 3)[1]} stroke={v('floor-line')} strokeWidth={0.6} />)}
-        {/* The floor's edge */}
-        <polygon points={pts(P(0, 3), P(5, 3), P(5, 3, -8), P(0, 3, -8))} fill={v('white-3')} />
-        <polygon points={pts(P(5, 0), P(5, 3), P(5, 3, -8), P(5, 0, -8))} fill={v('white-2')} />
+        {/* A marble floor with gold inlay */}
+        <polygon points={pts(P(0, 0), P(5, 0), P(5, DMAX), P(0, DMAX))} fill={v('floor')} />
+        {Array.from({ length: Math.floor(DMAX * 2) }, (_, k) => (k + 1) / 2).map((j) => <line key={j} x1={P(0, j)[0]} y1={P(0, j)[1]} x2={P(5, j)[0]} y2={P(5, j)[1]} stroke={v('floor-line')} strokeWidth={0.7} opacity={0.6} />)}
+        {[0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5].map((i) => <line key={i} x1={P(i, 0)[0]} y1={P(i, 0)[1]} x2={P(i, DMAX)[0]} y2={P(i, DMAX)[1]} stroke={v('floor-line')} strokeWidth={0.7} opacity={0.6} />)}
+        {/* The floor's edge, with a gold trim */}
+        <polygon points={pts(P(0, DMAX), P(5, DMAX), P(5, DMAX, -10), P(0, DMAX, -10))} fill={v('wall')} />
+        <polygon points={pts(P(5, 0), P(5, DMAX), P(5, DMAX, -10), P(5, 0, -10))} fill={v('wall-side')} />
+        <line x1={P(0, DMAX)[0]} y1={P(0, DMAX)[1]} x2={P(5, DMAX)[0]} y2={P(5, DMAX)[1]} stroke={v('gold')} strokeWidth={1.4} />
+        <line x1={P(5, 0)[0]} y1={P(5, 0)[1]} x2={P(5, DMAX)[0]} y2={P(5, DMAX)[1]} stroke={v('gold')} strokeWidth={1.4} />
 
         {/* Two tall walls of windows, with the city behind */}
         <polygon points={pts(P(0, 0), P(5, 0), P(5, 0, WALL), P(0, 0, WALL))} fill={v('wall')} />
-        <polygon points={pts(P(0, 0), P(0, 3), P(0, 3, WALL), P(0, 0, WALL))} fill={v('wall-side')} />
+        <polygon points={pts(P(0, 0), P(0, DMAX), P(0, DMAX, WALL), P(0, 0, WALL))} fill={v('wall-side')} />
         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((k) => {
           const i = 0.1 + k * 0.49;
           return (
             <g key={`w${k}`}>
-              <polygon points={panel(i, 0, 0.42, 26, 84)} fill={v('sky')} />
+              <polygon points={panel(i - 0.012, 0, 0.444, 24, 98)} fill={v('gold')} />
+              <polygon points={panel(i, 0, 0.42, 26, 94)} fill={v('sky')} />
               {[0.05, 0.16, 0.27].map((di, m) => (
                 <polygon key={m} points={panel(i + di, 0, 0.09, 26, [26, 40, 18][(k + m) % 3]!)} fill={m % 2 ? v('city') : v('city-2')} />
               ))}
-              <polygon points={panel(i, 0, 0.42, 26, 84)} fill={v('glass')} opacity={0.35} />
+              <polygon points={panel(i, 0, 0.42, 26, 94)} fill={v('glass')} opacity={0.35} />
             </g>
           );
         })}
-        {[0, 1, 2, 3, 4].map((k) => {
-          const j = 0.12 + k * 0.58;
+        {[0, 1, 2, 3, 4, 5].map((k) => {
+          const j = 0.12 + k * 0.6;
           return (
             <g key={`s${k}`}>
-              <polygon points={pts(P(0, j, 26), P(0, j + 0.48, 26), P(0, j + 0.48, 110), P(0, j, 110))} fill={v('sky')} />
-              <polygon points={pts(P(0, j + 0.06, 26), P(0, j + 0.2, 26), P(0, j + 0.2, 26 + [30, 20, 38, 24, 34][k]!), P(0, j + 0.06, 26 + [30, 20, 38, 24, 34][k]!))} fill={v('city-2')} />
-              <polygon points={pts(P(0, j, 26), P(0, j + 0.48, 26), P(0, j + 0.48, 110), P(0, j, 110))} fill={v('glass-2')} opacity={0.4} />
+              <polygon points={pts(P(0, j - 0.012, 24), P(0, j + 0.492, 24), P(0, j + 0.492, 122), P(0, j - 0.012, 122))} fill={v('gold')} />
+              <polygon points={pts(P(0, j, 26), P(0, j + 0.48, 26), P(0, j + 0.48, 120), P(0, j, 120))} fill={v('sky')} />
+              <polygon points={pts(P(0, j + 0.06, 26), P(0, j + 0.2, 26), P(0, j + 0.2, 26 + [30, 20, 38, 24, 34, 26][k]!), P(0, j + 0.06, 26 + [30, 20, 38, 24, 34, 26][k]!))} fill={v('city-2')} />
+              <polygon points={pts(P(0, j, 26), P(0, j + 0.48, 26), P(0, j + 0.48, 120), P(0, j, 120))} fill={v('glass-2')} opacity={0.4} />
             </g>
           );
         })}
         <polygon points={pts(P(0, 0, WALL), P(5, 0, WALL), P(5, -0.08, WALL), P(0, -0.08, WALL))} fill={v('wall-top')} />
-        <polygon points={pts(P(0, 0, WALL), P(0, 3, WALL), P(-0.08, 3, WALL), P(-0.08, 0, WALL))} fill={v('wall-top')} />
-        <text x={tx} y={ty} fontSize={15} fontWeight={800} fill="var(--c-slate)" opacity={0.85}>La oficina</text>
+        <polygon points={pts(P(0, 0, WALL), P(0, DMAX, WALL), P(-0.08, DMAX, WALL), P(-0.08, 0, WALL))} fill={v('wall-top')} />
+        <text x={24} y={44} fontSize={20} fontWeight={800} fill="var(--c-text)" letterSpacing={1.5}>LA OFICINA</text>
+        <text x={24} y={62} fontSize={10} fill="var(--c-text-2)">Las cajas van de sala en sala</text>
 
         {back.map(room)}
 
-        {/* The corridor: people taking the work from one room to the next */}
-        <g className="o-walkers">
-          {WALKERS.map((w, k) => {
-            const [x1, y1] = P(w.from[0], w.from[1]);
-            const [x2, y2] = P(w.to[0], w.to[1]);
-            return (
-              <g key={k}>
-                <animateMotion
-                  dur={`${w.dur}s`}
-                  begin={`${w.begin}s`}
-                  repeatCount="indefinite"
-                  calcMode="linear"
-                  keyPoints="0;1;1;0;0"
-                  keyTimes="0;0.42;0.5;0.92;1"
-                  path={`M0,0 L${(x2 - x1).toFixed(1)},${(y2 - y1).toFixed(1)}`}
-                />
-                <Standing at={[x1, y1]} n={w.n} walk carry={w.carry} />
-              </g>
-            );
-          })}
+        {/* The hall: people walking the aisles, the belt with its machines and the boxes riding from room to room */}
+        <Walkers which="back" />
+        <Belt lane={LANE_BACK} dir={1} />
+        <Belt lane={LANE_FRONT} dir={-1} />
+        {/* The turn at the end of the line */}
+        <Box i={BELT_END - 0.02} j={LANE_BACK - 0.11} w={0.22} d={LANE_FRONT - LANE_BACK + 0.22} h={6} z={BELT_Z} f={BELT} />
+        <g className="o-motion">
+          {Array.from({ length: BOXES }, (_, k) => (
+            <g key={k}>
+              <animateMotion dur={`${BOX_DUR}s`} begin={`${(-k * BOX_DUR) / BOXES}s`} repeatCount="indefinite" path={`M${BELT_PATH.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' L')}`} />
+              <animate attributeName="opacity" dur={`${BOX_DUR}s`} begin={`${(-k * BOX_DUR) / BOXES}s`} repeatCount="indefinite" values="0;1;1;0" keyTimes="0;0.03;0.96;1" />
+              <Parcel />
+            </g>
+          ))}
         </g>
+        {ROOMS.map((r, k) => {
+          const [c, r0] = ROOM_CELL[r];
+          return <Machine key={r} i={c + 0.5} lane={r0 === 0 ? LANE_BACK : LANE_FRONT} n={k} />;
+        })}
+        <Walkers which="front" />
 
         {front.map(room)}
 

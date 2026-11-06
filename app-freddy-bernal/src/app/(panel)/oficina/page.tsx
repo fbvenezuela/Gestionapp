@@ -22,7 +22,7 @@ export default async function OfficePage() {
   const counts = Object.fromEntries(ROOMS.map((r) => [r, rooms[r].length])) as Record<Room, number>;
   const mine = myRooms(menuRoles(s));
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6 py-2">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6 py-2">
       <PageHeader title="La oficina" subtitle="Cada actividad del jefe, en la sala donde está su trabajo. Toca una sala para ver qué hay." />
       <Card className="p-2 sm:p-4">
         <OfficeMap counts={counts} mine={mine} />

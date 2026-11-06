@@ -1331,7 +1331,9 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
   Storyboard → Grabación → Editor en línea (líder humano) → Editor brutal → aprobación del jefe → Copywriting →
   Publicador → Analizador. Respuestas del 06/11: **pantalla nueva en la app**, **mezcla** (la IA propone y una persona
   revisa) y **todo el equipo la ve**.
-- `/oficina`: la oficina dibujada a mano en SVG (Juan, 06/11: «que tengan movimiento… que caminen por su oficina, que
+- `/oficina`: la oficina dibujada a mano en SVG, **gigante, de lujo y estilo fábrica** (Juan, 06/11): paredes oscuras con
+  dorado, piso de mármol, y por el medio una cinta transportadora que pasa por todas las salas en orden, con una máquina
+  en cada sala y cajas que van de Recepción al Analizador. Antes: (Juan, 06/11: «que tengan movimiento… que caminen por su oficina, que
   trabajen»): diez salas con su mobiliario, gente que trabaja en su puesto (teclea, presenta a cámara) y gente que camina
   por el pasillo llevando el trabajo de una sala a la otra; pantallas, luz de grabación y gráficos que se mueven. Colores
   de `--c-office-*` en `tokens.css`; sin imagen que bajar; con «reducir movimiento» todo queda quieto. Las etiquetas
