@@ -14,6 +14,7 @@ import { socialCard } from '@/lib/web/cms/seo';
 import { redirectableFrom } from '@/lib/web/cms/paths';
 import { checkWebMediaFile, maxMediaBytes, sameSite } from '@/lib/web/cms/media-file';
 import { ADMIN_WEB, KIND_SECTIONS, sectionBySlug, sectionOf } from '@/lib/web/cms/kinds';
+import { isNoted, joinNotes, splitNotes } from '@/lib/web/cms/setting-notes';
 import { pngOf } from './fixtures/web-png';
 
 const TZ = 'America/Caracas';
@@ -261,6 +262,36 @@ describe('las redirecciones', () => {
   it('solo desde una dirección que la web no contesta, o desde una noticia u obra que ya no está', () => {
     for (const p of ['/2024/05/una-nota', '/categoria/salud', '/?p=123', '/feed', '/actualidad/nota-vieja', '/gestion/obra-vieja']) expect(redirectableFrom(p), p).toBe(true);
     for (const p of ['/gestion', '/actualidad', '/actualidad/semanario', '/atencion/nueva', '/hoy', '/admin/web']) expect(redirectableFrom(p), p).toBe(false);
+  });
+});
+
+describe('las notas internas de las cuentas y los canales van aparte', () => {
+  it('se separan de lo que lee el público y vuelven a su lugar en la pantalla de ajustes', () => {
+    expect(isNoted('site.social_accounts')).toBe(true);
+    expect(isNoted('site.navigation')).toBe(false);
+    const accounts = [
+      { network: 'instagram', handle: '@demo', url: 'https://www.instagram.com/demo/', verified: true, active: true, note: ' La verificó el equipo (demo) ' },
+      { network: 'x', handle: '@demo', url: 'https://x.com/demo', verified: false, active: true },
+    ];
+    const split = splitNotes('site.social_accounts', accounts);
+    expect(split).toEqual({
+      value: [
+        { network: 'instagram', handle: '@demo', url: 'https://www.instagram.com/demo/', verified: true, active: true },
+        { network: 'x', handle: '@demo', url: 'https://x.com/demo', verified: false, active: true },
+      ],
+      notes: ['La verificó el equipo (demo)', ''],
+      empty: false,
+    });
+    const [ig, x] = split.value as Record<string, unknown>[];
+    expect(joinNotes('site.social_accounts', split.value, split.notes)).toEqual([{ ...ig, note: 'La verificó el equipo (demo)' }, x]);
+    // A starting value with its note inside keeps it on screen until it is saved.
+    expect(joinNotes('site.social_accounts', accounts, undefined)).toEqual(accounts);
+
+    const channel = { url: 'https://whatsapp.com/channel/demo', verified: false, active: true, note: 'Por confirmar (demo)' };
+    expect(splitNotes('site.whatsapp_channel', channel)).toEqual({ value: { url: channel.url, verified: false, active: true }, notes: 'Por confirmar (demo)', empty: false });
+    expect(splitNotes('site.whatsapp_channel', null)).toEqual({ value: null, notes: '', empty: true });
+    expect(joinNotes('site.whatsapp_channel', { url: channel.url }, 'Por confirmar (demo)')).toEqual({ url: channel.url, note: 'Por confirmar (demo)' });
+    expect(joinNotes('site.whatsapp_channel', null, 'Por confirmar (demo)')).toBeNull();
   });
 });
 

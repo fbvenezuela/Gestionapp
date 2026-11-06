@@ -303,23 +303,39 @@ describe('los ajustes del sitio y las redirecciones', () => {
     expect(h.tags).toEqual(['web:settings']);
     const anon = await asAnon(t.backend, (sql) => sql.one<{ value: unknown }>(`select value from public.web_settings where key = 'site.contacts'`));
     expect(anon?.value).toEqual([{ label: 'Atención (demo)', value: 'atencion@ejemplo.test', href: 'mailto:atencion@ejemplo.test', verified: true }]);
-    // A channel keeps its internal note; turned off it is null.
+    // A channel's internal note is kept apart, in a row the public never reads; turned off it is null and its note goes.
     as('webPublisher');
+    const notes = () => t.system((sql) => sql.one<{ value: Record<string, unknown>; is_public: boolean }>(`select value, is_public from public.web_settings where key = 'site.internal_notes'`));
+    const anonRows = () => asAnon(t.backend, (sql) => sql.query<{ key: string; value: unknown }>(`select key, value from public.web_settings`));
     ok(await site.saveSiteSetting({ key: 'site.whatsapp_channel', value: { url: 'https://whatsapp.com/channel/demo', verified: false, active: true, note: 'Por confirmar (demo)' } }));
+    ok(await site.saveSiteSetting({ key: 'site.youtube_channel', value: { url: 'https://www.youtube.com/@demo', verified: true, active: true, note: 'Lo confirmó el equipo (demo)' } }));
+    expect(await notes()).toEqual({ value: { 'site.whatsapp_channel': 'Por confirmar (demo)', 'site.youtube_channel': 'Lo confirmó el equipo (demo)' }, is_public: false });
+    const seen = await anonRows();
+    expect(seen.find((r) => r.key === 'site.whatsapp_channel')?.value).toMatchObject({ url: 'https://whatsapp.com/channel/demo', verified: false, active: true });
+    expect(JSON.stringify(seen)).not.toMatch(/Por confirmar \(demo\)|Lo confirmó el equipo/);
+    expect(seen.map((r) => r.key)).not.toContain('site.internal_notes');
     ok(await site.saveSiteSetting({ key: 'site.whatsapp_channel', value: null }));
+    expect((await notes())?.value).toEqual({ 'site.youtube_channel': 'Lo confirmó el equipo (demo)' });
+    ok(await site.saveSiteSetting({ key: 'site.youtube_channel', value: { url: 'https://www.youtube.com/@demo', verified: true, active: true } }));
+    expect((await notes())?.value).toEqual({});
   });
 
   it('una cuenta verificada llega a sameAs; una sin verificar, no', async () => {
     const { normalizeSite } = await import('@/lib/web/site-settings');
     as('admin');
     ok(await site.saveSiteSetting({ key: 'site.social_accounts', value: [
-      { network: 'instagram', handle: '@demo', url: 'https://www.instagram.com/demo/', verified: true, active: true },
+      { network: 'instagram', handle: '@demo', url: 'https://www.instagram.com/demo/', verified: true, active: true, note: 'Verificada por el equipo (demo)' },
       { network: 'x', handle: '@demo', url: 'https://x.com/demo', verified: false, active: true },
     ] }));
-    const raw = Object.fromEntries((await asAnon(t.backend, (sql) => sql.query<{ key: string; value: unknown }>(`select key, value from public.web_settings`))).map((r) => [r.key, r.value]));
+    const rows = await asAnon(t.backend, (sql) => sql.query<{ key: string; value: unknown }>(`select key, value from public.web_settings`));
+    const raw = Object.fromEntries(rows.map((r) => [r.key, r.value]));
     const s = normalizeSite(raw, { demo: false, indexable: false, baseUrl: 'https://web.test' });
     expect(s.sameAs).toEqual(['https://www.instagram.com/demo/']);
     expect(s.accounts.map((a) => a.url)).toEqual(['https://www.instagram.com/demo/']);
+    // The note is beside its account in the settings screen, never in what the public reads.
+    expect(JSON.stringify(rows)).not.toContain('Verificada por el equipo');
+    const kept = await t.system((sql) => sql.one<{ value: Record<string, unknown> }>(`select value from public.web_settings where key = 'site.internal_notes'`));
+    expect(kept?.value['site.social_accounts']).toEqual(['Verificada por el equipo (demo)', '']);
   });
 
   it('redirecciones: solo hacia esta web, desde una dirección que la web no contesta; sin repetir; quien maneja el sitio', async () => {

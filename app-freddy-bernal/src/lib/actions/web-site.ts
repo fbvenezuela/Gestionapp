@@ -9,6 +9,7 @@ import { normalizeOldPath, safeTarget, REDIRECT_STATUSES } from '../web/redirect
 import { SITE_SETTING_SCHEMAS } from '../web/site-settings';
 import { redirectableFrom } from '../web/cms/paths';
 import { spanishIssue } from '../web/cms/drafts';
+import { isNoted, NOTES_KEY, splitNotes } from '../web/cms/setting-notes';
 
 // The library's words, the site's settings and the redirects of old addresses (design §3, §6): AS THE PERSON, with RLS
 // deciding (the library: editors, the publisher and the boss; settings and redirects: Administración, the publisher
@@ -60,7 +61,8 @@ export async function archiveWebMedia(raw: unknown): Promise<Result> {
 }
 
 // --- The site's settings -----------------------------------------------------------------------------------------
-// The keys the settings screen edits. The channels keep their internal note (who verified what) next to the address.
+// The keys the settings screen edits. The accounts and channels come with their internal note (who verified what), which
+// is stored apart, in a row that is not public (setting-notes.ts): the public rows are readable by anyone.
 const note = { note: z.string().trim().max(300).optional() };
 const channelWithNote = (SITE_SETTING_SCHEMAS['site.whatsapp_channel'].unwrap() as z.ZodObject).extend(note).nullable();
 const SETTINGS = {
@@ -85,10 +87,24 @@ export async function saveSiteSetting(raw: unknown): Promise<Result> {
     if (!ok?.ok) throw new UserError('Los ajustes del sitio los cambian administración, quien aprueba la web o el jefe, con doble factor.');
     const v = (SETTINGS[i.key] as z.ZodType).safeParse(i.value, { error: spanishIssue });
     if (!v.success) throw new UserError(SETTING_PROBLEM[i.key] ?? v.error.issues[0]?.message ?? 'Revisa los datos.');
+    let value: unknown = v.data;
+    if (isNoted(i.key)) {
+      const split = splitNotes(i.key, v.data);
+      value = split.value;
+      // One key of the private notes changes (atomically: two people saving two channels keep both notes).
+      await sql.query(
+        `insert into public.web_settings as s (key, value, is_public)
+         values ($1, case when $4::boolean then '{}'::jsonb else jsonb_build_object($2::text, $3::text::jsonb) end, false)
+         on conflict (key) do update
+           set value = case when $4::boolean then s.value - $2::text else s.value || jsonb_build_object($2::text, $3::text::jsonb) end,
+               is_public = false`,
+        [NOTES_KEY, i.key, JSON.stringify(split.notes), split.empty],
+      );
+    }
     await sql.query(
       `insert into public.web_settings (key, value, is_public) values ($1, $2::text::jsonb, true)
        on conflict (key) do update set value = excluded.value`,
-      [i.key, JSON.stringify(v.data)],
+      [i.key, JSON.stringify(value)],
     );
   });
   if (r.ok) revalidateWebSettings();
