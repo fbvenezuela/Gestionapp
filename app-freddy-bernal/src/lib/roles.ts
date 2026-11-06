@@ -146,9 +146,12 @@ export const NAV: NavItem[] = [
   { href: '/jefe/digital', label: 'Digital', icon: 'sparkles', roles: ['boss'] },
   // The public website and the citizen attention desk (D-91, D-93): their own screens, inside the panel. The editors and
   // publishers get «Web», the four roles of the attention desk get «Atención» (in their phone bar). The boss also has
-  // both (he publishes the web, reads the requests but denuncias, and their figures) and Administración too (the site's
-  // settings; the areas, catalogues and plazos of the desk, never a case), in «Más» on the phone.
-  { href: '/admin/web', label: 'Web', icon: 'globe', roles: ['writer', 'web_publisher', 'boss', 'admin'], mobile: ['writer', 'web_publisher'] },
+  // both (he approves and publishes the web, reads the requests but denuncias, and their figures). Administración too,
+  // each one where its permissions are: its «Web» opens the site's settings (the settings and the redirects are all it
+  // changes there: it never writes or publishes content) and lights up on the other screens of the web; its «Atención»,
+  // the desk's areas, catalogues and plazos (never a case). In «Más» on the phone.
+  { href: '/admin/web', label: 'Web', icon: 'globe', roles: ['writer', 'web_publisher', 'boss'], mobile: ['writer', 'web_publisher'] },
+  { href: '/admin/web/ajustes', label: 'Web', icon: 'globe', roles: ['admin'], also: ['/admin/web'] },
   { href: '/admin/atencion', label: 'Atención', icon: 'inbox', roles: [...ATTENTION_ROLES, 'boss', 'admin'], mobile: [...ATTENTION_ROLES] },
   { href: '/ajustes', label: 'Ajustes', icon: 'settings', roles: ['admin'], mobile: ['admin'] },
 ];
@@ -185,7 +188,8 @@ export function isNavActive(pathname: string, item: NavItem, menu: NavItem[]): b
 }
 
 export function navFor(roles: Role[]) {
-  const visible = NAV.filter((n) => n.roles.some((r) => roles.includes(r)));
+  // One item per label: an account that is Administración and also edits the web gets the editor's «Web» (the first).
+  const visible = NAV.filter((n) => n.roles.some((r) => roles.includes(r))).filter((n, i, all) => all.findIndex((o) => o.label === n.label) === i);
   const flagged = visible.filter((n) => n.mobile?.some((r) => roles.includes(r)));
   // Phone bar: up to 5 slots. If anything does not fit, the 5th slot becomes «Más»
   // with the rest, so every page in the menu can be reached from the phone.

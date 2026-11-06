@@ -146,6 +146,22 @@ describe('menús', () => {
       expect(navFor([r]).more.filter((n) => n.href.startsWith('/admin/')).map((n) => n.label), r).toEqual(['Web', 'Atención']);
       expect(navFor([r]).mobile.some((n) => n.href.startsWith('/admin/')), r).toBe(false);
     }
+    // Each one where its permissions are: the boss approves and publishes (/admin/web); Administración only changes the
+    // site's settings and redirects, so its «Web» opens the settings and stays marked on the web's other screens.
+    expect(navFor(['boss']).more.find((n) => n.label === 'Web')?.href).toBe('/admin/web');
+    const adminMenu = navFor(['admin']).visible;
+    const adminWeb = adminMenu.find((n) => n.label === 'Web')!;
+    expect(adminWeb.href).toBe('/admin/web/ajustes');
+    for (const path of ['/admin/web', '/admin/web/ajustes', '/admin/web/redirecciones']) {
+      expect(adminMenu.filter((n) => isNavActive(path, n, adminMenu)).map((n) => n.label), path).toEqual(['Web']);
+    }
+    expect(adminMenu.filter((n) => isNavActive('/admin/atencion/areas', n, adminMenu)).map((n) => n.label)).toEqual(['Atención']);
+    // One «Web» per menu: Administración that also edits the web gets the editor's; no menu repeats a label.
+    expect(navFor(['admin', 'writer']).visible.filter((n) => n.label === 'Web').map((n) => n.href)).toEqual(['/admin/web']);
+    for (const rs of [...ROLES.map((r) => [r]), ['admin', 'writer'], ['boss', 'web_publisher'], ['admin', 'social']] as Role[][]) {
+      const labels = navFor(rs).visible.map((n) => n.label);
+      expect(new Set(labels).size, rs.join('+')).toBe(labels.length);
+    }
     // Always with the second factor, whatever the editable list says (the database asks the token for it).
     expect([...MFA_ALWAYS].sort()).toEqual([...WEB_ROLES].sort());
   });

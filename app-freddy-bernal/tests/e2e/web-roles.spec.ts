@@ -34,9 +34,12 @@ for (const p of PEOPLE) {
     await page.goto('/panel');
     await expect(page).toHaveURL(new RegExp(`${p.home}$`));
     await expect(page.getByRole('heading', { level: 1, name: p.heading })).toBeVisible();
-    // «Atención» is built (W3): its inbox, never a placeholder.
-    if (p.home === '/admin/web') await expect(page.getByText('Se arma en la siguiente etapa.')).toBeVisible();
-    else await expect(page.getByText('Se arma en la siguiente etapa.')).toHaveCount(0);
+    // Both administrators are built (W3): /admin/web opens on its sections («Secciones de la web», built on the CMS
+    // branch; its placeholder until that branch is merged with this one) and /admin/atencion on its inbox, never a
+    // placeholder. This holds before and after the merge.
+    if (p.home === '/admin/web') {
+      await expect(page.getByRole('navigation', { name: 'Secciones de la web' }).or(page.getByText('Se arma en la siguiente etapa.'))).toBeVisible();
+    } else await expect(page.getByText('Se arma en la siguiente etapa.')).toHaveCount(0);
     const bar = page.getByRole('navigation', { name: 'Menú' });
     await expect(bar.getByRole('link')).toHaveText([p.item]);
     // No 360, no Mensajes, no «Crear».
