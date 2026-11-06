@@ -3,7 +3,7 @@ import type { Session } from '../auth/session';
 import { system } from './db';
 import { env } from '../env';
 import { notify, usersWithRole } from '../notify';
-import { INVITABLE_ROLES, type Role } from '../roles';
+import { STAFF_ROLES, type Role } from '../roles';
 import {
   AGENDA_FALLBACK,
   DEGRADED_TEXT,
@@ -47,7 +47,7 @@ export { escalate } from './escalate';
 
 export const MAX_QUESTION = 1500;
 // Who the assistant serves: the six team roles and Administración (the technical role).
-export const TEAM_ROLES: Role[] = [...INVITABLE_ROLES];
+export const TEAM_ROLES: Role[] = [...STAFF_ROLES];
 // What a model turn may spend, reserved against the month's cap before asking and settled with the
 // real numbers after. Each of its calls (3 rounds and the corrective one) resends the system prompt
 // with the tool specs, the whole thread and the tool results so far. The thread is measured when the

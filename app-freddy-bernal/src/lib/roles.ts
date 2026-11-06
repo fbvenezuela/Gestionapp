@@ -45,16 +45,19 @@ export const ROLE_LABEL: Record<Role, string> = {
 
 // The team (cambios del 27/10/2026): six roles, «más nada». The lists in «Ver como…», the guides and the assistant.
 export const TEAM_ROLES = ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'] as const satisfies readonly Role[];
-// What admin can give: the team plus Administración, the technical role (never in team lists or guides). The
-// database refuses anything else (user_roles_assignable, guard_invitation_roles).
-export const INVITABLE_ROLES = [...TEAM_ROLES, 'admin'] as const satisfies readonly Role[];
+// The team plus Administración, the technical role (never in team lists or guides): who the assistant 360 serves, its
+// knowledge cards, scripts and notices.
+export const STAFF_ROLES = [...TEAM_ROLES, 'admin'] as const satisfies readonly Role[];
 // No longer given; their history stays.
 export const RETIRED_ROLES = ['secretary', 'supervisor'] as const satisfies readonly Role[];
 // The public website and the citizen attention desk (D-93): the database gives them since
 // 20261106000100_web_publica.sql (user_roles_assignable, guard_invitation_roles), always with 2FA and never in the same
-// account as Administración (except the editor). Not in INVITABLE_ROLES yet: the panel's Equipo screen gives the team
-// and Administración until the web's admin screens arrive.
+// account as Administración (except the editor). No 360, guides, tutorials or Mensajes: they are not the team.
 export const WEB_ROLES = ['writer', 'web_publisher', 'attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor'] as const satisfies readonly Role[];
+// What admin can give in Ajustes → Equipo: the team, Administración and the web's and the attention desk's roles (a
+// responsible of an area with its areas). The database refuses anything else (user_roles_assignable,
+// guard_invitation_roles) and the mixes with Administración (guard_role_mix).
+export const INVITABLE_ROLES = [...STAFF_ROLES, ...WEB_ROLES] as const satisfies readonly Role[];
 // Its two halves: the website's content (/admin/web) and the citizen requests (/admin/atencion).
 export const WEB_CONTENT_ROLES = ['writer', 'web_publisher'] as const satisfies readonly Role[];
 export const ATTENTION_ROLES = ['attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor'] as const satisfies readonly Role[];
@@ -65,11 +68,16 @@ export const MFA_ALWAYS: readonly Role[] = WEB_ROLES;
 export const FUTURE_ROLES = ['aid_operator'] as const satisfies readonly Role[];
 
 export type TeamRole = (typeof TEAM_ROLES)[number];
+export type StaffRole = (typeof STAFF_ROLES)[number];
 export type InvitableRole = (typeof INVITABLE_ROLES)[number];
 export type WebRole = (typeof WEB_ROLES)[number];
 
 export function isTeamRole(r: string | null | undefined): r is TeamRole {
   return (TEAM_ROLES as readonly string[]).includes(r ?? '');
+}
+
+export function isStaffRole(r: string | null | undefined): r is StaffRole {
+  return (STAFF_ROLES as readonly string[]).includes(r ?? '');
 }
 
 export function isInvitableRole(r: string | null | undefined): r is InvitableRole {
@@ -83,8 +91,12 @@ export function isWebRole(r: string | null | undefined): r is WebRole {
 // Administración never holds the boss's or despacho's role in the same account: only the boss approves and only the
 // boss and despacho write the agenda (D-41). The database refuses it too (guard_role_mix, guard_invitation_roles).
 const NOT_WITH_ADMIN: readonly Role[] = ['boss', 'dispatch'];
+// Nor the web's publisher or a role that reads the citizen requests (D-93: Administración never publishes and never
+// reads a case); the editor of the web may share the account.
+const NOT_WITH_ADMIN_WEB: readonly Role[] = ['web_publisher', 'attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor'];
 export const SELF_GRANT_MESSAGE = 'Tus propios roles los da otra persona de administración.';
 export const ROLE_MIX_MESSAGE = 'Administración no puede ser también el jefe ni el despacho: usa otra cuenta.';
+export const ADMIN_WEB_MIX_MESSAGE = 'Administración no publica la web ni lee las solicitudes ciudadanas: usa otra cuenta.';
 // The boss reads every conversation and approves everything: the role is given only by the system, with
 // `npm run db:first-admin -- <correo> "<nombre>" --jefe` (D-58; guard_boss_grant, 20261028002350_boss_grant.sql).
 export const BOSS_GRANT_MESSAGE = 'El rol de jefe lo da el comando de instalación.';
@@ -94,8 +106,9 @@ export const BOSS_GRANT_MESSAGE = 'El rol de jefe lo da el comando de instalaci�
 export function roleGrantProblem(p: { isSelf: boolean; roles: readonly Role[]; role: Role }): string | null {
   if (p.roles.includes(p.role)) return null;
   if (p.isSelf) return SELF_GRANT_MESSAGE;
-  const mixed = p.role === 'admin' ? p.roles.some((r) => NOT_WITH_ADMIN.includes(r)) : NOT_WITH_ADMIN.includes(p.role) && p.roles.includes('admin');
-  if (mixed) return ROLE_MIX_MESSAGE;
+  const mixes = (list: readonly Role[]) => (p.role === 'admin' ? p.roles.some((r) => list.includes(r)) : list.includes(p.role) && p.roles.includes('admin'));
+  if (mixes(NOT_WITH_ADMIN)) return ROLE_MIX_MESSAGE;
+  if (mixes(NOT_WITH_ADMIN_WEB)) return ADMIN_WEB_MIX_MESSAGE;
   return p.role === 'boss' ? BOSS_GRANT_MESSAGE : null;
 }
 
@@ -131,10 +144,12 @@ export const NAV: NavItem[] = [
   { href: '/resultados', label: 'Resultados', icon: 'chart', roles: ['admin', 'social'] },
   { href: '/biblioteca', label: 'Biblioteca', icon: 'folder', roles: ['admin', 'social', 'dispatch'], mobile: ['dispatch'] },
   { href: '/jefe/digital', label: 'Digital', icon: 'sparkles', roles: ['boss'] },
-  // The public website and the citizen attention desk (D-91, D-93): their own screens, inside the panel. Not the team's
-  // menus: the editors and publishers get «Web», the four roles of the attention desk get «Atención».
-  { href: '/admin/web', label: 'Web', icon: 'globe', roles: ['writer', 'web_publisher'], mobile: ['writer', 'web_publisher'] },
-  { href: '/admin/atencion', label: 'Atención', icon: 'inbox', roles: [...ATTENTION_ROLES], mobile: [...ATTENTION_ROLES] },
+  // The public website and the citizen attention desk (D-91, D-93): their own screens, inside the panel. The editors and
+  // publishers get «Web», the four roles of the attention desk get «Atención» (in their phone bar). The boss also has
+  // both (he publishes the web, reads the requests but denuncias, and their figures) and Administración too (the site's
+  // settings; the areas, catalogues and plazos of the desk, never a case), in «Más» on the phone.
+  { href: '/admin/web', label: 'Web', icon: 'globe', roles: ['writer', 'web_publisher', 'boss', 'admin'], mobile: ['writer', 'web_publisher'] },
+  { href: '/admin/atencion', label: 'Atención', icon: 'inbox', roles: [...ATTENTION_ROLES, 'boss', 'admin'], mobile: [...ATTENTION_ROLES] },
   { href: '/ajustes', label: 'Ajustes', icon: 'settings', roles: ['admin'], mobile: ['admin'] },
 ];
 

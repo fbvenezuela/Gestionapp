@@ -3,7 +3,7 @@ import type { Session } from '../auth/session';
 import { db, system } from './db';
 import { env } from '../env';
 import { notify, usersWithRole } from '../notify';
-import { INVITABLE_ROLES, ROLES, ROLE_LABEL, isInvitableRole, type Role } from '../roles';
+import { STAFF_ROLES, ROLES, ROLE_LABEL, isStaffRole, type Role } from '../roles';
 import { mergeProfile, type AssistantProfile } from './config';
 import { chat, estimateCost, keyDiagnostics, parseChain, type KeyDiagnosis } from './providers';
 import { DATES_MESSAGE, listOf, noticeIssues, teachingProblem } from './guard';
@@ -188,7 +188,7 @@ export async function toggleScript(s: Session, id: string, active: boolean) {
 export async function testScripts(s: Session, question: string, roles?: Role[]) {
   assertAdmin(s);
   const q = redact(text(question, 'la pregunta', 1, 1500));
-  const rs = roles?.length ? rolesOrNull(roles)! : INVITABLE_ROLES;
+  const rs = roles?.length ? rolesOrNull(roles)! : STAFF_ROLES;
   return system((sql) =>
     sql.query<{ id: string; key: string | null; topic: string; points: number; always: boolean }>(
       `select script_id as id, script_key as key, script_topic as topic, script_points as points, script_always as always
@@ -316,8 +316,8 @@ export async function confirmDraft(s: Session, id: string) {
     if (d.kind !== 'aviso') throw new AssistantAdminError('No sé confirmar ese tipo de borrador.');
     const role = String(d.target?.role ?? '');
     const people = new Set<string>();
-    for (const r of role === 'todos' ? INVITABLE_ROLES : [role]) {
-      if (!isInvitableRole(r)) throw new AssistantAdminError('El rol del aviso no es válido.');
+    for (const r of role === 'todos' ? STAFF_ROLES : [role]) {
+      if (!isStaffRole(r)) throw new AssistantAdminError('El rol del aviso no es válido.');
       for (const u of await usersWithRole(r)) people.add(u);
     }
     // Rule 4, checked again with the same check both brains use (a draft may come from before it, or

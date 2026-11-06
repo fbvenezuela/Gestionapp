@@ -11,6 +11,7 @@ import { DIGEST_HOUR, runDailyDigest } from '@/lib/push/digest-run';
 import { assistantHealthCheck } from '@/lib/assistant';
 import { storageProvider } from '@/lib/storage/provider';
 import { rescanQuarantine } from '@/lib/storage/participation-files';
+import { runAttentionAlerts } from '@/lib/data/attention-alerts';
 
 // Scheduled work. Called by Vercel Cron (see vercel.json, daily) and/or by Supabase pg_cron +
 // pg_net every 5 minutes (migration 20261025000800_push.sql) with the CRON_SECRET bearer.
@@ -106,6 +107,10 @@ async function tick() {
   await step('webScheduled', async () => (await withSystem((sql) => sql.one<{ n: number }>(`select public.web_items_flip_scheduled() as n`)))!.n);
   await step('rateLimits', async () => (await withSystem((sql) => sql.one<{ n: number }>(`select public.prune_rate_limits() as n`)))!.n);
   await step('quarantine', () => rescanQuarantine());
+  // The attention desk (design §5): open requests past their due date, or with no movement for the days of the setting,
+  // tell the coordinators and their responsible in «Avisos» (and the phone), at most once a day per case, from the
+  // morning on (src/lib/data/attention-alerts.ts).
+  if (morning) await step('attentionAlerts', () => runAttentionAlerts());
 
   // 7) Drive uploads abandoned for more than 8 days: Google drops a resumable session after a
   // week (an unfinished session never becomes a file), so the row fails and its sealed URL goes.

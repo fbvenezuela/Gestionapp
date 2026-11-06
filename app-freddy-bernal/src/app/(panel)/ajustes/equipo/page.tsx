@@ -20,14 +20,19 @@ export default async function TeamPage() {
     const invites = await sql.query<{ id: string; email: string; full_name: string; roles: string; created_at: string }>(
       `select id, email, full_name, roles::text, created_at from public.invitations where accepted_at is null and revoked_at is null and expires_at > now() order by created_at desc`,
     );
-    return { members, invites };
+    // The areas of the attention desk and who is in each (a «Responsable de área» sees and attends its areas' requests).
+    const areas = await sql.query<{ id: string; name: string }>(`select id, name from public.areas where active order by name`);
+    const memberships = await sql.query<{ user_id: string; area_id: string }>(`select user_id, area_id from public.area_members`);
+    return { members, invites, areas, memberships };
   });
+  const areasOf = (id: string) => data.memberships.filter((m) => m.user_id === id).map((m) => m.area_id);
+  const areaName = new Map(data.areas.map((a) => [a.id, a.name]));
   // After db(), never inside it.
   const twoFactor = await twoFactorUsers(data.members.map((m) => m.id));
 
   return (
     <>
-      <PageHeader title="Equipo" subtitle="Cada persona tiene su usuario, aunque compartan el mismo rol." back={{ href: '/ajustes', label: 'Ajustes' }} />
+      <PageHeader title="Equipo" subtitle="Cada persona tiene su usuario, aunque compartan el mismo rol. También la web y la atención ciudadana, siempre con doble factor." back={{ href: '/ajustes', label: 'Ajustes' }} />
       <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
         <Card solid>
           <CardHeader title="Personas" subtitle={`${data.members.length} en la plataforma`} />
@@ -43,6 +48,9 @@ export default async function TeamPage() {
                     {(m.roles ?? []).map((r) => (
                       <Chip key={r} tone="info">{ROLE_LABEL[r]}</Chip>
                     ))}
+                    {m.roles?.includes('reports_operator')
+                      ? areasOf(m.id).map((a) => <Chip key={a}>Área: {areaName.get(a) ?? '—'}</Chip>)
+                      : null}
                     {!m.roles?.length ? <Chip tone="warn">Sin rol</Chip> : null}
                     {twoFactor ? (twoFactor.has(m.id) ? <Chip tone="ok">Doble factor activo</Chip> : <Chip>Sin doble factor</Chip>) : null}
                   </div>
@@ -54,6 +62,8 @@ export default async function TeamPage() {
                   active={m.active}
                   isSelf={m.id === s.userId}
                   twoFactor={twoFactor ? twoFactor.has(m.id) : null}
+                  areas={data.areas}
+                  memberAreas={areasOf(m.id)}
                 />
               </li>
             ))}
@@ -62,7 +72,7 @@ export default async function TeamPage() {
         <div className="flex flex-col gap-5">
           <Card>
             <CardHeader title="Invitar a alguien" subtitle="Le llega un correo y entra con un código." />
-            <InviteForm />
+            <InviteForm areas={data.areas} />
           </Card>
           <Card>
             <CardHeader title="Invitaciones sin aceptar" />
