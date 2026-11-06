@@ -5,9 +5,9 @@ import type { Room } from './office';
 // what each person may change is decided by the database (event_office policies, pieces, publications).
 const ROOMS_OF: Partial<Record<Role, Room[]>> = {
   dispatch: ['reception'],
-  boss: ['approval'],
+  boss: ['clean_cut', 'approval'],
   camera: ['storyboard', 'recording'],
-  social: ['script', 'storyboard', 'clean_cut', 'brutal_edit', 'copywriting', 'publishing', 'analytics'],
+  social: ['script', 'storyboard', 'brutal_edit', 'copywriting', 'publishing', 'analytics'],
 };
 
 export function myRooms(roles: readonly Role[]): Room[] {

@@ -66,9 +66,11 @@ describe('event_office: el guion', () => {
 });
 
 describe('event_office: las dos ediciones', () => {
-  it('la edición brutal espera el video limpio', async () => {
+  it('solo el jefe marca el video limpio; la edición brutal lo espera', async () => {
     await expect(t.as('social', (sql) => sql.query(`update public.event_office set brutal_done = true where event_id = $1`, [ev]))).rejects.toThrow(/editor en línea/);
-    await t.as('social', (sql) => sql.query(`update public.event_office set clean_done = true where event_id = $1`, [ev]));
+    await expect(t.as('social', (sql) => sql.query(`update public.event_office set clean_done = true where event_id = $1`, [ev]))).rejects.toThrow(/Solo el jefe/);
+    await expect(t.as('boss', (sql) => sql.query(`update public.event_office set clean_done = true where event_id = $1`, [ev]), 'aal1')).rejects.toThrow();
+    await t.as('boss', (sql) => sql.query(`update public.event_office set clean_done = true where event_id = $1`, [ev]));
     await t.as('social2', (sql) => sql.query(`update public.event_office set brutal_done = true where event_id = $1`, [ev]));
     expect(await row(ev)).toMatchObject({ clean_done: true, brutal_done: true });
   });

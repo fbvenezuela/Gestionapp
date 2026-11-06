@@ -100,7 +100,8 @@ function RoomWork({
     case 'recording':
       return <LinkButton href={`/eventos/${id}?tab=material`}>Subir el material</LinkButton>;
     case 'clean_cut':
-      return content ? <EditStep eventId={id} step="clean" done={cleanDone} /> : <p className="text-[15px] text-text-2">El líder de Redes limpia el video.</p>;
+      // Only the boss marks the video clean (Juan, 06/11/2026; the database refuses anyone else).
+      return boss ? <EditStep eventId={id} step="clean" done={cleanDone} /> : <p className="text-[15px] text-text-2">El jefe limpia el video y lo marca.</p>;
     case 'brutal_edit':
       return content ? <EditStep eventId={id} step="brutal" done={brutalDone} /> : <p className="text-[15px] text-text-2">Redes hace la edición final.</p>;
     case 'approval':

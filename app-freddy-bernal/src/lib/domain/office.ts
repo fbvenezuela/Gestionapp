@@ -60,7 +60,7 @@ export const ROOM: Record<Room, RoomInfo> = {
   },
   clean_cut: {
     label: 'Editor en línea',
-    who: 'Líder de Redes',
+    who: 'Jefe',
     crew: 'person',
     does: 'Quita los tiempos muertos y limpia el video de imperfecciones.',
     example: 'Sin silencios largos, sin «eh», sin tomas movidas: el video limpio, listo para el editor.',

@@ -172,9 +172,8 @@ pruebe cada rol (lo pidió el 25/10).
    decisiones: tiempo de los datos personales.)
 
 **La oficina (06/11/2026, D-90), para Juan:**
-14. ¿Quién es el **líder humano** del editor en línea? Hoy marca «Ya está limpio» cualquiera de Redes o el jefe.
-15. ¿Se ponen los **nombres de las personas** en cada sala? Irían en la configuración del cliente, no en el código.
-16. ¿Política y el IVT deberían ver la oficina? Hoy no ven los eventos del jefe, así que no la tienen.
+Respondido por Juan el 06/11: el **editor en línea es el jefe** (solo él marca «Ya está limpio»); **sin nombres**,
+solo el puesto; **política y el IVT no ven la oficina**; **la IA sigue apagada** (plantilla con la ficha).
 
 **Lo que falta de nuestra parte:**
 - Las migraciones de esta ronda ya están en `fb-dev` (aplicadas y verificadas el 28/10, `PROMPT-SUPABASE.md`). Falta

@@ -2,7 +2,7 @@
 -- Most rooms read what already exists (storyboard, material, pieces, copies, publications, metrics). Three steps had
 -- nowhere to live, and get it here, one row per event:
 --   * the script (guion): a draft from the ficha that the boss approves before the storyboard;
---   * «Editor en línea»: the lead of Redes marks the video clean (dead time and flaws out);
+--   * «Editor en línea»: the boss himself marks the video clean (dead time and flaws out): Juan, 06/11, «solo yo»;
 --   * «Editor brutal»: the final edit (animations, effects, sound, subtitles) is ready for the boss.
 -- Who writes: the boss and Redes (is_content_team, as pieces). Only the boss approves the script (can_approve()), and a
 -- change to an approved script sends it back to draft. Who reads: whoever sees the event (can_see_event). No date,
@@ -43,6 +43,10 @@ begin
     end if;
   end if;
   if new.script_status <> 'approved' then new.script_approved_by := null; end if;
+  -- «Ya está limpio» (and undoing it) is the boss's alone, with his second factor (Juan, 06/11/2026).
+  if new.clean_done is distinct from (case when tg_op = 'UPDATE' then old.clean_done else false end) and not public.can_approve() then
+    raise exception 'Solo el jefe marca el video limpio.' using errcode = '42501';
+  end if;
   -- The video is cleaned before the final edit: «Editor brutal» cannot be ready over a video that is not clean.
   if new.brutal_done and not new.clean_done then
     raise exception 'Primero el editor en línea deja el video limpio.';

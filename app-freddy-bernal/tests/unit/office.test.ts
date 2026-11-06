@@ -75,7 +75,8 @@ describe('las salas', () => {
   });
 
   it('las salas de cada rol', () => {
-    expect(myRooms(['boss'])).toEqual(['approval']);
+    expect(myRooms(['boss'])).toEqual(['clean_cut', 'approval']);
+    expect(myRooms(['social'])).not.toContain('clean_cut');
     expect(myRooms(['dispatch'])).toEqual(['reception']);
     expect(myRooms(['camera'])).toContain('recording');
     expect(myRooms(['politics'])).toEqual([]);

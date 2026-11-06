@@ -1338,7 +1338,8 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
   el recorrido de una actividad y el trabajo de su sala.
 - Lo nuevo vive en `event_office` (migración `20261106000100_office.sql`): el guion (borrador → lo aprueba solo el jefe,
   con doble factor; si se cambia después, vuelve al jefe), «Ya está limpio» y «Edición lista» (la brutal espera la
-  limpia). Escriben el jefe y Redes. Las demás salas leen lo que ya existe (storyboard, material, piezas, copies,
+  limpia). Escriben el jefe y Redes; **«Ya está limpio» solo el jefe** (Juan, 06/11: el líder humano es él). Sin
+  nombres en las salas, solo el puesto; política y el IVT sin oficina; IA apagada (respuestas de Juan del 06/11). Las demás salas leen lo que ya existe (storyboard, material, piezas, copies,
   publicaciones). `office_facts()` da solo cuentas y sí/no, igual para todos los que ven el evento.
 - La sala sale de `officeRoom()` (`src/lib/domain/office.ts`); una actividad de antes de la oficina no vuelve a
   Recepción por lo que ya se hizo afuera.
