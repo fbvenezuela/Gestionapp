@@ -90,7 +90,8 @@ export function RequestList({ rows }: { rows: InboxRow[] }) {
             {rows.map((r) => (
               <tr key={r.id} className="align-top hover:bg-surface-2">
                 <td className="px-4 py-3">
-                  <Link href={`/admin/atencion/${r.id}`} className="font-mono font-semibold text-accent-ink underline-offset-2 hover:underline">
+                  {/* The code in one line: split at its dashes («AC-» / «2026-» / «RQ8FZM») it was hard to read and copy. */}
+                  <Link href={`/admin/atencion/${r.id}`} className="whitespace-nowrap font-mono font-semibold text-accent-ink underline-offset-2 hover:underline">
                     {r.reference}
                   </Link>
                 </td>
