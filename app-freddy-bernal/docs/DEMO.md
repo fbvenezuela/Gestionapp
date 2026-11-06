@@ -1,7 +1,7 @@
-# Recorrido de demostración (seis roles desde el 27/10; guías y tutoriales desde el 28/10; Redes por formato y Mensajes por canales desde el 29/10; los roles de la web y la atención desde el 06/11)
+# Recorrido de demostración (seis roles desde el 27/10; guías y tutoriales desde el 28/10; Redes por formato y Mensajes por canales desde el 29/10; la web pública y la atención ciudadana desde el 06/11)
 
-**Link:** el de la versión de prueba de Vercel (ver `README.md`, «Publicar la demostración»). En local:
-`npm run build && npm start` → http://localhost:3000.
+**Link:** el de la versión de prueba de Vercel (`README.md`). En local: `npm run build && npm start` (o `npm run dev`)
+→ http://localhost:3000 es la web pública y http://localhost:3000/panel el panel del equipo.
 
 Todo es **inventado**. Para entrar, **toca el rol** en la lista «Versión de demostración»: entras directo, sin código
 ni doble factor (atajo solo para probar, `DEMO_SHORTCUTS`). Para ver el flujo real (código por correo + doble factor
@@ -105,38 +105,52 @@ el texto; un tutorial con el teclado cerrado (el anillo cae sobre lo que señala
   miembros, quién y cuándo: nunca el texto, el nombre del canal ni los miembros).
 - Mensajes: cada quien lee solo sus canales; el jefe está en todos; administración y 360 no entran.
 
-## La web pública y la atención ciudadana (06/11): lo que ya hay
-La base está lista (D-90 a D-96); las pantallas llegan en las siguientes etapas. Hoy, en «Entrar como…», bajo «La web y
-la atención ciudadana», hay una persona de cada rol nuevo (todas inventadas, siempre con doble factor fuera de los
-atajos). Cada una entra a su pantalla (por ahora, de espera, con lo que puede leer contado por la base):
+## La web pública y la atención ciudadana (06/11)
+`/` es la **web pública** (con la franja «Versión de prueba: el contenido es inventado.» y sin buscadores) y `/panel`
+la entrada del equipo (la app instalada abre ahí). En «Entrar como…» (`/entrar`, tarjeta «Versión de demostración»),
+bajo **«La web y la atención ciudadana»**, hay una persona inventada por cada rol nuevo; fuera de los atajos, todas
+entran con doble factor. Cómo se usa cada pantalla: `docs/MANUAL-ADMIN-WEB.md` y `docs/MANUAL-ATENCION.md`.
 
-| Rol | Correo | Qué ver hoy |
+| Rol | Correo | Qué tocar |
 |---|---|---|
-| Editor de la web | `web.editora@demo.test` | **Web**: borradores, lo que espera aprobación, programado y publicado. No ve solicitudes |
-| Aprobador de la web | `web.aprobador@demo.test` | **Web**, lo mismo; él publica (en la siguiente etapa, con sus botones) |
-| Coordinador de atención | `atencion.coordinacion@demo.test` | **Atención**: las 60 solicitudes de prueba, denuncias también (por revisar, en atención, resueltas, vencidas) |
-| Responsable de área · Servicios públicos | `atencion.servicios@demo.test` | **Atención**: solo lo de su área o lo asignado a él, nunca denuncias |
-| Responsable de área · Vialidad y transporte | `atencion.vialidad@demo.test` | **Atención**: lo mismo, de vialidad y transporte |
-| Operador de denuncias | `atencion.denuncias@demo.test` | **Atención**: solo las denuncias |
-| Consulta y auditoría | `consulta@demo.test` | **Atención**: todo menos las denuncias, sin poder cambiar nada |
+| Editor de la web | `web.editora@demo.test` | **Web** → «Noticias y comunicados» → «Nueva noticia» → título → «Crear borrador»; escribe, «Guardar borrador», «Vista previa» y «Enviar a aprobación» (la lista «falta esto» dice qué falta). «Páginas» → «Inicio»: «Agregar un bloque», «Subir», «Bajar», «Ocultar». «Biblioteca» → «Subir una foto» (pide el texto alternativo). No tiene «Publicar», ni «Ajustes del sitio», ni ve solicitudes |
+| Aprobador de la web | `web.aprobador@demo.test` | **Web** → «Por aprobar»: «Ferias de alimentos del fin de semana (demo)» (primera publicación) y «Limpieza y canalización de quebradas (demo)» (un cambio a algo ya publicado: el público sigue viendo lo aprobado). Mira «Qué cambia si lo publicas» → «Publicar ahora», y búscala en `/actualidad`; o «Programar» (hora del Táchira), o «Devolver con comentario». En una obra publicada, «Versiones» → «Volver a esta versión». «Ajustes del sitio» (en la demo, las cuentas sin verificar salen en la web marcadas «por confirmar») y «Redirecciones» |
+| Coordinador de atención | `atencion.coordinacion@demo.test` | **Atención** → «Bandeja»: las 60 de prueba, denuncias también. Busca `DEMR01` → el caso con tres apoyos y un duplicado unido: «Ver contacto», «Escribir» → «Respuesta a la persona», «Pasar a» → «Cambiar el estado». «Tablero», «Mapa» («Ver el mapa»), «Cifras», «Respuestas guardadas» y, abajo de la bandeja, «Descargar CSV» |
+| Responsable de área · Servicios públicos | `atencion.servicios@demo.test` | **Atención**: solo lo de su área (agua, luz, aseo…) o lo asignado a él, nunca denuncias. `DEMR02` (resuelto) y `DEMR03` (requiere información) son de su área: «Tomar el caso», una nota interna, «Subir evidencia» |
+| Responsable de área · Vialidad y transporte | `atencion.vialidad@demo.test` | Lo mismo, de vialidad y transporte (`DEMR01` es suyo). Un caso de otra área no existe para él |
+| Operador de denuncias | `atencion.denuncias@demo.test` | **Atención**: solo las denuncias, sin punto en el mapa (su mapa está vacío) |
+| Consulta y auditoría | `consulta@demo.test` | **Atención**: todo menos las denuncias, sin contactos y sin poder cambiar nada; «Cifras», «Registro» y el CSV sin contactos |
 
-Lo sembrado (todo con «(demo)»): 12 noticias publicadas (una más programada para dentro de dos días, un borrador y una
-esperando aprobación), 14 obras en varios municipios y en los tres estados (una con un cambio esperando aprobación: el
-público sigue viendo lo aprobado), 6 programas del Reporte Bernal (sin video real), 8 documentos con su PDF de prueba
-(tres Semanarios), 4 avisos (uno vencido), 10 preguntas frecuentes, 4 indicadores con fuente inventada, las seis
-páginas base publicadas y 60 solicitudes de los seis tipos con su historia, notas, respuestas, apoyos, archivos de
-prueba («sin analizar») y 7 publicadas en «lo atendido».
+Con los roles de siempre: el **jefe** (`jefe@demo.test`) tiene «Web» (publica) y «Atención» (lee y ve las cifras);
+**Administración** (`admin@demo.test`) tiene «Web» (abre «Ajustes del sitio»), «Atención» (abre «Áreas y plazos»,
+nunca un caso) y en Ajustes → Equipo invita a los roles de la web y la atención.
 
-**Comprobantes de prueba** para «Consultar mi solicitud» (cuando esté la pantalla; el año es el en curso):
+**Sin entrar, como cualquier persona:** en `/atencion/nueva`, manda una solicitud de cada tipo (el formulario avisa
+«Versión de prueba: no escribas datos reales»); al final salen el código y la clave, con «Descargar comprobante
+(PDF)». En
+`/atencion/consultar`, abre estos **comprobantes de prueba** (el año es el en curso: hoy, `AC-2026-…`):
 
 | Código | Clave | Qué es |
 |---|---|---|
 | `AC-<año>-DEMR01` | `K7QM-2HXP-9WRT-4BNE` | Reporte de un hueco en atención, con tres apoyos y un duplicado unido |
-| `AC-<año>-DEMR02` | `R3PS-W8N2-DEMV-7QKA` | Reporte resuelto: espera que la persona confirme |
+| `AC-<año>-DEMR02` | `R3PS-W8N2-DEMV-7QKA` | Reporte resuelto: espera que la persona confirme («¿Se resolvió de verdad?»: «Sí, se resolvió» o «No, todavía no», que lo reabre) |
 | `AC-<año>-DEMR03` | `H4JX-5ZTB-9CNF-W2YE` | Reporte que requiere información: se le puede agregar |
 
-`/panel` es la entrada del equipo desde ya (la app instalada abre ahí); `/` sigue igual hasta que llegue la web.
-Para trabajar en tu computadora sin perder lo hecho: `LOCAL_DATA_DIR=./.data npm run dev` (`README.md`).
+Una clave o un código equivocados dan siempre «No encontramos una solicitud con esos datos.».
+
+Lo sembrado (todo con «(demo)»): 12 noticias publicadas (una más programada para dentro de dos días, un borrador y una
+esperando aprobación), 14 obras en varios municipios y en los tres estados (una con un cambio esperando aprobación), 6
+programas del Reporte Bernal (sin video real: dicen «Video por enlazar»), 8 documentos con su PDF de prueba (tres
+Semanarios), 4 avisos (uno vencido, que ya no sale), 10 preguntas frecuentes, 4 indicadores con fuente inventada, las
+seis páginas base publicadas y 60 solicitudes de los seis tipos con su historia, notas, respuestas, apoyos, archivos de
+prueba («sin analizar», con el aviso de la versión de prueba) y 7 publicadas en «lo atendido». Ningún correo sale:
+quedan en Ajustes → Buzón de correos.
+
+**Lo que puede perderse entre servidores** (D-39): en Vercel cada servidor tiene su base en memoria. Lo sembrado es igual
+en todos, pero una noticia que crea el editor, lo que publica el aprobador o una solicitud nueva viven solo en el
+servidor donde se hicieron: con otra cuenta o en otro teléfono pueden no verse. Para probar entre roles, lo más seguro
+es lo sembrado (lo que ya espera aprobación y los tres comprobantes), o tu computadora con
+`LOCAL_DATA_DIR=./.data npm run dev`, donde todo queda (`README.md`).
 
 ## Límites de la demostración
 - La base es en memoria: si el servidor se reinicia (pasa en Vercel), vuelve a los datos inventados.
