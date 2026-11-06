@@ -246,6 +246,19 @@ export async function mediaUsage(sql: Sql, mediaId: string): Promise<MediaUse[]>
   return rows.map((r) => ({ id: r.id, kind: r.kind, slug: r.slug, title: r.title, inDraft: r.in_draft, inPublished: r.in_published }));
 }
 
+/** How many items use each of these files (in a draft or in what is published): the library's «Se usa en». */
+export async function mediaUseCounts(sql: Sql, ids: readonly string[]): Promise<Map<string, number>> {
+  if (!ids.length) return new Map();
+  const rows = await sql.query<{ id: string; n: number }>(
+    `select m.id, count(i.id)::int as n
+       from unnest($1::uuid[]) as m(id)
+       left join public.web_items i on strpos(i.draft::text, m.id::text) > 0 or strpos(coalesce(i.published::text, ''), m.id::text) > 0
+      group by m.id`,
+    [ids],
+  );
+  return new Map(rows.map((r) => [r.id, r.n]));
+}
+
 // --- What the forms choose from ----------------------------------------------------------------------------------
 export type RefOption = { id: string; kind: WebKind; title: string; live: boolean; group: string | null; hasSource: boolean };
 

@@ -8,7 +8,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Input, Select } from '@/components/ui/field';
 import { CmsNav } from '@/components/cms/chrome';
 import { LibraryUpload } from '@/components/cms/library-upload';
-import { MEDIA_PAGE_SIZE, mediaList, reviewQueue, webCaps } from '@/lib/data/web-admin';
+import { MEDIA_PAGE_SIZE, mediaList, mediaUseCounts, reviewQueue, webCaps } from '@/lib/data/web-admin';
 import { ADMIN_WEB } from '@/lib/web/cms/kinds';
 import { cn } from '@/lib/cn';
 
@@ -27,11 +27,10 @@ export default async function LibraryPage({ searchParams }: { searchParams: Sear
   const kind = one(sp.tipo) === 'documentos' ? 'document' : one(sp.tipo) === 'fotos' ? 'image' : null;
   const archived = one(sp.archivados) === '1';
   const page = Math.max(1, Number.parseInt(one(sp.pagina), 10) || 1);
-  const data = await db(s, async (sql) => ({
-    caps: await webCaps(sql),
-    list: await mediaList(sql, { q, kind, archived, page }),
-    waiting: (await reviewQueue(sql)).length,
-  }));
+  const data = await db(s, async (sql) => {
+    const list = await mediaList(sql, { q, kind, archived, page });
+    return { caps: await webCaps(sql), list, uses: await mediaUseCounts(sql, list.rows.map((m) => m.id)), waiting: (await reviewQueue(sql)).length };
+  });
   const { caps, list } = data;
   const pages = Math.max(1, Math.ceil(list.total / MEDIA_PAGE_SIZE));
   const hrefFor = (p: number) => {
@@ -99,6 +98,9 @@ export default async function LibraryPage({ searchParams }: { searchParams: Sear
                     <span className="line-clamp-2 font-medium">{m.kind === 'image' ? m.alt : m.title}</span>
                     <span className="text-xs text-text-2">
                       {m.kind === 'image' ? `${m.width} × ${m.height}` : 'PDF'} · {Math.max(1, Math.round(m.bytes / 1024))} KB
+                    </span>
+                    <span className="text-xs font-semibold text-text-2">
+                      {(data.uses.get(m.id) ?? 0) === 0 ? 'Sin usar' : `Se usa en ${data.uses.get(m.id)} ${data.uses.get(m.id) === 1 ? 'contenido' : 'contenidos'}`}
                     </span>
                   </span>
                 </Link>

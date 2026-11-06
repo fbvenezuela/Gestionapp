@@ -5,7 +5,7 @@
 // review, a new address with its 301, the library's words, the settings' upsert) are refused to whom they are not for.
 // No new table, policy or function in this stage: these rows pin what the administrator relies on.
 import { describe, it, expect, beforeAll } from 'vitest';
-import { adminList, itemVersions, kindCounts, mediaList, mediaUsage, reviewQueue, siteSettingRows, webCaps } from '@/lib/data/web-admin';
+import { adminList, itemVersions, kindCounts, mediaList, mediaUsage, mediaUseCounts, reviewQueue, siteSettingRows, webCaps } from '@/lib/data/web-admin';
 import { makeWebTestDb, TEAM, type WebTestDb, type Who } from './web-setup';
 
 let t: WebTestDb;
@@ -53,6 +53,7 @@ describe('lo que leen las pantallas', () => {
       expect((await t.asWho(who, (sql) => itemVersions(sql, item.id))).length, String(who)).toBeGreaterThanOrEqual(1);
       expect((await t.asWho(who, (sql) => mediaList(sql, { q: 'foto de prueba' }))).rows.map((m) => m.id), String(who)).toEqual([media]);
       expect((await t.asWho(who, (sql) => mediaUsage(sql, media))).map((u) => u.id), String(who)).toEqual([item.id]);
+      expect((await t.asWho(who, (sql) => mediaUseCounts(sql, [media]))).get(media), String(who)).toBe(1);
     }
     for (const who of ['social', 'dispatch', 'camera', 'coordinator', 'auditor'] as Who[]) {
       expect((await t.asWho(who, (sql) => adminList(sql, { kind: 'news' }))).rows, String(who)).toEqual([]);
@@ -60,6 +61,7 @@ describe('lo que leen las pantallas', () => {
       expect(await t.asWho(who, (sql) => reviewQueue(sql)), String(who)).toEqual([]);
       expect((await t.asWho(who, (sql) => mediaList(sql, {}))).rows, String(who)).toEqual([]);
       expect(await t.asWho(who, (sql) => itemVersions(sql, item.id)), String(who)).toEqual([]);
+      expect((await t.asWho(who, (sql) => mediaUseCounts(sql, [media]))).get(media), String(who)).toBe(0);
     }
     // Without the second factor, the editor reads nothing either.
     expect((await t.asWho('writer', (sql) => adminList(sql, { kind: 'news' }), 'aal1')).rows).toEqual([]);
