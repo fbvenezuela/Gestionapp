@@ -42,7 +42,7 @@ function EpisodeLinks({ item }: { item: WebItem<'episode'> }) {
       {item.data.links.map((l, i) => (
         <li key={`${l.url}-${i}`}>
           <SafeLink href={l.url} className="inline-flex min-h-11 items-center gap-1 font-semibold text-accent-ink underline underline-offset-4">
-            {l.label} <ExternalLinkIcon className="h-4 w-4" />
+            {l.label} <ExternalLinkIcon className="h-4 w-4 shrink-0" />
           </SafeLink>
         </li>
       ))}
@@ -65,7 +65,7 @@ export default async function ProgramPage({ searchParams }: { searchParams: Sear
         {channel ? (
           <p className="mt-6 flex flex-wrap items-center gap-2 text-lg">
             <a href={channel.url} rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 font-semibold text-accent-ink underline decoration-2 underline-offset-4">
-              Ver el canal en YouTube: {channel.handle || channel.label} <ExternalLinkIcon className="h-4 w-4" />
+              Ver el canal en YouTube: {channel.handle || channel.label} <ExternalLinkIcon className="h-4 w-4 shrink-0" />
             </a>
             {channel.verified ? null : <UnverifiedMark />}
           </p>

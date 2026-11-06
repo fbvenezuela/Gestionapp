@@ -34,7 +34,7 @@ export function PhotoPlaceholder({ className, label = PLACEHOLDER_TEXT }: { clas
       )}
     >
       <span className="m-4 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-semibold text-text">
-        <ImageIcon className="h-4 w-4 text-accent-ink" />
+        <ImageIcon className="h-4 w-4 shrink-0 text-accent-ink" />
         {label}
       </span>
     </div>

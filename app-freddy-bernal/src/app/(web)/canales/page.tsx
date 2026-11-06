@@ -59,7 +59,7 @@ export default async function ChannelsPage() {
           <div className={cn(cardClass, 'mt-10 flex flex-col gap-2 p-6')}>
             <p className="text-sm font-semibold uppercase tracking-[0.08em] text-accent-ink">Portal institucional</p>
             <a href={site.portal.url} rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 text-lg font-semibold text-text underline underline-offset-4">
-              {site.portal.label} <ExternalLinkIcon className="h-4 w-4" />
+              {site.portal.label} <ExternalLinkIcon className="h-4 w-4 shrink-0" />
             </a>
           </div>
         ) : null}

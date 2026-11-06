@@ -97,10 +97,20 @@ test.describe('la web pública en el teléfono (360 px)', () => {
     await expect(page.locator('summary', { hasText: 'Menú' })).toBeFocused();
   });
 
-  test('sin JavaScript el menú también abre al primer toque (es un <details> nativo)', async ({ browser }) => {
+  test('sin JavaScript: el contenido llega entero (sin esqueleto que espere un programa), la búsqueda funciona y el menú abre al primer toque', async ({ browser }) => {
     const ctx = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 360, height: 760 }, hasTouch: true, isMobile: true, baseURL: test.info().project.use.baseURL });
     const page = await ctx.newPage();
+    for (const [path, h1] of [['/', /Saludos/], ['/gestion?vista=linea', 'Gestión y obras'], ['/canales', 'Canales oficiales']] as const) {
+      await page.goto(path);
+      await expect(page.getByRole('heading', { level: 1, name: h1 }), path).toBeVisible();
+      await expect(page.getByText('Cargando…'), path).toHaveCount(0);
+    }
+    await page.goto('/gestion?vista=linea');
+    await expect(page.locator('main ol li time').first()).toBeVisible();
     await page.goto('/actualidad');
+    await page.getByLabel('Buscar', { exact: true }).fill('salud');
+    await page.getByRole('button', { name: 'Buscar' }).click();
+    await expect(page.getByText(/resultados? para «salud»/)).toBeVisible();
     await page.locator('summary', { hasText: 'Menú' }).tap();
     await expect(page.getByRole('navigation', { name: 'Secciones' }).getByRole('link', { name: 'Gestión' })).toBeVisible();
     await ctx.close();
@@ -183,6 +193,7 @@ test.describe('la web pública en el teléfono (360 px)', () => {
     await page.getByLabel('Hasta').fill(to);
     await page.getByRole('button', { name: 'Ver esas fechas' }).click();
     await page.waitForURL(/desde=/);
+    await expect(page.getByText(/entradas? desde el/)).toBeVisible();
     const shown = await page.locator('main ol li time').evaluateAll((els) => els.map((e) => e.getAttribute('datetime') ?? ''));
     expect(shown.length).toBeGreaterThan(0);
     expect(shown.length).toBeLessThan(days.length);

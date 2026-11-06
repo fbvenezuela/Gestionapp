@@ -211,6 +211,13 @@ describe('el marco de la web', () => {
     expect(html(h(DemoBanner, { text: site.demoBanner }))).toContain('Versión de prueba: el contenido es inventado.');
   });
 
+  it('las páginas llegan enteras: sin loading.tsx (un esqueleto escondería el contenido a quien no tiene JavaScript); la carga es la barra de arriba', () => {
+    const web = path.join(process.cwd(), 'src', 'app', '(web)');
+    expect(fs.existsSync(path.join(web, 'loading.tsx'))).toBe(false);
+    const chrome = fs.readFileSync(path.join(process.cwd(), 'src', 'components', 'web', 'public-chrome.tsx'), 'utf8');
+    expect(chrome).toMatch(/<Suspense fallback=\{null\}>\s*<NavProgress \/>\s*<\/Suspense>/);
+  });
+
   it('la cabecera: el nombre en letras, las dos acciones a la vista y el menú del teléfono nativo (abre al primer toque)', () => {
     const out = html(h(SiteHeader, { site }));
     expect(out).toContain(site.name);

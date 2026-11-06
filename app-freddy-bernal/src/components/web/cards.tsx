@@ -65,7 +65,7 @@ export function NewsFeature({ item, as: H = 'h3', eager = false }: { item: WebIt
         </H>
         {d.excerpt ? <p className="text-lg leading-relaxed text-text-2">{d.excerpt}</p> : null}
         <p className="mt-auto inline-flex items-center gap-2 pt-2 font-semibold text-accent-ink" aria-hidden>
-          Leer la nota <ArrowRightIcon className="h-4 w-4" />
+          Leer la nota <ArrowRightIcon className="h-4 w-4 shrink-0" />
         </p>
       </div>
     </article>
@@ -150,7 +150,7 @@ export function DocumentRow({ item, as: H = 'h3' }: { item: WebItem<'document'>;
           href={file.url}
           className="inline-flex min-h-12 shrink-0 items-center gap-2 self-start rounded-full border-2 border-accent bg-surface px-4 font-semibold text-text hover:bg-accent-soft sm:self-center"
         >
-          <DownloadIcon className="h-4 w-4" />
+          <DownloadIcon className="h-4 w-4 shrink-0" />
           Ver el PDF <span className="sr-only">de «{d.title}»</span>
           <span className="text-sm font-normal text-text-2">({fmtBytes(file.bytes)})</span>
         </a>
@@ -169,7 +169,7 @@ export function EpisodeMeta({ item, className }: { item: WebItem<'episode'>; cla
       <Time day={itemDay(item)} />
       {d.minutes ? (
         <span className="inline-flex items-center gap-1">
-          <ClockIcon className="h-4 w-4" /> {d.minutes} min
+          <ClockIcon className="h-4 w-4 shrink-0" /> {d.minutes} min
         </span>
       ) : null}
     </p>

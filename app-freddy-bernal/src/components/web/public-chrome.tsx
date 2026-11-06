@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { FlaskConicalIcon } from './icons';
 import type { Site } from '@/lib/web/site-settings';
+import { NavProgress } from './nav-progress';
 import { SiteFooter } from './site-footer';
 import { SiteHeader } from './site-header';
 
@@ -23,6 +24,10 @@ export function DemoBanner({ text }: { text: string }) {
 export function PublicChrome({ site, children }: { site: Site; children: ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col bg-ivory text-text">
+      {/* The bar reads the address (useSearchParams): its own empty boundary, so a static page never waits for it. */}
+      <Suspense fallback={null}>
+        <NavProgress />
+      </Suspense>
       <a
         href="#contenido"
         className="sr-only z-50 rounded-full bg-action px-5 py-3 font-semibold text-on-action focus:not-sr-only focus:fixed focus:left-4 focus:top-4"

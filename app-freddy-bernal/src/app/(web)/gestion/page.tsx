@@ -191,7 +191,7 @@ async function Timeline({ sp }: { sp: Record<string, string | string[] | undefin
                         <Badge>{PROJECT_CATEGORIES[e.data.category]}</Badge>
                         {muni ? (
                           <span className="inline-flex items-center gap-1">
-                            <MapPinIcon className="h-4 w-4 text-accent-ink" /> {muni}
+                            <MapPinIcon className="h-4 w-4 shrink-0 text-accent-ink" /> {muni}
                             {e.data.place ? ` · ${e.data.place}` : ''}
                           </span>
                         ) : null}

@@ -67,7 +67,7 @@ export function NoticesView({ items, munis, now = new Date() }: { items: WebItem
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone="warn">{NOTICE_CATEGORIES[d.category]}</Badge>
               <span className="inline-flex items-center gap-1 text-sm text-text-2">
-                <MapPinIcon className="h-4 w-4" />
+                <MapPinIcon className="h-4 w-4 shrink-0" />
                 {places.length ? places.join(', ') : 'Todo el estado'}
               </span>
             </div>
@@ -141,7 +141,7 @@ export function AttendedView({ items, names }: { items: AttendedItem[]; names: N
             <p className="mt-auto flex flex-wrap gap-x-3 gap-y-1 text-sm text-text-2">
               {muni ? (
                 <span className="inline-flex items-center gap-1">
-                  <MapPinIcon className="h-4 w-4" /> {muni}
+                  <MapPinIcon className="h-4 w-4 shrink-0" /> {muni}
                 </span>
               ) : null}
               {a.resolvedOn ? (
