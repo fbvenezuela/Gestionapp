@@ -3,7 +3,9 @@
 Actualizado: 29/10/2026 (seis roles, fichas, agenda compartida y entrega de Grabación: migraciones
 `20261027001500` a `20261028002300`; tercera vuelta: Mensajes, Ayuda y tutoriales, migraciones `20261028002350` y
 `20261028002400`; ronda 4: Redes por formato, meses y feed, `20261029000100`; ronda 5: Mensajes como canales,
-`20261029090000`; 06/11: la base de la web pública y la atención ciudadana, `20261106000050` a `20261106000300`).
+`20261029090000`; 06/11: la base de la web pública y la atención ciudadana, `20261106000050` a `20261106000300`, y
+después sus pantallas, su administrador, la atención, el importador y la revisión de seguridad, `20261106100100` a
+`20261106400200`).
 
 ## Piezas
 - **Next.js 16 (App Router), React 19, TypeScript estricto, Tailwind 4.** Server Components para leer y server
@@ -27,7 +29,7 @@ app-freddy-bernal/
 ├── emails/                 # Plantillas de correo
 ├── diseno/stitch/          # Modelo visual (referencia, no se ejecuta)
 ├── public/                 # PWA: sw.js, offline.html, iconos; mediainfo (se copia al instalar)
-├── scripts/                # Cargar la configuración del cliente, crear el primer admin (y el jefe con --jefe), importar videos a Drive (drive-import/), generar las guías (guides-docs.mts)
+├── scripts/                # Cargar la configuración del cliente, crear el primer admin (y el jefe con --jefe), importar videos a Drive (drive-import/), importar la web vieja (web-import/), generar las guías (guides-docs.mts)
 ├── supabase/
 │   ├── migrations/         # SQL versionado (lo que va a Supabase)
 │   └── shim/               # Solo demo/pruebas: esquema auth falso y tablas de login demo
@@ -35,8 +37,10 @@ app-freddy-bernal/
 │   ├── app/(auth)/         # Entrar, doble factor, sin acceso
 │   ├── app/(panel)/        # Hoy, jefe, agenda, eventos, obras, municipios, reportes, redes, piezas, aprobar, tweets, publicar, resultados, biblioteca, ajustes, mensajes, ayuda; admin/web y admin/atencion (la web y la atención, D-91)
 │   ├── app/panel/          # La entrada del equipo: a su inicio o a entrar (la app instalada abre aquí)
+│   ├── app/(web)/          # La web pública (D-91): portada, gobernador, gestion, actualidad (y semanario), reporte-bernal, atencion (nueva, consultar, atendido), transparencia, canales y las tres legales
+│   ├── app/(vista-previa)/ # La vista previa de un borrador con el marco de la web (para el equipo de la web; nunca indexada)
 │   ├── app/api/            # Descarga firmada (y por tramos desde Drive), miniaturas, subida demo (TUS), Drive (conexión, partes por la plataforma), cron, asistente, mensajes (lecturas GET del lazo), archivos de la web (pública) y de la atención (con RLS)
-│   ├── components/         # UI (tokens), shell, agenda, media, tweets, assistant, chat (Mensajes), tour (motor de tutoriales), guides (Ayuda y flujogramas)
+│   ├── components/         # UI (tokens), shell, agenda, media, tweets, assistant, chat (Mensajes), tour (motor de tutoriales), guides (Ayuda y flujogramas); web (la web pública y sus bloques), cms (el administrador de la web), attention (la atención), participation (el formulario y la consulta del ciudadano)
 │   └── lib/                # db, auth, actions (server actions), data (lecturas), domain (lógica pura), ai, publish, email, assistant, guides (guías, flujos y tutoriales: una sola fuente); web (esquemas de la web, lecturas públicas y llamadas ciudadanas), participation (comprobante, llaves, cifrado, archivos, CSV, PDF)
 └── tests/                  # unit (Vitest), rls (Vitest), e2e (Playwright 360 px + axe)
 ```
@@ -57,7 +61,7 @@ app-freddy-bernal/
 | Auditoría | `audit_log` | Solo se agrega; trigger en todas las tablas de negocio |
 | Mensajes (28/10; canales desde el 29/10) | `chat_conversations` (un canal con nombre, descripción y `archived_at`, o «Todo el equipo»), `chat_members` (`via` «picked» o «boss»; salir es `removed_at`/`removed_by`, volver es una fila nueva), `chat_messages` (con `agenda_clear`), `chat_reads` (leído y silencio propios) | Los mensajes solo se agregan; los miembros también (ni el sistema los borra: tampoco `TRUNCATE`). La auditoría guarda tabla, fila, quién y cuándo, nunca el texto, el nombre del canal ni los miembros. Nada en Realtime. Sin aviso ni reglas por pareja (se fueron `chat_notice_ack` y `chat_rules`). Ver «Mensajes» |
 | Web pública (06/11) | `web_items` (borrador y lo publicado, con sus filtros), `web_versions` (solo se agregan), `web_media` (biblioteca pública, texto alternativo obligatorio), `web_settings`, `web_redirects`, `territories` | Ver «Web pública y atención ciudadana». anon lee columna por columna lo publicado y vivo |
-| Atención ciudadana (06/11) | `areas`, `area_members`, `request_categories`, `requests`, `request_supports`, `request_contacts` (cifrado, sin permisos), `request_events` y `request_messages` (solo se agregan), `request_attachments`, `attended_publications`, `rate_limits` | Nadie escribe directo: funciones de la base. La auditoría guarda quién, cuándo y qué campos, nunca el contenido |
+| Atención ciudadana (06/11) | `areas`, `area_members`, `request_categories`, `requests`, `request_supports`, `request_contacts` (cifrado, sin permisos), `request_events` y `request_messages` (solo se agregan), `request_attachments`, `attended_publications`, `rate_limits`, `request_reply_templates` (respuestas guardadas), `request_alerts` (qué caso ya avisó hoy; sin acceso por la API) | Nadie escribe directo: funciones de la base. La auditoría guarda quién, cuándo y qué campos, nunca el contenido |
 | Importador de la web vieja (06/11) | `web_import_items` (artículo viejo → borrador, con el `rev` que dejó el importador y qué revisar), `web_import_media` (foto vieja → archivo de la biblioteca) | Solo el importador (el sistema) escribe; el equipo de la web lee. Ver «Importador de la web vieja» |
 | Google Drive y miniaturas | `drive_connection`, `drive_folders`, `media_drive`, `media_thumbs`, `drive_transfer`; función `drive_status()` | Solo el servidor (RLS activo, sin políticas, sin permisos para los roles de la API). Un archivo de Drive es una fila normal de `media_assets` con `bucket = 'drive'`. `media_thumbs` guarda también las miniaturas hechas en el teléfono (cualquier almacenamiento) |
 
@@ -236,6 +240,47 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
   `guard_web_item_ready` no deja publicar una foto con «[Por escribir]» ni un texto con las marcas
   (`src/lib/web/import-marks.ts`). Las redirecciones viejas se buscan una por una (`redirect-map.ts`); un archivo viejo
   que no se trajo responde 410 (`proxy.ts`).
+- **La web pública** (`src/app/(web)/`, `src/components/web/`): componentes de servidor que leen como anon por
+  `src/lib/web/cache.ts` (la caché de datos de Next con etiquetas, `tags.ts`: 60 s el contenido, 300 s los ajustes y
+  catálogos). `revalidate.ts` refresca al momento las etiquetas al publicar, programar, quitar la programación,
+  archivar, desarchivar, guardar un ajuste o una redirección; lo programado aparece solo por `publish_at` en menos de un
+  minuto. Ajustes del sitio normalizados en `site-settings.ts` (en producción solo las cuentas activas y verificadas;
+  en la demo también las «por confirmar», marcadas). SEO: `seo.ts` y `meta.ts` (títulos, canónicas, Open Graph), JSON-LD
+  `Person`, `GovernmentOrganization` y `NewsArticle` (`components/web/json-ld.tsx`), `src/app/sitemap.ts`,
+  `src/app/robots.ts` y `src/app/opengraph-image.tsx`; sin `SITE_INDEXABLE=true`, robots, meta y `X-Robots-Tag` dicen
+  noindex. Cabeceras (`headers.ts` → `next.config.ts`): CSP de la web sin nonces (YouTube nocookie, los cuadros de
+  OpenStreetMap y Turnstile si está), HSTS, `nosniff`, `Referrer-Policy` y `Permissions-Policy`. `src/proxy.ts`: las
+  direcciones viejas (301 por `/api/web/redireccion`, 410 a `/wp-content` no traído) y las galletas de sesión del panel.
+- **El administrador de la web** (`/admin/web`, `src/app/(panel)/admin/web/`, `src/components/cms/`; manual en
+  `MANUAL-ADMIN-WEB.md`): lee como la persona en `src/lib/data/web-admin.ts`; escribe en `src/lib/actions/web.ts`
+  (borradores, envío, publicar, programar, devolver, archivar, versiones), `web-site.ts` (biblioteca, ajustes,
+  redirecciones) y `web-core.ts` (avisos al aprobador y a quien envió, revalidación). Lógica pura en `src/lib/web/cms/`:
+  las etiquetas de estado (`status.ts`), la comparación campo por campo y bloque por bloque (`diff.ts`), lo que falta
+  para enviar (`drafts.ts`), el formato del texto `**negrita**`, `*cursiva*`, `[texto](enlace)` (`markup.ts`), la
+  hora del Táchira al programar (`schedule.ts`) y la revisión de cada archivo de la biblioteca (`media-file.ts`). Subida
+  a la biblioteca: `POST /admin/web/biblioteca/subir`. Vista previa: `(vista-previa)/admin/web/vista-previa/[id]`. Las
+  puertas son de la base: `can_read_web()`, `can_edit_web()`, `can_publish_web()` y `can_manage_site()`, todas con
+  doble factor.
+- **La atención** (`/admin/atencion`, `src/app/(panel)/admin/atencion/`, `src/components/attention/`; manual en
+  `MANUAL-ATENCION.md`): lee en `src/lib/data/attention.ts`, `attention-export.ts` (el CSV, con `;`, BOM y celdas sin
+  fórmulas) y `attention-alerts.ts` (vencidas y quietas, una vez al día por caso desde las 7:00); escribe en
+  `src/lib/actions/attention.ts` (las acciones del caso), `attention-admin.ts` (áreas, miembros, categorías, plazos y
+  respuestas guardadas) y `attention-email.ts` (los correos de estado, siempre por el buzón). `src/lib/domain/
+  attention.ts` es la máquina de estados igual a la de la base, los filtros de la dirección, las palabras de los correos
+  y avisos y la definición escrita de cada cifra. Rutas: `GET /admin/atencion/exportar` y `POST
+  /admin/atencion/[id]/evidencias`. La migración `20261106100100_atencion_admin.sql` agrega las respuestas guardadas,
+  `attention_staff()`, `log_attention_export()`, `request_alerts`, las medianas de las cifras y que solo cuenten las
+  consultas fallidas.
+- **El ciudadano** (`src/app/(web)/atencion/`, `src/components/participation/`, `src/lib/actions/participation.ts` y
+  `participation-core.ts`): el formulario en cuatro pasos con su borrador en el navegador y su versión sin JavaScript;
+  `POST /api/atencion/adjuntos`, `POST /atencion/consultar/adjuntos` y `GET /atencion/consultar/archivo/[id]` (la
+  galleta `fb_consulta` de 30 minutos, nunca la clave).
+- **La revisión de seguridad del 06/11** (`SEGURIDAD.md`): `20261106400100_seguridad_web.sql` (la auditoría de
+  `web_media` y de los ajustes privados guarda quién y qué campos, no el contenido), `20261106400200_citizen_solo_app.sql`
+  (las funciones del ciudadano se niegan si llegan por la Data API), `src/lib/request-body.ts` (tope al leer una
+  subida) y `TRUST_PROXY_HEADERS` (de qué cabecera sale la red del visitante fuera de Vercel).
+- **Copias y recuperación:** qué se copia y cómo se restaura, en `COPIAS-Y-RECUPERACION.md` (las copias de Supabase no
+  traen los archivos, y las claves de la participación viven fuera del repositorio).
 
 ## Guías, tutoriales y Ayuda (D-42 a D-48)
 - **Una sola fuente:** `src/lib/guides/` (un archivo por rol, `shared.ts`, `admin.ts`, `flows.ts`, `sections.ts`,
@@ -348,7 +393,10 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 | `20261106000100_web_publica.sql` | Los seis roles de la web y la atención se dan; puertas con doble factor del token; territorios, contenido, versiones, biblioteca, ajustes, redirecciones; funciones de publicar; lo que lee anon; baldes de Storage (D-90, D-93, D-96). No está en `fb-dev` |
 | `20261106000200_participacion.sql` | Áreas, categorías, solicitudes y todo alrededor, la máquina de estados y las funciones del equipo, auditoría sin contenido (D-92). No está en `fb-dev` |
 | `20261106000300_citizen.sql` | El esquema `citizen`: lo que hace el ciudadano sin cuenta, solo para anon (D-96). No está en `fb-dev` |
+| `20261106100100_atencion_admin.sql` | La atención: respuestas guardadas (`request_reply_templates`, `can_answer_requests()`), a quién se le puede dar un caso (`attention_staff()`), el registro de cada exportación (`log_attention_export()`), la memoria de los avisos (`request_alerts`), medianas en las cifras y solo las consultas fallidas cuentan para el límite. No está en `fb-dev` |
 | `20261106300100_web_importador.sql` | De dónde vino cada borrador y foto importados de la web vieja (`web_import_items`, `web_import_media`, lectura con RLS para el equipo de la web, sin escritura por la API) y `guard_web_item_ready`: no se publica «[Por escribir]» ni las marcas de datos quitados (D-97). No está en `fb-dev` |
+| `20261106400100_seguridad_web.sql` | Revisión del 06/11: la auditoría de `web_media` y de los ajustes privados del sitio guarda quién, cuándo y qué campos, nunca el contenido (`SEGURIDAD.md`). No está en `fb-dev` |
+| `20261106400200_citizen_solo_app.sql` | Revisión del 06/11: las funciones del ciudadano con límite se niegan si las llaman por la Data API de Supabase (`SEGURIDAD.md`). No está en `fb-dev` |
 
 ## Tareas programadas
 - `/api/cron/tick` (con `CRON_SECRET`): aviso de tweets por acabarse (una vez al día) y publicaciones vencidas
@@ -356,6 +404,8 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
   subidas abandonadas hace más de 8 días (Google cierra la subida a la semana). La web: marca «Publicado» lo programado
   cuya hora llegó (`web_items_flip_scheduled()`; el público ya lo ve por `publish_at`), borra las ventanas viejas de los
   límites (`prune_rate_limits()`) y vuelve a revisar los archivos que quedaron en cuarentena (con `ATTACHMENT_SCANNER`).
+  La atención: desde las 7:00 del Táchira, los avisos de casos vencidos o sin movimiento (a la coordinación y a su
+  responsable, por `notify()`, nunca por correo), una vez al día por caso (`request_alerts`).
 - Vercel Cron diario (`vercel.json`). Para cada 5 minutos: `pg_cron` + `pg_net` en Supabase:
   ```sql
   select cron.schedule('fb-tick', '*/5 * * * *', $$
