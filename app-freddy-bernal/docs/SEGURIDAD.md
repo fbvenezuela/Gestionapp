@@ -2,7 +2,8 @@
 
 Actualizado: 06/11/2026 (seis roles, fichas, agenda compartida; en la tercera vuelta, Mensajes y el rol de jefe solo
 por el sistema; ronda 4, Redes por formato; ronda 5, Mensajes como canales; 06/11, la base de la web pública y la
-atención ciudadana). Qué se hizo para blindar la plataforma y qué falta.
+atención ciudadana, y su revisión de seguridad: la sección «Web pública y atención ciudadana: revisión del 06/11»,
+al final). Qué se hizo para blindar la plataforma y qué falta.
 
 ## Lo que ya está
 1. **RLS en todas las tablas.** Cada consulta de una persona corre con su rol y su sesión (`set local role
@@ -242,12 +243,14 @@ atención ciudadana). Qué se hizo para blindar la plataforma y qué falta.
       deja en el registro quién lo miró. La clave fija de la demo solo existe en la demo; producción sin clave no guarda
       contactos.
     - **Abuso:** límites persistentes por dispositivo (galleta propia) y por red (la IP como HMAC, IPv6 por su /64), un
-      intento fallido de consulta también cuenta; campo trampa; Turnstile cuando haya claves. Las llaves salen de
-      `x-real-ip` / `x-forwarded-for`, que solo son confiables detrás del proxy de la plataforma (Vercel): fuera de él,
-      el límite por red es una segunda línea.
+      intento fallido de consulta también cuenta; campo trampa; Turnstile cuando haya claves. La galleta la puede
+      omitir cualquier programa: contra un programa, lo que frena es el límite por red. La dirección sale de
+      `x-real-ip` / `x-forwarded-for` solo en Vercel o con `TRUST_PROXY_HEADERS=true` (un proxy propio que las
+      escribe); si no, de la última entrada de `x-forwarded-for` y nunca de `x-real-ip` (revisión del 06/11).
     - **Archivos:** tipo por los primeros bytes y la extensión (JPG, PNG, WebP, PDF), 8 MB, 3 por envío y 12 por
-      solicitud, nombre al azar; las fotos sin metadatos (GPS, cámara, XMP, IPTC, comentarios, texto de PNG) antes de
-      guardarse. El balde privado se sirve solo por `/api/archivos/atencion/<id>` (sesión, doble factor y RLS de la
+      solicitud, nombre al azar; las fotos sin metadatos (GPS, cámara, XMP, IPTC, comentarios, texto de PNG) y con
+      12 000 píxeles por lado como máximo; se escriben en el almacenamiento solo después de que la base acepta el
+      comprobante (o la persona del equipo) y el límite (revisión del 06/11). El balde privado se sirve solo por `/api/archivos/atencion/<id>` (sesión, doble factor y RLS de la
       solicitud; en producción un enlace firmado de 60 s), con `sandbox`, `nosniff`, sin caché ni índice; un PDF
       siempre se descarga. El revisor (`ATTACHMENT_SCANNER=clamav`) decide: producción solo sirve «limpio»; la demo,
       también «sin analizar» con aviso; nunca «cuarentena» ni «infectado». Lo retirado por moderación no se sirve más.
@@ -259,8 +262,10 @@ atención ciudadana). Qué se hizo para blindar la plataforma y qué falta.
 ## Lo que falta (antes de producción)
 - Web pública: poner `PARTICIPATION_PEPPER` y `PARTICIPATION_DATA_KEY` en Vercel (Production) antes de abrir la
   participación; comprobar en `fb-dev` que el usuario de `DATABASE_URL` puede `set role anon` y que `citizen` no está en
-  los esquemas expuestos; aplicar ahí `20261106000050` a `20261106000300`; ClamAV (o pasar «sin analizar» a revisión
-  manual) antes de servir archivos de ciudadanos; consulta legal del aviso de privacidad y del tiempo de retención.
+  los esquemas expuestos; aplicar ahí `20261106000050` a `20261106000300`, `20261106100100` y las dos de la revisión
+  (`20261106400100`, `20261106400200`); ClamAV (o pasar «sin analizar» a revisión manual) antes de servir archivos de
+  ciudadanos; Turnstile encendido antes de anunciar la web; consulta legal del aviso de privacidad y del tiempo de
+  retención. Lo demás que quedó de la revisión del 06/11 está al final de este documento.
 - Configurar en Supabase: SMTP de Resend, plantilla del correo con `{{ .Token }}`, expiración de sesión,
   «inactivity timeout», MFA TOTP activado y registro abierto **apagado** (ver `README.md`).
 - Activar **Deployment Protection** en Vercel para las versiones de prueba.
@@ -281,3 +286,146 @@ atención ciudadana). Qué se hizo para blindar la plataforma y qué falta.
   tramos (`Range`); la plataforma tiene respuesta para ambos casos, pero eso no se puede probar sin la cuenta.
 - Si algún día se agrega una política de contenido (CSP): permitir `apis.google.com` (script), `docs.google.com`
   (marco del Picker) y `www.googleapis.com` (subidas).
+
+## Web pública y atención ciudadana: revisión del 06/11
+
+Una revisión hecha como atacante de todo lo que se agregó para la web y la atención ciudadana (migraciones
+`20261106*`, `src/lib/web`, `src/lib/participation`, `src/lib/storage`, las rutas de `src/app/(web)`, `src/app/api`,
+`/admin/web` y `/admin/atencion`, las acciones `participation*`, `attention*` y `web*`, `src/proxy.ts` y las cabeceras
+de `next.config.ts`), sobre la base `bf20888`. Cada ataque se intentó de verdad: contra la base (PGlite con las mismas
+migraciones), contra las rutas y acciones (pruebas de unidad) o contra el servidor armado (Playwright). Lo que se
+arregló tiene una prueba que falla con el código anterior y pasa con el nuevo.
+
+### Qué se revisó
+- **La base, rol por rol** (editor, aprobador, coordinación, responsable de área, denuncias, auditoría, jefe,
+  administración y anon): leer o cambiar casos de otra área, denuncias, contactos, notas internas, archivos,
+  evidencias, versiones, borradores, ajustes y el registro de auditoría; las funciones SECURITY DEFINER (search_path,
+  revisión de lo que reciben, lo que contestan); el esquema `citizen` y los permisos de la API.
+- **La persona sin cuenta:** el comprobante de una persona usado con lo de otra, la galleta de la consulta, adivinar
+  códigos o claves (y medir tiempos), los límites (sin galleta, galleta nueva cada vez, IPv6, cabeceras de IP falsas),
+  los archivos (tipo falso, SVG, políglotas, gigantes, bombas, metadatos).
+- **La app:** CSRF en rutas y acciones (el Origin), XSS (texto enriquecido, enlaces `javascript:`, `data:` y `//`,
+  campos de SEO, JSON-LD con `</script>`, nombres de archivo, textos alternativos), redirecciones abiertas
+  (`web_redirects`, parámetros de vuelta), SSRF (Turnstile, el proxy), cómo se sirven los archivos privados (descarga,
+  `nosniff`, sin caché), CSP y HSTS, `noindex` hasta `SITE_INDEXABLE`, los atajos de la demo con `DATABASE_URL`, y qué
+  queda en los registros, el buzón de salida y la auditoría.
+
+### Lo que se encontró y se arregló
+1. **Media. Un archivo se guardaba antes de que la base dijera si se podía.** `POST /api/atencion/adjuntos` revisaba,
+   limpiaba y escribía el archivo en el almacenamiento privado, y recién después le preguntaba a la base por el
+   comprobante y el límite (y lo borraba si no). Con una clave cualquiera, un programa podía hacer que el servidor
+   escribiera y borrara archivos sin parar: el límite nunca llegaba al almacenamiento. Lo mismo en las evidencias del
+   equipo. Además, un cuerpo sin `Content-Length` se leía entero, por grande que fuera (en un servidor propio; Vercel
+   corta en 4,5 MB), y una foto de pocos KB que dice medir 50 000 × 50 000 píxeles entraba.
+   **Arreglo:** el archivo se prepara en memoria, la base lo registra (comprobante o persona, límite, cupos, estado) y
+   solo entonces se escribe, dentro de la misma transacción (`src/lib/actions/participation-core.ts`,
+   `src/lib/storage/participation-files.ts`, la ruta de evidencias); el cuerpo se lee con tope
+   (`src/lib/request-body.ts`, también en la biblioteca); fotos de hasta 12 000 px por lado y 60 millones de píxeles.
+   **Prueba:** `tests/unit/seguridad-adjuntos.test.ts`.
+2. **Media. El correo de quien usó la web quedaba en claro en el buzón de Administración, y el recibido decía
+   «denuncia».** Con datos reales, cada correo a una persona (el recibido y los de estado) dejaba en `outbox` su
+   dirección, que Administración lee en Ajustes → Buzón aunque nunca lee un caso: el contacto que se guarda cifrado
+   quedaba a la vista. El recibido decía «Recibimos tu denuncia» (los de estado nunca dicen el tipo), y un buzón o la
+   pantalla bloqueada de un teléfono los ve otra gente.
+   **Arreglo:** con datos reales, el buzón guarda la dirección enmascarada (`a***@e***.com`) para las plantillas de la
+   atención (`src/lib/email/send.ts`); el correo le sale igual a la persona. El recibido dice «Recibimos tu solicitud»
+   siempre. **Prueba:** `tests/unit/seguridad-correos.test.ts`.
+3. **Media. En la versión de prueba, lo que alguien manda por el formulario lo puede leer cualquiera.** La versión de
+   prueba (sin `DATABASE_URL`) es una dirección pública con «Entrar como…» para cada rol, la atención incluida, y el
+   formulario no lo decía (prometía «se guarda cifrado»). Además, el «buzón de prueba» de la pantalla de entrar es una
+   acción que se puede llamar con cualquier correo y mostraba los últimos correos guardados para esa dirección, también
+   el recibido que la web le mandó a una persona.
+   **Arreglo:** el buzón de prueba muestra solo códigos para entrar y solo a alguien del equipo
+   (`src/lib/auth/demo-inbox.ts`); el formulario y la consulta dicen «Versión de prueba: no escribas datos reales»
+   (`src/components/participation/demo-warning.tsx`; en producción no sale). **Pruebas:**
+   `tests/unit/seguridad-correos.test.ts` y `tests/e2e/seguridad-web.spec.ts`.
+4. **Baja. Auditoría leía por el registro lo que la base le niega.** Auditoría lee el registro de las tablas de la web,
+   pero no la biblioteca ni los ajustes privados; el registro de esas dos copiaba la fila entera: la llave de una foto
+   sin publicar (el depósito público sirve cualquier llave) y el texto de las notas internas del sitio.
+   **Arreglo:** migración `20261106400100_seguridad_web.sql`: ese registro guarda quién, cuándo y qué campos, nunca la
+   llave, las palabras del archivo ni el valor de un ajuste privado (los públicos guardan su valor).
+   **Prueba:** `tests/rls/seguridad-web.test.ts`.
+5. **Baja. El límite por red creía cualquier cabecera de IP.** `clientIp` tomaba `x-real-ip` o la primera entrada de
+   `x-forwarded-for` en cualquier servidor. Fuera de Vercel, las dos las escribe quien quiera (detrás de un nginx que
+   agrega la dirección al final, la primera es la del visitante; `x-real-ip` pasa si el proxy no la pisa): un programa
+   con otra dirección en cada intento y sin galleta nunca llegaba a un límite.
+   **Arreglo:** se creen solo en Vercel o con `TRUST_PROXY_HEADERS=true`; si no, la última entrada de
+   `x-forwarded-for` y nunca `x-real-ip` (`src/lib/participation/keys.ts`, `.env.example`). Las pruebas que hacen de
+   proxy lo dicen (los servidores de Playwright). **Prueba:** `tests/unit/participation-keys.test.ts`.
+6. **Baja (defensa en profundidad). Si alguien expusiera el esquema `citizen` en la Data API**, cualquiera con la llave
+   pública podría llamar las funciones ciudadanas directo, con llaves de límite inventadas: sin límite y sin Turnstile.
+   **Arreglo:** migración `20261106400200_citizen_solo_app.sql`: toda función ciudadana con límite niega la llamada que
+   llega con `request.headers` (lo pone siempre la Data API, nunca la app). **Prueba:** `tests/rls/seguridad-web.test.ts`.
+
+### Lo que se intentó y no pasó
+- **Lo de otra persona:** el comprobante de una persona con el archivo, el mensaje o la llave de almacenamiento de
+  otra; un responsable con un caso de otra área (estado, mensajes, evidencias, contacto, archivos); auditoría y el jefe
+  con denuncias o contactos; administración, el editor y los seis roles del equipo con cualquier solicitud. Todo lo
+  niega la base (`tests/rls/web-atencion*.test.ts`, `web-ciudadano.test.ts` y `seguridad-web.test.ts`).
+- **Adivinar:** el código tiene 30 bits al azar por año y la clave 80; la respuesta es la misma para un código que no
+  existe y para una clave mala; los intentos fallidos cuentan y, pasado el límite, la negativa deshace su intento pero
+  el contador sigue arriba (prueba). La diferencia de tiempo entre «no existe» y «clave mala» es una búsqueda por
+  índice: no se puede medir a través de la red con 10 intentos cada 15 minutos.
+- **La galleta de la consulta:** cifrada y autenticada (AES-256-GCM con una clave sacada de la pimienta), lleva el código
+  y la huella de la clave, 30 minutos, httpOnly, SameSite=Strict y solo bajo `/atencion/consultar` (e2e). No abre otro
+  caso: cada archivo y cada mensaje se busca en la base con ese comprobante.
+- **CSRF:** las acciones las protege Next (compara el Origin con el Host; se leyó en `action-handler.js` de Next 16.4);
+  las rutas de archivos revisan el Origin; exportar revisa `Sec-Fetch-Site`; las galletas son SameSite (Strict la de
+  la consulta).
+- **XSS:** el texto es estructurado y lo dibuja React (sin HTML); los enlaces solo van a https, http, mailto o rutas
+  propias (nunca `javascript:`, `data:` ni `//`), y React 19 además bloquea `javascript:`; el JSON-LD escapa `<`, `>` y
+  `&`; los nombres de los archivos descargados se limpian; los campos de SEO van por los metadatos de Next.
+- **Redirecciones abiertas:** destinos solo dentro del sitio (la base y `safeTarget`); el código nuevo no tiene
+  parámetros de vuelta (e2e).
+- **SSRF:** Turnstile va a una dirección fija. El proxy busca las redirecciones en su propio origen: con `next start`,
+  Next arma esa dirección con el nombre y el puerto del servidor, no con la cabecera Host (se leyó en el código de
+  Next 16.4); en Vercel, una cabecera Host que no es del proyecto no llega a la app (así enruta Vercel; no se pudo
+  comprobar en un despliegue). El importador no está en esta base: no se pudo revisar.
+- **Archivos:** el tipo se decide por los primeros bytes, nunca SVG; se sirven con su tipo fijo, `nosniff`, `sandbox`
+  y sin caché (e2e); un PDF privado siempre se descarga. El servidor no decodifica imágenes: no hay bombas de
+  descompresión del lado del servidor.
+- **SECURITY DEFINER:** todas las funciones de `public` y `citizen` tienen su search_path fijo, y los roles de la API
+  no pueden crear objetos en esos esquemas (prueba nueva).
+- **Un editor cambiando el estado de algo programado:** la base lo deja pasar a «borrador», pero las pantallas leen el
+  estado de lo publicado y su hora («Programado» sigue saliendo): no es un problema.
+- **Atajos de la demo:** con `DATABASE_URL` no existen (`src/lib/env.ts`), tampoco el buzón de prueba.
+- **Buscadores:** nada se indexa hasta `SITE_INDEXABLE=true` (robots, meta y cabecera; e2e).
+
+### Lo que queda, con su riesgo
+- **Fotos de la biblioteca antes de publicar (decidido: se quedan en el depósito público).** Se suben a `web-public`
+  desde el primer momento, con un nombre de 122 bits al azar que no se puede listar ni adivinar y que no sale en
+  ninguna página hasta publicarse; desde este arreglo tampoco sale en el registro que lee auditoría. Lo saben quienes
+  usan la biblioteca (editor, aprobador, jefe, administración). Moverlas a un depósito privado hasta publicar
+  obligaría a copiar archivos al publicar (la base no puede hacerlo) y a servir la vista previa por otra ruta: más
+  piezas que pueden fallar para un riesgo bajo. Lo que sí: no subir a la biblioteca nada que no deba verse (nunca
+  fotos de ciudadanos) y, si se sube algo por error, borrarlo a mano en Supabase Storage (la app solo archiva).
+- **El límite por red es grueso.** La galleta la omite cualquier programa; con IPv6, quien tiene un /48 tiene 65 536
+  redes /64; y detrás del NAT de una operadora móvil mucha gente comparte una dirección (20 envíos al día por red
+  podrían bloquear a personas de verdad, o alguien podría bloquearlas a propósito). Antes de anunciar la web: encender
+  Turnstile y ajustar `participation.rate_limits` mirando el uso real.
+- **Un servidor abierto sin proxy no puede saber la IP** (`next start` o `npm run dev` expuestos directo): ahí el límite
+  por red se puede esquivar. En producción, Vercel o un proxy propio con `TRUST_PROXY_HEADERS=true`.
+- **La demo y el modo local son de prueba.** Con los atajos, cualquiera que llegue al servidor entra con cualquier rol;
+  `npm run dev` escucha en toda la red (para trabajar solo en la computadora: `npm run dev -- -H 127.0.0.1`); la
+  pimienta y la clave de contactos de la demo están en el repositorio. Nunca datos reales en la demo ni en
+  `LOCAL_DATA_DIR`; Deployment Protection en las versiones de prueba de Vercel.
+- **CSP con `'unsafe-inline'` en los scripts** (sin nonces, para que las páginas sigan en caché): la defensa contra XSS
+  es que nunca se dibuja HTML de nadie.
+- **HSTS con `includeSubDomains; preload`:** antes de apuntar el dominio del gobernador, revisar que ningún subdominio
+  necesite http.
+- **Por decidir con el equipo:** el jefe lee todas las solicitudes que no son denuncias, y él y auditoría leen las
+  notas internas; auditoría ve en el registro la historia de las denuncias (quién, cuándo, estado; nunca el texto, el
+  lugar ni la categoría).
+- **Los PDF guardan sus metadatos** (autor, programa): revisarlos antes de subirlos a la biblioteca pública.
+- **«¿Ya lo reportaron?»** responde cuántos reportes abiertos hay cerca de un punto: probando puntos, alguien podría
+  ubicar reportes abiertos (sin su contenido y con límite).
+- **El comprobante queda en la pestaña** (sessionStorage) hasta «Empezar otra» o hasta cerrarla: en una computadora
+  compartida, cerrar la pestaña.
+- **Si la base falla justo al confirmar** después de escribir un archivo, puede quedar un archivo sin su fila: nunca se
+  sirve (no tiene fila) y queda hasta una limpieza a mano.
+- **Lo que ya estaba en el registro** antes de `20261106400100` (llaves de la biblioteca, notas privadas) queda como
+  estaba: el registro no se reescribe. En la demo se reinicia; en un proyecto real con historia, revisarlo.
+- **No se pudo comprobar** (sin cuenta ni despliegue real): que Vercel pisa `x-real-ip` y `x-forwarded-for` (lo dice su
+  documentación); qué cabeceras pone Supabase Storage en los enlaces firmados; que en `fb-dev` el esquema `citizen` no
+  está expuesto y que el usuario de `DATABASE_URL` puede `set role anon` (las migraciones de la web todavía no están
+  aplicadas allí).
