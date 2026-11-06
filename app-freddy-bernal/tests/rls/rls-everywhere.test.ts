@@ -19,7 +19,9 @@ const WEB_TABLES = ['territories', 'web_items', 'web_versions', 'web_media', 'we
   'request_categories', 'requests', 'request_supports', 'request_contacts', 'request_events', 'request_messages', 'request_attachments',
   'attended_publications', 'rate_limits',
   // The attention desk's administrator (20261106100100_atencion_admin.sql).
-  'request_reply_templates', 'request_alerts'];
+  'request_reply_templates', 'request_alerts',
+  // Where the importer of the old site took each draft and photo from (20261106300100_web_importador.sql).
+  'web_import_items', 'web_import_media'];
 
 describe('RLS en todas las tablas', () => {
   it('cada tabla de public tiene RLS (76: las cuatro de Redes por formato y las diecisiete de la web, sin las dos que Mensajes por canales quitó)', async () => {

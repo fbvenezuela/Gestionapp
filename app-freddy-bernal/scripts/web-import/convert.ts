@@ -33,7 +33,7 @@ export const FLAG_TEXT: Record<ReviewFlag, string> = {
   image_failed: 'Alguna foto no se pudo traer (no estaba o no se pudo leer).',
   image_unsupported: 'Alguna foto venía en un formato que la biblioteca no acepta (GIF, AVIF u otro).',
   alt_missing: 'Fotos sin texto alternativo: dicen «[Por escribir]»; escríbelo en la biblioteca antes de publicar.',
-  media_skipped: 'Se importó sin fotos (--no-media).',
+  media_skipped: 'Alguna foto no se trajo (se corrió con --no-media): otra corrida sin esa opción la trae.',
   gallery_truncated: 'Tenía más de 24 fotos: la galería lleva las primeras 24.',
   text_truncated: 'El texto era más largo de lo que cabe: revisa el final contra la nota vieja.',
   pdf_link: 'Enlaza un PDF de la web vieja: súbelo a la biblioteca si debe seguir en línea.',

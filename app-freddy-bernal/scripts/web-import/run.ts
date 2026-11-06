@@ -202,7 +202,8 @@ export async function runImport(o: RunOptions): Promise<Report> {
       if (term && from) lists.push({ from, to: tagTarget(term), kind: 'tags' });
     }
     for (const m of months) lists.push({ from: m, to: '/actualidad', kind: 'months' });
-    if (report.seen) lists.push({ from: '/feed', to: '/', kind: 'feed' });
+    // The feed goes to the news (docs/diagnostico.md §5; the client's seed already puts it, by hand: that one stays).
+    if (report.seen) lists.push({ from: '/feed', to: '/actualidad', kind: 'feed' });
     if (lists.length) {
       await asSystem(o.db!, async (sql) => {
         for (const r of lists) countRedirect(r.kind, await upsertRedirect(sql, r.from, r.to));

@@ -27,8 +27,9 @@ const AT = String.raw`(?:@|\s*[\[(](?:at|arroba)[\])]\s*)`;
 const DOT = String.raw`(?:\.|\s*[\[(](?:dot|punto)[\])]\s*)`;
 const EMAIL = new RegExp(`(?<![A-Za-z0-9._%+-])${LOCAL}${AT}${LABEL}(?:${DOT}${LABEL})*\\.[A-Za-z]{2,24}(?![A-Za-z0-9-])`, 'gi');
 
-// A Venezuelan number, by its digits: 02xx (landline), 04xx (mobile), 0800/0500, with or without the 0 or the 58.
-const VE_PHONE = /^(?:58)?0?(?:2\d{2}|4[12]\d|80\d|50\d)\d{7}$/;
+// A Venezuelan number, by its digits: 02xx (landline), 04xx (mobile), 0800/0500, written with its 0 or with the 58
+// (a bare 10-digit run without either is more often a reference or an amount than a phone).
+const VE_PHONE = /^(?:58|0)(?:2\d{2}|4[12]\d|80\d|50\d)\d{7}$/;
 
 export function isRealPhone(candidate: string): boolean {
   const digits = candidate.replace(/\D/g, '');
