@@ -85,7 +85,8 @@ async function lookup(page: Page, reference: string, secret: string) {
 test('«Atención ciudadana» se lee en el teléfono: los dos botones grandes, los pasos, las preguntas y el aviso de emergencias', async ({ page }) => {
   await page.goto('/atencion');
   await expect(page.getByRole('heading', { level: 1, name: 'Cuéntanos qué pasa en tu comunidad' })).toBeVisible();
-  await expect(page.getByRole('link', { name: /Hacer un reporte/ })).toHaveAttribute('href', '/atencion/nueva');
+  // The page's own big button (the header and the footer of the public layout carry one too).
+  await expect(page.locator('#contenido').getByRole('link', { name: /Hacer un reporte/ })).toHaveAttribute('href', '/atencion/nueva');
   await expect(page.getByRole('link', { name: /^Consultar mi solicitud$/ }).last()).toBeVisible();
   await expect(page.getByText('Esto no es un servicio de emergencias.').first()).toBeVisible();
   await expect(page.getByText(/acude también a las autoridades competentes/).first()).toBeVisible();
