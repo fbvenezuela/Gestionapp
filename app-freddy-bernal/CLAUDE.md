@@ -5,7 +5,7 @@
 Lee primero `PROMPT-APP-FREDDY-BERNAL.md` (reglas que no se rompen, §4) y `docs/IDEA.md`. Juan habla español de
 Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en español; el código en inglés.
 
-## Estado (05/11/2026)
+## Estado (06/11/2026)
 - **Fase 0 y Fase 1 construidas**, en modo demostración (base en memoria con datos inventados). Faltan las cuentas
   (Supabase, Vercel, Resend) para pasar a datos reales: ver `README.md` y `docs/PENDIENTES.md`.
 - Módulos: entrar por invitación + código + TOTP; Hoy por rol; agenda (calendario para jefe/despacho, lista sin fecha
@@ -61,6 +61,13 @@ Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en españo
   muestra va sin su lugar. Medido con preguntas nuevas de personas que no vieron nada: 76 % bien (antes 32 %), 0
   inseguras en 978 preguntas y en 329 ataques. Prueba de ataque: `tests/unit/assistant-redteam.test.ts`; contenido:
   `tests/unit/assistant-answers-content.test.ts`. Los bancos de preguntas no están en el repositorio.
+- **Web pública y atención ciudadana (06/11; D-90 a D-99), en la misma app y en modo demostración:** `/` es la web
+  (`src/app/(web)/`, sin indexar hasta `SITE_INDEXABLE`) con participación sin cuenta (`/atencion`: seis tipos, código
+  y clave, denuncia privada); el panel está en `/panel`, con «Web» (`/admin/web`: bloques, aprobación, programar,
+  versiones, biblioteca, ajustes, redirecciones) y «Atención» (`/admin/atencion`). Lo público lee como `anon` con RLS
+  (`withAnon`, esquema `citizen`); importador `npm run web:import` (solo borradores); `LOCAL_DATA_DIR` para trabajar en
+  local. Migraciones `20261106000050` a `20261106400200`, **ninguna en `fb-dev` todavía**. Docs: `docs/GUIA-WEB.md` y
+  sus manuales; lo que falta para abrirla, `docs/PENDIENTES.md` (W1–W11, T1–T9).
 - Marca: oliva como color principal (D-21). Diagnóstico Digital 360 resumido en `docs/DIAGNOSTICO-360.md` (el ZIP es
   confidencial y no está en el repositorio).
 - Pruebas: Vitest (unidad + RLS) y Playwright a 360 px con axe. CI en `.github/workflows/ci.yml`.
@@ -100,5 +107,7 @@ factor; con `DATABASE_URL` nunca se activa. Playwright levanta dos servidores: 3
    del feed…) y a las de la segunda vuelta (`docs/PENDIENTES.md`, al final).
 3. Fase 2: publicación automática (Meta, X, TikTok, YouTube), métricas por API, análisis con IA, Drive del cliente,
    reporte semanal en PDF, Realtime en «Hoy» y colas.
-4. Fase 3: web pública (indicadores, trazabilidad, obras, reportes con mapa, denuncias, ayudas, SEO).
+4. Fase 3: web pública — construida en modo demostración el 06/11 (arriba). Falta lo de `docs/PENDIENTES.md` (W1–W11,
+   T1–T9): aplicar sus migraciones en `fb-dev`, las cuentas y claves de producción, el DNS de Pedro Poller, la consulta
+   legal y la decisión de Juan de abrirla. Las ayudas con registro de entregas siguen sin hacerse.
 5. Pendientes de negocio: `docs/PENDIENTES.md`.
