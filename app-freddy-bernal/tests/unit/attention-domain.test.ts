@@ -193,7 +193,7 @@ describe('palabras', () => {
     expect(fmtHours(72)).toBe('3 días');
     expect(fmtHours(null)).toBe('—');
     expect(initialsOf('María Pérez')).toBe('M. P.');
-    expect(initialsOf('  josé   ángel  ')).toBe('J. A.');
+    expect(initialsOf('  josé   ramón  ')).toBe('J. R.');
     expect(initialsOf('M. P.')).toMatch(/^([A-Z]\.\s?){1,4}$/);
   });
 

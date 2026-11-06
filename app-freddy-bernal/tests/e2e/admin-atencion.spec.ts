@@ -125,9 +125,11 @@ test('el responsable del área responde, deja una nota interna y cambia el estad
   await page.getByRole('button', { name: 'Guardar nota interna' }).click();
   await expect(page.getByText('Nota guardada: solo la ve el equipo.')).toBeVisible();
 
-  await page.getByLabel('Pasar a').selectOption('en_atencion');
-  await page.getByRole('button', { name: 'Cambiar el estado' }).click();
+  // On the board, the usual next step is one tap (no reason needed): «Asignado» → «En atención».
+  await page.goto(`/admin/atencion?vista=tablero&q=${shared.reference}`);
+  await page.getByRole('button', { name: `Pasar ${shared.reference} a En atención` }).click();
   await expect(page.getByText('Listo: cambió el estado.')).toBeVisible();
+  await page.goto(shared.caseUrl);
   const history = page.getByRole('list', { name: 'Historial del caso' });
   await expect(history.getByText(REPLY)).toBeVisible();
   await expect(history.getByText(NOTE)).toBeVisible();
@@ -297,4 +299,19 @@ test('el jefe lee la bandeja y las cifras, sin denuncias ni contactos; administr
   await expect(page.getByRole('heading', { level: 2, name: 'Nueva área' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Guardar los plazos' })).toBeVisible();
   await axe(page, 'áreas de administración');
+
+  // Ajustes → Equipo gives the attention desk's roles: a responsible with its area(s), always with the second factor.
+  await page.goto('/ajustes/equipo');
+  await page.getByLabel('Rol').selectOption({ label: 'Responsable de área' });
+  await expect(page.getByText(/Entra siempre con su código y el doble factor/)).toBeVisible();
+  await page.getByRole('group', { name: /Sus áreas/ }).getByLabel('Vialidad y transporte').check();
+  await page.getByLabel('Nombre').fill(`Responsable ${RUN} (prueba)`);
+  await page.getByLabel('Correo').fill(`responsable.${RUN}@demo.test`);
+  await page.getByRole('button', { name: 'Enviar invitación' }).click();
+  await expect(page.getByText('Invitación enviada.')).toBeVisible();
+  const person = page.getByRole('listitem').filter({ hasText: `responsable.${RUN}@demo.test` });
+  await expect(person.getByText('Responsable de área', { exact: true })).toBeVisible();
+  await expect(person.getByText('Área: Vialidad y transporte')).toBeVisible();
+  await noSideScroll(page, 'equipo');
+  await axe(page, 'equipo con los roles de la atención');
 });

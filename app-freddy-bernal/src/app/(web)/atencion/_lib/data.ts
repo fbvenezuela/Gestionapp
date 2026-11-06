@@ -87,8 +87,9 @@ export type Consultation =
 
 /**
  * The consultation this browser opened (the sealed cookie under /atencion/consultar), read again with its receipt: the
- * safe summary, the shared timeline and the person's own files. Each read counts against the lookup limit like a
- * lookup (the database decides); a tampered or expired cookie is simply no consultation.
+ * safe summary, the shared timeline and the person's own files. A read that finds the receipt gives its hit of the
+ * lookup limit back (only failed attempts count: reloading never locks the person out, 20261106100100_atencion_admin.sql);
+ * a tampered or expired cookie is simply no consultation.
  */
 export async function loadConsultation(): Promise<Consultation> {
   const grant = await lookupGrant();
