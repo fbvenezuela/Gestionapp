@@ -21,13 +21,17 @@ const html = <P extends object>(c: ComponentType<P>, props: P) => renderToStatic
 
 // A card drawn by hand: the corner of a card, the border and the plain white background (not bg-surface-2, which is an
 // inner box). Only the base components may draw a surface: src/components/ui for the panel and, for the public website
-// (solid and editorial by design, D-91; the glass stays in the panel), its surfaces in src/components/web/surfaces.ts.
+// (solid and editorial by design, D-91; the glass stays in the panel), its surfaces in src/components/web/surfaces.ts and
+// the citizen pages' kit (webCard in src/components/participation/kit.tsx).
 const HAND_CARD = /rounded-\[var\(--radius-card\)\] border border-border bg-surface(?![-\w/])/;
-const SURFACE_BASES = [path.join('src', 'components', 'ui'), path.join('src', 'components', 'web', 'surfaces.ts')];
+const PUBLIC_KIT = path.join('src', 'components', 'participation', 'kit.tsx');
+const SURFACE_BASES = [path.join('src', 'components', 'ui'), path.join('src', 'components', 'web', 'surfaces.ts'), PUBLIC_KIT];
 
 describe('glass en las pantallas sueltas', () => {
   it('nadie arma una tarjeta a mano fuera de los componentes base', () => {
     expect(files('src').filter((f) => !SURFACE_BASES.some((b) => f.startsWith(b)) && HAND_CARD.test(read(f)))).toEqual([]);
+    // The citizen pages' kit draws its card surface once, in webCard.
+    expect(read(PUBLIC_KIT).match(new RegExp(HAND_CARD.source, 'g'))).toHaveLength(1);
   });
 
   it('las esquinas salen de los tokens (nada de rounded-[6px])', () => {
