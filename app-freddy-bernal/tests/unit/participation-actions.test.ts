@@ -110,6 +110,8 @@ describe('enviar una solicitud', () => {
     const ok = r as Extract<typeof r, { ok: true }>;
     expect(ok.reference).toMatch(REFERENCE_PATTERN);
     expect(JSON.stringify(r)).not.toContain(r0.secret);
+    // The demo writes it to the outbox only: the receipt never says «Te enviamos un correo».
+    expect(ok.emailed).toBe(false);
     // The device cookie: first party, httpOnly, a year.
     expect(h.jar.get('fb_dispositivo')?.opts).toMatchObject({ httpOnly: true, sameSite: 'lax', path: '/' });
     const row = (await sys<{ secret_digest: string; title: string; name_enc: string | null; email_enc: string | null }>(
@@ -130,6 +132,18 @@ describe('enviar una solicitud', () => {
     expect(mail.text_body).toContain(ok.reference);
     expect(`${mail.html}${mail.text_body}`).not.toContain(r0.secret);
     expect(mail.text_body).toMatch(/no es un servicio de emergencias/i);
+  });
+
+  it('el correo de confirmación sale solo si el correo está configurado para entregarse (en la demo, al buzón de salida)', async () => {
+    const { confirmationPlan } = await import('@/lib/actions/participation-core');
+    const yes = () => true;
+    const no = () => false;
+    expect(confirmationPlan('', 'supabase', yes)).toEqual({ queue: false, delivers: false });
+    // Production without email set up to send: nothing written (no address in the clear in the outbox for nothing).
+    expect(confirmationPlan('ana@ejemplo.com', 'supabase', no)).toEqual({ queue: false, delivers: false });
+    expect(confirmationPlan('ana@ejemplo.com', 'supabase', yes)).toEqual({ queue: true, delivers: true });
+    // The demo: invented data, the outbox stands in for the inbox; it never says it was delivered.
+    expect(confirmationPlan('ana.prueba@demo.test', 'demo', no)).toEqual({ queue: true, delivers: false });
   });
 
   it('sin correo no hay correo de confirmación', async () => {

@@ -199,9 +199,8 @@ export async function joinReport(raw: unknown): Promise<SendResult> {
       return supportRequest(sql, target, receipt, keys, { note: p.data.note, contact });
     });
     if (!r) return { ok: false, error: 'Ese reporte ya no está abierto: sigue con el tuyo.', code: 'not_found' };
-    const email = wantsEmail(contact);
-    if (email) queueReceiptEmail(email, r.reference, r.kind, 'reporte');
-    return { ok: true, reference: r.reference, kind: r.kind, sentAt: new Date().toISOString() };
+    const emailed = queueReceiptEmail(wantsEmail(contact), r.reference, r.kind, 'reporte');
+    return { ok: true, reference: r.reference, kind: r.kind, sentAt: new Date().toISOString(), emailed };
   } catch (e) {
     if (e instanceof ParticipationConfigError && contact) return { ok: false, error: NO_CONTACT_KEY_TEXT, code: 'config', fieldErrors: { contact: NO_CONTACT_KEY_TEXT } };
     return failureOf(e, 'apoyo');

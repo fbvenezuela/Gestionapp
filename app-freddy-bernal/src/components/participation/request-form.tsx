@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useOffline } from 'next/offline';
 import { ArrowLeft, ArrowRight, Check, Link2, WifiOff } from 'lucide-react';
 import { checkSimilar, joinReport, sendRequest } from '@/lib/actions/participation';
-import { chosenChannel, type FieldErrors, type SendResult, type SimilarResult } from '@/lib/actions/participation-types';
+import type { FieldErrors, SendResult, SimilarResult } from '@/lib/actions/participation-types';
 import { PLACE_REQUIRED, type RequestType } from '@/lib/participation/input';
 import { generateSecret } from '@/lib/participation/receipt-code';
 import type { PublicCategory, Territory } from '@/lib/web/public';
@@ -36,7 +36,6 @@ type Props = {
   siteName: string;
   maxFileBytes: number;
   turnstileSiteKey: string | null;
-  emailConfirmations: boolean;
 };
 
 const NETWORK_TEXT = 'No se pudo enviar. Revisa la señal y vuelve a intentarlo: lo que escribiste sigue guardado y no se enviará dos veces.';
@@ -67,7 +66,7 @@ function blankDraft(type: RequestType | null, linkedItemId: string | null): Draf
  * send itself when the signal comes back). The browser checks with the same schema as the server; the receipt shows
  * only once the database committed. Files go up right after, one by one, each with its own «Reintentar».
  */
-export function RequestForm({ municipalities, categories, linked, presetType, today, siteName, maxFileBytes, turnstileSiteKey, emailConfirmations }: Props) {
+export function RequestForm({ municipalities, categories, linked, presetType, today, siteName, maxFileBytes, turnstileSiteKey }: Props) {
   const [draft, setDraft] = useState<Draft>(() => blankDraft(presetType, linked?.id ?? null));
   const [ready, setReady] = useState(false);
   const [restored, setRestored] = useState(false);
@@ -215,12 +214,10 @@ export function RequestForm({ municipalities, categories, linked, presetType, to
     else showErrors({}, r.error);
   }
 
-  function sent(r: { reference: string; kind: 'request' | 'support'; sentAt: string }, picked: PickedFile[]) {
+  function sent(r: Extract<SendResult, { ok: true }>, picked: PickedFile[]) {
     for (const p of picked) fileStore.current.set(p.id, p.file);
     setDraft((d) => {
-      const v = d.values;
-      const emailNote = emailConfirmations && !v.anonymous && !!v.email.trim() && chosenChannel(v) !== 'none';
-      const type = (v.type || 'reporte') as RequestType;
+      const type = (d.values.type || 'reporte') as RequestType;
       return {
         ...d,
         // What the person wrote is not kept once it is saved: only what the receipt needs.
@@ -233,7 +230,8 @@ export function RequestForm({ municipalities, categories, linked, presetType, to
           sentAt: r.sentAt,
           type,
           files: picked.map((p) => ({ id: p.id, name: p.file.name, size: p.file.size, status: r.kind === 'support' ? 'skipped' : 'pending' })),
-          emailNote,
+          // The server says whether a confirmation is really on its way (email set up to deliver to that address).
+          emailNote: r.emailed,
           saved: false,
         },
       };

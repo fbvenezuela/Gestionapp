@@ -48,7 +48,6 @@ export default async function NewRequestPage({ searchParams }: { searchParams: P
             siteName={SITE_NAME}
             maxFileBytes={maxAttachmentBytes()}
             turnstileSiteKey={turnstileEnabled() ? env.turnstile.siteKey : null}
-            emailConfirmations={env.email.mode === 'send' && !!env.email.resendKey && env.dataMode !== 'demo'}
           />
         </div>
         <noscript>

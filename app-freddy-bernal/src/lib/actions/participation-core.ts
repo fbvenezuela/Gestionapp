@@ -7,7 +7,7 @@ import { brand } from '../client-config';
 import { withAnon } from '../db';
 import { friendlyDbError } from '../db/core';
 import { env } from '../env';
-import { sendEmail } from '../email/send';
+import { canDeliver, sendEmail } from '../email/send';
 import { NoticeEmail } from '@emails/templates';
 import {
   DEVICE_COOKIE,
@@ -22,9 +22,9 @@ import {
 } from '../participation/keys';
 import { LOOKUP_COOKIE, lookupCookieOptions, openLookup, sealLookup, type LookupGrant } from '../participation/lookup-cookie';
 import { REQUEST_TYPE_LABEL, requestInput, type RequestInput, type RequestType } from '../participation/input';
-import { crockfordFromBytes, generateSecret, normalizeSecret } from '../participation/receipt-code';
+import { crockfordFromBytes, normalizeSecret } from '../participation/receipt-code';
 import { turnstileEnabled, verifyTurnstile } from '../participation/turnstile';
-import { addCitizenAttachment, submitRequest, supportRequest, type RateKeys, type ReceiptGrant, type ReceiptKeys } from '../web/participation';
+import { addCitizenAttachment, submitRequest, type RateKeys, type ReceiptGrant, type ReceiptKeys } from '../web/participation';
 import { bucketStore } from '../storage/buckets';
 import { scanStoredAttachment, storePrivateFile } from '../storage/participation-files';
 import { ATTACHMENT_LIMITS } from '../participation/files';
@@ -136,20 +136,16 @@ export function noJsSecret(submissionKey: string, device: string): string {
   return normalizeSecret(crockfordFromBytes(new Uint8Array(mac), 16))!;
 }
 
-/** A fresh secret for a support or a request made on the server's side (tests). */
-export const newSecret = () => generateSecret();
-
 // --- Send -----------------------------------------------------------------------------------------------------------
 
-export type Sent = { ok: true; reference: string; kind: 'request' | 'support'; sentAt: string };
+export type Sent = Extract<SendResult, { ok: true }>;
 
 /** Sends a checked request as anon (idempotent by its key) and queues the confirmation email when there is an address. */
 export async function sendChecked(input: RequestInput, receipt: ReceiptKeys, keys: RateKeys): Promise<Sent | Failure> {
   try {
     const r = await withAnon((sql) => submitRequest(sql, input, receipt, keys));
-    const email = wantsEmail(input.anonymous ? null : input.contact);
-    if (email) queueReceiptEmail(email, r.reference, r.kind, input.type);
-    return { ok: true, reference: r.reference, kind: r.kind, sentAt: new Date().toISOString() };
+    const emailed = queueReceiptEmail(wantsEmail(input.anonymous ? null : input.contact), r.reference, r.kind, input.type);
+    return { ok: true, reference: r.reference, kind: r.kind, sentAt: new Date().toISOString(), emailed };
   } catch (e) {
     if (e instanceof ParticipationConfigError && input.contact && !input.anonymous) {
       // The contact cannot be encrypted (production without PARTICIPATION_DATA_KEY): never stored in the clear.
@@ -157,27 +153,6 @@ export async function sendChecked(input: RequestInput, receipt: ReceiptKeys, key
       return { ok: false, error: NO_CONTACT_KEY_TEXT, code: 'config', fieldErrors: { contact: NO_CONTACT_KEY_TEXT } };
     }
     return failureOf(e, 'envío');
-  }
-}
-
-/** «¿Te sumas?»: a support of the oldest open report that matches, with the person's own receipt. */
-export async function supportChecked(
-  requestId: string,
-  receipt: ReceiptKeys,
-  keys: RateKeys,
-  extra: { note: string; contact: RequestInput['contact'] },
-): Promise<Sent | Failure> {
-  try {
-    const r = await withAnon((sql) => supportRequest(sql, requestId, receipt, keys, extra));
-    const email = wantsEmail(extra.contact);
-    if (email) queueReceiptEmail(email, r.reference, r.kind, 'reporte');
-    return { ok: true, reference: r.reference, kind: r.kind, sentAt: new Date().toISOString() };
-  } catch (e) {
-    if (e instanceof ParticipationConfigError && extra.contact) {
-      console.error('[atencion] apoyo: falta PARTICIPATION_DATA_KEY para cifrar el contacto');
-      return { ok: false, error: NO_CONTACT_KEY_TEXT, code: 'config', fieldErrors: { contact: NO_CONTACT_KEY_TEXT } };
-    }
-    return failureOf(e, 'apoyo');
   }
 }
 
@@ -192,10 +167,25 @@ export function lookupUrl(): string {
 }
 
 /**
- * The confirmation email (outbox first; it leaves the platform only when email is configured to send, src/lib/email):
- * the reference and how to follow it, NEVER the secret. After the response, outside the anon transaction.
+ * Whether a confirmation is written at all, and whether it reaches the person. Only when email is set up to deliver to
+ * that address (canDeliver), or in the demo, where everything is invented and the outbox stands in for the inbox.
+ * Elsewhere (production with EMAIL_MODE=outbox) nothing is written: a citizen's address is never kept in the clear in
+ * the outbox for an email that will not leave (the contact itself is stored encrypted, request_contacts).
  */
-export function queueReceiptEmail(to: string, reference: string, kind: 'request' | 'support', type: RequestType) {
+export function confirmationPlan(to: string, mode: 'demo' | 'supabase' = env.dataMode, deliver: (to: string) => boolean = canDeliver) {
+  if (!to) return { queue: false, delivers: false };
+  const delivers = deliver(to);
+  return { queue: delivers || mode === 'demo', delivers };
+}
+
+/**
+ * The confirmation email (outbox first; it leaves the platform only when email is configured to send, src/lib/email):
+ * the reference and how to follow it, NEVER the secret. After the response, outside the anon transaction. Answers
+ * whether it is on its way to the person (the receipt says «Te enviamos un correo» only then).
+ */
+export function queueReceiptEmail(to: string, reference: string, kind: 'request' | 'support', type: RequestType): boolean {
+  const plan = confirmationPlan(to);
+  if (!plan.queue) return false;
   const support = kind === 'support';
   const body = [
     support
@@ -217,6 +207,7 @@ export function queueReceiptEmail(to: string, reference: string, kind: 'request'
       console.error(`[atencion] correo de ${reference}: ${(e as Error).message}`);
     }
   });
+  return plan.delivers;
 }
 
 // --- The lookup cookie ------------------------------------------------------------------------------------------------

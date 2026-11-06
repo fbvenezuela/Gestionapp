@@ -97,10 +97,15 @@ test('«Atención ciudadana» se lee en el teléfono: los dos botones grandes, l
   await axe(page, '/atencion');
 });
 
-test('un reporte con una foto: comprobante en PDF, consulta con la clave, la foto sin GPS y agregar información', async ({ page }) => {
+/**
+ * The whole journey of a report with a photo: the steps, the summary of errors, the receipt (PDF in the browser), the
+ * lookup with the code and the secret as typed, the photo without its GPS position, adding information and «Salir»;
+ * then a wrong secret gets the one answer. Runs on the phone and on a desktop.
+ */
+async function reportWithPhoto(page: Page, where: string) {
   await page.goto('/atencion/nueva?tipo=reporte');
   await expect(page.getByRole('heading', { level: 1, name: 'Reportar un problema' })).toBeVisible();
-  await axe(page, 'paso 1');
+  await axe(page, `paso 1 (${where})`);
   await fillSteps(page, {
     type: /^Reporte/, category: /^Agua/, municipality: 'Torbes', sector: unique(), reference: 'Frente a la bodega (prueba)',
     title: 'Bote de agua en la esquina (prueba)', description: 'Sale agua limpia de la tubería desde ayer y se pierde por la cuneta (prueba).',
@@ -115,7 +120,7 @@ test('un reporte con una foto: comprobante en PDF, consulta con la clave, la fot
   const summary = page.getByRole('alert').filter({ hasText: 'Revisa este dato' });
   await expect(summary).toBeFocused();
   await expect(summary.getByRole('link', { name: 'Lee y acepta el aviso de privacidad para enviar.' })).toBeVisible();
-  await axe(page, 'paso 4 con errores');
+  await axe(page, `paso 4 con errores (${where})`);
   await page.getByLabel(/Leí el aviso de privacidad/).check();
   await page.getByRole('button', { name: 'Enviar', exact: true }).click();
 
@@ -123,7 +128,7 @@ test('un reporte con una foto: comprobante en PDF, consulta con la clave, la fot
   await expect(page.getByRole('heading', { level: 2, name: 'Recibimos tu reporte' })).toBeFocused();
   await expect(page.getByRole('region', { name: 'Tus archivos' }).getByText(/· Listo$/)).toBeVisible({ timeout: 30_000 });
   await noSideScroll(page);
-  await axe(page, 'comprobante');
+  await axe(page, `comprobante (${where})`);
 
   // «Descargar comprobante (PDF)»: made in the browser, with the code and the secret.
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: /Descargar comprobante/ }).click()]);
@@ -147,7 +152,7 @@ test('un reporte con una foto: comprobante en PDF, consulta con la clave, la fot
   expect(file.status()).toBe(200);
   expect(file.headers()['content-type']).toBe('image/jpeg');
   expect((await file.body()).includes(Buffer.from(GPS_TEXT, 'latin1'))).toBe(false);
-  await axe(page, 'consulta');
+  await axe(page, `consulta (${where})`);
 
   await page.getByLabel(/Lo que quieres agregar/).fill('El bote creció esta mañana (prueba).');
   await page.getByRole('button', { name: 'Enviar al equipo' }).click();
@@ -158,6 +163,15 @@ test('un reporte con una foto: comprobante en PDF, consulta con la clave, la fot
   await expect(page.getByRole('heading', { level: 1, name: 'Consultar mi solicitud' })).toBeVisible();
   expect((await page.context().cookies()).some((c) => c.name === 'fb_consulta')).toBe(false);
   expect((await page.request.get(href!)).status()).toBe(404);
+  // The same code with one wrong letter in the secret: the one answer, nothing opened.
+  const wrong = secret.replace(/^./, (c) => (c === 'Z' ? 'Y' : 'Z'));
+  await lookup(page, reference, wrong);
+  await expect(page.getByRole('alert').getByText(NOT_FOUND)).toBeVisible();
+  expect((await page.context().cookies()).some((c) => c.name === 'fb_consulta')).toBe(false);
+}
+
+test('un reporte con una foto: comprobante en PDF, consulta con la clave, la foto sin GPS y agregar información', async ({ page }) => {
+  await reportWithPhoto(page, 'teléfono');
 });
 
 const KINDS = [
@@ -368,6 +382,10 @@ test.describe('sin JavaScript', () => {
 
 test.describe('en una computadora', () => {
   test.use({ viewport: { width: 1280, height: 900 }, isMobile: false, hasTouch: false });
+
+  test('un reporte con una foto, de punta a punta, en la computadora', async ({ page }) => {
+    await reportWithPhoto(page, 'computadora');
+  });
 
   test('las cuatro páginas pasan axe y no se desbordan', async ({ page }) => {
     for (const path of ['/atencion', '/atencion/nueva', '/atencion/consultar', '/atencion/atendido']) {

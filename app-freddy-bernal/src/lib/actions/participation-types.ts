@@ -4,9 +4,10 @@
 export type FieldErrors = Record<string, string>;
 export type FailureCode = 'validation' | 'rate' | 'config' | 'turnstile' | 'honeypot' | 'not_found' | 'db';
 
-/** «Enviar» and «Sumarme»: the receipt's reference once the database committed it (never before), or why not. */
+/** «Enviar» and «Sumarme»: the receipt's reference once the database committed it (never before), or why not.
+ * `emailed`: a confirmation with the code (never the secret) is on its way to the person's address. */
 export type SendResult =
-  | { ok: true; reference: string; kind: 'request' | 'support'; sentAt: string }
+  | { ok: true; reference: string; kind: 'request' | 'support'; sentAt: string; emailed: boolean }
   | { ok: false; error: string; code: FailureCode; fieldErrors?: FieldErrors };
 
 /** The form without JavaScript (useActionState): the receipt made on the server, or the errors and what was written. */
