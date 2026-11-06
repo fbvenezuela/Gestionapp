@@ -10,6 +10,7 @@ import { SECRET as GPS_TEXT, jpegWithGps } from '../unit/fixtures/photos';
 // of its own (x-real-ip), so the persistent limits of one never touch another; each one is a new browser (device).
 
 const YEAR = new Date().getFullYear();
+const DEMR02 = { reference: `AC-${YEAR}-DEMR02`, secret: 'R3PS-W8N2-DEMV-7QKA' };
 const DEMR03 = { reference: `AC-${YEAR}-DEMR03`, secret: 'H4JX-5ZTB-9CNF-W2YE' };
 const REF = /^AC-\d{4}-[0-9A-HJKMNP-TV-Z]{6}$/;
 const SECRET = /^[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4}){3}$/;
@@ -214,6 +215,21 @@ test('clave mala, código alterado o inventado: siempre la misma respuesta y nin
   expect(cookie.value).not.toContain(DEMR03.secret);
 });
 
+test('una solicitud resuelta pregunta si de verdad se resolvió; el «no» pide qué falta', async ({ page }) => {
+  await lookup(page, DEMR02.reference, DEMR02.secret);
+  await expect(page.getByTestId('estado-solicitud')).toHaveText('Resuelta');
+  await expect(page.getByRole('heading', { name: 'El equipo dice que se resolvió' })).toBeVisible();
+  // The team's evidence it shared downloads too (a demo placeholder without a real file behind it answers 404).
+  await expect(page.getByText(/Evidencia del equipo/).first()).toBeVisible();
+  await page.getByLabel('No, todavía no').check();
+  await expect(page.getByLabel(/¿Qué falta para que esté resuelto\?/)).toBeVisible();
+  await page.getByRole('button', { name: 'Responder' }).click();
+  await expect(page.getByText('Cuéntanos qué falta para que esté resuelto.')).toBeVisible();
+  // Nothing changed: the case is still waiting for the answer.
+  await expect(page.getByTestId('estado-solicitud')).toHaveText('Resuelta');
+  await axe(page, 'confirmar');
+});
+
 test('un reintento (la respuesta se perdió) no crea otra solicitud: vuelve el mismo código', async ({ page }) => {
   let first = true;
   let committed = '';
@@ -270,6 +286,29 @@ test('«¿te sumas?»: con reportes abiertos del mismo problema en el mismo siti
   await expect(page.getByText('Tu apoyo a un reporte')).toBeVisible();
   await expect(page.getByText('Hueco grande en la avenida principal (demo)')).toHaveCount(0);
   await expect(page.getByText('También me cuesta pasar por ahí (prueba).')).toBeVisible();
+});
+
+test('la ubicación, solo si la persona quiere: «Usar mi ubicación» y el mapa, que carga al tocarlo', async ({ page, context }) => {
+  await context.grantPermissions(['geolocation']);
+  await context.setGeolocation({ latitude: 7.7712345, longitude: -72.2254321 });
+  await page.goto('/atencion/nueva?tipo=reporte');
+  await page.getByLabel(/^Ambiente y aseo/).check();
+  await next(page);
+  await page.getByLabel(/^Municipio/).selectOption({ label: 'San Cristóbal' });
+  await page.getByLabel(/Parroquia, localidad o sector/).fill(unique());
+  // Nothing of the map before the tap.
+  await expect(page.locator('.leaflet-container')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Usar mi ubicación' }).click();
+  await expect(page.getByText('Punto guardado con tu permiso.')).toBeVisible();
+  await expect(page.getByText('7.77123, -72.22543')).toBeVisible();
+  await page.getByRole('button', { name: 'Marcar en el mapa' }).click();
+  await expect(page.locator('.leaflet-container')).toBeVisible();
+  await page.getByRole('button', { name: 'Marcar el centro del mapa' }).click();
+  await expect(page.getByText('Punto guardado con tu permiso.')).toBeVisible();
+  await noSideScroll(page);
+  await axe(page, 'mapa');
+  await page.getByRole('button', { name: /Quitar ubicación/ }).click();
+  await expect(page.getByText('Punto guardado con tu permiso.')).toHaveCount(0);
 });
 
 test('lo escrito sigue ahí después de recargar la página', async ({ page }) => {

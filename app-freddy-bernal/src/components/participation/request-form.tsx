@@ -530,11 +530,12 @@ export function RequestForm({ municipalities, categories, linked, presetType, to
 }
 
 function ReviewRow({ label, children, onEdit }: { label: string; children: ReactNode; onEdit: () => void }) {
+  // On a phone the label and «Cambiar» go on one line and the value under them; wider, all three in a row.
   return (
-    <div className="flex items-center gap-3">
-      <dt className="w-20 shrink-0 font-semibold text-text-2">{label}</dt>
-      <dd className="min-w-0 flex-1 break-words text-text">{children}</dd>
-      <dd>
+    <div className="grid grid-cols-[1fr_auto] items-center gap-x-3 sm:grid-cols-[6rem_1fr_auto]">
+      <dt className="col-start-1 row-start-1 font-semibold text-text-2">{label}</dt>
+      <dd className="col-span-2 row-start-2 min-w-0 break-words text-text sm:col-span-1 sm:col-start-2 sm:row-start-1">{children}</dd>
+      <dd className="col-start-2 row-start-1 sm:col-start-3">
         <button type="button" onClick={onEdit} className="min-h-11 px-1 font-semibold text-accent-ink underline underline-offset-2" aria-label={`Cambiar: ${label}`}>
           Cambiar
         </button>
