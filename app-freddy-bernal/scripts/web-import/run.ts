@@ -29,6 +29,8 @@ export type RunOptions = {
   apply: boolean;
   limit?: number | null;
   since?: string | null;
+  /** Only these posts (WordPress ids): to bring or check again a few. */
+  ids?: number[] | null;
   noMedia?: boolean;
   /** The largest side of a photo brought (WordPress's own sizes are used when the original is larger). */
   maxSide?: number;
@@ -162,7 +164,7 @@ export async function runImport(o: RunOptions): Promise<Report> {
   const usedTags = new Set<number>();
   const months = new Set<string>();
 
-  for await (const page of o.api.posts({ since: o.since, limit: o.limit })) {
+  for await (const page of o.api.posts({ since: o.since, limit: o.limit, ids: o.ids })) {
     report.totalOnSite ??= page.total;
     const plans = page.posts.map((p) => planPost(p, { categories, ownHosts: o.ownHosts, tz }));
     // The photos WordPress knows by id (the post's photo and the ones with their id in the text), a page at a time.

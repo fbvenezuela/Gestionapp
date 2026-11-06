@@ -4,9 +4,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { ALT_PLACEHOLDER, ALT_PLACEHOLDER_PREFIX, REMOVED_MARKS, isAltPlaceholder, marksText, removedMarksIn } from '@/lib/web/import-marks';
+import { ALT_PLACEHOLDER, ALT_PLACEHOLDER_PREFIX, REMOVED_MARKS, REVIEW_FLAGS, isAltPlaceholder, marksText, removedMarksIn, reviewFlagTexts } from '@/lib/web/import-marks';
 import { draftProblems, readinessIssues } from '@/lib/web/cms/drafts';
-import { goneWhenMissing, lookupKeys } from '@/lib/web/redirects';
+import { goneWhenMissing, legacyPlan, lookupKeys } from '@/lib/web/redirects';
 
 const migration = fs.readFileSync(path.join(process.cwd(), 'supabase', 'migrations', '20261106300100_web_importador.sql'), 'utf8');
 
@@ -26,6 +26,8 @@ describe('las marcas del importador', () => {
     expect(removedMarksIn({ body: [{ type: 'paragraph', runs: [{ text: `escribe a ${REMOVED_MARKS.email}` }] }], title: REMOVED_MARKS.id })).toEqual(['email', 'id']);
     expect(removedMarksIn({ title: 'Nada que ver [sic]' })).toEqual([]);
     expect(marksText(['email', 'phone', 'id'])).toBe('«[correo retirado]», «[teléfono retirado]» y «[cédula retirada]»');
+    // What the editor says of an imported draft: the flags it knows, in words; an unknown one is left out.
+    expect(reviewFlagTexts(['alt_missing', 'otra-cosa', 'email_removed'])).toEqual([REVIEW_FLAGS.alt_missing, REVIEW_FLAGS.email_removed]);
   });
 
   it('un borrador con una marca no se puede enviar ni publicar desde el editor', () => {
@@ -45,6 +47,19 @@ describe('las direcciones viejas de las fotos', () => {
     expect(lookupKeys('/2026/03/se%C3%B1al')).toContain('/2026/03/se%c3%b1al');
     // An article's address keeps its numbers (only uploads lose a size).
     expect(lookupKeys('/2026/03/nota-1024x683')).toEqual(['/2026/03/nota-1024x683', '/2026/03/nota-1024x683/']);
+  });
+
+  it('las páginas de una lista y el feed de una página de WordPress se buscan como esa página', () => {
+    const plan = (url: string) => {
+      const u = new URL(url, 'https://sitio.test');
+      return legacyPlan(u.pathname, u.searchParams);
+    };
+    expect(plan('/categoria/salud/page/3/')).toEqual({ kind: 'lookup', path: '/categoria/salud' });
+    expect(plan('/tag/agua/page/2')).toEqual({ kind: 'lookup', path: '/tag/agua' });
+    expect(plan('/2026/03/una-nota/feed/')).toEqual({ kind: 'lookup', path: '/2026/03/una-nota' });
+    expect(plan('/page/7/')).toEqual({ kind: 'search', to: '/actualidad' });
+    expect(plan('/feed/')).toEqual({ kind: 'lookup', path: '/feed' });
+    expect(plan('/2026/03/pagina-de-una-nota')).toEqual({ kind: 'lookup', path: '/2026/03/pagina-de-una-nota' });
   });
 
   it('un archivo viejo que no se trajo es 410; lo demás, 404', () => {

@@ -7,6 +7,8 @@
 //   * The home with WordPress's queries: «/?s=agua» is a search (it goes to /actualidad?q=agua, no table needed) and
 //     «/?p=123», «/?page_id=…», «/?cat=…», «/?tag=…» are looked up as written («/?p=123»).
 //   * A section's missing item («/actualidad/titulo-viejo») is looked up by its page before answering 404.
+//   * WordPress's variants: a list's later pages and a page's feed are looked up as the page; a photo in one of
+//     WordPress's sizes as its original (lookupKeys). An old file the redirects do not know answers 410 (proxy.ts).
 
 import { firstSegment, isKnownSegment } from './routes';
 
@@ -30,8 +32,18 @@ export function legacyPlan(pathname: string, search: URLSearchParams): LegacyPla
   }
   if (isKnownSegment(firstSegment(pathname))) return { kind: 'none' };
   const path = normalizeOldPath(pathname);
-  return path ? { kind: 'lookup', path } : { kind: 'none' };
+  if (!path) return { kind: 'none' };
+  // WordPress's pages of a list («/categoria/salud/page/3», «/page/2») and the feed of a page («/2026/11/nota/feed»)
+  // are the page they belong to; the bare «/feed» has its own redirect.
+  const base = path.replace(WP_VARIANT, '');
+  if (base !== path) {
+    if (base) return { kind: 'lookup', path: base };
+    if (path.startsWith('/page/')) return { kind: 'search', to: '/actualidad' };
+  }
+  return { kind: 'lookup', path };
 }
+
+const WP_VARIANT = /\/(?:page\/\d{1,5}|feed(?:\/(?:rss2?|atom|rdf))?)$/;
 
 /** «/2026/11/una-nota/» and «/2026/11/una-nota» are the same old address: without the last slash, at most 500
  * characters, never «//host». Null when it cannot be an address of this site. */

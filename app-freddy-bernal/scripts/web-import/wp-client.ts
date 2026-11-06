@@ -184,8 +184,16 @@ export class WpApi {
     return out;
   }
 
-  /** Posts, newest first, a page at a time (published since `since` when given), at most `limit`. */
-  async *posts(o: { since?: string | null; limit?: number | null; perPage?: number } = {}): AsyncGenerator<{ posts: WpPost[]; total: number }> {
+  /** Posts, newest first, a page at a time (published since `since` when given), at most `limit`; or exactly `ids`. */
+  async *posts(o: { since?: string | null; limit?: number | null; perPage?: number; ids?: number[] | null } = {}): AsyncGenerator<{ posts: WpPost[]; total: number }> {
+    if (o.ids?.length) {
+      for (let k = 0; k < o.ids.length; k += 100) {
+        const chunk = o.ids.slice(k, k + 100);
+        const r = await this.http.json<WpPost[]>(this.url('posts', { include: chunk.join(','), per_page: chunk.length, orderby: 'include', status: 'publish', _fields: POST_FIELDS }));
+        if (r && Array.isArray(r.data) && r.data.length) yield { posts: r.data, total: Number(r.headers.get('x-wp-total') ?? r.data.length) };
+      }
+      return;
+    }
     const perPage = Math.min(100, Math.max(1, o.perPage ?? 100));
     let left = o.limit ?? Infinity;
     // WordPress's «after» is exclusive: the last second of the day before.

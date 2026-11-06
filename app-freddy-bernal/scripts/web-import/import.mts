@@ -6,6 +6,7 @@
 //   npm run web:import -- --apply --limit 20             writes: DATABASE_URL (Supabase) or LOCAL_DATA_DIR (the local base)
 //   npm run web:import -- --apply --since 2026-01-01     only what was published since that day
 //   npm run web:import -- --apply --no-media             without photos (they come in a later run)
+//   npm run web:import -- --ids 123,456                  only those posts (WordPress ids), to check or bring them again
 //
 // Other options: --site <https://…> (default the old site), --delay <ms> between two requests (default 1000, at least
 // 250), --max-side <px> of the photos (default 2048), --sample <n> rows of the sample, --report <file> (a JSON with every
@@ -39,6 +40,7 @@ type Args = {
   apply: boolean;
   limit: number | null;
   since: string | null;
+  ids: number[] | null;
   noMedia: boolean;
   site: string;
   delay: number;
@@ -48,12 +50,12 @@ type Args = {
   yes: boolean;
 };
 
-const HELP = `Uso: npm run web:import -- [--dry-run | --apply] [--limit N] [--since AAAA-MM-DD] [--no-media]
+const HELP = `Uso: npm run web:import -- [--dry-run | --apply] [--limit N] [--since AAAA-MM-DD] [--ids 123,456] [--no-media]
                           [--site https://…] [--delay MS] [--max-side PX] [--sample N] [--report archivo.json] [--yes]
 Sin --apply es una prueba: lee la web vieja y no escribe nada.`;
 
 function parseArgs(argv: string[]): Args {
-  const a: Args = { apply: false, limit: null, since: null, noMedia: false, site: DEFAULT_SITE, delay: 1000, maxSide: 2048, sample: 5, report: null, yes: false };
+  const a: Args = { apply: false, limit: null, since: null, ids: null, noMedia: false, site: DEFAULT_SITE, delay: 1000, maxSide: 2048, sample: 5, report: null, yes: false };
   let dry = false;
   for (let i = 0; i < argv.length; i++) {
     const v = argv[i];
@@ -71,6 +73,10 @@ function parseArgs(argv: string[]): Args {
     else if (v === '--since') {
       a.since = next();
       if (!/^\d{4}-\d{2}-\d{2}$/.test(a.since) || Number.isNaN(Date.parse(`${a.since}T00:00:00Z`))) stop('--since va como AAAA-MM-DD (por ejemplo 2026-01-01).', 2);
+    } else if (v === '--ids') {
+      const list = next().split(',').map((s) => Number(s.trim()));
+      if (!list.length || list.length > 1000 || list.some((n) => !Number.isInteger(n) || n < 1)) stop('--ids va como números separados por comas (por ejemplo 123,456).', 2);
+      a.ids = [...new Set(list)];
     } else if (v === '--site') a.site = next().replace(/\/+$/, '');
     else if (v === '--delay') a.delay = int('--delay', 250, 60_000);
     else if (v === '--max-side') a.maxSide = int('--max-side', 600, 6000);
@@ -184,7 +190,8 @@ async function main() {
     stop('Para --apply hace falta DATABASE_URL (Supabase) o LOCAL_DATA_DIR (la base local, con la app cerrada).');
   }
 
-  say(`\n${args.apply ? 'IMPORTAR' : 'PRUEBA (no escribe nada)'} · ${args.site}${args.limit ? ` · hasta ${args.limit} artículos` : ' · todos los artículos'}${args.since ? ` · desde ${args.since}` : ''}${args.noMedia ? ' · sin fotos' : ''}`);
+  const which = args.ids ? ` · los artículos ${args.ids.length > 5 ? `de ${args.ids.length} números` : args.ids.join(', ')}` : args.limit ? ` · hasta ${args.limit} artículos` : ' · todos los artículos';
+  say(`\n${args.apply ? 'IMPORTAR' : 'PRUEBA (no escribe nada)'} · ${args.site}${which}${args.since ? ` · desde ${args.since}` : ''}${args.noMedia ? ' · sin fotos' : ''}`);
   if (where) say(`${args.apply ? 'Escribe en' : 'Lee (solo lectura)'}: ${where}${store ? `; fotos en ${store.where}` : ''}.`);
   else if (!args.apply) say(env.LOCAL_DATA_DIR ? 'La base local no se abre en una prueba (abrirla ya la cambia): todo se cuenta como nuevo.' : 'Sin base a la mano: todo se cuenta como nuevo.');
   say(`Una petición a la vez, con ${args.delay} ms entre una y otra.`);
@@ -205,6 +212,7 @@ async function main() {
       apply: args.apply,
       limit: args.limit,
       since: args.since,
+      ids: args.ids,
       noMedia: args.noMedia,
       maxSide: args.maxSide,
       tz: env.APP_TZ || 'America/Caracas',

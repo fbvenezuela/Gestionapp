@@ -316,3 +316,16 @@ export async function redirectList(sql: Sql, f: { q?: string | null; page?: numb
     total: rows[0]?.total ?? 0,
   };
 }
+
+// --- Imported from the old site ----------------------------------------------------------------------------------
+export type ImportOrigin = { sourceUrl: string; sourcePath: string; publishedAt: Date | null; importedAt: Date; flags: string[] };
+
+/** Where an imported draft came from and what the importer asked a person to review (web_import_items, read with RLS:
+ * the web's people). Null for content made here. */
+export async function importOrigin(sql: Sql, itemId: string): Promise<ImportOrigin | null> {
+  const r = await sql.one<{ source_url: string; source_path: string; source_published_at: Date | null; imported_at: Date; review_flags: string[] }>(
+    `select source_url, source_path, source_published_at, imported_at, review_flags from public.web_import_items where item_id = $1`,
+    [itemId],
+  );
+  return r ? { sourceUrl: r.source_url, sourcePath: r.source_path, publishedAt: r.source_published_at, importedAt: r.imported_at, flags: r.review_flags ?? [] } : null;
+}

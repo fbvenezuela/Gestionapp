@@ -43,6 +43,12 @@ describe('de dónde vino lo importado', () => {
     expect(await count('writer', 'web_import_items', 'aal1')).toBe(0);
   });
 
+  it('el editor lo ve como lo lee su pantalla (dirección vieja y qué revisar); otro rol, nada', async () => {
+    const { importOrigin } = await import('@/lib/data/web-admin');
+    expect(await t.asWho('writer', (sql) => importOrigin(sql, itemId))).toMatchObject({ sourcePath: '/2026/03/nota-importada-rls', flags: ['alt_missing'] });
+    expect(await t.asWho('coordinator', (sql) => importOrigin(sql, itemId))).toBeNull();
+  });
+
   it('nadie más: ni el equipo, ni la atención, ni auditoría; anon ni siquiera tiene la tabla', async () => {
     for (const who of [...TEAM.filter((x) => x !== 'boss'), 'coordinator', 'areaA', 'complaints', 'auditor'] as Who[]) {
       expect(await count(who, 'web_import_items'), who).toBe(0);

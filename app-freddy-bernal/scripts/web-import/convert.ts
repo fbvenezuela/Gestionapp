@@ -14,36 +14,11 @@
 import { safeHref, textNode, type TextNode, type TextRun } from '../../src/lib/web/blocks';
 import { classesOf, findAll, hasClass, parseHtml, textOf, type HtmlElement, type HtmlNode } from './html';
 import { addPii, hrefCarriesPii, noPii, scrubText, type PiiCounts } from './pii';
+import { REVIEW_FLAGS, type ReviewFlag } from '../../src/lib/web/import-marks';
 
-export type ReviewFlag =
-  | 'email_removed' | 'phone_removed' | 'id_removed' | 'embed_removed' | 'embed_replaced' | 'video_extra' | 'table_flattened'
-  | 'image_external' | 'image_failed' | 'image_unsupported' | 'alt_missing' | 'media_skipped' | 'gallery_truncated' | 'text_truncated'
-  | 'pdf_link' | 'numeric_slug' | 'title_truncated' | 'title_missing' | 'no_body' | 'slug_changed' | 'heading_long';
-
-/** What each flag tells the person who reviews the draft (the report and the editor say it like this). */
-export const FLAG_TEXT: Record<ReviewFlag, string> = {
-  email_removed: 'Se quitaron correos del texto: quedó «[correo retirado]».',
-  phone_removed: 'Se quitaron teléfonos del texto: quedó «[teléfono retirado]».',
-  id_removed: 'Se quitaron números de cédula del texto: quedó «[cédula retirada]».',
-  embed_removed: 'Tenía algo insertado de otra página (un marco, un reproductor o un formulario) que no se trajo.',
-  embed_replaced: 'Tenía una publicación de una red social insertada: quedó un enlace a ella.',
-  video_extra: 'Tenía más de un video de YouTube: el primero es el video de la nota y los demás quedaron como enlaces.',
-  table_flattened: 'Tenía una tabla: quedó como lista, fila por fila.',
-  image_external: 'Tenía fotos de otras páginas: no se trajeron (súbelas a la biblioteca si hacen falta).',
-  image_failed: 'Alguna foto no se pudo traer (no estaba o no se pudo leer).',
-  image_unsupported: 'Alguna foto venía en un formato que la biblioteca no acepta (GIF, AVIF u otro).',
-  alt_missing: 'Fotos sin texto alternativo: dicen «[Por escribir]»; escríbelo en la biblioteca antes de publicar.',
-  media_skipped: 'Alguna foto no se trajo (se corrió con --no-media): otra corrida sin esa opción la trae.',
-  gallery_truncated: 'Tenía más de 24 fotos: la galería lleva las primeras 24.',
-  text_truncated: 'El texto era más largo de lo que cabe: revisa el final contra la nota vieja.',
-  pdf_link: 'Enlaza un PDF de la web vieja: súbelo a la biblioteca si debe seguir en línea.',
-  numeric_slug: 'Su dirección vieja era solo un número: la nueva sale del título.',
-  title_truncated: 'El título era muy largo y se cortó.',
-  title_missing: 'No tenía título: se puso «Nota del …»; escribe uno.',
-  no_body: 'No tenía texto.',
-  slug_changed: 'Su dirección vieja no servía tal cual en la web nueva: tiene una parecida.',
-  heading_long: 'Un subtítulo era muy largo y quedó como párrafo en negrita.',
-};
+// What a person must review in an imported draft, and its words (shared with the editor: src/lib/web/import-marks.ts).
+export type { ReviewFlag };
+export const FLAG_TEXT: Record<ReviewFlag, string> = REVIEW_FLAGS;
 
 export type FoundImage = {
   /** The address in the article (the <img>), absolute. */

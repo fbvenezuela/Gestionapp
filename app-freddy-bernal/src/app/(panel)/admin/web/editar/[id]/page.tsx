@@ -7,7 +7,8 @@ import { Card, CardBody } from '@/components/ui/card';
 import { LinkButton } from '@/components/ui/button';
 import { FlowChips, Notice } from '@/components/cms/chrome';
 import { Editor } from '@/components/cms/editor';
-import { adminItem, mediaByIds, municipalities, referenceOptions, webCaps } from '@/lib/data/web-admin';
+import { adminItem, importOrigin, mediaByIds, municipalities, referenceOptions, webCaps } from '@/lib/data/web-admin';
+import { reviewFlagTexts } from '@/lib/web/import-marks';
 import { mediaIdsIn } from '@/lib/web/cms/drafts';
 import { ADMIN_WEB, sectionOf } from '@/lib/web/cms/kinds';
 import { hasPendingChanges, isLive, isScheduled } from '@/lib/web/cms/status';
@@ -21,7 +22,8 @@ export const metadata = { title: 'Editar · Web' };
 // One item's editor (design §3). Read as the person (RLS): the web's people and Administración read drafts; only who
 // may write gets the form (the editor, the publisher, the boss: can_edit_web); an archived item is read-only until the
 // publisher unarchives it. The state of the flow is said at the top in words: sent, returned with a comment, live with
-// changes that are not published yet, scheduled, archived.
+// changes that are not published yet, scheduled, archived; and, for a draft the importer brought from the old site,
+// its old address and what the importer asked a person to review (web_import_items).
 export default async function EditItemPage({ params }: { params: Promise<{ id: string }> }) {
   const s = await requireRole('writer', 'web_publisher', 'boss', 'admin');
   const { id } = await params;
@@ -31,6 +33,7 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
     const media = await mediaByIds(sql, mediaIdsIn(item.draft));
     return {
       item,
+      origin: await importOrigin(sql, item.id),
       caps: await webCaps(sql),
       media: Object.fromEntries([...media].map(([k, m]) => [k, { ...m, storageKey: undefined }])),
       munis: await municipalities(sql),
@@ -89,6 +92,22 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
         </p>
       ) : null}
       {isScheduled(item) ? <Notice tone="info" title={`Programado: sale el ${fmtDateTime(item.publishAt)}`}>Hasta entonces nadie lo ve en la web.</Notice> : null}
+      {data.origin ? (
+        <Notice tone={data.origin.flags.length ? 'warn' : 'info'} title="Traído de la web vieja">
+          <p>
+            Era <span className="break-all font-mono text-sm">{data.origin.sourcePath}</span>
+            {data.origin.publishedAt ? `, publicado el ${fmtDateTime(data.origin.publishedAt)}` : ''}. Lo trajo el importador el{' '}
+            {fmtDateTime(data.origin.importedAt)}: revísalo antes de enviarlo.
+          </p>
+          {reviewFlagTexts(data.origin.flags).length ? (
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              {reviewFlagTexts(data.origin.flags).map((t) => (
+                <li key={t}>{t}</li>
+              ))}
+            </ul>
+          ) : null}
+        </Notice>
+      ) : null}
       {item.archivedAt ? (
         <Notice tone="warn" title="Archivado: no se ve en la web">
           {item.archivedByName ? `Lo archivó ${item.archivedByName}, ${fmtDateTime(item.archivedAt)}. ` : ''}Para cambiarlo o volver a mostrarlo, quien aprueba la web lo desarchiva.
