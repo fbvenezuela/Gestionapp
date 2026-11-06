@@ -134,8 +134,9 @@ oficiales, Accesos de participación y Lo atendido. Cada uno dice para qué sirv
 - **Llamado a la acción:** el «Enlace del botón» va a una dirección de esta web (`/atencion/nueva`) o a `https://…`.
 
 **El formato del texto.** El texto se arma por partes, cada una en su cuadro: **Párrafo, Título, Subtítulo, Lista,
-Lista numerada, Cita y Por completar**. Los botones «+ Párrafo», «+ Título», «+ Lista», «+ Cita» y «+ Por completar»
-agregan partes; las flechas las suben o bajan y la papelera las quita. En una lista, un punto por línea. Dentro de un
+Lista numerada, Cita y Por completar**. Los botones con un «+» («Párrafo», «Título», «Lista», «Cita» y «Por
+completar») agregan partes; el tipo de cada parte se cambia en su lista; las flechas las suben o bajan y la papelera
+las quita. En una lista, un punto por línea. Dentro de un
 párrafo o una lista:
 
 | Para | Escribe | O usa el botón |
