@@ -102,15 +102,16 @@ export const NAV: NavItem[] = [
   { href: '/aprobar', label: 'Por aprobar', icon: 'check', roles: ['boss', 'admin'], mobile: ['boss'] },
   { href: '/redes', label: 'Redes', icon: 'megaphone', roles: ['admin', 'social', 'boss'], mobile: ['admin', 'social', 'boss'], also: ['/piezas', '/tweets', '/publicar', '/resultados', '/biblioteca'] },
   // «La oficina» (06/11/2026): the content line drawn as an office. Whoever sees the events (can_see_event); política
-  // and the IVT see none, so they do not get an empty office. The boss has it inside «Digital» (Juan, 06/11).
-  { href: '/oficina', label: 'Oficina', icon: 'office', roles: ['admin', 'dispatch', 'social', 'camera'], mobile: ['camera'] },
+  // and the IVT see none, so they do not get an empty office. The boss has it in his menu and also at the top of
+  // «Digital» (Juan, 06/11).
+  { href: '/oficina', label: 'Oficina', icon: 'office', roles: ['admin', 'boss', 'dispatch', 'social', 'camera'], mobile: ['camera'] },
   { href: '/obras', label: 'Obras', icon: 'hardhat', roles: ['admin', 'boss', 'dispatch', 'ivt'], mobile: ['dispatch', 'ivt'] },
   { href: '/municipios', label: 'Municipios', icon: 'map', roles: ['admin', 'boss', 'dispatch', 'politics'], mobile: ['dispatch', 'politics'] },
   { href: '/tweets', label: 'Tweets', icon: 'message', roles: ['admin', 'social'], mobile: ['social'] },
   { href: '/publicar', label: 'Publicar', icon: 'send', roles: ['admin', 'social'], mobile: ['social'] },
   { href: '/resultados', label: 'Resultados', icon: 'chart', roles: ['admin', 'social'] },
   { href: '/biblioteca', label: 'Biblioteca', icon: 'folder', roles: ['admin', 'social', 'dispatch'], mobile: ['dispatch'] },
-  { href: '/jefe/digital', label: 'Digital', icon: 'sparkles', roles: ['boss'], also: ['/oficina'] },
+  { href: '/jefe/digital', label: 'Digital', icon: 'sparkles', roles: ['boss'] },
   { href: '/ajustes', label: 'Ajustes', icon: 'settings', roles: ['admin'], mobile: ['admin'] },
 ];
 
