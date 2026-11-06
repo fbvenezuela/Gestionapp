@@ -325,7 +325,13 @@ export function Composer({ id, state, templates, merged }: { id: string; state: 
       className="flex flex-col gap-3"
       onSubmit={(e) => {
         e.preventDefault();
-        run(() => addRequestMessage({ id, kind, body }), { onOk: () => setBody('') });
+        run(() => addRequestMessage({ id, kind, body }), {
+          onOk: () => {
+            setBody('');
+            // Once asked, the case waits for the person: another request for information is not offered.
+            if (kind === 'info_request') setKind('internal_note');
+          },
+        });
       }}
     >
       <fieldset className="flex flex-col gap-1" aria-describedby={ids.legend}>
