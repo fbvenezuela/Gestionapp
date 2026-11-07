@@ -9,12 +9,13 @@ import { RequestForm } from '@/components/participation/request-form';
 import { NoJsForm } from '@/components/participation/no-js-form';
 import { DemoDataWarning } from '@/components/participation/demo-warning';
 import { isRequestType } from '@/components/participation/form-core';
-import { TYPE_COPY } from '@/components/participation/words';
+import { PHOTO_CLEANING, TYPE_COPY } from '@/components/participation/words';
+import { getAttended } from '@/lib/web/cache';
 import { loadFormCatalog, loadLinkedItem } from '../_lib/data';
 
 export const metadata: Metadata = {
   title: 'Nueva solicitud',
-  description: 'Formulario para enviar un reporte, una petición, una acotación o una denuncia. No requiere registro.',
+  description: 'Formulario para enviar una solicitud al despacho del gobernador. No necesita registrarse.',
   alternates: { canonical: '/atencion/nueva' },
 };
 
@@ -24,19 +25,15 @@ export default async function NewRequestPage({ searchParams }: { searchParams: P
   await connection();
   const sp = await searchParams;
   const presetType = isRequestType(sp.tipo) ? sp.tipo : null;
-  const [catalog, linked] = await Promise.all([loadFormCatalog(), loadLinkedItem(typeof sp.sobre === 'string' ? sp.sobre : null)]);
+  const [catalog, linked, attended] = await Promise.all([loadFormCatalog(), loadLinkedItem(typeof sp.sobre === 'string' ? sp.sobre : null), getAttended(1)]);
   const today = todayIso();
   const title = presetType ? TYPE_COPY[presetType].action : 'Nueva solicitud';
 
   return (
     <div className="w-full bg-ivory text-text">
       <Band className="pb-4 sm:pb-6">
-        <ParticipationNav current="nueva" />
-        <PageIntro
-          eyebrow="Atención ciudadana"
-          title={title}
-          lead="Son cuatro pasos y no necesita registrarse. Lo que escriba se guarda en este dispositivo mientras completa el formulario, aunque se vaya la señal."
-        />
+        <ParticipationNav current="nueva" attended={attended.length > 0} />
+        <PageIntro eyebrow="Atención ciudadana" title={title} lead="El formulario tiene cuatro pasos. No necesita registrarse." />
         <DemoDataWarning demo={isDemo()} className="mt-6 max-w-3xl" />
       </Band>
       <Band className="pt-4 sm:pt-6" inner="grid gap-10 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
@@ -66,20 +63,20 @@ export default async function NewRequestPage({ searchParams }: { searchParams: P
         </noscript>
         <aside className="flex flex-col gap-5 text-[15px] leading-relaxed text-text lg:sticky lg:top-24" aria-label="Información importante">
           <div className="flex flex-col gap-1">
-            <h2 className="text-base font-bold">Sin registro</h2>
-            <p className="text-text-2">Al enviar recibirá un código y una clave para consultar su solicitud.</p>
+            <h2 className="text-base font-bold">Comprobante</h2>
+            <p className="text-text-2">Al enviar recibirá un código y una clave para consultar su solicitud. No necesita registrarse.</p>
           </div>
           <div className="flex flex-col gap-1">
-            <h2 className="text-base font-bold">Solo lo necesario</h2>
+            <h2 className="text-base font-bold">Datos personales</h2>
             <p className="text-text-2">
               {isDemo()
-                ? 'No se le pedirá cédula ni afiliación política. El contacto es opcional. En la versión real se guarda cifrado.'
-                : 'No se le pedirá cédula ni afiliación política. El contacto es opcional y se guarda cifrado.'}
+                ? 'No se le pedirá cédula ni afiliación política. Los datos de contacto son opcionales. En la versión definitiva se guardan cifrados.'
+                : 'No se le pedirá cédula ni afiliación política. Los datos de contacto son opcionales y se guardan cifrados.'}
             </p>
           </div>
           <div className="flex flex-col gap-1">
             <h2 className="text-base font-bold">Fotos</h2>
-            <p className="text-text-2">Antes de enviarlas, se eliminan de las fotos la ubicación y los datos de la cámara.</p>
+            <p className="text-text-2">{PHOTO_CLEANING}</p>
           </div>
           <div className="flex flex-col gap-1">
             <h2 className="text-base font-bold">Seguimiento</h2>

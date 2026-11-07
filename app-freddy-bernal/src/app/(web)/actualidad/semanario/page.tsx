@@ -43,7 +43,7 @@ export default async function WeeklyPage({ searchParams }: { searchParams: Searc
         {items.length ? (
           <ul className="border-b border-border">
             {items.map((d) => (
-              <DocumentRow key={d.id} item={d} as="h2" />
+              <DocumentRow key={d.id} item={d} as="h2" inCategory />
             ))}
           </ul>
         ) : (

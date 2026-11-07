@@ -42,7 +42,7 @@ export function CaseView({ view, maxFileBytes }: { view: CitizenView; maxFileByt
           </form>
         </div>
         <p className="text-[15px] text-text-2">
-          {[TYPE_COPY[r.type]?.label, r.category, r.municipality].filter(Boolean).join(' · ')} · {support ? 'apoyo registrado' : 'enviada'} el {longDate(r.createdAt)}
+          {[TYPE_COPY[r.type]?.label, r.category, r.municipality].filter(Boolean).join(' · ')} · {support ? 'Apoyo registrado' : 'Solicitud enviada'} el {longDate(r.createdAt)}
         </p>
       </header>
 
@@ -54,10 +54,10 @@ export function CaseView({ view, maxFileBytes }: { view: CitizenView; maxFileByt
           {plain.label}
         </p>
         <p className="mt-2 text-[17px] leading-relaxed text-text">{plain.text}</p>
-        {r.merged ? <p className="mt-3 text-[15px] text-text">Su solicitud se unió a otra sobre el mismo problema. Aquí se muestra el estado de esa solicitud.</p> : null}
+        {r.merged ? <p className="mt-3 text-[15px] text-text">Su solicitud se tramita junto con otra sobre el mismo problema. Aquí se muestra el estado de esa solicitud.</p> : null}
         {r.supportCount > 0 ? (
           <p className="mt-3 flex items-center gap-2 text-[15px] text-text">
-            <Users className="h-4 w-4" aria-hidden /> {support ? `Con su apoyo, este caso suma ${reportsCount(r.supportCount + 1)}.` : `Hay ${reportsCount(r.supportCount)} más del mismo problema.`}
+            <Users className="h-4 w-4" aria-hidden /> {support ? `Con su apoyo, ya son ${reportsCount(r.supportCount + 1)} del mismo problema.` : `Hay ${reportsCount(r.supportCount)} más del mismo problema.`}
           </p>
         ) : null}
         {r.citizenConfirmation === 'resolved' ? <p className="mt-3 text-[15px] font-semibold text-text">Usted confirmó que se resolvió. Gracias por su respuesta.</p> : null}
@@ -85,7 +85,7 @@ export function CaseView({ view, maxFileBytes }: { view: CitizenView; maxFileByt
           <h2 className="text-xl font-bold text-text">Su apoyo</h2>
           <p className="text-[15px] leading-relaxed text-text">
             Usted apoyó un reporte de {r.category?.toLowerCase()}
-            {r.municipality ? ` en ${r.municipality}` : ''}. Para proteger a quien lo envió, aquí solo se muestra el estado del caso.
+            {r.municipality ? ` en ${r.municipality}` : ''}. Para proteger a quien lo envió, aquí solo se muestra el estado del reporte.
           </p>
           {r.note ? (
             <p className="rounded-xl bg-surface-2 p-3 text-[15px] text-text">

@@ -24,10 +24,10 @@ const YEAR = new Date().getFullYear();
 const RUN = Math.random().toString(36).slice(2, 7);
 const REF = /^AC-\d{4}-[0-9A-HJKMNP-TV-Z]{6}$/;
 const SECRET_RE = /^[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4}){3}$/;
-const NOT_FOUND = 'No encontramos una solicitud con esos datos.';
+const NOT_FOUND = 'No hay ninguna solicitud con esos datos.';
 const DEMR02 = { reference: `AC-${YEAR}-DEMR02`, secret: 'R3PS-W8N2-DEMV-7QKA' };
 const DEMR03 = { reference: `AC-${YEAR}-DEMR03`, secret: 'H4JX-5ZTB-9CNF-W2YE' };
-const DENUNCIA_TEXT = /Su denuncia es confidencial/;
+const DENUNCIA_TEXT = /Las denuncias son confidenciales/;
 const PHONE = { viewport: { width: 360, height: 760 }, isMobile: true, hasTouch: true };
 const DESKTOP = { viewport: { width: 1280, height: 900 }, isMobile: false, hasTouch: false };
 type Device = typeof PHONE | typeof DESKTOP;
@@ -108,12 +108,12 @@ type Kind = {
   servicesArea: boolean;
 };
 const KINDS: Kind[] = [
-  { tipo: 'reporte', label: 'Reporte', type: /^Reporte/, category: /^Ambiente y aseo/, categoryName: 'Ambiente y aseo', municipality: 'Ayacucho', heading: 'Recibimos su reporte', servicesArea: true },
-  { tipo: 'peticion', label: 'Petición', type: /^Petición/, category: /^Educación/, categoryName: 'Educación', municipality: 'Bolívar', heading: 'Recibimos su petición', servicesArea: false },
-  { tipo: 'acotacion', label: 'Acotación', type: /^Acotación/, category: /^Servicios comunitarios/, categoryName: 'Servicios comunitarios', municipality: 'Lobatera', heading: 'Recibimos su acotación', servicesArea: true },
-  { tipo: 'sugerencia', label: 'Sugerencia', type: /^Sugerencia/, category: /^Otros/, categoryName: 'Otros', heading: 'Recibimos su sugerencia', servicesArea: false },
-  { tipo: 'reconocimiento', label: 'Reconocimiento', type: /^Reconocimiento/, category: /^Salud/, categoryName: 'Salud', municipality: 'Junín', heading: 'Recibimos su reconocimiento', servicesArea: false },
-  { tipo: 'denuncia', label: 'Denuncia', type: /^Denuncia/, category: /^Seguridad/, categoryName: 'Seguridad', municipality: 'Cárdenas', heading: 'Recibimos su denuncia', servicesArea: false },
+  { tipo: 'reporte', label: 'Reporte', type: /^Reporte/, category: /^Ambiente y aseo/, categoryName: 'Ambiente y aseo', municipality: 'Ayacucho', heading: 'Solicitud recibida', servicesArea: true },
+  { tipo: 'peticion', label: 'Petición', type: /^Petición/, category: /^Educación/, categoryName: 'Educación', municipality: 'Bolívar', heading: 'Solicitud recibida', servicesArea: false },
+  { tipo: 'acotacion', label: 'Observación', type: /^Observación/, category: /^Servicios comunitarios/, categoryName: 'Servicios comunitarios', municipality: 'Lobatera', heading: 'Solicitud recibida', servicesArea: true },
+  { tipo: 'sugerencia', label: 'Sugerencia', type: /^Sugerencia/, category: /^Otros/, categoryName: 'Otros', heading: 'Solicitud recibida', servicesArea: false },
+  { tipo: 'reconocimiento', label: 'Reconocimiento', type: /^Reconocimiento/, category: /^Salud/, categoryName: 'Salud', municipality: 'Junín', heading: 'Solicitud recibida', servicesArea: false },
+  { tipo: 'denuncia', label: 'Denuncia', type: /^Denuncia/, category: /^Seguridad/, categoryName: 'Seguridad', municipality: 'Cárdenas', heading: 'Solicitud recibida', servicesArea: false },
 ];
 
 /** Steps 1 to 3 of the form; then the contact step, ready to send. */
@@ -173,7 +173,7 @@ test.describe('un caso de cada tipo se manda y se sigue con su código, en el te
         // Followed with its code and secret (typed in small letters, as people do).
         await openCase(page, reference.toLowerCase(), secret.toLowerCase());
         await expect(page.getByTestId('estado-solicitud')).toHaveText('Recibida');
-        await expect(page.getByText(new RegExp(`^${k.label} · ${k.categoryName}${k.municipality ? ` · ${k.municipality}` : ''} · enviada el `))).toBeVisible();
+        await expect(page.getByText(new RegExp(`^${k.label} · ${k.categoryName}${k.municipality ? ` · ${k.municipality}` : ''} · Solicitud enviada el `))).toBeVisible();
         await expect(page.getByText(title, { exact: true })).toBeVisible();
         await expect(page.getByRole('region', { name: 'Historial de la solicitud' }).getByText('Solicitud enviada', { exact: true })).toBeVisible();
         // Never the contact (encrypted), in the page or in the address.
@@ -236,7 +236,7 @@ test('el formulario de punta a punta y la consulta no rompen la CSP de la web (n
     document.addEventListener('securitypolicyviolation', (e) => w.__csp.push(`${e.violatedDirective} ${e.blockedURI}`));
   });
   const refused = () => page.evaluate(() => (window as unknown as { __csp: string[] }).__csp);
-  const k: Kind = { tipo: 'sugerencia', label: 'Sugerencia', type: /^Sugerencia/, category: /^Transporte/, categoryName: 'Transporte', heading: 'Recibimos su sugerencia', servicesArea: false };
+  const k: Kind = { tipo: 'sugerencia', label: 'Sugerencia', type: /^Sugerencia/, category: /^Transporte/, categoryName: 'Transporte', heading: 'Solicitud recibida', servicesArea: false };
   await fillForm(page, k, { title: `Sugerencia sin eval ${RUN} (prueba)`, description: 'El formulario valida en el teléfono sin pedirle a la CSP nada prohibido (prueba).', sector: `Sector csp ${RUN}` });
   // The browser's own checks still work (they are zod's, without its speed-up): a short title is refused on the spot.
   await page.getByLabel(/^Título/).fill('No');
@@ -287,7 +287,7 @@ test.describe('de punta a punta en la computadora: llega, se asigna, se pide inf
   test('1) una persona manda una petición con un PDF desde la computadora y se lleva su comprobante', async ({ browser }) => {
     const c = await citizen(browser, DESKTOP);
     const page = c.page;
-    const k: Kind = { tipo: 'peticion', label: 'Petición', type: /^Petición/, category: /^Transporte/, categoryName: 'Transporte', municipality: 'Lobatera', heading: 'Recibimos su petición', servicesArea: false };
+    const k: Kind = { tipo: 'peticion', label: 'Petición', type: /^Petición/, category: /^Transporte/, categoryName: 'Transporte', municipality: 'Lobatera', heading: 'Solicitud recibida', servicesArea: false };
     await fillForm(page, k, { title: TITLE, description: DESCRIPTION, sector: `Sector de la parada ${RUN}` });
     await page.getByLabel('Elegir fotos o documentos').setInputFiles({ name: 'carta de la comunidad.pdf', mimeType: 'application/pdf', buffer: PDF });
     await expect(page.getByRole('list', { name: 'Archivos elegidos' }).getByText('carta de la comunidad.pdf')).toBeVisible();
@@ -560,7 +560,7 @@ test.describe('un envío repetido no crea otra solicitud', () => {
       committed = (await res.text()).match(/AC-\d{4}-[0-9A-HJKMNP-TV-Z]{6}/)?.[0] ?? '';
       await route.abort('failed');
     });
-    const k: Kind = { tipo: 'peticion', label: 'Petición', type: /^Petición/, category: /^Salud/, categoryName: 'Salud', municipality: 'Junín', heading: 'Recibimos su petición', servicesArea: false };
+    const k: Kind = { tipo: 'peticion', label: 'Petición', type: /^Petición/, category: /^Salud/, categoryName: 'Salud', municipality: 'Junín', heading: 'Solicitud recibida', servicesArea: false };
     await fillForm(c.page, k, { title: `Petición que se reintenta ${token} (prueba)`, description: 'La respuesta se pierde en el camino y el teléfono vuelve a enviar (prueba).', sector: `Sector ${token}` });
     await toContactStep(c.page);
     await c.page.getByLabel(/Enviar como anónimo/).check();
@@ -584,7 +584,7 @@ test.describe('un envío repetido no crea otra solicitud', () => {
     await ctx.setExtraHTTPHeaders({ 'x-real-ip': nextIp() });
     const page = await ctx.newPage();
     await page.goto('/atencion/nueva');
-    const form = page.locator('form').filter({ hasText: 'Su navegador tiene JavaScript desactivado' });
+    const form = page.locator('form').filter({ hasText: 'Formulario en una sola página' });
     await form.getByLabel(/^Petición/).check();
     await form.getByLabel('Categoría').selectOption({ label: 'Salud' });
     await form.getByLabel(/^Municipio/).selectOption({ label: 'Junín' });
@@ -597,7 +597,7 @@ test.describe('un envío repetido no crea otra solicitud', () => {
       if (r.method() === 'POST' && new URL(r.url()).pathname === '/atencion/nueva') posted = r;
     });
     await form.getByRole('button', { name: 'Enviar' }).click();
-    const receipt = page.getByRole('region', { name: 'Recibimos su solicitud' });
+    const receipt = page.getByRole('region', { name: 'Solicitud recibida' });
     await expect(receipt).toBeVisible();
     const text = (await receipt.textContent()) ?? '';
     const reference = text.match(/AC-\d{4}-[0-9A-HJKMNP-TV-Z]{6}/)![0];

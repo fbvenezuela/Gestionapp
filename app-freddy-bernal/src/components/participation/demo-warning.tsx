@@ -7,9 +7,9 @@ import { Notice } from './kit';
 export function DemoDataWarning({ demo, className }: { demo: boolean; className?: string }) {
   if (!demo) return null;
   return (
-    <Notice tone="danger" title="Versión de prueba: no escriba datos reales" className={className}>
-      Lo que se envíe aquí puede verlo cualquier persona que pruebe la plataforma, y se borra cuando la versión de prueba se reinicia. No escriba su
-      nombre, su correo, su teléfono ni otros datos personales.
+    <Notice tone="danger" title="Versión de prueba. No escriba datos reales." className={className}>
+      Lo que se envíe en esta versión de prueba puede verlo cualquier persona que la use, y se borra al reiniciarla. No escriba su nombre, su correo,
+      su teléfono ni otros datos personales.
     </Notice>
   );
 }

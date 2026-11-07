@@ -195,9 +195,9 @@ describe('las reglas de los datos', () => {
     const out = html(h(AttendedView, { items: [a], names: { munis: new Map([['m', 'Lobatera']]), categories: new Map([['c', 'Electricidad']]) } }));
     expect(out).toContain('Se cambió el poste (demo).');
     expect(out).toContain('Lobatera');
-    expect(out).toMatch(/V\. P\.<\/span> · Lobatera · Resuelto el <time dateTime="2026-10-23">23 de octubre de 2026<\/time>/);
+    expect(out).toMatch(/V\. P\.<\/span> · Lobatera · Resuelta el <time dateTime="2026-10-23">23 de octubre de 2026<\/time>/);
     expect(out).not.toContain('—');
-    expect(out).toContain('Atendido · Reporte · Electricidad');
+    expect(out).toContain('Atendida · Reporte · Electricidad');
     expect(Object.keys(a).sort()).toEqual(['categoryId', 'displayName', 'id', 'municipalityId', 'publishedAt', 'resolvedOn', 'summary', 'type']);
   });
 

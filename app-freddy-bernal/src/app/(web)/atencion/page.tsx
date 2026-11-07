@@ -2,17 +2,20 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { connection } from 'next/server';
 import { ArrowRight, ChevronDown, ClipboardList, KeyRound, Lock, MessagesSquare, PhoneCall, Search, Send } from 'lucide-react';
+import { getAttended } from '@/lib/web/cache';
 import { REQUEST_TYPES } from '@/lib/participation/input';
 import { Band, BtnLink, Notice, PageIntro, webCard } from '@/components/participation/kit';
 import { ParticipationNav } from '@/components/participation/participation-nav';
 import { RichTextLite } from '@/components/participation/rich-text-lite';
-import { DENUNCIA_NOTICE, EMERGENCY_LEAD, EMERGENCY_REST, STATE_PLAIN, TYPE_COPY, USUAL_PATH } from '@/components/participation/words';
+import {
+  ANTI_FRAUD_NOTICE, DENUNCIA_NOTICE, DENUNCIA_PLACE, EMERGENCY_LEAD, EMERGENCY_REST, PUBLICATION_NOTICE, STATE_PLAIN, TYPE_COPY, USUAL_PATH,
+} from '@/components/participation/words';
 import { cn } from '@/lib/cn';
 import { loadAttentionFaqs, loadVerifiedContacts } from './_lib/data';
 
 export const metadata: Metadata = {
   title: 'Atención ciudadana',
-  description: 'Envíe reportes, peticiones, acotaciones o denuncias al despacho del gobernador y consulte su estado con un código. No requiere registro.',
+  description: 'Envíe su solicitud al despacho del gobernador y consulte su estado con el código que recibirá. No necesita registrarse.',
   alternates: { canonical: '/atencion' },
 };
 
@@ -22,9 +25,9 @@ const STEPS = [
   {
     icon: Send,
     title: 'Revisión y asignación',
-    text: 'El personal de atención revisa la solicitud, la asigna al área correspondiente y fija una fecha de atención según su urgencia.',
+    text: 'El personal de atención revisa la solicitud y la asigna al área correspondiente, con una fecha prevista de atención.',
   },
-  { icon: MessagesSquare, title: 'Seguimiento', text: 'En «Consultar mi solicitud» puede ver el estado, leer las respuestas y agregar información.' },
+  { icon: MessagesSquare, title: 'Seguimiento', text: 'En «Consultar mi solicitud» puede ver el estado y las respuestas.' },
 ];
 
 // How the attention desk works (design §4): the two big buttons, the kinds of request, the steps, the states, the
@@ -34,16 +37,17 @@ const STEPS = [
 // time (the FAQs and the contacts are edited in the admin and show at once; never read while building).
 export default async function AttentionPage() {
   await connection();
-  const [faqs, contacts] = await Promise.all([loadAttentionFaqs(), loadVerifiedContacts()]);
+  const [faqs, contacts, attended] = await Promise.all([loadAttentionFaqs(), loadVerifiedContacts(), getAttended(1)]);
+  const hasAttended = attended.length > 0;
 
   return (
     <div className="w-full bg-ivory text-text">
       <Band className="pb-8 sm:pb-12">
-        <ParticipationNav current="inicio" />
+        <ParticipationNav current="inicio" attended={hasAttended} />
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <PageIntro
             title="Atención ciudadana"
-            lead="Envíe su reporte, petición o denuncia y consulte su estado con el código que recibirá. No necesita registrarse."
+            lead="Envíe su solicitud al despacho del gobernador y consulte su estado con el código que recibirá. No necesita registrarse."
           >
             <div className="mt-2 flex flex-col gap-3 sm:flex-row">
               <BtnLink href="/atencion/nueva" tone="action" size="lg">
@@ -72,7 +76,7 @@ export default async function AttentionPage() {
                 <dd className="text-xl font-bold tracking-wider text-text">····-····-····-····</dd>
               </div>
             </dl>
-            <figcaption className="mt-4 text-[15px] leading-snug text-text-2">Puede descargarlo en PDF, imprimirlo o copiarlo.</figcaption>
+            <figcaption className="mt-4 text-[15px] leading-snug text-text-2">El comprobante se puede descargar en PDF.</figcaption>
           </figure>
         </div>
       </Band>
@@ -96,11 +100,8 @@ export default async function AttentionPage() {
                 >
                   <span className="flex flex-col gap-2">
                     {dark ? <Lock className="h-6 w-6" aria-hidden /> : null}
-                    <span className={cn('font-bold leading-tight', big ? 'text-3xl' : 'text-xl')}>{TYPE_COPY[t].action}</span>
+                    <span className={cn('font-bold leading-tight underline-offset-4 group-hover:underline', big ? 'text-3xl' : 'text-xl')}>{TYPE_COPY[t].action}</span>
                     <span className={cn('text-[15px] leading-snug', big || dark ? '' : 'text-text-2')}>{TYPE_COPY[t].hint}</span>
-                  </span>
-                  <span className="inline-flex items-center gap-2 text-[15px] font-semibold underline-offset-4 group-hover:underline">
-                    Empezar <ArrowRight className="h-4 w-4" aria-hidden />
                   </span>
                 </Link>
               </li>
@@ -109,9 +110,9 @@ export default async function AttentionPage() {
         </ul>
       </Band>
 
-      <Band aria-labelledby="como-funciona">
-        <h2 id="como-funciona" className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-          Cómo funciona
+      <Band aria-labelledby="procedimiento">
+        <h2 id="procedimiento" className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+          Procedimiento
         </h2>
         <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((s, i) => (
@@ -165,7 +166,7 @@ export default async function AttentionPage() {
               Denuncias confidenciales
             </h2>
             <p className="text-[17px] leading-relaxed">{DENUNCIA_NOTICE}</p>
-            <p className="text-[17px] leading-relaxed">En una denuncia solo se pide el lugar aproximado, sin dirección exacta ni ubicación en el mapa.</p>
+            <p className="text-[17px] leading-relaxed">{DENUNCIA_PLACE}</p>
             <div>
               <Link
                 href="/atencion/nueva?tipo=denuncia"
@@ -223,26 +224,28 @@ export default async function AttentionPage() {
               ))}
             </ul>
           ) : (
-            <Notice tone="info" title="Por ahora, la atención es por este formulario">
-              Ningún funcionario solicita pagos ni claves. Desconfíe de quien lo haga en nombre de la Gobernación.
+            <Notice tone="info" title="Canal de atención">
+              Las solicitudes se reciben únicamente a través de este sitio. {ANTI_FRAUD_NOTICE}
             </Notice>
           )}
         </div>
       </Band>
 
-      <Band aria-labelledby="atendidos-enlace">
-        <div className={cn(webCard, 'flex flex-col items-start gap-4 p-6 shadow-[var(--glass-shadow)] sm:flex-row sm:items-center sm:justify-between sm:p-8')}>
-          <div>
-            <h2 id="atendidos-enlace" className="text-2xl font-bold">
-              Casos atendidos
-            </h2>
-            <p className="mt-1 text-[17px] text-text-2">Solicitudes resueltas, publicadas sin datos personales.</p>
+      {hasAttended ? (
+        <Band aria-labelledby="atendidos-enlace">
+          <div className={cn(webCard, 'flex flex-col items-start gap-4 p-6 shadow-[var(--glass-shadow)] sm:flex-row sm:items-center sm:justify-between sm:p-8')}>
+            <div>
+              <h2 id="atendidos-enlace" className="text-2xl font-bold">
+                Casos atendidos
+              </h2>
+              <p className="mt-1 text-[17px] text-text-2">{PUBLICATION_NOTICE}</p>
+            </div>
+            <BtnLink href="/atencion/atendido" tone="olive" size="md">
+              Ver casos atendidos <ArrowRight className="h-4 w-4" aria-hidden />
+            </BtnLink>
           </div>
-          <BtnLink href="/atencion/atendido" tone="olive" size="md">
-            Ver casos atendidos <ArrowRight className="h-4 w-4" aria-hidden />
-          </BtnLink>
-        </div>
-      </Band>
+        </Band>
+      ) : null}
     </div>
   );
 }

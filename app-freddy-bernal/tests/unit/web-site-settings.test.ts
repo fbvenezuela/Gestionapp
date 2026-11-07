@@ -64,7 +64,7 @@ describe('los canales: una sola regla en toda la web', () => {
 describe('lo demás de los ajustes', () => {
   it('la navegación por defecto: las ocho secciones en su orden', () => {
     const s = normalizeSite({}, opts(true));
-    expect(s.navigation.map((n) => n.label)).toEqual(['Inicio', 'El gobernador', 'Gestión', 'Noticias', 'Reporte Bernal', 'Atención ciudadana', 'Transparencia', 'Canales']);
+    expect(s.navigation.map((n) => n.label)).toEqual(['Inicio', 'El gobernador', 'Gestión y obras', 'Noticias', 'Reporte Bernal', 'Atención ciudadana', 'Transparencia', 'Canales']);
     expect(navLabel(s, '/actualidad', 'x')).toBe('Noticias');
     expect(navLabel(s, '/reporte-bernal', 'x')).toBe('Reporte Bernal');
     expect(navLabel(s, '/no-esta', 'Otro')).toBe('Otro');

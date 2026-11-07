@@ -20,7 +20,8 @@ import { navLabel, type Site } from '@/lib/web/site-settings';
 // besides, the placeholder of each photo, video or text that is still missing (the public site draws nothing there).
 
 /** A news item (design §2): its topic, its date in the Táchira's time zone, who signs it, its sources, its photos,
- * related notes, «Comentar esta noticia» (a request linked to it) and the NewsArticle structured data. */
+ * related notes, «Enviar una observación» (a request linked to it) and the NewsArticle structured data. An opinion
+ * column is said as one («este artículo», «Otros artículos de opinión»), never as a news item. */
 export function NewsArticle({
   item,
   site,
@@ -43,6 +44,10 @@ export function NewsArticle({
   const image = ogImageFrom(item.media, d.seo?.imageId, d.coverId);
   const section = navLabel(site, '/actualidad', 'Noticias');
   const topic = d.topics?.map((t) => t.trim()).find(Boolean);
+  const column = d.category === 'articulo';
+  // One source that is only a site's name: where the item was first published (the official site, for an imported
+  // one), said in a line; real sources keep their list.
+  const original = d.sources?.length === 1 && /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(d.sources[0].label.trim()) ? d.sources[0] : null;
 
   return (
     <>
@@ -97,7 +102,11 @@ export function NewsArticle({
                 ))}
               </ul>
             ) : null}
-            {d.sources?.length ? (
+            {original ? (
+              <p className="mt-10 text-base text-text-2">
+                Publicado originalmente en {original.url ? <SafeLink href={original.url} className="underline underline-offset-4">{original.label}</SafeLink> : original.label}
+              </p>
+            ) : d.sources?.length ? (
               <section aria-labelledby="fuentes" className={`${boxClass} mt-10 p-6`}>
                 <h2 id="fuentes" className="text-lg font-semibold text-text">
                   Fuentes
@@ -117,10 +126,10 @@ export function NewsArticle({
             <div className="mt-10 flex flex-col items-start gap-4 rounded-[var(--radius-card)] bg-accent-soft p-6 sm:flex-row sm:items-center sm:justify-between">
               <p className="flex items-start gap-3 text-lg font-semibold text-text">
                 <MessageSquareTextIcon className="mt-0.5 h-6 w-6 shrink-0 text-accent-ink" />
-                Envíe su opinión sobre esta noticia.
+                {column ? 'Observaciones sobre este artículo' : 'Observaciones sobre esta noticia'}
               </p>
               <ButtonLink href={aboutHref('news', item.slug)} variant="olive" className="shrink-0">
-                Comentar esta noticia
+                Enviar una observación
               </ButtonLink>
             </div>
           </div>
@@ -129,7 +138,10 @@ export function NewsArticle({
       {related.length ? (
         <section className="bg-surface py-14">
           <Container>
-            <SectionHeading title="Noticias relacionadas" more={{ href: '/actualidad', label: 'Ver todas las noticias' }} />
+            <SectionHeading
+              title={column ? 'Otros artículos de opinión' : 'Noticias relacionadas'}
+              more={column ? { href: '/actualidad?categoria=articulo', label: 'Ver más artículos de opinión' } : { href: '/actualidad', label: 'Ver todas las noticias' }}
+            />
             <ul className="grid gap-x-10 gap-y-8 md:grid-cols-3">
               {related.map((n) => (
                 <li key={n.id}>
@@ -160,8 +172,8 @@ export function NewsArticle({
 }
 
 /** The ficha of a project (design §2): where, what, for whom, who is responsible, the investment and the progress only
- * with their documented source, the dates, the state, the photos, the last update, and «Hacer una observación sobre esta
- * obra» (a request linked to it). Without a photo or a description, the public ficha simply does without them. */
+ * with their documented source, the dates, the state, the photos, the last update, and «Enviar una observación sobre esta
+ * obra» (a request linked to it). Without a photo, a description or a place, the public ficha simply does without them. */
 export function ProjectFicha({ item, munis, related, preview = false }: { item: WebItem<'project'>; munis: MuniNames; related: WebItem<'project'>[]; preview?: boolean }) {
   const d = item.data;
   const muni = d.municipalityId ? munis.get(d.municipalityId) : null;
@@ -177,7 +189,7 @@ export function ProjectFicha({ item, munis, related, preview = false }: { item: 
 
   return (
     <>
-      <Breadcrumbs items={[{ label: 'Inicio', href: '/' }, { label: 'Gestión', href: '/gestion' }, { label: d.title }]} />
+      <Breadcrumbs items={[{ label: 'Inicio', href: '/' }, { label: 'Gestión y obras', href: '/gestion' }, { label: d.title }]} />
       <article>
         <Container className="pb-8 pt-6 sm:pt-10">
           <div className="flex flex-wrap gap-2">
@@ -221,7 +233,7 @@ export function ProjectFicha({ item, munis, related, preview = false }: { item: 
           </div>
           <aside className="flex flex-col gap-6 lg:col-span-5" aria-label="Datos de la obra">
             <dl className={`${boxClass} grid gap-4 p-6 text-base`}>
-              <Fact label="Ubicación">{[muni, d.place].filter(Boolean).join(' · ') || 'Por precisar'}</Fact>
+              {muni || d.place ? <Fact label="Ubicación">{[muni, d.place].filter(Boolean).join(' · ')}</Fact> : null}
               {d.beneficiaries ? <Fact label="Beneficiarios">{d.beneficiaries}</Fact> : null}
               {d.organization ? <Fact label="Organismo responsable">{d.organization}</Fact> : null}
               {d.investment ? (
@@ -249,7 +261,7 @@ export function ProjectFicha({ item, munis, related, preview = false }: { item: 
               <h2 className="mt-3 text-lg font-semibold text-text">Observaciones sobre esta obra</h2>
               <p className="mt-1 text-base leading-relaxed text-text">Si tiene información sobre esta obra, envíela a Atención ciudadana. Recibirá un código para hacer seguimiento.</p>
               <ButtonLink href={aboutHref('project', item.slug)} variant="action" className="mt-5 w-full sm:w-auto">
-                Hacer una observación sobre esta obra
+                Enviar una observación sobre esta obra
               </ButtonLink>
             </div>
           </aside>

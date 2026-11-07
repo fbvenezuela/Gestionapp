@@ -118,7 +118,7 @@ describe('el contenido real en la demo', () => {
     const at = blocks.findIndex((x) => x.id === 'actualidad');
     expect(blocks.slice(at + 1, at + 3)).toEqual([
       { id: 'opinion', type: 'news', visible: true, data: { title: 'Opinión', category: 'articulo', limit: 2 } },
-      { id: 'semanario', type: 'documents', visible: true, data: { title: 'Semanario', category: 'semanario', limit: 1, ids: [] } },
+      { id: 'semanario', type: 'documents', visible: true, data: { title: cfg.brand.weeklyName, category: 'semanario', limit: 1, ids: [] } },
     ]);
   });
 
@@ -127,7 +127,7 @@ describe('el contenido real en la demo', () => {
     const blocks = page.data.blocks as Block[];
     expect(blocks.find((x) => x.type === 'hero')!.data).toMatchObject({ mediaId: real.pages.bioMediaId });
     const content = (blocks.find((x) => x.id === 'biografia')!.data as { content: TextNode[] }).content;
-    expect(content.filter((n) => n.type === 'heading' && n.level === 2).map((n) => (n as { text: string }).text)).toEqual(['Biografía', cfg.web.structuredData.jobTitle, 'Condecoraciones']);
+    expect(content.filter((n) => n.type === 'heading' && n.level === 2).map((n) => (n as { text: string }).text)).toEqual(['Biografía', 'Elección y toma de posesión', 'Condecoraciones']);
     expect(JSON.stringify(content)).not.toMatch(/Por completar|"pending"/);
     expect(content[content.length - 1]).toEqual({ type: 'paragraph', runs: [{ text: 'Fuente: ' }, { text: DEMO_HOST, href: real.pages.bioSourceUrl }] });
     expect(blocks.find((x) => x.id === 'prensa')?.visible).toBe(false);

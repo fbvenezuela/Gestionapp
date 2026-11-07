@@ -36,7 +36,7 @@ una huella que no se puede revertir.
 |---|---|
 | **Reporte** | Un problema en la comunidad: agua, luz, vialidad, aseo, salud, escuelas… |
 | **Petición** | Pedir algo al despacho: una ayuda, un trámite, algo para la comunidad |
-| **Acotación** | Una opinión o una observación sobre la gestión o una obra |
+| **Observación** | Una opinión o una observación sobre la gestión, una obra o una publicación (en el sistema, el tipo `acotacion`) |
 | **Sugerencia** | Una idea para mejorar algo |
 | **Reconocimiento** | Agradecer algo que se hizo bien |
 | **Denuncia** | Un hecho grave. Privada de punta a punta (§13) |

@@ -18,7 +18,7 @@ export const HOW_TO_CONSULT =
   'Para ver el detalle, entre a «Consultar mi solicitud» con su código y la clave de su comprobante. Por seguridad, la clave no se envía por correo.';
 
 /** The line under every email to a citizen (the team's emails keep their own, about their profile's notices). */
-export const CITIZEN_EMAIL_FOOTER = 'Mensaje automático de Atención ciudadana. Para responder o agregar información, use «Consultar mi solicitud».';
+export const CITIZEN_EMAIL_FOOTER = 'Mensaje automático de Atención ciudadana. Para responder o agregar información, ingrese a «Consultar mi solicitud».';
 
 /** The confirmation right after sending (a request, or a support of an open report): the code, never the secret. */
 export function receiptEmail(kind: 'request' | 'support', reference: string): CitizenEmail {
@@ -30,9 +30,9 @@ export function receiptEmail(kind: 'request' | 'support', reference: string): Ci
     };
   }
   return {
-    subject: `Recibimos su solicitud ${reference}`,
-    title: 'Recibimos su solicitud',
-    body: [`Recibimos su solicitud. Su código es ${reference}.`, HOW_TO_CONSULT, EMERGENCY_NOTICE].join('\n'),
+    subject: `Solicitud recibida ${reference}`,
+    title: 'Solicitud recibida',
+    body: [`Su solicitud fue recibida con el código ${reference}.`, HOW_TO_CONSULT, EMERGENCY_NOTICE].join('\n'),
   };
 }
 
@@ -53,9 +53,9 @@ export function statusEmail(kind: StatusEmailKind, o: { reference: string; state
   }
   if (kind === 'merged') {
     return {
-      subject: `Su solicitud ${ref} se unió a otra`,
-      title: 'Su solicitud se unió a otra',
-      body: lines(`Su solicitud ${ref} trata del mismo caso que otra que ya estaba en atención, y se unieron. Puede seguirla con el mismo código.`),
+      subject: `Su solicitud ${ref} se tramita junto con otra`,
+      title: 'Su solicitud se tramita junto con otra',
+      body: lines(`Su solicitud ${ref} se refiere al mismo problema que otra ya en atención y se tramitará junto con ella. Puede seguir consultándola con el mismo código.`),
     };
   }
   const label = o.state ? CITIZEN_STATE_LABEL[o.state] : null;
@@ -64,7 +64,7 @@ export function statusEmail(kind: StatusEmailKind, o: { reference: string; state
     role === 'supporter'
       ? `El reporte que usted apoyó ${changed}. Su código es ${ref}.`
       : role === 'duplicate'
-        ? `El caso al que se unió su solicitud ${ref} ${changed}.`
+        ? `Su solicitud ${ref} se tramita junto con otra, que ${changed}.`
         : `Su solicitud ${ref} ${changed}.`;
   const extra =
     role !== 'owner'

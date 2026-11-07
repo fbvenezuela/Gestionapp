@@ -7,7 +7,7 @@ import { cn } from '@/lib/cn';
 import { DenunciaNote, FieldBox, FieldError, Notice, describedBy, inputStyle } from './kit';
 import { LocationPicker } from './location-picker';
 import { FilePicker, type PickedFile } from './file-picker';
-import { DETAIL_COPY, TYPE_COPY } from './words';
+import { DENUNCIA_PLACE, DETAIL_COPY, TYPE_COPY } from './words';
 import type { FormValues } from './form-core';
 
 type StepProps = { v: FormValues; set: (p: Partial<FormValues>) => void; errors: FieldErrors };
@@ -138,7 +138,7 @@ export function StepWhere({ v, set, errors, municipalities }: StepProps & { muni
         />
       </FieldBox>
       {denuncia ? (
-        <Notice tone="private">En una denuncia se pide solo el lugar aproximado, es decir, el municipio y el sector. No se pide la dirección exacta ni su ubicación.</Notice>
+        <Notice tone="private">{DENUNCIA_PLACE}</Notice>
       ) : (
         <>
           <FieldBox id="f-locationReference" label="Punto de referencia" optional hint="Por ejemplo: «frente a la bodega» o «al lado de la escuela»." error={errors.locationReference}>

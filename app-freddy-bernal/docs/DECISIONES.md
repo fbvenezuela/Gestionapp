@@ -1593,7 +1593,8 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
 - **Las cuentas oficiales:** en la configuración siguen todas sin verificar. Con el contenido real, una cuenta sale
   verificada **solo si el propio canal de YouTube del gobernador la enlaza** en sus descripciones (y el canal, solo si
   su lista es la configurada). Las descripciones se leen solo para eso y nunca se guardan: nombran a personas
-  privadas. Las demás salen marcadas «sin verificar».
+  privadas. Desde la revisión del 07/11 cuenta también la portada de la web oficial, y sobre las demás sale una sola
+  línea (ver más abajo).
 - **El interruptor al construir:** encendido solo sin `DATABASE_URL`, con `web.realSite` en la configuración y, además,
   `REAL_SITE_CONTENT=1` o el despliegue de producción de Vercel (`VERCEL=1` y `VERCEL_ENV=production`) sin
   `REAL_SITE_CONTENT=0`. Así la producción de la demo se enciende sola (Juan no tiene que poner variables) y CI y las
@@ -1618,8 +1619,7 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
 - **Las fotos y los PDF** se sirven por la ruta de la biblioteca (`/api/archivos/web/<clave>`), que lee `.real-site/media/`
   cuando la carpeta de la demo no los tiene. Esa carpeta viaja solo con esa función (`src/lib/storage/serve-public-file.ts`
   y `next.config.ts`); nada va a `public/`.
-- **Lo que no se pudo:** 3 fotos en AVIF (la biblioteca acepta JPEG, PNG y WebP) quedan fuera; esas notas salen sin
-  foto.
+- **Lo que no se pudo (07/11, primera vuelta):** 3 fotos en AVIF quedaban fuera; desde la revisión salen en WebP.
 - **Medido el 07/11, en el contenedor:** la primera lectura, sin caché, 68 s y 109 peticiones; con la caché, 26 s y
   13. 48 noticias, 8 de opinión, 1 Semanario y 95 fotos (17,2 MB); `snapshot.json` pesa 275 KB. La app arranca en
   una décima de segundo y la primera página que usa la base tarda unos 4 s.
@@ -1631,3 +1631,25 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
 - **Cómo se cambia:** `config/clients/fb.json` → `web.realSite` (topes y números), `scripts/real-site/` (la lectura),
   `src/lib/db/seed-parts/web-real.ts` (cómo se siembra y compone) y `src/lib/web/real-site.ts` (la forma de la foto y
   el interruptor al abrir).
+- **Lo que cambió con la revisión del 07/11:**
+  - El encendido automático vale solo para el repositorio de la demo (`web.realSite.vercelRepo`, comparado con
+    `VERCEL_GIT_REPO_OWNER`/`VERCEL_GIT_REPO_SLUG`): una copia del repositorio público no republica la web oficial sola.
+    Apagado, el registro dice qué vio de `VERCEL` y `VERCEL_ENV` (Vercel las da si el proyecto tiene encendido
+    «Automatically expose System Environment Variables»).
+  - Una cuenta sale verificada si la enlaza el canal de YouTube del gobernador **o la portada de la web oficial**; si
+    YouTube no responde, se conservan las que verificó antes. Las que nadie confirmó no llevan «sin verificar» una por
+    una: una sola línea dice que están en proceso de confirmación.
+  - Nada de más de una semana vuelve de una construcción anterior: ni la copia entera ni una parte (cada parte traída
+    guarda el día en que se leyó, `report.partsSince`). Las subidas de WordPress valen una semana en la caché de
+    descargas, y una foto que llega como página (o no pasa los controles) se olvida y se pide otra vez.
+  - Las fotos AVIF salen en WebP (con sharp, que Next ya instala; sin él, quedan fuera como antes). Los archivos de la
+    demo van hasta 4 MB (una función de Vercel no responde más de 4,5 MB) y el JSON de WordPress y de la API de YouTube
+    tiene tope.
+  - El feed del propio canal de YouTube escribe su canal sin «UC» en la cabecera: se reconoce. Las partes de una
+    emisión cuentan una vez y la dirección simple es de la primera que se subió (o de la más larga, con la API).
+  - Al abrir: la franja dice siempre «Versión de prueba en revisión. No es el sitio oficial.», en Ajustes no se cambian
+    el nombre, el cargo, las cuentas, los contactos ni la franja, cada servidor guarda su propia caché de las páginas, y
+    solo se sirven los archivos que nombra la foto mientras el servidor muestra el contenido real. Cada contenido lleva
+    el momento de la web oficial, no el del arranque. La demo nunca se indexa, aunque `SITE_INDEXABLE` diga que sí.
+  - El Semanario sin nombre propio se llama por el día de su edición; un PDF guardado lleva el nombre de su contenido.
+    `/transparencia` dice antes de la primera cifra que son de ejemplo. `/reporte-bernal` sin emisiones lleva al canal.

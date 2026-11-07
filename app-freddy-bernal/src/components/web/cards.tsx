@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { ArrowRightIcon, ClockIcon, DownloadIcon, FileTextIcon, MapPinIcon } from './icons';
 import type { WebItem } from '@/lib/web/cache';
 import { DOCUMENT_CATEGORIES, NEWS_CATEGORIES, PROJECT_CATEGORIES, PROJECT_STATES, type Snapshot } from '@/lib/web/schema';
@@ -169,10 +170,20 @@ export function documentFile(item: WebItem<'document'>): { url: string; bytes: n
 
 /** A document of a list: its cover when it has one (the Semanario's front page), its title, kind, day, version and
  * pages, and «Ver el PDF». Without its file the public row has no button (the preview says the file is missing). */
-export function DocumentRow({ item, as: H = 'h3', preview = false }: { item: WebItem<'document'>; as?: 'h2' | 'h3'; preview?: boolean }) {
+/** A document's row. In a list of one category (the Semanario's page, a block of one category) the category is not said
+ * on each row, and a title that already says the day («Edición del 8 de octubre de 2026») does not get it again. */
+export function DocumentRow({ item, as: H = 'h3', preview = false, inCategory = false }: { item: WebItem<'document'>; as?: 'h2' | 'h3'; preview?: boolean; inCategory?: boolean }) {
   const d = item.data;
   const file = documentFile(item);
   const cover = photoOf(item.media, d.coverId);
+  const day = itemDay(item);
+  const dated = fmtDay(day) !== '' && d.title.includes(fmtDay(day));
+  const meta = [
+    inCategory ? null : DOCUMENT_CATEGORIES[d.category],
+    dated ? null : <Time key="dia" day={day} />,
+    d.versionLabel || null,
+    d.pages ? (d.pages === 1 ? '1 página' : `${fmtNumber(d.pages)} páginas`) : null,
+  ].filter((x) => x !== null);
   return (
     <li className="flex flex-col gap-3 border-t border-border py-5 sm:flex-row sm:items-center sm:gap-6">
       {cover ? (
@@ -182,11 +193,16 @@ export function DocumentRow({ item, as: H = 'h3', preview = false }: { item: Web
       )}
       <div className="min-w-0 flex-1">
         <H className="text-lg font-semibold leading-snug text-text">{d.title}</H>
-        <p className="mt-1 text-[15px] text-text-2">
-          {DOCUMENT_CATEGORIES[d.category]} · <Time day={itemDay(item)} />
-          {d.versionLabel ? ` · ${d.versionLabel}` : ''}
-          {d.pages ? ` · ${d.pages === 1 ? '1 página' : `${fmtNumber(d.pages)} páginas`}` : ''}
-        </p>
+        {meta.length ? (
+          <p className="mt-1 text-[15px] text-text-2">
+            {meta.map((part, i) => (
+              <Fragment key={i}>
+                {i ? ' · ' : null}
+                {part}
+              </Fragment>
+            ))}
+          </p>
+        ) : null}
         {d.excerpt ? <p className="mt-1 text-[15px] leading-relaxed text-text-2">{d.excerpt}</p> : null}
       </div>
       {file ? (

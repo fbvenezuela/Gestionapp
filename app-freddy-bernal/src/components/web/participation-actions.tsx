@@ -1,4 +1,4 @@
-import { ArrowRightIcon, FileQuestionMarkIcon, MegaphoneIcon, MessageSquareTextIcon, SearchIcon, ShieldAlertIcon, TriangleAlertIcon } from './icons';
+import { FileQuestionMarkIcon, MegaphoneIcon, MessageSquareTextIcon, SearchIcon, ShieldAlertIcon, TriangleAlertIcon } from './icons';
 import { REQUEST_TYPE_HINT } from '@/lib/participation/input';
 import { EMERGENCY_NOTICE } from '@/lib/participation/notices';
 import { ATTENTION, newRequestHref, REPORT_HREF } from '@/lib/web/links';
@@ -6,13 +6,13 @@ import { cn } from '@/lib/cn';
 import { cardClass, Container, SectionHeading, textLinkClass, WebLink } from './ui';
 
 // The big accesses to citizen attention (the brief's «cuatro accesos grandes» and design §2): «Hacer un reporte» in the
-// brand's orange, then a petition, an acotación and a denuncia, and «Consultar mi solicitud». Each one opens the form on
+// brand's orange, then a petition, an observation and a denuncia, and «Consultar mi solicitud». Each one opens the form on
 // its kind (?tipo=…, the citizen pages). «Not an emergency service» is said right here, where people act, in the one
 // legal text of src/lib/participation/notices.ts. The citizen is addressed as «usted», as the public administration does.
 
 const SECONDARY = [
   { href: newRequestHref('peticion'), title: 'Hacer una petición', hint: REQUEST_TYPE_HINT.peticion, Icon: FileQuestionMarkIcon },
-  { href: newRequestHref('acotacion'), title: 'Dejar una acotación', hint: REQUEST_TYPE_HINT.acotacion, Icon: MessageSquareTextIcon },
+  { href: newRequestHref('acotacion'), title: 'Enviar una observación', hint: REQUEST_TYPE_HINT.acotacion, Icon: MessageSquareTextIcon },
   { href: newRequestHref('denuncia'), title: 'Hacer una denuncia', hint: REQUEST_TYPE_HINT.denuncia, Icon: ShieldAlertIcon },
   { href: ATTENTION.lookup, title: 'Consultar mi solicitud', hint: 'Con el código y la clave de su comprobante.', Icon: SearchIcon },
 ] as const;
@@ -21,7 +21,7 @@ export function ParticipationActions({ title, as = 'h2' }: { title: string; as?:
   return (
     <section className="bg-surface py-14 sm:py-20">
       <Container>
-        <SectionHeading title={title} as={as} intro="No necesita registrarse. Al enviar recibirá un código para consultar su solicitud. Lo que envíe no se publica." />
+        <SectionHeading title={title} as={as} intro="No necesita registrarse. Al enviar recibirá un código para consultar el estado de su solicitud." />
         <div className="grid gap-4 lg:grid-cols-12">
           <WebLink
             href={REPORT_HREF}
@@ -31,9 +31,6 @@ export function ParticipationActions({ title, as = 'h2' }: { title: string; as?:
             <span>
               <span className="block text-3xl font-bold leading-tight tracking-tight sm:text-4xl">Hacer un reporte</span>
               <span className="mt-3 block text-lg leading-relaxed">{REQUEST_TYPE_HINT.reporte}</span>
-            </span>
-            <span className="inline-flex items-center gap-2 font-semibold" aria-hidden>
-              Empezar <ArrowRightIcon className="h-5 w-5 transition-transform motion-safe:group-hover:translate-x-1" />
             </span>
           </WebLink>
           <ul className="grid gap-4 sm:grid-cols-2 lg:col-span-7">

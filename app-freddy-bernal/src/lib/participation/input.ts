@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DENUNCIA_PLACE } from './notices';
 import { REFERENCE_PATTERN } from './receipt-code';
 
 // Citizen participation (D-92): the six kinds of request, their states and what the public form sends. The same checks
@@ -19,7 +20,7 @@ export type RequestType = (typeof REQUEST_TYPES)[number];
 export const REQUEST_TYPE_LABEL: Record<RequestType, string> = {
   reporte: 'Reporte',
   peticion: 'Petición',
-  acotacion: 'Acotación',
+  acotacion: 'Observación',
   sugerencia: 'Sugerencia',
   reconocimiento: 'Reconocimiento',
   denuncia: 'Denuncia',
@@ -29,7 +30,7 @@ export const REQUEST_TYPE_LABEL: Record<RequestType, string> = {
 export const REQUEST_TYPE_HINT: Record<RequestType, string> = {
   reporte: 'Fallas en los servicios públicos de su comunidad.',
   peticion: 'Solicitudes de ayuda o de apoyo al despacho del gobernador.',
-  acotacion: 'Opiniones u observaciones sobre la gestión o sobre una obra.',
+  acotacion: 'Opiniones u observaciones sobre la gestión, una obra o una publicación.',
   sugerencia: 'Propuestas para mejorar un servicio.',
   reconocimiento: 'Agradecimientos por un trabajo bien hecho.',
   denuncia: 'Hechos irregulares que deben investigarse. Es confidencial.',
@@ -125,7 +126,7 @@ export const requestInput = z
     const issue = (path: string, message: string) => ctx.addIssue({ code: 'custom', path: [path], message });
     if (PLACE_REQUIRED.includes(v.type) && !v.municipalityId) issue('municipalityId', 'Elija el municipio.');
     if (v.parishId && !v.municipalityId) issue('parishId', 'Elija primero el municipio.');
-    if (v.type === 'denuncia' && (v.point || v.locationReference)) issue('locationReference', 'En una denuncia se indica solo el lugar aproximado, es decir, el municipio y el sector.');
+    if (v.type === 'denuncia' && (v.point || v.locationReference)) issue('locationReference', DENUNCIA_PLACE);
     if (v.point && !v.locationConsent) issue('locationConsent', 'Para guardar su ubicación se necesita su autorización.');
     const c = v.contact;
     const hasContact = !!c && !!(c.name || c.email || c.phone);

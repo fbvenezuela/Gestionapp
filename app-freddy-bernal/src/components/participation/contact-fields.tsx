@@ -128,7 +128,7 @@ export function ContactFields({ v, set, errors }: { v: FormValues; set: (p: Part
                 className="mt-0.5 size-5 shrink-0 accent-accent"
               />
               <span>
-                Autorizo que se publique mi nombre si el caso aparece en «Casos atendidos».{' '}
+                Autorizo que se publique mi nombre si mi solicitud aparece en «Casos atendidos».{' '}
                 <span className="text-text-2">Si no marca esta casilla, solo se publicarán sus iniciales.</span>
               </span>
             </label>
@@ -158,7 +158,7 @@ export function PrivacyCheck({ checked, onChange, error }: { checked: boolean; o
           <a href="/aviso-de-privacidad" target="_blank" rel="noopener" className="font-semibold text-accent-ink underline underline-offset-2">
             aviso de privacidad
           </a>{' '}
-          <span className="text-text-2">(se abre en otra pestaña)</span> y acepto que mis datos se usen solo para atender esta solicitud.
+          <span className="text-text-2">(se abre en otra pestaña)</span> y acepto el uso de mis datos para atender esta solicitud.
         </span>
       </label>
       {error ? <FieldError id="f-privacyAccepted-error">{error}</FieldError> : null}

@@ -114,7 +114,7 @@ entran con doble factor. Cómo se usa cada pantalla: `docs/MANUAL-ADMIN-WEB.md` 
 | Rol | Correo | Qué tocar |
 |---|---|---|
 | Editor de la web | `web.editora@demo.test` | **Web** → «Noticias y comunicados» → «Nueva noticia» → título → «Crear borrador»; escribe, «Guardar borrador», «Vista previa» y «Enviar a aprobación» (la lista «falta esto» dice qué falta). «Páginas» → «Inicio»: «Agregar un bloque», «Subir», «Bajar», «Ocultar». «Biblioteca» → «Subir una foto» (pide el texto alternativo). No tiene «Publicar», ni «Ajustes del sitio», ni ve solicitudes |
-| Aprobador de la web | `web.aprobador@demo.test` | **Web** → «Por aprobar»: «Ferias de alimentos del fin de semana (demo)» (primera publicación) y «Limpieza y canalización de quebradas (demo)» (un cambio a algo ya publicado: el público sigue viendo lo aprobado). Mira «Qué cambia si lo publicas» → «Publicar ahora», y búscala en `/actualidad`; o «Programar» (hora del Táchira), o «Devolver con comentario». En una obra publicada, «Versiones» → «Volver a esta versión». «Ajustes del sitio» (en la demo, las cuentas sin verificar salen en la web marcadas «sin verificar») y «Redirecciones» |
+| Aprobador de la web | `web.aprobador@demo.test` | **Web** → «Por aprobar»: «Ferias de alimentos del fin de semana (demo)» (primera publicación) y «Limpieza y canalización de quebradas (demo)» (un cambio a algo ya publicado: el público sigue viendo lo aprobado). Mira «Qué cambia si lo publicas» → «Publicar ahora», y búscala en `/actualidad`; o «Programar» (hora del Táchira), o «Devolver con comentario». En una obra publicada, «Versiones» → «Volver a esta versión». «Ajustes del sitio» (en la demo, las cuentas sin verificar salen en la web con una línea que dice que están en proceso de confirmación; con el contenido real, el nombre, las cuentas, los contactos y la franja no se cambian) y «Redirecciones» |
 | Coordinador de atención | `atencion.coordinacion@demo.test` | **Atención** → «Bandeja»: las 60 de prueba, denuncias también. Busca `DEMR01` → el caso con tres apoyos y un duplicado unido: «Ver contacto», «Escribir» → «Respuesta a la persona», «Pasar a» → «Cambiar el estado». «Tablero», «Mapa» («Ver el mapa»), «Cifras», «Respuestas guardadas» y, abajo de la bandeja, «Descargar CSV» |
 | Responsable de área · Servicios públicos | `atencion.servicios@demo.test` | **Atención**: solo lo de su área (agua, luz, aseo…) o lo asignado a él, nunca denuncias. `DEMR02` (resuelto) y `DEMR03` (requiere información) son de su área: «Tomar el caso», una nota interna, «Subir evidencia» |
 | Responsable de área · Vialidad y transporte | `atencion.vialidad@demo.test` | Lo mismo, de vialidad y transporte (`DEMR01` es suyo). Un caso de otra área no existe para él |
@@ -153,8 +153,11 @@ en revisión. No es el sitio oficial.» y no hay nada «(demo)» en las páginas
   obras» y «Avisos de servicio» no salen (no hay nada real para ellos todavía) y el menú no tiene «Gestión».
 - `/gobernador` (biografía, toma de posesión y condecoraciones, con su fuente), `/actualidad` (las 48 noticias más
   nuevas y 8 de opinión, con sus fotos), una nota, `/actualidad/semanario` (el PDF), `/reporte-bernal` (las emisiones
-  del canal; vacío, con su mensaje, si YouTube no respondió al construir) y `/canales` (una cuenta sale verificada solo
-  si el propio canal de YouTube del gobernador la enlaza; las demás, marcadas «sin verificar»).
+  del canal; si YouTube no respondió al construir, la página lleva al canal oficial) y `/canales` (una cuenta sale
+  verificada solo si la enlaza el propio canal de YouTube del gobernador o la portada de la web oficial; sobre las
+  demás, una sola línea dice que están en proceso de confirmación).
+- `/transparencia`: las cifras de la atención son de las 60 solicitudes inventadas, y la página lo dice antes de la
+  primera cifra.
 - `/atencion`: siete preguntas frecuentes sobre cómo funciona la atención (de la plataforma, no de la web oficial).
 - En el panel, «Web» tiene esas notas publicadas, cada una con «Traído de la web vieja». Las 60 solicitudes y los tres
   comprobantes siguen siendo inventados, igual que el resto del panel.
@@ -164,7 +167,10 @@ en revisión. No es el sitio oficial.» y no hay nada «(demo)» en las páginas
 
 **Lo que puede perderse entre servidores** (D-39): en Vercel cada servidor tiene su base en memoria. Lo sembrado es igual
 en todos, pero una noticia que crea el editor, lo que publica el aprobador o una solicitud nueva viven solo en el
-servidor donde se hicieron: con otra cuenta o en otro teléfono pueden no verse. Para probar entre roles, lo más seguro
+servidor donde se hicieron: con otra cuenta o en otro teléfono pueden no verse. Con el contenido real, además, cada
+servidor guarda su propia caché de las páginas (lo que alguien edite en uno no pasa a los demás por la caché), y en
+Ajustes del sitio no se cambian el nombre, el cargo, las cuentas, los contactos ni la franja «No es el sitio oficial»:
+cualquiera puede entrar a la demo, y nadie debe poder hacerla pasar por la web oficial. Para probar entre roles, lo más seguro
 es lo sembrado (lo que ya espera aprobación y los tres comprobantes), o tu computadora con
 `LOCAL_DATA_DIR=./.data npm run dev`, donde todo queda (`README.md`).
 

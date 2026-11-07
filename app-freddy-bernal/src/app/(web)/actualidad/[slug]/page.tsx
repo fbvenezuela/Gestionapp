@@ -10,7 +10,7 @@ import { pageMetadata } from '@/lib/web/seo';
 import { getSite } from '@/lib/web/site';
 
 // A news item (design §2): its topic, its date in the Táchira's time zone, who signs it, its sources, its photos, related
-// news (of its topic when it has one, else of its kind) and «Comentar esta noticia» (a request linked to it,
+// news (of its topic when it has one, else of its kind) and «Enviar una observación» (a request linked to it,
 // ?sobre=news:<slug>). NewsArticle structured data. Generated on its first visit and cached (ISR); an old address that the
 // importer redirected answers with its redirect.
 export const revalidate = 60;

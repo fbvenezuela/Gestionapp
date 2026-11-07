@@ -30,7 +30,9 @@ export const WEB_STATUS_LABEL = {
 } as const;
 
 // Categories per kind (the filter column `category`). Fixed lists in the code, with the words people read.
-export const NEWS_CATEGORIES = { noticia: 'Noticia', comunicado: 'Comunicado', articulo: 'Artículo', entrevista: 'Entrevista' } as const;
+export const NEWS_CATEGORIES = { noticia: 'Noticia', comunicado: 'Comunicado', articulo: 'Opinión', entrevista: 'Entrevista' } as const;
+/** «8 resultados en …»: each kind in a list's words. */
+export const NEWS_CATEGORIES_PLURAL = { noticia: 'noticias', comunicado: 'comunicados', articulo: 'opinión', entrevista: 'entrevistas' } as const;
 export const PROJECT_CATEGORIES = {
   vialidad: 'Vialidad', agua: 'Agua', electricidad: 'Electricidad', salud: 'Salud', educacion: 'Educación', vivienda: 'Vivienda',
   'deporte-cultura': 'Deporte y cultura', ambiente: 'Ambiente', social: 'Atención social', otros: 'Otros',

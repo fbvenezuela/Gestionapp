@@ -14,7 +14,7 @@ const DEMR02 = { reference: `AC-${YEAR}-DEMR02`, secret: 'R3PS-W8N2-DEMV-7QKA' }
 const DEMR03 = { reference: `AC-${YEAR}-DEMR03`, secret: 'H4JX-5ZTB-9CNF-W2YE' };
 const REF = /^AC-\d{4}-[0-9A-HJKMNP-TV-Z]{6}$/;
 const SECRET = /^[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4}){3}$/;
-const NOT_FOUND = 'No encontramos una solicitud con esos datos.';
+const NOT_FOUND = 'No hay ninguna solicitud con esos datos.';
 
 let net = 20 + Math.floor(Math.random() * 120);
 test.beforeEach(async ({ context }) => {
@@ -93,7 +93,7 @@ test('«Atención ciudadana» se lee en el teléfono: los dos botones grandes, l
   // The FAQs of the group «atencion» (demo) open on tap; no invented contacts: the empty state.
   await page.getByText('¿Qué pasa si pierdo la clave? (demo)').click();
   await expect(page.getByText(/La clave no se puede recuperar/).first()).toBeVisible();
-  await expect(page.getByText('Por ahora, la atención es por este formulario')).toBeVisible();
+  await expect(page.getByText('Canal de atención')).toBeVisible();
   await noSideScroll(page);
   await axe(page, '/atencion');
 });
@@ -126,7 +126,7 @@ async function reportWithPhoto(page: Page, where: string) {
   await page.getByRole('button', { name: 'Enviar', exact: true }).click();
 
   const { reference, secret } = await readReceipt(page);
-  await expect(page.getByRole('heading', { level: 2, name: 'Recibimos su reporte' })).toBeFocused();
+  await expect(page.getByRole('heading', { level: 2, name: 'Solicitud recibida' })).toBeFocused();
   await expect(page.getByRole('region', { name: 'Archivos adjuntos' }).getByText(/· Listo$/)).toBeVisible({ timeout: 30_000 });
   await noSideScroll(page);
   await axe(page, `comprobante (${where})`);
@@ -176,11 +176,11 @@ test('un reporte con una foto: comprobante en PDF, consulta con la clave, la fot
 });
 
 const KINDS = [
-  { tipo: 'peticion', type: /^Petición/, category: /^Salud/, municipality: 'Junín', title: 'Jornada de vacunación (prueba)', heading: 'Recibimos su petición' },
-  { tipo: 'acotacion', type: /^Acotación/, category: /^Vialidad/, municipality: undefined, title: 'Faltan señales en los desvíos (prueba)', heading: 'Recibimos su acotación' },
-  { tipo: 'sugerencia', type: /^Sugerencia/, category: /^Transporte/, municipality: undefined, title: 'Publicar las rutas del transporte (prueba)', heading: 'Recibimos su sugerencia' },
-  { tipo: 'reconocimiento', type: /^Reconocimiento/, category: /^Educación/, municipality: 'Michelena', title: 'Gracias por arreglar la escuela (prueba)', heading: 'Recibimos su reconocimiento' },
-  { tipo: 'denuncia', type: /^Denuncia/, category: /^Seguridad/, municipality: 'Cárdenas', title: 'Cobro irregular por un trámite (prueba)', heading: 'Recibimos su denuncia' },
+  { tipo: 'peticion', type: /^Petición/, category: /^Salud/, municipality: 'Junín', title: 'Jornada de vacunación (prueba)', heading: 'Solicitud recibida' },
+  { tipo: 'acotacion', type: /^Observación/, category: /^Vialidad/, municipality: undefined, title: 'Faltan señales en los desvíos (prueba)', heading: 'Solicitud recibida' },
+  { tipo: 'sugerencia', type: /^Sugerencia/, category: /^Transporte/, municipality: undefined, title: 'Publicar las rutas del transporte (prueba)', heading: 'Solicitud recibida' },
+  { tipo: 'reconocimiento', type: /^Reconocimiento/, category: /^Educación/, municipality: 'Michelena', title: 'Gracias por arreglar la escuela (prueba)', heading: 'Solicitud recibida' },
+  { tipo: 'denuncia', type: /^Denuncia/, category: /^Seguridad/, municipality: 'Cárdenas', title: 'Cobro irregular por un trámite (prueba)', heading: 'Solicitud recibida' },
 ] as const;
 
 for (const k of KINDS) {
@@ -294,7 +294,7 @@ test('«Apoyar este reporte»: con reportes abiertos del mismo problema en el mi
   await page.getByLabel(/Leí el aviso de privacidad/).check();
   await page.getByRole('button', { name: 'Enviar apoyo' }).click();
   const { reference, secret } = await readReceipt(page);
-  await expect(page.getByRole('heading', { level: 2, name: 'Su apoyo al reporte quedó registrado' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Apoyo registrado' })).toBeVisible();
 
   await lookup(page, reference, secret);
   await expect(page.locator('#caso-titulo')).toHaveText(reference);
@@ -361,7 +361,7 @@ test.describe('sin JavaScript', () => {
 
   test('el formulario de una página da el comprobante (la clave la hace el servidor) y la consulta abre', async ({ page }) => {
     await page.goto('/atencion/nueva');
-    const form = page.locator('form').filter({ hasText: 'Su navegador tiene JavaScript desactivado' });
+    const form = page.locator('form').filter({ hasText: 'Formulario en una sola página' });
     await expect(form).toBeVisible();
     await form.getByLabel(/^Petición/).check();
     await form.getByLabel('Categoría').selectOption({ label: 'Salud' });
@@ -371,8 +371,8 @@ test.describe('sin JavaScript', () => {
     await form.getByLabel(/Enviar como anónimo/).check();
     await form.getByLabel(/Leí el aviso de privacidad/).check();
     await form.getByRole('button', { name: 'Enviar' }).click();
-    await expect(page.getByRole('heading', { name: 'Recibimos su solicitud' })).toBeVisible();
-    const text = (await page.getByRole('region', { name: 'Recibimos su solicitud' }).textContent()) ?? '';
+    await expect(page.getByRole('heading', { name: 'Solicitud recibida' })).toBeVisible();
+    const text = (await page.getByRole('region', { name: 'Solicitud recibida' }).textContent()) ?? '';
     const reference = text.match(/AC-\d{4}-[0-9A-HJKMNP-TV-Z]{6}/)![0];
     const secret = text.match(/[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4}){3}/)![0];
     await lookup(page, reference, secret);
@@ -397,15 +397,15 @@ test.describe('en una computadora', () => {
     }
   });
 
-  test('una acotación sobre una obra publicada lleva el contenido; uno sin publicar no aparece', async ({ page }) => {
+  test('una observación sobre una obra publicada lleva el contenido; uno sin publicar no aparece', async ({ page }) => {
     await page.goto('/atencion/nueva?sobre=news:balance-del-mes-demo');
     await expect(page.getByText(/^Sobre (esta noticia|esta obra|una publicación de este sitio)$/)).toHaveCount(0);
     await page.goto('/atencion/nueva?tipo=acotacion&sobre=project:rehabilitacion-avenida-principal-demo');
-    await expect(page.getByRole('heading', { level: 1, name: 'Dejar una acotación' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Enviar una observación' })).toBeVisible();
     await expect(page.getByText('Sobre esta obra', { exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Rehabilitación de la avenida principal (demo)' })).toHaveAttribute('href', '/gestion/rehabilitacion-avenida-principal-demo');
     await fillSteps(page, {
-      type: /^Acotación/, category: /^Vialidad/, municipality: 'San Cristóbal', sector: unique(),
+      type: /^Observación/, category: /^Vialidad/, municipality: 'San Cristóbal', sector: unique(),
       title: 'Los desvíos de la obra confunden (prueba)', description: 'Faltan señales en los desvíos de la obra de la avenida (prueba).',
     });
     await toContactStep(page);

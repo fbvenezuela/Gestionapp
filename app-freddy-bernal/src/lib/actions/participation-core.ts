@@ -3,7 +3,7 @@ import { cookies, headers } from 'next/headers';
 import { after } from 'next/server';
 import { createHmac } from 'node:crypto';
 import { createElement } from 'react';
-import { brand } from '../client-config';
+import { getClientConfig } from '../client-config';
 import { withAnon } from '../db';
 import { friendlyDbError } from '../db/core';
 import { env } from '../env';
@@ -40,7 +40,7 @@ import { eventDateProblem, type FieldErrors, type SendResult } from './participa
 // what the person wrote.
 
 /** The one answer for a wrong reference, a wrong secret, a malformed receipt or a closed consultation. */
-export const NOT_FOUND_TEXT = 'No encontramos una solicitud con esos datos.';
+export const NOT_FOUND_TEXT = 'No hay ninguna solicitud con esos datos.';
 export const EXPIRED_TEXT = 'Su consulta se cerró por seguridad. Vuelva a entrar con su código y su clave.';
 export const HONEYPOT_TEXT = 'No se pudo enviar. Revise los datos e intente de nuevo.';
 export const TURNSTILE_TEXT = 'No se pudo completar la verificación de seguridad. Intente de nuevo.';
@@ -87,8 +87,9 @@ export const citizenDbText = (message: string): string => DB_WORDS[message] ?? m
 /** The database's messages that are said again, for the test that keeps them tied to the migrations. */
 export const DB_MESSAGES_SAID_AGAIN = Object.keys(DB_WORDS);
 
-/** The public site's name, as the citizen reads it (never the internal platform's). */
-export const SITE_NAME = `${brand.clientName} · ${brand.clientTitle}`;
+/** Who issues the receipt and the emails, as the citizen reads it: the institution's attention desk (never the internal
+ * platform, never a person). */
+export const SITE_NAME = `Atención ciudadana · ${getClientConfig().web.structuredData.organizationName}`;
 
 export type Failure = Extract<SendResult, { ok: false }>;
 

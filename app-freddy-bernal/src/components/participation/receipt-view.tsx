@@ -94,10 +94,10 @@ export function ReceiptView({
       <style>{PRINT_CSS}</style>
       <header className="no-imprimir flex flex-col gap-3">
         <p className="flex items-center gap-2 text-base font-semibold text-ok">
-          <CheckCircle2 className="h-6 w-6" aria-hidden /> {support ? 'Apoyo registrado' : 'Solicitud registrada'}
+          <CheckCircle2 className="h-6 w-6" aria-hidden /> {support ? 'Apoyo a un reporte' : typeLabel}
         </p>
         <h2 ref={heading} tabIndex={-1} className="text-3xl font-bold leading-tight tracking-tight text-text outline-none sm:text-4xl">
-          {support ? 'Su apoyo al reporte quedó registrado' : `Recibimos su ${typeLabel.toLowerCase()}`}
+          {support ? 'Apoyo registrado' : 'Solicitud recibida'}
         </h2>
         <p className="text-lg leading-relaxed text-text-2">
           {support
@@ -125,7 +125,7 @@ export function ReceiptView({
           </div>
         </dl>
         <p className="mt-4 text-[15px] text-text-2">
-          {support ? `Apoyo a un reporte · registrado el ${longDateTime(receipt.sentAt)}` : `${typeLabel} · enviada el ${longDateTime(receipt.sentAt)}`}
+          {support ? `Apoyo a un reporte · registrado el ${longDateTime(receipt.sentAt)}` : `Solicitud enviada el ${longDateTime(receipt.sentAt)} · ${typeLabel}`}
         </p>
         <p className="mt-5 rounded-xl bg-warn-soft p-3 text-[15px] leading-snug text-text">
           <strong className="font-semibold">Guárdelos ahora.</strong> La clave se muestra una sola vez y no se puede recuperar. Sin ella no es posible

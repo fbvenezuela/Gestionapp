@@ -51,7 +51,7 @@ export async function ProjectsBlock({ data, ctx }: { data: BlockData<'projects'>
 const NEWS_MORE: Record<string, string> = {
   noticia: 'Ver todas las noticias',
   comunicado: 'Ver todos los comunicados',
-  articulo: 'Ver todos los artículos',
+  articulo: 'Ver más artículos de opinión',
   entrevista: 'Ver todas las entrevistas',
 };
 
@@ -194,7 +194,7 @@ export async function DocumentsBlock({ data, ctx }: { data: BlockData<'documents
         {data.title ? <SectionHeading title={data.title} as={ctx.heading} more={documentsMore(data.category)} /> : null}
         <ul className="border-b border-border">
           {items.map((d) => (
-            <DocumentRow key={d.id} item={d} preview={ctx.preview} />
+            <DocumentRow key={d.id} item={d} preview={ctx.preview} inCategory={!!data.category} />
           ))}
         </ul>
       </Container>

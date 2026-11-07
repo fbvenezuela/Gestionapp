@@ -131,7 +131,7 @@ function attendedLine(a: AttendedItem, muni: string | null | undefined): ReactNo
   if (a.resolvedOn) {
     parts.push(
       <>
-        Resuelto el <Time day={a.resolvedOn} />
+        Resuelta el <Time day={a.resolvedOn} />
       </>,
     );
   }
@@ -148,7 +148,7 @@ export function AttendedView({ items, names }: { items: AttendedItem[]; names: N
         return (
           <li key={a.id} className={cn(cardClass, 'flex flex-col gap-3 p-6')}>
             <p className="inline-flex items-center gap-2 text-sm font-semibold text-ok">
-              <CircleCheckIcon className="h-5 w-5" /> Atendido · {type}
+              <CircleCheckIcon className="h-5 w-5" /> Atendida · {type}
               {category ? ` · ${category}` : ''}
             </p>
             <p className="text-lg leading-relaxed text-text">{a.summary}</p>

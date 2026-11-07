@@ -10,7 +10,7 @@ export default function WebError({ retry }: { error: unknown; retry: () => void 
     <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
       <div className={`${cardClass} mx-auto max-w-2xl p-8 sm:p-12`}>
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">No se pudo cargar la página</h1>
-        <p className="mt-3 text-lg leading-relaxed text-text-2">Revise la conexión e intente de nuevo en unos minutos.</p>
+        <p className="mt-3 text-lg leading-relaxed text-text-2">La página no está disponible en este momento. Intente de nuevo en unos minutos.</p>
         <div className="mt-6 flex flex-wrap gap-3">
           <button
             type="button"

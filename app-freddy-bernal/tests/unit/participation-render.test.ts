@@ -30,10 +30,10 @@ describe('el formulario', () => {
   it('una denuncia avisa que es confidencial y que también se acude a las autoridades; nunca pide el punto exacto', () => {
     const v = { ...emptyValues(), type: 'denuncia' as const };
     const what = html(StepWhat, { v, set: noop, errors: {}, categories: CATS });
-    expect(what).toContain('Su denuncia es confidencial.');
+    expect(what).toContain('Las denuncias son confidenciales.');
     expect(what).toContain(AUTHORITIES);
     const where = html(StepWhere, { v, set: noop, errors: {}, municipalities: MUNIS });
-    expect(where).toContain('solo el lugar aproximado');
+    expect(where).toContain('solo el municipio y el sector');
     expect(where).not.toContain('Usar mi ubicación');
     expect(where).not.toContain('Punto de referencia');
     // A report does offer the location, only if the person wants it.
@@ -55,7 +55,7 @@ describe('sin JavaScript', () => {
 
   it('el formulario completo de una página, con el aviso de emergencias y el campo trampa', () => {
     const out = html(NoJsForm, props);
-    expect(out).toContain('Su navegador tiene JavaScript desactivado');
+    expect(out).toContain('Formulario en una sola página');
     expect(out).toContain('name="submissionKey"');
     expect(out).toContain('name="sitio_web"');
     expect(out).toContain(EMERGENCY);
@@ -134,7 +134,7 @@ describe('la consulta', () => {
       maxFileBytes: 8 * 1024 * 1024,
     });
     expect(out).toContain('Su apoyo a un reporte');
-    expect(out).toContain('aquí solo se muestra el estado del caso');
+    expect(out).toContain('aquí solo se muestra el estado del reporte');
     expect(out).toContain('También me afecta (demo).');
     expect(out).not.toContain('Datos de su solicitud');
   });

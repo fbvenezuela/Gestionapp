@@ -3,7 +3,7 @@ import { ShieldCheckIcon, TriangleAlertIcon } from '@/components/web/icons';
 import { ChannelCards, PendingAccountsNote, orderedChannels } from '@/components/web/channels';
 import { EmptyState } from '@/components/web/states';
 import { cardClass, Container, ExternalText, PageIntro, SafeLink, SectionHeading, textLinkClass, WebLink } from '@/components/web/ui';
-import { EMERGENCY_NOTICE } from '@/lib/participation/notices';
+import { ANTI_FRAUD_NOTICE, EMERGENCY_NOTICE } from '@/lib/participation/notices';
 import { ATTENTION, newRequestHref } from '@/lib/web/links';
 import { pageMetadata } from '@/lib/web/seo';
 import { getSite } from '@/lib/web/site';
@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const TIPS = [
   'Las cuentas oficiales son solo las de esta página. Si una cuenta no está aquí, no es oficial.',
   'Verifique el nombre de usuario completo. Las cuentas falsas suelen cambiar una letra o agregar un punto o un guion.',
-  'Ni el gobernador ni el personal de la Gobernación piden dinero, claves, códigos de verificación ni datos bancarios por mensaje.',
+  ANTI_FRAUD_NOTICE,
   'Las solicitudes y los reportes se reciben solo por Atención ciudadana, en este sitio.',
 ] as const;
 
@@ -85,9 +85,9 @@ export default async function ChannelsPage() {
               ))}
             </ol>
             <p className="mt-6 text-lg leading-relaxed text-text">
-              Si encuentra una cuenta que se hace pasar por el gobernador,{' '}
+              Si encuentra una cuenta que se hace pasar por el gobernador, infórmelo a{' '}
               <WebLink href={newRequestHref('acotacion')} className={textLinkClass}>
-                repórtela con una acotación
+                Atención ciudadana
               </WebLink>
               .
             </p>
@@ -99,7 +99,7 @@ export default async function ChannelsPage() {
           {EMERGENCY_NOTICE}
         </p>
         <p className="mt-6 text-base text-text-2">
-          Para comunicarse con el despacho, use{' '}
+          Para comunicarse con el despacho del gobernador, diríjase a{' '}
           <WebLink href={ATTENTION.home} className={textLinkClass}>
             Atención ciudadana
           </WebLink>

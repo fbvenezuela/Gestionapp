@@ -833,7 +833,7 @@
    {
     "slug": "seguridad",
     "name": "Seguridad",
-    "description": "Situaciones de inseguridad en la comunidad. Ante una emergencia, llame a los servicios de emergencia.",
+    "description": "Situaciones de inseguridad en la comunidad.",
     "area": "atencion-general",
     "dueDays": 15
    },
@@ -954,7 +954,7 @@
      "path": "/gobernador"
     },
     {
-     "label": "Gestión",
+     "label": "Gestión y obras",
      "path": "/gestion"
     },
     {
@@ -1270,7 +1270,7 @@
     "slug": "atencion",
     "draft": {
      "title": "Atención ciudadana",
-     "excerpt": "Reportes, peticiones, acotaciones y denuncias al despacho del gobernador, con un código para consultar su estado.",
+     "excerpt": "Solicitudes al despacho del gobernador, con un código para consultar su estado.",
      "blocks": [
       {
        "id": "portada",
@@ -1278,7 +1278,7 @@
        "visible": true,
        "data": {
         "title": "Atención ciudadana",
-        "text": "Envíe su reporte, petición o denuncia y consulte su estado con el código que recibirá. No necesita registrarse.",
+        "text": "Envíe su solicitud al despacho del gobernador y consulte su estado con el código que recibirá. No necesita registrarse.",
         "mediaId": null
        }
       },
@@ -1299,7 +1299,7 @@
          {
           "type": "heading",
           "level": 2,
-          "text": "Cómo funciona"
+          "text": "Procedimiento"
          },
          {
           "type": "list",
@@ -1317,7 +1317,7 @@
          },
          {
           "type": "paragraph",
-          "text": "Las respuestas se publican en su consulta. Si dejó un contacto, se le avisará cuando cambie el estado. Las solicitudes no se publican."
+          "text": "Las respuestas del personal de atención aparecen en la consulta de su solicitud. Si dejó un contacto, recibirá un aviso cuando cambie el estado."
          },
          {
           "type": "heading",
@@ -1355,7 +1355,7 @@
      ],
      "seo": {
       "title": "Atención ciudadana",
-      "description": "Reportes, peticiones, acotaciones y denuncias al despacho del gobernador del estado Táchira, con un código para consultar su estado."
+      "description": "Solicitudes al despacho del gobernador del estado Táchira, con un código para consultar su estado."
      }
     }
    },
@@ -1372,10 +1372,6 @@
        "data": {
         "content": [
          {
-          "type": "paragraph",
-          "text": "Texto preliminar, en revisión."
-         },
-         {
           "type": "pending",
           "text": "Por completar antes de publicar: la consulta legal revisa y aprueba este texto."
          },
@@ -1386,7 +1382,7 @@
          },
          {
           "type": "paragraph",
-          "text": "Solo los datos necesarios para atender la solicitud: tipo, categoría, lugar (municipio y sector; el punto en el mapa, solo con su autorización), descripción y, de forma opcional, fotos o documentos."
+          "text": "Se solicitan el tipo, la categoría, el municipio, el sector y la descripción de la solicitud. El punto en el mapa se guarda solo con su autorización. Las fotos y los documentos son opcionales."
          },
          {
           "type": "paragraph",
@@ -1403,7 +1399,7 @@
          },
          {
           "type": "paragraph",
-          "text": "Los datos se usan para atender la solicitud, responderle y, si dejó un contacto, informarle los cambios de estado. Las estadísticas publicadas no incluyen datos personales."
+          "text": "Los datos se usan para atender la solicitud y, si dejó un contacto, para informarle sobre su avance. Las estadísticas publicadas no incluyen datos personales."
          },
          {
           "type": "heading",
@@ -1412,11 +1408,11 @@
          },
          {
           "type": "paragraph",
-          "text": "Solo el personal que atiende la solicitud, según su área, tiene acceso a ella. Las denuncias solo las leen el personal encargado de denuncias y la coordinación de atención. Las solicitudes no se publican."
+          "text": "Solo el personal que atiende la solicitud, según su área, tiene acceso a ella. Las denuncias solo las leen el personal encargado de denuncias y la coordinación de atención."
          },
          {
           "type": "paragraph",
-          "text": "Los casos atendidos pueden publicarse como un resumen sin datos personales, con el nombre de la persona solo si lo autoriza o, en su defecto, con sus iniciales. De una denuncia solo se publica que fue atendida y en qué municipio."
+          "text": "Su solicitud no se publica. Cuando se resuelve, puede publicarse un resumen sin datos personales en «Casos atendidos», con sus iniciales o, si usted lo autoriza, con su nombre. De una denuncia solo se publica que fue atendida y en qué municipio."
          },
          {
           "type": "heading",
@@ -1427,7 +1423,7 @@
           "type": "list",
           "items": [
            "Los datos de contacto se guardan cifrados y separados del resto.",
-           "Las fotos se guardan sin ubicación ni datos internos.",
+           "Las fotos se guardan sin la ubicación ni los datos de la cámara.",
            "Los archivos se guardan en un almacenamiento privado y se abren con enlaces temporales.",
            "El personal accede con verificación en dos pasos y cada acción queda registrada."
           ]
@@ -1452,6 +1448,10 @@
          {
           "type": "pending",
           "text": "Por completar antes de publicar: la sección «Responsable del tratamiento» (el nombre oficial del organismo responsable de los datos y su dirección institucional)."
+         },
+         {
+          "type": "paragraph",
+          "text": "Texto sujeto a revisión jurídica."
          }
         ]
        }
@@ -1476,10 +1476,6 @@
        "data": {
         "content": [
          {
-          "type": "paragraph",
-          "text": "Texto preliminar, en revisión."
-         },
-         {
           "type": "pending",
           "text": "Por completar antes de publicar: la consulta legal revisa y aprueba este texto."
          },
@@ -1490,7 +1486,7 @@
          },
          {
           "type": "paragraph",
-          "text": "Atención ciudadana es el canal para enviar reportes, peticiones, acotaciones, sugerencias, reconocimientos y denuncias al despacho del gobernador."
+          "text": "Atención ciudadana es el canal para enviar reportes, peticiones, observaciones, sugerencias, reconocimientos y denuncias al despacho del gobernador."
          },
          {
           "type": "heading",
@@ -1499,7 +1495,16 @@
          },
          {
           "type": "paragraph",
-          "text": "Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia. Las solicitudes no se atienden de forma inmediata."
+          "text": "Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia."
+         },
+         {
+          "type": "heading",
+          "level": 2,
+          "text": "Plazos"
+         },
+         {
+          "type": "paragraph",
+          "text": "Las solicitudes no se atienden de forma inmediata. El personal de atención fija una fecha de atención para cada una, según su categoría y su urgencia."
          },
          {
           "type": "heading",
@@ -1508,7 +1513,7 @@
          },
          {
           "type": "paragraph",
-          "text": "Al enviar una solicitud recibirá un código y una clave. Guárdelos, porque con ellos se consulta el caso. Si los pierde y no dejó un contacto, no podrán recuperarse."
+          "text": "Al enviar una solicitud recibirá un código y una clave. Guárdelos, porque con ellos se consulta la solicitud. Si los pierde y no dejó un contacto, no podrán recuperarse."
          },
          {
           "type": "heading",
@@ -1517,7 +1522,7 @@
          },
          {
           "type": "paragraph",
-          "text": "Se reciben críticas y quejas. No se aceptan insultos, amenazas ni datos personales de terceros (teléfonos, direcciones o fotos de rostros sin autorización). El personal de atención puede retirar esos datos o marcar como «no procede» un mensaje abusivo, y cada acción queda registrada con su motivo."
+          "text": "Se reciben críticas y quejas. No se aceptan insultos, amenazas ni datos personales de otras personas. El personal de atención puede retirar esos datos o marcar como «no procede» un mensaje abusivo, y cada acción queda registrada con su motivo."
          },
          {
           "type": "heading",
@@ -1526,7 +1531,7 @@
          },
          {
           "type": "paragraph",
-          "text": "Su denuncia es confidencial. Solo la leen el personal encargado de denuncias y la coordinación de atención, y nunca se publica. Si se trata de un delito, acuda también a las autoridades competentes."
+          "text": "Las denuncias son confidenciales. Solo las leen el personal encargado de denuncias y la coordinación de atención. Su contenido nunca se publica. Si se trata de un delito, acuda también a las autoridades competentes."
          },
          {
           "type": "heading",
@@ -1535,7 +1540,7 @@
          },
          {
           "type": "paragraph",
-          "text": "Las solicitudes no se publican. Se puede publicar un resumen de los casos atendidos sin datos personales, con el nombre solo si la persona lo autoriza o, en su defecto, con sus iniciales."
+          "text": "Su solicitud no se publica. Cuando se resuelve, puede publicarse un resumen sin datos personales en «Casos atendidos», con sus iniciales o, si usted lo autoriza, con su nombre. De una denuncia solo se publica que fue atendida y en qué municipio."
          },
          {
           "type": "heading",
@@ -1544,11 +1549,15 @@
          },
          {
           "type": "paragraph",
-          "text": "Si ya existen reportes del mismo problema en la zona, se le ofrecerá apoyar el reporte existente. Un mismo problema en el mismo lugar no se abre más de tres veces. A partir del cuarto envío, el reporte se suma al primero y usted recibe su propio código."
+          "text": "Si ya existe un reporte del mismo problema en la zona, el formulario le ofrecerá apoyarlo. Los reportes repetidos se tramitan junto con el primero y cada persona conserva su propio código."
          },
          {
           "type": "pending",
           "text": "Por completar antes de publicar: el organismo responsable, cómo se avisan los cambios de estas condiciones y la fecha de la última revisión."
+         },
+         {
+          "type": "paragraph",
+          "text": "Texto sujeto a revisión jurídica."
          }
         ]
        }
@@ -1556,7 +1565,7 @@
      ],
      "seo": {
       "title": "Condiciones de participación",
-      "description": "Normas para enviar reportes, peticiones, acotaciones y denuncias por Atención ciudadana."
+      "description": "Normas para enviar solicitudes por Atención ciudadana."
      }
     }
    },
@@ -1572,10 +1581,6 @@
        "visible": true,
        "data": {
         "content": [
-         {
-          "type": "paragraph",
-          "text": "Texto preliminar, en revisión."
-         },
          {
           "type": "pending",
           "text": "Por completar antes de publicar: los resultados de la revisión de accesibilidad."
@@ -1620,17 +1625,21 @@
             "text": "Envíe una "
            },
            {
-            "text": "acotación",
+            "text": "observación",
             "href": "/atencion/nueva?tipo=acotacion"
            },
            {
-            "text": " desde Atención ciudadana e indique la página y el problema."
+            "text": " a Atención ciudadana e indique la página y el problema."
            }
           ]
          },
          {
           "type": "pending",
           "text": "Por completar antes de publicar: la fecha de la última revisión."
+         },
+         {
+          "type": "paragraph",
+          "text": "Texto sujeto a revisión."
          }
         ]
        }

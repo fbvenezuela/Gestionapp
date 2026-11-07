@@ -51,7 +51,7 @@ export function Pagination({ page, pages, hrefFor, label = 'Páginas' }: { page:
     <nav aria-label={label} className="mt-12 flex flex-wrap items-center justify-between gap-3">
       {page > 1 ? (
         <WebLink href={hrefFor(page - 1)} className={link} rel="prev">
-          ← Anterior
+          Anterior
         </WebLink>
       ) : (
         <span />
@@ -61,7 +61,7 @@ export function Pagination({ page, pages, hrefFor, label = 'Páginas' }: { page:
       </p>
       {page < pages ? (
         <WebLink href={hrefFor(page + 1)} className={link} rel="next">
-          Siguiente →
+          Siguiente
         </WebLink>
       ) : (
         <span />

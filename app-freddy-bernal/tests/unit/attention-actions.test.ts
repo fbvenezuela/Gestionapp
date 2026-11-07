@@ -199,11 +199,11 @@ describe('unir duplicados, spam y moderación', () => {
     expect(await req(dup.id)).toMatchObject({ state: 'cerrado', duplicate_of: main.id });
     expect((await sysOne<{ support_count: number }>(`select support_count from public.requests where id = $1`, [main.id]))!.support_count).toBe(1);
     await runAfters();
-    expect((await outbox(dup.email!)).map((m) => m.subject)).toEqual([`Su solicitud ${dup.reference} se unió a otra`]);
+    expect((await outbox(dup.email!)).map((m) => m.subject)).toEqual([`Su solicitud ${dup.reference} se tramita junto con otra`]);
     // A later change of the case that stays reaches the duplicate's sender too, with their own code.
     expect(await A.changeRequestState({ id: main.id, state: 'en_revision' })).toMatchObject({ ok: true });
     await runAfters();
-    expect((await outbox(dup.email!)).at(-1)!.text_body).toContain(`El caso al que se unió su solicitud ${dup.reference} pasó al estado «En revisión».`);
+    expect((await outbox(dup.email!)).at(-1)!.text_body).toContain(`Su solicitud ${dup.reference} se tramita junto con otra, que pasó al estado «En revisión».`);
   });
 
   it('spam: «No procede» marcado y guardado, sin correo; una crítica se cierra con su motivo, nunca se borra', async () => {

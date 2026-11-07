@@ -7,7 +7,7 @@ import { buttonClass, cardClass, Container, PageIntro, textLinkClass, WebLink } 
 import { listItems, type WebItem } from '@/lib/web/cache';
 import { choiceParam, pageParam, textParam, withQuery } from '@/lib/web/params';
 import { plainSearch } from '@/lib/web/public';
-import { NEWS_CATEGORIES } from '@/lib/web/schema';
+import { NEWS_CATEGORIES, NEWS_CATEGORIES_PLURAL } from '@/lib/web/schema';
 import { pageMetadata, siteTitle } from '@/lib/web/seo';
 import { getSite } from '@/lib/web/site';
 import { navLabel } from '@/lib/web/site-settings';
@@ -123,7 +123,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Search 
               <p className="text-lg font-semibold text-text">
                 {total === 1 ? '1 resultado' : `${total} resultados`}
                 {q ? ` para «${q}»` : ''}
-                {category ? ` en ${NEWS_CATEGORIES[category].toLowerCase()}s` : ''}
+                {category ? ` en ${NEWS_CATEGORIES_PLURAL[category]}` : ''}
               </p>
               <WebLink href="/actualidad" className={textLinkClass}>
                 Ver todo

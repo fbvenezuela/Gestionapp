@@ -8,7 +8,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getClientConfig } from '@/lib/client-config';
-import { DENUNCIA_NOTICE, EMERGENCY_NOTICE } from '@/lib/participation/notices';
+import { DENUNCIA_NOTICE, EMERGENCY_NOTICE, PUBLICATION_NOTICE } from '@/lib/participation/notices';
 import { CITIZEN_EMAIL_FOOTER, HOW_TO_CONSULT, receiptEmail, statusEmail } from '@/lib/participation/emails';
 import { CONTACT_CHANNEL_OPTION, REQUEST_STATES, REQUEST_TYPES, REQUEST_TYPE_HINT } from '@/lib/participation/input';
 import { receiptPdf } from '@/lib/participation/pdf';
@@ -73,6 +73,18 @@ describe('los dos avisos legales: un solo texto', () => {
     expect(of('atencion')).toContain(EMERGENCY_NOTICE);
   });
 
+  it('lo que se publica de una solicitud se dice de una sola manera (el aviso de privacidad, las condiciones, /atencion)', () => {
+    const pages = getClientConfig().web.pages;
+    const of = (slug: string) => JSON.stringify(pages.find((p) => p.slug === slug)!.draft);
+    for (const slug of ['aviso-de-privacidad', 'condiciones-de-participacion']) expect(of(slug), slug).toContain(PUBLICATION_NOTICE);
+    // Nothing says that nothing is published (a summary of the attended ones is).
+    const said = JSON.stringify(pages) + fs.readFileSync(path.join(process.cwd(), 'src/components/web/participation-actions.tsx'), 'utf8');
+    expect(said).not.toMatch(/Las solicitudes no se publican|Lo que envíe no se publica/);
+    expect(fs.readFileSync(path.join(process.cwd(), 'src/app/(web)/atencion/page.tsx'), 'utf8')).toContain('PUBLICATION_NOTICE');
+    // A denuncia's content is never published; that one was attended can be.
+    expect(DENUNCIA_NOTICE).toContain('Su contenido nunca se publica.');
+  });
+
   it('las páginas legales y la de atención hablan de usted y dejan para los editores solo lo que falta de la consulta legal', () => {
     const pages = getClientConfig().web.pages;
     for (const slug of ['atencion', 'aviso-de-privacidad', 'condiciones-de-participacion', 'accesibilidad']) {
@@ -134,7 +146,7 @@ describe('los correos a la persona', () => {
     // Only who supported a report reads that word.
     expect(statusEmail('state', { reference: 'AC-2026-K7QM2H', state: 'resuelto', role: 'owner' }).body).not.toMatch(/reporte/i);
     expect(statusEmail('state', { reference: 'AC-2026-K7QM2H', state: 'en_atencion' }).subject).toBe('Su solicitud AC-2026-K7QM2H: En atención');
-    expect(receiptEmail('request', 'AC-2026-K7QM2H').subject).toBe('Recibimos su solicitud AC-2026-K7QM2H');
+    expect(receiptEmail('request', 'AC-2026-K7QM2H').subject).toBe('Solicitud recibida AC-2026-K7QM2H');
     citizenReads('pie', `${CITIZEN_EMAIL_FOOTER} ${HOW_TO_CONSULT}`);
   });
 

@@ -13,7 +13,8 @@ export default function AttentionError({ reset }: { error: Error & { digest?: st
         <p className="text-sm font-semibold uppercase tracking-[0.08em] text-accent-ink">Atención ciudadana</p>
         <h1 className="text-3xl font-bold leading-tight">No se pudo cargar la página</h1>
         <p className="text-lg leading-relaxed text-text-2">
-          Puede ser la señal. Intente de nuevo. Si estaba llenando el formulario, lo escrito sigue guardado en este dispositivo.
+          La página no está disponible en este momento. Intente de nuevo en unos minutos. Si estaba llenando el formulario, lo escrito sigue
+          guardado en este dispositivo.
         </p>
         <div className="flex flex-wrap gap-3">
           <Btn tone="olive" size="lg" onClick={() => reset()}>

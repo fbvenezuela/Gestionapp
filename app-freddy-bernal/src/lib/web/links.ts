@@ -19,9 +19,9 @@ export function newRequestHref(type?: RequestType): string {
 /** «Hacer un reporte»: the form on a report. */
 export const REPORT_HREF = newRequestHref('reporte');
 
-/** A request about a news item or a project («Comentar esta noticia», «Hacer una observación sobre esta obra»). */
+/** An observation about a news item or a project («Enviar una observación»): the form on that kind, linked to it. */
 export function aboutHref(kind: 'news' | 'project', slug: string): string {
-  return `${ATTENTION.newRequest}?sobre=${kind}:${slug}`;
+  return `${ATTENTION.newRequest}?tipo=acotacion&sobre=${kind}:${slug}`;
 }
 
 /** Whether a link leaves the site (it then opens with rel="noopener noreferrer"). */

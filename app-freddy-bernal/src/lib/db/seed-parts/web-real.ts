@@ -40,7 +40,7 @@ export function realFaqs(): Faq[] {
     },
     {
       slug: 'si-pierdo-la-clave', order: 3, q: '¿Qué pasa si pierdo la clave?',
-      a: [p('La clave no se puede recuperar.'), p('Si dejó un dato de contacto, el personal de atención puede escribirle. Si no, puede enviar una solicitud nueva.')],
+      a: [p('La clave no puede recuperarse.'), p('Si dejó un medio de contacto, el personal de atención podrá comunicarse con usted. De lo contrario, puede enviar una nueva solicitud.')],
     },
     {
       slug: 'enviar-sin-dar-el-nombre', order: 4, q: '¿Puedo enviar una solicitud sin dar mi nombre?',
@@ -49,7 +49,7 @@ export function realFaqs(): Faq[] {
     { slug: 'quien-lee-una-denuncia', order: 5, q: '¿Quién lee una denuncia?', a: [p(DENUNCIA_NOTICE)] },
     {
       slug: 'cuanto-tarda-la-respuesta', order: 6, q: '¿Cuánto tarda la respuesta?',
-      a: [p('El personal de atención fija una fecha de atención para cada solicitud, según su categoría y su urgencia.'), p('Los casos urgentes se atienden primero.')],
+      a: [p('El personal de atención fija una fecha de atención para cada solicitud, según su categoría y su urgencia.'), p('Las solicitudes urgentes se atienden primero.')],
     },
     { slug: 'servicio-de-emergencias', order: 7, q: '¿Es un servicio de emergencias?', a: [p(EMERGENCY_NOTICE)] },
   ];
@@ -62,7 +62,7 @@ const HOME_HIDDEN_TYPES = new Set<Block['type']>(['indicators', 'attended', 'pro
 
 /** «inicio»: the hero with the official site's name, tagline and photo; nothing without content; the opinion pieces and
  * the latest weekly right after the news. */
-export function composeHome(draft: PageDraft, snap: Pick<RealSnapshot, 'identity' | 'pages'>): PageDraft {
+export function composeHome(draft: PageDraft, snap: Pick<RealSnapshot, 'identity' | 'pages'>, weeklyName = getClientConfig().brand.weeklyName || 'Semanario'): PageDraft {
   let hero = false;
   const blocks: Block[] = draft.blocks.map((b) => {
     if (b.type === 'hero' && !hero) {
@@ -75,7 +75,7 @@ export function composeHome(draft: PageDraft, snap: Pick<RealSnapshot, 'identity
   const extra: Block[] = (
     [
       { id: 'opinion', type: 'news', visible: true, data: { title: 'Opinión', category: 'articulo', limit: 2 } },
-      { id: 'semanario', type: 'documents', visible: true, data: { title: 'Semanario', category: 'semanario', limit: 1, ids: [] } },
+      { id: 'semanario', type: 'documents', visible: true, data: { title: weeklyName, category: 'semanario', limit: 1, ids: [] } },
     ] satisfies Block[]
   ).filter((x) => !blocks.some((b) => b.id === x.id));
   const news = blocks.findIndex((b) => b.id === 'actualidad');
@@ -87,11 +87,12 @@ export function composeHome(draft: PageDraft, snap: Pick<RealSnapshot, 'identity
 
 /** «gobernador»: the governor's photo in the hero; the biography, the posts about taking office and the honours of the
  * official site in place of the skeleton's slots, with the source; no press kit (the official site has none). */
-export function composeGovernor(draft: PageDraft, snap: Pick<RealSnapshot, 'pages' | 'source'>, cfg: ClientConfig = getClientConfig()): PageDraft {
+export function composeGovernor(draft: PageDraft, snap: Pick<RealSnapshot, 'pages' | 'source'>): PageDraft {
   const pg = snap.pages;
   const content: TextNode[] = [];
   if (pg.biography.length) content.push(h2('Biografía'), ...pg.biography);
-  if (pg.office.length) content.push(h2(cfg.web.structuredData.jobTitle), ...pg.office);
+  // Under the hero that already says the office: what these posts are about.
+  if (pg.office.length) content.push(h2('Elección y toma de posesión'), ...pg.office);
   if (pg.honors.length) content.push(h2('Condecoraciones'), ...pg.honors);
   if (content.length && pg.bioSourceUrl) {
     content.push({ type: 'paragraph', runs: [{ text: 'Fuente: ' }, { text: new URL(snap.source).hostname, href: pg.bioSourceUrl }] });
@@ -174,7 +175,7 @@ export async function seedRealWeb(ctx: RealSeedCtx, snap: RealSnapshot, cfg: Cli
     `select id, slug, draft from public.web_items where kind = 'page' and slug = any ($1::text[]) order by slug`,
     [['gobernador', 'inicio']],
   );
-  const composed = pages.map((pg) => ({ id: pg.id, slug: pg.slug, draft: pg.slug === 'inicio' ? composeHome(pg.draft, snap) : composeGovernor(pg.draft, snap, cfg) }));
+  const composed = pages.map((pg) => ({ id: pg.id, slug: pg.slug, draft: pg.slug === 'inicio' ? composeHome(pg.draft, snap, cfg.brand.weeklyName || 'Semanario') : composeGovernor(pg.draft, snap) }));
   for (const c of composed) {
     const ok = parseSnapshot('page', c.draft);
     if (!ok.ok) throw new Error(`contenido real: página ${c.slug}: ${ok.error}`);

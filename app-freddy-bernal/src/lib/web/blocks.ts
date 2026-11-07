@@ -97,7 +97,7 @@ export const BLOCK_DATA = {
   cta: z.object({ title: short(120).min(1), text: short(400).optional(), label: short(60).min(1), href: safeHref }),
   notices: z.object({ ...titled, limit: limit(12) }),
   channels: z.object({ ...titled }),
-  // The big accesses: report, petition, acotación, denuncia, «Consultar mi solicitud».
+  // The big accesses: report, petition, observation, denuncia, «Consultar mi solicitud».
   participation: z.object({ ...titled }),
   attended: z.object({ ...titled, limit: limit(24) }),
 } as const;

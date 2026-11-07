@@ -5,6 +5,7 @@ import { ParticipationNav } from '@/components/participation/participation-nav';
 import { LookupForm } from '@/components/participation/lookup-form';
 import { CaseView } from '@/components/participation/case-view';
 import { FocusOnMount } from '@/components/participation/focus-on-mount';
+import { getAttended } from '@/lib/web/cache';
 import { loadConsultation } from '../_lib/data';
 import { DemoDataWarning } from '@/components/participation/demo-warning';
 import { isDemo } from '@/lib/env';
@@ -20,13 +21,14 @@ export const metadata: Metadata = {
 // short sealed cookie this browser got from a lookup that found the request: only what the database gives back to the
 // receipt. Dynamic (it reads the cookie); nothing of it goes into a shared cache.
 export default async function ConsultPage() {
-  const c = await loadConsultation();
+  const [c, attended] = await Promise.all([loadConsultation(), getAttended(1)]);
+  const hasAttended = attended.length > 0;
 
   if (c.status === 'ok') {
     return (
       <div className="w-full bg-ivory text-text">
         <Band inner="max-w-3xl">
-          <ParticipationNav current="consultar" />
+          <ParticipationNav current="consultar" attended={hasAttended} />
           <FocusOnMount targetId="caso-titulo" />
           <DemoDataWarning demo={isDemo()} className="mb-6" />
           <CaseView view={c.view} maxFileBytes={maxAttachmentBytes()} />
@@ -39,11 +41,11 @@ export default async function ConsultPage() {
   return (
     <div className="w-full bg-ivory text-text">
       <Band className="pb-4 sm:pb-6">
-        <ParticipationNav current="consultar" />
+        <ParticipationNav current="consultar" attended={hasAttended} />
         <PageIntro
           eyebrow="Atención ciudadana"
           title="Consultar mi solicitud"
-          lead="Escriba el código y la clave de su comprobante para ver el estado, leer las respuestas o agregar información."
+          lead="Escriba el código y la clave que figuran en su comprobante."
         />
       </Band>
       <Band className="pt-4 sm:pt-6" inner="grid max-w-5xl gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -53,8 +55,8 @@ export default async function ConsultPage() {
         <aside className="flex flex-col gap-4 text-[15px] leading-relaxed text-text">
           <h2 className="text-lg font-bold">Pérdida de la clave</h2>
           <p>
-            La clave no se puede recuperar, porque el sistema no la guarda. Si dejó un contacto, el personal de atención puede escribirle. Si no, puede
-            enviar una solicitud nueva.
+            La clave no puede recuperarse. Si dejó un medio de contacto, el personal de atención podrá comunicarse con usted. De lo contrario, puede
+            enviar una nueva solicitud.
           </p>
           <h2 className="text-lg font-bold">Privacidad de la consulta</h2>
           <p>Al terminar, toque «Salir». Por seguridad, la consulta se cierra a los 30 minutos.</p>

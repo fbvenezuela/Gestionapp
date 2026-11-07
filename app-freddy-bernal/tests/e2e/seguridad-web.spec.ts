@@ -8,7 +8,7 @@ import { jpegWithGps } from '../unit/fixtures/photos';
 
 const YEAR = new Date().getFullYear();
 const DEMR03 = { reference: `AC-${YEAR}-DEMR03`, secret: 'H4JX-5ZTB-9CNF-W2YE' };
-const NOT_FOUND = 'No encontramos una solicitud con esos datos.';
+const NOT_FOUND = 'No hay ninguna solicitud con esos datos.';
 
 let net = 10 + Math.floor(Math.random() * 200);
 test.beforeEach(async ({ context }) => {
@@ -17,7 +17,7 @@ test.beforeEach(async ({ context }) => {
 
 test('la versión de prueba avisa en el formulario que no se escriban datos reales', async ({ page }) => {
   await page.goto('/atencion/nueva');
-  await expect(page.getByText('Versión de prueba: no escriba datos reales')).toBeVisible();
+  await expect(page.getByText('Versión de prueba. No escriba datos reales.')).toBeVisible();
   await expect(page.getByText(/en la versión real se guarda cifrado/i)).toBeVisible();
 });
 
@@ -58,7 +58,7 @@ test('la cookie de la consulta: solo bajo /atencion/consultar, httpOnly y SameSi
   await page.getByLabel('Código', { exact: true }).fill(DEMR03.reference);
   await page.getByLabel('Clave', { exact: true }).fill(DEMR03.secret);
   await page.getByRole('button', { name: 'Consultar' }).click();
-  await expect(page.getByText('Versión de prueba: no escriba datos reales')).toBeVisible();
+  await expect(page.getByText('Versión de prueba. No escriba datos reales.')).toBeVisible();
   const cookie = (await page.context().cookies()).find((c) => c.name === 'fb_consulta');
   expect(cookie).toMatchObject({ path: '/atencion/consultar', httpOnly: true, sameSite: 'Strict' });
   // Neither the code nor the secret ever travel in the address.

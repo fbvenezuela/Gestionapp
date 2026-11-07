@@ -7,7 +7,7 @@ import { cn } from '@/lib/cn';
 import { prepareFile } from './files-client';
 import { uuidV4 } from './form-core';
 import { FieldError, describedBy } from './kit';
-import { fileSize } from './words';
+import { PHOTO_CLEANING, fileSize } from './words';
 
 export type PickedFile = { id: string; file: File };
 
@@ -34,7 +34,7 @@ export function FilePicker({
   const mb = Math.round(maxBytes / (1024 * 1024));
   const hintText =
     hint ??
-    `Fotos JPG, PNG o WebP, o documentos PDF. Hasta ${FILES_PER_SEND} archivos, con un máximo de ${mb} MB cada uno. Antes de enviarlas, se eliminan de las fotos la ubicación y otros datos internos.`;
+    `Fotos JPG, PNG o WebP, o documentos PDF. Hasta ${FILES_PER_SEND} archivos, con un máximo de ${mb} MB cada uno. ${PHOTO_CLEANING}`;
 
   async function pick(list: FileList | null) {
     if (!list?.length) return;

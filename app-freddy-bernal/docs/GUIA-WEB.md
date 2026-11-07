@@ -20,7 +20,7 @@ biografía, fotos y el Semanario; D-101); la de las pruebas y la local, contenid
 | **Canales** | `/canales` | Las cuentas oficiales verificadas |
 | **Legales** | `/aviso-de-privacidad`, `/condiciones-de-participacion`, `/accesibilidad` | Privacidad, condiciones y accesibilidad |
 
-La gente participa **sin cuenta**: reporte, petición, acotación, sugerencia, reconocimiento o denuncia. Recibe un
+La gente participa **sin cuenta**: reporte, petición, observación, sugerencia, reconocimiento o denuncia. Recibe un
 código y una clave para seguir su caso. **No es un servicio de emergencias** y lo dice cada formulario.
 
 ## Quién hace qué

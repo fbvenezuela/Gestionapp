@@ -95,7 +95,7 @@ describe('el correo de recibido', () => {
       `select subject, text_body, html from public.outbox where idempotency_key = $1`, [`atencion-recibida:${ref}`]);
     expect(row.text_body).toContain(ref);
     expect(`${row.subject} ${row.text_body} ${row.html}`).not.toMatch(/denuncia/i);
-    expect(row.text_body).toMatch(/Recibimos su solicitud/);
+    expect(row.text_body).toMatch(/Su solicitud fue recibida/);
   });
 });
 

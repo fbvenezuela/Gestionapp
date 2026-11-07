@@ -49,7 +49,7 @@ export default async function AttentionInboxPage({ searchParams }: { searchParam
         subtitle={
           readOnly
             ? 'Lo que llega de la web, para consultar: sin contactos ni cambios.'
-            : 'Lo que llega de la web: reportes, peticiones, acotaciones, sugerencias, reconocimientos y denuncias.'
+            : 'Lo que llega de la web: reportes, peticiones, observaciones, sugerencias, reconocimientos y denuncias.'
         }
       />
       <DeskNav access={access} current={board ? 'tablero' : 'bandeja'} />

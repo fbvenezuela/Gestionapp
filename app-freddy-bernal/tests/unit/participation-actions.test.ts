@@ -52,7 +52,7 @@ let muni: (name: string) => string;
 const YEAR = today().year;
 const DEMR02 = { reference: `AC-${YEAR}-DEMR02`, secret: 'R3PS-W8N2-DEMV-7QKA' };
 const DEMR03 = { reference: `AC-${YEAR}-DEMR03`, secret: 'H4JX-5ZTB-9CNF-W2YE' };
-const NOT_FOUND = 'No encontramos una solicitud con esos datos.';
+const NOT_FOUND = 'No hay ninguna solicitud con esos datos.';
 let ipCounter = 10;
 
 beforeAll(async () => {

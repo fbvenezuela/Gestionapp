@@ -7,7 +7,7 @@ import { Btn, FieldBox, describedBy, inputStyle } from './kit';
 
 /**
  * «Consultar mi solicitud» (design §4): the code and the secret go by POST (a server action; never in the address, no
- * GET parameters), and a wrong one in any part gets the one answer «No encontramos una solicitud con esos datos». Works
+ * GET parameters), and a wrong one in any part gets the one answer «No hay ninguna solicitud con esos datos». Works
  * without JavaScript too.
  */
 export function LookupForm({ notice }: { notice?: string | null }) {

@@ -248,7 +248,7 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
   catálogos). `revalidate.ts` refresca al momento las etiquetas al publicar, programar, quitar la programación,
   archivar, desarchivar, guardar un ajuste o una redirección; lo programado aparece solo por `publish_at` en menos de un
   minuto. Ajustes del sitio normalizados en `site-settings.ts` (en producción solo las cuentas activas y verificadas;
-  en la demo también las demás, marcadas «sin verificar»). SEO: `seo.ts` y `meta.ts` (títulos, canónicas, Open Graph), JSON-LD
+  en la demo también las demás, con una sola línea que dice que están en proceso de confirmación). SEO: `seo.ts` y `meta.ts` (títulos, canónicas, Open Graph), JSON-LD
   `Person`, `GovernmentOrganization` y `NewsArticle` (`components/web/json-ld.tsx`), `src/app/sitemap.ts`,
   `src/app/robots.ts` y `src/app/opengraph-image.tsx`; sin `SITE_INDEXABLE=true`, robots, meta y `X-Robots-Tag` dicen
   noindex. Cabeceras (`headers.ts` → `next.config.ts`): CSP de la web sin nonces (YouTube nocookie, los cuadros de

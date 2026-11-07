@@ -62,44 +62,47 @@ export default async function AttendedPage({ searchParams }: { searchParams: Pro
       </Band>
 
       <Band className="pt-2 sm:pt-4">
-        <form method="get" action="/atencion/atendido" className={cn(webCard, 'grid gap-4 p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end')}>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="filtro-municipio" className="text-base font-semibold text-text">
-              Municipio
-            </label>
-            <select id="filtro-municipio" name="municipio" defaultValue={municipality?.slug ?? ''} className={inputStyle}>
-              <option value="">Todos</option>
-              {catalog.municipalities.map((m) => (
-                <option key={m.id} value={m.slug}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="filtro-categoria" className="text-base font-semibold text-text">
-              Categoría
-            </label>
-            <select id="filtro-categoria" name="categoria" defaultValue={category?.slug ?? ''} className={inputStyle}>
-              <option value="">Todas</option>
-              {catalog.categories.map((c) => (
-                <option key={c.id} value={c.slug}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button type="submit" className={buttonStyle({ tone: 'olive', size: 'md' })}>
-              Filtrar
-            </button>
-            {filtered ? (
-              <Link href="/atencion/atendido" className={buttonStyle({ tone: 'ghost', size: 'md' })}>
-                Quitar filtros
-              </Link>
-            ) : null}
-          </div>
-        </form>
+        {/* No case published at all: no filters for an empty list. */}
+        {data.total === 0 && !filtered ? null : (
+          <form method="get" action="/atencion/atendido" className={cn(webCard, 'grid gap-4 p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end')}>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="filtro-municipio" className="text-base font-semibold text-text">
+                Municipio
+              </label>
+              <select id="filtro-municipio" name="municipio" defaultValue={municipality?.slug ?? ''} className={inputStyle}>
+                <option value="">Todos</option>
+                {catalog.municipalities.map((m) => (
+                  <option key={m.id} value={m.slug}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="filtro-categoria" className="text-base font-semibold text-text">
+                Categoría
+              </label>
+              <select id="filtro-categoria" name="categoria" defaultValue={category?.slug ?? ''} className={inputStyle}>
+                <option value="">Todas</option>
+                {catalog.categories.map((c) => (
+                  <option key={c.id} value={c.slug}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button type="submit" className={buttonStyle({ tone: 'olive', size: 'md' })}>
+                Filtrar
+              </button>
+              {filtered ? (
+                <Link href="/atencion/atendido" className={buttonStyle({ tone: 'ghost', size: 'md' })}>
+                  Quitar filtros
+                </Link>
+              ) : null}
+            </div>
+          </form>
+        )}
 
         <p className="mt-6 text-[15px] text-text-2" aria-live="polite">
           {data.total === 0 ? '' : data.total === 1 ? '1 caso publicado' : `${data.total} casos publicados`}
@@ -111,7 +114,7 @@ export default async function AttendedPage({ searchParams }: { searchParams: Pro
         {data.items.length === 0 ? (
           <div className="mt-6 flex flex-col items-start gap-4 rounded-[var(--radius-card)] border border-dashed border-border bg-surface p-8">
             <CheckCircle2 className="h-8 w-8 text-accent-ink" aria-hidden />
-            <h2 className="text-xl font-bold text-text">{filtered ? 'No hay casos con esos filtros' : 'Aún no hay casos publicados'}</h2>
+            <h2 className="text-xl font-bold text-text">{filtered ? 'No hay casos con esos filtros' : 'No hay casos publicados en este momento.'}</h2>
             {filtered ? <p className="max-w-xl text-[15px] leading-relaxed text-text-2">Pruebe con otro municipio u otra categoría.</p> : null}
             <BtnLink href="/atencion/nueva" tone="action" size="md">
               Nueva solicitud
@@ -182,7 +185,7 @@ function AttendedCard({ it, featured, muni, cat }: { it: AttendedItem; featured:
       <p className={cn('mt-2 leading-relaxed text-text', featured ? 'text-xl font-semibold sm:text-2xl' : 'text-[17px]')}>{it.summary}</p>
       <p className="mt-3 text-sm text-text-2">
         {it.displayName && !denuncia ? <span className="font-semibold text-text">{it.displayName} · </span> : null}
-        {it.resolvedOn ? `Resuelto el ${dayDate(it.resolvedOn)}` : `Publicado el ${longDate(it.publishedAt)}`}
+        {it.resolvedOn ? `Resuelta el ${dayDate(it.resolvedOn)}` : `Publicada el ${longDate(it.publishedAt)}`}
       </p>
     </li>
   );

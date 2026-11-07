@@ -7,12 +7,15 @@ import type { TimelineItem } from '@/lib/web/participation';
 // case by case) and never an emergency number (none is invented). The two legal notices are one text each, in
 // src/lib/participation/notices.ts. Pure: server and browser components share it.
 
-export { DENUNCIA_LEAD, DENUNCIA_NOTICE, DENUNCIA_REST, EMERGENCY_LEAD, EMERGENCY_NOTICE, EMERGENCY_REST } from '@/lib/participation/notices';
+export {
+  ANTI_FRAUD_NOTICE, DENUNCIA_LEAD, DENUNCIA_NOTICE, DENUNCIA_PLACE, DENUNCIA_REST, EMERGENCY_LEAD, EMERGENCY_NOTICE, EMERGENCY_REST, PHOTO_CLEANING,
+  PUBLICATION_NOTICE,
+} from '@/lib/participation/notices';
 
 const ACTION: Record<RequestType, string> = {
   reporte: 'Hacer un reporte',
   peticion: 'Hacer una petición',
-  acotacion: 'Dejar una acotación',
+  acotacion: 'Enviar una observación',
   sugerencia: 'Enviar una sugerencia',
   reconocimiento: 'Enviar un reconocimiento',
   denuncia: 'Hacer una denuncia',
@@ -28,7 +31,7 @@ export const TYPE_COPY: Record<RequestType, { label: string; action: string; hin
 export const DETAIL_COPY: Record<RequestType, { title: string; description: string }> = {
   reporte: { title: 'Por ejemplo: «Hueco grande en la avenida principal».', description: 'Describa el problema, desde cuándo ocurre y a quién afecta.' },
   peticion: { title: 'Por ejemplo: «Jornada de vacunación para el sector».', description: 'Indique qué solicita, para quién y dónde.' },
-  acotacion: { title: 'Por ejemplo: «Faltan señales en los desvíos de la obra».', description: 'Escriba su opinión u observación.' },
+  acotacion: { title: 'Por ejemplo: «Faltan señales en los desvíos de la obra».', description: 'Escriba su observación.' },
   sugerencia: { title: 'Por ejemplo: «Publicar las rutas del transporte».', description: 'Describa su propuesta y para qué serviría.' },
   reconocimiento: { title: 'Por ejemplo: «Gracias por arreglar la cancha».', description: 'Indique qué se hizo bien y, si lo desea, quién lo hizo.' },
   denuncia: { title: 'Una frase corta que resuma el hecho.', description: 'Indique qué ocurrió, cuándo y dónde, de forma aproximada.' },

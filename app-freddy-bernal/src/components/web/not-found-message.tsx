@@ -19,7 +19,7 @@ export function NotFoundMessage() {
           </ButtonLink>
         </div>
         <p className="mt-6 text-base leading-relaxed text-text-2">
-          Para ver una solicitud, use{' '}
+          Para conocer el estado de una solicitud, ingrese a{' '}
           <WebLink href={ATTENTION.lookup} className={textLinkClass}>
             Consultar mi solicitud
           </WebLink>

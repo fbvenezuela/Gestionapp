@@ -156,7 +156,7 @@ async function Timeline({ sp }: { sp: Record<string, string | string[] | undefin
       </FilterForm>
       <div className="mb-6 mt-8 flex flex-wrap items-center gap-x-4 gap-y-2" aria-live="polite">
         <p className="text-lg font-semibold text-text">
-          {from || to ? `${total} ${total === 1 ? 'entrada' : 'entradas'}${from ? ` desde el ${fmtDay(from)}` : ''}${to ? ` hasta el ${fmtDay(to)}` : ''}` : 'Desde la más reciente'}
+          {from || to ? `${total} ${total === 1 ? 'obra' : 'obras'}${from ? ` desde el ${fmtDay(from)}` : ''}${to ? ` hasta el ${fmtDay(to)}` : ''}` : 'Ordenadas de la más reciente a la más antigua.'}
         </p>
         {from || to ? (
           <WebLink href="/gestion?vista=linea" className={textLinkClass}>
@@ -203,7 +203,7 @@ async function Timeline({ sp }: { sp: Record<string, string | string[] | undefin
           ))}
         </div>
       ) : (
-        <EmptyState title={from || to ? 'No hay publicaciones en esas fechas.' : 'Aún no hay entradas publicadas.'}>
+        <EmptyState title={from || to ? 'No hay obras registradas en esas fechas.' : 'Aún no hay obras publicadas.'}>
           {from || to ? (
             <WebLink href="/gestion?vista=linea" className={textLinkClass}>
               Ver toda la línea de tiempo

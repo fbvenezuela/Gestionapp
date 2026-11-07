@@ -7,7 +7,7 @@ import type { PublicCategory, Territory } from '@/lib/web/public';
 import { cn } from '@/lib/cn';
 import { DenunciaNote, FieldBox, FieldError, buttonStyle, describedBy, inputStyle, webCard } from './kit';
 import { Honeypot } from './contact-fields';
-import { EMERGENCY_NOTICE, TYPE_COPY } from './words';
+import { DENUNCIA_PLACE, EMERGENCY_NOTICE, TYPE_COPY } from './words';
 
 /**
  * The same request without JavaScript (design §4: a no-JS fallback). It lives inside <noscript>, so only a browser
@@ -48,7 +48,7 @@ export function NoJsForm({
     return (
       <section aria-labelledby="sinjs-recibo" className="flex flex-col gap-5 rounded-[var(--radius-card)] border-2 border-text bg-surface p-6">
         <h2 id="sinjs-recibo" className="text-2xl font-bold text-text">
-          {state.kind === 'support' ? 'Su apoyo al reporte quedó registrado' : 'Recibimos su solicitud'}
+          {state.kind === 'support' ? 'Apoyo registrado' : 'Solicitud recibida'}
         </h2>
         <dl className="grid gap-4">
           <div>
@@ -81,7 +81,7 @@ export function NoJsForm({
     <form action={action} className={cn(webCard, 'relative flex flex-col gap-6 p-5 sm:p-8')}>
       <input type="hidden" name="submissionKey" value={v.submissionKey || formKey} />
       <input type="hidden" name="linkedItemId" value={v.linkedItemId || linkedItemId || ''} />
-      <p className="text-[15px] text-text-2">Su navegador tiene JavaScript desactivado. Este es el formulario completo en una sola página, sin archivos ni mapa.</p>
+      <p className="text-[15px] text-text-2">Formulario en una sola página. En esta versión no se pueden adjuntar archivos ni marcar el lugar en el mapa.</p>
       {state?.status === 'error' ? (
         <div role="alert" className="rounded-2xl border-2 border-danger bg-danger-soft p-4 text-text">
           <p className="font-bold text-danger">{state.error}</p>
@@ -108,7 +108,9 @@ export function NoJsForm({
         ))}
         {err('type') ? <FieldError id="sinjs-type-error">{err('type')}</FieldError> : null}
       </fieldset>
-      <DenunciaNote title="Si envía una denuncia">Indique solo el lugar aproximado y deje vacío el punto de referencia.</DenunciaNote>
+      <DenunciaNote title="Si envía una denuncia">
+        {DENUNCIA_PLACE} Deje vacío el punto de referencia.
+      </DenunciaNote>
 
       <FieldBox id="sinjs-categoryId" label="Categoría" error={err('categoryId')}>
         <select id="sinjs-categoryId" name="categoryId" defaultValue={v.categoryId ?? ''} className={inputStyle} required aria-describedby={describedBy('sinjs-categoryId', { error: err('categoryId') })}>
@@ -183,7 +185,7 @@ export function NoJsForm({
         <label className="flex min-h-11 items-start gap-3 text-[15px] text-text">
           <input type="checkbox" name="publishNameConsent" defaultChecked={v.publishNameConsent === 'on'} className="mt-0.5 size-5 accent-accent" />
           <span>
-            Autorizo que se publique mi nombre si el caso aparece en «Casos atendidos».{' '}
+            Autorizo que se publique mi nombre si mi solicitud aparece en «Casos atendidos».{' '}
             <span className="text-text-2">Si no marca esta casilla, solo se publicarán sus iniciales.</span>
           </span>
         </label>
@@ -196,7 +198,7 @@ export function NoJsForm({
           <a href="/aviso-de-privacidad" className="font-semibold text-accent-ink underline">
             aviso de privacidad
           </a>{' '}
-          y acepto que mis datos se usen solo para atender esta solicitud.
+          y acepto el uso de mis datos para atender esta solicitud.
         </span>
       </label>
       {err('privacyAccepted') ? <FieldError id="sinjs-privacy-error">{err('privacyAccepted')}</FieldError> : null}

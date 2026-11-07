@@ -1,5 +1,5 @@
 import type { PublicStats } from '@/lib/web/participation';
-import { REQUEST_STATE_LABEL, REQUEST_TYPE_LABEL, type RequestState, type RequestType } from '@/lib/participation/input';
+import { CITIZEN_STATE_LABEL, REQUEST_TYPE_LABEL, type RequestState, type RequestType } from '@/lib/participation/input';
 import { fmtDay, fmtHours, fmtNumber } from '@/lib/web/format';
 import { cn } from '@/lib/cn';
 import { cardClass } from './ui';
@@ -9,11 +9,11 @@ import { cardClass } from './ui';
 // category or municipality). Synchronous: tests render it with fake figures.
 
 export const STAT_DEFINITIONS = [
-  { term: 'Recibidas', text: 'Solicitudes recibidas en el período. No incluye las descartadas como spam ni las unidas a otra por ser el mismo caso.' },
-  { term: 'Resueltas', text: 'Solicitudes marcadas como resueltas en el período.' },
-  { term: 'Pendientes', text: 'Solicitudes abiertas al cierre del período (no resueltas, no cerradas y no marcadas «no procede»).' },
+  { term: 'Recibidas', text: 'Solicitudes recibidas en el período. No incluye las improcedentes ni las unificadas por referirse al mismo problema.' },
+  { term: 'Resueltas', text: 'Solicitudes resueltas en el período.' },
+  { term: 'Pendientes', text: 'Solicitudes en trámite al cierre del período.' },
   { term: 'Vencidas', text: 'Solicitudes pendientes que superaron la fecha prevista de atención.' },
-  { term: 'Primera respuesta', text: 'Tiempo promedio entre la llegada de la solicitud y la primera respuesta (un mensaje o un cambio de estado).' },
+  { term: 'Primera respuesta', text: 'Tiempo promedio entre la recepción de la solicitud y la primera respuesta de Atención ciudadana.' },
   { term: 'Resolución', text: 'Tiempo promedio entre la llegada y la resolución, para las resueltas en el período.' },
   { term: 'Por categoría y por municipio', text: 'Solicitudes recibidas, sin las denuncias, que por confidencialidad no se muestran por lugar ni por tema.' },
 ] as const;
@@ -62,7 +62,7 @@ export function StatsView({ stats }: { stats: PublicStats }) {
     .sort((a, b) => b.count - a.count);
   const byState = (Object.entries(stats.byState) as [RequestState, number][])
     .filter(([, n]) => n > 0)
-    .map(([s, n]) => ({ label: REQUEST_STATE_LABEL[s] ?? s, count: n }))
+    .map(([s, n]) => ({ label: CITIZEN_STATE_LABEL[s] ?? s, count: n }))
     .sort((a, b) => b.count - a.count);
   return (
     <div className="flex flex-col gap-10">

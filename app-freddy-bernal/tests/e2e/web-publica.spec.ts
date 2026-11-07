@@ -83,7 +83,9 @@ test.describe('la web pública en el teléfono (360 px)', () => {
     const footer = page.getByRole('contentinfo');
     await expect(footer).toContainText(`© ${new Date().getFullYear()} Freddy Bernal. Todos los derechos reservados.`);
     for (const name of ['Aviso de privacidad', 'Condiciones de participación', 'Accesibilidad']) await expect(footer.getByRole('link', { name })).toBeVisible();
-    await expect(footer.getByText('sin verificar').first()).toBeVisible();
+    // The accounts nobody has confirmed yet: one line, never a mark on each.
+    await expect(footer.getByText('Estas cuentas están en proceso de confirmación.')).toBeVisible();
+    await expect(footer.getByText('sin verificar')).toHaveCount(0);
     await expect(footer.getByRole('link', { name: /YouTube @FreddyBernalOficial/i })).toHaveCount(0);
     // The accounts the governor's channel links: the dead X account of the old site is not one of them.
     await expect(footer.getByRole('link', { name: /^X @freddybernal_ve/ })).toBeVisible();
@@ -149,7 +151,7 @@ test.describe('la web pública en el teléfono (360 px)', () => {
     for (const [name, href] of [
       [/Hacer un reporte/, '/atencion/nueva?tipo=reporte'],
       [/Hacer una petición/, '/atencion/nueva?tipo=peticion'],
-      [/Dejar una acotación/, '/atencion/nueva?tipo=acotacion'],
+      [/Enviar una observación/, '/atencion/nueva?tipo=acotacion'],
       [/Hacer una denuncia/, '/atencion/nueva?tipo=denuncia'],
       [/Consultar mi solicitud/, '/atencion/consultar'],
     ] as const) {
@@ -194,7 +196,7 @@ test.describe('la web pública en el teléfono (360 px)', () => {
     await expect(page.locator('main article').first()).toContainText('Junín');
     await page.getByRole('link', { name: 'Quitar los filtros' }).click();
     await page.waitForURL(/\/gestion$/);
-    await page.getByRole('link', { name: 'Siguiente →' }).click();
+    await page.getByRole('link', { name: 'Siguiente', exact: true }).click();
     await page.waitForURL(/pagina=2/);
     await expect(page.getByText('Página 2 de 2')).toBeVisible();
   });
@@ -202,7 +204,7 @@ test.describe('la web pública en el teléfono (360 px)', () => {
   test('la línea de tiempo: todo lo más nuevo primero y el filtro solo por fecha', async ({ page }) => {
     await page.goto('/gestion?vista=linea');
     await expect(page.getByRole('link', { name: 'Línea de tiempo' })).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByText('Desde la más reciente')).toBeVisible();
+    await expect(page.getByText('Ordenadas de la más reciente a la más antigua.')).toBeVisible();
     await expect(page.getByLabel('Municipio')).toHaveCount(0);
     const days = await page.locator('main ol li time').evaluateAll((els) => els.map((e) => e.getAttribute('datetime') ?? ''));
     expect(days.length).toBeGreaterThan(5);
@@ -213,21 +215,21 @@ test.describe('la web pública en el teléfono (360 px)', () => {
     await page.getByLabel('Hasta').fill(to);
     await page.getByRole('button', { name: 'Filtrar por fecha' }).click();
     await page.waitForURL(/desde=/);
-    await expect(page.getByText(/entradas? desde el/)).toBeVisible();
+    await expect(page.getByText(/obras? desde el/)).toBeVisible();
     const shown = await page.locator('main ol li time').evaluateAll((els) => els.map((e) => e.getAttribute('datetime') ?? ''));
     expect(shown.length).toBeGreaterThan(0);
     expect(shown.length).toBeLessThan(days.length);
     for (const d of shown) expect(d >= from && d <= to, d).toBe(true);
   });
 
-  test('la ficha de una obra: sus datos con fuente y «Hacer una observación sobre esta obra» ligada a ella', async ({ page }) => {
+  test('la ficha de una obra: sus datos con fuente y «Enviar una observación sobre esta obra» ligada a ella', async ({ page }) => {
     await page.goto('/gestion');
     const href = await firstLink(page, '/gestion/');
     await page.goto(href);
     const slug = href.split('/').pop()!;
     await expect(page.getByRole('navigation', { name: 'Ruta' })).toBeVisible();
     await expect(page.getByText('Última actualización')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Hacer una observación sobre esta obra' })).toHaveAttribute('href', `/atencion/nueva?sobre=project:${slug}`);
+    await expect(page.getByRole('link', { name: 'Enviar una observación sobre esta obra' })).toHaveAttribute('href', `/atencion/nueva?tipo=acotacion&sobre=project:${slug}`);
     await fitsWidth(page, href);
     await noSerious(page, href);
     expect((await page.request.get('/gestion/una-obra-que-no-existe')).status()).toBe(404);
@@ -254,7 +256,7 @@ test.describe('la web pública en el teléfono (360 px)', () => {
     await expect(page.getByRole('link', { name: /Jornada de salud en Junín/ })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Temas' }).getByRole('link', { name: 'Salud', exact: true })).toHaveAttribute('aria-current', 'page');
     await page.goto('/actualidad');
-    await page.getByRole('link', { name: 'Siguiente →' }).click();
+    await page.getByRole('link', { name: 'Siguiente', exact: true }).click();
     await page.waitForURL(/pagina=2/);
     await page.goto('/actualidad');
     const href = await firstLink(page, '/actualidad/');
@@ -267,7 +269,7 @@ test.describe('la web pública en el teléfono (360 px)', () => {
     await expect(page.getByRole('heading', { name: 'Fuentes' })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Ruta' }).getByRole('link', { name: 'Noticias' })).toHaveAttribute('href', '/actualidad');
     await noScaffolding(page, href);
-    await expect(page.getByRole('link', { name: 'Comentar esta noticia' })).toHaveAttribute('href', `/atencion/nueva?sobre=news:${href.split('/').pop()}`);
+    await expect(page.getByRole('link', { name: 'Enviar una observación' })).toHaveAttribute('href', `/atencion/nueva?tipo=acotacion&sobre=news:${href.split('/').pop()}`);
     const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').last().textContent())!) as Record<string, unknown>;
     expect(ld['@type']).toBe('NewsArticle');
     expect(ld.headline).toBe(title);
@@ -296,10 +298,10 @@ test.describe('la web pública en el teléfono (360 px)', () => {
     await expect(page.getByRole('link', { name: 'Últimos 30 días' })).toHaveAttribute('aria-current', 'page');
   });
 
-  test('Reporte Bernal: el canal activo (sin verificar) y ninguna emisión sin video dibuja un reproductor vacío', async ({ page }) => {
+  test('Reporte Bernal: el canal activo y ninguna emisión sin video dibuja un reproductor vacío', async ({ page }) => {
     await page.goto('/reporte-bernal');
     await expect(page.getByRole('link', { name: /Canal de YouTube @FreddyBernal\.oficial/ })).toHaveAttribute('href', 'https://www.youtube.com/@FreddyBernal.oficial');
-    await expect(page.getByRole('main').getByText('sin verificar')).toBeVisible();
+    await expect(page.getByRole('main').getByText('sin verificar')).toHaveCount(0);
     await expect(page.locator('main a[href*="@FreddyBernalOficial"]')).toHaveCount(0);
     await expect(page.getByText('Última emisión')).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Emisiones anteriores' })).toBeVisible();

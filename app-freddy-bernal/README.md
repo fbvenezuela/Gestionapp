@@ -189,10 +189,16 @@ demostración (sin `DATABASE_URL`): con la base real nunca se enciende.
 npm run build                                          # como CI y en tu computadora: apagado, contenido inventado
 REAL_SITE_CONTENT=1 npm run build && npm start         # con el contenido real (detrás de un proxy: NODE_USE_ENV_PROXY=1)
 ```
-- **En Vercel se enciende solo** en el despliegue de producción (`VERCEL_ENV=production`). Las versiones de prueba
-  de cada rama y CI quedan con el contenido inventado.
-- `REAL_SITE_CONTENT`: `1` lo enciende en cualquier construcción; `0` lo apaga en todas partes (también al abrir la
-  app).
+- **En Vercel se enciende solo** en el despliegue de producción (`VERCEL_ENV=production`) del repositorio de la demo
+  (`web.realSite.vercelRepo` en `config/clients/fb.json`: una copia del repositorio no lo enciende). Hace falta que el
+  proyecto tenga encendido «Automatically expose System Environment Variables» (Settings → Environment Variables; viene
+  encendido en los proyectos nuevos). Si queda apagado, el registro de la construcción dice qué vio de `VERCEL` y
+  `VERCEL_ENV`. Después del primer despliegue de producción, el registro debe decir «[contenido real] encendido
+  (despliegue de producción en Vercel)». Las versiones de prueba de cada rama y CI quedan con el contenido inventado.
+- `REAL_SITE_CONTENT`: `1` lo enciende en cualquier construcción; `0` lo apaga al construir y, al abrir la app, deja la
+  base y las fotos con lo inventado. Las páginas que la construcción ya armó con el contenido real siguen así hasta que
+  se vuelve a construir: para ver lo inventado, `npm run build` sin la variable (las pruebas de punta a punta se niegan
+  a correr al lado de una `.real-site/`).
 - `REAL_SITE_BUDGET_S`: cuántos segundos puede tardar (480 si no se pone). Pasado ese tiempo, o si la web oficial no
   responde, se usa la copia anterior (Vercel la guarda en `.next/cache/real-site/`); sin copia, la demo sale con el
   contenido inventado y el registro de la construcción lo avisa. **La construcción nunca falla por la web oficial.**
@@ -200,7 +206,11 @@ REAL_SITE_CONTENT=1 npm run build && npm start         # con el contenido real (
   de YouTube con esta clave. La clave va solo en una cabecera de la petición: nunca en el registro ni en `.real-site/`.
   La pone Juan en Vercel si la quiere (`docs/PENDIENTES.md`).
 - Con `LOCAL_DATA_DIR`, la base local guarda lo que sembró la primera vez: para pasar de inventado a real (o al
-  revés), borra la carpeta.
+  revés), borra la carpeta. Al arrancar avisa si su primera siembra ya no coincide con la construcción.
+- **Si la web oficial retira algo** (una nota, una foto): la próxima construcción lo deja fuera. Lo bajado se guarda
+  una semana como mucho y la copia anterior no se usa si tiene más de una semana. Para sacarlo ya: en Vercel,
+  «Redeploy» sin la caché de construcción («Use existing Build Cache» apagado), y borrar los despliegues viejos que
+  lo muestren.
 
 ## Volver a la versión anterior (Instant Rollback)
 En Vercel → Deployments → la versión buena → «…» → **Instant Rollback**. Es inmediato y no toca la base. Si una
