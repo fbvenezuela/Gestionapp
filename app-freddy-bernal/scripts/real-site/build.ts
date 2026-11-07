@@ -230,6 +230,10 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
     else newsCount++;
   }
 
+  // A site that answers with nothing usable would leave the demo empty: that counts as not answering (the build keeps
+  // the last good snapshot, or the invented content).
+  if (!newsCount && !opinionCount) throw new Error('la web oficial no devolvió ninguna nota que se pueda mostrar');
+
   // --- The governor's page -------------------------------------------------------------------------------------------
   const bioPost = pagePosts.find((p) => p.id === config.bioPostId) ?? null;
   const bio = bioPost ? biographyOf(bioPost, ctx) : { biography: [] as TextNode[], honors: [] as TextNode[], sourceUrl: '' };
@@ -337,7 +341,14 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
   // --- Together, sorted -----------------------------------------------------------------------------------------------
   const date = (it: RealItem) => String((it.draft as { date?: string }).date ?? '');
   items.sort((a, b) => KIND_ORDER[a.kind] - KIND_ORDER[b.kind] || date(b).localeCompare(date(a)) || a.id.localeCompare(b.id));
-  const mediaList = [...media.values()].sort((a, b) => a.id.localeCompare(b.id));
+  // Only the files something shows (a photo brought for a post that was then left out goes too).
+  const used = new Set<string>([heroMediaId, bioMediaId].filter((x): x is string => !!x));
+  for (const it of items) {
+    const d = it.draft as { coverId?: unknown; galleryIds?: unknown; fileId?: unknown };
+    for (const v of [d.coverId, d.fileId, ...(Array.isArray(d.galleryIds) ? d.galleryIds : [])]) if (typeof v === 'string') used.add(v);
+  }
+  const mediaList = [...media.values()].filter((m) => used.has(m.id)).sort((a, b) => a.id.localeCompare(b.id));
+  for (const m of media.values()) if (!used.has(m.id)) files.delete(m.key);
   const candidate: RealSnapshot = {
     version: 1,
     fetchedAt: input.now.toISOString(),
