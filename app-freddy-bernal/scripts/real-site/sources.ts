@@ -92,6 +92,7 @@ export type SourceOptions = {
   /** Pauses (the tests make them instant). */
   apiDelayMs?: number;
   fileDelayMs?: number;
+  sleep?: (ms: number) => Promise<void>;
 };
 
 export function networkSources(o: SourceOptions): Sources {
@@ -101,7 +102,8 @@ export function networkSources(o: SourceOptions): Sources {
     const signal = init.signal ? AbortSignal.any([init.signal, o.deadline.signal]) : o.deadline.signal;
     return o.fetcher(url, { ...init, signal });
   };
-  const sleep = (ms: number) => (o.deadline.passed ? Promise.resolve() : new Promise<void>((r) => setTimeout(r, Math.min(ms, Math.max(0, o.deadline.at - Date.now())))));
+  const sleep =
+    o.sleep ?? ((ms: number) => (o.deadline.passed ? Promise.resolve() : new Promise<void>((r) => setTimeout(r, Math.min(ms, Math.max(0, o.deadline.at - Date.now()))))));
   const client = (allowedHosts: readonly string[], delayMs: number) =>
     new PoliteHttp({ fetcher, allowedHosts, delayMs, userAgent: USER_AGENT, retries: 2, timeoutMs: 25_000, sleep, log: o.log });
   const api = client(site.ownHosts, o.apiDelayMs ?? 1000);
@@ -143,11 +145,13 @@ export function networkSources(o: SourceOptions): Sources {
     photo: (want: PhotoWant): Promise<FetchedPhoto> => fetchPhoto(photos, want),
     async feed() {
       const url = `https://www.youtube.com/feeds/videos.xml?playlist_id=${encodeURIComponent(o.config.youtube.playlistId)}`;
-      // A feed can answer 404 for a moment: once more, a little later.
-      const first = await text(youtube, url, 'application/atom+xml,application/xml;q=0.9,*/*;q=0.5', 2 * 1024 * 1024);
-      if (first !== null) return first;
-      await sleep(2000);
-      return text(youtube, url, 'application/atom+xml,application/xml;q=0.9,*/*;q=0.5', 2 * 1024 * 1024);
+      // A feed can answer 404 for a moment: twice more, a little later each time.
+      for (const pause of [0, 2000, 6000]) {
+        if (pause) await sleep(pause);
+        const xml = await text(youtube, url, 'application/atom+xml,application/xml;q=0.9,*/*;q=0.5', 2 * 1024 * 1024);
+        if (xml !== null) return xml;
+      }
+      return null;
     },
     thumbnail(videoId: string) {
       const t = thumbnailUrls(videoId);
@@ -160,13 +164,15 @@ export function networkSources(o: SourceOptions): Sources {
       if (kept && kept.bytes.length <= PDF_MAX_BYTES) return { bytes: kept.bytes, fileName: kept.meta.fileName ?? null };
       const res = await drive.get(url, 'application/pdf,*/*;q=0.5', 120_000);
       if (!res) return null;
+      // Drive hands its files out as «application/octet-stream» (a page asking to confirm is HTML): the bytes decide.
       const type = (res.headers.get('content-type') ?? '').toLowerCase();
-      if (!type.startsWith('application/pdf')) {
+      if (!/^(?:application\/(?:pdf|octet-stream|binary|x-download|force-download)|binary\/octet-stream)\b/.test(type)) {
         await res.body?.cancel().catch(() => {});
         throw new Error(`Drive no entregó un PDF (${type.split(';')[0] || 'sin tipo'})`);
       }
       const bytes = await readCapped(res, PDF_MAX_BYTES);
       if (!bytes) throw new Error('el PDF pasa de 20 MB');
+      if (String.fromCharCode(...bytes.subarray(0, 5)) !== '%PDF-') throw new Error('lo que entregó Drive no es un PDF');
       const fileName = fileNameFromDisposition(res.headers.get('content-disposition'));
       o.cache?.write(url, bytes, { fileName });
       return { bytes, fileName };

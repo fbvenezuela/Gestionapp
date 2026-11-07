@@ -3,6 +3,8 @@ import postgres from 'postgres';
 import { env } from '../env';
 import { asAnon, asSystem, asUser, type Backend, type Claims, type Row, type Sql } from './core';
 import { pgTls } from './ssl';
+import type { ClientConfig } from '../client-config';
+import type { RealSnapshot } from '../web/real-site';
 
 export type { Sql, Claims } from './core';
 
@@ -29,37 +31,48 @@ function postgresBackend(url: string): Backend {
   };
 }
 
-async function createDemoBackend(): Promise<Backend> {
+/**
+ * The demo's data on a database that has only its schema: the client's configuration, the invented demo and, when the
+ * build left the official site's content (.real-site/, src/lib/web/real-site.ts), that content instead of the invented
+ * web content (the invented citizen requests stay; the invented web items and the public «lo atendido» do not). Same
+ * ids on every server, so a link made by one opens on another (./stable-ids.ts). The whole seed is one transaction: if
+ * the real content cannot be seeded, nothing of it stays and the invented content is seeded instead (the same on every
+ * server: they all have the same file). Says which one it seeded. Exported for the tests.
+ */
+export async function seedDemoData(backend: Backend, real: RealSnapshot | null, cfg?: ClientConfig): Promise<'real' | 'invented'> {
   const { seedClient } = await import('./seed-client');
   const { seedDemo } = await import('./seed-demo');
   const { withStableIds } = await import('./stable-ids');
-  const { loadRealSnapshot } = await import('../web/real-site');
-  // Same ids on every server, so a link made by one opens on another (./stable-ids.ts). With the website's demo content
-  // and the citizen requests (seed-parts/web.ts); with the official site's real content instead of the invented web
-  // content when the build left it (.real-site/, src/lib/web/real-site.ts): the invented requests stay, the invented
-  // web items and the public «lo atendido» do not.
-  const seedWith = (backend: Backend, real: ReturnType<typeof loadRealSnapshot>) =>
+  const seedWith = (snapshot: RealSnapshot | null) =>
     asSystem(backend, (sql) =>
       withStableIds(sql, async () => {
         await seedClient(sql);
-        const ids = await seedDemo(sql, env.appTz, { webContent: true, inventedWebItems: !real, publicAttended: !real });
-        if (real) {
+        const ids = await seedDemo(sql, env.appTz, { webContent: true, inventedWebItems: !snapshot, publicAttended: !snapshot });
+        if (snapshot) {
           const { seedRealWeb } = await import('./seed-parts/web-real');
-          await seedRealWeb({ sql, ids }, real);
+          await seedRealWeb({ sql, ids }, snapshot, cfg);
         }
       }),
     );
-  // The whole seed is one transaction: if the real content cannot be seeded, nothing of it stays and the demo seeds the
-  // invented content instead (the same on every server: they all have the same file).
+  if (!real) {
+    await seedWith(null);
+    return 'invented';
+  }
+  try {
+    await seedWith(real);
+    return 'real';
+  } catch (e) {
+    console.error(`[web] El contenido real no se pudo sembrar (${(e as Error).message}): la demo sigue con el contenido inventado.`);
+    await seedWith(null);
+    return 'invented';
+  }
+}
+
+async function createDemoBackend(): Promise<Backend> {
+  const { seedClient } = await import('./seed-client');
+  const { loadRealSnapshot } = await import('../web/real-site');
   const seed = async (backend: Backend) => {
-    const real = loadRealSnapshot();
-    if (!real) return seedWith(backend, null);
-    try {
-      await seedWith(backend, real);
-    } catch (e) {
-      console.error(`[web] El contenido real no se pudo sembrar (${(e as Error).message}): la demo sigue con el contenido inventado.`);
-      await seedWith(backend, null);
-    }
+    await seedDemoData(backend, loadRealSnapshot());
   };
   // LOCAL_DATA_DIR (D-94): the same demo on disk, seeded once and kept across restarts. Not while `next build` runs
   // (its workers would share the folder): the build gets the in-memory one, as always.

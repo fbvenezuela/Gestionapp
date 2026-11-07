@@ -21,8 +21,9 @@ export type PrebuildOptions = {
   log?: (line: string) => void;
   warn?: (line: string) => void;
   now?: () => Date;
-  /** Pauses between requests (the tests make them instant). */
+  /** Pauses between requests and before a retry (the tests make them instant). */
   delays?: { api: number; files: number };
+  sleep?: (ms: number) => Promise<void>;
 };
 
 export type PrebuildResult =
@@ -119,6 +120,7 @@ export async function prebuild(o: PrebuildOptions): Promise<PrebuildResult> {
       log: (l) => log(`[contenido real] ${l.trim()}`),
       apiDelayMs: o.delays?.api,
       fileDelayMs: o.delays?.files,
+      sleep: o.sleep,
     });
     let result = await buildSnapshot(
       {

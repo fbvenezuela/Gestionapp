@@ -55,7 +55,11 @@ export function dropSentencesInRuns(runs: readonly TextRun[], drop: (sentence: s
       if (!cut.some(([a, b]) => k >= a && k < b)) t += r.text[i];
     }
     at += r.text.length;
-    if (t) out.push({ ...r, text: t });
+    if (!t) continue;
+    // Two pieces of the same style that the cut left side by side are one again.
+    const prev = out[out.length - 1];
+    if (prev && !!prev.bold === !!r.bold && !!prev.italic === !!r.italic && (prev.href ?? null) === (r.href ?? null)) prev.text += t;
+    else out.push({ ...r, text: t });
   }
   if (out.length) out[0] = { ...out[0], text: out[0].text.replace(/^\s+/, '') };
   if (out.length) out[out.length - 1] = { ...out[out.length - 1], text: out[out.length - 1].text.replace(/\s+$/, '') };
