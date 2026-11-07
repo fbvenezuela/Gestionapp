@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { DocumentRow } from '@/components/web/cards';
-import { DemoNote } from '@/components/web/blocks/views';
+import { InfoIcon } from '@/components/web/icons';
 import { FilterForm, InputField, SelectField, ViewTabs } from '@/components/web/forms';
 import { StatDefinitions, StatsView } from '@/components/web/stats';
 import { EmptyState, Pagination } from '@/components/web/states';
@@ -15,7 +15,8 @@ import { getSite } from '@/lib/web/site';
 // Transparencia (design §2): the documents of the administration (reports, bulletins, rules) with their date, version
 // and category, searchable; and the figures of citizen attention with the definition of each, from the citizen schema's
 // public function (counts only: no data of any person, denuncias only in the totals). Plain empty states when there is
-// no data yet.
+// no data yet. In the test version the figures come from its invented requests, and the page says so before the first
+// figure (with the official site's real content around them, they must never read as the governor's own).
 export const revalidate = 60;
 
 const PER_PAGE = 15;
@@ -102,8 +103,14 @@ export default async function TransparencyPage({ searchParams }: { searchParams:
           <SectionHeading
             id="cifras"
             title="Estadísticas de atención ciudadana"
-            intro="Solicitudes recibidas y atendidas a través de este sitio. No incluyen datos personales."
+            intro="Solicitudes recibidas y atendidas por Atención ciudadana, sin datos personales."
           />
+          {site.demo && hasFigures ? (
+            <p className="mb-6 flex items-start gap-2 rounded-2xl bg-warn-soft px-4 py-3 text-base font-medium leading-relaxed text-warn">
+              <InfoIcon className="mt-1 h-4 w-4 shrink-0" />
+              Cifras de ejemplo de la versión de prueba, calculadas con solicitudes inventadas.
+            </p>
+          ) : null}
           <ViewTabs
             label="Período de las cifras"
             tabs={(Object.keys(PERIODS) as Period[]).map((p) => ({
@@ -117,7 +124,6 @@ export default async function TransparencyPage({ searchParams }: { searchParams:
           ) : (
             <EmptyState title="No hay solicitudes en este período." />
           )}
-          <DemoNote show={site.demo && hasFigures}>En la versión de prueba, las cifras se calculan con solicitudes de ejemplo.</DemoNote>
           <div className="mt-14">
             <h3 className="mb-4 text-xl font-semibold text-text">Definiciones</h3>
             <StatDefinitions />

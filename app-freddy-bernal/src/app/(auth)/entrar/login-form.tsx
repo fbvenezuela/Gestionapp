@@ -11,7 +11,7 @@ import { Field, Input } from '@/components/ui/field';
 
 type DemoUser = { email: string; label: string; name: string; web?: boolean };
 
-export function LoginForm({ demoUsers, quick }: { demoUsers: DemoUser[] | null; quick: boolean }) {
+export function LoginForm({ demoUsers, quick, realWeb = false }: { demoUsers: DemoUser[] | null; quick: boolean; realWeb?: boolean }) {
   const [reqState, reqAction, reqPending] = useActionState<ActionState, FormData>(requestCode, {});
   const [verState, verAction, verPending] = useActionState<ActionState, FormData>(verifyCode, {});
   const [email, setEmail] = useState('');
@@ -80,9 +80,12 @@ export function LoginForm({ demoUsers, quick }: { demoUsers: DemoUser[] | null; 
           <CardBody>
             <p className="mb-1 text-sm font-semibold">Versión de demostración</p>
             <p className="mb-3 text-sm text-text-2">
+              {realWeb
+                ? 'Las personas y las solicitudes son inventadas; la web muestra el contenido de la web oficial. '
+                : 'Los datos son inventados. '}
               {quick
-                ? 'Los datos son inventados. Toca un rol para entrar directo, sin código ni doble factor (solo mientras probamos).'
-                : 'Los datos son inventados. Toca un usuario para probar cada rol; el código aparece aquí mismo.'}
+                ? 'Toca un rol para entrar directo, sin código ni doble factor (solo mientras probamos).'
+                : 'Toca un usuario para probar cada rol; el código aparece aquí mismo.'}
             </p>
             {quickError ? <p className="mb-2 text-sm font-medium text-danger" role="alert">{quickError}</p> : null}
             {/* One column that can shrink (minmax(0, 1fr)): an auto column would take the width of the longest

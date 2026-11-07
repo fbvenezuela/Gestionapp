@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth/session';
 import { demoShortcuts, isDemo } from '@/lib/env';
 import { DEMO_USERS, WEB_DEMO_USERS } from '@/lib/db/seed-demo';
+import { realContentShown } from '@/lib/web/real-site';
 import { LoginForm } from './login-form';
 
 export const metadata = { title: 'Entrar' };
@@ -16,6 +17,7 @@ export default async function LoginPage() {
     <LoginForm
       demoUsers={demo ? DEMO_USERS.map((u) => ({ email: u.email, label: u.label, name: u.name, web: web.has(u.email) })) : null}
       quick={demoShortcuts()}
+      realWeb={demo && realContentShown()}
     />
   );
 }

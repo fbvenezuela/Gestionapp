@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { getClientConfig, type ClientConfig } from '../../client-config';
 import type { Block, TextNode } from '../../web/blocks';
 import { DENUNCIA_NOTICE, EMERGENCY_NOTICE } from '../../participation/notices';
-import { accountKeyOf, realIds, taglineWithoutName, type RealSnapshot } from '../../web/real-site';
+import { REAL_DEMO_BANNER, accountKeyOf, realIds, taglineWithoutName, type RealSnapshot } from '../../web/real-site';
 import { parseSnapshot, type Snapshot } from '../../web/schema';
 import type { Sql } from '../core';
 import type { DemoUserKey } from '../seed-demo';
@@ -21,7 +21,7 @@ import { asPerson } from './context';
 // posts about taking office. The FAQs of the attention desk are this platform's own (they describe how the desk works,
 // in the site's voice), not the official site's.
 
-export const REAL_DEMO_BANNER = 'Versión de prueba en revisión. No es el sitio oficial.';
+export { REAL_DEMO_BANNER };
 
 const p = (text: string): TextNode => ({ type: 'paragraph', text });
 const h2 = (text: string): TextNode => ({ type: 'heading', level: 2, text });
@@ -146,6 +146,19 @@ export type RealSeedCtx = { sql: Sql; ids: Record<DemoUserKey, string> };
 
 const hash = (v: unknown) => createHash('sha256').update(JSON.stringify(v)).digest('hex');
 
+/** When each item was published, from the snapshot and never the server's clock: the post's own moment on the official
+ * site, else its day (at noon in Caracas), else the moment the build read the site. The same on every server and on every
+ * start, so a news item never says it was changed when the demo woke up. */
+export function publishedMoments(snap: Pick<RealSnapshot, 'items' | 'fetchedAt'>, others: readonly string[]): { id: string; at: string }[] {
+  const out = snap.items.map((i) => {
+    const day = (i.draft as { date?: unknown }).date;
+    const at = i.source?.publishedAt ?? (typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day) ? `${day}T12:00:00-04:00` : snap.fetchedAt);
+    return { id: i.id, at: new Date(at).toISOString() };
+  });
+  for (const id of others) out.push({ id, at: new Date(snap.fetchedAt).toISOString() });
+  return out;
+}
+
 export async function seedRealWeb(ctx: RealSeedCtx, snap: RealSnapshot, cfg: ClientConfig = getClientConfig()): Promise<void> {
   const { sql, ids } = ctx;
   const site = new URL(snap.source).hostname;
@@ -193,6 +206,14 @@ export async function seedRealWeb(ctx: RealSeedCtx, snap: RealSnapshot, cfg: Cli
       await sql.query(`select public.publish_web_item($1, null)`, [pg.id]);
     }
   });
+  // Their moments, from the snapshot (the system may set them: publish_web_item stamps the server's clock). The pages
+  // and the questions: when the build read the official site.
+  const pageIds = (await sql.query<{ id: string }>(`select id::text as id from public.web_items where kind = 'page' order by id`)).map((r) => r.id);
+  await sql.query(
+    `update public.web_items w set published_at = x.at, publish_at = x.at
+       from jsonb_to_recordset($1::text::jsonb) as x(id uuid, at timestamptz) where w.id = x.id`,
+    [JSON.stringify(publishedMoments(snap, [...faqs.map((f) => f.id), ...pageIds]))],
+  );
 
   // The system: the site's settings (the seed put the config's with «no pisar»), the redirects, where each came from.
   const setting = (key: string, value: unknown) => sql.query(`update public.web_settings set value = $2::text::jsonb where key = $1`, [key, JSON.stringify(value)]);

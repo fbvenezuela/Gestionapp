@@ -1,13 +1,14 @@
 // The official site's photos and PDFs travel with the deployment (.real-site/media, written by the build) and the public
 // files' route serves them from there, read-only, when the demo's own folder does not have them (src/lib/storage/
 // serve-public-file.ts): the same key check, the same headers as any library file (a year in cache, a sandbox for pictures),
-// and nothing outside that folder however the key is written. Files made here (invented).
+// nothing outside that folder however the key is written, only the keys the snapshot names and only while this server
+// shows the real content; a saved PDF takes its item's name. Files made here (invented).
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
-import { REAL_SITE, mediaKey, sha256Of } from '@/lib/web/real-site';
+import { REAL_SITE, mediaKey, realIds, sha256Of, type RealSnapshot } from '@/lib/web/real-site';
 import { servePublicFile } from '@/lib/storage/serve-public-file';
 import { pngOf } from './fixtures/web-png';
 import { demoPdf } from '../fixtures/real-site/site';
@@ -30,8 +31,34 @@ beforeAll(() => {
   fs.writeFileSync(path.join(app, REAL_SITE.dir, 'snapshot.json'), '{"secreto":"no se sirve (demo)"}');
   fs.writeFileSync(path.join(app, 'fuera.png'), photo);
   vi.spyOn(process, 'cwd').mockReturnValue(app);
+  showReal(true);
 });
-afterAll(() => vi.restoreAllMocks());
+afterAll(() => {
+  showReal(null);
+  vi.restoreAllMocks();
+});
+
+const g = globalThis as unknown as { __fbRealSnapshot?: { value: RealSnapshot | null }; __fbRealFiles?: unknown };
+/** What this server's snapshot says (the loader is off under the tests: its memo stands in for it). */
+function showReal(on: boolean | null) {
+  delete g.__fbRealFiles;
+  if (on === null) {
+    delete g.__fbRealSnapshot;
+    return;
+  }
+  const pdfId = realIds.media(sha256Of(pdf));
+  g.__fbRealSnapshot = {
+    value: on
+      ? ({
+          media: [
+            { id: realIds.media(sha256Of(photo)), key: photoKey, kind: 'image' },
+            { id: pdfId, key: pdfKey, kind: 'document' },
+          ],
+          items: [{ id: realIds.document('a'.repeat(64)), kind: 'document', slug: 'semanario-de-prueba-demo-2026-10-08', draft: { fileId: pdfId } }],
+        } as unknown as RealSnapshot)
+      : null,
+  };
+}
 
 describe('/api/archivos/web/<clave> con el contenido real', () => {
   it('sirve una foto de .real-site/media con los encabezados de siempre', async () => {
@@ -45,11 +72,23 @@ describe('/api/archivos/web/<clave> con el contenido real', () => {
     expect(new Uint8Array(await r.arrayBuffer())).toEqual(photo);
   });
 
-  it('y un PDF, para abrirlo en el navegador', async () => {
+  it('y un PDF, para abrirlo en el navegador; guardado, con el nombre de su contenido', async () => {
     const r = await servePublicFile(pdfKey);
     expect(r.status).toBe(200);
     expect(r.headers.get('Content-Type')).toBe('application/pdf');
-    expect(r.headers.get('Content-Disposition')).toBe(`inline; filename="${pdfKey}"`);
+    expect(r.headers.get('Content-Disposition')).toBe('inline; filename="semanario-de-prueba-demo-2026-10-08.pdf"');
+  });
+
+  it('solo las claves que nombra la foto, y solo mientras este servidor muestra el contenido real', async () => {
+    const other = pngOf(210, 150);
+    const otherKey = mediaKey(sha256Of(other), 'png');
+    fs.writeFileSync(path.join(app, REAL_SITE.dir, REAL_SITE.media, otherKey), other);
+    expect((await servePublicFile(otherKey)).status).toBe(404);
+    // REAL_SITE_CONTENT=0 (or a database): the folder is not read at all.
+    showReal(false);
+    expect((await servePublicFile(photoKey)).status).toBe(404);
+    showReal(true);
+    expect((await servePublicFile(photoKey)).status).toBe(200);
   });
 
   it('una clave que no está, 404 (un minuto en caché); nada fuera de la carpeta, se escriba como se escriba', async () => {

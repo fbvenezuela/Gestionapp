@@ -1,5 +1,14 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 import { QUIET_STATE } from './tests/e2e/global-setup';
+
+// A build with the official site's content (.real-site/, D-101) prerendered its pages with it, and REAL_SITE_CONTENT=0
+// changes only what a server seeds, not those pages: the tests would read real content where they expect the invented
+// one. They need a build without it (`npm run build`, which also removes the folder).
+if (!process.env.E2E_BASE_URL && fs.existsSync(path.resolve('.real-site'))) {
+  throw new Error('Hay un .real-site/ de una construcción con el contenido real: corre `npm run build` (sin REAL_SITE_CONTENT) antes de las pruebas.');
+}
 
 // Two demo servers: one STRICT (code by email + 2FA, like production) and one with the
 // testing shortcuts on (one-tap sign-in, no 2FA). The main suite runs on the strict one.
@@ -40,8 +49,8 @@ export default defineConfig({
     : [
         // TRUST_PROXY_HEADERS: the test runner stands for the platform's proxy, giving each test a network of its own
         // with x-real-ip (src/lib/participation/keys.ts trusts that header only on Vercel or with this variable).
-        // REAL_SITE_CONTENT=0: the tests read the invented content, even next to a build with the official site's
-        // (src/lib/web/real-site.ts).
+        // REAL_SITE_CONTENT=0: the servers seed the invented content (src/lib/web/real-site.ts); a build with the
+        // official site's is refused above, since its prerendered pages would show it anyway.
         { command: `npx next start -p ${port}`, port, env: { DEMO_SHORTCUTS: 'false', TRUST_PROXY_HEADERS: 'true', REAL_SITE_CONTENT: '0' }, reuseExistingServer: !process.env.CI, timeout: 120_000 },
         { command: `npx next start -p ${shortcutsPort}`, port: shortcutsPort, env: { DEMO_SHORTCUTS: 'true', TRUST_PROXY_HEADERS: 'true', REAL_SITE_CONTENT: '0' }, reuseExistingServer: !process.env.CI, timeout: 120_000 },
       ],

@@ -23,7 +23,7 @@ import { DocumentRow, NewsCard, NewsFeature, newsLabel, Topics } from '@/compone
 import { VideoFrame } from '@/components/web/blocks/data';
 import { NewsArticle, ProjectFicha } from '@/components/web/item-views';
 import { StatsView, STAT_DEFINITIONS } from '@/components/web/stats';
-import { ChannelPills, orderedChannels } from '@/components/web/channels';
+import { ChannelPills, PendingAccountsNote, orderedChannels, pendingAccountsText } from '@/components/web/channels';
 import { DemoBanner } from '@/components/web/public-chrome';
 import { SiteHeader } from '@/components/web/site-header';
 import { ParticipationActions } from '@/components/web/participation-actions';
@@ -340,14 +340,21 @@ describe('el marco de la web', () => {
     expect(out).not.toMatch(/<img|logo/i);
   });
 
-  it('los canales: el del programa primero, cada uno una vez, los que no están verificados marcados «sin verificar»', () => {
+  it('los canales: el del programa primero, cada uno una vez; sin una marca en cada cuenta por confirmar, una sola línea', () => {
     const list = orderedChannels(site);
     expect(list[0].url).toBe('https://www.youtube.com/@FreddyBernal.oficial');
     expect(new Set(list.map((c) => c.url)).size).toBe(list.length);
     const out = html(h(ChannelPills, { channels: list }));
-    expect(out.match(/sin verificar/g)?.length).toBe(list.length);
-    expect(out).not.toContain('por confirmar');
+    expect(out).not.toMatch(/sin verificar|por confirmar/);
     expect(out).toContain('rel="noopener noreferrer nofollow"');
+    // None confirmed: one line for all of them; some confirmed: the line says which; production lists only confirmed ones.
+    expect(pendingAccountsText(list, true)).toBe('Estas cuentas están en proceso de confirmación.');
+    const mixed = [{ ...list[0], verified: true }, ...list.slice(1)];
+    expect(pendingAccountsText(mixed, true)).toBe('Las cuentas sin la marca de verificación están en proceso de confirmación.');
+    expect(html(h(ChannelPills, { channels: mixed }))).toContain('<span class="sr-only">verificada</span>');
+    expect(pendingAccountsText(mixed.map((c) => ({ ...c, verified: true })), true)).toBeNull();
+    expect(pendingAccountsText(list, false)).toBeNull();
+    expect(html(h(PendingAccountsNote, { channels: list, demo: true }))).toContain('Estas cuentas están en proceso de confirmación.');
   });
 
   it('un enlace a otro sitio: el icono va pegado a la última palabra (nunca solo en una línea del teléfono)', () => {

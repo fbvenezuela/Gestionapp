@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { ShieldCheckIcon, TriangleAlertIcon } from '@/components/web/icons';
-import { ChannelCards, orderedChannels } from '@/components/web/channels';
-import { DemoNote } from '@/components/web/blocks/views';
+import { ChannelCards, PendingAccountsNote, orderedChannels } from '@/components/web/channels';
 import { EmptyState } from '@/components/web/states';
 import { cardClass, Container, ExternalText, PageIntro, SafeLink, SectionHeading, textLinkClass, WebLink } from '@/components/web/ui';
 import { EMERGENCY_NOTICE } from '@/lib/participation/notices';
@@ -11,8 +10,8 @@ import { getSite } from '@/lib/web/site';
 import { cn } from '@/lib/cn';
 
 // The directory of official channels (design §2, docs/diagnostico.md problem 3): ONE list, the same as the footer's and
-// the structured data's. In production only verified accounts; the test version also shows the unverified ones,
-// marked. The institutional portal appears only when verified. And how to identify the official accounts (the
+// the structured data's. In production only verified accounts; the test version also shows the ones still to confirm,
+// with one line above the list. The institutional portal appears only when verified. And how to identify the official accounts (the
 // diagnosis found an account impersonating the governor: never linked here).
 export const revalidate = 60;
 
@@ -42,12 +41,12 @@ export default async function ChannelsPage() {
     <>
       <PageIntro title="Canales oficiales" intro="Cuentas oficiales del gobernador en redes sociales." />
       <Container className="pb-20">
+        <PendingAccountsNote channels={channels} demo={site.demo} className="mb-5 text-text-2" />
         {channels.length ? (
           <ChannelCards channels={channels} />
         ) : (
           <EmptyState title="Las cuentas oficiales se publicarán próximamente." />
         )}
-        <DemoNote show={site.demo && channels.some((c) => !c.verified)}>En la versión de prueba también se muestran cuentas sin verificar.</DemoNote>
 
         {site.portal ? (
           <div className={cn(cardClass, 'mt-10 flex flex-col gap-2 p-6')}>

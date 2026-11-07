@@ -5,11 +5,11 @@ import type { FrozenMedia } from '@/lib/web/public';
 import { indicatorShown, noticeActive } from '@/lib/web/schema';
 import { cn } from '@/lib/cn';
 import { DocumentRow, EpisodeMeta, NewsCard, NewsFeature, ProjectCard, type MuniNames } from '../cards';
-import { ChannelPills, orderedChannels } from '../channels';
+import { ChannelPills, PendingAccountsNote, orderedChannels } from '../channels';
 import { MediaImage, PhotoPlaceholder, photoOf } from '../media';
 import { LiteYouTube } from '../lite-youtube';
 import { ParticipationActions } from '../participation-actions';
-import { Container, ExternalText, SectionHeading, UnverifiedMark, WebLink } from '../ui';
+import { Container, ExternalText, SectionHeading, WebLink } from '../ui';
 import type { BlockContext, BlockData } from './types';
 import { AttendedView, DemoNote, FaqView, IndicatorsView, NoticesView } from './views';
 
@@ -122,7 +122,6 @@ export async function VideoBlock({ data, ctx }: { data: BlockData<'video'>; ctx:
           >
             <ExternalText text={`Canal de YouTube ${channel.handle}`} />
           </a>
-          {channel.verified ? null : <UnverifiedMark dark />}
         </span>
       ) : null}
     </div>
@@ -279,8 +278,8 @@ export function ChannelsBlock({ data, ctx }: { data: BlockData<'channels'>; ctx:
     <section className="py-12 sm:py-16">
       <Container>
         <SectionHeading title={data.title || 'Canales oficiales'} as={ctx.heading} more={{ href: '/canales', label: 'Cómo identificar las cuentas oficiales' }} />
+        <PendingAccountsNote channels={channels} demo={ctx.site.demo} className="mb-5 text-text-2" />
         <ChannelPills channels={channels} />
-        <DemoNote show={ctx.site.demo && channels.some((c) => !c.verified)}>En la versión de prueba también se muestran cuentas sin verificar.</DemoNote>
       </Container>
     </section>
   );

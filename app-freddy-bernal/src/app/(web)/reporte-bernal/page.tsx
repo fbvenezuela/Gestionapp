@@ -3,7 +3,7 @@ import { EpisodeMeta, Topics } from '@/components/web/cards';
 import { VideoFrame } from '@/components/web/blocks/data';
 import { photoOf } from '@/components/web/media';
 import { EmptyState, Pagination } from '@/components/web/states';
-import { cardClass, Container, ExternalText, PageIntro, SafeLink, UnverifiedMark } from '@/components/web/ui';
+import { buttonClass, cardClass, Container, ExternalText, PageIntro, SafeLink } from '@/components/web/ui';
 import { listItems, type WebItem } from '@/lib/web/cache';
 import { pageParam, withQuery } from '@/lib/web/params';
 import { pageMetadata } from '@/lib/web/seo';
@@ -14,7 +14,8 @@ import { cn } from '@/lib/cn';
 // The weekly program (design §2, docs/diagnostico.md problem 2): every broadcast with its date, topics and links; the
 // video loads only when tapped (youtube-nocookie.com, src/components/web/lite-youtube.tsx), and the channel is the one
 // the site's settings name (the active one: the old, abandoned channel is inactive there and never shows). A broadcast
-// whose video is not linked yet shows its title and date, with no empty player.
+// whose video is not linked yet shows its title and date, with no empty player. With no broadcast here yet, the page
+// sends the reader to the channel, where they are published (the program exists even when this list is empty).
 export const revalidate = 60;
 
 const PER_PAGE = 12;
@@ -62,12 +63,11 @@ export default async function ProgramPage({ searchParams }: { searchParams: Sear
   return (
     <>
       <PageIntro title={name} intro={`Programa semanal del gobernador ${site.name}.`}>
-        {channel ? (
+        {channel && items.length ? (
           <p className="mt-6 flex flex-wrap items-center gap-2 text-lg">
             <a href={channel.url} rel="noopener noreferrer" className="inline-flex min-h-11 items-center font-semibold text-accent-ink underline decoration-2 underline-offset-4">
               <ExternalText text={`Canal de YouTube ${channel.handle || channel.label}`} />
             </a>
-            {channel.verified ? null : <UnverifiedMark />}
           </p>
         ) : null}
       </PageIntro>
@@ -127,7 +127,16 @@ export default async function ProgramPage({ searchParams }: { searchParams: Sear
             </ul>
           </section>
         ) : null}
-        {!items.length ? <EmptyState title="Aún no hay emisiones publicadas." /> : null}
+        {!items.length && page === 1 && channel ? (
+          <div className="flex flex-col items-start gap-5">
+            <p className="max-w-2xl text-lg leading-relaxed text-text">Las emisiones de {name} se publican en el canal oficial de YouTube.</p>
+            <a href={channel.url} rel="noopener noreferrer" className={buttonClass('olive')}>
+              <ExternalText text="Ver las emisiones en YouTube" />
+            </a>
+          </div>
+        ) : !items.length ? (
+          <EmptyState title="Aún no hay emisiones publicadas." />
+        ) : null}
         <Pagination page={page} pages={pages} hrefFor={(p) => withQuery('/reporte-bernal', { pagina: p })} label="Páginas de emisiones" />
       </Container>
     </>

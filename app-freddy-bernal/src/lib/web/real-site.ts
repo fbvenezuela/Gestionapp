@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { z } from 'zod';
@@ -23,6 +23,17 @@ import { parseSnapshot, slug as slugSchema } from './schema';
 // The runtime spells these out as literals (loadRealSnapshot, src/lib/storage/serve-public-file.ts) for the bundler's file
 // tracing; the build script (scripts/real-site) uses the names.
 export const REAL_SITE = { dir: '.real-site', file: 'snapshot.json', media: 'media' } as const;
+
+/** The band at the top and bottom of every public page while the demo shows the official site's content: always this
+ * text, whatever the settings say (anyone can enter the demo; nobody may make it pass for the official site). */
+export const REAL_DEMO_BANNER = 'Versión de prueba en revisión. No es el sitio oficial.';
+
+/** The settings that say whose site this is (name, office, accounts, contacts, the band): with the official site's
+ * content they stay as the build left them (src/lib/actions/web-site.ts refuses to save them). */
+export const REAL_LOCKED_SETTINGS = [
+  'site.demo_banner', 'site.identity', 'site.structured_data', 'site.social_accounts', 'site.youtube_channel', 'site.whatsapp_channel',
+  'site.institutional_portal', 'site.contacts',
+] as const;
 
 /** «1»/«true» → true, «0»/«false» → false, anything else (unset) → null. */
 export function switchOf(v: string | undefined): boolean | null {
@@ -300,7 +311,7 @@ export function snapshotFromText(raw: string): RealSnapshot | null {
 }
 
 type Memo = { value: RealSnapshot | null };
-const g = globalThis as unknown as { __fbRealSnapshot?: Memo; __fbRealSeeded?: 'real' | 'invented' };
+const g = globalThis as unknown as { __fbRealSnapshot?: Memo; __fbRealSeeded?: 'real' | 'invented'; __fbProcessToken?: string };
 
 /** The official site's content for this demo server, or null (invented content): read once per process. The path is
  * written out in full so the bundler traces exactly that file (a path built from variables makes Turbopack trace the
@@ -326,14 +337,22 @@ export function noteSeeded(what: 'real' | 'invented'): void {
   g.__fbRealSeeded = what;
 }
 
+/** Whether this server shows the official site's content (its file is there and its seed did not fall back). */
+export function realContentShown(): boolean {
+  return !!loadRealSnapshot() && g.__fbRealSeeded !== 'invented';
+}
+
 /** Which content this server shows, for the keys of the public pages' data cache (src/lib/web/cache.ts): a cached list
  * of the invented content is never served by a server with the real one, nor one of an older snapshot, nor one of
- * another deployment (the data cache can outlive a deployment; VERCEL_DEPLOYMENT_ID names each one). */
+ * another deployment (the data cache can outlive a deployment; VERCEL_DEPLOYMENT_ID names each one). With the real
+ * content each server process keys its own entries too: every one has its own demo database, so what someone edits on
+ * one (anyone can enter the demo) never reaches the pages the others serve. */
 export function realContentToken(): string {
   const s = loadRealSnapshot();
   if (!s || g.__fbRealSeeded === 'invented') return 'invented';
   const deployment = (process.env.VERCEL_DEPLOYMENT_ID ?? '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64);
-  return `real:${s.fetchedAt}${deployment ? `:${deployment}` : ''}`;
+  g.__fbProcessToken ??= randomBytes(6).toString('hex');
+  return `real:${s.fetchedAt}${deployment ? `:${deployment}` : ''}:${g.__fbProcessToken}`;
 }
 
 /** The snapshot's files by key, with the name a saved PDF takes (its item's address: «semanario-…-2026-03-02.pdf»);

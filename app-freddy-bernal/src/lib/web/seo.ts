@@ -9,7 +9,7 @@ import type { Site } from './site-settings';
 
 const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-/** «Freddy Bernal, gobernador del Táchira»: the home's title and the site's name for search engines. */
+/** «<Nombre>, gobernador del estado …»: the home's title and the site's name for search engines. */
 export function siteTitle(site: Pick<Site, 'name' | 'title'>): string {
   const t = site.title.trim();
   return t ? `${site.name}, ${t.charAt(0).toLowerCase()}${t.slice(1)}` : site.name;
@@ -40,7 +40,7 @@ export function describe(...candidates: (string | null | undefined)[]): string {
 
 /** The description of a page that has none of its own. The test version never calls itself the official site. */
 export function defaultDescription(site: Pick<Site, 'name' | 'title' | 'demo'>): string {
-  return site.demo ? `${siteTitle(site)}. Noticias, obras y atención ciudadana.` : `Sitio oficial de ${siteTitle(site)}. Noticias, obras y atención ciudadana.`;
+  return site.demo ? `${siteTitle(site)}. Noticias de la gestión y atención ciudadana.` : `Sitio oficial de ${siteTitle(site)}. Noticias de la gestión y atención ciudadana.`;
 }
 
 export type OgImage = { url: string; width?: number; height?: number; alt?: string };
@@ -164,7 +164,8 @@ export type ArticleInput = {
   section?: string;
 };
 
-/** A news item. The author is the newsroom that signs it (or the governor's office, when none). */
+/** A news item. The author is the newsroom that signs it, or the governor's office (the organization) when none: never
+ * the governor himself, whose name would then sign other people's columns and other outlets' notes. */
 export function newsArticleJsonLd(a: ArticleInput, site: Site): JsonLd {
   return compact({
     '@context': 'https://schema.org',
@@ -175,7 +176,7 @@ export function newsArticleJsonLd(a: ArticleInput, site: Site): JsonLd {
     description: a.description || undefined,
     datePublished: a.datePublished,
     dateModified: a.dateModified ?? a.datePublished,
-    author: a.author ? { '@type': 'Organization', name: a.author } : { '@type': 'Person', '@id': personId(site), name: site.person.name },
+    author: a.author ? { '@type': 'Organization', name: a.author } : { '@type': 'GovernmentOrganization', '@id': orgId(site), name: site.organization.name },
     publisher: { '@type': 'Person', '@id': personId(site), name: site.person.name },
     image: a.images,
     articleSection: a.section,

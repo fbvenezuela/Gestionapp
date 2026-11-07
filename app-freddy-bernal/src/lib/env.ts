@@ -82,10 +82,11 @@ export const env = {
   // under this folder. Empty = as always (in memory, the temp disk). Never with DATABASE_URL (src/lib/db/local-data.ts).
   localDataDir: process.env.LOCAL_DATA_DIR ?? '',
   // The public website (D-91, D-95): its address (canonical links, sitemap, Open Graph) and whether search engines may
-  // index it. Off until production and Juan's decision: robots, meta and X-Robots-Tag say noindex.
+  // index it. Off until production and Juan's decision: robots, meta and X-Robots-Tag say noindex. Never the demo (no
+  // DATABASE_URL): its content is invented, or a copy of the official site's (D-101), and neither may be indexed.
   site: {
     url: process.env.SITE_URL ?? '',
-    indexable: flag('SITE_INDEXABLE'),
+    indexable: flag('SITE_INDEXABLE') && !!process.env.DATABASE_URL,
   },
   // Citizen participation (D-92, D-96). Server only. The pepper keys the HMAC of the receipt's secret and of the rate
   // limit's device and network keys; the data key encrypts the contact (AES-256-GCM). Demo mode uses fixed demo values;

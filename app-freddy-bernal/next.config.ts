@@ -53,7 +53,8 @@ const nextConfig: NextConfig = {
         imageOrigins: supabaseOrigin ? [supabaseOrigin] : [],
         turnstile: !!(process.env.TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY),
       },
-      indexable: process.env.SITE_INDEXABLE === 'true' || process.env.SITE_INDEXABLE === '1',
+      // Never the demo (no DATABASE_URL), as src/lib/env.ts says.
+      indexable: (process.env.SITE_INDEXABLE === 'true' || process.env.SITE_INDEXABLE === '1') && !!process.env.DATABASE_URL,
     });
   },
 };

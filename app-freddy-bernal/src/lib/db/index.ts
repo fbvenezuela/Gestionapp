@@ -54,16 +54,20 @@ export async function seedDemoData(backend: Backend, real: RealSnapshot | null, 
         }
       }),
     );
+  const { noteSeeded } = await import('../web/real-site');
   if (!real) {
     await seedWith(null);
     return 'invented';
   }
   try {
     await seedWith(real);
+    noteSeeded('real');
     return 'real';
   } catch (e) {
     console.error(`[web] El contenido real no se pudo sembrar (${(e as Error).message}): la demo sigue con el contenido inventado.`);
     await seedWith(null);
+    // The pages' cache keys and the locked settings follow what was seeded, not the file (src/lib/web/real-site.ts).
+    noteSeeded('invented');
     return 'invented';
   }
 }
@@ -71,14 +75,19 @@ export async function seedDemoData(backend: Backend, real: RealSnapshot | null, 
 async function createDemoBackend(): Promise<Backend> {
   const { seedClient } = await import('./seed-client');
   const { loadRealSnapshot } = await import('../web/real-site');
-  const seed = async (backend: Backend) => {
-    await seedDemoData(backend, loadRealSnapshot());
-  };
+  const seed = (backend: Backend) => seedDemoData(backend, loadRealSnapshot());
   // LOCAL_DATA_DIR (D-94): the same demo on disk, seeded once and kept across restarts. Not while `next build` runs
   // (its workers would share the folder): the build gets the in-memory one, as always.
   if (env.localDataDir && process.env.NEXT_PHASE !== 'phase-production-build') {
     const { openLocalDb } = await import('./local-data');
     const local = await openLocalDb(env.localDataDir, { seed, refresh: (backend) => asSystem(backend, (sql) => seedClient(sql)) });
+    // The folder keeps its first seed (D-101): say so when the build around it no longer matches it.
+    const real = !!loadRealSnapshot();
+    if (!local.fresh && local.content === 'real' && !real) {
+      console.warn(`[web] ${env.localDataDir} se sembró con el contenido de la web oficial y esta construcción ya no lo trae: sus fotos y PDF no se verán. Borra la carpeta para sembrar de nuevo.`);
+    } else if (!local.fresh && local.content !== 'real' && real) {
+      console.warn(`[web] ${env.localDataDir} se sembró con el contenido inventado: sigue así aunque esta construcción traiga el de la web oficial. Borra la carpeta para sembrarlo.`);
+    }
     return local.backend;
   }
   const { createMemoryDb } = await import('./pglite');

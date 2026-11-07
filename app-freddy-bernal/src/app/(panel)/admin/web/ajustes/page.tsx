@@ -10,6 +10,7 @@ import { ADMIN_WEB } from '@/lib/web/cms/kinds';
 import { joinNotes, NOTED_KEYS, NOTES_KEY } from '@/lib/web/cms/setting-notes';
 import { defaultSettings } from '@/lib/web/site-settings';
 import { DENUNCIA_NOTICE, EMERGENCY_NOTICE } from '@/lib/participation/notices';
+import { realContentShown } from '@/lib/web/real-site';
 
 export const metadata = { title: 'Ajustes del sitio · Web' };
 
@@ -30,6 +31,11 @@ export default async function SiteSettingsPage() {
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
       <PageHeader title="Ajustes del sitio" subtitle="Lo que se guarda aquí sale en la web al momento (no pasa por aprobación)." back={{ href: ADMIN_WEB.home, label: 'La web' }} />
       <CmsNav current="ajustes" caps={data.caps} waiting={data.waiting} />
+      {realContentShown() ? (
+        <p className="rounded-2xl bg-warn-soft px-4 py-3 text-[15px] font-medium text-warn">
+          Esta demostración muestra el contenido de la web oficial: el nombre, el cargo, las cuentas, los contactos y la franja de aviso quedan como están.
+        </p>
+      ) : null}
       <NavigationForm value={v['site.navigation']} />
       <FooterForm value={v['site.footer']} />
       <ContactsForm value={v['site.contacts']} />

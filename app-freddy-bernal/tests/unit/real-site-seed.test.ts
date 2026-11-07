@@ -50,6 +50,20 @@ describe('el contenido real en la demo', () => {
     expect(ids).toEqual(real.items.map((i) => i.id).sort());
   });
 
+  it('cada contenido con su momento de la web oficial, nunca el del arranque: igual en todos los servidores', async () => {
+    const q = `select id::text as id, kind, published_at, publish_at from public.web_items order by id`;
+    const rows = await sys<{ id: string; kind: string; published_at: Date; publish_at: Date }>(b, q);
+    const iso = (d: Date) => new Date(d).toISOString();
+    const post = real.items.find((i) => i.kind === 'news' && i.source?.publishedAt)!;
+    expect(iso(rows.find((r) => r.id === post.id)!.published_at)).toBe(new Date(post.source!.publishedAt!).toISOString());
+    const episode = real.items.find((i) => i.kind === 'episode')!;
+    expect(iso(rows.find((r) => r.id === episode.id)!.published_at)).toBe(new Date(`${episode.draft.date}T12:00:00-04:00`).toISOString());
+    for (const r of rows.filter((x) => x.kind === 'page' || x.kind === 'faq')) expect(iso(r.published_at), r.kind).toBe(real.fetchedAt);
+    for (const r of rows) expect(iso(r.publish_at)).toBe(iso(r.published_at));
+    // A later start (another server) seeds the very same moments.
+    expect((await sys(a, q)).filter((r) => (r as { id: string }).id !== real.items[0].id)).toEqual(rows.filter((r) => r.id !== real.items[0].id));
+  });
+
   it('todo publicado, como lo publica quien aprueba la web, y pasa la última puerta (sin «[Por escribir]» ni marcas)', async () => {
     const rows = await sys<{ kind: string; status: string; published: unknown; published_media: Record<string, { alt: string; kind: string }>; published_by: string }>(
       a, `select kind, status, published, published_media, published_by from public.web_items`,

@@ -143,9 +143,12 @@ async function seedWebPublica(sql: Sql, cfg: ClientConfig) {
   }
 
   const b = cfg.brand;
+  // The public website writes the office as the official one does (web.structuredData.jobTitle: «… del estado …»); the
+  // panel keeps the brand's short one.
+  const title = cfg.web.structuredData.jobTitle || b.clientTitle;
   const settings: Record<string, unknown> = {
     ...cfg.web.settings,
-    'site.identity': { name: b.clientName, title: b.clientTitle, region: b.region, greeting: b.greeting, wordmark: `${b.clientName} · ${b.clientTitle}` },
+    'site.identity': { name: b.clientName, title, region: b.region, greeting: b.greeting, wordmark: `${b.clientName} · ${title}` },
     // JSON-LD Person / GovernmentOrganization: sameAs comes from the verified accounts; the job title and the organization's
     // name start from the config (web.structuredData) and the team confirms them in the administrator.
     'site.structured_data': { personName: b.clientName, jobTitle: cfg.web.structuredData.jobTitle, organizationName: cfg.web.structuredData.organizationName },

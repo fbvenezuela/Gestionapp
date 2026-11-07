@@ -1,6 +1,7 @@
 import 'server-only';
 import path from 'node:path';
 import { env } from '../env';
+import { loadRealSnapshot, realFileNames } from '../web/real-site';
 import { bucketStore, KEY_PATTERN, mimeOfKey, publicFileUrl } from './buckets';
 import { insideFolder, readIfExists } from './local-files';
 
@@ -9,9 +10,23 @@ import { insideFolder, readIfExists } from './local-files';
 // official site's photos and PDFs of the demo (.real-site/media, written by the build) ship with that one function and
 // not with the private files' routes (serve-files.ts), which never read them.
 
+const g = globalThis as unknown as { __fbRealFiles?: Map<string, string | null> };
+
+/** The official site's files this server shows (its snapshot's, only when it shows the real content: REAL_SITE_CONTENT=0
+ * or a database turn it off here too), by key, with the name a saved PDF takes. */
+function realFiles(): Map<string, string | null> {
+  if (!g.__fbRealFiles) {
+    const snap = loadRealSnapshot();
+    g.__fbRealFiles = snap ? realFileNames(snap) : new Map();
+  }
+  return g.__fbRealFiles;
+}
+
 /** A file of the official site's content shipped with the deployment (.real-site/media, written by the build:
- * src/lib/web/real-site.ts), read-only; null when there is none. The key was checked: it never leaves that folder. */
+ * src/lib/web/real-site.ts), read-only; null when there is none or the snapshot does not name it. The key was checked:
+ * it never leaves that folder. */
 async function realSiteFile(key: string): Promise<Uint8Array | null> {
+  if (!realFiles().has(key)) return null;
   // Spelled out for the bundler's file tracing (next.config.ts also ships the folder with the public files' route).
   const file = insideFolder(path.join(process.cwd(), '.real-site', 'media'), key);
   return file ? readIfExists(file) : null;
@@ -32,8 +47,9 @@ export async function servePublicFile(key: string): Promise<Response> {
     'Cache-Control': 'public, max-age=31536000, immutable',
     'X-Content-Type-Options': 'nosniff',
   };
-  // Pictures cannot run anything; a published PDF opens in the browser's reader (a sandbox would block the reader).
+  // Pictures cannot run anything; a published PDF opens in the browser's reader (a sandbox would block the reader), and
+  // saved it takes its item's name when it has one (the official weekly: «semanario-…-2026-03-02.pdf»).
   if (mime.startsWith('image/')) headers['Content-Security-Policy'] = "default-src 'none'; style-src 'unsafe-inline'; sandbox";
-  else headers['Content-Disposition'] = `inline; filename="${key}"`;
+  else headers['Content-Disposition'] = `inline; filename="${realFiles().get(key) ?? key}"`;
   return new Response(bytes as Uint8Array<ArrayBuffer>, { status: 200, headers });
 }

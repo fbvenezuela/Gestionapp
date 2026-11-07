@@ -38,8 +38,8 @@ describe('títulos y descripciones', () => {
 
   it('la descripción por defecto: la versión de prueba nunca se llama «sitio oficial»', () => {
     const name = { name: 'Ana Pérez', title: 'Gobernadora de Prueba' };
-    expect(defaultDescription({ ...name, demo: true })).toBe('Ana Pérez, gobernadora de Prueba. Noticias, obras y atención ciudadana.');
-    expect(defaultDescription({ ...name, demo: false })).toBe('Sitio oficial de Ana Pérez, gobernadora de Prueba. Noticias, obras y atención ciudadana.');
+    expect(defaultDescription({ ...name, demo: true })).toBe('Ana Pérez, gobernadora de Prueba. Noticias de la gestión y atención ciudadana.');
+    expect(defaultDescription({ ...name, demo: false })).toBe('Sitio oficial de Ana Pérez, gobernadora de Prueba. Noticias de la gestión y atención ciudadana.');
     expect(pageMetadata({ title: 'A', path: '/a' }, site({}, { demo: true })).description).not.toMatch(/sitio oficial/i);
   });
 
@@ -117,6 +117,10 @@ describe('datos estructurados', () => {
     expect(n).toMatchObject({ '@type': 'NewsArticle', datePublished: '2026-11-04', dateModified: '2026-11-04', author: { '@type': 'Organization', name: 'Prensa' } });
     expect((n.publisher as { '@id': string })['@id']).toBe(`${BASE}/#persona`);
     expect('image' in n).toBe(false);
+    // Without a signature, the governor's office signs it, never the governor (a column by someone else, another
+    // outlet's note).
+    const unsigned = newsArticleJsonLd({ url: `${BASE}/actualidad/y`, title: 'Columna (prueba)', datePublished: '2026-11-04' }, s);
+    expect(unsigned.author).toEqual({ '@type': 'GovernmentOrganization', '@id': `${BASE}/#organizacion`, name: s.organization.name });
   });
 
   it('jsonLdHtml: ningún texto del contenido cierra el script ni abre otra etiqueta, y el JSON sigue siendo el mismo', () => {

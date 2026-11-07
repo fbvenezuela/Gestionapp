@@ -136,23 +136,6 @@ export function PageIntro({ eyebrow, title, intro, children }: { eyebrow?: strin
   );
 }
 
-/** «Sin verificar» next to an account nobody has verified yet (only the test version shows them; production shows only
- * verified accounts). No margin of its own: the row that holds it sets the gap, so it lines up the same whether it fits
- * beside the name or wraps. */
-export function UnverifiedMark({ dark = false, className }: { dark?: boolean; className?: string }) {
-  return (
-    <span
-      className={cn(
-        'inline-flex w-fit shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold',
-        dark ? 'border border-on-charcoal text-on-charcoal' : 'bg-warn-soft text-warn',
-        className,
-      )}
-    >
-      sin verificar
-    </span>
-  );
-}
-
 /** The words of a link to another site and the icon that says so. The icon follows the last word (they never split),
  * so on a phone it is neither alone on a line nor pushed to the far edge. */
 export function ExternalText({ text }: { text: string }) {

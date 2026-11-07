@@ -133,9 +133,11 @@ function pick<K extends Key>(raw: Record<string, unknown>, key: K, fallback: Val
 export function defaultSettings(): Record<string, unknown> {
   const cfg = getClientConfig();
   const b = cfg.brand;
+  // The office as the official site writes it (seed-client.ts puts the same).
+  const title = cfg.web.structuredData.jobTitle || b.clientTitle;
   return {
     ...cfg.web.settings,
-    'site.identity': { name: b.clientName, title: b.clientTitle, region: b.region, greeting: b.greeting, wordmark: `${b.clientName} · ${b.clientTitle}` },
+    'site.identity': { name: b.clientName, title, region: b.region, greeting: b.greeting, wordmark: `${b.clientName} · ${title}` },
     'site.structured_data': { personName: b.clientName, jobTitle: cfg.web.structuredData.jobTitle, organizationName: cfg.web.structuredData.organizationName },
   };
 }

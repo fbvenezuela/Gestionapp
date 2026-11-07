@@ -1,11 +1,31 @@
-import { ArrowUpRightIcon, BadgeCheckIcon } from './icons';
+import { ArrowUpRightIcon, BadgeCheckIcon, InfoIcon } from './icons';
 import type { PublicChannel, Site } from '@/lib/web/site-settings';
 import { cn } from '@/lib/cn';
-import { Badge, cardClass, UnverifiedMark } from './ui';
+import { Badge, cardClass } from './ui';
 
 // The official channels, from the ONE list of the site's settings (docs/diagnostico.md problem 3): the same in the
 // footer, here and in the structured data. In production only the verified ones exist here; the test version also
-// shows the unverified ones, marked. The old YouTube channel is inactive in the settings, so it never shows.
+// shows the ones nobody has confirmed yet, with one line that says so (never a mark on each of the governor's own
+// accounts, which would read as doubtful). The old YouTube channel is inactive in the settings, so it never shows.
+
+/** The line the test version shows when it lists accounts nobody has confirmed yet; null when there are none. */
+export function pendingAccountsText(channels: readonly Pick<PublicChannel, 'verified'>[], demo: boolean): string | null {
+  if (!demo || !channels.some((c) => !c.verified)) return null;
+  return channels.some((c) => c.verified)
+    ? 'Las cuentas sin la marca de verificación están en proceso de confirmación.'
+    : 'Estas cuentas están en proceso de confirmación.';
+}
+
+export function PendingAccountsNote({ channels, demo, className }: { channels: readonly Pick<PublicChannel, 'verified'>[]; demo: boolean; className?: string }) {
+  const text = pendingAccountsText(channels, demo);
+  if (!text) return null;
+  return (
+    <p className={cn('flex items-start gap-2 text-[15px]', className)}>
+      <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
+      {text}
+    </p>
+  );
+}
 
 /** The channel of the program first, then the accounts, then WhatsApp; each address once. */
 export function orderedChannels(site: Pick<Site, 'youtube' | 'accounts' | 'whatsapp'>): PublicChannel[] {
@@ -30,9 +50,7 @@ export function ChannelCards({ channels, className }: { channels: PublicChannel[
               <Badge tone="ok" className="gap-1 px-2 py-0.5 text-xs normal-case tracking-normal">
                 <BadgeCheckIcon className="h-3.5 w-3.5" /> verificada
               </Badge>
-            ) : (
-              <UnverifiedMark />
-            )}
+            ) : null}
           </p>
           <a
             href={c.url}
@@ -63,7 +81,12 @@ export function ChannelPills({ channels }: { channels: PublicChannel[] }) {
           >
             <span className="font-semibold">{c.networkLabel}</span>
             <span className="min-w-0 wrap-anywhere text-text-2">{c.handle || c.label}</span>
-            {c.verified ? <BadgeCheckIcon className="h-4 w-4 text-ok" /> : <UnverifiedMark />}
+            {c.verified ? (
+              <span className="inline-flex items-center">
+                <BadgeCheckIcon className="h-4 w-4 text-ok" />
+                <span className="sr-only">verificada</span>
+              </span>
+            ) : null}
           </a>
         </li>
       ))}

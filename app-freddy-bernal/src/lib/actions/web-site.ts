@@ -7,6 +7,7 @@ import type { Sql } from '../db';
 import { revalidateWebSettings } from '../web/revalidate';
 import { normalizeOldPath, safeTarget, REDIRECT_STATUSES } from '../web/redirects';
 import { SITE_SETTING_SCHEMAS } from '../web/site-settings';
+import { REAL_LOCKED_SETTINGS, realContentShown } from '../web/real-site';
 import { redirectableFrom } from '../web/cms/paths';
 import { spanishIssue } from '../web/cms/drafts';
 import { isNoted, NOTES_KEY, splitNotes } from '../web/cms/setting-notes';
@@ -85,6 +86,11 @@ export async function saveSiteSetting(raw: unknown): Promise<Result> {
   const r = await act(z.object({ key: z.enum(SETTING_KEYS), value: z.unknown() }), raw, async (sql, i) => {
     const ok = await sql.one<{ ok: boolean }>(`select public.can_manage_site() as ok`);
     if (!ok?.ok) throw new UserError('Los ajustes del sitio los cambian administración, quien aprueba la web o el jefe, con doble factor.');
+    // The demo with the official site's content (D-101): whose site it is (its name, office, accounts, contacts and the
+    // band that says it is not the official one) stays as the build left it. Anyone can enter the demo.
+    if ((REAL_LOCKED_SETTINGS as readonly string[]).includes(i.key) && realContentShown()) {
+      throw new UserError('En esta versión de prueba con el contenido de la web oficial, el nombre, las cuentas, los contactos y la franja de aviso no se cambian.');
+    }
     const v = (SETTINGS[i.key] as z.ZodType).safeParse(i.value, { error: spanishIssue });
     if (!v.success) throw new UserError(SETTING_PROBLEM[i.key] ?? v.error.issues[0]?.message ?? 'Revisa los datos.');
     let value: unknown = v.data;

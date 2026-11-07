@@ -111,7 +111,8 @@ describe('las páginas base y los catálogos del cliente', () => {
     expect(s['site.institutional_portal']).toMatchObject({ verified: false });
     expect(s['site.contacts']).toEqual([]);
     expect(s['site.whatsapp_channel']).toBeNull();
-    expect(s['site.identity']).toMatchObject({ wordmark: 'Freddy Bernal · Gobernador del Táchira' });
+    // The office as the official site writes it, the same in the header, the hero, the title and the JSON-LD.
+    expect(s['site.identity']).toMatchObject({ title: 'Gobernador del estado Táchira', wordmark: 'Freddy Bernal · Gobernador del estado Táchira' });
   });
 });
 

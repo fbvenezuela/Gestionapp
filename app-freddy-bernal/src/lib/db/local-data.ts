@@ -13,8 +13,9 @@ import { applySchema, pgliteBackend } from './pglite';
 // the same database would break it. Never with DATABASE_URL, never during `next build` (src/lib/db/index.ts). The
 // demo's files go under <dir>/files and <dir>/uploads (src/lib/storage/local-files.ts, demo-store.ts).
 
-export type LocalMarker = { version: 1; seededAt: string; migrations: string[] };
-export type LocalDb = { db: PGlite; backend: Backend; fresh: boolean; applied: string[] };
+/** `content`: what the first seed put in the web (the official site's content, D-101, or the invented one). */
+export type LocalMarker = { version: 1; seededAt: string; migrations: string[]; content?: 'real' | 'invented' };
+export type LocalDb = { db: PGlite; backend: Backend; fresh: boolean; applied: string[]; content?: 'real' | 'invented' };
 
 export class LocalDataBusyError extends Error {}
 
@@ -77,7 +78,7 @@ function writeMarker(file: string, m: LocalMarker) {
  */
 export async function openLocalDb(
   dir: string,
-  hooks: { seed: (backend: Backend) => Promise<void>; refresh?: (backend: Backend) => Promise<void> },
+  hooks: { seed: (backend: Backend) => Promise<'real' | 'invented' | void>; refresh?: (backend: Backend) => Promise<void> },
 ): Promise<LocalDb> {
   const root = path.resolve(dir);
   fs.mkdirSync(root, { recursive: true });
@@ -103,16 +104,16 @@ export async function openLocalDb(
         writeMarker(markerFile, { ...marker, migrations: [...marker.migrations, ...applied] });
       }
       if (applied.length && hooks.refresh) await hooks.refresh(backend);
-      return { db, backend, fresh: false, applied };
+      return { db, backend, fresh: false, applied, content: marker.content };
     }
     // New, or a build that never finished: from zero.
     fs.rmSync(dataDir, { recursive: true, force: true });
     db = new PGlite(dataDir);
     const migrations = await applySchema(db);
     const backend = pgliteBackend(db);
-    await hooks.seed(backend);
-    writeMarker(markerFile, { version: 1, seededAt: new Date().toISOString(), migrations });
-    return { db, backend, fresh: true, applied: migrations };
+    const content = (await hooks.seed(backend)) || undefined;
+    writeMarker(markerFile, { version: 1, seededAt: new Date().toISOString(), migrations, ...(content ? { content } : {}) });
+    return { db, backend, fresh: true, applied: migrations, content };
   } catch (e) {
     await db?.close().catch(() => {});
     release();

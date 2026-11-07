@@ -23,6 +23,9 @@ async function lookupRedirect(request: NextRequest, path: string): Promise<Hit> 
   const known = memo.get(path);
   if (known && Date.now() - known.at < MEMO_MS) return known.hit;
   let hit: Hit = null;
+  // Only a definite answer is remembered (a redirect, or the route saying there is none): a lookup that timed out or
+  // failed (a server still seeding its database, for one) is asked again on the next visit, never kept as a miss.
+  let definite = false;
   try {
     const url = new URL('/api/web/redireccion', request.nextUrl.origin);
     url.searchParams.set('ruta', path);
@@ -31,10 +34,12 @@ async function lookupRedirect(request: NextRequest, path: string): Promise<Hit> 
       const body = (await res.json()) as { to?: unknown; status?: unknown };
       const to = safeTarget(body.to);
       hit = to ? { to, status: redirectStatus(body.status) } : null;
+      definite = true;
     }
   } catch {
-    hit = null; // the lookup failed: the address is a 404, as it would have been
+    hit = null; // the lookup failed: the address is a 404 this time, as it would have been
   }
+  if (!definite) return hit;
   if (memo.size >= MEMO_MAX) memo.delete(memo.keys().next().value!);
   memo.set(path, { at: Date.now(), hit });
   return hit;

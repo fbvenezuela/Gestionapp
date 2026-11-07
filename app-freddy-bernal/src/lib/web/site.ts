@@ -2,6 +2,7 @@ import 'server-only';
 import { cache } from 'react';
 import { env, isDemo } from '../env';
 import { rawSettings } from './cache';
+import { REAL_DEMO_BANNER, realContentShown } from './real-site';
 import { normalizeSite, type Site } from './site-settings';
 
 export type { Site, NavLink, PublicChannel, Contact } from './site-settings';
@@ -25,10 +26,13 @@ export function siteBaseUrl(): string {
  * still show (the page's own content decides whether it can). */
 export const getSite = cache(async (): Promise<Site> => {
   const opts = { demo: isDemo(), indexable: env.site.indexable, baseUrl: siteBaseUrl() };
+  let site: Site;
   try {
-    return normalizeSite(await rawSettings(), opts);
+    site = normalizeSite(await rawSettings(), opts);
   } catch (e) {
     console.error('[web] no se pudieron leer los ajustes del sitio; se usan los iniciales:', (e as Error).message);
-    return normalizeSite({}, opts);
+    site = normalizeSite({}, opts);
   }
+  // With the official site's content (D-101) the band always says it is not the official site, whatever its setting.
+  return realContentShown() ? { ...site, demoBanner: REAL_DEMO_BANNER } : site;
 });

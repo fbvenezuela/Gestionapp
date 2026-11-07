@@ -338,6 +338,31 @@ describe('los ajustes del sitio y las redirecciones', () => {
     expect(kept?.value['site.social_accounts']).toEqual(['Verificada por el equipo (demo)', '']);
   });
 
+  it('con el contenido de la web oficial: el nombre, las cuentas, los contactos y la franja no se cambian; el menú sí', async () => {
+    const g = globalThis as unknown as { __fbRealSnapshot?: { value: unknown }; __fbRealSeeded?: string };
+    const before = { snap: g.__fbRealSnapshot, seeded: g.__fbRealSeeded };
+    g.__fbRealSnapshot = { value: { fetchedAt: '2026-11-06T12:00:00.000Z', media: [], items: [] } };
+    g.__fbRealSeeded = 'real';
+    try {
+      as('boss');
+      for (const [key, value] of [
+        ['site.demo_banner', 'Sitio oficial (demo)'],
+        ['site.identity', { name: 'Otra persona (demo)', title: 'Otro cargo (demo)' }],
+        ['site.social_accounts', [{ network: 'x', handle: '@otra', url: 'https://x.com/otra', verified: true, active: true }]],
+        ['site.contacts', [{ label: 'Teléfono (demo)', value: '0414-555-0100', verified: true }]],
+      ] as const) {
+        expect(await site.saveSiteSetting({ key, value }), key).toEqual({ ok: false, error: expect.stringMatching(/no se cambian/) });
+      }
+      ok(await site.saveSiteSetting({ key: 'site.navigation', value: [{ label: 'Inicio', path: '/' }, { label: 'Noticias', path: '/actualidad' }] }));
+      // The invented content again (its seed fell back): nothing is locked.
+      g.__fbRealSeeded = 'invented';
+      ok(await site.saveSiteSetting({ key: 'site.demo_banner', value: 'Versión de prueba (demo).' }));
+    } finally {
+      g.__fbRealSnapshot = before.snap;
+      g.__fbRealSeeded = before.seeded;
+    }
+  });
+
   it('redirecciones: solo hacia esta web, desde una dirección que la web no contesta; sin repetir; quien maneja el sitio', async () => {
     as('admin');
     expect(await site.saveRedirect({ from: '/2024/05/vieja', to: 'https://otro.test/x' })).toEqual({ ok: false, error: expect.stringMatching(/^El destino es una dirección de esta web/) });
