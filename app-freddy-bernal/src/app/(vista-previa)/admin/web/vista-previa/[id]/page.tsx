@@ -137,7 +137,7 @@ async function Body({ item, site }: { item: WebItem; site: Site }) {
       return (
         <>
           {opensWithHero(blocks) ? null : home ? <h1 className="sr-only">{page.data.title}</h1> : <PageIntro title={page.data.title} intro={page.data.excerpt} />}
-          <Blocks blocks={blocks} site={site} media={page.media} />
+          <Blocks blocks={blocks} site={site} media={page.media} preview />
           {!home ? (
             <Container className="pb-14 pt-4">
               <p className="text-[15px] text-text-2">Vista previa de la versión {page.version}</p>
@@ -152,7 +152,7 @@ async function Body({ item, site }: { item: WebItem; site: Site }) {
         municipalityNames(),
         listItems({ kind: 'news', category: news.data.category, limit: 4 }).then((r) => r.items.filter((n) => n.id !== news.id).slice(0, 3)),
       ]);
-      return <NewsArticle item={news} site={site} munis={munis} related={related} />;
+      return <NewsArticle item={news} site={site} munis={munis} related={related} preview />;
     }
     case 'project': {
       const project = item as WebItem<'project'>;
@@ -160,7 +160,7 @@ async function Body({ item, site }: { item: WebItem; site: Site }) {
       const related = project.data.municipalityId
         ? (await listItems({ kind: 'project', municipalityId: project.data.municipalityId, limit: 4 })).items.filter((p) => p.id !== project.id).slice(0, 3)
         : [];
-      return <ProjectFicha item={project} munis={munis} related={related} />;
+      return <ProjectFicha item={project} munis={munis} related={related} preview />;
     }
     case 'episode': {
       const e = item as WebItem<'episode'>;
@@ -170,7 +170,7 @@ async function Body({ item, site }: { item: WebItem; site: Site }) {
           <Container className="pb-20">
             <section className="grid gap-8 rounded-[var(--radius-card)] bg-charcoal p-5 text-on-charcoal sm:p-8 lg:grid-cols-12 lg:items-center lg:gap-12" aria-label="Episodio">
               <div className="lg:col-span-7">
-                <VideoFrame youtubeId={e.data.youtubeId} title={e.data.title} poster={photoOf(e.media, e.data.coverId)} />
+                <VideoFrame youtubeId={e.data.youtubeId} title={e.data.title} poster={photoOf(e.media, e.data.coverId)} preview />
               </div>
               <div className="flex flex-col gap-3 lg:col-span-5">
                 <EpisodeMeta item={e} className="text-on-charcoal" />
@@ -191,7 +191,7 @@ async function Body({ item, site }: { item: WebItem; site: Site }) {
           <Container className="pb-20">
             <ul className="flex flex-col gap-4">
               <li>
-                <DocumentRow item={doc} />
+                <DocumentRow item={doc} preview />
               </li>
             </ul>
           </Container>
@@ -220,7 +220,7 @@ async function Body({ item, site }: { item: WebItem; site: Site }) {
         <>
           <PageIntro eyebrow="Atención ciudadana" title="Preguntas frecuentes" intro="Así se ve la pregunta." />
           <Container className="pb-20">
-            <FaqView items={[f]} />
+            <FaqView items={[f]} preview />
           </Container>
         </>
       );

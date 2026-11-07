@@ -10,7 +10,9 @@ export type { BlockContext, BlockData } from './types';
 // The renderer of the website's pages (design §3): each visible block in its order, every block type of
 // src/lib/web/blocks.ts with its own component. A hero that opens the page is the page's h1 (the page then draws no
 // other h1); every other block title is an h2. Blocks never receive HTML: their data was checked by the schema when the
-// item was published and read (public.ts), text is escaped by React and links pass safeHref.
+// item was published and read (public.ts), text is escaped by React and links pass safeHref. On the public site a
+// missing photo, video, file or «por completar» text draws nothing; only the administrator's preview (`preview`, passed
+// by /admin/web/vista-previa) draws their placeholders.
 
 export function BlockView({ block, ctx }: { block: Block; ctx: BlockContext }) {
   switch (block.type) {
@@ -54,7 +56,20 @@ export function opensWithHero(blocks: Block[]): boolean {
   return blocks.find((b) => b.visible)?.type === 'hero';
 }
 
-export function Blocks({ blocks, site, media, h1FromHero = true }: { blocks: Block[]; site: Site; media: Record<string, FrozenMedia>; h1FromHero?: boolean }) {
+export function Blocks({
+  blocks,
+  site,
+  media,
+  h1FromHero = true,
+  preview = false,
+}: {
+  blocks: Block[];
+  site: Site;
+  media: Record<string, FrozenMedia>;
+  h1FromHero?: boolean;
+  /** The administrator's preview: placeholders for what is missing (never on the public site). */
+  preview?: boolean;
+}) {
   const visible = blocks.filter((b) => b.visible);
   return (
     <>
@@ -62,7 +77,7 @@ export function Blocks({ blocks, site, media, h1FromHero = true }: { blocks: Blo
         <BlockView
           key={block.id}
           block={block}
-          ctx={{ site, media, first: i === 0, heading: h1FromHero && i === 0 && block.type === 'hero' ? 'h1' : 'h2' }}
+          ctx={{ site, media, first: i === 0, heading: h1FromHero && i === 0 && block.type === 'hero' ? 'h1' : 'h2', preview }}
         />
       ))}
     </>

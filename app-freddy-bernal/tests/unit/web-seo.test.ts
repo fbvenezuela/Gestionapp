@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeSite, type Site } from '@/lib/web/site-settings';
 import {
-  DEFAULT_OG_IMAGE, clip, describe as description, jsonLdHtml, newsArticleJsonLd, organizationJsonLd, pageMetadata, pageTitle, personJsonLd,
+  DEFAULT_OG_IMAGE, clip, defaultDescription, describe as description, jsonLdHtml, newsArticleJsonLd, organizationJsonLd, pageMetadata, pageTitle, personJsonLd,
   robotsFile, robotsMeta, siteTitle, websiteJsonLd,
 } from '@/lib/web/seo';
 import { BASE_SECURITY_HEADERS, OSM_TILE_ORIGINS, PUBLIC_PERMISSIONS_POLICY, TURNSTILE_ORIGIN, YOUTUBE_EMBED_ORIGIN, publicCsp, publicSources, securityHeaderRules } from '@/lib/web/headers';
@@ -34,6 +34,13 @@ describe('títulos y descripciones', () => {
 
   it('siteTitle: «Nombre, cargo» con el cargo en minúscula inicial', () => {
     expect(siteTitle({ name: 'Ana Pérez', title: 'Gobernadora de Prueba' })).toBe('Ana Pérez, gobernadora de Prueba');
+  });
+
+  it('la descripción por defecto: la versión de prueba nunca se llama «sitio oficial»', () => {
+    const name = { name: 'Ana Pérez', title: 'Gobernadora de Prueba' };
+    expect(defaultDescription({ ...name, demo: true })).toBe('Ana Pérez, gobernadora de Prueba. Noticias, obras y atención ciudadana.');
+    expect(defaultDescription({ ...name, demo: false })).toBe('Sitio oficial de Ana Pérez, gobernadora de Prueba. Noticias, obras y atención ciudadana.');
+    expect(pageMetadata({ title: 'A', path: '/a' }, site({}, { demo: true })).description).not.toMatch(/sitio oficial/i);
   });
 
   it('clip y describe cortan en una palabra y en una línea', () => {

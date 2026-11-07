@@ -7,7 +7,8 @@ import { cn } from '@/lib/cn';
 // Photos of the media library on the public website (design §1, §2): next/image (AVIF/WebP of the right size, lazy
 // below the fold) with the alternative text the library requires, the focal point the editor chose as the crop's center
 // (object-position) and `sizes` so a phone never downloads a desktop photo. There are no photos in the repository
-// (public repo, D-95): a missing photo is an editorial placeholder, never a stock or invented picture.
+// (public repo, D-95). A missing photo draws nothing on the public site (the layout around it does without); only the
+// administrator's preview draws the editorial placeholder (`placeholder` / `preview`), so editors see what is missing.
 
 export const PLACEHOLDER_TEXT = 'Foto por subir desde el administrador';
 
@@ -41,20 +42,21 @@ export function PhotoPlaceholder({ className, label = PLACEHOLDER_TEXT }: { clas
   );
 }
 
-/** A photo filling its frame (the frame sets the shape: aspect ratio and corners), or the placeholder. */
+/** A photo filling its frame (the frame sets the shape: aspect ratio and corners); without one, nothing, or the
+ * placeholder in the administrator's preview. */
 export function MediaImage({
   media,
   sizes,
   className,
   eager = false,
-  placeholder = true,
+  placeholder = false,
 }: {
   media: FrozenMedia | null;
   sizes: string;
   className?: string;
   /** The page's main photo (above the fold): loaded first. */
   eager?: boolean;
-  /** Without a photo: the placeholder (true) or nothing (false). */
+  /** Without a photo: the placeholder (the administrator's preview) or nothing (the public site, the default). */
   placeholder?: boolean;
 }) {
   if (!media) return placeholder ? <PhotoPlaceholder className={className} /> : null;
@@ -75,25 +77,29 @@ export function MediaImage({
   );
 }
 
-/** A photo with its caption and credit (the caption from the block, else the library's). */
+/** A photo with its caption and credit (the caption from the block, else the library's). Without the photo, nothing
+ * on the public site (not even the caption); the placeholder in the administrator's preview. */
 export function Figure({
   media,
   caption,
   sizes,
   frameClass,
   className,
+  preview = false,
 }: {
   media: FrozenMedia | null;
   caption?: string;
   sizes: string;
   frameClass: string;
   className?: string;
+  preview?: boolean;
 }) {
+  if (!media && !preview) return null;
   const text = caption || media?.caption || '';
   const credit = media?.credit || '';
   return (
     <figure className={className}>
-      <MediaImage media={media} sizes={sizes} className={frameClass} />
+      <MediaImage media={media} sizes={sizes} className={frameClass} placeholder={preview} />
       {text || credit ? (
         <figcaption className="mt-3 text-[15px] leading-relaxed text-text-2">
           {text}

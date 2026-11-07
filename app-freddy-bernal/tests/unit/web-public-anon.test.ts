@@ -101,8 +101,8 @@ describe('lo publicado, como anon', () => {
 
   it('ajustes públicos, redirecciones internas, 29 municipios, 10 categorías y lo atendido sin datos de nadie', async () => {
     const s = await anon((sql) => publicSettings(sql));
-    expect(s['site.demo_banner']).toBe('Versión de prueba: el contenido es inventado.');
-    // The accounts of the diagnosis (docs/diagnostico.md §8), all «por confirmar»: the site decides what to show.
+    expect(s['site.demo_banner']).toBe('Versión de prueba. El contenido es de ejemplo.');
+    // The official accounts of the client's config, none verified: the site decides what to show.
     const accounts = s['site.social_accounts'] as { verified: boolean }[];
     expect(accounts.length).toBeGreaterThan(0);
     expect(accounts.every((a) => a.verified === false)).toBe(true);

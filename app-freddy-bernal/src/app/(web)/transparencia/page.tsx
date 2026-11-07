@@ -12,10 +12,10 @@ import { DOCUMENT_CATEGORIES } from '@/lib/web/schema';
 import { pageMetadata } from '@/lib/web/seo';
 import { getSite } from '@/lib/web/site';
 
-// Transparencia (design §2): the documents of the administration (reports, bulletins, rules…) with their date, version
-// and category, searchable; and the figures of citizen attention with how each is calculated, from the citizen schema's
-// public function (counts only: no data of any person, denuncias only in the totals). Empty states when there is no
-// data yet.
+// Transparencia (design §2): the documents of the administration (reports, bulletins, rules) with their date, version
+// and category, searchable; and the figures of citizen attention with the definition of each, from the citizen schema's
+// public function (counts only: no data of any person, denuncias only in the totals). Plain empty states when there is
+// no data yet.
 export const revalidate = 60;
 
 const PER_PAGE = 15;
@@ -32,7 +32,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Search 
   return pageMetadata(
     {
       title: 'Transparencia',
-      description: 'Los documentos de la gestión, con su fecha y su versión, y las cifras de la atención ciudadana con cómo se calculan.',
+      description: 'Documentos de la gestión y estadísticas de la atención ciudadana.',
       path: withQuery('/transparencia', { pagina: page }),
       noindex: !!textParam(sp.q),
     },
@@ -61,13 +61,13 @@ export default async function TransparencyPage({ searchParams }: { searchParams:
       <PageIntro
         eyebrow="Transparencia"
         title="Documentos y cifras"
-        intro="Los documentos de la gestión, con su fecha y su versión, y las cifras de la atención ciudadana con cómo se calcula cada una. Sin datos de ninguna persona."
+        intro="Documentos de la gestión y estadísticas de la atención ciudadana."
       />
       <Container className="pb-8">
         <section aria-labelledby="documentos">
           <SectionHeading id="documentos" title="Documentos" />
           <FilterForm action="/transparencia" label="Buscar documentos" search className="grid gap-4 sm:grid-cols-[2fr_1fr_auto] sm:items-end">
-            <InputField id="q" name="q" type="search" label="Buscar" value={q} placeholder="Por ejemplo: informe, semanario" />
+            <InputField id="q" name="q" type="search" label="Buscar" value={q} placeholder="Ejemplo: informe" />
             <SelectField id="f-categoria" name="categoria" label="Categoría" value={category} allLabel="Todas" options={CATEGORY_KEYS.map((k) => ({ value: k, label: DOCUMENT_CATEGORIES[k] }))} />
             {period !== 'todo' ? <input type="hidden" name="periodo" value={period} /> : null}
             <button type="submit" className={buttonClass('olive')}>
@@ -89,8 +89,8 @@ export default async function TransparencyPage({ searchParams }: { searchParams:
               ))}
             </ul>
           ) : (
-            <EmptyState title={searching ? 'No hay documentos con esa búsqueda.' : 'Todavía no hay documentos publicados.'}>
-              {searching ? 'Prueba con otra palabra o quita el filtro.' : 'Cada documento aparece aquí, con su fecha y su versión, cuando el equipo lo publica.'}
+            <EmptyState title={searching ? 'No hay documentos con esa búsqueda.' : 'Aún no hay documentos publicados.'}>
+              {searching ? 'Intente con otra palabra o quite el filtro.' : null}
             </EmptyState>
           )}
           <Pagination page={page} pages={pages} hrefFor={docsHref} label="Páginas de documentos" />
@@ -101,8 +101,8 @@ export default async function TransparencyPage({ searchParams }: { searchParams:
         <Container>
           <SectionHeading
             id="cifras"
-            title="Cifras de la atención ciudadana"
-            intro="Cuántas solicitudes llegan, cuántas se resuelven y en cuánto tiempo. Se calculan solas a partir de los casos, sin datos de nadie."
+            title="Estadísticas de atención ciudadana"
+            intro="Solicitudes recibidas y atendidas a través de este sitio. No incluyen datos personales."
           />
           <ViewTabs
             label="Período de las cifras"
@@ -115,11 +115,11 @@ export default async function TransparencyPage({ searchParams }: { searchParams:
           {stats && hasFigures ? (
             <StatsView stats={stats} />
           ) : (
-            <EmptyState title="Todavía no hay solicitudes en este período.">Las cifras aparecen aquí en cuanto llegan las primeras.</EmptyState>
+            <EmptyState title="No hay solicitudes en este período." />
           )}
-          <DemoNote show={site.demo && hasFigures}>En la versión de prueba estas cifras salen de solicitudes inventadas.</DemoNote>
+          <DemoNote show={site.demo && hasFigures}>En la versión de prueba, las cifras se calculan con solicitudes de ejemplo.</DemoNote>
           <div className="mt-14">
-            <h3 className="mb-4 text-xl font-semibold text-text">Cómo se calcula cada cifra</h3>
+            <h3 className="mb-4 text-xl font-semibold text-text">Definiciones</h3>
             <StatDefinitions />
           </div>
         </Container>

@@ -14,4 +14,7 @@ export type BlockContext = {
   heading: 'h1' | 'h2';
   /** The first block of the page (its photo loads first). */
   first: boolean;
+  /** The administrator's preview: what is still missing (a photo, a video, a file, a «por completar» text) shows as its
+   * placeholder so editors see it. Never on the public site, where a missing piece simply draws nothing. */
+  preview?: boolean;
 };

@@ -226,7 +226,7 @@ export function RichTextEditor({ label, hint, value, onChange, readOnly, require
       ) : null}
       <details className="rounded-[var(--radius-control)] border border-border bg-surface">
         <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-semibold">Así se ve en la web</summary>
-        <div className="border-t border-border bg-ivory p-4 text-text">{nodes.length ? <RichText nodes={nodes} /> : <p className="text-sm text-text-2">Todavía no hay texto.</p>}</div>
+        <div className="border-t border-border bg-ivory p-4 text-text">{nodes.length ? <RichText nodes={nodes} preview /> : <p className="text-sm text-text-2">Todavía no hay texto.</p>}</div>
       </details>
     </fieldset>
   );

@@ -9,13 +9,13 @@ import { cardClass } from './ui';
 // category or municipality). Synchronous: tests render it with fake figures.
 
 export const STAT_DEFINITIONS = [
-  { term: 'Recibidas', text: 'Las solicitudes que llegaron por la web en el período, de los seis tipos. No cuentan las marcadas como spam ni las que se unieron a otra por ser el mismo caso.' },
-  { term: 'Resueltas', text: 'Las que el equipo marcó como resueltas dentro del período, con su justificación.' },
-  { term: 'Pendientes', text: 'Las que siguen abiertas al terminar el período: todas las que no están resueltas, cerradas ni marcadas «no procede».' },
-  { term: 'Vencidas', text: 'De las pendientes, las que ya pasaron la fecha comprometida para atenderlas.' },
-  { term: 'Primera respuesta', text: 'El tiempo promedio entre que llega una solicitud del período y la primera respuesta del equipo (un mensaje a la persona o un cambio de estado).' },
-  { term: 'Resolución', text: 'El tiempo promedio entre que llegó una solicitud y que quedó resuelta, para las resueltas en el período.' },
-  { term: 'Por categoría y por municipio', text: 'Las recibidas del período, sin las denuncias: una denuncia nunca se muestra por lugar ni por tema.' },
+  { term: 'Recibidas', text: 'Solicitudes recibidas en el período. No incluye las descartadas como spam ni las unidas a otra por ser el mismo caso.' },
+  { term: 'Resueltas', text: 'Solicitudes marcadas como resueltas en el período.' },
+  { term: 'Pendientes', text: 'Solicitudes abiertas al cierre del período (no resueltas, no cerradas y no marcadas «no procede»).' },
+  { term: 'Vencidas', text: 'Solicitudes pendientes que superaron la fecha prevista de atención.' },
+  { term: 'Primera respuesta', text: 'Tiempo promedio entre la llegada de la solicitud y la primera respuesta (un mensaje o un cambio de estado).' },
+  { term: 'Resolución', text: 'Tiempo promedio entre la llegada y la resolución, para las resueltas en el período.' },
+  { term: 'Por categoría y por municipio', text: 'Solicitudes recibidas, sin las denuncias, que por confidencialidad no se muestran por lugar ni por tema.' },
 ] as const;
 
 function Kpi({ label, value, hint, tone = 'neutral' }: { label: string; value: string; hint?: string; tone?: 'neutral' | 'ok' | 'warn' }) {

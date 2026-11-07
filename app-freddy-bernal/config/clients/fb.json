@@ -18,6 +18,7 @@
    "#Venezuela"
   ],
   "programName": "Reporte Bernal 2.0",
+  "weeklyName": "Semanario El Informativo Táchira",
   "logoText": "FB",
   "themeColor": "#7F8630"
  },
@@ -956,7 +957,7 @@
      "path": "/gestion"
     },
     {
-     "label": "Actualidad",
+     "label": "Noticias",
      "path": "/actualidad"
     },
     {
@@ -1002,61 +1003,70 @@
      "url": "https://www.youtube.com/@FreddyBernal.oficial",
      "verified": false,
      "active": true,
-     "note": "Canal activo: ahí sale Reporte Bernal (diagnóstico, 06/11/2026)."
+     "note": "Canal activo del gobernador desde enero de 2026: ahí sale Reporte Bernal (revisado el 06/11/2026)."
     },
     {
      "network": "instagram",
      "label": "Instagram",
-     "handle": "@freddybernalven",
-     "url": "https://www.instagram.com/freddybernalven/",
+     "handle": "@freddybernal_ve",
+     "url": "https://www.instagram.com/freddybernal_ve/",
      "verified": false,
      "active": true,
-     "note": "Enlazada en la web vieja."
+     "note": "La enlazan las descripciones de Reporte Bernal en YouTube desde agosto de 2026 (revisado el 06/11/2026)."
+    },
+    {
+     "network": "tiktok",
+     "label": "TikTok",
+     "handle": "@freddybernal_ve",
+     "url": "https://www.tiktok.com/@freddybernal_ve",
+     "verified": false,
+     "active": true,
+     "note": "La enlazan las descripciones de Reporte Bernal en YouTube desde agosto de 2026 (revisado el 06/11/2026)."
     },
     {
      "network": "x",
      "label": "X",
-     "handle": "@FreddyBernal",
-     "url": "https://x.com/FreddyBernal",
+     "handle": "@freddybernal_ve",
+     "url": "https://x.com/freddybernal_ve",
      "verified": false,
      "active": true,
-     "note": "Enlazada en la web vieja."
+     "note": "La enlazan las descripciones de Reporte Bernal en YouTube desde agosto de 2026 (revisado el 06/11/2026)."
     },
     {
      "network": "facebook",
      "label": "Facebook",
      "handle": "Freddy Alirio Bernal Rosales",
-     "url": "https://www.facebook.com/Freddy-Alirio-Bernal-Rosales-100079248706206",
+     "url": "https://www.facebook.com/p/Freddy-Alirio-Bernal-Rosales-100079248706206/",
      "verified": false,
      "active": true,
-     "note": "Enlazada en la web vieja; según el diagnóstico es un perfil personal, no una página."
-    },
-    {
-     "network": "tiktok",
-     "label": "TikTok",
-     "handle": "@freddybernalr",
-     "url": "https://www.tiktok.com/@freddybernalr",
-     "verified": false,
-     "active": true,
-     "note": "Escrita en el banner de la web vieja, sin enlace."
-    },
-    {
-     "network": "tiktok",
-     "label": "TikTok",
-     "handle": "@freddybernalvzla",
-     "url": "https://www.tiktok.com/@freddybernalvzla",
-     "verified": false,
-     "active": true,
-     "note": "Cuenta secundaria según el diagnóstico."
+     "note": "El mismo perfil que enlazan la web vieja y las descripciones de Reporte Bernal en YouTube."
     },
     {
      "network": "threads",
      "label": "Threads",
-     "handle": "@freddybernalven",
-     "url": "https://www.threads.com/@freddybernalven",
+     "handle": "@freddybernal_ve",
+     "url": "https://www.threads.com/@freddybernal_ve",
      "verified": false,
      "active": true,
-     "note": "Según el diagnóstico (M01)."
+     "note": "El mismo usuario de Instagram; su perfil dice «Cuenta Oficial de Freddy Bernal» (revisado el 06/11/2026)."
+    },
+    {
+     "network": "instagram",
+     "label": "Instagram (cuenta anterior)",
+     "handle": "@freddybernalven",
+     "url": "https://www.instagram.com/freddybernalven/",
+     "verified": false,
+     "active": false,
+     "note": "La enlaza la web vieja; las descripciones de YouTube la cambiaron por @freddybernal_ve en agosto de 2026. No se enlaza."
+    },
+    {
+     "network": "tiktok",
+     "label": "TikTok (cuenta secundaria)",
+     "handle": "@freddybernalvzla",
+     "url": "https://www.tiktok.com/@freddybernalvzla",
+     "verified": false,
+     "active": false,
+     "note": "Cuenta secundaria según el diagnóstico; las descripciones de YouTube del gobernador no la enlazan. No se enlaza."
     },
     {
      "network": "youtube",
@@ -1065,7 +1075,7 @@
      "url": "https://www.youtube.com/@FreddyBernalOficial",
      "verified": false,
      "active": false,
-     "note": "Sin videos nuevos desde hace meses: no se enlaza y nunca es el canal del programa."
+     "note": "Sin videos nuevos desde enero de 2026: no se enlaza y nunca es el canal del programa."
     },
     {
      "network": "mastodon",
@@ -1098,9 +1108,9 @@
     "handle": "@FreddyBernal.oficial",
     "url": "https://www.youtube.com/@FreddyBernal.oficial",
     "verified": false,
-    "note": "El canal activo del programa. El canal viejo (@FreddyBernalOficial) no se usa."
+    "note": "El canal activo del programa desde enero de 2026. El canal anterior (@FreddyBernalOficial) no se usa."
    },
-   "site.demo_banner": "Versión de prueba: el contenido es inventado.",
+   "site.demo_banner": "Versión de prueba. El contenido es de ejemplo.",
    "site.emergency_notice": "Esto no es un servicio de emergencias: si hay una emergencia o una vida en peligro, llama a los servicios de emergencia.",
    "site.denuncia_notice": "Tu denuncia es privada: solo la leen el operador de denuncias y la coordinación de atención. Si es un delito, acude también a las autoridades competentes."
   },
@@ -1109,15 +1119,15 @@
     "slug": "inicio",
     "draft": {
      "title": "Inicio",
-     "excerpt": "La gestión del gobernador del Táchira, las noticias, el Reporte Bernal y la participación ciudadana.",
+     "excerpt": "Portada del sitio del gobernador del estado Táchira.",
      "blocks": [
       {
        "id": "portada",
        "type": "hero",
        "visible": true,
        "data": {
-        "title": "¡Saludos, Táchira!",
-        "text": "Por completar desde el administrador: un mensaje corto del gobernador.",
+        "title": "Freddy Bernal",
+        "text": "Gobernador del estado Táchira",
         "mediaId": null
        }
       },
@@ -1126,7 +1136,7 @@
        "type": "participation",
        "visible": true,
        "data": {
-        "title": "¿Qué quieres hacer?"
+        "title": "Atención ciudadana"
        }
       },
       {
@@ -1134,7 +1144,7 @@
        "type": "indicators",
        "visible": true,
        "data": {
-        "title": "Lo hecho",
+        "title": "Gestión en cifras",
         "ids": []
        }
       },
@@ -1143,7 +1153,7 @@
        "type": "attended",
        "visible": true,
        "data": {
-        "title": "Lo atendido",
+        "title": "Casos atendidos",
         "limit": 3
        }
       },
@@ -1170,7 +1180,7 @@
        "type": "news",
        "visible": true,
        "data": {
-        "title": "Actualidad",
+        "title": "Últimas publicaciones",
         "limit": 4
        }
       },
@@ -1192,8 +1202,8 @@
       }
      ],
      "seo": {
-      "title": "Freddy Bernal, gobernador del Táchira",
-      "description": "La gestión, las obras, las noticias y el Reporte Bernal del gobernador del Táchira, y la participación ciudadana."
+      "title": "Freddy Bernal, gobernador del estado Táchira",
+      "description": "Noticias de la gestión de Freddy Bernal, gobernador del estado Táchira. Obras, Reporte Bernal y atención ciudadana."
      }
     }
    },
@@ -1201,7 +1211,7 @@
     "slug": "gobernador",
     "draft": {
      "title": "El gobernador",
-     "excerpt": "Freddy Bernal, gobernador del Táchira.",
+     "excerpt": "Gobernador del estado Táchira",
      "blocks": [
       {
        "id": "portada",
@@ -1209,7 +1219,7 @@
        "visible": true,
        "data": {
         "title": "Freddy Bernal",
-        "text": "Gobernador del Táchira.",
+        "text": "Gobernador del estado Táchira",
         "mediaId": null
        }
       },
@@ -1226,7 +1236,7 @@
          },
          {
           "type": "pending",
-          "text": "Por completar desde el administrador: una biografía verificada, con sus fuentes. No se publica nada que no esté confirmado."
+          "text": "Por completar: la biografía verificada, con sus fuentes. Solo se publica lo confirmado."
          },
          {
           "type": "heading",
@@ -1236,15 +1246,6 @@
          {
           "type": "pending",
           "text": "Por completar: los cargos y sus fechas, verificados."
-         },
-         {
-          "type": "heading",
-          "level": 2,
-          "text": "Prioridades de la gestión"
-         },
-         {
-          "type": "pending",
-          "text": "Por completar: las prioridades que apruebe el equipo."
          }
         ]
        }
@@ -1254,14 +1255,15 @@
        "type": "documents",
        "visible": true,
        "data": {
-        "title": "Kit de prensa",
-        "ids": []
+        "title": "Material para la prensa",
+        "ids": [],
+        "category": "prensa"
        }
       }
      ],
      "seo": {
-      "title": "Quién es Freddy Bernal, gobernador del Táchira",
-      "description": "Quién es Freddy Bernal, gobernador del estado Táchira, Venezuela: biografía, trayectoria y prioridades de su gestión."
+      "title": "Biografía de Freddy Bernal",
+      "description": "Biografía y trayectoria de Freddy Bernal, gobernador del estado Táchira."
      }
     }
    },
