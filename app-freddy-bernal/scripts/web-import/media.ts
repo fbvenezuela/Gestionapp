@@ -171,8 +171,9 @@ export async function fetchPhoto(http: BytesSource, want: PhotoWant): Promise<Fe
       continue;
     }
     if (!bytes) continue;
-    // Out of Vercel: the library's own limit (10 MB), not the 4 MB of a request.
-    const checked = checkWebMediaFile({ kind: 'image', bytes }, undefined);
+    // Not an upload: the library's own limit (10 MB), not the 4 MB of a request to Vercel. An empty platform, never
+    // `undefined`: that one falls back to process.env.VERCEL, and a build on Vercel would refuse every photo over 4 MB.
+    const checked = checkWebMediaFile({ kind: 'image', bytes }, '');
     if (!checked.ok) {
       last = { ok: false, reason: checked.status === 415 ? 'unsupported' : checked.status === 413 ? 'too_big' : /pequeña/.test(checked.error) ? 'too_small' : 'unreadable' };
       continue;

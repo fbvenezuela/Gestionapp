@@ -48,11 +48,14 @@ export async function seedWebPeople(ctx: SeedCtx): Promise<void> {
   }
 }
 
-export async function seedWebContent(ctx: SeedCtx): Promise<void> {
+/** `inventedWebItems: false` leaves out the invented web content (the official site's real one comes after:
+ * seed-parts/web-real.ts) and `publicAttended: false` the public «lo atendido» of the invented cases; both default to
+ * true. The citizen requests are always seeded. */
+export async function seedWebContent(ctx: SeedCtx, opts: { inventedWebItems?: boolean; publicAttended?: boolean } = {}): Promise<void> {
   const munis = new Map((await ctx.sql.query<{ name: string; id: string }>(`select name, id from public.territories where kind = 'municipality'`)).map((m) => [m.name, m.id]));
   const muni = (name: string) => munis.get(name) ?? (() => { throw new Error(`demo web: municipio ${name}`); })();
-  const projects = await seedItems(ctx, muni);
-  await seedRequests(ctx, muni, projects);
+  const projects = opts.inventedWebItems === false ? new Map<string, string>() : await seedItems(ctx, muni);
+  await seedRequests(ctx, muni, projects, { attended: opts.publicAttended !== false });
 }
 
 // --- Content ---------------------------------------------------------------------------------------------------------
@@ -185,7 +188,7 @@ const RESOLVED: Record<string, string> = {
   otros: 'El equipo atendió la solicitud (demo).',
 };
 
-async function seedRequests(ctx: SeedCtx, muni: (name: string) => string, projects: Map<string, string>): Promise<void> {
+async function seedRequests(ctx: SeedCtx, muni: (name: string) => string, projects: Map<string, string>, opts: { attended: boolean }): Promise<void> {
   const { sql, ids, today } = ctx;
   const now = Date.now();
   const year = today.year;
@@ -336,7 +339,7 @@ async function seedRequests(ctx: SeedCtx, muni: (name: string) => string, projec
       const c = sealContact({ name: `Vecina de prueba ${n} (demo)`, email: `vecina${n}@demo.test`, phone: r.contact === 'email' ? '' : `+58 000 000 ${String(n).padStart(4, '0')}`, channel: r.contact });
       contacts.push({ id: stableId(`contact:${i}`), request_id: id, name_enc: c.name, email_enc: c.email, phone_enc: c.phone, preferred_channel: c.channel, created_at: when(0) });
     }
-    if (r.attended && resolvedEv) {
+    if (r.attended && resolvedEv && opts.attended) {
       const pub = stableId(`attended:${i}`);
       attended.push({
         id: pub, request_id: id, type: r.type, category_id: denuncia ? null : cat.id, municipality_id: r.muni ? muni(r.muni) : null,

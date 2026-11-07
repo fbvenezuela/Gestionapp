@@ -36,9 +36,16 @@ export { WEB_DEMO_USERS };
 
 /**
  * The demo's invented data. `webContent`: also the public website's content and the ~60 citizen requests
- * (seed-parts/web.ts), what the demo server shows; the RLS tests start without them.
+ * (seed-parts/web.ts), what the demo server shows; the RLS tests start without them. With the official site's real
+ * content (src/lib/web/real-site.ts, seeded afterwards by seed-parts/web-real.ts) the demo server passes
+ * `inventedWebItems: false` (no invented news, projects, episodes…) and `publicAttended: false` (no invented case on
+ * the public pages); the invented citizen requests stay for the attention desk.
  */
-export async function seedDemo(sql: Sql, tz = 'America/Caracas', opts: { webContent?: boolean } = {}): Promise<Record<DemoUserKey, string>> {
+export async function seedDemo(
+  sql: Sql,
+  tz = 'America/Caracas',
+  opts: { webContent?: boolean; inventedWebItems?: boolean; publicAttended?: boolean } = {},
+): Promise<Record<DemoUserKey, string>> {
   const ids = {} as Record<DemoUserKey, string>;
   for (const u of TEAM_DEMO_USERS) {
     await sql.query(`insert into public.invitations (email, full_name, roles) values ($1, $2, $3::public.app_role[])`, [
@@ -70,7 +77,7 @@ export async function seedDemo(sql: Sql, tz = 'America/Caracas', opts: { webCont
   await seedRedes(ctx);
   await seedOffice(ctx);
   await seedWebPeople(ctx);
-  if (opts.webContent) await seedWebContent(ctx);
+  if (opts.webContent) await seedWebContent(ctx, { inventedWebItems: opts.inventedWebItems, publicAttended: opts.publicAttended });
 
   return ids;
 }

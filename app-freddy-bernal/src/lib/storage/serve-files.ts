@@ -1,7 +1,10 @@
 import 'server-only';
+import path from 'node:path';
 import { env } from '../env';
+import { REAL_SITE, realSiteDir } from '../web/real-site';
 import { SANDBOX_HEADERS } from './thumbs';
 import { bucketStore, KEY_PATTERN, mimeOfKey, privateSignedUrl, publicFileUrl } from './buckets';
+import { insideFolder, readIfExists } from './local-files';
 import { downloadGate, type ScanStatus } from './scanner';
 
 // Serving the website's files (design §6). Private ones only after the caller decided who may see them (the staff's
@@ -45,11 +48,20 @@ export async function servePrivateFile(f: { storageKey: string; scanStatus: Scan
   return new Response(bytes as Uint8Array<ArrayBuffer>, { status: 200, headers });
 }
 
-/** The public library's file from this machine's folder: it never changes, so browsers and the CDN keep it a year. */
+/** A file of the official site's content shipped with the deployment (.real-site/media, written by the build:
+ * src/lib/web/real-site.ts), read-only; null when there is none. The key was checked: it never leaves that folder. */
+async function realSiteFile(key: string): Promise<Uint8Array | null> {
+  const file = insideFolder(path.join(realSiteDir(), REAL_SITE.media), key);
+  return file ? readIfExists(file) : null;
+}
+
+/** The public library's file from this machine's folder: it never changes, so browsers and the CDN keep it a year. The
+ * official site's photos and PDFs of the demo come from the deployment's own folder, so a server whose database has not
+ * started yet serves them too. */
 export async function servePublicFile(key: string): Promise<Response> {
   if (!KEY_PATTERN['web-public'].test(key)) return new Response('No encontrado', { status: 404 });
   if (env.dataMode === 'supabase') return Response.redirect(publicFileUrl(key), 308);
-  const bytes = await bucketStore('web-public').read(key);
+  const bytes = (await bucketStore('web-public').read(key)) ?? (await realSiteFile(key));
   if (!bytes) return new Response('No encontrado', { status: 404, headers: { 'Cache-Control': 'public, max-age=60' } });
   const mime = mimeOfKey(key);
   const headers: Record<string, string> = {
