@@ -5,8 +5,19 @@
 import { createHash, randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { REAL_SITE, readRealSnapshot, type RealSnapshot } from '../../src/lib/web/real-site';
+import { REAL_SITE, snapshotFromText, type RealSnapshot } from '../../src/lib/web/real-site';
 import type { BytesSource } from '../web-import/media';
+
+/** The snapshot in a folder (.real-site/ or the cache's copy), checked; null when it is missing or broken. */
+export function readRealSnapshot(dir: string): RealSnapshot | null {
+  let raw: string;
+  try {
+    raw = fs.readFileSync(path.join(dir, REAL_SITE.file), 'utf8');
+  } catch {
+    return null;
+  }
+  return snapshotFromText(raw);
+}
 
 const DAY = 86_400_000;
 

@@ -1,7 +1,6 @@
 import 'server-only';
 import path from 'node:path';
 import { env } from '../env';
-import { REAL_SITE, realSiteDir } from '../web/real-site';
 import { SANDBOX_HEADERS } from './thumbs';
 import { bucketStore, KEY_PATTERN, mimeOfKey, privateSignedUrl, publicFileUrl } from './buckets';
 import { insideFolder, readIfExists } from './local-files';
@@ -51,7 +50,8 @@ export async function servePrivateFile(f: { storageKey: string; scanStatus: Scan
 /** A file of the official site's content shipped with the deployment (.real-site/media, written by the build:
  * src/lib/web/real-site.ts), read-only; null when there is none. The key was checked: it never leaves that folder. */
 async function realSiteFile(key: string): Promise<Uint8Array | null> {
-  const file = insideFolder(path.join(realSiteDir(), REAL_SITE.media), key);
+  // Spelled out for the bundler's file tracing (next.config.ts also ships the folder with the public files' route).
+  const file = insideFolder(path.join(process.cwd(), '.real-site', 'media'), key);
   return file ? readIfExists(file) : null;
 }
 

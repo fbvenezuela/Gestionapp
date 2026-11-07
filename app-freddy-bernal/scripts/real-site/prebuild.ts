@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ClientConfig } from '../../src/lib/client-config';
-import { REAL_SITE, parseRealSnapshot, realSiteDir, type RealItem, type RealSnapshot } from '../../src/lib/web/real-site';
+import { REAL_SITE, parseRealSnapshot, type RealItem, type RealSnapshot } from '../../src/lib/web/real-site';
 import type { Fetcher } from '../web-import/wp-client';
 import type { BuildResult } from './build';
 import { buildDecision, programNameOf, readRealSiteConfig } from './settings';
@@ -85,7 +85,7 @@ const mb = (n: number) => `${(n / (1024 * 1024)).toFixed(1)} MB`;
 export async function prebuild(o: PrebuildOptions): Promise<PrebuildResult> {
   const log = o.log ?? ((l: string) => console.log(l));
   const warn = o.warn ?? ((l: string) => console.warn(l));
-  const realDir = realSiteDir(o.appDir);
+  const realDir = path.join(o.appDir, REAL_SITE.dir);
   const block = readRealSiteConfig((o.config.web as { realSite?: unknown }).realSite);
   if (!block.ok && block.error) warn(`[contenido real] ${block.error}`);
   const decision = buildDecision(o.env, block.ok);

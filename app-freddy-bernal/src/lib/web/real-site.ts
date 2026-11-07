@@ -20,6 +20,8 @@ import { parseSnapshot, slug as slugSchema } from './schema';
 //   * Read with fs, never imported (the file does not exist in CI), validated again here, memoized per process.
 // Pure, except loadRealSnapshot (it reads the file once). No Next or server-only imports: the build script uses it too.
 
+// The runtime spells these out as literals (loadRealSnapshot, src/lib/storage/serve-files.ts) for the bundler's file
+// tracing; the build script (scripts/real-site) uses the names.
 export const REAL_SITE = { dir: '.real-site', file: 'snapshot.json', media: 'media' } as const;
 
 /** «1»/«true» → true, «0»/«false» → false, anything else (unset) → null. */
@@ -28,11 +30,6 @@ export function switchOf(v: string | undefined): boolean | null {
   if (s === '1' || s === 'true') return true;
   if (s === '0' || s === 'false') return false;
   return null;
-}
-
-/** The folder of the snapshot (next to the app). */
-export function realSiteDir(cwd: string = process.cwd()): string {
-  return path.join(cwd, REAL_SITE.dir);
 }
 
 /** At runtime: whether the demo seeds the official site's content (the file must exist too). */
@@ -270,14 +267,8 @@ export function parseRealSnapshot(value: unknown): { ok: true; snapshot: RealSna
   return { ok: false, error: i ? `${i.message}${i.path.length ? ` (${i.path.join('.')})` : ''}` : 'no tiene la forma esperada' };
 }
 
-/** The snapshot in a folder, checked; null (and a line in the log) when it is missing or broken. */
-export function readRealSnapshot(dir: string): RealSnapshot | null {
-  let raw: string;
-  try {
-    raw = fs.readFileSync(path.join(dir, REAL_SITE.file), 'utf8');
-  } catch {
-    return null;
-  }
+/** The snapshot's text, checked; null (and a line in the log) when it cannot be read or does not fit. */
+export function snapshotFromText(raw: string): RealSnapshot | null {
   let json: unknown;
   try {
     json = JSON.parse(raw);
@@ -296,12 +287,20 @@ export function readRealSnapshot(dir: string): RealSnapshot | null {
 type Memo = { value: RealSnapshot | null };
 const g = globalThis as unknown as { __fbRealSnapshot?: Memo };
 
-/** The official site's content for this demo server, or null (invented content): read once per process. */
+/** The official site's content for this demo server, or null (invented content): read once per process. The path is
+ * written out in full so the bundler traces exactly that file (a path built from variables makes Turbopack trace the
+ * whole project into every server function). */
 export function loadRealSnapshot(): RealSnapshot | null {
   if (g.__fbRealSnapshot) return g.__fbRealSnapshot.value;
-  const dir = realSiteDir();
-  const on = realModeAtRuntime(process.env, fs.existsSync(path.join(dir, REAL_SITE.file)));
-  const value = on ? readRealSnapshot(dir) : null;
+  const file = path.join(process.cwd(), '.real-site', 'snapshot.json');
+  let value: RealSnapshot | null = null;
+  if (realModeAtRuntime(process.env, fs.existsSync(file))) {
+    try {
+      value = snapshotFromText(fs.readFileSync(file, 'utf8'));
+    } catch {
+      value = null;
+    }
+  }
   g.__fbRealSnapshot = { value };
   return value;
 }

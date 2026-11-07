@@ -11,9 +11,9 @@ import type { RealSiteConfig } from '../../../scripts/real-site/settings';
 import { Deadline, networkSources } from '../../../scripts/real-site/sources';
 import type { Fetcher } from '../../../scripts/web-import/wp-client';
 import { pngOf } from '../../unit/fixtures/web-png';
+import { WP } from './wp';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
-export const WP = JSON.parse(fs.readFileSync(path.join(HERE, 'wp.json'), 'utf8'));
 export const HOME_HTML = fs.readFileSync(path.join(HERE, 'home.html'), 'utf8');
 export const FEED_XML = fs.readFileSync(path.join(HERE, 'feed.xml'), 'utf8');
 
