@@ -285,6 +285,9 @@ test('«Menos movimiento»: sin transiciones ni animaciones (las ruedas de esper
   expect(await duration()).toBeLessThan(0.001);
   await page.goto('/agenda'); // a navigation (the loading skeleton pulses) under reduced motion
   await page.goto('/hoy');
+  // An animation inserted in this very frame (a loading skeleton) is «running» until the next frame, even at 0.01 ms:
+  // let two frames pass, then whatever still runs is a real animation that «Menos movimiento» failed to stop.
+  await page.evaluate(() => new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))));
   const running = await page.evaluate(() =>
     document
       .getAnimations()
