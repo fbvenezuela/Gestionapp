@@ -33,3 +33,7 @@ scripts/web-import/*.json
 
 # Google OAuth client files (client_secret_*.json): never in git. The values go to Vercel / .env.local.
 client_secret*.json
+# Real content of the official site for the demo (REAL_SITE_CONTENT, written by the build's «prebuild»,
+# scripts/real-site): its snapshot, photos and PDFs. Never in git (the repository is public).
+.real-site/
+.real-site.*.tmp/

@@ -7,6 +7,7 @@ import {
   type Attended, type ListFilter, type PublicCategory, type PublishedItem, type Territory,
 } from './public';
 import { publicRequestStats, type PublicStats } from './participation';
+import { realContentToken } from './real-site';
 import type { WebKind } from './schema';
 import { WEB_REVALIDATE, WEB_REVALIDATE_SLOW, WEB_TAG } from './tags';
 
@@ -28,6 +29,11 @@ const plain = <K extends WebKind>(i: PublishedItem<K>): WebItem<K> => ({ ...i, p
 export function isBuilding(): boolean {
   return process.env.NEXT_PHASE === 'phase-production-build';
 }
+
+// Every key carries which content this server shows («invented», or «real:<when it was fetched>»: src/lib/web/real-site.ts):
+// Vercel's data cache can outlive a deployment, and a list cached by the invented demo must never be served by the real
+// one (nor one of an older snapshot).
+const mode = () => realContentToken();
 
 async function read<T>(what: string, fn: () => Promise<T>, empty: T): Promise<T> {
   try {
@@ -56,7 +62,7 @@ const listByKey = cache((key: string): Promise<{ items: WebItem[]; total: number
         const r = await withAnon((sql) => publishedList(sql, f));
         return { items: r.items.map(plain), total: r.total };
       },
-      ['web-list-v1', key],
+      ['web-list-v1', mode(), key],
       { tags: [WEB_TAG.all, WEB_TAG.kind(f.kind)], revalidate: WEB_REVALIDATE },
     ),
     { items: [], total: 0 },
@@ -76,7 +82,7 @@ const itemBySlug = cache((kind: WebKind, slug: string): Promise<WebItem | null> 
         const r = await withAnon((sql) => publishedBySlug(sql, kind, slug));
         return r ? plain(r) : null;
       },
-      ['web-item-v1', kind, slug],
+      ['web-item-v1', mode(), kind, slug],
       { tags: [WEB_TAG.all, WEB_TAG.kind(kind)], revalidate: WEB_REVALIDATE },
     ),
     null,
@@ -91,7 +97,7 @@ export function getItem<K extends WebKind>(kind: K, slug: string): Promise<WebIt
 const itemsByKey = cache((key: string): Promise<WebItem[]> =>
   read(
     'referencias',
-    unstable_cache(async () => (await withAnon((sql) => publishedByIds(sql, key.split(',')))).map(plain), ['web-ids-v1', key], {
+    unstable_cache(async () => (await withAnon((sql) => publishedByIds(sql, key.split(',')))).map(plain), ['web-ids-v1', mode(), key], {
       tags: [WEB_TAG.all],
       revalidate: WEB_REVALIDATE,
     }),
@@ -108,7 +114,7 @@ export function itemsByIds(ids: readonly string[]): Promise<WebItem[]> {
 export const rawSettings = cache((): Promise<Record<string, unknown>> =>
   read(
     'ajustes',
-    unstable_cache(() => withAnon((sql) => publicSettings(sql)), ['web-settings-v1'], { tags: [WEB_TAG.settings], revalidate: WEB_REVALIDATE_SLOW }),
+    unstable_cache(() => withAnon((sql) => publicSettings(sql)), ['web-settings-v1', mode()], { tags: [WEB_TAG.settings], revalidate: WEB_REVALIDATE_SLOW }),
     {},
   ),
 );
@@ -116,7 +122,7 @@ export const rawSettings = cache((): Promise<Record<string, unknown>> =>
 export const getTerritories = cache((): Promise<Territory[]> =>
   read(
     'municipios',
-    unstable_cache(() => withAnon((sql) => publicTerritories(sql)), ['web-territories-v1'], { tags: [WEB_TAG.catalogs], revalidate: WEB_REVALIDATE_SLOW }),
+    unstable_cache(() => withAnon((sql) => publicTerritories(sql)), ['web-territories-v1', mode()], { tags: [WEB_TAG.catalogs], revalidate: WEB_REVALIDATE_SLOW }),
     [],
   ),
 );
@@ -124,7 +130,7 @@ export const getTerritories = cache((): Promise<Territory[]> =>
 export const getRequestCategories = cache((): Promise<PublicCategory[]> =>
   read(
     'categorías',
-    unstable_cache(() => withAnon((sql) => publicRequestCategories(sql)), ['web-categories-v1'], {
+    unstable_cache(() => withAnon((sql) => publicRequestCategories(sql)), ['web-categories-v1', mode()], {
       tags: [WEB_TAG.catalogs],
       revalidate: WEB_REVALIDATE_SLOW,
     }),
@@ -140,7 +146,7 @@ export const getAttended = cache((limit: number): Promise<AttendedItem[]> =>
     'lo atendido',
     unstable_cache(
       async () => (await withAnon((sql) => publicAttended(sql, limit))).map((a) => ({ ...a, publishedAt: iso(a.publishedAt) })),
-      ['web-attended-v1', String(limit)],
+      ['web-attended-v1', mode(), String(limit)],
       { tags: [WEB_TAG.attended], revalidate: WEB_REVALIDATE },
     ),
     [],
@@ -151,7 +157,7 @@ export const getAttended = cache((limit: number): Promise<AttendedItem[]> =>
 export const getStats = cache((from: string | null, to: string | null): Promise<PublicStats | null> =>
   read(
     'cifras',
-    unstable_cache(() => withAnon((sql) => publicRequestStats(sql, from, to)), ['web-stats-v1', from ?? '', to ?? ''], {
+    unstable_cache(() => withAnon((sql) => publicRequestStats(sql, from, to)), ['web-stats-v1', mode(), from ?? '', to ?? ''], {
       tags: [WEB_TAG.stats],
       revalidate: WEB_REVALIDATE_SLOW,
     }),

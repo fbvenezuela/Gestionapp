@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- An INVENTED YouTube feed (videos.xml) for the real-site build's tests: the channel, the videos and every text are
+     made up (demo). -->
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <link rel="self" href="http://www.youtube.com/feeds/videos.xml?playlist_id=UULFdemoCanalDePrueba00001"/>
+ <id>yt:playlist:UULFdemoCanalDePrueba00001</id>
+ <yt:playlistId>UULFdemoCanalDePrueba00001</yt:playlistId>
+ <yt:channelId>UCdemoCanalDePrueba00001</yt:channelId>
+ <title>Videos</title>
+ <author><name>Canal Demo</name><uri>https://www.youtube.com/channel/UCdemoCanalDePrueba00001</uri></author>
+ <published>2026-01-16T01:34:14+00:00</published>
+ <entry>
+  <id>yt:video:demoVideo02</id>
+  <yt:videoId>demoVideo02</yt:videoId>
+  <yt:channelId>UCdemoCanalDePrueba00001</yt:channelId>
+  <title>Segunda parte de prueba | Programa Demo 12</title>
+  <published>2026-10-31T19:47:50+00:00</published>
+  <media:group>
+   <media:title>Segunda parte de prueba | Programa Demo 12</media:title>
+   <media:description>Una descripción inventada (demo) que nombra a Vecina Inventada. Síganos: https://www.instagram.com/cuenta_demo · https://x.com/cuenta_demo · https://www.facebook.com/p/Persona-Demo-100000000000001/</media:description>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:demoVideo01</id>
+  <yt:videoId>demoVideo01</yt:videoId>
+  <yt:channelId>UCdemoCanalDePrueba00001</yt:channelId>
+  <title>Lo que viene esta semana | Programa Demo 12</title>
+  <published>2026-10-31T19:47:50+00:00</published>
+  <media:group>
+   <media:title>Lo que viene esta semana | Programa Demo 12</media:title>
+   <media:description>Suscríbase: https://www.youtube.com/@CanalDemo.oficial?sub_confirmation=1 (demo)</media:description>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:demoVideo03</id>
+  <yt:videoId>demoVideo03</yt:videoId>
+  <yt:channelId>UCdemoCanalDePrueba00001</yt:channelId>
+  <title>PROGRAMA DEMO N°11 // VIERNES DE PRUEBA &amp; MÁS (demo)</title>
+  <published>2026-10-24T21:00:00+00:00</published>
+  <media:group><media:description><![CDATA[Otra descripción inventada (demo) con <etiquetas> & signos.]]></media:description></media:group>
+ </entry>
+ <entry>
+  <id>yt:video:demo_Video4</id>
+  <yt:videoId>demo_Video4</yt:videoId>
+  <yt:channelId>UCdemoCanalDePrueba00001</yt:channelId>
+  <title>Entrevista especial de prueba (demo)</title>
+  <published>2026-10-17T22:00:00+00:00</published>
+  <media:group><media:description>Sin enlaces (demo).</media:description></media:group>
+ </entry>
+ <entry>
+  <id>yt:video:corto</id>
+  <yt:videoId>corto</yt:videoId>
+  <title>Un video con un id que no es de YouTube (demo)</title>
+  <published>2026-10-16T22:00:00+00:00</published>
+ </entry>
+</feed>

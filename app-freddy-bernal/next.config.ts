@@ -21,10 +21,13 @@ const nextConfig: NextConfig = {
     useOffline: true,
   },
   serverExternalPackages: ['@electric-sql/pglite'],
-  // Read from disk when the demo database seeds itself (src/lib/db/migrations.ts, src/lib/db/seed-parts/thumbs.ts):
-  // Vercel ships only what is listed here.
+  // Read from disk when the demo database seeds itself (src/lib/db/migrations.ts, src/lib/db/seed-parts/thumbs.ts) and,
+  // when the build fetched it, the official site's content (.real-site/, src/lib/web/real-site.ts): its snapshot for
+  // every server and its photos and PDFs for the public files' route. Vercel ships only what is listed here; a folder
+  // that is not there (every build but the demo's) matches nothing.
   outputFileTracingIncludes: {
-    '/**': ['./supabase/migrations/*.sql', './supabase/shim/*.sql', './src/lib/db/demo-assets/*.jpg'],
+    '/**': ['./supabase/migrations/*.sql', './supabase/shim/*.sql', './src/lib/db/demo-assets/*.jpg', './.real-site/snapshot.json'],
+    '/api/archivos/web/*': ['./.real-site/media/*'],
   },
   turbopack: {
     rules: {

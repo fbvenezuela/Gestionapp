@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "tsx scripts/real-site/snapshot.mts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
