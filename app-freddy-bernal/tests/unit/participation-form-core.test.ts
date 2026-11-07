@@ -65,10 +65,10 @@ describe('la misma revisión que el servidor, paso por paso', () => {
 
   it('cada error sale en el paso que lo pide, con las palabras del esquema', () => {
     const errors = validate({ ...emptyValues(), type: 'reporte' }, TODAY);
-    expect(errorsOfStep(errors, 1)).toEqual({ categoryId: 'Elige una categoría de la lista.' });
-    expect(errorsOfStep(errors, 2)).toEqual({ municipalityId: 'Elige el municipio.' });
+    expect(errorsOfStep(errors, 1)).toEqual({ categoryId: 'Elija una categoría de la lista.' });
+    expect(errorsOfStep(errors, 2)).toEqual({ municipalityId: 'Elija el municipio.' });
     expect(Object.keys(errorsOfStep(errors, 3)).sort()).toEqual(['description', 'title']);
-    expect(errorsOfStep(errors, 4)).toEqual({ privacyAccepted: 'Lee y acepta el aviso de privacidad para enviar.' });
+    expect(errorsOfStep(errors, 4)).toEqual({ privacyAccepted: 'Para enviar, debe aceptar el aviso de privacidad.' });
     expect(firstErrorStep(errors)).toBe(1);
     expect(firstErrorStep(validate(filled({ title: '' }), TODAY))).toBe(3);
   });
@@ -78,13 +78,13 @@ describe('la misma revisión que el servidor, paso por paso', () => {
     const early = { ...emptyValues(), type: 'denuncia' as const, categoryId: CAT, municipalityId: MUNI, locationReference: 'Al lado de la casa' };
     expect(toInput(early).locationReference).toBe('');
     const reporte = { ...emptyValues(), type: 'reporte' as const, categoryId: CAT, municipalityId: MUNI, point: { lat: 7.7, lng: -72.2 }, locationConsent: false };
-    expect(errorsOfStep(validate(reporte, TODAY), 2)).toEqual({ locationConsent: 'Para guardar tu ubicación hace falta tu permiso.' });
+    expect(errorsOfStep(validate(reporte, TODAY), 2)).toEqual({ locationConsent: 'Para guardar su ubicación se necesita su autorización.' });
     const contact = { ...filled({ title: '' }), channel: 'email', phone: '0276 555 0000' };
-    expect(errorsOfStep(validate(contact, TODAY), 4)).toMatchObject({ contact: 'Escribe el correo, o elige otra forma de contacto.' });
+    expect(errorsOfStep(validate(contact, TODAY), 4)).toMatchObject({ contact: 'Escriba el correo o elija otro medio de contacto.' });
   });
 
   it('sin elegir qué enviar, no pide todavía la categoría (su pregunta aún no está en pantalla)', () => {
-    expect(errorsOfStep(validate(emptyValues(), TODAY), 1)).toEqual({ type: 'Elige qué quieres enviar.' });
+    expect(errorsOfStep(validate(emptyValues(), TODAY), 1)).toEqual({ type: 'Elija el tipo de solicitud.' });
   });
 
   it('la fecha del hecho: hasta mañana y diez años atrás, como la base', () => {
@@ -98,13 +98,13 @@ describe('la misma revisión que el servidor, paso por paso', () => {
   });
 
   it('un contacto incoherente se dice junto al canal', () => {
-    expect(validate(filled({ channel: 'email', phone: '0276 555 0000' }), TODAY).contact).toBe('Escribe el correo, o elige otra forma de contacto.');
-    expect(validate(filled({ email: 'no-es-correo' }), TODAY)['contact.email']).toBe('Revisa el correo.');
+    expect(validate(filled({ channel: 'email', phone: '0276 555 0000' }), TODAY).contact).toBe('Escriba el correo o elija otro medio de contacto.');
+    expect(validate(filled({ email: 'no-es-correo' }), TODAY)['contact.email']).toBe('Revise el correo electrónico.');
   });
 
   it('sumarse pide solo el aviso de privacidad, un contacto coherente y una nota corta', () => {
     expect(validateJoin({ ...emptyValues(), privacyAccepted: true })).toEqual({});
-    expect(validateJoin(emptyValues())).toEqual({ privacyAccepted: 'Lee y acepta el aviso de privacidad para enviar.' });
+    expect(validateJoin(emptyValues())).toEqual({ privacyAccepted: 'Para enviar, debe aceptar el aviso de privacidad.' });
     expect(validateJoin({ ...emptyValues(), privacyAccepted: true, note: 'x'.repeat(2001) }).note).toMatch(/2000/);
   });
 
@@ -204,8 +204,8 @@ describe('ayudas de las páginas', () => {
 
   it('los estados en palabras simples, la historia y las fechas del Táchira', () => {
     for (const s of REQUEST_STATES) expect(STATE_PLAIN[s].label.length).toBeGreaterThan(3);
-    expect(timelineLine({ kind: 'state', state: 'requiere_informacion' })).toBe('Pasó a «Necesitamos más información»');
-    expect(timelineLine({ kind: 'info_request' })).toBe('El equipo te pide más información');
+    expect(timelineLine({ kind: 'state', state: 'requiere_informacion' })).toBe('Pasó a «Requiere información»');
+    expect(timelineLine({ kind: 'info_request' })).toBe('Solicitud de información');
     expect(reportsCount(1)).toBe('1 reporte');
     expect(reportsCount(3)).toBe('3 reportes');
     expect(tachiraToday(new Date('2026-11-07T02:30:00Z'))).toBe('2026-11-06');

@@ -5,8 +5,8 @@ import { SECRET as GPS_TEXT, jpegWithGps } from '../unit/fixtures/photos';
 
 // Citizen participation on the public website (design §4): send one of each kind (one with a photo), download the
 // receipt, follow it with the code and the secret and add information, the uniform «not found» for a wrong secret or an
-// altered code, a retry that never makes a second request, «¿te sumas?», the draft that survives a reload, the form
-// without JavaScript, «lo atendido» with its filters, and axe at 360 px and on a desktop. Each test comes from a network
+// altered code, a retry that never makes a second request, «Apoyar este reporte», the draft that survives a reload, the
+// form without JavaScript, «Casos atendidos» with its filters, and axe at 360 px and on a desktop. Each test comes from a network
 // of its own (x-real-ip), so the persistent limits of one never touch another; each one is a new browser (device).
 
 const YEAR = new Date().getFullYear();
@@ -44,19 +44,19 @@ async function fillSteps(page: Page, f: Fill) {
   if (!(await radio.isChecked())) await radio.check();
   await page.getByLabel(f.category).check();
   await next(page);
-  await expect(page.getByRole('heading', { level: 2, name: /^¿Dónde/ })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: /^Lugar/ })).toBeVisible();
   if (f.municipality) await page.getByLabel(/^Municipio/).selectOption({ label: f.municipality });
   if (f.sector) await page.getByLabel(/Parroquia, localidad o sector/).fill(f.sector);
   if (f.reference) await page.getByLabel(/^Punto de referencia/).fill(f.reference);
   await next(page);
-  await expect(page.getByRole('heading', { level: 2, name: 'Cuéntanos' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Detalle de la solicitud' })).toBeVisible();
   await page.getByLabel(/^Título/).fill(f.title);
-  await page.getByLabel(/^Cuéntanos/).fill(f.description);
+  await page.getByLabel(/^Descripción/).fill(f.description);
 }
 
 async function toContactStep(page: Page) {
   await next(page);
-  await expect(page.getByRole('heading', { level: 2, name: 'Último paso: contacto y envío' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Contacto y envío' })).toBeVisible();
 }
 
 async function sendAnonymous(page: Page) {
@@ -84,12 +84,12 @@ async function lookup(page: Page, reference: string, secret: string) {
 
 test('«Atención ciudadana» se lee en el teléfono: los dos botones grandes, los pasos, las preguntas y el aviso de emergencias', async ({ page }) => {
   await page.goto('/atencion');
-  await expect(page.getByRole('heading', { level: 1, name: 'Cuéntanos qué pasa en tu comunidad' })).toBeVisible();
-  // The page's own big button (the header and the footer of the public layout carry one too).
-  await expect(page.locator('#contenido').getByRole('link', { name: /Hacer un reporte/ })).toHaveAttribute('href', '/atencion/nueva');
+  await expect(page.getByRole('heading', { level: 1, name: 'Atención ciudadana' })).toBeVisible();
+  // The page's own big button, in its title block (the attention desk's small menu has a «Nueva solicitud» too).
+  await expect(page.locator('#contenido header').getByRole('link', { name: 'Nueva solicitud' })).toHaveAttribute('href', '/atencion/nueva');
   await expect(page.getByRole('link', { name: /^Consultar mi solicitud$/ }).last()).toBeVisible();
   await expect(page.getByText('Esto no es un servicio de emergencias.').first()).toBeVisible();
-  await expect(page.getByText(/acude también a las autoridades competentes/).first()).toBeVisible();
+  await expect(page.getByText(/acuda también a las autoridades competentes/).first()).toBeVisible();
   // The FAQs of the group «atencion» (demo) open on tap; no invented contacts: the empty state.
   await page.getByText('¿Qué pasa si pierdo la clave? (demo)').click();
   await expect(page.getByText(/Nadie del equipo la tiene/).first()).toBeVisible();
@@ -105,7 +105,7 @@ test('«Atención ciudadana» se lee en el teléfono: los dos botones grandes, l
  */
 async function reportWithPhoto(page: Page, where: string) {
   await page.goto('/atencion/nueva?tipo=reporte');
-  await expect(page.getByRole('heading', { level: 1, name: 'Reportar un problema' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Hacer un reporte' })).toBeVisible();
   await axe(page, `paso 1 (${where})`);
   await fillSteps(page, {
     type: /^Reporte/, category: /^Agua/, municipality: 'Torbes', sector: unique(), reference: 'Frente a la bodega (prueba)',
@@ -118,16 +118,16 @@ async function reportWithPhoto(page: Page, where: string) {
   await page.getByRole('textbox', { name: /^Correo/ }).fill('ana.prueba@demo.test');
   // Without the privacy notice nothing is sent: the summary at the top says what to check and takes the focus.
   await page.getByRole('button', { name: 'Enviar', exact: true }).click();
-  const summary = page.getByRole('alert').filter({ hasText: 'Revisa este dato' });
+  const summary = page.getByRole('alert').filter({ hasText: 'Revise este dato' });
   await expect(summary).toBeFocused();
-  await expect(summary.getByRole('link', { name: 'Lee y acepta el aviso de privacidad para enviar.' })).toBeVisible();
+  await expect(summary.getByRole('link', { name: 'Para enviar, debe aceptar el aviso de privacidad.' })).toBeVisible();
   await axe(page, `paso 4 con errores (${where})`);
   await page.getByLabel(/Leí el aviso de privacidad/).check();
   await page.getByRole('button', { name: 'Enviar', exact: true }).click();
 
   const { reference, secret } = await readReceipt(page);
-  await expect(page.getByRole('heading', { level: 2, name: 'Recibimos tu reporte' })).toBeFocused();
-  await expect(page.getByRole('region', { name: 'Tus archivos' }).getByText(/· Listo$/)).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole('heading', { level: 2, name: 'Recibimos su reporte' })).toBeFocused();
+  await expect(page.getByRole('region', { name: 'Archivos adjuntos' }).getByText(/· Listo$/)).toBeVisible({ timeout: 30_000 });
   await noSideScroll(page);
   await axe(page, `comprobante (${where})`);
 
@@ -155,10 +155,10 @@ async function reportWithPhoto(page: Page, where: string) {
   expect((await file.body()).includes(Buffer.from(GPS_TEXT, 'latin1'))).toBe(false);
   await axe(page, `consulta (${where})`);
 
-  await page.getByLabel(/Lo que quieres agregar/).fill('El bote creció esta mañana (prueba).');
-  await page.getByRole('button', { name: 'Enviar al equipo' }).click();
-  await expect(page.getByText('Listo: el equipo ya puede leer lo que agregaste.')).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Historia de tu solicitud' }).getByText('El bote creció esta mañana (prueba).')).toBeVisible();
+  await page.getByLabel(/^Información adicional/).fill('El bote creció esta mañana (prueba).');
+  await page.getByRole('button', { name: 'Enviar información' }).click();
+  await expect(page.getByText('Información enviada al personal de atención.')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Historial de la solicitud' }).getByText('El bote creció esta mañana (prueba).')).toBeVisible();
 
   await page.getByRole('button', { name: 'Salir' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Consultar mi solicitud' })).toBeVisible();
@@ -176,17 +176,17 @@ test('un reporte con una foto: comprobante en PDF, consulta con la clave, la fot
 });
 
 const KINDS = [
-  { tipo: 'peticion', type: /^Petición/, category: /^Salud/, municipality: 'Junín', title: 'Jornada de vacunación (prueba)', heading: 'Recibimos tu petición' },
-  { tipo: 'acotacion', type: /^Acotación/, category: /^Vialidad/, municipality: undefined, title: 'Faltan señales en los desvíos (prueba)', heading: 'Recibimos tu acotación' },
-  { tipo: 'sugerencia', type: /^Sugerencia/, category: /^Transporte/, municipality: undefined, title: 'Publicar las rutas del transporte (prueba)', heading: 'Recibimos tu sugerencia' },
-  { tipo: 'reconocimiento', type: /^Reconocimiento/, category: /^Educación/, municipality: 'Michelena', title: 'Gracias por arreglar la escuela (prueba)', heading: 'Recibimos tu reconocimiento' },
-  { tipo: 'denuncia', type: /^Denuncia/, category: /^Seguridad/, municipality: 'Cárdenas', title: 'Cobro irregular por un trámite (prueba)', heading: 'Recibimos tu denuncia' },
+  { tipo: 'peticion', type: /^Petición/, category: /^Salud/, municipality: 'Junín', title: 'Jornada de vacunación (prueba)', heading: 'Recibimos su petición' },
+  { tipo: 'acotacion', type: /^Acotación/, category: /^Vialidad/, municipality: undefined, title: 'Faltan señales en los desvíos (prueba)', heading: 'Recibimos su acotación' },
+  { tipo: 'sugerencia', type: /^Sugerencia/, category: /^Transporte/, municipality: undefined, title: 'Publicar las rutas del transporte (prueba)', heading: 'Recibimos su sugerencia' },
+  { tipo: 'reconocimiento', type: /^Reconocimiento/, category: /^Educación/, municipality: 'Michelena', title: 'Gracias por arreglar la escuela (prueba)', heading: 'Recibimos su reconocimiento' },
+  { tipo: 'denuncia', type: /^Denuncia/, category: /^Seguridad/, municipality: 'Cárdenas', title: 'Cobro irregular por un trámite (prueba)', heading: 'Recibimos su denuncia' },
 ] as const;
 
 for (const k of KINDS) {
   test(`una ${k.tipo} llega y da su comprobante`, async ({ page }) => {
     await page.goto(`/atencion/nueva?tipo=${k.tipo}`);
-    if (k.tipo === 'denuncia') await expect(page.getByText(/acude también a las autoridades competentes/).first()).toBeVisible();
+    if (k.tipo === 'denuncia') await expect(page.getByText(/acuda también a las autoridades competentes/).first()).toBeVisible();
     await page.getByLabel(k.category).check();
     await next(page);
     if (k.municipality) await page.getByLabel(/^Municipio/).selectOption({ label: k.municipality });
@@ -198,12 +198,12 @@ for (const k of KINDS) {
     }
     await next(page);
     await page.getByLabel(/^Título/).fill(k.title);
-    await page.getByLabel(/^Cuéntanos/).fill('Lo cuento con el detalle que hace falta para atenderlo (prueba).');
+    await page.getByLabel(/^Descripción/).fill('Lo cuento con el detalle que hace falta para atenderlo (prueba).');
     await toContactStep(page);
     await sendAnonymous(page);
     await readReceipt(page);
     await expect(page.getByRole('heading', { level: 2, name: k.heading })).toBeVisible();
-    if (k.tipo === 'denuncia') await expect(page.getByText(/acude también a las autoridades competentes/).first()).toBeVisible();
+    if (k.tipo === 'denuncia') await expect(page.getByText(/acuda también a las autoridades competentes/).first()).toBeVisible();
   });
 }
 
@@ -230,14 +230,14 @@ test('clave mala, código alterado o inventado: siempre la misma respuesta y nin
   expect(cookie.value).not.toContain(DEMR03.secret);
 });
 
-test('una solicitud resuelta pregunta si de verdad se resolvió; el «no» pide qué falta', async ({ page }) => {
+test('una solicitud resuelta pregunta si se resolvió; el «no» pide qué falta', async ({ page }) => {
   await lookup(page, DEMR02.reference, DEMR02.secret);
   await expect(page.getByTestId('estado-solicitud')).toHaveText('Resuelta');
-  await expect(page.getByRole('heading', { name: 'El equipo dice que se resolvió' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'La solicitud fue marcada como resuelta' })).toBeVisible();
   // The team's evidence it shared downloads too (a demo placeholder without a real file behind it answers 404).
-  await expect(page.getByText(/Evidencia del equipo/).first()).toBeVisible();
+  await expect(page.getByText(/Evidencia de la atención/).first()).toBeVisible();
   await page.getByLabel('No, todavía no').check();
-  await expect(page.getByLabel(/¿Qué falta para que esté resuelto\?/)).toBeVisible();
+  await expect(page.getByLabel(/¿Qué falta por resolver\?/)).toBeVisible();
   await page.getByRole('button', { name: 'Responder' }).click();
   await expect(page.getByText('Cuéntanos qué falta para que esté resuelto.')).toBeVisible();
   // Nothing changed: the case is still waiting for the answer.
@@ -264,7 +264,7 @@ test('un reintento (la respuesta se perdió) no crea otra solicitud: vuelve el m
   await page.getByLabel(/^Municipio/).selectOption({ label: 'Junín' });
   await next(page);
   await page.getByLabel(/^Título/).fill('Una petición que se reintenta (prueba)');
-  await page.getByLabel(/^Cuéntanos/).fill('La respuesta se pierde en el camino y el teléfono vuelve a enviar (prueba).');
+  await page.getByLabel(/^Descripción/).fill('La respuesta se pierde en el camino y el teléfono vuelve a enviar (prueba).');
   await toContactStep(page);
   await sendAnonymous(page);
   // Next retries the send by itself when the connection comes back; if it gives up, the person taps «Enviar» again.
@@ -277,7 +277,7 @@ test('un reintento (la respuesta se perdió) no crea otra solicitud: vuelve el m
   await expect(code).toHaveText(committed);
 });
 
-test('«¿te sumas?»: con reportes abiertos del mismo problema en el mismo sitio, sumarse da un código propio que sigue el caso', async ({ page }) => {
+test('«Apoyar este reporte»: con reportes abiertos del mismo problema en el mismo sitio, apoyar da un código propio que sigue el caso', async ({ page }) => {
   await page.goto('/atencion/nueva?tipo=reporte');
   await page.getByLabel(/^Vialidad/).check();
   await next(page);
@@ -285,20 +285,20 @@ test('«¿te sumas?»: con reportes abiertos del mismo problema en el mismo siti
   await page.getByLabel(/Parroquia, localidad o sector/).fill('Sector centro (demo)');
   await next(page);
   // Only how many, never their texts, photos or names.
-  await expect(page.getByRole('heading', { name: /^Ya hay \d+ reportes? de esto cerca\. ¿Te sumas\?$/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^Hay \d+ reportes? abiertos? del mismo problema cerca de ese lugar\.$/ })).toBeVisible();
   await expect(page.getByText('Hueco grande en la avenida principal (demo)')).toHaveCount(0);
-  await axe(page, '¿te sumas?');
-  await page.getByRole('button', { name: 'Sí, me sumo' }).click();
-  await page.getByLabel(/¿Algo que quieras agregar\?/).fill('También me cuesta pasar por ahí (prueba).');
+  await axe(page, 'reportes parecidos');
+  await page.getByRole('button', { name: 'Apoyar este reporte' }).click();
+  await page.getByLabel(/^Comentario/).fill('También me cuesta pasar por ahí (prueba).');
   await page.getByLabel(/Enviar como anónimo/).check();
   await page.getByLabel(/Leí el aviso de privacidad/).check();
-  await page.getByRole('button', { name: 'Sumarme' }).click();
+  await page.getByRole('button', { name: 'Enviar apoyo' }).click();
   const { reference, secret } = await readReceipt(page);
-  await expect(page.getByRole('heading', { level: 2, name: 'Te sumaste al reporte que ya estaba abierto' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Su apoyo al reporte quedó registrado' })).toBeVisible();
 
   await lookup(page, reference, secret);
   await expect(page.locator('#caso-titulo')).toHaveText(reference);
-  await expect(page.getByText('Tu apoyo a un reporte')).toBeVisible();
+  await expect(page.getByText('Su apoyo a un reporte')).toBeVisible();
   await expect(page.getByText('Hueco grande en la avenida principal (demo)')).toHaveCount(0);
   await expect(page.getByText('También me cuesta pasar por ahí (prueba).')).toBeVisible();
 });
@@ -314,16 +314,16 @@ test('la ubicación, solo si la persona quiere: «Usar mi ubicación» y el mapa
   // Nothing of the map before the tap.
   await expect(page.locator('.leaflet-container')).toHaveCount(0);
   await page.getByRole('button', { name: 'Usar mi ubicación' }).click();
-  await expect(page.getByText('Punto guardado con tu permiso.')).toBeVisible();
+  await expect(page.getByText('Punto guardado con su autorización.')).toBeVisible();
   await expect(page.getByText('7.77123, -72.22543')).toBeVisible();
   await page.getByRole('button', { name: 'Marcar en el mapa' }).click();
   await expect(page.locator('.leaflet-container')).toBeVisible();
   await page.getByRole('button', { name: 'Marcar el centro del mapa' }).click();
-  await expect(page.getByText('Punto guardado con tu permiso.')).toBeVisible();
+  await expect(page.getByText('Punto guardado con su autorización.')).toBeVisible();
   await noSideScroll(page);
   await axe(page, 'mapa');
   await page.getByRole('button', { name: /Quitar ubicación/ }).click();
-  await expect(page.getByText('Punto guardado con tu permiso.')).toHaveCount(0);
+  await expect(page.getByText('Punto guardado con su autorización.')).toHaveCount(0);
 });
 
 test('lo escrito sigue ahí después de recargar la página', async ({ page }) => {
@@ -334,24 +334,24 @@ test('lo escrito sigue ahí después de recargar la página', async ({ page }) =
   await page.getByLabel(/Parroquia, localidad o sector/).fill('Sector que no se pierde (prueba)');
   await page.waitForTimeout(600);
   await page.reload();
-  await expect(page.getByText('Seguimos con lo que habías empezado en esta pestaña.')).toBeVisible();
+  await expect(page.getByText('Se recuperó lo que había escrito en esta pestaña.')).toBeVisible();
   await expect(page.getByLabel(/Parroquia, localidad o sector/)).toHaveValue('Sector que no se pierde (prueba)');
   await page.getByRole('button', { name: 'Empezar de nuevo' }).click();
-  await expect(page.getByRole('heading', { level: 2, name: '¿Qué quieres enviar?' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Tipo de solicitud' })).toBeVisible();
 });
 
-test('«Lo atendido»: casos publicados sin datos de nadie, las denuncias solo por su municipio, con filtros y su estado vacío', async ({ page }) => {
+test('«Casos atendidos»: casos publicados sin datos personales, las denuncias solo por su municipio, con filtros y su estado vacío', async ({ page }) => {
   await page.goto('/atencion/atendido');
-  await expect(page.getByRole('heading', { level: 1, name: 'Lo atendido' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Casos atendidos' })).toBeVisible();
   await expect(page.getByText(/^\d+ casos? publicados?/)).toBeVisible();
   await page.getByLabel('Municipio').selectOption({ label: 'Bolívar' });
   await page.getByRole('button', { name: 'Filtrar' }).click();
   await expect(page).toHaveURL(/municipio=bolivar/);
   await expect(page.getByText('Denuncia atendida en el municipio Bolívar.')).toBeVisible();
   await noSideScroll(page);
-  await axe(page, 'lo atendido');
+  await axe(page, 'casos atendidos');
   await page.goto('/atencion/atendido?municipio=ayacucho');
-  await expect(page.getByRole('heading', { name: 'Nada publicado con esos filtros' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No hay casos con esos filtros' })).toBeVisible();
   await page.getByRole('link', { name: 'Quitar filtros' }).click();
   await expect(page).toHaveURL(/\/atencion\/atendido$/);
 });
@@ -361,18 +361,18 @@ test.describe('sin JavaScript', () => {
 
   test('el formulario de una página da el comprobante (la clave la hace el servidor) y la consulta abre', async ({ page }) => {
     await page.goto('/atencion/nueva');
-    const form = page.locator('form').filter({ hasText: 'Tu navegador no tiene JavaScript activo' });
+    const form = page.locator('form').filter({ hasText: 'Su navegador tiene JavaScript desactivado' });
     await expect(form).toBeVisible();
     await form.getByLabel(/^Petición/).check();
     await form.getByLabel('Categoría').selectOption({ label: 'Salud' });
     await form.getByLabel(/^Municipio/).selectOption({ label: 'Junín' });
     await form.getByLabel(/^Título/).fill('Petición sin JavaScript (prueba)');
-    await form.getByLabel(/^Cuéntanos/).fill('Un teléfono sencillo sin JavaScript también puede enviar (prueba).');
+    await form.getByLabel(/^Descripción/).fill('Un teléfono sencillo sin JavaScript también puede enviar (prueba).');
     await form.getByLabel(/Enviar como anónimo/).check();
     await form.getByLabel(/Leí el aviso de privacidad/).check();
     await form.getByRole('button', { name: 'Enviar' }).click();
-    await expect(page.getByRole('heading', { name: 'Recibimos tu solicitud' })).toBeVisible();
-    const text = (await page.getByRole('region', { name: 'Recibimos tu solicitud' }).textContent()) ?? '';
+    await expect(page.getByRole('heading', { name: 'Recibimos su solicitud' })).toBeVisible();
+    const text = (await page.getByRole('region', { name: 'Recibimos su solicitud' }).textContent()) ?? '';
     const reference = text.match(/AC-\d{4}-[0-9A-HJKMNP-TV-Z]{6}/)![0];
     const secret = text.match(/[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4}){3}/)![0];
     await lookup(page, reference, secret);
@@ -399,10 +399,10 @@ test.describe('en una computadora', () => {
 
   test('una acotación sobre una obra publicada lleva el contenido; uno sin publicar no aparece', async ({ page }) => {
     await page.goto('/atencion/nueva?sobre=news:balance-del-mes-demo');
-    await expect(page.getByText(/Tu solicitud es sobre/)).toHaveCount(0);
+    await expect(page.getByText(/^Sobre (esta noticia|esta obra|una publicación de este sitio)$/)).toHaveCount(0);
     await page.goto('/atencion/nueva?tipo=acotacion&sobre=project:rehabilitacion-avenida-principal-demo');
     await expect(page.getByRole('heading', { level: 1, name: 'Dejar una acotación' })).toBeVisible();
-    await expect(page.getByText('Tu solicitud es sobre esta obra o acción')).toBeVisible();
+    await expect(page.getByText('Sobre esta obra', { exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Rehabilitación de la avenida principal (demo)' })).toHaveAttribute('href', '/gestion/rehabilitacion-avenida-principal-demo');
     await fillSteps(page, {
       type: /^Acotación/, category: /^Vialidad/, municipality: 'San Cristóbal', sector: unique(),
