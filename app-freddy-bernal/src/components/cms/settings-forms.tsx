@@ -13,7 +13,8 @@ import { CheckField, SelectField, TextField } from './fields';
 // The site's settings (design §3; Administración, the publisher and the boss — can_manage_site): navigation, footer,
 // institutional contacts and social accounts (only VERIFIED ones reach the public site and the structured data), the
 // WhatsApp channel, the institutional portal, the program's YouTube channel, the identity and structured data, and the
-// fixed notices. Each section saves on its own and is live at once (the public pages are refreshed).
+// test version's banner. Each section saves on its own and is live at once (the public pages are refreshed). The two
+// legal notices are not settings (src/lib/participation/notices.ts): the page only shows them.
 
 type Obj = Record<string, unknown>;
 const str = (v: unknown) => (typeof v === 'string' ? v : '');
@@ -277,7 +278,7 @@ export function IdentityForm({ identity, structured }: { identity: unknown; stru
   );
 }
 
-export function TextSettingForm({ settingKey, title, subtitle, value, max }: { settingKey: 'site.demo_banner' | 'site.emergency_notice' | 'site.denuncia_notice'; title: string; subtitle: string; value: unknown; max: number }) {
+export function TextSettingForm({ settingKey, title, subtitle, value, max }: { settingKey: 'site.demo_banner'; title: string; subtitle: string; value: unknown; max: number }) {
   const [text, setText] = useState(str(value));
   const { save, busy } = useSave(settingKey);
   return (

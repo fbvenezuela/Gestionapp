@@ -27,6 +27,8 @@ import { ChannelPills, orderedChannels } from '@/components/web/channels';
 import { DemoBanner } from '@/components/web/public-chrome';
 import { SiteHeader } from '@/components/web/site-header';
 import { ParticipationActions } from '@/components/web/participation-actions';
+import { SiteFooter } from '@/components/web/site-footer';
+import { EMERGENCY_NOTICE } from '@/lib/participation/notices';
 
 const site = normalizeSite({}, { demo: true, indexable: false, baseUrl: 'https://web.prueba.test' });
 const KEY = '0b1c2d3e-4f50-4a6b-8c7d-8e9fa0b1c2d3';
@@ -356,12 +358,18 @@ describe('el marco de la web', () => {
   });
 
   it('los accesos de participación: el reporte en naranja, los cuatro tipos y el aviso de emergencias', () => {
-    const out = html(h(ParticipationActions, { title: 'Atención ciudadana', emergencyNotice: site.emergencyNotice }));
+    const out = html(h(ParticipationActions, { title: 'Atención ciudadana' }));
     for (const href of ['/atencion/nueva?tipo=reporte', '/atencion/nueva?tipo=peticion', '/atencion/nueva?tipo=acotacion', '/atencion/nueva?tipo=denuncia', '/atencion/consultar']) {
       expect(out, href).toContain(`href="${href}"`);
     }
     expect(out).toContain('bg-action');
-    expect(out).toMatch(/no es un servicio de emergencias/i);
+    expect(out).toContain(EMERGENCY_NOTICE);
+  });
+
+  it('el pie de la web: el aviso de emergencias es el de las constantes (el mismo de los formularios y los correos)', () => {
+    const out = html(h(SiteFooter, { site }));
+    expect(out).toContain(EMERGENCY_NOTICE);
+    expect(out.match(/no es un servicio de emergencias/gi)).toHaveLength(1);
   });
 });
 

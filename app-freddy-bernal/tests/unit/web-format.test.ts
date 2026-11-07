@@ -41,7 +41,7 @@ describe('números, montos y tamaños', () => {
     expect(fmtBytes(1007)).toBe('1 KB');
     expect(fmtBytes(250 * 1024)).toBe('250 KB');
     expect(fmtBytes(1.4 * 1024 * 1024)).toBe('1,4 MB');
-    expect(fmtHours(null)).toBe('—');
+    expect(fmtHours(null)).toBe('Sin datos');
     expect(fmtHours(0.5)).toBe('menos de una hora');
     expect(fmtHours(5)).toBe('5 horas');
     expect(fmtHours(84)).toBe('3,5 días');

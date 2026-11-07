@@ -287,5 +287,5 @@ export function ChannelsBlock({ data, ctx }: { data: BlockData<'channels'>; ctx:
 }
 
 export function ParticipationBlock({ data, ctx }: { data: BlockData<'participation'>; ctx: BlockContext }) {
-  return <ParticipationActions title={data.title || 'Atención ciudadana'} emergencyNotice={ctx.site.emergencyNotice} as={ctx.heading} />;
+  return <ParticipationActions title={data.title || 'Atención ciudadana'} as={ctx.heading} />;
 }

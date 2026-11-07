@@ -75,11 +75,13 @@ describe('lo demás de los ajustes', () => {
     expect(s.navigation[0]).toEqual({ label: 'Inicio', path: '/' });
   });
 
-  it('el aviso de la versión de prueba, el de emergencias y la identidad salen de la configuración', () => {
+  it('el aviso de la versión de prueba y la identidad salen de la configuración; los avisos legales no son ajustes', () => {
     const s = normalizeSite({}, opts(true));
     expect(s.demoBanner).toBe('Versión de prueba. El contenido es de ejemplo.');
     expect(s.weeklyName).toBe(getClientConfig().brand.weeklyName);
-    expect(s.emergencyNotice).toMatch(/no es un servicio de emergencias/i);
+    // One text each, in src/lib/participation/notices.ts: no setting could say them another way.
+    expect(s).not.toHaveProperty('emergencyNotice');
+    expect(Object.keys(defaultSettings()).filter((k) => /notice/.test(k))).toEqual([]);
     expect(s.wordmark).toContain(s.name);
     expect(s.baseUrl).toBe('https://web.prueba.test');
     expect(s.contacts).toEqual([]);

@@ -19,7 +19,7 @@ const TABLES = ['areas', 'area_members', 'request_categories', 'requests', 'requ
 const TABLE: Record<string, string> = {
   areas: 'un área', area_members: 'quién está en un área', request_categories: 'una categoría', requests: 'una solicitud', request_supports: 'un apoyo',
   request_contacts: 'un contacto', request_events: 'la historia de una solicitud', request_messages: 'un mensaje', request_attachments: 'un archivo',
-  attended_publications: '«lo atendido»', request_reply_templates: 'una respuesta guardada',
+  attended_publications: '«Casos atendidos»', request_reply_templates: 'una respuesta guardada',
 };
 const ACTION: Record<string, string> = { insert: 'agregó', update: 'cambió', delete: 'quitó' };
 

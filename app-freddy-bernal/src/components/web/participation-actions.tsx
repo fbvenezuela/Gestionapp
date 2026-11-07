@@ -1,13 +1,14 @@
 import { ArrowRightIcon, FileQuestionMarkIcon, MegaphoneIcon, MessageSquareTextIcon, SearchIcon, ShieldAlertIcon, TriangleAlertIcon } from './icons';
 import { REQUEST_TYPE_HINT } from '@/lib/participation/input';
+import { EMERGENCY_NOTICE } from '@/lib/participation/notices';
 import { ATTENTION, newRequestHref, REPORT_HREF } from '@/lib/web/links';
 import { cn } from '@/lib/cn';
 import { cardClass, Container, SectionHeading, textLinkClass, WebLink } from './ui';
 
 // The big accesses to citizen attention (the brief's «cuatro accesos grandes» and design §2): «Hacer un reporte» in the
 // brand's orange, then a petition, an acotación and a denuncia, and «Consultar mi solicitud». Each one opens the form on
-// its kind (?tipo=…, the citizen pages). «Not an emergency service» is said right here, where people act. The citizen is
-// addressed as «usted», as the public administration does.
+// its kind (?tipo=…, the citizen pages). «Not an emergency service» is said right here, where people act, in the one
+// legal text of src/lib/participation/notices.ts. The citizen is addressed as «usted», as the public administration does.
 
 const SECONDARY = [
   { href: newRequestHref('peticion'), title: 'Hacer una petición', hint: REQUEST_TYPE_HINT.peticion, Icon: FileQuestionMarkIcon },
@@ -16,7 +17,7 @@ const SECONDARY = [
   { href: ATTENTION.lookup, title: 'Consultar mi solicitud', hint: 'Con el código y la clave de su comprobante.', Icon: SearchIcon },
 ] as const;
 
-export function ParticipationActions({ title, emergencyNotice, as = 'h2' }: { title: string; emergencyNotice: string; as?: 'h1' | 'h2' }) {
+export function ParticipationActions({ title, as = 'h2' }: { title: string; as?: 'h1' | 'h2' }) {
   return (
     <section className="bg-surface py-14 sm:py-20">
       <Container>
@@ -54,7 +55,7 @@ export function ParticipationActions({ title, emergencyNotice, as = 'h2' }: { ti
         </p>
         <p className="mt-4 flex items-start gap-2 rounded-2xl bg-warn-soft px-4 py-3 text-base font-medium leading-relaxed text-warn">
           <TriangleAlertIcon className="mt-0.5 h-5 w-5 shrink-0" />
-          {emergencyNotice}
+          {EMERGENCY_NOTICE}
         </p>
       </Container>
     </section>

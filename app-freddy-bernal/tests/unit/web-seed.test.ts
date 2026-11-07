@@ -24,7 +24,7 @@ describe('la semilla de la web pública', () => {
         pages: await count(`public.web_items where kind = 'page'`),
         versions: await count('public.web_versions'),
       };
-      expect(before).toEqual({ municipalities: 29, parishes: 0, areas: 4, categories: 10, settings: 12, pages: 6, versions: 6 });
+      expect(before).toEqual({ municipalities: 29, parishes: 0, areas: 4, categories: 10, settings: 10, pages: 6, versions: 6 });
       await db.exec(`update public.request_categories set name = 'Agua potable' where slug = 'agua';
                      update public.web_settings set value = '"Texto del equipo"' where key = 'site.demo_banner';
                      update public.web_items set draft = jsonb_set(draft, '{title}', '"Portada del equipo"') where slug = 'inicio'`);

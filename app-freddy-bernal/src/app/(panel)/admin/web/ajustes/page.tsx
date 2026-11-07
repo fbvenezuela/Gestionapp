@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { requireRole, db } from '@/lib/auth/session';
 import { PageHeader } from '@/components/ui/page';
+import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { CmsNav } from '@/components/cms/chrome';
 import { AccountsForm, ChannelForm, ContactsForm, FooterForm, IdentityForm, NavigationForm, TextSettingForm } from '@/components/cms/settings-forms';
 import { noPermissionUrl } from '@/components/shell/no-permission';
@@ -8,11 +9,14 @@ import { reviewQueue, siteSettingRows, webCaps } from '@/lib/data/web-admin';
 import { ADMIN_WEB } from '@/lib/web/cms/kinds';
 import { joinNotes, NOTED_KEYS, NOTES_KEY } from '@/lib/web/cms/setting-notes';
 import { defaultSettings } from '@/lib/web/site-settings';
+import { DENUNCIA_NOTICE, EMERGENCY_NOTICE } from '@/lib/participation/notices';
 
 export const metadata = { title: 'Ajustes del sitio · Web' };
 
 // The website's settings (design §3): what the database lets change to Administración, the web's publisher and the boss
 // (can_manage_site). A setting that was never saved shows the client's starting value (config/clients/fb.json «web»).
+// The two legal notices are shown, not edited: they are one fixed text each (src/lib/participation/notices.ts), the same
+// in the footer, /canales, the forms, the receipt, its PDF and the emails, so a change here could not reach them all.
 export default async function SiteSettingsPage() {
   const s = await requireRole('admin', 'web_publisher', 'boss', 'writer');
   const data = await db(s, async (sql) => ({ caps: await webCaps(sql), rows: await siteSettingRows(sql), waiting: (await reviewQueue(sql)).length }));
@@ -34,8 +38,24 @@ export default async function SiteSettingsPage() {
       <ChannelForm settingKey="site.institutional_portal" title="Portal institucional" subtitle="El portal de la institución: sale en la web solo verificado." value={v['site.institutional_portal']} />
       <ChannelForm settingKey="site.youtube_channel" title="Canal de YouTube del programa" subtitle="El canal donde sale el programa semanal." value={v['site.youtube_channel']} />
       <IdentityForm identity={v['site.identity']} structured={v['site.structured_data']} />
-      <TextSettingForm settingKey="site.emergency_notice" title="Aviso de emergencias" subtitle="Sale en cada formulario de Atención: esto no es un servicio de emergencias." value={v['site.emergency_notice']} max={400} />
-      <TextSettingForm settingKey="site.denuncia_notice" title="Aviso de las denuncias" subtitle="Lo que se le dice a quien hace una denuncia." value={v['site.denuncia_notice']} max={400} />
+      <Card>
+        <CardHeader
+          title="Avisos legales"
+          subtitle="Son textos fijos: salen iguales en el pie de la web, en Canales, en los formularios de Atención, en el comprobante y su PDF y en los correos. No se cambian aquí: se cambian en el código de la app, para que digan lo mismo en todas partes."
+        />
+        <CardBody>
+          <dl className="flex flex-col gap-3 text-[15px]">
+            <div>
+              <dt className="font-semibold">Aviso de emergencias</dt>
+              <dd className="text-text-2">{EMERGENCY_NOTICE}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold">Aviso de las denuncias</dt>
+              <dd className="text-text-2">{DENUNCIA_NOTICE}</dd>
+            </div>
+          </dl>
+        </CardBody>
+      </Card>
       <TextSettingForm settingKey="site.demo_banner" title="Aviso de la versión de prueba" subtitle="La franja fija de la versión de prueba (solo sale en la demostración)." value={v['site.demo_banner']} max={200} />
     </div>
   );

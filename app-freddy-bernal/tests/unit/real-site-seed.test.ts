@@ -11,6 +11,7 @@ import { createMemoryDb } from '@/lib/db/pglite';
 import { stableId } from '@/lib/db/seed-parts/web';
 import { DEMO_FAQS, DEMO_NEWS } from '@/lib/db/seed-parts/web-content';
 import { REAL_DEMO_BANNER, realFaqs } from '@/lib/db/seed-parts/web-real';
+import { DENUNCIA_NOTICE, EMERGENCY_NOTICE } from '@/lib/participation/notices';
 import { DEMO_REQUESTS } from '@/lib/db/seed-parts/web-requests';
 import { importOrigin } from '@/lib/data/web-admin';
 import type { Block, TextNode } from '@/lib/web/blocks';
@@ -84,10 +85,12 @@ describe('el contenido real en la demo', () => {
     expect(list.episodes.total).toBe(real.report.episodes);
     expect(list.weekly.items.map((d) => d.data.title)).toEqual(['Semanario de prueba (demo)']);
     expect(list.weekly.items[0].media[list.weekly.items[0].data.fileId!]).toMatchObject({ kind: 'document', mime: 'application/pdf' });
-    expect(list.faqs.items.map((f) => f.data.title).sort()).toEqual(realFaqs(cfg).map((f) => f.q).sort());
-    for (const f of list.faqs.items) expect(JSON.stringify(f.data)).not.toMatch(/\(demo\)|\btú\b|Por completar/i);
-    const emergency = list.faqs.items.find((f) => f.slug === 'servicio-de-emergencias')!;
-    expect(emergency.data.answer).toEqual([{ type: 'paragraph', text: (cfg.web.settings as unknown as Record<string, string>)['site.emergency_notice'] }]);
+    expect(list.faqs.items.map((f) => f.data.title).sort()).toEqual(realFaqs().map((f) => f.q).sort());
+    for (const f of list.faqs.items) expect(JSON.stringify(f.data)).not.toMatch(/\(demo\)|\btú\b|Por completar|el equipo|huella/i);
+    // The two legal notices answer with their one text (src/lib/participation/notices.ts), word for word.
+    const answer = (slug: string) => list.faqs.items.find((f) => f.slug === slug)!.data.answer;
+    expect(answer('servicio-de-emergencias')).toEqual([{ type: 'paragraph', text: EMERGENCY_NOTICE }]);
+    expect(answer('quien-lee-una-denuncia')).toEqual([{ type: 'paragraph', text: DENUNCIA_NOTICE }]);
     expect([list.projects.total, list.notices.total, list.indicators.total]).toEqual([0, 0, 0]);
   });
 

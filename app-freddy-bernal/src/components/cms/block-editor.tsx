@@ -29,14 +29,14 @@ const BLOCK_HELP: Record<BlockType, string> = {
   video: 'El Reporte Bernal más reciente o un video de YouTube (carga solo si lo tocan).',
   documents: 'Documentos de Transparencia, elegidos o los últimos de una categoría.',
   faq: 'Preguntas frecuentes de un grupo o elegidas.',
-  indicators: 'Las cifras de «Lo hecho» (solo salen las que tienen fuente).',
+  indicators: 'Las cifras de «Gestión en cifras» (solo salen las que tienen fuente).',
   projects: 'Obras y acciones: las últimas, de un municipio o elegidas.',
   news: 'Las últimas noticias, o las de una categoría.',
   cta: 'Un llamado a la acción con su botón.',
   notices: 'Los avisos de servicio vigentes.',
   channels: 'Los canales oficiales verificados.',
   participation: 'Los botones de Atención ciudadana (reporte, petición, denuncia, consultar).',
-  attended: 'Lo atendido que publicó la coordinación.',
+  attended: 'Los casos atendidos que publicó la coordinación.',
 };
 
 const STARTERS: Record<BlockType, Record<string, unknown>> = {
@@ -47,14 +47,14 @@ const STARTERS: Record<BlockType, Record<string, unknown>> = {
   video: { title: 'Reporte Bernal', latestEpisode: true },
   documents: { title: 'Documentos', ids: [], limit: 6 },
   faq: { title: 'Preguntas frecuentes', group: 'atencion' },
-  indicators: { title: 'Lo hecho', ids: [] },
+  indicators: { title: 'Gestión en cifras', ids: [] },
   projects: { title: 'Gestión y obras', limit: 3 },
-  news: { title: 'Actualidad', limit: 4 },
+  news: { title: 'Últimas publicaciones', limit: 4 },
   cta: { title: '', text: '', label: '', href: '/atencion/nueva' },
   notices: { title: 'Avisos de servicio' },
   channels: { title: 'Canales oficiales' },
-  participation: { title: '¿Qué quieres hacer?' },
-  attended: { title: 'Lo atendido', limit: 3 },
+  participation: { title: 'Atención ciudadana' },
+  attended: { title: 'Casos atendidos', limit: 3 },
 };
 
 const str = (v: unknown) => (typeof v === 'string' ? v : '');

@@ -120,7 +120,7 @@ export const BLOCK_LABEL: Record<BlockType, string> = {
   notices: 'Avisos de servicio',
   channels: 'Canales oficiales',
   participation: 'Accesos de participación',
-  attended: 'Lo atendido',
+  attended: 'Casos atendidos',
 };
 
 const blockId = z.string().regex(/^[a-z0-9][a-z0-9-]{0,39}$/, 'El id de un bloque va en minúsculas, números y guiones.');

@@ -19,6 +19,7 @@ import { hasPendingChanges } from '@/lib/web/cms/status';
 import type { FrozenMedia } from '@/lib/web/public';
 import { indicatorShown, noticeActive, parseSnapshot, WEB_KIND_LABEL, type WebKind } from '@/lib/web/schema';
 import { getSite, type Site } from '@/lib/web/site';
+import { navLabel } from '@/lib/web/site-settings';
 import { fmtDateTime, TZ } from '@/lib/time';
 
 // «Vista previa» (design §3): the DRAFT (or a saved version, ?version=N) drawn exactly as the public site would draw it —
@@ -166,7 +167,7 @@ async function Body({ item, site }: { item: WebItem; site: Site }) {
       const e = item as WebItem<'episode'>;
       return (
         <>
-          <PageIntro eyebrow="El programa" title={e.data.title} intro={e.data.excerpt} />
+          <PageIntro eyebrow={navLabel(site, '/reporte-bernal', site.programName)} title={e.data.title} intro={e.data.excerpt} />
           <Container className="pb-20">
             <section className="grid gap-8 rounded-[var(--radius-card)] bg-charcoal p-5 text-on-charcoal sm:p-8 lg:grid-cols-12 lg:items-center lg:gap-12" aria-label="Episodio">
               <div className="lg:col-span-7">
@@ -229,7 +230,7 @@ async function Body({ item, site }: { item: WebItem; site: Site }) {
       const ind = item as WebItem<'indicator'>;
       return (
         <>
-          <PageIntro eyebrow="Inicio" title="Lo hecho" intro="Así se ve la cifra en la portada." />
+          <PageIntro eyebrow="Inicio" title="Gestión en cifras" intro="Así se ve la cifra en la portada." />
           <Container className="pb-20">
             {indicatorShown(ind.data) ? <IndicatorsView items={[ind]} /> : <EmptyState title="Sin fuente, este indicador no sale en la web.">Escribe de dónde sale la cifra en el editor.</EmptyState>}
           </Container>

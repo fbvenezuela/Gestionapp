@@ -73,9 +73,9 @@ export function eventText(e: CaseEvent, names: Record<string, string>): string {
     case 'spam':
       return 'Marcada como spam («No procede»).';
     case 'attended_published':
-      return 'Se publicó en «Lo atendido».';
+      return 'Se publicó en «Casos atendidos».';
     case 'attended_withdrawn':
-      return 'Se retiró de «Lo atendido».';
+      return 'Se retiró de «Casos atendidos».';
     case 'contact_erased':
       return 'Se borró el contacto de la persona.';
     case 'evidence':

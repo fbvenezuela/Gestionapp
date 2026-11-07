@@ -51,10 +51,16 @@ function citizenReads(label: string, s: string) {
 }
 
 describe('los dos avisos legales: un solo texto', () => {
-  it('la configuración del cliente dice lo mismo que las constantes (el pie de la web y /canales leen esos ajustes)', () => {
+  it('no hay una segunda redacción: la configuración del cliente ya no los repite y la web los lee de las constantes', () => {
     const settings = getClientConfig().web.settings as Record<string, unknown>;
-    expect(settings['site.emergency_notice']).toBe(EMERGENCY_NOTICE);
-    expect(settings['site.denuncia_notice']).toBe(DENUNCIA_NOTICE);
+    expect(settings).not.toHaveProperty(['site.emergency_notice']);
+    expect(settings).not.toHaveProperty(['site.denuncia_notice']);
+    // The footer, /canales and the home's participation block import the constant (no other source of these words).
+    for (const f of ['src/components/web/site-footer.tsx', 'src/app/(web)/canales/page.tsx', 'src/components/web/participation-actions.tsx']) {
+      const src = fs.readFileSync(path.join(process.cwd(), f), 'utf8');
+      expect(src, f).toContain('EMERGENCY_NOTICE');
+      expect(src, f).not.toMatch(/emergencyNotice/);
+    }
     expect(EMERGENCY_NOTICE.startsWith('Esto no es un servicio de emergencias.')).toBe(true);
     expect(DENUNCIA_NOTICE).toMatch(/acuda también a las autoridades competentes\.$/);
   });

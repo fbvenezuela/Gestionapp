@@ -191,7 +191,7 @@ export function MergePanel({ id, reference }: { id: string; reference: string })
   );
 }
 
-// --- «Lo atendido» -----------------------------------------------------------------------------------------------------------
+// --- «Casos atendidos» --------------------------------------------------------------------------------------------------------
 
 export function AttendedForm({
   id, type, anonymous, nameConsent, municipality, published,
@@ -210,7 +210,7 @@ export function AttendedForm({
     <div className="flex flex-col gap-3">
       {live ? (
         <div className="rounded-[var(--radius-control)] border border-ok/30 bg-ok-soft p-3 text-[15px]" role="status">
-          <p className="font-semibold">Publicada en «Lo atendido»</p>
+          <p className="font-semibold">Publicada en «Casos atendidos»</p>
           <p className="mt-1 [overflow-wrap:anywhere]">{published!.summary}</p>
           {published!.displayName ? <p className="mt-1 text-sm">— {published!.displayName}</p> : null}
         </div>
@@ -219,7 +219,7 @@ export function AttendedForm({
         className="flex flex-col gap-3"
         onSubmit={(e) => {
           e.preventDefault();
-          run(() => publishAttended({ id, summary: denuncia ? '' : summary, displayName: denuncia || anonymous ? '' : name }), { success: 'Publicada en «Lo atendido».' });
+          run(() => publishAttended({ id, summary: denuncia ? '' : summary, displayName: denuncia || anonymous ? '' : name }), { success: 'Publicada en «Casos atendidos».' });
         }}
       >
         {denuncia ? (
@@ -249,16 +249,16 @@ export function AttendedForm({
             )}
           </>
         )}
-        <Button type="submit" className="w-fit" disabled={pending}>{live ? 'Actualizar la publicación' : 'Publicar en «Lo atendido»'}</Button>
+        <Button type="submit" className="w-fit" disabled={pending}>{live ? 'Actualizar la publicación' : 'Publicar en «Casos atendidos»'}</Button>
       </form>
       {live ? (
         <details>
-          <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm font-semibold text-accent-ink">Retirar de «Lo atendido»</summary>
+          <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm font-semibold text-accent-ink">Retirar de «Casos atendidos»</summary>
           <form
             className="mt-1 flex flex-col gap-2"
             onSubmit={(e) => {
               e.preventDefault();
-              run(() => withdrawAttended({ id, reason: why }), { success: 'Se retiró de «Lo atendido».' });
+              run(() => withdrawAttended({ id, reason: why }), { success: 'Se retiró de «Casos atendidos».' });
             }}
           >
             <Field label="Por qué se retira" htmlFor={ids.why}>

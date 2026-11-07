@@ -70,9 +70,9 @@ export function fmtBytes(n: number): string {
   return `${fmtNumber(Math.round((n / (1024 * 1024)) * 10) / 10)} MB`;
 }
 
-/** An average time in hours, in the words people use: «5 horas», «3,5 días». */
+/** An average time in hours, in the words people use: «5 horas», «3,5 días»; «Sin datos» when there is none yet. */
 export function fmtHours(h: number | null | undefined): string {
-  if (h === null || h === undefined || !Number.isFinite(h)) return '—';
+  if (h === null || h === undefined || !Number.isFinite(h)) return 'Sin datos';
   if (h < 1) return 'menos de una hora';
   if (h < 48) return `${fmtNumber(Math.round(h * 10) / 10)} ${h === 1 ? 'hora' : 'horas'}`;
   return `${fmtNumber(Math.round((h / 24) * 10) / 10)} días`;

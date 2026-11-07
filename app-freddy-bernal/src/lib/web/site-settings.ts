@@ -4,7 +4,9 @@ import { internalPath, safeHref } from './blocks';
 
 // The public website's settings (web_settings, editable from the administrator) turned into what the pages show, with
 // the client's config (config/clients/fb.json «web») as the starting values. A value that does not have the right shape
-// is ignored and the starting value stays. Channels follow one rule everywhere (header, footer, /canales, JSON-LD):
+// is ignored and the starting value stays. The two legal notices (emergencies, denuncia) are not settings: they are one
+// text each, in src/lib/participation/notices.ts, said the same way on every page, form, receipt and email (copy audit
+// F4). Channels follow one rule everywhere (header, footer, /canales, JSON-LD):
 //   * an inactive account (active: false) never shows;
 //   * in production only VERIFIED accounts show; the test version also shows the unverified ones, marked «sin verificar»;
 //   * the institutional portal shows only when verified (D-95); JSON-LD sameAs carries only verified accounts.
@@ -67,8 +69,6 @@ const SCHEMAS = {
   'site.institutional_portal': channel.nullable(),
   'site.youtube_channel': channel.nullable(),
   'site.demo_banner': text(200).min(1),
-  'site.emergency_notice': text(400).min(1),
-  'site.denuncia_notice': text(400).min(1),
   'site.identity': z.object({
     name: text(120).min(1),
     title: text(160).min(1),
@@ -115,8 +115,6 @@ export type Site = {
   whatsapp: PublicChannel | null;
   contacts: Contact[];
   demoBanner: string;
-  emergencyNotice: string;
-  denunciaNotice: string;
   person: { name: string; jobTitle: string };
   organization: { name: string; areaServed: string; country: string };
 };
@@ -193,8 +191,6 @@ export function normalizeSite(raw: Record<string, unknown>, opts: SiteOptions): 
     whatsapp: whatsapp && channelShown(whatsapp, opts.demo) ? toPublic(whatsapp, 'whatsapp') : null,
     contacts: get('site.contacts').filter((c) => c.verified),
     demoBanner: get('site.demo_banner'),
-    emergencyNotice: get('site.emergency_notice'),
-    denunciaNotice: get('site.denuncia_notice'),
     person: { name: structured.personName || identity.name, jobTitle: structured.jobTitle || sd.jobTitle },
     organization: { name: structured.organizationName || sd.organizationName, areaServed: sd.areaServed, country: sd.country },
   };

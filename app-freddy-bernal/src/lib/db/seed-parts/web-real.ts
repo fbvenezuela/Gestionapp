@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { getClientConfig, type ClientConfig } from '../../client-config';
 import type { Block, TextNode } from '../../web/blocks';
+import { DENUNCIA_NOTICE, EMERGENCY_NOTICE } from '../../participation/notices';
 import { accountKeyOf, realIds, taglineWithoutName, type RealSnapshot } from '../../web/real-site';
 import { parseSnapshot, type Snapshot } from '../../web/schema';
 import type { Sql } from '../core';
@@ -27,28 +28,30 @@ const h2 = (text: string): TextNode => ({ type: 'heading', level: 2, text });
 
 type Faq = { slug: string; order: number; q: string; a: TextNode[] };
 
-/** The attention desk's questions, in the site's voice (usted, short sentences). Two of them answer with the legal
- * notices of the configuration, word for word (one text for each notice everywhere). */
-export function realFaqs(cfg: ClientConfig = getClientConfig()): Faq[] {
-  const settings = cfg.web.settings as Record<string, unknown>;
-  const notice = (key: string, fallback: string) => (typeof settings[key] === 'string' && (settings[key] as string).trim() ? (settings[key] as string).trim() : fallback);
+/** The attention desk's questions, in the site's voice (copy audit §6: usted, one idea per sentence, «el personal de
+ * atención», nothing about how the system works inside). The same facts and words as /atencion and «Consultar mi
+ * solicitud»; two of them answer with the legal notices themselves (src/lib/participation/notices.ts), word for word. */
+export function realFaqs(): Faq[] {
   return [
-    { slug: 'como-consultar-una-solicitud', order: 1, q: '¿Cómo consulto mi solicitud?', a: [p('Entre en «Consultar mi solicitud» y escriba el código y la clave de su comprobante.')] },
-    { slug: 'agregar-informacion-a-una-solicitud', order: 2, q: '¿Puedo agregar información después de enviarla?', a: [p('Sí. En «Consultar mi solicitud» puede agregar información y leer las respuestas.')] },
+    { slug: 'como-consultar-una-solicitud', order: 1, q: '¿Cómo consulto mi solicitud?', a: [p('En «Consultar mi solicitud», escriba el código y la clave de su comprobante.')] },
+    {
+      slug: 'agregar-informacion-a-una-solicitud', order: 2, q: '¿Puedo agregar información a mi solicitud?',
+      a: [p('Sí. En «Consultar mi solicitud» puede agregar información y leer las respuestas del personal de atención.')],
+    },
     {
       slug: 'si-pierdo-la-clave', order: 3, q: '¿Qué pasa si pierdo la clave?',
-      a: [p('La clave no se puede recuperar, porque solo se guarda una huella cifrada de ella.'), p('Si dejó un dato de contacto, el personal de atención puede escribirle por esa vía.')],
+      a: [p('La clave no se puede recuperar.'), p('Si dejó un dato de contacto, el personal de atención puede escribirle. Si no, puede enviar una solicitud nueva.')],
     },
     {
       slug: 'enviar-sin-dar-el-nombre', order: 4, q: '¿Puedo enviar una solicitud sin dar mi nombre?',
-      a: [p('Sí. Sin datos de contacto, el código y la clave son la única forma de consultarla.'), p('Guárdelos en un lugar seguro.')],
+      a: [p('Sí. En los datos de contacto, marque «Enviar como anónimo».'), p('Sin datos de contacto, el código y la clave son la única forma de consultar la solicitud. Guárdelos en un lugar seguro.')],
     },
-    { slug: 'quien-lee-una-denuncia', order: 5, q: '¿Quién lee una denuncia?', a: [p(notice('site.denuncia_notice', 'Solo el operador de denuncias y la coordinación de atención. Una denuncia nunca se publica.'))] },
+    { slug: 'quien-lee-una-denuncia', order: 5, q: '¿Quién lee una denuncia?', a: [p(DENUNCIA_NOTICE)] },
     {
       slug: 'cuanto-tarda-la-respuesta', order: 6, q: '¿Cuánto tarda la respuesta?',
-      a: [p('Cada solicitud recibe una fecha de atención según su categoría y su urgencia.'), p('Los casos urgentes se atienden primero.')],
+      a: [p('El personal de atención fija una fecha de atención para cada solicitud, según su categoría y su urgencia.'), p('Los casos urgentes se atienden primero.')],
     },
-    { slug: 'servicio-de-emergencias', order: 7, q: '¿Es un servicio de emergencias?', a: [p(notice('site.emergency_notice', 'Esto no es un servicio de emergencias.'))] },
+    { slug: 'servicio-de-emergencias', order: 7, q: '¿Es un servicio de emergencias?', a: [p(EMERGENCY_NOTICE)] },
   ];
 }
 
@@ -146,7 +149,7 @@ const hash = (v: unknown) => createHash('sha256').update(JSON.stringify(v)).dige
 export async function seedRealWeb(ctx: RealSeedCtx, snap: RealSnapshot, cfg: ClientConfig = getClientConfig()): Promise<void> {
   const { sql, ids } = ctx;
   const site = new URL(snap.source).hostname;
-  const faqs = realFaqs(cfg).map((f) => ({ id: realIds.faq(f.slug), kind: 'faq' as const, slug: f.slug, draft: { title: f.q, category: 'atencion', answer: f.a, order: f.order } }));
+  const faqs = realFaqs().map((f) => ({ id: realIds.faq(f.slug), kind: 'faq' as const, slug: f.slug, draft: { title: f.q, category: 'atencion', answer: f.a, order: f.order } }));
   for (const f of faqs) {
     const ok = parseSnapshot('faq', f.draft);
     if (!ok.ok) throw new Error(`contenido real: pregunta ${f.slug}: ${ok.error}`);

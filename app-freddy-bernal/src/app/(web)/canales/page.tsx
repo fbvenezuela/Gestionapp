@@ -4,6 +4,7 @@ import { ChannelCards, orderedChannels } from '@/components/web/channels';
 import { DemoNote } from '@/components/web/blocks/views';
 import { EmptyState } from '@/components/web/states';
 import { cardClass, Container, ExternalText, PageIntro, SafeLink, SectionHeading, textLinkClass, WebLink } from '@/components/web/ui';
+import { EMERGENCY_NOTICE } from '@/lib/participation/notices';
 import { ATTENTION, newRequestHref } from '@/lib/web/links';
 import { pageMetadata } from '@/lib/web/seo';
 import { getSite } from '@/lib/web/site';
@@ -96,7 +97,7 @@ export default async function ChannelsPage() {
 
         <p className="mt-10 flex items-start gap-2 rounded-2xl bg-warn-soft px-4 py-3 text-base font-medium leading-relaxed text-warn">
           <TriangleAlertIcon className="mt-0.5 h-5 w-5 shrink-0" />
-          {site.emergencyNotice}
+          {EMERGENCY_NOTICE}
         </p>
         <p className="mt-6 text-base text-text-2">
           Para comunicarse con el despacho, use{' '}

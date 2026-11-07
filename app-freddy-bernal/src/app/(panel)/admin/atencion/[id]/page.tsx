@@ -25,7 +25,7 @@ export const metadata = { title: 'Solicitud' };
 const kb = (n: number) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / (1024 * 1024)).toFixed(1).replace('.', ',')} MB`);
 
 // One citizen request (design §5): what arrived, its files, who has it, its state and due date, the replies and the
-// internal notes, the evidence, the resolution and what the person said, duplicates, «lo atendido», moderation and the
+// internal notes, the evidence, the resolution and what the person said, duplicates, «Casos atendidos», moderation and the
 // whole history. Read AS THE PERSON: a case they may not read (another area's, a denuncia for a responsible, anything
 // for the web's editor) is simply not found (404). The forms show only what this person may do on THIS case
 // (can_work_request / can_steer_request, computed by the database); the database decides again on every action.
@@ -131,7 +131,7 @@ export default async function AttentionCasePage({ params }: { params: Promise<{ 
                 )}
               </dd>
               <dt className="font-semibold">Quién</dt>
-              <dd>{r.anonymous ? 'Anónima' : r.publishNameConsent ? 'Dejó contacto y permite su nombre en «lo atendido»' : 'Dejó contacto (sin permiso para su nombre)'}</dd>
+              <dd>{r.anonymous ? 'Anónima' : r.publishNameConsent ? 'Dejó contacto y permite su nombre en «Casos atendidos»' : 'Dejó contacto (sin permiso para su nombre)'}</dd>
               {linked ? (
                 <>
                   <dt className="font-semibold">Sobre</dt>
@@ -312,7 +312,7 @@ export default async function AttentionCasePage({ params }: { params: Promise<{ 
 
           {coordinator && resolvedCase ? (
             <Card>
-              <CardHeader title="Lo atendido" subtitle="Lo que se publica en la web, sin datos de la persona." />
+              <CardHeader title="Casos atendidos" subtitle="Lo que se publica en la web, sin datos de la persona." />
               <CardBody>
                 <AttendedForm
                   id={r.id}
@@ -326,8 +326,8 @@ export default async function AttentionCasePage({ params }: { params: Promise<{ 
             </Card>
           ) : detail.attended?.status === 'published' ? (
             <Card>
-              <CardHeader title="Lo atendido" />
-              <CardBody className="text-[15px]">Publicada en «Lo atendido»: {detail.attended.summary}</CardBody>
+              <CardHeader title="Casos atendidos" />
+              <CardBody className="text-[15px]">Publicada en «Casos atendidos»: {detail.attended.summary}</CardBody>
             </Card>
           ) : null}
 

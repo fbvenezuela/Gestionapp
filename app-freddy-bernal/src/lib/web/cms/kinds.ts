@@ -28,7 +28,7 @@ export const KIND_SECTIONS: readonly KindSection[] = [
   { kind: 'document', section: 'documentos', label: 'Documentos', one: 'un documento', create: 'Nuevo documento', hint: 'Semanarios, informes y documentos en PDF de Transparencia.', ownPage: false },
   { kind: 'notice', section: 'avisos', label: 'Avisos de servicio', one: 'un aviso', create: 'Nuevo aviso', hint: 'Cortes, desvíos y horarios: con fecha de actualización y de vencimiento.', ownPage: false },
   { kind: 'faq', section: 'preguntas', label: 'Preguntas frecuentes', one: 'una pregunta', create: 'Nueva pregunta', hint: 'Las preguntas de Atención ciudadana, de la web y de la gestión.', ownPage: false },
-  { kind: 'indicator', section: 'indicadores', label: 'Indicadores', one: 'un indicador', create: 'Nuevo indicador', hint: 'Las cifras de «Lo hecho»: solo salen con su fuente.', ownPage: false },
+  { kind: 'indicator', section: 'indicadores', label: 'Indicadores', one: 'un indicador', create: 'Nuevo indicador', hint: 'Las cifras de «Gestión en cifras». Solo salen con su fuente.', ownPage: false },
 ];
 
 const BY_KIND = new Map(KIND_SECTIONS.map((s) => [s.kind, s]));

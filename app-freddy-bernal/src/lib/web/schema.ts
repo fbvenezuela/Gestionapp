@@ -37,7 +37,7 @@ export const PROJECT_CATEGORIES = {
 } as const;
 // Never percentages or amounts without a documented source; the state is what can be said for sure.
 export const PROJECT_STATES = { anunciado: 'Anunciado', en_ejecucion: 'En ejecución', concluido: 'Concluido' } as const;
-export const DOCUMENT_CATEGORIES = { semanario: 'Semanario', informe: 'Informe', rendicion: 'Rendición de cuentas', normativa: 'Normativa', prensa: 'Kit de prensa', otro: 'Otro' } as const;
+export const DOCUMENT_CATEGORIES = { semanario: 'Semanario', informe: 'Informe', rendicion: 'Memoria y Cuenta', normativa: 'Normativa', prensa: 'Material para la prensa', otro: 'Otro' } as const;
 export const NOTICE_CATEGORIES = { agua: 'Agua', electricidad: 'Electricidad', vialidad: 'Vialidad', transporte: 'Transporte', salud: 'Salud', general: 'General' } as const;
 export const FAQ_GROUPS = { atencion: 'Atención ciudadana', web: 'Esta web', gobernacion: 'La gestión' } as const;
 

@@ -833,7 +833,7 @@
    {
     "slug": "seguridad",
     "name": "Seguridad",
-    "description": "Situaciones de inseguridad en la comunidad. Si es una emergencia, llama a los servicios de emergencia.",
+    "description": "Situaciones de inseguridad en la comunidad. Ante una emergencia, llame a los servicios de emergencia.",
     "area": "atencion-general",
     "dueDays": 15
    },
@@ -901,7 +901,7 @@
   }
  },
  "web": {
-  "$comment": "Web pública (D-90 a D-96, 06/11/2026). Ajustes iniciales del sitio: sin contactos ni WhatsApp hasta que se carguen verificados desde el administrador. Las cuentas de redes, el canal de YouTube y el portal institucional son los que encontró el diagnóstico (docs/diagnostico.md §8), todos «por confirmar» (verified: false): en producción la web muestra solo los que el equipo verifique; la versión de prueba los muestra marcados «por confirmar»; el portal sale solo verificado; los inactivos (active: false) nunca salen, y el YouTube viejo nunca es el canal del programa. site.identity y site.structured_data salen de brand al sembrar (structuredData completa el cargo y el nombre oficial del organismo). Las páginas base entran como BORRADOR: salen a la web solo cuando quien aprueba las publica. Los textos marcados «pending» son lo que el equipo completa antes de abrir la web.",
+  "$comment": "Web pública (D-90 a D-96, 06/11/2026). Ajustes iniciales del sitio: sin contactos ni WhatsApp hasta que se carguen verificados desde el administrador. Las cuentas de redes, el canal de YouTube y el portal institucional son los que encontró el diagnóstico (docs/diagnostico.md §8), todos «sin verificar» (verified: false): en producción la web muestra solo los que el equipo verifique; la versión de prueba los muestra marcados «sin verificar»; el portal sale solo verificado; los inactivos (active: false) nunca salen, y el YouTube viejo nunca es el canal del programa. site.identity y site.structured_data salen de brand al sembrar (structuredData completa el cargo y el nombre oficial del organismo). Las páginas base entran como BORRADOR: salen a la web solo cuando quien aprueba las publica. Los textos marcados «pending» son lo que el equipo completa antes de abrir la web.",
   "structuredData": {
    "$comment": "Datos estructurados (JSON-LD Person y GovernmentOrganization) mientras el equipo no los cambie en el administrador (site.structured_data). sameAs sale solo de las cuentas verificadas.",
    "jobTitle": "Gobernador del estado Táchira",
@@ -1110,9 +1110,7 @@
     "verified": false,
     "note": "El canal activo del programa desde enero de 2026. El canal anterior (@FreddyBernalOficial) no se usa."
    },
-   "site.demo_banner": "Versión de prueba. El contenido es de ejemplo.",
-   "site.emergency_notice": "Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.",
-   "site.denuncia_notice": "Su denuncia es confidencial. Solo la leen el personal encargado de denuncias y la coordinación de atención, y nunca se publica. Si se trata de un delito, acuda también a las autoridades competentes."
+   "site.demo_banner": "Versión de prueba. El contenido es de ejemplo."
   },
   "pages": [
    {

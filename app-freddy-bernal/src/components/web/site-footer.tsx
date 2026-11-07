@@ -1,13 +1,15 @@
 import { ArrowUpRightIcon } from './icons';
 import type { Site } from '@/lib/web/site-settings';
 import { currentYear } from '@/lib/web/format';
+import { EMERGENCY_NOTICE } from '@/lib/participation/notices';
 import { ATTENTION, REPORT_HREF } from '@/lib/web/links';
 import { NavList } from './nav-list';
 import { ButtonLink, Container, UnverifiedMark, WebLink } from './ui';
 
 // The footer (design §2, docs/diagnostico.md problems 3 and 7): the official channels from the one list of the site's
 // settings (in production only the verified ones; the test version also shows the unverified ones, marked), the legal
-// pages, a year that changes by itself, «not an emergency service», and the staff's door to the panel.
+// pages, a year that changes by itself, «not an emergency service» (the one legal text of src/lib/participation/notices.ts,
+// the same words as the forms, the receipt and the emails) and the staff's door to the panel.
 
 const footLink = 'inline-flex min-h-11 items-center text-[15px] text-on-charcoal underline-offset-4 hover:underline focus-visible:outline-on-charcoal';
 
@@ -28,7 +30,7 @@ export function SiteFooter({ site }: { site: Site }) {
               Consultar mi solicitud
             </ButtonLink>
           </div>
-          <p className="mt-6 max-w-md text-[15px] font-medium leading-relaxed">{site.emergencyNotice}</p>
+          <p className="mt-6 max-w-md text-[15px] font-medium leading-relaxed">{EMERGENCY_NOTICE}</p>
         </div>
 
         <nav aria-label="Mapa del sitio" className="md:col-span-3">
