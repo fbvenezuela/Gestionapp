@@ -1,6 +1,6 @@
 // The official site's photos and PDFs travel with the deployment (.real-site/media, written by the build) and the public
 // files' route serves them from there, read-only, when the demo's own folder does not have them (src/lib/storage/
-// serve-files.ts): the same key check, the same headers as any library file (a year in cache, a sandbox for pictures),
+// serve-public-file.ts): the same key check, the same headers as any library file (a year in cache, a sandbox for pictures),
 // and nothing outside that folder however the key is written. Files made here (invented).
 import fs from 'node:fs';
 import os from 'node:os';
@@ -8,7 +8,7 @@ import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { REAL_SITE, mediaKey, sha256Of } from '@/lib/web/real-site';
-import { servePublicFile } from '@/lib/storage/serve-files';
+import { servePublicFile } from '@/lib/storage/serve-public-file';
 import { pngOf } from './fixtures/web-png';
 import { demoPdf } from '../fixtures/real-site/site';
 

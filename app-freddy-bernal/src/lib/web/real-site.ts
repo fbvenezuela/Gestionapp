@@ -20,7 +20,7 @@ import { parseSnapshot, slug as slugSchema } from './schema';
 //   * Read with fs, never imported (the file does not exist in CI), validated again here, memoized per process.
 // Pure, except loadRealSnapshot (it reads the file once). No Next or server-only imports: the build script uses it too.
 
-// The runtime spells these out as literals (loadRealSnapshot, src/lib/storage/serve-files.ts) for the bundler's file
+// The runtime spells these out as literals (loadRealSnapshot, src/lib/storage/serve-public-file.ts) for the bundler's file
 // tracing; the build script (scripts/real-site) uses the names.
 export const REAL_SITE = { dir: '.real-site', file: 'snapshot.json', media: 'media' } as const;
 

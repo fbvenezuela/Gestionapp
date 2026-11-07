@@ -1,9 +1,11 @@
 // The network side of the real-site build (build.ts gets these as its Sources). Polite, GET only, one request at a time
 // per site, with a User-Agent that says who asks (design §0.3): the official site's API at most once a second and its
 // files 250 ms apart (scripts/web-import/wp-client.ts PoliteHttp: retries that wait, no redirect out of its own
-// hosts); YouTube only www.youtube.com and i.ytimg.com; Drive only drive.google.com and drive.usercontent.google.com.
-// What comes back is information, never instructions: it is parsed, checked and cut, nothing in it runs. A time budget
-// stops the whole run instead of letting a slow site hold the build.
+// hosts); YouTube only www.youtube.com and i.ytimg.com, and its official API (www.googleapis.com) only when the build
+// has a key; Drive only drive.google.com and drive.usercontent.google.com. What comes back is information, never
+// instructions: it is parsed, checked and cut, nothing in it runs. A time budget stops the whole run instead of letting
+// a slow site hold the build. The YouTube key (YOUTUBE_API_KEY) goes only in a request header: never in an address, a
+// log line, an error, the cache or the snapshot.
 import { PoliteHttp, WpApi, type Fetcher } from '../web-import/wp-client';
 import { fetchPhoto, type FetchedPhoto, type PhotoWant, type WpMedia } from '../web-import/media';
 import type { WpPost } from '../web-import/mapping';
@@ -13,9 +15,14 @@ import { cachedBytes, type DownloadCache } from './cache';
 import { DRIVE_HOSTS, PDF_MAX_BYTES, driveDownloadUrl, driveViewUrl, fileNameFromDisposition } from './semanario';
 import type { RealSiteConfig } from './settings';
 import { siteOf } from './settings';
-import { thumbnailUrls } from './youtube';
+import { feedFromApi, minutesFromApi, parseFeed, programVideos, thumbnailUrls, type VideoList, type VideoSource } from './youtube';
 
 export const USER_AGENT = 'FB-Operaciones-360-demo/1.0 (+https://fb-operaciones-360.vercel.app)';
+
+/** The official YouTube Data API v3 (only with a key). */
+export const YOUTUBE_API = 'https://www.googleapis.com/youtube/v3';
+/** The pause before asking a YouTube feed again (a feed can answer 404 for a moment). */
+export const FEED_RETRY_MS = 2000;
 
 export class TimeBudgetError extends Error {
   override name = 'TimeBudgetError';
@@ -88,6 +95,8 @@ export type SourceOptions = {
   fetcher: Fetcher;
   deadline: Deadline;
   cache: DownloadCache | null;
+  /** The official YouTube API's key (YOUTUBE_API_KEY), optional: without it the API is never asked. */
+  youtubeApiKey?: string | null;
   log?: (line: string) => void;
   /** Pauses (the tests make them instant). */
   apiDelayMs?: number;
@@ -110,6 +119,26 @@ export function networkSources(o: SourceOptions): Sources {
   const files = client(site.ownHosts, o.fileDelayMs ?? 250);
   const youtube = client(['www.youtube.com', 'youtube.com', 'i.ytimg.com'], o.fileDelayMs ?? 250);
   const drive = client(DRIVE_HOSTS, o.fileDelayMs ?? 250);
+  // The official API, only with a key: it travels in its header (X-Goog-Api-Key), never in the address.
+  const key = (o.youtubeApiKey ?? '').trim();
+  const google = key
+    ? new PoliteHttp({
+        fetcher: (url, init) => {
+          const headers = new Headers(init.headers);
+          headers.set('X-Goog-Api-Key', key);
+          return fetcher(url, { ...init, headers });
+        },
+        allowedHosts: ['www.googleapis.com'],
+        delayMs: o.fileDelayMs ?? 250,
+        userAgent: USER_AGENT,
+        retries: 2,
+        timeoutMs: 25_000,
+        sleep,
+        log: o.log,
+      })
+    : null;
+  /** A message with the key taken out (whatever said it). */
+  const hideKey = (m: string) => (key ? m.split(key).join('[clave]') : m);
   const wp = new WpApi(api, site.origin);
   const photos = cachedBytes(files, o.cache);
   const thumbs = cachedBytes(youtube, o.cache);
@@ -143,15 +172,60 @@ export function networkSources(o: SourceOptions): Sources {
     media: (ids): Promise<Map<number, WpMedia>> => wp.media(ids),
     homeHtml: () => text(api, `${site.origin}/`, 'text/html,application/xhtml+xml', 5 * 1024 * 1024),
     photo: (want: PhotoWant): Promise<FetchedPhoto> => fetchPhoto(photos, want),
-    async feed() {
-      const url = `https://www.youtube.com/feeds/videos.xml?playlist_id=${encodeURIComponent(o.config.youtube.playlistId)}`;
-      // A feed can answer 404 for a moment: twice more, a little later each time.
-      for (const pause of [0, 2000, 6000]) {
-        if (pause) await sleep(pause);
-        const xml = await text(youtube, url, 'application/atom+xml,application/xml;q=0.9,*/*;q=0.5', 2 * 1024 * 1024);
-        if (xml !== null) return xml;
+    async videos(programName: string) {
+      const yt = o.config.youtube;
+      const misses: { source: VideoSource; reason: string }[] = [];
+      // 1 and 2: the public feeds (no key): the list of long videos, then the channel's own feed (with the shorts: only
+      // the program's titles count). Each one is asked again once, a little later, when it does not answer.
+      const feeds: [VideoSource, string][] = [
+        ['playlist', `https://www.youtube.com/feeds/videos.xml?playlist_id=${encodeURIComponent(yt.playlistId)}`],
+        ['channel', `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(yt.channelId)}`],
+      ];
+      for (const [source, url] of feeds) {
+        let xml: string | null = null;
+        let why = 'no respondió';
+        for (const pause of [0, FEED_RETRY_MS]) {
+          if (pause) await sleep(pause);
+          try {
+            xml = await text(youtube, url, 'application/atom+xml,application/xml;q=0.9,*/*;q=0.5', 2 * 1024 * 1024);
+          } catch (e) {
+            if (o.deadline.passed) throw e;
+            why = (e as Error).message;
+          }
+          if (xml !== null) break;
+        }
+        if (xml === null) {
+          misses.push({ source, reason: why });
+          continue;
+        }
+        const list = programVideos(parseFeed(xml), source, yt, programName);
+        if (list) return { list, misses };
+        misses.push({ source, reason: 'no trae emisiones del canal configurado' });
       }
-      return null;
+      // 3: the official API, only with a key: the same list of long videos, and how long each one is.
+      if (!google) return { list: null, misses };
+      try {
+        const q = new URLSearchParams({ part: 'snippet,contentDetails,status', playlistId: yt.playlistId, maxResults: String(Math.min(50, Math.max(1, o.config.maxEpisodes * 2))) });
+        const items = await google.json<unknown>(`${YOUTUBE_API}/playlistItems?${q}`);
+        if (!items) throw new Error('la API no encontró la lista');
+        const list: VideoList | null = programVideos(feedFromApi(items.data), 'api', yt, programName);
+        if (!list) throw new Error('la API no trae emisiones del canal configurado');
+        const ids = list.entries.slice(0, o.config.maxEpisodes).map((e) => e.videoId);
+        // How long each one is (optional: without it the episodes go without their minutes).
+        const lengths = ids.length
+          ? await google.json<unknown>(`${YOUTUBE_API}/videos?${new URLSearchParams({ part: 'contentDetails', id: ids.join(','), maxResults: '50' })}`).catch((e) => {
+              if (o.deadline.passed) throw e;
+              return null;
+            })
+          : null;
+        const minutes = lengths ? minutesFromApi(lengths.data) : new Map<string, number>();
+        list.entries = list.entries.map((e) => (minutes.has(e.videoId) ? { ...e, minutes: minutes.get(e.videoId)! } : e));
+        return { list, misses };
+      } catch (e) {
+        if (o.deadline.passed) throw new Error(hideKey((e as Error).message));
+        misses.push({ source: 'api', reason: hideKey((e as Error).message) });
+        return { list: null, misses };
+      }
     },
     thumbnail(videoId: string) {
       const t = thumbnailUrls(videoId);
@@ -183,6 +257,6 @@ export function networkSources(o: SourceOptions): Sources {
       return m ? m[1].trim() : null;
     },
     checkTime: () => o.deadline.check(),
-    requests: () => api.requests + files.requests + youtube.requests + drive.requests,
+    requests: () => api.requests + files.requests + youtube.requests + drive.requests + (google?.requests ?? 0),
   };
 }

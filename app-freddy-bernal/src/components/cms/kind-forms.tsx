@@ -161,7 +161,7 @@ export function EpisodeForm({ draft, set }: Props) {
     <>
       <Group title="El episodio">
         <Basics draft={draft} set={set} date="El día en que salió el programa." />
-        <TextField label="Video de YouTube (su código)" value={draft.youtubeId} onChange={(v) => set({ youtubeId: v.trim() || null })} max={11} mono hint="Las 11 letras que van después de «v=». Sin código, la web muestra «Video por enlazar»." />
+        <TextField label="Video de YouTube (su código)" value={draft.youtubeId} onChange={(v) => set({ youtubeId: v.trim() || null })} max={11} mono hint="Los 11 caracteres que van después de «v=». Sin código, la web no muestra el video; la vista previa avisa que falta." />
         <NumberField label="Duración (minutos)" value={draft.minutes} onChange={(n) => set({ minutes: n })} min={1} max={600} />
         <MediaField label="Foto de portada" value={draft.coverId} onChange={(id) => set({ coverId: id })} />
       </Group>
@@ -177,7 +177,7 @@ export function DocumentForm({ draft, set }: Props) {
   return (
     <Group title="El documento">
       <Basics draft={draft} set={set} date="La fecha del documento." />
-      <SelectField label="Categoría" value={draft.category} onChange={(v) => set({ category: v })} options={entries(DOCUMENT_CATEGORIES)} hint="El Semanario sale en Actualidad › Semanario; el kit de prensa, en El gobernador." />
+      <SelectField label="Categoría" value={draft.category} onChange={(v) => set({ category: v })} options={entries(DOCUMENT_CATEGORIES)} hint="El Semanario sale en Noticias › Semanario. El material para la prensa sale en El gobernador." />
       <MediaField label="Archivo PDF" kind="document" required value={draft.fileId} onChange={(id) => set({ fileId: id })} />
       <div className="grid gap-4 sm:grid-cols-2">
         <TextField label="Versión" value={draft.versionLabel} onChange={(v) => set({ versionLabel: opt(v) })} max={60} hint="Por ejemplo: «n.º 12» o «Versión final»." />

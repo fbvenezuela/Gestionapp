@@ -5,7 +5,7 @@
 Lee primero `PROMPT-APP-FREDDY-BERNAL.md` (reglas que no se rompen, §4) y `docs/IDEA.md`. Juan habla español de
 Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en español; el código en inglés.
 
-## Estado (06/11/2026)
+## Estado (07/11/2026)
 - **Fase 0 y Fase 1 construidas**, en modo demostración (base en memoria con datos inventados). Faltan las cuentas
   (Supabase, Vercel, Resend) para pasar a datos reales: ver `README.md` y `docs/PENDIENTES.md`.
 - Módulos: entrar por invitación + código + TOTP; Hoy por rol; agenda (calendario para jefe/despacho, lista sin fecha
@@ -68,6 +68,14 @@ Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en españo
   (`withAnon`, esquema `citizen`); importador `npm run web:import` (solo borradores); `LOCAL_DATA_DIR` para trabajar en
   local. Migraciones `20261106000050` a `20261106400200`, **ninguna en `fb-dev` todavía**. Docs: `docs/GUIA-WEB.md` y
   sus manuales; lo que falta para abrirla, `docs/PENDIENTES.md` (W1–W11, T1–T9).
+- **Contenido real en la demo publicada (07/11; D-101):** al construir (`npm run build` corre antes el prebuild de
+  `scripts/real-site/`), el despliegue de producción de Vercel lee la web oficial, el canal de YouTube y el Semanario y
+  los deja en `.real-site/` (**fuera de git**: el repositorio es público; ningún contenido real entra en él). La demo
+  los siembra en lugar de lo inventado de la web (`seed-parts/web-real.ts`); las 60 solicitudes inventadas se quedan.
+  Variables: `REAL_SITE_CONTENT` (1 enciende, 0 apaga), `REAL_SITE_BUDGET_S` y `YOUTUBE_API_KEY` (opcional, solo en una
+  cabecera). CI, local y Playwright ven siempre lo inventado. Los textos de la web y la atención, en el registro de la
+  casa: «usted», sin andamio para el público y un solo texto por aviso legal (`src/lib/participation/notices.ts`). Lo
+  que falta: `docs/PENDIENTES.md` (R1–R6, T10–T14).
 - **La oficina (06/11; D-100, era D-90 en main):** `/oficina` dibuja la línea de contenido como una oficina isométrica de diez salas
   (Recepción a Analizador) con cada actividad en la suya; `/oficina/[id]` tiene el guion (lo aprueba solo el jefe) y
   los botones del editor en línea y el brutal. Tabla `event_office` y `office_facts()` en

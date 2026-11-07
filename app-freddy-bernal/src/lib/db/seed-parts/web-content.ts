@@ -1,8 +1,10 @@
 // The public website's demo content (design §8, D-95): INVENTED and marked «(demo)» in every title. No real person,
 // phone, address, account, case or video: episodes have no YouTube id (the site shows their placeholder), documents are
 // small generated PDFs, sources say they are invented, sectors are generic. Dates are days from today (negative =
-// past). Plain data, read by seed-parts/web.ts.
+// past). What speaks to the citizen says «usted» (copy audit §1), and the two legal notices are their one text
+// (src/lib/participation/notices.ts). Plain data, read by seed-parts/web.ts.
 import type { TextNode } from '../../web/blocks';
+import { DENUNCIA_NOTICE, EMERGENCY_NOTICE } from '../../participation/notices';
 
 export type DemoNews = { slug: string; category: 'noticia' | 'comunicado' | 'articulo' | 'entrevista'; muni: string | null; day: number; title: string; excerpt: string; body: string[]; topics: string[]; status?: 'draft' | 'in_review' | 'scheduled' };
 export type DemoProject = {
@@ -27,14 +29,14 @@ export const DEMO_NEWS: DemoNews[] = [
     topics: ['vialidad', 'obras'] },
   { slug: 'horarios-oficina-participacion-demo', category: 'comunicado', muni: null, day: -4, title: 'Comunicado: así funciona la atención de las solicitudes (demo)',
     excerpt: 'Cada solicitud que llega por la web queda asignada a un área y se sigue con su código.',
-    body: ['Cada solicitud que llega por la web queda registrada con un código y una clave que recibe quien la envía.', 'El equipo la revisa, la pasa al área que corresponde y responde en el mismo caso. Nada de lo que envías es público.', 'Texto inventado para la versión de prueba.'],
+    body: ['Cada solicitud que llega por la web queda registrada con un código y una clave que recibe quien la envía.', 'El personal de atención la revisa, la pasa al área que corresponde y responde en el mismo caso. Lo que se envía no se publica.', 'Texto inventado para la versión de prueba.'],
     topics: ['participación'] },
   { slug: 'jornada-de-salud-junin-demo', category: 'noticia', muni: 'Junín', day: -6, title: 'Jornada de salud en Junín atendió a 800 personas (demo)',
     excerpt: 'Consultas, vacunas y entrega de medicinas durante un día completo.',
     body: ['Durante un día completo hubo consultas de medicina general, pediatría y odontología.', 'La cifra de personas atendidas es inventada para la demostración.'], topics: ['salud'] },
-  { slug: 'como-hacer-un-reporte-demo', category: 'articulo', muni: null, day: -8, title: 'Cómo hacer un reporte y seguirlo con tu código (demo)',
+  { slug: 'como-hacer-un-reporte-demo', category: 'articulo', muni: null, day: -8, title: 'Cómo hacer un reporte y seguirlo con su código (demo)',
     excerpt: 'Tres pasos desde el teléfono, sin crear una cuenta.',
-    body: ['Eliges qué quieres enviar, dices dónde es y cuentas qué pasa. Si quieres, agregas una foto.', 'Al enviar recibes un código y una clave. Con los dos consultas el avance cuando quieras.', 'Texto inventado para la versión de prueba.'], topics: ['participación', 'guía'] },
+    body: ['Elija qué desea enviar, indique dónde es y describa lo que pasa. Si lo desea, agregue una foto.', 'Al enviar recibirá un código y una clave. Con los dos puede consultar el avance cuando lo necesite.', 'Texto inventado para la versión de prueba.'], topics: ['participación', 'guía'] },
   { slug: 'planta-potabilizadora-bolivar-asi-quedo-demo', category: 'noticia', muni: 'Bolívar', day: -10, title: 'Planta potabilizadora en Bolívar: así quedó (demo)',
     excerpt: 'La planta ya surte a los sectores que tenían agua por horas.', body: ['La planta ya surte a los sectores que tenían agua por horas.', 'Texto y cifras inventados para la versión de prueba.'], topics: ['agua', 'obras'] },
   { slug: 'entrevista-equipo-atencion-ciudadana-demo', category: 'entrevista', muni: null, day: -12, title: 'Entrevista: el equipo de atención ciudadana cuenta cómo trabaja (demo)',
@@ -112,7 +114,7 @@ export const DEMO_EPISODES = [1, 2, 3, 4, 5, 6].map((n) => ({
   slug: `reporte-bernal-programa-${30 - n}-demo`,
   day: -1 - (n - 1) * 7,
   title: `Reporte Bernal · Programa ${30 - n} (demo)`,
-  excerpt: ['Obras de la semana y lo atendido en la web.', 'Salud, vialidad y las preguntas de la gente.', 'Agua y electricidad: lo que se hizo y lo que falta.', 'Vivienda y deporte en los municipios.', 'Lo que llegó por la web y cómo se resolvió.', 'Educación: escuelas y liceos rehabilitados.'][n - 1],
+  excerpt: ['Obras de la semana y casos atendidos en la web.', 'Salud, vialidad y las preguntas de la gente.', 'Agua y electricidad: lo que se hizo y lo que falta.', 'Vivienda y deporte en los municipios.', 'Lo que llegó por la web y cómo se resolvió.', 'Educación: escuelas y liceos rehabilitados.'][n - 1],
   topics: [['obras', 'participación'], ['salud', 'vialidad'], ['agua', 'electricidad'], ['vivienda', 'deporte'], ['participación'], ['educación']][n - 1],
   minutes: 40 + n * 3,
 }));
@@ -122,9 +124,9 @@ export const DEMO_DOCUMENTS: DemoDocument[] = [
   { slug: 'semanario-11-demo', category: 'semanario', day: -25, title: 'Semanario n.º 11 (demo)', excerpt: 'El boletín de la semana.', version: 'n.º 11', pages: ['Semanario n.º 11 (demo)', 'Boletín inventado para la versión de prueba.'] },
   { slug: 'semanario-10-demo', category: 'semanario', day: -32, title: 'Semanario n.º 10 (demo)', excerpt: 'El boletín de la semana.', version: 'n.º 10', pages: ['Semanario n.º 10 (demo)', 'Boletín inventado para la versión de prueba.'] },
   { slug: 'informe-tercer-trimestre-demo', category: 'informe', day: -40, title: 'Informe de gestión del tercer trimestre (demo)', excerpt: 'Las obras y la atención del trimestre.', version: 'Versión 1', pages: ['Informe de gestión (demo)', 'Documento inventado para la versión de prueba.'] },
-  { slug: 'rendicion-de-cuentas-demo', category: 'rendicion', day: -60, title: 'Rendición de cuentas del año anterior (demo)', excerpt: 'Lo hecho en el año, por área.', version: 'Versión final', pages: ['Rendición de cuentas (demo)', 'Documento inventado para la versión de prueba.'] },
+  { slug: 'rendicion-de-cuentas-demo', category: 'rendicion', day: -60, title: 'Memoria y Cuenta del año anterior (demo)', excerpt: 'La gestión del año, por área.', version: 'Versión final', pages: ['Memoria y Cuenta (demo)', 'Documento inventado para la versión de prueba.'] },
   { slug: 'normas-de-la-participacion-demo', category: 'normativa', day: -20, title: 'Normas de la participación ciudadana (demo)', excerpt: 'Qué se puede enviar, quién lo lee y en cuánto tiempo se responde.', version: 'Versión 1', pages: ['Normas de la participación (demo)', 'Documento inventado para la versión de prueba.'] },
-  { slug: 'kit-de-prensa-demo', category: 'prensa', day: -14, title: 'Kit de prensa: datos de la gestión (demo)', excerpt: 'Datos básicos para periodistas.', version: 'Noviembre', pages: ['Kit de prensa (demo)', 'Documento inventado para la versión de prueba.'] },
+  { slug: 'kit-de-prensa-demo', category: 'prensa', day: -14, title: 'Datos de la gestión para la prensa (demo)', excerpt: 'Datos básicos para periodistas.', version: 'Noviembre', pages: ['Material para la prensa (demo)', 'Documento inventado para la versión de prueba.'] },
   { slug: 'guia-para-hacer-un-reporte-demo', category: 'otro', day: -9, title: 'Guía para hacer un reporte (demo)', excerpt: 'Paso a paso, con fotos de la pantalla.', version: 'Versión 1', pages: ['Guía para hacer un reporte (demo)', 'Documento inventado para la versión de prueba.'] },
 ];
 
@@ -141,16 +143,16 @@ export const DEMO_NOTICES: DemoNotice[] = [
 ];
 
 export const DEMO_FAQS: DemoFaq[] = [
-  { slug: 'como-sigo-mi-solicitud-demo', group: 'atencion', order: 1, q: '¿Cómo sigo mi solicitud? (demo)', a: ['En «Consultar mi solicitud», con el código y la clave que recibiste al enviarla.'] },
-  { slug: 'perdi-mi-clave-demo', group: 'atencion', order: 2, q: '¿Qué pasa si pierdo la clave? (demo)', a: ['Nadie del equipo la tiene: solo se guarda una huella que no se puede revertir. Si dejaste cómo contactarte, el equipo te escribe ahí.'] },
-  { slug: 'puedo-enviar-sin-mi-nombre-demo', group: 'atencion', order: 3, q: '¿Puedo enviar sin dar mi nombre? (demo)', a: ['Sí. Sin contacto, guarda bien tu código y tu clave: son la única forma de seguir el caso.'] },
-  { slug: 'quien-lee-una-denuncia-demo', group: 'atencion', order: 4, q: '¿Quién lee una denuncia? (demo)', a: ['Solo el operador de denuncias y la coordinación de atención. Nunca es pública. Si es un delito, acude también a las autoridades competentes.'] },
+  { slug: 'como-sigo-mi-solicitud-demo', group: 'atencion', order: 1, q: '¿Cómo sigo mi solicitud? (demo)', a: ['En «Consultar mi solicitud», con el código y la clave de su comprobante.'] },
+  { slug: 'perdi-mi-clave-demo', group: 'atencion', order: 2, q: '¿Qué pasa si pierdo la clave? (demo)', a: ['La clave no se puede recuperar. Si dejó un dato de contacto, el personal de atención puede escribirle por esa vía.'] },
+  { slug: 'puedo-enviar-sin-mi-nombre-demo', group: 'atencion', order: 3, q: '¿Puedo enviar sin dar mi nombre? (demo)', a: ['Sí. Sin datos de contacto, el código y la clave son la única forma de consultar la solicitud. Guárdelos en un lugar seguro.'] },
+  { slug: 'quien-lee-una-denuncia-demo', group: 'atencion', order: 4, q: '¿Quién lee una denuncia? (demo)', a: [DENUNCIA_NOTICE] },
   { slug: 'cuanto-tardan-en-responder-demo', group: 'atencion', order: 5, q: '¿Cuánto tardan en responder? (demo)', a: ['Cada solicitud tiene una fecha comprometida según su categoría y su prioridad. Lo urgente va primero.'] },
-  { slug: 'es-un-servicio-de-emergencias-demo', group: 'atencion', order: 6, q: '¿Esto es un servicio de emergencias? (demo)', a: ['No. Si hay una emergencia o una vida en peligro, llama a los servicios de emergencia.'] },
-  { slug: 'que-datos-guarda-la-web-demo', group: 'web', order: 1, q: '¿Qué datos guarda esta web? (demo)', a: ['Solo lo necesario para atender lo que envías. El contacto es opcional y va cifrado. El aviso de privacidad lo explica completo.'] },
-  { slug: 'como-reconocer-los-canales-oficiales-demo', group: 'web', order: 2, q: '¿Cómo reconozco los canales oficiales? (demo)', a: ['Son los que aparecen en «Canales». Nadie del equipo te va a pedir claves ni pagos.'] },
-  { slug: 'donde-veo-las-obras-demo', group: 'gobernacion', order: 1, q: '¿Dónde veo las obras de mi municipio? (demo)', a: ['En «Gestión», filtra por municipio, categoría o estado.'] },
-  { slug: 'que-es-el-semanario-demo', group: 'gobernacion', order: 2, q: '¿Qué es el Semanario? (demo)', a: ['El boletín de la semana. Está en «Actualidad», para leer o descargar.'] },
+  { slug: 'es-un-servicio-de-emergencias-demo', group: 'atencion', order: 6, q: '¿Esto es un servicio de emergencias? (demo)', a: [EMERGENCY_NOTICE] },
+  { slug: 'que-datos-guarda-la-web-demo', group: 'web', order: 1, q: '¿Qué datos guarda esta web? (demo)', a: ['Solo lo necesario para atender lo que usted envía. El contacto es opcional y se guarda cifrado. El aviso de privacidad lo explica completo.'] },
+  { slug: 'como-reconocer-los-canales-oficiales-demo', group: 'web', order: 2, q: '¿Cómo reconozco los canales oficiales? (demo)', a: ['Son los que aparecen en «Canales». Nadie de la Gobernación le pedirá claves ni pagos.'] },
+  { slug: 'donde-veo-las-obras-demo', group: 'gobernacion', order: 1, q: '¿Dónde veo las obras de mi municipio? (demo)', a: ['En «Gestión», puede filtrar por municipio, categoría o estado.'] },
+  { slug: 'que-es-el-semanario-demo', group: 'gobernacion', order: 2, q: '¿Qué es el Semanario? (demo)', a: ['El boletín de la semana. Está en «Noticias», para leer o descargar.'] },
 ];
 
 export const DEMO_INDICATORS: DemoIndicator[] = [

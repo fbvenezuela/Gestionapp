@@ -185,7 +185,7 @@ const RESOLVED: Record<string, string> = {
   'ambiente-aseo': 'Se limpió el lugar y quedó en la ruta del aseo (demo).',
   'servicios-comunitarios': 'Se hizo el mantenimiento que hacía falta (demo).',
   seguridad: 'El caso se atendió con las instituciones que corresponden (demo).',
-  otros: 'El equipo atendió la solicitud (demo).',
+  otros: 'El personal de atención atendió la solicitud (demo).',
 };
 
 async function seedRequests(ctx: SeedCtx, muni: (name: string) => string, projects: Map<string, string>, opts: { attended: boolean }): Promise<void> {
@@ -252,19 +252,19 @@ async function seedRequests(ctx: SeedCtx, muni: (name: string) => string, projec
     } else if (reached(r.state)) {
       ev.push({ kind: 'assigned', detail: { area: { from: areaId, to: areaId }, assignee: { from: null, to: assignee } }, actor: reviewer, by: 'staff', h: 20 });
       go('asignado', 20, reviewer);
-      msg.push({ kind: 'public_reply', author: reviewer, h: 20.2, body: denuncia ? 'Recibimos tu denuncia. La revisa solo el equipo de denuncias (demo).' : `Recibimos tu solicitud y la pasamos al área de ${areaName} (demo).` });
+      msg.push({ kind: 'public_reply', author: reviewer, h: 20.2, body: denuncia ? 'Recibimos su denuncia. La revisa solo el personal encargado de denuncias (demo).' : `Recibimos su solicitud y la pasamos al área de ${areaName} (demo).` });
       if (r.state !== 'asignado') {
         go('en_atencion', 44, assignee);
         msg.push({ kind: 'internal_note', author: assignee, h: 44.5, body: denuncia ? 'Se pidió información a la institución que corresponde (demo).' : 'Se programó la visita de la cuadrilla (demo).' });
       }
       if (r.state === 'requiere_informacion') {
-        const ask = '¿Nos puedes dar una referencia del lugar o mandar una foto? (demo)';
+        const ask = '¿Nos puede dar una referencia del lugar o enviar una foto? (demo)';
         msg.push({ kind: 'info_request', author: assignee, h: 60, body: ask });
         go('requiere_informacion', 60, assignee, ask);
       }
       if (r.state === 'derivado') {
         go('derivado', 70, assignee, 'Le corresponde a otra institución (demo).');
-        msg.push({ kind: 'public_reply', author: assignee, h: 70.2, body: 'Tu solicitud se pasó a la institución que la atiende. Te avisamos cuando respondan (demo).' });
+        msg.push({ kind: 'public_reply', author: assignee, h: 70.2, body: 'Su solicitud se pasó a la institución que la atiende. Le avisaremos cuando respondan (demo).' });
       }
       if (r.state === 'resuelto' || r.state === 'cerrado') {
         resolution = r.attended && r.attended !== 'denuncia' ? r.attended : RESOLVED[r.cat];
@@ -276,7 +276,7 @@ async function seedRequests(ctx: SeedCtx, muni: (name: string) => string, projec
           ev.push({ kind: 'evidence', detail: { attachment: att, shared: true }, actor: assignee, by: 'staff', h: 95 });
         }
         go('resuelto', 96, assignee, resolution);
-        msg.push({ kind: 'public_reply', author: assignee, h: 96.2, body: `${resolution} Si no se resolvió, dínoslo desde tu consulta.` });
+        msg.push({ kind: 'public_reply', author: assignee, h: 96.2, body: `${resolution} Si no se resolvió, indíquelo desde «Consultar mi solicitud».` });
       }
       if (r.state === 'cerrado') {
         if (r.confirmed) ev.push({ kind: 'citizen_confirmed', actor: null, by: 'citizen', h: 110 });
@@ -288,7 +288,7 @@ async function seedRequests(ctx: SeedCtx, muni: (name: string) => string, projec
         state = 'no_procede';
       } else {
         go('no_procede', 30, reviewer, 'No corresponde a la gestión del estado (demo).');
-        msg.push({ kind: 'public_reply', author: reviewer, h: 30.2, body: 'Esto no lo atiende la gestión del estado. Te explicamos a quién acudir en la respuesta (demo).' });
+        msg.push({ kind: 'public_reply', author: reviewer, h: 30.2, body: 'Esto no lo atiende la gestión del estado. En esta respuesta le indicamos a quién acudir (demo).' });
       }
     }
     if (state !== r.state) throw new Error(`demo web: la solicitud ${i} terminó en ${state}, no en ${r.state}`);

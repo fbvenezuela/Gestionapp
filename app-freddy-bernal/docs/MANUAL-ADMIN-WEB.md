@@ -4,8 +4,10 @@
 jefe y Administración. Todo se hace desde el panel, en el menú **«Web»** (`/admin/web`). Los nombres de los botones
 están escritos tal como salen en la pantalla.
 
-> Hoy la web vive en la **versión de prueba**: todo lo que hay es inventado (lleva «(demo)») y ningún buscador la
-> muestra. Abrirla al público es una decisión de Juan (`docs/PENDIENTES.md`).
+> Hoy la web vive en la **versión de prueba** y ningún buscador la muestra. La versión de prueba publicada en Vercel
+> trae el contenido real de la web oficial (noticias, opinión, biografía, fotos y el Semanario; D-101): cada nota sale
+> con el aviso «Traído de la web vieja» (§15). En las pruebas y en local, todo es inventado y lleva «(demo)». Abrirla
+> al público es una decisión de Juan (`docs/PENDIENTES.md`).
 
 **La idea en una línea:** cada contenido tiene un **borrador** (lo que se escribe) y **lo publicado** (exactamente lo
 que se aprobó, lo único que ve la gente). Cambiar un borrador nunca cambia la web hasta que alguien lo publique otra
@@ -71,16 +73,18 @@ Lo que pide cada tipo:
 
 | Tipo | Lo principal | Reglas |
 |---|---|---|
-| **Noticia** (noticia, comunicado, artículo o entrevista) | Título, Resumen, Fecha, Tipo, Firma, Municipio, Foto principal, «Texto de la nota», Galería, «Video de YouTube (su código)», Fuentes y Temas | El código del video son las 11 letras que van después de «v=» en el enlace |
+| **Noticia** (noticia, comunicado, artículo o entrevista) | Título, Resumen, Fecha, Tipo, Firma, Municipio, Foto principal, «Texto de la nota», Galería, «Video de YouTube (su código)», Fuentes y Temas | El código del video son los 11 caracteres que van después de «v=» en el enlace |
 | **Obra o acción** | Categoría, Estado (Anunciado, En ejecución o Concluido), Municipio, «Parroquia, localidad o sector», Descripción, «Para quién», «Organismo responsable», fechas, «Última actualización» y Evidencias | **Nunca un monto ni un porcentaje sin su fuente:** «Agregar la inversión (con su fuente)» y «Agregar el avance (con su fuente)» piden de dónde sale la cifra. Sin fuente, no se ponen |
-| **Reporte Bernal** (episodio) | Fecha, video, «Duración (minutos)», «Foto de portada», Temas y Enlaces | Sin código de video, la web dice «Video por enlazar» |
-| **Documento** | Categoría (Semanario, Informe, Rendición de cuentas, Normativa, Kit de prensa u Otro), «Archivo PDF», Versión y Páginas | El Semanario sale en Actualidad › Semanario; el kit de prensa, en «El gobernador» |
+| **Reporte Bernal** (episodio) | Fecha, video, «Duración (minutos)», «Foto de portada», Temas y Enlaces | Sin código de video, la web no muestra el reproductor; la vista previa avisa «Video por enlazar» |
+| **Documento** | Categoría (Semanario, Informe, Memoria y Cuenta, Normativa, Material para la prensa u Otro), «Archivo PDF», Versión y Páginas | El Semanario sale en Noticias › Semanario; el material para la prensa, en «El gobernador» |
 | **Aviso de servicio** | Título, Servicio, «Texto del aviso», «Actualizado» (con «Ahora»), «Vence (opcional)» y «Municipios afectados» | La hora es la del Táchira. Al vencer deja de salir solo. Sin municipios marcados, es para todo el estado. Sin teléfonos que nadie verificó |
 | **Pregunta frecuente** | Pregunta, Grupo (Atención ciudadana, Esta web o La gestión), Respuesta y Orden | Las de «Atención ciudadana» salen en la página de Atención |
 | **Indicador** | «Qué se cuenta», Cifra, Unidad, «Fecha del dato», Fuente, «Enlace de la fuente» y Cálculo | **Una cifra sin fuente nunca sale en la web.** «Cálculo»: «Escrita a mano» o «Lo cuenta la plataforma» |
 
 **Nunca se inventa nada:** ni biografía, ni fotos, ni teléfonos, ni correos, ni horarios, ni cuentas, ni parroquias.
-Lo que falte se deja como espacio **«Por completar»** (ver §6) y se llena cuando el dato llegue confirmado.
+Lo que falte se deja como espacio **«Por completar»** (ver §6) y se llena cuando el dato llegue confirmado. Ese espacio
+nunca sale en la web: solo lo ve el equipo en la vista previa. Lo mismo una foto, un video o un archivo que falta: la
+web no dibuja nada en su lugar y la vista previa avisa qué falta.
 
 ## 5. El editor
 
@@ -97,7 +101,7 @@ Más abajo:
   dirección» la arma del título. Después de publicado, la dirección solo la cambia quien aprueba, y la vieja sigue
   llevando a la nueva sola. La dirección de una página no se cambia.
 - El formulario del tipo (§4) y, en páginas, noticias y obras, **«Buscadores y redes»**: «Título para buscadores»
-  (unas 60 letras), «Descripción para buscadores» (unas 155), «Imagen para redes» (mejor horizontal, 1200 × 630),
+  (unos 60 caracteres), «Descripción para buscadores» (unos 155), «Imagen para redes» (mejor horizontal, 1200 × 630),
   «Dirección canónica (opcional)» (casi nunca hace falta) y «Pedir a los buscadores que no la muestren». La tarjeta
   **«Así se ve al compartir el enlace»** muestra cómo queda en WhatsApp, Facebook o X. Si los dejas vacíos se usan el
   título, el resumen y la foto principal. También pasan por la aprobación.
@@ -123,9 +127,10 @@ sale en la web. Eliminar un bloque solo cambia el borrador; lo publicado sigue i
 
 **«Agregar un bloque»** abre la lista de los 15 tipos: Portada con foto, Texto, Foto, Galería, Video, Documentos,
 Preguntas frecuentes, Indicadores, Obras y gestión, Noticias, Llamado a la acción, Avisos de servicio, Canales
-oficiales, Accesos de participación y Lo atendido. Cada uno dice para qué sirve. Algunos detalles:
-- **Portada con foto:** sin foto, la web muestra «Foto por subir desde el administrador». Si el mensaje todavía no
-  está, escribe «Por completar desde el administrador: …» y sale como un espacio por llenar.
+oficiales, Accesos de participación y Casos atendidos. Cada uno dice para qué sirve. Algunos detalles:
+- **Portada con foto:** sin foto, la portada sale solo con el texto, a lo ancho; la vista previa muestra «Foto por
+  subir desde el administrador». Si el mensaje todavía no está, escribe «Por completar desde el administrador: …»: el
+  equipo lo ve como un espacio por llenar y el público no ve nada.
 - **Video:** «Mostrar el episodio más reciente» cambia solo cada vez que se publica un episodio.
 - **Documentos, Preguntas, Indicadores y Obras:** «Salen en el orden en que los marques. Sin marcar ninguno, se usan
   los últimos.» Lo que no está publicado dice «(no publicado: no se verá)»; un indicador sin fuente, «(sin fuente: no
@@ -254,11 +259,11 @@ aprobación** («Guardado. La web ya lo muestra.»). Cada sección tiene su «Gu
 | **Navegación** | El menú de la web, en orden («Agregar enlace»). Cada enlace va a una dirección de esta web (empieza con `/`) |
 | **Pie de página** | Un texto corto y los enlaces legales («Agregar enlace legal») |
 | **Contactos institucionales** | Teléfonos, correos o direcciones («Agregar contacto»). **Solo los marcados «Verificado» salen** |
-| **Cuentas en redes** | Red, usuario y enlace de cada cuenta («Agregar cuenta»), con «Verificada», «Activa» y una «Nota interna (no sale en la web)». Salen en el pie, en «Canales» y en los datos para Google. **En producción solo salen las activas y verificadas**; en la versión de prueba también las «por confirmar», marcadas. Una cuenta abandonada se apaga («Activa» sin marcar): nunca sale |
+| **Cuentas en redes** | Red, usuario y enlace de cada cuenta («Agregar cuenta»), con «Verificada», «Activa» y una «Nota interna (no sale en la web)». Salen en el pie, en «Canales» y en los datos para Google. **En producción solo salen las activas y verificadas**; en la versión de prueba también las que no lo están, marcadas «sin verificar». Una cuenta abandonada se apaga («Activa» sin marcar): nunca sale |
 | **Canal de WhatsApp**, **Portal institucional**, **Canal de YouTube del programa** | Cada uno con «La web lo muestra», «Verificado» y «Activo». El portal solo sale verificado |
-| **Nombre y saludo** | El nombre, el cargo, la región, el saludo de la portada y el «Nombre de la cabecera» |
+| **Nombre y saludo** | El nombre, el cargo, la región, el saludo y el «Nombre de la cabecera». El título grande de la portada sale del nombre y el cargo; hoy la web no muestra el saludo (el de los copies de redes se cambia en Ajustes → Marca) |
 | **Datos estructurados** | Lo que leen los buscadores sobre la persona y la institución |
-| **Aviso de emergencias**, **Aviso de las denuncias** | Lo que dice cada formulario de Atención: que no es un servicio de emergencias, y a quien denuncia |
+| **Avisos legales** | Se ven, pero no se cambian aquí: el aviso de emergencias y el de las denuncias son un solo texto fijo de la app, el mismo en el pie de la web, en «Canales», en los formularios de Atención, en el comprobante y su PDF y en los correos. Si el cliente confirma un número oficial de emergencias, se agrega en ese texto (lo cambia quien programa) |
 | **Aviso de la versión de prueba** | La franja fija que solo sale en la demostración |
 
 **Regla:** nunca un teléfono, un correo o una cuenta que nadie del equipo confirmó. Las notas internas no salen en la

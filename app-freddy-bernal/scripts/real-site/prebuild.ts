@@ -5,6 +5,8 @@
 //   * the site does not answer → the last good snapshot kept in .next/cache/real-site/last is put back, or, without one,
 //     nothing (the demo shows the invented content) and a loud warning;
 //   * YouTube or the weekly's Drive file do not answer → that part comes from the last good snapshot, when there is one.
+//     YouTube is asked three ways first (sources.ts): its list of long videos, the channel's own feed and, only with
+//     YOUTUBE_API_KEY, its official API. The key is read here and handed to the network code: never logged or kept.
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ClientConfig } from '../../src/lib/client-config';
@@ -97,7 +99,8 @@ export async function prebuild(o: PrebuildOptions): Promise<PrebuildResult> {
 
   const t0 = Date.now();
   const cacheDir = path.join(o.appDir, '.next', 'cache', 'real-site');
-  log(`[contenido real] encendido (${decision.why}): se lee ${block.config.source}, YouTube y el Semanario…`);
+  const youtubeApiKey = (o.env.YOUTUBE_API_KEY ?? '').trim() || null;
+  log(`[contenido real] encendido (${decision.why}): se lee ${block.config.source}, YouTube${youtubeApiKey ? ' (con la API, si hace falta)' : ''} y el Semanario…`);
   // Loaded only now: an «off» build (CI, every local build) stays under a second.
   const { buildSnapshot } = await import('./build');
   const { networkSources, Deadline } = await import('./sources');
@@ -117,6 +120,7 @@ export async function prebuild(o: PrebuildOptions): Promise<PrebuildResult> {
       fetcher: o.fetcher ?? ((u, i) => fetch(u, i)),
       deadline,
       cache,
+      youtubeApiKey,
       log: (l) => log(`[contenido real] ${l.trim()}`),
       apiDelayMs: o.delays?.api,
       fileDelayMs: o.delays?.files,

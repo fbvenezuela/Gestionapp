@@ -19,7 +19,7 @@ import { altFor, biographyOf, captionFor, newsDraft, officeLeadOf, photoWants, p
 import { findSemanario, meaningfulName, pdfCreationDay, pdfPageCount, semanarioTitle } from './semanario';
 import { siteOf, type RealSiteConfig } from './settings';
 import { cut, hasRemovalMark } from './text';
-import { episodeSlugs, isConfiguredFeed, linkedAccountKeys, parseFeed, verifiedKeys } from './youtube';
+import { VIDEO_SOURCE_LABEL, episodeSlugs, linkedAccountKeys, verifiedKeys, type VideoList, type VideoSource } from './youtube';
 
 export type WpRoot = { name?: string; description?: string };
 
@@ -33,7 +33,9 @@ export interface Sources {
   homeHtml(): Promise<string | null>;
   /** A photo of the official site (downloaded and checked like an upload of the team). */
   photo(want: PhotoWant): Promise<FetchedPhoto>;
-  feed(): Promise<string | null>;
+  /** The program's videos from the governor's channel (sources.ts: its list of long videos, its own feed, the official
+   * API with a key, in that order), and what each source that did not serve said. */
+  videos(programName: string): Promise<{ list: VideoList | null; misses: { source: VideoSource; reason: string }[] }>;
   thumbnail(videoId: string): Promise<FetchedPhoto>;
   drivePdf(id: string): Promise<{ bytes: Uint8Array; fileName: string | null } | null>;
   drivePageTitle(id: string): Promise<string | null>;
@@ -260,19 +262,18 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
   const bioMediaId = await pagePhoto(config.bioMediaId, `foto ${config.bioMediaId} (gobernador)`);
 
   // --- YouTube: the program's episodes, and which accounts the channel links ---------------------------------------
+  // None of its sources serving counts as YouTube not answering: the episodes and the accounts then come from the last
+  // good snapshot (prebuild.ts carryOver).
   let accounts = { verifiedHandles: [] as string[], youtubeOk: false };
   let episodes = 0;
   try {
-    const xml = await src.feed();
-    if (xml === null) throw new Error('el canal no respondió');
-    const feed = parseFeed(xml);
-    const ok = isConfiguredFeed(feed, config.youtube) && feed.entries.length > 0;
-    if (!ok) skipped.push({ ref: 'YouTube', reason: 'la lista no es la del canal configurado' });
-    accounts = {
-      verifiedHandles: ok ? verifiedKeys(input.accounts, linkedAccountKeys(feed.entries.map((e) => e.description))) : [],
-      youtubeOk: ok,
-    };
-    const latest = ok ? feed.entries.slice(0, config.maxEpisodes) : [];
+    const { list, misses } = await src.videos(input.programName);
+    const said = misses.map((m) => `${VIDEO_SOURCE_LABEL[m.source]}: ${m.reason}`);
+    if (!list) throw new Error(cut(said.join('; ') || 'el canal no respondió', 300));
+    for (const line of said) log(`  YouTube, ${line}`);
+    if (list.source !== 'playlist') log(`  YouTube: las emisiones salen de ${VIDEO_SOURCE_LABEL[list.source]}`);
+    accounts = { verifiedHandles: verifiedKeys(input.accounts, linkedAccountKeys(list.descriptions)), youtubeOk: true };
+    const latest = list.entries.slice(0, config.maxEpisodes);
     const slugs = episodeSlugs(latest, input.programName);
     for (const e of latest) {
       const ref = `video ${e.videoId}`;
@@ -285,7 +286,10 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
       const thumb = await src.thumbnail(e.videoId);
       const cover = addPhoto(thumb, cut(title, 300), '', `${ref} · miniatura`);
       const ok2 = addItem(
-        { id: realIds.episode(e.videoId), kind: 'episode', slug: slugs.get(e.videoId)!, draft: { title, date: dayIn(tz, new Date(e.published)), youtubeId: e.videoId, coverId: cover?.id ?? null } },
+        {
+          id: realIds.episode(e.videoId), kind: 'episode', slug: slugs.get(e.videoId)!,
+          draft: { title, date: dayIn(tz, new Date(e.published)), youtubeId: e.videoId, coverId: cover?.id ?? null, ...(e.minutes && e.minutes <= 600 ? { minutes: e.minutes } : {}) },
+        },
         ref,
       );
       if (ok2) episodes++;

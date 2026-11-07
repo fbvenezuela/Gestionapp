@@ -92,7 +92,7 @@ test('«Atención ciudadana» se lee en el teléfono: los dos botones grandes, l
   await expect(page.getByText(/acuda también a las autoridades competentes/).first()).toBeVisible();
   // The FAQs of the group «atencion» (demo) open on tap; no invented contacts: the empty state.
   await page.getByText('¿Qué pasa si pierdo la clave? (demo)').click();
-  await expect(page.getByText(/Nadie del equipo la tiene/).first()).toBeVisible();
+  await expect(page.getByText(/La clave no se puede recuperar/).first()).toBeVisible();
   await expect(page.getByText('Por ahora, la atención es por este formulario')).toBeVisible();
   await noSideScroll(page);
   await axe(page, '/atencion');

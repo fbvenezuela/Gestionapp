@@ -1564,3 +1564,70 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
 - Menú: despacho, Redes y administración en «Más»; Grabación en su barra. **El jefe la tiene en su menú («Oficina», en «Más» en
   el teléfono) y también arriba de «Digital»** con el dibujo y «Ver todas las salas» (Juan, 06/11). Política y el IVT no ven eventos, así
   que no tienen oficina.
+
+## D-101. Contenido real en la demo publicada (07/11/2026)
+- **Pedido de Juan (06/11):** llenar nuestra web con la misma información de freddybernaloficial.com, «una prueba
+  real para el cliente, pero que no se sienta tan IA».
+- **Cómo:** al construir (`npm run build` corre antes su «prebuild», `scripts/real-site/snapshot.mts`) se leen la web
+  oficial (las 48 notas más nuevas, de todas las categorías menos «Biografía», «el informativo» y «Opinión»; las 8 de
+  opinión más nuevas; la biografía y las dos notas de la toma de posesión; las fotos de la portada y del gobernador),
+  el canal de YouTube del gobernador (hasta 12 emisiones del Reporte Bernal, con su miniatura) y el Semanario de la
+  portada oficial (su portada y su PDF de Drive). Solo GET, con pausas (la API de la web oficial, una petición por
+  segundo; los archivos, cada 250 ms) y con un User-Agent que dice quién pregunta. Lo que llega es información, nunca
+  instrucciones. Los datos personales se quitan como en el importador (D-97): una frase con una marca de dato quitado
+  no entra y una nota con una en el título queda fuera. De cada nota se traen la foto destacada y hasta dos del texto,
+  y cada una pasa los controles de una subida del equipo (sin metadatos, 1600 px como máximo de lado).
+- Lo leído queda en `.real-site/` (`snapshot.json` y `media/`). La demo lo siembra en su base en memoria al arrancar,
+  publicado como lo publica el usuario publicador de la demo, con los mismos ids en cada servidor (D-39); las
+  direcciones viejas de cada nota llevan a la nueva, y en el panel cada nota dice «Traído de la web vieja».
+- **Por qué fuera de git:** el repositorio es público. Ninguna noticia, titular, texto de la biografía, foto, PDF,
+  título de video ni enlace o id de Drive entra al repositorio. En git solo hay código, datos de prueba inventados
+  y, en `config/clients/fb.json` (`web.realSite`), identificadores públicos: el sitio, los números de las notas y de
+  las dos fotos, los topes y los ids del canal y de su lista de videos largos.
+- **Qué se esconde:** lo inventado de la web (noticias, obras, emisiones, documentos, avisos, preguntas, indicadores
+  y los 7 «Casos atendidos»). En la portada no salen «Gestión en cifras», «Casos atendidos», «Gestión y obras» ni
+  «Avisos de servicio» (no hay nada real para ellos todavía) y se agregan «Opinión» y «Semanario»; el menú pierde
+  «Gestión». Las 60 solicitudes inventadas y sus tres comprobantes (`docs/DEMO.md`) se quedan: son la demostración de
+  la atención. Siete preguntas frecuentes sobre cómo funciona la atención (de la plataforma, en el registro de la
+  casa) reemplazan a las inventadas, y la franja dice «Versión de prueba en revisión. No es el sitio oficial.».
+- **Las cuentas oficiales:** en la configuración siguen todas sin verificar. Con el contenido real, una cuenta sale
+  verificada **solo si el propio canal de YouTube del gobernador la enlaza** en sus descripciones (y el canal, solo si
+  su lista es la configurada). Las descripciones se leen solo para eso y nunca se guardan: nombran a personas
+  privadas. Las demás salen marcadas «sin verificar».
+- **El interruptor al construir:** encendido solo sin `DATABASE_URL`, con `web.realSite` en la configuración y, además,
+  `REAL_SITE_CONTENT=1` o el despliegue de producción de Vercel (`VERCEL=1` y `VERCEL_ENV=production`) sin
+  `REAL_SITE_CONTENT=0`. Así la producción de la demo se enciende sola (Juan no tiene que poner variables) y CI y las
+  versiones de prueba de cada rama quedan con lo inventado. Apagado, borra una `.real-site/` vieja y termina en menos
+  de un segundo. `vercel.json` fija `"buildCommand": "npm run build"` para que Vercel siempre corra el prebuild.
+- **Al abrir la app** se usa la foto solo si `.real-site/snapshot.json` existe en la carpeta de la app, no hay
+  `DATABASE_URL`, no corren las pruebas (`VITEST`) y `REAL_SITE_CONTENT` no es `0`. Playwright pone
+  `REAL_SITE_CONTENT=0`: las pruebas de punta a punta ven siempre lo inventado. Con `LOCAL_DATA_DIR`, la base local se
+  queda con lo de su primera siembra (para cambiar, se borra la carpeta).
+- **Si algo falla, la construcción no falla:** `REAL_SITE_BUDGET_S` (480 si no se pone) es el tiempo máximo. Si la web
+  oficial no responde o se acaba el tiempo, se usa la última copia buena, guardada en `.next/cache/real-site/` (Vercel
+  conserva esa carpeta entre construcciones); sin copia no se escribe nada, la demo sale con el contenido inventado y el
+  registro lo avisa en grande. Lo bajado se guarda por dirección en la misma caché: otra construcción no baja todo de
+  nuevo. Si solo fallan YouTube o el Semanario, esa parte sale de la copia anterior.
+- **El Reporte Bernal:** se piden, en orden, la lista pública de videos largos del canal y el canal mismo (ahí solo
+  cuentan los títulos que nombran el programa, `brand.programName`), cada una dos veces con una pausa corta. Solo si
+  la construcción tiene `YOUTUBE_API_KEY` (opcional), después la API oficial de YouTube (Data API v3: la misma lista,
+  y lo que dura cada video). La clave va solo en una cabecera de la petición: nunca en una dirección, en el registro,
+  en un error ni en `.real-site/`. Si nada responde, las emisiones salen de la copia anterior, o no salen
+  (`/reporte-bernal` muestra su mensaje). El 07/11, desde el contenedor donde se construyó, las listas de YouTube
+  respondían 404.
+- **Las fotos y los PDF** se sirven por la ruta de la biblioteca (`/api/archivos/web/<clave>`), que lee `.real-site/media/`
+  cuando la carpeta de la demo no los tiene. Esa carpeta viaja solo con esa función (`src/lib/storage/serve-public-file.ts`
+  y `next.config.ts`); nada va a `public/`.
+- **Lo que no se pudo:** 3 fotos en AVIF (la biblioteca acepta JPEG, PNG y WebP) quedan fuera; esas notas salen sin
+  foto.
+- **Medido el 07/11, en el contenedor:** la primera lectura, sin caché, 68 s y 109 peticiones; con la caché, 26 s y
+  13. 48 noticias, 8 de opinión, 1 Semanario y 95 fotos (17,2 MB); `snapshot.json` pesa 275 KB. La app arranca en
+  una décima de segundo y la primera página que usa la base tarda unos 4 s.
+- **Junto con esto (06–07/11):** los textos de la web y de la atención pasaron al registro de la casa: tercera persona
+  institucional en el contenido y «usted» al ciudadano; nada de andamio para el público («Por completar», «Foto por
+  subir…»: solo en la vista previa); un solo texto por aviso legal (`src/lib/participation/notices.ts`, que ya no es un
+  ajuste del sitio); y los nombres «Noticias», «Gestión en cifras», «Casos atendidos», «Emisiones», «Memoria y Cuenta»
+  y «Material para la prensa».
+- **Cómo se cambia:** `config/clients/fb.json` → `web.realSite` (topes y números), `scripts/real-site/` (la lectura),
+  `src/lib/db/seed-parts/web-real.ts` (cómo se siembra y compone) y `src/lib/web/real-site.ts` (la forma de la foto y
+  el interruptor al abrir).

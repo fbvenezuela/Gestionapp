@@ -12,6 +12,7 @@ import { parseSnapshot, type WebKind } from '@/lib/web/schema';
 import { WEB_DEMO_USERS, AREA_OF } from '@/lib/db/seed-parts/web-people';
 import { DEMO_REQUESTS } from '@/lib/db/seed-parts/web-requests';
 import { REQUEST_TYPES } from '@/lib/participation/input';
+import { DENUNCIA_NOTICE, EMERGENCY_NOTICE } from '@/lib/participation/notices';
 
 let t: TestDb;
 const sys = <T>(q: string, p: unknown[] = []) => asSystem(t.backend, (sql) => sql.query<T>(q, p));
@@ -135,6 +136,28 @@ describe('las solicitudes de prueba', () => {
     );
     expect(att.every((a) => a.state === 'resuelto' || a.state === 'cerrado')).toBe(true);
     for (const a of att.filter((x) => x.type === 'denuncia')) expect(a).toMatchObject({ display_name: null, category_id: null, public_summary: expect.stringMatching(/^Denuncia atendida en el municipio /) });
+  });
+
+  it('lo que lee la persona habla de usted: las preguntas frecuentes, las respuestas del personal y los dos avisos legales con su texto', async () => {
+    // Forms of «tú» that never mean anything else (the same list as tests/unit/participation-words.test.ts, and the
+    // ones the old seed used), and «el equipo», which stays in the panel's own texts.
+    const TU = /(?<!\p{L})(tu|tus|te|ti|contigo|quieres|puedes|tienes|recibiste|dejaste|dínoslo|dinos|envías|acude|llama|filtra)(?!\p{L})/iu;
+    const replies = await sys<{ kind: string; body: string }>(`select kind, body from public.request_messages where kind in ('public_reply', 'info_request')`);
+    expect(replies.length).toBeGreaterThan(20);
+    for (const m of replies) {
+      expect(m.body, m.body).not.toMatch(TU);
+      expect(m.body, m.body).not.toMatch(/el equipo/i);
+    }
+    const faqs = await sys<{ slug: string; answer: { text?: string }[] }>(`select slug, published -> 'answer' as answer from public.web_items where kind = 'faq'`);
+    expect(faqs).toHaveLength(10);
+    for (const f of faqs) {
+      const text = f.answer.map((n) => n.text ?? '').join(' ');
+      expect(text, f.slug).not.toMatch(TU);
+      expect(text, f.slug).not.toMatch(/el equipo|huella/i);
+    }
+    const answer = (slug: string) => faqs.find((f) => f.slug === slug)!.answer;
+    expect(answer('es-un-servicio-de-emergencias-demo')).toEqual([{ type: 'paragraph', text: EMERGENCY_NOTICE }]);
+    expect(answer('quien-lee-una-denuncia-demo')).toEqual([{ type: 'paragraph', text: DENUNCIA_NOTICE }]);
   });
 
   it('los archivos de las solicitudes existen en el balde privado y quedan «sin analizar»', async () => {

@@ -5,6 +5,9 @@
 //   npm run build                                  as CI and every local build: off, invented content
 //   REAL_SITE_CONTENT=1 npm run build              with the official site's content (no DATABASE_URL)
 //   NODE_USE_ENV_PROXY=1 REAL_SITE_CONTENT=1 …     the same behind a proxy (Node's fetch needs it to use one)
+//   REAL_SITE_BUDGET_S=300 …                       the time it may take (480 s if unset)
+//   YOUTUBE_API_KEY=… (optional)                   the official YouTube API when the channel's public feeds do not
+//                                                  answer; never logged, kept or written
 //
 // On Vercel it turns itself on for the production deployment (VERCEL_ENV=production), unless REAL_SITE_CONTENT=0.
 import fs from 'node:fs';

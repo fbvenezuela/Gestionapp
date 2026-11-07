@@ -315,3 +315,32 @@ Lighthouse (no está en el repositorio): con la app armada y corriendo (`npm sta
 `npx lighthouse http://localhost:3000/ --only-categories=performance,accessibility,best-practices,seo` usa la
 configuración de teléfono por defecto. En este contenedor se instaló aparte (Lighthouse 13.5.0) y se le pasó el Chromium
 con `CHROME_PATH`.
+
+## 13. Anexo (07/11/2026): el contenido real en la demo y los textos de la casa
+
+Desde el 07/11 la versión de prueba publicada trae al construir el contenido real de la web oficial (D-101), y los
+textos de la web y de la atención pasaron al registro de la casa: «usted» al ciudadano, nada de andamio para el
+público y un solo texto por aviso legal. Lo que se probó, en este contenedor:
+
+- **Unidad y RLS:** 220 archivos, 2.969 pruebas bien y 3 saltadas. Las del contenido real
+  (`tests/unit/real-site-*.test.ts`) corren contra un sitio oficial, un canal de YouTube (sus listas y su API) y un Drive
+  **inventados**: nada sale a la red. Cubren lo que entra y lo que queda fuera, los datos personales, las fotos, el
+  Semanario, la copia anterior cuando algo no responde, los mismos ids en cada servidor, el orden en que se pide el
+  Reporte Bernal y que la clave de YouTube nunca quede en una dirección, en el registro, en un error ni en lo escrito.
+  Otra prueba cuida que la semilla inventada le hable de usted a la persona.
+- **Una construcción real** (`NODE_USE_ENV_PROXY=1 REAL_SITE_CONTENT=1 npm run build`, solo GET): la lectura tardó
+  26 s con la caché de una corrida anterior (13 peticiones; la primera vez, sin caché, 68 s y 109). Trajo 48 noticias,
+  8 de opinión, 1 Semanario y 95 fotos (17,2 MB). Quedaron fuera 3 fotos AVIF y YouTube: desde aquí sus dos listas
+  respondieron 404. Las ocho páginas revisadas (`/`, `/gobernador`, `/actualidad`, `/reporte-bernal`,
+  `/actualidad/semanario`, `/canales`, `/atencion` y `/transparencia`), una foto y el PDF respondieron 200, con la
+  franja «Versión de prueba en revisión. No es el sitio oficial.» y nada «(demo)» en la portada ni en `/atencion`.
+- **Lo que viaja con cada función:** en los `.nft.json` de esa construcción, las 96 fotos y PDF de `.real-site/media`
+  van solo con la ruta de la biblioteca (`/api/archivos/web/[key]`); ninguna con las de los archivos privados.
+- **La construcción normal** (`npm run build`, apagado): borró `.real-site/`, armó las 95 páginas y la portada volvió a
+  lo inventado.
+- **De punta a punta**, sobre esa construcción normal (`E2E_PORT=3500 npx playwright test --trace off`): 317 bien, 6
+  saltadas (las de Drive, que solo corren con `STORAGE_PROVIDER=drive DRIVE_FAKE=1`) y ninguna mal, en 18 minutos.
+- **No se pudo comprobar:** el despliegue de producción en Vercel (que se encienda solo, que conserve `.next/cache`, si
+  sus constructores llegan a YouTube); la API de YouTube con una clave real (no hay clave y no se pide); las emisiones
+  reales del Reporte Bernal (YouTube no respondió desde aquí).
+- Las capturas con contenido real existen solo fuera del repositorio.

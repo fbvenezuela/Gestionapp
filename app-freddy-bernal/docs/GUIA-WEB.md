@@ -2,19 +2,20 @@
 
 **06/11/2026.** Una página para saber qué tiene la web del gobernador, quién hace qué, cómo se edita y cómo se atiende
 lo que llega. El detalle está en dos manuales: **`MANUAL-ADMIN-WEB.md`** (editar y publicar) y
-**`MANUAL-ATENCION.md`** (atender solicitudes). Hoy todo vive en la **versión de prueba**, con datos inventados y sin
-buscadores; abrirla al público lo decide Juan.
+**`MANUAL-ATENCION.md`** (atender solicitudes). Hoy todo vive en la **versión de prueba**, sin buscadores; abrirla al
+público lo decide Juan. La versión de prueba publicada muestra el contenido real de la web oficial (noticias, opinión,
+biografía, fotos y el Semanario; D-101); la de las pruebas y la local, contenido inventado y marcado «(demo)».
 
 ## Qué tiene la web
 
 | Sección | Dirección | Qué hay |
 |---|---|---|
-| **Inicio** | `/` | El saludo, los accesos para participar, lo hecho (cifras con su fuente), lo atendido, las obras, el último Reporte Bernal, noticias, avisos de servicio y canales |
-| **El gobernador** | `/gobernador` | Biografía, cargo y prioridades (lo que falta dice «por completar») |
+| **Inicio** | `/` | El nombre y el cargo del gobernador con su foto, «Atención ciudadana», «Gestión en cifras» (cada cifra con su fuente), «Casos atendidos», las obras, la última emisión del Reporte Bernal, «Últimas publicaciones», avisos de servicio y canales |
+| **El gobernador** | `/gobernador` | Biografía, cargo y «Material para la prensa». Lo que falta no sale en la web: el espacio vacío solo lo ve el equipo en la vista previa |
 | **Gestión** | `/gestion` | Obras y acciones por municipio, categoría y estado, y su línea de tiempo; cada obra con su ficha |
-| **Actualidad** | `/actualidad` | Noticias, comunicados, artículos y entrevistas, con búsqueda; el **Semanario** en `/actualidad/semanario` |
-| **Reporte Bernal** | `/reporte-bernal` | Los episodios; el video carga solo al tocarlo |
-| **Atención ciudadana** | `/atencion` | «Hacer un reporte» (`/atencion/nueva`), «Consultar mi solicitud» (`/atencion/consultar`) y «Lo atendido» (`/atencion/atendido`) |
+| **Noticias** | `/actualidad` | Noticias, comunicados, artículos y entrevistas, con búsqueda y temas; el **Semanario** en `/actualidad/semanario` |
+| **Reporte Bernal** | `/reporte-bernal` | Las emisiones; el video carga solo al tocarlo |
+| **Atención ciudadana** | `/atencion` | «Hacer un reporte» (`/atencion/nueva`), «Consultar mi solicitud» (`/atencion/consultar`) y «Casos atendidos» (`/atencion/atendido`) |
 | **Transparencia** | `/transparencia` | Documentos y cifras de atención, sin datos de nadie |
 | **Canales** | `/canales` | Las cuentas oficiales verificadas |
 | **Legales** | `/aviso-de-privacidad`, `/condiciones-de-participacion`, `/accesibilidad` | Privacidad, condiciones y accesibilidad |
@@ -28,7 +29,7 @@ código y una clave para seguir su caso. **No es un servicio de emergencias** y 
 |---|---|---|
 | Editor de la web | «Web» | Escribe borradores y sube fotos; envía a aprobación. No publica |
 | Aprobador de la web | «Web» | Revisa, publica, programa y archiva; ajustes del sitio y redirecciones |
-| Coordinador de atención | «Atención» | Todo lo que llega, denuncias también: asigna, une, prioriza, cifras, exporta y «Lo atendido» |
+| Coordinador de atención | «Atención» | Todo lo que llega, denuncias también: asigna, une, prioriza, cifras, exporta y «Casos atendidos» |
 | Responsable de área | «Atención» | Lo de su área (nunca denuncias): responde, notas, estados y evidencias |
 | Operador de denuncias | «Atención» | Solo las denuncias |
 | Consulta y auditoría | «Atención» | Lee sin contactos ni denuncias; cifras y registro |
@@ -60,7 +61,7 @@ La portada y las páginas se arman por **bloques** («Agregar un bloque», «Sub
    interna»**: nunca las mezcles.
 4. Trabájalo («En atención»); si falta un dato, **«Pedir más información»**; al terminar, **«Subir evidencia»**.
 5. **«Resuelto»** con su justificación. La persona confirma desde su consulta; después, **«Cerrado»**. La coordinación
-   publica en **«Lo atendido»** sin datos de nadie.
+   publica en **«Casos atendidos»** sin datos de la persona.
 
 Detalle (estados, motivos, denuncias, cifras, CSV y moderación): `MANUAL-ATENCION.md`.
 

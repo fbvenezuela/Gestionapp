@@ -11,7 +11,8 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { KEY_PATTERN, localBucket, mimeOfKey, publicFileUrl } from '@/lib/storage/buckets';
 import { localFilesRoot } from '@/lib/storage/local-files';
 import { ScannerError, clamavScanner, clamdInstream, downloadGate, initialScanStatus, parseClamdReply, type SocketLike } from '@/lib/storage/scanner';
-import { downloadName, servePrivateFile, servePublicFile } from '@/lib/storage/serve-files';
+import { downloadName, servePrivateFile } from '@/lib/storage/serve-files';
+import { servePublicFile } from '@/lib/storage/serve-public-file';
 import { JPEG } from './fixtures/photos';
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fb-buckets-'));

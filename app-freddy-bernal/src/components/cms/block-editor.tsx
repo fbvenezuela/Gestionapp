@@ -335,7 +335,7 @@ function BlockForm({ block, set }: { block: B; set: (patch: Record<string, unkno
         <>
           <TextField label="Título grande" required value={d.title} onChange={(v) => set({ title: v })} max={160} />
           <TextField label="Mensaje corto" multiline value={d.text} onChange={(v) => set({ text: v })} max={600} hint="Una o dos frases. Si todavía no está, escribe «Por completar desde el administrador: …» y sale como un espacio por llenar." />
-          <MediaField label="Foto" value={d.mediaId} onChange={(id) => set({ mediaId: id })} hint="Sin foto, la web muestra «Foto por subir desde el administrador»." />
+          <MediaField label="Foto" value={d.mediaId} onChange={(id) => set({ mediaId: id })} hint="Sin foto, la portada sale solo con el texto; la vista previa avisa que falta." />
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField label="Texto del botón (opcional)" value={d.ctaLabel} onChange={(v) => set({ ctaLabel: v })} max={60} />
             <TextField label="Enlace del botón" value={d.ctaHref} onChange={(v) => set({ ctaHref: v })} max={500} placeholder="/atencion/nueva o https://…" inputMode="url" />

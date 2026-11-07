@@ -15,7 +15,7 @@ una huella que no se puede revertir.
 
 | Rol | Ve | Hace |
 |---|---|---|
-| **Coordinador de atención** | Todo, denuncias también | Todo: asignar a cualquier área, prioridad y fecha comprometida, unir casos, corregir tipo o categoría, moderar, borrar un contacto a pedido, «Lo atendido», cifras y exportar (con o sin contacto) |
+| **Coordinador de atención** | Todo, denuncias también | Todo: asignar a cualquier área, prioridad y fecha comprometida, unir casos, corregir tipo o categoría, moderar, borrar un contacto a pedido, «Casos atendidos», cifras y exportar (con o sin contacto) |
 | **Responsable de área** | Lo de sus áreas y lo que le asignen. **Nunca denuncias** | Responder, notas internas, estados, evidencias, ver el contacto; asigna dentro de su área o «Tomar el caso» |
 | **Operador de denuncias** | **Solo denuncias** | Lo mismo que un responsable, y además en las denuncias: área, prioridad, fecha y moderación |
 | **Consulta y auditoría** | Todo menos las denuncias (que cuentan solo en los totales), sin contactos | Solo leer; cifras; exportar sin contactos; el «Registro» |
@@ -79,7 +79,7 @@ Cuatro números, de lo que puedes ver (sin el spam ni lo unido a otro caso):
 Al abrir un caso se ve: el título, el código, el tipo, el estado y, si aplica, «Vencida», la prioridad y «Spam».
 Debajo: **«Lo que llegó»** (el texto, la categoría, dónde, cuándo pasó, si marcó un punto con su permiso, si dejó
 contacto y si permite su nombre, y la noticia u obra de la que habla), y las tarjetas «Estado», «Área y responsable»,
-«Prioridad y fecha comprometida», «Contacto de la persona», «Archivos», «Resolución», «Casos iguales», «Lo atendido»,
+«Prioridad y fecha comprometida», «Contacto de la persona», «Archivos», «Resolución», «Casos iguales», «Casos atendidos»,
 «Corregir tipo o categoría», «Moderación», «Escribir» y toda la historia. Cada quien ve los botones de lo que puede
 hacer en ESE caso; si solo puedes leerlo, dice «Lo puedes consultar, pero no te toca atenderlo: sin contacto y sin
 cambios.».
@@ -95,7 +95,7 @@ Un reporte de principio a fin:
 8. **«Resuelto»** con «Cómo se resolvió (justificación)» y, mejor, un mensaje para la persona.
 9. La persona confirma desde su consulta, o dice que no se resolvió y el caso vuelve solo a «En atención».
 10. **«Cerrado»** con su motivo, cuando ya no hay más que hacer.
-11. Si vale la pena contarlo, la coordinación lo publica en **«Lo atendido»** (§12).
+11. Si vale la pena contarlo, la coordinación lo publica en **«Casos atendidos»** (§12).
 
 ## 6. Los estados y cuándo hace falta un motivo
 
@@ -198,17 +198,18 @@ datos reales salen solo cuando el envío de correos esté configurado; mientras 
   el repetido lo sigue con su mismo código.
 - Un caso unido dice «Este caso está unido a …: se atiende allí.». Se trabaja en el que se quedó.
 
-## 12. «Lo atendido» y el anonimato
+## 12. «Casos atendidos» y el anonimato
 
-La coordinación publica en la web lo que se resolvió, **sin datos de la persona**. Sale en «Lo atendido» de la web y
-en la portada. Solo para casos que se marcaron «Resuelto» (también si después se cerraron), nunca spam ni unidos.
+La coordinación publica en la web lo que se resolvió, **sin datos de la persona**. Sale en «Casos atendidos» de la web
+(`/atencion/atendido`) y en la portada. Solo para casos que se marcaron «Resuelto» (también si después se cerraron),
+nunca spam ni unidos.
 - **«Resumen para la web»**: lo que se hizo, en pocas palabras. Sin nombres, teléfonos ni direcciones de nadie, ni
   detalles que la identifiquen («la señora de la casa azul frente a la plaza»).
 - **El nombre:** solo si dio permiso («Nombre que sale (dio permiso)», míralo en «Ver contacto»). Si no, **iniciales**
   («Iniciales que salen (no dio permiso para su nombre)», por ejemplo «M. P.»). Si la mandó anónima, sin nombre ni
   iniciales. Se puede dejar vacío.
 - **Una denuncia** sale solo como «Denuncia atendida en el municipio …»: sin nombre, sin categoría, sin texto.
-- «Publicar en «Lo atendido»» (o «Actualizar la publicación»). Para quitarla: «Retirar de «Lo atendido»» → «Por qué
+- «Publicar en «Casos atendidos»» (o «Actualizar la publicación»). Para quitarla: «Retirar de «Casos atendidos»» → «Por qué
   se retira» → «Retirar».
 
 ## 13. Denuncias

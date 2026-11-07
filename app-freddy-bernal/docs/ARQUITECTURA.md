@@ -214,16 +214,19 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 - **Contenido** (`src/lib/web/`): `schema.ts` (lo que guarda cada tipo: página, noticia, obra, episodio, documento,
   aviso, pregunta, indicador; sin cifra sin fuente), `blocks.ts` (los 15 bloques y el texto estructurado; enlaces solo
   https, http, mailto o rutas propias), `public.ts` (lecturas como anon: listas con filtros y búsqueda, por dirección,
-  por ids, ajustes, redirecciones, municipios, categorías, lo atendido). Publicar es de la base: `publish_web_item()`,
+  por ids, ajustes, redirecciones, municipios, categorías, casos atendidos). Publicar es de la base: `publish_web_item()`,
   `return_web_item()`, `cancel_web_schedule()`, `archive_web_item()`, `unarchive_web_item()`, `restore_web_version()`.
 - **Participación** (`src/lib/participation/`): `receipt-code.ts` (clave de 80 bits en Crockford y código, también en el
   navegador), `keys.ts` (HMAC con `PARTICIPATION_PEPPER` de la clave, del dispositivo y de la red), `contact-crypto.ts`
   (AES-256-GCM con `PARTICIPATION_DATA_KEY`), `lookup-cookie.ts` (la galleta de 30 min de «Consultar»),
   `turnstile.ts`, `files.ts` (tipo por bytes, tamaño, cantidad, limpieza de metadatos), `csv.ts`, `pdf.ts` (el
-  comprobante, escrito a mano), `input.ts` (lo que manda el formulario y los nombres de tipos, estados y prioridades).
-  Las llamadas a `citizen.*`, con argumentos por nombre: `src/lib/web/participation.ts`.
+  comprobante, escrito a mano), `input.ts` (lo que manda el formulario y los nombres de tipos, estados y prioridades),
+  `notices.ts` (los dos avisos legales, emergencias y denuncia: un solo texto cada uno, el mismo en el pie de la web,
+  `/canales`, los formularios, el comprobante y los correos; no son ajustes del sitio) y `emails.ts` (las palabras de
+  los correos al ciudadano). Las llamadas a `citizen.*`, con argumentos por nombre: `src/lib/web/participation.ts`.
 - **Archivos** (`src/lib/storage/`): dos baldes lógicos (`buckets.ts`): `web-public` (la biblioteca, se sirve por su
-  dirección pública de Supabase o, en la demo, por `/api/archivos/web/<clave>` con caché de un año) y
+  dirección pública de Supabase o, en la demo, por `/api/archivos/web/<clave>` con caché de un año,
+  `serve-public-file.ts`) y
   `participacion-privado` (nunca público: `/api/archivos/atencion/<id>` revisa sesión, doble factor y RLS; en
   producción redirige a un enlace firmado de 60 s). `participation-files.ts` revisa, limpia y guarda; `scanner.ts`:
   `ATTACHMENT_SCANNER=clamav` (clamd INSTREAM) o `none`; en producción solo se descarga lo «limpio».
@@ -245,7 +248,7 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
   catálogos). `revalidate.ts` refresca al momento las etiquetas al publicar, programar, quitar la programación,
   archivar, desarchivar, guardar un ajuste o una redirección; lo programado aparece solo por `publish_at` en menos de un
   minuto. Ajustes del sitio normalizados en `site-settings.ts` (en producción solo las cuentas activas y verificadas;
-  en la demo también las «por confirmar», marcadas). SEO: `seo.ts` y `meta.ts` (títulos, canónicas, Open Graph), JSON-LD
+  en la demo también las demás, marcadas «sin verificar»). SEO: `seo.ts` y `meta.ts` (títulos, canónicas, Open Graph), JSON-LD
   `Person`, `GovernmentOrganization` y `NewsArticle` (`components/web/json-ld.tsx`), `src/app/sitemap.ts`,
   `src/app/robots.ts` y `src/app/opengraph-image.tsx`; sin `SITE_INDEXABLE=true`, robots, meta y `X-Robots-Tag` dicen
   noindex. Cabeceras (`headers.ts` → `next.config.ts`): CSP de la web sin nonces (YouTube nocookie, los cuadros de
@@ -281,6 +284,35 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
   subida) y `TRUST_PROXY_HEADERS` (de qué cabecera sale la red del visitante fuera de Vercel).
 - **Copias y recuperación:** qué se copia y cómo se restaura, en `COPIAS-Y-RECUPERACION.md` (las copias de Supabase no
   traen los archivos, y las claves de la participación viven fuera del repositorio).
+
+## Contenido real en la demo publicada (D-101)
+- **Al construir** (`scripts/real-site/`, el «prebuild» de `npm run build`): `settings.ts` decide si se enciende
+  (`buildDecision`: sin `DATABASE_URL`, con `web.realSite` en `fb.json`, y `REAL_SITE_CONTENT=1` o la producción de
+  Vercel) y lee `web.realSite`. `sources.ts` es la red: cortés, solo GET, con el `PoliteHttp` del importador y un
+  tiempo máximo (`Deadline`, `REAL_SITE_BUDGET_S`). Lee WordPress, las fotos, YouTube (la lista de videos largos, luego
+  el canal con solo los títulos del programa, luego la API oficial si hay `YOUTUBE_API_KEY`, que va solo en la
+  cabecera `X-Goog-Api-Key`) y Drive. `build.ts` arma la foto con las piezas puras del importador
+  (`scripts/web-import/`: conversión, datos personales, fotos, direcciones) y con `news.ts`, `youtube.ts`,
+  `semanario.ts` y `text.ts`. `cache.ts` guarda lo bajado por dirección y la última copia buena en
+  `.next/cache/real-site/`. `prebuild.ts` junta todo sin fallar nunca la construcción y escribe
+  `.real-site/snapshot.json` y `.real-site/media/<clave>` (fuera de git).
+- **La forma** (`src/lib/web/real-site.ts`): el esquema zod de la foto, los ids deterministas (`realIds`: un uuid del
+  sha256 de un nombre), las claves de archivo por sus bytes y `loadRealSnapshot()`, que la lee con `fs` (nunca con un
+  import), la valida otra vez y la recuerda. Queda apagada con `DATABASE_URL`, con `VITEST` o con
+  `REAL_SITE_CONTENT=0`.
+- **Al sembrar la demo** (`createDemoBackend()`, `src/lib/db/index.ts`): con foto, `seedDemo` deja fuera lo inventado
+  de la web y los «Casos atendidos» inventados (las solicitudes se quedan), y `seed-parts/web-real.ts` siembra la
+  biblioteca, las notas, el Semanario y las emisiones, compone «Inicio» y «El gobernador» desde las páginas de
+  `fb.json`, agrega las redirecciones, la procedencia (`web_import_items`) y siete preguntas de la atención, y publica
+  todo con `publish_web_item()`. Si esa siembra falla, la demo se siembra otra vez con lo inventado.
+- **Al servir:** `src/lib/storage/serve-public-file.ts`, que solo importa `src/app/api/archivos/web/[key]/route.ts`,
+  lee `.real-site/media/` cuando la carpeta de la demo no tiene el archivo. `next.config.ts`
+  (`outputFileTracingIncludes`) lleva `.real-site/snapshot.json` a cada función y `.real-site/media/` solo a esa
+  (comprobado en los `.nft.json` de una construcción real el 07/11). Las claves de la caché de datos llevan
+  `real:<fecha de la foto>` o `invented` (`src/lib/web/cache.ts`): una lista inventada nunca se sirve en una demo con
+  contenido real.
+- **Pruebas:** `tests/unit/real-site-*.test.ts`, contra un sitio oficial, un canal de YouTube (sus listas y su API) y
+  un Drive inventados (`tests/fixtures/real-site/`): nada sale a la red.
 
 ## Guías, tutoriales y Ayuda (D-42 a D-48)
 - **Una sola fuente:** `src/lib/guides/` (un archivo por rol, `shared.ts`, `admin.ts`, `flows.ts`, `sections.ts`,

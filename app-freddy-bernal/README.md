@@ -64,7 +64,7 @@ LOCAL_DATA_DIR=./.data npm run dev    # o ponlo en .env.local
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | La app en http://localhost:3000 (demostración, o modo local con `LOCAL_DATA_DIR`) |
-| `npm run build && npm start` | La versión armada, como en Vercel |
+| `npm run build && npm start` | La versión armada, como en Vercel. `npm run build` corre antes el «prebuild» (`scripts/real-site/snapshot.mts`): sin `REAL_SITE_CONTENT=1` no hace nada más que borrar una `.real-site/` vieja (menos de un segundo) |
 | `npm test` | Pruebas de la lógica y de RLS en un Postgres en memoria |
 | `TEST_DATABASE_URL=postgres://... npm run test:rls` | Las de RLS en un Postgres **desechable** (nunca producción) |
 | `npm run build && npm run test:e2e` | De punta a punta con Playwright, a 360 px y en computadora, con axe |
@@ -122,7 +122,8 @@ Hoy hay un proyecto, `fb-dev` (`docs/CUENTAS.md`). Lo que falta, paso a paso y c
     sesiones (Authentication → Sessions) son de Pro.
 
 ### 2. Vercel
-1. Importar el repositorio. **Root Directory: `app-freddy-bernal`**. Framework: Next.js.
+1. Importar el repositorio. **Root Directory: `app-freddy-bernal`**. Framework: Next.js. El comando de construcción
+   está en `vercel.json` (`npm run build`, con su «prebuild»): no lo cambies en Settings.
 2. Variables (Settings → Environment Variables), separadas por ambiente:
    - Por ahora solo existe `fb-dev` y va en Production (`docs/PROMPT-SUPABASE.md`). Si algún día hay `fb-prod`:
      Preview y Development → `fb-dev`; Production → `fb-prod`.
@@ -134,6 +135,8 @@ Hoy hay un proyecto, `fb-dev` (`docs/CUENTAS.md`). Lo que falta, paso a paso y c
      `SITE_URL`, y `TURNSTILE_SITE_KEY`/`TURNSTILE_SECRET_KEY` cuando haya cuenta de Cloudflare. `SITE_INDEXABLE`
      solo con el OK de Juan. El esquema `citizen` **nunca** se agrega a los esquemas expuestos de la Data API.
    - **Para la demostración sin cuentas:** no pongas `DATABASE_URL`; solo `SESSION_SECRET` (una cadena larga al azar).
+     La versión de producción de la demo trae sola el contenido real de la web oficial (abajo, D-101): no hace falta
+     ninguna variable. `REAL_SITE_CONTENT=0` lo apaga; `YOUTUBE_API_KEY` es opcional.
 3. Settings → Deployment Protection: activar para las versiones de prueba.
 4. Settings → Functions: región `iad1` (la misma de la base).
 
@@ -176,6 +179,28 @@ npm run web:import -- --apply --limit 20   # escribe 20 (DATABASE_URL de Supabas
 npm run web:import -- --help               # todas las opciones (--since, --ids, --no-media, --report…)
 ```
 Nada de la web vieja va al repositorio: el reporte (`--report`) se guarda fuera de él.
+
+## La demo con el contenido real de la web oficial (D-101)
+La versión de prueba publicada en Vercel muestra las noticias, la opinión, la biografía, las fotos, el Semanario y
+las emisiones del Reporte Bernal de la web oficial, dentro del diseño nuevo. Se leen **al construir** (solo GET, con
+pausas) y quedan en `.real-site/`, que **nunca va al repositorio** (el repositorio es público). Solo en la
+demostración (sin `DATABASE_URL`): con la base real nunca se enciende.
+```bash
+npm run build                                          # como CI y en tu computadora: apagado, contenido inventado
+REAL_SITE_CONTENT=1 npm run build && npm start         # con el contenido real (detrás de un proxy: NODE_USE_ENV_PROXY=1)
+```
+- **En Vercel se enciende solo** en el despliegue de producción (`VERCEL_ENV=production`). Las versiones de prueba
+  de cada rama y CI quedan con el contenido inventado.
+- `REAL_SITE_CONTENT`: `1` lo enciende en cualquier construcción; `0` lo apaga en todas partes (también al abrir la
+  app).
+- `REAL_SITE_BUDGET_S`: cuántos segundos puede tardar (480 si no se pone). Pasado ese tiempo, o si la web oficial no
+  responde, se usa la copia anterior (Vercel la guarda en `.next/cache/real-site/`); sin copia, la demo sale con el
+  contenido inventado y el registro de la construcción lo avisa. **La construcción nunca falla por la web oficial.**
+- `YOUTUBE_API_KEY` (opcional): si las listas públicas del canal no responden, las emisiones se piden a la API oficial
+  de YouTube con esta clave. La clave va solo en una cabecera de la petición: nunca en el registro ni en `.real-site/`.
+  La pone Juan en Vercel si la quiere (`docs/PENDIENTES.md`).
+- Con `LOCAL_DATA_DIR`, la base local guarda lo que sembró la primera vez: para pasar de inventado a real (o al
+  revés), borra la carpeta.
 
 ## Volver a la versión anterior (Instant Rollback)
 En Vercel → Deployments → la versión buena → «…» → **Instant Rollback**. Es inmediato y no toca la base. Si una
