@@ -2,12 +2,13 @@
 // tests/fixtures/real-site: a page served once as a photo is not kept, a long photo address never spoils the whole run,
 // the site's name not answering, a home without its weekly, the parts of one broadcast, the automatic switch only for
 // the demo's own repository, answers too big to read, hostile PDFs and feeds, nothing older than a week from an
-// earlier build, AVIF photos as WebP, and the wiring that makes the real content exist on Vercel at all.
+// earlier build, AVIF photos as WebP, the pages' cache key, and the wiring that makes the real content exist on Vercel
+// at all.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
-import { REAL_SITE, REAL_LAST_GOOD_MAX_MS, realIds } from '@/lib/web/real-site';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { REAL_SITE, REAL_LAST_GOOD_MAX_MS, noteSeeded, realContentShown, realContentToken, realIds } from '@/lib/web/real-site';
 import { buildSnapshot, editionTitle } from '../../scripts/real-site/build';
 import { readRealSnapshot } from '../../scripts/real-site/cache';
 import { carryOver, prebuild, tooOld } from '../../scripts/real-site/prebuild';
@@ -242,5 +243,41 @@ describe('lo que hace que el contenido real exista en Vercel', () => {
     expect(next).toContain(`'./.real-site/snapshot.json'`);
     expect(next).toMatch(/'\/api\/archivos\/web\/\*': \['\.\/\.real-site\/media\/\*'\]/);
     expect(fs.readFileSync(path.join(APP, '.gitignore'), 'utf8')).toMatch(/^\/?\.real-site\/?$/m);
+  });
+});
+
+describe('la clave de la caché de las páginas', () => {
+  const g = globalThis as unknown as { __fbRealSnapshot?: { value: unknown }; __fbRealSeeded?: string; __fbProcessToken?: string };
+  const before = { snap: g.__fbRealSnapshot, seeded: g.__fbRealSeeded, token: g.__fbProcessToken };
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    g.__fbRealSnapshot = before.snap;
+    g.__fbRealSeeded = before.seeded;
+    g.__fbProcessToken = before.token;
+  });
+
+  it('sigue lo que se sembró, no el archivo; con el contenido real, cada servidor y cada despliegue tienen la suya', () => {
+    g.__fbRealSnapshot = { value: null };
+    expect(realContentToken()).toBe('invented');
+    // The loader is off under the tests: its memo stands in for a server with the real content.
+    g.__fbRealSnapshot = { value: { fetchedAt: '2026-11-06T12:00:00.000Z', media: [], items: [] } };
+    delete g.__fbRealSeeded;
+    delete g.__fbProcessToken;
+    vi.stubEnv('VERCEL_DEPLOYMENT_ID', '');
+    const one = realContentToken();
+    expect(one).toMatch(/^real:2026-11-06T12:00:00\.000Z:[0-9a-f]{12}$/);
+    expect(realContentToken()).toBe(one);
+    // Another server process: its own entries, so what someone edits in one demo database never reaches the others.
+    delete g.__fbProcessToken;
+    const other = realContentToken();
+    expect(other).not.toBe(one);
+    vi.stubEnv('VERCEL_DEPLOYMENT_ID', 'dpl_Demo/123');
+    expect(realContentToken()).toBe(other.replace('Z:', 'Z:dpl_Demo123:'));
+    // The seed fell back to the invented content: the keys (and the locked settings) follow it.
+    noteSeeded('invented');
+    expect(realContentToken()).toBe('invented');
+    expect(realContentShown()).toBe(false);
+    noteSeeded('real');
+    expect(realContentShown()).toBe(true);
   });
 });
