@@ -109,10 +109,30 @@ export async function VideoBlock({ data, ctx }: { data: BlockData<'video'>; ctx:
   const channel = ctx.site.youtube;
   const H = ctx.heading;
   const framed = !!youtubeId || !!ctx.preview;
+  const links = (
+    <div className={framed ? 'mt-6 flex flex-col items-start gap-2' : 'flex flex-col items-start gap-2 lg:items-end'}>
+      <WebLink href="/reporte-bernal" className="inline-flex min-h-11 items-center font-semibold text-on-charcoal underline decoration-2 underline-offset-4 focus-visible:outline-on-charcoal">
+        Ver todas las emisiones
+      </WebLink>
+      {channel ? (
+        <span className={framed ? 'flex flex-col items-start' : 'flex flex-col items-start lg:items-end'}>
+          <a
+            href={channel.url}
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 flex-wrap items-center gap-x-1 wrap-anywhere font-semibold text-on-charcoal underline decoration-2 underline-offset-4 focus-visible:outline-on-charcoal"
+          >
+            Canal de YouTube {channel.handle} <ExternalLinkIcon className="h-4 w-4 shrink-0" />
+          </a>
+          {channel.verified ? null : <UnverifiedMark dark />}
+        </span>
+      ) : null}
+    </div>
+  );
   return (
     <section className="bg-charcoal py-14 text-on-charcoal sm:py-20">
-      <Container className={framed ? 'grid gap-8 lg:grid-cols-12 lg:items-center lg:gap-12' : undefined}>
-        <div className={framed ? 'lg:col-span-5' : 'max-w-3xl'}>
+      {/* With its video: the words beside the player. Without it: the words, and the links on the other side. */}
+      <Container className={cn('grid gap-8 lg:grid-cols-12 lg:gap-12', framed ? 'lg:items-center' : 'lg:items-end')}>
+        <div className={framed ? 'lg:col-span-5' : 'lg:col-span-8'}>
           <H className="text-[1.75rem] font-bold leading-tight tracking-tight sm:text-4xl">{data.title || 'Video'}</H>
           {episode ? (
             <div className="mt-5 flex flex-col gap-3">
@@ -121,29 +141,15 @@ export async function VideoBlock({ data, ctx }: { data: BlockData<'video'>; ctx:
               {episode.data.excerpt ? <p className="text-lg leading-relaxed">{episode.data.excerpt}</p> : null}
             </div>
           ) : null}
-          <div className="mt-6 flex flex-col items-start gap-2">
-            <WebLink href="/reporte-bernal" className="inline-flex min-h-11 items-center font-semibold text-on-charcoal underline decoration-2 underline-offset-4 focus-visible:outline-on-charcoal">
-              Ver todas las emisiones
-            </WebLink>
-            {channel ? (
-              <span className="flex flex-col items-start">
-                <a
-                  href={channel.url}
-                  rel="noopener noreferrer"
-                  className="inline-flex min-h-11 flex-wrap items-center gap-x-1 wrap-anywhere font-semibold text-on-charcoal underline decoration-2 underline-offset-4 focus-visible:outline-on-charcoal"
-                >
-                  Canal de YouTube {channel.handle} <ExternalLinkIcon className="h-4 w-4 shrink-0" />
-                </a>
-                {channel.verified ? null : <UnverifiedMark dark />}
-              </span>
-            ) : null}
-          </div>
+          {framed ? links : null}
         </div>
         {framed ? (
           <div className="lg:col-span-7">
             <VideoFrame youtubeId={youtubeId} title={title} poster={poster} preview={ctx.preview} />
           </div>
-        ) : null}
+        ) : (
+          <div className="lg:col-span-4">{links}</div>
+        )}
       </Container>
     </section>
   );

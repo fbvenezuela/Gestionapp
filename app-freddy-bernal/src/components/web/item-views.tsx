@@ -79,47 +79,50 @@ export function NewsArticle({
             <MediaImage media={null} sizes="100vw" className="aspect-[16/7] rounded-[var(--radius-card)]" placeholder />
           </Container>
         ) : null}
-        <Container className={`max-w-3xl ${cover || preview ? 'py-10' : 'pb-10 pt-2'}`}>
-          <RichText nodes={d.body} preview={preview} />
-          {d.youtubeId ? (
-            <div className="mt-10">
-              <VideoFrame youtubeId={d.youtubeId} title={d.title} poster={cover} preview={preview} />
-            </div>
-          ) : null}
-          {gallery.length ? (
-            <ul className="mt-10 grid grid-cols-2 gap-3">
-              {gallery.map((m) => (
-                <li key={m.key}>
-                  <Figure media={m} sizes="(min-width: 768px) 360px, 50vw" frameClass="aspect-[4/3] rounded-2xl" />
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {d.sources?.length ? (
-            <section aria-labelledby="fuentes" className={`${boxClass} mt-10 p-6`}>
-              <h2 id="fuentes" className="text-lg font-semibold text-text">
-                Fuentes
-              </h2>
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-base leading-relaxed text-text">
-                {d.sources.map((s, i) => (
-                  <li key={`${s.label}-${i}`}>{s.url ? <SafeLink href={s.url} className="underline underline-offset-4">{s.label}</SafeLink> : s.label}</li>
+        {/* The text at reading width, lined up with the title above it. */}
+        <Container className={`max-w-4xl ${cover || preview ? 'py-10' : 'pb-10 pt-2'}`}>
+          <div className="max-w-3xl">
+            <RichText nodes={d.body} preview={preview} />
+            {d.youtubeId ? (
+              <div className="mt-10">
+                <VideoFrame youtubeId={d.youtubeId} title={d.title} poster={cover} preview={preview} />
+              </div>
+            ) : null}
+            {gallery.length ? (
+              <ul className="mt-10 grid grid-cols-2 gap-3">
+                {gallery.map((m) => (
+                  <li key={m.key}>
+                    <Figure media={m} sizes="(min-width: 768px) 360px, 50vw" frameClass="aspect-[4/3] rounded-2xl" />
+                  </li>
                 ))}
               </ul>
-            </section>
-          ) : null}
-          {d.topics?.length ? (
-            <div className="mt-8">
-              <Topics topics={d.topics} linked />
+            ) : null}
+            {d.sources?.length ? (
+              <section aria-labelledby="fuentes" className={`${boxClass} mt-10 p-6`}>
+                <h2 id="fuentes" className="text-lg font-semibold text-text">
+                  Fuentes
+                </h2>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-base leading-relaxed text-text">
+                  {d.sources.map((s, i) => (
+                    <li key={`${s.label}-${i}`}>{s.url ? <SafeLink href={s.url} className="underline underline-offset-4">{s.label}</SafeLink> : s.label}</li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+            {d.topics?.length ? (
+              <div className="mt-8">
+                <Topics topics={d.topics} linked />
+              </div>
+            ) : null}
+            <div className="mt-10 flex flex-col items-start gap-4 rounded-[var(--radius-card)] bg-accent-soft p-6 sm:flex-row sm:items-center sm:justify-between">
+              <p className="flex items-start gap-3 text-lg font-semibold text-text">
+                <MessageSquareTextIcon className="mt-0.5 h-6 w-6 shrink-0 text-accent-ink" />
+                Envíe su opinión sobre esta noticia.
+              </p>
+              <ButtonLink href={aboutHref('news', item.slug)} variant="olive" className="shrink-0">
+                Comentar esta noticia
+              </ButtonLink>
             </div>
-          ) : null}
-          <div className="mt-10 flex flex-col items-start gap-4 rounded-[var(--radius-card)] bg-accent-soft p-6 sm:flex-row sm:items-center sm:justify-between">
-            <p className="flex items-start gap-3 text-lg font-semibold text-text">
-              <MessageSquareTextIcon className="mt-0.5 h-6 w-6 shrink-0 text-accent-ink" />
-              Envíe su opinión sobre esta noticia.
-            </p>
-            <ButtonLink href={aboutHref('news', item.slug)} variant="olive" className="shrink-0">
-              Comentar esta noticia
-            </ButtonLink>
           </div>
         </Container>
       </article>
