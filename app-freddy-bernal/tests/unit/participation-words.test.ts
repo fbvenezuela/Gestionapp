@@ -32,6 +32,7 @@ const { ErrorSummary } = await import('@/components/participation/error-summary'
 const { DemoDataWarning } = await import('@/components/participation/demo-warning');
 const { ParticipationNav } = await import('@/components/participation/participation-nav');
 const { emptyValues } = await import('@/components/participation/form-core');
+const { default: AttentionError } = await import('@/app/(web)/atencion/error');
 
 const html = <P extends object>(c: (p: P) => unknown, p: P) => renderToStaticMarkup(createElement(c as never, p as never));
 const text = (markup: string) =>
@@ -193,12 +194,15 @@ describe('lo que lee la persona en el formulario, el comprobante y la consulta',
       ['consultar', html(LookupForm, { notice: null })],
       ['aviso de prueba', html(DemoDataWarning, { demo: true })],
       ['menú', html(ParticipationNav, { current: 'inicio' })],
+      ['error al cargar', html(AttentionError, { error: new Error('prueba'), reset: noop })],
     ];
     for (const [label, markup] of pieces) citizenReads(label, text(markup));
     const all = pieces.map(([, m]) => text(m)).join(' ');
     // The two notices, whole, where they go; the new names where the old ones were.
     expect(all).toContain(EMERGENCY_NOTICE);
     expect(all).toContain(DENUNCIA_NOTICE);
-    for (const t of ['Historial de la solicitud', 'Apoyar este reporte', 'caracteres', 'Casos atendidos']) expect(all).toContain(t);
+    for (const t of ['Historial de la solicitud', 'Apoyar este reporte', 'caracteres', 'Casos atendidos', 'No se pudo cargar la página']) expect(all).toContain(t);
+    expect(text(html(NoJsForm, { municipalities: MUNIS, categories: CATS, formKey: '00000000-0000-4000-8000-00000000f001', linkedItemId: null, presetType: null, today: '2026-11-06' })))
+      .toContain('Si no marca esta casilla, solo se publicarán sus iniciales.');
   });
 });

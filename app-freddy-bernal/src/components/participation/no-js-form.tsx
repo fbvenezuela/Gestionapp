@@ -182,7 +182,10 @@ export function NoJsForm({
         </FieldBox>
         <label className="flex min-h-11 items-start gap-3 text-[15px] text-text">
           <input type="checkbox" name="publishNameConsent" defaultChecked={v.publishNameConsent === 'on'} className="mt-0.5 size-5 accent-accent" />
-          <span>Autorizo que se publique mi nombre si el caso aparece en «Casos atendidos». Si no marco esta casilla, solo se publicarán mis iniciales.</span>
+          <span>
+            Autorizo que se publique mi nombre si el caso aparece en «Casos atendidos».{' '}
+            <span className="text-text-2">Si no marca esta casilla, solo se publicarán sus iniciales.</span>
+          </span>
         </label>
       </fieldset>
 
