@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import { ExternalLinkIcon, ShieldCheckIcon, TriangleAlertIcon } from '@/components/web/icons';
+import { ShieldCheckIcon, TriangleAlertIcon } from '@/components/web/icons';
 import { ChannelCards, orderedChannels } from '@/components/web/channels';
 import { DemoNote } from '@/components/web/blocks/views';
 import { EmptyState } from '@/components/web/states';
-import { cardClass, Container, PageIntro, SafeLink, SectionHeading, textLinkClass, WebLink } from '@/components/web/ui';
+import { cardClass, Container, ExternalText, PageIntro, SafeLink, SectionHeading, textLinkClass, WebLink } from '@/components/web/ui';
 import { ATTENTION, newRequestHref } from '@/lib/web/links';
 import { pageMetadata } from '@/lib/web/seo';
 import { getSite } from '@/lib/web/site';
@@ -51,8 +51,8 @@ export default async function ChannelsPage() {
         {site.portal ? (
           <div className={cn(cardClass, 'mt-10 flex flex-col gap-2 p-6')}>
             <p className="text-sm font-semibold uppercase tracking-[0.08em] text-accent-ink">Portal institucional</p>
-            <a href={site.portal.url} rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 text-lg font-semibold text-text underline underline-offset-4">
-              {site.portal.label} <ExternalLinkIcon className="h-4 w-4 shrink-0" />
+            <a href={site.portal.url} rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-lg font-semibold text-text underline underline-offset-4">
+              <ExternalText text={site.portal.label} />
             </a>
           </div>
         ) : null}

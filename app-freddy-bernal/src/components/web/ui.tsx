@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 import { safeHref } from '@/lib/web/blocks';
 import { cn } from '@/lib/cn';
+import { ExternalLinkIcon } from './icons';
 
 // The public website's small pieces (design §1): editorial, big readable type, generous space, elegant cards with a
 // discreet border and a soft shadow, buttons of 48 px. Colors only from tokens (bg-action for the citizen actions,
@@ -148,6 +149,22 @@ export function UnverifiedMark({ dark = false, className }: { dark?: boolean; cl
       )}
     >
       sin verificar
+    </span>
+  );
+}
+
+/** The words of a link to another site and the icon that says so. The icon follows the last word (they never split),
+ * so on a phone it is neither alone on a line nor pushed to the far edge. */
+export function ExternalText({ text }: { text: string }) {
+  const words = text.trim();
+  const cut = words.lastIndexOf(' ');
+  return (
+    <span>
+      {cut > 0 ? words.slice(0, cut + 1) : null}
+      <span className="whitespace-nowrap">
+        {cut > 0 ? words.slice(cut + 1) : words}
+        <ExternalLinkIcon className="ml-1 inline-block h-4 w-4 align-[-0.125em]" />
+      </span>
     </span>
   );
 }

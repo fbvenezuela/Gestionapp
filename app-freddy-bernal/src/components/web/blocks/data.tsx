@@ -1,4 +1,3 @@
-import { ExternalLinkIcon } from '../icons';
 import { getAttended, getRequestCategories, getTerritories, itemsByIds, listItems, type WebItem } from '@/lib/web/cache';
 import { ATTENTION } from '@/lib/web/links';
 import { withQuery } from '@/lib/web/params';
@@ -10,7 +9,7 @@ import { ChannelPills, orderedChannels } from '../channels';
 import { MediaImage, PhotoPlaceholder, photoOf } from '../media';
 import { LiteYouTube } from '../lite-youtube';
 import { ParticipationActions } from '../participation-actions';
-import { Container, SectionHeading, UnverifiedMark, WebLink } from '../ui';
+import { Container, ExternalText, SectionHeading, UnverifiedMark, WebLink } from '../ui';
 import type { BlockContext, BlockData } from './types';
 import { AttendedView, DemoNote, FaqView, IndicatorsView, NoticesView } from './views';
 
@@ -119,9 +118,9 @@ export async function VideoBlock({ data, ctx }: { data: BlockData<'video'>; ctx:
           <a
             href={channel.url}
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 flex-wrap items-center gap-x-1 wrap-anywhere font-semibold text-on-charcoal underline decoration-2 underline-offset-4 focus-visible:outline-on-charcoal"
+            className="inline-flex min-h-11 items-center wrap-anywhere font-semibold text-on-charcoal underline decoration-2 underline-offset-4 focus-visible:outline-on-charcoal"
           >
-            Canal de YouTube {channel.handle} <ExternalLinkIcon className="h-4 w-4 shrink-0" />
+            <ExternalText text={`Canal de YouTube ${channel.handle}`} />
           </a>
           {channel.verified ? null : <UnverifiedMark dark />}
         </span>

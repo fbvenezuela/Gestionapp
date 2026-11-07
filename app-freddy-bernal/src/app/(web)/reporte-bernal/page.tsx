@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
-import { ExternalLinkIcon } from '@/components/web/icons';
 import { EpisodeMeta, Topics } from '@/components/web/cards';
 import { VideoFrame } from '@/components/web/blocks/data';
 import { photoOf } from '@/components/web/media';
 import { EmptyState, Pagination } from '@/components/web/states';
-import { cardClass, Container, PageIntro, SafeLink, UnverifiedMark } from '@/components/web/ui';
+import { cardClass, Container, ExternalText, PageIntro, SafeLink, UnverifiedMark } from '@/components/web/ui';
 import { listItems, type WebItem } from '@/lib/web/cache';
 import { pageParam, withQuery } from '@/lib/web/params';
 import { pageMetadata } from '@/lib/web/seo';
@@ -42,8 +41,8 @@ function EpisodeLinks({ item }: { item: WebItem<'episode'> }) {
     <ul className="flex flex-wrap gap-x-5 gap-y-1">
       {item.data.links.map((l, i) => (
         <li key={`${l.url}-${i}`}>
-          <SafeLink href={l.url} className="inline-flex min-h-11 items-center gap-1 font-semibold text-accent-ink underline underline-offset-4">
-            {l.label} <ExternalLinkIcon className="h-4 w-4 shrink-0" />
+          <SafeLink href={l.url} className="inline-flex min-h-11 items-center font-semibold text-accent-ink underline underline-offset-4">
+            <ExternalText text={l.label} />
           </SafeLink>
         </li>
       ))}
@@ -65,8 +64,8 @@ export default async function ProgramPage({ searchParams }: { searchParams: Sear
       <PageIntro title={name} intro={`Programa semanal del gobernador ${site.name}.`}>
         {channel ? (
           <p className="mt-6 flex flex-wrap items-center gap-2 text-lg">
-            <a href={channel.url} rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 font-semibold text-accent-ink underline decoration-2 underline-offset-4">
-              Canal de YouTube {channel.handle || channel.label} <ExternalLinkIcon className="h-4 w-4 shrink-0" />
+            <a href={channel.url} rel="noopener noreferrer" className="inline-flex min-h-11 items-center font-semibold text-accent-ink underline decoration-2 underline-offset-4">
+              <ExternalText text={`Canal de YouTube ${channel.handle || channel.label}`} />
             </a>
             {channel.verified ? null : <UnverifiedMark />}
           </p>

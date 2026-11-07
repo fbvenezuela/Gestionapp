@@ -14,7 +14,7 @@ import { normalizeSite } from '@/lib/web/site-settings';
 import type { FrozenMedia } from '@/lib/web/public';
 import type { AttendedItem, WebItem } from '@/lib/web/cache';
 import { publicNodes, RichText } from '@/components/web/rich-text';
-import { SafeLink } from '@/components/web/ui';
+import { ExternalText, SafeLink } from '@/components/web/ui';
 import { BlockView, opensWithHero } from '@/components/web/blocks';
 import { CtaBlock, GalleryBlock, HeroBlock, ImageBlock, SafeButton, TextBlock, isPendingText } from '@/components/web/blocks/simple';
 import { AttendedView, FaqView, IndicatorsView, NoticesView, indicatorListHref } from '@/components/web/blocks/views';
@@ -346,6 +346,13 @@ describe('el marco de la web', () => {
     expect(out.match(/sin verificar/g)?.length).toBe(list.length);
     expect(out).not.toContain('por confirmar');
     expect(out).toContain('rel="noopener noreferrer nofollow"');
+  });
+
+  it('un enlace a otro sitio: el icono va pegado a la última palabra (nunca solo en una línea del teléfono)', () => {
+    const out = html(h(ExternalText, { text: 'Canal de YouTube @canal.prueba' }));
+    expect(out).toMatch(/^<span>Canal de YouTube <span class="whitespace-nowrap">@canal\.prueba<svg[^>]*aria-hidden="true"/);
+    expect(out.replace(/<[^>]+>/g, '')).toBe('Canal de YouTube @canal.prueba');
+    expect(html(h(ExternalText, { text: ' Portal ' }))).toMatch(/^<span><span class="whitespace-nowrap">Portal<svg/);
   });
 
   it('los accesos de participación: el reporte en naranja, los cuatro tipos y el aviso de emergencias', () => {
