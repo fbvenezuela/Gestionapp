@@ -18,7 +18,7 @@ test.beforeEach(async ({ context }) => {
 test('la versión de prueba avisa en el formulario que no se escriban datos reales', async ({ page }) => {
   await page.goto('/atencion/nueva');
   await expect(page.getByText('Versión de prueba. No escriba datos reales.')).toBeVisible();
-  await expect(page.getByText(/en la versión real se guarda cifrado/i)).toBeVisible();
+  await expect(page.getByText(/En la versión definitiva se guardan cifrados\./)).toBeVisible();
 });
 
 test('los archivos: un comprobante malo recibe el «no encontrado» de siempre; otro sitio, 403; sin sesión, 401; nunca en caché', async ({ page }) => {

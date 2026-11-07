@@ -325,7 +325,7 @@ test.describe('la web pública en el teléfono (360 px)', () => {
   test('canales: la lista marcada y cómo identificar las cuentas oficiales; sin portal mientras no esté verificado', async ({ page }) => {
     await page.goto('/canales');
     await expect(page.getByRole('heading', { name: 'Cómo identificar las cuentas oficiales' })).toBeVisible();
-    await expect(page.getByText(/piden dinero, claves/)).toBeVisible();
+    await expect(page.getByRole('main').getByText(/solicita dinero, claves, códigos de verificación ni datos bancarios/)).toBeVisible();
     for (const url of ['https://www.instagram.com/freddybernal_ve/', 'https://x.com/freddybernal_ve', 'https://www.tiktok.com/@freddybernal_ve', 'https://www.threads.com/@freddybernal_ve']) {
       await expect(page.locator(`main a[href="${url}"]`), url).toHaveCount(1);
     }
