@@ -3,30 +3,35 @@ import Link from 'next/link';
 import { connection } from 'next/server';
 import { ArrowRight, ChevronDown, ClipboardList, KeyRound, Lock, MessagesSquare, PhoneCall, Search, Send } from 'lucide-react';
 import { REQUEST_TYPES } from '@/lib/participation/input';
-import { Band, BtnLink, Eyebrow, Notice, PageIntro, webCard } from '@/components/participation/kit';
+import { Band, BtnLink, Notice, PageIntro, webCard } from '@/components/participation/kit';
 import { ParticipationNav } from '@/components/participation/participation-nav';
 import { RichTextLite } from '@/components/participation/rich-text-lite';
-import { DENUNCIA_TEXT, STATE_PLAIN, TYPE_COPY, USUAL_PATH } from '@/components/participation/words';
+import { DENUNCIA_NOTICE, EMERGENCY_LEAD, EMERGENCY_REST, STATE_PLAIN, TYPE_COPY, USUAL_PATH } from '@/components/participation/words';
 import { cn } from '@/lib/cn';
 import { loadAttentionFaqs, loadVerifiedContacts } from './_lib/data';
 
 export const metadata: Metadata = {
   title: 'Atención ciudadana',
-  description: 'Reporta un problema, haz una petición, deja una acotación o una denuncia, y sigue tu solicitud con tu código. Sin cuenta, desde el teléfono.',
+  description: 'Envíe reportes, peticiones, acotaciones o denuncias al despacho del gobernador y consulte su estado con un código. No requiere registro.',
   alternates: { canonical: '/atencion' },
 };
 
 const STEPS = [
-  { icon: ClipboardList, title: 'Cuéntanos', text: 'Qué pasa, dónde y, si quieres, una foto. Son cuatro pasos cortos y no hace falta cuenta.' },
-  { icon: KeyRound, title: 'Guarda tu comprobante', text: 'Recibes un código y una clave. Con los dos sigues tu solicitud; la clave solo la tienes tú.' },
-  { icon: Send, title: 'El equipo la atiende', text: 'La revisa, la pasa al área que corresponde y le pone una fecha de atención según lo urgente que sea.' },
-  { icon: MessagesSquare, title: 'Sigue tu caso', text: 'En «Consultar mi solicitud» ves en qué va, lo que te respondan, y puedes agregar información.' },
+  { icon: ClipboardList, title: 'Envío de la solicitud', text: 'Indique qué ocurre y dónde. Puede adjuntar fotos o documentos. No necesita registrarse.' },
+  { icon: KeyRound, title: 'Comprobante', text: 'Al enviar recibirá un código y una clave. Con ambos podrá consultar su solicitud. La clave solo la tiene usted.' },
+  {
+    icon: Send,
+    title: 'Revisión y asignación',
+    text: 'El personal de atención revisa la solicitud, la asigna al área correspondiente y fija una fecha de atención según su urgencia.',
+  },
+  { icon: MessagesSquare, title: 'Seguimiento', text: 'En «Consultar mi solicitud» puede ver el estado, leer las respuestas y agregar información.' },
 ];
 
-// How the attention desk works (design §4): the two big buttons, what can be sent, the steps, what happens after, the
-// denuncia's privacy, the FAQs of the group «atencion» and the verified contacts (an empty state while there are none:
-// no invented phones or emails, D-95). Everything here is public and read as anon, at request time (the FAQs and the
-// contacts are edited in the admin and show at once; never read while building).
+// How the attention desk works (design §4): the two big buttons, the kinds of request, the steps, the states, the
+// denuncia's confidentiality, the FAQs of the group «atencion» (the section shows only when there are some) and the
+// verified contacts (an empty state while there are none: no invented phones or emails, D-95). The citizen is «usted»;
+// whoever attends is «el personal de atención» (copy audit §1). Everything here is public and read as anon, at request
+// time (the FAQs and the contacts are edited in the admin and show at once; never read while building).
 export default async function AttentionPage() {
   await connection();
   const [faqs, contacts] = await Promise.all([loadAttentionFaqs(), loadVerifiedContacts()]);
@@ -37,13 +42,12 @@ export default async function AttentionPage() {
         <ParticipationNav current="inicio" />
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <PageIntro
-            eyebrow="Atención ciudadana"
-            title="Cuéntanos qué pasa en tu comunidad"
-            lead="Sin cuenta y desde el teléfono. Recibes un código para seguir tu solicitud, y el equipo del gobernador la revisa y te responde por aquí."
+            title="Atención ciudadana"
+            lead="Envíe su reporte, petición o denuncia y consulte su estado con el código que recibirá. No necesita registrarse."
           >
             <div className="mt-2 flex flex-col gap-3 sm:flex-row">
               <BtnLink href="/atencion/nueva" tone="action" size="lg">
-                Hacer un reporte <ArrowRight className="h-5 w-5" aria-hidden />
+                Nueva solicitud <ArrowRight className="h-5 w-5" aria-hidden />
               </BtnLink>
               <BtnLink href="/atencion/consultar" tone="outline" size="lg">
                 <Search className="h-5 w-5" aria-hidden /> Consultar mi solicitud
@@ -52,12 +56,12 @@ export default async function AttentionPage() {
             <p className="flex items-start gap-2 text-[15px] leading-snug text-text-2">
               <PhoneCall className="mt-0.5 h-4 w-4 shrink-0 text-warn" aria-hidden />
               <span>
-                <strong className="font-semibold text-text">Esto no es un servicio de emergencias.</strong> En una emergencia, llama a los servicios de emergencia locales.
+                <strong className="font-semibold text-text">{EMERGENCY_LEAD}</strong> {EMERGENCY_REST}
               </span>
             </p>
           </PageIntro>
           <figure aria-label="Ejemplo de comprobante" className="relative mx-auto w-full max-w-sm rotate-1 rounded-[var(--radius-card)] border-2 border-text bg-surface p-6 shadow-[var(--glass-shadow-pop)] motion-reduce:rotate-0">
-            <p className="text-sm font-semibold uppercase tracking-[0.08em] text-text-2">Así se ve tu comprobante</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.08em] text-text-2">Ejemplo de comprobante</p>
             <dl className="mt-4 flex flex-col gap-3 font-mono">
               <div>
                 <dt className="font-sans text-sm text-text-2">Código</dt>
@@ -68,15 +72,14 @@ export default async function AttentionPage() {
                 <dd className="text-xl font-bold tracking-wider text-text">····-····-····-····</dd>
               </div>
             </dl>
-            <figcaption className="mt-4 text-[15px] leading-snug text-text-2">Lo descargas en PDF, lo imprimes o lo copias. Nadie del equipo tiene tu clave.</figcaption>
+            <figcaption className="mt-4 text-[15px] leading-snug text-text-2">Puede descargarlo en PDF, imprimirlo o copiarlo.</figcaption>
           </figure>
         </div>
       </Band>
 
-      <Band className="bg-surface" aria-labelledby="que-enviar">
-        <Eyebrow>Qué puedes enviar</Eyebrow>
-        <h2 id="que-enviar" className="mt-2 max-w-2xl text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-          Elige lo que quieres hacer
+      <Band className="bg-surface" aria-labelledby="tipos">
+        <h2 id="tipos" className="max-w-2xl text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+          Tipos de solicitud
         </h2>
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {REQUEST_TYPES.map((t) => {
@@ -107,9 +110,8 @@ export default async function AttentionPage() {
       </Band>
 
       <Band aria-labelledby="como-funciona">
-        <Eyebrow>Cómo funciona</Eyebrow>
-        <h2 id="como-funciona" className="mt-2 text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-          Cuatro pasos, de tu teléfono al equipo
+        <h2 id="como-funciona" className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+          Cómo funciona
         </h2>
         <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((s, i) => (
@@ -127,16 +129,15 @@ export default async function AttentionPage() {
         </ol>
       </Band>
 
-      <Band className="bg-surface" aria-labelledby="despues">
+      <Band className="bg-surface" aria-labelledby="estados">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <div>
-            <Eyebrow>Qué pasa después</Eyebrow>
-            <h2 id="despues" className="mt-2 text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-              Siempre sabes en qué va
+            <h2 id="estados" className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+              Estados de una solicitud
             </h2>
             <p className="mt-4 text-[17px] leading-relaxed text-text-2">
-              Cada cambio queda en la historia de tu solicitud. Si el equipo necesita algo más, te lo pide ahí mismo; y cuando la marque como resuelta, tú
-              dices si de verdad se resolvió.
+              Cada cambio queda en el historial de la solicitud. Si hace falta más información, se le pedirá por esta misma vía. Cuando la solicitud se
+              marque como resuelta, usted podrá confirmar si el problema se resolvió.
             </p>
           </div>
           <ol className="flex flex-col gap-3">
@@ -150,7 +151,7 @@ export default async function AttentionPage() {
               </li>
             ))}
             <li className="rounded-2xl border border-dashed border-border p-4 text-[15px] leading-snug text-text-2">
-              En el camino también puede pasar a «{STATE_PLAIN.requiere_informacion.label}» o a «{STATE_PLAIN.derivado.label}», si la atiende otro organismo.
+              También puede pasar a «{STATE_PLAIN.requiere_informacion.label}» o a «{STATE_PLAIN.derivado.label}», si la atiende otro organismo.
             </li>
           </ol>
         </div>
@@ -161,10 +162,10 @@ export default async function AttentionPage() {
           <Lock className="h-10 w-10" aria-hidden />
           <div className="flex max-w-3xl flex-col gap-3">
             <h2 id="denuncias" className="text-3xl font-bold leading-tight tracking-tight">
-              Las denuncias son privadas
+              Denuncias confidenciales
             </h2>
-            <p className="text-[17px] leading-relaxed">{DENUNCIA_TEXT}</p>
-            <p className="text-[17px] leading-relaxed">En una denuncia pedimos solo el lugar aproximado y nunca se publica nada de ella.</p>
+            <p className="text-[17px] leading-relaxed">{DENUNCIA_NOTICE}</p>
+            <p className="text-[17px] leading-relaxed">En una denuncia solo se pide el lugar aproximado, sin dirección exacta ni ubicación en el mapa.</p>
             <div>
               <Link
                 href="/atencion/nueva?tipo=denuncia"
@@ -177,15 +178,12 @@ export default async function AttentionPage() {
         </div>
       </Band>
 
-      <Band aria-labelledby="preguntas">
-        <div className="grid gap-10 lg:grid-cols-[18rem_minmax(0,1fr)]">
-          <div>
-            <Eyebrow>Preguntas frecuentes</Eyebrow>
-            <h2 id="preguntas" className="mt-2 text-3xl font-bold leading-tight tracking-tight">
-              Lo que más nos preguntan
+      {faqs.length ? (
+        <Band aria-labelledby="preguntas">
+          <div className="grid gap-10 lg:grid-cols-[18rem_minmax(0,1fr)]">
+            <h2 id="preguntas" className="text-3xl font-bold leading-tight tracking-tight">
+              Preguntas frecuentes
             </h2>
-          </div>
-          {faqs.length ? (
             <div className={cn(webCard, 'flex flex-col divide-y divide-border')}>
               {faqs.map((f) => (
                 <details key={f.id} className="group p-5 sm:p-6">
@@ -199,22 +197,15 @@ export default async function AttentionPage() {
                 </details>
               ))}
             </div>
-          ) : (
-            <p className="rounded-[var(--radius-card)] border border-dashed border-border p-6 text-[15px] text-text-2">
-              Las preguntas frecuentes se están preparando.
-            </p>
-          )}
-        </div>
-      </Band>
+          </div>
+        </Band>
+      ) : null}
 
       <Band className="bg-surface" aria-labelledby="contactos">
         <div className="grid gap-10 lg:grid-cols-[18rem_minmax(0,1fr)]">
-          <div>
-            <Eyebrow>Otros canales</Eyebrow>
-            <h2 id="contactos" className="mt-2 text-3xl font-bold leading-tight tracking-tight">
-              Contactos verificados
-            </h2>
-          </div>
+          <h2 id="contactos" className="text-3xl font-bold leading-tight tracking-tight">
+            Otros canales
+          </h2>
           {contacts.length ? (
             <ul className="grid gap-4 sm:grid-cols-2">
               {contacts.map((c) => (
@@ -233,23 +224,22 @@ export default async function AttentionPage() {
             </ul>
           ) : (
             <Notice tone="info" title="Por ahora, la atención es por este formulario">
-              Cuando haya teléfonos o correos de atención verificados por el equipo, aparecerán aquí. Desconfía de quien te pida pagos o claves en nombre de la
-              gobernación.
+              Ningún funcionario solicita pagos ni claves. Desconfíe de quien lo haga en nombre de la Gobernación.
             </Notice>
           )}
         </div>
       </Band>
 
-      <Band aria-labelledby="atendido-enlace">
+      <Band aria-labelledby="atendidos-enlace">
         <div className={cn(webCard, 'flex flex-col items-start gap-4 p-6 shadow-[var(--glass-shadow)] sm:flex-row sm:items-center sm:justify-between sm:p-8')}>
           <div>
-            <h2 id="atendido-enlace" className="text-2xl font-bold">
-              Lo atendido
+            <h2 id="atendidos-enlace" className="text-2xl font-bold">
+              Casos atendidos
             </h2>
-            <p className="mt-1 text-[17px] text-text-2">Casos resueltos que el equipo publicó, sin datos de las personas.</p>
+            <p className="mt-1 text-[17px] text-text-2">Solicitudes resueltas, publicadas sin datos personales.</p>
           </div>
           <BtnLink href="/atencion/atendido" tone="olive" size="md">
-            Ver lo atendido <ArrowRight className="h-4 w-4" aria-hidden />
+            Ver casos atendidos <ArrowRight className="h-4 w-4" aria-hidden />
           </BtnLink>
         </div>
       </Band>

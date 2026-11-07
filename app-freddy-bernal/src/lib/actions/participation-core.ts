@@ -21,6 +21,7 @@ import {
   participationPepper,
 } from '../participation/keys';
 import { LOOKUP_COOKIE, lookupCookieOptions, openLookup, sealLookup, type LookupGrant } from '../participation/lookup-cookie';
+import { receiptEmail } from '../participation/emails';
 import { requestInput, type RequestInput } from '../participation/input';
 import { crockfordFromBytes, normalizeSecret } from '../participation/receipt-code';
 import { turnstileEnabled, verifyTurnstile } from '../participation/turnstile';
@@ -40,13 +41,51 @@ import { eventDateProblem, type FieldErrors, type SendResult } from './participa
 
 /** The one answer for a wrong reference, a wrong secret, a malformed receipt or a closed consultation. */
 export const NOT_FOUND_TEXT = 'No encontramos una solicitud con esos datos.';
-export const EXPIRED_TEXT = 'Tu consulta se cerró por seguridad. Vuelve a entrar con tu código y tu clave.';
-export const HONEYPOT_TEXT = 'No se pudo enviar. Revisa los datos y vuelve a intentarlo.';
-export const TURNSTILE_TEXT = 'No pudimos comprobar que no eres un robot. Vuelve a intentarlo.';
-export const OFF_TEXT = 'La participación no está disponible en este momento. Inténtalo más tarde.';
+export const EXPIRED_TEXT = 'Su consulta se cerró por seguridad. Vuelva a entrar con su código y su clave.';
+export const HONEYPOT_TEXT = 'No se pudo enviar. Revise los datos e intente de nuevo.';
+export const TURNSTILE_TEXT = 'No se pudo completar la verificación de seguridad. Intente de nuevo.';
+export const OFF_TEXT = 'Atención ciudadana no está disponible en este momento. Intente más tarde.';
 export const NO_CONTACT_KEY_TEXT =
-  'Por ahora no podemos guardar datos de contacto. Envía sin ellos (marca «Enviar como anónimo») y guarda tu código y tu clave.';
-const GENERIC_TEXT = 'No se pudo completar. Revisa la señal y vuelve a intentarlo.';
+  'Por ahora no es posible guardar datos de contacto. Envíe la solicitud sin ellos (marque «Enviar como anónimo») y guarde su código y su clave.';
+const GENERIC_TEXT = 'No se pudo completar. Revise la señal e intente de nuevo.';
+const CHECK_TEXT = 'Revise los datos marcados.';
+
+/**
+ * The citizen functions' own messages (20261106000300_citizen.sql, 20261106400200_citizen_solo_app.sql) still speak as
+ * «tú»; friendlyDbError passes them through as they are. On their way to the citizen they are said like the rest of the
+ * attention desk («usted», «caracteres»; copy audit V20). A message that is not here goes as it came. When a migration
+ * gives the database these words, its entries can go (tests/unit/participation-words.test.ts checks every key is still
+ * a message of the migrations).
+ */
+const DB_WORDS: Record<string, string> = {
+  'Hiciste muchos intentos seguidos. Espera un rato y vuelve a intentarlo.': 'Se hicieron demasiados intentos seguidos. Espere unos minutos e intente de nuevo.',
+  'Ese reporte ya no está abierto: envía el tuyo.': 'Ese reporte ya no está abierto. Envíe su propio reporte.',
+  'Elige qué quieres enviar.': 'Elija el tipo de solicitud.',
+  'Elige una categoría de la lista.': 'Elija una categoría de la lista.',
+  'El título va de 3 a 140 letras.': 'El título debe tener entre 3 y 140 caracteres.',
+  'Cuéntanos qué pasa en 10 a 4000 letras.': 'La descripción debe tener entre 10 y 4000 caracteres.',
+  'Revisa la fecha del hecho.': 'Revise la fecha del hecho.',
+  'Elige el municipio.': 'Elija el municipio.',
+  'Elige el municipio de la lista.': 'Elija un municipio de la lista.',
+  'Elige la parroquia de la lista del municipio.': 'Elija una parroquia de la lista del municipio.',
+  'La parroquia, localidad o sector va hasta 200 letras.': 'La parroquia, localidad o sector admite hasta 200 caracteres.',
+  'La referencia va hasta 300 letras.': 'El punto de referencia admite hasta 300 caracteres.',
+  'En una denuncia va solo el lugar aproximado: municipio y sector.': 'En una denuncia se indica solo el lugar aproximado, es decir, el municipio y el sector.',
+  'Para guardar tu ubicación hace falta tu permiso.': 'Para guardar su ubicación se necesita su autorización.',
+  'Una solicitud anónima va sin contacto.': 'Una solicitud anónima no lleva datos de contacto.',
+  'Lo que agregas va hasta 2000 letras.': 'El comentario admite hasta 2000 caracteres.',
+  'Esta solicitud ya está cerrada: si es otra cosa, envía una nueva.': 'Esta solicitud ya está cerrada. Si se trata de otro asunto, envíe una nueva.',
+  'El mensaje va de 1 a 4000 letras.': 'El mensaje debe tener entre 1 y 4000 caracteres.',
+  'Van hasta 3 archivos por envío.': 'Se admiten hasta 3 archivos por envío.',
+  'Dinos si se resolvió o no.': 'Indique si se resolvió o no.',
+  'Esta solicitud no está esperando tu confirmación.': 'Esta solicitud no está esperando su confirmación.',
+  'El comentario va hasta 4000 letras.': 'El comentario admite hasta 4000 caracteres.',
+};
+
+/** A database message as the citizen reads it (see DB_WORDS). */
+export const citizenDbText = (message: string): string => DB_WORDS[message] ?? message;
+/** The database's messages that are said again, for the test that keeps them tied to the migrations. */
+export const DB_MESSAGES_SAID_AGAIN = Object.keys(DB_WORDS);
 
 /** The public site's name, as the citizen reads it (never the internal platform's). */
 export const SITE_NAME = `${brand.clientName} · ${brand.clientTitle}`;
@@ -90,8 +129,8 @@ export function failureOf(e: unknown, where: string): Failure {
     return { ok: false, error: OFF_TEXT, code: 'config' };
   }
   const code = (e as { code?: string })?.code;
-  if (code === 'P0429') return { ok: false, error: friendlyDbError(e), code: 'rate' };
-  if (code === 'P0001' && (e as Error).message) return { ok: false, error: friendlyDbError(e), code: 'db' };
+  if (code === 'P0429') return { ok: false, error: citizenDbText(friendlyDbError(e)), code: 'rate' };
+  if (code === 'P0001' && (e as Error).message) return { ok: false, error: citizenDbText(friendlyDbError(e)), code: 'db' };
   if (code === '22023') return { ok: false, error: GENERIC_TEXT, code: 'db' };
   console.error(`[atencion] ${where}: ${(e as Error)?.message ?? e}`);
   return { ok: false, error: GENERIC_TEXT, code: 'db' };
@@ -116,10 +155,10 @@ export function checkRequest(raw: unknown): { ok: true; input: RequestInput } | 
   const parsed = requestInput.safeParse(raw);
   if (!parsed.success) {
     const fieldErrors = fieldErrorsOf(parsed.error.issues);
-    return { ok: false, error: 'Revisa los datos marcados.', code: 'validation', fieldErrors };
+    return { ok: false, error: CHECK_TEXT, code: 'validation', fieldErrors };
   }
   const dateProblem = eventDateProblem(parsed.data.eventDate, todayIso());
-  if (dateProblem) return { ok: false, error: 'Revisa los datos marcados.', code: 'validation', fieldErrors: { eventDate: dateProblem } };
+  if (dateProblem) return { ok: false, error: CHECK_TEXT, code: 'validation', fieldErrors: { eventDate: dateProblem } };
   return { ok: true, input: parsed.data };
 }
 
@@ -181,28 +220,22 @@ export function confirmationPlan(to: string, mode: 'demo' | 'supabase' = env.dat
 /**
  * The confirmation email (outbox first; it leaves the platform only when email is configured to send, src/lib/email):
  * the reference and how to follow it, NEVER the secret, and never the kind of request (like the status emails): an
- * inbox or a phone's lock screen is seen by others, and «Recibimos tu denuncia» there could put the person at risk
- * (the security review of 06/11). After the response, outside the anon transaction. Answers whether it is on its way
- * to the person (the receipt says «Te enviamos un correo» only then).
+ * inbox or a phone's lock screen is seen by others, and «Recibimos su denuncia» there could put the person at risk
+ * (the security review of 06/11). Its words are receiptEmail() (src/lib/participation/emails.ts). After the response,
+ * outside the anon transaction. Answers whether it is on its way to the person (the receipt says «Se envió un correo»
+ * only then).
  */
 export function queueReceiptEmail(to: string, reference: string, kind: 'request' | 'support'): boolean {
   const plan = confirmationPlan(to);
   if (!plan.queue) return false;
-  const support = kind === 'support';
-  const body = [
-    support
-      ? `Te sumaste a un reporte que ya estaba abierto. Tu código para seguirlo es ${reference}.`
-      : `Recibimos tu solicitud. Tu código es ${reference}.`,
-    'Para ver cómo va, entra a «Consultar mi solicitud» con tu código y la clave que viste al enviar. Por seguridad, la clave no va en este correo y nadie del equipo la tiene.',
-    'Esto no es un servicio de emergencias: en una emergencia, llama a los servicios de emergencia locales.',
-  ].join('\n');
+  const words = receiptEmail(kind, reference);
   after(async () => {
     try {
       await sendEmail({
         to,
-        subject: support ? `Te sumaste a un reporte: ${reference}` : `Recibimos tu solicitud ${reference}`,
+        subject: words.subject,
         template: 'atencion_recibida',
-        element: createElement(NoticeEmail, { appName: SITE_NAME, title: support ? 'Te sumaste a un reporte' : 'Recibimos tu solicitud', body, url: lookupUrl(), cta: 'Consultar mi solicitud' }),
+        element: createElement(NoticeEmail, { appName: SITE_NAME, title: words.title, body: words.body, url: lookupUrl(), cta: 'Consultar mi solicitud' }),
         idempotencyKey: `atencion-recibida:${reference}`,
       });
     } catch (e) {
@@ -292,7 +325,8 @@ export function maxAttachmentBytes(platform: string | undefined = process.env.VE
   return platform ? 4 * 1024 * 1024 : ATTACHMENT_LIMITS.maxBytes;
 }
 
-const sizeText = (bytes: number) => `El archivo pasa de ${Math.round(bytes / (1024 * 1024))} MB: manda uno más liviano.`;
+const sizeText = (bytes: number) => `El archivo supera los ${Math.round(bytes / (1024 * 1024))} MB. Envíe uno más liviano.`;
+const NO_FILE_TEXT = 'No se recibió el archivo. Intente de nuevo.';
 
 export const isUuid = (v: unknown): v is string => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 
@@ -314,10 +348,10 @@ export async function handleUpload(
   // The body is read only up to the file's limit plus its form fields, with or without Content-Length.
   const body = await readFormCapped(req, max + 64 * 1024);
   if (!body.ok && body.reason === 'too_big') return jsonResponse(413, { ok: false, error: sizeText(max) });
-  if (!body.ok) return jsonResponse(400, { ok: false, error: 'No llegó el archivo. Vuelve a intentarlo.' });
+  if (!body.ok) return jsonResponse(400, { ok: false, error: NO_FILE_TEXT });
   const form = body.form;
   const file = form.get('file');
-  if (!file || typeof file === 'string') return jsonResponse(400, { ok: false, error: 'No llegó el archivo. Vuelve a intentarlo.' });
+  if (!file || typeof file === 'string') return jsonResponse(400, { ok: false, error: NO_FILE_TEXT });
   if (file.size > max) return jsonResponse(413, { ok: false, error: sizeText(max) });
   const grant = await grantOf(form);
   if (!grant) return jsonResponse(404, { ok: false, error: NOT_FOUND_TEXT });

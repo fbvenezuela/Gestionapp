@@ -8,7 +8,7 @@ import { publicRequestCategories, publicSettings, publicTerritories, publishedBy
 import { verifiedContacts, type VerifiedContact } from '@/components/participation/contacts';
 
 // What the participation pages read (design §4), always as anon (withAnon, D-96): the form's catalogues, the published
-// item a request is about, the attention desk's FAQs and verified contacts, «lo atendido» and the person's own
+// item a request is about, the attention desk's FAQs and verified contacts, «casos atendidos» and the person's own
 // consultation (through citizen.lookup_request with the receipt inside the consultation cookie). Never withSystem.
 
 export type FormCatalog = { municipalities: Territory[]; categories: PublicCategory[] };
@@ -26,7 +26,8 @@ export async function loadLinkedItem(raw: unknown): Promise<LinkedItem | null> {
   if (!s) return null;
   const item = await withAnon((sql) => publishedBySlug(sql, s.kind, s.slug));
   if (!item) return null;
-  return { id: item.id, kind: s.kind, kindLabel: s.kind === 'news' ? 'Noticia' : 'Obra o acción', title: item.data.title, href: linkedItemPath(s.kind, item.slug) };
+  // «Sobre esta noticia» / «Sobre esta obra» (the project page's own button says «… sobre esta obra»).
+  return { id: item.id, kind: s.kind, kindLabel: s.kind === 'news' ? 'Noticia' : 'Obra', title: item.data.title, href: linkedItemPath(s.kind, item.slug) };
 }
 
 /** The FAQs of the group «atencion», in the team's order. */
@@ -47,7 +48,7 @@ export type AttendedItem = {
 };
 export type AttendedPage = { items: AttendedItem[]; total: number; page: number; pages: number };
 
-/** «Lo atendido», newest first, by municipality and category (published rows only: the policy for anon says so). */
+/** «Casos atendidos», newest first, by municipality and category (published rows only: the policy for anon says so). */
 export async function attendedPage(sql: Sql, f: { municipalityId: string | null; categoryId: string | null; page: number; perPage: number }): Promise<AttendedPage> {
   const perPage = Math.min(Math.max(f.perPage, 1), 50);
   const page = Math.max(1, Math.floor(f.page));
@@ -104,7 +105,7 @@ export async function loadConsultation(): Promise<Consultation> {
   }
 }
 
-/** A municipality or category of the catalogues by its slug (the filters of «lo atendido» use slugs in the address). */
+/** A municipality or category of the catalogues by its slug (the filters of «casos atendidos» use slugs in the address). */
 export function bySlug<T extends { slug: string }>(list: T[], slug: unknown): T | null {
   return typeof slug === 'string' ? (list.find((x) => x.slug === slug) ?? null) : null;
 }

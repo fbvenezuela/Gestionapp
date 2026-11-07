@@ -9,8 +9,8 @@ import { cn } from '@/lib/cn';
 import { bySlug, loadAttended, loadFormCatalog, type AttendedItem } from '../_lib/data';
 
 export const metadata: Metadata = {
-  title: 'Lo atendido',
-  description: 'Casos resueltos que el equipo del gobernador publicó, sin datos de las personas.',
+  title: 'Casos atendidos',
+  description: 'Solicitudes resueltas por Atención ciudadana, publicadas sin datos personales.',
   alternates: { canonical: '/atencion/atendido' },
 };
 
@@ -19,7 +19,7 @@ const MONTH = new Intl.DateTimeFormat('es-VE', { month: 'long', year: 'numeric',
 
 type Search = { municipio?: string | string[]; categoria?: string | string[]; pagina?: string | string[] };
 
-// «Lo atendido» (design §4): what the coordination published of resolved cases, anonymized by the database (the name
+// «Casos atendidos» (design §4): what the coordination published of resolved cases, anonymized by the database (the name
 // only with consent, else initials; a denuncia only «Denuncia atendida en el municipio X»). Read as anon; filters by
 // municipality and category in the address (public data), works without JavaScript.
 export default async function AttendedPage({ searchParams }: { searchParams: Promise<Search> }) {
@@ -56,8 +56,8 @@ export default async function AttendedPage({ searchParams }: { searchParams: Pro
         <ParticipationNav current="atendido" />
         <PageIntro
           eyebrow="Atención ciudadana"
-          title="Lo atendido"
-          lead="Casos que se resolvieron y que el equipo publicó, sin datos de las personas. El nombre aparece solo si la persona lo permitió; si no, sus iniciales. Las denuncias se nombran solo por su municipio."
+          title="Casos atendidos"
+          lead="Solicitudes resueltas. Por privacidad se publican solo las iniciales de cada persona, salvo que autorice su nombre. De las denuncias solo se indica el municipio."
         />
       </Band>
 
@@ -109,14 +109,10 @@ export default async function AttendedPage({ searchParams }: { searchParams: Pro
         {data.items.length === 0 ? (
           <div className="mt-6 flex flex-col items-start gap-4 rounded-[var(--radius-card)] border border-dashed border-border bg-surface p-8">
             <CheckCircle2 className="h-8 w-8 text-accent-ink" aria-hidden />
-            <h2 className="text-xl font-bold text-text">{filtered ? 'Nada publicado con esos filtros' : 'Todavía no hay casos publicados'}</h2>
-            <p className="max-w-xl text-[15px] leading-relaxed text-text-2">
-              {filtered
-                ? 'Prueba con otro municipio u otra categoría.'
-                : 'Cuando el equipo resuelva casos y los publique, aparecerán aquí, sin datos de las personas.'}
-            </p>
+            <h2 className="text-xl font-bold text-text">{filtered ? 'No hay casos con esos filtros' : 'Aún no hay casos publicados'}</h2>
+            {filtered ? <p className="max-w-xl text-[15px] leading-relaxed text-text-2">Pruebe con otro municipio u otra categoría.</p> : null}
             <BtnLink href="/atencion/nueva" tone="action" size="md">
-              Hacer un reporte
+              Nueva solicitud
             </BtnLink>
           </div>
         ) : (

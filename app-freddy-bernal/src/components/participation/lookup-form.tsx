@@ -26,11 +26,11 @@ export function LookupForm({ notice }: { notice?: string | null }) {
         <div ref={alertRef} tabIndex={-1} role="alert" className="rounded-2xl border-2 border-danger bg-danger-soft p-4 text-text outline-none">
           <p className="text-lg font-bold text-danger">{error ?? notice}</p>
           {error && !Object.keys(fe).length ? (
-            <p className="mt-1 text-[15px]">Revisa que el código y la clave estén completos, tal como aparecen en tu comprobante.</p>
+            <p className="mt-1 text-[15px]">Verifique que el código y la clave estén completos, tal como aparecen en su comprobante.</p>
           ) : null}
         </div>
       ) : null}
-      <FieldBox id="f-reference" label="Código" hint="Empieza con AC-, por ejemplo AC-2026-K7QM2H." error={fe.reference}>
+      <FieldBox id="f-reference" label="Código" hint="Comienza con AC-. Ejemplo: AC-2026-K7QM2H." error={fe.reference}>
         <input
           id="f-reference"
           name="reference"
@@ -45,7 +45,7 @@ export function LookupForm({ notice }: { notice?: string | null }) {
           aria-describedby={describedBy('f-reference', { hint: true, error: fe.reference })}
         />
       </FieldBox>
-      <FieldBox id="f-secret" label="Clave" hint="Cuatro grupos de cuatro letras y números, como aparece en tu comprobante." error={fe.secret}>
+      <FieldBox id="f-secret" label="Clave" hint="Cuatro grupos de cuatro letras y números, tal como aparece en su comprobante." error={fe.secret}>
         <input
           id="f-secret"
           name="secret"

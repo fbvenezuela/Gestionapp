@@ -45,12 +45,12 @@ export function LocationPicker({ point, onChange, error }: { point: Point | null
         Ubicación exacta <span className="font-normal text-text-2">(opcional)</span>
       </legend>
       <p id="f-point-hint" className="-mt-1 text-[15px] leading-snug text-text-2">
-        Solo si tú quieres: al tocar un botón das tu permiso para guardar el punto con tu solicitud. Lo ve solo el equipo que la atiende.
+        Al usar uno de estos botones, usted autoriza que el punto se guarde con su solicitud. Solo lo ve el personal que la atiende.
       </p>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Btn id="f-locationConsent" tone="soft" size="sm" onClick={locateMe} disabled={geo === 'asking'}>
           <LocateFixed className="h-5 w-5" aria-hidden />
-          {geo === 'asking' ? 'Buscando tu ubicación…' : 'Usar mi ubicación'}
+          {geo === 'asking' ? 'Buscando su ubicación…' : 'Usar mi ubicación'}
         </Btn>
         <Btn tone="soft" size="sm" onClick={() => setShowMap((s) => !s)} aria-expanded={showMap}>
           <MapPinned className="h-5 w-5" aria-hidden />
@@ -59,14 +59,14 @@ export function LocationPicker({ point, onChange, error }: { point: Point | null
       </div>
       <div aria-live="polite">
         {geo === 'denied' ? (
-          <Notice tone="info">No diste permiso para usar tu ubicación. Puedes marcar el punto en el mapa o seguir sin él.</Notice>
+          <Notice tone="info">No se autorizó el uso de su ubicación. Puede marcar el punto en el mapa o continuar sin él.</Notice>
         ) : geo === 'failed' ? (
-          <Notice tone="info">No pudimos leer tu ubicación. Puedes marcar el punto en el mapa o seguir sin él.</Notice>
+          <Notice tone="info">No fue posible obtener su ubicación. Puede marcar el punto en el mapa o continuar sin él.</Notice>
         ) : null}
         {point ? (
           <div className="flex flex-wrap items-center gap-3 rounded-xl bg-accent-soft px-4 py-3 text-[15px] text-text">
             <span className="min-w-0 grow basis-40">
-              <strong className="font-semibold">Punto guardado con tu permiso.</strong>{' '}
+              <strong className="font-semibold">Punto guardado con su autorización.</strong>{' '}
               <span className="tabular">
                 {point.lat.toFixed(5)}, {point.lng.toFixed(5)}
               </span>

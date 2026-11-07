@@ -38,7 +38,7 @@ type Props = {
   turnstileSiteKey: string | null;
 };
 
-const NETWORK_TEXT = 'No se pudo enviar. Revisa la señal y vuelve a intentarlo: lo que escribiste sigue guardado y no se enviará dos veces.';
+const NETWORK_TEXT = 'No se pudo enviar. Revise la señal e intente de nuevo. Lo escrito sigue guardado y no se enviará dos veces.';
 // The order of the fields on screen (the summary lists them in it).
 const ORDER = [
   'type', 'categoryId', 'municipalityId', 'parishId', 'sector', 'locationReference', 'point', 'locationConsent', 'title', 'description', 'eventDate',
@@ -48,10 +48,10 @@ const ORDER = [
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function stepTitle(step: Step, type: FormValues['type']): string {
-  if (step === 1) return '¿Qué quieres enviar?';
-  if (step === 2) return type === 'denuncia' ? '¿Dónde pasó, más o menos?' : PLACE_REQUIRED.includes((type || 'reporte') as RequestType) ? '¿Dónde pasa?' : '¿Dónde? (si aplica)';
-  if (step === 3) return 'Cuéntanos';
-  return 'Último paso: contacto y envío';
+  if (step === 1) return 'Tipo de solicitud';
+  if (step === 2) return type === 'denuncia' ? 'Lugar aproximado' : PLACE_REQUIRED.includes((type || 'reporte') as RequestType) ? 'Lugar' : 'Lugar (si aplica)';
+  if (step === 3) return 'Detalle de la solicitud';
+  return 'Contacto y envío';
 }
 
 /** A form before this browser made its key and secret (the server's render): the same screen, not yet sendable. */
@@ -60,7 +60,7 @@ function blankDraft(type: RequestType | null, linkedItemId: string | null): Draf
 }
 
 /**
- * «Hacer una solicitud» (design §4): four short steps, phone first. What is written stays in this tab (sessionStorage)
+ * «Nueva solicitud» (design §4): four short steps, phone first. What is written stays in this tab (sessionStorage)
  * with the form's key and the receipt's secret, made here when the form starts: an error, a reload or a dropped
  * connection never loses it, and a retry gets the same receipt (the server is idempotent by the key; Next retries the
  * send itself when the signal comes back). The browser checks with the same schema as the server; the receipt shows
@@ -362,7 +362,7 @@ export function RequestForm({ municipalities, categories, linked, presetType, to
 
   const v = draft.values;
   const step = draft.step;
-  const title = similar.phase === 'offer' ? '¿Ya lo reportaron?' : joining ? 'Súmate al reporte' : stepTitle(step, v.type);
+  const title = similar.phase === 'offer' ? 'Reportes parecidos' : joining ? 'Apoyar este reporte' : stepTitle(step, v.type);
   const category = categories.find((c) => c.id === v.categoryId);
   const municipality = municipalities.find((m) => m.id === v.municipalityId);
   const linkedTitle = v.linkedItemId ? (linked && linked.id === v.linkedItemId ? linked : null) : null;
@@ -371,7 +371,7 @@ export function RequestForm({ municipalities, categories, linked, presetType, to
     <div ref={topRef} className="flex scroll-mt-28 flex-col gap-6">
       {restored ? (
         <Notice tone="info">
-          <span>Seguimos con lo que habías empezado en esta pestaña. </span>
+          <span>Se recuperó lo que había escrito en esta pestaña. </span>
           <button type="button" onClick={startOver} className="min-h-11 font-semibold text-accent-ink underline underline-offset-2">
             Empezar de nuevo
           </button>
@@ -380,14 +380,14 @@ export function RequestForm({ municipalities, categories, linked, presetType, to
       {offline ? (
         <div role="status" className="flex items-start gap-3 rounded-2xl bg-charcoal p-4 text-[15px] text-on-charcoal">
           <WifiOff className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
-          <span>Sin conexión. Lo que escribiste queda guardado en este teléfono; si tocas «Enviar», lo mandamos apenas vuelva la señal.</span>
+          <span>Sin conexión. Lo escrito queda guardado en este dispositivo. Si toca «Enviar», se enviará cuando vuelva la señal.</span>
         </div>
       ) : null}
       {v.linkedItemId ? (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface p-4">
           <Link2 className="h-5 w-5 shrink-0 text-accent-ink" aria-hidden />
           <p className="min-w-0 grow basis-40 text-[15px] text-text">
-            <span className="block text-sm font-semibold text-text-2">{linkedTitle ? `Tu solicitud es sobre esta ${linkedTitle.kindLabel.toLowerCase()}` : 'Tu solicitud es sobre un contenido de esta web'}</span>
+            <span className="block text-sm font-semibold text-text-2">{linkedTitle ? `Sobre esta ${linkedTitle.kindLabel.toLowerCase()}` : 'Sobre una publicación de este sitio'}</span>
             {linkedTitle ? (
               <a href={linkedTitle.href} className="font-semibold text-accent-ink underline underline-offset-2">
                 {linkedTitle.title}
@@ -479,16 +479,16 @@ export function RequestForm({ municipalities, categories, linked, presetType, to
             {step === 4 ? (
               <>
                 <dl className="grid gap-3 rounded-2xl bg-surface-2 p-4 text-[15px] sm:p-5">
-                  <ReviewRow label="Qué" onEdit={() => goTo(1)}>
-                    {v.type ? TYPE_COPY[v.type].label : '—'}
+                  <ReviewRow label="Tipo" onEdit={() => goTo(1)}>
+                    {v.type ? TYPE_COPY[v.type].label : 'Sin elegir'}
                     {category ? ` · ${category.name}` : ''}
                   </ReviewRow>
-                  <ReviewRow label="Dónde" onEdit={() => goTo(2)}>
-                    {[municipality?.name, v.sector.trim()].filter(Boolean).join(' · ') || 'Sin lugar'}
-                    {v.point && v.type !== 'denuncia' ? ' · con ubicación' : ''}
+                  <ReviewRow label="Lugar" onEdit={() => goTo(2)}>
+                    {[municipality?.name, v.sector.trim()].filter(Boolean).join(' · ') || 'Sin lugar indicado'}
+                    {v.point && v.type !== 'denuncia' ? ' · con punto en el mapa' : ''}
                   </ReviewRow>
                   <ReviewRow label="Detalle" onEdit={() => goTo(3)}>
-                    {v.title.trim() || '—'}
+                    {v.title.trim() || 'Sin título'}
                     {files.length ? ` · ${files.length === 1 ? '1 archivo' : `${files.length} archivos`}` : ''}
                   </ReviewRow>
                 </dl>
@@ -517,7 +517,7 @@ export function RequestForm({ municipalities, categories, linked, presetType, to
               )}
             </div>
             <p id="envio-estado" role="status" aria-live="polite" className="sr-only">
-              {sending ? (offline ? 'Sin conexión: se enviará cuando vuelva la señal.' : 'Enviando tu solicitud.') : ''}
+              {sending ? (offline ? 'Sin conexión. Se enviará cuando vuelva la señal.' : 'Enviando la solicitud.') : ''}
             </p>
           </form>
         )}

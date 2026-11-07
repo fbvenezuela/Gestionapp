@@ -1,6 +1,6 @@
 'use client';
 
-import { compressImage } from '@/lib/media/probe';
+import { PHOTO_BUSY, UNCLEANABLE_PHOTO, compressImage } from '@/lib/media/probe';
 import { validateAttachment } from '@/lib/participation/files';
 
 // The files of a request in the browser (design §4, §6): a photo leaves the phone without its metadata (GPS position,
@@ -11,6 +11,13 @@ import { validateAttachment } from '@/lib/participation/files';
 /** Photos are scaled down to this side: plenty to see a problem, light on a bad connection. */
 const PHOTO_SIDE = 2048;
 
+// The panel's photo helper speaks to the team; the citizen reads its two refusals as «usted».
+const PHOTO_WORDS: Record<string, string> = {
+  [PHOTO_BUSY]: 'No se pudo preparar la foto. Si eligió varias, intente con menos a la vez.',
+  [UNCLEANABLE_PHOTO]: 'Esta foto no se puede limpiar en este dispositivo y podría llevar la ubicación. Conviértala a JPG y elíjala de nuevo.',
+};
+const sizeText = (maxBytes: number) => `El archivo supera los ${Math.round(maxBytes / (1024 * 1024))} MB. Envíe uno más liviano.`;
+
 export type Prepared = { ok: true; file: File } | { ok: false; error: string };
 
 export async function prepareFile(file: File, maxBytes: number): Promise<Prepared> {
@@ -20,9 +27,10 @@ export async function prepareFile(file: File, maxBytes: number): Promise<Prepare
     const pdf = String.fromCharCode(...head) === '%PDF-';
     if (!pdf) out = await compressImage(file, PHOTO_SIDE, 0.82);
   } catch (e) {
-    return { ok: false, error: (e as Error)?.message || 'No pudimos preparar esa foto. Vuelve a elegirla.' };
+    const message = (e as Error)?.message ?? '';
+    return { ok: false, error: PHOTO_WORDS[message] ?? 'No se pudo procesar la foto. Elíjala de nuevo.' };
   }
-  if (out.size > maxBytes) return { ok: false, error: `El archivo pasa de ${Math.round(maxBytes / (1024 * 1024))} MB: manda uno más liviano.` };
+  if (out.size > maxBytes) return { ok: false, error: sizeText(maxBytes) };
   const check = validateAttachment({ name: out.name, bytes: new Uint8Array(await out.arrayBuffer()) });
   return check.ok ? { ok: true, file: out } : { ok: false, error: check.error };
 }
@@ -44,9 +52,9 @@ export async function uploadFile(url: string, fields: Record<string, string>, fi
     }
     if (res.ok && body.ok && typeof body.id === 'string') return { ok: true, id: body.id };
     if (body.error) return { ok: false, error: body.error };
-    if (res.status === 413) return { ok: false, error: 'El archivo es muy pesado para subirlo: manda uno más liviano.' };
-    return { ok: false, error: 'No se pudo subir el archivo. Vuelve a intentarlo.' };
+    if (res.status === 413) return { ok: false, error: 'El archivo es demasiado pesado. Envíe uno más liviano.' };
+    return { ok: false, error: 'No se pudo subir el archivo. Intente de nuevo.' };
   } catch {
-    return { ok: false, error: 'No se pudo subir: revisa la señal y vuelve a intentarlo.' };
+    return { ok: false, error: 'No se pudo subir. Revise la señal e intente de nuevo.' };
   }
 }

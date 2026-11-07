@@ -32,13 +32,14 @@ export function FilePicker({
   const [problems, setProblems] = useState<string[]>([]);
   const room = FILES_PER_SEND - files.length;
   const mb = Math.round(maxBytes / (1024 * 1024));
-  const hintText = hint ?? `Hasta ${FILES_PER_SEND} archivos: fotos JPG, PNG o WebP, o documentos PDF, de hasta ${mb} MB cada uno. A las fotos les quitamos la ubicación y los datos ocultos en tu teléfono, antes de subirlas.`;
+  const hintText =
+    hint ?? `Fotos JPG, PNG o WebP, o documentos PDF. Hasta ${FILES_PER_SEND} archivos de máximo ${mb} MB cada uno. Antes de enviarlas, se eliminan de las fotos la ubicación y otros datos internos.`;
 
   async function pick(list: FileList | null) {
     if (!list?.length) return;
     const chosen = [...list].slice(0, Math.max(0, room));
     const issues: string[] = [];
-    if (list.length > room) issues.push(`Van hasta ${FILES_PER_SEND} archivos: tomamos los primeros.`);
+    if (list.length > room) issues.push(`Se admiten hasta ${FILES_PER_SEND} archivos. Se tomaron los primeros.`);
     setBusy(chosen.length);
     const added: PickedFile[] = [];
     for (const f of chosen) {
@@ -62,7 +63,7 @@ export function FilePicker({
       </p>
       {remembered.length && !files.length ? (
         <p className="rounded-xl bg-surface-2 p-3 text-[15px] text-text">
-          Antes elegiste {remembered.join(', ')}. El navegador no guarda archivos al recargar: vuelve a elegirlos si quieres enviarlos.
+          Antes había elegido {remembered.join(', ')}. Al recargar la página, el navegador no conserva los archivos. Elíjalos de nuevo si desea enviarlos.
         </p>
       ) : null}
       <div className="flex flex-wrap items-center gap-3">

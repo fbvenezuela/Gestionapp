@@ -13,8 +13,8 @@ import { TYPE_COPY } from '@/components/participation/words';
 import { loadFormCatalog, loadLinkedItem } from '../_lib/data';
 
 export const metadata: Metadata = {
-  title: 'Hacer una solicitud',
-  description: 'Reporta un problema de tu comunidad, haz una petición, deja una acotación o una denuncia. Sin cuenta, desde el teléfono, con un código para seguirla.',
+  title: 'Nueva solicitud',
+  description: 'Formulario para enviar un reporte, una petición, una acotación o una denuncia. No requiere registro.',
   alternates: { canonical: '/atencion/nueva' },
 };
 
@@ -26,7 +26,7 @@ export default async function NewRequestPage({ searchParams }: { searchParams: P
   const presetType = isRequestType(sp.tipo) ? sp.tipo : null;
   const [catalog, linked] = await Promise.all([loadFormCatalog(), loadLinkedItem(typeof sp.sobre === 'string' ? sp.sobre : null)]);
   const today = todayIso();
-  const title = presetType ? TYPE_COPY[presetType].action : 'Hacer una solicitud';
+  const title = presetType ? TYPE_COPY[presetType].action : 'Nueva solicitud';
 
   return (
     <div className="w-full bg-ivory text-text">
@@ -35,7 +35,7 @@ export default async function NewRequestPage({ searchParams }: { searchParams: P
         <PageIntro
           eyebrow="Atención ciudadana"
           title={title}
-          lead="Son cuatro pasos cortos y no hace falta cuenta. Lo que escribes se guarda en este teléfono mientras llenas el formulario, aunque se vaya la señal."
+          lead="Son cuatro pasos y no necesita registrarse. Lo que escriba se guarda en este dispositivo mientras completa el formulario, aunque se vaya la señal."
         />
         <DemoDataWarning demo={isDemo()} className="mt-6 max-w-3xl" />
       </Band>
@@ -64,27 +64,27 @@ export default async function NewRequestPage({ searchParams }: { searchParams: P
             turnstileOn={turnstileEnabled()}
           />
         </noscript>
-        <aside className="flex flex-col gap-5 text-[15px] leading-relaxed text-text lg:sticky lg:top-24" aria-label="Lo que necesitas saber">
+        <aside className="flex flex-col gap-5 text-[15px] leading-relaxed text-text lg:sticky lg:top-24" aria-label="Información importante">
           <div className="flex flex-col gap-1">
-            <h2 className="text-base font-bold">Sin cuenta</h2>
-            <p className="text-text-2">No te pedimos registrarte. Al enviar recibes un código y una clave para seguir tu solicitud.</p>
+            <h2 className="text-base font-bold">Sin registro</h2>
+            <p className="text-text-2">Al enviar recibirá un código y una clave para consultar su solicitud.</p>
           </div>
           <div className="flex flex-col gap-1">
             <h2 className="text-base font-bold">Solo lo necesario</h2>
             <p className="text-text-2">
               {isDemo()
-                ? 'Nunca te pedimos cédula ni afiliación. El contacto es opcional; en la versión real se guarda cifrado.'
-                : 'Nunca te pedimos cédula ni afiliación. El contacto es opcional y se guarda cifrado.'}
+                ? 'No se le pedirá cédula ni afiliación política. El contacto es opcional. En la versión real se guarda cifrado.'
+                : 'No se le pedirá cédula ni afiliación política. El contacto es opcional y se guarda cifrado.'}
             </p>
           </div>
           <div className="flex flex-col gap-1">
-            <h2 className="text-base font-bold">Fotos sin datos ocultos</h2>
-            <p className="text-text-2">A las fotos les quitamos la ubicación y los datos de la cámara en tu teléfono, antes de subirlas.</p>
+            <h2 className="text-base font-bold">Fotos</h2>
+            <p className="text-text-2">Antes de enviarlas, se eliminan de las fotos la ubicación y los datos de la cámara.</p>
           </div>
           <div className="flex flex-col gap-1">
-            <h2 className="text-base font-bold">¿Ya enviaste una?</h2>
+            <h2 className="text-base font-bold">Seguimiento</h2>
             <p className="text-text-2">
-              Mírala en{' '}
+              Si ya envió una solicitud, puede ver su estado en{' '}
               <a href="/atencion/consultar" className="font-semibold text-accent-ink underline underline-offset-2">
                 Consultar mi solicitud
               </a>

@@ -7,7 +7,7 @@ import { Crosshair } from 'lucide-react';
 import { Btn } from './kit';
 import type { Point } from './form-core';
 
-// The pin map of «¿Dónde?» (design §4): Leaflet with OpenStreetMap's tiles, loaded only when the person taps «Marcar en
+// The pin map of the step «Lugar» (design §4): Leaflet with OpenStreetMap's tiles, loaded only when the person taps «Marcar en
 // el mapa» (location-picker.tsx imports this file on demand), never for a denuncia. Tap or click to put the pin, drag it
 // to adjust. With the keyboard: the map takes the focus, the arrows move it, + and − zoom, and «Marcar el centro del
 // mapa» puts the pin under the cross in the middle. The point is rounded to about a meter (the database keeps 5
@@ -40,7 +40,7 @@ export default function MapPicker({ point, onPick }: { point: Point | null; onPi
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(m);
-    m.getContainer().setAttribute('aria-label', 'Mapa para marcar el lugar. Toca el mapa para poner el punto, o muévelo con las flechas y usa «Marcar el centro del mapa».');
+    m.getContainer().setAttribute('aria-label', 'Mapa para marcar el lugar. Toque el mapa para marcar el punto, o muévalo con las flechas y use «Marcar el centro del mapa».');
     m.on('click', (e: L.LeafletMouseEvent) => pick.current(toPoint(e.latlng)));
     map.current = m;
     return () => {
@@ -62,7 +62,7 @@ export default function MapPicker({ point, onPick }: { point: Point | null; onPi
     }
     const at: L.LatLngTuple = [point.lat, point.lng];
     if (!marker.current) {
-      marker.current = L.marker(at, { icon: PIN, draggable: true, keyboard: false, title: 'El punto marcado' }).addTo(m);
+      marker.current = L.marker(at, { icon: PIN, draggable: true, keyboard: false, title: 'Punto marcado' }).addTo(m);
       marker.current.on('dragend', () => marker.current && pick.current(toPoint(marker.current.getLatLng())));
     } else marker.current.setLatLng(at);
     if (!m.getBounds().contains(at)) m.setView(at, Math.max(m.getZoom(), 16));

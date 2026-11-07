@@ -9,8 +9,8 @@ import { generateSecret, normalizeSecret } from '@/lib/participation/receipt-cod
 
 export type Step = 1 | 2 | 3 | 4;
 export const STEPS: { n: Step; label: string }[] = [
-  { n: 1, label: 'Qué' },
-  { n: 2, label: 'Dónde' },
+  { n: 1, label: 'Tipo' },
+  { n: 2, label: 'Lugar' },
   { n: 3, label: 'Detalle' },
   { n: 4, label: 'Contacto' },
 ];
@@ -37,7 +37,7 @@ export type FormValues = {
   publishNameConsent: boolean;
   privacyAccepted: boolean;
   linkedItemId: string | null;
-  /** What a person who joins an open report adds («¿te sumas?»). */
+  /** What a person who supports an open report adds («Apoyar este reporte»). */
   note: string;
 };
 
@@ -52,7 +52,7 @@ export type Receipt = {
   files: ReceiptFile[];
   /** Whether a confirmation email is on its way (an address, a channel other than «no», and email that delivers). */
   emailNote: boolean;
-  /** The person already saved it somewhere (downloaded, printed or copied): «Hacer otra» needs no warning. */
+  /** The person already saved it somewhere (downloaded, printed or copied): «Nueva solicitud» needs no warning. */
   saved: boolean;
 };
 
@@ -216,22 +216,22 @@ export function firstErrorStep(errors: FieldErrors): Step | null {
   return null;
 }
 
-/** The checks of «Sumarme» (a support): the contact part of the same schema, the privacy notice and the note's length. */
+/** The checks of «Enviar apoyo» (a support): the contact part of the same schema, the privacy notice and the note's length. */
 export function validateJoin(v: FormValues): FieldErrors {
   const all = validate({ ...v, type: v.type || 'reporte', title: 'apoyo', description: 'un apoyo a un reporte abierto' }, '2000-01-01');
   const errors = errorsOfStep(all, 4);
   delete errors.linkedItemId;
-  if (v.note.trim().length > 2000) errors.note = 'Lo que agregas va hasta 2000 letras.';
+  if (v.note.trim().length > 2000) errors.note = 'El comentario admite hasta 2000 caracteres.';
   return errors;
 }
 
-/** The same place and problem (for «¿ya lo reportaron?»: asked once per place). */
+/** The same place and problem (for «Reportes parecidos»: asked once per place). */
 export function similarKey(v: FormValues): string {
   const p = v.point ? `${v.point.lat.toFixed(4)},${v.point.lng.toFixed(4)}` : '';
   return [v.categoryId, v.municipalityId, v.parishId, v.sector.trim().toLowerCase().replace(/\s+/g, ' '), p].join('|');
 }
 
-/** Whether a «¿ya lo reportaron?» question makes sense: a report with its category and a place to compare. */
+/** Whether the «Reportes parecidos» question makes sense: a report with its category and a place to compare. */
 export function canAskSimilar(v: FormValues): boolean {
   return v.type === 'reporte' && !!v.categoryId && (!!v.municipalityId || !!v.point);
 }
@@ -328,7 +328,7 @@ export function filesAfterReload(files: ReceiptFile[]): ReceiptFile[] {
 // --- Words of the form --------------------------------------------------------------------------------------------------
 /** The label a field's error is listed with in the summary at the top. */
 export const FIELD_LABEL: Record<string, string> = {
-  type: 'Qué quieres enviar',
+  type: 'Tipo de solicitud',
   categoryId: 'Categoría',
   municipalityId: 'Municipio',
   parishId: 'Parroquia',
@@ -337,18 +337,18 @@ export const FIELD_LABEL: Record<string, string> = {
   point: 'Ubicación',
   locationConsent: 'Ubicación',
   title: 'Título',
-  description: 'Qué pasa',
+  description: 'Descripción',
   eventDate: 'Fecha del hecho',
   attachments: 'Archivos',
   anonymous: 'Enviar como anónimo',
-  publishNameConsent: 'Tu nombre en «Lo atendido»',
-  contact: 'Cómo contactarte',
+  publishNameConsent: 'Su nombre en «Casos atendidos»',
+  contact: 'Medio de contacto',
   'contact.name': 'Nombre',
   'contact.email': 'Correo',
   'contact.phone': 'Teléfono',
-  'contact.channel': 'Cómo contactarte',
+  'contact.channel': 'Medio de contacto',
   privacyAccepted: 'Aviso de privacidad',
-  note: 'Lo que agregas',
+  note: 'Comentario',
   form: 'Formulario',
 };
 

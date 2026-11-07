@@ -1,7 +1,7 @@
 'use client';
 
 import type { Ref } from 'react';
-import { CONTACT_CHANNEL_LABEL, type ContactChannel } from '@/lib/participation/input';
+import { CONTACT_CHANNEL_OPTION, type ContactChannel } from '@/lib/participation/input';
 import { HONEYPOT_FIELD, type FieldErrors } from '@/lib/actions/participation-types';
 import { cn } from '@/lib/cn';
 import { FieldBox, FieldError, describedBy, inputStyle } from './kit';
@@ -10,19 +10,20 @@ import type { FormValues } from './form-core';
 const CHANNELS: ContactChannel[] = ['email', 'phone', 'whatsapp', 'none'];
 
 /**
- * «¿Cómo te contactamos?» (design §4): optional. «Enviar como anónimo» clears and hides the fields and says what it
- * means (keep the receipt); with a name, the person may allow it in «Lo atendido» (otherwise only initials). The
- * contact travels encrypted and only the team that attends the request reads it.
+ * «Datos de contacto» (design §4): optional. «Enviar como anónimo» clears and hides the fields and says what it means
+ * (keep the receipt); with a name, the person may allow it in «Casos atendidos» (otherwise only initials). The contact
+ * travels encrypted and only the staff who attend the request read it.
  */
 export function ContactFields({ v, set, errors }: { v: FormValues; set: (p: Partial<FormValues>) => void; errors: FieldErrors }) {
   const channelError = errors.contact ?? errors['contact.channel'];
   return (
     <fieldset className="flex flex-col gap-5">
       <legend className="text-xl font-bold text-text">
-        ¿Cómo te contactamos? <span className="text-base font-normal text-text-2">(opcional)</span>
+        Datos de contacto <span className="text-base font-normal text-text-2">(opcional)</span>
       </legend>
       <p className="text-[15px] leading-relaxed text-text-2">
-        Con un contacto, el equipo puede pedirte un dato o contarte cómo va. Se guarda cifrado y solo lo ve quien atiende tu solicitud.
+        Si deja un contacto, se le podrá pedir información o informarle sobre el avance. Se guarda cifrado y solo lo ve el personal que atiende su
+        solicitud.
       </p>
 
       <div className="flex flex-col gap-1">
@@ -40,7 +41,7 @@ export function ContactFields({ v, set, errors }: { v: FormValues; set: (p: Part
           <span>
             <span className="block text-base font-semibold text-text">Enviar como anónimo</span>
             <span id="f-anonymous-hint" className="block text-[15px] leading-snug text-text-2">
-              Sin contacto, el equipo no puede escribirte. Guarda bien tu código y tu clave: son la única forma de seguir tu solicitud.
+              Sin datos de contacto no será posible escribirle. Guarde su código y su clave, que son la única forma de consultar la solicitud.
             </span>
           </span>
         </label>
@@ -92,9 +93,9 @@ export function ContactFields({ v, set, errors }: { v: FormValues; set: (p: Part
             </FieldBox>
           </div>
           <fieldset className="flex flex-col gap-2" aria-describedby={describedBy('f-contact', { hint: true, error: channelError })}>
-            <legend className="text-base font-semibold text-text">¿Por dónde prefieres que te contacten?</legend>
+            <legend className="text-base font-semibold text-text">Medio de contacto preferido</legend>
             <p id="f-contact-hint" className="text-[15px] text-text-2">
-              Si no eliges, usamos el correo o el teléfono que dejes.
+              Si no elige, se usará el correo o el teléfono indicado.
             </p>
             <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2">
               {CHANNELS.map((c, i) => (
@@ -111,7 +112,7 @@ export function ContactFields({ v, set, errors }: { v: FormValues; set: (p: Part
                     onChange={() => set({ channel: c })}
                     className="size-5 shrink-0 accent-accent"
                   />
-                  <span className="text-[15px] font-medium text-text">{CONTACT_CHANNEL_LABEL[c]}</span>
+                  <span className="text-[15px] font-medium text-text">{CONTACT_CHANNEL_OPTION[c]}</span>
                 </label>
               ))}
             </div>
@@ -127,8 +128,8 @@ export function ContactFields({ v, set, errors }: { v: FormValues; set: (p: Part
                 className="mt-0.5 size-5 shrink-0 accent-accent"
               />
               <span>
-                Si se resuelve y el equipo lo publica en «Lo atendido», pueden poner mi nombre.{' '}
-                <span className="text-text-2">Si no lo marcas, solo van tus iniciales.</span>
+                Autorizo que se publique mi nombre si el caso aparece en «Casos atendidos».{' '}
+                <span className="text-text-2">Si no marca esta casilla, solo se publicarán sus iniciales.</span>
               </span>
             </label>
           ) : null}
@@ -157,7 +158,7 @@ export function PrivacyCheck({ checked, onChange, error }: { checked: boolean; o
           <a href="/aviso-de-privacidad" target="_blank" rel="noopener" className="font-semibold text-accent-ink underline underline-offset-2">
             aviso de privacidad
           </a>{' '}
-          <span className="text-text-2">(se abre en otra pestaña)</span> y acepto que usen lo que envío solo para atender mi solicitud.
+          <span className="text-text-2">(se abre en otra pestaña)</span> y acepto que mis datos se usen solo para atender esta solicitud.
         </span>
       </label>
       {error ? <FieldError id="f-privacyAccepted-error">{error}</FieldError> : null}
@@ -169,7 +170,7 @@ export function PrivacyCheck({ checked, onChange, error }: { checked: boolean; o
 export function Honeypot({ inputRef, defaultValue }: { inputRef?: Ref<HTMLInputElement>; defaultValue?: string }) {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute -left-[9999px] top-auto h-px w-px overflow-hidden">
-      <label htmlFor="f-sitio-web">No llenes este campo</label>
+      <label htmlFor="f-sitio-web">No llene este campo</label>
       <input ref={inputRef} id="f-sitio-web" name={HONEYPOT_FIELD} type="text" tabIndex={-1} autoComplete="off" defaultValue={defaultValue} />
     </div>
   );

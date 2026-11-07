@@ -7,7 +7,7 @@ const LINKS: { key: AttentionSection; href: string; label: string }[] = [
   { key: 'inicio', href: '/atencion', label: 'Cómo funciona' },
   { key: 'nueva', href: '/atencion/nueva', label: 'Nueva solicitud' },
   { key: 'consultar', href: '/atencion/consultar', label: 'Consultar mi solicitud' },
-  { key: 'atendido', href: '/atencion/atendido', label: 'Lo atendido' },
+  { key: 'atendido', href: '/atencion/atendido', label: 'Casos atendidos' },
 ];
 
 /** The attention desk's own small menu, under the site's header (it wraps on a phone, never scrolls sideways). */
