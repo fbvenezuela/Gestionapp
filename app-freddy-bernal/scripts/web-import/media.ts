@@ -153,6 +153,9 @@ export type FetchedPhoto =
 
 export interface BytesSource {
   bytes(url: string, maxBytes: number): Promise<Uint8Array | null>;
+  /** The bytes of `url` were not a photo that passes the checks: a source that keeps what it downloads drops them, so
+   * the next run asks again (a page served as a photo once is never kept for good). */
+  forget?(url: string): void;
 }
 
 const MAX_DOWNLOAD = 15 * 1024 * 1024;
@@ -175,6 +178,7 @@ export async function fetchPhoto(http: BytesSource, want: PhotoWant): Promise<Fe
     // `undefined`: that one falls back to process.env.VERCEL, and a build on Vercel would refuse every photo over 4 MB.
     const checked = checkWebMediaFile({ kind: 'image', bytes }, '');
     if (!checked.ok) {
+      http.forget?.(url);
       last = { ok: false, reason: checked.status === 415 ? 'unsupported' : checked.status === 413 ? 'too_big' : /pequeña/.test(checked.error) ? 'too_small' : 'unreadable' };
       continue;
     }

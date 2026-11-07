@@ -83,7 +83,7 @@ describe('el contenido real en la demo', () => {
     expect(list.news.total).toBe(real.report.news + real.report.opinion);
     expect(list.opinion.total).toBe(real.report.opinion);
     expect(list.episodes.total).toBe(real.report.episodes);
-    expect(list.weekly.items.map((d) => d.data.title)).toEqual(['Semanario de prueba (demo)']);
+    expect(list.weekly.items.map((d) => d.data.title)).toEqual(['Edición del 8 de octubre de 2026']);
     expect(list.weekly.items[0].media[list.weekly.items[0].data.fileId!]).toMatchObject({ kind: 'document', mime: 'application/pdf' });
     expect(list.faqs.items.map((f) => f.data.title).sort()).toEqual(realFaqs().map((f) => f.q).sort());
     for (const f of list.faqs.items) expect(JSON.stringify(f.data)).not.toMatch(/\(demo\)|\btú\b|Por completar|el equipo|huella/i);
@@ -119,17 +119,18 @@ describe('el contenido real en la demo', () => {
     expect(blocks.find((x) => x.id === 'prensa')?.visible).toBe(false);
   });
 
-  it('los ajustes: el aviso de prueba, el menú sin Gestión, verificadas solo las cuentas que enlaza el canal, sin notas internas', async () => {
+  it('los ajustes: el aviso de prueba, el menú sin Gestión, verificadas solo las cuentas que enlazan el canal o la portada oficial, sin notas internas', async () => {
     const s = await asAnon(a, (sql) => publicSettings(sql));
     expect(s['site.demo_banner']).toBe(REAL_DEMO_BANNER);
     const nav = s['site.navigation'] as { path: string }[];
     expect(nav.map((l) => l.path)).not.toContain('/gestion');
     expect(nav.length).toBe((cfg.web.settings['site.navigation'] as unknown[]).length - 1);
     const accounts = s['site.social_accounts'] as { network: string; handle: string; verified: boolean; note?: string }[];
+    // TikTok: the official home links it (the channel's list of long videos does not).
     expect(accounts.filter((x) => x.verified).map((x) => `${x.network} ${x.handle}`)).toEqual([
-      'youtube @CanalDemo.oficial', 'instagram @cuenta_demo', 'x @cuenta_demo', 'facebook Persona Demo',
+      'youtube @CanalDemo.oficial', 'instagram @cuenta_demo', 'x @cuenta_demo', 'tiktok @cuenta_demo', 'facebook Persona Demo',
     ]);
-    expect(accounts.find((x) => x.network === 'tiktok')!.verified).toBe(false);
+    expect(accounts.find((x) => x.network === 'youtube' && x.handle === '@CanalViejoDemo')!.verified).toBe(false);
     expect(JSON.stringify(accounts)).not.toMatch(/"note"/);
     expect(s['site.youtube_channel']).toMatchObject({ handle: '@CanalDemo.oficial', verified: true });
     expect(s['site.youtube_channel']).not.toHaveProperty('note');

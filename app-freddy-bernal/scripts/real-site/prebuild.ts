@@ -7,10 +7,12 @@
 //   * YouTube or the weekly's Drive file do not answer → that part comes from the last good snapshot, when there is one.
 //     YouTube is asked three ways first (sources.ts): its list of long videos, the channel's own feed and, only with
 //     YOUTUBE_API_KEY, its official API. The key is read here and handed to the network code: never logged or kept.
+//   * nothing older than a week (REAL_LAST_GOOD_MAX_MS) comes back from an earlier build: what the official site took
+//     down since must not live on in the demo.
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ClientConfig } from '../../src/lib/client-config';
-import { REAL_SITE, parseRealSnapshot, type RealItem, type RealSnapshot } from '../../src/lib/web/real-site';
+import { REAL_LAST_GOOD_MAX_MS, REAL_SITE, parseRealSnapshot, type RealItem, type RealSnapshot } from '../../src/lib/web/real-site';
 import type { Fetcher } from '../web-import/wp-client';
 import type { BuildResult } from './build';
 import { buildDecision, programNameOf, readRealSiteConfig } from './settings';
@@ -44,14 +46,28 @@ function mediaIdsOf(items: readonly RealItem[]): Set<string> {
   return out;
 }
 
-/** The parts that did not answer this time, taken from the last good snapshot (and its files). */
-export function carryOver(next: BuildResult, last: { snapshot: RealSnapshot; dir: string }): BuildResult {
+/** Whether something read at `since` is too old to show again (REAL_LAST_GOOD_MAX_MS). */
+export function tooOld(since: string, now: Date): boolean {
+  const t = Date.parse(since);
+  return !Number.isFinite(t) || now.getTime() - t > REAL_LAST_GOOD_MAX_MS;
+}
+
+/** The parts that did not answer this time, taken from the last good snapshot (and its files), when they were read less
+ * than a week ago. When YouTube did not answer, the accounts its channel verified before stay verified. */
+export function carryOver(next: BuildResult, last: { snapshot: RealSnapshot; dir: string }, now: Date = new Date(next.snapshot.fetchedAt)): BuildResult {
   const kinds: Record<'youtube' | 'semanario', 'episode' | 'document'> = { youtube: 'episode', semanario: 'document' };
   const s = structuredClone(next.snapshot);
   const files = new Map(next.files);
   const carried: string[] = [];
+  const since: NonNullable<RealSnapshot['report']['partsSince']> = {};
   for (const part of next.failed) {
     const kind = kinds[part];
+    const read = last.snapshot.report.partsSince?.[part] ?? last.snapshot.fetchedAt;
+    if (tooOld(read, now)) continue;
+    if (part === 'youtube') {
+      const verified = [...new Set([...s.accounts.verifiedHandles, ...last.snapshot.accounts.verifiedHandles])].sort();
+      s.accounts = { verifiedHandles: verified, youtubeOk: s.accounts.youtubeOk || last.snapshot.accounts.youtubeOk };
+    }
     if (s.items.some((i) => i.kind === kind)) continue;
     const old = last.snapshot.items.filter((i) => i.kind === kind);
     if (!old.length) continue;
@@ -63,10 +79,12 @@ export function carryOver(next: BuildResult, last: { snapshot: RealSnapshot; dir
       files.set(m.key, new Uint8Array(fs.readFileSync(path.join(last.dir, REAL_SITE.media, m.key))));
     }
     s.items.push(...old);
-    if (part === 'youtube') s.accounts = last.snapshot.accounts;
+    since[part] = read;
     carried.push(part);
   }
-  if (!carried.length) return next;
+  const accountsChanged = JSON.stringify(s.accounts) !== JSON.stringify(next.snapshot.accounts);
+  if (!carried.length && !accountsChanged) return next;
+  if (!carried.length) return { ...next, snapshot: s };
   s.media.sort((a, b) => a.id.localeCompare(b.id));
   const order: Record<string, number> = { news: 0, episode: 1, document: 2 };
   const date = (it: RealItem) => String((it.draft as { date?: string }).date ?? '');
@@ -78,6 +96,7 @@ export function carryOver(next: BuildResult, last: { snapshot: RealSnapshot; dir
     photos: s.media.filter((m) => m.kind === 'image').length,
     mediaBytes: s.media.reduce((n, m) => n + m.bytes, 0),
     carriedOver: carried,
+    partsSince: since,
   };
   return { snapshot: s, files, failed: next.failed.filter((f) => !carried.includes(f)) };
 }
@@ -90,12 +109,13 @@ export async function prebuild(o: PrebuildOptions): Promise<PrebuildResult> {
   const realDir = path.join(o.appDir, REAL_SITE.dir);
   const block = readRealSiteConfig((o.config.web as { realSite?: unknown }).realSite);
   if (!block.ok && block.error) warn(`[contenido real] ${block.error}`);
-  const decision = buildDecision(o.env, block.ok);
+  const decision = buildDecision(o.env, block.ok, block.ok ? block.config.vercelRepo : undefined);
   if (!decision.on || !block.ok) {
     fs.rmSync(realDir, { recursive: true, force: true });
     log(`[contenido real] apagado: ${decision.why}. La demo usa el contenido inventado.`);
     return { status: 'off', why: decision.why };
   }
+  const now = o.now ?? (() => new Date());
 
   const t0 = Date.now();
   const cacheDir = path.join(o.appDir, '.next', 'cache', 'real-site');
@@ -133,14 +153,14 @@ export async function prebuild(o: PrebuildOptions): Promise<PrebuildResult> {
         tz: o.env.APP_TZ || cfg.timezone || 'America/Caracas',
         accounts,
         fallbackIdentity: { name: cfg.brand.clientName, tagline: `${cfg.brand.clientName} - ${cfg.web.structuredData.jobTitle}` },
-        now: (o.now ?? (() => new Date()))(),
+        now: now(),
         log: (l) => log(`[contenido real] ${l.trim()}`),
       },
       sources,
     );
     if (result.failed.length) {
       const last = readLastGood(cacheDir);
-      if (last) result = carryOver(result, last);
+      if (last) result = carryOver(result, last, now());
       const again = parseRealSnapshot(result.snapshot);
       if (!again.ok) throw new Error(`lo traído de la vez anterior no encaja: ${again.error}`);
     }
@@ -159,13 +179,16 @@ export async function prebuild(o: PrebuildOptions): Promise<PrebuildResult> {
   } catch (e) {
     const error = (e as Error).message;
     const ms = Date.now() - t0;
-    const kept = restoreLastGood(cacheDir, realDir);
+    const last = readLastGood(cacheDir);
+    const fresh = last && !tooOld(last.snapshot.fetchedAt, now()) ? last : null;
+    const kept = fresh ? restoreLastGood(cacheDir, realDir) : null;
     if (kept) {
       warn(`[contenido real] ⚠ La web oficial no respondió (${error}). Se usa la copia anterior, del ${kept.fetchedAt}.`);
       return { status: 'reused', snapshot: kept, ms, error };
     }
     fs.rmSync(realDir, { recursive: true, force: true });
-    warn(`[contenido real] ⚠⚠ La web oficial no respondió (${error}) y no hay copia anterior: la demo sale con el contenido INVENTADO.`);
+    const why = last ? `la copia anterior, del ${last.snapshot.fetchedAt}, tiene más de una semana` : 'no hay copia anterior';
+    warn(`[contenido real] ⚠⚠ La web oficial no respondió (${error}) y ${why}: la demo sale con el contenido INVENTADO.`);
     return { status: 'none', ms, error };
   } finally {
     deadline.dispose();

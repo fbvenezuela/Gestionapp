@@ -140,6 +140,12 @@ const KEY = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg
 const EXT_OF_MIME = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'application/pdf': 'pdf' } as const;
 /** The draft size the importer keeps (the database takes up to 512 KB). */
 export const REAL_DRAFT_MAX = 450_000;
+/** The largest file the snapshot keeps: a server of the demo answers with it from a function, and Vercel stops a
+ * function's answer at 4.5 MB. */
+export const REAL_FILE_MAX_BYTES = 4 * 1024 * 1024;
+/** How old the last good snapshot (or one of its parts) may be when the official site does not answer: past it, the
+ * demo shows the invented content rather than what the official site may have taken down since. */
+export const REAL_LAST_GOOD_MAX_MS = 7 * 86_400_000;
 
 export const realMedia = z
   .object({
@@ -147,7 +153,7 @@ export const realMedia = z
     key: z.string().regex(KEY),
     kind: z.enum(['image', 'document']),
     mime: z.enum(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
-    bytes: z.number().int().min(1).max(25 * 1024 * 1024),
+    bytes: z.number().int().min(1).max(REAL_FILE_MAX_BYTES),
     width: z.number().int().min(1).max(20000).optional(),
     height: z.number().int().min(1).max(20000).optional(),
     alt: z.string().max(300).optional(),
@@ -189,11 +195,17 @@ export const realItem = z
       })
       .optional(),
   })
-  .superRefine((it, ctx) => {
+  .transform((it, ctx) => {
     const r = parseSnapshot(it.kind, it.draft);
-    if (!r.ok) ctx.addIssue({ code: 'custom', message: `${it.kind}/${it.slug}: ${r.error}` });
-    if (JSON.stringify(it.draft).length > REAL_DRAFT_MAX) ctx.addIssue({ code: 'custom', message: `${it.kind}/${it.slug}: el texto es muy largo` });
-    if (removedMarksIn(it.draft).length) ctx.addIssue({ code: 'custom', message: `${it.kind}/${it.slug}: tiene una marca de datos retirados` });
+    if (!r.ok) {
+      ctx.addIssue({ code: 'custom', message: `${it.kind}/${it.slug}: ${r.error}` });
+      return z.NEVER;
+    }
+    if (JSON.stringify(r.data).length > REAL_DRAFT_MAX) ctx.addIssue({ code: 'custom', message: `${it.kind}/${it.slug}: el texto es muy largo` });
+    if (removedMarksIn(r.data).length) ctx.addIssue({ code: 'custom', message: `${it.kind}/${it.slug}: tiene una marca de datos retirados` });
+    // What is seeded is what the CMS's own schema made of it (an unknown key of a tampered file never reaches the
+    // database; text is trimmed and normalized as an editor's save would).
+    return { ...it, draft: r.data as Record<string, unknown> };
   });
 export type RealItem = z.infer<typeof realItem>;
 
@@ -232,6 +244,9 @@ export const realSnapshotSchema = z
       requests: z.number().int().min(0).optional(),
       durationMs: z.number().int().min(0).optional(),
       carriedOver: z.array(z.string().max(40)).max(10).optional(),
+      // When a part that did not answer this time was last read (it came from an earlier snapshot): past
+      // REAL_LAST_GOOD_MAX_MS it is not carried again.
+      partsSince: z.object({ youtube: z.string().datetime({ offset: true }).optional(), semanario: z.string().datetime({ offset: true }).optional() }).optional(),
     }),
   })
   .superRefine((s, ctx) => {
@@ -285,7 +300,7 @@ export function snapshotFromText(raw: string): RealSnapshot | null {
 }
 
 type Memo = { value: RealSnapshot | null };
-const g = globalThis as unknown as { __fbRealSnapshot?: Memo };
+const g = globalThis as unknown as { __fbRealSnapshot?: Memo; __fbRealSeeded?: 'real' | 'invented' };
 
 /** The official site's content for this demo server, or null (invented content): read once per process. The path is
  * written out in full so the bundler traces exactly that file (a path built from variables makes Turbopack trace the
@@ -305,9 +320,29 @@ export function loadRealSnapshot(): RealSnapshot | null {
   return value;
 }
 
+/** The demo's seed says here what it seeded (src/lib/db/index.ts seedDemoData): when the real content could not be
+ * seeded, the server shows the invented one even though it has the file. */
+export function noteSeeded(what: 'real' | 'invented'): void {
+  g.__fbRealSeeded = what;
+}
+
 /** Which content this server shows, for the keys of the public pages' data cache (src/lib/web/cache.ts): a cached list
- * of the invented content is never served by a server with the real one, nor one of an older snapshot. */
+ * of the invented content is never served by a server with the real one, nor one of an older snapshot, nor one of
+ * another deployment (the data cache can outlive a deployment; VERCEL_DEPLOYMENT_ID names each one). */
 export function realContentToken(): string {
   const s = loadRealSnapshot();
-  return s ? `real:${s.fetchedAt}` : 'invented';
+  if (!s || g.__fbRealSeeded === 'invented') return 'invented';
+  const deployment = (process.env.VERCEL_DEPLOYMENT_ID ?? '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64);
+  return `real:${s.fetchedAt}${deployment ? `:${deployment}` : ''}`;
+}
+
+/** The snapshot's files by key, with the name a saved PDF takes (its item's address: «semanario-…-2026-03-02.pdf»);
+ * photos keep none. Only these keys are served from .real-site/media (src/lib/storage/serve-public-file.ts). */
+export function realFileNames(snap: Pick<RealSnapshot, 'media' | 'items'>): Map<string, string | null> {
+  const slugOf = new Map<string, string>();
+  for (const it of snap.items) {
+    const fileId = (it.draft as { fileId?: unknown }).fileId;
+    if (typeof fileId === 'string' && !slugOf.has(fileId)) slugOf.set(fileId, it.slug);
+  }
+  return new Map(snap.media.map((m) => [m.key, m.kind === 'document' && slugOf.has(m.id) ? `${slugOf.get(m.id)}.${m.key.split('.').pop()}` : null]));
 }

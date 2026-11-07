@@ -12,7 +12,7 @@ describe('la sección «Semanario» de la portada', () => {
   it('su archivo de Drive y su portada (la de verdad, no la imagen de carga diferida); nada de la sección siguiente', () => {
     expect(findSemanario(HOME_HTML, 'https://sitio-oficial.test')).toEqual({
       driveId: DEMO_DRIVE_ID,
-      cover: { src: 'https://sitio-oficial.test/wp-content/uploads/2026/10/portada-semanario.jpg', attachmentId: 7201, alt: '' },
+      cover: { src: 'https://sitio-oficial.test/wp-content/uploads/2026/09/portada-semanario.jpg', attachmentId: 7201, alt: '' },
     });
   });
 
@@ -47,7 +47,7 @@ describe('su título y su día', () => {
 
   it('el día en que se hizo el PDF y sus páginas, de sus propios datos', () => {
     const pdf = demoPdf();
-    expect(pdfCreationDay(pdf)).toBe('2026-10-15');
+    expect(pdfCreationDay(pdf)).toBe('2026-10-08');
     expect(pdfPageCount(pdf)).toBe(1);
     const long = textPdf(Array.from({ length: 200 }, (_, i) => ({ text: `Línea inventada ${i} (demo)` })), { title: 'Largo (demo)', createdAt: new Date(Date.UTC(2026, 0, 2)) });
     expect(pdfPageCount(long)).toBeGreaterThan(1);

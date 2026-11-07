@@ -18,12 +18,26 @@ import { CHANNEL_FEED_XML, DEMO_ACCOUNTS, DEMO_REAL_CONFIG, FEED_XML, demoClient
 import { API_PLAYLIST, API_VIDEOS, DEMO_CLAVE } from '../fixtures/real-site/youtube-api';
 
 describe('la lista de videos largos del canal', () => {
+  it('el canal en la cabecera de su propio feed va sin «UC» (como lo escribe YouTube): es el mismo canal', () => {
+    const own = parseFeed(CHANNEL_FEED_XML);
+    expect(own.channelId).toBe('UCdemoCanalDePrueba00001');
+    expect(isConfiguredFeed(own, DEMO_REAL_CONFIG.youtube)).toBe(true);
+    // Without a head, the entries say it.
+    expect(parseFeed(CHANNEL_FEED_XML.replace(/<yt:channelId>demoCanalDePrueba00001<\/yt:channelId>/, '')).channelId).toBe('UCdemoCanalDePrueba00001');
+  });
+
+  it('un feed hostil (miles de «<entry>» sin cerrar) se lee de una pasada', () => {
+    const t0 = Date.now();
+    expect(parseFeed(`<feed>${'<entry><title>x'.repeat(150_000)}`).entries).toEqual([]);
+    expect(Date.now() - t0).toBeLessThan(1500);
+  });
+
   it('sus entradas, la más nueva primero, con su título como está; una entrada sin id de YouTube queda fuera', () => {
     const feed = parseFeed(FEED_XML);
     expect(feed.channelId).toBe('UCdemoCanalDePrueba00001');
     expect(feed.playlistId).toBe('UULFdemoCanalDePrueba00001');
     expect(feed.entries.map((e) => [e.videoId, e.published.slice(0, 10)])).toEqual([
-      ['demoVideo01', '2026-10-31'], ['demoVideo02', '2026-10-31'], ['demoVideo03', '2026-10-24'], ['demo_Video4', '2026-10-17'],
+      ['demoVideo01', '2026-10-30'], ['demoVideo02', '2026-10-30'], ['demoVideo03', '2026-10-24'], ['demo_Video4', '2026-10-17'],
     ]);
     expect(feed.entries[2].title).toBe('PROGRAMA DEMO N°11 // VIERNES DE PRUEBA & MÁS (demo)');
     expect(feed.entries[2].description).toBe('Otra descripción inventada (demo) con <etiquetas> & signos.');
@@ -112,7 +126,7 @@ describe('las emisiones del programa en lo que da cada fuente', () => {
     const feed = feedFromApi(API_PLAYLIST);
     expect(feed.channelId).toBe('UCdemoCanalDePrueba00001');
     expect(feed.playlistId).toBe('UULFdemoCanalDePrueba00001');
-    expect(feed.entries.map((e) => [e.videoId, e.published.slice(0, 10)])).toEqual([['demoVideo01', '2026-10-31'], ['demoVideo03', '2026-10-24']]);
+    expect(feed.entries.map((e) => [e.videoId, e.published.slice(0, 10)])).toEqual([['demoVideo01', '2026-10-30'], ['demoVideo03', '2026-10-24']]);
     expect(isConfiguredFeed(feed, DEMO_REAL_CONFIG.youtube)).toBe(true);
     // Videos of two channels: no channel can be told, so it is not the configured one.
     const mixed = structuredClone(API_PLAYLIST);
@@ -120,8 +134,8 @@ describe('las emisiones del programa en lo que da cada fuente', () => {
     expect(feedFromApi(mixed).channelId).toBeNull();
     expect(feedFromApi({ error: { code: 403 } })).toEqual({ channelId: null, playlistId: null, entries: [] });
     expect(feedFromApi('no es JSON (demo)')).toEqual({ channelId: null, playlistId: null, entries: [] });
-    expect([...minutesFromApi(API_VIDEOS)]).toEqual([['demoVideo01', 4], ['demoVideo03', 110]]);
-    expect(['PT1H50M26S', 'PT4M25S', 'PT30S', 'PT1H', 'P1DT1H', 'P0D', 'PT0S', '', 'una hora', null].map(isoMinutes)).toEqual([110, 4, 1, 60, 1500, null, null, null, null, null]);
+    expect([...minutesFromApi(API_VIDEOS)]).toEqual([['demoVideo01', 3], ['demoVideo03', 102]]);
+    expect(['PT1H42M5S', 'PT3M10S', 'PT30S', 'PT1H', 'P1DT1H', 'P0D', 'PT0S', '', 'una hora', null].map(isoMinutes)).toEqual([102, 3, 1, 60, 1500, null, null, null, null, null]);
   });
 });
 
@@ -145,7 +159,8 @@ describe('si una fuente de YouTube no sirve, la siguiente', () => {
     const why = result.snapshot.report.skipped.find((x) => x.ref === 'YouTube')!.reason;
     expect(why).toMatch(/la lista de videos largos: no respondió/);
     expect(why).toMatch(/los videos del canal \(solo los del programa\): no respondió/);
-    expect(result.snapshot.accounts).toEqual({ verifiedHandles: [], youtubeOk: false });
+    // Only what the official home links stays verified.
+    expect(result.snapshot.accounts).toEqual({ verifiedHandles: ['tiktok:cuenta_demo'], youtubeOk: false });
   }, 30_000);
 
   it('con la clave: la API oficial da la misma lista y los minutos; la clave va solo en su cabecera, nunca en una dirección ni en la foto', async () => {
@@ -157,8 +172,8 @@ describe('si una fuente de YouTube no sirve, la siguiente', () => {
     for (const x of google) expect([x.apiKey, x.userAgent, x.method]).toEqual([DEMO_CLAVE, USER_AGENT, 'GET']);
     for (const x of seen.filter((y) => !google.includes(y))) expect(x.apiKey).toBeNull();
     for (const x of seen) expect(x.url).not.toContain(DEMO_CLAVE);
-    expect(episodes.map((e) => [e.draft.youtubeId, e.draft.minutes])).toEqual([['demoVideo01', 4], ['demoVideo03', 110]]);
-    expect(result.snapshot.accounts).toEqual({ youtubeOk: true, verifiedHandles: ['x:cuenta_demo', 'youtube:canaldemo.oficial'] });
+    expect(episodes.map((e) => [e.draft.youtubeId, e.draft.minutes])).toEqual([['demoVideo01', 3], ['demoVideo03', 102]]);
+    expect(result.snapshot.accounts).toEqual({ youtubeOk: true, verifiedHandles: ['tiktok:cuenta_demo', 'x:cuenta_demo', 'youtube:canaldemo.oficial'] });
     expect(result.failed).toEqual([]);
     expect(JSON.stringify(result.snapshot)).not.toContain(DEMO_CLAVE);
     expect(lines.join('\n')).not.toContain(DEMO_CLAVE);

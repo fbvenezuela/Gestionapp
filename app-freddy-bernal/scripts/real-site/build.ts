@@ -6,12 +6,14 @@
 // WordPress itself not answering stops the whole run (the build then keeps the last good snapshot). Pure but for the
 // sources it is given.
 import { dayIn } from '../../src/lib/web/cms/drafts';
-import { slugFromTitle, parseSnapshot, type WebKind } from '../../src/lib/web/schema';
+import { fmtDay } from '../../src/lib/web/format';
+import { slugFromTitle } from '../../src/lib/web/schema';
 import type { TextNode } from '../../src/lib/web/blocks';
 import {
-  mediaKey, parseRealSnapshot, realIds, realMedia, sha256Of, type RealItem, type RealMedia, type RealSnapshot,
+  REAL_FILE_MAX_BYTES, mediaKey, parseRealSnapshot, realIds, realItem, realMedia, sha256Of, type RealItem, type RealMedia, type RealSnapshot,
 } from '../../src/lib/web/real-site';
 import { plainFromHtml } from '../web-import/convert';
+import { findAll, parseHtml } from '../web-import/html';
 import { oldPathOf, postTarget, slugWithId, type PostPlan, type WpPost, type WpTerm } from '../web-import/mapping';
 import { wantFromImage, wantFromWp, type FetchedPhoto, type PhotoWant, type WpMedia } from '../web-import/media';
 import { scrubText } from '../web-import/pii';
@@ -19,7 +21,7 @@ import { altFor, biographyOf, captionFor, newsDraft, officeLeadOf, photoWants, p
 import { findSemanario, meaningfulName, pdfCreationDay, pdfPageCount, semanarioTitle } from './semanario';
 import { siteOf, type RealSiteConfig } from './settings';
 import { cut, hasRemovalMark } from './text';
-import { VIDEO_SOURCE_LABEL, episodeSlugs, linkedAccountKeys, verifiedKeys, type VideoList, type VideoSource } from './youtube';
+import { VIDEO_SOURCE_LABEL, episodeSlugs, latestEpisodes, linkedAccountKeys, verifiedKeys, type VideoList, type VideoSource } from './youtube';
 
 export type WpRoot = { name?: string; description?: string };
 
@@ -88,11 +90,26 @@ export function identityFrom(root: WpRoot | null, fallback: { name: string; tagl
   return { name: cut(name || fallback.name, 120), tagline: cut(tagline || fallback.tagline, 200) };
 }
 
+/** The addresses a page links (its <a href>), for the accounts the official site itself names. */
+export function linksOf(html: string): string[] {
+  return findAll(parseHtml(html), (el) => el.tag === 'a')
+    .map((a) => (a.attrs.href ?? '').trim())
+    .filter((h) => /^https?:\/\//i.test(h));
+}
+
+/** The weekly's title when its file says nothing: the edition's day («Edición del 15 de marzo de 2026»), so two
+ * editions never read the same. */
+export function editionTitle(day: string): string {
+  return `Edición del ${fmtDay(day)}`;
+}
+
 export async function buildSnapshot(input: BuildInput, src: Sources): Promise<BuildResult> {
   const { config, tz } = input;
   const log = input.log ?? (() => {});
   const site = siteOf(config);
   const skipped: { ref: string; reason: string }[] = [];
+  /** What was left out and why, cut to what the snapshot keeps (a long photo address never spoils the whole run). */
+  const skip = (ref: string, reason: string) => skipped.push({ ref: cut(ref, 300), reason: cut(reason, 300) });
   const failed: BuildResult['failed'] = [];
   const media = new Map<string, RealMedia>();
   const files = new Map<string, Uint8Array>();
@@ -110,9 +127,14 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
       ...(f.width ? { width: f.width, height: f.height } : {}),
       ...(f.alt !== undefined ? { alt: f.alt } : {}), ...(f.caption ? { caption: f.caption } : {}), ...(f.title ? { title: f.title } : {}),
     };
+    // What a server of the demo serves from a function (Vercel stops a function's answer at 4.5 MB).
+    if (row.bytes > REAL_FILE_MAX_BYTES) {
+      skip(ref, `el archivo pasa de ${Math.round(REAL_FILE_MAX_BYTES / (1024 * 1024))} MB`);
+      return null;
+    }
     const ok = realMedia.safeParse(row);
     if (!ok.success) {
-      skipped.push({ ref, reason: ok.error.issues[0]?.message ?? 'archivo no válido' });
+      skip(ref, ok.error.issues[0]?.message ?? 'archivo no válido');
       return null;
     }
     media.set(id, ok.data);
@@ -121,23 +143,30 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
   };
   const addPhoto = (got: FetchedPhoto, alt: string, caption: string, ref: string): RealMedia | null => {
     if (!got.ok) {
-      skipped.push({ ref, reason: `foto: ${got.reason}` });
+      skip(ref, `foto: ${got.reason}`);
       return null;
     }
     return addFile({ bytes: got.bytes, sha256: got.sha256, ext: got.ext, mime: got.mime, kind: 'image', width: got.width, height: got.height, alt, caption }, ref);
   };
+  // Each item checked as the whole snapshot will check it (its draft, its size, no removal mark): one that does not fit
+  // is left out and said, never a reason to lose the whole run.
   const addItem = (it: RealItem, ref: string): boolean => {
-    const r = parseSnapshot(it.kind as WebKind, it.draft);
-    if (!r.ok) {
-      skipped.push({ ref, reason: r.error });
+    const r = realItem.safeParse(it);
+    if (!r.success) {
+      skip(ref, r.error.issues[0]?.message ?? 'no tiene la forma esperada');
       return false;
     }
     items.push(it);
     return true;
   };
 
-  // --- WordPress: who, which categories, the newest posts (none of this may fail) -----------------------------------
-  const identity = identityFrom(await src.root(), input.fallbackIdentity);
+  // --- WordPress: who, which categories, the newest posts (the lists may not fail) ----------------------------------
+  // The site's name and tagline are a courtesy: without them, the client's own.
+  const root = await src.root().catch((e) => {
+    skip('/wp-json/', (e as Error).message);
+    return null;
+  });
+  const identity = identityFrom(root, input.fallbackIdentity);
   const categories = await src.categories();
   const bySlug = new Map(categories.map((c) => [c.slug, c.id]));
   const catMap = new Map(categories.map((c) => [c.id, c]));
@@ -152,18 +181,21 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
   try {
     pagePosts = await src.postsById([config.bioPostId, ...config.officePostIds]);
   } catch (e) {
-    skipped.push({ ref: 'biografía', reason: (e as Error).message });
+    skip('biografía', (e as Error).message);
   }
 
-  // The home, for the weekly (optional).
+  // The home, for the weekly and for the accounts the official site links (optional). A home that does not answer, or
+  // without a weekly that can be read, counts as the weekly failing: the last good one stays (prebuild.ts carryOver).
   let home: string | null = null;
   try {
     home = await src.homeHtml();
+    if (home === null) skip('portada de la web oficial', 'no respondió o pasa de 5 MB');
   } catch (e) {
-    failed.push('semanario');
-    skipped.push({ ref: 'portada de la web oficial', reason: (e as Error).message });
+    skip('portada de la web oficial', (e as Error).message);
   }
   const weekly = home ? findSemanario(home, site.origin) : null;
+  if (!weekly) failed.push('semanario');
+  const homeLinks = home ? linksOf(home) : [];
 
   // --- The posts, planned; then every photo WordPress knows of them, in one go ----------------------------------------
   const ctx: PlanContext = { categories: catMap, ownHosts: site.ownHosts, tz };
@@ -174,7 +206,7 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
       if (seenPosts.has(post.id)) continue;
       seenPosts.add(post.id);
       const r = planNews(post, ctx);
-      if ('skip' in r) skipped.push({ ref: `post ${post.id}`, reason: r.skip });
+      if ('skip' in r) skip(`post ${post.id}`, r.skip);
       else planned.push({ plan: r.plan, opinion: isOpinion });
     }
   }
@@ -213,7 +245,7 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
     let slug = plan.slug;
     if (usedSlugs.has(slug)) slug = slugWithId(plan.slug, plan.sourceId);
     if (usedSlugs.has(slug)) {
-      skipped.push({ ref, reason: 'su dirección ya la tiene otra nota' });
+      skip(ref, 'su dirección ya la tiene otra nota');
       continue;
     }
     const sourcePath = plan.oldPath ?? oldPathOf(plan.sourceUrl, site.ownHosts) ?? '/';
@@ -239,19 +271,19 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
   // --- The governor's page -------------------------------------------------------------------------------------------
   const bioPost = pagePosts.find((p) => p.id === config.bioPostId) ?? null;
   const bio = bioPost ? biographyOf(bioPost, ctx) : { biography: [] as TextNode[], honors: [] as TextNode[], sourceUrl: '' };
-  if (!bioPost) skipped.push({ ref: `post ${config.bioPostId}`, reason: 'la biografía no se pudo leer' });
+  if (!bioPost) skip(`post ${config.bioPostId}`, 'la biografía no se pudo leer');
   const office: TextNode[] = [];
   const officePosts = config.officePostIds
     .map((id) => pagePosts.find((p) => p.id === id))
     .filter((p): p is WpPost => !!p)
     .sort((a, b) => (a.date_gmt ?? a.date).localeCompare(b.date_gmt ?? b.date));
   for (const p of officePosts) office.push(...officeLeadOf(p, ctx));
-  for (const id of config.officePostIds) if (!officePosts.some((p) => p.id === id)) skipped.push({ ref: `post ${id}`, reason: 'no se pudo leer' });
+  for (const id of config.officePostIds) if (!officePosts.some((p) => p.id === id)) skip(`post ${id}`, 'no se pudo leer');
 
   const pagePhoto = async (wpId: number, ref: string): Promise<string | null> => {
     const m = wpMedia.get(wpId);
     if (!m) {
-      skipped.push({ ref, reason: 'la foto no está en la biblioteca de la web oficial' });
+      skip(ref, 'la foto no está en la biblioteca de la web oficial');
       return null;
     }
     const want = wantFromWp(m, site.ownHosts, MAX_SIDE);
@@ -263,8 +295,9 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
 
   // --- YouTube: the program's episodes, and which accounts the channel links ---------------------------------------
   // None of its sources serving counts as YouTube not answering: the episodes and the accounts then come from the last
-  // good snapshot (prebuild.ts carryOver).
-  let accounts = { verifiedHandles: [] as string[], youtubeOk: false };
+  // good snapshot (prebuild.ts carryOver). The accounts the official site's own home links count as verified too.
+  const fromHome = verifiedKeys(input.accounts, linkedAccountKeys(homeLinks));
+  let accounts = { verifiedHandles: fromHome, youtubeOk: false };
   let episodes = 0;
   try {
     const { list, misses } = await src.videos(input.programName);
@@ -272,14 +305,15 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
     if (!list) throw new Error(cut(said.join('; ') || 'el canal no respondió', 300));
     for (const line of said) log(`  YouTube, ${line}`);
     if (list.source !== 'playlist') log(`  YouTube: las emisiones salen de ${VIDEO_SOURCE_LABEL[list.source]}`);
-    accounts = { verifiedHandles: verifiedKeys(input.accounts, linkedAccountKeys(list.descriptions)), youtubeOk: true };
-    const latest = list.entries.slice(0, config.maxEpisodes);
+    const fromChannel = verifiedKeys(input.accounts, linkedAccountKeys(list.descriptions));
+    accounts = { verifiedHandles: [...new Set([...fromHome, ...fromChannel])].sort(), youtubeOk: true };
+    const latest = latestEpisodes(list.entries, config.maxEpisodes, input.programName);
     const slugs = episodeSlugs(latest, input.programName);
     for (const e of latest) {
       const ref = `video ${e.videoId}`;
       const title = cut(scrubText(e.title).text, 160);
       if (hasRemovalMark(title)) {
-        skipped.push({ ref, reason: 'el título tenía datos personales' });
+        skip(ref, 'el título tenía datos personales');
         continue;
       }
       src.checkTime();
@@ -296,7 +330,7 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
     }
   } catch (e) {
     failed.push('youtube');
-    skipped.push({ ref: 'YouTube', reason: (e as Error).message });
+    skip('YouTube', (e as Error).message);
   }
 
   // --- The weekly: its cover from the official site, its PDF from Drive ---------------------------------------------
@@ -306,12 +340,18 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
       const pdf = await src.drivePdf(weekly.driveId);
       if (!pdf) throw new Error('el PDF no se pudo bajar');
       if (String.fromCharCode(...pdf.bytes.subarray(0, 5)) !== '%PDF-') throw new Error('no es un PDF');
-      // Its title: the Drive file's name or page when they say something (often it is only a number), else the config's.
+      // Its name: the Drive file's name or page when they say something (often it is only a number), else the config's.
+      // Its title: that name when it says something, else the edition's day (two editions never read the same).
+      const day = pdfCreationDay(pdf.bytes) ?? dayIn(tz, input.now);
       const pageTitle = meaningfulName(pdf.fileName) ? null : await src.drivePageTitle(weekly.driveId).catch(() => null);
-      const title = cut(scrubText(semanarioTitle({ fileName: pdf.fileName, pageTitle, fallback: config.semanarioName ?? 'Semanario' })).text, 160);
-      if (hasRemovalMark(title)) throw new Error('el nombre del archivo tenía datos personales');
+      const fallback = config.semanarioName ?? 'Semanario';
+      const name = cut(scrubText(semanarioTitle({ fileName: pdf.fileName, pageTitle, fallback })).text, 160);
+      if (hasRemovalMark(name)) throw new Error('el nombre del archivo tenía datos personales');
+      const named = name !== fallback;
+      const title = named ? name : editionTitle(day);
       const sha = sha256Of(pdf.bytes);
-      const file = addFile({ bytes: pdf.bytes, sha256: sha, ext: 'pdf', mime: 'application/pdf', kind: 'document', title: cut(title, 200) }, 'Semanario (PDF)');
+      const fileTitle = cut(named ? name : `${fallback}, ${title.charAt(0).toLowerCase()}${title.slice(1)}`, 200);
+      const file = addFile({ bytes: pdf.bytes, sha256: sha, ext: 'pdf', mime: 'application/pdf', kind: 'document', title: fileTitle }, 'Semanario (PDF)');
       if (!file) throw new Error('el PDF no pasó sus controles');
       let coverId: string | null = null;
       if (weekly.cover) {
@@ -321,14 +361,13 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
           : wantFromImage({ src: weekly.cover.src, alt: weekly.cover.alt, caption: '', attachmentId: null, linkHref: null }, site.ownHosts);
         if (!want.external) {
           src.checkTime();
-          coverId = addPhoto(await src.photo(want), cut(title, 300), '', 'Semanario (portada)')?.id ?? null;
+          coverId = addPhoto(await src.photo(want), cut(fileTitle, 300), '', 'Semanario (portada)')?.id ?? null;
         }
       }
-      const day = pdfCreationDay(pdf.bytes) ?? dayIn(tz, input.now);
       const pages = pdfPageCount(pdf.bytes);
       const ok = addItem(
         {
-          id: realIds.document(sha), kind: 'document', slug: `${slugFromTitle(title)}-${day}`.slice(0, 120).replace(/-+$/, ''),
+          id: realIds.document(sha), kind: 'document', slug: `${slugFromTitle(name)}-${day}`.slice(0, 120).replace(/-+$/, ''),
           draft: { title, date: day, category: 'semanario', fileId: file.id, coverId, ...(pages ? { pages } : {}) },
         },
         'Semanario',
@@ -336,10 +375,10 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
       if (ok) documents++;
     } catch (e) {
       failed.push('semanario');
-      skipped.push({ ref: 'Semanario', reason: (e as Error).message });
+      skip('Semanario', (e as Error).message);
     }
   } else if (home) {
-    skipped.push({ ref: 'Semanario', reason: 'la portada no tiene la sección del Semanario' });
+    skip('Semanario', 'la portada no tiene la sección del Semanario o su enlace a Drive');
   }
 
   // --- Together, sorted -----------------------------------------------------------------------------------------------

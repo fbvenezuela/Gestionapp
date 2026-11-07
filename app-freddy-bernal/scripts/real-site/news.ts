@@ -72,7 +72,7 @@ export function photoWants(plan: PostPlan, wpMedia: Map<number, WpMedia>, ownHos
   return out;
 }
 
-/** An alt that is only a file's name («photo_5087326206373341169_y», «IMG_1234.jpg») says nothing. */
+/** An alt that is only a file's name («photo_0000000000000000000_y», «IMG_1234.jpg») says nothing. */
 export function looksLikeFileName(s: string): boolean {
   const t = s.trim();
   return !/\s/.test(t) && (/_/.test(t) || /\d{4,}/.test(t) || /\.(?:jpe?g|png|webp|gif|heic)$/i.test(t));

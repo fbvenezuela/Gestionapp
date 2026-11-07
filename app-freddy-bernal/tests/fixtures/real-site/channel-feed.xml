@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- An INVENTED feed of a YouTube channel's own uploads (videos.xml?channel_id=…) for the real-site build's tests: the
-     shorts come first and only some titles name the program. The channel, the videos and every text are made up (demo). -->
+     shorts come first and only some titles name the program. Its head names the channel without its «UC», as YouTube's
+     own channel feeds do (each entry keeps it). The channel, the videos and every text are made up (demo). -->
 <feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
  <link rel="self" href="http://www.youtube.com/feeds/videos.xml?channel_id=UCdemoCanalDePrueba00001"/>
  <id>yt:channel:demoCanalDePrueba00001</id>
- <yt:channelId>UCdemoCanalDePrueba00001</yt:channelId>
+ <yt:channelId>demoCanalDePrueba00001</yt:channelId>
  <title>Canal Demo</title>
  <author><name>Canal Demo</name><uri>https://www.youtube.com/channel/UCdemoCanalDePrueba00001</uri></author>
  <published>2026-01-16T01:34:14+00:00</published>
@@ -37,7 +38,7 @@
   <yt:videoId>demoVideo02</yt:videoId>
   <yt:channelId>UCdemoCanalDePrueba00001</yt:channelId>
   <title>Segunda parte de prueba | Programa Demo 12</title>
-  <published>2026-10-31T19:47:50+00:00</published>
+  <published>2026-10-30T18:15:00+00:00</published>
   <media:group><media:description>Una descripción inventada (demo).</media:description></media:group>
  </entry>
 </feed>

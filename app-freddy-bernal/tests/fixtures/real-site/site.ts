@@ -63,9 +63,9 @@ const PHOTOS: Record<string, () => Uint8Array> = {
   [`${UP}/2026/10/cancha-3.jpg`]: () => pngOf(640, 480),
   [`${UP}/2026/10/cancha-4.jpg`]: () => pngOf(600, 400),
   [`${UP}/2026/10/vacuna-2.png`]: () => pngOf(640, 481),
-  [`${UP}/2023/01/retrato-portada.jpg`]: () => pngOf(1098, 618),
-  [`${UP}/2025/06/retrato.jpg`]: () => pngOf(640, 800),
-  [`${UP}/2026/10/portada-semanario.jpg`]: () => pngOf(471, 630),
+  [`${UP}/2022/05/retrato-portada.jpg`]: () => pngOf(1200, 675),
+  [`${UP}/2025/07/retrato.jpg`]: () => pngOf(640, 800),
+  [`${UP}/2026/09/portada-semanario.jpg`]: () => pngOf(480, 640),
 };
 // An AVIF file's first bytes (the library takes JPEG, PNG and WebP only).
 const AVIF = Uint8Array.from([0, 0, 0, 0x1c, 0x66, 0x74, 0x79, 0x70, 0x61, 0x76, 0x69, 0x66, 0, 0, 0, 0, 0x61, 0x76, 0x69, 0x66, 0x6d, 0x69, 0x66, 0x31, 0x6d, 0x69, 0x61, 0x66]);
@@ -76,7 +76,7 @@ export function demoPdf(): Uint8Array {
       { text: 'Semanario de prueba (demo)', size: 20, bold: true },
       { text: 'Edición inventada para las pruebas (demo).', gap: 12 },
     ],
-    { title: 'Semanario de prueba (demo)', createdAt: new Date(Date.UTC(2026, 9, 15, 12, 0, 0)) },
+    { title: 'Semanario de prueba (demo)', createdAt: new Date(Date.UTC(2026, 9, 8, 12, 0, 0)) },
   );
 }
 

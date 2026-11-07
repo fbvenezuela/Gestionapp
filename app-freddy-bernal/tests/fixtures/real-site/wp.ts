@@ -188,19 +188,19 @@ export const WP: { root: Record<string, unknown>; categories: Record<string, unk
   "pages": [
     {
       "id": 9301,
-      "date": "2014-07-14T15:52:36",
-      "date_gmt": "2014-07-14T15:52:36",
-      "modified": "2014-07-14T15:52:36",
-      "modified_gmt": "2014-07-14T15:52:36",
+      "date": "2013-03-09T10:20:00",
+      "date_gmt": "2013-03-09T10:20:00",
+      "modified": "2013-03-09T10:20:00",
+      "modified_gmt": "2013-03-09T10:20:00",
       "slug": "biografia",
       "status": "publish",
       "type": "post",
-      "link": "https://sitio-oficial.test/2014/07/biografia/",
+      "link": "https://sitio-oficial.test/2013/03/biografia/",
       "title": {
         "rendered": "Biografía"
       },
       "content": {
-        "rendered": "<header><h1 class=\"entry-title\"></h1></header>\n<div class=\"entry-content\"><p>Persona Demo nace en una ciudad de prueba el 1 de enero de 1970 (demo). Estudió en una escuela inventada.</p>\n<p>Fue alcaldesa de un municipio de prueba entre 2000 y 2008 (demo). Actualmente es miembro de una comisión inventada. Presidió una asociación de prueba (demo). Su correo era bio.demo@correo.test para las consultas.</p>\n<p>Condecoraciones</p>\n<p>&#8211; Orden de Prueba en su Primera Clase (demo).</p>\n<p>-Orden Inventada, Municipio Demo.</p>\n<p>Llave de Ciudades</p>\n<p>&#8211; Ciudad de Prueba (demo)</p>\n<p>&#8211; Ciudad Inventada (demo)</p></div>"
+        "rendered": "<header><h1 class=\"entry-title\"></h1></header>\n<div class=\"entry-content\"><p>Persona Demo nace en una ciudad de prueba el 1 de enero de 1970 (demo). Estudió en una escuela inventada.</p>\n<p>Fue alcaldesa de un municipio de prueba entre 2000 y 2008 (demo). Actualmente es miembro de una comisión inventada. Presidió una asociación de prueba (demo). Su correo era bio.demo@correo.test para las consultas.</p>\n<p>Condecoraciones</p>\n<p>&#8211; Orden de Prueba, clase única (demo).</p>\n<p>-Orden Inventada, Municipio Demo.</p>\n<p>Distinciones locales</p>\n<p>&#8211; Ciudad de Prueba (demo)</p>\n<p>&#8211; Ciudad Inventada (demo)</p></div>"
       },
       "excerpt": {
         "rendered": ""
@@ -214,19 +214,19 @@ export const WP: { root: Record<string, unknown>; categories: Record<string, unk
     },
     {
       "id": 9401,
-      "date": "2021-11-24T19:29:04",
-      "date_gmt": "2021-11-24T23:29:04",
-      "modified": "2021-11-24T19:29:04",
-      "modified_gmt": "2021-11-24T23:29:04",
+      "date": "2021-12-02T11:05:00",
+      "date_gmt": "2021-12-02T15:05:00",
+      "modified": "2021-12-02T11:05:00",
+      "modified_gmt": "2021-12-02T15:05:00",
       "slug": "persona-demo-gana-la-eleccion-de-prueba",
       "status": "publish",
       "type": "post",
-      "link": "https://sitio-oficial.test/2021/11/persona-demo-gana-la-eleccion-de-prueba/",
+      "link": "https://sitio-oficial.test/2021/12/persona-demo-gana-la-eleccion-de-prueba/",
       "title": {
-        "rendered": "Persona Demo: Ha ganado la prueba (demo)"
+        "rendered": "Persona Demo recibe la credencial de prueba (demo)"
       },
       "content": {
-        "rendered": "<p>Obtuvo la victoria en la elección de prueba (demo)</p>\n<h3><strong>Persona Demo: Ha ganado la prueba (demo)</strong></h3>\n<p><strong>Este miércoles</strong>, representantes de un consejo inventado entregaron la credencial a Persona Demo, quien ganó la elección de prueba (demo).</p>\n<p>Otro párrafo que no va (demo).</p>"
+        "rendered": "<p>Sumario inventado de la elección de prueba (demo)</p>\n<h3><strong>Persona Demo recibe la credencial de prueba (demo)</strong></h3>\n<p><strong>En un acto de prueba</strong>, un consejo inventado entregó a Persona Demo su credencial de la elección de prueba (demo).</p>\n<p>Otro párrafo que no va (demo).</p>"
       },
       "excerpt": {
         "rendered": ""
@@ -240,19 +240,19 @@ export const WP: { root: Record<string, unknown>; categories: Record<string, unk
     },
     {
       "id": 9402,
-      "date": "2025-06-05T20:33:52",
-      "date_gmt": "2025-06-06T00:33:52",
-      "modified": "2025-06-05T20:33:52",
-      "modified_gmt": "2025-06-06T00:33:52",
+      "date": "2025-07-10T09:41:00",
+      "date_gmt": "2025-07-10T13:41:00",
+      "modified": "2025-07-10T09:41:00",
+      "modified_gmt": "2025-07-10T13:41:00",
       "slug": "persona-demo-asume-de-nuevo",
       "status": "publish",
       "type": "post",
-      "link": "https://sitio-oficial.test/2025/06/persona-demo-asume-de-nuevo/",
+      "link": "https://sitio-oficial.test/2025/07/persona-demo-asume-de-nuevo/",
       "title": {
         "rendered": "Persona Demo asume de nuevo (demo)"
       },
       "content": {
-        "rendered": "<p>Persona Demo se juramentó para un nuevo período de prueba, en un acto inventado con muchas personas (demo).</p>"
+        "rendered": "<p>Persona Demo comenzó un período de prueba en un acto inventado (demo).</p>"
       },
       "excerpt": {
         "rendered": ""
@@ -307,7 +307,7 @@ export const WP: { root: Record<string, unknown>; categories: Record<string, unk
     {
       "id": 7003,
       "source_url": "https://sitio-oficial.test/wp-content/uploads/2026/10/cancha-3.jpg",
-      "alt_text": "photo_5087326206373341169_y",
+      "alt_text": "photo_0000000000000000000_y",
       "caption": {
         "rendered": "<p>Partido inaugural de prueba (demo)</p>"
       },
@@ -342,19 +342,19 @@ export const WP: { root: Record<string, unknown>; categories: Record<string, unk
     },
     {
       "id": 7101,
-      "source_url": "https://sitio-oficial.test/wp-content/uploads/2023/01/retrato-portada.jpg",
+      "source_url": "https://sitio-oficial.test/wp-content/uploads/2022/05/retrato-portada.jpg",
       "alt_text": "",
       "caption": {
         "rendered": ""
       },
       "media_details": {
-        "width": 1098,
-        "height": 618
+        "width": 1200,
+        "height": 675
       }
     },
     {
       "id": 7102,
-      "source_url": "https://sitio-oficial.test/wp-content/uploads/2025/06/retrato.jpg",
+      "source_url": "https://sitio-oficial.test/wp-content/uploads/2025/07/retrato.jpg",
       "alt_text": "",
       "caption": {
         "rendered": ""
@@ -366,14 +366,14 @@ export const WP: { root: Record<string, unknown>; categories: Record<string, unk
     },
     {
       "id": 7201,
-      "source_url": "https://sitio-oficial.test/wp-content/uploads/2026/10/portada-semanario.jpg",
+      "source_url": "https://sitio-oficial.test/wp-content/uploads/2026/09/portada-semanario.jpg",
       "alt_text": "",
       "caption": {
         "rendered": ""
       },
       "media_details": {
-        "width": 471,
-        "height": 630
+        "width": 480,
+        "height": 640
       }
     }
   ]

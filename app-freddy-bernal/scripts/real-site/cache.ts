@@ -21,11 +21,12 @@ export function readRealSnapshot(dir: string): RealSnapshot | null {
 
 const DAY = 86_400_000;
 
-/** How long a downloaded file stays good: an upload of WordPress never changes; a YouTube thumbnail or a Drive file can. */
+/** How long a downloaded file stays good: an upload of WordPress rarely changes, but one replaced at the same address
+ * (a face blurred, a photo taken down) must reach the demo within a week; a YouTube thumbnail or a Drive file sooner. */
 export function ttlFor(url: string): number {
   try {
     const u = new URL(url);
-    if (u.pathname.startsWith('/wp-content/uploads/')) return Infinity;
+    if (u.pathname.startsWith('/wp-content/uploads/')) return 7 * DAY;
     if (u.hostname.endsWith('ytimg.com')) return 3 * DAY;
     return DAY;
   } catch {
@@ -74,6 +75,13 @@ export class DownloadCache {
     }
   }
 
+  /** Drops what is kept for an address (bytes that turned out not to be what was asked for). */
+  forget(url: string): void {
+    const name = this.nameOf(url);
+    this.used.delete(name);
+    for (const ext of ['bin', 'json']) fs.rmSync(path.join(this.dir, `${name}.${ext}`), { force: true });
+  }
+
   write(url: string, bytes: Uint8Array, meta?: Record<string, string | null>): void {
     const name = this.nameOf(url);
     try {
@@ -105,7 +113,8 @@ export class DownloadCache {
   }
 }
 
-/** A source of bytes that looks in the cache first and keeps what it downloads. */
+/** A source of bytes that looks in the cache first and keeps what it downloads, until whoever reads it says the bytes
+ * were not good (forget: fetchPhoto checks every photo; what fails is downloaded again next time, never kept). */
 export function cachedBytes(inner: BytesSource, cache: DownloadCache | null): BytesSource {
   if (!cache) return inner;
   return {
@@ -115,6 +124,10 @@ export function cachedBytes(inner: BytesSource, cache: DownloadCache | null): By
       const got = await inner.bytes(url, maxBytes);
       if (got) cache.write(url, got);
       return got;
+    },
+    forget(url) {
+      cache.forget(url);
+      inner.forget?.(url);
     },
   };
 }

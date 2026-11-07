@@ -6,8 +6,9 @@
 // instructions: it is parsed, checked and cut, nothing in it runs. A time budget stops the whole run instead of letting
 // a slow site hold the build. The YouTube key (YOUTUBE_API_KEY) goes only in a request header: never in an address, a
 // log line, an error, the cache or the snapshot.
+import { sniffPhoto } from '../../src/lib/media/photo-meta';
 import { PoliteHttp, WpApi, type Fetcher } from '../web-import/wp-client';
-import { fetchPhoto, type FetchedPhoto, type PhotoWant, type WpMedia } from '../web-import/media';
+import { fetchPhoto, type BytesSource, type FetchedPhoto, type PhotoWant, type WpMedia } from '../web-import/media';
 import type { WpPost } from '../web-import/mapping';
 import { noPii } from '../web-import/pii';
 import type { Sources, WpRoot } from './build';
@@ -23,6 +24,8 @@ export const USER_AGENT = 'FB-Operaciones-360-demo/1.0 (+https://fb-operaciones-
 export const YOUTUBE_API = 'https://www.googleapis.com/youtube/v3';
 /** The pause before asking a YouTube feed again (a feed can answer 404 for a moment). */
 export const FEED_RETRY_MS = 2000;
+/** An answer of the official API (50 videos with their snippets fit in far less). */
+const YOUTUBE_API_MAX_BYTES = 2 * 1024 * 1024;
 
 export class TimeBudgetError extends Error {
   override name = 'TimeBudgetError';
@@ -50,6 +53,40 @@ export class Deadline {
   dispose(): void {
     clearTimeout(this.timer);
   }
+}
+
+// --- AVIF photos -----------------------------------------------------------------------------------------------------
+// The library takes JPEG, PNG and WebP; the official site has a few photos in AVIF. They become WebP here, with sharp
+// (the image library Next installs with itself): no metadata survives the conversion, and fetchPhoto then checks the
+// WebP like any other photo. Without sharp (it is optional), they stay out as before.
+type SharpLike = (input: Uint8Array, o: { limitInputPixels: number }) => { webp(o: { quality: number }): { toBuffer(): Promise<Uint8Array> } };
+let sharpLoad: Promise<SharpLike | null> | null = null;
+function loadSharp(): Promise<SharpLike | null> {
+  sharpLoad ??= import('sharp').then((m) => ((m as { default?: unknown }).default ?? m) as SharpLike).catch(() => null);
+  return sharpLoad;
+}
+
+/** An AVIF photo as WebP (null when it is not one, or it cannot be read). */
+export async function avifAsWebp(bytes: Uint8Array): Promise<Uint8Array | null> {
+  if (sniffPhoto(bytes.subarray(0, 64)) !== 'heif') return null;
+  const sharp = await loadSharp();
+  if (!sharp) return null;
+  try {
+    return new Uint8Array(await sharp(bytes, { limitInputPixels: 60_000_000 }).webp({ quality: 82 }).toBuffer());
+  } catch {
+    return null;
+  }
+}
+
+/** A source of photos whose AVIF ones come out as WebP. */
+export function withAvifAsWebp(inner: BytesSource): BytesSource {
+  return {
+    async bytes(url, maxBytes) {
+      const got = await inner.bytes(url, maxBytes);
+      return got ? ((await avifAsWebp(got)) ?? got) : got;
+    },
+    forget: (url) => inner.forget?.(url),
+  };
 }
 
 /** The body of a response, at most `max` bytes (null past that). */
@@ -140,7 +177,7 @@ export function networkSources(o: SourceOptions): Sources {
   /** A message with the key taken out (whatever said it). */
   const hideKey = (m: string) => (key ? m.split(key).join('[clave]') : m);
   const wp = new WpApi(api, site.origin);
-  const photos = cachedBytes(files, o.cache);
+  const photos = withAvifAsWebp(cachedBytes(files, o.cache));
   const thumbs = cachedBytes(youtube, o.cache);
 
   const text = async (http: PoliteHttp, url: string, accept: string, max: number): Promise<string | null> => {
@@ -152,7 +189,8 @@ export function networkSources(o: SourceOptions): Sources {
 
   return {
     async root() {
-      const r = await api.json<WpRoot>(`${site.origin}/wp-json/?_fields=name,description`);
+      // Two short texts: anything bigger is not what was asked.
+      const r = await api.json<WpRoot>(`${site.origin}/wp-json/?_fields=name,description`, 64 * 1024);
       return r?.data && typeof r.data === 'object' ? r.data : null;
     },
     categories: () => wp.categories(),
@@ -206,14 +244,14 @@ export function networkSources(o: SourceOptions): Sources {
       if (!google) return { list: null, misses };
       try {
         const q = new URLSearchParams({ part: 'snippet,contentDetails,status', playlistId: yt.playlistId, maxResults: String(Math.min(50, Math.max(1, o.config.maxEpisodes * 2))) });
-        const items = await google.json<unknown>(`${YOUTUBE_API}/playlistItems?${q}`);
+        const items = await google.json<unknown>(`${YOUTUBE_API}/playlistItems?${q}`, YOUTUBE_API_MAX_BYTES);
         if (!items) throw new Error('la API no encontró la lista');
         const list: VideoList | null = programVideos(feedFromApi(items.data), 'api', yt, programName);
         if (!list) throw new Error('la API no trae emisiones del canal configurado');
         const ids = list.entries.slice(0, o.config.maxEpisodes).map((e) => e.videoId);
         // How long each one is (optional: without it the episodes go without their minutes).
         const lengths = ids.length
-          ? await google.json<unknown>(`${YOUTUBE_API}/videos?${new URLSearchParams({ part: 'contentDetails', id: ids.join(','), maxResults: '50' })}`).catch((e) => {
+          ? await google.json<unknown>(`${YOUTUBE_API}/videos?${new URLSearchParams({ part: 'contentDetails', id: ids.join(','), maxResults: '50' })}`, YOUTUBE_API_MAX_BYTES).catch((e) => {
               if (o.deadline.passed) throw e;
               return null;
             })
@@ -245,7 +283,7 @@ export function networkSources(o: SourceOptions): Sources {
         throw new Error(`Drive no entregó un PDF (${type.split(';')[0] || 'sin tipo'})`);
       }
       const bytes = await readCapped(res, PDF_MAX_BYTES);
-      if (!bytes) throw new Error('el PDF pasa de 20 MB');
+      if (!bytes) throw new Error(`el PDF pasa de ${Math.round(PDF_MAX_BYTES / (1024 * 1024))} MB`);
       if (String.fromCharCode(...bytes.subarray(0, 5)) !== '%PDF-') throw new Error('lo que entregó Drive no es un PDF');
       const fileName = fileNameFromDisposition(res.headers.get('content-disposition'));
       o.cache?.write(url, bytes, { fileName });

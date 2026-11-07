@@ -112,12 +112,12 @@ describe('la foto de la web oficial (inventada)', () => {
   it('las emisiones del canal: título y día, la miniatura como foto nuestra, direcciones por número de emisión', () => {
     const eps = snap.items.filter((i) => i.kind === 'episode');
     // Newest first (the same day's ones in a fixed order of their own).
-    expect(eps.map((e) => e.draft.date)).toEqual(['2026-10-31', '2026-10-31', '2026-10-24', '2026-10-17']);
+    expect(eps.map((e) => e.draft.date)).toEqual(['2026-10-30', '2026-10-30', '2026-10-24', '2026-10-17']);
     const byVideo = [...eps].sort((a, b) => String(a.draft.youtubeId).localeCompare(String(b.draft.youtubeId)));
     expect(byVideo.map((e) => [e.slug, e.draft.youtubeId, e.draft.date])).toEqual([
       ['entrevista-especial-de-prueba-demo-demo-video4', 'demo_Video4', '2026-10-17'],
-      ['programa-demo-12', 'demoVideo01', '2026-10-31'],
-      ['programa-demo-12-demovideo02', 'demoVideo02', '2026-10-31'],
+      ['programa-demo-12', 'demoVideo01', '2026-10-30'],
+      ['programa-demo-12-demovideo02', 'demoVideo02', '2026-10-30'],
       ['programa-demo-11', 'demoVideo03', '2026-10-24'],
     ]);
     expect(eps.find((e) => e.draft.youtubeId === 'demoVideo03')!.draft.title).toBe('PROGRAMA DEMO N°11 // VIERNES DE PRUEBA & MÁS (demo)');
@@ -131,19 +131,22 @@ describe('la foto de la web oficial (inventada)', () => {
     expect(seen.map((s) => s.url)).toContain('https://i.ytimg.com/vi/demoVideo02/hqdefault.jpg');
   });
 
-  it('las cuentas configuradas que enlaza el canal del gobernador (y el canal mismo)', () => {
+  it('las cuentas configuradas que enlazan el canal del gobernador (y el canal mismo) o la portada de la web oficial', () => {
+    // TikTok: only the official home links it; the home's other account is not one of the configured ones.
     expect(snap.accounts).toEqual({
       youtubeOk: true,
-      verifiedHandles: ['facebook:100000000000001', 'instagram:cuenta_demo', 'x:cuenta_demo', 'youtube:canaldemo.oficial'],
+      verifiedHandles: ['facebook:100000000000001', 'instagram:cuenta_demo', 'tiktok:cuenta_demo', 'x:cuenta_demo', 'youtube:canaldemo.oficial'],
     });
   });
 
   it('el Semanario: su portada de la web oficial y su PDF de Drive, con su día; el nombre del archivo no decía nada', () => {
     const doc = snap.items.find((i) => i.kind === 'document')!;
-    expect(doc.draft).toMatchObject({ title: 'Semanario de prueba (demo)', category: 'semanario', date: '2026-10-15', pages: 1 });
-    expect(doc.slug).toBe('semanario-de-prueba-demo-2026-10-15');
-    expect(mediaOf(doc.draft.fileId)).toMatchObject({ kind: 'document', mime: 'application/pdf', title: 'Semanario de prueba (demo)' });
-    expect(mediaOf(doc.draft.coverId)).toMatchObject({ kind: 'image', width: 471, height: 630, alt: 'Semanario de prueba (demo)' });
+    // Its file's name says nothing: the edition's day names it (two editions never read the same).
+    expect(doc.draft).toMatchObject({ title: 'Edición del 8 de octubre de 2026', category: 'semanario', date: '2026-10-08', pages: 1 });
+    expect(doc.slug).toBe('semanario-de-prueba-demo-2026-10-08');
+    const named = 'Semanario de prueba (demo), edición del 8 de octubre de 2026';
+    expect(mediaOf(doc.draft.fileId)).toMatchObject({ kind: 'document', mime: 'application/pdf', title: named });
+    expect(mediaOf(doc.draft.coverId)).toMatchObject({ kind: 'image', width: 480, height: 640, alt: named });
     expect(doc.id).toBe(realIds.document(mediaOf(doc.draft.fileId)!.sha256));
     // Only the weekly's file: the other Drive link of the home is not asked for.
     expect(seen.some((s) => s.url.includes('OtroArchivoDemo'))).toBe(false);
@@ -156,18 +159,18 @@ describe('la foto de la web oficial (inventada)', () => {
     expect(bio).toContain('Presidió una asociación de prueba (demo).');
     expect(bio).not.toMatch(/ctualmente/);
     expect(snap.pages.honors).toEqual([
-      { type: 'list', items: ['Orden de Prueba en su Primera Clase (demo).', 'Orden Inventada, Municipio Demo.'] },
-      { type: 'heading', level: 3, text: 'Llave de Ciudades' },
+      { type: 'list', items: ['Orden de Prueba, clase única (demo).', 'Orden Inventada, Municipio Demo.'] },
+      { type: 'heading', level: 3, text: 'Distinciones locales' },
       { type: 'list', items: ['Ciudad de Prueba (demo)', 'Ciudad Inventada (demo)'] },
     ]);
     expect(snap.pages.office).toEqual([
-      { type: 'heading', level: 3, text: '24 de noviembre de 2021' },
-      { type: 'paragraph', text: 'Este miércoles, representantes de un consejo inventado entregaron la credencial a Persona Demo, quien ganó la elección de prueba (demo).' },
-      { type: 'heading', level: 3, text: '5 de junio de 2025' },
-      { type: 'paragraph', text: 'Persona Demo se juramentó para un nuevo período de prueba, en un acto inventado con muchas personas (demo).' },
+      { type: 'heading', level: 3, text: '2 de diciembre de 2021' },
+      { type: 'paragraph', text: 'En un acto de prueba, un consejo inventado entregó a Persona Demo su credencial de la elección de prueba (demo).' },
+      { type: 'heading', level: 3, text: '10 de julio de 2025' },
+      { type: 'paragraph', text: 'Persona Demo comenzó un período de prueba en un acto inventado (demo).' },
     ]);
-    expect(snap.pages.bioSourceUrl).toBe(`https://${DEMO_HOST}/2014/07/biografia/`);
-    expect(mediaOf(snap.pages.heroMediaId)).toMatchObject({ width: 1098, height: 618, alt: 'Persona Demo' });
+    expect(snap.pages.bioSourceUrl).toBe(`https://${DEMO_HOST}/2013/03/biografia/`);
+    expect(mediaOf(snap.pages.heroMediaId)).toMatchObject({ width: 1200, height: 675, alt: 'Persona Demo' });
     expect(mediaOf(snap.pages.bioMediaId)).toMatchObject({ width: 640, height: 800 });
   });
 
@@ -205,8 +208,9 @@ describe('entre construcciones', () => {
     const again = fakeFetcher({ youtubeDown: true });
     const second = await prebuild({ ...opts, fetcher: again });
     expect(second.status).toBe('written');
-    // No photo of the official site downloaded again.
-    expect(again.seen.filter((s) => s.url.includes('/wp-content/uploads/'))).toEqual([]);
+    // No photo of the official site that passed its checks is downloaded again; the one that did not (the AVIF the fake
+    // site serves is only its first bytes) is asked again, never kept.
+    expect(again.seen.filter((s) => s.url.includes('/wp-content/uploads/')).map((s) => new URL(s.url).pathname)).toEqual(['/wp-content/uploads/2026/10/vacuna.avif']);
     const s = readRealSnapshot(path.join(app, REAL_SITE.dir))!;
     expect(s.report.carriedOver).toEqual(['youtube']);
     expect(s.items.filter((i) => i.kind === 'episode')).toHaveLength(4);
@@ -228,7 +232,8 @@ describe('entre construcciones', () => {
     cache.write(thumb, Uint8Array.from([4]), { fileName: 'x (demo)' });
     expect(cache.read(photo)?.bytes).toEqual(Uint8Array.from([1, 2, 3]));
     expect(cache.read(thumb)?.meta).toEqual({ fileName: 'x (demo)' });
-    now += 10 * 86_400_000;
+    // A WordPress upload is good for a week (one replaced at the same address reaches the demo), a thumbnail for three days.
+    now += 5 * 86_400_000;
     expect(cache.read(photo)).not.toBeNull();
     expect(cache.read(thumb)).toBeNull();
     const fresh = new DownloadCache(dir, () => now);
@@ -236,6 +241,13 @@ describe('entre construcciones', () => {
     expect(fresh.prune()).toBe(2);
     expect(fresh.read(photo)).not.toBeNull();
     expect(fresh.read(thumb, Infinity)).toBeNull();
+    now += 3 * 86_400_000;
+    expect(fresh.read(photo)).toBeNull();
+    // What turned out not to be what was asked for is forgotten at once (and never pruned as «used»).
+    fresh.write(photo, Uint8Array.from([5]));
+    fresh.forget(photo);
+    expect(fresh.read(photo, Infinity)).toBeNull();
+    expect(fresh.used.size).toBe(0);
   });
 });
 

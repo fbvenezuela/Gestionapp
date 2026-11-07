@@ -40,11 +40,11 @@ describe('las direcciones de las emisiones', () => {
   const P = 'Programa Demo';
 
   it('el número de la emisión, escriban como lo escriban', () => {
-    expect(episodeNumber('Lo que viene | Programa Demo 261', P)).toBe(261);
-    expect(episodeNumber('PROGRAMA DEMO No235 // VIERNES (demo)', P)).toBe(235);
-    expect(episodeNumber('Programa Demo N°244 tema de prueba', P)).toBe(244);
-    expect(episodeNumber('Programa Demo: 219', P)).toBe(219);
-    expect(episodeNumber('programademo #161', P)).toBe(161);
+    expect(episodeNumber('Avance | Programa Demo 73', P)).toBe(73);
+    expect(episodeNumber('PROGRAMA DEMO No64 // VIERNES (demo)', P)).toBe(64);
+    expect(episodeNumber('Programa Demo N°580 tema de prueba', P)).toBe(580);
+    expect(episodeNumber('Programa Demo: 41', P)).toBe(41);
+    expect(episodeNumber('programademo #1029', P)).toBe(1029);
     expect(episodeNumber('Entrevista de prueba (demo)', P)).toBeNull();
     expect(episodeNumber('Programa Demo 2', P)).toBeNull();
   });

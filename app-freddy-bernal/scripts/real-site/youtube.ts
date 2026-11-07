@@ -30,11 +30,39 @@ function textOf(raw: string): string {
   return (cdata ? cdata[1] : decodeEntities(raw)).trim();
 }
 
+/** Where the element <name …>…</name> that starts at or after `from` opens and closes (its content's bounds), or
+ * null. Found with indexOf, never a regular expression over the whole text: a hostile feed with thousands of opening
+ * tags and no closing one costs one pass, not one pass per tag. */
+function element(xml: string, name: string, from = 0): { start: number; end: number; after: number } | null {
+  const open = `<${name}`;
+  const close = `</${name}>`;
+  for (let at = xml.indexOf(open, from); at >= 0; at = xml.indexOf(open, at + open.length)) {
+    const next = xml[at + open.length];
+    // «<entry>» or «<entry …>», never «<entryX>».
+    if (next !== '>' && next !== '/' && !/\s/.test(next ?? '')) continue;
+    const gt = xml.indexOf('>', at + open.length);
+    if (gt < 0) return null;
+    if (xml[gt - 1] === '/') return { start: gt + 1, end: gt + 1, after: gt + 1 };
+    const end = xml.indexOf(close, gt + 1);
+    // No closing tag after this one: none after a later one either.
+    if (end < 0) return null;
+    return { start: gt + 1, end, after: end + close.length };
+  }
+  return null;
+}
+
 /** The text of the first <name>…</name> in a piece of XML (null when absent). */
 function tag(xml: string, name: string): string | null {
-  const n = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const m = new RegExp(`<${n}(?:\\s[^>]*)?>([\\s\\S]*?)</${n}>`).exec(xml);
-  return m ? textOf(m[1]) : null;
+  const el = element(xml, name);
+  return el ? textOf(xml.slice(el.start, el.end)) : null;
+}
+
+/** A channel's id as YouTube writes it everywhere but the head of a channel's own feed, which drops its «UC»
+ * («HqsqLF…» there, «UCHqsqLF…» in each entry and in the configuration). */
+function channelIdOf(raw: string | null): string | null {
+  const v = (raw ?? '').trim();
+  if (!v) return null;
+  return /^UC[A-Za-z0-9_-]{22}$/.test(v) ? v : /^[A-Za-z0-9_-]{22}$/.test(v) ? `UC${v}` : v;
 }
 
 /** A YouTube feed (videos.xml): the channel, the list and its entries, newest first. */
@@ -43,8 +71,11 @@ export function parseFeed(xml: string): Feed {
   const firstEntry = src.indexOf('<entry');
   const head = firstEntry >= 0 ? src.slice(0, firstEntry) : src;
   const entries: FeedEntry[] = [];
-  for (const m of src.matchAll(/<entry(?:\s[^>]*)?>([\s\S]*?)<\/entry>/g)) {
-    const e = m[1];
+  const entryChannels = new Set<string>();
+  for (let el = element(src, 'entry'); el; el = element(src, 'entry', el.after)) {
+    const e = src.slice(el.start, el.end);
+    const own = channelIdOf(tag(e, 'yt:channelId'));
+    if (own) entryChannels.add(own);
     const videoId = tag(e, 'yt:videoId') ?? '';
     const title = (tag(e, 'title') ?? '').replace(/\s+/g, ' ').trim();
     const published = tag(e, 'published') ?? '';
@@ -52,12 +83,12 @@ export function parseFeed(xml: string): Feed {
     entries.push({ videoId, title, published: new Date(published).toISOString(), description: tag(e, 'media:description') ?? '' });
   }
   entries.sort((a, b) => b.published.localeCompare(a.published) || a.videoId.localeCompare(b.videoId));
-  // The list's channel (a channel's own feed says it too, and so does each entry).
-  const channelId = tag(head, 'yt:channelId') || tag(src, 'yt:channelId') || null;
+  // The list's channel: its head says it (a channel's own feed without the «UC»), and so does each entry.
+  const channelId = channelIdOf(tag(head, 'yt:channelId')) ?? (entryChannels.size === 1 ? [...entryChannels][0] : null);
   return { channelId, playlistId: tag(head, 'yt:playlistId') || null, entries };
 }
 
-/** The episode's number in its title («<Programa> 261», «<PROGRAMA> N°235 // …», «<Programa>: 219»), or null. */
+/** The episode's number in its title («<Programa> 12», «<PROGRAMA> N°11 // …», «<Programa>: 9»), or null. */
 export function episodeNumber(title: string, programName: string): number | null {
   const words = programName
     .trim()
@@ -72,20 +103,49 @@ export function episodeNumber(title: string, programName: string): number | null
 /** A video id as a piece of an address (lower case; «_» becomes «-»). */
 const idSlug = (videoId: string) => videoId.toLowerCase().replace(/_/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 
-/** The episodes' addresses, in the order given (newest first): «<programa>-<n>» for the first video with that number,
- * the same plus its video id for another part of that episode; the title and the id when there is no number. */
-export function episodeSlugs(entries: readonly { videoId: string; title: string }[], programName: string): Map<string, string> {
+type EpisodeEntry = { videoId: string; title: string; published?: string; minutes?: number };
+
+/** Which video of an episode is the broadcast itself: the longest when the lengths are known, else the first one
+ * uploaded (later uploads with the same number are its parts, and they never take its address). */
+function mainFirst(a: EpisodeEntry, b: EpisodeEntry): number {
+  // Plain comparisons (never the locale's: the same order on every machine).
+  const cmp = (x: string, y: string) => (x < y ? -1 : x > y ? 1 : 0);
+  return (b.minutes ?? 0) - (a.minutes ?? 0) || cmp(a.published ?? '', b.published ?? '') || cmp(a.videoId, b.videoId);
+}
+
+/** The episodes' addresses, in the order given: «<programa>-<n>» for the broadcast with that number (mainFirst), the
+ * same plus its video id for another part of that episode; the title and the id when there is no number. */
+export function episodeSlugs(entries: readonly EpisodeEntry[], programName: string): Map<string, string> {
   const prefix = slugFromTitle(programName) || 'episodio';
   const used = new Set<string>();
-  const out = new Map<string, string>();
-  for (const e of entries) {
-    const n = episodeNumber(e.title, programName);
+  const slugOf = new Map<string, string>();
+  const numbered = entries
+    .map((e) => ({ e, n: episodeNumber(e.title, programName) }))
+    .sort((a, b) => (a.n ?? -1) - (b.n ?? -1) || mainFirst(a.e, b.e));
+  for (const { e, n } of numbered) {
     const base = n !== null ? `${prefix}-${n}` : `${slugFromTitle(e.title).slice(0, 90).replace(/-+$/, '') || prefix}-${idSlug(e.videoId)}`;
     let slug = base;
     if (used.has(slug)) slug = `${base}-${idSlug(e.videoId)}`;
     for (let k = 2; used.has(slug); k++) slug = `${base}-${idSlug(e.videoId)}-${k}`;
     used.add(slug);
-    out.set(e.videoId, slug.slice(0, 120).replace(/-+$/, ''));
+    slugOf.set(e.videoId, slug.slice(0, 120).replace(/-+$/, ''));
+  }
+  return new Map(entries.map((e) => [e.videoId, slugOf.get(e.videoId)!]));
+}
+
+/** The newest videos of at most `max` episodes (newest first): the parts of one broadcast count once; a video without
+ * a number counts as one episode. */
+export function latestEpisodes<T extends EpisodeEntry>(entries: readonly T[], max: number, programName: string): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const e of entries) {
+    const n = episodeNumber(e.title, programName);
+    const key = n !== null ? `n:${n}` : `v:${e.videoId}`;
+    if (!seen.has(key)) {
+      if (seen.size >= max) continue;
+      seen.add(key);
+    }
+    out.push(e);
   }
   return out;
 }

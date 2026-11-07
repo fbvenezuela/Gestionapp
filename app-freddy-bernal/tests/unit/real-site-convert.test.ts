@@ -105,7 +105,7 @@ describe('las fotos y su texto alternativo', () => {
   it('el de WordPress; si es solo un nombre de archivo o falta, la leyenda; si no, el título (y «(foto N)» en la galería)', () => {
     const own = wantFromWp(wp(1, 'a.jpg', 'Vecinos en la plaza (demo)'), HOSTS, 1600);
     expect(altFor(own, 'Título de prueba (demo)', null)).toBe('Vecinos en la plaza (demo)');
-    const fileName = wantFromWp(wp(2, 'b.jpg', 'photo_5087326206373341169_y', '<p>Acto inventado (demo)</p>'), HOSTS, 1600);
+    const fileName = wantFromWp(wp(2, 'b.jpg', 'photo_0000000000000000000_y', '<p>Acto inventado (demo)</p>'), HOSTS, 1600);
     expect(altFor(fileName, 'Título de prueba (demo)', 0)).toBe('Acto inventado (demo)');
     const none = wantFromWp(wp(3, 'c.jpg'), HOSTS, 1600);
     expect(none.alt).toMatch(/^\[Por escribir\]/);
@@ -155,7 +155,7 @@ describe('la página del gobernador', () => {
         content: {
           rendered: `<p>Persona Demo nace en una ciudad de prueba (demo). Actualmente dirige una comisión inventada.</p>
             <p>Fue alcaldesa de prueba (demo). Hoy actualmente no se sabe (demo). Presidió una asociación (demo).</p>
-            <p>Condecoraciones</p><p>&#8211; Orden de Prueba (demo).</p><p>-Orden Inventada.</p><p>Llave de Ciudades</p><p>&#8211; Ciudad Demo</p>`,
+            <p>Condecoraciones</p><p>&#8211; Orden de Prueba (demo).</p><p>-Orden Inventada.</p><p>Distinciones locales</p><p>&#8211; Ciudad Demo</p>`,
         },
       }),
       ctx,
@@ -166,7 +166,7 @@ describe('la página del gobernador', () => {
     ]);
     expect(bio.honors).toEqual([
       { type: 'list', items: ['Orden de Prueba (demo).', 'Orden Inventada.'] },
-      { type: 'heading', level: 3, text: 'Llave de Ciudades' },
+      { type: 'heading', level: 3, text: 'Distinciones locales' },
       { type: 'list', items: ['Ciudad Demo'] },
     ]);
     expect(bio.sourceUrl).toBe('https://sitio-oficial.test/2026/10/nota-de-prueba-demo/');
@@ -177,13 +177,13 @@ describe('la página del gobernador', () => {
     const lead = officeLeadOf(
       post({
         date_gmt: '2025-06-06T00:33:52', title: { rendered: 'Persona Demo asume (demo)' },
-        content: { rendered: '<p>Sumario corto (demo)</p><h3><strong>Persona Demo asume (demo)</strong></h3><p><strong>Persona Demo</strong> se juramentó para un período de prueba (demo).</p><p>Otro (demo).</p>' },
+        content: { rendered: '<p>Sumario corto (demo)</p><h3><strong>Persona Demo asume (demo)</strong></h3><p><strong>Persona Demo</strong> comenzó un período de prueba (demo).</p><p>Otro (demo).</p>' },
       }),
       ctx,
     );
     expect(lead).toEqual([
       { type: 'heading', level: 3, text: '5 de junio de 2025' },
-      { type: 'paragraph', text: 'Persona Demo se juramentó para un período de prueba (demo).' },
+      { type: 'paragraph', text: 'Persona Demo comenzó un período de prueba (demo).' },
     ]);
     // Without the repeated heading: the first paragraph that reads as one (a kicker is short).
     const plain = officeLeadOf(post({ content: { rendered: '<p>Sumario (demo)</p><p>Un párrafo largo de prueba con más de doce palabras para que cuente como el primero de verdad (demo).</p>' } }), ctx);

@@ -106,10 +106,18 @@ export class PoliteHttp {
     }
   }
 
-  async json<T>(raw: string): Promise<{ data: T; headers: Headers } | null> {
+  /** JSON of at most `maxBytes` (8 MB unless said: a hundred posts with their text fit many times over). A bigger answer
+   * is refused before it is read whole: it never fills the memory of the build. */
+  async json<T>(raw: string, maxBytes = JSON_MAX_BYTES): Promise<{ data: T; headers: Headers } | null> {
     const res = await this.get(raw, 'application/json');
     if (!res) return null;
-    const text = await res.text();
+    let text: string;
+    try {
+      text = new TextDecoder('utf-8').decode(await readBody(res, maxBytes));
+    } catch (e) {
+      if ((e as Error).name === 'TooBigError') throw new ImportHttpError(`La web vieja devolvió demasiados datos en ${new URL(raw).pathname}.`, res.status);
+      throw e;
+    }
     try {
       return { data: JSON.parse(text) as T, headers: res.headers };
     } catch {
@@ -121,33 +129,45 @@ export class PoliteHttp {
   async bytes(raw: string, maxBytes: number): Promise<Uint8Array | null> {
     const res = await this.get(raw, 'image/avif,image/webp,image/png,image/jpeg,*/*;q=0.5', 60_000);
     if (!res) return null;
-    const declared = Number(res.headers.get('content-length'));
-    if (Number.isFinite(declared) && declared > maxBytes) {
-      await res.body?.cancel().catch(() => {});
+    return readBody(res, maxBytes);
+  }
+}
+
+/** The JSON a request takes unless it says otherwise. */
+export const JSON_MAX_BYTES = 8 * 1024 * 1024;
+
+/** A response's body, at most `maxBytes` (TooBigError past that, read no further). */
+async function readBody(res: Response, maxBytes: number): Promise<Uint8Array> {
+  const declared = Number(res.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    await res.body?.cancel().catch(() => {});
+    throw new TooBigError(`más de ${maxBytes} bytes`);
+  }
+  if (!res.body) {
+    const all = new Uint8Array(await res.arrayBuffer());
+    if (all.length > maxBytes) throw new TooBigError(`más de ${maxBytes} bytes`);
+    return all;
+  }
+  const reader = res.body.getReader();
+  const parts: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.length;
+    if (size > maxBytes) {
+      await reader.cancel().catch(() => {});
       throw new TooBigError(`más de ${maxBytes} bytes`);
     }
-    if (!res.body) return new Uint8Array(await res.arrayBuffer());
-    const reader = res.body.getReader();
-    const parts: Uint8Array[] = [];
-    let size = 0;
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      size += value.length;
-      if (size > maxBytes) {
-        await reader.cancel().catch(() => {});
-        throw new TooBigError(`más de ${maxBytes} bytes`);
-      }
-      parts.push(value);
-    }
-    const out = new Uint8Array(size);
-    let at = 0;
-    for (const p of parts) {
-      out.set(p, at);
-      at += p.length;
-    }
-    return out;
+    parts.push(value);
   }
+  const out = new Uint8Array(size);
+  let at = 0;
+  for (const p of parts) {
+    out.set(p, at);
+    at += p.length;
+  }
+  return out;
 }
 
 const POST_FIELDS = [

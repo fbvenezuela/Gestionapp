@@ -1,7 +1,9 @@
 // The weekly («Semanario») as the official home shows it: a section titled «Semanario» with one cover photo linked to a
 // PDF on Google Drive. Found in the home's HTML (scripts/web-import/html.ts reads it; nothing in it runs), its cover
 // brought from the official site and its PDF from Drive (only drive.google.com / drive.usercontent.google.com, a PDF
-// of at most 20 MB). The Drive address and its id are never written anywhere but the build's memory. Pure.
+// of at most 4 MB: the demo serves it from a function). The Drive address and its id are never written anywhere but the
+// build's memory. Pure.
+import { REAL_FILE_MAX_BYTES } from '../../src/lib/web/real-site';
 import { findAll, parseHtml, textOf, type HtmlElement, type HtmlNode } from '../web-import/html';
 import { fold } from './text';
 
@@ -11,9 +13,10 @@ export type SemanarioRef = {
 };
 
 export const DRIVE_HOSTS = ['drive.google.com', 'drive.usercontent.google.com'] as const;
-export const PDF_MAX_BYTES = 20 * 1024 * 1024;
+export const PDF_MAX_BYTES = REAL_FILE_MAX_BYTES;
 
-/** The id of a Drive file from its addresses («/file/d/<id>/view», «/open?id=<id>», «/uc?id=<id>»), or null. */
+/** The id of a Drive file from its addresses («/file/d/<id>/view», «/open?id=<id>», «/uc?id=<id>», and the download
+ * address «drive.usercontent.google.com/download?id=<id>»), or null. */
 export function driveFileId(href: string): string | null {
   let u: URL;
   try {
@@ -21,9 +24,11 @@ export function driveFileId(href: string): string | null {
   } catch {
     return null;
   }
-  if (u.protocol !== 'https:' || !['drive.google.com', 'docs.google.com'].includes(u.hostname.toLowerCase())) return null;
-  const inPath = /^\/file\/d\/([A-Za-z0-9_-]{10,200})(?:\/|$)/.exec(u.pathname);
-  const id = inPath?.[1] ?? (/^\/(?:open|uc)$/.test(u.pathname) ? u.searchParams.get('id') : null);
+  const host = u.hostname.toLowerCase();
+  if (u.protocol !== 'https:' || !['drive.google.com', 'docs.google.com', 'drive.usercontent.google.com'].includes(host)) return null;
+  const inPath = host === 'drive.usercontent.google.com' ? null : /^\/file\/d\/([A-Za-z0-9_-]{10,200})(?:\/|$)/.exec(u.pathname);
+  const query = host === 'drive.usercontent.google.com' ? /^\/(?:download|uc)$/ : /^\/(?:open|uc)$/;
+  const id = inPath?.[1] ?? (query.test(u.pathname) ? u.searchParams.get('id') : null);
   return id && /^[A-Za-z0-9_-]{10,200}$/.test(id) ? id : null;
 }
 
@@ -47,10 +52,11 @@ const imageSrc = (img: HtmlElement) => {
   return '';
 };
 
-/** The home's «Semanario» section: the Drive file its cover links, and the cover. Null when the home has none. */
+/** The home's «Semanario» section (a heading that starts with the word: «Semanario», «Semanario El Informativo»…):
+ * the Drive file its cover links, and the cover. Null when the home has none. */
 export function findSemanario(html: string, baseUrl: string): SemanarioRef | null {
   const all = elementsInOrder(parseHtml(html));
-  const at = all.findIndex((el) => /^h[1-6]$/.test(el.tag) && fold(textOf(el)) === 'semanario');
+  const at = all.findIndex((el) => /^h[1-6]$/.test(el.tag) && /^semanario\b/.test(fold(textOf(el))));
   if (at < 0) return null;
   for (let i = at + 1; i < all.length; i++) {
     const el = all[i];
@@ -91,7 +97,7 @@ export function fileNameFromDisposition(header: string | null): string | null {
   return plain ? (plain[2] ?? plain[1]).trim() || null : null;
 }
 
-/** A name that says something («Semanario N° 189», not «1_5082363512936728660.pdf»): its words, or null. */
+/** A name that says something («Semanario N° 12», not «1_0000000000000000001.pdf»): its words, or null. */
 export function meaningfulName(raw: string | null): string | null {
   if (!raw) return null;
   const s = raw
@@ -117,7 +123,7 @@ const latin1 = (bytes: Uint8Array, from: number, to: number) => {
 /** The readable start and end of a PDF (its metadata lives there in practice). */
 const pdfText = (bytes: Uint8Array) => `${latin1(bytes, 0, 64 * 1024)}\n${latin1(bytes, Math.max(0, bytes.length - 64 * 1024), bytes.length)}`;
 
-/** The day a PDF was made («/CreationDate (D:20261015061736-04'00')» → «2026-10-15», in its own zone), or null. */
+/** The day a PDF was made («/CreationDate (D:20260302101500-04'00')» → «2026-03-02», in its own zone), or null. */
 export function pdfCreationDay(bytes: Uint8Array): string | null {
   const m = /\/CreationDate\s*\(\s*D:(\d{4})(\d{2})(\d{2})/.exec(pdfText(bytes));
   if (!m) return null;
@@ -125,12 +131,25 @@ export function pdfCreationDay(bytes: Uint8Array): string | null {
   return !Number.isNaN(Date.parse(`${day}T00:00:00Z`)) && new Date(`${day}T00:00:00Z`).toISOString().startsWith(day) ? day : null;
 }
 
-/** How many pages a PDF says it has (its page tree's /Count), or null. */
+/** How many pages a PDF says it has (its page tree's /Count), or null. Only its first and last megabyte are read (the
+ * page tree's root lives there in practice), and each «/Type /Pages» is looked at within its own dictionary: a hostile
+ * file costs one pass, never one pass per mark. */
 export function pdfPageCount(bytes: Uint8Array): number | null {
-  const text = latin1(bytes, 0, bytes.length > 8 * 1024 * 1024 ? 8 * 1024 * 1024 : bytes.length);
+  const MB = 1024 * 1024;
+  const text = bytes.length <= 2 * MB ? latin1(bytes, 0, bytes.length) : `${latin1(bytes, 0, MB)}\n${latin1(bytes, bytes.length - MB, bytes.length)}`;
+  const WINDOW = 4096;
   let best = 0;
-  for (const m of text.matchAll(/\/Type\s*\/Pages\b[^>]*?\/Count\s+(\d{1,5})|\/Count\s+(\d{1,5})[^>]*?\/Type\s*\/Pages\b/g)) {
-    best = Math.max(best, Number(m[1] ?? m[2]));
+  let looked = 0;
+  for (const m of text.matchAll(/\/Type\s*\/Pages\b/g)) {
+    if (++looked > 200) break;
+    const before = text.slice(Math.max(0, m.index - WINDOW), m.index);
+    const after = text.slice(m.index + m[0].length, m.index + m[0].length + WINDOW);
+    // The dictionary around it: from its «<<» to its «>>» (a nested one ends the search on that side).
+    const open = Math.max(before.lastIndexOf('<<'), before.lastIndexOf('>>') + 2);
+    const close = after.search(/>>|<</);
+    const dict = `${before.slice(Math.max(0, open))} ${close >= 0 ? after.slice(0, close) : after}`;
+    const c = /\/Count\s+(\d{1,5})\b/.exec(dict);
+    if (c) best = Math.max(best, Number(c[1]));
   }
   return best >= 1 && best <= 5000 ? best : null;
 }

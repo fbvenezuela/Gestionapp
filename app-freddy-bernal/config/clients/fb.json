@@ -923,7 +923,7 @@
    ]
   },
   "realSite": {
-   "$comment": "Contenido real en la demo publicada (REAL_SITE_CONTENT, scripts/real-site): al construir, sin DATABASE_URL, se leen la web oficial (source, solo GET), el canal de YouTube y el Semanario, y se guardan en .real-site/ (fuera de git). Aquí van solo identificadores públicos: el sitio, los números de las entradas de WordPress (biografía y toma de posesión), de las fotos de portada y del gobernador, los topes y el canal de YouTube (id del canal y de su lista de videos largos). Nunca contenido, enlaces de Drive ni sus ids.",
+   "$comment": "Contenido real en la demo publicada (REAL_SITE_CONTENT, scripts/real-site): al construir, sin DATABASE_URL, se leen la web oficial (source, solo GET), el canal de YouTube y el Semanario, y se guardan en .real-site/ (fuera de git). Aquí van solo identificadores públicos: el sitio, los números de las entradas de WordPress (biografía y toma de posesión), de las fotos de portada y del gobernador, los topes, el canal de YouTube (id del canal y de su lista de videos largos) y el repositorio cuyo despliegue de producción en Vercel lo enciende solo (vercelRepo: una copia del repositorio no lo enciende). Nunca contenido, enlaces de Drive ni sus ids.",
    "source": "freddybernaloficial.com",
    "bioPostId": 1902,
    "officePostIds": [
@@ -936,6 +936,7 @@
    "maxOpinion": 8,
    "maxEpisodes": 12,
    "semanarioName": "Semanario El Informativo Táchira",
+   "vercelRepo": "fbvenezuela/Gestionapp",
    "youtube": {
     "channelId": "UCHqsqLFI1gXpQkDYB4jHH3g",
     "playlistId": "UULFHqsqLFI1gXpQkDYB4jHH3g",

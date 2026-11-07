@@ -14,7 +14,7 @@
   <yt:videoId>demoVideo02</yt:videoId>
   <yt:channelId>UCdemoCanalDePrueba00001</yt:channelId>
   <title>Segunda parte de prueba | Programa Demo 12</title>
-  <published>2026-10-31T19:47:50+00:00</published>
+  <published>2026-10-30T18:15:00+00:00</published>
   <media:group>
    <media:title>Segunda parte de prueba | Programa Demo 12</media:title>
    <media:description>Una descripción inventada (demo) que nombra a Vecina Inventada. Síganos: https://www.instagram.com/cuenta_demo · https://x.com/cuenta_demo · https://www.facebook.com/p/Persona-Demo-100000000000001/</media:description>
@@ -24,10 +24,10 @@
   <id>yt:video:demoVideo01</id>
   <yt:videoId>demoVideo01</yt:videoId>
   <yt:channelId>UCdemoCanalDePrueba00001</yt:channelId>
-  <title>Lo que viene esta semana | Programa Demo 12</title>
-  <published>2026-10-31T19:47:50+00:00</published>
+  <title>Avance semanal de prueba | Programa Demo 12</title>
+  <published>2026-10-30T18:15:00+00:00</published>
   <media:group>
-   <media:title>Lo que viene esta semana | Programa Demo 12</media:title>
+   <media:title>Avance semanal de prueba | Programa Demo 12</media:title>
    <media:description>Suscríbase: https://www.youtube.com/@CanalDemo.oficial?sub_confirmation=1 (demo)</media:description>
   </media:group>
  </entry>

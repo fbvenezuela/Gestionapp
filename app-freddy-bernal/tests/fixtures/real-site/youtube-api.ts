@@ -29,7 +29,7 @@ const item = (videoId: string, title: string, at: string, description: string, p
 export const API_PLAYLIST = {
   kind: 'youtube#playlistItemListResponse',
   items: [
-    item('demoVideo01', 'Lo que viene esta semana | Programa Demo 12', '2026-10-31T19:47:50Z', 'Suscríbase (demo): https://www.youtube.com/@CanalDemo.oficial y https://x.com/cuenta_demo'),
+    item('demoVideo01', 'Avance semanal de prueba | Programa Demo 12', '2026-10-30T18:15:00Z', 'Suscríbase (demo): https://www.youtube.com/@CanalDemo.oficial y https://x.com/cuenta_demo'),
     item('demoPrivad1', 'Private video', '2026-10-30T10:00:00Z', 'This video is private.', 'private', null),
     item('demoVideo03', 'PROGRAMA DEMO N°11 // VIERNES DE PRUEBA & MÁS (demo)', '2026-10-24T21:00:00Z', 'Otra descripción inventada (demo).'),
     item('corto', 'Un id que no es de YouTube (demo)', '2026-10-20T10:00:00Z', ''),
@@ -41,7 +41,7 @@ export const API_PLAYLIST = {
 export const API_VIDEOS = {
   kind: 'youtube#videoListResponse',
   items: [
-    { kind: 'youtube#video', id: 'demoVideo01', contentDetails: { duration: 'PT4M25S' } },
-    { kind: 'youtube#video', id: 'demoVideo03', contentDetails: { duration: 'PT1H50M26S' } },
+    { kind: 'youtube#video', id: 'demoVideo01', contentDetails: { duration: 'PT3M10S' } },
+    { kind: 'youtube#video', id: 'demoVideo03', contentDetails: { duration: 'PT1H42M5S' } },
   ],
 };
