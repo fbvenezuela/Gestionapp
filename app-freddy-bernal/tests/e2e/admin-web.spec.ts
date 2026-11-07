@@ -194,7 +194,7 @@ test('el editor cambia y reordena bloques de la portada; quien aprueba lo public
   await noSerious(e, 'editor de la portada');
   await fitsWidth(e, 'editor de la portada');
   await e.getByRole('button', { name: /^Editar Accesos de participación/ }).click();
-  await e.getByLabel('Título del bloque').fill('¿Qué necesitas hoy? (demo)');
+  await e.getByLabel('Título del bloque').fill('Participación ciudadana (demo)');
   // «Avisos de servicio» goes above «Noticias» (the keyboard keeps its focus on the moved block).
   const up = e.getByRole('button', { name: /^Subir Avisos de servicio/ });
   await up.focus();
@@ -211,17 +211,17 @@ test('el editor cambia y reordena bloques de la portada; quien aprueba lo public
   await queued(p, 'Inicio').click();
   await p.waitForURL(/\/admin\/web\/revisar\//);
   await expect(p.getByText('Orden nuevo')).toBeVisible();
-  await expect(p.getByText(/título: «¿Qué quieres hacer\?» → «¿Qué necesitas hoy\? \(demo\)»/)).toBeVisible();
+  await expect(p.getByText(/título: «Atención ciudadana» → «Participación ciudadana \(demo\)»/)).toBeVisible();
   await p.getByRole('button', { name: 'Publicar ahora' }).click();
   await confirmDialog(p, 'Publicar ahora');
   await expect(p.getByText('Publicado: ya se ve en la web.').first()).toBeVisible();
 
   await page.goto('/');
   const main = page.getByRole('main');
-  await expect(main.getByRole('heading', { level: 2, name: '¿Qué necesitas hoy? (demo)' })).toBeVisible();
+  await expect(main.getByRole('heading', { level: 2, name: 'Participación ciudadana (demo)' })).toBeVisible();
   const order = await main.getByRole('heading', { level: 2 }).allTextContents();
   expect(order.indexOf('Avisos de servicio')).toBeGreaterThan(-1);
-  expect(order.indexOf('Avisos de servicio')).toBeLessThan(order.indexOf('Actualidad'));
+  expect(order.indexOf('Avisos de servicio')).toBeLessThan(order.indexOf('Últimas publicaciones'));
 });
 
 test('volver a una versión: el editor recupera la portada anterior, quien aprueba la publica y la portada queda como antes', async ({ page }) => {
@@ -242,10 +242,29 @@ test('volver a una versión: el editor recupera la portada anterior, quien aprue
   await publishFromQueue(publisher.page, 'Inicio');
   await page.goto('/');
   const main = page.getByRole('main');
-  await expect(main.getByRole('heading', { level: 2, name: '¿Qué quieres hacer?' })).toBeVisible();
-  await expect(main.getByRole('heading', { level: 2, name: '¿Qué necesitas hoy? (demo)' })).toHaveCount(0);
+  await expect(main.getByRole('heading', { level: 2, name: 'Atención ciudadana', exact: true })).toBeVisible();
+  await expect(main.getByRole('heading', { level: 2, name: 'Participación ciudadana (demo)' })).toHaveCount(0);
   const order = await main.getByRole('heading', { level: 2 }).allTextContents();
-  expect(order.indexOf('Actualidad')).toBeLessThan(order.indexOf('Avisos de servicio'));
+  expect(order.indexOf('Últimas publicaciones')).toBeLessThan(order.indexOf('Avisos de servicio'));
+});
+
+test('la vista previa muestra a los editores lo que falta (la foto, los textos «por completar»); la web pública no', async ({ page }) => {
+  const e = editor.page;
+  await e.goto('/admin/web/contenido/paginas');
+  await e.locator('main a[href^="/admin/web/editar/"]', { hasText: 'El gobernador' }).first().click();
+  await e.waitForURL(/\/admin\/web\/editar\/[0-9a-f-]{36}$/);
+  const id = e.url().split('/').pop()!;
+  await e.goto(`/admin/web/vista-previa/${id}`);
+  await expect(e.getByText('Vista previa: no está publicado')).toBeVisible();
+  await expect(e.getByText('Foto por subir desde el administrador')).toBeVisible();
+  // The slot says what is missing once, without repeating «Por completar».
+  await expect(e.getByText('Por completar · ', { exact: false }).first()).toBeVisible();
+  await expect(e.getByText('la biografía verificada, con sus fuentes. Solo se publica lo confirmado.', { exact: false })).toBeVisible();
+  await expect(e.getByText(/Por completar · Por completar/)).toHaveCount(0);
+  await noSerious(e, 'vista previa del gobernador');
+  await page.goto('/gobernador');
+  await expect(page.getByRole('heading', { level: 1, name: 'Freddy Bernal' })).toBeVisible();
+  await expect(page.getByText(/Por completar|Foto por subir/)).toHaveCount(0);
 });
 
 test('programar un aviso: queda programado y no se ve antes de su hora; quitar la programación lo devuelve a borrador', async ({ page }) => {

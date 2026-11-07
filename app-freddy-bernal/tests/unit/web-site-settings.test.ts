@@ -1,7 +1,8 @@
 // The site's settings as the public pages show them (web_settings over the client's config, docs/diagnostico.md
 // problem 3): one list of accounts for the footer, /canales and the structured data. In production only verified
-// accounts; the test version also shows the «por confirmar» ones; an inactive account never (the abandoned YouTube
-// channel is never the program's); the institutional portal only when verified; a bad value falls back to the start.
+// accounts; the test version also shows the unverified ones (marked «sin verificar»); an inactive account never (the
+// abandoned YouTube channel is never the program's); the institutional portal only when verified; a bad value falls
+// back to the start.
 import { describe, expect, it } from 'vitest';
 import { getClientConfig } from '@/lib/client-config';
 import { channelShown, defaultSettings, navLabel, normalizeSite } from '@/lib/web/site-settings';
@@ -9,14 +10,14 @@ import { channelShown, defaultSettings, navLabel, normalizeSite } from '@/lib/we
 const opts = (demo: boolean) => ({ demo, indexable: false, baseUrl: 'https://web.prueba.test/' });
 
 describe('los canales: una sola regla en toda la web', () => {
-  it('channelShown: nunca inactivo; verificado siempre; «por confirmar» solo en la versión de prueba', () => {
+  it('channelShown: nunca inactivo; verificado siempre; sin verificar solo en la versión de prueba', () => {
     expect(channelShown({ verified: true, active: true }, false)).toBe(true);
     expect(channelShown({ verified: false, active: true }, false)).toBe(false);
     expect(channelShown({ verified: false, active: true }, true)).toBe(true);
     expect(channelShown({ verified: true, active: false }, true)).toBe(false);
   });
 
-  it('con la configuración del cliente: la demo muestra las cuentas por confirmar marcadas, la producción ninguna', () => {
+  it('con la configuración del cliente: la demo muestra las cuentas sin verificar, marcadas; la producción ninguna', () => {
     const demo = normalizeSite({}, opts(true));
     const prod = normalizeSite({}, opts(false));
     expect(demo.accounts.length).toBeGreaterThan(3);
@@ -63,7 +64,8 @@ describe('los canales: una sola regla en toda la web', () => {
 describe('lo demás de los ajustes', () => {
   it('la navegación por defecto: las ocho secciones en su orden', () => {
     const s = normalizeSite({}, opts(true));
-    expect(s.navigation.map((n) => n.label)).toEqual(['Inicio', 'El gobernador', 'Gestión', 'Actualidad', 'Reporte Bernal', 'Atención ciudadana', 'Transparencia', 'Canales']);
+    expect(s.navigation.map((n) => n.label)).toEqual(['Inicio', 'El gobernador', 'Gestión', 'Noticias', 'Reporte Bernal', 'Atención ciudadana', 'Transparencia', 'Canales']);
+    expect(navLabel(s, '/actualidad', 'x')).toBe('Noticias');
     expect(navLabel(s, '/reporte-bernal', 'x')).toBe('Reporte Bernal');
     expect(navLabel(s, '/no-esta', 'Otro')).toBe('Otro');
   });
@@ -75,7 +77,8 @@ describe('lo demás de los ajustes', () => {
 
   it('el aviso de la versión de prueba, el de emergencias y la identidad salen de la configuración', () => {
     const s = normalizeSite({}, opts(true));
-    expect(s.demoBanner).toMatch(/Versión de prueba/);
+    expect(s.demoBanner).toBe('Versión de prueba. El contenido es de ejemplo.');
+    expect(s.weeklyName).toBe(getClientConfig().brand.weeklyName);
     expect(s.emergencyNotice).toMatch(/no es un servicio de emergencias/i);
     expect(s.wordmark).toContain(s.name);
     expect(s.baseUrl).toBe('https://web.prueba.test');

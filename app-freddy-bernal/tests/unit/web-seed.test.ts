@@ -71,13 +71,14 @@ describe('la semilla de la web pública', () => {
     }
   });
 
-  it('nada real que no deba ir en un repositorio público: sin correos, teléfonos, contactos ni parroquias; las cuentas del diagnóstico, todas por confirmar', async () => {
+  it('nada real que no deba ir en un repositorio público: sin correos, teléfonos, contactos ni parroquias; las cuentas oficiales, ninguna verificada', async () => {
     const cfg = getClientConfig();
     const text = JSON.stringify({ participation: cfg.participation, web: cfg.web });
     expect(text).not.toMatch(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
-    // The only addresses are the public accounts and the portal the diagnosis found (docs/diagnostico.md §8), over https
-    // and «por confirmar»: production shows none of them until the team verifies them (src/lib/web/site-settings.ts).
-    const PUBLIC_HOSTS = ['www.youtube.com', 'www.instagram.com', 'x.com', 'www.facebook.com', 'www.tiktok.com', 'www.threads.com', 'mastodon.social', 'freddybernalrosales.wordpress.com', 'tachira.gob.ve'];
+    // The only addresses are the public accounts, the portal and the official site the real-content mode reads
+    // (web.realSite: public identifiers, never content), over https and none verified: production shows no account until
+    // the team verifies it (src/lib/web/site-settings.ts).
+    const PUBLIC_HOSTS = ['www.youtube.com', 'www.instagram.com', 'x.com', 'www.facebook.com', 'www.tiktok.com', 'www.threads.com', 'mastodon.social', 'freddybernalrosales.wordpress.com', 'tachira.gob.ve', 'freddybernaloficial.com'];
     const links = text.match(/https?:\/\/[^"\s]+/g) ?? [];
     expect(links.length).toBeGreaterThan(0);
     for (const l of links) {

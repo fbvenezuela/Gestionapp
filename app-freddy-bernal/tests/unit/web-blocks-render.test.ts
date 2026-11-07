@@ -1,22 +1,27 @@
 // The public website's renderer (design §3, §7): every block type has its component, text is escaped (no HTML or script
 // an editor writes ever runs), links go only through safeHref, photos come from what the item froze with their alt, focal
-// point and sizes (and a placeholder when missing), indicators only with a source, notices only while active, «lo
-// atendido» with no personal data, and no dangerouslySetInnerHTML anywhere but the escaped JSON-LD.
+// point and sizes, indicators only with a source, notices only while active, the attended cases with no personal data,
+// and no dangerouslySetInnerHTML anywhere but the escaped JSON-LD. No scaffolding reaches the public (F1): a missing
+// photo, video or file and a «por completar» text draw nothing there; only the administrator's preview shows them.
 import fs from 'node:fs';
 import path from 'node:path';
 import { createElement as h } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { BLOCK_DATA, BLOCK_TYPES, type Block, type TextNode } from '@/lib/web/blocks';
+import { newsSnapshot, parseSnapshot } from '@/lib/web/schema';
 import { normalizeSite } from '@/lib/web/site-settings';
 import type { FrozenMedia } from '@/lib/web/public';
 import type { AttendedItem, WebItem } from '@/lib/web/cache';
-import { RichText } from '@/components/web/rich-text';
+import { publicNodes, RichText } from '@/components/web/rich-text';
 import { SafeLink } from '@/components/web/ui';
 import { BlockView, opensWithHero } from '@/components/web/blocks';
 import { CtaBlock, GalleryBlock, HeroBlock, ImageBlock, SafeButton, TextBlock, isPendingText } from '@/components/web/blocks/simple';
 import { AttendedView, FaqView, IndicatorsView, NoticesView, indicatorListHref } from '@/components/web/blocks/views';
 import { focalPosition, PLACEHOLDER_TEXT } from '@/components/web/media';
+import { DocumentRow, NewsCard, NewsFeature, newsLabel, Topics } from '@/components/web/cards';
+import { VideoFrame } from '@/components/web/blocks/data';
+import { NewsArticle, ProjectFicha } from '@/components/web/item-views';
 import { StatsView, STAT_DEFINITIONS } from '@/components/web/stats';
 import { ChannelPills, orderedChannels } from '@/components/web/channels';
 import { DemoBanner } from '@/components/web/public-chrome';
@@ -44,12 +49,16 @@ describe('el texto estructurado: escapado siempre', () => {
       { type: 'quote', text: EVIL, cite: EVIL },
       { type: 'pending', text: EVIL },
     ] as TextNode[];
-    const out = html(h(RichText, { nodes }));
+    // The administrator's preview draws everything, the «por completar» slot too: escaped all the same.
+    const out = html(h(RichText, { nodes, preview: true }));
     expect(out).not.toContain('<script');
     expect(out).not.toContain('<img');
     expect(out).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
     expect(out).toMatch(/<a [^>]*href="\/gestion"/);
     expect(out).toContain('Por completar');
+    const pub = html(h(RichText, { nodes }));
+    expect(pub).not.toContain('<script');
+    expect(pub).not.toContain('Por completar');
   });
 
   it('un enlace que no pasa safeHref (aunque se cuele) sale como texto, sin href', () => {
@@ -81,11 +90,16 @@ describe('cada tipo de bloque', () => {
     }
   });
 
-  it('la portada sin foto muestra el espacio editorial; con foto, la foto con su alt, su punto de enfoque y sus tamaños', () => {
-    const empty = html(h(HeroBlock, { data: { title: '¡Saludos!', text: 'Un mensaje corto.' }, ctx: { ...ctx(), heading: 'h1' } }));
+  it('la portada sin foto: en la web, solo el texto a lo ancho; en la vista previa, el espacio de la foto; con foto, la foto con su alt, su punto de enfoque y sus tamaños', () => {
+    const empty = html(h(HeroBlock, { data: { title: 'Nombre (prueba)', text: 'Cargo (prueba)' }, ctx: { ...ctx(), heading: 'h1' } }));
     expect(empty).toContain('<h1');
-    expect(empty).toContain(PLACEHOLDER_TEXT);
+    expect(empty).toContain('Cargo (prueba)');
+    expect(empty).not.toContain(PLACEHOLDER_TEXT);
     expect(empty).not.toContain('<img');
+    expect(empty).not.toContain('lg:grid-cols-12');
+    const previewed = html(h(HeroBlock, { data: { title: 'Nombre (prueba)' }, ctx: { ...ctx(), heading: 'h1', preview: true } }));
+    expect(previewed).toContain(PLACEHOLDER_TEXT);
+    expect(previewed).toContain('lg:grid-cols-12');
     const full = html(h(HeroBlock, { data: { title: 'T', mediaId: KEY }, ctx: { ...ctx({ [KEY]: PHOTO }), first: true } }));
     expect(full).toContain('alt="Cuadrilla en la avenida"');
     expect(full).toContain('object-position:30% 70%');
@@ -97,15 +111,19 @@ describe('cada tipo de bloque', () => {
     expect(focalPosition({ focalX: 2, focalY: -1 })).toBe('100% 0%');
   });
 
-  it('un texto «Por completar» de la portada se ve como el espacio vacío que es', () => {
+  it('un texto «Por completar» de la portada: la web no lo muestra; la vista previa, como el espacio vacío que es', () => {
     expect(isPendingText('Por completar desde el administrador: un mensaje corto.')).toBe(true);
     expect(isPendingText('Un mensaje del gobernador.')).toBe(false);
-    const out = html(h(HeroBlock, { data: { title: 'T', text: 'Por completar desde el administrador: un mensaje corto.' }, ctx: ctx() }));
-    expect(out).toContain('Por completar · </span>un mensaje corto.');
+    const data = { title: 'T', text: 'Por completar desde el administrador: un mensaje corto.' };
+    const out = html(h(HeroBlock, { data, ctx: ctx() }));
+    expect(out).not.toContain('Por completar');
+    expect(out).not.toContain('un mensaje corto');
+    expect(html(h(HeroBlock, { data, ctx: { ...ctx(), preview: true } }))).toContain('Por completar · </span>un mensaje corto.');
   });
 
   it('una foto que no es una imagen congelada por el ítem no se pinta; una galería sin fotos no sale', () => {
-    expect(html(h(ImageBlock, { data: { mediaId: KEY }, ctx: ctx() }))).toContain(PLACEHOLDER_TEXT);
+    expect(html(h(ImageBlock, { data: { mediaId: KEY }, ctx: ctx() }))).toBe('');
+    expect(html(h(ImageBlock, { data: { mediaId: KEY }, ctx: { ...ctx(), preview: true } }))).toContain(PLACEHOLDER_TEXT);
     expect(html(h(GalleryBlock, { data: { mediaIds: [KEY] }, ctx: ctx() }))).toBe('');
     const doc = { ...PHOTO, kind: 'document' as const, mime: 'application/pdf' };
     expect(html(h(ImageBlock, { data: { mediaId: KEY }, ctx: ctx({ [KEY]: doc }) }))).not.toContain('<img');
@@ -175,7 +193,8 @@ describe('las reglas de los datos', () => {
     const out = html(h(AttendedView, { items: [a], names: { munis: new Map([['m', 'Lobatera']]), categories: new Map([['c', 'Electricidad']]) } }));
     expect(out).toContain('Se cambió el poste (demo).');
     expect(out).toContain('Lobatera');
-    expect(out).toContain('— V. P.');
+    expect(out).toMatch(/V\. P\.<\/span> · Lobatera · Resuelto el <time dateTime="2026-10-23">23 de octubre de 2026<\/time>/);
+    expect(out).not.toContain('—');
     expect(out).toContain('Atendido · Reporte · Electricidad');
     expect(Object.keys(a).sort()).toEqual(['categoryId', 'displayName', 'id', 'municipalityId', 'publishedAt', 'resolvedOn', 'summary', 'type']);
   });
@@ -206,9 +225,99 @@ describe('las reglas de los datos', () => {
   });
 });
 
+// F1: what is still missing never reaches the public. Every piece of scaffolding the site can draw, and where it may
+// still appear (only in the administrator's preview, /admin/web/vista-previa, which passes `preview`).
+const SCAFFOLDING = [/Por completar/i, new RegExp(PLACEHOLDER_TEXT), /Video por enlazar/, /Imagen del episodio por subir/, /Archivo por subir/, /versión \d/];
+const scaffoldIn = (out: string) => SCAFFOLDING.filter((re) => re.test(out)).map(String);
+
+const parsed = <K extends 'news' | 'project' | 'document'>(kind: K, data: unknown) => {
+  const r = parseSnapshot(kind, data);
+  if (!r.ok) throw new Error(r.error);
+  return r.data;
+};
+const news = (extra: Record<string, unknown> = {}) =>
+  ({ ...item('news', parsed('news', { title: 'Nota (prueba)', category: 'noticia', date: '2026-11-02', body: [{ type: 'paragraph', text: 'Texto (prueba).' }], ...extra }), 'nota-prueba'), date: '2026-11-02' }) as WebItem<'news'>;
+
+describe('el andamio no llega al público (F1)', () => {
+  it('el texto: sin espacios «por completar» ni títulos que se quedan sin nada debajo', () => {
+    const nodes: TextNode[] = [
+      { type: 'heading', level: 2, text: 'Biografía' },
+      { type: 'pending', text: 'Por completar: la biografía.' },
+      { type: 'heading', level: 2, text: 'Trayectoria' },
+      { type: 'heading', level: 3, text: 'Cargos' },
+      { type: 'paragraph', text: 'Un cargo (prueba).' },
+      { type: 'heading', level: 2, text: 'Al final' },
+    ];
+    expect(publicNodes(nodes).map((n) => (n.type === 'heading' || n.type === 'paragraph' ? n.text : n.type))).toEqual(['Trayectoria', 'Cargos', 'Un cargo (prueba).']);
+    const onlyPending: TextNode[] = [nodes[0], nodes[1]];
+    expect(html(h(TextBlock, { data: { title: 'Biografía', content: onlyPending }, ctx: ctx() }))).toBe('');
+    const preview = html(h(TextBlock, { data: { title: 'Biografía', content: onlyPending }, ctx: { ...ctx(), preview: true } }));
+    // The slot says «Por completar» once, not «Por completar · Por completar: …».
+    expect(preview).toContain('Por completar · </span>la biografía.');
+    expect(preview.match(/Por completar/g)).toHaveLength(1);
+  });
+
+  it('el video: sin código no hay marco; con código y sin imagen, el botón sobre un fondo liso', () => {
+    expect(html(h(VideoFrame, { youtubeId: null, title: 'Emisión (prueba)', poster: null }))).toBe('');
+    const bare = html(h(VideoFrame, { youtubeId: 'Abc_def-123', title: 'Emisión (prueba)', poster: null }));
+    expect(bare).toContain('Ver el video');
+    expect(scaffoldIn(bare)).toEqual([]);
+    expect(html(h(VideoFrame, { youtubeId: null, title: 'Emisión (prueba)', poster: null, preview: true }))).toContain('Video por enlazar desde el administrador');
+    expect(html(h(VideoFrame, { youtubeId: 'Abc_def-123', title: 'Emisión (prueba)', poster: null, preview: true }))).toContain('Imagen del episodio por subir');
+  });
+
+  it('un documento sin su archivo: la fila sin botón; la vista previa dice que falta', () => {
+    const doc = item('document', parsed('document', { title: 'Informe (prueba)', category: 'informe', date: '2026-11-01', fileId: null }), 'informe-prueba');
+    const pub = html(h(DocumentRow, { item: doc }));
+    expect(pub).toContain('Informe (prueba)');
+    expect(pub).not.toContain('Ver el PDF');
+    expect(scaffoldIn(pub)).toEqual([]);
+    expect(html(h(DocumentRow, { item: doc, preview: true }))).toContain('Archivo por subir');
+    // With a cover (the Semanario's front page), the cover instead of the icon.
+    const withCover = html(h(DocumentRow, { item: { ...doc, data: { ...doc.data, coverId: KEY }, media: { [KEY]: PHOTO } } }));
+    expect(withCover).toContain('alt="Cuadrilla en la avenida"');
+  });
+
+  it('una noticia sin foto: la tarjeta destacada sin marco vacío y la nota sin espacio de foto', () => {
+    const n = news({ body: [{ type: 'paragraph', text: 'Texto (prueba).' }, { type: 'pending', text: 'Por completar: el cierre.' }] });
+    const feature = html(h(NewsFeature, { item: n }));
+    expect(feature).toContain('Nota (prueba)');
+    expect(feature).not.toContain('md:grid-cols-2');
+    expect(scaffoldIn(feature)).toEqual([]);
+    expect(html(h(NewsFeature, { item: n, preview: true }))).toContain(PLACEHOLDER_TEXT);
+    expect(scaffoldIn(html(h(NewsCard, { item: n, withPhoto: true })))).toEqual([]);
+    const article = html(h(NewsArticle, { item: n, site, munis: new Map(), related: [] }));
+    expect(article).toContain('<h1');
+    expect(article).toContain('Texto (prueba).');
+    expect(scaffoldIn(article)).toEqual([]);
+    const previewed = html(h(NewsArticle, { item: n, site, munis: new Map(), related: [], preview: true }));
+    expect(scaffoldIn(previewed)).toEqual([String(SCAFFOLDING[0]), String(SCAFFOLDING[1])]);
+  });
+
+  it('una obra sin foto ni descripción: la ficha sin marco vacío ni «se publica pronto»', () => {
+    const p = item('project', parsed('project', { title: 'Obra (prueba)', category: 'vialidad', state: 'en_ejecucion', municipalityId: null, date: '2026-11-01' }), 'obra-prueba');
+    const out = html(h(ProjectFicha, { item: p, munis: new Map(), related: [] }));
+    expect(out).toContain('Obra (prueba)');
+    expect(out).not.toContain('Descripción');
+    expect(out).not.toContain('se publica pronto');
+    expect(scaffoldIn(out)).toEqual([]);
+    expect(html(h(ProjectFicha, { item: p, munis: new Map(), related: [], preview: true }))).toContain(PLACEHOLDER_TEXT);
+  });
+
+  it('el antetítulo de una noticia es su primer tema (las secciones del sitio oficial), si no su tipo', () => {
+    expect(newsLabel(newsSnapshot.parse({ title: 'x', category: 'noticia', topics: ['Táchira', 'Deportes'] }))).toBe('Táchira');
+    expect(newsLabel(newsSnapshot.parse({ title: 'x', category: 'articulo', topics: ['opinión'] }))).toBe('Opinión');
+    expect(newsLabel(newsSnapshot.parse({ title: 'x', category: 'comunicado' }))).toBe('Comunicado');
+    expect(html(h(NewsCard, { item: news({ topics: ['Salud'] }) }))).toMatch(/>Salud · <time/);
+    // Topics as links to the news search (the news page); plain chips elsewhere.
+    expect(html(h(Topics, { topics: ['Táchira'], linked: true }))).toContain('href="/actualidad?q=T%C3%A1chira"');
+    expect(html(h(Topics, { topics: ['vialidad'] }))).toContain('Vialidad');
+  });
+});
+
 describe('el marco de la web', () => {
   it('el aviso de la versión de prueba, fijo', () => {
-    expect(html(h(DemoBanner, { text: site.demoBanner }))).toContain('Versión de prueba: el contenido es inventado.');
+    expect(html(h(DemoBanner, { text: site.demoBanner }))).toContain('Versión de prueba. El contenido es de ejemplo.');
   });
 
   it('las páginas llegan enteras: sin loading.tsx (un esqueleto escondería el contenido a quien no tiene JavaScript); la carga es la barra de arriba', () => {
@@ -229,17 +338,18 @@ describe('el marco de la web', () => {
     expect(out).not.toMatch(/<img|logo/i);
   });
 
-  it('los canales: el del programa primero, cada uno una vez, los «por confirmar» marcados', () => {
+  it('los canales: el del programa primero, cada uno una vez, los que no están verificados marcados «sin verificar»', () => {
     const list = orderedChannels(site);
     expect(list[0].url).toBe('https://www.youtube.com/@FreddyBernal.oficial');
     expect(new Set(list.map((c) => c.url)).size).toBe(list.length);
     const out = html(h(ChannelPills, { channels: list }));
-    expect(out.match(/por confirmar/g)?.length).toBe(list.length);
+    expect(out.match(/sin verificar/g)?.length).toBe(list.length);
+    expect(out).not.toContain('por confirmar');
     expect(out).toContain('rel="noopener noreferrer nofollow"');
   });
 
   it('los accesos de participación: el reporte en naranja, los cuatro tipos y el aviso de emergencias', () => {
-    const out = html(h(ParticipationActions, { title: '¿Qué quieres hacer?', emergencyNotice: site.emergencyNotice }));
+    const out = html(h(ParticipationActions, { title: 'Atención ciudadana', emergencyNotice: site.emergencyNotice }));
     for (const href of ['/atencion/nueva?tipo=reporte', '/atencion/nueva?tipo=peticion', '/atencion/nueva?tipo=acotacion', '/atencion/nueva?tipo=denuncia', '/atencion/consultar']) {
       expect(out, href).toContain(`href="${href}"`);
     }
