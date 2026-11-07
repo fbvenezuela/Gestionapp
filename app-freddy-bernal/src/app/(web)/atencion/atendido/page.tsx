@@ -103,7 +103,9 @@ export default async function AttendedPage({ searchParams }: { searchParams: Pro
 
         <p className="mt-6 text-[15px] text-text-2" aria-live="polite">
           {data.total === 0 ? '' : data.total === 1 ? '1 caso publicado' : `${data.total} casos publicados`}
-          {filtered ? ` ${[municipality ? `en ${municipality.name}` : '', category ? `de ${category.name.toLowerCase()}` : ''].filter(Boolean).join(' ')}` : ''}
+          {filtered && data.total > 0
+            ? ` ${[municipality ? `en ${municipality.name}` : '', category ? `de ${category.name.toLowerCase()}` : ''].filter(Boolean).join(' ')}`
+            : ''}
         </p>
 
         {data.items.length === 0 ? (

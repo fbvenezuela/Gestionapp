@@ -33,7 +33,8 @@ export function FilePicker({
   const room = FILES_PER_SEND - files.length;
   const mb = Math.round(maxBytes / (1024 * 1024));
   const hintText =
-    hint ?? `Fotos JPG, PNG o WebP, o documentos PDF. Hasta ${FILES_PER_SEND} archivos de máximo ${mb} MB cada uno. Antes de enviarlas, se eliminan de las fotos la ubicación y otros datos internos.`;
+    hint ??
+    `Fotos JPG, PNG o WebP, o documentos PDF. Hasta ${FILES_PER_SEND} archivos, con un máximo de ${mb} MB cada uno. Antes de enviarlas, se eliminan de las fotos la ubicación y otros datos internos.`;
 
   async function pick(list: FileList | null) {
     if (!list?.length) return;

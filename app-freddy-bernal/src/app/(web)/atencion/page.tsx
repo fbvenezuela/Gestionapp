@@ -151,7 +151,7 @@ export default async function AttentionPage() {
               </li>
             ))}
             <li className="rounded-2xl border border-dashed border-border p-4 text-[15px] leading-snug text-text-2">
-              También puede pasar a «{STATE_PLAIN.requiere_informacion.label}» o a «{STATE_PLAIN.derivado.label}», si la atiende otro organismo.
+              También puede pasar a «{STATE_PLAIN.requiere_informacion.label}», o a «{STATE_PLAIN.derivado.label}» si la atiende otro organismo.
             </li>
           </ol>
         </div>

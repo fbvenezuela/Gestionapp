@@ -164,9 +164,15 @@ export function NoJsForm({
         <FieldBox id="sinjs-phone" label="Teléfono" optional error={err('contact.phone')}>
           <input id="sinjs-phone" name="phone" type="tel" defaultValue={v.phone ?? ''} maxLength={40} autoComplete="tel" className={inputStyle} />
         </FieldBox>
-        <FieldBox id="sinjs-channel" label="Medio de contacto preferido" optional error={err('contact')}>
-          <select id="sinjs-channel" name="channel" defaultValue={v.channel ?? ''} className={inputStyle}>
-            <option value="">El correo o el teléfono indicado</option>
+        <FieldBox
+          id="sinjs-channel"
+          label="Medio de contacto preferido"
+          optional
+          hint="Si no elige, se usará el correo o el teléfono indicado."
+          error={err('contact')}
+        >
+          <select id="sinjs-channel" name="channel" defaultValue={v.channel ?? ''} className={inputStyle} aria-describedby="sinjs-channel-hint">
+            <option value="">Sin preferencia</option>
             {(['email', 'phone', 'whatsapp', 'none'] as const).map((c) => (
               <option key={c} value={c}>
                 {CONTACT_CHANNEL_OPTION[c]}
