@@ -10,6 +10,7 @@ import {
   type RequestType,
 } from '../participation/input';
 import { normalizeReference } from '../participation/receipt-code';
+import { statusEmail, type StatusEmailKind, type StatusEmailRole } from '../participation/emails';
 
 // The attention desk's rules in plain TypeScript (design §5, /admin/atencion): the state machine as the database has it
 // (request_transition_ok and request_state_needs_reason, 20261106000200_participacion.sql: the screen offers only what
@@ -282,54 +283,11 @@ export const STAT_DEFINITIONS = {
 
 // --- Status emails (to the citizen, through the outbox) -------------------------------------------------------------------
 
-export type StatusEmailKind = 'state' | 'reply' | 'info_request' | 'merged';
-/** Who the email is for: who sent the request, someone who joined it («¿te sumas?») or the sender of a merged duplicate. */
-export type StatusEmailRole = 'owner' | 'supporter' | 'duplicate';
-
-/**
- * The words of a status email: what happened and where to read it, NEVER the secret, the team's notes, what the team
- * wrote or the kind of request (a shared inbox must not learn that it is a denuncia). The person reads everything in
- * «Consultar mi solicitud» with their code and secret.
- */
-export function statusEmail(kind: StatusEmailKind, o: { reference: string; state?: RequestState | null; role?: StatusEmailRole }) {
-  const ref = o.reference;
-  const role = o.role ?? 'owner';
-  const how = 'Para ver el detalle, entra a «Consultar mi solicitud» con tu código y la clave de tu comprobante. Por seguridad, la clave no va en este correo y nadie del equipo la tiene.';
-  const safety = 'Esto no es un servicio de emergencias: en una emergencia, llama a los servicios de emergencia locales.';
-  if (kind === 'reply') {
-    return { subject: `Te respondimos: ${ref}`, title: 'Tienes una respuesta', body: [`El equipo te escribió sobre tu solicitud ${ref}.`, how, safety].join('\n') };
-  }
-  if (kind === 'info_request') {
-    return {
-      subject: `Necesitamos un dato: ${ref}`,
-      title: 'Necesitamos más información',
-      body: [`Para seguir con tu solicitud ${ref} necesitamos un dato más. En tu consulta verás qué hace falta y podrás responder ahí mismo.`, how, safety].join('\n'),
-    };
-  }
-  if (kind === 'merged') {
-    return {
-      subject: `Tu solicitud ${ref} se unió a otra igual`,
-      title: 'Tu solicitud se unió a otra igual',
-      body: [`Tu solicitud ${ref} es el mismo caso que otra que ya se estaba atendiendo, y se unieron. La sigues con tu mismo código: verás cómo va el caso.`, how, safety].join('\n'),
-    };
-  }
-  const label = o.state ? REQUEST_STATE_LABEL[o.state] : 'actualizada';
-  const lead =
-    role === 'supporter'
-      ? `El reporte al que te sumaste (tu código: ${ref}) ahora está «${label}».`
-      : role === 'duplicate'
-        ? `El caso al que se unió tu solicitud ${ref} ahora está «${label}».`
-        : `Tu solicitud ${ref} ahora está «${label}».`;
-  const extra =
-    o.state === 'resuelto'
-      ? role === 'owner'
-        ? 'Si no se resolvió, dínoslo desde tu consulta y la revisamos de nuevo.'
-        : null
-      : o.state === 'requiere_informacion' && role === 'owner'
-        ? 'Necesitamos un dato más: en tu consulta verás qué hace falta.'
-        : null;
-  return { subject: `Tu solicitud ${ref}: ${label}`, title: 'Tu solicitud cambió de estado', body: [lead, ...(extra ? [extra] : []), how, safety].join('\n') };
-}
+// The words of a status email (what happened and where to read it; NEVER the secret, the team's notes, what the team
+// wrote or the kind of request) are the citizen's own, in «usted», with the rest of the attention desk's words:
+// src/lib/participation/emails.ts.
+export { statusEmail };
+export type { StatusEmailKind, StatusEmailRole };
 
 /** Who gets a status email: a reply or a request for information only the sender; a change of state, everyone who follows the case. */
 export function statusEmailRoles(kind: StatusEmailKind): StatusEmailRole[] {

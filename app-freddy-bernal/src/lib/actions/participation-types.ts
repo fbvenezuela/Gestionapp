@@ -4,7 +4,7 @@
 export type FieldErrors = Record<string, string>;
 export type FailureCode = 'validation' | 'rate' | 'config' | 'turnstile' | 'honeypot' | 'not_found' | 'db';
 
-/** «Enviar» and «Sumarme»: the receipt's reference once the database committed it (never before), or why not.
+/** «Enviar» and «Enviar apoyo»: the receipt's reference once the database committed it (never before), or why not.
  * `emailed`: a confirmation with the code (never the secret) is on its way to the person's address. */
 export type SendResult =
   | { ok: true; reference: string; kind: 'request' | 'support'; sentAt: string; emailed: boolean }
@@ -16,7 +16,7 @@ export type NoJsState =
   | { status: 'error'; error: string; fieldErrors?: FieldErrors; values: Record<string, string> }
   | { status: 'sent'; reference: string; secret: string; kind: 'request' | 'support'; sentAt: string; type: string };
 
-/** «¿Ya lo reportaron?»: only how many open reports of the same problem there are nearby. */
+/** «Reportes parecidos»: only how many open reports of the same problem there are nearby. */
 export type SimilarResult = { ok: true; count: number } | { ok: false };
 
 /** «Consultar mi solicitud»: the consultation opened (the page shows it) or the one uniform answer. */
@@ -59,9 +59,9 @@ export function eventDateProblem(date: string | null, now: string): string | nul
   if (!date) return null;
   const d = Date.parse(`${date}T00:00:00Z`);
   const t = Date.parse(`${now}T00:00:00Z`);
-  if (Number.isNaN(d) || !new Date(d).toISOString().startsWith(date)) return 'Revisa la fecha del hecho.';
+  if (Number.isNaN(d) || !new Date(d).toISOString().startsWith(date)) return 'Revise la fecha del hecho.';
   if (d > t + 86_400_000) return 'La fecha del hecho no puede ser en el futuro.';
-  if (d < t - 3650 * 86_400_000) return 'Revisa la fecha del hecho: va hasta diez años atrás.';
+  if (d < t - 3650 * 86_400_000) return 'Revise la fecha del hecho. Se admiten hasta diez años atrás.';
   return null;
 }
 

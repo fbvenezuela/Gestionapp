@@ -13,7 +13,10 @@ export const emailColors = {
   slate: '#111111',
 };
 
-export function EmailLayout({ preview, appName, children }: { preview: string; appName: string; children: ReactNode }) {
+/** The team's footer line, unless the email says its own (the citizen's emails have no profile to turn notices off). */
+const TEAM_FOOTER = 'Este correo es automático. Puedes apagar los avisos que no son importantes en tu perfil.';
+
+export function EmailLayout({ preview, appName, children, footer = TEAM_FOOTER }: { preview: string; appName: string; children: ReactNode; footer?: string }) {
   return (
     <Html lang="es">
       <Head />
@@ -23,9 +26,7 @@ export function EmailLayout({ preview, appName, children }: { preview: string; a
           <Text style={{ color: emailColors.slate, fontWeight: 700, fontSize: 14, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0 }}>{appName}</Text>
           <Section>{children}</Section>
           <Hr style={{ borderColor: emailColors.border }} />
-          <Text style={{ color: emailColors.muted, fontSize: 12 }}>
-            Este correo es automático. Puedes apagar los avisos que no son importantes en tu perfil.
-          </Text>
+          <Text style={{ color: emailColors.muted, fontSize: 12 }}>{footer}</Text>
         </Container>
       </Body>
     </Html>

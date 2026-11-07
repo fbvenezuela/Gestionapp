@@ -21,7 +21,7 @@ import {
   participationPepper,
 } from '../participation/keys';
 import { LOOKUP_COOKIE, lookupCookieOptions, openLookup, sealLookup, type LookupGrant } from '../participation/lookup-cookie';
-import { receiptEmail } from '../participation/emails';
+import { CITIZEN_EMAIL_FOOTER, receiptEmail } from '../participation/emails';
 import { requestInput, type RequestInput } from '../participation/input';
 import { crockfordFromBytes, normalizeSecret } from '../participation/receipt-code';
 import { turnstileEnabled, verifyTurnstile } from '../participation/turnstile';
@@ -235,7 +235,7 @@ export function queueReceiptEmail(to: string, reference: string, kind: 'request'
         to,
         subject: words.subject,
         template: 'atencion_recibida',
-        element: createElement(NoticeEmail, { appName: SITE_NAME, title: words.title, body: words.body, url: lookupUrl(), cta: 'Consultar mi solicitud' }),
+        element: createElement(NoticeEmail, { appName: SITE_NAME, title: words.title, body: words.body, url: lookupUrl(), cta: 'Consultar mi solicitud', footer: CITIZEN_EMAIL_FOOTER }),
         idempotencyKey: `atencion-recibida:${reference}`,
       });
     } catch (e) {

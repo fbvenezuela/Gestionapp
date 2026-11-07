@@ -7,6 +7,7 @@ import type { Sql } from '../db/core';
 import { sendEmail } from '../email/send';
 import { contactKeyring, openContact } from '../participation/contact-crypto';
 import { contactEmail, statusEmail, statusEmailRoles, type RequestState, type StatusEmailKind, type StatusEmailRole } from '../domain/attention';
+import { CITIZEN_EMAIL_FOOTER } from '../participation/emails';
 import { SITE_NAME, confirmationPlan, lookupUrl } from './participation-core';
 
 // The status emails of the attention desk (design §4, §5): when the team replies to the person, asks them for more
@@ -66,7 +67,7 @@ export async function sendStatusEmails(e: StatusEmailEvent, deps: Deps = { send:
       to,
       subject: words.subject,
       template: `atencion_${e.kind}`,
-      element: createElement(NoticeEmail, { appName: SITE_NAME, title: words.title, body: words.body, url: lookupUrl(), cta: 'Consultar mi solicitud' }),
+      element: createElement(NoticeEmail, { appName: SITE_NAME, title: words.title, body: words.body, url: lookupUrl(), cta: 'Consultar mi solicitud', footer: CITIZEN_EMAIL_FOOTER }),
       idempotencyKey: `atencion-${e.kind}:${e.key}:${r.contact_id}`,
     });
     queued++;

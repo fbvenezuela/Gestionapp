@@ -91,7 +91,7 @@ describe('la misma revisión que el servidor, paso por paso', () => {
     expect(validate(filled({ eventDate: '2026-11-07' }), TODAY)).toEqual({});
     expect(validate(filled({ eventDate: '2026-11-09' }), TODAY).eventDate).toBe('La fecha del hecho no puede ser en el futuro.');
     expect(validate(filled({ eventDate: '2010-01-01' }), TODAY).eventDate).toMatch(/diez años/);
-    expect(eventDateProblem('2026-02-30', TODAY)).toBe('Revisa la fecha del hecho.');
+    expect(eventDateProblem('2026-02-30', TODAY)).toBe('Revise la fecha del hecho.');
     expect(eventDateProblem(null, TODAY)).toBeNull();
     expect(stepOfField('eventDate')).toBe(3);
     expect(stepOfField('contact.email')).toBe(4);

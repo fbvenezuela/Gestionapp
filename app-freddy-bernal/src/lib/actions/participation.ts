@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import { z } from 'zod';
 import { withAnon } from '../db';
 import { ParticipationConfigError, clientIp, deviceKey, ipKey } from '../participation/keys';
-import { contactInput, type RequestInput } from '../participation/input';
+import { PRIVACY_TEXT, contactInput, type RequestInput } from '../participation/input';
 import { normalizeSecret } from '../participation/receipt-code';
 import { addCitizenMessage, confirmRequest, lookupRequest, receiptGrant, similarRequests, supportRequest } from '../web/participation';
 import {
@@ -40,7 +40,9 @@ import { HONEYPOT_FIELD, chosenChannel, type CaseActionState, type LookupState, 
 
 const secretField = z.string().max(64).refine((v) => normalizeSecret(v) !== null, 'Falta la clave del comprobante.');
 const receiptFields = { submissionKey: z.string().uuid(), secret: secretField };
-const MISSING_KEYS = 'Falta la clave del comprobante: recarga la página y vuelve a intentarlo (lo que escribiste queda guardado).';
+const MISSING_KEYS = 'Falta la clave del comprobante. Recargue la página e intente de nuevo. Lo escrito queda guardado.';
+const CHECK_TEXT = 'Revise los datos marcados.';
+const MUNICIPALITY_TEXT = 'Elija el municipio.';
 
 const sendSchema = z.object({
   ...receiptFields,
@@ -129,7 +131,7 @@ export async function sendRequestWithoutJs(_prev: NoJsState, fd: FormData): Prom
   }
 }
 
-// --- «¿Ya lo reportaron?» and «¿Te sumas?» ----------------------------------------------------------------------------
+// --- «Reportes parecidos» and «Apoyar este reporte» -------------------------------------------------------------------
 const pointSchema = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) });
 const placeSchema = z.object({
   categoryId: z.string().uuid(),
@@ -160,32 +162,32 @@ const joinSchema = z
   .object({
     ...receiptFields,
     place: placeSchema,
-    note: z.string().trim().max(2000, 'Lo que agregas va hasta 2000 letras.').default(''),
+    note: z.string().trim().max(2000, 'El comentario admite hasta 2000 caracteres.').default(''),
     anonymous: z.boolean().default(false),
     contact: contactInput.nullable().default(null),
-    privacyAccepted: z.literal(true, { message: 'Lee y acepta el aviso de privacidad para enviar.' }),
+    privacyAccepted: z.literal(true, { message: PRIVACY_TEXT }),
     hp: z.string().max(500).optional(),
     turnstileToken: z.string().max(4096).nullable().optional(),
   })
   .superRefine((v, ctx) => {
     const c = v.contact;
     const issue = (message: string) => ctx.addIssue({ code: 'custom', path: ['contact'], message });
-    if (v.anonymous && c && (c.name || c.email || c.phone)) issue('Una solicitud anónima va sin contacto.');
-    if (c && c.channel === 'email' && !c.email) issue('Escribe el correo, o elige otra forma de contacto.');
-    if (c && (c.channel === 'phone' || c.channel === 'whatsapp') && !c.phone) issue('Escribe el teléfono, o elige otra forma de contacto.');
+    if (v.anonymous && c && (c.name || c.email || c.phone)) issue('Una solicitud anónima no lleva datos de contacto.');
+    if (c && c.channel === 'email' && !c.email) issue('Escriba el correo o elija otro medio de contacto.');
+    if (c && (c.channel === 'phone' || c.channel === 'whatsapp') && !c.phone) issue('Escriba el teléfono o elija otro medio de contacto.');
   });
 
-/** «Sí, me sumo»: a support of the oldest open report that matches the person's own place and category (found again
+/** «Apoyar este reporte»: a support of the oldest open report that matches the person's own place and category (found again
  * here, so nobody can add to a report they were not offered), with their own receipt. */
 export async function joinReport(raw: unknown): Promise<SendResult> {
   const p = joinSchema.safeParse(raw);
   if (!p.success) {
     const fieldErrors = fieldErrorsOf(p.error.issues);
     if (fieldErrors.submissionKey || fieldErrors.secret) return { ok: false, error: MISSING_KEYS, code: 'validation' };
-    return { ok: false, error: 'Revisa los datos marcados.', code: 'validation', fieldErrors };
+    return { ok: false, error: CHECK_TEXT, code: 'validation', fieldErrors };
   }
   if (honeypotTripped(p.data.hp)) return { ok: false, error: HONEYPOT_TEXT, code: 'honeypot' };
-  if (!p.data.place.municipalityId && !p.data.place.point) return { ok: false, error: 'Elige el municipio.', code: 'validation', fieldErrors: { municipalityId: 'Elige el municipio.' } };
+  if (!p.data.place.municipalityId && !p.data.place.point) return { ok: false, error: MUNICIPALITY_TEXT, code: 'validation', fieldErrors: { municipalityId: MUNICIPALITY_TEXT } };
   if (!(await turnstilePasses(p.data.turnstileToken))) return { ok: false, error: TURNSTILE_TEXT, code: 'turnstile' };
   const c = p.data.contact;
   const contact: RequestInput['contact'] = !p.data.anonymous && c && (c.name || c.email || c.phone) ? c : null;
@@ -198,7 +200,7 @@ export async function joinReport(raw: unknown): Promise<SendResult> {
       if (!target) return null;
       return supportRequest(sql, target, receipt, keys, { note: p.data.note, contact });
     });
-    if (!r) return { ok: false, error: 'Ese reporte ya no está abierto: sigue con el tuyo.', code: 'not_found' };
+    if (!r) return { ok: false, error: 'Ese reporte ya no está abierto. Continúe con su propio reporte.', code: 'not_found' };
     const emailed = queueReceiptEmail(wantsEmail(contact), r.reference, r.kind);
     return { ok: true, reference: r.reference, kind: r.kind, sentAt: new Date().toISOString(), emailed };
   } catch (e) {
@@ -214,9 +216,9 @@ export async function openCase(_prev: LookupState, fd: FormData): Promise<Lookup
   const reference = text(fd, 'reference').trim().slice(0, 40);
   const secret = text(fd, 'secret').trim().slice(0, 64);
   const fieldErrors: Record<string, string> = {};
-  if (!reference) fieldErrors.reference = 'Escribe tu código.';
-  if (!secret) fieldErrors.secret = 'Escribe tu clave.';
-  if (Object.keys(fieldErrors).length) return { status: 'error', error: 'Escribe tu código y tu clave.', fieldErrors, reference };
+  if (!reference) fieldErrors.reference = 'Escriba su código.';
+  if (!secret) fieldErrors.secret = 'Escriba su clave.';
+  if (Object.keys(fieldErrors).length) return { status: 'error', error: 'Escriba su código y su clave.', fieldErrors, reference };
   const grant = receiptGrant(reference, secret);
   if (!grant) return { status: 'error', error: NOT_FOUND_TEXT, reference };
   try {
@@ -230,12 +232,12 @@ export async function openCase(_prev: LookupState, fd: FormData): Promise<Lookup
   }
 }
 
-/** «Agregar información»: a message to the team (files follow, with its id, to /atencion/consultar/adjuntos). */
+/** «Agregar información»: a message to the staff (files follow, with its id, to /atencion/consultar/adjuntos). */
 export async function addCaseInfo(_prev: CaseActionState, fd: FormData): Promise<CaseActionState> {
   const grant = await lookupGrant();
   if (!grant) return { status: 'error', error: EXPIRED_TEXT, expired: true };
   const body = text(fd, 'body').trim();
-  if (body.length < 1 || body.length > 4000) return { status: 'error', error: 'Revisa el mensaje.', fieldErrors: { body: 'El mensaje va de 1 a 4000 letras.' } };
+  if (body.length < 1 || body.length > 4000) return { status: 'error', error: 'Revise el mensaje.', fieldErrors: { body: 'El mensaje debe tener entre 1 y 4000 caracteres.' } };
   try {
     const keys = await rateKeys();
     const r = await withAnon((sql) => addCitizenMessage(sql, grant, keys, body));
@@ -255,9 +257,9 @@ export async function confirmCase(_prev: CaseActionState, fd: FormData): Promise
   if (!grant) return { status: 'error', error: EXPIRED_TEXT, expired: true };
   const answer = text(fd, 'resolved');
   const comment = text(fd, 'comment').trim();
-  if (answer !== 'si' && answer !== 'no') return { status: 'error', error: 'Dinos si se resolvió o no.', fieldErrors: { resolved: 'Elige una respuesta.' } };
-  if (answer === 'no' && !comment) return { status: 'error', error: 'Cuéntanos qué falta.', fieldErrors: { comment: 'Cuéntanos qué falta para que esté resuelto.' } };
-  if (comment.length > 4000) return { status: 'error', error: 'El comentario va hasta 4000 letras.', fieldErrors: { comment: 'El comentario va hasta 4000 letras.' } };
+  if (answer !== 'si' && answer !== 'no') return { status: 'error', error: 'Indique si se resolvió o no.', fieldErrors: { resolved: 'Elija una respuesta.' } };
+  if (answer === 'no' && !comment) return { status: 'error', error: 'Indique qué falta.', fieldErrors: { comment: 'Indique qué falta por resolver.' } };
+  if (comment.length > 4000) return { status: 'error', error: 'El comentario admite hasta 4000 caracteres.', fieldErrors: { comment: 'El comentario admite hasta 4000 caracteres.' } };
   try {
     const keys = await rateKeys();
     const r = await withAnon((sql) => confirmRequest(sql, grant, keys, answer === 'si', comment));

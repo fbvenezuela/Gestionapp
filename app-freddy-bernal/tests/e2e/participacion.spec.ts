@@ -239,7 +239,7 @@ test('una solicitud resuelta pregunta si se resolvió; el «no» pide qué falta
   await page.getByLabel('No, todavía no').check();
   await expect(page.getByLabel(/¿Qué falta por resolver\?/)).toBeVisible();
   await page.getByRole('button', { name: 'Responder' }).click();
-  await expect(page.getByText('Cuéntanos qué falta para que esté resuelto.')).toBeVisible();
+  await expect(page.getByText('Indique qué falta por resolver.')).toBeVisible();
   // Nothing changed: the case is still waiting for the answer.
   await expect(page.getByTestId('estado-solicitud')).toHaveText('Resuelta');
   await axe(page, 'confirmar');

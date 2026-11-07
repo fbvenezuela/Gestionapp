@@ -106,15 +106,15 @@ describe('los correos de estado a la persona', () => {
         const text = `${e.subject}\n${e.title}\n${e.body}`;
         expect(text, `${kind} ${role}`).toContain('AC-2026-K7QM2H');
         expect(text).toContain('Consultar mi solicitud');
-        expect(text).toMatch(/la clave no va en este correo/);
+        expect(text).toMatch(/la clave no se envía por correo/);
         expect(text).not.toMatch(/denuncia|petici[oó]n|acotaci[oó]n|sugerencia|reconocimiento|nota interna/i);
         // Only who joined a report reads that word (they joined a «reporte»; nobody else learns the kind).
         if (role !== 'supporter') expect(text).not.toMatch(/reporte/i);
         expect(text).toMatch(/no es un servicio de emergencias/);
       }
     }
-    expect(statusEmail('state', { reference: 'AC-2026-K7QM2H', state: 'en_atencion' }).subject).toBe('Tu solicitud AC-2026-K7QM2H: En atención');
-    expect(statusEmail('state', { reference: 'AC-2026-AAAAAA', state: 'resuelto', role: 'supporter' }).body).toMatch(/^El reporte al que te sumaste \(tu código: AC-2026-AAAAAA\)/);
+    expect(statusEmail('state', { reference: 'AC-2026-K7QM2H', state: 'en_atencion' }).subject).toBe('Su solicitud AC-2026-K7QM2H: En atención');
+    expect(statusEmail('state', { reference: 'AC-2026-AAAAAA', state: 'resuelto', role: 'supporter' }).body).toMatch(/^El reporte que usted apoyó pasó al estado «Resuelta»\. Su código es AC-2026-AAAAAA\./);
   });
 
   it('una respuesta o un pedido de información, solo a quien la envió; un cambio de estado, a todos los que la siguen', () => {

@@ -28,9 +28,9 @@ export function LoginCodeEmail({ appName, code }: { appName: string; code: strin
   );
 }
 
-export function NoticeEmail({ appName, title, body, url, cta }: { appName: string; title: string; body: string; url?: string; cta?: string }) {
+export function NoticeEmail({ appName, title, body, url, cta, footer }: { appName: string; title: string; body: string; url?: string; cta?: string; footer?: string }) {
   return (
-    <EmailLayout preview={title} appName={appName}>
+    <EmailLayout preview={title} appName={appName} footer={footer}>
       <Heading style={h}>{title}</Heading>
       {body.split('\n').map((line, i) => (
         <Text key={i} style={p}>{line}</Text>

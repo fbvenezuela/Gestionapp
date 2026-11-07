@@ -101,7 +101,7 @@ describe('atender un caso de punta a punta', () => {
     expect(await A.assignRequest({ id: r.id, areaId: services, assigneeId: ID('servicesLead'), reason: '' })).toMatchObject({ ok: true });
     expect(await req(r.id)).toMatchObject({ state: 'asignado', area_id: services, assignee_id: ID('servicesLead') });
     await runAfters();
-    expect((await outbox(r.email!)).map((m) => m.subject)).toEqual([`Tu solicitud ${r.reference}: Asignado`]);
+    expect((await outbox(r.email!)).map((m) => m.subject)).toEqual([`Su solicitud ${r.reference}: Asignada`]);
 
     as('servicesLead');
     expect(await A.addRequestMessage({ id: r.id, kind: 'internal_note', body: 'La cuadrilla va mañana (prueba).' })).toMatchObject({ ok: true, message: 'Nota guardada: solo la ve el equipo.' });
@@ -109,7 +109,7 @@ describe('atender un caso de punta a punta', () => {
     expect(await outbox(r.email!)).toHaveLength(1);
     expect(await A.addRequestMessage({ id: r.id, kind: 'public_reply', body: 'Ya programamos la visita (prueba).' })).toMatchObject({ ok: true });
     await runAfters();
-    expect((await outbox(r.email!)).at(-1)).toMatchObject({ subject: `Te respondimos: ${r.reference}`, template: 'atencion_reply' });
+    expect((await outbox(r.email!)).at(-1)).toMatchObject({ subject: `Respuesta a su solicitud ${r.reference}`, template: 'atencion_reply' });
 
     // The state machine's words: no jump, the reason where it is needed.
     expect(await A.changeRequestState({ id: r.id, state: 'cerrado', reason: 'x' })).toEqual({ ok: false, error: 'De «Asignado» no se pasa a «Cerrado».' });
@@ -119,7 +119,7 @@ describe('atender un caso de punta a punta', () => {
     expect(await req(r.id)).toMatchObject({ state: 'resuelto', resolution_note: 'Se cambió el tubo (prueba).' });
     await runAfters();
     const mails = await outbox(r.email!);
-    expect(mails.map((m) => m.subject)).toEqual([`Tu solicitud ${r.reference}: Asignado`, `Te respondimos: ${r.reference}`, `Tu solicitud ${r.reference}: En atención`, `Tu solicitud ${r.reference}: Resuelto`]);
+    expect(mails.map((m) => m.subject)).toEqual([`Su solicitud ${r.reference}: Asignada`, `Respuesta a su solicitud ${r.reference}`, `Su solicitud ${r.reference}: En atención`, `Su solicitud ${r.reference}: Resuelta`]);
     for (const m of mails) {
       expect(m.text_body).not.toContain('cuadrilla');
       expect(m.text_body).not.toContain('Se cambió el tubo');
@@ -134,7 +134,7 @@ describe('atender un caso de punta a punta', () => {
     expect(await A.addRequestMessage({ id: r.id, kind: 'info_request', body: '¿Nos mandas una foto? (prueba)' })).toMatchObject({ ok: true, message: 'Listo: le pedimos la información.' });
     expect((await req(r.id))!.state).toBe('requiere_informacion');
     await runAfters();
-    expect((await outbox(r.email!)).map((m) => m.subject)).toEqual([`Necesitamos un dato: ${r.reference}`]);
+    expect((await outbox(r.email!)).map((m) => m.subject)).toEqual([`Se necesita información sobre su solicitud ${r.reference}`]);
     expect(await A.addRequestMessage({ id: r.id, kind: 'info_request', body: 'Otra vez (prueba)' })).toEqual({ ok: false, error: 'En «Requiere información» no se pide más información.' });
   });
 
@@ -199,11 +199,11 @@ describe('unir duplicados, spam y moderación', () => {
     expect(await req(dup.id)).toMatchObject({ state: 'cerrado', duplicate_of: main.id });
     expect((await sysOne<{ support_count: number }>(`select support_count from public.requests where id = $1`, [main.id]))!.support_count).toBe(1);
     await runAfters();
-    expect((await outbox(dup.email!)).map((m) => m.subject)).toEqual([`Tu solicitud ${dup.reference} se unió a otra igual`]);
+    expect((await outbox(dup.email!)).map((m) => m.subject)).toEqual([`Su solicitud ${dup.reference} se unió a otra`]);
     // A later change of the case that stays reaches the duplicate's sender too, with their own code.
     expect(await A.changeRequestState({ id: main.id, state: 'en_revision' })).toMatchObject({ ok: true });
     await runAfters();
-    expect((await outbox(dup.email!)).at(-1)!.text_body).toContain(`El caso al que se unió tu solicitud ${dup.reference} ahora está «En revisión».`);
+    expect((await outbox(dup.email!)).at(-1)!.text_body).toContain(`El caso al que se unió su solicitud ${dup.reference} pasó al estado «En revisión».`);
   });
 
   it('spam: «No procede» marcado y guardado, sin correo; una crítica se cierra con su motivo, nunca se borra', async () => {
@@ -304,7 +304,7 @@ describe('los correos de estado', () => {
     await email.sendStatusEmails({ requestId: main.id, kind: 'state', state: 'resuelto', key: 'z' }, { send: to, plan: () => ({ queue: true, delivers: false }) });
     const calls = to.mock.calls as unknown as [{ to: string; subject: string }][];
     expect(calls.map((c) => c[0].to).sort()).toEqual(['beto.prueba@demo.test', main.email].sort());
-    expect(calls.find((c) => c[0].to === 'beto.prueba@demo.test')![0].subject).toBe(`Tu solicitud ${s!.v.reference}: Resuelto`);
+    expect(calls.find((c) => c[0].to === 'beto.prueba@demo.test')![0].subject).toBe(`Su solicitud ${s!.v.reference}: Resuelta`);
   });
 });
 
