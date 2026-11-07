@@ -13,7 +13,7 @@ import { PROJECT_CATEGORIES, PROJECT_STATES } from '@/lib/web/schema';
 import { pageMetadata } from '@/lib/web/seo';
 import { getSite } from '@/lib/web/site';
 
-// Gestión (design §2, IDEA §3.2 «trazabilidad»): the work and actions of the government. Two views of the same items:
+// Gestión (design §2, IDEA §3.2 «trazabilidad»): the works and projects of the government. Two views of the same items:
 //   Obras            cards with their state, filtered by municipio, categoría and estado (GET parameters);
 //   Línea de tiempo  everything, newest first, grouped by month, with a filter by DATE ONLY (IDEA §3.2: no tag filters).
 // States are what can be said for sure (anunciado, en ejecución, concluido); a percentage or an amount appears only
@@ -29,16 +29,21 @@ type Search = Promise<Record<string, string | string[] | undefined>>;
 const CATEGORY_KEYS = Object.keys(PROJECT_CATEGORIES) as (keyof typeof PROJECT_CATEGORIES)[];
 const STATE_KEYS = Object.keys(PROJECT_STATES) as (keyof typeof PROJECT_STATES)[];
 
+/** «en los 29 municipios del estado Táchira»: the client's region and how many municipalities it has. */
+function where(region: string, municipalities: number): string {
+  return municipalities > 1 ? `en los ${municipalities} municipios del estado ${region}` : `en el estado ${region}`;
+}
+
 export async function generateMetadata({ searchParams }: { searchParams: Search }): Promise<Metadata> {
-  const [site, sp] = await Promise.all([getSite(), searchParams]);
+  const [site, sp, territories] = await Promise.all([getSite(), searchParams, getTerritories()]);
   const timeline = sp.vista === 'linea';
   const page = pageParam(sp.pagina);
   return pageMetadata(
     {
       title: timeline ? 'Línea de tiempo de la gestión' : 'Gestión y obras',
       description: timeline
-        ? 'Todo lo que hace la gestión, día por día, con su fecha, su municipio y su estado.'
-        : 'Las obras y acciones de la gestión en los municipios del estado, con su estado, su ubicación y su avance documentado.',
+        ? 'Registro cronológico de las obras y acciones de la gestión regional.'
+        : `Obras y proyectos de la gestión regional ${where(site.region, territories.length)}, con su ubicación y su avance.`,
       path: withQuery('/gestion', { vista: timeline ? 'linea' : undefined, pagina: page }),
     },
     site,
@@ -46,15 +51,11 @@ export async function generateMetadata({ searchParams }: { searchParams: Search 
 }
 
 export default async function ManagementPage({ searchParams }: { searchParams: Search }) {
-  const sp = await searchParams;
+  const [site, sp, territories] = await Promise.all([getSite(), searchParams, getTerritories()]);
   const timeline = sp.vista === 'linea';
   return (
     <>
-      <PageIntro
-        eyebrow="Gestión"
-        title="Gestión y obras"
-        intro="Las obras y acciones del gobierno, dónde están y en qué estado van. Ninguna cifra sin su fuente."
-      />
+      <PageIntro title="Gestión y obras" intro={`Obras y proyectos de la gestión regional ${where(site.region, territories.length)}.`} />
       <Container className="pb-20">
         <ViewTabs
           label="Vistas de la gestión"
@@ -94,7 +95,7 @@ async function ProjectList({ sp }: { sp: Record<string, string | string[] | unde
         </button>
       </FilterForm>
       <div className="mb-6 mt-8 flex flex-wrap items-center gap-x-4 gap-y-2" aria-live="polite">
-        <p className="text-lg font-semibold text-text">{total === 1 ? '1 obra o acción' : `${total} obras y acciones`}</p>
+        <p className="text-lg font-semibold text-text">{total === 1 ? '1 obra o proyecto' : `${total} obras y proyectos`}</p>
         {filtered ? (
           <WebLink href="/gestion" className={textLinkClass}>
             Quitar los filtros
@@ -110,14 +111,12 @@ async function ProjectList({ sp }: { sp: Record<string, string | string[] | unde
           ))}
         </ul>
       ) : (
-        <EmptyState title={filtered ? 'No hay obras con esos filtros.' : 'Todavía no hay obras publicadas.'}>
+        <EmptyState title={filtered ? 'No hay obras con esos filtros.' : 'Aún no hay obras publicadas.'}>
           {filtered ? (
             <WebLink href="/gestion" className={textLinkClass}>
               Ver todas las obras
             </WebLink>
-          ) : (
-            'El equipo las publica cuando están revisadas.'
-          )}
+          ) : null}
         </EmptyState>
       )}
       <Pagination page={page} pages={pages} hrefFor={href} label="Páginas de obras" />
@@ -152,12 +151,12 @@ async function Timeline({ sp }: { sp: Record<string, string | string[] | undefin
         <InputField id="f-desde" name="desde" type="date" label="Desde" value={from} />
         <InputField id="f-hasta" name="hasta" type="date" label="Hasta" value={to} />
         <button type="submit" className={buttonClass('olive')}>
-          Ver esas fechas
+          Filtrar por fecha
         </button>
       </FilterForm>
       <div className="mb-6 mt-8 flex flex-wrap items-center gap-x-4 gap-y-2" aria-live="polite">
         <p className="text-lg font-semibold text-text">
-          {from || to ? `${total} ${total === 1 ? 'entrada' : 'entradas'}${from ? ` desde el ${fmtDay(from)}` : ''}${to ? ` hasta el ${fmtDay(to)}` : ''}` : 'Todo, lo más nuevo primero'}
+          {from || to ? `${total} ${total === 1 ? 'entrada' : 'entradas'}${from ? ` desde el ${fmtDay(from)}` : ''}${to ? ` hasta el ${fmtDay(to)}` : ''}` : 'Desde la más reciente'}
         </p>
         {from || to ? (
           <WebLink href="/gestion?vista=linea" className={textLinkClass}>
@@ -204,7 +203,7 @@ async function Timeline({ sp }: { sp: Record<string, string | string[] | undefin
           ))}
         </div>
       ) : (
-        <EmptyState title={from || to ? 'No hay nada publicado en esas fechas.' : 'Todavía no hay entradas publicadas.'}>
+        <EmptyState title={from || to ? 'No hay publicaciones en esas fechas.' : 'Aún no hay entradas publicadas.'}>
           {from || to ? (
             <WebLink href="/gestion?vista=linea" className={textLinkClass}>
               Ver toda la línea de tiempo

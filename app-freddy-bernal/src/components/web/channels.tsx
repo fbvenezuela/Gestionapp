@@ -5,7 +5,7 @@ import { Badge, cardClass, UnverifiedMark } from './ui';
 
 // The official channels, from the ONE list of the site's settings (docs/diagnostico.md problem 3): the same in the
 // footer, here and in the structured data. In production only the verified ones exist here; the test version also
-// shows the «por confirmar» ones, marked. The old YouTube channel is inactive in the settings, so it never shows.
+// shows the unverified ones, marked. The old YouTube channel is inactive in the settings, so it never shows.
 
 /** The channel of the program first, then the accounts, then WhatsApp; each address once. */
 export function orderedChannels(site: Pick<Site, 'youtube' | 'accounts' | 'whatsapp'>): PublicChannel[] {

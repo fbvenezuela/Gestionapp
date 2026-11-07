@@ -4,22 +4,23 @@ import { ATTENTION, newRequestHref, REPORT_HREF } from '@/lib/web/links';
 import { cn } from '@/lib/cn';
 import { cardClass, Container, SectionHeading, textLinkClass, WebLink } from './ui';
 
-// The big accesses to citizen participation (the brief's «cuatro accesos grandes» and design §2): «Hacer un reporte» in
-// the brand's orange, then a petition, an acotación and a denuncia, and «Consultar mi solicitud». Each one opens the
-// form on its kind (?tipo=…, the citizen pages). «Not an emergency service» is said right here, where people act.
+// The big accesses to citizen attention (the brief's «cuatro accesos grandes» and design §2): «Hacer un reporte» in the
+// brand's orange, then a petition, an acotación and a denuncia, and «Consultar mi solicitud». Each one opens the form on
+// its kind (?tipo=…, the citizen pages). «Not an emergency service» is said right here, where people act. The citizen is
+// addressed as «usted», as the public administration does.
 
 const SECONDARY = [
   { href: newRequestHref('peticion'), title: 'Hacer una petición', hint: REQUEST_TYPE_HINT.peticion, Icon: FileQuestionMarkIcon },
   { href: newRequestHref('acotacion'), title: 'Dejar una acotación', hint: REQUEST_TYPE_HINT.acotacion, Icon: MessageSquareTextIcon },
   { href: newRequestHref('denuncia'), title: 'Hacer una denuncia', hint: REQUEST_TYPE_HINT.denuncia, Icon: ShieldAlertIcon },
-  { href: ATTENTION.lookup, title: 'Consultar mi solicitud', hint: 'Con el código y la clave que recibiste al enviarla.', Icon: SearchIcon },
+  { href: ATTENTION.lookup, title: 'Consultar mi solicitud', hint: 'Con el código y la clave de su comprobante.', Icon: SearchIcon },
 ] as const;
 
 export function ParticipationActions({ title, emergencyNotice, as = 'h2' }: { title: string; emergencyNotice: string; as?: 'h1' | 'h2' }) {
   return (
     <section className="bg-surface py-14 sm:py-20">
       <Container>
-        <SectionHeading title={title} as={as} intro="Sin crear una cuenta. Recibes un código para seguir tu caso, y nada de lo que envías es público." />
+        <SectionHeading title={title} as={as} intro="No necesita registrarse. Al enviar recibirá un código para consultar su solicitud. Lo que envíe no se publica." />
         <div className="grid gap-4 lg:grid-cols-12">
           <WebLink
             href={REPORT_HREF}
@@ -47,13 +48,8 @@ export function ParticipationActions({ title, emergencyNotice, as = 'h2' }: { ti
           </ul>
         </div>
         <p className="mt-8 text-base leading-relaxed text-text-2">
-          ¿Una sugerencia o un agradecimiento?{' '}
-          <WebLink href={ATTENTION.newRequest} className={textLinkClass}>
-            También puedes dejarlos aquí
-          </WebLink>
-          .{' '}
-          <WebLink href="/gestion" className={textLinkClass}>
-            Explorar la gestión
+          <WebLink href={ATTENTION.newRequest} className={cn(textLinkClass, 'inline-flex min-h-11 items-center')}>
+            También puede enviar sugerencias y reconocimientos.
           </WebLink>
         </p>
         <p className="mt-4 flex items-start gap-2 rounded-2xl bg-warn-soft px-4 py-3 text-base font-medium leading-relaxed text-warn">

@@ -10,8 +10,8 @@ import { getSite } from '@/lib/web/site';
 import { cn } from '@/lib/cn';
 
 // The directory of official channels (design §2, docs/diagnostico.md problem 3): ONE list, the same as the footer's and
-// the structured data's. In production only verified accounts; the test version also shows the «por confirmar» ones,
-// marked. The institutional portal appears only when verified. And how to recognize the authentic channels (the
+// the structured data's. In production only verified accounts; the test version also shows the unverified ones,
+// marked. The institutional portal appears only when verified. And how to identify the official accounts (the
 // diagnosis found an account impersonating the governor: never linked here).
 export const revalidate = 60;
 
@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata(
     {
       title: 'Canales oficiales',
-      description: `Las cuentas oficiales de ${site.name} en las redes y cómo reconocer los canales auténticos.`,
+      description: `Cuentas oficiales de ${site.name} en redes sociales y cómo identificar las cuentas falsas.`,
       path: '/canales',
     },
     site,
@@ -29,9 +29,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const TIPS = [
   'Las cuentas oficiales son solo las de esta página. Si una cuenta no está aquí, no es oficial.',
-  'Revisa el nombre de usuario letra por letra: las cuentas falsas cambian una letra, agregan un punto o un guion.',
-  'Nadie del equipo te va a pedir dinero, claves, códigos de verificación ni datos bancarios por mensaje.',
-  'Para pedir algo o reportar un problema, usa la atención ciudadana de esta web: recibes un código para seguir tu caso.',
+  'Verifique el nombre de usuario completo. Las cuentas falsas suelen cambiar una letra o agregar un punto o un guion.',
+  'Ni el gobernador ni el personal de la Gobernación piden dinero, claves, códigos de verificación ni datos bancarios por mensaje.',
+  'Las solicitudes y los reportes se reciben solo por Atención ciudadana, en este sitio.',
 ] as const;
 
 export default async function ChannelsPage() {
@@ -39,21 +39,14 @@ export default async function ChannelsPage() {
   const channels = orderedChannels(site);
   return (
     <>
-      <PageIntro
-        eyebrow="Canales"
-        title="Canales oficiales"
-        intro="Dónde seguir la gestión y el programa, en una sola lista: la misma de toda la web."
-      />
+      <PageIntro title="Canales oficiales" intro="Cuentas oficiales del gobernador en redes sociales." />
       <Container className="pb-20">
         {channels.length ? (
           <ChannelCards channels={channels} />
         ) : (
-          <EmptyState title="Las cuentas oficiales se publican aquí cuando el equipo las verifica." />
+          <EmptyState title="Las cuentas oficiales se publicarán próximamente." />
         )}
-        <DemoNote show={site.demo && channels.some((c) => !c.verified)}>
-          En la versión de prueba se ven también las cuentas «por confirmar»: el equipo las está verificando. En la web publicada solo salen las
-          verificadas.
-        </DemoNote>
+        <DemoNote show={site.demo && channels.some((c) => !c.verified)}>En la versión de prueba también se muestran cuentas sin verificar.</DemoNote>
 
         {site.portal ? (
           <div className={cn(cardClass, 'mt-10 flex flex-col gap-2 p-6')}>
@@ -82,7 +75,7 @@ export default async function ChannelsPage() {
           <div className="lg:col-span-5">
             <ShieldCheckIcon className="h-9 w-9 text-accent-ink" />
             <h2 id="autenticos" className="mt-3 text-[1.75rem] font-bold leading-tight tracking-tight text-text sm:text-4xl">
-              Cómo reconocer los canales auténticos
+              Cómo identificar las cuentas oficiales
             </h2>
           </div>
           <div className="lg:col-span-7">
@@ -92,9 +85,9 @@ export default async function ChannelsPage() {
               ))}
             </ol>
             <p className="mt-6 text-lg leading-relaxed text-text">
-              ¿Viste una cuenta que se hace pasar por el gobernador?{' '}
+              Si encuentra una cuenta que se hace pasar por el gobernador,{' '}
               <WebLink href={newRequestHref('acotacion')} className={textLinkClass}>
-                Avísanos con una acotación
+                repórtela con una acotación
               </WebLink>
               .
             </p>
@@ -106,11 +99,11 @@ export default async function ChannelsPage() {
           {site.emergencyNotice}
         </p>
         <p className="mt-6 text-base text-text-2">
-          Para escribirle al equipo, usa la{' '}
+          Para comunicarse con el despacho, use{' '}
           <WebLink href={ATTENTION.home} className={textLinkClass}>
-            atención ciudadana
+            Atención ciudadana
           </WebLink>
-          : cada mensaje queda registrado y asignado.
+          .
         </p>
       </Container>
     </>

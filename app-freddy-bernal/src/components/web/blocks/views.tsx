@@ -1,3 +1,4 @@
+import { Fragment, type ReactNode } from 'react';
 import { CalendarClockIcon, CircleCheckIcon, InfoIcon, MapPinIcon } from '../icons';
 import type { AttendedItem, WebItem } from '@/lib/web/cache';
 import { indicatorShown, noticeActive, NOTICE_CATEGORIES } from '@/lib/web/schema';
@@ -12,7 +13,7 @@ import { Badge, boxClass, cardClass, SafeLink, WebLink } from '../ui';
 
 // The synchronous views of the blocks that read data (the async blocks fetch, these draw; tests render these with fake
 // items). Rules of design §3 live here: an indicator shows ONLY with its source, a notice ONLY while it applies (with
-// when it was updated and until when), «lo atendido» carries no data of any person (the database publishes only the
+// when it was updated and until when), an attended case carries no data of any person (the database publishes only the
 // anonymized summary: a name only with consent, else initials; a denuncia only as «denuncia atendida en …»).
 
 /** The list behind a figure that the platform counts by itself (the brief: «al tocarlos, la lista»); a figure written by
@@ -97,7 +98,7 @@ export function NoticesView({ items, munis, now = new Date() }: { items: WebItem
   );
 }
 
-export function FaqView({ items }: { items: WebItem<'faq'>[] }) {
+export function FaqView({ items, preview = false }: { items: WebItem<'faq'>[]; preview?: boolean }) {
   if (!items.length) return null;
   const sorted = [...items].sort((a, b) => (a.data.order ?? 1000) - (b.data.order ?? 1000) || a.data.title.localeCompare(b.data.title, 'es'));
   return (
@@ -112,7 +113,7 @@ export function FaqView({ items }: { items: WebItem<'faq'>[] }) {
               </span>
             </summary>
             <div className="pb-5">
-              <RichText nodes={f.data.answer} className="text-base sm:text-[17px]" />
+              <RichText nodes={f.data.answer} className="text-base sm:text-[17px]" preview={preview} />
             </div>
           </details>
         </li>
@@ -122,6 +123,20 @@ export function FaqView({ items }: { items: WebItem<'faq'>[] }) {
 }
 
 export type Names = { munis: MuniNames; categories: ReadonlyMap<string, string> };
+
+function attendedLine(a: AttendedItem, muni: string | null | undefined): ReactNode[] {
+  const parts: ReactNode[] = [];
+  if (a.displayName) parts.push(<span className="font-semibold text-text">{a.displayName}</span>);
+  if (muni) parts.push(muni);
+  if (a.resolvedOn) {
+    parts.push(
+      <>
+        Resuelto el <Time day={a.resolvedOn} />
+      </>,
+    );
+  }
+  return parts;
+}
 
 export function AttendedView({ items, names }: { items: AttendedItem[]; names: Names }) {
   return (
@@ -137,18 +152,14 @@ export function AttendedView({ items, names }: { items: AttendedItem[]; names: N
               {category ? ` · ${category}` : ''}
             </p>
             <p className="text-lg leading-relaxed text-text">{a.summary}</p>
-            {a.displayName ? <p className="text-base font-medium text-text-2">— {a.displayName}</p> : null}
-            <p className="mt-auto flex flex-wrap gap-x-3 gap-y-1 text-sm text-text-2">
-              {muni ? (
-                <span className="inline-flex items-center gap-1">
-                  <MapPinIcon className="h-4 w-4 shrink-0" /> {muni}
-                </span>
-              ) : null}
-              {a.resolvedOn ? (
-                <span>
-                  Resuelto el <Time day={a.resolvedOn} />
-                </span>
-              ) : null}
+            {/* Who (only with consent, else initials), where and when, in one line as on /atencion/atendido. */}
+            <p className="mt-auto text-sm text-text-2">
+              {attendedLine(a, muni).map((part, i) => (
+                <Fragment key={i}>
+                  {i ? ' · ' : null}
+                  {part}
+                </Fragment>
+              ))}
             </p>
           </li>
         );

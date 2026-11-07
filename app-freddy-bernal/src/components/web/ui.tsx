@@ -135,8 +135,9 @@ export function PageIntro({ eyebrow, title, intro, children }: { eyebrow?: strin
   );
 }
 
-/** «Por confirmar» next to an account the team has not verified yet (only the test version shows them). No margin of
- * its own: the row that holds it sets the gap, so it lines up the same whether it fits beside the name or wraps. */
+/** «Sin verificar» next to an account nobody has verified yet (only the test version shows them; production shows only
+ * verified accounts). No margin of its own: the row that holds it sets the gap, so it lines up the same whether it fits
+ * beside the name or wraps. */
 export function UnverifiedMark({ dark = false, className }: { dark?: boolean; className?: string }) {
   return (
     <span
@@ -146,7 +147,7 @@ export function UnverifiedMark({ dark = false, className }: { dark?: boolean; cl
         className,
       )}
     >
-      por confirmar
+      sin verificar
     </span>
   );
 }

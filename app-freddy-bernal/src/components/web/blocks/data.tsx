@@ -1,21 +1,22 @@
 import { ExternalLinkIcon } from '../icons';
 import { getAttended, getRequestCategories, getTerritories, itemsByIds, listItems, type WebItem } from '@/lib/web/cache';
 import { ATTENTION } from '@/lib/web/links';
+import { withQuery } from '@/lib/web/params';
 import type { FrozenMedia } from '@/lib/web/public';
 import { indicatorShown, noticeActive } from '@/lib/web/schema';
+import { cn } from '@/lib/cn';
 import { DocumentRow, EpisodeMeta, NewsCard, NewsFeature, ProjectCard, type MuniNames } from '../cards';
 import { ChannelPills, orderedChannels } from '../channels';
 import { MediaImage, PhotoPlaceholder, photoOf } from '../media';
 import { LiteYouTube } from '../lite-youtube';
 import { ParticipationActions } from '../participation-actions';
-import { EmptyState } from '../states';
 import { Container, SectionHeading, UnverifiedMark, WebLink } from '../ui';
 import type { BlockContext, BlockData } from './types';
 import { AttendedView, DemoNote, FaqView, IndicatorsView, NoticesView } from './views';
 
 // The blocks that read published content (as anon, cached, cache.ts): projects, news, the latest Reporte Bernal,
-// documents, questions, indicators, notices, «lo atendido», the channels and the participation accesses. A block whose
-// content is not there yet draws nothing (or says so, where saying it helps), never something invented.
+// documents, questions, indicators, notices, the attended cases, the channels and the participation accesses. A block
+// whose content is not there yet draws nothing, never something invented and never a note about how the site works.
 
 const kindOf = <K extends WebItem['kind']>(items: WebItem[], kind: K) => items.filter((i): i is WebItem<K> => i.kind === kind);
 
@@ -34,7 +35,7 @@ export async function ProjectsBlock({ data, ctx }: { data: BlockData<'projects'>
   return (
     <section className="bg-surface py-14 sm:py-20">
       <Container>
-        <SectionHeading title={data.title || 'Gestión y obras'} as={ctx.heading} more={{ href: '/gestion', label: 'Ver toda la gestión' }} />
+        <SectionHeading title={data.title || 'Gestión y obras'} as={ctx.heading} more={{ href: '/gestion', label: 'Ver todas las obras' }} />
         <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((p) => (
             <li key={p.id} className="flex">
@@ -47,30 +48,56 @@ export async function ProjectsBlock({ data, ctx }: { data: BlockData<'projects'>
   );
 }
 
+// «See everything» of a list of news: of the kind the block shows, when it shows one.
+const NEWS_MORE: Record<string, string> = {
+  noticia: 'Ver todas las noticias',
+  comunicado: 'Ver todos los comunicados',
+  articulo: 'Ver todos los artículos',
+  entrevista: 'Ver todas las entrevistas',
+};
+
+/** The latest news (or of one kind): the first one as a feature with its photo and the rest as a light list; two
+ * items go side by side, each with its photo (the home's «Opinión», for one). */
 export async function NewsBlock({ data, ctx }: { data: BlockData<'news'>; ctx: BlockContext }) {
   const { items } = await listItems({ kind: 'news', limit: data.limit ?? 4, category: data.category });
   if (!items.length) return null;
+  const more = data.category
+    ? { href: withQuery('/actualidad', { categoria: data.category }), label: NEWS_MORE[data.category] ?? 'Ver todas las noticias' }
+    : { href: '/actualidad', label: 'Ver todas las noticias' };
   const [first, ...rest] = items;
   return (
     <section className="py-14 sm:py-20">
       <Container>
-        <SectionHeading title={data.title || 'Actualidad'} as={ctx.heading} more={{ href: '/actualidad', label: 'Ver toda la actualidad' }} />
-        <NewsFeature item={first} />
-        {rest.length ? (
-          <ul className="mt-8 grid gap-x-8 gap-y-6 md:grid-cols-3">
-            {rest.map((n) => (
+        <SectionHeading title={data.title || 'Últimas publicaciones'} as={ctx.heading} more={more} />
+        {items.length === 2 ? (
+          <ul className="grid gap-x-8 gap-y-10 md:grid-cols-2">
+            {items.map((n) => (
               <li key={n.id}>
-                <NewsCard item={n} />
+                <NewsCard item={n} withPhoto preview={ctx.preview} />
               </li>
             ))}
           </ul>
-        ) : null}
+        ) : (
+          <>
+            <NewsFeature item={first} preview={ctx.preview} />
+            {rest.length ? (
+              <ul className={cn('mt-8 grid gap-x-8 gap-y-6', rest.length === 1 ? '' : rest.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3')}>
+                {rest.map((n) => (
+                  <li key={n.id}>
+                    <NewsCard item={n} />
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </>
+        )}
       </Container>
     </section>
   );
 }
 
-/** The latest Reporte Bernal (or the episode or video the block names), lite: nothing of YouTube loads until a tap. */
+/** The latest Reporte Bernal (or the episode or video the block names), lite: nothing of YouTube loads until a tap. An
+ * episode without its video shows its title and the links (the public site draws no empty player). */
 export async function VideoBlock({ data, ctx }: { data: BlockData<'video'>; ctx: BlockContext }) {
   let episode: WebItem<'episode'> | null = null;
   if (data.episodeId) episode = kindOf(await itemsByIds([data.episodeId]), 'episode')[0] ?? null;
@@ -81,10 +108,11 @@ export async function VideoBlock({ data, ctx }: { data: BlockData<'video'>; ctx:
   const poster = episode ? photoOf(episode.media, episode.data.coverId) : null;
   const channel = ctx.site.youtube;
   const H = ctx.heading;
+  const framed = !!youtubeId || !!ctx.preview;
   return (
     <section className="bg-charcoal py-14 text-on-charcoal sm:py-20">
-      <Container className="grid gap-8 lg:grid-cols-12 lg:items-center lg:gap-12">
-        <div className="lg:col-span-5">
+      <Container className={framed ? 'grid gap-8 lg:grid-cols-12 lg:items-center lg:gap-12' : undefined}>
+        <div className={framed ? 'lg:col-span-5' : 'max-w-3xl'}>
           <H className="text-[1.75rem] font-bold leading-tight tracking-tight sm:text-4xl">{data.title || 'Video'}</H>
           {episode ? (
             <div className="mt-5 flex flex-col gap-3">
@@ -95,7 +123,7 @@ export async function VideoBlock({ data, ctx }: { data: BlockData<'video'>; ctx:
           ) : null}
           <div className="mt-6 flex flex-col items-start gap-2">
             <WebLink href="/reporte-bernal" className="inline-flex min-h-11 items-center font-semibold text-on-charcoal underline decoration-2 underline-offset-4 focus-visible:outline-on-charcoal">
-              Ver todos los episodios
+              Ver todas las emisiones
             </WebLink>
             {channel ? (
               <span className="flex flex-col items-start">
@@ -111,24 +139,31 @@ export async function VideoBlock({ data, ctx }: { data: BlockData<'video'>; ctx:
             ) : null}
           </div>
         </div>
-        <div className="lg:col-span-7">
-          <VideoFrame youtubeId={youtubeId} title={title} poster={poster} />
-        </div>
+        {framed ? (
+          <div className="lg:col-span-7">
+            <VideoFrame youtubeId={youtubeId} title={title} poster={poster} preview={ctx.preview} />
+          </div>
+        ) : null}
       </Container>
     </section>
   );
 }
 
-/** The 16:9 frame of a video: the lite player, or a clear placeholder while the video is not linked yet. */
-export function VideoFrame({ youtubeId, title, poster }: { youtubeId: string | null; title: string; poster: FrozenMedia | null }) {
+/** The 16:9 frame of a video: the lite player over the site's own poster. Without a video the public site draws no
+ * frame at all; the administrator's preview draws the placeholders of what is still to link or upload. */
+export function VideoFrame({ youtubeId, title, poster, preview = false }: { youtubeId: string | null; title: string; poster: FrozenMedia | null; preview?: boolean }) {
+  if (!youtubeId && !preview) return null;
   return (
     <div className="relative aspect-video overflow-hidden rounded-[var(--radius-card)] bg-surface-2">
       {youtubeId ? (
         <LiteYouTube id={youtubeId} title={title}>
           {poster ? (
             <MediaImage media={poster} sizes="(min-width: 1024px) 640px, 100vw" className="absolute inset-0 h-full w-full" />
-          ) : (
+          ) : preview ? (
             <PhotoPlaceholder className="absolute inset-0 h-full w-full" label="Imagen del episodio por subir" />
+          ) : (
+            // No poster yet: a plain dark frame under the play button, nothing written on it.
+            <div className="absolute inset-0 bg-slate" />
           )}
         </LiteYouTube>
       ) : (
@@ -136,6 +171,12 @@ export function VideoFrame({ youtubeId, title, poster }: { youtubeId: string | n
       )}
     </div>
   );
+}
+
+// «See everything» of a list of documents: the Semanario has its own page; the rest live in Transparencia.
+function documentsMore(category: string | undefined): { href: string; label: string } {
+  if (category === 'semanario') return { href: '/actualidad/semanario', label: 'Ver todas las ediciones' };
+  return { href: category ? withQuery('/transparencia', { categoria: category }) : '/transparencia', label: 'Ver todos los documentos' };
 }
 
 export async function DocumentsBlock({ data, ctx }: { data: BlockData<'documents'>; ctx: BlockContext }) {
@@ -146,10 +187,10 @@ export async function DocumentsBlock({ data, ctx }: { data: BlockData<'documents
   return (
     <section className="py-12 sm:py-16">
       <Container>
-        {data.title ? <SectionHeading title={data.title} as={ctx.heading} more={{ href: '/transparencia', label: 'Ver todos los documentos' }} /> : null}
+        {data.title ? <SectionHeading title={data.title} as={ctx.heading} more={documentsMore(data.category)} /> : null}
         <ul className="border-b border-border">
           {items.map((d) => (
-            <DocumentRow key={d.id} item={d} />
+            <DocumentRow key={d.id} item={d} preview={ctx.preview} />
           ))}
         </ul>
       </Container>
@@ -166,7 +207,7 @@ export async function FaqBlock({ data, ctx }: { data: BlockData<'faq'>; ctx: Blo
     <section className="py-12 sm:py-16">
       <Container className="max-w-4xl">
         <SectionHeading title={data.title || 'Preguntas frecuentes'} as={ctx.heading} />
-        <FaqView items={items} />
+        <FaqView items={items} preview={ctx.preview} />
       </Container>
     </section>
   );
@@ -181,7 +222,7 @@ export async function IndicatorsBlock({ data, ctx }: { data: BlockData<'indicato
   return (
     <section className="bg-accent-soft py-14 sm:py-20">
       <Container>
-        <SectionHeading title={data.title || 'Lo hecho'} as={ctx.heading} intro="Cada cifra dice de dónde sale." />
+        <SectionHeading title={data.title || 'Gestión en cifras'} as={ctx.heading} />
         <IndicatorsView items={items} />
       </Container>
     </section>
@@ -204,48 +245,42 @@ export async function NoticesBlock({ data, ctx }: { data: BlockData<'notices'>; 
   );
 }
 
+/** The resolved requests published without anyone's data (a name only with consent, else initials). Without any, the
+ * block is not drawn. */
 export async function AttendedBlock({ data, ctx }: { data: BlockData<'attended'>; ctx: BlockContext }) {
   const [items, munis, categories] = await Promise.all([getAttended(data.limit ?? 6), municipalityNames(), getRequestCategories()]);
+  if (!items.length) return null;
   return (
     <section className="py-14 sm:py-20">
       <Container>
         <SectionHeading
-          title={data.title || 'Lo atendido'}
+          title={data.title || 'Casos atendidos'}
           as={ctx.heading}
-          intro="Casos resueltos que el equipo publica sin datos de nadie: el nombre solo si la persona lo permitió; si no, sus iniciales."
-          more={items.length ? { href: ATTENTION.attended, label: 'Ver todo lo atendido' } : undefined}
+          intro="Solicitudes resueltas a través de Atención ciudadana."
+          more={{ href: ATTENTION.attended, label: 'Ver todos los casos' }}
         />
-        {items.length ? (
-          <AttendedView items={items} names={{ munis, categories: new Map(categories.map((c) => [c.id, c.name])) }} />
-        ) : (
-          <EmptyState title="Todavía no hay casos atendidos publicados.">Cuando el equipo resuelva solicitudes, aparecerán aquí.</EmptyState>
-        )}
-        <DemoNote show={ctx.site.demo && items.length > 0}>En la versión de prueba estos casos son inventados.</DemoNote>
+        <AttendedView items={items} names={{ munis, categories: new Map(categories.map((c) => [c.id, c.name])) }} />
+        <DemoNote show={ctx.site.demo}>Casos de ejemplo de la versión de prueba.</DemoNote>
       </Container>
     </section>
   );
 }
 
+/** The official channels as pills. Without any (production before the team verifies them), the block is not drawn. */
 export function ChannelsBlock({ data, ctx }: { data: BlockData<'channels'>; ctx: BlockContext }) {
   const channels = orderedChannels(ctx.site);
+  if (!channels.length) return null;
   return (
     <section className="py-12 sm:py-16">
       <Container>
-        <SectionHeading title={data.title || 'Canales oficiales'} as={ctx.heading} more={{ href: '/canales', label: 'Cómo reconocer los canales auténticos' }} />
-        {channels.length ? (
-          <ChannelPills channels={channels} />
-        ) : (
-          <EmptyState title="Las cuentas oficiales se publican aquí cuando el equipo las verifica." />
-        )}
-        <DemoNote show={ctx.site.demo && channels.some((c) => !c.verified)}>
-          En la versión de prueba se ven también las cuentas «por confirmar». En la web publicada solo salen las verificadas.
-        </DemoNote>
+        <SectionHeading title={data.title || 'Canales oficiales'} as={ctx.heading} more={{ href: '/canales', label: 'Cómo identificar las cuentas oficiales' }} />
+        <ChannelPills channels={channels} />
+        <DemoNote show={ctx.site.demo && channels.some((c) => !c.verified)}>En la versión de prueba también se muestran cuentas sin verificar.</DemoNote>
       </Container>
     </section>
   );
 }
 
 export function ParticipationBlock({ data, ctx }: { data: BlockData<'participation'>; ctx: BlockContext }) {
-  return <ParticipationActions title={data.title || '¿Qué quieres hacer?'} emergencyNotice={ctx.site.emergencyNotice} as={ctx.heading} />;
+  return <ParticipationActions title={data.title || 'Atención ciudadana'} emergencyNotice={ctx.site.emergencyNotice} as={ctx.heading} />;
 }
-

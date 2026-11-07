@@ -11,11 +11,26 @@ import { Badge, cardClass, WebLink } from './ui';
 // The cards of the website's lists: news, projects, documents and episodes. Not a wall of identical cards (design §1):
 // the first news item is a feature with its photo, the rest a typographic list; projects are cards with their state;
 // documents are rows. A whole card can be tapped (its title's link stretches over it), and the link's text is the
-// title, so a screen reader reads where it goes.
+// title, so a screen reader reads where it goes. A missing photo or file draws nothing on the public site (the card
+// keeps its shape without it); the administrator's preview (`preview`) shows the placeholder.
 
 export type MuniNames = ReadonlyMap<string, string>;
 
 const stretched = 'after:absolute after:inset-0 after:content-[""] hover:underline decoration-2 underline-offset-4';
+
+const capitalized = (s: string) => s.charAt(0).toLocaleUpperCase('es') + s.slice(1);
+
+/** What a news item is about, as its eyebrow says it: its first topic (the official site's sections come as topics:
+ * «Táchira», «Deportes», «Opinión»…), else its kind («Noticia», «Comunicado»…). */
+export function newsLabel(d: Pick<Snapshot<'news'>, 'topics' | 'category'>): string {
+  const topic = d.topics?.map((t) => t.trim()).find(Boolean);
+  return topic ? capitalized(topic) : NEWS_CATEGORIES[d.category];
+}
+
+/** The news search for a topic (/actualidad?q=…): the site's way to list a section without a filter of its own. */
+export function topicHref(topic: string): string {
+  return `/actualidad?q=${encodeURIComponent(topic.trim())}`;
+}
 
 /** The day to show for an item: its display date, else the day it went live. */
 export function itemDay(item: Pick<WebItem, 'date' | 'liveSince'>): string {
@@ -32,12 +47,29 @@ export function Time({ day, className }: { day: string; className?: string }) {
 }
 
 // --- News ---------------------------------------------------------------------------------------------------------------
-export function NewsCard({ item, as: H = 'h3' }: { item: WebItem<'news'>; as?: 'h2' | 'h3' }) {
+/** A news item in a list: its topic and day, the title and the summary. `withPhoto` puts its photo on top (two items
+ * side by side); without a photo it is the light typographic card. */
+export function NewsCard({
+  item,
+  as: H = 'h3',
+  withPhoto = false,
+  preview = false,
+}: {
+  item: WebItem<'news'>;
+  as?: 'h2' | 'h3';
+  withPhoto?: boolean;
+  preview?: boolean;
+}) {
   const d = item.data;
+  const photo = withPhoto ? photoOf(item.media, d.coverId) : null;
+  const framed = withPhoto && (!!photo || preview);
   return (
-    <article className="relative flex flex-col gap-2 border-t border-border pt-5">
+    <article className={cn('relative flex flex-col gap-2', framed ? '' : 'border-t border-border pt-5')}>
+      {framed ? (
+        <MediaImage media={photo} sizes="(min-width: 768px) 540px, 100vw" className="mb-3 aspect-[16/9] rounded-[var(--radius-card)]" placeholder={preview} />
+      ) : null}
       <p className="text-sm font-semibold text-accent-ink">
-        {NEWS_CATEGORIES[d.category]} · <Time day={itemDay(item)} />
+        {newsLabel(d)} · <Time day={itemDay(item)} />
       </p>
       <H className="text-xl font-semibold leading-snug text-text">
         <WebLink href={itemPath('news', item.slug) ?? '/actualidad'} className={stretched}>
@@ -49,14 +81,19 @@ export function NewsCard({ item, as: H = 'h3' }: { item: WebItem<'news'>; as?: '
   );
 }
 
-export function NewsFeature({ item, as: H = 'h3', eager = false }: { item: WebItem<'news'>; as?: 'h2' | 'h3'; eager?: boolean }) {
+/** The first news item of a list: a card with its photo beside the words; without a photo, the words alone. */
+export function NewsFeature({ item, as: H = 'h3', eager = false, preview = false }: { item: WebItem<'news'>; as?: 'h2' | 'h3'; eager?: boolean; preview?: boolean }) {
   const d = item.data;
+  const photo = photoOf(item.media, d.coverId);
+  const framed = !!photo || preview;
   return (
-    <article className={cn(cardClass, 'relative grid overflow-hidden md:grid-cols-2')}>
-      <MediaImage media={photoOf(item.media, d.coverId)} sizes="(min-width: 768px) 560px, 100vw" className="aspect-[16/10] md:aspect-auto md:min-h-80" eager={eager} />
-      <div className="flex flex-col gap-3 p-6 sm:p-8">
+    <article className={cn(cardClass, 'relative grid overflow-hidden', framed ? 'md:grid-cols-2' : '')}>
+      {framed ? (
+        <MediaImage media={photo} sizes="(min-width: 768px) 560px, 100vw" className="aspect-[16/10] md:aspect-auto md:min-h-80" eager={eager} placeholder={preview} />
+      ) : null}
+      <div className={cn('flex flex-col gap-3 p-6 sm:p-8', framed ? '' : 'max-w-3xl lg:p-10')}>
         <p className="text-sm font-semibold text-accent-ink">
-          {NEWS_CATEGORIES[d.category]} · <Time day={itemDay(item)} />
+          {newsLabel(d)} · <Time day={itemDay(item)} />
         </p>
         <H className="text-2xl font-bold leading-tight tracking-tight text-text sm:text-3xl">
           <WebLink href={itemPath('news', item.slug) ?? '/actualidad'} className={stretched}>
@@ -130,12 +167,19 @@ export function documentFile(item: WebItem<'document'>): { url: string; bytes: n
   return url ? { url, bytes: m.bytes } : null;
 }
 
-export function DocumentRow({ item, as: H = 'h3' }: { item: WebItem<'document'>; as?: 'h2' | 'h3' }) {
+/** A document of a list: its cover when it has one (the Semanario's front page), its title, kind, day, version and
+ * pages, and «Ver el PDF». Without its file the public row has no button (the preview says the file is missing). */
+export function DocumentRow({ item, as: H = 'h3', preview = false }: { item: WebItem<'document'>; as?: 'h2' | 'h3'; preview?: boolean }) {
   const d = item.data;
   const file = documentFile(item);
+  const cover = photoOf(item.media, d.coverId);
   return (
     <li className="flex flex-col gap-3 border-t border-border py-5 sm:flex-row sm:items-center sm:gap-6">
-      <FileTextIcon className="hidden h-8 w-8 shrink-0 text-accent-ink sm:block" />
+      {cover ? (
+        <MediaImage media={cover} sizes="128px" className="aspect-[3/4] w-28 shrink-0 rounded-lg border border-border sm:w-32" />
+      ) : (
+        <FileTextIcon className="hidden h-8 w-8 shrink-0 text-accent-ink sm:block" />
+      )}
       <div className="min-w-0 flex-1">
         <H className="text-lg font-semibold leading-snug text-text">{d.title}</H>
         <p className="mt-1 text-[15px] text-text-2">
@@ -154,9 +198,9 @@ export function DocumentRow({ item, as: H = 'h3' }: { item: WebItem<'document'>;
           Ver el PDF <span className="sr-only">de «{d.title}»</span>
           <span className="text-sm font-normal text-text-2">({fmtBytes(file.bytes)})</span>
         </a>
-      ) : (
+      ) : preview ? (
         <p className="shrink-0 text-[15px] text-text-2">Archivo por subir</p>
-      )}
+      ) : null}
     </li>
   );
 }
@@ -176,15 +220,23 @@ export function EpisodeMeta({ item, className }: { item: WebItem<'episode'>; cla
   );
 }
 
-export function Topics({ topics }: { topics?: string[] }) {
-  if (!topics?.length) return null;
+/** The topics of an item; with `linked`, each one opens the news search for it. */
+export function Topics({ topics, linked = false }: { topics?: string[]; linked?: boolean }) {
+  const list = (topics ?? []).map((t) => t.trim()).filter(Boolean);
+  if (!list.length) return null;
   return (
     <ul className="flex flex-wrap gap-2" aria-label="Temas">
-      {topics.map((t) => (
+      {list.map((t) => (
         <li key={t}>
-          <Badge tone="olive" className="text-[13px]">
-            {t}
-          </Badge>
+          {linked ? (
+            <WebLink href={topicHref(t)} className="inline-flex min-h-11 items-center rounded-full bg-accent-soft px-4 text-[15px] font-semibold text-accent-ink hover:underline">
+              {capitalized(t)}
+            </WebLink>
+          ) : (
+            <Badge tone="olive" className="text-[13px]">
+              {capitalized(t)}
+            </Badge>
+          )}
         </li>
       ))}
     </ul>

@@ -38,8 +38,9 @@ export function describe(...candidates: (string | null | undefined)[]): string {
   return '';
 }
 
-export function defaultDescription(site: Pick<Site, 'name' | 'title' | 'region'>): string {
-  return `${siteTitle(site)}: la gestión, las obras, las noticias y la atención ciudadana del ${site.region}.`;
+/** The description of a page that has none of its own. The test version never calls itself the official site. */
+export function defaultDescription(site: Pick<Site, 'name' | 'title' | 'demo'>): string {
+  return site.demo ? `${siteTitle(site)}. Noticias, obras y atención ciudadana.` : `Sitio oficial de ${siteTitle(site)}. Noticias, obras y atención ciudadana.`;
 }
 
 export type OgImage = { url: string; width?: number; height?: number; alt?: string };

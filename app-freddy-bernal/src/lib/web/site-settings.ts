@@ -6,7 +6,7 @@ import { internalPath, safeHref } from './blocks';
 // the client's config (config/clients/fb.json «web») as the starting values. A value that does not have the right shape
 // is ignored and the starting value stays. Channels follow one rule everywhere (header, footer, /canales, JSON-LD):
 //   * an inactive account (active: false) never shows;
-//   * in production only VERIFIED accounts show; the test version also shows the «por confirmar» ones, marked;
+//   * in production only VERIFIED accounts show; the test version also shows the unverified ones, marked «sin verificar»;
 //   * the institutional portal shows only when verified (D-95); JSON-LD sameAs carries only verified accounts.
 // Pure (no database, no Next): site.ts reads and caches, this decides.
 
@@ -103,6 +103,8 @@ export type Site = {
   wordmark: string;
   /** The weekly program's name (the client's brand), for the episodes' page when the navigation does not name it. */
   programName: string;
+  /** The weekly bulletin's name (the client's brand: «Semanario …»), for its page and its links. */
+  weeklyName: string;
   navigation: NavLink[];
   legal: NavLink[];
   about: string;
@@ -144,7 +146,7 @@ function fallbackOf<K extends Key>(defaults: Record<string, unknown>, key: K): V
   return SCHEMAS[key].parse(defaults[key]) as Value<K>;
 }
 
-/** Whether a channel shows on the public site: never inactive; verified, or «por confirmar» in the test version. */
+/** Whether a channel shows on the public site: never inactive; verified, or unverified (marked) in the test version. */
 export function channelShown(c: { verified: boolean; active: boolean }, demo: boolean): boolean {
   return c.active && (c.verified || demo);
 }
@@ -180,6 +182,7 @@ export function normalizeSite(raw: Record<string, unknown>, opts: SiteOptions): 
     greeting: identity.greeting ?? cfg.brand.greeting,
     wordmark: identity.wordmark || `${identity.name} · ${identity.title}`,
     programName: cfg.brand.programName,
+    weeklyName: cfg.brand.weeklyName || 'Semanario',
     navigation: get('site.navigation'),
     legal: footer.legal,
     about: footer.about,

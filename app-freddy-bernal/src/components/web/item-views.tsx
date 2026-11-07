@@ -1,26 +1,39 @@
 import { MapPinIcon, MessageSquareTextIcon } from './icons';
-import { NewsCard, ProjectCard, Progress, StateBadge, Topics, itemDay, type MuniNames } from './cards';
+import { NewsCard, ProjectCard, Progress, StateBadge, Topics, itemDay, newsLabel, topicHref, type MuniNames } from './cards';
 import { VideoFrame } from './blocks/data';
 import { JsonLd } from './json-ld';
 import { Figure, MediaImage, photoOf } from './media';
-import { RichText } from './rich-text';
+import { publicNodes, RichText } from './rich-text';
 import { Breadcrumbs } from './states';
-import { Badge, boxClass, ButtonLink, Container, SafeLink, SectionHeading } from './ui';
+import { Badge, boxClass, ButtonLink, Container, SafeLink, SectionHeading, WebLink } from './ui';
 import type { WebItem } from '@/lib/web/cache';
 import { fmtDay, fmtMoney } from '@/lib/web/format';
 import { aboutHref } from '@/lib/web/links';
 import { absoluteUrl, ogImageFrom } from '@/lib/web/meta';
 import { NEWS_CATEGORIES, PROJECT_CATEGORIES } from '@/lib/web/schema';
 import { newsArticleJsonLd } from '@/lib/web/seo';
-import type { Site } from '@/lib/web/site';
+import { navLabel, type Site } from '@/lib/web/site-settings';
 
 // The pages of one item of the website, drawn from the item alone: the news article and the project's ficha. The public
 // pages (src/app/(web)/actualidad/[slug], gestion/[slug]) give them what was published; the administrator's preview
-// (/admin/web/vista-previa/[id]) gives them the draft, so the publisher sees exactly what the public would.
+// (/admin/web/vista-previa/[id]) gives them the draft with `preview`, so the publisher sees what the public would and,
+// besides, the placeholder of each photo, video or text that is still missing (the public site draws nothing there).
 
-/** A news item (design §2): its date in the Táchira's time zone, who signs it, its sources, its photos, related notes,
- * «Comentar esta noticia» (a request linked to it) and the NewsArticle structured data. */
-export function NewsArticle({ item, site, munis, related }: { item: WebItem<'news'>; site: Site; munis: MuniNames; related: WebItem<'news'>[] }) {
+/** A news item (design §2): its topic, its date in the Táchira's time zone, who signs it, its sources, its photos,
+ * related notes, «Comentar esta noticia» (a request linked to it) and the NewsArticle structured data. */
+export function NewsArticle({
+  item,
+  site,
+  munis,
+  related,
+  preview = false,
+}: {
+  item: WebItem<'news'>;
+  site: Site;
+  munis: MuniNames;
+  related: WebItem<'news'>[];
+  preview?: boolean;
+}) {
   const d = item.data;
   const day = itemDay(item);
   const muni = d.municipalityId ? munis.get(d.municipalityId) : null;
@@ -28,14 +41,24 @@ export function NewsArticle({ item, site, munis, related }: { item: WebItem<'new
   const gallery = (d.galleryIds ?? []).map((id) => photoOf(item.media, id)).filter((m) => m !== null);
   const url = absoluteUrl(site.baseUrl, `/actualidad/${item.slug}`);
   const image = ogImageFrom(item.media, d.seo?.imageId, d.coverId);
+  const section = navLabel(site, '/actualidad', 'Noticias');
+  const topic = d.topics?.map((t) => t.trim()).find(Boolean);
 
   return (
     <>
-      <Breadcrumbs items={[{ label: 'Inicio', href: '/' }, { label: 'Actualidad', href: '/actualidad' }, { label: d.title }]} />
+      <Breadcrumbs items={[{ label: 'Inicio', href: '/' }, { label: section, href: '/actualidad' }, { label: d.title }]} />
       <article>
         <Container className="max-w-4xl pb-8 pt-6 sm:pt-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.08em] text-accent-ink">{NEWS_CATEGORIES[d.category]}</p>
-          <h1 className="mt-3 text-[2.25rem] font-bold leading-[1.1] tracking-tight text-text sm:text-5xl">{d.title}</h1>
+          <p className="text-sm font-semibold uppercase tracking-[0.08em] text-accent-ink">
+            {topic ? (
+              <WebLink href={topicHref(topic)} className="inline-flex min-h-11 items-center underline-offset-4 hover:underline">
+                {newsLabel(d)}
+              </WebLink>
+            ) : (
+              newsLabel(d)
+            )}
+          </p>
+          <h1 className={`${topic ? 'mt-1' : 'mt-3'} text-[2.25rem] font-bold leading-[1.1] tracking-tight text-text sm:text-5xl`}>{d.title}</h1>
           {d.excerpt ? <p className="mt-5 text-xl leading-relaxed text-text-2">{d.excerpt}</p> : null}
           <p className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-border py-3 text-[15px] text-text-2">
             <time dateTime={day}>{fmtDay(day, { weekday: true })}</time>
@@ -47,18 +70,20 @@ export function NewsArticle({ item, site, munis, related }: { item: WebItem<'new
             ) : null}
           </p>
         </Container>
-        <Container className="max-w-5xl">
-          {cover ? (
+        {cover ? (
+          <Container className="max-w-5xl">
             <Figure media={cover} sizes="(min-width: 1024px) 976px, 100vw" frameClass="aspect-[16/9] rounded-[var(--radius-card)]" />
-          ) : (
-            <MediaImage media={null} sizes="100vw" className="aspect-[16/7] rounded-[var(--radius-card)]" />
-          )}
-        </Container>
-        <Container className="max-w-3xl py-10">
-          <RichText nodes={d.body} />
+          </Container>
+        ) : preview ? (
+          <Container className="max-w-5xl">
+            <MediaImage media={null} sizes="100vw" className="aspect-[16/7] rounded-[var(--radius-card)]" placeholder />
+          </Container>
+        ) : null}
+        <Container className={`max-w-3xl ${cover || preview ? 'py-10' : 'pb-10 pt-2'}`}>
+          <RichText nodes={d.body} preview={preview} />
           {d.youtubeId ? (
             <div className="mt-10">
-              <VideoFrame youtubeId={d.youtubeId} title={d.title} poster={cover} />
+              <VideoFrame youtubeId={d.youtubeId} title={d.title} poster={cover} preview={preview} />
             </div>
           ) : null}
           {gallery.length ? (
@@ -84,13 +109,13 @@ export function NewsArticle({ item, site, munis, related }: { item: WebItem<'new
           ) : null}
           {d.topics?.length ? (
             <div className="mt-8">
-              <Topics topics={d.topics} />
+              <Topics topics={d.topics} linked />
             </div>
           ) : null}
           <div className="mt-10 flex flex-col items-start gap-4 rounded-[var(--radius-card)] bg-accent-soft p-6 sm:flex-row sm:items-center sm:justify-between">
             <p className="flex items-start gap-3 text-lg font-semibold text-text">
               <MessageSquareTextIcon className="mt-0.5 h-6 w-6 shrink-0 text-accent-ink" />
-              ¿Tienes algo que decir sobre esta nota?
+              Envíe su opinión sobre esta noticia.
             </p>
             <ButtonLink href={aboutHref('news', item.slug)} variant="olive" className="shrink-0">
               Comentar esta noticia
@@ -101,7 +126,7 @@ export function NewsArticle({ item, site, munis, related }: { item: WebItem<'new
       {related.length ? (
         <section className="bg-surface py-14">
           <Container>
-            <SectionHeading title="Relacionadas" more={{ href: '/actualidad', label: 'Ver toda la actualidad' }} />
+            <SectionHeading title="Noticias relacionadas" more={{ href: '/actualidad', label: 'Ver todas las noticias' }} />
             <ul className="grid gap-x-10 gap-y-8 md:grid-cols-3">
               {related.map((n) => (
                 <li key={n.id}>
@@ -132,12 +157,14 @@ export function NewsArticle({ item, site, munis, related }: { item: WebItem<'new
 }
 
 /** The ficha of a project (design §2): where, what, for whom, who is responsible, the investment and the progress only
- * with their documented source, the dates, the state, the evidence, the last update, and «Hacer una observación sobre
- * esta obra» (a request linked to it). */
-export function ProjectFicha({ item, munis, related }: { item: WebItem<'project'>; munis: MuniNames; related: WebItem<'project'>[] }) {
+ * with their documented source, the dates, the state, the photos, the last update, and «Hacer una observación sobre esta
+ * obra» (a request linked to it). Without a photo or a description, the public ficha simply does without them. */
+export function ProjectFicha({ item, munis, related, preview = false }: { item: WebItem<'project'>; munis: MuniNames; related: WebItem<'project'>[]; preview?: boolean }) {
   const d = item.data;
   const muni = d.municipalityId ? munis.get(d.municipalityId) : null;
+  const cover = photoOf(item.media, d.coverId);
   const evidences = (d.evidenceIds ?? []).map((id) => photoOf(item.media, id)).filter((m) => m !== null);
+  const described = preview ? d.description.length > 0 : publicNodes(d.description).length > 0;
   const dates = [
     ['Anunciada', d.dates?.announced],
     ['Inicio', d.dates?.started],
@@ -157,22 +184,28 @@ export function ProjectFicha({ item, munis, related }: { item: WebItem<'project'
           <h1 className="mt-4 max-w-4xl text-[2.25rem] font-bold leading-[1.1] tracking-tight text-text sm:text-5xl">{d.title}</h1>
           {d.excerpt ? <p className="mt-4 max-w-3xl text-xl leading-relaxed text-text-2">{d.excerpt}</p> : null}
         </Container>
-        <Container>
-          <MediaImage media={photoOf(item.media, d.coverId)} sizes="(min-width: 1152px) 1104px, 100vw" className="aspect-[16/9] rounded-[var(--radius-card)] sm:aspect-[21/9]" eager />
-        </Container>
-        <Container className="grid gap-10 py-12 lg:grid-cols-12 lg:gap-14">
+        {cover || preview ? (
+          <Container>
+            <MediaImage media={cover} sizes="(min-width: 1152px) 1104px, 100vw" className="aspect-[16/9] rounded-[var(--radius-card)] sm:aspect-[21/9]" eager placeholder={preview} />
+          </Container>
+        ) : null}
+        <Container className={`grid gap-10 lg:grid-cols-12 lg:gap-14 ${cover || preview ? 'py-12' : 'pb-12 pt-4'}`}>
           <div className="lg:col-span-7">
-            <h2 className="mb-4 text-2xl font-bold tracking-tight">De qué se trata</h2>
-            {d.description.length ? <RichText nodes={d.description} /> : <p className="text-lg text-text-2">La descripción se publica pronto.</p>}
+            {described ? (
+              <>
+                <h2 className="mb-4 text-2xl font-bold tracking-tight">Descripción</h2>
+                <RichText nodes={d.description} preview={preview} />
+              </>
+            ) : null}
             {d.youtubeId ? (
-              <div className="mt-10">
+              <div className={described ? 'mt-10' : undefined}>
                 <h2 className="mb-4 text-2xl font-bold tracking-tight">Video</h2>
-                <VideoFrame youtubeId={d.youtubeId} title={d.title} poster={photoOf(item.media, d.coverId)} />
+                <VideoFrame youtubeId={d.youtubeId} title={d.title} poster={cover} preview={preview} />
               </div>
             ) : null}
             {evidences.length ? (
-              <div className="mt-10">
-                <h2 className="mb-4 text-2xl font-bold tracking-tight">Evidencias</h2>
+              <div className={described || d.youtubeId ? 'mt-10' : undefined}>
+                <h2 className="mb-4 text-2xl font-bold tracking-tight">Registro fotográfico</h2>
                 <ul className="grid grid-cols-2 gap-3">
                   {evidences.map((m) => (
                     <li key={m.key}>
@@ -185,8 +218,8 @@ export function ProjectFicha({ item, munis, related }: { item: WebItem<'project'
           </div>
           <aside className="flex flex-col gap-6 lg:col-span-5" aria-label="Datos de la obra">
             <dl className={`${boxClass} grid gap-4 p-6 text-base`}>
-              <Fact label="Dónde">{[muni, d.place].filter(Boolean).join(' · ') || 'Por precisar'}</Fact>
-              {d.beneficiaries ? <Fact label="Para quién">{d.beneficiaries}</Fact> : null}
+              <Fact label="Ubicación">{[muni, d.place].filter(Boolean).join(' · ') || 'Por precisar'}</Fact>
+              {d.beneficiaries ? <Fact label="Beneficiarios">{d.beneficiaries}</Fact> : null}
               {d.organization ? <Fact label="Organismo responsable">{d.organization}</Fact> : null}
               {d.investment ? (
                 <Fact label="Inversión">
@@ -210,8 +243,8 @@ export function ProjectFicha({ item, munis, related }: { item: WebItem<'project'
             </dl>
             <div className="rounded-[var(--radius-card)] bg-accent-soft p-6">
               <MessageSquareTextIcon className="h-7 w-7 text-accent-ink" />
-              <p className="mt-3 text-lg font-semibold text-text">¿Conoces esta obra? ¿Algo no coincide con lo que ves?</p>
-              <p className="mt-1 text-base leading-relaxed text-text">Cuéntaselo al equipo: tu observación queda ligada a esta obra y recibes un código para seguirla.</p>
+              <h2 className="mt-3 text-lg font-semibold text-text">Observaciones sobre esta obra</h2>
+              <p className="mt-1 text-base leading-relaxed text-text">Si tiene información sobre esta obra, envíela a Atención ciudadana. Recibirá un código para hacer seguimiento.</p>
               <ButtonLink href={aboutHref('project', item.slug)} variant="action" className="mt-5 w-full sm:w-auto">
                 Hacer una observación sobre esta obra
               </ButtonLink>
@@ -222,7 +255,7 @@ export function ProjectFicha({ item, munis, related }: { item: WebItem<'project'
       {related.length ? (
         <section className="bg-surface py-14">
           <Container>
-            <SectionHeading title={muni ? `Más en ${muni}` : 'Más obras'} more={{ href: '/gestion', label: 'Ver toda la gestión' }} />
+            <SectionHeading title={muni ? `Otras obras en ${muni}` : 'Otras obras'} more={{ href: '/gestion', label: 'Ver todas las obras' }} />
             <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((p) => (
                 <li key={p.id} className="flex">

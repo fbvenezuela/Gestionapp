@@ -2,16 +2,17 @@ import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { municipalityNames } from '@/components/web/blocks/data';
 import { NewsArticle } from '@/components/web/item-views';
-import { getItem, listItems } from '@/lib/web/cache';
+import { getItem, listItems, type WebItem } from '@/lib/web/cache';
 import { ogImageFrom } from '@/lib/web/meta';
 import { findRedirectOrNull } from '@/lib/web/redirect-map';
 import { NEWS_CATEGORIES } from '@/lib/web/schema';
 import { pageMetadata } from '@/lib/web/seo';
 import { getSite } from '@/lib/web/site';
 
-// A news item (design §2): its date in the Táchira's time zone, who signs it, its sources, its photos, related notes and
-// «Comentar esta noticia» (a request linked to it, ?sobre=news:<slug>). NewsArticle structured data. Generated on its
-// first visit and cached (ISR); an old address that the importer redirected answers with its redirect.
+// A news item (design §2): its topic, its date in the Táchira's time zone, who signs it, its sources, its photos, related
+// news (of its topic when it has one, else of its kind) and «Comentar esta noticia» (a request linked to it,
+// ?sobre=news:<slug>). NewsArticle structured data. Generated on its first visit and cached (ISR); an old address that the
+// importer redirected answers with its redirect.
 export const revalidate = 60;
 
 export function generateStaticParams() {
@@ -51,10 +52,13 @@ export default async function NewsItemPage({ params }: { params: Params }) {
     notFound();
   }
   const d = item.data;
-  const [site, munis, related] = await Promise.all([
+  const topic = d.topics?.map((t) => t.trim()).find(Boolean);
+  const others = (r: { items: WebItem<'news'>[] }) => r.items.filter((n) => n.id !== item.id).slice(0, 3);
+  const [site, munis, byTopic] = await Promise.all([
     getSite(),
     municipalityNames(),
-    listItems({ kind: 'news', category: d.category, limit: 4 }).then((r) => r.items.filter((n) => n.id !== item.id).slice(0, 3)),
+    topic ? listItems({ kind: 'news', q: topic, limit: 4 }).then(others) : Promise.resolve([]),
   ]);
+  const related = byTopic.length ? byTopic : others(await listItems({ kind: 'news', category: d.category, limit: 4 }));
   return <NewsArticle item={item} site={site} munis={munis} related={related} />;
 }

@@ -9,8 +9,9 @@ import { Blocks, opensWithHero } from './blocks';
 import { EmptyState } from './states';
 import { Container, PageIntro } from './ui';
 
-// A page of the website made of blocks (El gobernador, the legal pages): exactly what the publisher approved, with the
-// date it was published. While it is not published, an honest «en preparación», never invented text.
+// A page of the website made of blocks (El gobernador, the legal pages): exactly what the publisher approved, closed by
+// the day it was last updated (the CMS's version number is the editors' business, not the reader's). While it is not
+// published, an honest «en preparación», never invented text.
 
 export async function blockPageMetadata(slug: string, fallbackTitle: string): Promise<Metadata> {
   const [site, page] = await Promise.all([getSite(), getItem('page', slug)]);
@@ -34,7 +35,7 @@ export async function BlockPage({ slug, fallbackTitle }: { slug: string; fallbac
       <>
         <PageIntro title={fallbackTitle} />
         <Container className="pb-20">
-          <EmptyState title="Esta página se está preparando.">El equipo la publica pronto, revisada y aprobada.</EmptyState>
+          <EmptyState title="Página en preparación." />
         </Container>
       </>
     );
@@ -46,8 +47,7 @@ export async function BlockPage({ slug, fallbackTitle }: { slug: string; fallbac
       <Blocks blocks={blocks} site={site} media={page.media} />
       <Container className="pb-14 pt-4">
         <p className="text-[15px] text-text-2">
-          Publicado el <time dateTime={page.publishedAt}>{fmtDay(page.publishedAt)}</time>
-          {page.version > 1 ? ` · versión ${page.version}` : ''}
+          Última actualización: <time dateTime={page.publishedAt}>{fmtDay(page.publishedAt)}</time>
         </p>
       </Container>
     </>

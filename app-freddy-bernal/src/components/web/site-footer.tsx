@@ -6,8 +6,8 @@ import { NavList } from './nav-list';
 import { ButtonLink, Container, UnverifiedMark, WebLink } from './ui';
 
 // The footer (design §2, docs/diagnostico.md problems 3 and 7): the official channels from the one list of the site's
-// settings (in production only the verified ones; the test version also shows the «por confirmar» ones, marked), the
-// legal pages, a year that changes by itself, «not an emergency service», and the team's door to the panel.
+// settings (in production only the verified ones; the test version also shows the unverified ones, marked), the legal
+// pages, a year that changes by itself, «not an emergency service», and the staff's door to the panel.
 
 const footLink = 'inline-flex min-h-11 items-center text-[15px] text-on-charcoal underline-offset-4 hover:underline focus-visible:outline-on-charcoal';
 
@@ -40,7 +40,7 @@ export function SiteFooter({ site }: { site: Site }) {
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-[0.08em]">Canales oficiales</h2>
           {channels.length ? (
             <ul className="flex flex-col gap-2">
-              {/* Each account on its own line and the «por confirmar» mark always under it: the same place for every
+              {/* Each account on its own line and the «sin verificar» mark always under it: the same place for every
                   account, however long its name. */}
               {channels.map((c) => (
                 <li key={c.url} className="flex flex-col items-start">
@@ -53,11 +53,9 @@ export function SiteFooter({ site }: { site: Site }) {
                 </li>
               ))}
             </ul>
-          ) : (
-            <p className="text-[15px] leading-relaxed">Las cuentas oficiales se publican aquí cuando el equipo las verifica.</p>
-          )}
+          ) : null}
           <WebLink href="/canales" className={`${footLink} mt-2 font-semibold underline`}>
-            Cómo reconocer los canales auténticos
+            Cómo identificar las cuentas oficiales
           </WebLink>
         </div>
       </Container>
@@ -65,7 +63,7 @@ export function SiteFooter({ site }: { site: Site }) {
       <div className="border-t border-on-charcoal/25">
         <Container className="flex flex-col gap-3 py-6 text-[15px] md:flex-row md:flex-wrap md:items-center md:gap-x-6">
           <p>
-            © {currentYear()} {site.wordmark}
+            © {currentYear()} {site.name}. Todos los derechos reservados.
           </p>
           {site.legal.length ? (
             <ul className="flex flex-wrap gap-x-5">
@@ -79,7 +77,7 @@ export function SiteFooter({ site }: { site: Site }) {
             </ul>
           ) : null}
           <WebLink href="/panel" className={`${footLink} md:ml-auto`}>
-            Entrar (equipo)
+            Acceso del personal
           </WebLink>
           {site.demo ? <p className="w-full text-sm">{site.demoBanner}</p> : null}
         </Container>
