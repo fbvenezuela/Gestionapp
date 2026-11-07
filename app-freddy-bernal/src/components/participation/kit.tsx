@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 import { AlertTriangle, Info, LifeBuoy, Lock } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { DENUNCIA_LEAD, DENUNCIA_REST, EMERGENCY_LEAD, EMERGENCY_REST } from '@/lib/participation/notices';
 
 // The participation pages' own pieces (public website, design §1): editorial and calm, big readable type, the brand's
 // orange only for the citizen's actions (with charcoal text), olive for the rest, discreet borders and soft shadows.
@@ -52,11 +53,11 @@ export function Eyebrow({ children, className }: { children: ReactNode; classNam
   return <p className={cn('text-sm font-semibold uppercase tracking-[0.08em] text-accent-ink', className)}>{children}</p>;
 }
 
-/** The page's title block: what this is, in one big line and a short lead. */
-export function PageIntro({ eyebrow, title, lead, children, id }: { eyebrow: ReactNode; title: ReactNode; lead?: ReactNode; children?: ReactNode; id?: string }) {
+/** The page's title block: what this is, in one big line and a short lead (the small line above only when it adds). */
+export function PageIntro({ eyebrow, title, lead, children, id }: { eyebrow?: ReactNode; title: ReactNode; lead?: ReactNode; children?: ReactNode; id?: string }) {
   return (
     <header className="flex max-w-3xl flex-col gap-4">
-      <Eyebrow>{eyebrow}</Eyebrow>
+      {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
       <h1 id={id} tabIndex={id ? -1 : undefined} className="text-[2rem] font-bold leading-[1.1] tracking-tight text-text outline-none sm:text-5xl">
         {title}
       </h1>
@@ -73,7 +74,7 @@ const NOTICE = {
   danger: { icon: AlertTriangle, box: 'border-danger/40 bg-danger-soft', mark: 'text-danger' },
 } as const;
 
-/** A short notice with its icon (not an emergency service, a denuncia is private, a warning). */
+/** A short notice with its icon (not an emergency service, a denuncia is confidential, a warning). */
 export function Notice({ tone = 'info', title, children, className, role }: { tone?: keyof typeof NOTICE; title?: ReactNode; children: ReactNode; className?: string; role?: string }) {
   const n = NOTICE[tone];
   const Icon = n.icon;
@@ -137,11 +138,22 @@ export function describedBy(id: string, opts: { hint?: unknown; error?: unknown;
   return [opts.hint ? `${id}-hint` : null, opts.error ? `${id}-error` : null, opts.extra ?? null].filter(Boolean).join(' ') || undefined;
 }
 
-/** The emergency line that goes on every form (D-92). */
+/** The emergency line that goes on every form (D-92): the one text of src/lib/participation/notices.ts. */
 export function EmergencyNote({ className }: { className?: string }) {
   return (
     <Notice tone="emergency" className={className}>
-      <strong className="font-semibold">Esto no es un servicio de emergencias.</strong> En una emergencia, llama a los servicios de emergencia locales.
+      <strong className="font-semibold">{EMERGENCY_LEAD}</strong> {EMERGENCY_REST}
+    </Notice>
+  );
+}
+
+/** The denuncia's notice (confidential, and the authorities for a crime): the one text of notices.ts, then what the
+ * page adds, if anything. */
+export function DenunciaNote({ className, title, children }: { className?: string; title?: ReactNode; children?: ReactNode }) {
+  return (
+    <Notice tone="private" title={title} className={className}>
+      <strong className="font-semibold">{DENUNCIA_LEAD}</strong> {DENUNCIA_REST}
+      {children ? <> {children}</> : null}
     </Notice>
   );
 }

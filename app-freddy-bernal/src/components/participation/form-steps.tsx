@@ -4,10 +4,10 @@ import { PLACE_REQUIRED, REQUEST_TYPES, type RequestType } from '@/lib/participa
 import type { FieldErrors } from '@/lib/actions/participation-types';
 import type { PublicCategory, Territory } from '@/lib/web/public';
 import { cn } from '@/lib/cn';
-import { FieldBox, FieldError, Notice, describedBy, inputStyle } from './kit';
+import { DenunciaNote, FieldBox, FieldError, Notice, describedBy, inputStyle } from './kit';
 import { LocationPicker } from './location-picker';
 import { FilePicker, type PickedFile } from './file-picker';
-import { DENUNCIA_TEXT, DETAIL_COPY, TYPE_COPY } from './words';
+import { DETAIL_COPY, TYPE_COPY } from './words';
 import type { FormValues } from './form-core';
 
 type StepProps = { v: FormValues; set: (p: Partial<FormValues>) => void; errors: FieldErrors };
@@ -15,12 +15,12 @@ type StepProps = { v: FormValues; set: (p: Partial<FormValues>) => void; errors:
 const optionCard =
   'flex min-h-12 cursor-pointer items-start gap-3 rounded-2xl border border-border bg-surface p-4 transition-colors motion-reduce:transition-none hover:border-accent has-[:checked]:border-accent has-[:checked]:bg-accent-soft';
 
-/** Step 1, «Qué»: the kind of request and its category. */
+/** Step 1, «Tipo»: the kind of request and its category. */
 export function StepWhat({ v, set, errors, categories }: StepProps & { categories: PublicCategory[] }) {
   return (
     <div className="flex flex-col gap-8">
       <fieldset className="flex flex-col gap-3" aria-describedby={errors.type ? 'f-type-error' : undefined}>
-        <legend className="mb-1 text-base font-semibold text-text">Elige una opción</legend>
+        <legend className="mb-1 text-base font-semibold text-text">Seleccione una opción</legend>
         <div className="grid gap-3 sm:grid-cols-2">
           {REQUEST_TYPES.map((t, i) => (
             <label key={t} className={cn(optionCard, t === 'denuncia' && 'sm:col-span-2')}>
@@ -43,15 +43,11 @@ export function StepWhat({ v, set, errors, categories }: StepProps & { categorie
         {errors.type ? <FieldError id="f-type-error">{errors.type}</FieldError> : null}
       </fieldset>
 
-      {v.type === 'denuncia' ? (
-        <Notice tone="private" title="Una denuncia es privada">
-          {DENUNCIA_TEXT}
-        </Notice>
-      ) : null}
+      {v.type === 'denuncia' ? <DenunciaNote /> : null}
 
       {v.type ? (
         <fieldset className="flex flex-col gap-3" aria-describedby={errors.categoryId ? 'f-categoryId-error' : undefined}>
-          <legend className="mb-1 text-base font-semibold text-text">¿De qué se trata?</legend>
+          <legend className="mb-1 text-base font-semibold text-text">Categoría</legend>
           <div className="grid gap-2 sm:grid-cols-2">
             {categories.map((c, i) => (
               <label key={c.id} className={cn(optionCard, 'p-3.5')}>
@@ -78,7 +74,7 @@ export function StepWhat({ v, set, errors, categories }: StepProps & { categorie
   );
 }
 
-/** Step 2, «Dónde»: municipality, parish or the place as people say it, a reference and, if wanted, the exact point. */
+/** Step 2, «Lugar»: municipality, parish or the place as people say it, a reference and, if wanted, the exact point. */
 export function StepWhere({ v, set, errors, municipalities }: StepProps & { municipalities: Territory[] }) {
   const type = v.type || 'reporte';
   const required = PLACE_REQUIRED.includes(type as RequestType);
@@ -86,7 +82,7 @@ export function StepWhere({ v, set, errors, municipalities }: StepProps & { muni
   const denuncia = type === 'denuncia';
   return (
     <div className="flex flex-col gap-6">
-      {!required ? <p className="text-[15px] text-text-2">Si tu {TYPE_COPY[type].label.toLowerCase()} es sobre un lugar, dinos cuál. Si no, sigue.</p> : null}
+      {!required ? <p className="text-[15px] text-text-2">Si su {TYPE_COPY[type].label.toLowerCase()} se refiere a un lugar, indíquelo. Si no, continúe.</p> : null}
       <FieldBox id="f-municipalityId" label="Municipio" optional={!required} error={errors.municipalityId}>
         <select
           id="f-municipalityId"
@@ -97,7 +93,7 @@ export function StepWhere({ v, set, errors, municipalities }: StepProps & { muni
           aria-describedby={describedBy('f-municipalityId', { error: errors.municipalityId })}
           required={required}
         >
-          <option value="">Elige el municipio</option>
+          <option value="">Seleccione el municipio</option>
           {municipalities.map((m) => (
             <option key={m.id} value={m.id}>
               {m.name}
@@ -128,7 +124,7 @@ export function StepWhere({ v, set, errors, municipalities }: StepProps & { muni
         id="f-sector"
         label={parishes.length ? 'Localidad o sector' : 'Parroquia, localidad o sector'}
         optional
-        hint="Como lo dice la gente: el barrio, la urbanización, el caserío o el sector."
+        hint="Barrio, urbanización, caserío o sector, como se conoce en la zona."
         error={errors.sector}
       >
         <input
@@ -142,7 +138,7 @@ export function StepWhere({ v, set, errors, municipalities }: StepProps & { muni
         />
       </FieldBox>
       {denuncia ? (
-        <Notice tone="private">En una denuncia va solo el lugar aproximado: el municipio y el sector. No pedimos la dirección exacta ni tu ubicación.</Notice>
+        <Notice tone="private">En una denuncia se pide solo el lugar aproximado, es decir, el municipio y el sector. No se pide la dirección exacta ni su ubicación.</Notice>
       ) : (
         <>
           <FieldBox id="f-locationReference" label="Punto de referencia" optional hint="Por ejemplo: «frente a la bodega» o «al lado de la escuela»." error={errors.locationReference}>
@@ -163,7 +159,7 @@ export function StepWhere({ v, set, errors, municipalities }: StepProps & { muni
   );
 }
 
-/** Step 3, «Detalle»: title, what happens, when, and files. */
+/** Step 3, «Detalle»: title, description, date and files. */
 export function StepDetail({
   v, set, errors, today, files, onFiles, maxFileBytes, remembered,
 }: StepProps & { today: string; files: PickedFile[]; onFiles: (f: PickedFile[]) => void; maxFileBytes: number; remembered: string[] }) {
@@ -186,8 +182,8 @@ export function StepDetail({
       </FieldBox>
       <FieldBox
         id="f-description"
-        label={type === 'denuncia' ? 'Cuéntanos qué pasó' : type === 'reconocimiento' ? 'Cuéntanos qué se hizo bien' : 'Cuéntanos'}
-        hint={`${copy.description} No pongas datos de otras personas que no hagan falta.`}
+        label="Descripción"
+        hint={`${copy.description} No incluya datos personales de otras personas.`}
         error={errors.description}
       >
         <textarea
@@ -202,10 +198,10 @@ export function StepDetail({
           required
         />
         <p id="f-description-count" className="text-right text-sm text-text-2">
-          {left < 400 ? `Quedan ${left} letras` : `${v.description.length} de 4000 letras`}
+          {left < 400 ? `Quedan ${left} caracteres` : `${v.description.length} de 4000 caracteres`}
         </p>
       </FieldBox>
-      <FieldBox id="f-eventDate" label="¿Cuándo pasó?" optional hint="Si sabes la fecha." error={errors.eventDate} className="max-w-xs">
+      <FieldBox id="f-eventDate" label="Fecha del hecho" optional hint="Si la conoce." error={errors.eventDate} className="max-w-xs">
         <input
           id="f-eventDate"
           type="date"

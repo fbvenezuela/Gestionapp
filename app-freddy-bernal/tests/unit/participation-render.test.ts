@@ -1,5 +1,5 @@
 // What the participation components draw (design §4), rendered on the server as the pages do: the emergency line on
-// every form and on the receipt, the denuncia's notice (private, «acude también a las autoridades competentes»), the
+// every form and on the receipt, the denuncia's notice (confidential, «acuda también a las autoridades competentes»), the
 // receipt with its code and secret (never as a link or an address), the consultation of a support that never shows the
 // other person's text, and the form without JavaScript that says the truth when Turnstile needs JavaScript. All data
 // invented. The server actions are mocked (nothing here touches the database).
@@ -21,16 +21,16 @@ const { emptyValues } = await import('@/components/participation/form-core');
 
 const html = <P extends object>(c: (p: P) => unknown, p: P) => renderToStaticMarkup(createElement(c as never, p as never));
 const EMERGENCY = 'Esto no es un servicio de emergencias.';
-const AUTHORITIES = 'acude también a las autoridades competentes';
+const AUTHORITIES = 'acuda también a las autoridades competentes';
 const MUNIS = [{ id: '00000000-0000-4000-8000-0000000000a1', name: 'Torbes', slug: 'torbes', parishes: [] }];
 const CATS = [{ id: '00000000-0000-4000-8000-0000000000c1', name: 'Agua', slug: 'agua', description: 'Falta de agua (demo).' }];
 const noop = () => {};
 
 describe('el formulario', () => {
-  it('una denuncia avisa que es privada y que también se acude a las autoridades; nunca pide el punto exacto', () => {
+  it('una denuncia avisa que es confidencial y que también se acude a las autoridades; nunca pide el punto exacto', () => {
     const v = { ...emptyValues(), type: 'denuncia' as const };
     const what = html(StepWhat, { v, set: noop, errors: {}, categories: CATS });
-    expect(what).toContain('Una denuncia es privada');
+    expect(what).toContain('Su denuncia es confidencial.');
     expect(what).toContain(AUTHORITIES);
     const where = html(StepWhere, { v, set: noop, errors: {}, municipalities: MUNIS });
     expect(where).toContain('solo el lugar aproximado');
@@ -44,7 +44,7 @@ describe('el formulario', () => {
   });
 
   it('un error queda atado a su campo (aria-invalid y aria-describedby con el id del mensaje)', () => {
-    const where = html(StepWhere, { v: { ...emptyValues(), type: 'reporte' as const }, set: noop, errors: { municipalityId: 'Elige el municipio.' }, municipalities: MUNIS });
+    const where = html(StepWhere, { v: { ...emptyValues(), type: 'reporte' as const }, set: noop, errors: { municipalityId: 'Elija el municipio.' }, municipalities: MUNIS });
     expect(where).toMatch(/<select[^>]*id="f-municipalityId"[^>]*aria-invalid="true"[^>]*aria-describedby="f-municipalityId-error"/);
     expect(where).toContain('id="f-municipalityId-error"');
   });
@@ -55,7 +55,7 @@ describe('sin JavaScript', () => {
 
   it('el formulario completo de una página, con el aviso de emergencias y el campo trampa', () => {
     const out = html(NoJsForm, props);
-    expect(out).toContain('Tu navegador no tiene JavaScript activo');
+    expect(out).toContain('Su navegador tiene JavaScript desactivado');
     expect(out).toContain('name="submissionKey"');
     expect(out).toContain('name="sitio_web"');
     expect(out).toContain(EMERGENCY);
@@ -64,7 +64,7 @@ describe('sin JavaScript', () => {
 
   it('con Turnstile encendido dice la verdad: sin JavaScript no se puede enviar (no un formulario que siempre falla)', () => {
     const out = html(NoJsForm, { ...props, turnstileOn: true });
-    expect(out).toContain('Para enviar, activa JavaScript');
+    expect(out).toContain('Para enviar, active JavaScript');
     expect(out).not.toContain('<form');
     expect(out).toContain(EMERGENCY);
   });
@@ -86,12 +86,12 @@ describe('el comprobante', () => {
     expect(out).toContain('Descargar comprobante (PDF)');
     expect(out).toContain('Imprimir');
     expect(out).toContain('Copiar código y clave');
-    expect(out).toContain('La clave se muestra solo esta vez');
+    expect(out).toContain('La clave se muestra una sola vez');
     expect(out).toContain(EMERGENCY);
     expect(out).toContain(AUTHORITIES);
     // No email promised unless the server said one is on its way.
-    expect(out).not.toContain('Te enviamos un correo');
-    expect(html(ReceiptView, { receipt: { ...receipt, emailNote: true }, siteName: 'x', onRetry: noop, onSaved: noop, onNew: noop })).toContain('Te enviamos un correo');
+    expect(out).not.toContain('Se envió un correo');
+    expect(html(ReceiptView, { receipt: { ...receipt, emailNote: true }, siteName: 'x', onRetry: noop, onSaved: noop, onNew: noop })).toContain('Se envió un correo');
   });
 
   it('un archivo que no subió: la solicitud quedó guardada y se puede reintentar ese archivo', () => {
@@ -99,7 +99,7 @@ describe('el comprobante', () => {
       receipt: { ...receipt, type: 'reporte' as const, files: [{ id: 'f1', name: 'foto.jpg', size: 120_000, status: 'failed' as const, error: 'revisa la señal' }] },
       siteName: 'x', onRetry: noop, onSaved: noop, onNew: noop,
     });
-    expect(out).toContain('Tu solicitud quedó guardada; un archivo no se pudo subir');
+    expect(out).toContain('Su solicitud quedó registrada, pero un archivo no se pudo subir');
     expect(out).toContain('Reintentar');
   });
 });
@@ -133,9 +133,9 @@ describe('la consulta', () => {
       view: { ...base, kind: 'support' as const, request: { ...request, supportCount: 2, note: 'También me afecta (demo).' } },
       maxFileBytes: 8 * 1024 * 1024,
     });
-    expect(out).toContain('Tu apoyo a un reporte');
-    expect(out).toContain('aquí no se muestra su texto');
+    expect(out).toContain('Su apoyo a un reporte');
+    expect(out).toContain('aquí solo se muestra el estado del caso');
     expect(out).toContain('También me afecta (demo).');
-    expect(out).not.toContain('Lo que enviaste');
+    expect(out).not.toContain('Datos de su solicitud');
   });
 });

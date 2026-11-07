@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import { safeHref, type TextNode, type TextRun } from '@/lib/web/blocks';
 
-// The FAQ answers' structured text (src/lib/web/blocks.ts), rendered by our own code: paragraphs, lists, quotes and
-// «por completar» slots, with bold, italic and links that pass safeHref (http, https, mailto or a path of this site).
-// Never HTML. A small copy of what the site's block renderer does, for the attention desk's pages.
+// The FAQ answers' structured text (src/lib/web/blocks.ts), rendered by our own code: paragraphs, lists and quotes,
+// with bold, italic and links that pass safeHref (http, https, mailto or a path of this site). Never HTML. A small copy
+// of what the site's block renderer does, for the attention desk's public pages: a «pending» slot (what an editor still
+// has to write) draws nothing here (copy audit F1); the admin's preview shows it.
 
 function Runs({ runs }: { runs: TextRun[] }) {
   return (
@@ -61,11 +62,7 @@ export function RichTextLite({ nodes }: { nodes: TextNode[] }) {
               </blockquote>
             );
           case 'pending':
-            return (
-              <p key={i} className="rounded-xl border border-dashed border-border px-4 py-3 text-[15px] text-text-2">
-                Por completar: {n.text}
-              </p>
-            );
+            return null;
           default:
             return null;
         }

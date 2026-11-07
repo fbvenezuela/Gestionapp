@@ -66,7 +66,7 @@ export function Turnstile({ siteKey, onToken, resetKey = 0 }: { siteKey: string;
   return (
     <div className="flex flex-col gap-1">
       <div ref={box} className="min-h-16" />
-      <p className="text-sm text-text-2">Una comprobación rápida de que no eres un robot.</p>
+      <p className="text-sm text-text-2">Verificación de seguridad.</p>
     </div>
   );
 }

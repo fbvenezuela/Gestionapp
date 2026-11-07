@@ -1,71 +1,76 @@
-import type { RequestState, RequestType } from '@/lib/participation/input';
+import { CITIZEN_STATE_LABEL, REQUEST_TYPE_HINT, REQUEST_TYPE_LABEL, type RequestState, type RequestType } from '@/lib/participation/input';
 import type { TimelineItem } from '@/lib/web/participation';
 
 // The participation pages' words (D-92, design §4): what each kind of request is for, what to write in it, what each
-// state means for the person who sent it and what comes next. Plain, short and respectful; no promised times (the team
-// sets each due date) and never an emergency number (none is invented). Pure: server and browser components share it.
+// state means for the person who sent it and what comes next. The citizen is «usted»; whoever attends is «el personal
+// de atención», Atención ciudadana or an impersonal «se» (copy audit §1, §6). No promised times (each due date is set
+// case by case) and never an emergency number (none is invented). The two legal notices are one text each, in
+// src/lib/participation/notices.ts. Pure: server and browser components share it.
 
-export const EMERGENCY_TEXT = 'Esto no es un servicio de emergencias. En una emergencia, llama a los servicios de emergencia locales.';
-export const DENUNCIA_TEXT =
-  'Tu denuncia es privada de punta a punta: solo la leen el operador de denuncias y la coordinación de atención, y nunca se publica. Si es un delito, acude también a las autoridades competentes.';
+export { DENUNCIA_LEAD, DENUNCIA_NOTICE, DENUNCIA_REST, EMERGENCY_LEAD, EMERGENCY_NOTICE, EMERGENCY_REST } from '@/lib/participation/notices';
 
-/** How each kind is offered (the form's first step and the «¿Qué quieres hacer?» of /atencion). */
-export const TYPE_COPY: Record<RequestType, { label: string; action: string; hint: string }> = {
-  reporte: { label: 'Reporte', action: 'Reportar un problema', hint: 'Algo que falla en tu comunidad: agua, luz, vialidad, aseo, salud, escuelas…' },
-  peticion: { label: 'Petición', action: 'Hacer una petición', hint: 'Pedir algo al despacho: una ayuda, un trámite o algo para la comunidad.' },
-  acotacion: { label: 'Acotación', action: 'Dejar una acotación', hint: 'Una opinión u observación sobre la gestión o una obra.' },
-  sugerencia: { label: 'Sugerencia', action: 'Proponer una idea', hint: 'Una idea para mejorar algo.' },
-  reconocimiento: { label: 'Reconocimiento', action: 'Agradecer algo', hint: 'Contar algo que se hizo bien.' },
-  denuncia: { label: 'Denuncia', action: 'Hacer una denuncia', hint: 'Un hecho grave. Es privada de punta a punta.' },
+const ACTION: Record<RequestType, string> = {
+  reporte: 'Hacer un reporte',
+  peticion: 'Hacer una petición',
+  acotacion: 'Dejar una acotación',
+  sugerencia: 'Enviar una sugerencia',
+  reconocimiento: 'Enviar un reconocimiento',
+  denuncia: 'Hacer una denuncia',
 };
+
+/** How each kind is offered (the form's first step and «Tipos de solicitud» of /atencion): one hint per kind, the same
+ * the home page's block shows (REQUEST_TYPE_HINT). */
+export const TYPE_COPY: Record<RequestType, { label: string; action: string; hint: string }> = Object.fromEntries(
+  (Object.keys(ACTION) as RequestType[]).map((t) => [t, { label: REQUEST_TYPE_LABEL[t], action: ACTION[t], hint: REQUEST_TYPE_HINT[t] }]),
+) as Record<RequestType, { label: string; action: string; hint: string }>;
 
 /** What to write: the title's example and what the description should tell. */
 export const DETAIL_COPY: Record<RequestType, { title: string; description: string }> = {
-  reporte: { title: 'Por ejemplo: «Hueco grande en la avenida principal».', description: 'Qué pasa, desde cuándo y a quién afecta.' },
-  peticion: { title: 'Por ejemplo: «Jornada de vacunación para el sector».', description: 'Qué pides, para quién y dónde.' },
-  acotacion: { title: 'Por ejemplo: «Faltan señales en los desvíos de la obra».', description: 'Tu opinión u observación, con el detalle que haga falta.' },
-  sugerencia: { title: 'Por ejemplo: «Publicar las rutas del transporte».', description: 'Tu idea y para qué serviría.' },
-  reconocimiento: { title: 'Por ejemplo: «Gracias por arreglar la cancha».', description: 'Qué se hizo bien y, si quieres, quién lo hizo.' },
-  denuncia: { title: 'Una frase corta que diga de qué se trata.', description: 'Qué pasó, cuándo y dónde, de forma aproximada.' },
+  reporte: { title: 'Por ejemplo: «Hueco grande en la avenida principal».', description: 'Describa el problema, desde cuándo ocurre y a quién afecta.' },
+  peticion: { title: 'Por ejemplo: «Jornada de vacunación para el sector».', description: 'Indique qué solicita, para quién y dónde.' },
+  acotacion: { title: 'Por ejemplo: «Faltan señales en los desvíos de la obra».', description: 'Escriba su opinión u observación.' },
+  sugerencia: { title: 'Por ejemplo: «Publicar las rutas del transporte».', description: 'Describa su propuesta y para qué serviría.' },
+  reconocimiento: { title: 'Por ejemplo: «Gracias por arreglar la cancha».', description: 'Indique qué se hizo bien y, si lo desea, quién lo hizo.' },
+  denuncia: { title: 'Una frase corta que resuma el hecho.', description: 'Indique qué ocurrió, cuándo y dónde, de forma aproximada.' },
 };
 
-/** Each state in the words of the person who sent the request: a name and what it means for them. */
+/** Each state as the person who sent the request reads it: its name (CITIZEN_STATE_LABEL) and what it means for them. */
 export const STATE_PLAIN: Record<RequestState, { label: string; text: string; tone: 'wait' | 'work' | 'ask' | 'done' | 'stop' }> = {
-  recibido: { label: 'Recibida', text: 'Tu solicitud llegó bien y está en la fila para revisarla.', tone: 'wait' },
-  en_revision: { label: 'En revisión', text: 'El equipo la está leyendo para saber quién la atiende.', tone: 'work' },
-  asignado: { label: 'Asignada', text: 'Ya tiene un área responsable que la va a atender.', tone: 'work' },
-  en_atencion: { label: 'En atención', text: 'El área responsable está trabajando en ella.', tone: 'work' },
-  requiere_informacion: { label: 'Necesitamos más información', text: 'El equipo te pidió algo más. Respóndele en «Agregar información».', tone: 'ask' },
-  derivado: { label: 'Derivada', text: 'Se envió al organismo que la puede atender. Aquí verás lo que te cuenten.', tone: 'work' },
-  resuelto: { label: 'Resuelta', text: 'El equipo la marcó como resuelta. Cuéntanos si de verdad se resolvió.', tone: 'done' },
-  cerrado: { label: 'Cerrada', text: 'La solicitud terminó y ya no recibe movimientos.', tone: 'stop' },
-  no_procede: { label: 'No procede', text: 'El equipo explicó por qué no se puede atender por esta vía.', tone: 'stop' },
+  recibido: { label: CITIZEN_STATE_LABEL.recibido, text: 'Su solicitud fue recibida y está en espera de revisión.', tone: 'wait' },
+  en_revision: { label: CITIZEN_STATE_LABEL.en_revision, text: 'El personal de atención la está revisando para asignarla.', tone: 'work' },
+  asignado: { label: CITIZEN_STATE_LABEL.asignado, text: 'Ya tiene un área responsable.', tone: 'work' },
+  en_atencion: { label: CITIZEN_STATE_LABEL.en_atencion, text: 'El área responsable está trabajando en ella.', tone: 'work' },
+  requiere_informacion: { label: CITIZEN_STATE_LABEL.requiere_informacion, text: 'Se le pidió información adicional. Puede responder más abajo.', tone: 'ask' },
+  derivado: { label: CITIZEN_STATE_LABEL.derivado, text: 'Se remitió al organismo que puede atenderla. Aquí verá sus respuestas.', tone: 'work' },
+  resuelto: { label: CITIZEN_STATE_LABEL.resuelto, text: 'Se marcó como resuelta. Usted puede confirmar si el problema se resolvió.', tone: 'done' },
+  cerrado: { label: CITIZEN_STATE_LABEL.cerrado, text: 'La solicitud finalizó y no admite nuevos movimientos.', tone: 'stop' },
+  no_procede: { label: CITIZEN_STATE_LABEL.no_procede, text: 'Se explicó por qué no puede atenderse por esta vía.', tone: 'stop' },
 };
 
-/** The usual path, for «Qué pasa después» (requiere información and derivado can happen on the way). */
+/** The usual path, for «Estados de una solicitud» (requiere información and derivado can happen on the way). */
 export const USUAL_PATH: RequestState[] = ['recibido', 'en_revision', 'asignado', 'en_atencion', 'resuelto'];
 
 /** A line of the shared timeline, in plain words. */
 export function timelineLine(t: Pick<TimelineItem, 'kind' | 'state'>): string {
   switch (t.kind) {
     case 'created':
-      return 'Enviaste tu solicitud';
+      return 'Solicitud enviada';
     case 'state':
       return t.state ? `Pasó a «${STATE_PLAIN[t.state]?.label ?? t.state}»` : 'Cambió de estado';
     case 'merged':
-      return 'Se unió con otra solicitud del mismo problema';
+      return 'Se unió a otra solicitud sobre el mismo problema';
     case 'citizen_confirmed':
-      return 'Confirmaste que se resolvió';
+      return 'Usted confirmó que se resolvió';
     case 'citizen_not_resolved':
-      return 'Dijiste que no está resuelto';
+      return 'Usted indicó que no está resuelto';
     case 'public_reply':
-      return 'Respuesta del equipo';
+      return 'Respuesta de Atención ciudadana';
     case 'info_request':
-      return 'El equipo te pide más información';
+      return 'Solicitud de información';
     case 'citizen_message':
-      return 'Tu mensaje';
+      return 'Su mensaje';
     case 'support':
-      return 'Te sumaste a este reporte';
+      return 'Apoyo registrado';
     default:
       return 'Movimiento';
   }

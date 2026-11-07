@@ -30,12 +30,12 @@ describe('qué archivo es: la extensión y los primeros bytes', () => {
     expect(ok('plano.png', png())).toMatchObject({ ok: true, type: { ext: 'png' } });
     expect(ok('acta.pdf', PDF)).toMatchObject({ ok: true, type: { ext: 'pdf', kind: 'pdf' } });
     // The name says photo, the bytes say PDF (or a page): refused.
-    expect(ok('foto.jpg', PDF)).toMatchObject({ ok: false, error: expect.stringMatching(/no es lo que dice su nombre/) });
+    expect(ok('foto.jpg', PDF)).toMatchObject({ ok: false, error: expect.stringMatching(/no corresponde a su extensión/) });
     expect(ok('foto.png', new TextEncoder().encode('<html></html>'))).toMatchObject({ ok: false });
     expect(ok('documento.pdf', JPEG)).toMatchObject({ ok: false });
     // Types that are not accepted, whatever their bytes.
     for (const name of ['programa.exe', 'pagina.html', 'dibujo.svg', 'video.mp4', 'sin-extension', 'foto.jpg.exe']) {
-      expect(ok(name, JPEG), name).toMatchObject({ ok: false, error: expect.stringMatching(/no se acepta/) });
+      expect(ok(name, JPEG), name).toMatchObject({ ok: false, error: expect.stringMatching(/no se admite/) });
     }
     expect(ok('vacio.jpg', new Uint8Array(0))).toMatchObject({ ok: false, error: 'El archivo está vacío.' });
     const big = new Uint8Array(ATTACHMENT_LIMITS.maxBytes + 1);
@@ -82,7 +82,7 @@ describe('la limpieza de las fotos', () => {
   it('lo que no se puede limpiar sin tocar los píxeles se rechaza (el teléfono la vuelve a preparar); un PDF queda como vino', () => {
     const rotated = png(true, 6);
     const type = (validateAttachment({ name: 'a.png', bytes: rotated }) as { type: Parameters<typeof cleanAttachment>[1] }).type;
-    expect(cleanAttachment(rotated, type)).toMatchObject({ ok: false, error: expect.stringMatching(/No pudimos preparar esa foto/) });
+    expect(cleanAttachment(rotated, type)).toMatchObject({ ok: false, error: expect.stringMatching(/No se pudo procesar la foto/) });
     expect(cleanAttachment(JPEG.slice(0, 40), { mime: 'image/jpeg', ext: 'jpg', kind: 'image', photo: 'jpeg' })).toMatchObject({ ok: false });
     const pdf = cleanAttachment(PDF, { mime: 'application/pdf', ext: 'pdf', kind: 'pdf' });
     expect(pdf).toMatchObject({ ok: true, width: null, height: null });
@@ -189,6 +189,6 @@ describe('el PDF escrito a mano', () => {
     expect(s).toContain('servicio de emergencias');
     const reprint = Buffer.from(receiptPdf({ siteName: 'x', reference: 'AC-2026-K7QM2H', secret: null, typeLabel: 'Reporte', sentAt: 'hoy', lookupUrl: '/atencion/consultar', support: true })).toString('latin1');
     expect(reprint).not.toContain('(Clave) Tj');
-    expect(reprint).toContain('Te sumaste a un reporte abierto');
+    expect(reprint).toContain('Apoyo a un reporte abierto');
   });
 });

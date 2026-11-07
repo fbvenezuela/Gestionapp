@@ -43,7 +43,7 @@ describe('lo público del formulario', () => {
 
   it('«?sobre=» trae solo lo publicado: nunca un borrador, algo en revisión o programado para después', async () => {
     const project = await data.loadLinkedItem('project:rehabilitacion-avenida-principal-demo');
-    expect(project).toMatchObject({ kind: 'project', kindLabel: 'Obra o acción', href: '/gestion/rehabilitacion-avenida-principal-demo' });
+    expect(project).toMatchObject({ kind: 'project', kindLabel: 'Obra', href: '/gestion/rehabilitacion-avenida-principal-demo' });
     expect(project!.title).toMatch(/\(demo\)$/);
     expect(await data.loadLinkedItem('news:arranco-rehabilitacion-avenida-principal-demo')).toMatchObject({ kind: 'news', href: '/actualidad/arranco-rehabilitacion-avenida-principal-demo' });
     for (const hidden of ['news:balance-del-mes-demo', 'news:ferias-de-alimentos-fin-de-semana-demo', 'news:proxima-jornada-de-vacunacion-libertador-demo', 'news:no-existe', 'page:inicio', "news:x' or '1'='1", null]) {

@@ -40,11 +40,11 @@ export type AttachmentCheck = { ok: true; type: AttachmentType } | { ok: false; 
 export function validateAttachment(f: { name: string; bytes: Uint8Array }): AttachmentCheck {
   const ext = /\.([a-z0-9]{1,5})$/i.exec(f.name.trim())?.[1]?.toLowerCase() ?? '';
   const byName = BY_EXTENSION[ext];
-  if (!byName) return { ok: false, error: 'Ese tipo de archivo no se acepta: solo fotos JPG o PNG y documentos PDF.' };
+  if (!byName) return { ok: false, error: 'Ese tipo de archivo no se admite. Solo se aceptan fotos JPG, PNG o WebP y documentos PDF.' };
   if (f.bytes.length === 0) return { ok: false, error: 'El archivo está vacío.' };
-  if (f.bytes.length > ATTACHMENT_LIMITS.maxBytes) return { ok: false, error: 'El archivo pasa de 8 MB: manda uno más liviano.' };
+  if (f.bytes.length > ATTACHMENT_LIMITS.maxBytes) return { ok: false, error: 'El archivo supera los 8 MB. Envíe uno más liviano.' };
   const real = sniffAttachment(f.bytes);
-  if (!real || real.mime !== byName.mime) return { ok: false, error: 'El archivo no es lo que dice su nombre: revisa que sea una foto o un PDF.' };
+  if (!real || real.mime !== byName.mime) return { ok: false, error: 'El archivo no corresponde a su extensión. Verifique que sea una foto o un PDF.' };
   return { ok: true, type: real };
 }
 
@@ -59,9 +59,9 @@ export type CleanAttachment = { ok: true; bytes: Uint8Array; width: number | nul
 export function cleanAttachment(bytes: Uint8Array, type: AttachmentType): CleanAttachment {
   if (type.kind === 'pdf') return { ok: true, bytes, width: null, height: null };
   const clean = stripPhotoMetadata(type.photo, bytes);
-  if (!clean) return { ok: false, error: 'No pudimos preparar esa foto. Vuelve a elegirla desde la galería o tómala de nuevo.' };
+  if (!clean) return { ok: false, error: 'No se pudo procesar la foto. Elíjala de nuevo desde la galería o tómela otra vez.' };
   if (Math.max(clean.width, clean.height) > ATTACHMENT_LIMITS.maxSide || clean.width * clean.height > ATTACHMENT_LIMITS.maxPixels) {
-    return { ok: false, error: 'La foto es demasiado grande: mándala desde la galería del teléfono o tómala de nuevo.' };
+    return { ok: false, error: 'La foto es demasiado grande. Envíela desde la galería del teléfono o tómela de nuevo.' };
   }
   return { ok: true, bytes: clean.bytes, width: clean.width, height: clean.height };
 }

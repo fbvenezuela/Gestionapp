@@ -4,9 +4,9 @@ import { closeCase } from '@/lib/actions/participation';
 import { downloadGate } from '@/lib/storage/scanner';
 import type { CitizenAttachment, CitizenView, TimelineItem } from '@/lib/web/participation';
 import { cn } from '@/lib/cn';
-import { Btn, EmergencyNote, Notice, Panel } from './kit';
+import { Btn, DenunciaNote, EmergencyNote, Notice, Panel } from './kit';
 import { AddInfoForm, ConfirmForm } from './case-actions';
-import { DENUNCIA_TEXT, STATE_PLAIN, TYPE_COPY, dayDate, fileSize, longDate, longDateTime, reportsCount, timelineLine } from './words';
+import { STATE_PLAIN, TYPE_COPY, dayDate, fileSize, longDate, longDateTime, reportsCount, timelineLine } from './words';
 
 /**
  * The person's own request, while the consultation lasts (design §4): ONLY the safe summary the database gives back
@@ -30,7 +30,7 @@ export function CaseView({ view, maxFileBytes }: { view: CitizenView; maxFileByt
       <header className="flex flex-col gap-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-2">
-            <p className="text-sm font-semibold uppercase tracking-[0.08em] text-accent-ink">{support ? 'Tu apoyo a un reporte' : 'Tu solicitud'}</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.08em] text-accent-ink">{support ? 'Su apoyo a un reporte' : 'Su solicitud'}</p>
             <h1 id="caso-titulo" tabIndex={-1} className="break-all font-mono text-3xl font-bold tracking-wider text-text outline-none sm:text-4xl">
               {r.reference}
             </h1>
@@ -42,54 +42,54 @@ export function CaseView({ view, maxFileBytes }: { view: CitizenView; maxFileByt
           </form>
         </div>
         <p className="text-[15px] text-text-2">
-          {[TYPE_COPY[r.type]?.label, r.category, r.municipality].filter(Boolean).join(' · ')} · {support ? 'te sumaste' : 'enviada'} el {longDate(r.createdAt)}
+          {[TYPE_COPY[r.type]?.label, r.category, r.municipality].filter(Boolean).join(' · ')} · {support ? 'apoyo registrado' : 'enviada'} el {longDate(r.createdAt)}
         </p>
       </header>
 
       <section aria-labelledby="estado-titulo" className={cn('rounded-[var(--radius-card)] p-6 sm:p-8', plain.tone === 'ask' ? 'bg-warn-soft' : plain.tone === 'done' ? 'bg-ok-soft' : 'bg-accent-soft')}>
         <h2 id="estado-titulo" className="text-sm font-semibold uppercase tracking-[0.08em] text-text-2">
-          Cómo va
+          Estado
         </h2>
         <p className="mt-2 text-3xl font-bold leading-tight text-text" data-testid="estado-solicitud">
           {plain.label}
         </p>
         <p className="mt-2 text-[17px] leading-relaxed text-text">{plain.text}</p>
-        {r.merged ? <p className="mt-3 text-[15px] text-text">Tu solicitud se unió con otra del mismo problema: aquí ves el estado de esa.</p> : null}
+        {r.merged ? <p className="mt-3 text-[15px] text-text">Su solicitud se unió a otra sobre el mismo problema. Aquí se muestra el estado de esa solicitud.</p> : null}
         {r.supportCount > 0 ? (
           <p className="mt-3 flex items-center gap-2 text-[15px] text-text">
-            <Users className="h-4 w-4" aria-hidden /> {support ? `Con tu apoyo, este caso suma ${reportsCount(r.supportCount + 1)}.` : `Otras personas se sumaron: ${reportsCount(r.supportCount)} más.`}
+            <Users className="h-4 w-4" aria-hidden /> {support ? `Con su apoyo, este caso suma ${reportsCount(r.supportCount + 1)}.` : `Hay ${reportsCount(r.supportCount)} más del mismo problema.`}
           </p>
         ) : null}
-        {r.citizenConfirmation === 'resolved' ? <p className="mt-3 text-[15px] font-semibold text-text">Confirmaste que se resolvió. Gracias por contarnos.</p> : null}
+        {r.citizenConfirmation === 'resolved' ? <p className="mt-3 text-[15px] font-semibold text-text">Usted confirmó que se resolvió. Gracias por su respuesta.</p> : null}
         {r.resolvedAt && shownState === 'resuelto' ? <p className="mt-1 text-[15px] text-text-2">Resuelta el {longDate(r.resolvedAt)}.</p> : null}
       </section>
 
       {!support ? (
         <Panel className="flex flex-col gap-4">
-          <h2 className="text-xl font-bold text-text">Lo que enviaste</h2>
+          <h2 className="text-xl font-bold text-text">Datos de su solicitud</h2>
           <dl className="grid gap-4 text-[15px]">
             <Row label="Título">{r.title}</Row>
-            <Row label="Lo que contaste">
+            <Row label="Descripción">
               <p className="whitespace-pre-line leading-relaxed">{r.description}</p>
             </Row>
-            {r.municipality || r.parish || r.sector ? <Row label="Dónde">{[r.municipality, r.parish, r.sector].filter(Boolean).join(' · ')}</Row> : null}
-            {r.locationReference ? <Row label="Referencia">{r.locationReference}</Row> : null}
-            {r.hasLocation ? <Row label="Ubicación">Guardaste un punto en el mapa (lo ve solo el equipo).</Row> : null}
-            {r.eventDate ? <Row label="Cuándo pasó">{dayDate(r.eventDate)}</Row> : null}
-            <Row label="Contacto">{r.anonymous ? 'Anónima: sin datos de contacto.' : 'Lo que dejaste está cifrado y no se muestra aquí.'}</Row>
+            {r.municipality || r.parish || r.sector ? <Row label="Lugar">{[r.municipality, r.parish, r.sector].filter(Boolean).join(' · ')}</Row> : null}
+            {r.locationReference ? <Row label="Punto de referencia">{r.locationReference}</Row> : null}
+            {r.hasLocation ? <Row label="Ubicación">Se guardó un punto en el mapa (solo lo ve el personal de atención).</Row> : null}
+            {r.eventDate ? <Row label="Fecha del hecho">{dayDate(r.eventDate)}</Row> : null}
+            <Row label="Contacto">{r.anonymous ? 'Solicitud anónima, sin datos de contacto.' : 'Sus datos de contacto están cifrados y no se muestran aquí.'}</Row>
           </dl>
           {general.length ? <Files files={general} /> : null}
         </Panel>
       ) : (
         <Panel className="flex flex-col gap-3">
-          <h2 className="text-xl font-bold text-text">Tu apoyo</h2>
+          <h2 className="text-xl font-bold text-text">Su apoyo</h2>
           <p className="text-[15px] leading-relaxed text-text">
-            Te sumaste a un reporte de {r.category?.toLowerCase()}
-            {r.municipality ? ` en ${r.municipality}` : ''}. Por respeto a quien lo envió, aquí no se muestra su texto: ves el estado del caso.
+            Usted apoyó un reporte de {r.category?.toLowerCase()}
+            {r.municipality ? ` en ${r.municipality}` : ''}. Para proteger a quien lo envió, aquí solo se muestra el estado del caso.
           </p>
           {r.note ? (
             <p className="rounded-xl bg-surface-2 p-3 text-[15px] text-text">
-              <span className="font-semibold">Lo que agregaste:</span> {r.note}
+              <span className="font-semibold">Su comentario:</span> {r.note}
             </p>
           ) : null}
         </Panel>
@@ -97,21 +97,21 @@ export function CaseView({ view, maxFileBytes }: { view: CitizenView; maxFileByt
 
       {r.canConfirm ? (
         <Panel className="flex flex-col gap-4 border-2 border-accent">
-          <h2 className="text-xl font-bold text-text">El equipo dice que se resolvió</h2>
+          <h2 className="text-xl font-bold text-text">La solicitud fue marcada como resuelta</h2>
           <ConfirmForm />
         </Panel>
       ) : null}
 
       {r.canAddInfo ? (
         <Panel id="agregar" className={cn('flex flex-col gap-4', asked && 'border-2 border-warn')}>
-          <h2 className="text-xl font-bold text-text">{asked ? 'Responde lo que te pidieron' : 'Agregar información'}</h2>
+          <h2 className="text-xl font-bold text-text">{asked ? 'Responder la solicitud de información' : 'Agregar información'}</h2>
           <AddInfoForm maxFileBytes={maxFileBytes} asked={asked} />
         </Panel>
       ) : null}
 
       <section aria-labelledby="historia-titulo" className="flex flex-col gap-4">
         <h2 id="historia-titulo" className="text-xl font-bold text-text">
-          Historia de tu solicitud
+          Historial de la solicitud
         </h2>
         {view.timeline.length ? (
           <ol className="relative flex flex-col gap-5 border-l-2 border-border pl-6">
@@ -120,19 +120,19 @@ export function CaseView({ view, maxFileBytes }: { view: CitizenView; maxFileByt
             ))}
           </ol>
         ) : (
-          <p className="text-[15px] text-text-2">Todavía no hay movimientos.</p>
+          <p className="text-[15px] text-text-2">Sin movimientos.</p>
         )}
         {byMessage.size ? (
           <div className="flex flex-col gap-2">
-            <h3 className="text-base font-semibold text-text">Archivos de tus mensajes y del equipo</h3>
+            <h3 className="text-base font-semibold text-text">Archivos de los mensajes</h3>
             <Files files={[...byMessage.values()].flat()} />
           </div>
         ) : null}
       </section>
 
-      {r.type === 'denuncia' ? <Notice tone="private">{DENUNCIA_TEXT}</Notice> : null}
-      <Notice tone="info" title="Tu consulta se cierra sola">
-        Por seguridad, en 30 minutos o al tocar «Salir». Para volver, escribe otra vez tu código y tu clave.
+      {r.type === 'denuncia' ? <DenunciaNote /> : null}
+      <Notice tone="info" title="Cierre de la consulta">
+        Por seguridad, la consulta se cierra a los 30 minutos o al tocar «Salir». Para volver, escriba de nuevo su código y su clave.
       </Notice>
       <EmergencyNote />
     </div>
@@ -166,7 +166,7 @@ function TimelineRow({ t }: { t: TimelineItem }) {
       {message ? (
         <div className={cn('mt-2 rounded-2xl p-4 text-[15px] leading-relaxed', team ? 'bg-surface-2 text-text' : 'border border-border bg-surface text-text')}>
           {t.redacted ? (
-            <p className="italic text-text-2">El equipo retiró este texto para proteger datos personales.</p>
+            <p className="italic text-text-2">Este texto se retiró para proteger datos personales.</p>
           ) : (
             <p className="flex gap-2 whitespace-pre-line">
               <MessageSquare className="mt-1 h-4 w-4 shrink-0 text-text-2" aria-hidden />
@@ -187,7 +187,7 @@ function Files({ files }: { files: CitizenAttachment[] }) {
         const Icon = pdf ? FileText : ImageIcon;
         // Production serves only what the scanner passed; the demo also what it could not scan (with a warning).
         const ready = downloadGate(f.scanStatus as Parameters<typeof downloadGate>[0]).ok;
-        const label = `${f.kind === 'evidence' ? 'Evidencia del equipo' : pdf ? 'Documento' : 'Foto'} ${i + 1}`;
+        const label = `${f.kind === 'evidence' ? 'Evidencia de la atención' : pdf ? 'Documento' : 'Foto'} ${i + 1}`;
         return (
           <li key={f.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3">
             <Icon className="h-5 w-5 shrink-0 text-accent-ink" aria-hidden />

@@ -2,7 +2,7 @@
 // emails to citizens leave behind. The outbox is read by Administración (Ajustes → Buzón), which never reads a case:
 // with real data it keeps only a masked address for the attention desk's emails (the address itself is the contact the
 // app keeps encrypted). The receipt never names the kind of request (an inbox or a lock screen is seen by others:
-// «Recibimos tu denuncia» could put the person at risk). And the demo's «buzón de prueba», a server action anyone can
+// «Recibimos su denuncia» could put the person at risk). And the demo's «buzón de prueba», a server action anyone can
 // call with any address, shows only sign-in codes of the team, never what the public website sent to someone.
 import { describe, expect, it, beforeAll, beforeEach, vi } from 'vitest';
 import { createElement } from 'react';
@@ -95,7 +95,7 @@ describe('el correo de recibido', () => {
       `select subject, text_body, html from public.outbox where idempotency_key = $1`, [`atencion-recibida:${ref}`]);
     expect(row.text_body).toContain(ref);
     expect(`${row.subject} ${row.text_body} ${row.html}`).not.toMatch(/denuncia/i);
-    expect(row.text_body).toMatch(/Recibimos tu solicitud/);
+    expect(row.text_body).toMatch(/Recibimos su solicitud/);
   });
 });
 
@@ -106,7 +106,7 @@ describe('el buzón de salida con datos reales', () => {
     Object.assign(env.email, { mode: 'send', resendKey: 're_prueba' });
     try {
       const key = `revision:${crypto.randomUUID()}`;
-      const r = await mail.sendEmail({ to: 'Ana.Perez@Ejemplo.com', subject: 'Recibimos tu solicitud AC-2026-REV001', template: 'atencion_recibida', element: createElement('p', null, 'Hola'), idempotencyKey: key });
+      const r = await mail.sendEmail({ to: 'Ana.Perez@Ejemplo.com', subject: 'Recibimos su solicitud AC-2026-REV001', template: 'atencion_recibida', element: createElement('p', null, 'Hola'), idempotencyKey: key });
       expect(r).toMatchObject({ stored: true, sent: true });
       expect(h.resend).toEqual([{ to: 'Ana.Perez@Ejemplo.com' }]);
       const [row] = await sys<{ to_email: string; status: string }>(`select to_email, status from public.outbox where idempotency_key = $1`, [key]);

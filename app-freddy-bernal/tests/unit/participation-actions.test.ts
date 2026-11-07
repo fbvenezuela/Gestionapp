@@ -112,7 +112,7 @@ describe('enviar una solicitud', () => {
     const ok = r as Extract<typeof r, { ok: true }>;
     expect(ok.reference).toMatch(REFERENCE_PATTERN);
     expect(JSON.stringify(r)).not.toContain(r0.secret);
-    // The demo writes it to the outbox only: the receipt never says «Te enviamos un correo».
+    // The demo writes it to the outbox only: the receipt never says «Se envió un correo».
     expect(ok.emailed).toBe(false);
     // The device cookie: first party, httpOnly, a year.
     expect(h.jar.get('fb_dispositivo')?.opts).toMatchObject({ httpOnly: true, sameSite: 'lax', path: '/' });
@@ -242,7 +242,7 @@ describe('enviar una solicitud', () => {
     for (let i = 0; i < 5; i++) expect(await actions.sendRequest({ ...receipt(), input: report() }), `envío ${i + 1}`).toMatchObject({ ok: true });
     const sixth = await actions.sendRequest({ ...receipt(), input: report() });
     expect(sixth).toMatchObject({ ok: false, code: 'rate' });
-    expect((sixth as { error: string }).error).toMatch(/muchos intentos/i);
+    expect((sixth as { error: string }).error).toBe('Se hicieron demasiados intentos seguidos. Espere unos minutos e intente de nuevo.');
     // A reply to the same form (a retry) still gets its receipt: idempotency comes before the limit.
   });
 });
@@ -445,7 +445,7 @@ describe('los archivos', () => {
       const big = new File([new Uint8Array(5 * 1024 * 1024)], 'grande.pdf', { type: 'application/pdf' });
       const res = await upload.POST(post('http://localhost/api/atencion/adjuntos', { reference: `AC-${YEAR}-DEMR03`, secret: DEMR03.secret, file: big }));
       expect(res.status).toBe(413);
-      expect(((await res.json()) as { error: string }).error).toBe('El archivo pasa de 4 MB: manda uno más liviano.');
+      expect(((await res.json()) as { error: string }).error).toBe('El archivo supera los 4 MB. Envíe uno más liviano.');
     } finally {
       vi.unstubAllEnvs();
     }
@@ -458,7 +458,7 @@ describe('los archivos', () => {
     const fake = new File([new TextEncoder().encode('MZ esto es un programa')], 'foto.jpg', { type: 'image/jpeg' });
     const bad = await upload.POST(post(url, { reference: sent.reference, secret: r0.secret, file: fake }));
     expect(bad.status).toBe(422);
-    expect(((await bad.json()) as { error: string }).error).toMatch(/no es lo que dice su nombre/);
+    expect(((await bad.json()) as { error: string }).error).toMatch(/no corresponde a su extensión/);
     const exe = await upload.POST(post(url, { reference: sent.reference, secret: r0.secret, file: new File([jpegWithGps()], 'virus.exe') }));
     expect(exe.status).toBe(422);
     const cross = await upload.POST(post(url, { reference: sent.reference, secret: r0.secret, file: photo() }, 'https://otro-sitio.example'));

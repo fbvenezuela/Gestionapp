@@ -27,7 +27,7 @@ const SECRET_RE = /^[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4}){3}$/;
 const NOT_FOUND = 'No encontramos una solicitud con esos datos.';
 const DEMR02 = { reference: `AC-${YEAR}-DEMR02`, secret: 'R3PS-W8N2-DEMV-7QKA' };
 const DEMR03 = { reference: `AC-${YEAR}-DEMR03`, secret: 'H4JX-5ZTB-9CNF-W2YE' };
-const DENUNCIA_TEXT = /Tu denuncia es privada de punta a punta/;
+const DENUNCIA_TEXT = /Su denuncia es confidencial/;
 const PHONE = { viewport: { width: 360, height: 760 }, isMobile: true, hasTouch: true };
 const DESKTOP = { viewport: { width: 1280, height: 900 }, isMobile: false, hasTouch: false };
 type Device = typeof PHONE | typeof DESKTOP;
@@ -108,12 +108,12 @@ type Kind = {
   servicesArea: boolean;
 };
 const KINDS: Kind[] = [
-  { tipo: 'reporte', label: 'Reporte', type: /^Reporte/, category: /^Ambiente y aseo/, categoryName: 'Ambiente y aseo', municipality: 'Ayacucho', heading: 'Recibimos tu reporte', servicesArea: true },
-  { tipo: 'peticion', label: 'Petición', type: /^Petición/, category: /^Educación/, categoryName: 'Educación', municipality: 'Bolívar', heading: 'Recibimos tu petición', servicesArea: false },
-  { tipo: 'acotacion', label: 'Acotación', type: /^Acotación/, category: /^Servicios comunitarios/, categoryName: 'Servicios comunitarios', municipality: 'Lobatera', heading: 'Recibimos tu acotación', servicesArea: true },
-  { tipo: 'sugerencia', label: 'Sugerencia', type: /^Sugerencia/, category: /^Otros/, categoryName: 'Otros', heading: 'Recibimos tu sugerencia', servicesArea: false },
-  { tipo: 'reconocimiento', label: 'Reconocimiento', type: /^Reconocimiento/, category: /^Salud/, categoryName: 'Salud', municipality: 'Junín', heading: 'Recibimos tu reconocimiento', servicesArea: false },
-  { tipo: 'denuncia', label: 'Denuncia', type: /^Denuncia/, category: /^Seguridad/, categoryName: 'Seguridad', municipality: 'Cárdenas', heading: 'Recibimos tu denuncia', servicesArea: false },
+  { tipo: 'reporte', label: 'Reporte', type: /^Reporte/, category: /^Ambiente y aseo/, categoryName: 'Ambiente y aseo', municipality: 'Ayacucho', heading: 'Recibimos su reporte', servicesArea: true },
+  { tipo: 'peticion', label: 'Petición', type: /^Petición/, category: /^Educación/, categoryName: 'Educación', municipality: 'Bolívar', heading: 'Recibimos su petición', servicesArea: false },
+  { tipo: 'acotacion', label: 'Acotación', type: /^Acotación/, category: /^Servicios comunitarios/, categoryName: 'Servicios comunitarios', municipality: 'Lobatera', heading: 'Recibimos su acotación', servicesArea: true },
+  { tipo: 'sugerencia', label: 'Sugerencia', type: /^Sugerencia/, category: /^Otros/, categoryName: 'Otros', heading: 'Recibimos su sugerencia', servicesArea: false },
+  { tipo: 'reconocimiento', label: 'Reconocimiento', type: /^Reconocimiento/, category: /^Salud/, categoryName: 'Salud', municipality: 'Junín', heading: 'Recibimos su reconocimiento', servicesArea: false },
+  { tipo: 'denuncia', label: 'Denuncia', type: /^Denuncia/, category: /^Seguridad/, categoryName: 'Seguridad', municipality: 'Cárdenas', heading: 'Recibimos su denuncia', servicesArea: false },
 ];
 
 /** Steps 1 to 3 of the form; then the contact step, ready to send. */
@@ -124,18 +124,18 @@ async function fillForm(page: Page, k: Kind, f: { title: string; description: st
   if (!(await radio.isChecked())) await radio.check();
   await page.getByLabel(k.category).check();
   await next(page);
-  await expect(page.getByRole('heading', { level: 2, name: /^¿Dónde/ })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: /^Lugar/ })).toBeVisible();
   if (k.municipality) await page.getByLabel(/^Municipio/).selectOption({ label: k.municipality });
   await page.getByLabel(/Parroquia, localidad o sector/).fill(f.sector);
   await next(page);
-  await expect(page.getByRole('heading', { level: 2, name: 'Cuéntanos' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Detalle de la solicitud' })).toBeVisible();
   await page.getByLabel(/^Título/).fill(f.title);
-  await page.getByLabel(/^Cuéntanos/).fill(f.description);
+  await page.getByLabel(/^Descripción/).fill(f.description);
 }
 
 async function toContactStep(page: Page) {
   await next(page);
-  await expect(page.getByRole('heading', { level: 2, name: 'Último paso: contacto y envío' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Contacto y envío' })).toBeVisible();
 }
 
 // --- 6/11 §11: a case of each kind, followed with its code -------------------------------------------------------------
@@ -167,7 +167,7 @@ test.describe('un caso de cada tipo se manda y se sigue con su código, en el te
         await page.getByRole('button', { name: 'Enviar', exact: true }).click();
         const { reference, secret } = await readReceipt(page);
         await expect(page.getByRole('heading', { level: 2, name: k.heading })).toBeVisible();
-        if (k.tipo === 'denuncia') await expect(page.getByText(/acude también a las autoridades competentes/).first()).toBeVisible();
+        if (k.tipo === 'denuncia') await expect(page.getByText(/acuda también a las autoridades competentes/).first()).toBeVisible();
         expect(page.url()).not.toContain(secret);
 
         // Followed with its code and secret (typed in small letters, as people do).
@@ -175,15 +175,15 @@ test.describe('un caso de cada tipo se manda y se sigue con su código, en el te
         await expect(page.getByTestId('estado-solicitud')).toHaveText('Recibida');
         await expect(page.getByText(new RegExp(`^${k.label} · ${k.categoryName}${k.municipality ? ` · ${k.municipality}` : ''} · enviada el `))).toBeVisible();
         await expect(page.getByText(title, { exact: true })).toBeVisible();
-        await expect(page.getByRole('region', { name: 'Historia de tu solicitud' }).getByText('Enviaste tu solicitud')).toBeVisible();
+        await expect(page.getByRole('region', { name: 'Historial de la solicitud' }).getByText('Solicitud enviada', { exact: true })).toBeVisible();
         // Never the contact (encrypted), in the page or in the address.
-        await expect(page.getByText(withContact ? 'Lo que dejaste está cifrado y no se muestra aquí.' : 'Anónima: sin datos de contacto.')).toBeVisible();
+        await expect(page.getByText(withContact ? 'Sus datos de contacto están cifrados y no se muestran aquí.' : 'Solicitud anónima, sin datos de contacto.')).toBeVisible();
         await expect(page.getByText(`recorrido.${RUN}@demo.test`)).toHaveCount(0);
         expect(page.url()).toMatch(/\/atencion\/consultar$/);
         if (k.tipo === 'denuncia') {
           // Private end to end: the notice, and only the approximate place (no reference, no point).
           await expect(page.getByText(DENUNCIA_TEXT)).toBeVisible();
-          await expect(page.getByText('Referencia', { exact: true })).toHaveCount(0);
+          await expect(page.getByText('Punto de referencia', { exact: true })).toHaveCount(0);
           await expect(page.getByText('Ubicación', { exact: true })).toHaveCount(0);
         }
         await noSideScroll(page, `consulta de ${k.tipo} (${where})`);
@@ -236,12 +236,12 @@ test('el formulario de punta a punta y la consulta no rompen la CSP de la web (n
     document.addEventListener('securitypolicyviolation', (e) => w.__csp.push(`${e.violatedDirective} ${e.blockedURI}`));
   });
   const refused = () => page.evaluate(() => (window as unknown as { __csp: string[] }).__csp);
-  const k: Kind = { tipo: 'sugerencia', label: 'Sugerencia', type: /^Sugerencia/, category: /^Transporte/, categoryName: 'Transporte', heading: 'Recibimos tu sugerencia', servicesArea: false };
+  const k: Kind = { tipo: 'sugerencia', label: 'Sugerencia', type: /^Sugerencia/, category: /^Transporte/, categoryName: 'Transporte', heading: 'Recibimos su sugerencia', servicesArea: false };
   await fillForm(page, k, { title: `Sugerencia sin eval ${RUN} (prueba)`, description: 'El formulario valida en el teléfono sin pedirle a la CSP nada prohibido (prueba).', sector: `Sector csp ${RUN}` });
   // The browser's own checks still work (they are zod's, without its speed-up): a short title is refused on the spot.
   await page.getByLabel(/^Título/).fill('No');
   await next(page);
-  await expect(page.getByText(/de 3 a 140/).first()).toBeVisible();
+  await expect(page.getByText(/entre 3 y 140/).first()).toBeVisible();
   await page.getByLabel(/^Título/).fill(`Sugerencia sin eval ${RUN} (prueba)`);
   await toContactStep(page);
   await page.getByLabel(/Enviar como anónimo/).check();
@@ -287,7 +287,7 @@ test.describe('de punta a punta en la computadora: llega, se asigna, se pide inf
   test('1) una persona manda una petición con un PDF desde la computadora y se lleva su comprobante', async ({ browser }) => {
     const c = await citizen(browser, DESKTOP);
     const page = c.page;
-    const k: Kind = { tipo: 'peticion', label: 'Petición', type: /^Petición/, category: /^Transporte/, categoryName: 'Transporte', municipality: 'Lobatera', heading: 'Recibimos tu petición', servicesArea: false };
+    const k: Kind = { tipo: 'peticion', label: 'Petición', type: /^Petición/, category: /^Transporte/, categoryName: 'Transporte', municipality: 'Lobatera', heading: 'Recibimos su petición', servicesArea: false };
     await fillForm(page, k, { title: TITLE, description: DESCRIPTION, sector: `Sector de la parada ${RUN}` });
     await page.getByLabel('Elegir fotos o documentos').setInputFiles({ name: 'carta de la comunidad.pdf', mimeType: 'application/pdf', buffer: PDF });
     await expect(page.getByRole('list', { name: 'Archivos elegidos' }).getByText('carta de la comunidad.pdf')).toBeVisible();
@@ -297,7 +297,7 @@ test.describe('de punta a punta en la computadora: llega, se asigna, se pide inf
     await page.getByLabel(/Leí el aviso de privacidad/).check();
     await page.getByRole('button', { name: 'Enviar', exact: true }).click();
     Object.assign(flow, await readReceipt(page));
-    await expect(page.getByRole('region', { name: 'Tus archivos' }).getByText(/· Listo$/)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('region', { name: 'Archivos adjuntos' }).getByText(/· Listo$/)).toBeVisible({ timeout: 30_000 });
     await axe(page, 'comprobante con PDF (computadora)');
     await c.ctx.close();
   });
@@ -352,13 +352,13 @@ test.describe('de punta a punta en la computadora: llega, se asigna, se pide inf
     const c = await citizen(browser, DESKTOP);
     const page = c.page;
     await openCase(page, flow.reference, flow.secret);
-    await expect(page.getByTestId('estado-solicitud')).toHaveText('Necesitamos más información');
-    const story = page.getByRole('region', { name: 'Historia de tu solicitud' });
-    await expect(story.getByText('El equipo te pide más información')).toBeVisible();
+    await expect(page.getByTestId('estado-solicitud')).toHaveText('Requiere información');
+    const story = page.getByRole('region', { name: 'Historial de la solicitud' });
+    await expect(story.getByText('Solicitud de información', { exact: true })).toBeVisible();
     await expect(story.getByText(QUESTION)).toBeVisible();
     await expect(page.getByText(NOTE)).toHaveCount(0);
     await expect(page.getByText(/almacén/)).toHaveCount(0);
-    await expect(page.getByRole('heading', { level: 2, name: 'Responde lo que te pidieron' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Responder la solicitud de información' })).toBeVisible();
     await axe(page, 'consulta que pide información (computadora)');
     // Its own PDF downloads while the consultation lasts.
     flow.pdfHref = (await page.getByRole('link', { name: 'Descargar Documento 1' }).getAttribute('href'))!;
@@ -366,11 +366,11 @@ test.describe('de punta a punta en la computadora: llega, se asigna, se pide inf
     expect(pdf.status()).toBe(200);
     expect(pdf.headers()['content-type']).toBe('application/pdf');
 
-    await page.getByLabel('Tu respuesta al equipo').fill(ANSWER);
+    await page.getByLabel('Su respuesta', { exact: true }).fill(ANSWER);
     await page.getByLabel('Elegir fotos o documentos').setInputFiles({ name: 'la parada.jpg', mimeType: 'image/jpeg', buffer: Buffer.from(jpegWithGps()) });
     await expect(page.getByRole('list', { name: 'Archivos elegidos' }).getByText('la parada.jpg')).toBeVisible();
-    await page.getByRole('button', { name: 'Enviar al equipo' }).click();
-    await expect(page.getByText('Listo: el equipo ya puede leer lo que agregaste.')).toBeVisible({ timeout: 30_000 });
+    await page.getByRole('button', { name: 'Enviar información' }).click();
+    await expect(page.getByText('Información enviada al personal de atención.')).toBeVisible({ timeout: 30_000 });
     // Answering puts the case back in review; the photo hangs from the person's message.
     await expect(page.getByTestId('estado-solicitud')).toHaveText('En revisión');
     await expect(story.getByText(ANSWER)).toBeVisible();
@@ -430,7 +430,7 @@ test.describe('de punta a punta en la computadora: llega, se asigna, se pide inf
     await expect(c.page.getByText(RESOLUTION)).toHaveCount(0);
     await c.page.getByLabel('Sí, se resolvió').check();
     await c.page.getByRole('button', { name: 'Responder' }).click();
-    await expect(c.page.getByText('Confirmaste que se resolvió. Gracias por contarnos.')).toBeVisible();
+    await expect(c.page.getByText('Usted confirmó que se resolvió. Gracias por su respuesta.')).toBeVisible();
     await c.ctx.close();
 
     const s = await staff(browser, 'atencion.coordinacion@demo.test', DESKTOP);
@@ -472,8 +472,8 @@ test.describe('de punta a punta en la computadora: llega, se asigna, se pide inf
     const again = await citizen(browser, DESKTOP);
     await openCase(again.page, flow.reference, flow.secret);
     await expect(again.page.getByTestId('estado-solicitud')).toHaveText('Cerrada');
-    const story = again.page.getByRole('region', { name: 'Historia de tu solicitud' });
-    for (const line of [QUESTION, ANSWER, REPLY, 'Confirmaste que se resolvió', 'Pasó a «Cerrada»']) await expect(story.getByText(line).first(), line).toBeVisible();
+    const story = again.page.getByRole('region', { name: 'Historial de la solicitud' });
+    for (const line of [QUESTION, ANSWER, REPLY, 'Usted confirmó que se resolvió', 'Pasó a «Cerrada»']) await expect(story.getByText(line).first(), line).toBeVisible();
     for (const hidden of [NOTE, RESOLUTION, CLOSING]) await expect(again.page.getByText(hidden), hidden).toHaveCount(0);
     await axe(again.page, 'consulta cerrada (computadora)');
     await again.ctx.close();
@@ -560,7 +560,7 @@ test.describe('un envío repetido no crea otra solicitud', () => {
       committed = (await res.text()).match(/AC-\d{4}-[0-9A-HJKMNP-TV-Z]{6}/)?.[0] ?? '';
       await route.abort('failed');
     });
-    const k: Kind = { tipo: 'peticion', label: 'Petición', type: /^Petición/, category: /^Salud/, categoryName: 'Salud', municipality: 'Junín', heading: 'Recibimos tu petición', servicesArea: false };
+    const k: Kind = { tipo: 'peticion', label: 'Petición', type: /^Petición/, category: /^Salud/, categoryName: 'Salud', municipality: 'Junín', heading: 'Recibimos su petición', servicesArea: false };
     await fillForm(c.page, k, { title: `Petición que se reintenta ${token} (prueba)`, description: 'La respuesta se pierde en el camino y el teléfono vuelve a enviar (prueba).', sector: `Sector ${token}` });
     await toContactStep(c.page);
     await c.page.getByLabel(/Enviar como anónimo/).check();
@@ -584,12 +584,12 @@ test.describe('un envío repetido no crea otra solicitud', () => {
     await ctx.setExtraHTTPHeaders({ 'x-real-ip': nextIp() });
     const page = await ctx.newPage();
     await page.goto('/atencion/nueva');
-    const form = page.locator('form').filter({ hasText: 'Tu navegador no tiene JavaScript activo' });
+    const form = page.locator('form').filter({ hasText: 'Su navegador tiene JavaScript desactivado' });
     await form.getByLabel(/^Petición/).check();
     await form.getByLabel('Categoría').selectOption({ label: 'Salud' });
     await form.getByLabel(/^Municipio/).selectOption({ label: 'Junín' });
     await form.getByLabel(/^Título/).fill(`Petición enviada dos veces ${token} (prueba)`);
-    await form.getByLabel(/^Cuéntanos/).fill('Un teléfono sin JavaScript manda el mismo formulario dos veces (prueba).');
+    await form.getByLabel(/^Descripción/).fill('Un teléfono sin JavaScript manda el mismo formulario dos veces (prueba).');
     await form.getByLabel(/Enviar como anónimo/).check();
     await form.getByLabel(/Leí el aviso de privacidad/).check();
     let posted: Request | null = null;
@@ -597,7 +597,7 @@ test.describe('un envío repetido no crea otra solicitud', () => {
       if (r.method() === 'POST' && new URL(r.url()).pathname === '/atencion/nueva') posted = r;
     });
     await form.getByRole('button', { name: 'Enviar' }).click();
-    const receipt = page.getByRole('region', { name: 'Recibimos tu solicitud' });
+    const receipt = page.getByRole('region', { name: 'Recibimos su solicitud' });
     await expect(receipt).toBeVisible();
     const text = (await receipt.textContent()) ?? '';
     const reference = text.match(/AC-\d{4}-[0-9A-HJKMNP-TV-Z]{6}/)![0];

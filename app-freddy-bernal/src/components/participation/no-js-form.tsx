@@ -2,12 +2,12 @@
 
 import { useActionState } from 'react';
 import { sendRequestWithoutJs } from '@/lib/actions/participation';
-import { REQUEST_TYPES, CONTACT_CHANNEL_LABEL, type RequestType } from '@/lib/participation/input';
+import { REQUEST_TYPES, CONTACT_CHANNEL_OPTION, type RequestType } from '@/lib/participation/input';
 import type { PublicCategory, Territory } from '@/lib/web/public';
 import { cn } from '@/lib/cn';
-import { FieldBox, FieldError, Notice, buttonStyle, describedBy, inputStyle, webCard } from './kit';
+import { DenunciaNote, FieldBox, FieldError, buttonStyle, describedBy, inputStyle, webCard } from './kit';
 import { Honeypot } from './contact-fields';
-import { DENUNCIA_TEXT, EMERGENCY_TEXT, TYPE_COPY } from './words';
+import { EMERGENCY_NOTICE, TYPE_COPY } from './words';
 
 /**
  * The same request without JavaScript (design §4: a no-JS fallback). It lives inside <noscript>, so only a browser
@@ -33,13 +33,13 @@ export function NoJsForm({
     return (
       <section aria-labelledby="sinjs-apagado" className={cn(webCard, 'flex flex-col gap-4 p-6')}>
         <h2 id="sinjs-apagado" className="text-2xl font-bold text-text">
-          Para enviar, activa JavaScript
+          Para enviar, active JavaScript
         </h2>
         <p className="text-[15px] leading-relaxed text-text">
-          Tu navegador no tiene JavaScript activo, y la comprobación de que no eres un robot lo necesita. Actívalo en los ajustes del navegador, o abre esta
-          página en otro navegador.
+          Su navegador tiene JavaScript desactivado y la verificación de seguridad lo necesita. Actívelo en los ajustes del navegador o abra esta página
+          en otro navegador.
         </p>
-        <p className="text-[15px] text-text-2">{EMERGENCY_TEXT}</p>
+        <p className="text-[15px] text-text-2">{EMERGENCY_NOTICE}</p>
       </section>
     );
   }
@@ -48,26 +48,26 @@ export function NoJsForm({
     return (
       <section aria-labelledby="sinjs-recibo" className="flex flex-col gap-5 rounded-[var(--radius-card)] border-2 border-text bg-surface p-6">
         <h2 id="sinjs-recibo" className="text-2xl font-bold text-text">
-          {state.kind === 'support' ? 'Te sumaste a un reporte que ya estaba abierto' : 'Recibimos tu solicitud'}
+          {state.kind === 'support' ? 'Su apoyo al reporte quedó registrado' : 'Recibimos su solicitud'}
         </h2>
         <dl className="grid gap-4">
           <div>
-            <dt className="text-[15px] font-semibold text-text-2">Tu código</dt>
+            <dt className="text-[15px] font-semibold text-text-2">Código</dt>
             <dd className="font-mono text-2xl font-bold tracking-wider text-text">{state.reference}</dd>
           </div>
           <div>
-            <dt className="text-[15px] font-semibold text-text-2">Tu clave</dt>
+            <dt className="text-[15px] font-semibold text-text-2">Clave</dt>
             <dd className="font-mono text-2xl font-bold tracking-wider text-text">{state.secret}</dd>
           </div>
         </dl>
         <p className="rounded-xl bg-warn-soft p-3 text-[15px] text-text">
-          <strong>Anótalos o imprime esta página ahora.</strong> La clave se muestra solo esta vez y nadie del equipo la tiene. Con los dos consultas tu
+          <strong>Anótelos o imprima esta página ahora.</strong> La clave se muestra una sola vez y no se puede recuperar. Con ambos puede consultar su
           solicitud en «Consultar mi solicitud».
         </p>
         <a href="/atencion/consultar" className={buttonStyle({ tone: 'outline', size: 'md' })}>
           Consultar mi solicitud
         </a>
-        <p className="text-[15px] text-text-2">{EMERGENCY_TEXT}</p>
+        <p className="text-[15px] text-text-2">{EMERGENCY_NOTICE}</p>
       </section>
     );
   }
@@ -81,7 +81,7 @@ export function NoJsForm({
     <form action={action} className={cn(webCard, 'relative flex flex-col gap-6 p-5 sm:p-8')}>
       <input type="hidden" name="submissionKey" value={v.submissionKey || formKey} />
       <input type="hidden" name="linkedItemId" value={v.linkedItemId || linkedItemId || ''} />
-      <p className="text-[15px] text-text-2">Tu navegador no tiene JavaScript activo: aquí va el formulario completo en una sola página, sin archivos ni mapa.</p>
+      <p className="text-[15px] text-text-2">Su navegador tiene JavaScript desactivado. Este es el formulario completo en una sola página, sin archivos ni mapa.</p>
       {state?.status === 'error' ? (
         <div role="alert" className="rounded-2xl border-2 border-danger bg-danger-soft p-4 text-text">
           <p className="font-bold text-danger">{state.error}</p>
@@ -96,22 +96,23 @@ export function NoJsForm({
       ) : null}
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 text-base font-semibold text-text">¿Qué quieres enviar?</legend>
+        <legend className="mb-1 text-base font-semibold text-text">Tipo de solicitud</legend>
         {REQUEST_TYPES.map((t) => (
           <label key={t} className="flex min-h-11 items-start gap-3 text-[15px] text-text">
             <input type="radio" name="type" value={t} defaultChecked={type === t} required className="mt-0.5 size-5 accent-accent" />
             <span>
-              <strong>{TYPE_COPY[t].label}</strong>: {TYPE_COPY[t].hint}
+              <strong className="block">{TYPE_COPY[t].label}</strong>
+              <span className="block text-text-2">{TYPE_COPY[t].hint}</span>
             </span>
           </label>
         ))}
         {err('type') ? <FieldError id="sinjs-type-error">{err('type')}</FieldError> : null}
       </fieldset>
-      <Notice tone="private">Si es una denuncia: {DENUNCIA_TEXT} En una denuncia va solo el lugar aproximado; deja vacío el punto de referencia.</Notice>
+      <DenunciaNote title="Si envía una denuncia">Indique solo el lugar aproximado y deje vacío el punto de referencia.</DenunciaNote>
 
       <FieldBox id="sinjs-categoryId" label="Categoría" error={err('categoryId')}>
         <select id="sinjs-categoryId" name="categoryId" defaultValue={v.categoryId ?? ''} className={inputStyle} required aria-describedby={describedBy('sinjs-categoryId', { error: err('categoryId') })}>
-          <option value="">Elige una categoría</option>
+          <option value="">Seleccione una categoría</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -119,9 +120,9 @@ export function NoJsForm({
           ))}
         </select>
       </FieldBox>
-      <FieldBox id="sinjs-municipalityId" label="Municipio" hint="Hace falta en un reporte, una petición o una denuncia." error={err('municipalityId')}>
+      <FieldBox id="sinjs-municipalityId" label="Municipio" hint="Obligatorio en reportes, peticiones y denuncias." error={err('municipalityId')}>
         <select id="sinjs-municipalityId" name="municipalityId" defaultValue={v.municipalityId ?? ''} className={inputStyle} aria-describedby={describedBy('sinjs-municipalityId', { hint: true, error: err('municipalityId') })}>
-          <option value="">Elige el municipio</option>
+          <option value="">Seleccione el municipio</option>
           {municipalities.map((m) => (
             <option key={m.id} value={m.id}>
               {m.name}
@@ -132,25 +133,25 @@ export function NoJsForm({
       <FieldBox id="sinjs-sector" label="Parroquia, localidad o sector" optional error={err('sector')}>
         <input id="sinjs-sector" name="sector" defaultValue={v.sector ?? ''} maxLength={200} className={inputStyle} />
       </FieldBox>
-      <FieldBox id="sinjs-locationReference" label="Punto de referencia" optional hint="No en una denuncia." error={err('locationReference')}>
+      <FieldBox id="sinjs-locationReference" label="Punto de referencia" optional hint="No aplica en denuncias." error={err('locationReference')}>
         <input id="sinjs-locationReference" name="locationReference" defaultValue={v.locationReference ?? ''} maxLength={300} className={inputStyle} />
       </FieldBox>
       <FieldBox id="sinjs-title" label="Título" error={err('title')}>
         <input id="sinjs-title" name="title" defaultValue={v.title ?? ''} maxLength={140} required className={inputStyle} />
       </FieldBox>
-      <FieldBox id="sinjs-description" label="Cuéntanos" hint="Qué pasa, desde cuándo y a quién afecta." error={err('description')}>
+      <FieldBox id="sinjs-description" label="Descripción" hint="Describa la situación, desde cuándo ocurre y a quién afecta. No incluya datos personales de otras personas." error={err('description')}>
         <textarea id="sinjs-description" name="description" defaultValue={v.description ?? ''} maxLength={4000} rows={6} required className={cn(inputStyle, 'min-h-40')} />
       </FieldBox>
-      <FieldBox id="sinjs-eventDate" label="¿Cuándo pasó?" optional error={err('eventDate')} className="max-w-xs">
+      <FieldBox id="sinjs-eventDate" label="Fecha del hecho" optional error={err('eventDate')} className="max-w-xs">
         <input id="sinjs-eventDate" name="eventDate" type="date" max={today} defaultValue={v.eventDate ?? ''} className={inputStyle} />
       </FieldBox>
 
       <fieldset className="flex flex-col gap-4">
-        <legend className="mb-1 text-base font-semibold text-text">¿Cómo te contactamos? (opcional)</legend>
+        <legend className="mb-1 text-base font-semibold text-text">Datos de contacto (opcional)</legend>
         <label className="flex min-h-11 items-start gap-3 text-[15px] text-text">
           <input type="checkbox" name="anonymous" defaultChecked={v.anonymous === 'on'} className="mt-0.5 size-5 accent-accent" />
           <span>
-            <strong>Enviar como anónimo.</strong> Deja vacíos los datos de abajo y guarda bien tu código y tu clave.
+            <strong>Enviar como anónimo.</strong> Deje vacíos los datos de abajo y guarde su código y su clave.
           </span>
         </label>
         {err('anonymous') ? <FieldError id="sinjs-anonymous-error">{err('anonymous')}</FieldError> : null}
@@ -163,19 +164,28 @@ export function NoJsForm({
         <FieldBox id="sinjs-phone" label="Teléfono" optional error={err('contact.phone')}>
           <input id="sinjs-phone" name="phone" type="tel" defaultValue={v.phone ?? ''} maxLength={40} autoComplete="tel" className={inputStyle} />
         </FieldBox>
-        <FieldBox id="sinjs-channel" label="¿Por dónde prefieres que te contacten?" optional error={err('contact')}>
-          <select id="sinjs-channel" name="channel" defaultValue={v.channel ?? ''} className={inputStyle}>
-            <option value="">Por el correo o el teléfono que deje</option>
+        <FieldBox
+          id="sinjs-channel"
+          label="Medio de contacto preferido"
+          optional
+          hint="Si no elige, se usará el correo o el teléfono indicado."
+          error={err('contact')}
+        >
+          <select id="sinjs-channel" name="channel" defaultValue={v.channel ?? ''} className={inputStyle} aria-describedby="sinjs-channel-hint">
+            <option value="">Sin preferencia</option>
             {(['email', 'phone', 'whatsapp', 'none'] as const).map((c) => (
               <option key={c} value={c}>
-                {CONTACT_CHANNEL_LABEL[c]}
+                {CONTACT_CHANNEL_OPTION[c]}
               </option>
             ))}
           </select>
         </FieldBox>
         <label className="flex min-h-11 items-start gap-3 text-[15px] text-text">
           <input type="checkbox" name="publishNameConsent" defaultChecked={v.publishNameConsent === 'on'} className="mt-0.5 size-5 accent-accent" />
-          <span>Si se resuelve y el equipo lo publica en «Lo atendido», pueden poner mi nombre (si no, solo mis iniciales).</span>
+          <span>
+            Autorizo que se publique mi nombre si el caso aparece en «Casos atendidos».{' '}
+            <span className="text-text-2">Si no marca esta casilla, solo se publicarán sus iniciales.</span>
+          </span>
         </label>
       </fieldset>
 
@@ -186,7 +196,7 @@ export function NoJsForm({
           <a href="/aviso-de-privacidad" className="font-semibold text-accent-ink underline">
             aviso de privacidad
           </a>{' '}
-          y acepto que usen lo que envío solo para atender mi solicitud.
+          y acepto que mis datos se usen solo para atender esta solicitud.
         </span>
       </label>
       {err('privacyAccepted') ? <FieldError id="sinjs-privacy-error">{err('privacyAccepted')}</FieldError> : null}
@@ -194,7 +204,7 @@ export function NoJsForm({
       <button type="submit" className={buttonStyle({ tone: 'action', size: 'lg' })}>
         Enviar
       </button>
-      <p className="text-[15px] text-text-2">{EMERGENCY_TEXT}</p>
+      <p className="text-[15px] text-text-2">{EMERGENCY_NOTICE}</p>
     </form>
   );
 }

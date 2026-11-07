@@ -16,7 +16,7 @@ const useInBrowser = () => useSyncExternalStore(noSubscribe, () => true, () => f
 type Upload = { busy: boolean; failed: { file: PickedFile; error: string }[]; messageId: string | null };
 
 /**
- * «Agregar información» (design §4): a message to the team and up to 3 files that go up right after it, tied to that
+ * «Agregar información» (design §4): a message to the staff and up to 3 files that go up right after it, tied to that
  * message, while the consultation lasts. A case that was waiting for information goes back to review. Then the page
  * reads the request again (the timeline with the new message).
  */
@@ -59,8 +59,8 @@ export function AddInfoForm({ maxFileBytes, asked }: { maxFileBytes: number; ask
     <form action={action} className="flex flex-col gap-5" noValidate>
       <FieldBox
         id="f-body"
-        label={asked ? 'Tu respuesta al equipo' : 'Lo que quieres agregar'}
-        hint="Un dato nuevo, una aclaración o cómo sigue el problema. Lo lee el equipo que atiende tu solicitud."
+        label={asked ? 'Su respuesta' : 'Información adicional'}
+        hint="Datos nuevos o aclaraciones sobre el problema. Lo lee el personal que atiende su solicitud."
         error={error?.fieldErrors?.body}
       >
         <textarea
@@ -77,12 +77,12 @@ export function AddInfoForm({ maxFileBytes, asked }: { maxFileBytes: number; ask
       {inBrowser ? <FilePicker id="f-info-files" files={files} onChange={pick} maxBytes={maxFileBytes} /> : null}
       <div ref={statusRef} tabIndex={-1} aria-live="polite" className="outline-none">
         {error && !error.fieldErrors ? <FieldError id="f-body-status">{error.error}</FieldError> : null}
-        {state?.status === 'ok' && !upload.busy && !upload.failed.length ? <p className="text-[15px] font-medium text-ok">Listo: el equipo ya puede leer lo que agregaste.</p> : null}
-        {upload.busy ? <p className="text-[15px] text-text-2">Subiendo tus archivos…</p> : null}
+        {state?.status === 'ok' && !upload.busy && !upload.failed.length ? <p className="text-[15px] font-medium text-ok">Información enviada al personal de atención.</p> : null}
+        {upload.busy ? <p className="text-[15px] text-text-2">Subiendo archivos…</p> : null}
         {upload.failed.length ? (
           <Notice tone="danger">
             <p>
-              Tu mensaje quedó guardado; {upload.failed.length === 1 ? 'un archivo no se pudo subir' : `${upload.failed.length} archivos no se pudieron subir`}:{' '}
+              Su mensaje quedó guardado, pero no se pudo subir {upload.failed.length === 1 ? 'un archivo' : `${upload.failed.length} archivos`}:{' '}
               {upload.failed.map((f) => `${f.file.file.name} (${f.error})`).join('; ')}.
             </p>
             <Btn
@@ -101,7 +101,7 @@ export function AddInfoForm({ maxFileBytes, asked }: { maxFileBytes: number; ask
         ) : null}
       </div>
       <Btn type="submit" tone="olive" size="lg" disabled={pending || upload.busy}>
-        {pending ? 'Enviando…' : 'Enviar al equipo'}
+        {pending ? 'Enviando…' : 'Enviar información'}
       </Btn>
     </form>
   );
@@ -126,7 +126,7 @@ export function ConfirmForm() {
   return (
     <form action={action} className="flex flex-col gap-5" noValidate>
       <fieldset className="flex flex-col gap-2" aria-describedby={fe.resolved ? 'f-resolved-error' : undefined}>
-        <legend className="text-base font-semibold text-text">¿Se resolvió de verdad?</legend>
+        <legend className="text-base font-semibold text-text">¿Se resolvió el problema?</legend>
         <div className="grid gap-2 sm:grid-cols-2">
           {(
             [
@@ -144,9 +144,9 @@ export function ConfirmForm() {
       </fieldset>
       <FieldBox
         id="f-comment"
-        label={answer === 'no' ? '¿Qué falta para que esté resuelto?' : 'Un comentario'}
+        label={answer === 'no' ? '¿Qué falta por resolver?' : 'Comentario'}
         optional={answer !== 'no'}
-        hint={answer === 'no' ? 'Tu solicitud vuelve a atención y el equipo lee lo que escribas.' : undefined}
+        hint={answer === 'no' ? 'Su solicitud vuelve a atención y el personal leerá su comentario.' : undefined}
         error={fe.comment}
       >
         <textarea

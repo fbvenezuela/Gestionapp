@@ -67,7 +67,7 @@ test('la coordinación recibe una solicitud enviada desde el formulario público
   await c.page.getByLabel(/Parroquia, localidad o sector/).fill(`Sector del administrador ${RUN} (prueba)`);
   await next(c.page);
   await c.page.getByLabel(/^Título/).fill(TITLE);
-  await c.page.getByLabel(/^Cuéntanos/).fill(DESCRIPTION);
+  await c.page.getByLabel(/^Descripción/).fill(DESCRIPTION);
   await next(c.page);
   await c.page.getByRole('textbox', { name: /^Nombre/ }).fill('Vecina de Prueba');
   await c.page.getByRole('textbox', { name: /^Correo/ }).fill(`vecina.${RUN}@demo.test`);
@@ -146,9 +146,9 @@ test('la persona consulta: ve la respuesta (nunca la nota interna) y agrega info
   await expect(c.page.getByText(REPLY)).toBeVisible();
   await expect(c.page.getByText(NOTE)).toHaveCount(0);
   await expect(c.page.getByText(/llave de paso/)).toHaveCount(0);
-  await c.page.getByLabel(/Lo que quieres agregar/).fill(MORE);
-  await c.page.getByRole('button', { name: 'Enviar al equipo' }).click();
-  await expect(c.page.getByText('Listo: el equipo ya puede leer lo que agregaste.')).toBeVisible();
+  await c.page.getByLabel(/^Información adicional/).fill(MORE);
+  await c.page.getByRole('button', { name: 'Enviar información' }).click();
+  await expect(c.page.getByText('Información enviada al personal de atención.')).toBeVisible();
   await c.ctx.close();
 });
 
@@ -184,7 +184,7 @@ test('el equipo lo resuelve con evidencia, la persona lo ve y la historia comple
   const c = await citizen(browser);
   await lookup(c.page, shared.reference, shared.secret);
   await expect(c.page.getByTestId('estado-solicitud')).toHaveText('Resuelta');
-  await expect(c.page.getByText(/Evidencia del equipo/).first()).toBeVisible();
+  await expect(c.page.getByText(/Evidencia de la atención/).first()).toBeVisible();
   await expect(c.page.getByText(RESOLUTION)).toHaveCount(0);
   await c.ctx.close();
 });

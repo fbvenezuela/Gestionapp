@@ -1111,8 +1111,8 @@
     "note": "El canal activo del programa desde enero de 2026. El canal anterior (@FreddyBernalOficial) no se usa."
    },
    "site.demo_banner": "Versión de prueba. El contenido es de ejemplo.",
-   "site.emergency_notice": "Esto no es un servicio de emergencias: si hay una emergencia o una vida en peligro, llama a los servicios de emergencia.",
-   "site.denuncia_notice": "Tu denuncia es privada: solo la leen el operador de denuncias y la coordinación de atención. Si es un delito, acude también a las autoridades competentes."
+   "site.emergency_notice": "Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.",
+   "site.denuncia_notice": "Su denuncia es confidencial. Solo la leen el personal encargado de denuncias y la coordinación de atención, y nunca se publica. Si se trata de un delito, acuda también a las autoridades competentes."
   },
   "pages": [
    {
@@ -1270,16 +1270,16 @@
    {
     "slug": "atencion",
     "draft": {
-     "title": "Participa",
-     "excerpt": "Reporta un problema, haz una petición, deja una acotación o una denuncia, y sigue tu caso con tu código.",
+     "title": "Atención ciudadana",
+     "excerpt": "Reportes, peticiones, acotaciones y denuncias al despacho del gobernador, con un código para consultar su estado.",
      "blocks": [
       {
        "id": "portada",
        "type": "hero",
        "visible": true,
        "data": {
-        "title": "Participa",
-        "text": "Cuéntanos lo que pasa en tu comunidad y sigue tu caso con tu código.",
+        "title": "Atención ciudadana",
+        "text": "Envíe su reporte, petición o denuncia y consulte su estado con el código que recibirá. No necesita registrarse.",
         "mediaId": null
        }
       },
@@ -1288,7 +1288,7 @@
        "type": "participation",
        "visible": true,
        "data": {
-        "title": "¿Qué quieres hacer?"
+        "title": "Tipos de solicitud"
        }
       },
       {
@@ -1305,33 +1305,33 @@
          {
           "type": "list",
           "items": [
-           "Cuéntanos qué pasa y dónde. Si quieres, deja una foto.",
-           "Recibes un código y una clave: guárdalos.",
-           "El equipo lo revisa y lo pasa al área que corresponde.",
-           "Consulta el avance cuando quieras con tu código y tu clave."
+           "Envíe su solicitud con el lugar y la descripción. Puede adjuntar fotos.",
+           "Guarde el código y la clave que recibirá al enviarla.",
+           "El personal de atención la revisa y la asigna al área correspondiente.",
+           "Consulte el estado con su código y su clave en «Consultar mi solicitud»."
           ]
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "Qué esperar"
+          "text": "Seguimiento"
          },
          {
           "type": "paragraph",
-          "text": "El equipo te responde en tu caso. Si dejaste cómo contactarte, te avisamos cuando cambie el estado. Nada de lo que envías es público."
+          "text": "Las respuestas se publican en su consulta. Si dejó un contacto, se le avisará cuando cambie el estado. Las solicitudes no se publican."
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "No es un servicio de emergencias"
+          "text": "Emergencias"
          },
          {
           "type": "paragraph",
-          "text": "Si hay una emergencia o una vida en peligro, llama a los servicios de emergencia."
+          "text": "Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia."
          },
          {
           "type": "pending",
-          "text": "Por completar antes de publicar: los números oficiales de emergencia del estado."
+          "text": "Por completar antes de publicar: los números oficiales de emergencia del estado, si el cliente los confirma."
          }
         ]
        }
@@ -1355,8 +1355,8 @@
       }
      ],
      "seo": {
-      "title": "Participa: reportes, peticiones y denuncias",
-      "description": "Reporta un problema de tu comunidad, haz una petición, deja una acotación o una denuncia al equipo del gobernador del Táchira, y sigue tu caso con tu código."
+      "title": "Atención ciudadana",
+      "description": "Reportes, peticiones, acotaciones y denuncias al despacho del gobernador del estado Táchira, con un código para consultar su estado."
      }
     }
    },
@@ -1364,7 +1364,7 @@
     "slug": "aviso-de-privacidad",
     "draft": {
      "title": "Aviso de privacidad",
-     "excerpt": "Qué datos pide esta web cuando participas, para qué, quién los ve y cómo pedir que se borren.",
+     "excerpt": "Tratamiento de los datos personales que se envían a través de Atención ciudadana.",
      "blocks": [
       {
        "id": "aviso",
@@ -1373,79 +1373,73 @@
        "data": {
         "content": [
          {
+          "type": "paragraph",
+          "text": "Texto preliminar, en revisión."
+         },
+         {
           "type": "pending",
-          "text": "Texto inicial: el equipo y la consulta legal lo revisan y lo completan antes de abrir la web al público."
+          "text": "Por completar antes de publicar: la consulta legal revisa y aprueba este texto."
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "Qué pedimos"
+          "text": "Datos que se solicitan"
          },
          {
           "type": "paragraph",
-          "text": "Solo lo necesario para atender lo que nos cuentas: el tipo de solicitud, la categoría, el lugar (municipio y sector, y el punto en el mapa solo si das permiso), lo que pasó y, si quieres, fotos o documentos."
+          "text": "Solo los datos necesarios para atender la solicitud: tipo, categoría, lugar (municipio y sector; el punto en el mapa, solo con su autorización), descripción y, de forma opcional, fotos o documentos."
          },
          {
           "type": "paragraph",
-          "text": "Tu nombre y cómo contactarte son opcionales. Puedes enviar sin ellos: en ese caso guarda tu código y tu clave, porque son la única forma de seguir el caso."
+          "text": "El nombre y los datos de contacto son opcionales. Si no los indica, guarde su código y su clave, que son la única forma de consultar la solicitud."
          },
          {
           "type": "paragraph",
-          "text": "Nunca pedimos afiliación política, número de cédula ni otros datos que no hagan falta para atender."
+          "text": "No se solicita afiliación política, número de cédula ni otros datos innecesarios para la atención."
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "Para qué"
+          "text": "Finalidad"
          },
          {
           "type": "paragraph",
-          "text": "Para atender tu solicitud, responderte y, si nos diste cómo, avisarte cuando cambie su estado. Las cifras de la web (cuántas solicitudes llegan y cuántas se resuelven) se calculan sin datos de personas."
+          "text": "Los datos se usan para atender la solicitud, responderle y, si dejó un contacto, informarle los cambios de estado. Las estadísticas publicadas no incluyen datos personales."
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "Quién lo ve"
+          "text": "Acceso a los datos"
          },
          {
           "type": "paragraph",
-          "text": "Solo las personas del equipo que atienden tu solicitud, según su área. Una denuncia la leen solo el operador de denuncias y la coordinación de atención. Nada de lo que envías es público."
+          "text": "Solo el personal que atiende la solicitud, según su área, tiene acceso a ella. Las denuncias solo las leen el personal encargado de denuncias y la coordinación de atención. Las solicitudes no se publican."
          },
          {
           "type": "paragraph",
-          "text": "Lo atendido puede publicarse en la web como un resumen sin tus datos: tu nombre aparece solo si lo autorizas; si no, tus iniciales. De una denuncia solo se publica que fue atendida y en qué municipio."
+          "text": "Los casos atendidos pueden publicarse como un resumen sin datos personales, con el nombre de la persona solo si lo autoriza o, en su defecto, con sus iniciales. De una denuncia solo se publica que fue atendida y en qué municipio."
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "Cómo lo cuidamos"
+          "text": "Medidas de seguridad"
          },
          {
           "type": "list",
           "items": [
-           "Tu contacto se guarda cifrado y aparte del resto.",
-           "A las fotos se les quitan la ubicación y los datos ocultos antes de guardarlas.",
-           "Los archivos van a un almacenamiento privado y se abren con enlaces que vencen.",
-           "El equipo entra con doble factor y cada acción queda registrada."
+           "Los datos de contacto se guardan cifrados y separados del resto.",
+           "Las fotos se guardan sin ubicación ni datos internos.",
+           "Los archivos se guardan en un almacenamiento privado y se abren con enlaces temporales.",
+           "El personal accede con verificación en dos pasos y cada acción queda registrada."
           ]
          },
          {
-          "type": "heading",
-          "level": 2,
-          "text": "Cuánto tiempo se guarda"
+          "type": "pending",
+          "text": "Por completar antes de publicar: la sección «Conservación de los datos» (cuánto tiempo se guarda cada dato), según la consulta legal."
          },
          {
           "type": "pending",
-          "text": "Por completar antes de publicar: cuánto tiempo se guarda cada dato, según la consulta legal."
-         },
-         {
-          "type": "heading",
-          "level": 2,
-          "text": "Cómo pedir que se borre"
-         },
-         {
-          "type": "pending",
-          "text": "Por completar antes de publicar: el canal oficial para pedir que se borren tus datos de contacto y en cuánto tiempo se responde."
+          "text": "Por completar antes de publicar: la sección «Eliminación de los datos» (el canal oficial para pedir que se borren los datos de contacto y el plazo de respuesta)."
          },
          {
           "type": "heading",
@@ -1454,16 +1448,11 @@
          },
          {
           "type": "paragraph",
-          "text": "La web usa solo cookies técnicas: una para limitar los envíos repetidos desde un mismo dispositivo y otra, de 30 minutos, para mostrarte tu solicitud después de consultarla. No hay cookies de publicidad. Los videos de YouTube y el mapa se cargan solo si los tocas."
-         },
-         {
-          "type": "heading",
-          "level": 2,
-          "text": "Responsable"
+          "text": "Este sitio usa solo cookies técnicas. Una limita los envíos repetidos desde un mismo dispositivo y otra, de 30 minutos, mantiene abierta la consulta de su solicitud. No se usan cookies de publicidad. Los videos de YouTube y el mapa se cargan solo si usted los abre."
          },
          {
           "type": "pending",
-          "text": "Por completar antes de publicar: el nombre oficial del organismo responsable de los datos y su dirección institucional."
+          "text": "Por completar antes de publicar: la sección «Responsable del tratamiento» (el nombre oficial del organismo responsable de los datos y su dirección institucional)."
          }
         ]
        }
@@ -1471,7 +1460,7 @@
      ],
      "seo": {
       "title": "Aviso de privacidad",
-      "description": "Qué datos pide la web del gobernador del Táchira al participar, para qué, quién los ve y cómo pedir que se borren."
+      "description": "Tratamiento de los datos personales que se envían a través de Atención ciudadana."
      }
     }
    },
@@ -1479,7 +1468,7 @@
     "slug": "condiciones-de-participacion",
     "draft": {
      "title": "Condiciones de participación",
-     "excerpt": "Cómo funcionan los reportes, las peticiones, las acotaciones y las denuncias, y lo que se publica.",
+     "excerpt": "Normas para el envío y la atención de solicitudes.",
      "blocks": [
       {
        "id": "condiciones",
@@ -1488,44 +1477,48 @@
        "data": {
         "content": [
          {
+          "type": "paragraph",
+          "text": "Texto preliminar, en revisión."
+         },
+         {
           "type": "pending",
-          "text": "Texto inicial: el equipo y la consulta legal lo revisan antes de abrir la web al público."
+          "text": "Por completar antes de publicar: la consulta legal revisa y aprueba este texto."
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "Qué es"
+          "text": "Objeto"
          },
          {
           "type": "paragraph",
-          "text": "Un canal para reportar problemas de tu comunidad, hacer peticiones, dejar acotaciones, sugerencias o reconocimientos, y presentar denuncias ante el equipo del gobernador."
+          "text": "Atención ciudadana es el canal para enviar reportes, peticiones, acotaciones, sugerencias, reconocimientos y denuncias al despacho del gobernador."
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "No es un servicio de emergencias"
+          "text": "Emergencias"
          },
          {
           "type": "paragraph",
-          "text": "Si hay una emergencia o una vida en peligro, llama a los servicios de emergencia. Lo que envías aquí no se atiende al instante."
+          "text": "Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia. Las solicitudes no se atienden de forma inmediata."
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "Tu código y tu clave"
+          "text": "Código y clave"
          },
          {
           "type": "paragraph",
-          "text": "Al enviar recibes un código y una clave. Guárdalos: con ellos consultas tu caso. Si los pierdes y no dejaste cómo contactarte, el equipo no puede recuperarlos."
+          "text": "Al enviar una solicitud recibirá un código y una clave. Guárdelos, porque con ellos se consulta el caso. Si los pierde y no dejó un contacto, no podrán recuperarse."
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "Respeto"
+          "text": "Normas de uso"
          },
          {
           "type": "paragraph",
-          "text": "Se reciben críticas y quejas. No se aceptan insultos, amenazas ni datos personales de otras personas (teléfonos, direcciones, fotos de rostros sin permiso). El equipo puede retirar esos datos o marcar como «no procede» un mensaje abusivo, y cada una de esas acciones queda registrada con su motivo."
+          "text": "Se reciben críticas y quejas. No se aceptan insultos, amenazas ni datos personales de terceros (teléfonos, direcciones o fotos de rostros sin autorización). El personal de atención puede retirar esos datos o marcar como «no procede» un mensaje abusivo, y cada acción queda registrada con su motivo."
          },
          {
           "type": "heading",
@@ -1534,16 +1527,16 @@
          },
          {
           "type": "paragraph",
-          "text": "Una denuncia es privada: solo la leen el operador de denuncias y la coordinación de atención. Si se trata de un delito, acude también a las autoridades competentes."
+          "text": "Su denuncia es confidencial. Solo la leen el personal encargado de denuncias y la coordinación de atención, y nunca se publica. Si se trata de un delito, acuda también a las autoridades competentes."
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "Lo que se publica"
+          "text": "Publicación"
          },
          {
           "type": "paragraph",
-          "text": "Las solicitudes no se publican. El equipo puede publicar un resumen de lo atendido sin tus datos: con tu nombre solo si lo autorizas; si no, tus iniciales."
+          "text": "Las solicitudes no se publican. Se puede publicar un resumen de los casos atendidos sin datos personales, con el nombre solo si la persona lo autoriza o, en su defecto, con sus iniciales."
          },
          {
           "type": "heading",
@@ -1552,7 +1545,7 @@
          },
          {
           "type": "paragraph",
-          "text": "Si ya hay reportes del mismo problema cerca, te ofrecemos sumarte. El mismo problema en el mismo lugar no se abre más de tres veces: desde el cuarto envío se suma al primero, y recibes tu propio código para seguirlo."
+          "text": "Si ya existen reportes del mismo problema en la zona, se le ofrecerá apoyar el reporte existente. Un mismo problema en el mismo lugar no se abre más de tres veces. A partir del cuarto envío, el reporte se suma al primero y usted recibe su propio código."
          },
          {
           "type": "pending",
@@ -1564,7 +1557,7 @@
      ],
      "seo": {
       "title": "Condiciones de participación",
-      "description": "Cómo funcionan los reportes, las peticiones, las acotaciones y las denuncias en la web del gobernador del Táchira."
+      "description": "Normas para enviar reportes, peticiones, acotaciones y denuncias por Atención ciudadana."
      }
     }
    },
@@ -1572,7 +1565,7 @@
     "slug": "accesibilidad",
     "draft": {
      "title": "Accesibilidad",
-     "excerpt": "Lo que cuidamos para que cualquier persona pueda usar esta web, y cómo avisarnos si algo no funciona.",
+     "excerpt": "Medidas de accesibilidad de este sitio y cómo reportar problemas de uso.",
      "blocks": [
       {
        "id": "accesibilidad",
@@ -1581,50 +1574,60 @@
        "data": {
         "content": [
          {
+          "type": "paragraph",
+          "text": "Texto preliminar, en revisión."
+         },
+         {
           "type": "pending",
-          "text": "Texto inicial: se completa con los resultados de la revisión de accesibilidad antes de abrir la web al público."
+          "text": "Por completar antes de publicar: los resultados de la revisión de accesibilidad."
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "Nuestro compromiso"
+          "text": "Compromiso"
          },
          {
           "type": "paragraph",
-          "text": "Queremos que cualquier persona pueda usar esta web, desde el teléfono o la computadora, con buena o con mala conexión. La meta es cumplir las pautas WCAG 2.2 en el nivel AA."
+          "text": "Este sitio está hecho para que cualquier persona pueda usarlo desde el teléfono o la computadora, incluso con una conexión lenta. El objetivo es cumplir las pautas WCAG 2.2, nivel AA."
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "Lo que cuidamos al construirla"
+          "text": "Medidas aplicadas"
          },
          {
           "type": "list",
           "items": [
            "Contraste de colores suficiente, en modo claro y oscuro.",
-           "Que todo se pueda usar con el teclado y que se vea dónde está el foco.",
+           "Uso completo con el teclado, con el foco siempre visible.",
            "Texto alternativo en las fotos y etiquetas en los formularios.",
-           "Páginas livianas: los videos y el mapa se cargan solo si los tocas.",
-           "Que se vea bien desde pantallas de 360 píxeles."
+           "Páginas livianas. Los videos y el mapa se cargan solo cuando se abren.",
+           "Diseño adaptado a pantallas desde 360 píxeles."
           ]
          },
          {
-          "type": "heading",
-          "level": 2,
-          "text": "Límites conocidos"
-         },
-         {
           "type": "pending",
-          "text": "Por completar antes de publicar: lo que falta según la revisión (herramientas automáticas y pruebas con personas)."
+          "text": "Por completar antes de publicar: la sección «Límites conocidos» (lo que falta según la revisión con herramientas automáticas y con personas)."
          },
          {
           "type": "heading",
           "level": 2,
-          "text": "Si algo no te funciona"
+          "text": "Cómo reportar un problema"
          },
          {
           "type": "paragraph",
-          "text": "Cuéntanos con una acotación desde «Participa»: dinos en qué página y qué pasó."
+          "runs": [
+           {
+            "text": "Envíe una "
+           },
+           {
+            "text": "acotación",
+            "href": "/atencion/nueva?tipo=acotacion"
+           },
+           {
+            "text": " desde Atención ciudadana e indique la página y el problema."
+           }
+          ]
          },
          {
           "type": "pending",
@@ -1636,7 +1639,7 @@
      ],
      "seo": {
       "title": "Accesibilidad",
-      "description": "Cómo cuida la accesibilidad la web del gobernador del Táchira y cómo avisar si algo no funciona."
+      "description": "Medidas de accesibilidad de este sitio y cómo reportar un problema de uso."
      }
     }
    }

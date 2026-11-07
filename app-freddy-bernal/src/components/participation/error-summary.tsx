@@ -23,7 +23,7 @@ export const ErrorSummary = forwardRef<HTMLDivElement, { errors: FieldErrors; or
   return (
     <div ref={ref} tabIndex={-1} role="alert" aria-labelledby="resumen-errores" className="rounded-2xl border-2 border-danger bg-danger-soft p-4 text-text outline-none sm:p-5">
       <h2 id="resumen-errores" className="text-lg font-bold text-danger">
-        {n === 0 ? 'No se pudo enviar' : n === 1 ? 'Revisa este dato' : `Revisa estos ${n} datos`}
+        {n === 0 ? 'No se pudo enviar' : n === 1 ? 'Revise este dato' : `Revise estos ${n} datos`}
       </h2>
       {extra ? <p className="mt-1 text-[15px]">{extra}</p> : null}
       {n ? (

@@ -4,6 +4,8 @@
 // plain ASCII, its cross-reference table carries exact offsets (tests/unit/participation-pdf.test.ts reads it back).
 // Also the demo's placeholder documents (seed-parts/web.ts). No Node imports.
 
+import { EMERGENCY_NOTICE } from './notices';
+
 export type PdfLine = { text: string; size?: number; bold?: boolean; gap?: number };
 
 const PAGE = { width: 595, height: 842, margin: 56 };
@@ -91,7 +93,8 @@ export function textPdf(lines: PdfLine[], meta: { title: string; createdAt?: Dat
   objects[2] = `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(' ')}] /Count ${pages.length} >>`;
   objects[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
   objects[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
-  objects[5] = `<< /Title ${pdfString(meta.title)} /Producer (FB Operaciones 360) /CreationDate (${pdfDate(meta.createdAt ?? new Date())}) >>`;
+  // No /Producer: the internal tool's name never reaches a citizen's file (copy audit K14).
+  objects[5] = `<< /Title ${pdfString(meta.title)} /CreationDate (${pdfDate(meta.createdAt ?? new Date())}) >>`;
   pages.forEach((ops, i) => {
     const stream = ops.join('\n');
     objects[pageIds[i]] =
@@ -121,26 +124,26 @@ export type ReceiptInput = {
   typeLabel: string;
   sentAt: string;
   lookupUrl: string;
-  // A support of an open report («¿Te sumas?»): its own receipt, following that case.
+  // A support of an open report («Apoyar este reporte»): its own receipt, following that case.
   support?: boolean;
   createdAt?: Date;
 };
 
-/** «Descargar comprobante»: the reference, the secret and how to follow the request. */
+/** «Descargar comprobante»: the reference, the secret and how to follow the request, in the citizen's «usted». */
 export function receiptPdf(r: ReceiptInput): Uint8Array {
   const lines: PdfLine[] = [
-    { text: 'Comprobante de tu solicitud', size: 20, bold: true },
+    { text: 'Comprobante de su solicitud', size: 20, bold: true },
     { text: r.siteName, size: 11, gap: 2 },
-    { text: r.support ? `Te sumaste a un reporte abierto (${r.typeLabel}).` : `Tipo: ${r.typeLabel}`, size: 12, gap: 18 },
-    { text: `Enviado: ${r.sentAt}`, size: 12 },
+    { text: r.support ? 'Apoyo a un reporte abierto' : `Tipo: ${r.typeLabel}`, size: 12, gap: 18 },
+    { text: `Fecha de envío: ${r.sentAt}`, size: 12 },
     { text: 'Código', size: 11, gap: 18 },
     { text: r.reference, size: 18, bold: true },
   ];
   if (r.secret) lines.push({ text: 'Clave', size: 11, gap: 10 }, { text: r.secret, size: 18, bold: true });
   lines.push(
-    { text: `Guarda el código y la clave: con los dos consultas tu solicitud en ${r.lookupUrl}`, size: 11, gap: 18 },
-    { text: 'La clave no se puede recuperar ni la tiene nadie del equipo. No la compartas: quien la tenga ve lo que escribiste.', size: 11, gap: 4 },
-    { text: 'Esto no es un servicio de emergencias: si hay una emergencia o una vida en peligro, llama a los servicios de emergencia.', size: 10, gap: 14 },
+    { text: `Guarde el código y la clave. Con ambos puede consultar su solicitud en ${r.lookupUrl}`, size: 11, gap: 18 },
+    { text: 'La clave no se puede recuperar. No la comparta, porque quien la tenga podrá ver su solicitud.', size: 11, gap: 4 },
+    { text: EMERGENCY_NOTICE, size: 10, gap: 14 },
   );
   return textPdf(lines, { title: `Comprobante ${r.reference}`, createdAt: r.createdAt });
 }
