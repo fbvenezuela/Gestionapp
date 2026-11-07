@@ -132,7 +132,7 @@ export async function VideoBlock({ data, ctx }: { data: BlockData<'video'>; ctx:
     <section className="bg-charcoal py-14 text-on-charcoal sm:py-20">
       {/* With its video: the words beside the player. Without it: the words, and the links on the other side. */}
       <Container className={cn('grid gap-8 lg:grid-cols-12 lg:gap-12', framed ? 'lg:items-center' : 'lg:items-end')}>
-        <div className={framed ? 'lg:col-span-5' : 'lg:col-span-8'}>
+        <div className={framed ? 'lg:col-span-5' : 'lg:col-span-7'}>
           <H className="text-[1.75rem] font-bold leading-tight tracking-tight sm:text-4xl">{data.title || 'Video'}</H>
           {episode ? (
             <div className="mt-5 flex flex-col gap-3">
@@ -148,7 +148,7 @@ export async function VideoBlock({ data, ctx }: { data: BlockData<'video'>; ctx:
             <VideoFrame youtubeId={youtubeId} title={title} poster={poster} preview={ctx.preview} />
           </div>
         ) : (
-          <div className="lg:col-span-4">{links}</div>
+          <div className="lg:col-span-5">{links}</div>
         )}
       </Container>
     </section>
