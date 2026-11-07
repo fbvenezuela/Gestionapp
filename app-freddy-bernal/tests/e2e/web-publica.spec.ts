@@ -25,8 +25,9 @@ const PAGES: [string, RegExp | string][] = [
   ['/accesibilidad', 'Accesibilidad'],
 ];
 
-// What only the administrator's preview may draw (F1): never on a public page.
-const SCAFFOLDING = /Por completar|por subir desde el administrador|Video por enlazar|Imagen del episodio por subir|Archivo por subir|versión \d|por confirmar/i;
+// What only the administrator's preview may draw (F1), and the CMS's version number under a block page (F6): never on
+// a public page. (A document's own «Versión 1» label is content, not this.)
+const SCAFFOLDING = /Por completar|por subir desde el administrador|Video por enlazar|Imagen del episodio por subir|Archivo por subir|Publicado el [^\n]*versión \d|por confirmar/i;
 
 async function noScaffolding(page: Page, where: string) {
   expect(await page.locator('body').innerText(), where).not.toMatch(SCAFFOLDING);

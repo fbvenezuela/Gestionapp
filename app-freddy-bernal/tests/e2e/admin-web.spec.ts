@@ -251,7 +251,8 @@ test('volver a una versión: el editor recupera la portada anterior, quien aprue
 test('la vista previa muestra a los editores lo que falta (la foto, los textos «por completar»); la web pública no', async ({ page }) => {
   const e = editor.page;
   await e.goto('/admin/web/contenido/paginas');
-  await e.locator('main a[href^="/admin/web/editar/"]', { hasText: 'El gobernador' }).first().click();
+  // The row starts with the page's title («Inicio»'s summary also says «…del gobernador…»).
+  await e.locator('main a[href^="/admin/web/editar/"]', { hasText: /^\s*El gobernador/ }).first().click();
   await e.waitForURL(/\/admin\/web\/editar\/[0-9a-f-]{36}$/);
   const id = e.url().split('/').pop()!;
   await e.goto(`/admin/web/vista-previa/${id}`);
