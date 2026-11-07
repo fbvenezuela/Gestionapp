@@ -11,7 +11,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { REAL_SITE, REAL_LAST_GOOD_MAX_MS, noteSeeded, realContentShown, realContentToken, realIds } from '@/lib/web/real-site';
 import { buildSnapshot, editionTitle } from '../../scripts/real-site/build';
 import { readRealSnapshot } from '../../scripts/real-site/cache';
-import { carryOver, prebuild, tooOld } from '../../scripts/real-site/prebuild';
+import { carryOver, leftOut, prebuild, tooOld } from '../../scripts/real-site/prebuild';
 import { driveFileId, findSemanario, pdfPageCount } from '../../scripts/real-site/semanario';
 import { buildDecision } from '../../scripts/real-site/settings';
 import { Deadline, avifAsWebp, networkSources } from '../../scripts/real-site/sources';
@@ -116,6 +116,10 @@ describe('lo que quedó fuera nunca tumba la foto entera', () => {
     expect(driveFileId('https://drive.usercontent.google.com/download?id=ArchivoDePruebaDemo0001')).toBe('ArchivoDePruebaDemo0001');
     expect(driveFileId('https://otro.test/download?id=ArchivoDePruebaDemo0001')).toBeNull();
   }, 60_000);
+
+  it('el registro de la construcción cuenta lo que quedó fuera en singular y en plural', () => {
+    expect([leftOut(0), leftOut(1), leftOut(4)]).toEqual(['nada quedó fuera', '1 cosa quedó fuera', '4 cosas quedaron fuera']);
+  });
 
   it('el título del Semanario cuando su archivo no dice nada: el día de la edición', () => {
     expect(editionTitle('2026-03-02')).toBe('Edición del 2 de marzo de 2026');

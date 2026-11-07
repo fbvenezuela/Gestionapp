@@ -46,6 +46,11 @@ function mediaIdsOf(items: readonly RealItem[]): Set<string> {
   return out;
 }
 
+/** «nada quedó fuera», «1 cosa quedó fuera», «4 cosas quedaron fuera». */
+export function leftOut(n: number): string {
+  return n === 0 ? 'nada quedó fuera' : n === 1 ? '1 cosa quedó fuera' : `${n} cosas quedaron fuera`;
+}
+
 /** Whether something read at `since` is too old to show again (REAL_LAST_GOOD_MAX_MS). */
 export function tooOld(since: string, now: Date): boolean {
   const t = Date.parse(since);
@@ -172,7 +177,7 @@ export async function prebuild(o: PrebuildOptions): Promise<PrebuildResult> {
     log(
       `[contenido real] listo en ${(ms / 1000).toFixed(1)} s: ${r.news} noticias, ${r.opinion} de opinión, ${r.episodes} emisiones, ` +
         `${r.documents} Semanario, ${r.photos} fotos (${mb(r.mediaBytes ?? 0)}), ${r.requests ?? 0} peticiones, ${cache.hits} archivos ya guardados` +
-        `${r.carriedOver?.length ? `; de la vez anterior: ${r.carriedOver.join(', ')}` : ''}; ${r.skipped.length} cosas quedaron fuera.`,
+        `${r.carriedOver?.length ? `; de la vez anterior: ${r.carriedOver.join(', ')}` : ''}; ${leftOut(r.skipped.length)}.`,
     );
     for (const s of r.skipped.slice(0, 40)) log(`[contenido real]   fuera: ${s.ref} (${s.reason})`);
     return { status: 'written', snapshot: result.snapshot, ms };
