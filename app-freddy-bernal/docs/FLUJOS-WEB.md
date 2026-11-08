@@ -65,7 +65,7 @@ flowchart TD
   consulta_bien_q -- Sí --> consulta_ve["Ve el «Estado» y el «Historial de la solicitud», con las respuestas."]
   consulta_ve --> consulta_estado_q{"¿Qué estado?"}
   consulta_estado_q -- «Requiere información» --> consulta_info["«Su respuesta» → «Enviar información»."]
-  consulta_estado_q -- «Resuelta» --> consulta_res["«Sí, se resolvió» o «No, todavía no» → «Responder»."]
+  consulta_estado_q -- «Resuelta» --> consulta_res["«Sí, se resolvió» o «No, todavía no» → «Responder». También puede «Agregar información»."]
   consulta_estado_q -- Otro abierto --> consulta_mas["«Agregar información» → «Enviar información»."]
   consulta_info --> consulta_sale
   consulta_res --> consulta_sale
@@ -174,7 +174,7 @@ flowchart TD
   desvio_noprocede("No procede (con motivo)")
   desvio_resuelto("Resuelto (con motivo)")
   desvio_cerrado("Cerrado (con motivo)")
-  desvio_abierto --> desvio_info
+  desvio_abierto -- falta un dato --> desvio_info
   desvio_abierto --> desvio_derivado
   desvio_abierto --> desvio_noprocede
   desvio_info -- a En revisión, Asignado o En atención --> desvio_abierto
@@ -275,7 +275,7 @@ flowchart TD
 ```
 
 **Qué hay que saber**
-- Sale en /atencion/atendido y en la portada. Solo de casos resueltos, nunca de uno marcado como spam o unido a otro.
+- Sale en `/atencion/atendido` y en la portada. Solo de casos resueltos, nunca de uno marcado como spam o unido a otro.
 - El permiso lo da la persona en el formulario. Sin él, la base solo acepta iniciales. Una solicitud anónima sale sin nombre ni iniciales.
 - «Actualizar la publicación» cambia el texto. «Retirar de «Casos atendidos»» lo quita, con su motivo.
 - En la demo con el contenido real no hay casos publicados. La portada no tiene «Casos atendidos».
@@ -288,7 +288,7 @@ Los avisa la plataforma sola, cada mañana, a quienes atienden el caso.
 ```mermaid
 flowchart TD
   aviso_fecha["Al llegar, el caso recibe su fecha comprometida. La persona nunca la ve."]
-  aviso_fecha --> aviso_revisa["La plataforma, cada mañana desde las 7:00 a. m. del Táchira: revisa los casos abiertos."]
+  aviso_fecha --> aviso_revisa["La plataforma, cada mañana desde las 7:00 a. m. del Táchira: revisa los casos abiertos."]
   aviso_revisa --> aviso_vencida_q{"¿Pasó su fecha?"}
   aviso_vencida_q -- Sí --> aviso_vencida["«Solicitud vencida: AC-…»"]
   aviso_vencida_q -- No --> aviso_quieto_q{"¿5 días sin movimiento?"}
@@ -443,7 +443,7 @@ flowchart TD
 - No se redirige una dirección que la web ya usa. Tampoco se hacen dos desde la misma.
 - Las del importador dicen «Del importador». Las demás dicen «A mano». El importador nunca las pisa.
 - Cuando quien aprueba cambia la «Dirección en la web» de algo publicado, la vieja sigue llevando a la nueva sola.
-- Un cambio se nota en la web en más o menos un minuto. Un archivo viejo es uno de /wp-content/.
+- Un cambio se nota en la web en más o menos un minuto. Un archivo viejo es uno de `/wp-content/`.
 
 <a id="flujo-web-real"></a>
 
@@ -464,7 +464,7 @@ flowchart TD
 ```
 
 **Qué hay que saber**
-- Se apaga con DATABASE_URL o con REAL_SITE_CONTENT=0. Las pruebas ven siempre lo inventado.
+- Se apaga con `DATABASE_URL` o con `REAL_SITE_CONTENT=0`. Las pruebas ven siempre lo inventado.
 - Trae hasta 48 noticias y 8 de opinión, las más nuevas. Del canal, hasta 12 emisiones. En «Web», cada noticia dice «Traído de la web vieja».
 - Una copia sirve si tiene menos de una semana. Si solo YouTube o el Semanario no responden, esa parte sale de la copia.
 - El menú tampoco tiene «Gestión y obras». Nadie puede cambiar el nombre ni las cuentas en «Ajustes del sitio»: la demo no debe pasar por la web oficial.

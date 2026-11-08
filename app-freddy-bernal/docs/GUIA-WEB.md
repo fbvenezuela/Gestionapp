@@ -11,9 +11,10 @@ nombre exacto que sale en la pantalla.
 
 Todas las páginas tienen el mismo marco:
 
-- **Arriba:** el nombre y el cargo del gobernador. Al lado van los dos botones de la gente: **«Hacer un reporte»** (en
-  naranja) y **«Consultar mi solicitud»**. En el teléfono, las secciones se abren con **«Menú»** y se cierran con
-  «Cerrar». En la computadora van en una barra, debajo del nombre.
+- **Arriba:** el nombre y el cargo del gobernador, y los dos botones de la gente: **«Hacer un reporte»** (en naranja) y
+  **«Consultar mi solicitud»**. En el teléfono, los botones van en su propia fila, debajo del nombre. En la computadora
+  van al lado del nombre. En el teléfono, las secciones se abren con **«Menú»** y se cierran con «Cerrar». En la
+  computadora van en una barra, debajo del nombre.
 - **El menú:** «Inicio», «El gobernador», «Gestión y obras», «Noticias», «Reporte Bernal», «Atención ciudadana»,
   «Transparencia» y «Canales». Se cambia en «Ajustes del sitio» → «Navegación». En la versión publicada no sale
   «Gestión y obras» (§3.2).
@@ -21,7 +22,7 @@ Todas las páginas tienen el mismo marco:
   emergencia o si una vida está en peligro, llame a los servicios de emergencia.». Después vienen «Secciones» (el menú
   otra vez) y «Canales oficiales», con el enlace «Cómo identificar las cuentas oficiales». Al final van las páginas
   legales y «Acceso del personal», que lleva al panel.
-- **La franja de la versión de prueba:** sale fija arriba de todo y se repite al final del pie. No se puede cerrar
+- **La franja de la versión de prueba:** sale arriba de cada página y se repite al final del pie. No se puede cerrar
   (§3.3).
 
 Cada sección de abajo dice qué ve la persona y de qué pantalla del panel sale. También dice qué pasa cuando no hay
@@ -144,7 +145,8 @@ debajo. También sale un «Ejemplo de comprobante». Más abajo, por partes:
 
 - «Tipos de solicitud»: los seis, cada uno abre el formulario en su tipo.
 - «Procedimiento»: cuatro pasos, de «Envío de la solicitud» a «Seguimiento».
-- «Estados de una solicitud»: lo que quiere decir cada estado.
+- «Estados de una solicitud»: el camino de siempre, de «Recibida» a «Resuelta», con lo que quiere decir cada paso.
+  También nombra «Requiere información» y «Derivada».
 - «Denuncias confidenciales», con el botón «Hacer una denuncia».
 - «Preguntas frecuentes».
 - «Otros canales».
@@ -246,7 +248,7 @@ cada respuesta sale como «Respuesta de Atención ciudadana». Así lo vive quie
    formulario tiene cuatro pasos. No necesita registrarse.». En la versión de prueba, arriba dice «Versión de prueba. No
    escriba datos reales.».
 2. **Paso 1, «Tipo de solicitud».** En «Seleccione una opción» ya está marcado «Reporte». Elige la «Categoría», por
-   ejemplo «Vialidad». Toca **«Siguiente»**.
+   ejemplo «Agua». Toca **«Siguiente»**.
 3. **Paso 2, «Lugar».** Elige el «Municipio»: en un reporte es obligatorio. Si quieres, escribe «Parroquia, localidad o
    sector» y «Punto de referencia». En «Ubicación exacta (opcional)», «Usar mi ubicación» o «Marcar en el mapa» guardan
    el punto con el permiso de la persona. «Quitar ubicación» lo borra. Toca **«Siguiente»**.
@@ -407,7 +409,7 @@ En el panel, cada nota traída lleva arriba el aviso «Traído de la web vieja»
 - «Navegación» y «Pie de página» sí se cambian.
 - La razón: cualquiera puede entrar a la demo, y nadie debe poder hacerla pasar por la web oficial.
 
-### 3.5 «Entrar como…» y los usuarios de prueba
+### 3.5 Entrar con un toque y los usuarios de prueba
 
 1. En la web, toca «Acceso del personal», al final del pie. También sirve abrir `/entrar`.
 2. En la tarjeta «Versión de demostración», baja hasta «La web y la atención ciudadana».
@@ -509,7 +511,8 @@ atención.
 
 - **Entra a** «Atención ciudadana», con las mismas pestañas del responsable.
 - **Ve** solo las denuncias. Su mapa está vacío: una denuncia nunca lleva el punto exacto.
-- **Hace** lo mismo que un responsable. En las denuncias, además, pone el área, la prioridad y la fecha, y modera.
+- **Hace** lo mismo que un responsable. En las denuncias, además, pone la prioridad y la fecha. También modera.
+- Una denuncia no tiene área: en su caso, la tarjeta «Área y responsable» dice «Denuncias».
 
 ### 4.6 Consulta y auditoría
 
@@ -533,8 +536,8 @@ atención.
   contenido.
 - **En «Atención»:** arma las áreas y dice quién está en cada una. Pone el área y los días de cada categoría, y los
   plazos. Lee el «Registro». Nunca abre un caso.
-- **En Ajustes → Equipo:** invita a cada persona y le da su rol. Si alguien perdió el teléfono, usa «Reiniciar doble
-  factor».
+- **En Ajustes → Equipo:** invita a cada persona y le da su rol. Si alguien perdió el teléfono, toca «Cambiar» en la
+  fila de esa persona y después «Reiniciar doble factor».
 - La misma cuenta de Administración no puede ser aprobador de la web ni tener un rol de atención. Sí puede ser editor
   de la web.
 

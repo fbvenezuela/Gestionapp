@@ -19,17 +19,17 @@ una huella que no se puede revertir.
 |---|---|---|
 | **Coordinador de atención** | Todo, denuncias también | Todo: asignar a cualquier área, prioridad y fecha comprometida, unir casos, corregir tipo o categoría, moderar, borrar un contacto a pedido, «Casos atendidos», cifras y exportar (con o sin contacto) |
 | **Responsable de área** | Lo de sus áreas y lo que le asignen. **Nunca denuncias** | Responder, notas internas, estados, evidencias, ver el contacto; asigna dentro de su área o «Tomar el caso» |
-| **Operador de denuncias** | **Solo denuncias** | Lo mismo que un responsable, y además en las denuncias: área, prioridad, fecha y moderación |
+| **Operador de denuncias** | **Solo denuncias** | Lo mismo que un responsable, y además en las denuncias: prioridad, fecha y moderación. Una denuncia no tiene área |
 | **Consulta y auditoría** | Todo menos las denuncias (que cuentan solo en los totales), sin contactos | Solo leer; cifras; exportar sin contactos; el «Registro» |
 | **Jefe** | Como auditoría | Solo leer y las cifras |
 | **Administración** | **Nunca un caso** | Arma las áreas, quién está en cada una, el área y los días de cada categoría y los plazos («Áreas y plazos»), y lee el «Registro» |
 
 - **Siempre con doble factor** (código por correo y Google Authenticator; no hay contraseñas). Teléfono perdido:
-  Administración → Ajustes → Equipo → «Reiniciar doble factor».
+  Administración → Ajustes → Equipo → «Cambiar» en la fila de la persona → «Reiniciar doble factor».
 - **Cómo se da el rol:** Administración → Ajustes → Equipo → «Invitar a alguien», el rol en «Web y atención ciudadana
   (siempre con doble factor)». A un responsable se le marcan sus áreas («Sus áreas (ve y atiende lo de estas áreas y lo
   que le asignen)»); después se cambian con «Cambiar».
-- Un caso que no te toca **no existe para ti**: no sale en la lista y su dirección dice «no encontrado». Lo hace
+- Un caso que no te toca **no existe para ti**: no sale en la lista y su dirección dice «No encontramos esto». Lo hace
   cumplir la base de datos, no solo la pantalla.
 
 ## 2. Lo que llega: seis tipos
@@ -131,8 +131,10 @@ la base acepta.
 ## 7. Asignar, prioridad y fecha comprometida
 
 - Cada solicitud nueva llega al **área de su categoría** («Áreas y plazos», §19).
-- **El área la cambia la coordinación** (y en una denuncia, el operador de denuncias). Un responsable asigna dentro de
-  su área o se lo queda con «Tomar el caso». «Motivo (opcional)» queda en la historia.
+- **El área la cambia la coordinación.** Un responsable asigna dentro de su área o se lo queda con «Tomar el caso».
+  «Motivo (opcional)» queda en la historia.
+- **Una denuncia no tiene área.** En su caso, la tarjeta «Área y responsable» dice «Denuncias». Su responsable solo
+  puede ser un operador de denuncias o alguien de la coordinación.
 - **Prioridad** (Baja, Normal, Alta, Urgente) → «Guardar prioridad», y **«Fecha comprometida»** → «Guardar fecha»: las
   pone la coordinación (y en una denuncia, el operador de denuncias). La fecha vale hasta el final de ese día.
 - La fecha comprometida sale sola: **el menor** entre los días de la categoría y los de la prioridad (con la
@@ -254,7 +256,9 @@ ningún caso publicado, la web tampoco ofrece el botón «Casos atendidos».
 ## 15. Las cifras y lo que quiere decir cada una
 
 En **«Cifras»** (coordinación, auditoría y el jefe): «Desde», «Hasta» y «Ver», o «Últimos 30 días», «Este mes» y
-«Todo». Las definiciones son las mismas que dice la pantalla:
+«Todo».
+
+Las definiciones son las mismas que dice la pantalla:
 
 | Cifra | Qué cuenta |
 |---|---|

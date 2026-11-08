@@ -25,7 +25,7 @@ vez. Nada se borra: lo que sobra se archiva.
 
 - **Siempre con doble factor.** Se entra con el correo, el código que llega por correo y el código de Google
   Authenticator. No hay contraseñas. Si alguien pierde o cambia el teléfono: Administración → Ajustes → Equipo →
-  «Reiniciar doble factor».
+  «Cambiar» en la fila de esa persona → «Reiniciar doble factor».
 - **Cómo se da el rol:** Administración → Ajustes → Equipo → «Invitar a alguien», el rol en «Web y atención
   ciudadana (siempre con doble factor)» → «Enviar invitación». Cada persona con su propio usuario.
 - La base de datos vuelve a revisar el permiso en cada botón: aunque alguien llegue a una pantalla que no es suya, no
@@ -49,7 +49,7 @@ Cada tipo tiene su lista (por ejemplo «Noticias y comunicados»). Arriba: **«B
 resumen), **«Estado»** (Todos, Borradores, En revisión, Programados, Publicados, Archivados) y **«Filtrar»**;
 «Quitar los filtros» vuelve a la lista completa. Lo que espera aprobación sale primero.
 
-Cada contenido lleva una o dos etiquetas:
+Cada contenido lleva hasta tres etiquetas:
 
 | Etiqueta | Qué quiere decir |
 |---|---|
@@ -79,11 +79,11 @@ Lo que pide cada tipo:
 |---|---|---|
 | **Noticia** («Tipo»: «Noticia», «Comunicado», «Opinión» o «Entrevista») | Título, Resumen, Fecha, Tipo, Firma, Municipio, Foto principal, «Texto de la nota», Galería, «Video de YouTube (su código)», Fuentes y Temas | El código del video son los 11 caracteres que van después de «v=» en el enlace |
 | **Obra o acción** | Categoría, Estado (Anunciado, En ejecución o Concluido), Municipio, «Parroquia, localidad o sector», Descripción, «Para quién», «Organismo responsable», fechas, «Última actualización» y Evidencias | **Nunca un monto ni un porcentaje sin su fuente:** «Agregar la inversión (con su fuente)» y «Agregar el avance (con su fuente)» piden de dónde sale la cifra. Sin fuente, no se ponen |
-| **Reporte Bernal** (episodio) | Fecha, video, «Duración (minutos)», «Foto de portada», Temas y Enlaces | Sin código de video, la web no muestra el reproductor; la vista previa avisa «Video por enlazar» |
+| **Reporte Bernal** (episodio) | Fecha, video, «Duración (minutos)», «Foto de portada», Temas y Enlaces | Sin código de video, la web no muestra el reproductor; la vista previa avisa «Video por enlazar desde el administrador» |
 | **Documento** | Categoría (Semanario, Informe, Memoria y Cuenta, Normativa, Material para la prensa u Otro), «Archivo PDF», Versión y Páginas | El Semanario sale en Noticias › Semanario; el material para la prensa, en «El gobernador» |
 | **Aviso de servicio** | Título, Servicio, «Texto del aviso», «Actualizado» (con «Ahora»), «Vence (opcional)» y «Municipios afectados» | La hora es la del Táchira. Al vencer deja de salir solo. Sin municipios marcados, es para todo el estado. Sin teléfonos que nadie verificó |
 | **Pregunta frecuente** | Pregunta, Grupo (Atención ciudadana, Esta web o La gestión), Respuesta y Orden | Las de «Atención ciudadana» salen en la página de Atención |
-| **Indicador** | «Qué se cuenta», Cifra, Unidad, «Fecha del dato», Fuente, «Enlace de la fuente» y Cálculo | **Una cifra sin fuente nunca sale en la web.** «Cálculo»: «Escrita a mano» o «Lo cuenta la plataforma» |
+| **Indicador** | «Qué se cuenta», Cifra, Unidad, «Fecha del dato», Fuente, «Enlace de la fuente (si tiene)» y Cálculo | **Una cifra sin fuente nunca sale en la web.** «Cálculo»: «Escrita a mano», «Lo cuenta la plataforma: solicitudes atendidas» o «Lo cuenta la plataforma: obras concluidas» |
 
 **Nunca se inventa nada:** ni biografía, ni fotos, ni teléfonos, ni correos, ni horarios, ni cuentas, ni parroquias.
 Lo que falte se deja como espacio **«Por completar»** (ver §6) y se llena cuando el dato llegue confirmado. Ese espacio
@@ -140,8 +140,8 @@ oficiales, Accesos de participación y Casos atendidos. Cada uno dice para qué 
   equipo lo ve como un espacio por llenar y el público no ve nada.
 - **Video:** «Mostrar el episodio más reciente» cambia solo cada vez que se publica un episodio.
 - **Documentos, Preguntas, Indicadores y Obras:** «Salen en el orden en que los marques. Sin marcar ninguno, se usan
-  los últimos.» Lo que no está publicado dice «(no publicado: no se verá)»; un indicador sin fuente, «(sin fuente: no
-  se verá)».
+  los últimos.» En Indicadores no es así: sin marcar ninguno, el bloque no sale. Lo que no está publicado dice «(no
+  publicado: no se verá)»; un indicador sin fuente, «(sin fuente: no se verá)».
 - **Canales oficiales:** las cuentas se cambian en «Ajustes del sitio» (§13).
 - **Llamado a la acción:** el «Enlace del botón» va a una dirección de esta web (`/atencion/nueva`) o a `https://…`.
 
@@ -174,7 +174,9 @@ muestra una versión guardada.
 ## 8. Aprobar: revisar, comparar y decidir
 
 **«Por aprobar»** lista lo que espera, lo más viejo primero; cada línea dice si es «primera publicación» o «cambios a
-algo publicado», quién lo envió y cuándo. Al abrirlo:
+algo publicado», quién lo envió y cuándo.
+
+Al abrirlo:
 
 - Quién lo envió, el último cambio y, si está en la web, cuándo se publicó.
 - «Ver la vista previa», «Abrir el editor», «Versiones» y «Verlo en la web».
@@ -184,14 +186,14 @@ algo publicado», quién lo envió y cuándo. Al abrirlo:
   frente a «Orden nuevo». Si es la primera vez, dice que todo es nuevo: revísalo completo en la vista previa. La
   comparación es por campo y por bloque, no palabra por palabra.
 
-En **«Decidir»** (cada botón pregunta antes):
+En **«Decidir»**:
 
-- **«Publicar ahora»**: sale en la web en ese momento, exactamente como lo viste.
-- **«Programar»**: elige «Día» y «Hora» (§9).
+- **«Publicar ahora»**: sale en la web en ese momento, exactamente como lo viste. Pregunta antes.
+- **«Programar»**: elige «Día» y «Hora» (§9). Pregunta antes.
 - **«Devolver con comentario»**: escribe en «Qué hay que cambiar» y toca «Devolver con comentario». Quien lo envió lo
   lee en su aviso y arriba del editor.
 - **«Quitar la programación»** (si estaba programado): vuelve a borrador.
-- **«Archivar»** (§10).
+- **«Archivar»** (§10). Pregunta antes.
 
 Si alguien cambió el borrador mientras revisabas, la base no publica: «El contenido cambió mientras lo revisabas.
 Ábrelo de nuevo para ver lo último.». Así sale exactamente lo que se revisó.
@@ -248,7 +250,9 @@ otra vez. El editor también puede hacerlo.
   teclado o con «Horizontal» y «Vertical». Así, cuando la web la recorta, eso no se pierde.
 
 **Buscar y ordenar:** «Buscar» (texto alternativo, pie, crédito o título), «Tipo» (Todo, Fotos, Documentos) y
-«Archivados». Cada archivo dice «Sin usar» o «Se usa en N contenidos». Al abrirlo:
+«Archivados». Cada archivo dice «Sin usar» o «Se usa en N contenidos».
+
+Al abrirlo:
 
 - Cambias sus palabras y su punto → «Guardar». Lo ya publicado conserva los textos con que se aprobó hasta que se
   publique de nuevo.
@@ -259,7 +263,7 @@ otra vez. El editor también puede hacerlo.
   Storage (la app solo archiva).
 
 En el editor, «Elegir foto», «Elegir PDF», «Cambiar» o «Agregar foto» abren la biblioteca con «De la biblioteca» y
-«Subir una nueva».
+«Subir una nueva». Para un PDF, el botón dice «Subir uno nuevo».
 
 ## 13. Ajustes del sitio
 
@@ -271,12 +275,12 @@ aprobación** («Guardado. La web ya lo muestra.»). Cada sección tiene su «Gu
 | **Navegación** | El menú de la web, en orden («Agregar enlace»). Cada enlace va a una dirección de esta web (empieza con `/`) |
 | **Pie de página** | Un texto corto y los enlaces legales («Agregar enlace legal») |
 | **Contactos institucionales** | Teléfonos, correos o direcciones («Agregar contacto»). **Solo los marcados «Verificado» salen** |
-| **Cuentas en redes** | Red, usuario y enlace de cada cuenta («Agregar cuenta»), con «Verificada», «Activa» y una «Nota interna (no sale en la web)». Salen en el pie, en «Canales» y en los datos para Google. **En producción solo salen las activas y verificadas**; en la versión de prueba también las que no lo están, con una sola línea que dice que están en proceso de confirmación. Una cuenta abandonada se apaga («Activa» sin marcar): nunca sale |
+| **Cuentas en redes** | Red, usuario y enlace de cada cuenta («Agregar cuenta»), con «Verificada», «Activa» y una «Nota interna (no sale en la web)». Salen en el pie y en «Canales». **En producción solo salen las activas y verificadas**; en la versión de prueba también las que no lo están, con una sola línea que dice que están en proceso de confirmación. Los datos para Google llevan solo las activas y verificadas, también en la versión de prueba. Una cuenta abandonada se apaga («Activa» sin marcar): nunca sale |
 | **Canal de WhatsApp**, **Portal institucional**, **Canal de YouTube del programa** | Cada uno con «La web lo muestra», «Verificado» y «Activo». El portal solo sale verificado |
-| **Nombre y saludo** | El nombre, el cargo, la región, el saludo y el «Nombre de la cabecera». El título grande de la portada sale del nombre y el cargo; hoy la web no muestra el saludo (el de los copies de redes se cambia en Ajustes → Marca) |
+| **Nombre y saludo** | El nombre, el cargo, la región, el saludo y el «Nombre de la cabecera». El nombre y el cargo salen arriba de cada página y en el pie. El título grande de la portada no sale de aquí: se cambia en su bloque «Portada con foto» (§6). Hoy la web no muestra el saludo (el de los copies de redes se cambia en Ajustes → Marca) |
 | **Datos estructurados** | Lo que leen los buscadores sobre la persona y la institución |
 | **Avisos legales** | Se ven, pero no se cambian aquí: son textos fijos de la app, los mismos en el pie de la web, en «Canales», en los formularios de Atención, en el comprobante y su PDF y en los correos. «Aviso de emergencias»: «Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.». «Aviso de las denuncias»: «Las denuncias son confidenciales. Solo las leen el personal encargado de denuncias y la coordinación de atención. Su contenido nunca se publica. Si se trata de un delito, acuda también a las autoridades competentes.». Si el cliente confirma un número oficial de emergencias, se agrega en ese texto (lo cambia quien programa) |
-| **Aviso de la versión de prueba** | La franja fija que solo sale en la demostración. Hoy dice «Versión de prueba. El contenido es de ejemplo.». En la versión publicada con el contenido real dice siempre «Versión de prueba en revisión. No es el sitio oficial.», diga lo que diga este ajuste |
+| **Aviso de la versión de prueba** | La franja de arriba de cada página, que solo sale en la demostración. Hoy dice «Versión de prueba. El contenido es de ejemplo.». En la versión publicada con el contenido real dice siempre «Versión de prueba en revisión. No es el sitio oficial.», diga lo que diga este ajuste |
 
 **Regla:** nunca un teléfono, un correo o una cuenta que nadie del equipo confirmó. Las notas internas no salen en la
 web.
@@ -335,7 +339,7 @@ En cuanto guardas un cambio en un borrador importado, una corrida nueva del impo
 | Una dirección vieja lleva a donde no es | «Redirecciones»: cambia el destino o «Quitar» |
 | Se subió a la biblioteca un archivo que no debía ser público | Archívalo y avísale a Juan para borrarlo en Supabase Storage |
 | No puedo publicar: «falta esto» | Completa lo que dice la lista; en lo importado, el texto alternativo y las marcas |
-| Perdí el teléfono del doble factor | Administración: Ajustes → Equipo → «Reiniciar doble factor» |
+| Perdí el teléfono del doble factor | Administración: Ajustes → Equipo → «Cambiar» en la fila de la persona → «Reiniciar doble factor» |
 
 Lo que todavía no hace: la comparación palabra por palabra, programar un cambio a algo ya publicado, fotos HEIC o
 AVIF, PDF de más de 4 MB en Vercel y el aviso de «Por aprobar» para el jefe (`docs/PENDIENTES.md`).
