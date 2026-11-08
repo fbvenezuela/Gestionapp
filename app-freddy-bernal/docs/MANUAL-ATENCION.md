@@ -1,11 +1,13 @@
 # Manual de atención ciudadana
 
-**06/11/2026.** Para quienes atienden lo que la gente manda desde la web: la coordinación de atención, los
+**08/11/2026.** Para quienes atienden lo que la gente manda desde la web: la coordinación de atención, los
 responsables de área, el operador de denuncias, auditoría, el jefe y Administración. Todo está en el panel, en el
 menú **«Atención»** (`/admin/atencion`). Los nombres de los botones están escritos tal como salen en la pantalla.
 
 > Hoy es la **versión de prueba**: las 60 solicitudes que hay son inventadas (llevan «(demo)») y ningún correo le
-> llega a nadie. No escribas datos reales de nadie en la demostración.
+> llega a nadie. También en la versión publicada, donde la web muestra el contenido real de la web oficial, las
+> solicitudes siguen siendo inventadas. No escribas datos reales de nadie en la demostración: el formulario lo avisa
+> con «Versión de prueba. No escriba datos reales.».
 
 **La idea en una línea:** cada solicitud es privada y tiene un **código** (por ejemplo `AC-2026-K7QM2H`). La persona
 la sigue con su código y su **clave** en «Consultar mi solicitud». Nadie del equipo tiene esa clave: solo se guarda
@@ -32,16 +34,19 @@ una huella que no se puede revertir.
 
 ## 2. Lo que llega: seis tipos
 
-| Tipo | Qué es |
+| Tipo | Lo que dice el formulario |
 |---|---|
-| **Reporte** | Un problema en la comunidad: agua, luz, vialidad, aseo, salud, escuelas… |
-| **Petición** | Pedir algo al despacho: una ayuda, un trámite, algo para la comunidad |
-| **Observación** | Una opinión o una observación sobre la gestión, una obra o una publicación (en el sistema, el tipo `acotacion`) |
-| **Sugerencia** | Una idea para mejorar algo |
-| **Reconocimiento** | Agradecer algo que se hizo bien |
-| **Denuncia** | Un hecho grave. Privada de punta a punta (§13) |
+| **Reporte** | «Fallas en los servicios públicos de su comunidad.» |
+| **Petición** | «Solicitudes de ayuda o de apoyo al despacho del gobernador.» |
+| **Observación** | «Opiniones u observaciones sobre la gestión, una obra o una publicación.» (en el sistema, el tipo `acotacion`) |
+| **Sugerencia** | «Propuestas para mejorar un servicio.» |
+| **Reconocimiento** | «Agradecimientos por un trabajo bien hecho.» |
+| **Denuncia** | «Hechos irregulares que deben investigarse. Es confidencial.» Privada de punta a punta (§13) |
 
-Cada formulario dice que **esto no es un servicio de emergencias** (§18).
+Cada formulario dice que **esto no es un servicio de emergencias**, con el texto fijo de la app: «Esto no es un servicio
+de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.» (§18).
+
+**La web le habla de usted a la persona** y firma como «Atención ciudadana». Lo que le escribas también va de usted.
 
 ## 3. La bandeja y el tablero
 
@@ -80,11 +85,12 @@ Al abrir un caso se ve: el título, el código, el tipo, el estado y, si aplica,
 Debajo: **«Lo que llegó»** (el texto, la categoría, dónde, cuándo pasó, si marcó un punto con su permiso, si dejó
 contacto y si permite su nombre, y la noticia u obra de la que habla), y las tarjetas «Estado», «Área y responsable»,
 «Prioridad y fecha comprometida», «Contacto de la persona», «Archivos», «Resolución», «Casos iguales», «Casos atendidos»,
-«Corregir tipo o categoría», «Moderación», «Escribir» y toda la historia. Cada quien ve los botones de lo que puede
+«Corregir tipo o categoría», «Moderación», «Escribir» y el «Historial». Cada quien ve los botones de lo que puede
 hacer en ESE caso; si solo puedes leerlo, dice «Lo puedes consultar, pero no te toca atenderlo: sin contacto y sin
 cambios.».
 
 Un reporte de principio a fin:
+
 1. **Léelo** completo. Si no es de tu área, avísale a la coordinación (ella cambia el área).
 2. Pásalo a **«En revisión»** (en el tablero, de un toque).
 3. **Asígnalo:** en «Área y responsable», «Guardar asignación», o «Tomar el caso» si es tuyo. Queda «Asignado».
@@ -93,7 +99,8 @@ Un reporte de principio a fin:
 6. Si falta un dato: **«Pedir más información»**.
 7. Al terminar, sube la **evidencia** (la foto del después) con «Subir evidencia».
 8. **«Resuelto»** con «Cómo se resolvió (justificación)» y, mejor, un mensaje para la persona.
-9. La persona confirma desde su consulta, o dice que no se resolvió y el caso vuelve solo a «En atención».
+9. La persona confirma desde su consulta («¿Se resolvió el problema?»: «Sí, se resolvió» o «No, todavía no»). Si dice
+   que no, el caso vuelve solo a «En atención».
 10. **«Cerrado»** con su motivo, cuando ya no hay más que hacer.
 11. Si vale la pena contarlo, la coordinación lo publica en **«Casos atendidos»** (§12).
 
@@ -104,11 +111,11 @@ la base acepta.
 
 | Estado | Lo que ve la persona | Cuándo | Motivo |
 |---|---|---|---|
-| **Recibido** | «Recibida» | Acaba de llegar | — |
-| **En revisión** | «En revisión» | Alguien la está leyendo | — |
-| **Asignado** | «Asignada» | Ya tiene área o responsable | — |
-| **En atención** | «En atención» | El área está trabajando | — |
-| **Requiere información** | «Necesitamos más información» | Falta un dato de la persona | **Sí:** «Qué información hace falta» y, para la persona, «Qué información necesitas (lo lee la persona)» |
+| **Recibido** | «Recibida» | Acaba de llegar | No |
+| **En revisión** | «En revisión» | Alguien la está leyendo | No |
+| **Asignado** | «Asignada» | Ya tiene área o responsable | No |
+| **En atención** | «En atención» | El área está trabajando | No |
+| **Requiere información** | «Requiere información» | Falta un dato de la persona | **Sí:** «Qué información necesitas (lo lee la persona)». Este sí lo lee la persona |
 | **Derivado** | «Derivada» | Se mandó al organismo que lo atiende | **Sí:** «A quién se derivó y por qué» |
 | **Resuelto** | «Resuelta» | Se hizo lo que se pedía | **Sí:** «Cómo se resolvió (justificación)» |
 | **Cerrado** | «Cerrada» | Terminó; no recibe más movimientos | **Sí:** «Por qué se cierra» |
@@ -116,8 +123,8 @@ la base acepta.
 | **Reabrir** (desde Resuelto, Cerrado o No procede) | El estado nuevo | Hay que volver a trabajarlo | **Sí:** «Por qué se reabre» |
 
 - **El motivo es interno: la persona nunca lo lee.** Lo que ella lee es el cuadro «Mensaje para la persona
-  (opcional)». En «No procede», «Derivado» y «Cerrado», escríbele unas líneas: su pantalla dice que el equipo le
-  explicó por qué.
+  (opcional)». En «No procede», su consulta dice «Se explicó por qué no puede atenderse por esta vía.»: escríbele
+  siempre esas líneas. En «Derivado» y «Cerrado», escríbele también unas líneas.
 - Cuando la persona responde a un pedido de información, el caso vuelve solo a «En revisión».
 - A un caso «Cerrado» o «No procede» la persona ya no le puede agregar información.
 
@@ -146,13 +153,14 @@ En **«Escribir»**, elige en «Qué vas a escribir»:
 
 **Nunca las mezcles.** Lo que es para el equipo (opiniones, nombres de funcionarios, lo que dijo otra persona, lo de
 otros casos) va solo en notas internas. Antes de «Enviar respuesta», léela otra vez: la persona la lee tal cual y no se
-puede borrar. En la historia, cada mensaje dice «no la ve la persona» o «la ve la persona». Ojo: auditoría y el jefe
+puede borrar. En el «Historial», cada mensaje dice «no la ve la persona» o «la ve la persona». Ojo: auditoría y el jefe
 leen las notas internas (está por decidir con el equipo, `docs/PENDIENTES.md`).
 
 **Respuestas guardadas:** en «Usar una respuesta guardada», elige una, ajústala al caso y envíala. Las arma la
 coordinación en la pestaña «Respuestas guardadas» («Nueva respuesta guardada» → «Crear la respuesta»; «Cambiar» →
 «Guardar»; se pueden apagar), en dos grupos: «Responder» y «Pedir información». Sin nombres, teléfonos ni direcciones
-de nadie.
+de nadie. Las que trae la plataforma de fábrica todavía hablan de tú: antes de usarlas, la coordinación las pasa a
+usted.
 
 ## 9. El contacto de la persona
 
@@ -189,9 +197,11 @@ datos reales salen solo cuando el envío de correos esté configurado; mientras 
 
 ## 11. Casos iguales y apoyos
 
-- **Apoyos («¿te sumas?»):** antes de enviar un reporte, la web le dice a la persona cuántos hay del mismo problema
-  cerca y le ofrece sumarse. El cuarto del mismo problema en el mismo lugar se suma solo. En «Lo que llegó» sale «N
-  personas o casos se sumaron»; lo que escribió cada una dice «(solo el equipo)». Quien se suma tiene su propio código.
+- **Apoyos («Apoyar este reporte»):** antes de enviar un reporte, la web le muestra a la persona «Reportes
+  parecidos»: cuántos hay abiertos del mismo problema cerca. Puede tocar «Apoyar este reporte» → «Enviar apoyo», o «No,
+  es otro problema». El cuarto del mismo problema en el mismo lugar se suma solo. En «Lo que llegó» sale «N personas o
+  casos se sumaron»; lo que escribió cada una dice «(solo el equipo)». Quien apoya recibe «Apoyo registrado» con su
+  propio código.
 - **Unir dos casos** (la coordinación), cuando son el mismo problema, del mismo tipo y abiertos: «Casos iguales» →
   «Buscar el otro caso» (por código o palabras) → «Elige el caso» → «¿Cuál se queda?» → «Motivo» → «Unir los casos».
   Las dos historias se guardan; el repetido se cierra y apunta al que se queda, y sus apoyos pasan a ese. Quien mandó
@@ -202,7 +212,9 @@ datos reales salen solo cuando el envío de correos esté configurado; mientras 
 
 La coordinación publica en la web lo que se resolvió, **sin datos de la persona**. Sale en «Casos atendidos» de la web
 (`/atencion/atendido`) y en la portada. Solo para casos que se marcaron «Resuelto» (también si después se cerraron),
-nunca spam ni unidos.
+nunca spam ni unidos. En la versión publicada con el contenido real, la portada no muestra «Casos atendidos». Sin
+ningún caso publicado, la web tampoco ofrece el botón «Casos atendidos».
+
 - **«Resumen para la web»**: lo que se hizo, en pocas palabras. Sin nombres, teléfonos ni direcciones de nadie, ni
   detalles que la identifiquen («la señora de la casa azul frente a la plaza»).
 - **El nombre:** solo si dio permiso («Nombre que sale (dio permiso)», míralo en «Ver contacto»). Si no, **iniciales**
@@ -217,7 +229,9 @@ nunca spam ni unidos.
 - **Privadas de punta a punta:** solo las leen el operador de denuncias y la coordinación. El jefe y auditoría solo
   las cuentan en los totales; un responsable de área nunca las ve.
 - **Nunca llevan el punto exacto ni un punto de referencia:** solo municipio y sector. Nunca van al mapa.
-- El formulario le dice a la persona que acuda también a las autoridades competentes. **Los contactos de esas
+- El formulario, el comprobante y la consulta le dicen a la persona: «Las denuncias son confidenciales. Solo las leen
+  el personal encargado de denuncias y la coordinación de atención. Su contenido nunca se publica. Si se trata de un
+  delito, acuda también a las autoridades competentes.». **Los contactos de esas
   autoridades todavía no están en la web**: se agregan cuando el equipo los tenga verificados. No des números que nadie
   confirmó.
 - Si una solicitud de otro tipo es en realidad una denuncia, la coordinación la corrige en «Corregir tipo o categoría»:
@@ -275,6 +289,7 @@ cuánto se tarda.
 
 Están en **«Moderación»** (la coordinación; en denuncias, el operador de denuncias). Todo queda en la historia con su
 motivo.
+
 - **Una crítica o una queja nunca es spam:** se atiende, o se cierra con su motivo.
 - **Spam** (publicidad, basura repetida, nada que atender): «Marcar como spam: por qué» → «Marcar como spam». Queda en
   «No procede», guardada, y no se le escribe a quien la envió. Sale de la bandeja (se ve con «Incluir las unidas a
@@ -290,11 +305,12 @@ motivo.
 
 ## 18. Lo que nunca se promete
 
-- **Esto no es un servicio de emergencias.** En una emergencia, a los servicios de emergencia locales. Nunca digas
-  «ya va la ambulancia» o «ya va la patrulla». (Los números oficiales de emergencia del estado todavía no están en la
-  web: están «por completar».)
-- **Ni fechas ni plazos.** La fecha comprometida es interna. Di lo que es cierto: «Lo estamos revisando», «Te
-  avisaremos por aquí».
+- **Esto no es un servicio de emergencias.** La web lo dice así: «Esto no es un servicio de emergencias. Ante una
+  emergencia o si una vida está en peligro, llame a los servicios de emergencia.». Nunca digas «ya va la ambulancia» o
+  «ya va la patrulla». La web no da ningún número de emergencias: si el cliente confirma el oficial, se agrega en ese
+  texto (lo cambia quien programa).
+- **Ni fechas ni plazos.** La fecha comprometida es interna. Di lo que es cierto, de usted: «Lo estamos revisando»,
+  «Le avisaremos por aquí».
 - **Ni resultados que no dependen del equipo:** una ayuda, una obra, la decisión de otro organismo.
 - **Ni publicar su nombre sin su permiso**, ni contarle a otra persona que alguien escribió.
 - **Nunca pidas datos de más:** ni cédula, ni afiliación política, ni nada que no haga falta para atender.
@@ -302,6 +318,7 @@ motivo.
 ## 19. Áreas y plazos (Administración)
 
 Lo arma Administración; la coordinación, auditoría y el jefe lo leen.
+
 - **«Nueva área»**: «Nombre del área» y «Qué atiende» → «Crear el área». «Cambiar el nombre o apagarla» → «Guardar el
   área». Un área apagada no recibe casos nuevos.
 - **Responsables:** «Agregar un responsable» → «Agregar»; «Quitar» para sacarlo.

@@ -126,17 +126,17 @@ Con los roles de siempre: el **jefe** (`jefe@demo.test`) tiene «Web» (publica)
 nunca un caso) y en Ajustes → Equipo invita a los roles de la web y la atención.
 
 **Sin entrar, como cualquier persona:** en `/atencion/nueva`, manda una solicitud de cada tipo (el formulario avisa
-«Versión de prueba: no escribas datos reales»); al final salen el código y la clave, con «Descargar comprobante
+«Versión de prueba. No escriba datos reales.»); al final salen el código y la clave, con «Descargar comprobante
 (PDF)». En
 `/atencion/consultar`, abre estos **comprobantes de prueba** (el año es el en curso: hoy, `AC-2026-…`):
 
 | Código | Clave | Qué es |
 |---|---|---|
 | `AC-<año>-DEMR01` | `K7QM-2HXP-9WRT-4BNE` | Reporte de un hueco en atención, con tres apoyos y un duplicado unido |
-| `AC-<año>-DEMR02` | `R3PS-W8N2-DEMV-7QKA` | Reporte resuelto: espera que la persona confirme («¿Se resolvió de verdad?»: «Sí, se resolvió» o «No, todavía no», que lo reabre) |
+| `AC-<año>-DEMR02` | `R3PS-W8N2-DEMV-7QKA` | Reporte resuelto: espera que la persona confirme («¿Se resolvió el problema?»: «Sí, se resolvió» o «No, todavía no», que lo reabre) |
 | `AC-<año>-DEMR03` | `H4JX-5ZTB-9CNF-W2YE` | Reporte que requiere información: se le puede agregar |
 
-Una clave o un código equivocados dan siempre «No encontramos una solicitud con esos datos.».
+Una clave o un código equivocados dan siempre «No hay ninguna solicitud con esos datos.».
 
 Lo sembrado (todo con «(demo)»): 12 noticias publicadas (una más programada para dentro de dos días, un borrador y una
 esperando aprobación), 14 obras en varios municipios y en los tres estados (una con un cambio esperando aprobación), 6

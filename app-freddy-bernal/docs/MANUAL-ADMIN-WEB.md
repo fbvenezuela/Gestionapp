@@ -1,13 +1,14 @@
 # Manual del administrador de la web
 
-**06/11/2026.** Para el equipo que escribe y publica la web del gobernador: el editor de la web, quien aprueba, el
+**08/11/2026.** Para el equipo que escribe y publica la web del gobernador: el editor de la web, quien aprueba, el
 jefe y Administración. Todo se hace desde el panel, en el menú **«Web»** (`/admin/web`). Los nombres de los botones
 están escritos tal como salen en la pantalla.
 
 > Hoy la web vive en la **versión de prueba** y ningún buscador la muestra. La versión de prueba publicada en Vercel
-> trae el contenido real de la web oficial (noticias, opinión, biografía, fotos y el Semanario; D-101): cada nota sale
-> con el aviso «Traído de la web vieja» (§15). En las pruebas y en local, todo es inventado y lleva «(demo)». Abrirla
-> al público es una decisión de Juan (`docs/PENDIENTES.md`).
+> trae el contenido real de la web oficial (noticias, opinión, biografía, fotos y el Semanario; D-101). En el panel,
+> cada nota traída lleva arriba el aviso «Traído de la web vieja» (§15). En la web, termina con «Publicado originalmente
+> en …». Ahí, varios ajustes del sitio no se cambian (§13). En las pruebas y en local, todo es inventado y lleva
+> «(demo)». Abrirla al público es una decisión de Juan (`docs/PENDIENTES.md`).
 
 **La idea en una línea:** cada contenido tiene un **borrador** (lo que se escribe) y **lo publicado** (exactamente lo
 que se aprobó, lo único que ve la gente). Cambiar un borrador nunca cambia la web hasta que alguien lo publique otra
@@ -30,12 +31,13 @@ vez. Nada se borra: lo que sobra se archiva.
 - La base de datos vuelve a revisar el permiso en cada botón: aunque alguien llegue a una pantalla que no es suya, no
   puede publicar ni cambiar nada.
 
-## 2. La pantalla «Web»
+## 2. La pantalla «La web»
 
-Arriba, una fila de botones: **«Inicio»**, **«Por aprobar (N)»**, **«Biblioteca»** y, para el aprobador, el jefe y
-Administración, **«Ajustes del sitio»** y **«Redirecciones»**.
+El menú **«Web»** abre la pantalla **«La web»**. Arriba, una fila de botones: **«Inicio»**, **«Por aprobar (N)»**,
+**«Biblioteca»** y, para el aprobador, el jefe y Administración, **«Ajustes del sitio»** y **«Redirecciones»**.
 
 En «Inicio» se ve:
+
 - Cuatro números: **«Borradores»**, **«Esperan aprobación»**, **«Programados»** y **«Publicados»**.
 - **«Por aprobar»** (para quien aprueba) o **«Esperando aprobación»** (para el editor), con «Ver todo».
 - **«Contenido»**: una tarjeta por tipo, con cuántos hay en la web, en borrador, en revisión y programados.
@@ -65,15 +67,17 @@ En la lista del tipo, el botón de arriba (**«Nueva noticia»**, **«Nueva obra
 **«Nuevo documento»**, **«Nuevo aviso»**, **«Nueva pregunta»** o **«Nuevo indicador»**) → escribe el **«Título»** (la
 dirección en la web sale de él) → **«Crear borrador»**. Se abre el editor.
 
-**Las páginas no se crean, se editan.** Son seis y ya existen: la portada («Inicio»), «El gobernador», «Participa» y
-las tres legales («Aviso de privacidad», «Condiciones de participación» y «Accesibilidad»). Una página nueva no
-tendría lugar en el menú de la web.
+**Las páginas no se crean, se editan.** Son seis y ya existen: la portada («Inicio»), «El gobernador», «Atención
+ciudadana» y las tres legales («Aviso de privacidad», «Condiciones de participación» y «Accesibilidad»). Una página
+nueva no tendría lugar en el menú de la web. Ojo con «Atención ciudadana»: hoy la web no la usa. La página
+`/atencion` tiene sus textos fijos en la app; lo que se cambia de ella son sus preguntas («Preguntas frecuentes»,
+grupo «Atención ciudadana») y los contactos verificados (§13).
 
 Lo que pide cada tipo:
 
 | Tipo | Lo principal | Reglas |
 |---|---|---|
-| **Noticia** (noticia, comunicado, artículo o entrevista) | Título, Resumen, Fecha, Tipo, Firma, Municipio, Foto principal, «Texto de la nota», Galería, «Video de YouTube (su código)», Fuentes y Temas | El código del video son los 11 caracteres que van después de «v=» en el enlace |
+| **Noticia** («Tipo»: «Noticia», «Comunicado», «Opinión» o «Entrevista») | Título, Resumen, Fecha, Tipo, Firma, Municipio, Foto principal, «Texto de la nota», Galería, «Video de YouTube (su código)», Fuentes y Temas | El código del video son los 11 caracteres que van después de «v=» en el enlace |
 | **Obra o acción** | Categoría, Estado (Anunciado, En ejecución o Concluido), Municipio, «Parroquia, localidad o sector», Descripción, «Para quién», «Organismo responsable», fechas, «Última actualización» y Evidencias | **Nunca un monto ni un porcentaje sin su fuente:** «Agregar la inversión (con su fuente)» y «Agregar el avance (con su fuente)» piden de dónde sale la cifra. Sin fuente, no se ponen |
 | **Reporte Bernal** (episodio) | Fecha, video, «Duración (minutos)», «Foto de portada», Temas y Enlaces | Sin código de video, la web no muestra el reproductor; la vista previa avisa «Video por enlazar» |
 | **Documento** | Categoría (Semanario, Informe, Memoria y Cuenta, Normativa, Material para la prensa u Otro), «Archivo PDF», Versión y Páginas | El Semanario sale en Noticias › Semanario; el material para la prensa, en «El gobernador» |
@@ -89,6 +93,7 @@ web no dibuja nada en su lugar y la vista previa avisa qué falta.
 ## 5. El editor
 
 La barra de arriba acompaña mientras bajas:
+
 - **«Guardar borrador»**: guarda y deja una versión nueva (cada guardado es una versión).
 - **«Vista previa»**: guarda si hace falta y muestra el borrador tal como se vería (§7).
 - **«Enviar a aprobación»** (dice **«Guardar y enviar a aprobación»** si hay cambios sin guardar). Mientras espera,
@@ -97,6 +102,7 @@ La barra de arriba acompaña mientras bajas:
 - A la derecha dice **«Cambios sin guardar»** o **«Todo guardado»**.
 
 Más abajo:
+
 - **«Dirección en la web»**: minúsculas, números y guiones (sin espacios ni acentos). «Usar el título como
   dirección» la arma del título. Después de publicado, la dirección solo la cambia quien aprueba, y la vieja sigue
   llevando a la nueva sola. La dirección de una página no se cambia.
@@ -128,6 +134,7 @@ sale en la web. Eliminar un bloque solo cambia el borrador; lo publicado sigue i
 **«Agregar un bloque»** abre la lista de los 15 tipos: Portada con foto, Texto, Foto, Galería, Video, Documentos,
 Preguntas frecuentes, Indicadores, Obras y gestión, Noticias, Llamado a la acción, Avisos de servicio, Canales
 oficiales, Accesos de participación y Casos atendidos. Cada uno dice para qué sirve. Algunos detalles:
+
 - **Portada con foto:** sin foto, la portada sale solo con el texto, a lo ancho; la vista previa muestra «Foto por
   subir desde el administrador». Si el mensaje todavía no está, escribe «Por completar desde el administrador: …»: el
   equipo lo ve como un espacio por llenar y el público no ve nada.
@@ -168,6 +175,7 @@ muestra una versión guardada.
 
 **«Por aprobar»** lista lo que espera, lo más viejo primero; cada línea dice si es «primera publicación» o «cambios a
 algo publicado», quién lo envió y cuándo. Al abrirlo:
+
 - Quién lo envió, el último cambio y, si está en la web, cuándo se publicó.
 - «Ver la vista previa», «Abrir el editor», «Versiones» y «Verlo en la web».
 - **«Le falta esto para publicarse»**, si falta algo.
@@ -177,6 +185,7 @@ algo publicado», quién lo envió y cuándo. Al abrirlo:
   comparación es por campo y por bloque, no palabra por palabra.
 
 En **«Decidir»** (cada botón pregunta antes):
+
 - **«Publicar ahora»**: sale en la web en ese momento, exactamente como lo viste.
 - **«Programar»**: elige «Día» y «Hora» (§9).
 - **«Devolver con comentario»**: escribe en «Qué hay que cambiar» y toca «Devolver con comentario». Quien lo envió lo
@@ -198,8 +207,8 @@ Hasta entonces nadie lo ve. Una hora que ya pasó no se acepta («Elige una hora
 ahora.»).
 
 **Límite:** lo que **ya está en la web no se programa**: sus cambios se publican ahora («Ya está en la web: sus cambios
-se publican ahora.»). Si un cambio debe salir a cierta hora, guárdalo listo y tócale «Publicar ahora» a esa hora. Lo
-nuevo sí se programa.
+se publican ahora. Para programarlo, archívalo antes.»). Si un cambio debe salir a cierta hora, guárdalo listo y tócale
+«Publicar ahora» a esa hora. Lo nuevo sí se programa.
 
 ## 10. Archivar
 
@@ -221,6 +230,7 @@ otra vez. El editor también puede hacerlo.
 > y nunca pasan por aquí.
 
 **Subir:** «Biblioteca» → «Subir una foto» o «Subir un PDF».
+
 - Fotos JPG, PNG o WebP. La foto **se achica y pierde la ubicación y los datos de la cámara en tu equipo, antes de
   subir**, y el servidor lo revisa otra vez. No se aceptan HEIC, AVIF ni GIF: guárdala como JPG.
 - Tamaños: fotos hasta 10 MB (ya achicadas) y PDF hasta 20 MB; **en Vercel (la versión de prueba y producción),
@@ -228,6 +238,7 @@ otra vez. El editor también puede hacerlo.
 - Los PDF guardan sus datos ocultos (autor, programa): revísalos antes de subirlos.
 
 **Las palabras de cada foto:**
+
 - **«Texto alternativo»** (obligatorio): lo leen las personas que usan lector de pantalla y los buscadores. Describe
   lo que se ve en pocas palabras, como se lo contarías a alguien que no puede verla: quién, qué hace, dónde. No
   empieces con «foto de…». Si la foto tiene un texto importante, escríbelo. Por ejemplo (inventado): «Obreros
@@ -238,6 +249,7 @@ otra vez. El editor también puede hacerlo.
 
 **Buscar y ordenar:** «Buscar» (texto alternativo, pie, crédito o título), «Tipo» (Todo, Fotos, Documentos) y
 «Archivados». Cada archivo dice «Sin usar» o «Se usa en N contenidos». Al abrirlo:
+
 - Cambias sus palabras y su punto → «Guardar». Lo ya publicado conserva los textos con que se aprobó hasta que se
   publique de nuevo.
 - **«Dónde se usa»**: cada contenido, con «En lo publicado» o «En el borrador».
@@ -263,16 +275,25 @@ aprobación** («Guardado. La web ya lo muestra.»). Cada sección tiene su «Gu
 | **Canal de WhatsApp**, **Portal institucional**, **Canal de YouTube del programa** | Cada uno con «La web lo muestra», «Verificado» y «Activo». El portal solo sale verificado |
 | **Nombre y saludo** | El nombre, el cargo, la región, el saludo y el «Nombre de la cabecera». El título grande de la portada sale del nombre y el cargo; hoy la web no muestra el saludo (el de los copies de redes se cambia en Ajustes → Marca) |
 | **Datos estructurados** | Lo que leen los buscadores sobre la persona y la institución |
-| **Avisos legales** | Se ven, pero no se cambian aquí: el aviso de emergencias y el de las denuncias son un solo texto fijo de la app, el mismo en el pie de la web, en «Canales», en los formularios de Atención, en el comprobante y su PDF y en los correos. Si el cliente confirma un número oficial de emergencias, se agrega en ese texto (lo cambia quien programa) |
-| **Aviso de la versión de prueba** | La franja fija que solo sale en la demostración |
+| **Avisos legales** | Se ven, pero no se cambian aquí: son textos fijos de la app, los mismos en el pie de la web, en «Canales», en los formularios de Atención, en el comprobante y su PDF y en los correos. «Aviso de emergencias»: «Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.». «Aviso de las denuncias»: «Las denuncias son confidenciales. Solo las leen el personal encargado de denuncias y la coordinación de atención. Su contenido nunca se publica. Si se trata de un delito, acuda también a las autoridades competentes.». Si el cliente confirma un número oficial de emergencias, se agrega en ese texto (lo cambia quien programa) |
+| **Aviso de la versión de prueba** | La franja fija que solo sale en la demostración. Hoy dice «Versión de prueba. El contenido es de ejemplo.». En la versión publicada con el contenido real dice siempre «Versión de prueba en revisión. No es el sitio oficial.», diga lo que diga este ajuste |
 
 **Regla:** nunca un teléfono, un correo o una cuenta que nadie del equipo confirmó. Las notas internas no salen en la
 web.
+
+**En la versión publicada con el contenido real de la web oficial,** arriba de los ajustes dice «Esta demostración
+muestra el contenido de la web oficial: el nombre, el cargo, las cuentas, los contactos y la franja de aviso quedan como
+están.». Ahí no se guardan «Nombre y saludo», «Datos estructurados», «Cuentas en redes», «Canal de WhatsApp», «Portal
+institucional», «Canal de YouTube del programa», «Contactos institucionales» ni «Aviso de la versión de prueba». Si
+alguien lo intenta, sale «En esta versión de prueba con el contenido de la web oficial, el nombre, las cuentas, los
+contactos y la franja de aviso no se cambian.». «Navegación» y «Pie de página» sí se cambian. La razón: cualquiera
+puede entrar a la demo, y nadie debe poder hacerla pasar por la web oficial.
 
 ## 14. Redirecciones
 
 Llevan una dirección vieja (de la web de WordPress, o una que cambió) a la nueva, para que ningún enlace guardado o
 compartido se pierda. Las ve y las cambia el aprobador, el jefe o Administración.
+
 - **«Nueva redirección»**: «Dirección vieja» (por ejemplo `/2024/05/una-nota`), «Lleva a» (una dirección de esta web,
   por ejemplo `/actualidad/una-nota`) y «Tipo» (lo normal: «301 · para siempre (lo normal)») → **«Agregar la
   redirección»**.
@@ -288,6 +309,7 @@ Los artículos de la web vieja entran como **borradores** de noticias (nunca pub
 (`docs/PLAN-MIGRACION-Y-PRODUCCION.md`). Cada uno trae arriba el aviso **«Traído de la web vieja»** con su dirección
 vieja, su fecha y lo que hay que revisar (por ejemplo «Se quitaron correos del texto: quedó «[correo retirado]».» o
 «Fotos sin texto alternativo…»). Antes de enviar cada nota:
+
 1. **El texto alternativo de cada foto.** Las fotos viejas casi nunca lo tienen y entran con «[Por escribir] …». Se
    escribe en la biblioteca. **La base no publica una foto con «[Por escribir]».**
 2. **Las marcas de datos quitados**: «[correo retirado]», «[teléfono retirado]» o «[cédula retirada]». Reescribe la
@@ -298,6 +320,9 @@ vieja, su fecha y lo que hay que revisar (por ejemplo «Se quitaron correos del 
    de salud: el importador no los reconoce solo.
 5. Tipo, temas, municipio, fecha y foto principal. Las fotos del texto van todas a la galería, al final.
 6. Publicar lo que se conserva y **archivar** lo que no (nada se borra).
+
+En la versión publicada de prueba no hay que hacer esta revisión: las notas de la web oficial entran ya publicadas al
+construir (D-101), con el mismo aviso «Traído de la web vieja».
 
 En cuanto guardas un cambio en un borrador importado, una corrida nueva del importador ya no lo toca.
 

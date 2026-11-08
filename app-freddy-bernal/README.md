@@ -223,8 +223,9 @@ Supabase no tiene copias automáticas, sus copias nunca traen los archivos, y si
 contactos de la gente no se pueden leer.
 
 ## Dónde está cada cosa
-- **Para el equipo:** `docs/GUIA-WEB.md` (la web en una página), `docs/MANUAL-ADMIN-WEB.md` (editar y publicar),
-  `docs/MANUAL-ATENCION.md` (atender solicitudes), `docs/GUIA-POR-ROL.md`, `docs/FLUJOS.md` y
+- **Para el equipo:** `docs/GUIA-WEB.md` (la web sección por sección, el recorrido del ciudadano, la versión de prueba
+  y quién hace qué), `docs/MANUAL-ADMIN-WEB.md` (editar y publicar), `docs/MANUAL-ATENCION.md` (atender solicitudes),
+  `docs/GUIA-POR-ROL.md`, `docs/FLUJOS.md` y
   `docs/GUIA-ADMINISTRACION.md` (el panel), `docs/DEMO.md` (qué probar con cada rol).
 - **Para salir a producción:** `docs/PENDIENTES.md` (lo que falta y quién), `docs/PLAN-MIGRACION-Y-PRODUCCION.md`,
   `docs/COPIAS-Y-RECUPERACION.md`, `docs/PROMPT-SUPABASE.md`, `docs/CUENTAS.md`, `docs/COSTOS.md` y `docs/DRIVE.md`.
