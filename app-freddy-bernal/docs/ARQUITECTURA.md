@@ -249,18 +249,23 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
   archivar, desarchivar, guardar un ajuste o una redirección; lo programado aparece solo por `publish_at` en menos de un
   minuto. Ajustes del sitio normalizados en `site-settings.ts` (en producción solo las cuentas activas y verificadas;
   en la demo también las demás, con una sola línea que dice que están en proceso de confirmación). SEO: `seo.ts` y `meta.ts` (títulos, canónicas, Open Graph), JSON-LD
-  `Person`, `GovernmentOrganization` y `NewsArticle` (`components/web/json-ld.tsx`), `src/app/sitemap.ts`,
+  `Person`, `GovernmentOrganization` y `NewsArticle` (`components/web/json-ld.tsx`; su `sameAs` lleva siempre solo las
+  cuentas activas y verificadas, también en la demo, aunque ahí el pie y `/canales` muestren las otras), `src/app/sitemap.ts`,
   `src/app/robots.ts` y `src/app/opengraph-image.tsx`; sin `SITE_INDEXABLE=true`, robots, meta y `X-Robots-Tag` dicen
   noindex. Cabeceras (`headers.ts` → `next.config.ts`): CSP de la web sin nonces (YouTube nocookie, los cuadros de
   OpenStreetMap y Turnstile si está), HSTS, `nosniff`, `Referrer-Policy` y `Permissions-Policy`. `src/proxy.ts`: las
   direcciones viejas (301 por `/api/web/redireccion`, 410 a `/wp-content` no traído) y las galletas de sesión del panel.
+  Si una página no carga porque falla la base o la red, `src/app/(web)/error.tsx` dice «No se pudo cargar la página»,
+  con «Intentar de nuevo» e «Ir al inicio» y sin detalle técnico (el de `atencion/` lleva a «Atención ciudadana» y
+  recuerda que lo escrito en el formulario sigue guardado).
 - **El administrador de la web** (`/admin/web`, `src/app/(panel)/admin/web/`, `src/components/cms/`; manual en
   `MANUAL-ADMIN-WEB.md`): lee como la persona en `src/lib/data/web-admin.ts`; escribe en `src/lib/actions/web.ts`
   (borradores, envío, publicar, programar, devolver, archivar, versiones), `web-site.ts` (biblioteca, ajustes,
   redirecciones) y `web-core.ts` (avisos al aprobador y a quien envió, revalidación). Lógica pura en `src/lib/web/cms/`:
   las etiquetas de estado (`status.ts`), la comparación campo por campo y bloque por bloque (`diff.ts`), lo que falta
   para enviar (`drafts.ts`), el formato del texto `**negrita**`, `*cursiva*`, `[texto](enlace)` (`markup.ts`), la
-  hora del Táchira al programar (`schedule.ts`) y la revisión de cada archivo de la biblioteca (`media-file.ts`). Subida
+  hora del Táchira al programar (`schedule.ts`) y la revisión de cada archivo de la biblioteca (`media-file.ts`: fotos
+  hasta 10 MB, ya achicadas por el navegador, y PDF hasta 20 MB; en Vercel, 4 MB cada uno por `maxMediaBytes`). Subida
   a la biblioteca: `POST /admin/web/biblioteca/subir`. Vista previa: `(vista-previa)/admin/web/vista-previa/[id]`. Las
   puertas son de la base: `can_read_web()`, `can_edit_web()`, `can_publish_web()` y `can_manage_site()`, todas con
   doble factor.
@@ -277,7 +282,9 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 - **El ciudadano** (`src/app/(web)/atencion/`, `src/components/participation/`, `src/lib/actions/participation.ts` y
   `participation-core.ts`): el formulario en cuatro pasos con su borrador en el navegador y su versión sin JavaScript;
   `POST /api/atencion/adjuntos`, `POST /atencion/consultar/adjuntos` y `GET /atencion/consultar/archivo/[id]` (la
-  galleta `fb_consulta` de 30 minutos, nunca la clave).
+  galleta `fb_consulta` de 30 minutos, nunca la clave). El sexto tipo sale como «Observación», pero se guarda como
+  `acotacion` (la columna `type`, las funciones del ciudadano y el filtro `tipo=acotacion` de la bandeja): solo cambió
+  la etiqueta (`REQUEST_TYPES` en `src/lib/participation/input.ts`; R7 en `PENDIENTES.md`).
 - **La revisión de seguridad del 06/11** (`SEGURIDAD.md`): `20261106400100_seguridad_web.sql` (la auditoría de
   `web_media` y de los ajustes privados guarda quién y qué campos, no el contenido), `20261106400200_citizen_solo_app.sql`
   (las funciones del ciudadano se niegan si llegan por la Data API), `src/lib/request-body.ts` (tope al leer una
@@ -325,6 +332,14 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
   `?tutorial=<id>` o con el evento `fb:tour:start`; el avance va al teléfono (`device-store`), nunca a la base.
 - **«Mi cuenta»** suma «Ayuda y guías» y «Ver el tutorial de esta pantalla» (`HelpMenuItems`). 360 los ofrece con la
   franja de `offer-core.ts` (ver `ASISTENTE.md`).
+- **Las guías de la web** (`docs/GUIA-WEB.md`, `MANUAL-ADMIN-WEB.md`, `MANUAL-ATENCION.md` y `FLUJOS-WEB.md`) son para
+  el equipo del cliente, que solo ve la app: van escritas a mano y sin nada interno (archivos, comandos, alojamiento,
+  versiones, decisiones ni quién programa); cada pantalla, por su nombre. Los diagramas de `FLUJOS-WEB.md` salen de los
+  estados y sus motivos (`src/lib/domain/attention.ts` y `20261106000200_participacion.sql`), de lo que hace la persona
+  (`20261106000300_citizen.sql` y `src/components/participation/`), de los permisos de la web
+  (`20261106000110_web_publica.sql` y `src/lib/actions/web*.ts`) y de lo que trae la versión de prueba
+  (`scripts/real-site/` y `src/lib/db/seed-parts/web-real.ts`). Si eso cambia, se cambia el diagrama y se revisa que
+  quepa en una hoja A4 vertical con la letra a 7 pt o más.
 
 ## Flujo de cada módulo
 - **Entrar:** admin invita (`invitations` + cuenta en Auth) → correo → la persona escribe su correo → código → si su

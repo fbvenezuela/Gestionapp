@@ -1,10 +1,10 @@
 # Flujos de la web y de la atención ciudadana
 
-> Hoy todo esto vive en la versión de prueba. Las solicitudes son inventadas. Ningún correo sale de la plataforma.
+> Hoy todo esto se usa en la versión de prueba (ver 6.18). Sus solicitudes son de ejemplo. Por ahora no envía correos.
 
-<!-- Escrito a mano desde el código, no desde los manuales: los estados y sus motivos salen de src/lib/domain/attention.ts y de supabase/migrations/20261106000200_participacion.sql; lo que hace la persona, de 20261106000300_citizen.sql y src/components/participation; los permisos de la web, de 20261106000110_web_publica.sql y src/lib/actions/web*.ts; el contenido real, de scripts/real-site y src/lib/db/seed-parts/web-real.ts. Si el código cambia, se cambia aquí. Cada diagrama se revisa para que quepa en una hoja A4 con la letra legible. -->
+<!-- Escrito a mano desde la app. Si la app cambia, se cambia aquí. Cada diagrama se revisa para que quepa en una hoja A4 con la letra legible. -->
 
-Cómo va cada cosa de la web pública y de la atención ciudadana. GitHub dibuja cada diagrama. Debajo de cada uno va lo que hay que saber. Los nombres de los botones están escritos tal como salen en la pantalla. El detalle de cada pantalla está en `MANUAL-ATENCION.md` y en `MANUAL-ADMIN-WEB.md`. Los flujos del panel están en `FLUJOS.md`.
+Cómo va cada cosa de la web pública y de la atención ciudadana. Debajo de cada diagrama va lo que hay que saber. Los nombres de los botones están escritos tal como salen en la pantalla. El detalle de cada pantalla está en las partes 4 y 5.
 
 - [Enviar una solicitud](#flujo-web-envio)
 - [Consultar la solicitud](#flujo-web-consulta)
@@ -23,12 +23,12 @@ Cómo va cada cosa de la web pública y de la atención ciudadana. GitHub dibuja
 - [Fotos y documentos](#flujo-web-fotos)
 - [Ajustes del sitio](#flujo-web-ajustes)
 - [Direcciones de la web vieja](#flujo-web-redirecciones)
-- [El contenido real en la demo publicada](#flujo-web-real)
+- [Lo que trae la versión de prueba](#flujo-web-prueba)
 
 <a id="flujo-web-envio"></a>
 
 ## Enviar una solicitud
-Lo hace cualquier persona, sin cuenta, en «Atención ciudadana» (`/atencion/nueva`).
+Lo hace cualquier persona, sin cuenta, en «Atención ciudadana» → «Nueva solicitud».
 
 ```mermaid
 flowchart TD
@@ -47,14 +47,14 @@ flowchart TD
 
 **Qué hay que saber**
 - Los parecidos y el apoyo solo existen para un reporte. Quien apoya también recibe su código y su clave.
-- Lo escrito se queda en esa pestaña. Si se va la señal, no se pierde. Tampoco se envía dos veces.
+- Lo escrito se queda en esa pestaña. Si se va la señal, no se pierde. Si la persona toca «Enviar» dos veces, llega una sola solicitud.
 - La clave se muestra una sola vez. Nunca va por correo.
 - Cada formulario avisa que esto no es un servicio de emergencias.
 
 <a id="flujo-web-consulta"></a>
 
 ## Consultar la solicitud
-Lo hace la persona con su código y su clave, en «Consultar mi solicitud» (`/atencion/consultar`).
+Lo hace la persona con su código y su clave, en «Consultar mi solicitud».
 
 ```mermaid
 flowchart TD
@@ -74,7 +74,7 @@ flowchart TD
 ```
 
 **Qué hay que saber**
-- Dice lo mismo sea cual sea el error. Solo cuentan los intentos fallidos.
+- Si el código o la clave están mal, siempre dice lo mismo. Si alguien se equivoca muchas veces seguidas, la página le pide esperar unos minutos.
 - Al responder lo que se le pidió, la solicitud vuelve a «En revisión». Con «No, todavía no», escribe «¿Qué falta por resolver?». La solicitud vuelve a «En atención».
 - Nunca ve las notas internas ni el motivo de un cambio de estado. Tampoco ve quién del personal hizo cada cosa.
 - Una solicitud «Cerrada» o «No procede» ya no recibe información. Quien apoyó un reporte ve solo su estado.
@@ -99,13 +99,13 @@ flowchart TD
 **Qué hay que saber**
 - El jefe y auditoría solo la cuentan en los totales. Un responsable de área nunca la ve.
 - Su contenido nunca se publica. Nunca va al mapa.
-- Los correos a la persona nunca dicen «denuncia». La plataforma no avisa a ninguna autoridad.
+- Los correos a la persona nunca dicen «denuncia». La app no avisa a ninguna autoridad.
 - Si otra solicitud es en realidad una denuncia, la coordinación la corrige en «Corregir tipo o categoría». Pierde la ubicación exacta y sale de su área.
 
 <a id="flujo-web-caso"></a>
 
 ## Un caso, de la bandeja al cierre
-Lo hacen la coordinación y los responsables de área, en «Atención» (`/admin/atencion`). En una denuncia, el operador de denuncias.
+Lo hacen la coordinación y los responsables de área, en el menú «Atención» del panel. En una denuncia, el operador de denuncias.
 
 ```mermaid
 flowchart TD
@@ -124,14 +124,14 @@ flowchart TD
 
 **Qué hay que saber**
 - Llega con el área de su categoría. El área la cambia la coordinación.
-- Un responsable de área ve lo de sus áreas y lo que le asignen. Un caso que no le toca no existe para él.
+- Un responsable de área ve lo de sus áreas y lo que le asignen. Los casos que no le tocan no le salen en la lista.
 - Lo que es solo para el personal va en «Nota interna». La persona nunca la lee.
 - Auditoría y el jefe leen el caso, pero no lo cambian. Administración nunca ve un caso.
 
 <a id="flujo-web-estados"></a>
 
 ## Los estados: el camino de siempre
-En el caso, «Estado» → «Pasar a» → «Cambiar el estado». La pantalla solo ofrece los pasos que la base acepta.
+En el caso, «Estado» → «Pasar a» → «Cambiar el estado». La pantalla solo ofrece los pasos que se pueden dar desde ese estado.
 
 ```mermaid
 flowchart TD
@@ -174,13 +174,13 @@ flowchart TD
   desvio_noprocede("No procede (con motivo)")
   desvio_resuelto("Resuelto (con motivo)")
   desvio_cerrado("Cerrado (con motivo)")
-  desvio_abierto -- falta un dato --> desvio_info
+  desvio_abierto -- si falta un dato --> desvio_info
   desvio_abierto --> desvio_derivado
   desvio_abierto --> desvio_noprocede
-  desvio_info -- a En revisión, Asignado o En atención --> desvio_abierto
+  desvio_info -- vuelve a En revisión, Asignado o En atención --> desvio_abierto
   desvio_info --> desvio_noprocede
   desvio_info --> desvio_cerrado
-  desvio_derivado -- a En atención --> desvio_abierto
+  desvio_derivado -- pasa a En atención --> desvio_abierto
   desvio_derivado --> desvio_resuelto
   desvio_derivado --> desvio_cerrado
   desvio_noprocede -->|"Reabrir: En revisión (con motivo)"| desvio_abierto
@@ -200,7 +200,7 @@ Los une la coordinación, desde la tarjeta «Casos iguales» del caso.
 ```mermaid
 flowchart TD
   iguales_apoyo["La persona: «Apoyar este reporte», o su reporte se suma solo."]
-  iguales_apoyo --> iguales_cuenta["«Lo que llegó» dice «N personas o casos se sumaron»."]
+  iguales_apoyo --> iguales_cuenta["«Lo que llegó» dice cuántos se sumaron, como «4 personas o casos se sumaron»."]
   iguales_busca["Coordinación: «Casos iguales» → «Buscar el otro caso» → «Buscar»."]
   iguales_busca --> iguales_elige["«Elige el caso» → «¿Cuál se queda?» → «Motivo» → «Unir los casos»."]
   iguales_elige --> iguales_q{"¿Se pueden unir?"}
@@ -238,7 +238,7 @@ flowchart TD
 <a id="flujo-web-correos"></a>
 
 ## Los correos que recibe la persona
-Los manda la plataforma sola, después de cada paso.
+Los manda la app sola, después de cada paso.
 
 ```mermaid
 flowchart TD
@@ -256,7 +256,7 @@ flowchart TD
 - Si eligió «Prefiero que no me contacten», no le llega ninguno. Una nota interna o un caso marcado como spam tampoco mandan correo.
 - La respuesta y el pedido de información le llegan solo a quien la envió. El cambio de estado también les llega a quienes se sumaron o mandaron un caso unido, cada uno con su código.
 - Cada correo lleva a «Consultar mi solicitud». Nunca lleva la clave ni lo que escribió el personal. Nunca dice «denuncia».
-- En la demostración no sale ninguno: quedan en «Ajustes» → «Buzón de correos». Con datos reales, salen cuando el envío de correos esté configurado.
+- Por ahora la versión de prueba no envía correos. Los que mandaría quedan en «Ajustes» → «Buzón de correos», que solo ve Administración.
 
 <a id="flujo-web-atendidos"></a>
 
@@ -275,20 +275,20 @@ flowchart TD
 ```
 
 **Qué hay que saber**
-- Sale en `/atencion/atendido` y en la portada. Solo de casos resueltos, nunca de uno marcado como spam o unido a otro.
-- El permiso lo da la persona en el formulario. Sin él, la base solo acepta iniciales. Una solicitud anónima sale sin nombre ni iniciales.
+- Sale en la página «Casos atendidos» de «Atención ciudadana» y en la portada. Solo de casos resueltos, nunca de uno marcado como spam o unido a otro.
+- El permiso lo da la persona en el formulario. Sin él, solo se pueden poner iniciales. Una solicitud anónima sale sin nombre ni iniciales.
 - «Actualizar la publicación» cambia el texto. «Retirar de «Casos atendidos»» lo quita, con su motivo.
-- En la demo con el contenido real no hay casos publicados. La portada no tiene «Casos atendidos».
+- El enlace «Casos atendidos» sale en el menú de «Atención ciudadana» cuando hay casos publicados. Hoy no hay ninguno. En la portada, ese bloque está oculto (ver 6.18).
 
 <a id="flujo-web-avisos"></a>
 
 ## Casos vencidos y sin movimiento
-Los avisa la plataforma sola, cada mañana, a quienes atienden el caso.
+Los avisa la app sola, cada mañana, a quienes atienden el caso.
 
 ```mermaid
 flowchart TD
   aviso_fecha["Al llegar, el caso recibe su fecha comprometida. La persona nunca la ve."]
-  aviso_fecha --> aviso_revisa["La plataforma, cada mañana desde las 7:00 a. m. del Táchira: revisa los casos abiertos."]
+  aviso_fecha --> aviso_revisa["La app, cada mañana desde las 7:00 a. m. del Táchira, revisa los casos abiertos."]
   aviso_revisa --> aviso_vencida_q{"¿Pasó su fecha?"}
   aviso_vencida_q -- Sí --> aviso_vencida["«Solicitud vencida: AC-…»"]
   aviso_vencida_q -- No --> aviso_quieto_q{"¿5 días sin movimiento?"}
@@ -308,12 +308,12 @@ flowchart TD
 <a id="flujo-web-contenido"></a>
 
 ## La web: escribir y enviar a aprobación
-Lo hace el editor de la web, en «Web» (`/admin/web`). También pueden el aprobador y el jefe.
+Lo hace el editor de la web, en el menú «Web» del panel. También pueden el aprobador y el jefe.
 
 ```mermaid
 flowchart TD
   contenido_nuevo["Editor: «Web» → un tipo, como «Noticias y comunicados» → «Nueva noticia» → «Título» → «Crear borrador»."]
-  contenido_nuevo --> contenido_escribe["Escribe → «Guardar borrador». Cada guardado queda como una versión."]
+  contenido_nuevo --> contenido_escribe["Escribe → «Guardar borrador». Cada guardado queda en «Versiones»."]
   contenido_escribe --> contenido_previa["«Vista previa»: lo ve como saldrá, sin publicarlo."]
   contenido_previa --> contenido_falta_q{"¿Falta algo?"}
   contenido_falta_q -- Sí --> contenido_falta["«Para enviarlo a aprobación falta esto»: lo completa."]
@@ -350,7 +350,7 @@ flowchart TD
 
 **Qué hay que saber**
 - Con «Le falta esto para publicarse», «Publicar ahora» no se puede tocar.
-- Se publica exactamente lo que se revisó. Si alguien cambió el borrador mientras tanto, la base no publica.
+- Se publica exactamente lo que se revisó. Si alguien cambió el borrador mientras tanto, no se publica: la pantalla pide abrirlo de nuevo.
 - Lo que ya está en la web no se programa: sus cambios se publican ahora. «Quitar la programación» devuelve a borrador algo programado.
 - El aviso de «Por aprobar» le llega solo al aprobador. El jefe lo ve en la lista.
 
@@ -390,13 +390,13 @@ flowchart TD
   foto_usa --> foto_q{"¿Se puede enviar?"}
   foto_q -- No --> foto_frena["Lo frena una foto archivada, o que dice «[Por escribir]». También una marca como «[correo retirado]»."]
   foto_frena --> foto_usa
-  foto_q -- Sí --> foto_congela["Al publicar, cada foto se congela con sus textos."]
+  foto_q -- Sí --> foto_congela["Al publicar, cada foto queda con los textos que tenía en ese momento."]
 ```
 
 **Qué hay que saber**
 - Todo lo que está en la biblioteca es público. Nunca fotos ni archivos de quienes escriben a Atención ciudadana.
-- Sin «Texto alternativo», una foto no se sube: la base lo exige. Un PDF pide su «Título del documento».
-- En Vercel, cada archivo llega hasta 4 MB.
+- Sin «Texto alternativo», una foto no se sube. Un PDF pide su «Título del documento».
+- Hoy cada archivo llega hasta 4 MB. Si pesa más, la pantalla pide subirlo más liviano.
 - Cambiar los textos de una foto no toca lo publicado hasta publicarlo otra vez. «Archivar» la saca de la biblioteca, pero lo publicado la sigue mostrando.
 
 <a id="flujo-web-ajustes"></a>
@@ -407,18 +407,17 @@ Los cambian el aprobador y el jefe, en «Web» → «Ajustes del sitio». Tambi�
 ```mermaid
 flowchart TD
   ajustes_entra["Aprobador o jefe, también Administración: «Web» → «Ajustes del sitio»."]
-  ajustes_entra --> ajustes_real_q{"¿Demo con lo real?"}
-  ajustes_real_q -- Sí --> ajustes_bloqueo["Solo se cambian «Navegación» y «Pie de página». El nombre, las cuentas, los contactos y la franja de aviso no se cambian."]
-  ajustes_real_q -- No --> ajustes_cambia["Cambia la sección que haga falta, como «Cuentas en redes»."]
-  ajustes_bloqueo --> ajustes_guarda
-  ajustes_cambia --> ajustes_guarda
-  ajustes_guarda["«Guardar»: «Guardado. La web ya lo muestra.» No pasa por aprobación."]
+  ajustes_entra --> ajustes_q{"¿Qué sección?"}
+  ajustes_q -- «Navegación» o «Pie de página» --> ajustes_cambia["Cambia lo que haga falta → «Guardar»."]
+  ajustes_q -- Otra, como «Cuentas en redes» --> ajustes_prueba["En la versión de prueba no se guarda: el nombre, las cuentas, los canales, los contactos y la franja quedan como están."]
+  ajustes_cambia --> ajustes_guarda["«Guardado. La web ya lo muestra.» No pasa por aprobación."]
 ```
 
 **Qué hay que saber**
 - Lo que se guarda aquí sale en la web al momento. Por eso nunca va un dato que nadie confirmó.
-- Un contacto sale solo marcado «Verificado». En producción, una cuenta sale solo «Activa» y «Verificada».
-- Los «Avisos legales» se ven, pero no se cambian aquí. Son un solo texto de la app.
+- Un contacto sale solo marcado «Verificado». Una cuenta sale solo «Activa» y «Verificada». En la versión de prueba también salen las cuentas por confirmar, con una línea que lo avisa.
+- Arriba, la pantalla avisa lo que no se cambia. Eso es solo de la versión de prueba: nadie debe poder hacerla pasar por la web oficial (ver 7.4).
+- Los «Avisos legales» se ven, pero no se cambian aquí. Salen iguales en toda la web, en los formularios, en el comprobante y en los correos.
 - El editor de la web no entra a «Ajustes del sitio».
 
 <a id="flujo-web-redirecciones"></a>
@@ -441,30 +440,29 @@ flowchart TD
 
 **Qué hay que saber**
 - No se redirige una dirección que la web ya usa. Tampoco se hacen dos desde la misma.
-- Las del importador dicen «Del importador». Las demás dicen «A mano». El importador nunca las pisa.
+- Las que se hicieron solas al traer las noticias de la web vieja dicen «Del importador». Las hechas aquí dicen «A mano», y nunca cambian solas.
 - Cuando quien aprueba cambia la «Dirección en la web» de algo publicado, la vieja sigue llevando a la nueva sola.
-- Un cambio se nota en la web en más o menos un minuto. Un archivo viejo es uno de `/wp-content/`.
+- Un cambio se nota en la web en más o menos un minuto. Un archivo viejo es una foto o un documento que estaba en la web anterior.
 
-<a id="flujo-web-real"></a>
+<a id="flujo-web-prueba"></a>
 
-## El contenido real en la demo publicada
-Pasa solo, cada vez que Vercel construye la demo publicada (D-101).
+## Lo que trae la versión de prueba
+Qué trae copiado de la web oficial y qué es de ejemplo.
 
 ```mermaid
 flowchart TD
-  real_construye["Vercel construye la demo publicada, en producción. Lee la web oficial y el canal de YouTube. También el último Semanario."]
-  real_construye --> real_responde_q{"¿Respondió?"}
-  real_responde_q -- No --> real_copia_q{"¿Copia reciente?"}
-  real_copia_q -- No --> real_inventado["La demo sale con el contenido inventado."]
-  real_copia_q -- Sí --> real_siembra
-  real_responde_q -- Sí --> real_siembra["Lo guarda fuera de git, en .real-site/. Cada servidor de la demo lo siembra al arrancar."]
-  real_siembra --> real_ve["Se ve: noticias, opinión, biografía y fotos reales, con la franja «Versión de prueba en revisión. No es el sitio oficial.»"]
-  real_siembra --> real_oculta["No sale: «Gestión en cifras», «Casos atendidos», «Gestión y obras» ni «Avisos de servicio»."]
-  real_siembra --> real_sigue["Sigue inventado: las 60 solicitudes y los tres comprobantes de prueba. El panel también, menos «Web»."]
+  prueba_trae["La versión de prueba trae:"]
+  prueba_trae --> prueba_copia["Una copia de la web oficial, freddybernaloficial.com: las noticias, las columnas de opinión, la biografía, las fotos y el último Semanario."]
+  prueba_trae --> prueba_ejemplo["Datos de ejemplo: las solicitudes de «Atención ciudadana» y las personas del panel."]
+  prueba_copia --> prueba_web["Sale en la web, con la franja «Versión de prueba en revisión. No es el sitio oficial.». Google no muestra esta web."]
+  prueba_ejemplo --> prueba_consulta["Los comprobantes de prueba se abren en «Consultar mi solicitud». Cada rol entra al panel con un toque."]
+  prueba_web --> prueba_oculto["Lo que todavía no tiene contenido real no sale, como «Gestión y obras» o las emisiones del «Reporte Bernal»."]
+  prueba_consulta --> prueba_borra["Lo que se practica se borra de vez en cuando: todo vuelve a lo que traía al empezar."]
 ```
 
 **Qué hay que saber**
-- Se apaga con `DATABASE_URL` o con `REAL_SITE_CONTENT=0`. Las pruebas ven siempre lo inventado.
-- Trae hasta 48 noticias y 8 de opinión, las más nuevas. Del canal, hasta 12 emisiones. En «Web», cada noticia dice «Traído de la web vieja».
-- Una copia sirve si tiene menos de una semana. Si solo YouTube o el Semanario no responden, esa parte sale de la copia.
-- El menú tampoco tiene «Gestión y obras». Nadie puede cambiar el nombre ni las cuentas en «Ajustes del sitio»: la demo no debe pasar por la web oficial.
+- Trae las noticias y las columnas de opinión más recientes. Lo más nuevo de la web oficial no sale aquí enseguida (ver 7.1). En «Web», cada noticia copiada dice «Traído de la web vieja».
+- En la portada, «Gestión en cifras», «Casos atendidos», «Gestión y obras» y «Avisos de servicio» llevan la marca «Oculto». Todavía no tienen contenido real. Con «Mostrar», en «Web» → «Páginas» → «Inicio», vuelven a salir cuando se publica la portada.
+- «Gestión y obras» tampoco está en el menú. Se agrega en «Ajustes del sitio» → «Navegación» cuando haya obras publicadas.
+- El «Reporte Bernal» todavía no tiene emisiones: su página lleva al canal oficial de YouTube.
+- Las solicitudes de ejemplo llevan «(demo)» en el título. Sus tres comprobantes están en 7.6, y lo que se borra, en 7.7.
