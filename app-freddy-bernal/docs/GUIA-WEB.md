@@ -9,6 +9,10 @@ público. Lo que va entre comillas, «así», es el texto exacto que sale en la 
 
 ## 1. La web, sección por sección
 
+> **Las capturas de esta guía.** Usan noticias, fotos y textos de ejemplo, para que en la guía no aparezca ninguna
+> noticia real. En la web y en el panel se ven las noticias, las columnas de opinión, las fotos, la biografía y el
+> Semanario de la web oficial (ver 3.2).
+
 Todas las páginas tienen el mismo marco:
 
 - **Arriba:** el nombre y el cargo del gobernador, y los dos botones de la gente: **«Hacer un reporte»** (en naranja) y
