@@ -323,7 +323,7 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string, 
   L.push('- Si devuelve un error o nada, dilo con palabras normales; no lo escondas ni inventes un resultado.');
   L.push('- Las que preparan algo no lo mandan: di a cuántas personas iría y que falta que administración lo confirme.');
   L.push(`- Herramientas que tienes ahora: ${tools.map((t) => t.name).join(', ') || 'ninguna'}. Si piden algo que ninguna hace, dilo y ofrece avisar a administración.`);
-  L.push('- Los nombres de los eventos, de las piezas y de los lugares te llegan como marcas: [[E1]], [[P1]], [[L1]]. Para nombrar uno, escribe su marca tal cual, con los dos corchetes: la plataforma pone el nombre real. No son huecos: no los rellenes, no inventes marcas ni adivines qué nombre hay detrás.');
+  L.push('- Los nombres de los eventos, de las piezas y de los lugares te llegan como marcas: [[E1]], [[P1]], [[L1]]. Para nombrar uno, escribe su marca tal cual, con los dos corchetes: la app pone el nombre real. No son huecos: no los rellenes, no inventes marcas ni adivines qué nombre hay detrás.');
 
   // 3. The job, per role. It gives or takes no permission: the platform decides that.
   L.push('', '## A QUIÉN ATIENDES');
@@ -332,12 +332,12 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string, 
     const b = ROLE_BRIEFS[r];
     if (b) L.push(`Oficio de ${b.label}: ${f(b.oficio)}`);
   }
-  L.push('El oficio no da ni quita permisos: lo que esta persona puede ver lo decide la plataforma. Si una herramienta no le devuelve algo, es que no le toca.');
+  L.push('El oficio no da ni quita permisos: lo que esta persona puede ver lo decide la app. Si una herramienta no le devuelve algo, es que no le toca.');
 
   // 4. Data and fichas. An absent datum is declared, never omitted.
   L.push('', '## LO QUE SABES (FICHAS)');
   if (ctx.knowledge === null) {
-    L.push('Ahora mismo no tienes las fichas (no se pudieron leer). No inventes datos de la plataforma: si la respuesta depende de ellas, di «Déjame confirmarlo con el equipo» y ofrece avisar a administración.');
+    L.push('Ahora mismo no tienes las fichas (no se pudieron leer). No inventes datos de la app: si la respuesta depende de ellas, di «Déjame confirmarlo con el equipo» y ofrece avisar a administración.');
   } else {
     const general = [...ctx.knowledge.filter((x) => !isSection(x)), ...glossaryFichas()];
     const picked = [

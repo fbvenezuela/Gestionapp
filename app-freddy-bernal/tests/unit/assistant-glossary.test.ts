@@ -12,6 +12,8 @@ import type { Role } from '@/lib/roles';
 import { GLOSSARY, glossaryLine } from '@/lib/guides';
 import { allEntries, bestAnswer } from '@/lib/assistant/answers/engine';
 import { handleTurn } from '@/lib/assistant';
+import { glossaryFichas, systemPrompt, type TurnContext } from '@/lib/assistant/brain';
+import { defaultProfile } from '@/lib/assistant/config';
 
 const ROLES: Role[] = ['social', 'boss', 'camera', 'dispatch', 'politics', 'ivt', 'admin'];
 const ASK = (x: string) => [`¿qué es ${x}?`, `¿qué significa ${x}?`, `¿qué quiere decir ${x}?`, `¿para qué sirve ${x}?`];
@@ -121,6 +123,28 @@ describe('las palabras de la app en el índice de 360', () => {
     const m = bestAnswer('¿qué es «Copy faltante»?', { roles: ['social'] })!;
     expect(m.entry.kind).not.toBe('term');
     expect(m.text).toMatch(/Copy faltante/);
+  });
+});
+
+// With a model chain (once the legal OK arrives), the words go to the model as fichas of the app, picked like the
+// others for the question: «¿qué es un hook?» brings its meaning, a question about something else does not.
+describe('con modelo: las palabras van como fichas', () => {
+  it('una ficha por palabra, y la del hook en el prompt cuando se pregunta por el hook', () => {
+    expect(glossaryFichas().map((f) => f.key)).toEqual(GLOSSARY.map((g) => `palabra:${g.id}`));
+    expect(glossaryFichas().every((f) => f.origin === 'plataforma')).toBe(true);
+    const ctx: TurnContext = {
+      profile: defaultProfile(),
+      huecos: { name: 'Asistente', app: 'la app', boss: 'el jefe', person: 'Ana' },
+      roles: ['social'],
+      personName: 'Ana Prueba',
+      knowledge: [],
+      scripts: [],
+      history: [],
+      screen: null,
+    };
+    const hook = GLOSSARY.find((g) => g.id === 'hook-y-cta')!;
+    expect(systemPrompt(ctx, [], '¿qué es un hook?')).toContain(hook.text);
+    expect(systemPrompt(ctx, [], '¿cómo cancelo un evento?')).not.toContain(hook.text);
   });
 });
 
