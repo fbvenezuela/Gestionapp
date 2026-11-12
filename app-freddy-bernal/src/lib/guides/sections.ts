@@ -3,7 +3,7 @@
 // groups them under its menu entries. «» only for what the screen says; no concrete dates, phones or demo names.
 import { navFor, type TeamRole } from '../roles';
 import { MSG_AGENDA, MSG_CHANNELS, MSG_ENTER, MSG_FREE, MSG_LINKS, MSG_PHONES, MSG_RELATIVE } from './shared';
-import { CHAT_ADD_READS_BEFORE, CHAT_BOSS_ALWAYS } from '../domain/chat';
+import { CHAT_ADD_READS_BEFORE } from '../domain/chat';
 import type { RoleGuide, SectionGuide } from './types';
 
 type S = SectionGuide;
@@ -16,7 +16,7 @@ export function menuGroup(role: TeamRole, label: string): string {
 
 // Groups that are not a menu entry.
 export const TOP = 'Arriba, en todas las pantallas';
-export const ACCOUNT = 'En «Mi cuenta»';
+export const ACCOUNT = 'En Mi cuenta';
 export const OFF_MENU = 'Fuera de tu menú';
 
 /** What the account looks like for a role: read from the menus themselves (src/lib/roles.ts), so it never drifts. */
@@ -56,7 +56,7 @@ export function messagesSections(role: TeamRole): S[] {
       menu: TOP,
       title: 'Mensajes',
       tour: 'mensajes',
-      what: 'Tus canales con el equipo y «Todo el equipo». Se abre con el sobre de arriba.',
+      what: 'Tus canales con el equipo y «Todo el equipo». Se abre con los globitos de arriba.',
       youDo: [
         'La primera fila es «Todo el equipo»; debajo, tus canales. En negrita, los que tienen algo nuevo.',
         'Los canales archivados están al final, en «Archivados»: se leen, pero ya no se escribe en ellos.',
@@ -68,13 +68,13 @@ export function messagesSections(role: TeamRole): S[] {
       menu: TOP,
       title: 'Un canal',
       tour: 'canal',
-      what: 'Los mensajes de un canal, del más viejo al más nuevo. Abre donde dice «Mensajes nuevos» o al final.',
+      what: 'Los mensajes de un canal, del más viejo al más nuevo. Te lleva al primer mensaje sin leer, donde dice «Mensajes nuevos»; si ya leíste todo, al último.',
       youDo: [
-        'Arriba están el nombre, para qué es el canal y «N personas»: tócalo para ver quiénes están.',
+        'Arriba están el nombre, para qué es el canal y cuántas personas están (por ejemplo, «5 personas»): tócalo para ver quiénes.',
         'Arriba, «Ver anteriores» trae los mensajes más viejos.',
         'Escribes abajo, en la caja.',
         MSG_ENTER,
-        'Tu mensaje sale al momento con “Enviando…”. Si se fue la señal, dice que no se envió y tocas «Reintentar».',
+        'Tu mensaje sale al momento con «Enviando…». Si se fue la señal, dice que no se envió y tocas «Reintentar».',
         MSG_PHONES,
         ...agenda,
         MSG_LINKS,
@@ -93,9 +93,9 @@ export function messagesSections(role: TeamRole): S[] {
         title: 'Nuevo canal',
         what: 'Para armar un canal: nombre, para qué es y quiénes van.',
         youDo: [
-          'Le pones un «Nombre del canal» de hasta 60 letras y, si quieres, una «Descripción corta» de hasta 140.',
+          'Le pones un «Nombre del canal» de hasta 60 letras y, si quieres, una «Descripción corta (opcional)» de hasta 140.',
           'Marcas a quienes van: están agrupados por su rol.',
-          `La primera fila eres tú, ya marcada: ${CHAT_BOSS_ALWAYS}`,
+          'La primera fila eres tú, ya marcado: estás en todos los canales.',
           'Tocas «Crear canal» y se abre el canal.',
         ],
         cannot: ['Poner teléfonos, fechas, horas o mapas en el nombre o la descripción.'],
@@ -108,7 +108,7 @@ export function messagesSections(role: TeamRole): S[] {
         youDo: [
           'Cambias el nombre o la descripción, marcas o desmarcas a las personas y tocas «Guardar»: todo se guarda junto.',
           CHAT_ADD_READS_BEFORE,
-          'Si quitas a alguien, la plataforma te pregunta antes de guardar.',
+          'Si quitas a alguien, la app te pregunta antes de guardar.',
           'Con «Archivar canal» nadie escribe más en él y se sigue leyendo en «Archivados». «Sacar del archivo» lo devuelve tal cual.',
         ],
         cannot: ['Sacarte a ti de un canal: el jefe está en todos.', 'Cambiar «Todo el equipo»: ahí están todos.'],
@@ -144,7 +144,7 @@ export function everyoneSections(role: TeamRole): S[] {
       youDo: [
         'En «Mis datos», tu nombre' + (twoFactor ? ' y cómo está tu doble factor.' : '.'),
         'En «Avisos en este teléfono», «Activar avisos» para que el teléfono te avise aunque la app esté cerrada; «Probar aviso» para ver que llega.',
-        'En «Qué avisos quiero», marca los que quieres recibir. Los importantes llegan siempre.',
+        'En «Qué avisos quiero», marca los que quieres recibir. Los importantes llegan siempre, aunque los desmarques: por ejemplo, que te asignaron un evento, que uno cambió de fecha u hora o se canceló, o que el jefe pidió cambios.',
         'En «Horas de silencio», el teléfono no suena de noche: lo importante llega igual y todo queda en «Avisos».',
         'Toca «Guardar».',
       ],
@@ -157,7 +157,8 @@ export function everyoneSections(role: TeamRole): S[] {
       what: 'La guía de tu trabajo, lo que se hace en cada pantalla, cómo va el trabajo entre todos y los tutoriales de tus pantallas.',
       youDo: [
         '«Mi trabajo, paso a paso»: tu guía con «Tu trabajo», «Paso a paso» y «Cada pantalla».',
-        '«Cómo va el trabajo entre todos»: los flujos de un rol a otro.',
+        '«Qué se hace en cada pantalla»: cada pantalla de tu menú, con sus botones.',
+        '«Cómo va el trabajo entre todos»: cómo pasa el trabajo de un rol a otro (los flujos).',
         '«Tutoriales de mis pantallas»: cada uno te lleva a su pantalla y te la muestra paso a paso.',
         ...(role === 'boss' ? ['«La guía de cada persona»: la guía de los seis roles del equipo.'] : []),
       ],
@@ -184,7 +185,7 @@ export function calendarSection(role: 'boss' | 'dispatch', menu: string): S {
     youDo: [
       'Arriba, los botones grandes: «Nuevo evento», «Visita de obra», «Por ponerle fecha» y «Por decidir»' +
         (role === 'boss' ? ' (te lleva a Política, para aceptar o rechazar).' : ' (te lleva a Hoy: lo que espera al jefe).'),
-      '«Anterior», «Hoy» y «Siguiente» para moverte; «Día», «Semana» o «Mes» para ver más o menos.',
+      'Las flechas ‹ y › y «Hoy» para moverte; «Día», «Semana» o «Mes» para ver más o menos.',
       'Tocas un evento para abrir su ficha.',
       'Los colores: «Aceptado», «Por decidir», «Rechazado» y «Cancelado» (tachado, no se borra).',
     ],
@@ -199,11 +200,11 @@ export function newEventSection(role: 'boss' | 'dispatch', menu: string): S {
     tour: 'nuevo-evento',
     what:
       role === 'boss'
-        ? 'Para poner algo en tu agenda. Lo tuyo queda aceptado de una vez y el despacho se entera.'
+        ? 'Para poner algo en tu agenda. Como lo pones tú, queda aceptado de una vez, y el despacho se entera.'
         : 'Para poner algo en la agenda. Lo que crea el despacho llega al jefe «Por decidir».',
     youDo: [
       'Entras por «Crear» → «Nuevo evento» o «Visita de obra» (o por los botones grandes de la agenda).',
-      '«El evento»: el título, «A dónde se va», el municipio, «De qué se trata», la categoría y la «Prioridad para el equipo».',
+      '«El evento»: el título, «A dónde se va», el municipio, «De qué se trata», la categoría y la «Prioridad para el equipo» («Urgente», «Normal» o «Puede esperar»: dice al equipo qué va primero; la importancia de 1 a 10 es otra cosa, la pone el jefe en «Tu decisión»).',
       '«Fecha, hora y lugar exacto»: la fecha, la «Hora (Táchira)», la duración, la «Dirección exacta», «Cómo se llega» y los «Contactos del sitio». Si choca con otro evento te avisa; si va igual, marca «Guardar aunque choque con otro evento».',
       '«Ficha técnica»: de qué es la obra o el acto, quién la dirige, quién es el encargado, qué se está logrando, los datos con su fuente, el protocolo y «Quién graba».',
       'Tocas «Guardar evento» (o «Guardar visita de obra»).',
@@ -223,7 +224,7 @@ export function toScheduleSection(role: 'boss' | 'dispatch', menu: string): S {
       'Cada tarjeta dice si es «Obra del IVT» o «Reporte comunitario», de dónde es y cuánto lleva esperando.',
       '«Ver ficha» para leerla completa.',
       '«Ponerle fecha»: revisas el «Título del evento» y «A dónde se va» (los ve todo el equipo), pones la fecha, la hora, la dirección y cómo se llega, eliges «Quién graba» y tocas «Guardar la fecha».' +
-        (role === 'boss' ? ' Lo tuyo queda aceptado.' : ' Llega al jefe «Por decidir».'),
+        (role === 'boss' ? ' Como lo pones tú, queda aceptado de una vez: no pasa por «Por decidir».' : ' Llega al jefe «Por decidir».'),
       '«No va»: escribes «Por qué no va» y tocas «Guardar». La obra queda archivada; el reporte queda en el registro del municipio.',
     ],
   };
@@ -239,11 +240,11 @@ export function eventSection(role: TeamRole, menu: string): S {
         tour: 'evento-jefe',
         what: 'Todo de un evento: de qué se trata, dónde y cuándo, la ficha técnica, el storyboard, el material y las piezas.',
         youDo: [
-          'Arriba, los chips: el código, el tipo, cómo va, tu decisión y de dónde nació («Lo agregó el jefe», «Propuesto por Despacho»…).',
-          '«Tu decisión»: la importancia de 1 a 10 y «Aceptar» o «Rechazar». Le avisamos a quien lo propuso y al despacho.',
+          'Arriba, las etiquetas: el número del evento (por ejemplo, E-0003), el tipo, cómo va y tu decisión. Al lado dice de dónde viene («Lo agregó el jefe», «Propuesto por Despacho»…).',
+          '«Tu decisión»: la importancia de 1 a 10 y «Aceptar» o «Rechazar». A quien lo propuso y al despacho les llega un aviso.',
           'La tarjeta de fecha y lugar: «Cambiar fecha o lugar» y, cuando ya empezó, «Marcar realizado».',
-          '«Mover» (otra fecha u hora) y «Cancelar» (queda tachado; «Volver a la agenda» lo trae). El motivo, sin fecha, hora ni teléfono.',
-          'Las pestañas: «Ficha» (ficha técnica, «¿En qué va?», «Quién graba» e «Historial»), «Ficha de obra» o «Reporte» si nació de una ficha, «Storyboard», «Material» y «Piezas».',
+          '«Mover» (otro día u hora) y «Cancelar» (queda tachado; si te arrepientes, «Volver a la agenda» lo pone otra vez). El motivo va sin fecha, hora ni teléfono.',
+          'Las pestañas: «Ficha» (ficha técnica, «¿En qué va?», «Quién graba» e «Historial»), «Ficha de obra» o «Reporte» si viene de una ficha, «Storyboard», «Material» y «Piezas».',
           '«Modo lectura» para leer lo que vas a decir.',
         ],
       };
@@ -253,13 +254,13 @@ export function eventSection(role: TeamRole, menu: string): S {
         menu,
         title: 'Un evento',
         tour: 'evento-despacho',
-        what: 'Todo de un evento de la agenda: dónde y cuándo, la ficha técnica, quién graba y los archivos del storyboard de Grabación.',
+        what: 'Todo de un evento de la agenda: dónde y cuándo, la ficha técnica, quién graba y la foto o el PDF del guion con el que grabó Grabación.',
         youDo: [
           'La tarjeta de fecha y lugar: «Cambiar fecha o lugar» y, cuando ya empezó, «Marcar realizado». Un evento realizado ya no cambia de fecha ni de lugar.',
           '«Mover» y «Cancelar», con su motivo sin fecha, hora ni teléfono.',
           'Pestaña «Ficha»: «Editar» la ficha técnica y «Guardar ficha»; «Editar datos del evento»; «Quién graba» (puede ser más de una persona); «Historial».',
-          'Si el jefe cambió lo mismo que tú, te llega el aviso; gana lo último guardado y lo de antes queda en el «Historial».',
-          'Pestaña «Ficha de obra» o «Reporte», con los contactos (con el doble factor).',
+          'Si el jefe cambió lo mismo que tú, te llega un aviso: se queda el último cambio guardado y lo de antes queda en el «Historial».',
+          'Pestaña «Ficha de obra» o «Reporte», con los contactos (se ven si entraste con el doble factor).',
           '«Modo lectura» si el jefe va a hablar.',
         ],
         cannot: ['Decidir ni calificar el evento: eso es del jefe.', 'Subir material ni leer la nota para el editor: eso es de Grabación y de Redes.'],
@@ -269,7 +270,7 @@ export function eventSection(role: TeamRole, menu: string): S {
         screen: '/eventos/[id]',
         menu,
         title: 'Una actividad en la agenda',
-        what: 'La vista corta de una actividad que nació de tu reporte: si ya tiene fecha, sin decir cuál.',
+        what: 'La vista corta de una actividad que salió de tu reporte: si ya tiene fecha, sin decir cuál.',
         youDo: [
           'Ves el código, «Actividad comunitaria» y la decisión del jefe.',
           'Si ya tiene fecha dice «Ya tiene fecha. La ven el jefe y el despacho en la agenda.»; si se canceló o el jefe la rechazó, la ficha vuelve a «Por ponerle fecha».',
@@ -282,8 +283,8 @@ export function eventSection(role: TeamRole, menu: string): S {
         screen: '/eventos/[id]',
         menu,
         title: 'Una visita de obra',
-        what: 'La vista corta de una visita que nació de tu ficha de obra.',
-        youDo: ['Con el doble factor ves la fecha, la hora y la dirección de la visita.', '«Mis visitas de obra» te devuelve a la lista.'],
+        what: 'La vista corta de una visita que salió de tu ficha de obra.',
+        youDo: ['Si entraste con el doble factor, ves la fecha, la hora y la dirección de la visita.', '«Mis visitas de obra» te devuelve a la lista.'],
         cannot: ['Poner ni cambiar la fecha: la ponen el jefe o el despacho.'],
       };
     case 'camera':
@@ -299,7 +300,7 @@ export function eventSection(role: TeamRole, menu: string): S {
           'Pestaña «Storyboard»: el plan de Redes, para leerlo antes de grabar.',
           'Si es una visita de obra, la pestaña «Ficha de obra» (sin contactos).',
         ],
-        cannot: ['Ver eventos que no te asignaron.', 'Cambiar el storyboard de Redes: el tuyo va en «Entrega de Grabación».'],
+        cannot: ['Ver eventos que no te asignaron.', 'Cambiar el storyboard de Redes: el tuyo va en tu entrega, en la pestaña «Material».'],
       };
     case 'social':
       return {
@@ -326,15 +327,18 @@ export function readingSection(role: 'boss' | 'dispatch', menu: string): S {
     menu,
     title: 'Modo lectura',
     tour: 'lectura',
-    what: 'Lo que va a decir el jefe, en letra grande, para leer en el iPad o en el teléfono.',
+    what:
+      role === 'boss'
+        ? 'Lo que vas a decir, en letra grande, para leer en el iPad o en el teléfono.'
+        : 'Lo que va a decir el jefe, en letra grande, para leer en el iPad o en el teléfono.',
     youDo: [
       'Se abre con «Modo lectura» en el evento o con «Lo que voy a decir» en Política.',
-      '«Letra más grande» y «Letra más pequeña»; «Desplazar solo» con la «Velocidad» que guste, y «Pausar».',
+      'El − y el + cambian el tamaño de la letra. El botón verde hace correr el texto solo, a la velocidad que te guste («Lento», «Medio» o «Rápido»); otro toque lo para.',
       role === 'boss'
         ? 'Arriba, «Antes de hablar»: quién reportó y lo que debes saber antes de tomar la palabra.'
-        : 'Arriba, «Antes de hablar»: quién reportó y lo que el jefe debe saber. Lo ves tú y el jefe.',
+        : 'Arriba, «Antes de hablar»: quién reportó y lo que el jefe debe saber. Lo ven tú y el jefe.',
       'Si la visita de obra no tiene discurso escrito, sale el diálogo FAB de la ficha del IVT.',
-      '«Salir del modo lectura» al terminar.',
+      'La X de arriba sale del modo lectura.',
     ],
   };
 }
@@ -352,8 +356,8 @@ export function obrasSections(role: 'boss' | 'dispatch' | 'ivt', menu: string): 
       what: 'La ficha de cada obra antes de la visita del jefe, sin fecha ni hora: esa la ponen el jefe o el despacho.',
       youDo: [
         '«Nueva ficha de obra» para cargar una.',
-        'Los chips de arriba cuentan cuántas hay por etapa; los tocas para ver solo esas.',
-        'Filtras por municipio y estado con «Filtrar»; «Quitar» lo limpia.',
+        'Arriba, unas etiquetas cuentan las fichas según en qué van: «Borrador», «Por ponerle fecha», «Con fecha» y «Visita realizada». Para ver solo las de una, la eliges en «Estado» y tocas «Filtrar».',
+        'Filtras por «Municipio» y por «Estado» (en qué va la ficha) con «Filtrar»; «Quitar» lo limpia.',
         'Las secciones: «Por ponerle fecha», «Borradores», «Con fecha», «Visitas realizadas» y «Archivadas».',
       ],
     },
@@ -366,7 +370,7 @@ export function obrasSections(role: 'boss' | 'dispatch' | 'ivt', menu: string): 
       youDo: [
         'Cinco grupos: «Datos generales», «Sobre la obra», «Reporte de la comunidad», «Avance y entrega» y «Comunidad y seguimiento».',
         'Si una pregunta no va, marca «No aplica»; si todavía no lo sabes, «Por confirmar».',
-        'Los teléfonos solo van en los contactos, y los contactos se ven con el doble factor.',
+        'Los teléfonos solo van en los contactos. Para ver los contactos hay que entrar con el doble factor.',
         '«Guardar borrador» si te falta algo: todavía no le llega al jefe.',
         'Con todo respondido, «Guardar y avisar al jefe»: al jefe y al despacho les llega «Por ponerle fecha».',
         'Las fotos y los documentos se suben después de guardar, en la ficha.',
@@ -382,7 +386,7 @@ export function obrasSections(role: 'boss' | 'dispatch' | 'ivt', menu: string): 
       youDo: [
         '«Editar» para corregirla; «Archivar» si ya no va (y «Sacar del archivo» si vuelve).',
         ivt
-          ? '«Fecha de la visita»: cuando el jefe o el despacho la ponen, la ves con el doble factor.'
+          ? '«Fecha de la visita»: cuando el jefe o el despacho la ponen, la ves si entraste con el doble factor.'
           : '«Fecha de la visita»: si está por ponerle fecha, ahí está «Ponerle fecha»; si ya tiene, «Ver la visita».',
         '«Lo que voy a decir»: «Generar diálogo FAB» arma qué es la obra, qué mejora y qué gana la gente, solo con las cifras de la ficha. Debajo dice «Lo que la ficha no tiene (no se dice):». Lo corriges, tocas «Guardar» y lo pruebas en «Modo lectura».',
         '«Fotos del antes y del avance»: «Subir fotos del antes», «Subir fotos del avance» y «Subir documentos». Siguen solas si se va la señal.',
@@ -408,7 +412,7 @@ export function municipiosSections(role: 'boss' | 'dispatch' | 'politics', menu:
         'Arriba, «Vencidas en los municipios»: las que pasaron su fecha de seguimiento y no están finalizadas ni suspendidas.',
         '«Nueva ficha comunitaria» para cargar un reporte.',
         'Los números: «Abiertas», «En ejecución», «Finalizadas» y «Vencidas».',
-        'Filtras por municipio, parroquia, tipo, estado o prioridad, o «Solo las vencidas», y tocas «Filtrar»; «Quitar los filtros» lo limpia.',
+        'Filtras por «Municipio», «Parroquia», «Tipo», «Estado» (en qué va: «Programado», «En ejecución», «Finalizado», «Pendiente» o «Suspendido») o «Prioridad», o «Solo las vencidas», y tocas «Filtrar»; «Quitar los filtros» lo limpia.',
         'Abajo, los municipios: tocas uno para ver todo en orden de fecha, por parroquia.' + (politics ? '' : ' También salen sus obras.'),
       ],
     },
@@ -436,10 +440,10 @@ export function municipiosSections(role: 'boss' | 'dispatch' | 'politics', menu:
         politics
           ? '«Agenda del jefe»: si ya tiene fecha dice «Ya tiene fecha. La ven el jefe y el despacho en la agenda.» Nunca dice cuál.'
           : '«Agenda del jefe»: la fecha, o «Ponerle fecha» si va a la agenda y todavía no la tiene.',
-        '«Estado»: eliges el «Nuevo estado», escribes el «Motivo o avance (opcional)» y tocas «Cambiar estado». Cada cambio queda en la historia.',
+        '«Estado» (en qué va el reporte): eliges el «Nuevo estado», escribes el «Motivo o avance (opcional)» y tocas «Cambiar estado». Cada cambio queda en la historia.',
         '«Evidencias»: «Subir fotos del antes», «Subir fotos del después» y «Subir documentos». Los documentos los ven solo política, el jefe y el despacho.',
         '«Historia»: «Agregar una nota» y «Guardar nota», sin teléfonos ni nombres de quien reporta.',
-        'Los contactos de «Persona que reporta» se ven con el doble factor.',
+        'Los contactos de «Persona que reporta» solo se ven si entraste con el doble factor.',
       ],
       cannot: politics ? ['Ponerle fecha: la ponen el jefe o el despacho.'] : undefined,
     },
@@ -450,12 +454,12 @@ export function municipiosSections(role: 'boss' | 'dispatch' | 'politics', menu:
 
 // Each format's section (R4, D-61): what its card carries, with the labels of src/components/redes/card/fields-*.tsx.
 const FORMAT_FIELDS: string[] = [
-  'Reels: el «Título (sale como título del Short)», el «Video», la «Portada», la «Referencia» (la foto de cómo tiene que verse: no sale), las tomas («Agregar toma», cada una con «Lo que dice», «La acción» y «Texto en pantalla»; «Traer del storyboard» si nació de un evento) y el copy.',
+  'Reels: el «Título (sale como título del Short)», el «Video», la «Portada», la «Referencia» (la foto de cómo tiene que verse: no sale), las tomas («Agregar toma», cada una con «Lo que dice», «La acción» y «Texto en pantalla»; «Traer del storyboard» si la pieza viene de un evento) y el copy.',
   'Posts: la «Proporción», la imagen, el «Texto del arte» («Antetítulo», «Titular», «Sellos» y «Letra pequeña»), el «Concepto visual», el «CTA», los «Hashtags», el caption, las «Notas de publicación» y «Enlaces / referencias». «Poner en el copy» pasa el CTA y los hashtags al caption.',
   'Carruseles: las «Láminas» en orden (Portada, Desarrollo, Resumen y CTA), cada una con su imagen, su «Título de la lámina» y su «Texto de la lámina»; «Agregar lámina», «Antes», «Después» y «Quitar lámina». Debajo, el «Hook», el «CTA», los «Hashtags» y el caption.',
-  'Historias: la «Idea original», la foto o el clip vertical, el «Formato del sticker», el «Texto del sticker», el «Enlace del sticker» (solo enlaces seguros, con https), el «Texto en pantalla» y el «Seguimiento». Nacen en verde, para que el jefe las apruebe juntas.',
+  'Historias: la «Idea original», la foto o el clip vertical, el «Formato del sticker», el «Texto del sticker», el «Enlace del sticker» (solo enlaces que empiezan por https://), el «Texto en pantalla» y el «Seguimiento». Empiezan en verde (rutina), para que el jefe las apruebe todas juntas.',
   'YouTube: el «Título (sale con el video)», el «Video», la «Miniatura», el «Guion por tomas» y la «Descripción con capítulos (copy largo)».',
-  'Fin de mes: arriba, el «Resumen del mes» (lo hecho de cada cupo, lo aprobado, lo publicado, la receptividad, los diseños desaprobados y los avisos abiertos); debajo, las piezas del cierre, con sus «Imágenes del cierre» en orden (cada una con su título y su nota) y el copy. No tiene cupo.',
+  'Fin de mes: arriba, el «Resumen del mes · Mes 1» (lo hecho de cada cupo, lo aprobado, lo publicado, la receptividad, los diseños desaprobados y los avisos abiertos); debajo, las piezas del cierre, con sus «Imágenes del cierre» en orden (cada una con su título y su nota) y el copy. No tiene cupo.',
 ];
 
 export function redesSections(role: 'boss' | 'social', group: (label: string) => string): S[] {
@@ -472,13 +476,13 @@ export function redesSections(role: 'boss' | 'social', group: (label: string) =>
         ? 'Tu puerta a Redes: lo que falta en cada formato, por mes o por trimestre, lo último que pasó y lo demás de Redes.'
         : 'El tablero de Redes: lo que falta en cada formato, por mes o por trimestre, y lo último que pasó.',
       youDo: [
-        'Arriba, la barra de secciones: «Tablero», «Reels», «Posts», «Carruseles», «Historias», «YouTube», «Fin de mes», «Feed» y «Tweets», y «Buscar en Redes». Cada formato dice lo revisado de su cupo («n/m») y cuántas piezas no tienen copy o imagen. Lleva el mes que tienes abierto.',
-        'Las cifras: «Receptividad media» (solo de las piezas puntuadas), «Listas para publicar» y «Programadas».',
-        '«Estado del contenido»: cada formato con siete números: «Revisados», «Por revisar», «Diseño aprobado», «Diseño desaprobado», «Publicado», «Copy faltante» e «Imagen faltante». Cada número te lleva a una pieza de esa casilla, abierta en su sección; la vez siguiente, a la que sigue. Un cero dice «¡al día!».',
+        'Arriba, la barra de secciones: «Tablero», «Reels», «Posts», «Carruseles», «Historias», «YouTube», «Fin de mes», «Feed» y «Tweets», y «Buscar en Redes». Cada formato dice cuántas piezas están revisadas de su cupo (por ejemplo, 4 de 8 en Posts). Un triángulo dice cuántas no tienen copy, y una imagen tachada, cuántas no tienen imagen. Al pasar a otra sección sigues en el mismo mes.',
+        'Las cifras: «Receptividad media» (el promedio de las piezas que ya tienen nota), «Listas para publicar» y «Programadas».',
+        '«Estado del contenido»: cada formato con siete números: «Revisados», «Por revisar», «Diseño aprobado», «Diseño desaprobado», «Publicado», «Copy faltante» e «Imagen faltante». Cada número te lleva a una pieza de esa casilla, abierta en su sección; si vuelves a tocar el número, se abre la siguiente. Un cero, al tocarlo, dice «Nada pendiente en esta categoría: ¡al día!».',
         '«Por mes» o «Por trimestre», con las flechas para ir al anterior o al siguiente.',
         '«Observaciones»: los diseños desaprobados y los avisos abiertos. «Actividad reciente»: lo último que pasó en Redes, con cuánto hace.',
-        '«Buscar en Redes»: títulos, campos de las tarjetas, copies, avisos y tweets.',
-        '«Acciones rápidas»: un toque crea un «Nuevo reel», un «Nuevo post», un «Nuevo carrusel», una «Nueva historia», un «Nuevo video de YouTube» o una «Nueva pieza de fin de mes» en el mes abierto y lo abre en su sección. También el «Feed», los «Tweets de la semana» y la «Nueva publicación».',
+        '«Buscar en Redes»: títulos, lo escrito en las tarjetas, copies, avisos y tweets.',
+        '«Acciones rápidas»: un toque crea un «Nuevo reel», un «Nuevo post», un «Nuevo carrusel», una «Nueva historia», un «Nuevo video de YouTube» o una «Nueva pieza de fin de mes» en el mes que estás viendo y lo abre en su sección. También el «Feed», los «Tweets de la semana» y la «Nueva publicación».',
         'Abajo, «Lo demás de Redes»: Tweets, Publicar, Resultados y Biblioteca, con sus números.',
       ],
     },
@@ -489,23 +493,23 @@ export function redesSections(role: 'boss' | 'social', group: (label: string) =>
       tour: 'redes-seccion',
       what: 'Las piezas de un formato (reels, posts, carruseles, historias, videos de YouTube o fin de mes) en el mes que eliges, cada una como una tarjeta que se edita ahí mismo y se guarda sola.',
       youDo: [
-        'Las pestañas de los meses y «+ Nuevo mes»: cada pestaña dice cuántas piezas tiene de su cupo («Mes n · x de y»), y el mes que eliges sigue en las otras secciones y en el feed.',
+        'Las pestañas de los meses y «+ Nuevo mes»: cada pestaña dice cuántas piezas tiene de su cupo (por ejemplo, «Mes 1 · 8 de 8»), y el mes que eliges sigue en las otras secciones y en el feed.',
         'En los tres puntos de las pestañas: «Cambiar nombre» y «Borrar este mes» (antes te dice cuántas piezas tiene; no se borra ninguna: pasan a otro mes).',
-        'Debajo, el cupo del mes de ese formato. Es informativo: pasarse no bloquea nada.',
+        'Debajo, el cupo del mes de ese formato. Es una meta: si haces más piezas, no pasa nada.',
         'El botón de la sección («Nuevo reel», «Nuevo post»…) pone un borrador arriba, abierto y con el título listo para escribir. «Orden»: «A mano», «Orden del feed», «Más recientes» o «Más antiguas».',
-        'La cabecera de cada tarjeta: la miniatura, su número en el feed (o «Sin programar»), el título, el estado, el día en que se creó, el pilar y «En Feed · Mes n #n», que te lleva a su espacio en el feed.',
-        'Los estados se calculan solos: «Borrador», «En revisión», «En revisión · ✓ Lista» (aprobada y sin publicar), «Programado» y «Publicado» (la tarjeta se pone verde).',
+        'La cabecera de cada tarjeta: la miniatura, su número en el feed (o «Sin programar»), el título, el estado, el día en que se creó, el pilar y «En Feed · Mes 1 #2», que te lleva a su espacio en el feed.',
+        'El estado cambia solo, según lo que vas haciendo: «Borrador», «En revisión», «En revisión · ✓ Lista» (aprobada y sin publicar), «Programado» y «Publicado» (la tarjeta se pone verde).',
         'En el teléfono las tarjetas empiezan plegadas, menos la primera: «Desplegar» la abre y «Plegar» la cierra. Una tarjeta a la que llegas desde el tablero, el feed o la búsqueda se abre sola.',
         boss
-          ? 'En los tres puntos de la tarjeta: «Abrir la pieza», «Duplicar», «Subir» y «Bajar» (con el orden «A mano»), «Mover a otro mes» y «Eliminar» (con el doble factor: sale de su sección y del feed, y se puede recuperar).'
-          : 'En los tres puntos de la tarjeta: «Abrir la pieza», «Duplicar», «Subir» y «Bajar» (con el orden «A mano») y «Mover a otro mes».',
+          ? 'En los tres puntos de la tarjeta: «Abrir la pieza», «Duplicar», «Subir» y «Bajar» (mueven la tarjeta más arriba o más abajo en la lista, con el orden «A mano»), «Mover a otro mes» y «Eliminar» (con el doble factor: sale de su sección y del feed, y administración la puede recuperar).'
+          : 'En los tres puntos de la tarjeta: «Abrir la pieza», «Duplicar», «Subir» y «Bajar» (mueven la tarjeta más arriba o más abajo en la lista, con el orden «A mano») y «Mover a otro mes».',
         ...FORMAT_FIELDS,
         'Debajo de los campos: «Agregar aviso» y la banda «Antes de publicar»; «Diseño aprobado» y «Diseño desaprobado», con «¿Qué no le gustó del diseño?»; y en posts, reels y carruseles, la «Receptividad del público (1 a 10)».',
         boss
           ? 'La revisión: en un borrador, «Enviar a aprobación» (si falta algo, dice qué) y «Generar copies». En revisión, «Revisar» te lleva a revisarla y, al decidir, te devuelve a la tarjeta. Aprobada: «Revisado y listo para publicar».'
           : 'La revisión: en un borrador, «Enviar a aprobación» (si falta algo, debajo dice «Falta para enviarla:» y qué) y «Generar copies». En revisión, «Espera al jefe». Aprobada: «Revisado y listo para publicar».',
         'Ya publicada a mano, «Ya lo publiqué»: cada red con su link, «Subir captura» y «Guardar». Sin la aprobación dice «Falta la aprobación del jefe».',
-        'En una pieza aprobada, lo que sale (el copy, el título del reel o del video, el archivo, las imágenes de las láminas, el texto en pantalla y el sticker de la historia) se ve en lectura: «Editar (vuelve al jefe)» lo abre, y la pieza vuelve a revisión. Lo demás se cambia libre.',
+        'En una pieza aprobada, lo que sale (el copy, el título del reel o del video, el archivo, las imágenes de las láminas, el texto en pantalla y el sticker de la historia) queda fijo: para cambiarlo, tocas «Editar (vuelve al jefe)», y la pieza vuelve a revisión. Lo demás se cambia libre.',
       ],
       cannot: boss
         ? undefined
@@ -519,19 +523,19 @@ export function redesSections(role: 'boss' | 'social', group: (label: string) =>
       what: 'Los 24 espacios del feed del mes, en el orden en que se publican: el #1, abajo a la derecha, es el primero que sale, y el #24 está arriba a la izquierda. Van posts, reels y carruseles.',
       youDo: [
         'Las pestañas de los meses son las mismas de las secciones, con cuántos espacios tiene ocupados cada uno.',
-        'Arriba, «n de 24 espacios ocupados en este mes» y la receptividad media; ahí mismo se dice cada cambio («Movida al #n»).',
-        'Un espacio vacío dice «Elegir publicación» y su número («Espacio #nn»): eliges el formato y luego el título. Si la pieza ya está puesta, dice «Ya en Mes n · #n» y te pregunta si la mueves: una pieza nunca está en dos espacios.',
+        'Arriba, «21 de 24 espacios ocupados en este mes» y la receptividad media; ahí mismo se dice cada cambio (por ejemplo, «Movida al #5»).',
+        'Un espacio vacío dice «Elegir publicación» y su número (por ejemplo, «Espacio #07»): eliges el formato y luego el título. Si la pieza ya está puesta, dice «Ya en Mes 1 · #4» y te pregunta si la mueves: una pieza nunca está en dos espacios.',
         'Un espacio lleno muestra la portada actual, su número y la receptividad; lo publicado lleva marco verde y «Publicado».',
-        'En el teléfono, un espacio lleno abre su menú: «Abrir la tarjeta», «Publicar antes», «Publicar después», «Cambiar de espacio», «Mover a otro mes» y «Quitar del feed». En la computadora, el espacio abre su tarjeta y el botón de los tres puntos abre el menú; también puedes arrastrar una pieza sobre otra para cambiarlas de lugar.',
+        'En el teléfono, un espacio lleno abre su menú: «Abrir la tarjeta», «Publicar antes (#20)» y «Publicar después (#22)» (en el espacio #21), «Cambiar de espacio», «Mover a otro mes» y «Quitar del feed». En la computadora, el espacio abre su tarjeta y el botón de los tres puntos abre el menú; también puedes arrastrar una pieza sobre otra para cambiarlas de lugar.',
         '«Vaciar este mes» deja todas las piezas del mes «Sin programar»: no se borra ninguna y siguen en su sección.',
-        'Arriba de los espacios, el nombre y el cargo de la cuenta, y cuántas publicaciones tiene el mes.',
+        'Arriba de los espacios, el nombre y el cargo como salen en el perfil, y cuántas publicaciones tiene el mes.',
       ],
     },
     {
       screen: '/redes/buscar',
       menu: group('Redes'),
       title: 'Buscar en Redes',
-      what: 'Para buscar en todo Redes: títulos, campos de las tarjetas, copies, avisos y tweets.',
+      what: 'Para buscar en todo Redes: títulos, lo escrito en las tarjetas, copies, avisos y tweets.',
       youDo: [
         'Escribes al menos dos letras y tocas «Buscar». También está en el tablero y en la barra de secciones, con «Buscar en Redes».',
         'Los resultados salen agrupados por formato; cada uno abre su tarjeta, en su sección y en su mes. Un tweet abre su tanda.',
@@ -541,7 +545,7 @@ export function redesSections(role: 'boss' | 'social', group: (label: string) =>
       screen: '/piezas/nueva',
       menu: group('Redes'),
       title: 'Nueva pieza desde un evento',
-      what: 'Para crear una pieza que nace de un evento. Desde Redes es más rápido con el botón de cada sección o con «¿Qué quieres crear?».',
+      what: 'Para crear una pieza a partir de un evento. Desde Redes es más rápido con el botón de cada sección o con «¿Qué quieres crear?».',
       youDo: [
         'Llegas desde la pestaña «Piezas» del evento, con «Nueva pieza».',
         'Eliges el «Evento» (o «Sin evento»), el «Formato» (cada uno con su ayuda), el «Mes», la «Categoría» y el «Título» (sin fecha ni hora: Redes lo lee), y tocas «Crear pieza».',
@@ -554,8 +558,8 @@ export function redesSections(role: 'boss' | 'social', group: (label: string) =>
       tour: 'pieza',
       what: 'La misma tarjeta de su sección, en grande, con los copies, el archivo final, sus versiones y el historial. Se abre con «Abrir la pieza» o desde un aviso.',
       youDo: [
-        'Arriba, la tarjeta con sus campos, los avisos, el diseño, la receptividad y la revisión. Ahí eliges el «Nivel de aprobación» (verde, amarillo o rojo) y tocas «Enviar a aprobación».',
-        '«Copies»: eliges la «Fórmula», la «Voz» y el «Cierre» («Pregunta a la comunidad», una acción con destino o «Sin cierre»), y tocas «Escribir desde la ficha». Salen tres largos (el largo es el caption), solo con cifras de la ficha. Revisas cada uno, lo corriges y «Guardar».',
+        'Arriba, la tarjeta con sus campos, los avisos, el diseño, la receptividad y la revisión. Ahí eliges el nivel de aprobación en su cajita («Verde: rutina», «Amarillo: normal» o «Rojo: sensible») y tocas «Enviar a aprobación».',
+        '«Copies»: eliges la «Fórmula», la «Voz» y el «Cierre» (cómo termina el texto: una de las frases de cierre de la marca, «Pregunta a la comunidad», «Acción con destino (enlace, teléfono o dirección)» o «Sin cierre»), y tocas «Escribir desde la ficha». La app escribe tres textos, solo con cifras de la ficha: largo (Instagram, Facebook y TikTok), medio (Threads) y corto (X). Revisas cada uno, lo corriges y «Guardar».',
         '«Archivo final»: «Subir video final (nueva versión)» o «Subir imagen final (nueva versión)», y «Subir portada». En un carrusel y en fin de mes, las imágenes van lámina por lámina en la tarjeta. Si ya estaba aprobada, vuelve a revisión.',
         'Si el jefe pidió cambios, arriba sale «Pidieron cambios» con lo que dijo. Corriges y la envías otra vez.',
         '«Frases pedidas al jefe»: si hace falta su voz, aquí se sube con «Subir el audio del jefe».',
@@ -581,11 +585,15 @@ export function redesSections(role: 'boss' | 'social', group: (label: string) =>
       menu: group('Tweets'),
       title: 'Tweets de la semana',
       tour: 'tweets-nueva',
-      what: 'Para convertir el documento de la semana en tweets repartidos y mandarlos al jefe.',
+      what: boss
+        ? 'Para convertir el documento de la semana en tweets repartidos y mandártelos a aprobar.'
+        : 'Para convertir el documento de la semana en tweets repartidos y mandarlos al jefe.',
       youDo: [
-        '«Subir el documento (.docx, .txt o .md)» o pega el texto, y toca «Separar tweets».',
+        '«Subir el documento (.docx, .txt o .md)» (un documento de Word o de texto) o pega el texto, y toca «Separar tweets».',
         'Ponle el «Nombre de la tanda». Revisa cada tweet: su categoría, «Partir», «Unir con el siguiente» o quitarlo. Si un link no abre, te lo dice.',
-        'Toca «Repartir en la semana y enviar a aprobación»: quedan de 2 a 3 por día y le llegan al jefe.',
+        boss
+          ? 'Toca «Repartir en la semana y enviar a aprobación»: quedan de 2 a 3 por día y te llegan para aprobar.'
+          : 'Toca «Repartir en la semana y enviar a aprobación»: quedan de 2 a 3 por día y le llegan al jefe.',
         '«Empezar de nuevo» borra lo separado; tu texto sigue ahí.',
       ],
     },
@@ -594,11 +602,13 @@ export function redesSections(role: 'boss' | 'social', group: (label: string) =>
       menu: group('Tweets'),
       title: 'Una tanda de tweets',
       tour: 'tanda',
-      what: 'Una tanda: cuántos están por aprobar, aprobados y programados.',
+      what: 'Una tanda: cuántos tweets están por aprobar, cuántos aprobados (todavía sin día y hora) y cuántos programados (aprobados y con su día y hora).',
       youDo: [
-        boss ? '«Aprobar los n» si ya los leíste todos.' : 'Esperas a que el jefe los apruebe.',
+        boss ? '«Aprobar los 3» si ya los leíste todos.' : 'Esperas a que el jefe los apruebe.',
         'Con los aprobados, «Programar»: quedan en el tablero con «Copiar texto» y «Ya lo publiqué».',
-        '«Repartir de nuevo» cambia las horas; «Editar textos» y «Guardar texto» los corrige. Si cambias uno aprobado, vuelve al jefe.',
+        boss
+          ? '«Repartir de nuevo» cambia las horas; «Editar textos» y «Guardar texto» los corrige. Si cambias uno aprobado, vuelve a «Por aprobar».'
+          : '«Repartir de nuevo» cambia las horas; «Editar textos» y «Guardar texto» los corrige. Si cambias uno aprobado, vuelve al jefe.',
       ],
     },
     {
@@ -606,9 +616,9 @@ export function redesSections(role: 'boss' | 'social', group: (label: string) =>
       menu: group('Publicar'),
       title: 'Publicar',
       tour: 'publicar',
-      what: 'El calendario de publicaciones. Por ahora se publica a mano: descargas el paquete y marcas «Ya lo publiqué».',
+      what: 'El calendario de publicaciones. La app no publica sola: bajas el paquete, lo publicas tú en la red y marcas «Ya lo publiqué».',
       youDo: [
-        '«Aprobadas y sin publicar»: las piezas listas, con el chip «Lista».',
+        '«Aprobadas y sin publicar»: las piezas listas, con la etiqueta «Lista».',
         '«Nueva publicación» para programar una.',
         '«Lo que viene» y «Publicado (últimas 2 semanas)».',
         '«Registrar lo que publicó el jefe»: lo que el jefe sacó por su cuenta.',
@@ -619,15 +629,15 @@ export function redesSections(role: 'boss' | 'social', group: (label: string) =>
       menu: group('Publicar'),
       title: 'Nueva publicación',
       tour: 'publicar-nueva',
-      what: 'Para programar una pieza aprobada en una o varias redes, revisando que cumpla con cada una.',
+      what: 'Para programar una pieza aprobada (apartarle el día y la hora) en una o varias redes, revisando que cumpla con cada una.',
       youDo: [
         '«¿Qué pieza vas a publicar?»: eliges una aprobada.',
-        'Eliges las redes: cada una dice «Todo bien», «Revisar» o «No pasa», y qué arreglar. «Ver el copy que va» muestra el texto.',
+        'Eliges las redes. Cada una lleva una marca: verde si todo está bien (dice, por ejemplo, «Todo bien para Instagram.»), amarilla si hay algo que revisar y roja si no pasa. Debajo dice qué arreglar. «Ver el copy que va» muestra el texto.',
         'El «Día» y la «Hora (Táchira)»: si es mala hora, te avisa. Sin hora queda como borrador.',
         '«Colaboradores a invitar» y «¿Es una republicación?» si hace falta.',
-        'Toca «Programar en n redes» (o «Guardar como borrador»). Si sale «Arregla lo marcado en rojo», corrige eso primero.',
+        'Toca «Programar en 2 redes» (o «Guardar como borrador»). Si sale «Arregla lo marcado en rojo», corrige eso primero.',
       ],
-      cannot: ['Publicar una pieza sin aprobar: sin aprobadas dice que el jefe tiene que aprobar antes.'],
+      cannot: ['Publicar una pieza sin aprobar. Si no hay piezas aprobadas, la pantalla avisa que primero las aprueba el jefe.'],
     },
     {
       screen: '/publicar/[id]',
@@ -659,7 +669,7 @@ export function redesSections(role: 'boss' | 'social', group: (label: string) =>
         'Eliges el período: «7 días», «30 días» o «90 días».',
         '«¿A qué hora nos va mejor?», por red. Con pocos datos dice «Todavía pocos datos».',
         '«Por publicación»: tocas el título para abrirla. Los números se cargan en cada publicación, con «Cargar resultados».',
-        '«Cargar resultados desde un archivo (CSV)» y «Elegir archivo CSV» para cargar muchos de una vez.',
+        '«Cargar resultados desde un archivo (CSV)» y «Elegir archivo CSV» (una hoja de cálculo guardada como CSV) para cargar muchos de una vez.',
       ],
     },
   ];
@@ -694,11 +704,11 @@ export function approveSections(menu: string): S[] {
       tour: 'aprobar',
       what: 'Todo lo que espera tu aprobación. Nada se publica sin ella.',
       youDo: [
-        'Las pestañas «Piezas (n)» y «Tweets (n)».',
-        '«Aprobar todas las verdes (n)»: las de rutina, de un toque. Se salta las que tienen avisos de cumplimiento abiertos: esas las abres una por una.',
+        'Las pestañas «Piezas (6)» y «Tweets (3)».',
+        '«Aprobar todas las verdes (2)»: las de rutina, de un toque. Se salta las que tienen avisos de cumplimiento abiertos: esas las abres una por una.',
         'Las amarillas y las rojas, por color y con su plazo: amarillo en 60 minutos, rojo en 30. Tocas una para revisarla.',
         'Cada pieza dice su formato y, si le pusieron avisos, «Tiene avisos».',
-        'Si vence el plazo, la pieza sigue sin aprobar y sale en «Trancado»: nunca sale sola.',
+        'Si vence el plazo, la pieza sigue sin aprobar y sale en «Trancado»: nunca se publica sola.',
       ],
     },
     {
@@ -717,13 +727,13 @@ export function approveSections(menu: string): S[] {
       what: 'Para mirar una pieza antes de aprobarla. Llegas desde «Por aprobar», desde tu Inicio o con «Revisar» en su tarjeta de Redes.',
       youDo: [
         'Arriba, su formato y, si tiene avisos, «Tiene avisos». El video o la imagen: si pausas el video, tu comentario queda en ese segundo.',
-        'Lo de su formato, para leer: el texto del arte, las tomas o las láminas en orden. En una historia, «Lo que sale en la app»: el texto en pantalla y el sticker, que también apruebas.',
+        'Lo de su formato, para leer: el texto del arte, las tomas o las láminas en orden. En una historia, «Lo que sale en la app» (lo que se escribe en Instagram al publicarla): el texto en pantalla y el sticker, que también apruebas.',
         'Si tiene avisos, salen arriba de la lista («Antes de publicar») y la lista pide también «Leí los avisos de cumplimiento».',
-        '«Qué hay que cambiar (o un comentario)», o los motivos rápidos («Muy largo», «Revisar ortografía», «Dice fecha u hora»…).',
+        '«Qué hay que cambiar (o un comentario)», o los motivos ya escritos («Muy largo», «Revisar ortografía», «Dice fecha u hora»…).',
         '«Copies: cómo saldrá»: el texto de cada red.',
         '«Antes de aprobar»: «Cada cifra tiene su fuente», «No dice fecha ni hora del evento», «Se ve y se oye bien (subtítulos, sonido)» y «Los tres copies están revisados» (en una historia, «El texto en pantalla y el sticker están revisados»). Hasta marcarlas, «Aprobar» dice «Marca la lista para aprobar».',
         '«Aprobar», «Pedir cambios» (vuelve a Redes con tu comentario) o «Solo comentar». Si llegaste con «Revisar» desde una tarjeta, al decidir vuelves a esa tarjeta.',
-        '«Cambiar nivel» si el color no es el correcto.',
+        'Si el color no es el correcto, lo cambias arriba, en la cajita del nivel (dice, por ejemplo, «Nivel amarillo»).',
       ],
     },
   ];

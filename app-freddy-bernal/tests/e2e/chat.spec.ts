@@ -192,7 +192,7 @@ test('un teléfono no va en un mensaje: lo dice mientras escribes y al enviar, y
   await shown(page);
   const text = `Llámalo al 0414 555 12 34 (${RUN})`;
   await box(page).fill(text);
-  await expect(page.getByText('Los teléfonos no van en los mensajes: los contactos van en la ficha, con doble factor.').first()).toBeVisible();
+  await expect(page.getByText('Los teléfonos no van en los mensajes: van en los contactos de la ficha.').first()).toBeVisible();
   await page.getByRole('button', { name: 'Enviar' }).click();
   await expect(page.getByRole('alert').filter({ hasText: 'Los teléfonos no van en los mensajes' })).toBeVisible({ timeout: 15_000 });
   await expect(box(page)).toHaveValue(text);

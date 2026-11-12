@@ -4,7 +4,7 @@
 // list exists. Owned by the integrator: a package that needs another anchor asks for it.
 
 export const TOUR_ANCHORS = [
-  // Shell: the bottom bar's «Más», the top bar (panel layout), Modo sol, Mensajes and Ayuda in «Mi cuenta».
+  // Shell: the bottom bar's «Más», the top bar (panel layout), Modo sol, Mensajes and Ayuda in Mi cuenta.
   'nav-more',
   'create',
   'search',

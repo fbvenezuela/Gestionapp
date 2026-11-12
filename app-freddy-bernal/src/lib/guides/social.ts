@@ -43,9 +43,9 @@ export const SOCIAL_GUIDE: RoleGuide = {
     ],
   },
   day: [
-    'Abres la plataforma y caes en Hoy.',
+    'Abres la app y caes en Hoy.',
     '«Lo que espera por mí»: «Cambios», «Storyboard», «Material», «Publicar» y «Grabación», cada uno te lleva a lo que falta.',
-    '«Trancado»: lo que se paró, como una publicación que falló o los pocos días de tweets.',
+    '«Trancado»: lo que se paró, como una publicación que falló o que quedan pocos días con tweets programados.',
     'En Redes, el tablero: lo que falta en cada formato del mes. Cada número te lleva a la tarjeta de esa pieza.',
     'Los tweets del día, en Tweets.',
     'Lo aprobado, en Publicar o con «Ya lo publiqué» en su tarjeta; lo publicado, con sus resultados.',
@@ -70,7 +70,7 @@ export const SOCIAL_GUIDE: RoleGuide = {
       when: 'Cuando Hoy dice «Material» o «Grabación».',
       steps: [
         'Abre el evento desde Hoy: pestaña «Material».',
-        'Lee primero la «Entrega de Grabación»: la nota para el editor y el storyboard con el que grabó.',
+        'Lee primero la entrega de Grabación: la «Nota para el editor» y el «Storyboard con el que se grabó».',
         'Toca «Descargar todo el material» y elige la carpeta.',
         'Un evento ya realizado no sale en tu lista de eventos: lo abres desde Hoy, la Biblioteca o una pieza («Ver evento»).',
       ],
@@ -97,7 +97,7 @@ export const SOCIAL_GUIDE: RoleGuide = {
       when: 'Cuando la pieza está lista.',
       steps: [
         'En la tarjeta, abajo: «Enviar a aprobación». Si está apagado, debajo dice «Falta para enviarla:» y qué falta.',
-        'Para elegir el «Nivel de aprobación» (verde, amarillo o rojo), abre la pieza en grande: tres puntos → «Abrir la pieza».',
+        'Para elegir el nivel de aprobación (la cajita que dice «Verde: rutina», «Amarillo: normal» o «Rojo: sensible»), abre la pieza en grande: tres puntos → «Abrir la pieza».',
         'La tarjeta pasa a «En revisión» y dice «Espera al jefe».',
         'Cuando el jefe la aprueba: «En revisión · ✓ Lista» y «Revisado y listo para publicar».',
       ],
@@ -121,7 +121,7 @@ export const SOCIAL_GUIDE: RoleGuide = {
       title: 'Cambiar algo de una pieza aprobada',
       when: 'Cuando hay que corregir algo que el jefe ya aprobó.',
       steps: [
-        'Lo que sale (el copy, el título del reel o del video, el archivo, las imágenes de las láminas, el texto en pantalla y el sticker de la historia) se ve en lectura.',
+        'Lo que sale (el copy, el título del reel o del video, el archivo, las imágenes de las láminas, el texto en pantalla y el sticker de la historia) queda fijo: no se puede escribir encima.',
         'Toca «Editar (vuelve al jefe)» y confirma: el campo se abre y se guarda solo.',
         'La pieza vuelve a «En revisión» y le llega al jefe otra vez.',
         'Lo demás (las tomas, el texto del arte, las notas, el pilar, el mes y el espacio del feed) se cambia libre y no vuelve al jefe.',
@@ -135,8 +135,8 @@ export const SOCIAL_GUIDE: RoleGuide = {
       steps: [
         'Redes → «Feed», y el mes en las pestañas.',
         'Toca un espacio vacío («Elegir publicación»): elige el formato y luego el título. El #1, abajo a la derecha, es el primero que sale.',
-        'Si la pieza ya está en otro espacio, dice «Ya en Mes n · #n» y te pregunta si la mueves: nunca queda en dos.',
-        'Para mover una: tócala → «Publicar antes», «Publicar después» o «Cambiar de espacio». En la computadora también la puedes arrastrar.',
+        'Si la pieza ya está en otro espacio, dice «Ya en Mes 1 · #4» y te pregunta si la mueves: nunca queda en dos.',
+        'Para mover una: tócala → «Publicar antes (#20)», «Publicar después (#22)» (si está en el #21) o «Cambiar de espacio». En la computadora también la puedes arrastrar.',
         '«Quitar del feed» la deja «Sin programar»; «Vaciar este mes» vacía todo el mes. No se borra ninguna pieza.',
       ],
       flow: 'mes-redes',
@@ -193,8 +193,8 @@ export const SOCIAL_GUIDE: RoleGuide = {
       when: 'Cuando Hoy dice «Publicar» (aprobada: lista para publicar).',
       steps: [
         'Publicar → «Nueva publicación» → «¿Qué pieza vas a publicar?».',
-        'Elige las redes y arregla lo que diga «No pasa». Pon el «Día» y la «Hora (Táchira)».',
-        'Toca «Programar en n redes».',
+        'Elige las redes y arregla lo que salga en rojo. Pon el «Día» y la «Hora (Táchira)».',
+        'Toca «Programar en 2 redes».',
         'En la publicación, «Paquete para publicar»: baja el «Video», la «Portada» y «Copiar el copy».',
         'Publica a mano en la red. Vuelve, pega el «Link de la publicación», «Subir captura» y «Ya lo publiqué».',
         'Si la red no lo aceptó, «No se pudo publicar» → «¿Qué pasó?» → «Marcar como fallida».',
@@ -220,7 +220,7 @@ export const SOCIAL_GUIDE: RoleGuide = {
       title: 'Los tweets de la semana',
       when: 'Cada semana, y cada día para publicarlos.',
       steps: [
-        '«Crear» → «Tweets de la semana»: «Subir el documento (.docx, .txt o .md)» o pega el texto, y «Separar tweets».',
+        '«Crear» → «Tweets de la semana»: «Subir el documento (.docx, .txt o .md)» (un documento de Word o de texto) o pega el texto, y «Separar tweets».',
         'Revisa cada uno: «Partir», «Unir con el siguiente» o quítalo.',
         'Toca «Repartir en la semana y enviar a aprobación».',
         'Cuando el jefe los aprueba, abre la tanda y toca «Programar».',
@@ -254,7 +254,7 @@ export const SOCIAL_GUIDE: RoleGuide = {
       what: 'Tu pantalla de inicio: lo que espera por ti, en orden, y lo que está trancado.',
       youDo: [
         '«Lo que espera por mí»: «Cambios» (el jefe pidió cambios), «Storyboard» (falta el storyboard), «Material» (llegó el material: arma la pieza), «Publicar» (aprobada: lista para publicar) y «Grabación» (notas nuevas).',
-        '«Trancado»: «Falló la publicación en…», «Esperando frase del jefe», «Quedan n días de tweets» y las piezas que vencieron sin aprobar.',
+        '«Trancado»: «Falló la publicación en…», «Esperando frase del jefe», «Quedan 2 días de tweets» y las piezas que vencieron sin aprobar.',
         'Los números: «Cambios pedidos», «Listas para publicar» y «Días de tweets».',
       ],
     },
@@ -290,7 +290,7 @@ export const SOCIAL_GUIDE: RoleGuide = {
       tour: 'evento-redes-material',
       what: 'Lo que subió Grabación, con su nota para el editor.',
       youDo: [
-        'Arriba, la «Entrega de Grabación»: la nota para el editor y el storyboard con el que grabó.',
+        'Arriba, la entrega de Grabación: la «Nota para el editor» y el «Storyboard con el que se grabó».',
         '«Descargar todo el material» a una carpeta.',
         'Las casillas con cada parte, y «Finales y portadas» con los archivos de las piezas.',
         'También puedes subir material, si hace falta.',
@@ -304,14 +304,14 @@ export const SOCIAL_GUIDE: RoleGuide = {
   ],
   flows: ['mes-redes', 'evento', 'aprobacion', 'tweets', 'entrega', 'obra', 'mensajes', 'ayuda'],
   faq: [
-    { q: '¿Por qué no veo la fecha de los eventos?', a: 'Porque la agenda del jefe es información de seguridad: Redes ve los eventos sin fecha, sin hora y sin dirección. La base de datos lo cuida.' },
+    { q: '¿Por qué no veo la fecha de los eventos?', a: 'Porque la agenda del jefe es información de seguridad: Redes ve los eventos sin fecha, sin hora y sin dirección. La app nunca te manda esos datos.' },
     { q: 'No encuentro un evento que ya pasó', a: 'Los eventos realizados no salen en tu lista. Ábrelo desde Hoy («Grabación»), la Biblioteca o la pieza, con «Ver evento».' },
     { q: '¿Puedo bajar el nivel de una pieza?', a: 'No: Redes puede subirlo, no bajarlo. El jefe lo cambia si hace falta.' },
-    { q: '¿Qué pasa si vence el plazo de aprobación?', a: 'La pieza sigue sin aprobar y sale en «Trancado». Nunca sale sola.' },
-    { q: '¿Se publica solo?', a: 'No, por ahora se publica a mano: bajas el paquete, publicas en la red y marcas «Ya lo publiqué».' },
+    { q: '¿Qué pasa si vence el plazo de aprobación?', a: 'La pieza sigue sin aprobar y sale en «Trancado». Nunca se publica sola.' },
+    { q: '¿Se publica solo?', a: 'No. La app no publica sola: bajas el paquete, lo publicas tú en la red y marcas «Ya lo publiqué».' },
     { q: '¿Dónde están las piezas?', a: 'En Redes, cada una en la sección de su formato y en el mes que elijas: Reels, Posts, Carruseles, Historias, YouTube y Fin de mes.' },
     { q: '¿Por qué volvió al jefe?', a: 'Porque cambió algo de lo que sale (el copy, el archivo, el título del reel o del video, las imágenes de las láminas, el texto en pantalla o el sticker de la historia) o le pusieron un aviso nuevo. Lo demás se cambia sin que vuelva.' },
     { q: '¿Por qué no puedo marcar «Ya lo publiqué»?', a: 'Porque falta la aprobación del jefe, o porque el jefe desaprobó el diseño después de aprobarla: hasta que la vuelva a aprobar, no sale.' },
-    { q: '¿Puedo eliminar una pieza?', a: 'No: solo el jefe elimina piezas, y no se borran de verdad.' },
+    { q: '¿Puedo eliminar una pieza?', a: 'No: solo el jefe elimina piezas, y administración las puede recuperar.' },
   ],
 };

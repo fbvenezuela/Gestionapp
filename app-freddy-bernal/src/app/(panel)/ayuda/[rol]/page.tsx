@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { menuRoles, requireSession } from '@/lib/auth/session';
 import { homeFor } from '@/lib/roles';
 import { GUIDE_TITLES, guideFor, roleForSlug, toursForRoles } from '@/lib/guides';
+import { HOW_TO_READ } from '@/lib/guides/shared';
 import { noPermissionUrl } from '@/components/shell/no-permission';
 import { PageHeader } from '@/components/ui/page';
 import { GuideTabs, JobTab, ScreensTab, TasksTab, parseGuideTab, tabLabel } from '@/components/guides/role-guide';
@@ -29,7 +30,12 @@ export default async function RoleGuidePage({ params, searchParams }: { params: 
     <div className="mx-auto max-w-3xl">
       <PageHeader
         title={mine ? 'Tu guía' : GUIDE_TITLES[role]}
-        subtitle={mine ? `${guide.label}: tu trabajo, paso a paso y cada pantalla.` : `Lo que hace ${guide.label}, paso a paso y en cada pantalla.`}
+        subtitle={
+          <>
+            {mine ? `${guide.label}: tu trabajo, paso a paso y cada pantalla.` : `Lo que hace ${guide.label}, paso a paso y en cada pantalla.`}
+            <span className="mt-1 block text-sm">{HOW_TO_READ}</span>
+          </>
+        }
         back={{ href: '/ayuda', label: 'Ayuda y guías' }}
       />
       <GuideTabs slug={rol} current={tab} mine={mine} />

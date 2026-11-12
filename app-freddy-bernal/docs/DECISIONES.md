@@ -613,8 +613,13 @@ comando, los mensajes no se borran).
   `/ayuda/administracion`, solo administración, y `docs/GUIA-ADMINISTRACION.md`). Ninguna guía del equipo nombra a
   administración salvo en el aviso de Mensajes («Administración no lee las conversaciones») y en la línea de 360
   («Administración ve lo que le preguntas a 360»).
+- **12/11/2026 (guía del equipo en la app, decisión de Juan):** las guías del equipo también nombran a administración
+  donde la persona lo necesita: quién lee lo que le preguntas a 360 («Administración (las personas que manejan la parte
+  técnica de la app) puede leer lo que le preguntas a 360…»), quién recupera una pieza que eliminó el jefe
+  («administración la puede recuperar») y su palabra en «Palabras de la app». Solo esas frases (`ADMIN_MENTIONS` en
+  `src/lib/guides/shared.ts`, que la prueba de las guías revisa); la guía de administración sigue aparte.
 - **Por qué:** lo pidió Hillary (administración no entra en las guías del equipo).
-- **Cómo se cambia:** `src/lib/guides/admin.ts`.
+- **Cómo se cambia:** `src/lib/guides/admin.ts`; las frases que nombran a administración, `ADMIN_MENTIONS`.
 
 ## D-44. Flujogramas: lista accesible en la app, Mermaid en el repo (28/10/2026)
 - **Qué:** en la app, cada flujo es una lista ordenada de tarjetas («Paso 3 · Redes · tú») con flechas decorativas en

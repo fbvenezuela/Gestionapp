@@ -41,10 +41,10 @@ export const DISPATCH_GUIDE: RoleGuide = {
       'Poner teléfonos fuera de los contactos de la ficha.',
     ],
     worksWith: [
-      { role: 'boss', what: 'Comparten la agenda. Lo del jefe nace aceptado; lo tuyo le llega «Por decidir». Si los dos cambian lo mismo, gana lo último guardado y te avisamos.' },
+      { role: 'boss', what: 'Comparten la agenda. Lo del jefe queda aceptado desde que se guarda; lo tuyo le llega «Por decidir». Si los dos cambian lo mismo, se queda el último cambio guardado y al otro le llega un aviso.' },
       { role: 'ivt', what: 'Te manda sus fichas de obra con «Guardar y avisar al jefe» para que les pongas fecha.' },
       { role: 'politics', what: 'Te manda los reportes que van a la agenda del jefe.' },
-      { role: 'camera', what: 'Graba lo que le asignas en «Quién graba». Le avisamos sin decir la fecha en el aviso.' },
+      { role: 'camera', what: 'Graba lo que le asignas en «Quién graba». Le llega un aviso, sin la fecha.' },
       { role: 'social', what: 'Arma el storyboard y las piezas de cada evento. Ve los eventos sin fecha ni hora.' },
     ],
     rhythm: [
@@ -55,7 +55,7 @@ export const DISPATCH_GUIDE: RoleGuide = {
     ],
   },
   day: [
-    'Abres la plataforma y caes en Hoy.',
+    'Abres la app y caes en Hoy.',
     '«Lo que espera por mí» empieza con «Por ponerle fecha»: cada una abre su ficha, y ahí está «Ponerle fecha».',
     'Después, «Ficha técnica incompleta»: abres el evento, «Editar» y «Guardar ficha».',
     '«Hoy en la agenda» te dice qué hay hoy, con su hora y su lugar.',
@@ -112,8 +112,8 @@ export const DISPATCH_GUIDE: RoleGuide = {
       title: 'Mover, cambiar o cancelar un evento',
       when: 'Cuando cambia el plan.',
       steps: [
-        '«Mover»: otra fecha u hora y «Guardar la nueva fecha». A quien graba le avisamos, sin la fecha.',
-        '«Cambiar fecha o lugar» para la dirección o cómo se llega.',
+        '«Mover» cambia solo el día o la hora: eliges la nueva y tocas «Guardar la nueva fecha». A quien graba le llega un aviso, sin la fecha.',
+        '«Cambiar fecha o lugar» abre todo junto: la fecha, la hora, la dirección, cómo se llega y los contactos. Úsalo sobre todo para el lugar.',
         '«Cancelar»: el «Motivo (opcional)», sin fecha, hora ni teléfono, y «Sí, cancelar el evento». Queda tachado.',
         'Si el jefe cambió lo mismo que tú, te llega el aviso. Lo de antes queda en el «Historial».',
       ],
@@ -130,7 +130,7 @@ export const DISPATCH_GUIDE: RoleGuide = {
       id: 'fichas',
       title: 'Crear una ficha de obra o comunitaria',
       when: 'Cuando haga falta.',
-      steps: ['«Crear» → «Ficha de obra» o «Ficha comunitaria».', 'Llena los grupos; lo que no va, «No aplica»; lo que falta saber, «Por confirmar».', 'Los contactos, con el doble factor. Guarda.'],
+      steps: ['«Crear» → «Ficha de obra» o «Ficha comunitaria».', 'Llena los grupos; lo que no va, «No aplica»; lo que falta saber, «Por confirmar».', 'Los teléfonos van solo en los contactos; para verlos hay que entrar con el doble factor. Al final, toca «Guardar y avisar al jefe» (en una ficha de obra, «Guardar borrador» si te falta algo; en una comunitaria que no va a la agenda, «Guardar»).'],
       flow: 'comunitario',
       tour: 'nueva-obra',
     },
@@ -165,8 +165,8 @@ export const DISPATCH_GUIDE: RoleGuide = {
   faq: [
     { q: '¿Por qué mi evento dice «Por decidir»?', a: 'Porque lo que crea el despacho lo decide el jefe. Cuando lo acepta o lo rechaza, te llega el aviso.' },
     { q: '¿Qué pasa si el jefe y yo cambiamos lo mismo?', a: 'Queda lo último que se guardó. Te llega el aviso y lo de antes queda en el «Historial» del evento.' },
-    { q: '¿Por qué no puedo subir material?', a: 'Porque el material lo sube Grabación. Tú ves los archivos del storyboard con el que grabó.' },
-    { q: '¿Puedo escribirle la hora a Redes?', a: 'No. Redes no ve la fecha ni la hora, y la plataforma no deja escribirlas en un canal donde está Redes o política.' },
-    { q: 'Cancelé un evento por error, ¿se borró?', a: 'No: queda tachado en la agenda, con quién lo canceló y por qué. El jefe o el despacho lo traen con «Volver a la agenda».' },
+    { q: '¿Por qué no puedo subir material?', a: 'Porque el material lo sube Grabación. Tú ves la foto o el PDF del guion con el que grabó.' },
+    { q: '¿Puedo escribirle la hora a Redes?', a: 'No. Redes no ve la fecha ni la hora, y la app no deja escribirlas en un canal donde está Redes o política.' },
+    { q: 'Cancelé un evento por error, ¿se borró?', a: 'No: queda tachado en la agenda, con quién lo canceló y por qué. El jefe o el despacho lo ponen otra vez en la agenda con «Volver a la agenda».' },
   ],
 };

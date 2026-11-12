@@ -13,8 +13,9 @@ import { CAMERA_GUIDE } from './camera';
 import { SOCIAL_GUIDE } from './social';
 
 export { HOME_NEXT, HOME_SCREEN, TOURS } from './tours';
-export { FLOWS, flowById } from './flows';
+export { FLOWS, SEE_FLOW, flowById, jumpWords } from './flows';
 export { SHARED, sharedFor } from './shared';
+export { GLOSSARY, glossaryLine } from './glossary';
 export { ADMIN_GUIDE } from './admin';
 export { GUIDE_SLUGS, GUIDE_TITLES, roleForSlug } from './slugs';
 export type * from './types';

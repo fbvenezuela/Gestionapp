@@ -1,16 +1,17 @@
 import Link from 'next/link';
-import { ChevronDown, ExternalLink, PlayCircle } from 'lucide-react';
-import type { Role } from '@/lib/roles';
+import { ChevronDown, ChevronRight, ExternalLink, PlayCircle } from 'lucide-react';
+import { NAV, type Role } from '@/lib/roles';
 import { canOpen } from '@/lib/assistant/screens';
 import { flowById, teamRolesOf, tourHref, type RoleGuide, type SectionGuide, type Tour } from '@/lib/guides';
 import { cn } from '@/lib/cn';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { buttonVariants } from '@/components/ui/button';
-import { Flowchart, ROLE_SHORT } from './flowchart';
+import { Flowchart, ROLE_SHORT, whoDoes } from './flowchart';
 
-// One role's guide (R3, design §5.4, U18): three tabs, «Tu trabajo» (the job description, the day, the rhythm and the
-// questions), «Paso a paso» (each task, its flow and its tutorial) and «Cada pantalla» (grouped by menu entry, each
-// screen a closed <details>). For someone else's role the tabs say «Su…». Server components: plain links, no state.
+// One role's guide (R3, design §5.4, U18): three tabs, «Tu trabajo» (the job description, the day, the rhythm, the
+// account, how the work passes to the others and the questions), «Paso a paso» (each task, how the work goes on and
+// its tutorial) and «Cada pantalla» (grouped by menu entry, each screen a closed <details>). For someone else's role the
+// tabs say «Su…». Server components: plain links, no state.
 
 export type GuideTab = 'trabajo' | 'pasos' | 'pantallas';
 export const GUIDE_TABS: GuideTab[] = ['trabajo', 'pasos', 'pantallas'];
@@ -61,6 +62,8 @@ const Bullets = ({ items, ordered }: { items: string[]; ordered?: boolean }) => 
 export function JobTab({ guide, mine }: { guide: RoleGuide; mine: boolean }) {
   const { job, account } = guide;
   const your = mine ? 'Tu' : 'Su';
+  const home = NAV.find((n) => n.href === account.home)?.label;
+  const flows = guide.flows.map((id) => flowById(id)).filter((f) => f !== null);
   return (
     <div className="flex flex-col gap-4">
       <Card>
@@ -107,6 +110,12 @@ export function JobTab({ guide, mine }: { guide: RoleGuide; mine: boolean }) {
         <CardHeader title={mine ? 'Tu cuenta' : 'Su cuenta'} />
         <CardBody>
           <dl className="grid gap-3 text-[15px] sm:grid-cols-2">
+            {home ? (
+              <div>
+                <dt className="label-caps">{mine ? 'Tu inicio' : 'Su inicio'}</dt>
+                <dd>{mine ? `${home}: al entrar caes ahí.` : `${home}: al entrar cae ahí.`}</dd>
+              </div>
+            ) : null}
             <div>
               <dt className="label-caps">Menú</dt>
               <dd>{account.menu.join(', ')}</dd>
@@ -137,6 +146,24 @@ export function JobTab({ guide, mine }: { guide: RoleGuide; mine: boolean }) {
           </dl>
         </CardBody>
       </Card>
+      {flows.length ? (
+        <Card solid>
+          <CardHeader title={mine ? 'Cómo pasa tu trabajo a los demás' : 'Cómo pasa su trabajo a los demás'} subtitle="Cada flujo, paso a paso, en «Cómo va el trabajo entre todos»." />
+          <ul className="divide-y divide-border">
+            {flows.map((f) => (
+              <li key={f.id}>
+                <Link href={`/ayuda/flujos?f=${f.id}`} className="flex min-h-14 items-center gap-3 px-4 py-3 hover:bg-surface-2 sm:px-5">
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="font-semibold [overflow-wrap:anywhere]">{f.title}</span>
+                    <span className="text-sm text-text-2">{whoDoes(f.roles, 'y')}</span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted" aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
       <Faq faq={guide.faq} />
     </div>
   );
@@ -191,7 +218,7 @@ export function TasksTab({ guide, tours, home, roles }: { guide: RoleGuide; tour
               {flow ? (
                 <details className="group rounded-[var(--radius-control)] border border-border">
                   <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 font-semibold [&::-webkit-details-marker]:hidden">
-                    <span className="min-w-0 flex-1">Ver el flujo: {flow.title}</span>
+                    <span className="min-w-0 flex-1">Cómo sigue el trabajo: {flow.title}</span>
                     <ChevronDown className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" aria-hidden />
                   </summary>
                   <div className="p-3">

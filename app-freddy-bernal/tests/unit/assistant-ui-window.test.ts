@@ -362,8 +362,8 @@ describe('la ventana dice la pantalla, y lo que ve administración', () => {
     expect(widget).toContain('body: JSON.stringify({ pregunta: q, conversacion: before.conversationId, pantalla: screen })');
     expect(widget).toContain('const screen = screenPattern(pathname);');
   });
-  it('una línea fija bajo el campo: administración ve lo que se le pregunta; no pegar mensajes del equipo', () => {
-    expect(panelNote('360')).toBe('Administración ve lo que le preguntas a 360; no pegues aquí mensajes del equipo.');
+  it('una línea fija bajo el campo: administración puede leer lo que se le pregunta; no pegar mensajes del equipo', () => {
+    expect(panelNote('360')).toBe('Administración puede leer lo que le preguntas a 360; no pegues aquí mensajes del equipo.');
     expect(widget).toContain('{panelNote(profile.name)}');
   });
 });

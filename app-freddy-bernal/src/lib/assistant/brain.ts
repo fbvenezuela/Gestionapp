@@ -6,7 +6,7 @@ import { EVENT_NOUNS, aboutEvent, asksAboutPublishing, asksRoute, asksWhenWhere,
 import { scrubTeamFicha, scrubTeamScript } from './guard';
 import { carriesWhen, hasDate, hasPlaceOrContact, redact, redactDeep, redactEventSpeech, redactLandmarks, redactQuoted } from './redact';
 import { fillHuecos, plain, sentences, HUECO, type Huecos } from './text';
-import { sectionCards } from '../guides';
+import { GLOSSARY, sectionCards } from '../guides';
 import { findAnswers } from './answers/engine';
 import { screenFor } from './screens';
 import { ANY_TOKEN, NO_TITLES, Placeholders, type TitleSet } from './titles';
@@ -244,6 +244,17 @@ export function sectionFichas(roles: Role[]): Ficha[] {
 }
 export const isSection = (f: Pick<Ficha, 'key'>) => !!f.key?.startsWith(SECTION_PREFIX);
 export const sectionKey = (screen: string, role: Role) => `${SECTION_PREFIX}${screen}:${role}`;
+// «Palabras de la app» (src/lib/guides/glossary.ts) for the model chain: one card per word, from the code, scored with
+// the general fichas of the turn (systemPrompt → pickFichas), so «¿qué es un hook?» brings its meaning. The demo brain
+// has them in its own index (answers/engine.ts glossaryEntries); they are not section cards and not the database's.
+export const GLOSSARY_PREFIX = 'palabra:';
+let WORDS: Ficha[] | null = null;
+/** The glossary's words, as fichas of the platform. */
+export function glossaryFichas(): Ficha[] {
+  WORDS ??= GLOSSARY.map((g) => ({ key: `${GLOSSARY_PREFIX}${g.id}`, title: g.term, body: g.text, tags: [...g.aka], origin: 'plataforma' }));
+  return WORDS;
+}
+
 /** The section cards of this screen for these roles (in the order of the roles). */
 export function sectionsFor(all: Ficha[] | null, screen: string | null | undefined, roles: Role[]): Ficha[] {
   if (!all || !screen) return [];
@@ -312,7 +323,7 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string, 
   L.push('- Si devuelve un error o nada, dilo con palabras normales; no lo escondas ni inventes un resultado.');
   L.push('- Las que preparan algo no lo mandan: di a cuántas personas iría y que falta que administración lo confirme.');
   L.push(`- Herramientas que tienes ahora: ${tools.map((t) => t.name).join(', ') || 'ninguna'}. Si piden algo que ninguna hace, dilo y ofrece avisar a administración.`);
-  L.push('- Los nombres de los eventos, de las piezas y de los lugares te llegan como marcas: [[E1]], [[P1]], [[L1]]. Para nombrar uno, escribe su marca tal cual, con los dos corchetes: la plataforma pone el nombre real. No son huecos: no los rellenes, no inventes marcas ni adivines qué nombre hay detrás.');
+  L.push('- Los nombres de los eventos, de las piezas y de los lugares te llegan como marcas: [[E1]], [[P1]], [[L1]]. Para nombrar uno, escribe su marca tal cual, con los dos corchetes: la app pone el nombre real. No son huecos: no los rellenes, no inventes marcas ni adivines qué nombre hay detrás.');
 
   // 3. The job, per role. It gives or takes no permission: the platform decides that.
   L.push('', '## A QUIÉN ATIENDES');
@@ -321,14 +332,14 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string, 
     const b = ROLE_BRIEFS[r];
     if (b) L.push(`Oficio de ${b.label}: ${f(b.oficio)}`);
   }
-  L.push('El oficio no da ni quita permisos: lo que esta persona puede ver lo decide la plataforma. Si una herramienta no le devuelve algo, es que no le toca.');
+  L.push('El oficio no da ni quita permisos: lo que esta persona puede ver lo decide la app. Si una herramienta no le devuelve algo, es que no le toca.');
 
   // 4. Data and fichas. An absent datum is declared, never omitted.
   L.push('', '## LO QUE SABES (FICHAS)');
   if (ctx.knowledge === null) {
-    L.push('Ahora mismo no tienes las fichas (no se pudieron leer). No inventes datos de la plataforma: si la respuesta depende de ellas, di «Déjame confirmarlo con el equipo» y ofrece avisar a administración.');
+    L.push('Ahora mismo no tienes las fichas (no se pudieron leer). No inventes datos de la app: si la respuesta depende de ellas, di «Déjame confirmarlo con el equipo» y ofrece avisar a administración.');
   } else {
-    const general = ctx.knowledge.filter((x) => !isSection(x));
+    const general = [...ctx.knowledge.filter((x) => !isSection(x)), ...glossaryFichas()];
     const picked = [
       ...sectionsFor(ctx.knowledge, ctx.screen, ctx.roles).slice(0, 1),
       ...pickFichas(general, `${question} ${ctx.history.filter((h) => h.who === 'persona').slice(-2).map((h) => h.body).join(' ')}`, ctx.roles, 4, true, 3),

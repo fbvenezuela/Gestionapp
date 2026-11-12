@@ -1,14 +1,14 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { loginAs } from './helpers';
-import { FLOWS, GUIDE_TITLES, guideFor } from '../../src/lib/guides';
+import { FLOWS, GLOSSARY, GUIDE_TITLES, flowById, guideFor } from '../../src/lib/guides';
 import type { TeamRole } from '../../src/lib/roles';
-import { MSG_CHANNELS } from '../../src/lib/guides/shared';
+import { HOW_TO_READ, MSG_CHANNELS } from '../../src/lib/guides/shared';
 
 // Ayuda y guías (R3, D-42, D-43, D-44, design §5.4, §9.2): /ayuda and the role's guide with its three tabs for every
 // role at 360 px, with axe and without sideways scroll; the boss opens the six guides; Grabación cannot open Redes'
-// guide; Administración has its own; the flows' index and one flow with «tú». Read-only: nothing here writes to the
-// demo database.
+// guide; Administración has its own; the flows' index and one flow with «tú»; «Palabras de la app» in «Para todos» and
+// «Cómo pasa tu trabajo a los demás» in «Tu trabajo» (12/11). Read-only: nothing here writes to the demo database.
 test.describe.configure({ mode: 'serial', timeout: 180_000 });
 
 async function noSerious(page: Page, where: string) {
@@ -43,6 +43,8 @@ for (const p of TEAM) {
     await loginAs(page, p.email);
     await page.goto('/ayuda');
     await expect(page.getByRole('heading', { level: 1, name: 'Ayuda y guías' })).toBeVisible();
+    // How to read the guide: «así» is the screen's text, the numbers in parentheses change.
+    await expect(page.getByText(HOW_TO_READ)).toBeVisible();
     await expect(page.getByRole('link', { name: /^Mi trabajo, paso a paso/ })).toHaveAttribute('href', `/ayuda/${g.slug}`);
     await expect(page.getByRole('link', { name: /^Qué se hace en cada pantalla/ })).toHaveAttribute('href', `/ayuda/${g.slug}?ver=pantallas`);
     await expect(page.getByRole('link', { name: /^Cómo va el trabajo entre todos/ })).toHaveAttribute('href', '/ayuda/flujos');
@@ -52,6 +54,10 @@ for (const p of TEAM) {
     await page.locator('#para-todos summary', { hasText: 'Mensajes' }).click();
     await expect(page.locator('#para-todos')).toContainText(MSG_CHANNELS);
     await expect(page.locator('#para-todos')).not.toContainText('puede leer todas las conversaciones');
+    // «Palabras de la app»: the last part of «Para todos», closed; it opens with every word and what it means.
+    await page.locator('#palabras summary').click();
+    await expect(page.locator('#palabras dt')).toHaveCount(GLOSSARY.length);
+    await expect(page.locator('#palabras')).toContainText(GLOSSARY[0].text);
     // Only the boss (and Administración) see every role's guide.
     await expect(page.getByRole('heading', { name: 'La guía de cada persona' })).toHaveCount(p.role === 'boss' ? 1 : 0);
     await check(page, '/ayuda');
@@ -59,18 +65,23 @@ for (const p of TEAM) {
     await page.getByRole('link', { name: /^Mi trabajo, paso a paso/ }).click();
     await expect(page).toHaveURL(new RegExp(`/ayuda/${g.slug}$`));
     await expect(page.getByRole('heading', { level: 1, name: 'Tu guía' })).toBeVisible();
+    await expect(page.getByText(HOW_TO_READ)).toBeVisible();
     const tabs = page.getByRole('navigation', { name: 'Partes de la guía' });
     await expect(tabs.getByRole('link')).toHaveText(['Tu trabajo', 'Paso a paso', 'Cada pantalla']);
     await expect(tabs.getByRole('link', { name: 'Tu trabajo' })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByText(g.job.mission)).toBeVisible();
     await page.getByRole('main').locator('summary', { hasText: g.faq[0].q }).click();
     await expect(page.getByText(g.faq[0].a)).toBeVisible();
+    // How the work passes to the others: one link per flow of the role.
+    await expect(page.getByRole('heading', { name: 'Cómo pasa tu trabajo a los demás' })).toBeVisible();
+    const firstFlow = flowById(g.flows[0])!;
+    await expect(page.getByRole('link', { name: new RegExp(`^${firstFlow.title}`) }).first()).toHaveAttribute('href', `/ayuda/flujos?f=${firstFlow.id}`);
     await check(page, `${g.slug} · trabajo`);
 
     await tabs.getByRole('link', { name: 'Paso a paso' }).click();
     await expect(page).toHaveURL(new RegExp(`/ayuda/${g.slug}\\?ver=pasos$`));
     await expect(page.getByRole('heading', { name: g.tasks[0].title, exact: true })).toBeVisible();
-    const flow = page.getByRole('main').locator('summary', { hasText: /^Ver el flujo:/ }).first();
+    const flow = page.getByRole('main').locator('summary', { hasText: /^Cómo sigue el trabajo:/ }).first();
     if (await flow.count()) {
       await flow.click();
       await expect(page.locator('details[open] ol[aria-label$="pasos"]').first()).toBeVisible();
@@ -112,13 +123,26 @@ test('Grabación no abre la guía de Redes: vuelve a su inicio con el aviso', as
   await expect(page.getByRole('heading', { name: 'Algo no cargó' })).toHaveCount(0);
 });
 
+// Hoy is not theirs (APP-08, 12/11): política and the IVT go back to their own home with the notice, as their guide
+// says; so does someone of the web, whose home is the web's screen.
+for (const [email, home] of [['politica@demo.test', '/municipios'], ['ivt@demo.test', '/obras'], ['web.editora@demo.test', '/admin/web']] as const) {
+  test(`${email}: Hoy no está en su menú, vuelve a su inicio con el aviso`, async ({ page }) => {
+    await loginAs(page, email);
+    await page.goto('/hoy');
+    await expect(page).toHaveURL(new RegExp(`${home}\\?sin-permiso=1$`));
+    await expect(page.getByText('Esa pantalla no es de tu rol.', { exact: false })).toBeVisible();
+  });
+}
+
 test('administración: su guía aparte y la de cada persona', async ({ page }) => {
   await loginAs(page, 'admin@demo.test');
   await page.goto('/ayuda');
   await expect(page.getByRole('link', { name: /^Guía de administración/ })).toHaveAttribute('href', '/ayuda/administracion');
   await expect(page.getByRole('heading', { name: 'La guía de cada persona' })).toBeVisible();
-  // Without «Ver como», Administración has no team guide of its own and no tutorials.
+  // Without «Ver como», Administración has no team guide of its own and no tutorials; it has «Palabras de la app».
   await expect(page.getByRole('link', { name: /^Mi trabajo, paso a paso/ })).toHaveCount(0);
+  await page.locator('#palabras summary').click();
+  await expect(page.locator('#palabras dt')).toHaveCount(GLOSSARY.length);
   await check(page, '/ayuda (administración)');
   await page.goto('/ayuda/administracion');
   await expect(page.getByRole('heading', { level: 1, name: 'Guía de administración' })).toBeVisible();
@@ -147,6 +171,18 @@ test('los flujos: el índice y uno abierto, con «tú» en los pasos de Redes', 
   await check(page, '/ayuda/flujos?f=tweets');
   await page.emulateMedia({ colorScheme: 'dark' });
   await noSerious(page, '/ayuda/flujos?f=tweets (oscuro)');
+});
+
+test('un paso que sigue en otro flujo lleva a él: «La aprobación, con el semáforo.» → «El semáforo»', async ({ page }) => {
+  await loginAs(page, 'jefe@demo.test');
+  await page.goto('/ayuda/flujos?f=evento');
+  const see = flowById('aprobacion')!;
+  const link = page.getByRole('link', { name: new RegExp(`Sigue en el flujo «${see.title}»`) });
+  await expect(link).toHaveAttribute('href', '/ayuda/flujos?f=aprobacion');
+  await check(page, '/ayuda/flujos?f=evento');
+  await link.click();
+  await expect(page).toHaveURL(/\/ayuda\/flujos\?f=aprobacion$/);
+  await expect(page.getByRole('heading', { level: 2, name: see.title })).toBeVisible();
 });
 
 test('el flujo «El mes de Redes» (R4): sus pasos, con «tú» en los de Redes y la sección de cada uno', async ({ page }) => {

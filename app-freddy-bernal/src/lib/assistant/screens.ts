@@ -21,7 +21,7 @@ export type Screen = {
 };
 
 const BASE_SCREENS: Screen[] = [
-  { href: '/hoy', label: 'Hoy', roles: null, file: '(panel)/hoy/page.tsx', phrases: ['pantalla de hoy', 'pantalla hoy', 'en hoy', 'lo que espera por mi'], nav: ['hoy', 'inicio'], about: 'lo que te toca' },
+  { href: '/hoy', label: 'Hoy', roles: ['admin', 'boss', 'dispatch', 'social', 'camera'], file: '(panel)/hoy/page.tsx', phrases: ['pantalla de hoy', 'pantalla hoy', 'en hoy', 'lo que espera por mi'], nav: ['hoy', 'inicio'], about: 'lo que te toca' },
   { href: '/avisos', label: 'Avisos', roles: null, file: '(panel)/avisos/page.tsx', phrases: ['mis avisos', 'tus avisos', 'ver los avisos', 'la campana'], nav: ['avisos', 'notificaciones', 'campana', 'campanita'], about: 'la campana de arriba' },
   { href: '/perfil', label: 'Mi perfil', roles: null, file: '(panel)/perfil/page.tsx', phrases: ['mi perfil', 'tu perfil', 'activar avisos', 'activa los avisos', 'preferencias de avisos'], nav: ['perfil', 'mi cuenta', 'preferencias'], about: 'en el menú de tu cuenta, arriba a la derecha' },
   { href: '/buscar', label: 'Buscar', roles: null, file: '(panel)/buscar/page.tsx', phrases: ['el buscador', 'buscar un evento', 'buscar una pieza'], nav: ['buscador', 'lupa'], about: 'la lupa de arriba' },
@@ -53,7 +53,7 @@ const BASE_SCREENS: Screen[] = [
   { href: '/ajustes/horarios', label: 'Horarios', roles: ['admin'], file: '(panel)/ajustes/horarios/page.tsx', phrases: ['horarios de tweets', 'ajustes horarios'], nav: ['horarios', 'franjas', 'mejores horas'], about: 'los horarios de los tweets y las mejores horas, en Ajustes' },
   { href: '/ajustes/redes', label: 'Reglas por red', roles: ['admin'], file: '(panel)/ajustes/redes/page.tsx', phrases: ['reglas por red', 'ajustes reglas'], nav: ['reglas por red', 'reglas de video'], about: 'duración, medidas y peso de cada red, en Ajustes' },
   { href: '/ajustes/marca', label: 'Marca', roles: ['admin'], file: '(panel)/ajustes/marca/page.tsx', phrases: ['textos de la marca', 'ajustes marca'], nav: ['marca', 'hashtags', 'cierres'], about: 'textos, saludo, cierres y hashtags, en Ajustes' },
-  { href: '/ajustes/buzon', label: 'Buzón', roles: ['admin'], file: '(panel)/ajustes/buzon/page.tsx', phrases: ['el buzon', 'buzon de correos'], nav: ['buzon', 'correos'], about: 'todos los correos que generó la plataforma, en Ajustes' },
+  { href: '/ajustes/buzon', label: 'Buzón', roles: ['admin'], file: '(panel)/ajustes/buzon/page.tsx', phrases: ['el buzon', 'buzon de correos'], nav: ['buzon', 'correos'], about: 'todos los correos que generó la app, en Ajustes' },
   { href: '/ajustes/registro', label: 'Registro de cambios', roles: ['admin'], file: '(panel)/ajustes/registro/page.tsx', phrases: ['registro de cambios', 'quien hizo que'], nav: ['registro', 'registro de cambios', 'historial de cambios', 'quien borro', 'quien cambio', 'quien edito', 'quien hizo'], about: 'quién hizo qué, en Ajustes' },
   { href: '/ajustes/asistente', label: 'Asistente', roles: ['admin'], file: '(panel)/ajustes/asistente/page.tsx', phrases: ['panel del asistente', 'ajustes del asistente'], nav: ['asistente', 'por confirmar'], about: 'lo que sé, cómo contesto y lo que dejé por confirmar, en Ajustes' },
   // Reached only through a tool (they need an id).

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { AlertTriangle, ChevronRight, Clock, Inbox } from 'lucide-react';
-import { requireSession, db, menuRoles } from '@/lib/auth/session';
-import { canSeeSchedule, type Role } from '@/lib/roles';
+import { requireRole, requireSession, db, menuRoles } from '@/lib/auth/session';
+import { canSeeSchedule, homeFor, type Role } from '@/lib/roles';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { PageHeader, Stat, EmptyState } from '@/components/ui/page';
@@ -20,8 +20,15 @@ export const metadata = { title: 'Hoy' };
 
 type Item = { href: string; title: string; detail?: string; tone?: 'warn' | 'danger' | 'info' | 'accent' | 'ok' | 'neutral'; tag?: string };
 
+// Hoy is for the roles whose menu has it (despacho, Grabación, Redes, administración) and the boss, who gets here from
+// «Ver más en «Hoy»» on his Redes tile. An account whose home is another screen (política on its own: Municipios; the
+// IVT: Obras; the people of the web and of Atención: their screens) goes back there with «Esa pantalla no es de tu rol»
+// (APP-08, 12/11). An account that homeFor sends here (despacho + política, política with a role of the web, política
+// and the IVT together…) keeps Hoy, with the short blocks of política and the IVT below, so Hoy never sends anyone back
+// to itself; Administración in «Ver como» too.
 export default async function TodayPage() {
   const s = await requireSession();
+  if (homeFor(s.roles) !== '/hoy') await requireRole('admin', 'boss', 'dispatch', 'social', 'camera');
   const roles = menuRoles(s);
   const has = (...r: Role[]) => r.some((x) => roles.includes(x));
   const sched = canSeeSchedule(roles) || roles.includes('camera');

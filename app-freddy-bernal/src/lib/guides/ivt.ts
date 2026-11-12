@@ -1,6 +1,6 @@
 // The IVT's guide (R3, design §7.2, §7.3): each obra ready before the boss's visit.
 import type { RoleGuide } from './types';
-import { ACCOUNT, OFF_MENU, TOP, accountFor, eventSection, everyoneSections, menuGroup, messagesSections, obrasSections } from './sections';
+import { ACCOUNT, TOP, accountFor, eventSection, everyoneSections, menuGroup, messagesSections, obrasSections } from './sections';
 
 const g = (label: string) => menuGroup('ivt', label);
 
@@ -36,7 +36,7 @@ export const IVT_GUIDE: RoleGuide = {
     ],
   },
   day: [
-    'Abres la plataforma y caes en Obras.',
+    'Abres la app y caes en Obras.',
     'Revisas tus «Borradores» y los completas.',
     'En cada ficha, las fotos y el diálogo FAB.',
     'Lo que está completo, «Guardar y avisar al jefe».',
@@ -61,7 +61,7 @@ export const IVT_GUIDE: RoleGuide = {
       id: 'fotos',
       title: 'Subir las fotos y los documentos',
       when: 'Apenas guardas la ficha, y después de cada avance.',
-      steps: ['Abre la ficha.', '«Subir fotos del antes», «Subir fotos del avance» y «Subir documentos».', 'Se suben por partes: si se va la señal, siguen solas cuando vuelve.'],
+      steps: ['Abre la ficha.', '«Subir fotos del antes», «Subir fotos del avance» y «Subir documentos».', 'Si se va la señal mientras subes, la subida sigue sola cuando vuelve.'],
       flow: 'obra',
       tour: 'ficha-obra',
     },
@@ -84,8 +84,8 @@ export const IVT_GUIDE: RoleGuide = {
       when: 'Cuando la ficha ya tiene fecha.',
       steps: [
         'Agenda → «Mis visitas de obra».',
-        'Con el doble factor ves la fecha, la hora y la dirección de cada visita.',
-        'Si la cancelan o el jefe la rechaza, te avisamos y la ficha vuelve a «Por ponerle fecha».',
+        'Si entraste con el doble factor, ves la fecha, la hora y la dirección de cada visita.',
+        'Si la cancelan o el jefe la rechaza, te llega un aviso y la ficha vuelve a «Por ponerle fecha».',
       ],
       flow: 'obra',
       tour: 'agenda-ivt',
@@ -107,7 +107,7 @@ export const IVT_GUIDE: RoleGuide = {
       tour: 'agenda-ivt',
       what: 'Las visitas del jefe a tus obras. La fecha la ponen el jefe o el despacho.',
       youDo: [
-        'Con el doble factor ves la fecha y la dirección; sin él dice «La fecha se ve con el doble factor: entra con tu código.»',
+        'Si entraste con el doble factor, ves la fecha y la dirección; si no, dice «La fecha se ve con el doble factor: entra con tu código.»',
         'Cada visita dice cómo va: la decisión del jefe o «Cancelada». Si el jefe la rechazó, dice «Sin fecha: el jefe la rechazó».',
         'Tocas una para ver la visita.',
       ],
@@ -116,17 +116,10 @@ export const IVT_GUIDE: RoleGuide = {
     ...messagesSections('ivt'),
     ...everyoneSections('ivt').filter((x) => x.menu === TOP),
     ...everyoneSections('ivt').filter((x) => x.menu === ACCOUNT),
-    {
-      screen: '/hoy',
-      menu: OFF_MENU,
-      title: 'Hoy',
-      what: 'Una versión corta: cuántas fichas tienes en borrador y por ponerle fecha. Tu inicio es Obras.',
-      youDo: ['«Ver obras» te lleva a tu pantalla.'],
-    },
   ],
   flows: ['obra', 'mensajes', 'ayuda'],
   faq: [
-    { q: '¿Por qué no puedo ponerle fecha a mi obra?', a: 'Porque la fecha de la visita la ponen el jefe o el despacho. Tú ves la fecha de tus visitas con el doble factor.' },
+    { q: '¿Por qué no puedo ponerle fecha a mi obra?', a: 'Porque la fecha de la visita la ponen el jefe o el despacho. Tú ves la fecha de tus visitas si entraste con el doble factor.' },
     { q: '¿Qué ve Redes de mi ficha?', a: 'Ve la ficha de la obra en la pestaña del evento, cuando ya tiene fecha, sin los contactos ni los documentos.' },
     { q: '¿El diálogo FAB inventa datos?', a: 'No: usa solo las cifras de la ficha. Lo que la ficha no tiene, lo dice aparte y no sale en el texto.' },
     { q: '¿Qué pasa si se va la señal mientras subo fotos?', a: 'La subida sigue sola cuando vuelve. Lo que escribiste queda guardado en el teléfono hasta que guardes con señal.' },

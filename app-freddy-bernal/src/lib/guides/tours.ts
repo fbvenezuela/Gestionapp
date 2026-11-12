@@ -28,9 +28,9 @@ export const TOURS: Tour[] = [
       { target: [anchor('create')], title: 'Crear', body: 'En «Crear» está solo lo que tu rol puede crear.' },
       { target: [anchor('bell')], title: 'Avisos', body: 'La campana te avisa de lo que espera por ti en tu trabajo.' },
       { target: [anchor('messages')], title: 'Mensajes', body: 'Aquí están tus canales con el equipo.' },
-      { target: [anchor('account')], title: 'Tu cuenta', body: 'En «Mi cuenta» están tu perfil, el «Modo sol», «Ayuda y guías» y «Salir».' },
+      { target: [anchor('account')], title: 'Tu cuenta', body: 'En Mi cuenta están tu perfil, el «Modo sol», «Ayuda y guías» y «Salir».' },
       // With `next`, the engine adds «Ahora tu pantalla de inicio» and the «Seguir» button to this last step.
-      { target: ['[data-assistant-button]'], title: '360', body: 'Pregúntale a 360 lo que sea de la plataforma, cuando quieras.' },
+      { target: ['[data-assistant-button]'], title: '360', body: 'Pregúntale a 360 lo que sea de la app, cuando quieras.' },
     ],
   },
   {
@@ -43,7 +43,7 @@ export const TOURS: Tour[] = [
       { target: [anchor('chat-list')], title: 'Tus canales', body: 'Aquí están los canales donde estás; en negrita, los que tienen algo nuevo.' },
       // Only the boss has «Nuevo canal»: for the others the engine skips a step whose anchor is not on the screen.
       { target: [anchor('chat-new-channel')], title: 'Nuevo canal', body: 'Aquí armas un canal y eliges quién va. Lo tocas cuando cierres el tutorial.' },
-      { target: [anchor('messages')], title: 'El sobre', body: 'El número del sobre te dice cuántos canales tienen algo nuevo.' },
+      { target: [anchor('messages')], title: 'Los globitos', body: 'El número de los globitos te dice cuántos canales tienen algo nuevo.' },
     ],
   },
   {
@@ -63,7 +63,7 @@ export const TOURS: Tour[] = [
     title: 'Cómo se usa Mi perfil',
     steps: [
       { target: [anchor('push-on')], title: 'Avisos en el teléfono', body: 'Desde aquí activas los avisos en este teléfono: te llegan aunque la app esté cerrada.' },
-      { target: [anchor('notify-prefs')], title: 'Qué avisos quieres', body: 'Elige qué avisos quieres recibir. Los importantes llegan siempre.' },
+      { target: [anchor('notify-prefs')], title: 'Qué avisos quieres', body: 'Elige qué avisos quieres recibir. Los importantes llegan siempre, aunque los desmarques.' },
       { target: [anchor('quiet-hours')], title: 'Horas de silencio', body: 'De noche el teléfono no suena; lo importante llega igual y queda en «Avisos».' },
     ],
   },
@@ -101,7 +101,7 @@ export const TOURS: Tour[] = [
     roles: ['boss'],
     title: 'Cómo se usa Política',
     steps: [
-      { target: ['nav[aria-label="Acciones de la agenda"]'], title: 'Los botones grandes', body: 'Desde aquí creas un evento o una visita de obra; lo tuyo queda aceptado de una vez.' },
+      { target: ['nav[aria-label="Acciones de la agenda"]'], title: 'Los botones grandes', body: 'Desde aquí creas un evento o una visita de obra; como lo pones tú, queda aceptado de una vez.' },
       { target: [anchor('to-schedule')], title: 'Por ponerle fecha', body: 'Las fichas del IVT y de política que esperan fecha y hora.' },
       { target: [anchor('pending-decision')], title: 'Tu decisión', body: 'Lo que propuso el despacho: lo abres, lo calificas de 1 a 10 y aceptas o rechazas dentro del evento.' },
       { target: [anchor('next-days')], title: 'Lo que viene', body: 'Los eventos de los próximos días, con tu decisión y su importancia.' },
@@ -150,8 +150,8 @@ export const TOURS: Tour[] = [
     roles: ['boss'],
     title: 'Cómo se usa un evento',
     steps: [
-      { target: [anchor('event-chips')], title: 'Cómo va', body: 'Los chips dicen el tipo, cómo va, tu decisión y de dónde nació el evento.' },
-      { target: [anchor('boss-decision')], title: 'Tu decisión', body: 'Lo calificas de 1 a 10 y lo aceptas o rechazas. Le avisamos a quien lo propuso.' },
+      { target: [anchor('event-chips')], title: 'Cómo va', body: 'Las etiquetas dicen el tipo, cómo va y tu decisión; al lado dice de dónde viene el evento.' },
+      { target: [anchor('boss-decision')], title: 'Tu decisión', body: 'Lo calificas de 1 a 10 y lo aceptas o rechazas. A quien lo propuso le llega un aviso.' },
       { target: [anchor('event-when')], title: 'Cuándo y dónde', body: 'La fecha, la dirección y cómo se llega. Desde aquí lo marcas realizado cuando ya empezó.' },
       { target: [anchor('move'), anchor('cancel')], title: 'Mover o cancelar', body: 'Para moverlo o cancelarlo. Cancelado queda tachado, no se borra.' },
       { target: ['nav[aria-label="Secciones del evento"]'], title: 'Las pestañas', body: 'La ficha técnica, el storyboard, el material y las piezas del evento.' },
@@ -199,10 +199,10 @@ export const TOURS: Tour[] = [
     title: 'Cómo se usa Redes',
     steps: [
       { target: ['nav[aria-label="Secciones de Redes"]'], title: 'Las secciones', body: 'Una sección por formato, con lo revisado de su cupo y lo que le falta. Después, el feed y los tweets.' },
-      { target: [anchor('redes-matrix')], title: 'Estado del contenido', body: 'Cada formato con siete números. Cada número te lleva a una pieza de esa casilla; la vez siguiente, a la que sigue.' },
+      { target: [anchor('redes-matrix')], title: 'Estado del contenido', body: 'Cada formato con siete números. Cada número te lleva a una pieza de esa casilla; si lo vuelves a tocar, a la siguiente.' },
       { target: [anchor('redes-period')], title: 'Mes o trimestre', body: 'El tablero por mes o por trimestre, con las flechas para ir al anterior o al siguiente.' },
-      { target: [anchor('redes-search')], title: 'Buscar en Redes', body: 'Aquí buscas en títulos, campos, copies, avisos y tweets de todo Redes.' },
-      { target: ['nav[aria-label="Crear en Redes"]'], title: 'Acciones rápidas', body: 'Un reel, un post, una historia o cualquier formato, nuevo en el mes abierto y abierto en su sección.' },
+      { target: [anchor('redes-search')], title: 'Buscar en Redes', body: 'Aquí buscas en títulos, lo escrito en las tarjetas, copies, avisos y tweets de todo Redes.' },
+      { target: ['nav[aria-label="Crear en Redes"]'], title: 'Acciones rápidas', body: 'Un reel, un post, una historia o cualquier formato, nuevo en el mes que estás viendo y abierto en su sección.' },
     ],
   },
 
@@ -246,7 +246,7 @@ export const TOURS: Tour[] = [
         target: [anchor('event-save')],
         title: 'Guardar',
         body: {
-          boss: 'Aquí está «Guardar evento». Lo tuyo nace aceptado y el despacho se entera.',
+          boss: 'Aquí está «Guardar evento». Queda aceptado desde que lo guardas, y el despacho se entera.',
           dispatch: 'Aquí está «Guardar evento». Le llega al jefe «Por decidir».',
         },
       },
@@ -263,7 +263,7 @@ export const TOURS: Tour[] = [
         target: [anchor('schedule-ficha')],
         title: 'Ponerle fecha',
         body: {
-          boss: 'Aquí está «Ponerle fecha»: fecha, hora, lugar y quién graba. Lo tuyo queda aceptado.',
+          boss: 'Aquí está «Ponerle fecha»: fecha, hora, lugar y quién graba. Como lo pones tú, queda aceptado de una vez.',
           dispatch: 'Aquí está «Ponerle fecha»: fecha, hora, lugar y quién graba. Le llega al jefe «Por decidir».',
         },
       },
@@ -277,7 +277,7 @@ export const TOURS: Tour[] = [
     roles: ['dispatch'],
     title: 'Cómo se usa un evento',
     steps: [
-      { target: [anchor('event-chips')], title: 'Cómo va', body: 'Los chips dicen el tipo, cómo va y si el jefe ya decidió.' },
+      { target: [anchor('event-chips')], title: 'Cómo va', body: 'Las etiquetas dicen el tipo, cómo va y si el jefe ya decidió.' },
       { target: [anchor('who-records')], title: 'Quién graba', body: 'Quién de Grabación va a este evento; puede ser más de una persona.' },
       { target: [anchor('brief')], title: 'Ficha técnica', body: 'Desde aquí la completas con «Editar»: de qué es, quién lo dirige, qué se logra.' },
       { target: [anchor('move'), anchor('cancel')], title: 'Mover o cancelar', body: 'Con su motivo, sin fecha, hora ni teléfono. Cancelado queda tachado.' },
@@ -352,9 +352,9 @@ export const TOURS: Tour[] = [
     title: 'Cómo se usa Obras',
     steps: [
       { target: [anchor('new-obra')], title: 'Nueva ficha', body: 'Desde aquí cargas la ficha de una obra, sin fecha ni hora.' },
-      { target: [anchor('obra-stages')], title: 'Por etapa', body: 'Cuántas hay en borrador, por ponerle fecha, con fecha y realizadas.' },
+      { target: [anchor('obra-stages')], title: 'En qué van', body: 'Cuántas hay en borrador, por ponerle fecha, con fecha y realizadas.' },
       { target: [anchor('obra-filter')], title: 'Filtrar', body: 'Por municipio y por estado.' },
-      { target: [anchor('obra-sections')], title: 'Las fichas', body: 'Las fichas, agrupadas por etapa. Cada una abre su ficha completa.' },
+      { target: [anchor('obra-sections')], title: 'Las fichas', body: 'Las fichas, agrupadas según en qué van. Cada una abre su ficha completa.' },
     ],
   },
   {
@@ -382,10 +382,10 @@ export const TOURS: Tour[] = [
         body: {
           boss: 'La fecha de tu visita. Si está por ponerle fecha, aquí está «Ponerle fecha».',
           dispatch: 'La fecha de la visita. Si está por ponerle fecha, aquí está «Ponerle fecha».',
-          ivt: 'La fecha de la visita, cuando el jefe o el despacho la ponen. Se ve con el doble factor.',
+          ivt: 'La fecha de la visita, cuando el jefe o el despacho la ponen. Se ve si entraste con el doble factor.',
         },
       },
-      { target: [anchor('photos')], title: 'Fotos', body: 'Las fotos del antes y del avance, y los documentos. Siguen solas si se va la señal.' },
+      { target: [anchor('photos')], title: 'Fotos', body: 'Las fotos del antes y del avance, y los documentos. Si se va la señal, la subida sigue sola cuando vuelve.' },
       { target: [anchor('fab')], title: 'Lo que voy a decir', body: 'El diálogo FAB, armado solo con las cifras de la ficha. Lo que falta, no se dice.' },
       { target: [anchor('edit-ficha')], title: 'Editar', body: 'Para corregir la ficha.' },
       { target: [anchor('history'), anchor('note')], title: 'Historia', body: 'Quién hizo qué. Las notas se agregan, no se borran.' },
@@ -397,8 +397,8 @@ export const TOURS: Tour[] = [
     roles: ['ivt'],
     title: 'Cómo se usan tus visitas',
     steps: [
-      { target: [anchor('my-visits')], title: 'Mis visitas de obra', body: 'Las visitas del jefe a tus obras. La fecha se ve con el doble factor.' },
-      { target: [anchor('bell')], title: 'Si cambia', body: 'Si la cancelan o el jefe la rechaza, te avisamos aquí y la ficha vuelve a esperar fecha.' },
+      { target: [anchor('my-visits')], title: 'Mis visitas de obra', body: 'Las visitas del jefe a tus obras. La fecha se ve si entraste con el doble factor.' },
+      { target: [anchor('bell')], title: 'Si cambia', body: 'Si la cancelan o el jefe la rechaza, te llega un aviso aquí y la ficha vuelve a esperar fecha.' },
     ],
   },
 
@@ -442,7 +442,7 @@ export const TOURS: Tour[] = [
     roles: ['camera'],
     title: 'Cómo se sube el material',
     steps: [
-      { target: [anchor('raw-boxes')], title: 'Por casillas', body: 'Cada parte en su casilla. Se sube por partes y sigue sola si se va la señal.' },
+      { target: [anchor('raw-boxes')], title: 'Por casillas', body: 'Cada parte en su casilla. Si se va la señal, la subida sigue sola cuando vuelve.' },
       { target: ['section[aria-label="Entrega de Grabación"]'], title: 'Tu entrega', body: 'El storyboard con el que grabaste y tu nota para quien edita.' },
       { target: [anchor('editor-note')], title: 'Nota para el editor', body: 'Qué toma sirve, qué falló, qué falta. Sin hora, fecha, dirección ni teléfonos.' },
     ],
@@ -510,7 +510,7 @@ export const TOURS: Tour[] = [
     steps: [
       { target: [anchor('month-tabs')], title: 'Los meses', body: 'Cada mes con sus piezas de su cupo. El mes que eliges sigue en las otras secciones y en el feed.' },
       { target: [anchor('month-new')], title: 'Nuevo mes', body: 'Aquí está «+ Nuevo mes», para empezar el mes que sigue.' },
-      { target: [anchor('month-quota')], title: 'El cupo', body: 'Cuántas piezas de este formato lleva el mes, de su cupo. Pasarse no bloquea nada.' },
+      { target: [anchor('month-quota')], title: 'El cupo', body: 'Cuántas piezas de este formato lleva el mes, de su cupo. Es una meta: si haces más, no pasa nada.' },
       { target: [anchor('new-piece')], title: 'Una pieza nueva', body: 'Desde aquí pones un borrador arriba, abierto y con el título listo para escribir.' },
       { target: [anchor('piece-card')], title: 'Cada tarjeta', body: 'Cada pieza es una tarjeta: su miniatura, su estado, su pilar y los campos de su formato. Se guarda sola.' },
       {
@@ -542,7 +542,7 @@ export const TOURS: Tour[] = [
     title: 'Cómo se usa una pieza',
     steps: [
       { target: [anchor('final-file')], title: 'Archivo final', body: 'El video o la imagen final y la portada. Cada archivo nuevo es otra versión.' },
-      { target: [anchor('copies')], title: 'Copies', body: 'La fórmula, la voz y el cierre: tres largos, solo con cifras de la ficha.' },
+      { target: [anchor('copies')], title: 'Copies', body: 'La fórmula, la voz y el cierre: tres textos (largo, medio y corto), solo con cifras de la ficha.' },
       { target: [anchor('write-copies')], title: 'Escribir desde la ficha', body: 'Arma los tres copies con la ficha técnica. Después los revisas uno por uno.' },
       { target: ['select[aria-label="Nivel de aprobación"]'], title: 'El nivel', body: 'Verde, amarillo o rojo: el color dice qué tan rápido la mira el jefe.' },
       { target: [anchor('send-review')], title: 'Enviar', body: 'Aquí está «Enviar a aprobación»: le llega al jefe.' },
@@ -569,7 +569,11 @@ export const TOURS: Tour[] = [
       { target: [anchor('tweets-upload')], title: 'El documento', body: 'Subes el documento de la semana (.docx, .txt o .md).' },
       { target: ['[aria-label="Texto con los tweets"]'], title: 'O el texto', body: 'O lo pegas aquí.' },
       { target: [anchor('tweets-split')], title: 'Separar', body: 'Aquí está «Separar tweets»: arma un tweet por idea, para revisarlos.' },
-      { target: [anchor('tweets-distribute')], title: 'Repartir', body: 'Los reparte en la semana y se los manda al jefe para aprobar.' },
+      {
+        target: [anchor('tweets-distribute')],
+        title: 'Repartir',
+        body: { social: 'Los reparte en la semana y se los manda al jefe para aprobar.', boss: 'Los reparte en la semana y te los manda para aprobar.' },
+      },
     ],
   },
   {
@@ -578,7 +582,15 @@ export const TOURS: Tour[] = [
     roles: ['social', 'boss'],
     title: 'Cómo se usa una tanda',
     steps: [
-      { target: [], title: 'La tanda', placement: 'center', body: 'Una tanda: cuántos están por aprobar, aprobados y programados. Si cambias uno aprobado, vuelve al jefe.' },
+      {
+        target: [],
+        title: 'La tanda',
+        placement: 'center',
+        body: {
+          social: 'Una tanda: cuántos están por aprobar, aprobados y programados. Si cambias uno aprobado, vuelve al jefe.',
+          boss: 'Una tanda: cuántos están por aprobar, aprobados y programados. Si cambias uno aprobado, vuelve a «Por aprobar».',
+        },
+      },
       { target: [anchor('tweets-schedule')], title: 'Programar', body: 'Cuando el jefe aprobó, aquí está «Programar»: quedan en el tablero.' },
     ],
   },

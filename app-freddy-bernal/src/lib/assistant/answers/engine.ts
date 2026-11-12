@@ -1,11 +1,11 @@
 // 360's answer index (D-89): every question the team may ask, with its answer per role, from one place. Built once,
 // lazily, from the curated entries (ANSWERS: the long tail in people's words) and from the help content itself (the
-// role guides, «Para todos», the flows and administración's guide: src/lib/guides, the same source as /ayuda, so 360
-// never drifts from it). Pure: no database, no I/O. The demo brain answers with the best entry; with a model chain the
+// role guides, «Para todos» with «Palabras de la app», the flows and administración's guide: src/lib/guides, the same
+// source as /ayuda, so 360 never drifts from it). Pure: no database, no I/O. The demo brain answers with the best entry; with a model chain the
 // best ones go into the prompt as fichas (brain.ts pickFichas). Static, date-free text: answering never leaks the agenda.
 import { ROLE_LABEL, TEAM_ROLES, type Role, type TeamRole } from '../../roles';
-import { ADMIN_GUIDE, FLOWS, SHARED, allGuides } from '../../guides';
-import { NO_MESSAGES_LINE } from '../../guides/shared';
+import { ADMIN_GUIDE, FLOWS, GLOSSARY, SHARED, allGuides, glossaryLine } from '../../guides';
+import { NO_MESSAGES_LINE, TOP_MESSAGES_LINE } from '../../guides/shared';
 import { everyoneSections } from '../../guides/sections';
 import type { SectionGuide, Task } from '../../guides/types';
 import { plain } from '../text';
@@ -14,8 +14,8 @@ import { ANSWERS, ANSWER_FILES, type Answer, type AnswerText } from './index';
 // kind: what the entry is (it decides how it is matched and how 360 says it): a curated entry, a question of a guide's
 // FAQ, a screen (what it is for), one thing done on a screen, something a role cannot do there, a task and one of its
 // steps, the job (what the role does, never does, with whom, its day), a topic of «Para todos» and one of its lines, a
-// step of a flow, and one of administración's notes.
-export type Kind = 'curated' | 'faq' | 'screen' | 'item' | 'cannot' | 'task' | 'step' | 'job' | 'never' | 'with' | 'day' | 'topic' | 'line' | 'flow' | 'note';
+// step of a flow, one of administración's notes, and a word of «Palabras de la app» (what it means).
+export type Kind = 'curated' | 'faq' | 'screen' | 'item' | 'cannot' | 'task' | 'step' | 'job' | 'never' | 'with' | 'day' | 'topic' | 'line' | 'flow' | 'note' | 'term';
 
 export type Entry = {
   id: string;
@@ -30,6 +30,7 @@ export type Entry = {
   screen?: string; // the screen it is about (a small bonus there, and «¿qué es esto?»)
   next?: string; // a step's next step («¿y después?»)
   may?: boolean; // a «No…» to «¿puedo…?» (what a role cannot or never does): only for that question
+  names?: string[]; // a word of «Palabras de la app»: the names it is asked with («reel», «short»…)
 };
 
 export type Confidence = 'strong' | 'weak' | 'none';
@@ -92,7 +93,7 @@ const SHORTHAND: [RegExp, string][] = [
   [/\b(?:copies)\b/g, 'copy'],
   // The screen's pictures, said as people say them: the bell, the envelope, the pencil, the magnifier, the gear.
   [/\b(?:campanit[ao]|campanaso)\b/g, 'campana'],
-  [/\b(?:sobrecito|sobresito|el sobre|cartica|cartita)\b/g, 'mensajes'],
+  [/\b(?:sobrecito|sobresito|el sobre|cartica|cartita|globitos|globito|burbujitas|burbujita)\b/g, 'mensajes'],
   [/\b(?:lapicito|lapicero|lapisito)\b/g, 'lapiz'],
   [/\b(?:lupita)\b/g, 'lupa'],
   [/\b(?:engranaje|engranajito|tuerquita|tuerca|ruedita)\b/g, 'ajustes'],
@@ -351,6 +352,12 @@ function labelsOf(text: string): string[] {
   return out;
 }
 
+/** A label without the example number of a counted one: «Aprobar todas las verdes (2)», «Publicar antes (#20)»,
+ * «Resumen del mes · Mes 1», «5 personas» are asked by their words. */
+function labelWords(l: string): string {
+  return l.replace(/\(\s*#?(?:n|\d+)\s*\)/g, ' ').replace(/\s+·\s+Mes\s+(?:n|\d+)(?:\s*#\d+)?$/u, ' ').replace(/^(?:n|N|\d+)\s+(?=\p{L})/u, ' ');
+}
+
 // The labels of a text that are asked about by name (two words or more), not a button's verb («Poner en el copy»,
 // «Marcar realizado» read as an order: asked with their words, they would answer «¿qué pongo en el copy?»).
 const askedLabels = (text: string) => labelsOf(text).filter((l) => l.split(' ').length >= 2 && !/^\p{L}+(?:ar|er|ir)\b/u.test(l));
@@ -523,7 +530,7 @@ function sharedEntries(): Entry[] {
     const roles: Role[] | null = t.id === 'mensajes' ? team : null;
     out.push({ id: `todos:${t.id}`, kind: 'topic', source: `shared:${t.id}`, roles, q: [t.title, `como funciona ${t.title}`, `que es ${t.title}`], doc: t.body[0], a: t.body.slice(0, 2).join(' '), ...(t.id === 'mensajes' ? { go: '/mensajes' } : t.id === 'ayuda' ? { go: '/ayuda' } : {}) });
     t.body.forEach((line, k) => {
-      const envelope = line.startsWith('El sobre:');
+      const envelope = line === TOP_MESSAGES_LINE;
       const id = `todos:${t.id}:${k}`;
       if (envelope) {
         out.push({ id, kind: 'line', source: `shared:${t.id}`, roles: team, q: askedLabels(line), doc: `${t.title}. ${line}`, a: line });
@@ -532,6 +539,27 @@ function sharedEntries(): Entry[] {
     });
   }
   return out;
+}
+
+// «Palabras de la app» (src/lib/guides/glossary.ts): what a word means, for the team and administración. Its name and the
+// words people ask with, each said the ways a meaning is asked («¿qué es un reel?», «¿qué significa CSV?», «¿qué quiere
+// decir trancado?»), and the word alone; it says «Reel y Short: Un video corto…». A task that names the word («¿cómo subo
+// un reel?») is a «¿cómo…?»: these ways of asking are of another kind, so the task goes first.
+function glossaryEntries(): Entry[] {
+  return GLOSSARY.map((g) => {
+    const names = [...new Set([g.term, ...g.aka].map((x) => x.toLowerCase()))];
+    return {
+      id: `palabra:${g.id}`,
+      kind: 'term' as const,
+      source: `glossary:${g.id}`,
+      roles: null,
+      q: names.flatMap((x) => [`que es ${x}`, `que son ${x}`, `que significa ${x}`, `que quiere decir ${x}`, `para que es ${x}`, x]),
+      doc: g.text,
+      a: glossaryLine(g),
+      go: '/ayuda',
+      names,
+    };
+  });
 }
 
 function flowEntries(): Entry[] {
@@ -607,7 +635,7 @@ function index(): Index {
   if (INDEX) return INDEX;
   // The file of each curated entry, for its source tag.
   const files = new Map<Answer, string>(Object.entries(ANSWER_FILES).flatMap(([f, list]) => list.map((a): [Answer, string] => [a, f])));
-  const entries = [...curatedEntries(ANSWERS, (a) => files.get(a) ?? 'respuestas'), ...guideEntries(), ...sharedEntries(), ...flowEntries(), ...adminEntries()];
+  const entries = [...curatedEntries(ANSWERS, (a) => files.get(a) ?? 'respuestas'), ...guideEntries(), ...sharedEntries(), ...glossaryEntries(), ...flowEntries(), ...adminEntries()];
   // Document frequency per root, over the entries (each entry once).
   const df = new Map<string, number>();
   const entryToks = entries.map((e) => new Set([...e.q, e.doc ?? '', ...(e.kind === 'curated' ? saidBy(e).map(([t]) => t) : [])].flatMap((t) => tokens(t))));
@@ -648,7 +676,7 @@ function index(): Index {
     if (e.kind === 'curated') for (const [text, roles] of saidBy(e)) add(text, 'doc', roles);
     // The screen's labels it quotes (two words or more): asked by name, they point here.
     for (const l of new Set([...labelsOf(e.doc ?? ''), ...labelsOf(typeof e.a === 'string' ? e.a : ''), ...e.q.flatMap(labelsOf)])) {
-      const p = readable(l.replace(/\(n\)/g, ' '));
+      const p = readable(labelWords(l));
       if (p.split(' ').length < 2 || p.length < 8) continue;
       labels.set(p, [...(labels.get(p) ?? []), k]);
     }
@@ -687,6 +715,16 @@ export const STRONG = 0.62;
 export const WEAK = 0.45;
 // What the other kind of match adds to an entry's best (a way of asking and its text, design §A).
 const ALSO_SAID = 0.25;
+// «¿Qué es X?» where X is a word of «Palabras de la app» and nothing more («¿qué es copy?», «¿qué significa trancado?»,
+// «¿para qué sirve el semáforo?»): what it means goes first, before an answer that only uses the word («No escribo
+// copies sueltos…»). A question that names more («¿qué es «Copy faltante»?») gets no such lift, and a question that does
+// not ask what a word means («¿cómo hago un copy?», «¿cómo funciona el semáforo?») gets the task or the answer that says
+// how, with the meaning a bit behind; a «¿dónde…?» («¿dónde veo las etiquetas?»), the answer that says where, with the
+// meaning further behind: it still answers when nothing says where («¿dónde está la oficina?») (12/11).
+const TERM_ASKED = 0.3;
+const TERM_ELSE = 0.88;
+const TERM_WHERE = 0.75;
+const TERM_WHAT = /\b(?:que es|que son|que significa\w*|que quiere decir|que quieren decir|paraque es|paraque son|paraque sirven?)\b/;
 // Where a word that only ways of asking have is capped: the weight of the word at this share of the index (a common one).
 const DETAIL_AT = 0.2;
 
@@ -848,6 +886,21 @@ function partsOf(question: string): string[] {
   return [...new Set(out)];
 }
 
+/**
+ * Whether a question asks about this word of the glossary and nothing more: one of the word's names, said as it is
+ * («¿qué es programado?» is not «programar»: política's reports have a state «Programado»), and nothing else that says
+ * something but «la palabra».
+ */
+const nameWords = new Map<string, { roots: string[]; said: string }>();
+const TERM_FRAME = new Set(['palabra', 'palabrita', 'termino'].map((w) => rootOf(w)));
+function termAsked(e: Entry, a: Asked): boolean {
+  const own = a.own.filter((r) => !TERM_FRAME.has(r));
+  return !!own.length && (e.names ?? []).some((n) => {
+    const w = nameWords.get(n) ?? (nameWords.set(n, { roots: tokens(n), said: ` ${readable(n)} ` }), nameWords.get(n)!);
+    return own.every((r) => w.roots.includes(r)) && ` ${a.text} `.includes(w.said);
+  });
+}
+
 function rank(question: string, o: FindOptions): Match[] {
   const ix = index();
   const a = askedOf(question, o.extra, o.names);
@@ -954,6 +1007,10 @@ function rank(question: string, o: FindOptions): Match[] {
     else if (explain && /^(?:En|Desde)\b/.test(said)) s *= 0.92;
     else if (!why && /^Porque\b/.test(said)) s *= 0.85;
     if (o.screen && e.screen && e.screen === o.screen) s += 0.04;
+    if (e.kind === 'term') {
+      if (TERM_WHAT.test(a.text)) s += termAsked(e, a) ? TERM_ASKED : 0;
+      else s *= whereAsk ? TERM_WHERE : TERM_ELSE;
+    }
     // A curated answer, more when it was written for the asker's role (not everyone's).
     if (e.kind === 'curated') s += e.roles ? ROLE_OWN : 0.03;
     if (partial.has(k)) s = Math.min(s, STRONG - 0.01);

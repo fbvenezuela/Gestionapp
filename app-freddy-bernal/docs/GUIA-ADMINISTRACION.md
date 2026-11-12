@@ -4,12 +4,12 @@
 
 <!-- Generado por `npm run docs:guides` desde src/lib/guides/ (admin.ts). No se edita a mano: se cambia la fuente y se corre otra vez. -->
 
-Administración es el rol técnico: invita al equipo y le da sus roles, cuida los ajustes de la plataforma y el asistente 360. No decide, no aprueba y no escribe en la agenda. En la app: `/ayuda/administracion` (solo administración).
+Administración es el rol técnico: invita al equipo y le da sus roles, cuida los ajustes de la app y el asistente 360. No decide, no aprueba y no escribe en la agenda. En la app: `/ayuda/administracion` (solo administración).
 
 ## Lo que no es de administración
 - Mensajes no es para administración: no entras a los canales del equipo, y una cuenta con administración no entra a Mensajes aunque tenga otro rol.
 - El rol de jefe no se da desde Equipo: se da con el comando de instalación (npm run db:first-admin con la opción --jefe). Cada rol del equipo que das le llega al jefe como aviso.
-- Las guías del equipo no hablan de administración: esta guía es aparte.
+- Las guías del equipo nombran a administración solo donde hace falta (quién lee lo que le preguntan a 360 y quién recupera una pieza eliminada): esta guía es aparte.
 - Nada sale hacia afuera mientras se prueba: los correos quedan en el «Buzón de correos» y nada se publica solo.
 
 ## Cada pantalla
@@ -54,7 +54,7 @@ El nombre, los colores, los logos, el saludo, los cierres y los hashtags.
 ### Cupo y pilares (`/ajustes/contenido`)
 El cupo del mes de cada formato de Redes, los pilares del contenido y las piezas que eliminó el jefe.
 
-- «Cupo del mes»: cuántos reels, posts, carruseles, historias y videos de YouTube se planean por mes. Es informativo: pasarse no bloquea nada, y fin de mes no tiene cupo. Toca «Guardar cupo».
+- «Cupo del mes»: cuántos reels, posts, carruseles, historias y videos de YouTube se planean por mes. Es una meta: si se hacen más piezas, no pasa nada, y fin de mes no tiene cupo. Toca «Guardar cupo».
 - «Pilares»: los temas del contenido. «Agregar pilar», su nombre y su «Color»; subirlo, bajarlo o quitarlo, y «Guardar pilares». Cambiarle el nombre no lo quita de sus piezas; si lo quitas, quedan «Sin pilar».
 - «Piezas eliminadas»: las que eliminó el jefe. «Recuperar» la devuelve a su mes (o al primero, si su mes ya no está), sin espacio en el feed.
 - En cada sección de Redes, «Cambiar en Ajustes» te trae aquí.
@@ -75,18 +75,18 @@ Lo que sabe 360, cómo contesta y cómo le va.
 - Una pregunta a 360 sobre lo que dice un mensaje del equipo se guarda sin el texto.
 
 ### Buzón de correos (`/ajustes/buzon`)
-Todos los correos que generó la plataforma. Mientras se prueba, ninguno sale: quedan aquí.
+Todos los correos que generó la app. Mientras se prueba, ninguno sale: quedan aquí.
 
 - Revisas que el correo diga lo que tiene que decir, sin fecha ni hora de la agenda.
 
 ### Registro de cambios (`/ajustes/registro`)
-Quién cambió qué y cuándo, en toda la plataforma.
+Quién cambió qué y cuándo, en toda la app.
 
 - Lees los cambios del más nuevo al más viejo, con quién, qué y cuándo; abajo, «Ver más antiguos» trae los anteriores. No tiene buscador ni filtro.
 - De Mensajes sale solo que hubo un mensaje, un canal o un cambio de miembros, quién y cuándo: nunca el texto, el nombre del canal ni quiénes son.
 
 ### Ver como
-Para ver los menús de otro rol, arriba (en el teléfono, dentro de «Mi cuenta»). Tus permisos no cambian.
+Para ver los menús de otro rol, arriba (en el teléfono, dentro de Mi cuenta). Tus permisos no cambian.
 
 - Eliges un rol o «Mi vista». Mientras miras, sale una franja que lo dice.
 - Los tutoriales también siguen «Ver como»; Mensajes no.
@@ -101,7 +101,7 @@ Puedes hacer lo de Redes: el tablero, las secciones por formato, el feed, Tweets
 ### Por aprobar (`/aprobar`)
 Ves lo que espera al jefe, pero no apruebas: todo lo aprueba el jefe.
 
-- En una pieza: «Cambiar nivel», comentar, o «Pedir frase al jefe» si hace falta su voz («Anotar pedido de frase»).
+- En una pieza: el nivel, arriba, en su cajita (dice, por ejemplo, «Nivel amarillo»); comentar, o «Pedir frase al jefe» si hace falta su voz («Anotar pedido de frase»).
 
 ### La agenda y las fichas (`/agenda`)
 Lees la agenda, «Por ponerle fecha», las obras y los municipios.
@@ -128,4 +128,4 @@ Cada rol que das le llega al jefe como aviso. Las personas saben que lees lo que
 No: solo el jefe elimina piezas. Tú la recuperas en Ajustes → «Cupo y pilares» → «Piezas eliminadas» → «Recuperar».
 
 **¿Dónde cambio el cupo del mes o los pilares?**
-En Ajustes → «Cupo y pilares», con el doble factor. El cupo es informativo: pasarse no bloquea nada.
+En Ajustes → «Cupo y pilares», con el doble factor. El cupo es una meta: si se hacen más piezas, no pasa nada.

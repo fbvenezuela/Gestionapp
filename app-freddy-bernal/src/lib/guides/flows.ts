@@ -16,7 +16,7 @@ export const FLOWS: Flow[] = [
         href: '/agenda/nuevo',
         question: '¿Lo creó el jefe?',
         branches: [
-          { label: 'Sí', text: 'Nace «Aceptado».', to: 'graba' },
+          { label: 'Sí', text: 'Queda «Aceptado» desde que se guarda.', to: 'graba' },
           { label: 'No', text: 'Le llega al jefe «Por decidir».', to: 'decide' },
         ],
       },
@@ -28,15 +28,15 @@ export const FLOWS: Flow[] = [
         question: '¿Lo acepta?',
         branches: [
           { label: 'Sí', text: '«Aceptar».', to: 'graba' },
-          { label: 'No', text: '«Rechazar»: sale de la lista de Redes y le avisamos a quien lo propuso.' },
+          { label: 'No', text: '«Rechazar»: sale de la lista de Redes y a quien lo propuso le llega un aviso.' },
         ],
       },
       { id: 'graba', roles: ['dispatch', 'boss', 'social'], text: '«Quién graba»: eligen a la persona de Grabación, y le llega el aviso.' },
       { id: 'storyboard', roles: ['social'], text: 'Pestaña «Storyboard»: el plan de lo que se graba, y «Guardar storyboard».', href: '/agenda' },
-      { id: 'material', roles: ['camera'], text: 'Graba, sube el material por casillas y deja su «Entrega de Grabación». Cuando ya empezó, «Marcar realizado».', href: '/agenda' },
-      { id: 'pieza', roles: ['social'], text: 'La pieza en la sección de su formato, o desde la pestaña «Piezas» del evento con «Nueva pieza» (el «Formato» y el «Mes»): el archivo, sus campos y los copies con «Escribir desde la ficha».', href: '/redes' },
-      { id: 'aprueba', roles: ['boss'], text: 'La aprobación, con el semáforo: tiene su propio flujo.', href: '/aprobar' },
-      { id: 'publica', roles: ['social'], text: '«Nueva publicación» → «Programar en n redes» → publica a mano → «Ya lo publiqué».', href: '/publicar' },
+      { id: 'material', roles: ['camera'], text: 'Graba, sube cada parte en su casilla y deja su entrega para Redes. Cuando ya empezó, «Marcar realizado».', href: '/agenda' },
+      { id: 'pieza', roles: ['social'], text: 'La pieza en la sección de su formato, o desde la pestaña «Piezas» del evento con «Nueva pieza» (el «Formato» y el «Mes»): el archivo, lo que pide su formato y los copies con «Escribir desde la ficha».', href: '/redes' },
+      { id: 'aprueba', roles: ['boss'], text: 'La aprobación, con el semáforo.', href: '/aprobar', see: 'aprobacion' },
+      { id: 'publica', roles: ['social'], text: '«Nueva publicación» → «Programar en 2 redes» → publica a mano → «Ya lo publiqué».', href: '/publicar' },
       { id: 'resultados', roles: ['social'], text: 'En la publicación, «Cargar resultados».', href: '/resultados' },
       { id: 'digital', roles: ['boss'], text: 'Ve cómo nos va en Digital.', href: '/jefe/digital' },
     ],
@@ -53,7 +53,7 @@ export const FLOWS: Flow[] = [
         href: '/obras/nueva',
         question: '¿Está completa?',
         branches: [
-          { label: 'No', text: '«Guardar borrador»: todavía no le llega al jefe.', to: 'ficha' },
+          { label: 'No', text: '«Guardar borrador»: todavía no le llega al jefe. La completa después.', to: 'ficha' },
           { label: 'Sí', text: '«Guardar y avisar al jefe».', to: 'fotos' },
         ],
       },
@@ -61,7 +61,7 @@ export const FLOWS: Flow[] = [
       {
         id: 'fecha',
         roles: ['boss', 'dispatch'],
-        text: '«Por ponerle fecha» → «Ponerle fecha»: nace la «Visita de obra».',
+        text: '«Por ponerle fecha» → «Ponerle fecha»: la «Visita de obra» se crea en la agenda.',
         href: '/agenda/por-fecha',
         question: '¿Va a la agenda?',
         branches: [
@@ -69,19 +69,20 @@ export const FLOWS: Flow[] = [
           { label: 'No', text: '«No va»: la ficha queda «Archivada».' },
         ],
       },
-      { id: 'visitas', roles: ['ivt'], text: 'Ve la fecha en «Mis visitas de obra», con el doble factor.', href: '/agenda' },
-      { id: 'discurso', roles: ['social'], text: 'Ve la pestaña «Ficha de obra» (sin contactos) y, en el storyboard, toca «Usar como discurso».' },
-      { id: 'lee', roles: ['boss'], text: 'Lee lo que va a decir en el «Modo lectura».' },
       {
-        id: 'hecho',
-        roles: ['boss', 'dispatch', 'camera'],
-        text: 'Después de la visita, «Marcar realizado»: la ficha pasa a «Visitas realizadas».',
+        id: 'visitas',
+        roles: ['ivt'],
+        text: 'Ve la fecha en «Mis visitas de obra», si entró con el doble factor.',
+        href: '/agenda',
         question: '¿Se canceló o el jefe la rechazó?',
         branches: [
-          { label: 'Sí', text: 'La ficha vuelve sola a «Por ponerle fecha» y le avisamos al IVT.', to: 'fecha' },
-          { label: 'No', text: 'Listo.' },
+          { label: 'Sí', text: 'La ficha vuelve sola a «Por ponerle fecha» y al IVT le llega un aviso.', to: 'fecha' },
+          { label: 'No', text: 'Se sigue con el paso 5.', to: 'discurso' },
         ],
       },
+      { id: 'discurso', roles: ['social'], text: 'Ve la pestaña «Ficha de obra» (sin contactos) y, en el storyboard, toca «Usar como discurso».' },
+      { id: 'lee', roles: ['boss'], text: 'Lee lo que va a decir en el «Modo lectura».' },
+      { id: 'hecho', roles: ['boss', 'dispatch', 'camera'], text: 'Después de la visita, «Marcar realizado»: la ficha pasa a «Visitas realizadas».' },
     ],
   },
   {
@@ -100,8 +101,8 @@ export const FLOWS: Flow[] = [
           { label: 'Sí', text: '«Guardar y avisar al jefe».', to: 'fecha' },
         ],
       },
-      { id: 'fecha', roles: ['boss', 'dispatch'], text: '«Por ponerle fecha» → «Ponerle fecha»: nace la actividad en la agenda.', href: '/agenda/por-fecha' },
-      { id: 'ya', roles: ['politics'], text: 'Ve “ya tiene fecha” en «Agenda del jefe», nunca la fecha.' },
+      { id: 'fecha', roles: ['boss', 'dispatch'], text: '«Por ponerle fecha» → «Ponerle fecha»: la actividad se crea en la agenda.', href: '/agenda/por-fecha' },
+      { id: 'ya', roles: ['politics'], text: 'Ve «Ya tiene fecha» en «Agenda del jefe», nunca la fecha.' },
       { id: 'seguimiento', roles: ['politics'], text: 'El seguimiento: «Cambiar estado» con su motivo, las evidencias y «Guardar nota».', href: '/municipios' },
       {
         id: 'vencida',
@@ -109,7 +110,7 @@ export const FLOWS: Flow[] = [
         text: 'Si pasa su fecha de seguimiento sin terminar, sale arriba en Municipios y en el Inicio del jefe.',
         question: '¿Está finalizada?',
         branches: [
-          { label: 'No', text: 'Sigue el seguimiento.', to: 'seguimiento' },
+          { label: 'No', text: 'Le sigue dando seguimiento.', to: 'seguimiento' },
           { label: 'Sí', text: 'Queda en la historia del municipio.' },
         ],
       },
@@ -125,7 +126,7 @@ export const FLOWS: Flow[] = [
       {
         id: 'aprueba',
         roles: ['boss'],
-        text: '«Por aprobar» → «Tweets (n)»: desmarca los que no van.',
+        text: '«Por aprobar» → «Tweets (3)»: desmarca los que no van.',
         href: '/aprobar',
         question: '¿Los aprueba?',
         branches: [
@@ -145,7 +146,7 @@ export const FLOWS: Flow[] = [
       {
         id: 'envia',
         roles: ['social'],
-        text: 'En la tarjeta, «Enviar a aprobación» (el «Nivel de aprobación» se elige en la pieza en grande).',
+        text: 'En la tarjeta, «Enviar a aprobación» (el nivel de aprobación se elige en la pieza en grande).',
         href: '/redes',
         question: '¿De qué color es?',
         branches: [
@@ -173,7 +174,7 @@ export const FLOWS: Flow[] = [
     roles: ['social', 'boss'],
     steps: [
       { id: 'mes', roles: ['social'], text: 'Elige el mes en las pestañas (o «+ Nuevo mes») y mira el cupo de cada formato.', href: '/redes' },
-      { id: 'crea', roles: ['social'], text: 'Crea las piezas en la sección de cada formato («Nuevo reel», «Nuevo post»…) y llena sus tarjetas: el archivo, los campos y los copies.', href: '/redes' },
+      { id: 'crea', roles: ['social'], text: 'Crea las piezas en la sección de cada formato («Nuevo reel», «Nuevo post»…) y llena sus tarjetas: el archivo, lo que pide su formato y los copies.', href: '/redes' },
       { id: 'feed', roles: ['social'], text: 'Arma el «Feed»: cada espacio con su pieza, del #1 abajo a la derecha al #24 arriba a la izquierda.', href: '/redes/feed' },
       { id: 'envia', roles: ['social'], text: '«Enviar a aprobación» en cada tarjeta, con sus avisos de cumplimiento si hacen falta.' },
       {
@@ -189,7 +190,7 @@ export const FLOWS: Flow[] = [
       },
       { id: 'publica', roles: ['social'], text: 'Publica a mano y marca «Ya lo publiqué» en la tarjeta, con el link de cada red: se pone verde.', href: '/redes' },
       { id: 'tablero', roles: ['social', 'boss'], text: 'El tablero dice lo que falta en cada formato: «Por revisar», «Copy faltante», «Imagen faltante».', href: '/redes' },
-      { id: 'cierre', roles: ['social', 'boss'], text: 'Al cierre, la pieza de «Fin de mes» y, arriba de esa sección, el «Resumen del mes» para el jefe.', href: '/redes' },
+      { id: 'cierre', roles: ['social', 'boss'], text: 'Al cierre, la pieza de «Fin de mes» y, arriba de esa sección, el «Resumen del mes · Mes 1» para el jefe.', href: '/redes' },
     ],
   },
   {
@@ -199,7 +200,7 @@ export const FLOWS: Flow[] = [
     steps: [
       { id: 'graba', roles: ['camera'], text: 'Lee la ficha y el storyboard de Redes, y graba.', href: '/agenda' },
       { id: 'sube', roles: ['camera'], text: 'En «Material», sube cada parte en su casilla. Si se va la señal, sigue sola.' },
-      { id: 'entrega', roles: ['camera'], text: '«Entrega de Grabación»: el storyboard con el que grabó («Guardar storyboard») y la nota para el editor («Guardar nota»).' },
+      { id: 'entrega', roles: ['camera'], text: 'Deja su entrega: el storyboard con el que grabó («Guardar storyboard») y la nota para el editor («Guardar nota»).' },
       { id: 'avisa', roles: ['social', 'boss'], text: 'Les sale «Notas de Grabación nuevas».', href: '/hoy' },
       { id: 'baja', roles: ['social'], text: 'Lee la nota y toca «Descargar todo el material» para editar.' },
     ],
@@ -215,14 +216,14 @@ export const FLOWS: Flow[] = [
       {
         id: 'revisa',
         roles: ['boss', 'dispatch', 'ivt', 'camera'],
-        text: 'Si conoces la agenda y en el canal está Redes o política, la plataforma revisa el texto.',
+        text: 'Si conoces la agenda y en el canal está Redes o política, la app revisa el texto.',
         question: '¿Lleva una fecha, una hora, un mapa o un teléfono?',
         branches: [
           { label: 'Sí', text: 'No lo deja enviar y dice cómo decirlo sin eso.', to: 'escribe' },
-          { label: 'No', text: 'Sale.', to: 'llega' },
+          { label: 'No', text: 'El mensaje se envía. Si dice “mañana” o “el lunes”, antes pregunta, con «Enviar igual» o «Corregir».', to: 'llega' },
         ],
       },
-      { id: 'llega', roles: ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'], text: 'Les llega al teléfono “Mensaje nuevo”, sin el texto, a los que están en el canal.' },
+      { id: 'llega', roles: ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'], text: 'Les llega al teléfono «Mensaje nuevo», sin el texto, a los que están en el canal.' },
       { id: 'miembros', roles: ['boss'], text: 'Si hace falta, cambia quién está en «Editar canal», o lo archiva cuando ya no se usa.' },
     ],
   },
@@ -234,17 +235,17 @@ export const FLOWS: Flow[] = [
       {
         id: 'ofrece',
         roles: ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'],
-        text: '360 te ofrece en una línea “¿Te muestro esta pantalla?”.',
+        text: '360 te ofrece en una línea «¿Te muestro esta pantalla?».',
         question: '¿Quieres verla?',
         branches: [
           { label: 'Sí', text: 'Un tutorial paso a paso, en esa misma pantalla.', to: 'cuando' },
-          { label: 'No', text: 'La cierras con la X. Tras dos veces, 360 deja de ofrecer.', to: 'cuando' },
+          { label: 'No', text: 'La cierras con la X. Si la cierras dos veces, 360 ya no te la ofrece en ese teléfono.', to: 'cuando' },
         ],
       },
       {
         id: 'cuando',
         roles: ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'],
-        text: 'Cuando quieras: le escribes a 360, o «Mi cuenta» → «Ayuda y guías»: tu guía, cada pantalla, los flujos y «Ver el tutorial de esta pantalla».',
+        text: 'Cuando quieras: le escribes a 360, o Mi cuenta → «Ayuda y guías»: tu guía, cada pantalla, los flujos y «Ver el tutorial de esta pantalla».',
         href: '/ayuda',
       },
     ],
@@ -254,3 +255,18 @@ export const FLOWS: Flow[] = [
 export function flowById(id: FlowId | string): Flow | null {
   return FLOWS.find((f) => f.id === id) ?? null;
 }
+
+/**
+ * What a branch says after its text about where it goes (the app and the docs say it the same way): back to an earlier
+ * step « Vuelve al paso N.», to its own step « Vuelve a este paso.», past the next one « Sigue en el paso N.», and
+ * nothing when it goes on to the next step or ends there. `to` and `at` are step numbers (1 = the first).
+ */
+export function jumpWords(to: number, at: number): string {
+  if (!to || to === at + 1) return '';
+  if (to < at) return ` Vuelve al paso ${to}.`;
+  if (to === at) return ' Vuelve a este paso.';
+  return ` Sigue en el paso ${to}.`;
+}
+
+/** What a step that goes on in another flow says before its link: «Sigue en el flujo». */
+export const SEE_FLOW = 'Sigue en el flujo';
