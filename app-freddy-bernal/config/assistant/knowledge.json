@@ -54,7 +54,7 @@
    "key": "dictar",
    "roles": null,
    "title": "Dictar en vez de escribir",
-   "body": "En los campos largos (ficha, storyboard, comentarios) se puede dictar con el micrófono del teclado del teléfono (iPhone o Gboard). Después conviene revisar nombres y cifras antes de guardar.",
+   "body": "En los textos largos (la ficha, el storyboard, los comentarios) se puede dictar con el micrófono del teclado del teléfono (iPhone o Gboard). Después conviene revisar nombres y cifras antes de guardar.",
    "tags": [
     "dictar",
     "voz",

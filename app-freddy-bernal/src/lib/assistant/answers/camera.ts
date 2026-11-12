@@ -248,7 +248,7 @@ export const CAMERA: Answer[] = [
     id: 'gra-archivo-original',
     roles: ['camera'],
     q: ['¿Qué quiere decir que lo suba «en el archivo original»?', 'que es archivo original', 'el archivo original es el de la camara', 'subo el que me mandaron por whatsapp', 'que es el archivo original', 'subo el video tal cual sale de la camara', 'puedo subir el video que me pasaron por whatsapp'],
-    a: 'El archivo tal como salió de la cámara o del dron (sin comprimir ni reenviar por otra app), ya limpio de tiempos muertos.',
+    a: 'El archivo tal como sale de la cámara o del dron, sin comprimirlo ni pasarlo por WhatsApp u otra app, y ya limpio: sin esperas ni tomas que no sirven.',
     go: '/agenda',
   },
   {

@@ -1554,7 +1554,7 @@ export const IVT: Answer[] = [
       'que es la tarjeta de fecha de la visita',
       'que dice la fecha de la visita en la ficha',
     ],
-    a: 'Que el jefe o el despacho ya le pusieron fecha a la visita. La tarjeta «Fecha de la visita» de la ficha y «Mis visitas de obra» te la muestran cuando entras con el doble factor.',
+    a: 'Que el jefe o el despacho ya le pusieron fecha a la visita. La tarjeta «Fecha de la visita» de la ficha y «Mis visitas de obra» te la muestran si entraste con el doble factor.',
   },
   {
     id: 'ivt-fecha-visita-estados',

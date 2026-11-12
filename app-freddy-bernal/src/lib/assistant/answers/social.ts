@@ -425,7 +425,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-reel-nuevo',
     roles: ['social'],
     q: ['¿Cómo hago un reel nuevo?', 'como creo un reel', 'hacer un reel', 'nuevo reel donde', 'quiero montar un reel', 'como armo un reel', 'crear un reel nuevo', 'empezar un reel', 'donde hago los reels'],
-    a: 'Redes → Reels → «Nuevo reel»: pone un borrador arriba, abierto y con el título listo para escribir. Después llenas los campos, subes el «Video» y la «Portada» y haces los copies.',
+    a: 'Redes → Reels → «Nuevo reel»: pone un borrador arriba, abierto y con el título listo para escribir. Después llenas la tarjeta: subes el «Video» y la «Portada», escribes lo que pide el formato y haces los copies.',
     go: '/redes',
     tutorial: 'redes-seccion',
   },
@@ -501,7 +501,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-guarda-sola',
     roles: ['social'],
     q: ['¿Tengo que darle a guardar cada vez que escribo en la tarjeta?', 'la tarjeta se guarda sola', 'donde esta el boton guardar de la tarjeta', 'se guarda lo que escribo en la pieza', 'se guarda solo lo que escribo', 'hay que darle guardar a la tarjeta', 'no veo el boton guardar en la tarjeta'],
-    a: 'No: el título y los campos de la tarjeta se guardan solos mientras escribes. Solo los copies, los avisos y la nota de diseño tienen su botón.',
+    a: 'No: el título y lo que escribes en la tarjeta se guardan solos mientras escribes. Solo los copies, los avisos y la nota de diseño tienen su botón.',
     go: '/redes',
   },
   {
@@ -523,7 +523,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-duplicar',
     roles: ['social'],
     q: ['como duplico un post', 'como copio una pieza', 'duplicar un reel', 'quiero hacer otra igual', 'hacer una copia de un post', 'repetir una pieza sin empezar de cero', 'clonar una pieza', 'como copio un carrusel', 'hacer otra igual a una pieza', 'copiar una pieza para hacer otra'],
-    a: 'En los tres puntos de la tarjeta → «Duplicar». Sale una copia con el título, los campos, los copies y el archivo; sin espacio en el feed, sin marcas y sin aprobación.',
+    a: 'En los tres puntos de la tarjeta → «Duplicar». Sale una copia con el título, lo escrito en la tarjeta, los copies y el archivo; sin espacio en el feed, sin marcas y sin aprobación.',
     go: '/redes',
   },
   {
@@ -771,7 +771,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-copies-cierre',
     roles: ['social'],
     q: ['¿Qué cierres puedo elegir para el copy?', 'que es el cierre del copy', 'como pongo pregunta a la comunidad', 'copy sin cierre', 'que es accion con destino', 'como termina el copy', 'con que cierro el copy', 'que pongo al final del copy'],
-    a: 'En «Cierre»: los de la marca (los que están en Ajustes), «Pregunta a la comunidad», «Acción con destino (enlace, teléfono o dirección)» o «Sin cierre». Si eliges destino, escribe el destino tal cual va a salir.',
+    a: 'En «Cierre» eliges cómo termina el texto: una de las frases de cierre de la marca (las que están en Ajustes), «Pregunta a la comunidad», «Acción con destino (enlace, teléfono o dirección)» o «Sin cierre». Si eliges destino, escribe el destino tal cual va a salir.',
     go: '/redes',
   },
   {

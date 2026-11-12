@@ -815,7 +815,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       const title = res.tutoriales.find((t) => t.id === r.tutorial!.id)?.titulo ?? r.tutorial.label;
       // A screen with an id (an event, a piece): the window draws the button only on that screen.
       if (r.tutorial.href || i.ctx.screen === screen) return done(`Te muestro «${title}» paso a paso, aquí mismo en la pantalla. Toca el botón para empezar.`, undefined, r.tutorial);
-      return done(`«${title}» se ve en su pantalla: ábrela, y en el menú de tu cuenta toca «Ver el tutorial de esta pantalla».`, undefined, r.tutorial);
+      return done(`«${title}» se ve en su pantalla: ábrela, y en Mi cuenta (el muñequito de arriba a la derecha) toca «Ver el tutorial de esta pantalla».`, undefined, r.tutorial);
     }
     // No tutorial for it: a strong curated answer about the tutorials («hay tutorial de ajustes»: administración's screens have
     // none, «Ver como» shows a role's), else what that screen is for (the role's guide), and the guide.

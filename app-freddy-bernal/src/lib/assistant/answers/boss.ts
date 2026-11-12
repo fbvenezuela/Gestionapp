@@ -1123,7 +1123,7 @@ export const BOSS: Answer[] = [
       'el titulo y a donde se va quien los ve',
       'redes ve el titulo del evento',
     ],
-    a: 'El «Título del evento» y «A dónde se va» los ve todo el equipo, Redes también, así que van sin fecha ni hora. Puedes cambiarlos al ponerle fecha; la fecha, la hora y la dirección van en sus campos.',
+    a: 'El «Título del evento» y «A dónde se va» los ve todo el equipo, Redes también, así que van sin fecha ni hora. Puedes cambiarlos al ponerle fecha; la fecha, la hora y la dirección van en «Fecha, hora y lugar exacto».',
     go: '/agenda/por-fecha',
   },
   {
@@ -1521,7 +1521,7 @@ export const BOSS: Answer[] = [
       'se suspendio el acto como lo quito de la agenda',
       'como saco un evento de la agenda',
     ],
-    a: 'En el evento toca «Cancelar», escribe el «Motivo (opcional)» sin fecha, hora ni teléfono y toca «Sí, cancelar el evento». Queda tachado en la agenda, con quién lo canceló y por qué.',
+    a: 'En el evento toca «Cancelar», escribe el «Motivo (opcional)» sin fecha, hora ni teléfono y toca «Sí, cancelar el evento». Queda tachado en la agenda, con quién lo canceló y por qué. Si te arrepientes, «Volver a la agenda» lo pone otra vez en la agenda.',
     go: '/agenda',
     tutorial: 'evento-jefe',
   },
@@ -1548,7 +1548,7 @@ export const BOSS: Answer[] = [
       'se borra si lo cancelo por error',
       'cancele el acto equivocado',
     ],
-    a: 'No se borra: queda tachado («Cancelado») en la agenda. Ábrelo y toca «Volver a la agenda» para traerlo de vuelta.',
+    a: 'No se borra: queda tachado («Cancelado») en la agenda. Ábrelo y toca «Volver a la agenda»: lo pone otra vez en la agenda.',
     go: '/agenda',
   },
   {

@@ -546,7 +546,7 @@
     "como se usa esta pantalla"
    ],
    "always": false,
-   "script": "Persona: necesito ayuda / no sé cómo se usa esto / me perdí\n[ASISTENTE]: Puedo mostrarte cómo se usa cada pantalla, paso a paso. Pídeme “muéstrame esta pantalla” o abre «Ayuda y guías» en el menú de tu cuenta.\n[ASISTENTE]: Te enseño la pantalla en la que estás, paso a paso: dime “muéstrame esta pantalla”. La guía de tu trabajo está en «Ayuda y guías», en el menú de tu cuenta.\n[ASISTENTE]: Tranquilo, para eso estoy. Cada pantalla tiene su tutorial: pídemelo con “muéstrame esta pantalla”, o búscalo en «Ayuda y guías» [usa ver_tutorial].",
+   "script": "Persona: necesito ayuda / no sé cómo se usa esto / me perdí\n[ASISTENTE]: Puedo mostrarte cómo se usa cada pantalla, paso a paso. Pídeme “muéstrame esta pantalla” o abre «Ayuda y guías» en Mi cuenta (el muñequito de arriba a la derecha).\n[ASISTENTE]: Te enseño la pantalla en la que estás, paso a paso: dime “muéstrame esta pantalla”. La guía de tu trabajo está en «Ayuda y guías», en el menú de tu cuenta.\n[ASISTENTE]: Tranquilo, para eso estoy. Cada pantalla tiene su tutorial: pídemelo con “muéstrame esta pantalla”, o búscalo en «Ayuda y guías» [usa ver_tutorial].",
    "notes": "Ofrece el tutorial de la pantalla y la guía; nunca abre nada solo. Si la ayuda es porque algo falla, es «algo-falla»."
   },
   {
