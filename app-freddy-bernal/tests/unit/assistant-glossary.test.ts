@@ -1,8 +1,9 @@
 // «Palabras de la app» in 360 (12/11; Juan: «asegúrate que el bot sepa todo… y cómo poder explicarlo»): every word of
 // the glossary (src/lib/guides/glossary.ts) and every name it is asked with, as «¿qué es…?», «¿qué significa…?»,
 // «¿qué quiere decir…?» and «¿para qué sirve…?», for every team role and administración, gets what it means: the word's own entry, or a curated
-// answer that says the same. A «¿cómo…?» that names the word goes to how it is done, and a label that only contains the
-// word keeps its own answer. The demo brain says it whole, «9:16» included, never with the agenda's refusal. The index
+// answer that says the same. A «¿cómo…?» that names the word goes to how it is done, a «¿dónde…?» to where it is when an
+// answer says it, and a label that only contains the word keeps its own answer. The demo brain says it whole, «9:16»,
+// «16:9» and «4:5» included, never with the agenda's refusal. The index
 // first (pure); then a few turns on the demo database (invented data, a handful per person, under the hourly cap).
 import { describe, it, expect } from 'vitest';
 import type { Session } from '@/lib/auth/session';
@@ -102,6 +103,20 @@ describe('las palabras de la app en el índice de 360', () => {
     for (const [role, q] of how) expect(bestAnswer(q, { roles: [role] })?.entry.kind, `${role}: ${q}`).not.toBe('term');
   });
 
+  it('un «¿dónde…?» que nombra la palabra va a dónde está si una respuesta lo dice; si no, a lo que significa', () => {
+    // Política's labels are on top of the ficha: the answer that says so, not what an «etiqueta» is.
+    const labels = bestAnswer('¿dónde veo las etiquetas?', { roles: ['politics'] })!;
+    expect(labels.entry.kind, labels.text).not.toBe('term');
+    expect(labels.text).toMatch(/[Aa]rriba/);
+    // Nothing else says where the office is: its meaning says it («Lo que abre «Oficina» en el menú…»), never the
+    // answer about codes and keys that «la oficina» used to bring.
+    for (const [role, q] of [['boss', '¿dónde está la oficina?'], ['admin', '¿dónde veo la oficina?']] as [Role, string][]) {
+      const m = bestAnswer(q, { roles: [role] })!;
+      expect(m.text, `${role}: ${q}`).toMatch(/Oficina/);
+      expect(m.text, `${role}: ${q}`).not.toMatch(/c[oó]digos|claves/);
+    }
+  });
+
   it('una etiqueta que lleva la palabra («Copy faltante») sigue con su respuesta', () => {
     const m = bestAnswer('¿qué es «Copy faltante»?', { roles: ['social'] })!;
     expect(m.entry.kind).not.toBe('term');
@@ -120,6 +135,8 @@ describe('360 lo explica en la conversación (el cerebro de la demo)', () => {
   const PEOPLE: DemoUserKey[] = ['social', 'boss', 'camera', 'dispatch', 'politics', 'ivt', 'admin'];
   const ASKED: [string, string][] = [
     ['¿qué es 9:16?', 'numeros-y-medidas'],
+    ['¿qué significa 16:9?', 'numeros-y-medidas'],
+    ['¿qué es 4:5?', 'numeros-y-medidas'],
     ['¿qué significa trancado?', 'trancado'],
     ['¿qué es un hook?', 'hook-y-cta'],
     ['¿qué quiere decir CSV?', 'csv'],

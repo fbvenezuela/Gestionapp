@@ -716,12 +716,14 @@ export const WEAK = 0.45;
 // What the other kind of match adds to an entry's best (a way of asking and its text, design §A).
 const ALSO_SAID = 0.25;
 // «¿Qué es X?» where X is a word of «Palabras de la app» and nothing more («¿qué es copy?», «¿qué significa trancado?»,
-// «¿para qué sirve el semáforo?»): what it means goes first, before an answer that only uses the word («No escribo copies sueltos…»). A question that
-// names more («¿qué es «Copy faltante»?») gets no such lift, and a question that does not ask what a word means
-// («¿cómo hago un copy?», «¿cómo funciona el semáforo?») gets the task or the answer that says how, with the meaning a
-// bit behind (12/11).
+// «¿para qué sirve el semáforo?»): what it means goes first, before an answer that only uses the word («No escribo
+// copies sueltos…»). A question that names more («¿qué es «Copy faltante»?») gets no such lift, and a question that does
+// not ask what a word means («¿cómo hago un copy?», «¿cómo funciona el semáforo?») gets the task or the answer that says
+// how, with the meaning a bit behind; a «¿dónde…?» («¿dónde veo las etiquetas?»), the answer that says where, with the
+// meaning further behind: it still answers when nothing says where («¿dónde está la oficina?») (12/11).
 const TERM_ASKED = 0.3;
 const TERM_ELSE = 0.88;
+const TERM_WHERE = 0.75;
 const TERM_WHAT = /\b(?:que es|que son|que significa\w*|que quiere decir|que quieren decir|paraque es|paraque son|paraque sirven?)\b/;
 // Where a word that only ways of asking have is capped: the weight of the word at this share of the index (a common one).
 const DETAIL_AT = 0.2;
@@ -1007,7 +1009,7 @@ function rank(question: string, o: FindOptions): Match[] {
     if (o.screen && e.screen && e.screen === o.screen) s += 0.04;
     if (e.kind === 'term') {
       if (TERM_WHAT.test(a.text)) s += termAsked(e, a) ? TERM_ASKED : 0;
-      else s *= TERM_ELSE;
+      else s *= whereAsk ? TERM_WHERE : TERM_ELSE;
     }
     // A curated answer, more when it was written for the asker's role (not everyone's).
     if (e.kind === 'curated') s += e.roles ? ROLE_OWN : 0.03;

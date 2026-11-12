@@ -54,7 +54,7 @@ El nombre, los colores, los logos, el saludo, los cierres y los hashtags.
 ### Cupo y pilares (`/ajustes/contenido`)
 El cupo del mes de cada formato de Redes, los pilares del contenido y las piezas que eliminó el jefe.
 
-- «Cupo del mes»: cuántos reels, posts, carruseles, historias y videos de YouTube se planean por mes. Es informativo: pasarse no bloquea nada, y fin de mes no tiene cupo. Toca «Guardar cupo».
+- «Cupo del mes»: cuántos reels, posts, carruseles, historias y videos de YouTube se planean por mes. Es una meta: si se hacen más piezas, no pasa nada, y fin de mes no tiene cupo. Toca «Guardar cupo».
 - «Pilares»: los temas del contenido. «Agregar pilar», su nombre y su «Color»; subirlo, bajarlo o quitarlo, y «Guardar pilares». Cambiarle el nombre no lo quita de sus piezas; si lo quitas, quedan «Sin pilar».
 - «Piezas eliminadas»: las que eliminó el jefe. «Recuperar» la devuelve a su mes (o al primero, si su mes ya no está), sin espacio en el feed.
 - En cada sección de Redes, «Cambiar en Ajustes» te trae aquí.
@@ -101,7 +101,7 @@ Puedes hacer lo de Redes: el tablero, las secciones por formato, el feed, Tweets
 ### Por aprobar (`/aprobar`)
 Ves lo que espera al jefe, pero no apruebas: todo lo aprueba el jefe.
 
-- En una pieza: «Cambiar nivel», comentar, o «Pedir frase al jefe» si hace falta su voz («Anotar pedido de frase»).
+- En una pieza: el nivel, arriba, en su cajita (dice, por ejemplo, «Nivel amarillo»); comentar, o «Pedir frase al jefe» si hace falta su voz («Anotar pedido de frase»).
 
 ### La agenda y las fichas (`/agenda`)
 Lees la agenda, «Por ponerle fecha», las obras y los municipios.
@@ -128,4 +128,4 @@ Cada rol que das le llega al jefe como aviso. Las personas saben que lees lo que
 No: solo el jefe elimina piezas. Tú la recuperas en Ajustes → «Cupo y pilares» → «Piezas eliminadas» → «Recuperar».
 
 **¿Dónde cambio el cupo del mes o los pilares?**
-En Ajustes → «Cupo y pilares», con el doble factor. El cupo es informativo: pasarse no bloquea nada.
+En Ajustes → «Cupo y pilares», con el doble factor. El cupo es una meta: si se hacen más piezas, no pasa nada.

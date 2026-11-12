@@ -123,8 +123,9 @@ test('Grabación no abre la guía de Redes: vuelve a su inicio con el aviso', as
   await expect(page.getByRole('heading', { name: 'Algo no cargó' })).toHaveCount(0);
 });
 
-// Hoy is not theirs (12/11): política and the IVT go back to their own home with the notice, as their guide says.
-for (const [email, home] of [['politica@demo.test', '/municipios'], ['ivt@demo.test', '/obras']] as const) {
+// Hoy is not theirs (APP-08, 12/11): política and the IVT go back to their own home with the notice, as their guide
+// says; so does someone of the web, whose home is the web's screen.
+for (const [email, home] of [['politica@demo.test', '/municipios'], ['ivt@demo.test', '/obras'], ['web.editora@demo.test', '/admin/web']] as const) {
   test(`${email}: Hoy no está en su menú, vuelve a su inicio con el aviso`, async ({ page }) => {
     await loginAs(page, email);
     await page.goto('/hoy');
