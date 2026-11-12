@@ -1520,7 +1520,7 @@ export const POLITICS: Answer[] = [
       'escribi mal una nota como la quito',
       'me equivoque en la nota',
     ],
-    a: 'No: en la historia solo se añaden notas, nada se borra ni se cambia. Si te equivocaste, agrega otra nota que lo corrija.',
+    a: 'No: de la historia de la ficha nada se borra ni se cambia, solo se añaden notas. Si te equivocaste, agrega otra nota que lo corrija.',
   },
   {
     id: 'pol-historia',

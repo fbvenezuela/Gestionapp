@@ -2211,7 +2211,7 @@ export const BOSS: Answer[] = [
       'que son los 24 espacios',
       'como funciona el feed',
     ],
-    a: 'El feed del mes tiene 24 espacios en el orden en que se publican: el #1, abajo a la derecha, es el primero que sale, y el #24 está arriba a la izquierda. Van posts, reels y carruseles.',
+    a: 'El feed del mes son 24 espacios, y el número de cada uno es su orden: el #1 del feed, abajo a la derecha, es el primero que sale, y el #24, arriba a la izquierda, el último. Van posts, reels y carruseles.',
     go: '/redes/feed',
     tutorial: 'feed',
   },

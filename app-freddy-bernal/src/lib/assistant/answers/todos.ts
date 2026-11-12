@@ -233,7 +233,7 @@ export const TODOS: Answer[] = [
     q: ['por qué me pide un código de la aplicación cada vez que entro', 'cada vez que entro me pide el autenticador', 'tengo que poner el codigo siempre', 'xq me pide dos codigos'],
     a: {
       default:
-        'Es el doble factor: tu rol ve información delicada, así que cada vez que entras, además del código del correo, te pide el «Código de tu aplicación»: abres la aplicación de códigos, escribes los 6 números que se ven ahora y tocas «Confirmar».',
+        'Es el doble factor: tu rol ve información delicada, así que cada vez que entras, además del código del correo, te pide el «Código de tu aplicación»: escribes los 6 números que te da la aplicación y tocas «Confirmar».',
       camera: 'Tu rol solo usa el código del correo: cada vez que entras pides uno con «Mandarme el código». No usas aplicación de códigos.',
       social: 'Tu rol solo usa el código del correo: cada vez que entras pides uno con «Mandarme el código». No usas aplicación de códigos.',
     },
@@ -743,7 +743,7 @@ export const TODOS: Answer[] = [
       'en la demo se reinicio todo',
       'por que la demo volvio a como estaba',
     ],
-    a: 'La demostración trae datos inventados y es solo para practicar: de vez en cuando vuelve a empezar, y lo que hiciste se borra. Lo más seguro es probar con lo que la demo ya trae; con los datos reales no pasa.',
+    a: 'La demostración trae datos inventados y es solo para practicar: de vez en cuando empieza de nuevo, y lo que hiciste se borra. Con los datos reales no pasa.',
   },
   {
     id: 'todo-demo-entrar',
@@ -1147,7 +1147,7 @@ export const TODOS: Answer[] = [
       'como se si tengo mensajes nuevos',
     ],
     a: {
-      default: 'El número de los globitos dice cuántos canales tienen algo nuevo; en la lista, esos van en negrita. Al abrir uno, te lleva al primer mensaje sin leer, donde dice «Mensajes nuevos». Yo no leo los mensajes: ábrelos tú.',
+      default: 'El número de los globitos dice cuántos canales tienen algo nuevo; en la lista, esos van en negrita, y al abrir uno empiezas donde dice «Mensajes nuevos». Yo no leo los mensajes: ábrelos tú.',
       admin: NO_MSG,
     },
     go: '/mensajes',
@@ -1643,7 +1643,7 @@ export const TODOS: Answer[] = [
     ],
     a: {
       default:
-        'Es a propósito: el aviso dice «Mensaje nuevo» y de quién es, nunca el texto ni el nombre del canal, porque la pantalla del teléfono la puede ver cualquiera. Lo lees en Mensajes. Si te llegan varios, se juntan en uno.',
+        'Es a propósito: el aviso dice «Mensaje nuevo» y de quién es, nunca el texto ni el nombre del canal, porque la pantalla del teléfono la puede ver cualquiera. Yo tampoco leo los mensajes: los lees tú en Mensajes. Si te llegan varios, se juntan en uno.',
       admin: NO_MSG,
     },
     go: '/mensajes',
@@ -2816,7 +2816,7 @@ export const TODOS: Answer[] = [
     id: 'todo-contactos-terceros',
     roles: null,
     q: ['dónde van los teléfonos de los contactos', 'donde pongo el telefono del vocero', 'quien ve los contactos del sitio', 'puedo poner un teléfono en la nota'],
-    a: 'Los teléfonos de otras personas van solo en los contactos de la ficha. Para verlos hay que entrar con el doble factor, y que tu rol los pueda ver. Nunca van en notas, títulos, comentarios ni mensajes.',
+    a: 'Los teléfonos de otras personas van solo en los contactos de la ficha: los ves si tu rol los ve y si entraste con el doble factor. Nunca van en notas, títulos, comentarios ni mensajes.',
   },
   {
     id: 'todo-quien-cupo',
