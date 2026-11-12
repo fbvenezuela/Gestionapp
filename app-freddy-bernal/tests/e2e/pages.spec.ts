@@ -12,9 +12,10 @@ const ROLES: Record<string, string[]> = {
   // The boss «tiene todo, hasta lo de redes»: the Redes screens open for him too.
   'jefe@demo.test': ['/jefe', '/jefe/politica', '/jefe/digital', '/redes', '/redes?vista=trimestre', '/redes/posts', '/redes/feed', '/redes/buscar', '/agenda', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/agenda/por-fecha', '/resultados', '/aprobar', '/aprobar?tab=tweets', '/piezas/nueva', '/tweets', '/tweets/nueva', '/publicar', '/publicar/nueva', '/biblioteca', '/obras', '/obras/nueva', '/municipios', '/municipios/junin', '/reportes/nuevo', '/mensajes', '/mensajes/canales/nuevo', '/ayuda', '/ayuda/jefe', '/ayuda/despacho', '/ayuda/politica', '/ayuda/ivt', '/ayuda/grabacion', '/ayuda/redes', '/ayuda/flujos'],
   'despacho@demo.test': ['/hoy', '/agenda', '/agenda/nuevo', '/agenda/nuevo?tipo=obra', '/agenda/por-fecha', '/biblioteca', '/obras', '/municipios', '/mensajes', '/ayuda', '/ayuda/despacho'],
-  // Fichas (§4.1 and §4.2): the IVT on its obra fichas, política on the municipalities. Both keep Hoy, Avisos and Perfil.
-  'politica@demo.test': ['/municipios', '/municipios?vencidas=1', '/municipios/junin', '/municipios/torbes?tipo=event', '/reportes/nuevo', '/hoy', '/avisos', '/perfil', '/mensajes', '/ayuda', '/ayuda/politica'],
-  'ivt@demo.test': ['/obras', '/obras?estado=to_schedule', '/obras/nueva', '/agenda', '/hoy', '/avisos', '/perfil', '/mensajes', '/ayuda', '/ayuda/ivt'],
+  // Fichas (§4.1 and §4.2): the IVT on its obra fichas, política on the municipalities. Both keep Avisos and Perfil;
+  // Hoy sends them to their home (ayuda.spec.ts).
+  'politica@demo.test': ['/municipios', '/municipios?vencidas=1', '/municipios/junin', '/municipios/torbes?tipo=event', '/reportes/nuevo', '/avisos', '/perfil', '/mensajes', '/ayuda', '/ayuda/politica'],
+  'ivt@demo.test': ['/obras', '/obras?estado=to_schedule', '/obras/nueva', '/agenda', '/avisos', '/perfil', '/mensajes', '/ayuda', '/ayuda/ivt'],
   'grabacion@demo.test': ['/hoy', '/agenda', '/mensajes', '/ayuda', '/ayuda/grabacion'],
   'redes@demo.test': ['/redes', '/redes/historias', '/redes/carruseles', '/redes/youtube', '/redes/feed', '/redes/buscar?q=agua', '/mensajes', '/ayuda', '/ayuda/redes', '/ayuda/flujos'],
 };

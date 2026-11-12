@@ -10,6 +10,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import ts from 'typescript';
 import { quotedLabels } from '@/lib/guides/check';
+import { NO_MESSAGES_LINE } from '@/lib/guides/shared';
 import { ANSWER_FILES, type Answer } from '@/lib/assistant/answers';
 import knowledge from '../../config/assistant/knowledge.json';
 import scripts from '../../config/assistant/scripts.json';
@@ -150,8 +151,9 @@ describe('360 dice lo que dice la guía del equipo', () => {
   it('la ficha de Mensajes empieza en los globitos y administración no tiene los globitos', () => {
     const card = (knowledge as { knowledge: { key: string; body: string }[] }).knowledge.find((c) => c.key === 'mensajes');
     expect(card?.body).toMatch(/^Mensajes está en los globitos de arriba/);
-    // NO_MSG (answers/todos.ts), the same sentence as the guides' NO_MESSAGES_LINE: what administración hears.
-    const noMsg = SAID.filter((s) => /\/admin$/.test(s.where) && s.text === 'Mensajes es del equipo: administración no lo ve, y por eso no tiene los globitos.');
+    // NO_MSG (answers/todos.ts), word for word the guides' NO_MESSAGES_LINE: what administración hears.
+    expect(NO_MESSAGES_LINE).toBe('Mensajes es del equipo: administración no lo ve, y por eso no tiene los globitos.');
+    const noMsg = SAID.filter((s) => /\/admin$/.test(s.where) && s.text === NO_MESSAGES_LINE);
     expect(noMsg.length).toBeGreaterThan(5);
   });
 

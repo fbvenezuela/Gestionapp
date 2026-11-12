@@ -53,7 +53,7 @@ Con cualquier rol del equipo, en este orden:
    «Paso a paso», «Cada pantalla»), «Qué se hace en cada pantalla», «Cómo va el trabajo entre todos» (los 8 flujos, con
    «tú» en tus pasos) y «Tutoriales de mis pantallas». El jefe ve además «La guía de cada persona» (las seis);
    Administración tiene la suya aparte («Guía de administración»).
-3. **Mensajes.** El sobre arriba, junto a la campana, con «1 sin leer» (cada persona del equipo tiene un canal sin
+3. **Mensajes.** Los globitos arriba, junto a la campana, con «1 sin leer» (cada persona del equipo tiene un canal sin
    leer). Son canales: «Todo el equipo» y los que armó el jefe; cada quien ve solo los suyos (Daniela, de Redes, ve
    «Grabación y Redes» y el archivado «Jornada de salud», nunca «Jefe y despacho»). Abre un canal: arriba dice «N
    personas»; tócalo y sale la lista «Miembros», con el jefe primero. Escribe. El ⋯ del canal silencia el teléfono.
@@ -67,7 +67,7 @@ Con cualquier rol del equipo, en este orden:
    «Archivar» (pregunta antes) lo manda a «Archivados»; «Solo el jefe escribe» en un canal o en «Todo el equipo». En la
    campana le llega un aviso cuando Administración da un rol del equipo («Un rol
    nuevo en el equipo») o invita a alguien («Alguien nuevo en el equipo»).
-6. **Administración** (`admin@demo.test`): no tiene el sobre, y `/mensajes` la devuelve a su inicio con «Esa pantalla
+6. **Administración** (`admin@demo.test`): no tiene los globitos, y `/mensajes` la devuelve a su inicio con «Esa pantalla
    no es de tu rol». En Equipo, la casilla «Jefe» está apagada: el rol de jefe lo da el comando de instalación (D-58).
 7. **360 y Mensajes:** pregúntale «¿qué me escribió Daniela?» o «dile a Kevin que ya subí la pieza»: contesta que no
    lee ni manda mensajes, con el botón a Mensajes. «Muéstrame cómo se usa esta pantalla» trae «Ver el tutorial de…».

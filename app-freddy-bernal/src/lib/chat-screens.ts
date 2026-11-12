@@ -15,7 +15,7 @@ export const CHAT_SCREENS: Screen[] = [
     file: '(panel)/mensajes/page.tsx',
     phrases: ['mis mensajes', 'red interna', 'mensajes del equipo', 'chat del equipo', 'mis canales'],
     nav: ['mensajes', 'chat', 'canales'],
-    about: 'el sobre de arriba, junto a la campana: tus canales con el equipo',
+    about: 'los globitos de arriba, junto a la campana: tus canales con el equipo',
   },
   {
     href: '/mensajes/canales/nuevo',

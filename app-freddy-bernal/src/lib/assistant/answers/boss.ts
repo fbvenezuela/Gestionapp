@@ -335,6 +335,7 @@ export const BOSS: Answer[] = [
     roles: ['boss'],
     q: [
       '¿Cómo le pido cambios a Redes en una pieza?',
+      'como pido cambios en una pieza',
       'como devuelvo una pieza a redes',
       'no me gusta la pieza como pido que la cambien',
       'pedir cambios',

@@ -269,21 +269,22 @@ Mensajes del todo.
     título de la conversación), no pasa por «Lo que preguntan» ni por las correcciones, nunca va al modelo y nunca
     escala;
   - el guion del modelo dice la pantalla y que 360 nunca lee mensajes;
-  - el panel de la ventana lleva una línea fija: «Administración ve lo que le preguntas a {nombre}; no pegues aquí
-    mensajes del equipo.».
+  - el panel de la ventana lleva una línea fija: «Administración (las personas que manejan la parte técnica de la app)
+    puede leer lo que le preguntas a {nombre}; no pegues aquí mensajes del equipo.».
 
 ## Respuestas de 360 (desde el 30/10/2026, D-89)
 Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene además un **índice de respuestas**
 (`src/lib/assistant/answers/engine.ts`) armado con todo lo que la plataforma ya explica, en las palabras de sus pantallas.
 - **De dónde sale.** De las guías por rol (`src/lib/guides`): el trabajo de cada rol, lo que hace y lo que no, con quién
   trabaja, su día, cada tarea con sus pasos, cada pantalla (qué es y qué se hace ahí) y sus preguntas. También de «Para
-  todos», de los flujos y de la guía de administración. Encima van las **respuestas curadas**
+  todos» y sus «Palabras de la app» (lo que significa cada palabra: «¿qué es un hook?», «¿qué significa 9:16?»), de
+  los flujos y de la guía de administración. Encima van las **respuestas curadas**
   (`src/lib/assistant/answers/{todos,admin,boss,dispatch,politics,ivt,social,camera}.ts`, el formato en `types.ts`):
   cada una trae al menos tres formas de preguntar y su respuesta por rol. Las revisa `assistant-answers-content.test.ts`:
   etiquetas que existen, sin fechas, horas, direcciones, teléfonos ni nombres de la demo. Mensajes solo entra para el
-  equipo: a administración, la línea del sobre le dice que no es para ella. Lo que un rol no puede o nunca hace lleva
-  `may`, y solo contesta «¿puedo…?». El índice se arma una vez por servidor y cada pregunta tarda mucho menos de 20 ms
-  (hay una prueba).
+  equipo: a administración, la línea de los globitos le dice que no es para ella. Lo que un rol no puede o nunca hace
+  lleva `may`, y solo contesta «¿puedo…?». El índice se arma una vez por servidor y cada pregunta tarda mucho menos de
+  20 ms (hay una prueba).
 - **Cómo compara.** Las dos partes se leen igual, sin tildes. La pregunta pasa por `readable()`: «q», «pa», «xq»,
   «msj», «cel», «camarógrafo» → Grabación, «gobernador» → el jefe, «x» → Twitter, «la campanita», «el sobrecito», «el
   lapicito», «la lupita», «el engranaje». Cada palabra queda en su raíz (`rootOf()`: apruebo/aprobar, pongo/ponerle,
@@ -626,9 +627,9 @@ vive en `sessionStorage` con el usuario y el ámbito; «Empezar de nuevo» no bo
 hay una conversación a medias. Preguntas sugeridas por rol. Aviso de degradado si el servidor lo marca o si no responde.
 Botón «Ir a…» cuando la respuesta trae destino, o «Ver el tutorial de X» cuando trae un tutorial. No lee datos de
 nadie: solo llama a `/api/asistente`, con la pregunta y el patrón de la pantalla. Aviso fijo: «No escribas aquí fechas,
-horas ni direcciones de la agenda.», y debajo del campo «Administración ve lo que le preguntas a {nombre}; no pegues aquí
-mensajes del equipo.». La franja que ofrece tutoriales vive al lado del botón (ver arriba). En `/mensajes/[id]` no se
-pinta nada (la conversación ocupa la pantalla).
+horas ni direcciones de la agenda.», y debajo del campo «Administración (las personas que manejan la parte técnica de la
+app) puede leer lo que le preguntas a {nombre}; no pegues aquí mensajes del equipo.». La franja que ofrece tutoriales
+vive al lado del botón (ver arriba). En `/mensajes/[id]` no se pinta nada (la conversación ocupa la pantalla).
 
 ## El panel (Ajustes → Asistente, solo administración)
 Ocho pestañas: **Lo que sabe** (fichas; las automáticas avisan antes de editarse; «Actualizar lo que sabe»),

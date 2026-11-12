@@ -15,7 +15,8 @@ export const REQUEST_TIMEOUT_MS = 45_000;
 
 export const NOTE = 'No escribas aquí fechas, horas ni direcciones de la agenda.';
 /** Under the field, always (R3, D-50, S8): what is asked here is not private, and 360 never reads Mensajes. */
-export const panelNote = (name: string) => `Administración puede leer lo que le preguntas a ${name.trim() || 'el asistente'}; no pegues aquí mensajes del equipo.`;
+export const panelNote = (name: string) =>
+  `Administración (las personas que manejan la parte técnica de la app) puede leer lo que le preguntas a ${name.trim() || 'el asistente'}; no pegues aquí mensajes del equipo.`;
 export const DEMO_LABEL = 'modo demostración, sin IA';
 /** When the request fails we did NOT tell the team, so we don't say we did. */
 export const FAILED_TEXT = 'No pude consultar bien ahora mismo. Si es urgente, escríbele a administración.';

@@ -12,7 +12,8 @@ async function noSerious(page: import('@playwright/test').Page) {
 
 test('«Modo sol» se activa desde la cuenta y se recuerda en el teléfono', async ({ page }) => {
   await loginAs(page, 'politica@demo.test');
-  await page.goto('/hoy');
+  // Política's home (Hoy is not in its menu, APP-08).
+  await page.goto('/municipios');
   await page.getByLabel('Mi cuenta').click();
   const sun = page.getByRole('switch', { name: 'Modo sol' });
   await expect(sun).toHaveAttribute('aria-checked', 'false');
