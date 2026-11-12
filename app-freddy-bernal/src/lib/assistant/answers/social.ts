@@ -717,7 +717,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-estados',
     roles: ['social'],
     q: ['¿Qué estados puede tener una pieza?', 'que significa borrador', 'que es programado en la tarjeta', 'como cambio el estado de una pieza', 'por que la tarjeta se puso verde', 'que significa programado', 'que es borrador', 'como cambio una pieza a publicado', 'la tarjeta se puso verde por que'],
-    a: 'Se calculan solos: «Borrador», «En revisión», «En revisión · ✓ Lista» (aprobada y sin publicar), «Programado» y «Publicado» (la tarjeta se pone verde). No se cambian a mano.',
+    a: 'Cambian solos, según lo que vas haciendo: «Borrador», «En revisión», «En revisión · ✓ Lista» (aprobada y sin publicar), «Programado» y «Publicado» (la tarjeta se pone verde). No se cambian a mano.',
     go: '/redes',
   },
   {
@@ -1690,7 +1690,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-mensaje-video',
     roles: ['social'],
     q: ['puedo mandar el video x mensajes', 'como mando una foto por el chat', 'mandar el reel por mensajes', 'adjuntar archivo en mensajes', 'mandar un video por mensajes', 'adjuntar una foto en el chat'],
-    a: 'No: en Mensajes no se mandan fotos, audios ni archivos. Para eso están el material y las piezas: pega la dirección de la pieza en el canal.',
+    a: 'No: en Mensajes no se mandan fotos, audios ni archivos. Para eso están el material y las piezas: copia el enlace de la pantalla de la pieza y pégalo en el mensaje.',
     go: '/mensajes',
   },
   {

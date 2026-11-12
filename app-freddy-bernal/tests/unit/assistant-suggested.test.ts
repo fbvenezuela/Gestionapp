@@ -39,7 +39,7 @@ const EXPECTED: Record<Role & DemoUserKey, Record<string, Expect>> = {
   boss: {
     '¿Qué me toca aprobar?': { tool: 'mis_pendientes', has: /pendiente|aprobar/ },
     // The bulk approval, never «one by one».
-    '¿Cómo apruebo todas las verdes de una vez?': { has: /«Te toca aprobar».*«Aprobar todas las verdes \(n\)»/, not: /una por una/ },
+    '¿Cómo apruebo todas las verdes de una vez?': { has: /«Te toca aprobar».*«Aprobar todas las verdes \(\d+\)»/, not: /una por una/ },
     // R4: the month of Redes, with its summary (the accountability, on top of Fin de mes) and the button to it.
     // Since the answers (D-89), his curated answer: the board of Redes, what is missing in each format.
     '¿Cómo va el mes de Redes?': { has: /^El Resumen del mes es la rendición de cuentas de Redes|el tablero con lo que falta en cada formato/ },
@@ -53,14 +53,14 @@ const EXPECTED: Record<Role & DemoUserKey, Record<string, Expect>> = {
   },
   politics: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
-    '¿Qué puedo hacer en la plataforma?': { has: /registro de cada municipio/ },
+    '¿Qué puedo hacer en la app?': { has: /registro de cada municipio/ },
     // The curated answer to política (D-89): «El jefe: califica la importancia de 1 a 10…».
     '¿Quién decide si se hace un evento?': { has: /^El jefe: califica|Jefe: tiene todo/ },
     '¿Me muestras cómo se usa esta pantalla?': SHOW_SCREEN,
   },
   ivt: {
     '¿Qué tengo pendiente?': { tool: 'mis_pendientes', has: /pendiente/ },
-    '¿Qué puedo hacer en la plataforma?': { has: /ficha de cada obra/ },
+    '¿Qué puedo hacer en la app?': { has: /ficha de cada obra/ },
     '¿Puedo ver la agenda?': { has: /La Agenda está en el menú/ },
     '¿Me muestras cómo se usa esta pantalla?': SHOW_SCREEN,
   },

@@ -30,7 +30,7 @@ const ctx = (key: DemoUserKey) => ({ session: sessionOf(key), conversationId: nu
 
 // has: words the answer must carry; go: the «Ir a…» screen (null: no button); label: its button's name, when it says.
 type Expect = { has: RegExp; go: string | null; label?: string };
-const DELETE_RULE = /^Eliminar una pieza: solo el jefe, con el doble factor; no se borra de verdad/;
+const DELETE_RULE = /^Eliminar una pieza: solo el jefe, con el doble factor; si fue un error, Administración la puede recuperar/;
 // Since the answers (D-89), the curated answer for each role may say it first: who deletes, in that role's words.
 const DELETE_WHO = (who: RegExp) => new RegExp(`${DELETE_RULE.source}|${who.source}`);
 const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {

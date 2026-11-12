@@ -352,7 +352,7 @@ export const CAMERA: Answer[] = [
     id: 'gra-compu',
     roles: ['camera'],
     q: ['se puede subir desde la compu o solo del cel?', 'puedo subir desde la computadora', 'subir desde la laptop', 'tengo que usar el telefono para subir', 'subo desde la laptop', 'tengo que subir desde el telefono', 'puedo subir desde una tablet', 'desde el ipad puedo subir'],
-    a: 'Desde cualquiera: es la misma plataforma en el navegador del teléfono, la tablet o la computadora. Los archivos grandes van mejor desde la computadora con wifi.',
+    a: 'Desde cualquiera: es la misma app en el navegador del teléfono, la tablet o la computadora. Los archivos grandes van mejor desde la computadora con wifi.',
   },
   {
     id: 'gra-senal',

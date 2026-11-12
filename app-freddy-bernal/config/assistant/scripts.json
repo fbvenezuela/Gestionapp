@@ -303,7 +303,7 @@
     "sin programar"
    ],
    "always": false,
-   "script": "Persona: como armo el feed?\n[ASISTENTE]: En Redes → Feed: tocas un espacio vacío, eliges el formato y luego el título. El #1, abajo a la derecha, es el primero que sale.\n[ASISTENTE]: El feed tiene 24 espacios por mes, en el orden en que se publican. Una pieza nunca está en dos: si ya está puesta, te pregunta si la mueves.\nSi dice «¿cómo la muevo?» → [ASISTENTE]: Tócala y usa «Publicar antes», «Publicar después» o «Cambiar de espacio». Quitarla del feed no la borra: queda «Sin programar».",
+   "script": "Persona: como armo el feed?\n[ASISTENTE]: En Redes → Feed: tocas un espacio vacío, eliges el formato y luego el título. El #1, abajo a la derecha, es el primero que sale.\n[ASISTENTE]: El feed tiene 24 espacios por mes, en el orden en que se publican. Una pieza nunca está en dos: si ya está puesta, te pregunta si la mueves.\nSi dice «¿cómo la muevo?» → [ASISTENTE]: Tócala y usa «Publicar antes (#20)» y «Publicar después (#22)» (si está en el #21) o «Cambiar de espacio». Quitarla del feed no la borra: queda «Sin programar».",
    "notes": "Los números del feed salen de la pantalla; no se inventan. El orden lo pone una persona: nunca la fecha de un evento."
   },
   {
@@ -364,7 +364,7 @@
     "hashtags"
    ],
    "always": false,
-   "script": "Persona: como hago los copies?\n[ASISTENTE]: En la pieza en grande, en «Copies» (desde la tarjeta, «Generar copies»): eliges la fórmula, la voz ([JEFE] o institucional) y el cierre, y salen los tres largos. La plantilla nunca inventa cifras.\n[ASISTENTE]: Los copies salen de la ficha técnica con la fórmula que elijas. Si falta un dato, te lo marca para que lo completes.\nSi dice «¿qué fórmula uso?» → [ASISTENTE]: Depende de la pieza; te digo de qué va cada una si quieres.",
+   "script": "Persona: como hago los copies?\n[ASISTENTE]: En la pieza en grande, en «Copies» (desde la tarjeta, «Generar copies»): eliges la fórmula, la voz ([JEFE] o institucional) y el cierre, y la app escribe los tres textos (largo, medio y corto). La plantilla nunca inventa cifras.\n[ASISTENTE]: Los copies salen de la ficha técnica con la fórmula que elijas. Si falta un dato, te lo marca para que lo completes.\nSi dice «¿qué fórmula uso?» → [ASISTENTE]: Depende de la pieza; te digo de qué va cada una si quieres.",
    "notes": "Las fórmulas activas salen de sus fichas automáticas."
   },
   {
@@ -420,7 +420,7 @@
     "perdi el telefono"
    ],
    "always": false,
-   "script": "Persona: no me llega el codigo\n[ASISTENTE]: Revisa spam y que el correo esté bien escrito; el código llega en uno o dos minutos. Si no aparece, le aviso a administración.\n[ASISTENTE]: Para entrar escribes tu correo y te llega un código; algunos roles además usan el autenticador. ¿En qué paso te quedaste?\nSi dice «perdí el teléfono» → [ASISTENTE]: Avísale ya a administración para que cierre tus sesiones y te ayude con el doble factor. ¿Le aviso yo?",
+   "script": "Persona: no me llega el codigo\n[ASISTENTE]: Revisa spam y que el correo esté bien escrito; el código llega en uno o dos minutos. Si no aparece, le aviso a administración.\n[ASISTENTE]: Para entrar escribes tu correo y te llega un código; algunos roles además usan el doble factor: los 6 números que da una aplicación de códigos. ¿En qué paso te quedaste?\nSi dice «perdí el teléfono» → [ASISTENTE]: Avísale ya a administración para que cierre tus sesiones y te ayude con el doble factor. ¿Le aviso yo?",
    "notes": "Nunca pide el código ni claves."
   },
   {
@@ -513,7 +513,7 @@
     "estadisticas"
    ],
    "always": false,
-   "script": "Persona: como cargo las metricas?\n[ASISTENTE]: En Resultados puedes cargarlas a mano en cada publicación o subir el CSV de la red. Ahí mismo ves a qué hora nos va mejor.\n[ASISTENTE]: Desde Resultados: a mano o con CSV. Las cifras salen de lo que se carga; yo no las invento.",
+   "script": "Persona: como cargo las metricas?\n[ASISTENTE]: En Resultados puedes cargarlas a mano en cada publicación o subir el archivo CSV de la red (una hoja de cálculo guardada como CSV). Ahí mismo ves a qué hora nos va mejor.\n[ASISTENTE]: Desde Resultados: a mano o con CSV. Las cifras salen de lo que se carga; yo no las invento.",
    "notes": "Compara horas y vistas; nunca interpreta apoyo político."
   },
   {

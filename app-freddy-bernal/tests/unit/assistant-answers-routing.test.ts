@@ -82,7 +82,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['como subo las fotos del antes', { screen: '/reportes/[id]', has: /Subir fotos del antes/, not: /no se sube material/ }],
   ],
   ivt: [
-    ['¿Quién ve lo que te pregunto?', { has: /Administración ve lo que me preguntas/ }],
+    ['¿Quién ve lo que te pregunto?', { has: /puede leer lo que me preguntas/ }],
     ['grax pana', { not: /No estoy seguro/ }],
     ['¿Va a llover hoy en San Cristóbal?', { has: /se me escapa|no opino/ }],
     ['cuantas obras esperando fecha tengo', { tool: 'mis_pendientes' }],
@@ -105,7 +105,7 @@ const CLASSES: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿cómo veo la agenda por semana?', { has: /«Semana»/, not: /La Agenda está en el menú/ }],
     ['¿qué significan los colores de la agenda?', { has: /«Aceptado»/, not: REFUSAL }],
     // A strong answer about one screen keeps its own button instead of the bare «Te dejo el botón para ir».
-    ['¿dónde le cambio el nivel a una pieza?', { has: /«Cambiar nivel»/ }],
+    ['¿dónde le cambio el nivel a una pieza?', { has: /cajita del nivel/ }],
     // Mensajes: a channel is the boss's to create, with his steps.
     ['como creo un canal', { has: /«Nuevo canal»/ }],
     // «pendiente» or «decidir» in a how-it-works question: no list.
@@ -155,19 +155,19 @@ const CLASSES: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿dónde van los teléfonos del sitio de la feria?', A],
   ],
   social: [
-    ['como archivo un canal', { has: /jefe/, not: /^Mensajes está en el sobre/ }],
-    ['me sale Enviar igual o Corregir que hago', { has: /Enviar igual/, not: /^Mensajes está en el sobre/ }],
+    ['como archivo un canal', { has: /jefe/, not: /^Mensajes está en los globitos/ }],
+    ['me sale Enviar igual o Corregir que hago', { has: /Enviar igual/, not: /^Mensajes está en los globitos/ }],
     ['¿cuánto dura una historia?', { tool: 'reglas_de_video', has: /Instagram y Facebook/, not: /¿Para qué red\?/ }],
     ['kevin me pregunto si el acto de las viviendas es mañana o pasado, tu sabes?', A],
     ['chamo pasame la direccion del acto d mañana', A],
     // (last pass) The copy too long with no network: how to fix it; with a network, its limit.
-    ['me sale que el copy es muy largo', { notTool: 'reglas_de_video', has: /«No pasa»/ }],
+    ['me sale que el copy es muy largo', { notTool: 'reglas_de_video', has: /en rojo/ }],
     ['me sale un error que dice que el copy es muy largo para x', { tool: 'reglas_de_video', has: /caracteres/ }],
     // Who reads a piece's note (not what is asked to 360).
-    ['¿quién ve lo que escribo en la nota de una pieza?', { has: /Redes, el jefe y administración/, not: /Administración ve lo que me preguntas/ }],
+    ['¿quién ve lo que escribo en la nota de una pieza?', { has: /Redes, el jefe y administración/, not: /puede leer lo que me preguntas/ }],
     // «¿Se publica solo…?» is a rule, also with «la hora que puse»; next to the feria it says no hour either.
-    ['¿se publica solo a la hora que puse?', { has: /a mano/ }],
-    ['¿se publica solo a la hora que empieza la feria?', { has: /a mano/ }],
+    ['¿se publica solo a la hora que puse?', { has: /no publica sola|a mano/ }],
+    ['¿se publica solo a la hora que empieza la feria?', { has: /no publica sola|a mano/ }],
     ['¿qué dijo Kevin en el canal de Redes?', { is: MESSAGES_READ_TEXT }],
     ['¿a qué hora empieza la feria? quiero publicar justo ahí', A],
   ],
@@ -176,7 +176,7 @@ const CLASSES: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['donde stan mis eventos', { go: '/agenda', not: REFUSAL }],
     ['pa q es «Quién graba»? y a q hora es la jornada de salud', A],
     // (last pass) A question about the tutorials themselves; the GPS of a photo is no event's place.
-    ['¿cómo salgo de un tutorial?', { has: /«Salir del tutorial»/ }],
+    ['¿cómo salgo de un tutorial?', { has: /con la X/i }],
     ['¿la foto que subo lleva la ubicación del GPS?', { has: /sin ubicación/, not: REFUSAL }],
     ['¿la ubicación de la jornada de salud me la pasas?', A],
     ['me equivoqué de casilla cuando fui a la cancha, ¿a qué hora es?', A],
@@ -209,7 +209,7 @@ const CLASSES: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['muéstrame cómo se usa esta pantalla', { screen: '/ajustes/equipo', has: /no tienen tutorial/, not: /^Sí/ }],
     // Its guide, with the guide's own button; the guide without signal is a problem, not the way to Ayuda.
     ['¿Dónde está mi guía?', { has: /«Guía de administración»/, go: '/ayuda/administracion' }],
-    ['la guía no me abre sin internet', { has: /necesitan señal/ }],
+    ['la guía no me abre sin internet', { has: /solo se ven con señal|necesitan señal/ }],
     // Mensajes in the Registro de cambios or in «Conversaciones»: rules, answered; reading a channel is still refused.
     ['¿El registro de cambios muestra lo que escriben en Mensajes?', { has: /Nunca el texto/ }],
     ['alguien le preguntó a 360 qué decía un mensaje y en Conversaciones no sale el texto, ¿por qué?', { has: /se guarda sin el texto/ }],

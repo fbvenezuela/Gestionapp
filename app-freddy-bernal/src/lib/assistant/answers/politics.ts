@@ -2547,7 +2547,7 @@ export const POLITICS: Answer[] = [
       'como mando fotos por mensajes',
       'no puedo mandar fotos por el chat',
     ],
-    a: 'No: Mensajes no lleva fotos, audios ni archivos. Las fotos van en «Evidencias» de la ficha; en el canal pegas la dirección de la ficha.',
+    a: 'No: Mensajes no lleva fotos, audios ni archivos. Las fotos van en «Evidencias» de la ficha; en el canal pegas el enlace de la pantalla de la ficha.',
   },
   {
     id: 'pol-hablar-ficha',

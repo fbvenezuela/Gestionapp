@@ -335,7 +335,7 @@ export const TOOLS: Tool[] = [
   },
   {
     name: 'reglas_de_video',
-    description: 'Las reglas de video de cada red guardadas en la plataforma: duración, formato, medidas, peso y largo del copy.',
+    description: 'Las reglas de video de cada red guardadas en la app: duración, formato, medidas, peso y largo del copy.',
     parameters: { red: { type: 'string', description: 'La red. Si no la dijo, déjalo vacío y salen todas.', enum: NETWORKS } },
     required: [],
     fromServer: [],
@@ -477,7 +477,7 @@ export const TOOLS: Tool[] = [
   {
     name: 'ver_tutorial',
     description:
-      'Los tutoriales de las pantallas de quien pregunta: un recorrido «mira aquí», paso a paso, en la misma pantalla. Con pantalla (como /publicar, /hoy o /eventos/[id]) da el de esa pantalla y el botón para empezarlo; sin pantalla, la lista. Úsala cuando pida un tutorial, que le enseñes o le muestres cómo se usa una pantalla, o ayuda para usar la plataforma. No lee datos de nadie.',
+      'Los tutoriales de las pantallas de quien pregunta: un recorrido «mira aquí», paso a paso, en la misma pantalla. Con pantalla (como /publicar, /hoy o /eventos/[id]) da el de esa pantalla y el botón para empezarlo; sin pantalla, la lista. Úsala cuando pida un tutorial, que le enseñes o le muestres cómo se usa una pantalla, o ayuda para usar la app. No lee datos de nadie.',
     parameters: {
       pantalla: { type: 'string', description: 'La pantalla, como /publicar, /hoy o /eventos/[id]. Sin ella, la lista de sus tutoriales.' },
       tutorial: { type: 'string', description: 'El id de uno de sus tutoriales (de la lista), si ya sabe cuál quiere.' },

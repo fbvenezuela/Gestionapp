@@ -2387,7 +2387,7 @@ export const IVT: Answer[] = [
       'como mando fotos por mensajes',
       'no puedo mandar fotos por el chat',
     ],
-    a: 'No: Mensajes no lleva fotos, audios ni archivos. Súbelas en la ficha y pega la dirección de la ficha en el canal: sale como una tarjetita.',
+    a: 'No: Mensajes no lleva fotos, audios ni archivos. Súbelas en la ficha; en el canal, copia el enlace de la pantalla de la ficha y pégalo en el mensaje: sale como una tarjetita.',
   },
   {
     id: 'ivt-pasar-ficha',
