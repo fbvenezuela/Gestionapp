@@ -1,6 +1,7 @@
 import 'server-only';
 import { TEAM_ROLES } from '../roles';
 import { GUIDE_SLUGS } from '../guides/slugs';
+import { quotedLabels } from '../guides/check';
 import { AGENDA_FALLBACK, canon, hasWord, isSection, keyWords, makesOne, roleFichaKeys, scoreFichas, sectionsFor, stem, type BrainOutput, type ChosenScript, type TurnContext } from './brain';
 import { EVENT_NOUNS, EVENT_WORDS, GOAL, OCCURRENCE, PLATFORM, WORK, aboutEvent, asksAboutPublishing, asksAgendaData, asksPlace, asksPlaceWord, asksRoute, asksSchedule, asksWhenIndirect, asksWhenWhere, eventAt, eventSignals, eventThread, goesOn, namedTitleWords, namesPlatform, spoken, withoutAgendaThings, withoutWhenWhere } from './events';
 import { STRONG, WEAK, askKind, entryById, entryForScreen, findAnswers, knownLabels, readable, scoreFicha, textFor, tokens, type Match } from './answers/engine';
@@ -748,10 +749,17 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     return { ...(tour?.href ? done(text, undefined, tour) : done(text, go)), fixed: true };
   };
 
-  // «¿Y después?»: the step that comes after what answered the question before (a task, a step of one or of a flow).
+  // «¿Y después?»: the step that comes after what answered the question before (a task, a step of one or of a flow). When
+  // the answer before already said a later step (every label of it is in that answer: «Pasa a «En revisión» y dice
+  // «Espera al jefe»»), it goes on after the last one said, not after the first one the question matched.
   if (NEXT_ASK.test(q) && goesOnWith) {
     const prev = findAnswers(before, { roles: i.ctx.roles, screen: i.ctx.screen, names }).find((m) => m.entry.next && m.score >= WEAK);
-    const next = prev?.entry.next ? entryById(prev.entry.next) : undefined;
+    let next = prev?.entry.next ? entryById(prev.entry.next) : undefined;
+    const saidBefore = (e: { doc?: string }) => {
+      const labels = quotedLabels(e.doc ?? '');
+      return labels.length > 0 && labels.every((l) => lastSaid.includes(`«${l}»`));
+    };
+    for (let e = next, k = 0; e?.next && k < 12; e = entryById(e.next), k++) if (saidBefore(e)) next = entryById(e.next) ?? next;
     if (prev && next) return sayEntry({ ...prev, entry: next, text: textFor(next.a, i.ctx.roles) }, false);
   }
 
@@ -776,7 +784,9 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       // Administración's screens have no section card: its guide says what each one is for (D-89).
       const own = entryForScreen(screen, i.ctx.roles);
       if (own) return done(clip(fill(textFor(own.a, i.ctx.roles))), tutorial ? undefined : own.go && canOpen(own.go, i.ctx.roles) ? own.go : undefined, tutorial);
-      if (info && !screen.includes('[') && info.about) return done(`${info.label}: ${info.about}.${tutorial ? ' Si quieres, te la muestro paso a paso: toca el botón.' : ''}`, tutorial ? undefined : info.href, tutorial);
+      // A screen the person cannot open (Hoy for política or the IVT since 12/11: their home is Municipios or Obras) is
+      // not described as theirs: the answers below say whose it is, or that it is not in their menu.
+      if (info && !screen.includes('[') && info.about && canOpen(screen, i.ctx.roles)) return done(`${info.label}: ${info.about}.${tutorial ? ' Si quieres, te la muestro paso a paso: toca el botón.' : ''}`, tutorial ? undefined : info.href, tutorial);
     }
   }
 
@@ -837,10 +847,13 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const redesTopic =
     !carriesWhen(q.replace(REDES_NAMES, ' ')) && eventAt(i.question) < 0 && !navTarget(q, i.ctx.roles) ? REDES_TOPICS.find((t) => t.re.test(q)) : undefined;
   const redesCard = redesTopic ? (knowledge ?? []).find((f) => f.key === `guia:${redesTopic.key}`) : undefined;
-  // A strong curated answer that says it better than the section's card (measured the same way) answers instead (D-89).
+  // A strong curated answer that says it better than the section's card (measured the same way) answers instead (D-89);
+  // so does a word of «Palabras de la app» asked what it means, when the card has no sentence of its own for it
+  // («¿qué es el feed?»: its meaning, not how the feed is built; «¿qué es un pilar?» keeps the card's line on pillars).
   // Not for «¿qué es…?» of a section whose card says what it is («Fin de mes es una sección…»); «¿qué es piezas eliminadas?»
   // is the curated answer's (the card's line says who deletes, not what the list is).
-  const redesBeaten = !!redesCard && strong && best!.entry.kind === 'curated' && best!.score > scoreFicha(i.question, redesCard) + 0.02 && !(redesTopic?.defines && askKind(readable(q)) === 'what');
+  const beats = best?.entry.kind === 'curated' || (best?.entry.kind === 'term' && !redesTopic?.from);
+  const redesBeaten = !!redesCard && strong && beats && best!.score > scoreFicha(i.question, redesCard) + 0.02 && !(redesTopic?.defines && askKind(readable(q)) === 'what');
   if (redesTopic && redesCard && redesBeaten) return sayEntry(best!);
   if (redesTopic && redesCard) {
     const ss = sentences(fill(redesCard.body));

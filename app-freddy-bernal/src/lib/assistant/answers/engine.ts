@@ -978,6 +978,8 @@ function rank(question: string, o: FindOptions): Match[] {
   const yesNo = !wh && /\b(?:puedo|podemos|puede|pueden|se puede|es posible|me deja|me dejan|tengo que|hay que|debo|es seguro|esta bien)\b/.test(a.text);
   const howTo = /^(?:y )?como (?!(?:va|van|esta|estan|quedo|salio|es|son)\b)/.test(a.text) || /\b(?:como (?:hago|se hace|le hago|lo hago)|que (?:tengo|hay) que hacer|que hago) para\b/.test(a.text);
   const exactly = new Set(ix.asked.get(a.text) ?? []);
+  // The words of «Palabras de la app» asked what they mean by one of their names (below): sure answers.
+  const named = new Set<Entry>();
   const out: Match[] = [];
   for (const [k, s0] of best) {
     const e = ix.entries[k];
@@ -1008,8 +1010,10 @@ function rank(question: string, o: FindOptions): Match[] {
     else if (!why && /^Porque\b/.test(said)) s *= 0.85;
     if (o.screen && e.screen && e.screen === o.screen) s += 0.04;
     if (e.kind === 'term') {
-      if (TERM_WHAT.test(a.text)) s += termAsked(e, a) ? TERM_ASKED : 0;
-      else s *= whereAsk ? TERM_WHERE : TERM_ELSE;
+      if (TERM_WHAT.test(a.text) && termAsked(e, a)) {
+        s += TERM_ASKED;
+        named.add(e);
+      } else if (!TERM_WHAT.test(a.text)) s *= whereAsk ? TERM_WHERE : TERM_ELSE;
     }
     // A curated answer, more when it was written for the asker's role (not everyone's).
     if (e.kind === 'curated') s += e.roles ? ROLE_OWN : 0.03;
@@ -1018,8 +1022,10 @@ function rank(question: string, o: FindOptions): Match[] {
   }
   out.sort((x, y) => y.score - x.score);
   // One word, and another entry says it almost as well as the first («¿qué tengo que hacer para publicar?»: a question
-  // of the guide, a task, the screen): none of them is a sure answer, unless the first is asked word for word.
-  if (oneWord && !exactly.has(out[0]?.entry) && out.length > 1 && out[0].confidence === 'strong' && out[1].score >= out[0].score - 0.1)
+  // of the guide, a task, the screen): none of them is a sure answer, unless the first is asked word for word, or is a
+  // word of «Palabras de la app» asked what it means by its name («¿qué es el feed?», «¿qué es un copy?»: a weak first
+  // would let a card that only uses the word answer instead).
+  if (oneWord && !exactly.has(out[0]?.entry) && !named.has(out[0]?.entry) && out.length > 1 && out[0].confidence === 'strong' && out[1].score >= out[0].score - 0.1)
     for (const m of out) if (m.score >= out[0].score - 0.1) m.confidence = 'weak';
   return out.slice(0, o.limit ?? 8);
 }

@@ -2083,6 +2083,7 @@ export const POLITICS: Answer[] = [
       'que es esta pantalla',
       'abri la actividad y no sale la fecha',
       'como vuelvo a mi reporte desde la actividad',
+      'como me devuelvo a mi reporte desde aqui',
       'el jefe ya acepto mi actividad',
       'como se si el jefe acepto la actividad',
       'donde veo si el jefe acepto',

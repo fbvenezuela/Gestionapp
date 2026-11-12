@@ -1160,7 +1160,7 @@ export const SOCIAL: Answer[] = [
   {
     id: 'red-receptividad-historias',
     roles: ['social'],
-    q: ['en las historias no me salen las estrellas de receptividad', 'por que youtube no tiene receptividad', 'receptividad en fin de mes', 'donde esta la receptividad de la historia', 'las historias no tienen receptividad', 'donde pongo la receptividad de un video de youtube'],
+    q: ['en las historias no me salen las estrellas de receptividad', 'por que youtube no tiene receptividad', 'receptividad en fin de mes', 'donde esta la receptividad de la historia', 'las historias no tienen receptividad', 'donde pongo la receptividad de un video de youtube', 'como le pongo las estrellas de receptividad a una historia', 'le puedo poner receptividad a una historia'],
     a: 'Es normal: la receptividad solo está en posts, reels y carruseles.',
     go: '/redes',
   },
@@ -1235,7 +1235,7 @@ export const SOCIAL: Answer[] = [
   {
     id: 'red-no-pasa',
     roles: ['social'],
-    q: ['que significa no pasa al lado de una red', 'que es revisar en una red', 'todo bien no pasa revisar', 'esta red no recibe historias', 'dice no pasa que hago', 'no pasa en instagram como lo arreglo', 'por que dice no pasa', 'una red dice revisar que hago', 'en tiktok dice no pasa', 'una red no pasa que hago', 'tiktok no pasa por que', 'me aparece no pasa al programar', 'dice no pasa para tiktok'],
+    q: ['que significa no pasa al lado de una red', 'que es revisar en una red', 'todo bien no pasa revisar', 'esta red no recibe historias', 'dice no pasa que hago', 'no pasa en instagram como lo arreglo', 'por que dice no pasa', 'una red dice revisar que hago', 'en tiktok dice no pasa', 'una red no pasa que hago', 'tiktok no pasa por que', 'me aparece no pasa al programar', 'dice no pasa para tiktok', 'que significa no pasa cuando elijo las redes', 'que quiere decir la marca roja de una red'],
     a: 'Al elegir las redes, cada una lleva una marca, y la roja quiere decir que no pasa: debajo dice qué arreglar (duración, medidas, peso o largo del copy); arréglalo o quita esa red, y vuelve a «Programar en 2 redes». La verde dice, por ejemplo, «Todo bien para Instagram.», y la amarilla, que hay algo que revisar.',
     go: '/publicar/nueva',
     tutorial: 'publicar-nueva',
@@ -1287,7 +1287,7 @@ export const SOCIAL: Answer[] = [
   {
     id: 'red-sin-hora',
     roles: ['social'],
-    q: ['¿Qué pasa si programo una publicación sin hora?', 'puedo guardar la publicacion sin hora', 'guardar como borrador una publicacion', 'que es guardar como borrador', 'puedo dejar la publicacion sin hora', 'guardar como borrador que hace'],
+    q: ['¿Qué pasa si programo una publicación sin hora?', 'puedo guardar la publicacion sin hora', 'guardar como borrador una publicacion', 'que es guardar como borrador', 'puedo dejar la publicacion sin hora', 'guardar como borrador que hace', 'que pasa si no le pongo hora a la publicacion', 'y si no le pongo la hora'],
     a: 'Sin hora queda como borrador («Guardar como borrador»): la programas cuando tengas el día y la hora.',
     go: '/publicar/nueva',
   },

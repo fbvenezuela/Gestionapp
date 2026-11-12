@@ -605,8 +605,8 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['qué hay en mi cuenta', 'dónde está mi cuenta', 'el muñequito de arriba', 'menu de la cuenta', 'para que sirve el icono de persona arriba'],
     a: {
-      default: 'El muñequito de arriba a la derecha es Mi cuenta: «Mi perfil y avisos», «Ayuda y guías», «Ver el tutorial de esta pantalla» (si la pantalla tiene uno), el «Modo sol» y «Salir».',
-      admin: 'El muñequito de arriba a la derecha es Mi cuenta: «Mi perfil y avisos», «Ayuda y guías», el «Modo sol» y «Salir»; en el teléfono, también «Ver como».',
+      default: 'Arriba a la derecha, el muñequito es Mi cuenta: «Mi perfil y avisos», «Ayuda y guías», «Ver el tutorial de esta pantalla» (si la pantalla tiene uno), el «Modo sol» y «Salir».',
+      admin: 'Arriba a la derecha, el muñequito es Mi cuenta: «Mi perfil y avisos», «Ayuda y guías», el «Modo sol» y «Salir»; en el teléfono, también «Ver como».',
     },
   },
   {
@@ -737,6 +737,7 @@ export const TODOS: Answer[] = [
       'la demo volvio a como estaba',
       'por que se borran mis cosas en la demo',
       'los datos de la demo son de verdad',
+      'los datos de la demo son reales',
       'lo que escribo en la demo se guarda',
       'la demo se borro',
       'perdi lo que hice en la demo',
@@ -1640,6 +1641,8 @@ export const TODOS: Answer[] = [
       'el aviso de mensaje no dice que escribieron',
       'la notificacion de mensaje no dice nada',
       'por que el aviso no trae el mensaje',
+      'me llega el texto del mensaje al telefono',
+      'el aviso del telefono trae lo que me escribieron',
     ],
     a: {
       default:
@@ -1827,7 +1830,7 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-franja-apagar',
     roles: null,
-    q: ['como apago la franja esa que dice te muestro esta pantalla', 'no quiero que 360 me ofrezca ayuda', 'quitar te muestro esta pantalla', 'que no me salga mas la ayuda', 'como apago lo de te muestro esta pantalla'],
+    q: ['como apago la franja esa que dice te muestro esta pantalla', 'no quiero que 360 me ofrezca ayuda', 'quitar te muestro esta pantalla', 'que no me salga mas la ayuda', 'como apago lo de te muestro esta pantalla', 'ya no quiero que me ofrezcas mostrar la pantalla', 'que no me ofrezcas mas mostrarme la pantalla'],
     a: {
       default: 'Ciérrala con la X. Si la cierras dos veces, ya no te la ofrece en ese teléfono. Nunca se abre sola, y se vuelve a prender en «Ayuda y guías».',
       admin: 'A administración casi nunca le sale: sus pantallas no tienen tutorial. Si te sale (con «Ver como»), ciérrala con la X: a la segunda ya no te la ofrece en ese teléfono, y «Volver a ofrecerme ayuda», en «Ayuda y guías», la trae.',

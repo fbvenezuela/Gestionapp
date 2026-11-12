@@ -179,6 +179,22 @@ describe('360 lo explica en la conversación (el cerebro de la demo)', () => {
     });
   }
 
+  // With its article («¿qué es el feed?») the word is still asked what it means: its meaning, not a card that only uses
+  // it («Para armar el feed del mes…»), nor a guess.
+  it('con su artículo también es lo que significa («¿qué es el feed?», «¿qué es el copy?»)', async () => {
+    for (const [key, q, id] of [
+      ['boss', '¿qué es el feed?', 'feed'],
+      ['social2', '¿qué es el feed?', 'feed'],
+      ['boss', '¿qué es el copy?', 'copy'],
+      ['camera2', '¿qué es el storyboard?', 'storyboard'],
+    ] as [DemoUserKey, string, string][]) {
+      const r = await handleTurn(sessionOf(key), { question: q, conversationId: null }, { chain: [] });
+      const who = `${key}: ${q} → ${r.answer}`;
+      expect(r.answer, who).toMatch(KEY[id]);
+      expect(r.answer, who).not.toMatch(/^Para armar/);
+    }
+  });
+
   it('«9:16» se explica como la forma de la pantalla; una hora de verdad sigue con la negativa', async () => {
     const r = await handleTurn(sessionOf('camera'), { question: '¿qué significa 9:16?', conversationId: null }, { chain: [] });
     expect(r.answer).toContain('9:16 es vertical');

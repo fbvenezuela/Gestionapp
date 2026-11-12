@@ -67,6 +67,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Cómo cargo una ficha comunitaria?', { tutorial: 'nueva-comunitaria', has: /«Nueva ficha comunitaria»/ }],
     ['¿cómo le doy seguimiento a una ficha?', { tutorial: null, go: '/ayuda/politica?ver=pasos', has: /^Darle seguimiento a una ficha, paso a paso: 1\)/ }],
     ['¿qué hago aquí?', { screen: '/municipios', tutorial: 'municipios', has: /municipio/ }],
+    // Hoy is not política's since 12/11 (the page sends it home): said so, never what Hoy is for someone else.
+    ['¿qué hago aquí?', { screen: '/hoy', has: /^Hoy no está en tu menú: tu inicio es Municipios\./ }],
     ['muéstrame cómo se usa Publicar', { has: /no es de tu rol/, tutorial: null }],
     ['necesito ayuda', SHOW('municipios', '/municipios')],
     ['léeme los mensajes del grupo', READ_MSG],
@@ -75,6 +77,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['necesito ayuda', SHOW('obras', '/obras')],
     // A screen with an id: the button is drawn by the window, on that screen (href null).
     ['¿qué hago aquí?', { screen: '/obras/[id]', tutorial: 'ficha-obra', has: /obra/ }],
+    ['¿para qué es esta pantalla?', { screen: '/hoy', has: /^Hoy no está en tu menú: tu inicio es Obras\./ }],
     // A channel is armed by the boss (D-82): its curated answer says so, not the card on how to write (D-89).
     ['¿cómo armo un canal?', { has: /los arma solo el jefe/ }],
   ],

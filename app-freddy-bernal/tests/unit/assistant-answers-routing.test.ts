@@ -39,9 +39,12 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['que es esto', { screen: '/hoy', has: /Lo que espera por mí/, tutorial: 'hoy-grabacion' }],
     // A follow-up: the next task of the guide.
     ['¿y después?', { thread: ['¿Cómo subo el material?'], has: /entrega|storyboard/i }],
+    ['los datos de la demo son reales?', { has: /datos inventados/ }],
   ],
   dispatch: [
     ['en «Hoy en la agenda» sale la entrega de viviendas, ¿dónde queda?', A],
+    // Where Mi cuenta is: the answer that says where (the muñequito) and what it has, not just the button to Mi perfil.
+    ['donde esta mi cuenta? el muñequito ese', { has: /^Arriba a la derecha, el muñequito es Mi cuenta: «Mi perfil y avisos»/ }],
     ['¿Qué pongo en «A dónde se va»?', { not: REFUSAL }],
     // The curated answer says it in full («las fichas de obra del IVT», D-89).
     ['¿Qué es «Por ponerle fecha»?', { has: /fichas (?:de obra )?del IVT/, not: REFUSAL }],
@@ -60,6 +63,8 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
   ],
   social: [
     ['puedo borrar un aviso de cumplimiento', { notTool: 'marcar_avisos_leidos' }],
+    // A follow-up after an answer that already said «Espera al jefe»: the step after that one, not the level's step again.
+    ['y después?', { thread: ['como mando una pieza a aprobacion'], has: /cuando el jefe la aprueba/ }],
     ['si edito un tweet que ya aprobaron que pasa', { notTool: 'estado_pieza', has: /vuelve al jefe/ }],
     ['a que hora publico los tweets', { tool: 'mejores_horas', has: /^X:/ }],
     ['como hago una historia para instagram', { notTool: 'mejores_horas', not: /Mejores horas/ }],
