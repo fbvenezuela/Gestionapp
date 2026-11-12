@@ -322,7 +322,9 @@ Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene ad
     - una pantalla como respuesta a un «¿cómo…?».
   - **Casos especiales:**
     - Una sola palabra que solo aparece en un texto nunca da una respuesta segura. Tampoco una sola palabra que varias
-      entradas dicen casi igual de bien.
+      entradas dicen casi igual de bien, salvo una palabra de «Palabras de la app» preguntada por su nombre («¿qué es el
+      feed?»): esa da lo que significa, segura, y en Redes le gana a la ficha de la sección cuando la ficha no tiene una
+      frase propia para ella.
     - En una pregunta corta (hasta tres palabras que dicen algo), un texto o el nombre de un botón al que le falta una
       de ellas no es seguro. Por ejemplo, «¿cómo pido cambios en un copy?» no es «¿Pedir cambios también?» del diseño.
     - «Mi nombre», «mi teléfono» o «mis avisos» llevan a Mi perfil; «los números de arriba» no (un número de teléfono es
@@ -345,7 +347,9 @@ Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene ad
   - con la IA, `pickFichas` suma hasta 3 respuestas como fichas «Pregunta: … / Respuesta: …» dentro del mismo
     presupuesto del mensaje.
   - La respuesta sale con su botón: la pantalla de la entrada o la primera que nombra y que la persona puede abrir. Con
-    una tarea, una pantalla o una curada sale su tutorial. A «¿y después?» le toca el paso siguiente. Son textos fijos
+    una tarea, una pantalla o una curada sale su tutorial. A «¿y después?» le toca el paso siguiente, después del último
+    que ya dijo la respuesta anterior (todas sus etiquetas en ella). Una pantalla que la persona no puede abrir no se le
+    describe como suya («¿qué hago aquí?» en Hoy, para política: «Hoy no está en tu menú…»). Son textos fijos
     sin fechas, así que la red de salida (`index.ts`) solo les revisa fechas, horas, mapas, teléfonos, lugares y contactos
     concretos (`concreteDateTime`, el mismo control que usa su prueba de contenido). No los cambia por un «hoy» o un «de
     noche» dentro de una regla, ni por un «de 2 a 3 por día».
