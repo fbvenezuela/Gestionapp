@@ -71,7 +71,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     // D-89 (second pass): his curated steps, with the list «Antes de aprobar».
     ['¿Cómo apruebo una pieza en rojo?', { has: /lista de chequeo|«Antes de aprobar»/ }],
     ['¿Cómo pido cambios en una pieza?', { has: /[Pp]edir cambios/ }],
-    ['¿Puedo aprobar las verdes?', { has: /^Apruebas todo lo que sale: las verdes, todas de una vez|«Aprobar todas las verdes \(n\)»/ }],
+    ['¿Puedo aprobar las verdes?', { has: /^Apruebas todo lo que sale: las verdes, todas de una vez|«Aprobar todas las verdes \(\d+\)»/ }],
     ['¿Cómo saco una pieza del rojo?', { has: /sacarla del rojo/ }],
     ['¿Cómo va la pieza del agua?', { tool: 'estado_pieza', has: /Aclaratoria/ }],
     ['a que hora es el acto de mañana', A],
@@ -81,7 +81,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['que reviso antes de aprobar una pieza en rojo', { has: /lista: cifras con fuente|«Antes de aprobar»/, notTool: 'estado_pieza' }],
     ['donde veo lo que se publico', { go: '/jefe/digital' }],
     // Since 27/10/2026 the boss approves everything (what Supervisión did is his).
-    ['¿Cómo apruebo las verdes de una vez?', { has: /«Te toca aprobar».*«Aprobar todas las verdes \(n\)»/ }],
+    ['¿Cómo apruebo las verdes de una vez?', { has: /«Te toca aprobar».*«Aprobar todas las verdes \(\d+\)»/ }],
     // His approvals come by level (red, yellow, green): since R4 the demo has a red and three yellow ones first.
     ['¿Cuántas piezas tengo en verde?', { tool: 'mis_pendientes', has: /Lo primero: te toca aprobar \(rojo\): «[^»]+», te toca aprobar \(amarillo\)/ }],
     ['¿Qué reviso antes de aprobar?', { has: /lista: cifras con fuente|«Cada cifra tiene su fuente»/ }],
@@ -91,7 +91,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Qué pasa si no apruebo a tiempo?', { has: /La falta de respuesta no es aprobación|sigue sin aprobar/ }],
     ['¿Cómo apruebo los tweets?', { has: /El jefe los aprueba|«Aprobar marcados»/ }],
     ['¿Cómo pido cambios en un copy?', { has: /piden cambios con un comentario|«Pedir cambios»/ }],
-    ['¿Cómo subo una pieza a rojo?', { has: /se sube a rojo|«Cambiar nivel»/ }],
+    ['¿Cómo subo una pieza a rojo?', { has: /se sube a rojo|cajita del nivel/ }],
     ['que significa el rojo', { has: /rojo, como todas, las aprueba el jefe|nivel rojo/ }],
     ['¿Dónde están los tweets?', { go: '/tweets' }],
     // R3 (design §8.2): «política» is not off topic any more (the boss's Política screen). The tutorials, the screen
@@ -142,7 +142,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Puedo ver las piezas?', { has: /^No ves la agenda con fecha y hora, ni piezas|los demás roles no|^No/ }],
     ['¿Quién decide si se hace un evento?', { has: /Jefe: tiene todo|^El jefe/ }],
     ['¿Quién aprueba las piezas?', { has: /el jefe las aprueba|aprueba el jefe/ }],
-    ['¿Qué es el doble factor?', { has: /el director de política|código de tu teléfono/ }],
+    ['¿Qué es el doble factor?', { has: /el director de política|código de tu teléfono|aplicación de códigos del teléfono/ }],
     ['¿Cómo cambio mi contraseña?', { has: /[Nn]o hay contraseñas/ }],
     ['no me llega el codigo', { has: /^Si no llega el código: revisa spam|spam/ }],
     ['¿Cómo instalo la app en el teléfono?', { has: /pantalla de inicio/ }],
@@ -162,7 +162,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Puedo ver la agenda?', { has: /La Agenda está en el menú/ }],
     ['¿Puedo ver las piezas?', { has: /^No ves piezas, copies, tweets ni publicaciones|los demás roles no|^No/ }],
     ['¿Quién decide si se hace un evento?', { has: /Jefe: tiene todo|^El jefe/ }],
-    ['¿Qué es el doble factor?', { has: /el director del IVT|código de tu teléfono/ }],
+    ['¿Qué es el doble factor?', { has: /el director del IVT|código de tu teléfono|aplicación de códigos del teléfono/ }],
     ['¿Cómo cambio mi contraseña?', { has: /[Nn]o hay contraseñas/ }],
     ['no me llega el codigo', { has: /^Si no llega el código: revisa spam|spam/ }],
     ['¿Cómo instalo la app en el teléfono?', { has: /pantalla de inicio/ }],
@@ -190,9 +190,9 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿Cómo subo la tanda de tweets?', { has: /nueva tanda|tanda nueva|«Separar tweets»/ }],
     ['¿Cómo registro lo que publicó el jefe?', { has: /[Ll]o que publicó el jefe/ }],
     ['¿Cómo cargo las métricas?', { has: /CSV/ }],
-    // D-89 (last pass): with no network named, how a copy too long is fixed («No pasa» on each network); with one, its
+    // D-89 (last pass): with no network named, how a copy too long is fixed (the red mark on each network); with one, its
     // limit (the video rules tool).
-    ['me salió un error que dice que el copy es muy largo', { notTool: 'reglas_de_video', has: /«No pasa»/ }],
+    ['me salió un error que dice que el copy es muy largo', { notTool: 'reglas_de_video', has: /en rojo/ }],
     ['me sale un error que dice que el video pesa mucho', { tool: 'reglas_de_video' }],
     ['¿Cuánto puede durar un reel?', { tool: 'reglas_de_video', has: /segundos/ }],
     ['donde publico a mano', { go: '/publicar' }],

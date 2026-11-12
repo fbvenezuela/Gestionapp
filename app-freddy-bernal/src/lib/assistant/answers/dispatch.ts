@@ -177,7 +177,7 @@ export const DISPATCH: Answer[] = [
     id: 'desp-que-hace-jefe',
     roles: ['dispatch'],
     q: ['¿Qué hace el jefe con lo que le mando?', 'que hace el jefe en la plataforma', 'el jefe que decide', 'que le toca al jefe'],
-    a: 'Comparte la agenda contigo: lo tuyo le llega «Por decidir», lo califica de 1 a 10 y lo acepta o lo rechaza. Lo que crea él nace aceptado y te enteras. También aprueba todo lo que publica Redes.',
+    a: 'Comparte la agenda contigo: lo tuyo le llega «Por decidir», lo califica de 1 a 10 y lo acepta o lo rechaza. Lo que crea él queda aceptado desde que lo guarda, y te enteras. También aprueba todo lo que publica Redes.',
   },
   {
     id: 'desp-que-hace-ivt',
@@ -195,7 +195,7 @@ export const DISPATCH: Answer[] = [
     id: 'desp-que-hace-grabacion',
     roles: ['dispatch'],
     q: ['¿Qué hace Grabación?', 'que hace el camarografo en la plataforma', 'para que es grabacion', 'de que se encarga grabacion'],
-    a: 'Graba lo que le asignas en «Quién graba»: le llega «Te asignaron un evento», ve la fecha y el lugar de sus eventos en su Agenda, sube el material por casillas y deja su nota para el editor.',
+    a: 'Graba lo que le asignas en «Quién graba»: le llega «Te asignaron un evento», ve la fecha y el lugar de sus eventos en su Agenda, sube cada parte del material en su casilla y deja su nota para el editor.',
   },
   {
     id: 'desp-que-hace-redes',
@@ -283,7 +283,7 @@ export const DISPATCH: Answer[] = [
       'que es un reporte comunitario y que es una obra del ivt',
       'de donde vienen las fichas de por ponerle fecha',
     ],
-    a: '«Obra del IVT» es una ficha de obra que preparó el IVT: al ponerle fecha nace una «Visita de obra». «Reporte comunitario» es una ficha comunitaria de política, de un municipio: al ponerle fecha nace un evento. Ambas llegan con «Guardar y avisar al jefe».',
+    a: '«Obra del IVT» es una ficha de obra que preparó el IVT: al ponerle fecha se crea una «Visita de obra». «Reporte comunitario» es una ficha comunitaria de política, de un municipio: al ponerle fecha se crea un evento. Ambas llegan con «Guardar y avisar al jefe».',
     go: '/agenda/por-fecha',
   },
   {
@@ -488,7 +488,7 @@ export const DISPATCH: Answer[] = [
       'ficha de obra o visita de obra cual es cual',
       'la visita es la ficha',
     ],
-    a: 'No: la ficha de obra la prepara el IVT (la obra, sus fotos y el diálogo FAB) y no lleva fecha. La «Visita de obra» es el evento que nace cuando tú o el jefe le ponen fecha a esa ficha; en el evento, la pestaña «Ficha de obra» te la muestra.',
+    a: 'No: la ficha de obra la prepara el IVT (la obra, sus fotos y el diálogo FAB) y no lleva fecha. La «Visita de obra» es el evento que se crea cuando tú o el jefe le ponen fecha a esa ficha; en el evento, la pestaña «Ficha de obra» te la muestra.',
     go: '/obras',
   },
   {
@@ -503,7 +503,7 @@ export const DISPATCH: Answer[] = [
       'que pasa cuando le pongo fecha a una ficha',
       'a quien le llega cuando guardo la fecha',
     ],
-    a: 'Nace la «Visita de obra» y le llega al jefe «Por decidir». El IVT ve la fecha en «Mis visitas de obra», con el doble factor, y Redes ve la ficha de obra para el storyboard, sin la fecha.',
+    a: 'Se crea la «Visita de obra» y le llega al jefe «Por decidir». El IVT ve la fecha en «Mis visitas de obra», si entró con el doble factor, y Redes ve la ficha de obra para el storyboard, sin la fecha.',
     go: '/agenda',
   },
   {
@@ -529,7 +529,7 @@ export const DISPATCH: Answer[] = [
       'puedo pasarle la fecha a politica',
       'le digo a redes cuando es el evento',
     ],
-    a: 'No: política y Redes nunca ven la fecha, la hora ni la dirección, y la plataforma no deja escribirlas donde están ellos. A política le sale «Ya tiene fecha. La ven el jefe y el despacho en la agenda.»; si hace falta, dile “el día del evento”.',
+    a: 'No: política y Redes nunca ven la fecha, la hora ni la dirección, y la app no deja escribirlas donde están ellos. A política le sale «Ya tiene fecha. La ven el jefe y el despacho en la agenda.»; si hace falta, dile “el día del evento”.',
   },
   {
     id: 'desp-reporte-desde-ficha',
@@ -606,7 +606,7 @@ export const DISPATCH: Answer[] = [
       'crear una visita a una obra',
       'como cargo una visita de obra nueva',
     ],
-    a: '«Crear» → «Visita de obra» (o el botón grande de la Agenda): el mismo formulario del evento, para una obra que el jefe va a visitar. Llenas «El evento», «Fecha, hora y lugar exacto» y la «Ficha técnica» con «Quién graba», y tocas «Guardar visita de obra»; le llega al jefe «Por decidir». Si nace de una ficha del IVT, se hace con «Ponerle fecha».',
+    a: '«Crear» → «Visita de obra» (o el botón grande de la Agenda): el mismo formulario del evento, para una obra que el jefe va a visitar. Llenas «El evento», «Fecha, hora y lugar exacto» y la «Ficha técnica» con «Quién graba», y tocas «Guardar visita de obra»; le llega al jefe «Por decidir». Si sale de una ficha del IVT, se hace con «Ponerle fecha».',
     go: '/agenda/nuevo',
     tutorial: 'nuevo-evento',
   },
@@ -742,7 +742,7 @@ export const DISPATCH: Answer[] = [
       'por que lo del jefe no queda por decidir',
       'por que lo que crea el jefe ya esta aceptado',
     ],
-    a: 'Lo que crea el jefe nace «Aceptado», porque decidir es suyo, y te enteras con el aviso; lo que creas o fechas tú le llega «Por decidir» para que lo acepte o lo rechace. En el evento dice «Lo agregó el jefe» o «Propuesto por Despacho».',
+    a: 'Lo que crea el jefe queda «Aceptado» desde que se guarda, porque decidir es suyo, y te enteras con el aviso; lo que creas o fechas tú le llega «Por decidir» para que lo acepte o lo rechace. En el evento dice «Lo agregó el jefe» o «Propuesto por Despacho».',
     go: '/agenda',
   },
   {
@@ -989,7 +989,7 @@ export const DISPATCH: Answer[] = [
       'cambiar el dia de una visita',
       'el evento se corrio como lo cambio',
     ],
-    a: 'Abre el evento y toca «Mover»: otra fecha u hora y «Guardar la nueva fecha». A quien graba le avisamos, sin la fecha. Para la dirección, «Cambiar fecha o lugar».',
+    a: 'Abre el evento: «Mover» cambia solo el día o la hora. Eliges la nueva y tocas «Guardar la nueva fecha». A quien graba le llega un aviso, sin la fecha. «Cambiar fecha o lugar» abre todo junto: úsalo sobre todo para el lugar.',
     go: '/agenda',
     tutorial: 'evento-despacho',
   },
@@ -1009,7 +1009,7 @@ export const DISPATCH: Answer[] = [
       'como corrijo la direccion del evento',
       'me dieron otra direccion para el evento',
     ],
-    a: 'En el evento, tarjeta de fecha y lugar, toca «Cambiar fecha o lugar»: la fecha, la hora, la dirección exacta, «Cómo se llega» y los «Contactos del sitio», y «Guardar». Al crear, todo eso va en «Fecha, hora y lugar exacto».',
+    a: 'En el evento, tarjeta de fecha y lugar, toca «Cambiar fecha o lugar»: abre todo junto, la fecha, la hora, la dirección exacta, «Cómo se llega» y los «Contactos del sitio». Úsalo sobre todo para el lugar, y toca «Guardar». Al crear, todo eso va en «Fecha, hora y lugar exacto».',
     go: '/agenda',
   },
   {
@@ -1149,7 +1149,7 @@ export const DISPATCH: Answer[] = [
       'cambiamos el mismo evento cual queda',
       'editamos el mismo evento a la vez que pasa',
     ],
-    a: 'Queda lo último que se guardó, tuyo o del jefe. A quien se le cambió le llega el aviso, y lo de antes queda en el «Historial» del evento.',
+    a: 'Se queda el último cambio guardado, tuyo o del jefe, y al otro le llega un aviso; lo de antes queda en el «Historial» del evento.',
     go: '/agenda',
   },
   {
@@ -1164,7 +1164,7 @@ export const DISPATCH: Answer[] = [
       'me llego un aviso de que el jefe cambio lo mismo',
       'que significa cambio lo mismo que tu',
     ],
-    a: 'Que otro (por ejemplo el jefe) cambió el mismo campo del evento después de ti: quedó lo último guardado. El aviso dice qué campos, nunca el valor; lo de antes está en el «Historial».',
+    a: 'Que otro (por ejemplo el jefe) cambió el mismo campo del evento después de ti: se quedó su cambio, el último guardado. El aviso dice qué campos, nunca el valor; lo de antes está en el «Historial».',
     go: '/agenda',
   },
   {
@@ -1209,7 +1209,7 @@ export const DISPATCH: Answer[] = [
       'el jefe rechazo la visita que pasa con la obra',
       'si el jefe rechaza una visita de obra que pasa con la ficha',
     ],
-    a: 'La ficha vuelve sola a «Por ponerle fecha» y le avisamos al IVT, sin la fecha. Lo mismo si el jefe rechaza la visita.',
+    a: 'La ficha vuelve sola a «Por ponerle fecha» y al IVT le llega un aviso, sin la fecha. Lo mismo si el jefe rechaza la visita.',
     go: '/agenda/por-fecha',
   },
 
@@ -1327,7 +1327,7 @@ export const DISPATCH: Answer[] = [
       'como veo la agenda de la semana',
       'cambiar la vista del calendario',
     ],
-    a: 'Arriba del calendario: «Día», «Semana» o «Mes»; las flechas «Anterior» y «Siguiente» para moverte, y «Hoy» te trae de vuelta.',
+    a: 'Arriba del calendario: «Día», «Semana» o «Mes»; las flechas ‹ y › para moverte, y «Hoy» te trae de vuelta.',
     go: '/agenda',
     tutorial: 'agenda-calendario',
   },
@@ -1388,7 +1388,7 @@ export const DISPATCH: Answer[] = [
       'donde esta el evento que guarde',
       'mi evento no sale en el calendario',
     ],
-    a: 'Búscalo en la Agenda en el día que le pusiste («Día», «Semana» o «Mes»), con el color «Por decidir», o con la lupa por su nombre. En la demostración, lo creado en otro servidor puede no salir.',
+    a: 'Búscalo en la Agenda en el día que le pusiste («Día», «Semana» o «Mes»), con el color «Por decidir», o con la lupa por su nombre. En la demostración, lo que creas puede borrarse o no verse en otro teléfono.',
     go: '/agenda',
   },
   {
@@ -1455,7 +1455,7 @@ export const DISPATCH: Answer[] = [
       'que pasa si el jefe dice que no',
       'si el jefe rechaza que pasa',
     ],
-    a: 'Te llega el aviso y el evento sale de la lista de Redes. Si nació de una ficha, la ficha vuelve sola a «Por ponerle fecha» y le avisamos al IVT o a política.',
+    a: 'Te llega un aviso y el evento sale de la lista de Redes. Si salió de una ficha, la ficha vuelve sola a «Por ponerle fecha» y al IVT o a política le llega un aviso.',
     go: '/agenda',
   },
 
@@ -1472,7 +1472,7 @@ export const DISPATCH: Answer[] = [
       'que puedo hacer en un evento',
       'que tiene la pantalla del evento',
     ],
-    a: 'La tarjeta de fecha y lugar («Cambiar fecha o lugar», «Marcar realizado»), «Mover» y «Cancelar»; la pestaña «Ficha» (ficha técnica, «Editar datos del evento», «Quién graba» e «Historial»), «Ficha de obra» o «Reporte» si nació de una ficha, «Storyboard», «Material» y «Modo lectura».',
+    a: 'La tarjeta de fecha y lugar («Cambiar fecha o lugar», «Marcar realizado»), «Mover» y «Cancelar»; la pestaña «Ficha» (ficha técnica, «Editar datos del evento», «Quién graba» e «Historial»), «Ficha de obra» o «Reporte» si viene de una ficha, «Storyboard», «Material» y «Modo lectura».',
     go: '/agenda',
     tutorial: 'evento-despacho',
   },
@@ -1488,7 +1488,7 @@ export const DISPATCH: Answer[] = [
       'que es propuesto por despacho',
       'que es el codigo del evento',
     ],
-    a: 'Arriba del evento: el código, el tipo, cómo va, la decisión del jefe y de dónde nació («Propuesto por Despacho», «Lo agregó el jefe», «Nació de una ficha del IVT» o «Nació de un reporte de política»).',
+    a: 'Arriba del evento, las etiquetas: el número del evento, el tipo, cómo va y la decisión del jefe. Al lado dice de dónde viene («Propuesto por Despacho», «Lo agregó el jefe», «Nació de una ficha del IVT» o «Nació de un reporte de política»).',
     go: '/agenda',
     tutorial: 'evento-despacho',
   },
@@ -1562,7 +1562,7 @@ export const DISPATCH: Answer[] = [
       'que es la pestaña ficha de obra',
       'para que es la pestaña reporte del evento',
     ],
-    a: 'Es la ficha de obra (o el reporte) de donde nació el evento, con sus contactos: se ven con el doble factor. Arriba también está «Ver la ficha de obra» (o «Ver el reporte comunitario») para abrirla entera.',
+    a: 'Es la ficha de obra (o el reporte) de donde salió el evento, con sus contactos: se ven si entraste con el doble factor. Arriba también está «Ver la ficha de obra» (o «Ver el reporte comunitario») para abrirla entera.',
     go: '/agenda',
   },
   {
@@ -1611,7 +1611,7 @@ export const DISPATCH: Answer[] = [
       'como hago que el texto baje solo',
       'como pongo la letra mas grande en el modo lectura',
     ],
-    a: '«Letra más grande» y «Letra más pequeña»; «Desplazar solo» con la «Velocidad» que guste («Lento», «Medio» o «Rápido»), y «Pausar». Al terminar, «Salir del modo lectura».',
+    a: 'El − y el + cambian el tamaño de la letra. El botón verde hace correr el texto solo, a la velocidad que te guste («Lento», «Medio» o «Rápido»); otro toque lo para. La X de arriba sale del modo lectura.',
     tutorial: 'lectura',
   },
   {
@@ -1673,7 +1673,7 @@ export const DISPATCH: Answer[] = [
       'para que sirve la pantalla de obras',
       'que son las fichas de obra',
     ],
-    a: 'Obras tiene la ficha de cada obra antes de la visita del jefe, sin fecha ni hora: esa la ponen el jefe o el despacho. Arriba, «Nueva ficha de obra», los chips por etapa y «Filtrar».',
+    a: 'Obras tiene la ficha de cada obra antes de la visita del jefe, sin fecha ni hora: esa la ponen el jefe o el despacho. Arriba, «Nueva ficha de obra», las etiquetas que cuentan las fichas según en qué van y «Filtrar».',
     go: '/obras',
     tutorial: 'obras',
   },
@@ -1688,7 +1688,7 @@ export const DISPATCH: Answer[] = [
       'como filtro las obras',
       'que son los numeros de arriba en obras',
     ],
-    a: 'Los chips de arriba cuentan cuántas fichas hay por etapa; los tocas para ver solo esas. «Filtrar» por municipio y estado; «Quitar» lo limpia.',
+    a: 'Arriba, unas etiquetas cuentan las fichas según en qué van: «Borrador», «Por ponerle fecha», «Con fecha» y «Visita realizada». Para ver solo las de una, la eliges en «Estado» y tocas «Filtrar». También filtras por «Municipio»; «Quitar» lo limpia.',
     go: '/obras',
     tutorial: 'obras',
   },
@@ -1782,7 +1782,7 @@ export const DISPATCH: Answer[] = [
       'donde van los telefonos en la ficha de obra',
       'donde pongo el telefono del ingeniero',
     ],
-    a: 'Solo en los contactos: «Teléfono del ingeniero» o «Teléfono del enlace comunitario», que se ven con el doble factor. Si un campo de la parte principal parece un teléfono, no se guarda y te dice cuál; si era una cifra, escríbela con puntos.',
+    a: 'Solo en los contactos: «Teléfono del ingeniero» o «Teléfono del enlace comunitario», que solo se ven si entraste con el doble factor. Si un campo de la parte principal parece un teléfono, no se guarda y te dice cuál; si era una cifra, escríbela con puntos.',
     go: '/obras/nueva',
   },
   {
@@ -1815,7 +1815,7 @@ export const DISPATCH: Answer[] = [
       'la foto no termina de subir',
       'se corto la subida de fotos',
     ],
-    a: 'Las fotos se suben por partes: si se va la señal, siguen solas cuando vuelve. Deja la pantalla abierta.',
+    a: 'Si se va la señal mientras subes las fotos, la subida sigue sola cuando vuelve. Deja la pantalla abierta.',
     go: '/obras',
   },
   {
@@ -1905,7 +1905,7 @@ export const DISPATCH: Answer[] = [
       'puedo borrar una nota de la historia',
       'como agrego una nota a la historia de la obra',
     ],
-    a: 'En «Historia», «Agregar una nota» y «Guardar nota», sin teléfonos ni nombres de quien reporta: esos datos van en los contactos. La historia solo se agrega, nadie la borra.',
+    a: 'En «Historia», «Agregar una nota» y «Guardar nota», sin teléfonos ni nombres de quien reporta: esos datos van en los contactos. En la historia solo se añaden notas: nada se borra ni se cambia.',
     go: '/obras',
   },
 
@@ -1983,7 +1983,7 @@ export const DISPATCH: Answer[] = [
       'como marco un reporte como finalizado',
       'cambiar el estado de la ficha comunitaria',
     ],
-    a: 'En la ficha comunitaria, «Estado»: eliges el «Nuevo estado», escribes el «Motivo o avance (opcional)» y tocas «Cambiar estado». Cada cambio queda en la historia.',
+    a: 'En la ficha comunitaria, «Estado» (en qué va el reporte): eliges el «Nuevo estado», escribes el «Motivo o avance (opcional)» y tocas «Cambiar estado». Cada cambio queda en la historia.',
     go: '/municipios',
     tutorial: 'ficha-comunitaria',
   },
@@ -2015,7 +2015,7 @@ export const DISPATCH: Answer[] = [
       'los contactos salen ocultos',
       'no me deja ver la persona que reporta',
     ],
-    a: 'Los contactos (quien reporta, teléfonos de terceros) se ven solo con el doble factor; Redes y Grabación no los ven. Si no te salen, entra otra vez con el «Código de tu aplicación».',
+    a: 'Los contactos (quien reporta, los teléfonos de otras personas) solo se ven si entraste con el doble factor; Redes y Grabación no los ven. Si no te salen, entra otra vez con el «Código de tu aplicación».',
   },
 
   // ── Biblioteca ─────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -2076,7 +2076,7 @@ export const DISPATCH: Answer[] = [
       'decidir un evento lo hago yo',
       'puedo rechazar yo un evento',
     ],
-    a: 'No: decidir y calificar es solo del jefe, en «Tu decisión» del evento. Lo tuyo le llega «Por decidir» y, cuando decide, te avisamos.',
+    a: 'No: decidir y calificar es solo del jefe, en «Tu decisión» del evento. Lo tuyo le llega «Por decidir» y, cuando decide, te llega un aviso.',
   },
   {
     id: 'desp-quien-decide',
@@ -2191,7 +2191,7 @@ export const DISPATCH: Answer[] = [
       'puedo mandarle la hora del evento a redes',
       'puedo decirle a redes la hora del acto',
     ],
-    a: 'No: Redes no ve la fecha ni la hora, y la plataforma no deja escribirlas donde está Redes o política. Con “mañana” o “el lunes” te pregunta antes, con «Enviar igual» o «Corregir».',
+    a: 'No: Redes no ve la fecha ni la hora, y la app no deja escribirlas donde está Redes o política. Con “mañana” o “el lunes” te pregunta antes, con «Enviar igual» o «Corregir».',
     go: '/mensajes',
   },
   {
@@ -2220,7 +2220,7 @@ export const DISPATCH: Answer[] = [
       'donde van los telefonos',
       'puedo poner un telefono en una nota',
     ],
-    a: 'Los teléfonos van solo en los contactos: «Contactos del sitio» del evento o los contactos de la ficha, que se ven con el doble factor. Nunca en títulos, notas, motivos ni mensajes.',
+    a: 'Los teléfonos van solo en los contactos: «Contactos del sitio» del evento o los contactos de la ficha, que solo se ven si entraste con el doble factor. Nunca en títulos, notas, motivos ni mensajes.',
   },
   {
     id: 'desp-doble-factor',
@@ -2350,7 +2350,7 @@ export const DISPATCH: Answer[] = [
       'que es material listo',
       'puedo cambiar el estado del evento',
     ],
-    a: 'El chip de arriba dice cómo va el evento: «Ficha», «Storyboard», «Por grabar», «Material listo», «En edición» o «Publicado». Lo cambian el jefe y Redes en «¿En qué va?»; tú lo ves.',
+    a: 'La etiqueta de arriba dice cómo va el evento: «Ficha», «Storyboard», «Por grabar», «Material listo», «En edición» o «Publicado». Lo cambian el jefe y Redes en «¿En qué va?»; tú lo ves.',
     go: '/agenda',
   },
   {
@@ -2365,7 +2365,7 @@ export const DISPATCH: Answer[] = [
       'no tengo la pestaña piezas',
       'por que no veo las piezas del evento',
     ],
-    a: 'La pestaña «Piezas» es de Redes, del jefe y de administración: el despacho no ve las piezas. Tú tienes «Ficha», «Storyboard», «Material» y, si nació de una ficha, «Ficha de obra» o «Reporte».',
+    a: 'La pestaña «Piezas» es de Redes, del jefe y de administración: el despacho no ve las piezas. Tú tienes «Ficha», «Storyboard», «Material» y, si viene de una ficha, «Ficha de obra» o «Reporte».',
     go: '/agenda',
   },
   {
@@ -2421,7 +2421,7 @@ export const DISPATCH: Answer[] = [
       'la parroquia se escribe a mano',
       'no aparece la parroquia en la lista',
     ],
-    a: 'Por ahora la parroquia se escribe a mano: la lista oficial está pendiente. El municipio sí sale de la lista, y en cada municipio ves sus «Parroquias».',
+    a: 'La parroquia se escribe a mano, porque todavía no está la lista oficial. El municipio sí sale de la lista, y en cada municipio ves sus «Parroquias».',
     go: '/municipios',
   },
   {
@@ -2466,7 +2466,7 @@ export const DISPATCH: Answer[] = [
       'el ivt ve cuando va el jefe a su obra',
       'que ve el ivt de la visita',
     ],
-    a: 'Sí: el IVT ve la fecha, la hora y el sitio de las visitas a sus obras, con el doble factor, en «Mis visitas de obra». No ve la ficha técnica, el storyboard ni el material.',
+    a: 'Sí: el IVT ve la fecha, la hora y el sitio de las visitas a sus obras, si entró con el doble factor, en «Mis visitas de obra». No ve la ficha técnica, el storyboard ni el material.',
   },
   {
     id: 'desp-ficha-tecnica-quien',
@@ -2496,7 +2496,7 @@ export const DISPATCH: Answer[] = [
       'como se cuando el jefe crea un evento',
       'me llego que el jefe agrego algo a la agenda',
     ],
-    a: 'Cuando el jefe crea un evento, nace aceptado y te llega «El jefe agregó a la agenda» con su título. Lo ves en la Agenda.',
+    a: 'Cuando el jefe crea un evento, queda aceptado desde que lo guarda y te llega «El jefe agregó a la agenda» con su título. Lo ves en la Agenda.',
     go: '/agenda',
   },
   {
@@ -2523,7 +2523,7 @@ export const DISPATCH: Answer[] = [
       'como le muestro una ficha a alguien por mensajes',
       'pasar el enlace de una ficha en el chat',
     ],
-    a: 'Copia la dirección del evento o de la ficha y pégala en el canal: sale como una tarjetita con su título, y cada quien la abre con sus permisos (Redes y política no ven la fecha). Mensajes es solo texto.',
+    a: 'Copia el enlace de la pantalla del evento o de la ficha y pégalo en el mensaje: sale como una tarjetita con su título. Cada persona ve solo lo que su rol le deja ver (Redes y política no ven la fecha). Mensajes es solo texto.',
     go: '/mensajes',
   },
   {

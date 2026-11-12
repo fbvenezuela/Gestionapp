@@ -185,7 +185,7 @@ describe('el material de fábrica cumple sus reglas', () => {
     for (const k of ['mensajes', 'tutoriales', 'ayuda-guias']) expect(FACTORY_KNOWLEDGE.find((x) => x.key === k)?.roles, k).toBeNull();
     const m = FACTORY_KNOWLEDGE.find((x) => x.key === 'mensajes')!.body;
     expect(m).not.toMatch(/puede leer|no se borra|no las lee/);
-    for (const w of [/Son canales/, /El jefe arma los canales, decide quién va en cada uno y está en todos/, /cada quien ve solo los canales donde está/, /Nunca van teléfonos/, /fechas, horas ni mapas/, /Enter hace un salto de línea/]) expect(m).toMatch(w);
+    for (const w of [/Son canales/, /El jefe arma los canales, decide quién va en cada uno y está en todos/, /cada quien ve solo los canales donde está/, /Los teléfonos no van en los mensajes/, /fechas, horas ni mapas/, /Enter hace un salto de línea/]) expect(m).toMatch(w);
   });
 
   it('las herramientas nunca tocan la agenda privada', () => {

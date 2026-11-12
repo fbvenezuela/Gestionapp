@@ -274,9 +274,9 @@ describe('cerebro de demostración: la negativa sin la hora del título (S4) y e
   });
 
   it('soporte: no hay teléfono; se ofrece avisar a administración (primera pregunta y después de otra)', async () => {
-    const SUPPORT = /^No hay teléfono de soporte en la plataforma; si algo falla, le aviso a administración\. ¿/;
+    const SUPPORT = /^No hay teléfono de soporte en la app; si algo falla, le aviso a administración\. ¿/;
     // Administración is never offered to tell administración (D-89): what happens when someone of the team asks.
-    const SUPPORT_ADMIN = /^No hay teléfono de soporte en la plataforma: cuando algo le falla a alguien del equipo y me pide ayuda, te aviso a ti/;
+    const SUPPORT_ADMIN = /^No hay teléfono de soporte en la app: cuando algo le falla a alguien del equipo y me pide ayuda, te aviso a ti/;
     const asks = ['¿cuál es el teléfono de soporte?', '¿cuál es el número de soporte?', '¿a quién llamo?', '¿a quién llamo si tengo un problema?', 'tengo una falla con la app', 'me sale un error al subir'];
     for (const key of ['social', 'politics', 'ivt', 'admin'] as DemoUserKey[]) {
       const expected = key === 'admin' ? SUPPORT_ADMIN : SUPPORT;

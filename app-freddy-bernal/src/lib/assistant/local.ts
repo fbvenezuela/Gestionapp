@@ -454,7 +454,7 @@ const SMALL_TALK: { re: RegExp; say: (admin: boolean) => string[] }[] = [
   {
     // Only what is written to 360: «¿quién ve lo que escribo en la nota de una pieza?» is the piece's (D-89).
     re: /\b(?:quien (?:ve|lee|mira|revisa) (?:lo que te (?:pregunto|escribo|digo|hablo)|lo que (?:le |me )?(?:pregunto|preguntan|pregunta|escribo|escriben|digo|dicen|hablo)(?: (?:a 360|al asistente|aqui|por aqui))?(?! (?:en|de|del|sobre|para|a|al|por|con)\b)|esto|esta conversacion|lo que hablamos)|(?:alguien|administracion) (?:ve|lee|mira) (?:lo que (?:te )?(?:pregunto|escribo|digo)(?! (?:en|de|del|sobre|para|a|al|por|con)\b)|esto|esta conversacion)|es privado lo que te (?:pregunto|escribo|digo))\b/,
-    say: (admin) => [admin ? 'Tú: en Ajustes → Asistente, «Conversaciones», lees lo que el equipo le pregunta a [ASISTENTE]. El panel de [ASISTENTE] se lo dice a cada persona.' : 'Administración ve lo que me preguntas, en Ajustes → Asistente: no pegues aquí mensajes del equipo.'],
+    say: (admin) => [admin ? 'Tú: en Ajustes → Asistente, «Conversaciones», lees lo que el equipo le pregunta a [ASISTENTE]. El panel de [ASISTENTE] se lo dice a cada persona.' : 'Administración (las personas que manejan la parte técnica de la app) puede leer lo que me preguntas, en Ajustes → Asistente: no pegues aquí mensajes del equipo.'],
   },
   {
     re: /\b(?:guardas|grabas|recuerdas|te acuerdas de|se guarda|queda guardado) (?:lo que (?:te )?(?:digo|escribo|pregunto)|esto|esta conversacion|lo que hablamos)\b|^(?:guardas|grabas) (?:lo que te digo|todo)$/,
@@ -481,19 +481,19 @@ const SMALL_TALK: { re: RegExp; say: (admin: boolean) => string[] }[] = [
 
 const BUILTIN: Record<string, string[]> = {
   'quien-eres': [
-    'Me llamo [ASISTENTE] y te ayudo con la plataforma. ¿Qué necesitas?',
+    'Me llamo [ASISTENTE] y te ayudo con la app. ¿Qué necesitas?',
     '[ASISTENTE], para servirte. ¿En qué te ayudo?',
     'Sigo siendo [ASISTENTE], el asistente del equipo. ¿Qué buscas?',
   ],
   saludo: ['¡Hola, [NOMBRE]! ¿En qué te ayudo?', 'Buenas, [NOMBRE]. ¿Qué necesitas hoy?', '¡Epa, [NOMBRE]! Dime y lo buscamos.'],
-  'eres-bot': ['Soy [ASISTENTE], el asistente de la plataforma, no una persona del equipo. ¿En qué te ayudo?', 'Soy el asistente de [APP], no una persona. Si prefieres hablar con alguien, le aviso.'],
+  'eres-bot': ['Soy [ASISTENTE], el asistente de la app, no una persona del equipo. ¿En qué te ayudo?', 'Soy el asistente de [APP], no una persona. Si prefieres hablar con alguien, le aviso.'],
   gracias: ['¡A la orden, [NOMBRE]!', 'Con gusto. Cualquier cosa, me escribes.', 'Para eso estamos.'],
   'hablar-persona': ['Listo, ya le avisé a administración. Te escriben por aquí o por los avisos.', 'Hecho: le pasé tu mensaje a administración con esta conversación. Mientras, ¿te ayudo con algo?'],
   'agenda-privada': [
     'Eso no lo manejo yo: la fecha, la hora y el lugar de los eventos solo se ven en la Agenda, para quien tiene permiso.',
     'La agenda es información de seguridad y yo no la tengo. Si tu rol la puede ver, está en la Agenda.',
   ],
-  'fuera-de-tema': ['Eso se me escapa: yo te ayudo con la plataforma. ¿Hay algo de tu trabajo en lo que te eche una mano?', 'De eso no opino. Lo mío es que encuentres las cosas en [APP] y sepas qué te toca.'],
+  'fuera-de-tema': ['Eso se me escapa: yo te ayudo con la app. ¿Hay algo de tu trabajo en lo que te eche una mano?', 'De eso no opino. Lo mío es que encuentres las cosas en [APP] y sepas qué te toca.'],
 };
 
 /** The «[ASISTENTE]: …» lines of a script (its answer variants), with fixed huecos filled. */
@@ -759,7 +759,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   if (asksHowToWrite(i.question)) {
     if (!inMensajes) return done(MESSAGES_ADMIN_TEXT);
     const card = (knowledge ?? []).find((f) => f.key === 'guia:mensajes');
-    return done(card ? sentences(fill(card.body)).slice(0, 2).join(' ') : 'En el sobre de arriba, junto a la campana, está Mensajes: ahí están tus canales, y cada canal muestra quiénes están.', '/mensajes');
+    return done(card ? sentences(fill(card.body)).slice(0, 2).join(' ') : 'En los globitos de arriba, junto a la campana, está Mensajes: ahí están tus canales, y cada canal muestra quiénes están.', '/mensajes');
   }
 
   // S. What this screen is for, for this role («¿qué hago aquí?», «¿qué se hace en Publicar?»): its section card and
@@ -815,7 +815,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       const title = res.tutoriales.find((t) => t.id === r.tutorial!.id)?.titulo ?? r.tutorial.label;
       // A screen with an id (an event, a piece): the window draws the button only on that screen.
       if (r.tutorial.href || i.ctx.screen === screen) return done(`Te muestro «${title}» paso a paso, aquí mismo en la pantalla. Toca el botón para empezar.`, undefined, r.tutorial);
-      return done(`«${title}» se ve en su pantalla: ábrela, y en el menú de tu cuenta toca «Ver el tutorial de esta pantalla».`, undefined, r.tutorial);
+      return done(`«${title}» se ve en su pantalla: ábrela, y en Mi cuenta (el muñequito de arriba a la derecha) toca «Ver el tutorial de esta pantalla».`, undefined, r.tutorial);
     }
     // No tutorial for it: a strong curated answer about the tutorials («hay tutorial de ajustes»: administración's screens have
     // none, «Ver como» shows a role's), else what that screen is for (the role's guide), and the guide.
@@ -1139,10 +1139,10 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // 2c. Support: there is no support phone; if something fails, administración is told (on a «sí»).
   // Before the fichas and the scripts chosen with the earlier questions, which would answer the topic before.
   if (support) {
-    if (isAdmin) return done('No hay teléfono de soporte en la plataforma: cuando algo le falla a alguien del equipo y me pide ayuda, te aviso a ti, a administración, en la campana.');
+    if (isAdmin) return done('No hay teléfono de soporte en la app: cuando algo le falla a alguien del equipo y me pide ayuda, te aviso a ti, a administración, en la campana.');
     return done(pick([
-      'No hay teléfono de soporte en la plataforma; si algo falla, le aviso a administración. ¿Quieres que le avise?',
-      'No hay teléfono de soporte en la plataforma; si algo falla, le aviso a administración. ¿Le aviso de una vez?',
+      'No hay teléfono de soporte en la app; si algo falla, le aviso a administración. ¿Quieres que le avise?',
+      'No hay teléfono de soporte en la app; si algo falla, le aviso a administración. ¿Le aviso de una vez?',
     ]));
   }
 
@@ -1292,7 +1292,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
         .map((n) => ({ red: String(n.red), f: ((n.formatos as R[]) ?? []).find((f) => /^(?:story|historia)/i.test(String(f.formato))) }))
         .filter((x) => x.f)
         .map((x) => [`en ${x.red}`, x.f!.duracion_segundos ? `de ${x.f!.duracion_segundos} segundos` : '', x.f!.proporcion ? `en ${x.f!.proporcion}` : '', x.f!.peso_maximo_mb ? `hasta ${x.f!.peso_maximo_mb} MB` : ''].filter(Boolean).join(' '));
-      if (story.length) return done(`Las historias salen solo en Instagram y Facebook: ${list(story)}. Al publicar, la plataforma lo revisa sola.`);
+      if (story.length) return done(`Las historias salen solo en Instagram y Facebook: ${list(story)}. Al publicar, la app lo revisa sola.`);
     }
     if (!network()) return done(`¿Para qué red? Cada una tiene sus medidas: ${list(nets.map((n) => String(n.red)))}.`);
     const n = nets[0];
@@ -1300,7 +1300,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     const parts = ((n.formatos as R[]) ?? []).map((f) =>
       [`${f.formato}`, f.duracion_segundos ? `de ${f.duracion_segundos} segundos` : '', f.proporcion ? `en ${f.proporcion}` : '', f.peso_maximo_mb ? `hasta ${f.peso_maximo_mb} MB` : ''].filter(Boolean).join(' '),
     );
-    return done(`En ${n.red}: ${list(parts)}. El copy, hasta ${n.copy_hasta_caracteres} caracteres. Al publicar, la plataforma lo revisa sola.`);
+    return done(`En ${n.red}: ${list(parts)}. El copy, hasta ${n.copy_hasta_caracteres} caracteres. Al publicar, la app lo revisa sola.`);
   }
 
   // 12. How an event is going (never its date, time or place). Not how something is done with events.

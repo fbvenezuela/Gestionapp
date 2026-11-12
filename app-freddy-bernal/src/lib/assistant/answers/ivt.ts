@@ -23,7 +23,7 @@ export const IVT: Answer[] = [
       'no entiendo la pantalla de obras',
       'que sale en obras',
     ],
-    a: 'Obras es tu inicio: la ficha de cada obra antes de la visita del jefe, sin fecha ni hora. Arriba, «Nueva ficha de obra», los chips por etapa y «Filtrar»; abajo, «Por ponerle fecha», «Borradores», «Con fecha» y «Visitas realizadas».',
+    a: 'Obras es tu inicio: la ficha de cada obra antes de la visita del jefe, sin fecha ni hora. Arriba, «Nueva ficha de obra», las etiquetas que cuentan las fichas según en qué van y «Filtrar»; abajo, «Por ponerle fecha», «Borradores», «Con fecha» y «Visitas realizadas».',
     go: '/obras',
     tutorial: 'obras',
   },
@@ -56,7 +56,7 @@ export const IVT: Answer[] = [
       'que significan los numeros de obras',
       'los botoncitos con numeros de arriba',
     ],
-    a: 'Los chips de arriba cuentan tus fichas por etapa: «Borrador», «Por ponerle fecha», «Con fecha» y «Visita realizada». Para ver solo una etapa, elígela en «Estado» y toca «Filtrar».',
+    a: 'Arriba, unas etiquetas cuentan tus fichas según en qué van: «Borrador», «Por ponerle fecha», «Con fecha» y «Visita realizada». Para ver solo las de una, la eliges en «Estado» y tocas «Filtrar».',
     go: '/obras',
     tutorial: 'obras',
   },
@@ -122,7 +122,7 @@ export const IVT: Answer[] = [
       'que significa que mi obra este con fecha',
       'mis obras con fecha donde las veo',
     ],
-    a: '«Con fecha» son las fichas cuya visita ya tiene fecha. La ves en Agenda → «Mis visitas de obra», con el doble factor.',
+    a: '«Con fecha» son las fichas cuya visita ya tiene fecha. La ves en Agenda → «Mis visitas de obra», si entraste con el doble factor.',
     go: '/agenda',
   },
   {
@@ -200,7 +200,7 @@ export const IVT: Answer[] = [
       'que es cada fila de la lista de obras',
       'que informacion sale de cada obra en la lista',
     ],
-    a: 'Cada línea: el nombre, el código (lo pone la plataforma), el municipio y la parroquia, el avance o el estado de la obra, y cuándo se actualizó, con el chip de su etapa.',
+    a: 'Cada línea: el nombre, el código (lo pone la app), el municipio y la parroquia, el avance o el estado de la obra, y cuándo se actualizó, con la etiqueta de en qué va.',
     go: '/obras',
   },
   {
@@ -230,7 +230,7 @@ export const IVT: Answer[] = [
       'por que solo tengo agenda y obras',
       'que tengo en el menu de abajo',
     ],
-    a: 'Tu menú: Agenda («Mis visitas de obra») y Obras. En el teléfono caben ambas en la barra de abajo, por eso no sale «Más». Arriba tienes «Crear», el sobre de Mensajes, la campana, la lupa y «Mi cuenta».',
+    a: 'Tu menú: Agenda («Mis visitas de obra») y Obras. En el teléfono caben ambas en la barra de abajo, por eso no sale «Más». Arriba tienes «Crear», los globitos de Mensajes, la campana, la lupa y el muñequito de Mi cuenta.',
   },
   {
     id: 'ivt-lupa',
@@ -485,7 +485,7 @@ export const IVT: Answer[] = [
       'el numero del ingeniero donde lo pongo',
       'donde pongo los telefonos',
     ],
-    a: 'En «Datos generales», «Teléfono del ingeniero». Los teléfonos van solo en los contactos de la ficha («Teléfono del ingeniero» o «Teléfono del enlace comunitario»), que se ven con el doble factor.',
+    a: 'En «Datos generales», «Teléfono del ingeniero». Los teléfonos van solo en los contactos de la ficha («Teléfono del ingeniero» o «Teléfono del enlace comunitario»), que solo se ven si entraste con el doble factor.',
   },
   {
     id: 'ivt-telefono-descripcion',
@@ -501,7 +501,7 @@ export const IVT: Answer[] = [
       'puedo anotar el celular del vocero en la descripcion',
       'el telefono del enlace va en las notas',
     ],
-    a: 'No: los teléfonos solo van en «Teléfono del ingeniero» o «Teléfono del enlace comunitario». La parte principal la leen Redes y Grabación cuando la visita tiene fecha, así que la plataforma no la guarda con un teléfono.',
+    a: 'No: los teléfonos solo van en «Teléfono del ingeniero» o «Teléfono del enlace comunitario». La parte principal la leen Redes y Grabación cuando la visita tiene fecha, así que la app no la guarda con un teléfono.',
   },
   {
     id: 'ivt-error-telefono',
@@ -557,7 +557,7 @@ export const IVT: Answer[] = [
       'que campos son obligatorios',
       'que es lo minimo que tengo que llenar',
     ],
-    a: '«Datos generales» lleva «Nombre de la obra», «Municipio», «Parroquia», «Sector», «Ingeniero responsable» y «Teléfono del ingeniero» (este, con el doble factor). El nombre y el municipio no pueden faltar ni en un borrador.',
+    a: '«Datos generales» lleva «Nombre de la obra», «Municipio», «Parroquia», «Sector», «Ingeniero responsable» y «Teléfono del ingeniero» (este solo se ve si entraste con el doble factor). El nombre y el municipio no pueden faltar ni en un borrador.',
   },
   {
     id: 'ivt-campo-ingeniero',
@@ -571,7 +571,7 @@ export const IVT: Answer[] = [
       'que es ingeniero responsable',
       'que pongo en sector',
     ],
-    a: 'En «Datos generales»: «Sector» (dónde está la obra dentro de la parroquia) e «Ingeniero responsable» (su nombre). Su teléfono va aparte, en «Teléfono del ingeniero», que se ve con el doble factor.',
+    a: 'En «Datos generales»: «Sector» (dónde está la obra dentro de la parroquia) e «Ingeniero responsable» (su nombre). Su teléfono va aparte, en «Teléfono del ingeniero», que solo se ve si entraste con el doble factor.',
   },
   {
     id: 'ivt-sobre-obra',
@@ -757,7 +757,7 @@ export const IVT: Answer[] = [
       'quien hizo el reporte de la obra donde va',
       'tengo que poner quien denuncio la obra',
     ],
-    a: 'En «Reporte de la comunidad»: «Quién hizo el reporte o la denuncia», «Cuándo lo reportó» y «Por qué medio». Va aparte, con los contactos: se ve solo con el doble factor.',
+    a: 'En «Reporte de la comunidad»: «Quién hizo el reporte o la denuncia», «Cuándo lo reportó» y «Por qué medio». Va aparte, con los contactos: solo se ve si entraste con el doble factor.',
   },
   {
     id: 'ivt-reporta-obligatorio',
@@ -771,7 +771,7 @@ export const IVT: Answer[] = [
       'si nadie denuncio la obra que marco',
       'la denuncia es obligatoria',
     ],
-    a: 'No es obligatorio: si no hubo denuncia, marca «No aplica»; si no lo sabes todavía, «Por confirmar». Si lo hay, va en «Reporte de la comunidad», que se ve solo con el doble factor.',
+    a: 'No es obligatorio: si no hubo denuncia, marca «No aplica»; si no lo sabes todavía, «Por confirmar». Si lo hay, va en «Reporte de la comunidad», que solo se ve si entraste con el doble factor.',
   },
   {
     id: 'ivt-enlace',
@@ -785,7 +785,7 @@ export const IVT: Answer[] = [
       'que es enlace comunitario',
       'el vocero de la comunidad donde lo pongo',
     ],
-    a: 'En «Reporte de la comunidad»: «Nombre del enlace comunitario» y «Teléfono del enlace comunitario», «¿Estará en la visita?» y, si no asiste, quién la representa. Todo eso se ve con el doble factor.',
+    a: 'En «Reporte de la comunidad»: «Nombre del enlace comunitario» y «Teléfono del enlace comunitario», «¿Estará en la visita?» y, si no asiste, quién la representa. Todo eso solo se ve si entraste con el doble factor.',
   },
   {
     id: 'ivt-gobernador-saber',
@@ -801,7 +801,7 @@ export const IVT: Answer[] = [
       'que es antes de hablar',
       'donde lee el jefe lo que debe decidir',
     ],
-    a: 'Es lo que el jefe debe saber o decidir en la visita, en «Comunidad y seguimiento». Va aparte, con el doble factor, y no sale en el diálogo FAB: el jefe lo lee en «Antes de hablar», en el modo lectura.',
+    a: 'Es lo que el jefe debe saber o decidir en la visita, en «Comunidad y seguimiento». Va aparte (solo se ve si entraste con el doble factor) y no sale en el diálogo FAB: el jefe lo lee en «Antes de hablar», en el modo lectura.',
   },
   {
     id: 'ivt-seguimiento',
@@ -863,7 +863,7 @@ export const IVT: Answer[] = [
       'quien le pone el codigo a la ficha',
       'que numero es ese de la ficha',
     ],
-    a: 'Sí: el código lo pone la plataforma al guardarla, y sale arriba de la ficha y en la lista. Al lado dice quién la cargó y cuándo se actualizó.',
+    a: 'Sí: el código lo pone la app al guardarla, y sale arriba de la ficha y en la lista. Al lado dice quién la cargó y cuándo se actualizó.',
   },
   {
     id: 'ivt-otros-crean',
@@ -890,7 +890,7 @@ export const IVT: Answer[] = [
       'los contactos salen bloqueados',
       'me pide el codigo para ver los telefonos',
     ],
-    a: 'Los contactos se ven y se llenan con el doble factor. Si te sale «Los contactos (nombres y teléfonos) piden el doble factor: entra con tu código para verlos y llenarlos.», sal y vuelve a entrar con el «Código de tu aplicación».',
+    a: 'Los contactos solo se ven y se llenan si entraste con el doble factor. Si te sale «Los contactos (nombres y teléfonos) piden el doble factor: entra con tu código para verlos y llenarlos.», sal y vuelve a entrar con el «Código de tu aplicación».',
   },
   {
     id: 'ivt-sin-senal',
@@ -975,7 +975,7 @@ export const IVT: Answer[] = [
       'donde pongo las fotos de la obra',
       'como cargo las fotos',
     ],
-    a: 'Abre la ficha (ya guardada): en «Fotos del antes y del avance» tocas «Subir fotos del antes», «Subir fotos del avance» o «Subir documentos». Se suben por partes y siguen solas si se va la señal.',
+    a: 'Abre la ficha (ya guardada): en «Fotos del antes y del avance» tocas «Subir fotos del antes», «Subir fotos del avance» o «Subir documentos». Si se va la señal, la subida sigue sola cuando vuelve.',
     go: '/obras',
     tutorial: 'ficha-obra',
   },
@@ -1111,7 +1111,7 @@ export const IVT: Answer[] = [
       'se corto la subida',
       'tengo que volver a subir las fotos si se cae la señal',
     ],
-    a: 'Nada: se suben por partes y siguen solas cuando vuelve la señal. Cada foto queda guardada en la ficha en cuanto termina de subir; no cierres la app mientras sube.',
+    a: 'Nada: la subida sigue sola cuando vuelve la señal. Cada foto queda guardada en la ficha en cuanto termina de subir; no cierres la app mientras sube.',
   },
   {
     id: 'ivt-borrar-foto',
@@ -1210,7 +1210,7 @@ export const IVT: Answer[] = [
       'que ve el despacho de mi obra',
       'el despacho tiene acceso a mis fichas',
     ],
-    a: 'Sí: el despacho ve tus fichas completas, con los contactos y los documentos (con el doble factor). Les pone fecha desde «Por ponerle fecha» y arma la visita, junto con el jefe.',
+    a: 'Sí: el despacho ve tus fichas completas, con los contactos y los documentos (si entró con el doble factor). Les pone fecha desde «Por ponerle fecha» y arma la visita, junto con el jefe.',
   },
   {
     id: 'ivt-jefe-ve',
@@ -1377,7 +1377,7 @@ export const IVT: Answer[] = [
       'que es cambiar lo que esta escrito',
       'me pregunta si reemplazo el dialogo',
     ],
-    a: 'Si ya hay un texto distinto, la plataforma pregunta «¿Cambiar lo que está escrito?»: con «Reemplazar» pone uno nuevo armado con la ficha. Si no quieres perder lo tuyo, no lo confirmes.',
+    a: 'Si ya hay un texto distinto, la app pregunta «¿Cambiar lo que está escrito?»: con «Reemplazar» pone uno nuevo armado con la ficha. Si no quieres perder lo tuyo, no lo confirmes.',
   },
   {
     id: 'ivt-fab-lectura',
@@ -1420,7 +1420,7 @@ export const IVT: Answer[] = [
       'quien puede leer el dialogo fab',
       'lo que voy a decir lo ven los de redes',
     ],
-    a: 'Lo ven quienes ven tu ficha: el jefe, el despacho y administración, y Redes y Grabación en la pestaña «Ficha de obra» cuando la visita tiene fecha. Por eso no lleva contactos ni teléfonos: la plataforma no lo guarda con ellos.',
+    a: 'Lo ven quienes ven tu ficha: el jefe, el despacho y administración, y Redes y Grabación en la pestaña «Ficha de obra» cuando la visita tiene fecha. Por eso no lleva contactos ni teléfonos: la app no lo guarda con ellos.',
   },
   {
     id: 'ivt-fab-telefonos',
@@ -1508,7 +1508,7 @@ export const IVT: Answer[] = [
       'donde veo la hora de mi visita',
       'donde salen mis visitas con fecha',
     ],
-    a: 'En Agenda → «Mis visitas de obra»: las visitas del jefe a tus obras. Con el doble factor ves ahí su fecha, su hora y su dirección; yo no las digo.',
+    a: 'En Agenda → «Mis visitas de obra»: las visitas del jefe a tus obras. Si entraste con el doble factor, ves ahí su fecha, su hora y su dirección; yo no las digo.',
     go: '/agenda',
     tutorial: 'agenda-ivt',
   },
@@ -1526,7 +1526,7 @@ export const IVT: Answer[] = [
       'como me entero que ya tiene fecha',
       'me llega un aviso cuando agendan la visita',
     ],
-    a: 'La plataforma te avisa: cuando el jefe o el despacho le ponen fecha, te llega el aviso «Ya tiene fecha» (sin la fecha), que abre la visita. La ficha pasa a «Con fecha» y la visita sale en «Mis visitas de obra», donde la ves con el doble factor.',
+    a: 'La app te avisa: cuando el jefe o el despacho le ponen fecha, te llega el aviso «Ya tiene fecha» (sin la fecha), que abre la visita. La ficha pasa a «Con fecha» y la visita sale en «Mis visitas de obra», donde la ves si entraste con el doble factor.',
     go: '/agenda',
   },
   {
@@ -1541,7 +1541,7 @@ export const IVT: Answer[] = [
       'por que no veo la fecha de mi visita',
       'no me deja ver la fecha de la visita',
     ],
-    a: 'La fecha se ve con el doble factor: sal y vuelve a entrar con el «Código de tu aplicación». Sin él, la visita dice «Ya tiene fecha» y la ficha «Ya tiene fecha. Se ve con el doble factor.»',
+    a: 'La fecha solo se ve si entraste con el doble factor: sal y vuelve a entrar con el «Código de tu aplicación». Si no, la visita dice «Ya tiene fecha» y la ficha «Ya tiene fecha. Se ve con el doble factor.»',
   },
   {
     id: 'ivt-fecha-visita-tarjeta',
@@ -1554,7 +1554,7 @@ export const IVT: Answer[] = [
       'que es la tarjeta de fecha de la visita',
       'que dice la fecha de la visita en la ficha',
     ],
-    a: 'Que el jefe o el despacho ya le pusieron fecha a la visita. La tarjeta «Fecha de la visita» de la ficha y «Mis visitas de obra» te la muestran cuando entras con el doble factor.',
+    a: 'Que el jefe o el despacho ya le pusieron fecha a la visita. La tarjeta «Fecha de la visita» de la ficha y «Mis visitas de obra» te la muestran si entraste con el doble factor.',
   },
   {
     id: 'ivt-fecha-visita-estados',
@@ -1610,7 +1610,7 @@ export const IVT: Answer[] = [
       'me llego un aviso que volvio a la agenda',
       'la visita cancelada volvio',
     ],
-    a: 'Que la visita que se había cancelado ya no lo está: volvió a la agenda. Ábrela para verla con el doble factor.',
+    a: 'Que la visita que se había cancelado ya no lo está: volvió a la agenda. Ábrela: la ves si entraste con el doble factor.',
   },
   {
     id: 'ivt-rechazan-recargar',
@@ -1627,7 +1627,7 @@ export const IVT: Answer[] = [
       'me rechazaron la visita tengo que volver a cargar todo',
       'rechazaron la visita y ahora cargo la ficha de nuevo',
     ],
-    a: 'No: la ficha vuelve sola a «Por ponerle fecha» y te avisamos. El jefe o el despacho le pueden poner otra fecha.',
+    a: 'No: la ficha vuelve sola a «Por ponerle fecha» y te llega un aviso. El jefe o el despacho le pueden poner otra fecha.',
   },
   {
     id: 'ivt-cambio-fecha',
@@ -1640,7 +1640,7 @@ export const IVT: Answer[] = [
       'me cambiaron la fecha de la visita',
       'movieron la fecha de mi visita que hago',
     ],
-    a: 'Ábrelo: te lleva a la visita, donde ves la nueva con el doble factor. Yo no te la digo; también está en «Mis visitas de obra».',
+    a: 'Ábrelo: te lleva a la visita, donde ves la nueva si entraste con el doble factor. Yo no te la digo; también está en «Mis visitas de obra».',
     go: '/agenda',
   },
   {
@@ -1677,7 +1677,7 @@ export const IVT: Answer[] = [
       'puedo poner yo la fecha de la visita si el ingeniero puede ese dia',
       'yo escojo cuando va el jefe a la obra',
     ],
-    a: 'No: la fecha de la visita la ponen (y la cambian) el jefe o el despacho, cuando les llega tu ficha en «Por ponerle fecha». Si hace falta otro día, díselo a ellos sin escribir fechas donde estén Redes o política. Tú la ves en «Mis visitas de obra», con el doble factor.',
+    a: 'No: la fecha de la visita la ponen (y la cambian) el jefe o el despacho, cuando les llega tu ficha en «Por ponerle fecha». Si hace falta otro día, díselo a ellos sin escribir fechas donde estén Redes o política. Tú la ves en «Mis visitas de obra», si entraste con el doble factor.',
   },
   {
     id: 'ivt-quien-pone-fecha',
@@ -1704,7 +1704,7 @@ export const IVT: Answer[] = [
       'que veo cuando abro la visita',
       'que sale en la visita',
     ],
-    a: 'La vista corta de la visita: el código, «Visita de obra», la decisión del jefe y, con el doble factor, su fecha, su hora y su dirección. «Ver la ficha de obra» te lleva a tu ficha, y «Mis visitas de obra», a la lista.',
+    a: 'La vista corta de la visita: el código, «Visita de obra», la decisión del jefe y, si entraste con el doble factor, su fecha, su hora y su dirección. «Ver la ficha de obra» te lleva a tu ficha, y «Mis visitas de obra», a la lista.',
   },
   {
     id: 'ivt-visita-chips',
@@ -1733,7 +1733,7 @@ export const IVT: Answer[] = [
       'que estado tiene la obra',
       'en que etapa esta mi ficha',
     ],
-    a: 'Abre la ficha: arriba dice su etapa (borrador, por ponerle fecha, con fecha, visita realizada o archivada) y la tarjeta «Fecha de la visita» dice en qué va. Cómo va la obra misma está en «Estado actual» y «Porcentaje de avance».',
+    a: 'Abre la ficha: arriba, su etiqueta dice en qué va (borrador, por ponerle fecha, con fecha, visita realizada o archivada), y la tarjeta «Fecha de la visita» dice qué pasa con la visita. Cómo va la obra misma está en «Estado actual» y «Porcentaje de avance».',
     go: '/obras',
   },
   {
@@ -1761,7 +1761,7 @@ export const IVT: Answer[] = [
       'que es una visita',
       'como se vuelve visita mi ficha',
     ],
-    a: 'Es el evento de la agenda que nace de tu ficha de obra cuando el jefe o el despacho le ponen fecha. Sale en «Mis visitas de obra».',
+    a: 'Es el evento de la agenda que sale de tu ficha de obra cuando el jefe o el despacho le ponen fecha. Sale en «Mis visitas de obra».',
   },
   {
     id: 'ivt-ver-ficha-tecnica',
@@ -1778,7 +1778,7 @@ export const IVT: Answer[] = [
       'veo el material de la visita',
       'puedo ver la ficha tecnica',
     ],
-    a: 'No: de la visita ves solo la vista corta (la decisión del jefe y, con el doble factor, su fecha y su dirección). La ficha técnica, el storyboard y el material son del jefe, el despacho, Redes y Grabación.',
+    a: 'No: de la visita ves solo la vista corta (la decisión del jefe y, si entraste con el doble factor, su fecha y su dirección). La ficha técnica, el storyboard y el material son del jefe, el despacho, Redes y Grabación.',
   },
   {
     id: 'ivt-toda-agenda',
@@ -1839,7 +1839,7 @@ export const IVT: Answer[] = [
       'redes ve la fecha de la visita',
       'la fecha de la visita quien la ve',
     ],
-    a: 'El jefe, el despacho, administración, quien graba esa visita y tú en las visitas de tus obras, con el doble factor. Redes y política nunca.',
+    a: 'El jefe, el despacho, administración, quien graba esa visita y tú en las visitas de tus obras, si entraste con el doble factor. Redes y política nunca.',
   },
 
   // ── Después de mandarla: qué pasa y quién ──────────────────────────────────────────────────────────────────────────
@@ -1855,7 +1855,7 @@ export const IVT: Answer[] = [
       'ya avise al jefe y ahora que pasa',
       'despues de guardar y avisar que sigue',
     ],
-    a: 'Al jefe y al despacho les llega «Por ponerle fecha». Le ponen fecha y nace la «Visita de obra» (la ves en «Mis visitas de obra»), o tocan «No va» y la ficha queda archivada con su motivo.',
+    a: 'Al jefe y al despacho les llega «Por ponerle fecha». Le ponen fecha y se crea la «Visita de obra» (la ves en «Mis visitas de obra»), o tocan «No va» y la ficha queda archivada con su motivo.',
   },
   {
     id: 'ivt-despues-de-fecha',
@@ -1868,7 +1868,7 @@ export const IVT: Answer[] = [
       'que pasa cuando ya tiene fecha',
       'ya le pusieron fecha y ahora que hago',
     ],
-    a: 'La ves en «Mis visitas de obra» con el doble factor. Redes usa tu ficha para el storyboard («Usar como discurso») y el jefe lee tu diálogo en «Modo lectura». Después de la visita, «Marcar realizado» la pasa a «Visitas realizadas».',
+    a: 'La ves en «Mis visitas de obra», si entraste con el doble factor. Redes usa tu ficha para el storyboard («Usar como discurso») y el jefe lee tu diálogo en «Modo lectura». Después de la visita, «Marcar realizado» la pasa a «Visitas realizadas».',
   },
   {
     id: 'ivt-a-quien-llega',
@@ -1967,7 +1967,7 @@ export const IVT: Answer[] = [
       'los vecinos quieren saber el dia de la visita',
       'que le respondo a la gente que pregunta por el jefe',
     ],
-    a: 'Eso no lo manejo yo: la fecha, la hora y el lugar de la visita son información de seguridad, y no los doy. Tú los ves en «Mis visitas de obra» con el doble factor; no los escribas donde estén Redes o política. A quién se le dice lo deciden el jefe o el despacho.',
+    a: 'Eso no lo manejo yo: la fecha, la hora y el lugar de la visita son información de seguridad, y no los doy. Tú los ves en «Mis visitas de obra» si entraste con el doble factor; no los escribas donde estén Redes o política. A quién se le dice lo deciden el jefe o el despacho.',
   },
 
   // ── Mantener la ficha al día ───────────────────────────────────────────────────────────────────────────────────────
@@ -1982,7 +1982,7 @@ export const IVT: Answer[] = [
       'que tiene la ficha cuando la abro',
       'que veo en la ficha de la obra',
     ],
-    a: 'La ficha de una obra: arriba el código y su etapa, «Fecha de la visita» y los cinco grupos; al lado, «Lo que voy a decir», «Fotos del antes y del avance» e «Historia». «Editar» y «Archivar» están arriba.',
+    a: 'La ficha de una obra: arriba el código y en qué va, «Fecha de la visita» y los cinco grupos; al lado, «Lo que voy a decir», «Fotos del antes y del avance» e «Historia». «Editar» y «Archivar» están arriba.',
     tutorial: 'ficha-obra',
   },
   {
@@ -2123,7 +2123,7 @@ export const IVT: Answer[] = [
       'donde veo el historial de la ficha',
       'el historial de cambios donde esta',
     ],
-    a: 'La «Historia» dice quién hizo qué y cuándo: quién la creó, cada cambio de etapa, qué datos se actualizaron, cuándo le pusieron fecha (sin decir cuál) y cada nota. Solo se agrega.',
+    a: 'La «Historia» dice quién hizo qué y cuándo: quién la creó, cada vez que cambió en qué va, qué datos se actualizaron, cuándo le pusieron fecha (sin decir cuál) y cada nota. Ahí solo se añaden cosas: nada se borra ni se cambia.',
     tutorial: 'ficha-obra',
   },
   {
@@ -2138,7 +2138,7 @@ export const IVT: Answer[] = [
       'me sale que alguien mas cambio la obra',
       'el despacho cambio mi ficha mientras la editaba',
     ],
-    a: 'Si guardas, queda lo tuyo y lo anterior queda en la historia; antes, la plataforma te avisa con un «Ojo» qué campos cambió la otra persona. De los contactos, se guardan solo los que tú cambiaste.',
+    a: 'Si guardas, queda lo tuyo y lo anterior queda en la historia; antes, la app te avisa con un «Ojo» qué campos cambió la otra persona. De los contactos, se guardan solo los que tú cambiaste.',
   },
 
   // ── ¿Puedo…? ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -2359,7 +2359,7 @@ export const IVT: Answer[] = [
       'por que no me deja escribir la fecha en mensajes',
       'puedo decirle a redes el dia de la visita',
     ],
-    a: 'No: tú conoces la agenda, y donde está Redes o política la plataforma no te deja escribir fechas, horas ni mapas. Escribe “el día de la visita” o “el día del evento”.',
+    a: 'No: tú conoces la agenda, y donde está Redes o política la app no te deja escribir fechas, horas ni mapas. Escribe “el día de la visita” o “el día del evento”.',
   },
   {
     id: 'ivt-mensaje-manana',
@@ -2373,7 +2373,7 @@ export const IVT: Answer[] = [
       'que es enviar igual o corregir',
       'me pregunta enviar igual',
     ],
-    a: 'Escribiste algo como “mañana” en un canal donde está Redes o política: la plataforma pregunta antes de enviar. «Corregir» si habla de la visita, o «Enviar igual» si no es de la agenda.',
+    a: 'Escribiste algo como “mañana” en un canal donde está Redes o política: la app pregunta antes de enviar. «Corregir» si habla de la visita, o «Enviar igual» si no es de la agenda.',
   },
   {
     id: 'ivt-fotos-mensajes',
@@ -2387,7 +2387,7 @@ export const IVT: Answer[] = [
       'como mando fotos por mensajes',
       'no puedo mandar fotos por el chat',
     ],
-    a: 'No: Mensajes no lleva fotos, audios ni archivos. Súbelas en la ficha y pega la dirección de la ficha en el canal: sale como una tarjetita.',
+    a: 'No: Mensajes no lleva fotos, audios ni archivos. Súbelas en la ficha; en el canal, copia el enlace de la pantalla de la ficha y pégalo en el mensaje: sale como una tarjetita.',
   },
   {
     id: 'ivt-pasar-ficha',
@@ -2401,7 +2401,7 @@ export const IVT: Answer[] = [
       'como comparto una obra',
       'como le paso la ficha al despacho',
     ],
-    a: 'Al jefe y al despacho ya les llega con «Guardar y avisar al jefe». Para hablar de ella en un canal, pega la dirección de la ficha: sale como una tarjetita con su título, y cada quien la abre con sus permisos.',
+    a: 'Al jefe y al despacho ya les llega con «Guardar y avisar al jefe». Para hablar de ella en un canal, copia el enlace de la pantalla de la ficha y pégalo en el mensaje: sale como una tarjetita con su título. Cada persona ve solo lo que su rol le deja ver.',
   },
   {
     id: 'ivt-telefono-mensaje',
@@ -2414,7 +2414,7 @@ export const IVT: Answer[] = [
       'puedo pasar el telefono del ingeniero por el canal',
       'por que no me deja mandar un numero en mensajes',
     ],
-    a: 'No: los teléfonos no van en los mensajes. Van en los contactos de la ficha, que se ven con el doble factor.',
+    a: 'No: los teléfonos no van en los mensajes: van en los contactos de la ficha.',
   },
   {
     id: 'ivt-msj-se-borran',
@@ -2443,7 +2443,7 @@ export const IVT: Answer[] = [
       'como creo un canal',
       'puedo escribirle directo a una persona',
     ],
-    a: 'Mensajes es solo del equipo: quien no está en la plataforma (el ingeniero, la comunidad) no entra, y no hay mensajes directos. Los canales los arma el jefe; pídele uno si te hace falta. El contacto del ingeniero va en la ficha.',
+    a: 'Mensajes es solo del equipo: quien no está en la app (el ingeniero, la comunidad) no entra, y no hay mensajes directos. Los canales los arma el jefe; pídele uno si te hace falta. El contacto del ingeniero va en la ficha.',
   },
   {
     id: 'ivt-avisar-despacho',
@@ -2542,7 +2542,7 @@ export const IVT: Answer[] = [
       'como va una obra de principio a fin',
       'por donde pasa mi ficha de obra',
     ],
-    a: 'Está en «Mi cuenta» → «Ayuda y guías» → «Cómo va el trabajo entre todos»: el de una obra, de la ficha a la visita. Los pasos que son tuyos dicen «tú».',
+    a: 'Está en Mi cuenta → «Ayuda y guías» → «Cómo va el trabajo entre todos»: el de una obra, de la ficha a la visita. Los pasos que son tuyos dicen «tú».',
     go: '/ayuda/flujos',
   },
   {
@@ -2556,7 +2556,7 @@ export const IVT: Answer[] = [
       'tutorial de la ficha de obra',
       'hay tutorial de obras',
     ],
-    a: 'Sí: hay uno de Obras, uno para cargar una ficha de obra, otro para usarla y uno de tus visitas. Están en «Mi cuenta» → «Ayuda y guías» → «Tutoriales de mis pantallas», o en «Ver el tutorial de esta pantalla».',
+    a: 'Sí: hay uno de Obras, uno para cargar una ficha de obra, otro para usarla y uno de tus visitas. Están en Mi cuenta → «Ayuda y guías» → «Tutoriales de mis pantallas», o en «Ver el tutorial de esta pantalla».',
     tutorial: 'nueva-obra',
   },
 
@@ -2599,7 +2599,7 @@ export const IVT: Answer[] = [
       'por que me saco de la pantalla',
       'me salio esa pantalla no es de tu rol',
     ],
-    a: 'Abriste una pantalla de otro rol y la plataforma te trajo a tu inicio, Obras. No hiciste nada mal: cada rol ve lo suyo.',
+    a: 'Abriste una pantalla de otro rol y la app te trajo a tu inicio, Obras. No hiciste nada mal: cada rol ve lo suyo.',
   },
   {
     id: 'ivt-salir-borra',
@@ -2613,7 +2613,7 @@ export const IVT: Answer[] = [
       'si salgo de la plataforma se borra lo que no guarde',
       'cerre sesion y perdi la ficha',
     ],
-    a: 'Al tocar «Salir» se borran del teléfono los borradores que no guardaste. Lo guardado sigue en la plataforma; lo demás hay que escribirlo otra vez.',
+    a: 'Al tocar «Salir» se borran del teléfono los borradores que no guardaste. Lo guardado sigue en la app; lo demás hay que escribirlo otra vez.',
   },
   {
     id: 'ivt-y-ahora',
@@ -2646,7 +2646,7 @@ export const IVT: Answer[] = [
       'hazme un informe',
       'redacta un oficio',
     ],
-    a: 'Eso no lo hago: no redacto documentos fuera de la plataforma. Si el oficio ya existe, súbelo en la ficha de la obra con «Subir documentos».',
+    a: 'Eso no lo hago: no redacto documentos fuera de la app. Si el oficio ya existe, súbelo en la ficha de la obra con «Subir documentos».',
   },
   {
     id: 'ivt-fuera-de-tema',
@@ -2659,6 +2659,6 @@ export const IVT: Answer[] = [
       'cuanto cemento lleva',
       'calculame cuanto material necesito',
     ],
-    a: 'Eso no lo sé: yo solo sé de la plataforma, y no invento cálculos ni cifras. Si es para la ficha, pon lo que diga el ingeniero con su fuente, o «Por confirmar».',
+    a: 'Eso no lo sé: yo solo sé de la app, y no invento cálculos ni cifras. Si es para la ficha, pon lo que diga el ingeniero con su fuente, o «Por confirmar».',
   },
 ];

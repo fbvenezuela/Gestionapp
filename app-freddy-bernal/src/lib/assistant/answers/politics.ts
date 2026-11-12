@@ -142,7 +142,7 @@ export const POLITICS: Answer[] = [
       'por que en mi municipio sale una actividad sin fecha',
       'en el municipio sale actividad comunitaria que es',
     ],
-    a: 'En la lista de un municipio salen tus fichas comunitarias y las actividades que nacieron de ellas. De esas actividades ves la decisión del jefe y “ya tiene fecha”, nunca la fecha.',
+    a: 'En la lista de un municipio salen tus fichas comunitarias y las actividades que salieron de ellas. De esas actividades ves la decisión del jefe y «Ya tiene fecha», nunca la fecha.',
     go: '/municipios',
   },
   {
@@ -305,7 +305,7 @@ export const POLITICS: Answer[] = [
       'que busca la lupa',
       'la lupa busca fichas',
     ],
-    a: 'La lupa de arriba busca un evento por su nombre, su lugar o su municipio, y solo encuentra lo que tu rol puede ver: las actividades que nacieron de los reportes de política. Tus fichas, en Municipios.',
+    a: 'La lupa de arriba busca un evento por su nombre, su lugar o su municipio, y solo encuentra lo que tu rol puede ver: las actividades que salieron de los reportes de política. Tus fichas, en Municipios.',
     go: '/buscar',
   },
   {
@@ -389,7 +389,7 @@ export const POLITICS: Answer[] = [
       'tengo una vencida como la resuelvo',
       'que hago con lo atrasado',
     ],
-    a: 'Abres cada una y le das seguimiento: en «Estado», el «Nuevo estado» con su «Motivo o avance (opcional)» y «Cambiar estado», o una nota en «Historia». Es lo primero de cada día.',
+    a: 'Abres cada una y le das seguimiento: en «Estado» (en qué va el reporte), el «Nuevo estado» con su «Motivo o avance (opcional)» y «Cambiar estado», o una nota en «Historia». Es lo primero de cada día.',
     go: '/municipios',
     tutorial: 'ficha-comunitaria',
   },
@@ -523,7 +523,7 @@ export const POLITICS: Answer[] = [
       'me pasaron un reclamo de la comunidad donde lo pongo',
       'un vocero me reporto un problema que hago',
     ],
-    a: 'Con una ficha comunitaria: «Nueva ficha comunitaria». Los datos del vecino van en «Persona que reporta» (se ven con el doble factor); lo que pasa, en «Descripción». Si no va a la agenda del jefe, tocas «Guardar».',
+    a: 'Con una ficha comunitaria: «Nueva ficha comunitaria». Los datos del vecino van en «Persona que reporta» (solo los ve quien entra con el doble factor); lo que pasa, en «Descripción». Si no va a la agenda del jefe, tocas «Guardar».',
     go: '/reportes/nuevo',
     tutorial: 'nueva-comunitaria',
   },
@@ -824,7 +824,7 @@ export const POLITICS: Answer[] = [
       'ya avise al jefe y ahora que pasa',
       'despues de guardar y avisar que sigue',
     ],
-    a: 'Al jefe y al despacho les llega «Por ponerle fecha». Cuando uno se la pone, nace la actividad en la agenda, te llega el aviso y tu ficha dice «Ya tiene fecha. La ven el jefe y el despacho en la agenda.» Mientras, sigues el seguimiento en la ficha.',
+    a: 'Al jefe y al despacho les llega «Por ponerle fecha». Cuando uno se la pone, la actividad se crea en la agenda, te llega un aviso y tu ficha dice «Ya tiene fecha. La ven el jefe y el despacho en la agenda.» Mientras, le sigues dando seguimiento en la ficha.',
   },
   {
     id: 'pol-a-quien-llega',
@@ -930,7 +930,7 @@ export const POLITICS: Answer[] = [
       'la fecha de la actividad quien la ve',
       'pongo la fecha que propone la comunidad',
     ],
-    a: 'En «Fecha y hora»: «De la actividad o situación» (cuándo es o fue; si va a la agenda, es solo una sugerencia, porque la fecha la pone el jefe) y «Del reporte» (cuándo te llegó). La de la actividad se ve con el doble factor.',
+    a: 'En «Fecha y hora»: «De la actividad o situación» (cuándo es o fue; si va a la agenda, es solo una sugerencia, porque la fecha la pone el jefe) y «Del reporte» (cuándo te llegó). La de la actividad solo se ve si entraste con el doble factor.',
   },
   {
     id: 'pol-escribir-cuando-jefe',
@@ -977,7 +977,7 @@ export const POLITICS: Answer[] = [
       'el numero de la persona que reporta donde va',
       'datos del denunciante donde',
     ],
-    a: 'Es el primer grupo: «Nombre y apellido», «Cargo o función» y «Teléfono» de quien reporta. Ahí, y solo ahí, van su nombre y su teléfono; se ven con el doble factor y solo los ven política, el jefe y el despacho.',
+    a: 'Es el primer grupo: «Nombre y apellido», «Cargo o función» y «Teléfono» de quien reporta. Ahí, y solo ahí, van su nombre y su teléfono; solo los ven política, el jefe y el despacho, y solo si entraron con el doble factor.',
   },
   {
     id: 'pol-reporta-obligatorio',
@@ -991,7 +991,7 @@ export const POLITICS: Answer[] = [
       'la persona que reporta es obligatoria',
       'puedo dejar vacio persona que reporta',
     ],
-    a: 'No es obligatorio: si no lo tienes, marca «Por confirmar», o «No aplica» si no hay quien reporte. Cuando lo tengas, va en «Persona que reporta», que se ve con el doble factor.',
+    a: 'No es obligatorio: si no lo tienes, marca «Por confirmar», o «No aplica» si no hay quien reporte. Cuando lo tengas, va en «Persona que reporta», que solo se ve si entraste con el doble factor.',
   },
   {
     id: 'pol-contactos-doble-factor',
@@ -1007,7 +1007,7 @@ export const POLITICS: Answer[] = [
       'no me deja ver el telefono de la persona que reporta',
       'los contactos salen bloqueados',
     ],
-    a: 'Los contactos se ven y se llenan con el doble factor. Si te sale «Los contactos (nombres y teléfonos) piden el doble factor: entra con tu código para verlos y llenarlos.», sal y vuelve a entrar con el «Código de tu aplicación».',
+    a: 'Los contactos solo se ven y se llenan si entraste con el doble factor. Si te sale «Los contactos (nombres y teléfonos) piden el doble factor: entra con tu código para verlos y llenarlos.», sal y vuelve a entrar con el «Código de tu aplicación».',
   },
   {
     id: 'pol-telefono-nota',
@@ -1028,7 +1028,7 @@ export const POLITICS: Answer[] = [
       'puedo dejar el numero en la historia',
       'donde pongo el numero de la persona',
     ],
-    a: 'No: los teléfonos van solo en «Teléfono» de «Persona que reporta», que se ve con el doble factor. La historia y la parte principal se leen sin doble factor, por eso la plataforma no guarda un teléfono ahí.',
+    a: 'No: los teléfonos van solo en «Teléfono» de «Persona que reporta», que solo se ve si entraste con el doble factor. La historia y la parte principal se leen sin doble factor, por eso la app no guarda un teléfono ahí.',
   },
   {
     id: 'pol-error-telefono',
@@ -1054,7 +1054,7 @@ export const POLITICS: Answer[] = [
       'puedo poner el nombre de la señora en la nota',
       'el nombre del vocero va en la descripcion',
     ],
-    a: 'No: el nombre y el teléfono de quien reporta van en «Persona que reporta», que se ve con el doble factor, nunca en las notas ni en la descripción. Las notas se leen sin doble factor, y con un teléfono la plataforma no las guarda.',
+    a: 'No: el nombre y el teléfono de quien reporta van en «Persona que reporta», que solo se ve si entraste con el doble factor, nunca en las notas ni en la descripción. Las notas se leen sin doble factor, y con un teléfono la app no las guarda.',
   },
   {
     id: 'pol-ubicacion',
@@ -1071,7 +1071,7 @@ export const POLITICS: Answer[] = [
       'la direccion de la ficha quien la ve',
       'pongo la direccion exacta de la comunidad',
     ],
-    a: 'En «Ubicación»: «Municipio», «Parroquia» y «Comunidad o sector», y aparte «Dirección» y «Punto de referencia», que se ven con el doble factor (solo política, el jefe y el despacho).',
+    a: 'En «Ubicación»: «Municipio», «Parroquia» y «Comunidad o sector», y aparte «Dirección» y «Punto de referencia», que solo se ven si entraste con el doble factor (solo política, el jefe y el despacho).',
   },
   {
     id: 'pol-descripcion',
@@ -1144,7 +1144,7 @@ export const POLITICS: Answer[] = [
       'subirle la prioridad a un reporte',
       'que es motivo de la prioridad',
     ],
-    a: 'En el grupo «Seguimiento» eliges la «Prioridad» («Alta», «Media» o «Baja») y escribes el «Motivo de la prioridad». Si la ficha ya está guardada, toca «Editar». Sale como chip en la ficha y en las listas, y en Municipios puedes filtrar por ella.',
+    a: 'En el grupo «Seguimiento» eliges la «Prioridad» («Alta», «Media» o «Baja») y escribes el «Motivo de la prioridad». Si la ficha ya está guardada, toca «Editar». Sale como una etiqueta en la ficha y en las listas, y en Municipios puedes filtrar por ella.',
   },
   {
     id: 'pol-fecha-prevista',
@@ -1349,7 +1349,7 @@ export const POLITICS: Answer[] = [
       'como reabro una ficha finalizada',
       'puedo cambiar el estado varias veces',
     ],
-    a: 'En la ficha, en «Estado», eliges el «Nuevo estado», escribes el «Motivo o avance (opcional)» y tocas «Cambiar estado». Queda en la historia.',
+    a: 'En la ficha, en «Estado» (en qué va el reporte), eliges el «Nuevo estado», escribes el «Motivo o avance (opcional)» y tocas «Cambiar estado». Queda en la historia.',
     tutorial: 'ficha-comunitaria',
   },
   {
@@ -1520,7 +1520,7 @@ export const POLITICS: Answer[] = [
       'escribi mal una nota como la quito',
       'me equivoque en la nota',
     ],
-    a: 'No: la historia solo se agrega, nadie la cambia ni la borra. Si te equivocaste, agrega otra nota que lo corrija.',
+    a: 'No: de la historia de la ficha nada se borra ni se cambia, solo se añaden notas. Si te equivocaste, agrega otra nota que lo corrija.',
   },
   {
     id: 'pol-historia',
@@ -1538,7 +1538,7 @@ export const POLITICS: Answer[] = [
       'el historial de cambios donde esta',
       'puedo ver todo lo que le han hecho a la ficha',
     ],
-    a: 'La «Historia» dice quién hizo qué y cuándo: quién la creó, cada cambio de estado con su motivo, qué datos se actualizaron y cada nota. No se borra ni se cambia: solo se agrega.',
+    a: 'La «Historia» dice quién hizo qué y cuándo: quién la creó, cada cambio de estado con su motivo, qué datos se actualizaron y cada nota. Ahí solo se añaden cosas: nada se borra ni se cambia.',
     tutorial: 'ficha-comunitaria',
   },
   {
@@ -1625,7 +1625,7 @@ export const POLITICS: Answer[] = [
       'alguien cambio la ficha al mismo tiempo',
       'me sale que otra persona cambio la ficha',
     ],
-    a: 'Si guardas, queda lo tuyo y lo anterior queda en la historia; antes, la plataforma te avisa con un «Ojo» qué campos cambió la otra persona. De los contactos, se guardan solo los que tú cambiaste.',
+    a: 'Si guardas, queda lo tuyo y lo anterior queda en la historia; antes, la app te avisa con un «Ojo» qué campos cambió la otra persona. De los contactos, se guardan solo los que tú cambiaste.',
   },
   {
     id: 'pol-recuperamos',
@@ -1654,7 +1654,7 @@ export const POLITICS: Answer[] = [
       'que quieren decir las etiquetas de arriba',
       'la ficha tiene codigo',
     ],
-    a: 'Arriba de la ficha: el código (lo pone la plataforma), el tipo, el estado, la prioridad y, si toca, «Vencida» con sus días. Al lado dice quién la cargó y cuándo se actualizó.',
+    a: 'Arriba de la ficha: el código (lo pone la app), el tipo, el estado, la prioridad y, si toca, «Vencida» con sus días. Al lado dice quién la cargó y cuándo se actualizó.',
   },
 
   // ── Evidencias: fotos, videos y documentos ─────────────────────────────────────────────────────────────────────────
@@ -1858,7 +1858,7 @@ export const POLITICS: Answer[] = [
       'se quedo la foto a medias',
       'se corto la subida de las fotos',
     ],
-    a: 'Las fotos se suben por partes: si se va la señal, la subida sigue sola cuando vuelve. No cierres la app mientras sube; lo que ya terminó queda guardado en la ficha.',
+    a: 'Si se va la señal mientras subes las fotos, la subida sigue sola cuando vuelve. No cierres la app mientras sube; lo que ya terminó queda guardado en la ficha.',
   },
 
   // ── Agenda del jefe: «Ya tiene fecha» ──────────────────────────────────────────────────────────────────────────────
@@ -2059,7 +2059,7 @@ export const POLITICS: Answer[] = [
       'como pasa mi reporte a la agenda',
       'cuando mi ficha se vuelve evento',
     ],
-    a: 'Con «Guardar y avisar al jefe» le llega al jefe y al despacho «Por ponerle fecha». Cuando uno de ellos le pone fecha, nace la actividad en la agenda y tu ficha dice que ya tiene fecha.',
+    a: 'Con «Guardar y avisar al jefe» le llega al jefe y al despacho «Por ponerle fecha». Cuando uno de ellos le pone fecha, la actividad se crea en la agenda y tu ficha dice «Ya tiene fecha».',
   },
   {
     id: 'pol-actividad-comunitaria',
@@ -2073,7 +2073,7 @@ export const POLITICS: Answer[] = [
       'que es el chip actividad comunitaria',
       'que es una actividad en la agenda',
     ],
-    a: 'Es el evento de la agenda que nace de tu reporte cuando el jefe o el despacho le ponen fecha. Tú ves su vista corta: el código, «Actividad comunitaria» y la decisión del jefe, sin la fecha.',
+    a: 'Es el evento de la agenda que sale de tu reporte cuando el jefe o el despacho le ponen fecha. Tú ves su vista corta: el código, «Actividad comunitaria» y la decisión del jefe, sin la fecha.',
   },
   {
     id: 'pol-vista-actividad',
@@ -2147,7 +2147,7 @@ export const POLITICS: Answer[] = [
       'por que no tengo agenda',
       'quiero ver la agenda',
     ],
-    a: 'No: política no ve la agenda. Si abres esa pantalla, la plataforma te trae a tu inicio. De tus reportes ves solo «Ya tiene fecha», en Municipios.',
+    a: 'No: política no ve la agenda. Si abres esa pantalla, la app te trae a tu inicio. De tus reportes ves solo «Ya tiene fecha», en Municipios.',
   },
   {
     id: 'pol-aceptar-rechazar',
@@ -2312,7 +2312,7 @@ export const POLITICS: Answer[] = [
       'quien mas ve mis fichas',
       'el despacho ve mis reportes',
     ],
-    a: 'Sí: el despacho y el jefe ven tus fichas, también los contactos y los documentos (con el doble factor), y les ponen fecha a las que van a la agenda.',
+    a: 'Sí: el despacho y el jefe ven tus fichas, también los contactos y los documentos (si entraron con el doble factor), y les ponen fecha a las que van a la agenda.',
   },
   {
     id: 'pol-despacho-hace',
@@ -2326,7 +2326,7 @@ export const POLITICS: Answer[] = [
       'el despacho pone la fecha',
       'que papel tiene el despacho en mis reportes',
     ],
-    a: 'Le pone fecha a tu reporte junto con el jefe: le llega en «Por ponerle fecha» y, cuando se la pone, nace la actividad (al jefe le llega «Por decidir»). También puede decir «No va». Ve tus fichas completas; tú solo ves «Ya tiene fecha».',
+    a: 'Le pone fecha a tu reporte junto con el jefe: le llega en «Por ponerle fecha» y, cuando se la pone, la actividad se crea en la agenda (al jefe le llega «Por decidir»). También puede decir «No va». Ve tus fichas completas; tú solo ves «Ya tiene fecha».',
   },
   {
     id: 'pol-jefe-hace',
@@ -2374,7 +2374,7 @@ export const POLITICS: Answer[] = [
       'quien ve los contactos de la persona que reporta',
       'los datos del vocero quien los puede ver',
     ],
-    a: 'Solo política, el despacho y el jefe, con el doble factor. Administración, Redes y Grabación nunca.',
+    a: 'Solo política, el despacho y el jefe, y solo si entraron con el doble factor. Administración, Redes y Grabación nunca.',
   },
   {
     id: 'pol-doble-factor',
@@ -2387,7 +2387,7 @@ export const POLITICS: Answer[] = [
       'por que politica usa doble factor',
       'para que me sirve el doble factor',
     ],
-    a: 'Porque tus fichas guardan contactos de la comunidad (nombres, teléfonos, direcciones) y con el doble factor solo los ven política, el jefe y el despacho. Lo usan también el jefe, el despacho, el IVT y administración.',
+    a: 'Porque tus fichas guardan contactos de la comunidad (nombres, teléfonos, direcciones) y solo los ven política, el jefe y el despacho, si entraron con el doble factor. Lo usan también el jefe, el despacho, el IVT y administración.',
   },
 
   // ── Tu trabajo ─────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -2431,7 +2431,7 @@ export const POLITICS: Answer[] = [
       'que no puedo hacer',
       'que no debo hacer',
     ],
-    a: 'Pedir o escribir la fecha o la hora de la agenda del jefe, y poner teléfonos o nombres de quien reporta en las notas: esos van en «Persona que reporta», con el doble factor.',
+    a: 'Pedir o escribir la fecha o la hora de la agenda del jefe, y poner teléfonos o nombres de quien reporta en las notas: esos van en «Persona que reporta», y solo los ve quien entra con el doble factor.',
   },
   {
     id: 'pol-primero',
@@ -2460,7 +2460,7 @@ export const POLITICS: Answer[] = [
       'por donde pasa mi reporte',
       'que camino sigue una ficha comunitaria',
     ],
-    a: 'Cargas la ficha. Si va a la agenda, «Guardar y avisar al jefe»: el jefe o el despacho le ponen fecha y tú ves “ya tiene fecha”. Si no, «Guardar» y queda en el registro. Después, el seguimiento (estado, evidencias y notas); si se vence, sale arriba en Municipios.',
+    a: 'Cargas la ficha. Si va a la agenda, «Guardar y avisar al jefe»: el jefe o el despacho le ponen fecha y tú ves «Ya tiene fecha». Si no, «Guardar» y queda en el registro. Después, el seguimiento (estado, evidencias y notas); si se vence, sale arriba en Municipios.',
     go: '/ayuda/flujos',
   },
   {
@@ -2474,7 +2474,7 @@ export const POLITICS: Answer[] = [
       'donde esta la guia de mi trabajo',
       'donde esta el manual',
     ],
-    a: '«Mi cuenta» → «Ayuda y guías» → «Mi trabajo, paso a paso»: tu guía, con «Tu trabajo», «Paso a paso» y «Cada pantalla».',
+    a: 'Mi cuenta → «Ayuda y guías» → «Mi trabajo, paso a paso»: tu guía, con «Tu trabajo», «Paso a paso» y «Cada pantalla».',
     go: '/ayuda',
   },
   {
@@ -2489,7 +2489,7 @@ export const POLITICS: Answer[] = [
       'tutorial de la ficha comunitaria',
       'hay tutorial de municipios',
     ],
-    a: 'Sí: hay uno de Municipios, uno para cargar una ficha comunitaria y otro para usarla. Están en «Mi cuenta» → «Ayuda y guías» → «Tutoriales de mis pantallas», o en «Ver el tutorial de esta pantalla».',
+    a: 'Sí: hay uno de Municipios, uno para cargar una ficha comunitaria y otro para usarla. Están en Mi cuenta → «Ayuda y guías» → «Tutoriales de mis pantallas», o en «Ver el tutorial de esta pantalla».',
     tutorial: 'ficha-comunitaria',
   },
 
@@ -2505,7 +2505,7 @@ export const POLITICS: Answer[] = [
       'por que solo tengo municipios en el menu',
       'mi menu solo tiene municipios',
     ],
-    a: 'Sí: tu menú es Municipios, y es lo único de la barra de abajo. Lo demás está arriba: «Crear», el sobre de Mensajes, la campana, la lupa y «Mi cuenta».',
+    a: 'Sí: tu menú es Municipios, y es lo único de la barra de abajo. Lo demás está arriba: «Crear», los globitos de Mensajes, la campana, la lupa y el muñequito de Mi cuenta.',
   },
   {
     id: 'pol-mensajes-fechas',
@@ -2547,7 +2547,7 @@ export const POLITICS: Answer[] = [
       'como mando fotos por mensajes',
       'no puedo mandar fotos por el chat',
     ],
-    a: 'No: Mensajes no lleva fotos, audios ni archivos. Las fotos van en «Evidencias» de la ficha; en el canal pegas la dirección de la ficha.',
+    a: 'No: Mensajes no lleva fotos, audios ni archivos. Las fotos van en «Evidencias» de la ficha; en el canal pegas el enlace de la pantalla de la ficha.',
   },
   {
     id: 'pol-hablar-ficha',
@@ -2561,7 +2561,7 @@ export const POLITICS: Answer[] = [
       'como comparto una ficha',
       'mandar una ficha por el canal',
     ],
-    a: 'Pega la dirección de la ficha en el canal: sale como una tarjetita con su título, y cada quien la abre con sus permisos (Redes y Grabación no abren un reporte).',
+    a: 'Copia el enlace de la pantalla de la ficha y pégalo en el mensaje: sale como una tarjetita con su título. Cada persona ve solo lo que su rol le deja ver (Redes y Grabación no abren un reporte).',
   },
   {
     id: 'pol-grupo-comunidad',
@@ -2634,7 +2634,7 @@ export const POLITICS: Answer[] = [
       'si salgo de la plataforma se borra lo que no guarde',
       'cerre sesion y perdi la ficha',
     ],
-    a: 'Al tocar «Salir» se borran del teléfono los borradores que no guardaste. Lo guardado sigue en la plataforma; guarda antes de salir.',
+    a: 'Al tocar «Salir» se borran del teléfono los borradores que no guardaste. Lo guardado sigue en la app; guarda antes de salir.',
   },
   {
     id: 'pol-no-es-tu-rol',
@@ -2647,7 +2647,7 @@ export const POLITICS: Answer[] = [
       'me salio esa pantalla no es de tu rol',
       'por que me saco de la pantalla',
     ],
-    a: 'Nada malo: abriste una pantalla de otro rol (la Agenda, Obras, Redes…) y la plataforma te trajo a tu inicio, Municipios. Cada rol ve lo suyo.',
+    a: 'Nada malo: abriste una pantalla de otro rol (la Agenda, Obras, Redes…) y la app te trajo a tu inicio, Municipios. Cada rol ve lo suyo.',
   },
 
   // ── Cuando algo no sale ────────────────────────────────────────────────────────────────────────────────────────────
@@ -2744,7 +2744,7 @@ export const POLITICS: Answer[] = [
       'hazme un acta',
       'redacta un oficio',
     ],
-    a: 'Eso no lo hago: no redacto documentos fuera de la plataforma. Si el oficio o el acta ya existe, súbelo en la ficha, en «Evidencias» → «Subir documentos».',
+    a: 'Eso no lo hago: no redacto documentos fuera de la app. Si el oficio o el acta ya existe, súbelo en la ficha, en «Evidencias» → «Subir documentos».',
   },
   {
     id: 'pol-fuera-de-tema',
@@ -2758,6 +2758,6 @@ export const POLITICS: Answer[] = [
       'dame datos del censo',
       'cuantos votantes hay en el municipio',
     ],
-    a: 'Eso no lo sé y no invento cifras: no está en la plataforma. Si es para una ficha, ponlo con su fuente o márcalo «Por confirmar».',
+    a: 'Eso no lo sé y no invento cifras: no está en la app. Si es para una ficha, ponlo con su fuente o márcalo «Por confirmar».',
   },
 ];

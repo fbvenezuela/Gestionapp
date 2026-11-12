@@ -77,7 +77,7 @@ export const ADMIN: Answer[] = [
       'la invitacion no le llega a la persona',
       'mande la invitacion y no le aparece nada',
     ],
-    a: 'Mientras se prueba la plataforma ningún correo sale: queda en Ajustes → «Buzón de correos». Si ya salen, que revise spam. Y mira el correo que escribiste: si estaba mal, esa cuenta ya se creó; en «Personas», «Cambiar» → «Desactivar», e invita el correo bueno.',
+    a: 'Mientras se prueba la app ningún correo sale: queda en Ajustes → «Buzón de correos». Si ya salen, que revise spam. Y mira el correo que escribiste: si estaba mal, esa cuenta ya se creó; en «Personas», «Cambiar» → «Desactivar», e invita el correo bueno.',
     go: '/ajustes/buzon',
   },
   {
@@ -147,7 +147,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-reenviar-invitacion',
     roles: ['admin'],
     q: ['como reenvio una invitacion', 'mandar otra vez la invitacion', 'volver a mandar el correo de invitacion', 'reenviar el correo a alguien que invite', 'la persona borro el correo de invitacion'],
-    a: 'No hace falta: al invitar, la cuenta ya queda creada con su rol. Que abra la plataforma, escriba su correo en «Entrar» y toque «Mandarme el código». Mientras se prueba, ningún correo sale: quedan en el «Buzón de correos».',
+    a: 'No hace falta: al invitar, la cuenta ya queda creada con su rol. Que abra la app, escriba su correo en «Entrar» y toque «Mandarme el código». Mientras se prueba, ningún correo sale: quedan en el «Buzón de correos».',
     go: '/ajustes/equipo',
   },
   {
@@ -168,7 +168,7 @@ export const ADMIN: Answer[] = [
       'ayudar a alguien a activar el doble factor',
       'a alguien le sale mostrar el codigo qr',
     ],
-    a: 'Es el doble factor, la primera vez que entra alguien de un rol que lo usa (el jefe, el despacho, política, el IVT y administración): instala una aplicación de códigos, toca «Mostrar el código QR», lo escanea y escribe el código. Es una sola vez; desde ahí entra también con el «Código de tu aplicación».',
+    a: 'Es el doble factor, la primera vez que entra alguien de un rol que lo usa (el jefe, el despacho, política, el IVT y administración): instala una aplicación de códigos (Google Authenticator o Microsoft Authenticator), toca «Mostrar el código QR», lo escanea con ella, escribe los 6 números que le da y toca «Confirmar». Es una sola vez; desde ahí entra también con el «Código de tu aplicación».',
   },
   {
     id: 'adm-nuevo-todo-equipo',
@@ -232,13 +232,13 @@ export const ADMIN: Answer[] = [
       'como se crea el usuario del jefe',
       'quien le da los permisos al jefe',
     ],
-    a: 'Nadie desde Equipo: el rol de jefe lo da el comando de instalación (npm run db:first-admin con la opción --jefe), que corre quien instala la plataforma. Así nadie arma otra cuenta que apruebe todo; dárselo también lo mete en todos los canales.',
+    a: 'Nadie desde Equipo: el rol de jefe se da una sola vez, cuando se instala la app, y lo hace quien la instala. Así nadie arma otra cuenta que apruebe todo; dárselo también lo mete en todos los canales.',
   },
   {
     id: 'adm-quitar-jefe',
     roles: ['admin'],
     q: ['puedo quitarle el rol de jefe a alguien', 'quitar rol de jefe', 'el jefe cambió de cuenta', 'sacar a alguien del rol de jefe'],
-    a: 'Quitarlo sí se puede: «Cambiar» en esa persona y desmarcas «Jefe». Darlo de nuevo solo lo hace el comando de instalación.',
+    a: 'Quitarlo sí se puede: «Cambiar» en esa persona y desmarcas «Jefe». Darlo de nuevo solo lo puede hacer quien instala la app.',
     go: '/ajustes/equipo',
   },
   {
@@ -338,7 +338,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-cerrar-sesiones',
     roles: ['admin'],
     q: ['qué hace cerrar sus sesiones', 'como saco a alguien de la plataforma ahora mismo', 'cerrar la sesion de otro', 'dice no se pudieron borrar sus sesiones en supabase'],
-    a: '«Cerrar sus sesiones» lo saca de la plataforma en todos sus teléfonos: tiene que entrar de nuevo con el código. Si sale que no se pudieron borrar sus sesiones en Supabase, igual quedó fuera: la app ya no las acepta.',
+    a: '«Cerrar sus sesiones» lo saca de la app en todos sus teléfonos: tiene que entrar de nuevo con el código. Si te sale «No se pudieron borrar sus sesiones en Supabase, pero la app ya no las acepta.», igual quedó fuera.',
     go: '/ajustes/equipo',
   },
   {
@@ -694,7 +694,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-marca-logo',
     roles: ['admin'],
     q: ['como cambio el logo', 'cambiar los colores de la plataforma', 'subir el logo nuevo', 'donde pongo el logo', 'donde cambio el logo y los colores de la marca', 'poner el logo del cliente', 'cambiar el color principal'],
-    a: 'En Ajustes → Marca ves los colores y el logo, pero ahí no se cambian: siguen provisionales hasta que llegue el manual de marca, y los cambia quien programa la plataforma. Ahí sí cambias los textos de la marca.',
+    a: 'En Ajustes → Marca ves los colores y el logo, pero ahí no se cambian: siguen provisionales hasta que llegue el manual de marca, y los cambia quien programa la app. Ahí sí cambias los textos de la marca.',
     go: '/ajustes/marca',
   },
   {
@@ -728,7 +728,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-cupo-bloquea',
     roles: ['admin'],
     q: ['si redes se pasa del cupo se bloquea algo', 'qué pasa si pasan el cupo', 'el cupo es obligatorio', 'es un límite el cupo'],
-    a: 'No: el cupo es informativo, pasarse no bloquea nada. Sirve para ver en cada sección cuánto lleva el mes.',
+    a: 'No: el cupo es una meta; si se hacen más piezas, no pasa nada. Sirve para ver en cada sección cuánto lleva el mes.',
     go: '/ajustes/contenido',
   },
   {
@@ -877,7 +877,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-drive-no-veo',
     roles: ['admin'],
     q: ['no veo google drive en ajustes', 'falta drive en ajustes', 'dice drive no está activado'],
-    a: 'Google Drive solo sale en Ajustes cuando el material va a Drive, y eso se enciende en la configuración del servidor. Mientras tanto, los archivos se guardan en la plataforma.',
+    a: 'Google Drive solo sale en Ajustes cuando el material va a Drive, y eso lo enciende quien instala la app. Mientras tanto, los archivos se guardan en la app.',
     go: '/ajustes',
   },
   {
@@ -893,7 +893,7 @@ export const ADMIN: Answer[] = [
       'donde estan guardadas las fotos de los eventos',
       'los videos se guardan en drive',
     ],
-    a: 'En la plataforma, o en el Drive del cliente si el material va a Drive: ahí, en una carpeta con Videos, Fotos, Portadas, Audios y Documentos, y una carpeta por evento con su código (nunca con la fecha). Ajustes → Google Drive dice cuál.',
+    a: 'En la app, o en el Drive del cliente si el material va a Drive: ahí, en una carpeta con Videos, Fotos, Portadas, Audios y Documentos, y una carpeta por evento con su código (nunca con la fecha). Ajustes → Google Drive dice cuál.',
     go: '/ajustes',
   },
   {
@@ -909,14 +909,14 @@ export const ADMIN: Answer[] = [
       'organizar por orden del feed esta apagado',
       'como se enciende lo del orden del feed en drive',
     ],
-    a: '«Organizar por orden del feed» pone en Drive las portadas del feed en una carpeta por mes, con su número. Sale en Ajustes → Google Drive solo si lo encienden en la configuración del servidor; hoy está apagado.',
+    a: '«Organizar por orden del feed» pone en Drive las portadas del feed en una carpeta por mes, con su número. Sale en Ajustes → Google Drive solo si lo enciende quien instala la app; hoy está apagado.',
     go: '/ajustes',
   },
   {
     id: 'adm-drive-elegir',
     roles: ['admin'],
     q: ['quien puede usar elegir de drive', 'que es elegir de drive', 'traer archivos de drive a la plataforma'],
-    a: 'Solo administración: «Elegir de Drive» trae a la plataforma archivos que ya están en el Drive del cliente. Los demás suben y bajan por la plataforma.',
+    a: 'Solo administración: «Elegir de Drive» trae a la app archivos que ya están en el Drive del cliente. Los demás suben y bajan por la app.',
   },
   {
     id: 'adm-drive-vencio',
@@ -961,7 +961,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-asis-saben',
     roles: ['admin'],
     q: ['las personas saben que yo leo lo que le preguntan a 360', 'el equipo sabe que leo las conversaciones', 'es secreto que leo'],
-    a: 'Sí: el panel de 360 se lo dice a cada persona, debajo de la caja: “Administración ve lo que le preguntas a 360; no pegues aquí mensajes del equipo.”',
+    a: 'Sí: el panel de 360 se lo dice a cada persona, debajo de la caja: que administración (las personas que manejan la parte técnica de la app) puede leer lo que le preguntan, y que no peguen ahí mensajes del equipo.',
     go: '/ajustes/asistente',
   },
   {
@@ -1165,7 +1165,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-preparar-aviso',
     roles: ['admin'],
     q: ['como mando un aviso a un rol entero', 'puedo avisarle algo a todo redes', 'como le aviso a todo grabacion', 'avisos para todo un rol', 'como funcionan los avisos que prepara 360', 'mandarle un aviso a todo el equipo de redes', 'avisarle algo a un rol completo'],
-    a: 'Pídemelo así: “mándale un aviso a Redes que…”. Lo dejo preparado para ese rol, y no sale hasta que lo confirmes en Ajustes → Asistente → «Por confirmar», con «Confirmar y mandar». Les llega en los avisos de la plataforma.',
+    a: 'Pídemelo así: “mándale un aviso a Redes que…”. Lo dejo preparado para ese rol, y no sale hasta que lo confirmes en Ajustes → Asistente → «Por confirmar», con «Confirmar y mandar». Les llega en los avisos de la app.',
     go: '/ajustes/asistente',
   },
 
@@ -1174,7 +1174,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-buzon',
     roles: ['admin'],
     q: ['¿para qué es el Buzón de correos?', 'que hago aqui en el buzon', 'que tengo que revisar en el buzon', 'para que sirve el buzon'],
-    a: 'Ajustes → «Buzón de correos»: todos los correos que generó la plataforma. Revisas que cada uno diga lo que tiene que decir, sin fecha ni hora de la agenda.',
+    a: 'Ajustes → «Buzón de correos»: todos los correos que generó la app. Revisas que cada uno diga lo que tiene que decir, sin fecha ni hora de la agenda.',
     go: '/ajustes/buzon',
   },
   {
@@ -1195,7 +1195,7 @@ export const ADMIN: Answer[] = [
       'ya salen los correos',
       'mandan correos de verdad',
     ],
-    a: 'Mientras se prueba la plataforma, nada sale hacia afuera: los correos quedan guardados en el «Buzón de correos» y nadie los recibe. Salen cuando se encienda el envío real.',
+    a: 'Mientras se prueba la app, nada sale hacia afuera: los correos quedan guardados en el «Buzón de correos» y nadie los recibe. Salen cuando se encienda el envío real.',
     go: '/ajustes/buzon',
   },
   {
@@ -1218,7 +1218,7 @@ export const ADMIN: Answer[] = [
       'que correo le llego a la persona nueva',
       'donde veo el correo de invitacion',
     ],
-    a: 'Sí: en Ajustes → «Buzón de correos» están todos los correos que generó la plataforma, con a quién iban y su texto.',
+    a: 'Sí: en Ajustes → «Buzón de correos» están todos los correos que generó la app, con a quién iban y su texto.',
     go: '/ajustes/buzon',
   },
   {
@@ -1248,7 +1248,7 @@ export const ADMIN: Answer[] = [
       'quien fue el que cambio esto',
       'alguien quito algo, como se quien fue',
     ],
-    a: 'Te lo dice el «Registro de cambios», en Ajustes (solo administración lo tiene): cada línea dice quién, qué hizo («creó», «cambió», «quitó», «borró»), sobre qué y cuándo, en toda la plataforma.',
+    a: 'Te lo dice el «Registro de cambios», en Ajustes (solo administración lo tiene): cada línea dice quién, qué hizo («creó», «cambió», «quitó», «borró»), sobre qué y cuándo, en toda la app.',
     go: '/ajustes/registro',
   },
   {
@@ -1308,7 +1308,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-registro-que-es',
     roles: ['admin'],
     q: ['para que sirve esto del registro', 'que es el registro de cambios', 'qué dice el sistema en el registro'],
-    a: 'El «Registro de cambios» es quién cambió qué y cuándo, en toda la plataforma. Lo que hizo la plataforma sola sale como «El sistema».',
+    a: 'El «Registro de cambios» es quién cambió qué y cuándo, en toda la app. Lo que hizo la app sola sale como «El sistema».',
     go: '/ajustes/registro',
   },
 
@@ -1332,7 +1332,7 @@ export const ADMIN: Answer[] = [
       'como pruebo lo que ve el jefe',
       'ver la app con los ojos de otro rol',
     ],
-    a: '«Ver como», arriba (en el teléfono, dentro de «Mi cuenta»): eliges un rol y ves sus menús. Mientras miras, sale una franja que dice “Estás viendo los menús de…” y «Tus permisos no cambian.».',
+    a: '«Ver como», arriba (en el teléfono, dentro de Mi cuenta): eliges un rol y ves sus menús. Mientras miras, sale una franja que dice “Estás viendo los menús de…” y «Tus permisos no cambian.».',
   },
   {
     id: 'adm-ver-como-aprobar',
@@ -1373,7 +1373,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-ver-como-telefono',
     roles: ['admin'],
     q: ['donde esta ver como en el telefono', 'no encuentro ver como', 'ver como en el celular'],
-    a: 'En el teléfono, dentro de «Mi cuenta», arriba a la derecha. En la computadora, arriba, junto a «Crear».',
+    a: 'En el teléfono, dentro de Mi cuenta, arriba a la derecha. En la computadora, arriba, junto a «Crear».',
   },
   {
     id: 'adm-ver-como-tutoriales',
@@ -1414,28 +1414,28 @@ export const ADMIN: Answer[] = [
     id: 'adm-aprobar',
     roles: ['admin'],
     q: ['¿puedo aprobar una pieza?', '¿puedo aprobar esta?', '¿puedo aprobar los tweets?', 'por que no tengo el botón aprobar', 'puedo aprobar yo la pieza si el jefe esta ocupado', 'apruebo yo en lugar del jefe', 'el jefe no esta, puedo aprobar', 'puedo aprobar yo', 'aprobar una pieza como administracion'],
-    a: 'No: todo lo aprueba el jefe, piezas y tweets. Aquí puedes «Cambiar nivel», comentar o «Pedir frase al jefe».',
+    a: 'No: todo lo aprueba el jefe, piezas y tweets. Aquí puedes cambiar el nivel (arriba, en la cajita del nivel), comentar o «Pedir frase al jefe».',
     go: '/aprobar',
   },
   {
     id: 'adm-por-aprobar-pantalla',
     roles: ['admin'],
     q: ['para que es esto de por aprobar', 'que hago en por aprobar', 'por que veo por aprobar si no apruebo'],
-    a: 'Por aprobar: ves lo que espera al jefe, por color, pero no apruebas. En una pieza puedes «Cambiar nivel», comentar o «Pedir frase al jefe» si hace falta su voz.',
+    a: 'Por aprobar: ves lo que espera al jefe, por color, pero no apruebas. En una pieza puedes cambiar el nivel en su cajita, comentar o «Pedir frase al jefe» si hace falta su voz.',
     go: '/aprobar',
   },
   {
     id: 'adm-cambiar-nivel',
     roles: ['admin'],
     q: ['¿puedo cambiarle el nivel a una pieza?', 'como bajo una pieza de rojo a amarillo', 'sacar una pieza del rojo', 'cambiar el color de una pieza', 'le puedo bajar el nivel a una pieza de rojo a verde', 'cambiar una pieza de rojo a amarillo', 'pasar una pieza a verde'],
-    a: 'Sí: abre la pieza en Por aprobar y usa «Cambiar nivel». Una pieza en rojo solo la bajan el jefe o administración.',
+    a: 'Sí: abre la pieza en Por aprobar y cámbialo arriba, en la cajita del nivel (dice, por ejemplo, «Nivel amarillo»). Una pieza en rojo solo la bajan el jefe o administración.',
     go: '/aprobar',
   },
   {
     id: 'adm-plazos',
     roles: ['admin'],
     q: ['cuanto tiempo tiene el jefe pa aprobar una roja', 'plazo de aprobación', 'cuánto tarda el jefe en aprobar una amarilla', 'cuanto tiempo tiene el jefe para aprobar una amarilla', 'en cuanto tiempo aprueba el jefe', 'cuanto dura el plazo de una roja', 'plazo para aprobar una verde', 'cuanto se tarda la aprobacion'],
-    a: 'El color pone el plazo: la roja, en 30 minutos; la amarilla, en 60; las verdes, en el día. Sin respuesta no hay aprobación: sale en «Trancado», se avisa otra vez y nunca sale sola.',
+    a: 'El color pone el plazo: la roja, en 30 minutos; la amarilla, en 60; las verdes, en el día. Sin respuesta no hay aprobación: sale en «Trancado», se avisa otra vez y nunca se publica sola.',
     go: '/aprobar',
   },
   {
@@ -1457,14 +1457,14 @@ export const ADMIN: Answer[] = [
       'una pieza amarilla que significa',
       'por que una pieza esta en verde',
     ],
-    a: 'Es el nivel del semáforo, y lo eligió quien la mandó a aprobar: verde si es rutina, amarillo si es lo normal y rojo si es sensible (política, crisis o aclaratorias). La roja la aprueba el jefe en 30 minutos, la amarilla en 60 y las verdes en el día. Si no hace falta tanto, tú o el jefe la bajan con «Cambiar nivel».',
+    a: 'Es el nivel del semáforo, y lo eligió quien la mandó a aprobar: verde si es rutina, amarillo si es lo normal y rojo si es sensible (política, crisis o aclaratorias). La roja la aprueba el jefe en 30 minutos, la amarilla en 60 y las verdes en el día. Si no hace falta tanto, tú o el jefe la bajan arriba, en la cajita del nivel.',
     go: '/aprobar',
   },
   {
     id: 'adm-trancado',
     roles: ['admin'],
     q: ['que significa trancado', 'que es lo trancado', 'que sale en trancado', 'por que algo dice trancado', 'que hago con lo trancado', 'trancado en mi hoy que es'],
-    a: '«Trancado» es lo que se paró y necesita una mano: una publicación que falló, una pieza esperando la frase del jefe, pocos días de tweets y las piezas que vencieron sin aprobar. Sale en tu Hoy; una pieza vencida nunca sale sola: sigue esperando al jefe.',
+    a: '«Trancado» es lo que se paró y necesita una mano: una publicación que falló, una pieza esperando la frase del jefe, que quedan pocos días con tweets programados y las piezas que vencieron sin aprobar. Sale en tu Hoy; una pieza vencida nunca se publica sola: sigue esperando al jefe.',
     go: '/hoy',
   },
   {
@@ -1519,7 +1519,7 @@ export const ADMIN: Answer[] = [
       'como se programan los tweets',
       'quien aprueba la tanda de tweets',
     ],
-    a: 'Primero los aprueba el jefe (en Por aprobar, «Aprobar marcados»). Después, en la tanda, se toca «Programar» y ahí quedan en el tablero de Tweets, cada uno en su día. Cada día se copia el texto, se publica en la red y se marca «Ya lo publiqué».',
+    a: 'Primero los aprueba el jefe (en Por aprobar, «Aprobar marcados»). Después, en la tanda, se toca «Programar» (le aparta a cada uno su día y su hora) y ahí quedan en el tablero de Tweets. Cada día se copia el texto, se publica en la red y se marca «Ya lo publiqué».',
     go: '/tweets',
   },
   {
@@ -1596,7 +1596,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-auto-publicar',
     roles: ['admin'],
     q: ['puedo encender la publicacion automatica', 'que se publique solo', 'activar publicación automática', 'se publica solo en instagram', 'se publica automatico', 'la plataforma publica sola', 'sale sola la publicacion'],
-    a: 'No: la publicación automática está apagada en esta fase, y administración no la enciende. Se publica a mano, solo lo aprobado.',
+    a: 'No: la app no publica sola, y administración no puede cambiar eso. Se publica a mano, solo lo aprobado.',
   },
   {
     id: 'adm-jefe-publico',
@@ -1609,14 +1609,14 @@ export const ADMIN: Answer[] = [
     id: 'adm-metricas',
     roles: ['admin'],
     q: ['como cargo las metricas', 'subir el csv de resultados', 'cargar resultados', 'como cargo los resultados de muchas publicaciones de una vez', 'subir las metricas con un csv'],
-    a: 'En Resultados: a mano en cada publicación o con el CSV de la red. Ahí mismo está «¿A qué hora nos va mejor?».',
+    a: 'En Resultados: a mano en cada publicación o con el archivo CSV de la red (una hoja de cálculo guardada como CSV). Ahí mismo está «¿A qué hora nos va mejor?».',
     go: '/resultados',
   },
   {
     id: 'adm-tweets',
     roles: ['admin'],
     q: ['como subo la tanda de tweets de la semana', 'cargar los tweets', 'nueva tanda de tweets', 'subir los tweets de la semana', 'cargar el documento de tweets'],
-    a: '«Crear» → Tweets de la semana: pegas o subes el documento, «Separar tweets», y la plataforma los reparte en la semana y se los manda al jefe para aprobar.',
+    a: '«Crear» → Tweets de la semana: pegas o subes el documento, «Separar tweets», y la app los reparte en la semana y se los manda al jefe para aprobar.',
     go: '/tweets/nueva',
   },
 
@@ -1666,7 +1666,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-borrar-evento',
     roles: ['admin'],
     q: ['¿puedo borrar un evento?', 'eliminar un evento', 'restaurar un evento borrado'],
-    a: 'En la pantalla no hay botón para borrar un evento. Cancelarlo es del jefe o del despacho: queda tachado con su motivo, no se borra, y «Volver a la agenda» lo trae.',
+    a: 'En la pantalla no hay botón para borrar un evento. Cancelarlo es del jefe o del despacho: queda tachado con su motivo, no se borra, y «Volver a la agenda» lo pone otra vez en la agenda.',
     go: '/agenda',
   },
   {
@@ -1719,7 +1719,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-nota-editor',
     roles: ['admin'],
     q: ['la nota para el editor donde se ve', 'donde leo la nota de grabacion', 'que es la entrega de grabacion', 'donde veo el storyboard con el que grabo grabacion', 'donde esta la nota que deja grabacion'],
-    a: 'En el evento, pestaña Material: arriba, la «Entrega de Grabación», con la nota para el editor y el storyboard con el que grabó. Debajo, las casillas con el material y «Descargar todo el material».',
+    a: 'En el evento, pestaña Material: arriba, la entrega de Grabación, con la «Nota para el editor» y el «Storyboard con el que se grabó». Debajo, las casillas con el material y «Descargar todo el material».',
     go: '/agenda',
   },
   {
@@ -1759,7 +1759,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-copies',
     roles: ['admin'],
     q: ['como hago los copies de una pieza', 'generar copies', 'escribir el copy de un post', 'como se arma el texto de una pieza', 'hazme un copy'],
-    a: 'Yo no escribo copies aquí: en la pieza en grande, «Generar copies»: eliges la fórmula, la voz (el jefe o institucional) y el cierre, y «Escribir desde la ficha» saca los tres largos. La plantilla nunca inventa cifras.',
+    a: 'Yo no escribo copies aquí: en la pieza en grande, «Generar copies»: eliges la fórmula, la voz (el jefe o institucional) y el cierre, y «Escribir desde la ficha» escribe los tres textos (largo, medio y corto). La plantilla nunca inventa cifras.',
     go: '/redes',
   },
   {
@@ -1787,7 +1787,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-ivt-fecha',
     roles: ['admin'],
     q: ['el del ivt dice que no ve la fecha de su visita', 'el IVT no ve su visita en la agenda', 'por que el ivt no ve la fecha', 'el del ivt dice que no ve su visita en la agenda', 'el ivt no ve la fecha de su obra'],
-    a: 'El IVT ve la fecha solo de sus visitas de obra, en Agenda, cuando el jefe o el despacho se la ponen, y con el doble factor. Si no la ve, revisa que la ficha ya no esté en «Por ponerle fecha».',
+    a: 'El IVT ve la fecha solo de sus visitas de obra, en Agenda, cuando el jefe o el despacho se la ponen, y si entró con el doble factor. Si no la ve, revisa que la ficha ya no esté en «Por ponerle fecha».',
     go: '/agenda/por-fecha',
   },
 
@@ -1796,7 +1796,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-mision',
     roles: ['admin'],
     q: ['¿qué hace Administración en la plataforma?', 'cual es mi rol', 'para qué es administración', 'qué me toca a mí', 'que hace administracion', 'para que estoy yo en la plataforma', 'cual es mi funcion como admin', 'que hago yo como administracion'],
-    a: 'Administración es el rol técnico: invita al equipo y le da sus roles, cuida los ajustes de la plataforma y el asistente 360. No decide, no aprueba y no escribe en la agenda.',
+    a: 'Administración es el rol técnico: invita al equipo y le da sus roles, cuida los ajustes de la app y el asistente 360. No decide, no aprueba y no escribe en la agenda.',
     go: '/ajustes',
   },
   {
@@ -1828,7 +1828,7 @@ export const ADMIN: Answer[] = [
       'donde esta el sobre de mensajes para mi',
       'yo no veo el sobre de arriba',
     ],
-    a: 'Mensajes es del equipo: administración no lo ve, y por eso no tiene el sobre. No tiene entrada ni con «Ver como» ni en el registro de cambios; si abres Mensajes, te devuelve a tu inicio.',
+    a: 'Mensajes es del equipo: administración no lo ve, y por eso no tiene los globitos. No tiene entrada ni con «Ver como» ni en el registro de cambios; si abres Mensajes, te devuelve a tu inicio.',
     go: '/ayuda/administracion',
   },
   {
@@ -1846,7 +1846,7 @@ export const ADMIN: Answer[] = [
       'donde explica cada pantalla de ajustes',
       'guia de ajustes',
     ],
-    a: '«Mi cuenta» → «Ayuda y guías» → «Guía de administración»: cada pantalla de Ajustes, lo que haces ahí y lo que no es tuyo.',
+    a: 'Mi cuenta → «Ayuda y guías» → «Guía de administración»: cada pantalla de Ajustes, lo que haces ahí y lo que no es tuyo.',
     go: '/ayuda/administracion',
   },
   {
@@ -1860,7 +1860,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-redes-sin-fecha',
     roles: ['admin'],
     q: ['la nueva de redes dice que no ve la fecha de los eventos, esta mal?', 'redes no ve la hora', 'el de redes no ve la direccion del evento', 'redes dice que no ve la fecha de los eventos, es un error', 'es normal que redes no vea la fecha'],
-    a: 'Está bien: Redes nunca ve la fecha, la hora ni la dirección; ve los eventos en una lista sin fecha. La base de datos lo cuida.',
+    a: 'Está bien: Redes nunca ve la fecha, la hora ni la dirección; ve los eventos en una lista sin fecha. La app nunca le manda esos datos a Redes.',
   },
   {
     id: 'adm-politica-agenda',
@@ -1922,7 +1922,7 @@ export const ADMIN: Answer[] = [
       'las piezas eliminadas se borran',
       'por que hay piezas eliminadas en cupo y pilares',
     ],
-    a: '«Piezas eliminadas» son las que eliminó el jefe: no se borran de verdad. Con «Recuperar», cada una vuelve a su mes (o al primero, si su mes ya no está), sin espacio en el feed.',
+    a: '«Piezas eliminadas» son las que eliminó el jefe, y tú las puedes recuperar: con «Recuperar», cada una vuelve a su mes (o al primero, si su mes ya no está), sin espacio en el feed.',
     go: '/ajustes/contenido',
   },
   {

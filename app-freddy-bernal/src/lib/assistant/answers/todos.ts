@@ -4,9 +4,9 @@
 import type { Answer } from './types';
 
 // What administración hears when it asks how to use Mensajes (shared.ts NO_MESSAGES_LINE).
-const NO_MSG = 'Mensajes es del equipo: administración no lo ve, y por eso no tiene el sobre.';
+const NO_MSG = 'Mensajes es del equipo: administración no lo ve, y por eso no tiene los globitos.';
 // The roles that know the agenda write under the date rule in Mensajes (MSG_AGENDA); Redes and política write freely.
-const FREE_WRITE = 'A ti la plataforma no te frena por fechas: Redes y política no conocen la agenda, así que escriben libre. Lo único que no sale, para nadie, es un teléfono.';
+const FREE_WRITE = 'A ti la app no te frena por fechas: Redes y política no conocen la agenda, así que escriben libre. Lo único que no sale, para nadie, es un teléfono.';
 
 export const TODOS: Answer[] = [
   // ── Entrar: invitación, código y doble factor ──────────────────────────────────────────────────────────────────────
@@ -91,7 +91,7 @@ export const TODOS: Answer[] = [
       default:
         'Revisa la carpeta de spam y que el correo esté bien escrito (si no, «Usar otro correo»). Tiene que ser el correo con el que te invitaron. Espera un minuto y pide otro con «Mandarme el código». Si sigue sin llegar, dímelo y le aviso a administración.',
       admin:
-        'Mientras se prueba la plataforma, ningún correo sale: quedan en Ajustes → «Buzón de correos». Si ya salen, revisa spam y que el correo esté bien escrito (si no, «Usar otro correo»), espera un minuto y pide otro con «Mandarme el código».',
+        'Mientras se prueba la app, ningún correo sale: quedan en Ajustes → «Buzón de correos». Si ya salen, revisa spam y que el correo esté bien escrito (si no, «Usar otro correo»), espera un minuto y pide otro con «Mandarme el código».',
     },
   },
   {
@@ -157,7 +157,7 @@ export const TODOS: Answer[] = [
     q: ['tengo que instalar google authenticator', 'necesito el autenticador', 'hay que bajar una app de codigos', 'debo instalar microsoft authenticator', 'tengo q instalar algo pa entrar'],
     a: {
       default:
-        'Sí: la primera vez que entras sale «Protege tu cuenta (una sola vez)». Instalas Google Authenticator o Microsoft Authenticator (gratis), tocas «Mostrar el código QR», lo escaneas y escribes el código que aparece.',
+        'Sí: la primera vez que entras sale «Protege tu cuenta (una sola vez)». Instalas Google Authenticator o Microsoft Authenticator (gratis), tocas «Mostrar el código QR», lo escaneas con ella, escribes los 6 números que te da y tocas «Confirmar».',
       camera: 'No: tu rol entra solo con el código del correo, sin aplicación de códigos.',
       social: 'No: tu rol entra solo con el código del correo, sin aplicación de códigos.',
     },
@@ -233,7 +233,7 @@ export const TODOS: Answer[] = [
     q: ['por qué me pide un código de la aplicación cada vez que entro', 'cada vez que entro me pide el autenticador', 'tengo que poner el codigo siempre', 'xq me pide dos codigos'],
     a: {
       default:
-        'Es el doble factor: tu rol ve información delicada, así que cada vez que entras, además del código del correo, te pide el «Código de tu aplicación». Abres la aplicación de códigos y escribes el que se ve ahora.',
+        'Es el doble factor: tu rol ve información delicada, así que cada vez que entras, además del código del correo, te pide el «Código de tu aplicación»: escribes los 6 números que te da la aplicación y tocas «Confirmar».',
       camera: 'Tu rol solo usa el código del correo: cada vez que entras pides uno con «Mandarme el código». No usas aplicación de códigos.',
       social: 'Tu rol solo usa el código del correo: cada vez que entras pides uno con «Mandarme el código». No usas aplicación de códigos.',
     },
@@ -242,7 +242,7 @@ export const TODOS: Answer[] = [
     id: 'todo-para-que-doble-factor',
     roles: null,
     q: ['para que sirve el doble factor', 'qué es el doble factor', 'por qué hay doble factor', 'q es eso del autenticador', 'que es el codigo de tu aplicacion'],
-    a: 'Protege las cuentas que ven información delicada: además del código del correo, pide un código de tu teléfono. Sin él no se ven la agenda ni los contactos, y no se aprueba. Lo usan el jefe, el despacho, política, el IVT y administración; Redes y Grabación no.',
+    a: 'Protege las cuentas que ven información delicada: además del código del correo, pide una segunda clave de 6 números que da una aplicación de códigos del teléfono. Sin ella no se ven la agenda ni los contactos, y no se aprueba. Lo usan el jefe, el despacho, política, el IVT y administración; Redes y Grabación no.',
   },
   {
     id: 'todo-perdi-telefono',
@@ -299,7 +299,7 @@ export const TODOS: Answer[] = [
     id: 'todo-me-reiniciaron',
     roles: ['admin', 'boss', 'dispatch', 'politics', 'ivt'],
     q: ['administración me reinició el doble factor y ahora qué', 'me reiniciaron el doble factor', 'qué pasa cuando me reinician el autenticador', 'otra vez me sale protege tu cuenta'],
-    a: 'Se cerraron tus sesiones: al entrar con el código del correo te sale otra vez «Protege tu cuenta (una sola vez)». Abre la aplicación de códigos en tu teléfono, toca «Mostrar el código QR», escanéalo y escribe el código.',
+    a: 'Se cerraron tus sesiones: al entrar con el código del correo te sale otra vez «Protege tu cuenta (una sola vez)». Abre la aplicación de códigos en tu teléfono, toca «Mostrar el código QR», escanéalo con ella, escribe los 6 números que te da y toca «Confirmar».',
   },
   {
     id: 'todo-sin-rol',
@@ -317,7 +317,7 @@ export const TODOS: Answer[] = [
     id: 'todo-salir',
     roles: null,
     q: ['como cierro sesion', 'como salgo de la app', 'donde esta salir', 'cerrar sesión', 'como me salgo de la plataforma', 'quiero salir de mi cuenta', 'boton de salir', 'desconectarme de la cuenta', 'cerrar mi cuenta en este telefono', 'como hago logout'],
-    a: 'Arriba a la derecha, «Mi cuenta» → «Salir». Al salir, ese teléfono deja de recibir tus avisos y se borran de él los borradores que no guardaste.',
+    a: 'Arriba a la derecha, Mi cuenta → «Salir». Al salir, ese teléfono deja de recibir tus avisos y se borran de él los borradores que no guardaste.',
     go: '/perfil',
   },
   {
@@ -339,7 +339,7 @@ export const TODOS: Answer[] = [
       'si toco salir pierdo lo que no he guardado',
       'tenia algo sin guardar y sali de la cuenta',
     ],
-    a: 'Sí: al tocar «Salir» se borran del teléfono los borradores que no guardaste, y ese teléfono deja de recibir tus avisos. Lo que ya guardaste queda en la plataforma. Antes de salir, toca «Guardar» en lo que estés escribiendo.',
+    a: 'Sí: al tocar «Salir» se borran del teléfono los borradores que no guardaste, y ese teléfono deja de recibir tus avisos. Lo que ya guardaste queda en la app. Antes de salir, toca «Guardar» en lo que estés escribiendo.',
     go: '/perfil',
   },
   {
@@ -449,14 +449,14 @@ export const TODOS: Answer[] = [
       'como cambio de pantalla en el telefono',
     ],
     a: {
-      boss: 'Abajo, la barra: Inicio, Agenda, Por aprobar, Redes y «Más» (Obras, Municipios, Digital, Web y Atención). Arriba están «Crear», el sobre de Mensajes, la campana y «Mi cuenta».',
-      dispatch: 'Abajo, la barra: Hoy, Agenda, Obras, Municipios y Biblioteca. Arriba están «Crear», el sobre de Mensajes, la campana y «Mi cuenta».',
-      politics: 'Abajo está Municipios, tu pantalla. Arriba están «Crear» (para la ficha comunitaria), el sobre de Mensajes, la campana y «Mi cuenta».',
-      ivt: 'Abajo, la barra: Agenda (tus visitas de obra) y Obras. Arriba están «Crear», el sobre de Mensajes, la campana y «Mi cuenta».',
-      camera: 'Abajo, la barra: Hoy y Agenda. Arriba están el sobre de Mensajes, la campana y «Mi cuenta» (Grabación no tiene «Crear»).',
-      social: 'Abajo, la barra: Hoy, Agenda, Redes, Tweets y «Más» (Publicar, Resultados y Biblioteca). Arriba están «Crear», el sobre de Mensajes, la campana y «Mi cuenta».',
+      boss: 'Abajo, la barra: Inicio, Agenda, Por aprobar, Redes y «Más» (Obras, Municipios, Digital, Web y Atención). Arriba están «Crear», los globitos de Mensajes, la campana y el muñequito de Mi cuenta.',
+      dispatch: 'Abajo, la barra: Hoy, Agenda, Obras, Municipios y Biblioteca. Arriba están «Crear», los globitos de Mensajes, la campana y el muñequito de Mi cuenta.',
+      politics: 'Abajo está Municipios, tu pantalla. Arriba están «Crear» (para la ficha comunitaria), los globitos de Mensajes, la campana y el muñequito de Mi cuenta.',
+      ivt: 'Abajo, la barra: Agenda (tus visitas de obra) y Obras. Arriba están «Crear», los globitos de Mensajes, la campana y el muñequito de Mi cuenta.',
+      camera: 'Abajo, la barra: Hoy y Agenda. Arriba están los globitos de Mensajes, la campana y el muñequito de Mi cuenta (Grabación no tiene «Crear»).',
+      social: 'Abajo, la barra: Hoy, Agenda, Redes, Tweets y «Más» (Publicar, Resultados y Biblioteca). Arriba están «Crear», los globitos de Mensajes, la campana y el muñequito de Mi cuenta.',
       admin:
-        'Abajo, la barra: Hoy, Agenda, Redes, Ajustes y «Más» con el resto (Por aprobar, Obras, Municipios, Tweets, Publicar, Resultados, Biblioteca, Web y Atención). Arriba están «Crear», la campana y «Mi cuenta».',
+        'Abajo, la barra: Hoy, Agenda, Redes, Ajustes y «Más» con el resto (Por aprobar, Obras, Municipios, Tweets, Publicar, Resultados, Biblioteca, Web y Atención). Arriba están «Crear», la campana y el muñequito de Mi cuenta.',
     },
   },
   {
@@ -483,8 +483,8 @@ export const TODOS: Answer[] = [
       'se puede usar en la compu',
     ],
     a: {
-      default: 'Sí: ábrela en el navegador de la computadora y entra con tu correo. El menú está a la izquierda, y arriba están «Buscar evento o pieza», la campana y «Mi cuenta».',
-      admin: 'Sí: ábrela en el navegador de la computadora y entra con tu correo. El menú está a la izquierda, y arriba están «Buscar evento o pieza», «Ver como», la campana y «Mi cuenta».',
+      default: 'Sí: ábrela en el navegador de la computadora y entra con tu correo. El menú está a la izquierda, y arriba están «Buscar evento o pieza», la campana y Mi cuenta.',
+      admin: 'Sí: ábrela en el navegador de la computadora y entra con tu correo. El menú está a la izquierda, y arriba están «Buscar evento o pieza», «Ver como», la campana y Mi cuenta.',
     },
   },
   {
@@ -506,13 +506,13 @@ export const TODOS: Answer[] = [
       'poner la letra grande',
       'mas contraste para el sol',
     ],
-    a: 'Arriba a la derecha, «Mi cuenta» → «Modo sol»: más contraste y letra más grande para leer en la calle. Se apaga en el mismo lugar.',
+    a: 'Arriba a la derecha, Mi cuenta → «Modo sol»: más contraste y letra más grande para leer en la calle. Se apaga en el mismo lugar.',
   },
   {
     id: 'todo-modo-oscuro',
     roles: null,
     q: ['como pongo modo oscuro', 'la pantalla se puso oscura', 'quiero la pantalla clara', 'tema oscuro', 'cambiar los colores de la pantalla'],
-    a: 'La plataforma sigue el modo claro u oscuro de tu teléfono: se cambia en los ajustes de pantalla del teléfono. Para leer en la calle, «Mi cuenta» → «Modo sol».',
+    a: 'La app sigue el modo claro u oscuro de tu teléfono: se cambia en los ajustes de pantalla del teléfono. Para leer en la calle, Mi cuenta → «Modo sol».',
   },
   {
     id: 'todo-consejos',
@@ -542,7 +542,7 @@ export const TODOS: Answer[] = [
     ],
     a: {
       default:
-        'Abriste una pantalla que no es de tu rol, y la plataforma te trajo a tu inicio: «Esa pantalla no es de tu rol. Te trajimos a tu inicio.». No es una falla: cada rol ve lo suyo. Si de verdad la necesitas para tu trabajo, pídeselo a administración.',
+        'Abriste una pantalla que no es de tu rol, y la app te trajo a tu inicio: «Esa pantalla no es de tu rol. Te trajimos a tu inicio.». No es una falla: cada rol ve lo suyo. Si de verdad la necesitas para tu trabajo, pídeselo a administración.',
       admin: 'Abriste una pantalla que no es de administración (por ejemplo Mensajes, que es del equipo) y te trajo a tu inicio: «Esa pantalla no es de tu rol. Te trajimos a tu inicio.». No es una falla.',
     },
   },
@@ -605,8 +605,8 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['qué hay en mi cuenta', 'dónde está mi cuenta', 'el muñequito de arriba', 'menu de la cuenta', 'para que sirve el icono de persona arriba'],
     a: {
-      default: 'Arriba a la derecha, «Mi cuenta» tiene «Mi perfil y avisos», «Ayuda y guías», «Ver el tutorial de esta pantalla» (si la pantalla tiene uno), el «Modo sol» y «Salir».',
-      admin: 'Arriba a la derecha, «Mi cuenta» tiene «Mi perfil y avisos», «Ayuda y guías», el «Modo sol» y «Salir»; en el teléfono, también «Ver como».',
+      default: 'El muñequito de arriba a la derecha es Mi cuenta: «Mi perfil y avisos», «Ayuda y guías», «Ver el tutorial de esta pantalla» (si la pantalla tiene uno), el «Modo sol» y «Salir».',
+      admin: 'El muñequito de arriba a la derecha es Mi cuenta: «Mi perfil y avisos», «Ayuda y guías», el «Modo sol» y «Salir»; en el teléfono, también «Ver como».',
     },
   },
   {
@@ -684,7 +684,7 @@ export const TODOS: Answer[] = [
       'el video se quedo a la mitad',
       'se cayo la señal subiendo',
     ],
-    a: 'Las fotos y los videos se suben por partes: si se va la señal, la subida sigue sola cuando vuelve («Sin señal: sigue sola cuando vuelva.»). No cierres la app hasta que termine.',
+    a: 'Si se va la señal mientras subes fotos o videos, la subida sigue sola cuando vuelve («Sin señal: sigue sola cuando vuelva.»). No cierres la app hasta que termine.',
   },
   {
     id: 'todo-guia-sin-senal',
@@ -702,7 +702,7 @@ export const TODOS: Answer[] = [
       'puedo leer la guia sin datos',
       'la ayuda funciona sin internet',
     ],
-    a: 'No: la guía y los tutoriales necesitan señal. La plataforma no guarda páginas en el teléfono, por privacidad.',
+    a: 'No: la guía y los tutoriales solo se ven con señal. Lo que escribes en fichas, eventos, storyboard y notas sí queda en el teléfono hasta que tocas «Guardar» con señal.',
   },
   {
     id: 'todo-borrador-otro-equipo',
@@ -726,7 +726,7 @@ export const TODOS: Answer[] = [
       'lo que subi en la demo no aparece',
       'que significa que se creo en otro servidor',
     ],
-    a: 'Es un límite de la demostración: cada servidor tiene su base, y lo que creas o subes vive solo en el servidor donde se hizo. Si después te contesta otro, no lo encuentra. Lo más seguro es probar sobre lo que ya viene cargado; con los datos reales esto no pasa.',
+    a: 'Es un límite de la demostración, que es solo para practicar: lo que creas o subes puede no verse después, o no verse en otro teléfono. Lo más seguro es probar con lo que la demo ya trae; con los datos reales esto no pasa.',
   },
   {
     id: 'todo-demo-reinicio',
@@ -743,7 +743,7 @@ export const TODOS: Answer[] = [
       'en la demo se reinicio todo',
       'por que la demo volvio a como estaba',
     ],
-    a: 'La demostración es una base de prueba con datos inventados, en memoria: cuando el servidor se reinicia, vuelve a los datos inventados y lo que hiciste se pierde. Con los datos reales no pasa.',
+    a: 'La demostración trae datos inventados y es solo para practicar: de vez en cuando empieza de nuevo, y lo que hiciste se borra. Con los datos reales no pasa.',
   },
   {
     id: 'todo-demo-entrar',
@@ -821,7 +821,7 @@ export const TODOS: Answer[] = [
       'como hago para que me lleguen notificaciones',
       'activar avisos en el cel',
     ],
-    a: 'En «Mi cuenta» → «Mi perfil y avisos», en «Avisos en este teléfono», toca «Activar avisos» y acepta el permiso. Te avisa aunque la app esté cerrada. Con «Probar aviso» ves que llega.',
+    a: 'En Mi cuenta → «Mi perfil y avisos», en «Avisos en este teléfono», toca «Activar avisos» y acepta el permiso. Te avisa aunque la app esté cerrada. Con «Probar aviso» ves que llega.',
     go: '/perfil',
     tutorial: 'perfil',
   },
@@ -906,7 +906,7 @@ export const TODOS: Answer[] = [
       'que no me manden correos',
       'son muchas notificaciones',
     ],
-    a: 'En Mi perfil, «Qué avisos quiero»: marcas los que quieres recibir, por correo y en el teléfono, y tocas «Guardar». Los importantes llegan siempre.',
+    a: 'En Mi perfil, «Qué avisos quiero»: marcas los que quieres recibir, por correo y en el teléfono, y tocas «Guardar». Los importantes llegan siempre, aunque los desmarques: por ejemplo, que te asignaron un evento, que uno cambió de fecha u hora o se canceló, o que el jefe pidió cambios.',
     go: '/perfil',
     tutorial: 'perfil',
   },
@@ -916,7 +916,7 @@ export const TODOS: Answer[] = [
     q: ['qué es el resumen diario por correo', 'me llega un correo cada dia', 'quitar el resumen diario', 'quiero un resumen por correo', 'el resumen diario por correo donde llega', 'cada cuanto llega el resumen'],
     a: {
       default: 'Es una opción de «Qué avisos quiero», en Mi perfil: «Resumen diario por correo». La marcas o la desmarcas y tocas «Guardar».',
-      admin: 'Es una opción de «Qué avisos quiero», en Mi perfil: «Resumen diario por correo» (la marcas y tocas «Guardar»). Mientras se prueba la plataforma, ese correo no sale: queda en Ajustes → «Buzón de correos».',
+      admin: 'Es una opción de «Qué avisos quiero», en Mi perfil: «Resumen diario por correo» (la marcas y tocas «Guardar»). Mientras se prueba la app, ese correo no sale: queda en Ajustes → «Buzón de correos».',
     },
     go: '/perfil',
   },
@@ -954,8 +954,8 @@ export const TODOS: Answer[] = [
       'recuerdame mañana revisar las fichas',
     ],
     a: {
-      default: 'Yo no mando avisos ni recordatorios: la plataforma te avisa sola en la campana cuando pasa algo de tu trabajo. Eliges cuáles en Mi perfil, en «Qué avisos quiero».',
-      social: 'Yo no mando avisos ni recordatorios, pero la plataforma te avisa sola en la campana, por ejemplo cuando “Aprobaron una pieza” o “Llegó material nuevo”. Eliges cuáles en Mi perfil, en «Qué avisos quiero».',
+      default: 'Yo no mando avisos ni recordatorios: la app te avisa sola en la campana cuando pasa algo de tu trabajo. Eliges cuáles en Mi perfil, en «Qué avisos quiero».',
+      social: 'Yo no mando avisos ni recordatorios, pero la app te avisa sola en la campana, por ejemplo cuando “Aprobaron una pieza” o “Llegó material nuevo”. Eliges cuáles en Mi perfil, en «Qué avisos quiero».',
     },
     go: '/perfil',
   },
@@ -963,7 +963,7 @@ export const TODOS: Answer[] = [
     id: 'todo-mi-perfil',
     roles: null,
     q: ['¿dónde está Mi perfil?', 'como entro a mi perfil', 'mis datos', 'donde estan mis preferencias', 'que puedo cambiar en mi perfil', 'para que sirve mi perfil', 'que es mis datos', 'donde edito mis datos', 'donde estan mis datos personales', 'mi perfil y avisos que es'],
-    a: 'Arriba a la derecha, «Mi cuenta» → «Mi perfil y avisos»: tu nombre y tu teléfono («Mis datos»), los «Avisos en este teléfono», «Qué avisos quiero» y las «Horas de silencio». El correo con el que entras no se cambia ahí.',
+    a: 'Arriba a la derecha, Mi cuenta → «Mi perfil y avisos»: «Mis datos» (tu nombre), los «Avisos en este teléfono», «Qué avisos quiero» y las «Horas de silencio». El correo con el que entras no se cambia ahí.',
     go: '/perfil',
     tutorial: 'perfil',
   },
@@ -998,7 +998,11 @@ export const TODOS: Answer[] = [
       'mi telefono esta mal en el perfil',
       'donde pongo mi celular',
     ],
-    a: 'En Mi perfil, en «Mis datos», «Teléfono (opcional)»: lo escribes y tocas «Guardar». Es opcional.',
+    a: {
+      default: 'Tu teléfono no hace falta en la app: en Mi perfil, «Mis datos» trae tu nombre y cómo está tu doble factor. Si cambiaste de teléfono, pídele ayuda a quien te invitó para el doble factor.',
+      camera: 'Tu teléfono no hace falta en la app: en Mi perfil, «Mis datos» trae tu nombre. Para que te lleguen los avisos al teléfono, en «Avisos en este teléfono» toca «Activar avisos».',
+      social: 'Tu teléfono no hace falta en la app: en Mi perfil, «Mis datos» trae tu nombre. Para que te lleguen los avisos al teléfono, en «Avisos en este teléfono» toca «Activar avisos».',
+    },
     go: '/perfil',
   },
 
@@ -1104,9 +1108,9 @@ export const TODOS: Answer[] = [
     ],
     a: {
       default:
-        'Son los canales del equipo, en el sobre de arriba, junto a la campana. Ves solo los canales donde estás y «Todo el equipo». El jefe arma los canales, decide quién va en cada uno y está en todos; cada canal muestra arriba quiénes están.',
-      boss: 'Son los canales del equipo, en el sobre de arriba. Tú los armas con «Nuevo canal», decides quién va y estás en todos. Cada canal muestra arriba quiénes están, y en «Todo el equipo» están todos.',
-      admin: 'Mensajes es del equipo: administración no lo ve, y por eso no tiene el sobre. Son canales: el jefe los arma, decide quién va en cada uno y está en todos.',
+        'Son los canales del equipo, en los globitos de arriba, junto a la campana. Ves solo los canales donde estás y «Todo el equipo». El jefe arma los canales, decide quién va en cada uno y está en todos; cada canal muestra arriba quiénes están.',
+      boss: 'Son los canales del equipo, en los globitos de arriba. Tú los armas con «Nuevo canal», decides quién va y estás en todos. Cada canal muestra arriba quiénes están, y en «Todo el equipo» están todos.',
+      admin: 'Mensajes es del equipo: administración no lo ve, y por eso no tiene los globitos. Son canales: el jefe los arma, decide quién va en cada uno y está en todos.',
     },
     go: '/mensajes',
     tutorial: 'mensajes',
@@ -1126,7 +1130,7 @@ export const TODOS: Answer[] = [
       'donde esta el chat del equipo',
       'no veo el sobre',
     ],
-    a: { default: 'Arriba, el sobre junto a la campana: ahí están tus canales y «Todo el equipo».', admin: NO_MSG },
+    a: { default: 'Arriba, los globitos junto a la campana: ahí están tus canales y «Todo el equipo».', admin: NO_MSG },
     go: '/mensajes',
   },
   {
@@ -1143,7 +1147,7 @@ export const TODOS: Answer[] = [
       'como se si tengo mensajes nuevos',
     ],
     a: {
-      default: 'El número del sobre dice cuántos canales tienen algo nuevo; en la lista, esos van en negrita, y adentro empiezas donde dice «Mensajes nuevos». Yo no leo los mensajes: ábrelos tú.',
+      default: 'El número de los globitos dice cuántos canales tienen algo nuevo; en la lista, esos van en negrita, y al abrir uno empiezas donde dice «Mensajes nuevos». Yo no leo los mensajes: ábrelos tú.',
       admin: NO_MSG,
     },
     go: '/mensajes',
@@ -1176,7 +1180,7 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['¿cómo creo un canal?', 'cómo armo un canal', 'quiero hacer un canal nuevo', 'nuevo canal', '¿y cómo creo un canal con él?', 'quién crea los canales de mensajes', 'quien arma los canales', 'puedo crear un canal', 'abrir un canal para mi equipo', 'quien hace los canales del chat'],
     a: {
-      boss: 'Sobre de arriba → «Nuevo canal»: le pones «Nombre del canal» y, si quieres, para qué es; marcas a quienes van (tú estás en todos, ya marcado) y tocas «Crear canal». Necesitas haber entrado con el doble factor.',
+      boss: 'Los globitos de arriba → «Nuevo canal»: le pones «Nombre del canal» y, si quieres, para qué es; marcas a quienes van (tú estás en todos, ya marcado) y tocas «Crear canal». Necesitas haber entrado con el doble factor.',
       admin: 'Los canales los arma solo el jefe: decide quién va en cada uno y está en todos. Administración no entra a Mensajes.',
       default: 'Los canales los arma solo el jefe, y él decide quién va en cada uno: tú no puedes crear uno. Si te hace falta, pídeselo.',
     },
@@ -1240,7 +1244,7 @@ export const TODOS: Answer[] = [
       'cuantas personas estan en este canal',
       'cuantos somos en el canal',
     ],
-    a: { default: 'Tú: abre el canal y toca «N personas», arriba; sale la lista «Miembros», con el jefe primero. Yo no leo Mensajes, así que ábrelo tú.', admin: NO_MSG },
+    a: { default: 'Tú: abre el canal y toca «5 personas», arriba; sale la lista «Miembros», con el jefe primero. Yo no leo Mensajes, así que ábrelo tú.', admin: NO_MSG },
     go: '/mensajes',
     tutorial: 'canal',
   },
@@ -1285,8 +1289,8 @@ export const TODOS: Answer[] = [
     ],
     a: {
       default:
-        'Los que están en ese canal, y el jefe, que está en todos: cada quien ve solo los canales donde está (toca «N personas» para ver quiénes). Administración no entra a Mensajes y yo no los leo. El registro guarda solo que hubo un mensaje, quién y cuándo, nunca el texto.',
-      boss: 'Los que están en cada canal (toca «N personas» para verlos), y tú, que estás en todos. Administración no entra a Mensajes y yo no los leo; el registro guarda solo que hubo un mensaje, quién y cuándo, nunca el texto.',
+        'Los que están en ese canal, y el jefe, que está en todos: cada quien ve solo los canales donde está (toca «5 personas» para ver quiénes). Administración no entra a Mensajes y yo no los leo. El registro guarda solo que hubo un mensaje, quién y cuándo, nunca el texto.',
+      boss: 'Los que están en cada canal (toca «5 personas» para verlos), y tú, que estás en todos. Administración no entra a Mensajes y yo no los leo; el registro guarda solo que hubo un mensaje, quién y cuándo, nunca el texto.',
       admin:
         'No: administración no entra a Mensajes, ni con «Ver como». El registro de cambios dice solo que hubo un mensaje, un canal o un cambio de miembros, quién y cuándo: nunca el texto, el nombre del canal ni quiénes.',
     },
@@ -1349,7 +1353,7 @@ export const TODOS: Answer[] = [
     ],
     a: {
       default:
-        'No: Mensajes es solo texto, sin fotos, audios ni archivos. Para hablar de algo, pega su dirección de la plataforma: sale como una tarjetita. Las fotos y los videos van en su lugar: el material del evento, la pieza o la ficha.',
+        'No: Mensajes es solo texto, sin fotos, audios ni archivos. Para hablar de algo, copia el enlace de esa pantalla y pégalo en el mensaje: sale como una tarjetita con su título. Las fotos y los videos van en su lugar: el material del evento, la pieza o la ficha.',
       admin: NO_MSG,
     },
     go: '/mensajes',
@@ -1360,7 +1364,7 @@ export const TODOS: Answer[] = [
     q: ['¿cómo comparto una pieza en un canal?', 'pasar un evento por mensajes', 'compartir el link de una ficha', 'mandar el enlace de la pieza', 'como paso una obra por el chat'],
     a: {
       default:
-        'Copia la dirección de la pieza, el evento o la ficha y pégala en el canal: sale como una tarjetita con su título, y cada quien la abre con sus permisos. Quien no puede abrirla ve «Algo que no puedes abrir».',
+        'Copia el enlace de la pantalla de la pieza, el evento o la ficha y pégalo en el mensaje: sale como una tarjetita con su título. Cada persona ve solo lo que su rol le deja ver: quien no puede abrirla ve «Algo que no puedes abrir».',
       admin: NO_MSG,
     },
     go: '/mensajes',
@@ -1370,7 +1374,7 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['dice algo que no puedes abrir', 'la tarjetita no me abre', 'me pasaron un enlace y no lo puedo abrir', 'por que no abre el link del canal'],
     a: {
-      default: 'Es un enlace a algo que tu rol no puede ver: cada quien abre lo que le toca, con sus permisos. Si lo necesitas para tu trabajo, pídele a quien lo pegó lo que haga falta, sin fechas ni teléfonos.',
+      default: 'Es un enlace a algo que tu rol no puede ver: cada persona ve solo lo que su rol le deja ver. Si lo necesitas para tu trabajo, pídele a quien lo pegó lo que haga falta, sin fechas ni teléfonos.',
       admin: NO_MSG,
     },
   },
@@ -1391,7 +1395,7 @@ export const TODOS: Answer[] = [
     ],
     a: {
       default:
-        'Porque conoces la agenda, y en ese canal está Redes o política: la plataforma no deja escribir fechas, horas ni mapas ahí. Escribe “lo antes posible”, “cuando esté listo” o “el día del evento”. En «Todo el equipo» también están Redes y política.',
+        'Porque conoces la agenda, y en ese canal está Redes o política: la app no deja escribir fechas, horas ni mapas ahí. Escribe “lo antes posible”, “cuando esté listo” o “el día del evento”. En «Todo el equipo» también están Redes y política.',
       social: FREE_WRITE,
       politics: FREE_WRITE,
       admin: NO_MSG,
@@ -1404,9 +1408,9 @@ export const TODOS: Answer[] = [
     q: ['me sale en rojo no puede ir aqui', 'mientras escribo sale una palabra en rojo', 'el mensaje dice que algo no puede ir', 'en el canal me salio una palabra en rojo'],
     a: {
       default:
-        'La plataforma te avisa mientras escribes cuando pones una fecha, una hora o un mapa en un canal donde está Redes o política: sale “… no puede ir aquí” con esa palabra. Quítala y escribe “el día del evento” o “lo antes posible”. Un teléfono tampoco va.',
-      social: 'Lo más seguro es un número que parece un teléfono: los teléfonos no van en los mensajes. Si es un enlace de la plataforma, pega su dirección sin otros números largos.',
-      politics: 'Lo más seguro es un número que parece un teléfono: los teléfonos no van en los mensajes. Si es un enlace de la plataforma, pega su dirección sin otros números largos.',
+        'La app te avisa mientras escribes cuando pones una fecha, una hora o un mapa en un canal donde está Redes o política: sale “… no puede ir aquí” con esa palabra. Quítala y escribe “el día del evento” o “lo antes posible”. Un teléfono tampoco va.',
+      social: 'Lo más seguro es un número que parece un teléfono: los teléfonos no van en los mensajes. Si es un enlace de la app, pega solo el enlace, sin otros números largos.',
+      politics: 'Lo más seguro es un número que parece un teléfono: los teléfonos no van en los mensajes. Si es un enlace de la app, pega solo el enlace, sin otros números largos.',
       admin: NO_MSG,
     },
     go: '/mensajes',
@@ -1423,7 +1427,7 @@ export const TODOS: Answer[] = [
     ],
     a: {
       default:
-        'Escribiste una palabra como “mañana” o “el lunes” en un canal donde está Redes o política, y la plataforma pregunta si dice cuándo va el jefe. Si es de la agenda, toca «Corregir» y quítala; si no (por ejemplo “mañana sale la pieza”), «Enviar igual».',
+        'Escribiste una palabra como “mañana” o “el lunes” en un canal donde está Redes o política, y la app pregunta si dice cuándo va el jefe. Si es de la agenda, toca «Corregir» y quítala; si no (por ejemplo “mañana sale la pieza”), «Enviar igual».',
       social: 'A ti no te sale: Redes y política escriben libre. Esa pregunta («Enviar igual» o «Corregir») les sale a quienes conocen la agenda cuando escriben “mañana” o “el lunes” donde estás tú.',
       politics: 'A ti no te sale: Redes y política escriben libre. Esa pregunta («Enviar igual» o «Corregir») les sale a quienes conocen la agenda cuando escriben “mañana” o “el lunes” donde estás tú.',
       admin: NO_MSG,
@@ -1436,7 +1440,7 @@ export const TODOS: Answer[] = [
     q: ['¿por qué veo mensaje oculto?', 'dice mensaje oculto', 'no puedo leer un mensaje', 'mensaje oculto tenia una fecha', 'por que me ocultan un mensaje'],
     a: {
       default: 'Ese mensaje tenía una fecha o una hora de la agenda, y no es para ti: por eso ves «Mensaje oculto». La agenda del jefe es información de seguridad.',
-      boss: 'Tú los lees todos, con el doble factor. «Mensaje oculto» lo ve quien no conoce la agenda (Redes o política) cuando un mensaje tenía una fecha o una hora de la agenda.',
+      boss: 'Tú los lees todos, si entraste con el doble factor. «Mensaje oculto» lo ve quien no conoce la agenda (Redes o política) cuando un mensaje tenía una fecha o una hora de la agenda.',
       admin: NO_MSG,
     },
     go: '/mensajes',
@@ -1456,10 +1460,10 @@ export const TODOS: Answer[] = [
       'escribi el minuto del video y me pregunto algo',
     ],
     a: {
-      camera: 'Sí: si escribes un tiempo del video (los minutos y los segundos) en un canal con Redes, la plataforma te pregunta si es del video: «Sí, es del video» o «Corregir». Una hora de la agenda no va.',
+      camera: 'Sí: si escribes un tiempo del video (los minutos y los segundos) en un canal con Redes, la app te pregunta si es del video: «Sí, es del video» o «Corregir». Una hora de la agenda no va.',
       social: 'Sí, escribes libre: Redes y política no conocen la agenda.',
       politics: 'Sí, escribes libre: Redes y política no conocen la agenda.',
-      default: 'Ojo: donde está Redes o política, la plataforma toma los minutos y segundos como una hora y no los deja pasar. Escríbelo de otra forma, por ejemplo “al minuto dos”.',
+      default: 'Ojo: donde está Redes o política, la app toma los minutos y segundos como una hora y no los deja pasar. Escríbelo de otra forma, por ejemplo “al minuto dos”.',
       admin: NO_MSG,
     },
     go: '/mensajes',
@@ -1472,7 +1476,7 @@ export const TODOS: Answer[] = [
       social: 'Sí: Redes y política no conocen la agenda, así que escriben libre.',
       politics: 'Sí: Redes y política no conocen la agenda, así que escriben libre.',
       default:
-        'Donde está Redes o política, una palabra como “mañana” hace que la plataforma te pregunte antes de enviar («Enviar igual» o «Corregir»); si es de la agenda, no va. Una fecha o una hora concreta no sale ahí.',
+        'Donde está Redes o política, una palabra como “mañana” hace que la app te pregunte antes de enviar («Enviar igual» o «Corregir»); si es de la agenda, no va. Una fecha o una hora concreta no sale ahí.',
       admin: NO_MSG,
     },
     go: '/mensajes',
@@ -1491,7 +1495,7 @@ export const TODOS: Answer[] = [
       'por que no puedo pasar un telefono en el canal',
     ],
     a: {
-      default: 'No: «Los teléfonos no van en los mensajes: los contactos van en la ficha, con doble factor.» La regla es para todos y en todos los canales. Si es un enlace con un número largo, pega la dirección de la plataforma.',
+      default: 'No: los teléfonos no van en los mensajes, van en los contactos de la ficha. La regla es para todos y en todos los canales. Si es un enlace de la app con un número largo, pega solo el enlace.',
       admin: NO_MSG,
     },
     go: '/mensajes',
@@ -1639,7 +1643,7 @@ export const TODOS: Answer[] = [
     ],
     a: {
       default:
-        'Es a propósito: el aviso dice “Mensaje nuevo” y de quién es, nunca el texto ni el nombre del canal, porque la pantalla del teléfono la puede ver cualquiera. Lo lees en Mensajes. Si te llegan varios, se juntan en uno.',
+        'Es a propósito: el aviso dice «Mensaje nuevo» y de quién es, nunca el texto ni el nombre del canal, porque la pantalla del teléfono la puede ver cualquiera. Yo tampoco leo los mensajes: los lees tú en Mensajes. Si te llegan varios, se juntan en uno.',
       admin: NO_MSG,
     },
     go: '/mensajes',
@@ -1660,7 +1664,7 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['mandé un mensaje sin señal', 'dice no se envió', 'el mensaje se quedo enviando', 'reintentar mensaje', 'no salio mi mensaje'],
     a: {
-      default: 'Tu mensaje sale al momento con “Enviando…”. Si se fue la señal, dice «No se envió · Reintentar»: cuando vuelva, toca «Reintentar». Nunca sale dos veces.',
+      default: 'Tu mensaje sale al momento con «Enviando…». Si se fue la señal, dice «No se envió · Reintentar»: cuando vuelva, toca «Reintentar». Nunca sale dos veces.',
       admin: NO_MSG,
     },
   },
@@ -1669,7 +1673,7 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['no me llegan los mensajes nuevos', 'el canal no se actualiza', 'tengo que recargar mensajes', 'los mensajes tardan en llegar'],
     a: {
-      default: 'Con el canal abierto y con señal, lo nuevo llega solo cada pocos segundos, y el número del sobre se revisa cada rato. Si no llega nada, revisa la señal; si sigue igual, recarga la página.',
+      default: 'Con el canal abierto y con señal, lo nuevo llega solo cada pocos segundos, y el número de los globitos se revisa cada rato. Si no llega nada, revisa la señal; si sigue igual, recarga la página.',
       admin: NO_MSG,
     },
   },
@@ -1695,8 +1699,8 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['q canales tengo', 'en qué canales estoy', 'cuales son mis canales', 'lista de canales'],
     a: {
-      default: 'Los ves en Mensajes, el sobre de arriba: primero «Todo el equipo» y debajo tus canales. Yo no leo Mensajes, así que ábrelo tú.',
-      boss: 'Tú estás en todos: los ves en Mensajes, el sobre de arriba, con «Todo el equipo» primero y los archivados al final. Yo no leo Mensajes.',
+      default: 'Los ves en Mensajes, los globitos de arriba: primero «Todo el equipo» y debajo tus canales. Yo no leo Mensajes, así que ábrelo tú.',
+      boss: 'Tú estás en todos: los ves en Mensajes, los globitos de arriba, con «Todo el equipo» primero y los archivados al final. Yo no leo Mensajes.',
       admin: NO_MSG,
     },
     go: '/mensajes',
@@ -1723,7 +1727,7 @@ export const TODOS: Answer[] = [
       'que hablaron en el canal',
     ],
     a: {
-      default: 'Yo no leo los mensajes del equipo ni los resumo: ábrelos tú en Mensajes, el sobre de arriba.',
+      default: 'Yo no leo los mensajes del equipo ni los resumo: ábrelos tú en Mensajes, los globitos de arriba.',
       admin: 'Yo no leo los mensajes del equipo, y una cuenta con administración no entra a Mensajes.',
     },
     go: '/mensajes',
@@ -1782,7 +1786,7 @@ export const TODOS: Answer[] = [
       'explicame esta pantalla paso a paso',
     ],
     a: {
-      default: 'Arriba a la derecha, «Mi cuenta» → «Ver el tutorial de esta pantalla» (sale si la pantalla tiene uno). O dime “muéstrame esta pantalla” y te lo abro.',
+      default: 'Arriba a la derecha, Mi cuenta → «Ver el tutorial de esta pantalla» (sale si la pantalla tiene uno). En tu inicio hay dos, y cada uno dice su nombre: «Ver el tutorial: Bienvenida» y el de esa pantalla. O dime “muéstrame esta pantalla” y te lo abro.',
       admin: 'Las pantallas de administración no tienen tutorial: lo que se hace en cada una está en la «Guía de administración», en «Ayuda y guías». Con «Ver como» salen los tutoriales del rol que estés mirando.',
     },
   },
@@ -1802,7 +1806,7 @@ export const TODOS: Answer[] = [
     ],
     a: {
       default:
-        '«Mi cuenta» → «Ayuda y guías» → «Tutoriales de mis pantallas»: cada uno te lleva a su pantalla y te la muestra paso a paso. Los de un evento o una pieza salen en «Mi cuenta» → «Ver el tutorial de esta pantalla», con la pantalla abierta.',
+        'Mi cuenta → «Ayuda y guías» → «Tutoriales de mis pantallas»: cada uno te lleva a su pantalla y te la muestra paso a paso. Los de un evento o una pieza salen en Mi cuenta → «Ver el tutorial de esta pantalla», con la pantalla abierta.',
       admin: 'Las pantallas de administración (Ajustes, Equipo…) no tienen tutorial: su guía es la «Guía de administración». Con «Ver como» ves los tutoriales del rol que elijas.',
     },
     go: '/ayuda',
@@ -1812,21 +1816,21 @@ export const TODOS: Answer[] = [
     id: 'todo-tutorial-salir',
     roles: null,
     q: ['¿cómo salgo de un tutorial?', 'cerrar el tutorial', 'quitar el tutorial', 'el tutorial no se quita', 'salir del tutorial'],
-    a: 'Con la X de la tarjeta («Salir del tutorial»), cuando quieras, o con «Terminar» en el último paso.',
+    a: 'Con la X de la tarjeta, cuando quieras, o con «Terminar» en el último paso.',
   },
   {
     id: 'todo-tutorial-como',
     roles: null,
     q: ['¿cómo funcionan los tutoriales?', 'como avanzo en el tutorial', 'el tutorial no me deja tocar nada', 'por que no puedo tocar el boton en el tutorial', 'como vuelvo al paso anterior'],
-    a: '«Siguiente» y «Atrás» para moverte, «Terminar» al final y la X «Salir del tutorial» cuando quieras. Mientras corre, la pantalla no cambia: lo que te señala lo tocas cuando lo cierres.',
+    a: '«Siguiente» y «Atrás» para moverte, «Terminar» al final, y la X para salir cuando quieras. Mientras ves el tutorial no puedes tocar la pantalla: lo que te señala, lo tocas al cerrarlo.',
   },
   {
     id: 'todo-franja-apagar',
     roles: null,
     q: ['como apago la franja esa que dice te muestro esta pantalla', 'no quiero que 360 me ofrezca ayuda', 'quitar te muestro esta pantalla', 'que no me salga mas la ayuda', 'como apago lo de te muestro esta pantalla'],
     a: {
-      default: 'Ciérrala con la X («Ahora no»). Si la cierras dos veces, deja de ofrecer en ese teléfono. Nunca se abre sola, y se vuelve a prender en «Ayuda y guías».',
-      admin: 'A administración casi nunca le sale: sus pantallas no tienen tutorial. Si te sale (con «Ver como»), ciérrala con la X: a la segunda deja de ofrecer en ese teléfono, y «Volver a ofrecerme ayuda», en «Ayuda y guías», la trae.',
+      default: 'Ciérrala con la X. Si la cierras dos veces, ya no te la ofrece en ese teléfono. Nunca se abre sola, y se vuelve a prender en «Ayuda y guías».',
+      admin: 'A administración casi nunca le sale: sus pantallas no tienen tutorial. Si te sale (con «Ver como»), ciérrala con la X: a la segunda ya no te la ofrece en ese teléfono, y «Volver a ofrecerme ayuda», en «Ayuda y guías», la trae.',
     },
   },
   {
@@ -1834,7 +1838,7 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['¿cómo vuelvo a prender lo de te muestro esta pantalla?', 'quiero que vuelva a ofrecerme ayuda', 'volver a ofrecerme ayuda', 'se apagó la ayuda de 360'],
     a: {
-      default: '«Mi cuenta» → «Ayuda y guías» → «Volver a ofrecerme ayuda»: sale debajo de «Tutoriales de mis pantallas» cuando la ayuda está apagada.',
+      default: 'Mi cuenta → «Ayuda y guías» → «Volver a ofrecerme ayuda»: sale debajo de «Tutoriales de mis pantallas» cuando la ayuda está apagada.',
       admin: 'A administración no le sale esa franja: sus pantallas no tienen tutorial. Con «Ver como» ves los tutoriales del rol que elijas.',
     },
     go: '/ayuda',
@@ -1856,8 +1860,8 @@ export const TODOS: Answer[] = [
       'guia de uso',
     ],
     a: {
-      default: '«Mi cuenta» → «Ayuda y guías» → «Mi trabajo, paso a paso»: qué haces, tu día y cada tarea paso a paso. Al lado están «Qué se hace en cada pantalla» y «Cómo va el trabajo entre todos».',
-      admin: '«Mi cuenta» → «Ayuda y guías» → «Guía de administración»: lo que se hace en cada pantalla de Ajustes y lo que no es de administración. Va aparte de las guías del equipo.',
+      default: 'Mi cuenta → «Ayuda y guías» → «Mi trabajo, paso a paso»: qué haces, tu día y cada tarea paso a paso. Al lado están «Qué se hace en cada pantalla» y «Cómo va el trabajo entre todos».',
+      admin: 'Mi cuenta → «Ayuda y guías» → «Guía de administración»: lo que se hace en cada pantalla de Ajustes y lo que no es de administración. Va aparte de las guías del equipo.',
     },
     go: '/ayuda',
     tutorial: 'ayuda',
@@ -1867,8 +1871,8 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['¿dónde veo la guía de cada persona del equipo?', 'donde veo la guia de cada rol del equipo', 'puedo ver la guía de redes', 'como trabaja el despacho', 'guía de otro rol'],
     a: {
-      boss: '«Mi cuenta» → «Ayuda y guías» → «La guía de cada persona»: la guía de los seis roles del equipo.',
-      admin: '«Mi cuenta» → «Ayuda y guías» → «La guía de cada persona»: la guía de los seis roles del equipo.',
+      boss: 'Mi cuenta → «Ayuda y guías» → «La guía de cada persona»: la guía de los seis roles del equipo.',
+      admin: 'Mi cuenta → «Ayuda y guías» → «La guía de cada persona»: la guía de los seis roles del equipo.',
       default: 'Tú ves tu guía; la de cada persona la ven el jefe y administración. Para ver cómo pasa el trabajo de un rol a otro, abre «Ayuda y guías» → «Cómo va el trabajo entre todos».',
     },
     go: '/ayuda',
@@ -1879,8 +1883,8 @@ export const TODOS: Answer[] = [
     q: ['¿dónde veo los flujogramas?', 'cómo va el trabajo entre todos', 'flujo del trabajo', 'cómo pasa el trabajo de un rol a otro', 'diagrama del proceso'],
     a: {
       default:
-        '«Mi cuenta» → «Ayuda y guías» → «Cómo va el trabajo entre todos»: un evento, una obra, un reporte de la comunidad, los tweets, el semáforo, el mes de Redes, la entrega de Grabación, Mensajes y la ayuda. Los pasos que son tuyos dicen «tú».',
-      admin: '«Mi cuenta» → «Ayuda y guías» → «Cómo va el trabajo entre todos»: cómo pasa el trabajo de un rol a otro del equipo, paso a paso.',
+        'Mi cuenta → «Ayuda y guías» → «Cómo va el trabajo entre todos»: un evento, una obra, un reporte de la comunidad, los tweets, el semáforo, el mes de Redes, la entrega de Grabación, Mensajes y la ayuda. Los pasos que son tuyos dicen «tú».',
+      admin: 'Mi cuenta → «Ayuda y guías» → «Cómo va el trabajo entre todos»: cómo pasa el trabajo de un rol a otro del equipo, paso a paso.',
     },
     go: '/ayuda/flujos',
   },
@@ -1890,8 +1894,8 @@ export const TODOS: Answer[] = [
     q: ['que es eso de ayuda y guias', 'para que sirve ayuda y guias', 'donde esta ayuda', 'qué hay en ayuda'],
     a: {
       default:
-        'Es la ayuda de la plataforma, en «Mi cuenta» → «Ayuda y guías»: la guía de tu trabajo, lo que se hace en cada pantalla, cómo va el trabajo entre todos, los tutoriales de tus pantallas y lo que es para todos (entrar, el teléfono, sin señal, la regla de la fecha, Mensajes y 360).',
-      admin: 'Es la ayuda de la plataforma, en «Mi cuenta» → «Ayuda y guías»: para ti, la «Guía de administración», «Cómo va el trabajo entre todos» y «La guía de cada persona».',
+        'Es la ayuda de la app, en Mi cuenta → «Ayuda y guías»: «Mi trabajo, paso a paso», «Qué se hace en cada pantalla», «Cómo va el trabajo entre todos», los «Tutoriales de mis pantallas» y lo que es para todos (entrar, el teléfono, sin señal, la regla de la fecha, Mensajes y 360).',
+      admin: 'Es la ayuda de la app, en Mi cuenta → «Ayuda y guías»: para ti, la «Guía de administración», «Cómo va el trabajo entre todos» y «La guía de cada persona».',
     },
     go: '/ayuda',
     tutorial: 'ayuda',
@@ -1901,7 +1905,7 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['que se hace en cada pantalla', 'para que sirve cada pantalla de mi menu', 'explicame las pantallas', 'que hace cada boton'],
     a: {
-      default: '«Mi cuenta» → «Ayuda y guías» → «Qué se hace en cada pantalla»: cada pantalla de tu menú, con sus botones y lo que no puedes hacer ahí.',
+      default: 'Mi cuenta → «Ayuda y guías» → «Qué se hace en cada pantalla»: cada pantalla de tu menú, con sus botones y lo que no puedes hacer ahí.',
       admin: 'En la «Guía de administración» («Ayuda y guías») está cada pantalla de Ajustes, con lo que haces ahí y lo que no.',
     },
     go: '/ayuda',
@@ -1910,7 +1914,7 @@ export const TODOS: Answer[] = [
     id: 'todo-guia-correo',
     roles: null,
     q: ['me pueden mandar la guía por correo', 'la guia en pdf', 'imprimir la guía', 'descargar el manual'],
-    a: 'La guía vive en la plataforma, en «Ayuda y guías»: no se manda por correo y se abre con señal.',
+    a: 'La guía vive en la app, en «Ayuda y guías»: no se manda por correo y se abre con señal.',
     go: '/ayuda',
   },
   {
@@ -1919,8 +1923,8 @@ export const TODOS: Answer[] = [
     q: ['por donde empiezo', 'soy nuevo que hago', 'primera vez en la plataforma', 'muestrame como empezar', 'tutorial de bienvenida'],
     a: {
       default:
-        'Empieza por el tutorial “Bienvenida”: te muestra tus pantallas, lo de arriba, «Mi cuenta» y a mí, y sigue con el de tu inicio. Después, la guía de tu trabajo en «Ayuda y guías» → «Mi trabajo, paso a paso».',
-      admin: 'Empieza por la «Guía de administración», en «Mi cuenta» → «Ayuda y guías»: ahí está cada pantalla de Ajustes. Lo primero es Equipo: ahí invitas a cada persona con su rol.',
+        'Empieza por el tutorial “Bienvenida”: te muestra tus pantallas, lo de arriba, Mi cuenta y a mí, y sigue con el de tu inicio. Después, la guía de tu trabajo en «Ayuda y guías» → «Mi trabajo, paso a paso».',
+      admin: 'Empieza por la «Guía de administración», en Mi cuenta → «Ayuda y guías»: ahí está cada pantalla de Ajustes. Lo primero es Equipo: ahí invitas a cada persona con su rol.',
     },
     tutorial: 'bienvenida',
   },
@@ -1929,8 +1933,8 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['necesito ayuda', 'me perdí', 'no se usar esto', 'ayuda', 'no se como se usa la plataforma', 'estoy perdido'],
     a: {
-      default: 'Te muestro la pantalla en la que estás, paso a paso: dime “muéstrame esta pantalla”, o «Mi cuenta» → «Ver el tutorial de esta pantalla». La guía de tu trabajo está en «Mi cuenta» → «Ayuda y guías».',
-      admin: 'Dime qué pantalla es y te digo qué se hace ahí. Lo de cada pantalla de Ajustes está en la «Guía de administración», en «Mi cuenta» → «Ayuda y guías».',
+      default: 'Te muestro la pantalla en la que estás, paso a paso: dime “muéstrame esta pantalla”, o Mi cuenta → «Ver el tutorial de esta pantalla». La guía de tu trabajo está en Mi cuenta → «Ayuda y guías».',
+      admin: 'Dime qué pantalla es y te digo qué se hace ahí. Lo de cada pantalla de Ajustes está en la «Guía de administración», en Mi cuenta → «Ayuda y guías».',
     },
   },
 
@@ -1959,7 +1963,7 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['usas inteligencia artificial', '¿360 usa inteligencia artificial?', 'eres chatgpt', 'con qué ia funcionas', 'eres inteligencia artificial de verdad', '360 esta usando ia o como es', 'tienes ia', 'contestas con ia o con guiones', 'que modelo usas'],
     a: {
-      default: 'Si arriba de esta ventana dice «modo demostración, sin IA», contesto sin inteligencia artificial: con lo que el equipo me enseñó (fichas y guiones) y las guías de la plataforma.',
+      default: 'Si arriba de esta ventana dice «modo demostración, sin IA», contesto sin inteligencia artificial: con lo que el equipo me enseñó (fichas y guiones) y las guías de la app.',
       admin: 'Mientras Ajustes → Asistente → «Cómo va» diga «Demostración» («Sin IA: guiones y fichas»), contesto sin IA, con lo que me enseñaron y las guías, y no gasto nada. Arriba de mi ventana también lo dice: «modo demostración, sin IA».',
     },
   },
@@ -2023,7 +2027,7 @@ export const TODOS: Answer[] = [
       'administracion lee lo que te digo',
     ],
     a: {
-      default: 'Administración ve lo que le preguntas a 360: no pegues aquí mensajes del equipo ni escribas fechas, horas ni direcciones de la agenda. El jefe no lo ve.',
+      default: 'Administración (las personas que manejan la parte técnica de la app) puede leer lo que le preguntas a 360: no pegues aquí mensajes del equipo ni escribas fechas, horas ni direcciones de la agenda. El jefe no lo ve.',
       admin: 'Tú y las demás personas de administración, en Ajustes → Asistente → «Conversaciones». El panel de 360 se lo dice a cada persona.',
     },
     go: '/ajustes/asistente',
@@ -2109,8 +2113,8 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['¿le puedes cambiar la fecha a un evento?', 'mueve el evento por mi', 'cambia la hora del evento', 'cancela el evento por mí', 'ponle fecha a la ficha por mi'],
     a: {
-      boss: 'Lo haces tú en el evento: «Mover» cambia el día, la hora y la duración; «Cambiar fecha o lugar» también la dirección y los contactos; «Cancelar» lo saca con su motivo. Yo no toco la agenda.',
-      dispatch: 'Lo haces tú en el evento: «Mover» cambia el día, la hora y la duración; «Cambiar fecha o lugar» también la dirección y los contactos; «Cancelar» lo saca con su motivo. Yo no toco la agenda.',
+      boss: 'Lo haces tú en el evento: «Mover» cambia solo el día, la hora o la duración; «Cambiar fecha o lugar» abre todo junto, también la dirección, cómo se llega y los contactos; «Cancelar» lo saca con su motivo. Yo no toco la agenda.',
+      dispatch: 'Lo haces tú en el evento: «Mover» cambia solo el día, la hora o la duración; «Cambiar fecha o lugar» abre todo junto, también la dirección, cómo se llega y los contactos; «Cancelar» lo saca con su motivo. Yo no toco la agenda.',
       default: 'La agenda la llevan el jefe y el despacho, en cada evento. Yo no la toco.',
     },
   },
@@ -2157,15 +2161,15 @@ export const TODOS: Answer[] = [
       'el codigo de entrada de otra persona',
     ],
     a: {
-      default: 'Yo no tengo ni pido códigos ni claves, y no entro por nadie. El código del correo y el de tu aplicación son solo tuyos: no se los pases a nadie, ni a mí; escríbelos tú en «Entrar». Y en la plataforma no hay contraseñas.',
-      admin: 'Yo no tengo ni doy códigos ni claves, y en la plataforma no hay contraseñas. El código de entrada le llega a cada persona a su correo (mientras se prueba, ningún correo sale: quedan en el «Buzón de correos»). Si cambió de teléfono, en Equipo, «Reiniciar doble factor».',
+      default: 'Yo no tengo ni pido códigos ni claves, y no entro por nadie. El código del correo y el de tu aplicación son solo tuyos: no se los pases a nadie, ni a mí; escríbelos tú en «Entrar». Y en la app no hay contraseñas.',
+      admin: 'Yo no tengo ni doy códigos ni claves, y en la app no hay contraseñas. El código de entrada le llega a cada persona a su correo (mientras se prueba, ningún correo sale: quedan en el «Buzón de correos»). Si cambió de teléfono, en Equipo, «Reiniciar doble factor».',
     },
   },
   {
     id: 'todo-360-donde',
     roles: null,
     q: ['donde estas tu', 'como te abro', 'donde esta el boton de 360', 'el boton redondo de abajo', 'como abro el asistente'],
-    a: 'Soy el botón redondo de abajo a la derecha, en todas las pantallas. Me abres y me preguntas lo que sea de la plataforma.',
+    a: 'Soy el botón redondo de abajo a la derecha, en todas las pantallas. Me abres y me preguntas lo que sea de la app.',
   },
   {
     id: 'todo-360-sin-fechas',
@@ -2207,15 +2211,15 @@ export const TODOS: Answer[] = [
       'hay soporte tecnico',
     ],
     a: {
-      default: 'No hay teléfono de soporte en la plataforma: dime qué pasa y le aviso a administración con esta conversación.',
-      admin: 'No hay teléfono de soporte en la plataforma. Lo que el equipo reporta por aquí te llega en Ajustes → Asistente → «Conversaciones».',
+      default: 'No hay teléfono de soporte en la app: dime qué pasa y le aviso a administración con esta conversación.',
+      admin: 'No hay teléfono de soporte en la app. Lo que el equipo reporta por aquí te llega en Ajustes → Asistente → «Conversaciones».',
     },
   },
   {
     id: 'todo-360-telefonos',
     roles: null,
     q: ['dame el telefono del de grabacion', 'cual es el numero de un compañero', 'pasame el numero de alguien del equipo', 'necesito el celular de una persona del equipo', 'como contacto a alguien del equipo por telefono', 'pasame el celular del jefe', 'dame el contacto de alguien', '¿cuál es el número del vocero?'],
-    a: 'Yo no doy teléfonos de nadie. Los teléfonos de terceros van solo en los contactos de la ficha, que se ven con el doble factor y si tu rol los puede ver; nunca en notas, títulos ni mensajes.',
+    a: 'Yo no doy teléfonos de nadie. Los teléfonos de otras personas van solo en los contactos de la ficha, nunca en notas, títulos ni mensajes. Para verlos hay que entrar con el doble factor, y que tu rol los pueda ver.',
   },
   {
     id: 'todo-360-como-estas',
@@ -2231,7 +2235,7 @@ export const TODOS: Answer[] = [
       'como vas 360',
       'que tal 360',
     ],
-    a: '¡Bien, [NOMBRE], aquí para ayudarte! ¿Qué necesitas de la plataforma?',
+    a: '¡Bien, [NOMBRE], aquí para ayudarte! ¿Qué necesitas de la app?',
   },
   {
     id: 'todo-360-gracias',
@@ -2273,19 +2277,19 @@ export const TODOS: Answer[] = [
     id: 'todo-360-ok',
     roles: null,
     q: ['ok vale', 'jajaja', 'ah ok', 'perfecto', 'okey', 'jeje'],
-    a: '¡Listo! Si necesitas algo más de la plataforma, aquí estoy.',
+    a: '¡Listo! Si necesitas algo más de la app, aquí estoy.',
   },
   {
     id: 'todo-360-fuera-de-tema',
     roles: null,
     q: ['¿va a llover hoy?', 'a cuanto esta el dolar', 'quién ganó el juego de béisbol anoche', 'cuéntame un chiste', 'hazme la tarea de mi hijo', 'que opinas del gobernador', '¿quién va a ganar las elecciones?', 'como configuro el correo en outlook'],
-    a: 'Eso se me escapa: yo te ayudo con la plataforma, y de política no opino. ¿Hay algo de tu trabajo en lo que te eche una mano?',
+    a: 'Eso se me escapa: yo te ayudo con la app, y de política no opino. ¿Hay algo de tu trabajo en lo que te eche una mano?',
   },
   {
     id: 'todo-360-costo',
     roles: null,
     q: ['cuanto cuesta la plataforma', 'vale y cuanto cuesta tener la plataforma al mes', 'quien paga esto', 'precio de la app'],
-    a: 'Eso no lo sé: no está en lo que manejo de la plataforma, y no te invento una cifra.',
+    a: 'Eso no lo sé: no está en lo que manejo de la app, y no te invento una cifra.',
   },
 
   // ── Quién hace qué y «¿puedo…?» ────────────────────────────────────────────────────────────────────────────────────
@@ -2357,7 +2361,7 @@ export const TODOS: Answer[] = [
     ],
     a: {
       boss: 'Tú: todo lo que sale lo apruebas tú, las piezas verdes, amarillas y rojas y los tweets. Las verdes, todas de un toque con «Aprobar todas las verdes»; las demás, una por una con la lista «Antes de aprobar».',
-      admin: 'No: todo lo aprueba el jefe, también los tweets. En Por aprobar puedes «Cambiar nivel», comentar o «Pedir frase al jefe».',
+      admin: 'No: todo lo aprueba el jefe, también los tweets. En Por aprobar puedes cambiar el nivel (arriba, en la cajita del nivel), comentar o «Pedir frase al jefe».',
       social: 'Todo lo aprueba el jefe: piezas y tweets. Tú mandas la pieza con «Enviar a aprobación» y eliges el color; los tweets le llegan al repartir la tanda.',
       default: 'Todo lo aprueba el jefe: las piezas verdes, amarillas y rojas y los tweets. Nadie más aprueba.',
     },
@@ -2378,7 +2382,7 @@ export const TODOS: Answer[] = [
       'como hago un evento nuevo',
     ],
     a: {
-      boss: 'Sí: «Crear» → Nuevo evento (o Visita de obra): título, lugar, la parte privada y la ficha técnica. Lo que creas tú nace aceptado.',
+      boss: 'Sí: «Crear» → Nuevo evento (o Visita de obra): título, lugar, la parte privada y la ficha técnica. Como lo pones tú, queda aceptado de una vez.',
       dispatch: 'Sí: «Crear» → Nuevo evento (o Visita de obra): título, lugar, la parte privada y la ficha técnica. Lo tuyo le llega al jefe «Por decidir».',
       politics: 'No: los eventos los crean el jefe y el despacho. Tú cargas la ficha comunitaria y tocas «Guardar y avisar al jefe»; ellos le ponen fecha.',
       ivt: 'No: los eventos los crean el jefe y el despacho. Tú cargas la ficha de obra y tocas «Guardar y avisar al jefe»; ellos le ponen fecha a la visita.',
@@ -2409,7 +2413,7 @@ export const TODOS: Answer[] = [
       boss: 'Tú o el despacho: en «Por ponerle fecha» eliges la ficha de obra o el reporte y le pones fecha y hora; así se convierte en evento.',
       dispatch: 'Tú o el jefe: en «Por ponerle fecha» eliges la ficha de obra o el reporte y le pones fecha y hora; así se convierte en evento. Lo que le pones tú le llega al jefe «Por decidir».',
       politics: 'El jefe o el despacho, desde «Por ponerle fecha». Tú no la ves: de tu ficha solo ves «Ya tiene fecha».',
-      ivt: 'El jefe o el despacho: tu ficha llega a «Por ponerle fecha» cuando tocas «Guardar y avisar al jefe». Cuando le ponen fecha, la ves en Agenda, con el doble factor.',
+      ivt: 'El jefe o el despacho: tu ficha llega a «Por ponerle fecha» cuando tocas «Guardar y avisar al jefe». Cuando le ponen fecha, la ves en Agenda, si entraste con el doble factor.',
       admin: 'El jefe o el despacho, desde «Por ponerle fecha». Tú lo lees, pero no le pones fecha.',
       default: 'El jefe o el despacho. Las fichas de obra y los reportes que esperan fecha están en «Por ponerle fecha».',
     },
@@ -2511,9 +2515,9 @@ export const TODOS: Answer[] = [
       'quien puede borrar un reel',
     ],
     a: {
-      boss: 'Solo tú, con el doble factor, desde los tres puntos de su tarjeta. No se borra de verdad: administración la puede recuperar.',
+      boss: 'Solo tú, con el doble factor, desde los tres puntos de su tarjeta. Si fue un error, administración la puede recuperar.',
       admin: 'No: solo el jefe elimina piezas, con el doble factor. Tú la recuperas en Ajustes → «Cupo y pilares» → «Piezas eliminadas» → «Recuperar».',
-      default: 'Solo el jefe, con el doble factor. No se borra de verdad: administración la puede recuperar.',
+      default: 'Solo el jefe, con el doble factor. Si fue un error, administración la puede recuperar.',
     },
   },
   {
@@ -2600,7 +2604,7 @@ export const TODOS: Answer[] = [
       'quien monta en instagram',
     ],
     a: {
-      default: 'Se publica a mano y solo lo aprobado: en Publicar eliges la pieza y las redes, bajas el paquete, lo publicas en la red y marcas «Ya lo publiqué» con el link. La publicación automática está apagada por ahora.',
+      default: 'La app no publica sola, y solo sale lo aprobado: en Publicar eliges la pieza y las redes, bajas el paquete, lo publicas tú en la red y marcas «Ya lo publiqué» con el link.',
       dispatch: 'Redes (también el jefe y administración), a mano y solo lo que aprobó el jefe.',
       politics: 'Redes (también el jefe y administración), a mano y solo lo que aprobó el jefe.',
       ivt: 'Redes (también el jefe y administración), a mano y solo lo que aprobó el jefe.',
@@ -2613,7 +2617,7 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['quién sube los tweets', 'puedo subir la tanda de tweets', 'como subo los tweets de la semana', 'quien hace los tweets'],
     a: {
-      default: '«Crear» → Tweets de la semana: pegas o subes el documento, tocas «Separar tweets» y la plataforma los reparte en la semana y se los manda al jefe para aprobar.',
+      default: '«Crear» → Tweets de la semana: pegas o subes el documento, tocas «Separar tweets» y la app los reparte en la semana y se los manda al jefe para aprobar.',
       dispatch: 'Redes (también el jefe y administración) sube la tanda de la semana, y el jefe la aprueba.',
       politics: 'Redes (también el jefe y administración) sube la tanda de la semana, y el jefe la aprueba.',
       ivt: 'Redes (también el jefe y administración) sube la tanda de la semana, y el jefe la aprueba.',
@@ -2636,7 +2640,7 @@ export const TODOS: Answer[] = [
       'quien puede ver donde es el evento',
       'quien conoce la agenda del jefe',
     ],
-    a: 'La fecha, la hora y la dirección son información de seguridad: las ven el jefe, el despacho, quien graba ese evento y el IVT en sus visitas de obra (administración las lee). Redes y política nunca: Redes ve los eventos sin fecha y política solo “ya tiene fecha”.',
+    a: 'La fecha, la hora y la dirección son información de seguridad: las ven el jefe, el despacho, quien graba ese evento y el IVT en sus visitas de obra (administración las lee). Redes y política nunca: Redes ve los eventos sin fecha y política solo ve «Ya tiene fecha».',
   },
   {
     id: 'todo-no-veo-fecha',
@@ -2655,11 +2659,11 @@ export const TODOS: Answer[] = [
     ],
     a: {
       politics: 'Porque la fecha de la agenda del jefe es información de seguridad. Solo ves «Ya tiene fecha»; la ven el jefe y el despacho.',
-      social: 'Porque la agenda del jefe es información de seguridad: Redes ve los eventos sin fecha, sin hora y sin dirección. La base de datos lo cuida, no solo la pantalla.',
+      social: 'Porque la agenda del jefe es información de seguridad: Redes ve los eventos sin fecha, sin hora y sin dirección. La app nunca te manda esos datos.',
       camera: 'Ves la fecha, la hora y el lugar solo de los eventos que te asignaron, en Agenda. Si no ves uno, es que no te lo asignaron.',
-      ivt: 'Ves la fecha solo de tus visitas de obra, en Agenda, cuando el jefe o el despacho se la ponen, y con el doble factor. Mientras tanto tu ficha espera en «Por ponerle fecha».',
-      boss: 'Tú la ves en la Agenda, con el doble factor. Si un evento todavía no la tiene, está en «Por ponerle fecha».',
-      dispatch: 'Tú la ves en la Agenda, con el doble factor. Si un evento todavía no la tiene, está en «Por ponerle fecha».',
+      ivt: 'Ves la fecha solo de tus visitas de obra, en Agenda, cuando el jefe o el despacho se la ponen, y si entraste con el doble factor. Mientras tanto tu ficha espera en «Por ponerle fecha».',
+      boss: 'Tú la ves en la Agenda, si entraste con el doble factor. Si un evento todavía no la tiene, está en «Por ponerle fecha».',
+      dispatch: 'Tú la ves en la Agenda, si entraste con el doble factor. Si un evento todavía no la tiene, está en «Por ponerle fecha».',
       admin: 'Tú la lees en la Agenda. Si alguien de Redes o política no la ve, está bien: esos roles nunca ven la fecha, la hora ni la dirección.',
     },
   },
@@ -2708,7 +2712,7 @@ export const TODOS: Answer[] = [
       'los contactos del reporte quien los ve',
       'quien puede ver los datos de la persona que reporta',
     ],
-    a: 'Los reportes los ven política, el jefe y el despacho; los contactos y los documentos, solo ellos y con el doble factor. Redes y Grabación nunca ven un reporte. Administración ve lo principal, sin contactos ni documentos.',
+    a: 'Los reportes los ven política, el jefe y el despacho; los contactos y los documentos, solo ellos y si entraron con el doble factor. Redes y Grabación nunca ven un reporte. Administración ve lo principal, sin contactos ni documentos.',
   },
   {
     id: 'todo-quien-ve-obra',
@@ -2720,7 +2724,7 @@ export const TODOS: Answer[] = [
     id: 'todo-redes-agenda',
     roles: null,
     q: ['¿qué ve Redes de mi agenda?', 'que ve redes de los eventos', 'redes ve la agenda?', 'que sabe redes de los eventos'],
-    a: 'Una lista de eventos sin fecha, sin hora y sin dirección, ordenada por lo que hace falta. La base de datos lo cuida, no solo la pantalla. Cuando un evento se marca realizado, Redes ve solo el día.',
+    a: 'Una lista de eventos sin fecha, sin hora y sin dirección, ordenada por lo que hace falta. La app nunca le manda esos datos a Redes: no los puede ver de ninguna forma. Cuando un evento se marca realizado, Redes ve solo el día.',
   },
   {
     id: 'todo-quien-ve-piezas',
@@ -2751,8 +2755,8 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['quien cancela un evento', 'puedo cancelar un evento', 'como cancelo un evento', 'cancelé un evento por error, ¿se borró?', 'como devuelvo un evento cancelado', 'quien suspende un acto', 'se suspendio el evento como lo quito', 'tumbar un evento de la agenda', 'quien puede quitar un evento'],
     a: {
-      boss: 'Sí: en la ficha del evento, «Cancelar» con su motivo (sin fecha, hora ni teléfono). Queda tachado, no se borra, y «Volver a la agenda» lo trae. Lo que ya se realizó no se cancela.',
-      dispatch: 'Sí: en la ficha del evento, «Cancelar» con su motivo (sin fecha, hora ni teléfono). Queda tachado, no se borra, y «Volver a la agenda» lo trae. Lo que ya se realizó no se cancela.',
+      boss: 'Sí: en la ficha del evento, «Cancelar» con su motivo (sin fecha, hora ni teléfono). Queda tachado, no se borra; si te arrepientes, «Volver a la agenda» lo pone otra vez en la agenda. Lo que ya se realizó no se cancela.',
+      dispatch: 'Sí: en la ficha del evento, «Cancelar» con su motivo (sin fecha, hora ni teléfono). Queda tachado, no se borra; si te arrepientes, «Volver a la agenda» lo pone otra vez en la agenda. Lo que ya se realizó no se cancela.',
       admin: 'No: cancelar es del jefe o del despacho, con «Cancelar» en la ficha del evento. Un evento cancelado queda tachado, no se borra.',
       default: 'No: cancelar es del jefe o del despacho, con «Cancelar» en la ficha del evento. Un evento cancelado no se borra: queda tachado y se puede traer de vuelta.',
     },
@@ -2762,8 +2766,8 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['quien ve los resultados', 'puedo ver los resultados', 'quién carga las métricas', 'como nos va en redes'],
     a: {
-      social: 'En Resultados cargas las métricas a mano o con el CSV de la red, y ves «¿A qué hora nos va mejor?». Los ven el jefe, Redes y administración.',
-      admin: 'En Resultados cargas las métricas a mano o con el CSV de la red, y ves «¿A qué hora nos va mejor?». Los ven el jefe, Redes y administración.',
+      social: 'En Resultados cargas las métricas a mano o con el archivo CSV de la red (una hoja de cálculo guardada como CSV), y ves «¿A qué hora nos va mejor?». Los ven el jefe, Redes y administración.',
+      admin: 'En Resultados cargas las métricas a mano o con el archivo CSV de la red (una hoja de cálculo guardada como CSV), y ves «¿A qué hora nos va mejor?». Los ven el jefe, Redes y administración.',
       boss: 'En Digital ves lo publicado y cómo nos va; en Redes → Resultados, las métricas de cada publicación y a qué hora nos va mejor.',
       default: 'Los resultados de las redes los ven el jefe, Redes y administración.',
     },
@@ -2790,7 +2794,7 @@ export const TODOS: Answer[] = [
       boss: 'Sí: en Agenda, en calendario (día, semana o mes), con la fecha, la hora y el lugar.',
       dispatch: 'Sí: en Agenda, en calendario (día, semana o mes), con la fecha, la hora y el lugar.',
       camera: 'Sí: en Agenda ves tus eventos asignados, con fecha y lugar.',
-      ivt: 'Sí: en Agenda ves tus visitas de obra, con su fecha, hora y dirección, solo de tus obras y con el doble factor.',
+      ivt: 'Sí: en Agenda ves tus visitas de obra, con su fecha, hora y dirección, solo de tus obras y si entraste con el doble factor.',
       social: 'Sí, pero sin fechas: en Agenda ves la lista de eventos, sin fecha, hora ni dirección.',
       politics: 'No: política no ve la agenda. Tu pantalla es Municipios, y de tu ficha solo ves «Ya tiene fecha».',
       admin: 'Sí, la lees, con la fecha, la hora y el lugar, junto con «Por ponerle fecha», las obras y los municipios. No creas eventos ni les pones fecha: eso es del jefe y del despacho.',
@@ -2812,7 +2816,7 @@ export const TODOS: Answer[] = [
     id: 'todo-contactos-terceros',
     roles: null,
     q: ['dónde van los teléfonos de los contactos', 'donde pongo el telefono del vocero', 'quien ve los contactos del sitio', 'puedo poner un teléfono en la nota'],
-    a: 'Los teléfonos de terceros van solo en los contactos de la ficha, que se ven con el doble factor y si tu rol los puede ver. Nunca en notas, títulos, comentarios ni mensajes.',
+    a: 'Los teléfonos de otras personas van solo en los contactos de la ficha: los ves si tu rol los ve y si entraste con el doble factor. Nunca van en notas, títulos, comentarios ni mensajes.',
   },
   {
     id: 'todo-quien-cupo',
@@ -2820,7 +2824,7 @@ export const TODOS: Answer[] = [
     q: ['quien pone el cupo del mes', 'quién decide cuántos reels por mes', 'quien crea los pilares', 'puedo cambiar el cupo'],
     a: {
       admin: 'Tú, en Ajustes → «Cupo y pilares»: el «Cupo del mes» con «Guardar cupo» y los pilares con «Guardar pilares».',
-      default: 'Administración, en Ajustes → «Cupo y pilares». El cupo es informativo: pasarse no bloquea nada.',
+      default: 'Administración, en Ajustes → «Cupo y pilares». El cupo es una meta: si haces más piezas, no pasa nada.',
     },
     go: '/ajustes/contenido',
   },
@@ -2841,8 +2845,8 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['quien cambia el color de una pieza', 'puedo bajar el nivel de una pieza', 'como saco una pieza del rojo', 'puedo cambiar el nivel'],
     a: {
-      boss: 'Sí: en la pieza, «Cambiar nivel». Puedes subirla o bajarla, incluso sacarla del rojo.',
-      admin: 'Sí: abre la pieza en Por aprobar y usa «Cambiar nivel». Una pieza en rojo solo la bajan el jefe o administración.',
+      boss: 'Sí: en la revisión de la pieza, arriba, en la cajita del nivel (dice, por ejemplo, «Nivel amarillo»). Puedes subirla o bajarla, incluso sacarla del rojo.',
+      admin: 'Sí: abre la pieza en Por aprobar y cámbialo arriba, en la cajita del nivel. Una pieza en rojo solo la bajan el jefe o administración.',
       social: 'Puedes subirlo, no bajarlo: el jefe (o administración) lo cambia si hace falta.',
       default: 'El nivel lo elige Redes al mandar la pieza a aprobar, y el jefe o administración lo cambian.',
     },
@@ -2904,7 +2908,7 @@ export const TODOS: Answer[] = [
       'no aparece lo que guarde',
       'desaparecio lo que escribi',
     ],
-    a: 'Lo que no guardaste queda en ese teléfono hasta que tocas «Guardar», salvo que hayas tocado «Salir»: al salir se borran los borradores. Lo guardado no se borra, queda en la plataforma: si no lo ves, búscalo con la lupa.',
+    a: 'Lo que no guardaste queda en ese teléfono hasta que tocas «Guardar», salvo que hayas tocado «Salir»: al salir se borran los borradores. Lo guardado no se borra, queda en la app: si no lo ves, búscalo con la lupa.',
   },
   {
     id: 'todo-no-sube',
@@ -2930,9 +2934,9 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['el jefe no ha aprobado', 'la pieza lleva rato sin aprobar', 'que pasa si el jefe no aprueba', 'se vencio el plazo de aprobación', 'y si el jefe no aprueba a tiempo la pieza sale sola?', 'el jefe no ha visto mi pieza', 'si el jefe no contesta se publica igual', 'la pieza se aprueba sola si pasa el tiempo'],
     a: {
-      boss: 'Mientras no apruebes, la pieza no sale: si vence el plazo, sale en «Trancado» y te avisamos otra vez. Las tienes en «Te toca aprobar» y en Por aprobar.',
-      admin: 'La pieza sigue sin aprobar: nunca sale sola. Si vence el plazo (la roja en 30 minutos, la amarilla en 60, las verdes en el día), sale en «Trancado» y al jefe se le avisa otra vez. Solo él aprueba: tú no puedes hacerlo en su lugar; lo que espera lo ves en Por aprobar.',
-      default: 'La pieza sigue sin aprobar: nunca sale sola. Si vence el plazo, sale en «Trancado» y al jefe se le avisa otra vez. El color pone el plazo: la roja, en 30 minutos; la amarilla, en 60; las verdes, en el día.',
+      boss: 'Mientras no apruebes, la pieza no sale: si vence el plazo, sale en «Trancado» y te llega otro aviso. Las tienes en «Te toca aprobar» y en Por aprobar.',
+      admin: 'La pieza sigue sin aprobar: nunca se publica sola. Si vence el plazo (la roja en 30 minutos, la amarilla en 60, las verdes en el día), sale en «Trancado» y al jefe se le avisa otra vez. Solo él aprueba: tú no puedes hacerlo en su lugar; lo que espera lo ves en Por aprobar.',
+      default: 'La pieza sigue sin aprobar: nunca se publica sola. Si vence el plazo, sale en «Trancado» y al jefe se le avisa otra vez. El color pone el plazo: la roja, en 30 minutos; la amarilla, en 60; las verdes, en el día.',
     },
   },
   {
@@ -2980,10 +2984,10 @@ export const TODOS: Answer[] = [
       'para que es la parte de trancado en hoy',
     ],
     a: {
-      social: '«Trancado», en tu Hoy, es lo que se paró y necesita una mano: una publicación que falló, «Esperando frase del jefe», pocos días de tweets y las piezas que vencieron sin aprobar. Una pieza vencida nunca sale sola: sigue esperando al jefe.',
-      boss: '«Trancado», en Hoy (desde tu botón Redes), es lo que se paró y necesita una mano: una publicación que falló, una pieza esperando tu frase, pocos días de tweets y las piezas que vencieron sin tu aprobación, que siguen sin salir hasta que las apruebes.',
-      dispatch: 'En tu Hoy, «Trancado» junta lo que se paró y necesita una mano: publicaciones que fallaron, piezas que vencieron sin aprobar, pocos días de tweets. Eso es de Redes y del jefe, así que a ti te sale «Nada trancado.».',
-      camera: 'En tu Hoy, «Trancado» junta lo que se paró y necesita una mano: publicaciones que fallaron, piezas que vencieron sin aprobar, pocos días de tweets. Eso es de Redes y del jefe, así que a ti te sale «Nada trancado.».',
+      social: '«Trancado», en tu Hoy, es lo que se paró y necesita una mano: una publicación que falló, «Esperando frase del jefe», que quedan pocos días con tweets programados y las piezas que vencieron sin aprobar. Una pieza vencida nunca se publica sola: sigue esperando al jefe.',
+      boss: '«Trancado», en Hoy (desde tu botón Redes), es lo que se paró y necesita una mano: una publicación que falló, una pieza esperando tu frase, que quedan pocos días con tweets programados y las piezas que vencieron sin tu aprobación, que siguen sin salir hasta que las apruebes.',
+      dispatch: 'En tu Hoy, «Trancado» junta lo que se paró y necesita una mano: publicaciones que fallaron, piezas que vencieron sin aprobar o que quedan pocos días con tweets programados. Eso es de Redes y del jefe, así que a ti te sale «Nada trancado.».',
+      camera: 'En tu Hoy, «Trancado» junta lo que se paró y necesita una mano: publicaciones que fallaron, piezas que vencieron sin aprobar o que quedan pocos días con tweets programados. Eso es de Redes y del jefe, así que a ti te sale «Nada trancado.».',
       politics: '«Trancado» es parte del Hoy de Redes y del jefe: lo que se paró, como una publicación que falló o una pieza que venció sin aprobar. No es de tu rol: lo tuyo está en Municipios, con lo vencido arriba.',
       ivt: '«Trancado» es parte del Hoy de Redes y del jefe: lo que se paró, como una publicación que falló o una pieza que venció sin aprobar. No es de tu rol: lo tuyo está en Obras.',
     },
@@ -3053,7 +3057,7 @@ export const TODOS: Answer[] = [
     ],
     a: {
       default: 'No: la fecha, la hora y el lugar no se pasan a quien no los ve (Redes y política), ni por Mensajes ni en notas, títulos o comentarios. Si les hace falta algo, escribe “lo antes posible”, “cuando esté listo” o “el día del evento”.',
-      camera: 'No: la fecha y el lugar de tus eventos no se pasan a nadie, tampoco a Redes. En un canal donde está Redes la plataforma no deja escribir horas ni fechas, y en tu nota para el editor escribe “el día del evento”.',
+      camera: 'No: la fecha y el lugar de tus eventos no se pasan a nadie, tampoco a Redes. En un canal donde está Redes la app no deja escribir horas ni fechas, y en tu nota para el editor escribe “el día del evento”.',
       admin: 'No: no se la pases. Redes y política nunca ven la fecha, la hora ni el lugar (política solo ve «Ya tiene fecha»), y la fecha no va en notas, comentarios ni avisos.',
     },
   },
@@ -3087,7 +3091,7 @@ export const TODOS: Answer[] = [
       'hay que reinstalar la app para que salga lo nuevo',
       'no me sale lo nuevo de la plataforma',
     ],
-    a: 'No hace falta: la plataforma se abre en el navegador y se actualiza sola. Si algo se ve viejo o raro, recarga la página o ciérrala y ábrela otra vez.',
+    a: 'No hace falta: la app se abre en el navegador y se actualiza sola. Si algo se ve viejo o raro, recarga la página o ciérrala y ábrela otra vez.',
   },
   {
     id: 'todo-que-es-app',
@@ -3101,7 +3105,7 @@ export const TODOS: Answer[] = [
       'que se hace en esta aplicacion',
       'pa q sirve esto',
     ],
-    a: '[APP] es la plataforma del equipo: la agenda del jefe, las fichas de obra y de la comunidad, el material de cada evento, las piezas y los tweets que él aprueba, lo que se publica y cómo nos va. Cada rol ve solo lo suyo.',
+    a: '[APP] es la app del equipo: la agenda del jefe, las fichas de obra y de la comunidad, el material de cada evento, las piezas y los tweets que él aprueba, lo que se publica y cómo nos va. Cada rol ve solo lo suyo.',
     go: '/ayuda',
   },
   {
