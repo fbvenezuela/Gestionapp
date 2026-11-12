@@ -4,7 +4,7 @@
   {
    "key": "entrar",
    "roles": null,
-   "title": "Cómo se entra a la plataforma",
+   "title": "Cómo se entra a la app",
    "body": "Administración te invita con tu correo y tu rol, y te llega un correo de invitación. En «Entrar» escribes tu correo y te llega un código: no hay contraseñas. La primera vez, si tu rol lo pide, activas el doble factor con una app autenticadora (por ejemplo Google Authenticator) y desde ahí lo usas al entrar. Si no llega el código: revisa spam y que el correo esté bien escrito; si sigue sin llegar, avisa a administración.",
    "tags": [
     "entrar",
@@ -18,7 +18,7 @@
    "key": "doble-factor",
    "roles": null,
    "title": "Doble factor",
-   "body": "El doble factor es obligatorio para el jefe, Despacho, el director de política, el director del IVT y Administración. Sin él la plataforma no muestra la agenda ni deja aprobar. Redes y Grabación entran solo con el código del correo. Si alguien pierde el teléfono, administración le cierra las sesiones (Ajustes → Equipo) y le ayuda a activar el doble factor de nuevo.",
+   "body": "El doble factor es obligatorio para el jefe, Despacho, el director de política, el director del IVT y Administración. Sin él la app no muestra la agenda ni deja aprobar. Redes y Grabación entran solo con el código del correo. Si alguien pierde el teléfono, administración le cierra las sesiones (Ajustes → Equipo) y le ayuda a activar el doble factor de nuevo.",
    "tags": [
     "doble factor",
     "seguridad",
@@ -28,7 +28,7 @@
   {
    "key": "telefono",
    "roles": null,
-   "title": "La plataforma en el teléfono",
+   "title": "La app en el teléfono",
    "body": "Abajo están las opciones principales y «Más» con el resto. Arriba: buscar, la campana de avisos, «Crear» (según tu rol) y tu cuenta. Para usarla como app: en el navegador del teléfono, «Agregar a la pantalla de inicio». En iPhone los avisos al teléfono solo llegan con la app agregada a la pantalla de inicio. Los avisos se activan en Mi perfil.",
    "tags": [
     "telefono",
@@ -99,7 +99,7 @@
    "key": "no-tengo-permiso",
    "roles": null,
    "title": "Cuando una pantalla no te deja entrar",
-   "body": "Si abres una pantalla que no es de tu rol, la plataforma te lleva a tu inicio y te dice «Esa pantalla no es de tu rol. Te trajimos a tu inicio.» No es una falla: cada rol ve solo lo suyo. Si de verdad la necesitas para tu trabajo, pídeselo a administración.",
+   "body": "Si abres una pantalla que no es de tu rol, la app te lleva a tu inicio y te dice «Esa pantalla no es de tu rol. Te trajimos a tu inicio.» No es una falla: cada rol ve solo lo suyo. Si de verdad la necesitas para tu trabajo, pídeselo a administración.",
    "tags": [
     "permisos",
     "hoy",
@@ -141,7 +141,7 @@
     "boss",
     "admin"
    ],
-   "title": "Qué hace el jefe en la plataforma",
+   "title": "Qué hace el jefe en la app",
    "body": "Tiene todo, hasta lo de Redes. Inicio: lo vencido en los municipios, «Te toca aprobar» y cuatro botones grandes con sus números: Política (la agenda, lo que espera su decisión y lo que espera fecha), Obras (las fichas del IVT por estado y por municipio), Redes (el mes abierto por formato, con lo que espera su aprobación, las piezas en curso, las listas para publicar, los tweets programados, las notas nuevas de Grabación, que abren la pestaña Material de cada evento, y «Resumen del mes») y Digital (lo publicado, lo que viene y las vistas). Menú: Inicio, Agenda, Por aprobar, Redes y «Más» (Obras, Municipios, Digital, Web y Atención). Redes es su puerta a las mismas pantallas del equipo de Redes: el tablero, las secciones por formato (Reels, Posts, Carruseles, Historias, YouTube y la del cierre de cada mes), el feed, Tweets, Publicar, Resultados y Biblioteca. Aprueba todo lo que sale: las verdes, todas de una vez con «Aprobar todas las verdes»; las amarillas y rojas, una por una después de marcar la lista de 4 chequeos; y los tweets. Puede pedir cambios o comentar cualquier pieza anotando el segundo exacto del video, cambiar el nivel de una pieza (incluso sacarla del rojo), calificar cada evento de 1 a 10 y aceptarlo o rechazarlo (Política o la ficha del evento), leer «Lo que voy a decir» en letra grande (modo lectura), ver la agenda completa y marcar un evento como realizado, ver lo publicado y cómo nos va (Digital y Resultados) y hacer lo de Redes: piezas, copies, el feed, tweets y publicaciones. Solo él elimina piezas (con el doble factor); si desaprueba el diseño de una pieza ya aprobada, no sale hasta que la vuelva a aprobar.",
    "tags": [
     "jefe",
@@ -203,7 +203,7 @@
     "dispatch",
     "admin"
    ],
-   "title": "Qué hace Despacho en la plataforma",
+   "title": "Qué hace Despacho en la app",
    "body": "Para qué: llevar la agenda del jefe junto con él y que cada evento tenga su ficha técnica completa, para que Redes y Grabación puedan trabajar. Inicio: Hoy, con «Por ponerle fecha» primero (las fichas de obra y los reportes que esperan fecha), los eventos del día, las fichas incompletas y cuántos esperan la decisión del jefe. Menú: Hoy, Agenda, Obras, Municipios y Biblioteca; «Por ponerle fecha» se abre desde Hoy y desde la Agenda. «Crear»: Nuevo evento, Visita de obra, Ficha de obra y Ficha comunitaria. Ve la agenda en calendario (día, semana o mes). Puede crear eventos con fecha, hora, duración, dirección, cómo llegar, contactos y ficha técnica (avisa si choca con otro), ver y descargar el material, ponerle fecha a lo que llega, moverlo («Mover»), cambiar fecha, lugar o ficha, cancelarlo con su motivo («Cancelar») y devolverlo a la agenda, asignar o quitar a quien graba y marcar el evento como realizado. Lo que crea o le pone fecha llega al jefe «Por decidir». No ve piezas, copies, tweets, publicaciones ni resultados, no sube material ni edita el storyboard, no borra eventos (solo Administración) y no decide por el jefe.",
    "tags": [
     "despacho",
@@ -216,7 +216,7 @@
     "politics",
     "admin"
    ],
-   "title": "Qué hace el director de política en la plataforma",
+   "title": "Qué hace el director de política en la app",
    "body": "Para qué: llevar el registro de cada municipio en fichas comunitarias (actividades, solicitudes, incidencias y avances) y decidir, con «¿Va a la agenda del jefe?», qué le manda al jefe y al despacho: prendido, «Guardar y avisar al jefe» y les llega «Por ponerle fecha»; apagado, «Guardar» y queda en el registro del municipio (una incidencia, por ejemplo). No pone fecha ni hora: eso lo hacen el jefe o Despacho. No ve la agenda con fecha y hora, ni piezas, copies, tweets o publicaciones. Entra con el código del correo y el doble factor. Inicio: Municipios. Cuando el jefe le pone fecha a su reporte, ve «Ya tiene fecha», nunca la fecha.",
    "tags": [
     "politica",
@@ -232,7 +232,7 @@
     "ivt",
     "admin"
    ],
-   "title": "Qué hace el director del IVT en la plataforma",
+   "title": "Qué hace el director del IVT en la app",
    "body": "Para qué: cargar la ficha de cada obra (del IVT) antes de la visita del jefe. No pone fecha ni hora: eso lo hacen el jefe o Despacho. No ve piezas, copies, tweets ni publicaciones. Entra con el código del correo y el doble factor. Inicio: Fichas de obra. Cuando el jefe o Despacho le ponen fecha a la visita, la ve en la Agenda («Mis visitas de obra») con su fecha, hora y dirección, solo la de sus obras y con el doble factor.",
    "tags": [
     "ivt",
@@ -332,7 +332,7 @@
     "social",
     "admin"
    ],
-   "title": "Qué hace Redes en la plataforma",
+   "title": "Qué hace Redes en la app",
    "body": "Para qué: armar el mes de contenido por formato y su feed, y convertir cada evento en piezas para las redes: storyboard, archivo final, copies, aprobación, publicación y resultados. Inicio: Hoy con cambios pedidos, eventos sin storyboard, material que llegó, piezas listas para publicar, días de tweets y lo trancado. Menú: Hoy, Agenda (los eventos, sin fecha), Redes (el tablero, las secciones Reels, Posts, Carruseles, Historias, YouTube y la del cierre de cada mes, y el feed), Tweets y «Más» (Publicar, Resultados, Biblioteca). «Crear»: pieza, tweets, publicación. No ve la fecha, la hora ni la dirección de los eventos, no aprueba piezas ni tweets, no publica nada no aprobado (ni con un copy o portada distintos a los aprobados), no baja el nivel de una pieza después de la primera revisión no reemplaza archivos (se sube una versión nueva) y no elimina piezas: eso es del jefe.",
    "tags": [
     "redes",
@@ -414,7 +414,7 @@
     "boss"
    ],
    "title": "Revisión de una pieza y su diseño",
-   "body": "«Revisado y listo para publicar» es la aprobación del jefe, la de siempre: en la tarjeta se ve cuando la aprobó. «Enviar a aprobación» dice qué falta cuando está apagado. Al jefe, en una pieza en revisión, le sale «Revisar», que abre su revisión y lo devuelve a la tarjeta. «Diseño aprobado» y «Diseño desaprobado» (con «¿Qué no le gustó del diseño?») los marcan Redes y el jefe: no es la aprobación y no cambia el estado. Pero si el jefe desaprueba el diseño de una pieza ya aprobada, no se publica hasta que la vuelva a aprobar, y solo él quita esa marca; la plataforma le pregunta «¿Pedir cambios también?». En una pieza aprobada, lo que sale (el copy, el título del reel o del video, el archivo, las láminas, el texto en pantalla y el sticker de la historia) se ve en lectura con «Editar (vuelve al jefe)»: cambiarlo la devuelve al jefe; lo demás se cambia libre.",
+   "body": "«Revisado y listo para publicar» es la aprobación del jefe, la de siempre: en la tarjeta se ve cuando la aprobó. «Enviar a aprobación» dice qué falta cuando está apagado. Al jefe, en una pieza en revisión, le sale «Revisar», que abre su revisión y lo devuelve a la tarjeta. «Diseño aprobado» y «Diseño desaprobado» (con «¿Qué no le gustó del diseño?») los marcan Redes y el jefe: no es la aprobación y no cambia el estado. Pero si el jefe desaprueba el diseño de una pieza ya aprobada, no se publica hasta que la vuelva a aprobar, y solo él quita esa marca; la app le pregunta «¿Pedir cambios también?». En una pieza aprobada, lo que sale (el copy, el título del reel o del video, el archivo, las láminas, el texto en pantalla y el sticker de la historia) se ve en lectura con «Editar (vuelve al jefe)»: cambiarlo la devuelve al jefe; lo demás se cambia libre.",
    "tags": [
     "revisado",
     "listo para publicar",
@@ -560,7 +560,7 @@
     "boss"
    ],
    "title": "Tweets de la semana",
-   "body": "En Tweets → nueva tanda: se pega o se sube el documento de la semana, la plataforma separa los tweets, marca repetidos y largos y los reparte 2 o 3 por día en las franjas guardadas. El jefe los aprueba; ya aprobados, Redes los programa. Cuando quedan pocos días de tweets programados, la plataforma avisa a Redes. Para mover un tweet, se toca y se cambia día y hora (arrastrar no funciona con el dedo).",
+   "body": "En Tweets → nueva tanda: se pega o se sube el documento de la semana, la app separa los tweets, marca repetidos y largos y los reparte 2 o 3 por día en las franjas guardadas. El jefe los aprueba; ya aprobados, Redes los programa. Cuando quedan pocos días de tweets programados, la app avisa a Redes. Para mover un tweet, se toca y se cambia día y hora (arrastrar no funciona con el dedo).",
    "tags": [
     "tweets",
     "semana",
@@ -574,7 +574,7 @@
     "admin"
    ],
    "title": "Cómo se publica a mano",
-   "body": "En Publicar → nueva publicación: se eligen la pieza aprobada y las redes. La plataforma revisa duración, medidas, peso y largo del copy de cada red y muestra las mejores horas. Se descarga el paquete, se publica en la red y se marca «Ya lo publiqué» con el link. Solo se publica lo aprobado, tal cual se aprobó: si cambió el video o un copy, la pieza vuelve a revisión y lo programado vuelve a borrador. La publicación automática está apagada en esta fase. En la tarjeta de una pieza aprobada también está «Ya lo publiqué»: se marca cada red con su link y una captura, y la tarjeta se pone verde.",
+   "body": "En Publicar → nueva publicación: se eligen la pieza aprobada y las redes. La app revisa duración, medidas, peso y largo del copy de cada red y muestra las mejores horas. Se descarga el paquete, se publica en la red y se marca «Ya lo publiqué» con el link. Solo se publica lo aprobado, tal cual se aprobó: si cambió el video o un copy, la pieza vuelve a revisión y lo programado vuelve a borrador. La publicación automática está apagada en esta fase. En la tarjeta de una pieza aprobada también está «Ya lo publiqué»: se marca cada red con su link y una captura, y la tarjeta se pone verde.",
    "tags": [
     "publicar",
     "link",
@@ -602,7 +602,7 @@
     "admin"
    ],
    "title": "Registrar lo que el jefe publicó por su cuenta",
-   "body": "En Publicar → «Lo que publicó el jefe»: se anota la red, un título y el link de lo que el jefe subió por su cuenta, para que cuente en Resultados. No pasa por aprobación porque ya salió y la plataforma nunca lo envía.",
+   "body": "En Publicar → «Lo que publicó el jefe»: se anota la red, un título y el link de lo que el jefe subió por su cuenta, para que cuente en Resultados. No pasa por aprobación porque ya salió y la app nunca lo envía.",
    "tags": [
     "publicar",
     "jefe",
@@ -666,7 +666,7 @@
     "camera",
     "admin"
    ],
-   "title": "Qué hace Grabación en la plataforma",
+   "title": "Qué hace Grabación en la app",
    "body": "Para qué: grabar los eventos asignados y dejarle al editor todo lo que necesita. Inicio: Hoy con sus eventos y los pasados sin material («Sube el material»). Menú: Hoy y Agenda (sus eventos). Ve solo los eventos que le asignaron, con su fecha, hora y dirección; lee la ficha y el storyboard para saber qué tomas hacen falta. Por cada evento, en la pestaña Material («Entrega de Grabación»): sube el material por casilla, ya limpio y en el archivo original, sube el storyboard con el que grabó (foto, PDF o escrito) y deja una nota para el editor (qué toma sirve, qué falló; sin hora, fecha, dirección ni teléfonos: Redes la lee). Descarga el material de sus eventos y marca el evento como realizado. No ve eventos que no le asignaron, no sube finales ni portadas ni sube a eventos ajenos, no ve piezas, tweets ni publicaciones y no edita la ficha, la fecha ni el storyboard del evento.",
    "tags": [
     "grabacion",
@@ -697,7 +697,7 @@
    "roles": [
     "admin"
    ],
-   "title": "Qué hace Administración en la plataforma",
+   "title": "Qué hace Administración en la app",
    "body": "Para qué: manejar el equipo, los permisos y los ajustes. Puede hacer todo lo de Redes, pero nunca aprueba. Inicio: Hoy, con lo de Redes y lo trancado. Menú: Hoy, Agenda, Por aprobar, Redes, Obras, Municipios, Tweets, Publicar, Resultados, Biblioteca y Ajustes (en el teléfono, lo que no cabe está en «Más»). Lee la agenda con fecha y hora, pero no crea eventos, no les pone fecha, no los mueve ni los cancela (eso es del jefe y Despacho); sí borra y restaura. No aprueba piezas ni tweets ni pide cambios con decisión formal (solo comenta), no ve los contactos de las fichas comunitarias, no se da roles a sí misma ni puede ser también el jefe o Despacho, no edita ni borra el registro de cambios y no enciende la publicación automática. Las piezas las elimina solo el jefe: Administración las recupera en Ajustes → Cupo y pilares → «Piezas eliminadas», donde también pone el cupo del mes y los pilares.",
    "tags": [
     "administracion",
@@ -726,7 +726,7 @@
     "admin"
    ],
    "title": "Qué se cambia en Ajustes",
-   "body": "Ajustes (solo Administración): Equipo, Categorías, Fórmulas de copies, Horarios de tweets y mejores horas, Reglas de video por red, Marca (textos, saludo, cierres y hashtags), Cupo y pilares (el cupo del mes de cada formato, los pilares y las piezas eliminadas), Buzón (todos los correos que generó la plataforma; con datos de prueba no sale ninguno), Registro de cambios (quién hizo qué) y el Asistente (lo que sabe, cómo contesta y su nombre). «Ver como…» muestra los menús de otro rol para revisar, sin cambiar permisos.",
+   "body": "Ajustes (solo Administración): Equipo, Categorías, Fórmulas de copies, Horarios de tweets y mejores horas, Reglas de video por red, Marca (textos, saludo, cierres y hashtags), Cupo y pilares (el cupo del mes de cada formato, los pilares y las piezas eliminadas), Buzón (todos los correos que generó la app; con datos de prueba no sale ninguno), Registro de cambios (quién hizo qué) y el Asistente (lo que sabe, cómo contesta y su nombre). «Ver como…» muestra los menús de otro rol para revisar, sin cambiar permisos.",
    "tags": [
     "ajustes",
     "configuracion"
@@ -748,7 +748,7 @@
    "key": "mensajes",
    "roles": null,
    "title": "Mensajes: los canales del equipo",
-   "body": "Mensajes está en el sobre de arriba, junto a la campana. Son canales, y cada quien ve solo los canales donde está: cada uno tiene su nombre, para qué es y arriba muestra quiénes están. El jefe arma los canales, decide quién va en cada uno y está en todos. En «Todo el equipo» están todos los del equipo. Para hablar de un evento, una pieza o una ficha, pegas su dirección de la plataforma y cada quien la abre con sus permisos. Nunca van teléfonos: los contactos van en la ficha. Si conoces la agenda, no escribas fechas, horas ni mapas donde están Redes o política. En el teléfono, Enter hace un salto de línea y se envía con el botón. Una cuenta con administración no entra a Mensajes.",
+   "body": "Mensajes está en el sobre de arriba, junto a la campana. Son canales, y cada quien ve solo los canales donde está: cada uno tiene su nombre, para qué es y arriba muestra quiénes están. El jefe arma los canales, decide quién va en cada uno y está en todos. En «Todo el equipo» están todos los del equipo. Para hablar de un evento, una pieza o una ficha, pegas su dirección de la app y cada quien la abre con sus permisos. Nunca van teléfonos: los contactos van en la ficha. Si conoces la agenda, no escribas fechas, horas ni mapas donde están Redes o política. En el teléfono, Enter hace un salto de línea y se envía con el botón. Una cuenta con administración no entra a Mensajes.",
    "tags": [
     "mensajes",
     "mensaje",
@@ -780,7 +780,7 @@
    "key": "ayuda-guias",
    "roles": null,
    "title": "Dónde está la guía de mi trabajo",
-   "body": "La guía de tu trabajo está en el menú de tu cuenta, arriba a la derecha, en «Ayuda y guías»: qué hace tu rol, tu día, el paso a paso, cada pantalla y cómo pasa el trabajo de un rol a otro. Vive en la plataforma, no se manda por correo, y se abre con señal.",
+   "body": "La guía de tu trabajo está en el menú de tu cuenta, arriba a la derecha, en «Ayuda y guías»: qué hace tu rol, tu día, el paso a paso, cada pantalla y cómo pasa el trabajo de un rol a otro. Vive en la app, no se manda por correo, y se abre con señal.",
    "tags": [
     "guia",
     "guias",

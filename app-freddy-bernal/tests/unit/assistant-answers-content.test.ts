@@ -30,7 +30,38 @@ const SOURCE = sourceFiles('src')
   .map((f) => withoutComments(fs.readFileSync(f, 'utf8')))
   .join('\n')
   .replace(/\s+/g, ' ');
-const labelFound = (label: string) => SOURCE.includes(label) || LABEL_PATTERNS.some((p) => p.re.test(label)) || LABEL_ALLOW.includes(label);
+// The counted labels with the example number of the team guide («Aprobar todas las verdes (2)», «5 personas», «Mes 1 ·
+// 8 de 8»), never «(n)» (decision 1 of this round), and the labels the screens build from a value («Nivel amarillo»,
+// «Todo bien para Instagram.», «Publicar antes (#20)»). The guides' LABEL_PATTERNS (check.ts) take them too; this list
+// keeps the answers' check on its own, whatever the order the two lands in. Each `source` is still in src/ (checked below).
+const EXAMPLE_PATTERNS: { re: RegExp; source: string }[] = [
+  { re: /^Aprobar todas las verdes \(\d+\)$/, source: 'Aprobar todas las verdes (${n})' },
+  { re: /^Programar en \d+ redes$/, source: 'Programar en ${' },
+  { re: /^Aprobar los \d+$/, source: 'Aprobar los {counts.draft}' },
+  { re: /^Esperan tu decisión \(\d+\)$/, source: 'Esperan tu decisión (${' },
+  { re: /^Por ponerle fecha \(\d+\)$/, source: 'Por ponerle fecha (${' },
+  { re: /^Piezas \(\d+\)$/, source: 'Piezas ({data.pieces.length})' },
+  { re: /^Tweets \(\d+\)$/, source: 'Tweets ({data.tweets.length})' },
+  { re: /^\d+ tweets por aprobar$/, source: "'tweets por aprobar'" },
+  { re: /^Quedan \d+ días de tweets$/, source: 'Quedan ${stock.daysLeft} días de tweets' },
+  { re: /^Mes \d+ · \d+ de \d+$/, source: '${label} · ${count} de ${quotaLabel}' },
+  { re: /^\d+ de 24 espacios ocupados en este mes$/, source: 'de ${FEED_SIZE} espacios ocupados en este mes' },
+  { re: /^Espacio #\d{2}$/, source: 'Espacio #${' },
+  { re: /^Ya en Mes \d+ · #\d+$/, source: 'Ya en ${month} · #${n}' },
+  { re: /^En Feed · Mes \d+ #\d+$/, source: 'En Feed · ${month} #${n}' },
+  { re: /^Movida al #\d+$/, source: 'Movida al #${n}' },
+  { re: /^\d+ personas$/, source: '${n} personas' },
+  { re: /^Publicar (?:antes|después) \(#\d+\)$/, source: 'Publicar antes (#${num - 1})' },
+  { re: /^Resumen del mes · Mes \d+$/, source: 'Resumen del mes · ${monthLabel}' },
+  { re: /^Nivel (?:verde|amarillo|rojo)$/, source: 'Nivel {LEVELS[l].label.toLowerCase()}' },
+  { re: /^Todo bien para \p{L}[\p{L} ]*\.$/u, source: 'Todo bien para {c.label}.' },
+  { re: /^Ver el tutorial: .+$/, source: 'Ver el tutorial: ${title}' },
+];
+const RAW_SOURCE = sourceFiles('src')
+  .map((f) => fs.readFileSync(f, 'utf8'))
+  .join('\n');
+const labelFound = (label: string) =>
+  SOURCE.includes(label) || LABEL_PATTERNS.some((p) => p.re.test(label)) || EXAMPLE_PATTERNS.some((p) => p.re.test(label)) || LABEL_ALLOW.includes(label);
 
 const HUECOS = ['[ASISTENTE]', '[APP]', '[JEFE]', '[NOMBRE]'];
 const EVERYONE: Role[] = ['admin', ...TEAM_ROLES];
@@ -103,6 +134,11 @@ describe('las respuestas de 360', () => {
       }
     }
     expect(bad, `\n${bad.join('\n')}`).toEqual([]);
+  });
+
+  it('cada etiqueta contada con su número de ejemplo sale del código que la arma', () => {
+    const missing = EXAMPLE_PATTERNS.filter((p) => !RAW_SOURCE.includes(p.source)).map((p) => p.source);
+    expect(missing).toEqual([]);
   });
 
   it('el botón va a una pantalla que alguno de sus roles abre, y el tutorial existe', () => {
