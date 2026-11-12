@@ -238,7 +238,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-quitar-jefe',
     roles: ['admin'],
     q: ['puedo quitarle el rol de jefe a alguien', 'quitar rol de jefe', 'el jefe cambió de cuenta', 'sacar a alguien del rol de jefe'],
-    a: 'Quitarlo sí se puede: «Cambiar» en esa persona y desmarcas «Jefe». Darlo de nuevo solo lo hace el comando de instalación.',
+    a: 'Quitarlo sí se puede: «Cambiar» en esa persona y desmarcas «Jefe». Darlo de nuevo solo lo puede hacer quien instala la app.',
     go: '/ajustes/equipo',
   },
   {
