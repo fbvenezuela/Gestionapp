@@ -1,6 +1,6 @@
 // 360's answer index (D-89, src/lib/assistant/answers/engine.ts): how a question is read (shorthand, dictation, verb
-// forms), what the index is made of (the guides, «Para todos», the flows, administración's guide and the curated
-// answers), how an entry is chosen (both ways, rare words, labels, the screen, «¿quién…?», a follow-up), the text per
+// forms), what the index is made of (the guides, «Para todos» with «Palabras de la app», the flows, administración's
+// guide and the curated answers), how an entry is chosen (both ways, rare words, labels, the screen, «¿quién…?», a follow-up), the text per
 // role, that no answer carries a date, a time or a phone, and that it stays fast. Pure: no database.
 import { describe, it, expect } from 'vitest';
 import type { Role } from '@/lib/roles';
@@ -45,9 +45,9 @@ describe('cómo lee una pregunta', () => {
 describe('las entradas', () => {
   const entries = allEntries();
 
-  it('vienen de las guías: tareas y pasos, pantallas, lo que no se puede, preguntas, el trabajo, «Para todos», flujos y administración', () => {
+  it('vienen de las guías: tareas y pasos, pantallas, lo que no se puede, preguntas, el trabajo, «Para todos», las palabras, flujos y administración', () => {
     const kinds = new Set(entries.map((e) => e.kind));
-    for (const k of ['task', 'step', 'screen', 'item', 'cannot', 'faq', 'job', 'never', 'with', 'day', 'topic', 'line', 'flow', 'note'] as const) expect(kinds.has(k), k).toBe(true);
+    for (const k of ['task', 'step', 'screen', 'item', 'cannot', 'faq', 'job', 'never', 'with', 'day', 'topic', 'line', 'flow', 'note', 'term'] as const) expect(kinds.has(k), k).toBe(true);
     expect(entries.length).toBeGreaterThan(800);
   });
 
@@ -70,7 +70,7 @@ describe('las entradas', () => {
     expect(entries.find((e) => e.kind === 'cannot' && e.roles?.includes('ivt'))?.a).toMatch(/^No puedes /);
   });
 
-  it('administración no tiene Mensajes: la línea del sobre le dice que no es para ella', () => {
+  it('administración no tiene Mensajes: la línea de los globitos le dice que no es para ella', () => {
     const admin = entries.filter((e) => e.roles?.includes('admin') && e.source === 'shared:arriba');
     expect(admin.some((e) => e.a === NO_MESSAGES_LINE)).toBe(true);
     expect(entries.some((e) => e.source === 'shared:mensajes' && (e.roles === null || e.roles.includes('admin')))).toBe(false);
@@ -79,6 +79,14 @@ describe('las entradas', () => {
   it('los textos de la pantalla con una palabra de tiempo están entre las etiquetas que se conocen', () => {
     const labels = knownLabels();
     for (const l of ['por ponerle fecha', 'hoy en la agenda', 'horas de silencio', 'vaciar este mes']) expect(labels, l).toContain(l);
+    // A counted label is known by its words, without the example number («Aprobar todas las verdes (2)»).
+    for (const l of ['aprobar todas las verdes', 'publicar antes', 'resumen del mes']) expect(labels, l).toContain(l);
+    expect(labels.some((l) => /\b2\b/.test(l) && l.startsWith('aprobar todas'))).toBe(false);
+  });
+
+  it('«los globitos» de arriba son Mensajes, como «el sobre»', () => {
+    expect(readable('donde estan los globitos')).toBe('donde estan los mensajes');
+    expect(readable('para que es el sobre')).toBe('paraque es mensajes');
   });
 
   it('una tarea se dice paso a paso, hasta unas 420 letras', () => {

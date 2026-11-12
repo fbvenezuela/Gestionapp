@@ -53,7 +53,7 @@ export const CHAT_TIMECODE_ASK = '¿{t} es un tiempo del video? Si es una hora, 
 // Before sending, a relative word (E1): «Enviar igual» / «Corregir».
 export const CHAT_RELATIVE_ASK = '“{w}”: ¿dice cuándo va el jefe? Si es de la agenda, no va aquí.';
 // A phone (D-53), and a phone inside a link.
-export const CHAT_PHONE_TEXT = 'Los teléfonos no van en los mensajes: los contactos van en la ficha, con doble factor.';
+export const CHAT_PHONE_TEXT = 'Los teléfonos no van en los mensajes: van en los contactos de la ficha.';
 export const CHAT_PHONE_LINK_TEXT = 'Ese enlace tiene un número largo que parece un teléfono. Si es de la plataforma, pega su dirección; si no, quita el número.';
 
 /** A text with its {w} or {t} filled. */

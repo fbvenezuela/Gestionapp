@@ -1,12 +1,13 @@
 // The flowchart as the app draws it (R3, D-44, map_ui §8): an ordered list with its name and number of steps, arrows
-// hidden from screen readers, decisions as a list inside their card, «tú» on the reader's steps, and a link to a
-// screen only when the reader can open it. Rendered here without a server.
+// hidden from screen readers, decisions as a list inside their card that say where they go (forward, back, the same
+// step), «tú» on the reader's steps, a link to a screen only when the reader can open it, and a link to the flow a step
+// goes on in. Rendered here without a server.
 import { describe, it, expect } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Flowchart } from '@/components/guides/flowchart';
 import { TasksTab } from '@/components/guides/role-guide';
-import { FLOWS, flowById, guideFor } from '@/lib/guides';
+import { FLOWS, flowById, guideFor, jumpWords } from '@/lib/guides';
 
 const html = (id: string, mine: Parameters<typeof Flowchart>[0]['mine'], roles: Parameters<typeof Flowchart>[0]['roles']) =>
   renderToStaticMarkup(createElement(Flowchart, { flow: flowById(id)!, mine, roles }));
@@ -38,6 +39,30 @@ describe('el flujograma en la app', () => {
     expect(out).toContain('¿Va a la agenda del jefe?');
     expect(out).toMatch(/<ul[^>]*aria-label="Respuestas a: ¿Va a la agenda del jefe\?"/);
     expect(text(out)).toContain('No → : «Guardar»: queda en el registro del municipio. Sigue en el paso 4.');
+  });
+
+  it('una rama que vuelve dice a qué paso vuelve; a su mismo paso, «Vuelve a este paso»', () => {
+    // «Un reporte de la comunidad»: not finished, back to the follow-up (step 4).
+    expect(text(html('comunitario', ['politics'], ['politics']))).toContain('No → : Le sigue dando seguimiento. Vuelve al paso 4.');
+    // «Una obra»: a draft goes back to its own step; cancelled or rejected, back to «Por ponerle fecha» (step 3).
+    const obra = text(html('obra', ['ivt'], ['ivt']));
+    expect(obra).toContain('No → : «Guardar borrador»: todavía no le llega al jefe. La completa después. Vuelve a este paso.');
+    expect(obra).toContain('Sí → : La ficha vuelve sola a «Por ponerle fecha» y al IVT le llega un aviso. Vuelve al paso 3.');
+    expect(obra).toContain('No → : Se sigue con el paso 5.');
+    expect(jumpWords(4, 2)).toBe(' Sigue en el paso 4.');
+    expect(jumpWords(3, 2)).toBe('');
+    expect(jumpWords(1, 2)).toBe(' Vuelve al paso 1.');
+    expect(jumpWords(2, 2)).toBe(' Vuelve a este paso.');
+    expect(jumpWords(0, 2)).toBe('');
+  });
+
+  it('un paso que sigue en otro flujo lleva a él', () => {
+    const out = html('evento', ['boss'], ['boss']);
+    const see = flowById('aprobacion')!;
+    expect(out).toContain(`href="/ayuda/flujos?f=aprobacion"`);
+    expect(text(out)).toContain(`La aprobación, con el semáforo. Sigue en el flujo «${see.title}»`);
+    expect(flowById('evento')!.steps.find((s) => s.id === 'aprueba')!.see).toBe('aprobacion');
+    for (const f of FLOWS) for (const s of f.steps) if (s.see) expect(flowById(s.see), `${f.id}/${s.id}`).not.toBeNull();
   });
 
   it('«tú» en los pasos de quien lee, con borde de acento', () => {
@@ -82,5 +107,10 @@ describe('el flujograma en la app', () => {
       }
       expect(() => html(f.id, ['boss'], ['boss'])).not.toThrow();
     }
+    // 8.2: the question «¿Se canceló o el jefe la rechazó?» is the IVT's, before the visit; after the visit, nothing to ask.
+    const obra = flowById('obra')!;
+    expect(obra.steps.map((s) => s.id)).toEqual(['ficha', 'fotos', 'fecha', 'visitas', 'discurso', 'lee', 'hecho']);
+    expect(obra.steps.find((s) => s.id === 'visitas')!.question).toBe('¿Se canceló o el jefe la rechazó?');
+    expect(obra.steps.find((s) => s.id === 'hecho')!.question).toBeUndefined();
   });
 });

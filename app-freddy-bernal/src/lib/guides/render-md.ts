@@ -3,6 +3,8 @@
 // (tests/unit/guides-docs.test.ts compares them; scripts/guides-docs.mts writes them). Never edit the .md by hand.
 import { TEAM_ROLES, type TeamRole } from '../roles';
 import type { AdminGuide, Flow, FlowStep, RoleGuide, SharedTopic, Tour } from './types';
+import { SEE_FLOW, flowById, jumpWords } from './flows';
+import { GLOSSARY } from './glossary';
 
 // The line on top of every document. Real people are named only in the docs (tests/unit/roles.test.ts), so the name
 // is put together here and lands only in docs/*.md.
@@ -34,8 +36,10 @@ const bullets = (items: readonly string[]) => items.map((x) => `- ${x}`).join('\
 const numbered = (items: readonly string[]) => items.map((x, i) => `${i + 1}. ${x}`).join('\n');
 export const flowAnchor = (id: string) => `flujo-${id}`;
 
+// «Para todos», with «Palabras de la app» last (the glossary of /ayuda#palabras).
 function sharedMd(topics: readonly SharedTopic[]): string {
-  return ['## Para todos', ...topics.map((t) => `### ${t.title}\n${bullets(t.body)}`)].join('\n\n');
+  const words = `### Palabras de la app\n${bullets(GLOSSARY.map((g) => `**${g.term}.** ${g.text}`))}`;
+  return ['## Para todos', ...topics.map((t) => `### ${t.title}\n${bullets(t.body)}`), words].join('\n\n');
 }
 
 function roleMd(g: RoleGuide, flows: readonly Flow[], tours: readonly Tour[]): string {
@@ -61,7 +65,7 @@ function roleMd(g: RoleGuide, flows: readonly Flow[], tours: readonly Tour[]): s
     [
       '### Paso a paso',
       ...g.tasks.map((t) => {
-        const extra = [flowTitle(t.flow) ? `Flujo: [${flowTitle(t.flow)}](FLUJOS.md#${flowAnchor(t.flow!)})` : '', tourTitle(t.tour) ? `Tutorial en la app: “${tourTitle(t.tour)}”` : '']
+        const extra = [flowTitle(t.flow) ? `Cómo sigue el trabajo: [${flowTitle(t.flow)}](FLUJOS.md#${flowAnchor(t.flow!)})` : '', tourTitle(t.tour) ? `Tutorial en la app: «${tourTitle(t.tour)}»` : '']
           .filter(Boolean)
           .join(' · ');
         return `#### ${t.title}\n_Cuándo:_ ${t.when}\n\n${numbered(t.steps)}${extra ? `\n\n${extra}` : ''}`;
@@ -73,7 +77,7 @@ function roleMd(g: RoleGuide, flows: readonly Flow[], tours: readonly Tour[]): s
     return `| **${cell(s.title)}**<br>${cell(s.menu)} · \`${s.screen}\` | ${cell(s.what)} | ${does} |`;
   });
   out.push(['### Cada sección de la app', '| Sección | Para qué | Qué haces |', '|---|---|---|', ...rows].join('\n'));
-  out.push(`### Flujos\n${bullets(g.flows.map((id) => `[${flowTitle(id)}](FLUJOS.md#${flowAnchor(id)})`))}`);
+  out.push(`### Cómo pasa tu trabajo a los demás\n${bullets(g.flows.map((id) => `[${flowTitle(id)}](FLUJOS.md#${flowAnchor(id)})`))}`);
   out.push(`### Preguntas\n${g.faq.map((f) => `**${f.q}**\n${f.a}`).join('\n\n')}`);
   return out.join('\n\n');
 }
@@ -86,7 +90,7 @@ export function renderGuideMd(p: { shared: readonly SharedTopic[]; guides: reado
     GENERATED('shared.ts, boss.ts, dispatch.ts, politics.ts, ivt.ts, camera.ts, social.ts'),
     'Son seis roles: el jefe, el despacho, política, el IVT, Grabación y Redes. Para cada uno: su trabajo, su día, cada ' +
       'tarea paso a paso y lo que se hace en cada sección de la app, con los botones como los dice la pantalla («…»). Lo ' +
-      'mismo está en la app, en «Mi cuenta» → «Ayuda y guías», con los tutoriales de cada pantalla. Los flujos entre ' +
+      'mismo está en la app, en Mi cuenta → «Ayuda y guías», con los tutoriales de cada pantalla. Los flujos entre ' +
       'roles están en [FLUJOS.md](FLUJOS.md). La guía de administración va aparte, en ' +
       '[GUIA-ADMINISTRACION.md](GUIA-ADMINISTRACION.md).',
     sharedMd(p.shared),
@@ -100,7 +104,7 @@ export function renderGuideMd(p: { shared: readonly SharedTopic[]; guides: reado
       '|---|---|',
       ...DEMO_USERS.map(([r, e]) => `| ${r} | ${e} |`),
       '',
-      'Qué probar primero con cada rol: el tutorial de su inicio («Mi cuenta» → «Ver el tutorial: Bienvenida»), su ' +
+      'Qué probar primero con cada rol: el tutorial de su inicio (Mi cuenta → «Ver el tutorial: Bienvenida»), su ' +
         'guía en «Ayuda y guías», un canal de Mensajes y lo de su «Paso a paso».',
     ].join('\n'),
   ];
@@ -121,7 +125,8 @@ export function flowMermaid(flow: Flow): string {
   const next = (i: number) => flow.steps[i + 1];
   flow.steps.forEach((s: FlowStep, i) => {
     const id = node(flow, s.id);
-    lines.push(`  ${id}["${label(`${who(s.roles)}: ${s.text}`)}"]`);
+    const see = s.see ? ` ${SEE_FLOW} «${flowById(s.see)?.title ?? s.see}».` : '';
+    lines.push(`  ${id}["${label(`${who(s.roles)}: ${s.text}${see}`)}"]`);
     if (s.question) {
       const q = `${id}_q`;
       lines.push(`  ${id} --> ${q}{"${label(s.question)}"}`);
@@ -141,9 +146,10 @@ function flowList(flow: Flow): string {
   const n = (id: string) => flow.steps.findIndex((s) => s.id === id) + 1;
   return flow.steps
     .map((s, i) => {
-      const head = `${i + 1}. **${who(s.roles)}:** ${s.text}${s.href ? ` (\`${s.href}\`)` : ''}`;
+      const see = s.see ? ` ${SEE_FLOW} [${flowById(s.see)?.title ?? s.see}](#${flowAnchor(s.see)}).` : '';
+      const head = `${i + 1}. **${who(s.roles)}:** ${s.text}${see}${s.href ? ` (\`${s.href}\`)` : ''}`;
       if (!s.question) return head;
-      const branches = (s.branches ?? []).map((b) => `   - ${b.label} → ${b.text}${b.to && n(b.to) !== i + 2 ? ` Sigue en el paso ${n(b.to)}.` : ''}`);
+      const branches = (s.branches ?? []).map((b) => `   - ${b.label} → ${b.text}${b.to ? jumpWords(n(b.to), i + 1) : ''}`);
       return [head, `   ${s.question}`, ...branches].join('\n');
     })
     .join('\n');
@@ -156,7 +162,7 @@ export function renderFlowsMd(flows: readonly Flow[]): string {
     NOT_SENT,
     GENERATED('flows.ts'),
     'Cómo pasa el trabajo de un rol a otro. GitHub dibuja cada diagrama; debajo va el mismo flujo en lista. En la app ' +
-      'está en «Mi cuenta» → «Ayuda y guías» → «Cómo va el trabajo entre todos», con «tú» en los pasos de cada quien. ' +
+      'está en Mi cuenta → «Ayuda y guías» → «Cómo va el trabajo entre todos», con «tú» en los pasos de cada quien. ' +
       'Ningún flujo lleva fechas ni horas.',
     bullets(flows.map((f) => `[${f.title}](#${flowAnchor(f.id)})`)),
     ...flows.map((f) =>

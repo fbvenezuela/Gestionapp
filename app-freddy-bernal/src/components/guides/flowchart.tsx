@@ -3,14 +3,16 @@ import { ChevronRight } from 'lucide-react';
 import type { Role, TeamRole } from '@/lib/roles';
 import { canOpen, screenFor } from '@/lib/assistant/screens';
 import type { Flow, FlowStep } from '@/lib/guides/types';
+import { SEE_FLOW, flowById, jumpWords } from '@/lib/guides/flows';
 import { cn } from '@/lib/cn';
 import { Card, CardBody } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 
 // A flow between roles as the app shows it (R3, D-44, map_ui §8): an ordered list of cards, one column at every width,
 // with decorative arrows (SVG, aria-hidden) between them. A decision keeps its question and its ways out inside the
-// card, as a list («Sí → …»), never only in an arrow. The reader's own steps get an accent border and «tú». A step
-// links to its screen only when the reader can open it. Screen readers hear «lista, N elementos: Paso 1 …».
+// card, as a list («Sí → …»), never only in an arrow, and says where it goes (« Vuelve al paso 3.», « Sigue en el paso 5.»).
+// The reader's own steps get an accent border and «tú». A step links to its screen only when the reader can open it,
+// and to the flow it goes on in («Sigue en el flujo El semáforo»). Screen readers hear «lista, N elementos: Paso 1 …».
 // Colors only through tokens and currentColor (no-hardcoded-colors.test.ts); no ::before over the text.
 
 // The short names the guides use («Despacho», not «Director de despacho»).
@@ -41,6 +43,7 @@ function Step({ step, n, flow, mine, roles }: { step: FlowStep; n: number; flow:
   const yours = step.roles.some((r) => mine.includes(r));
   const open = step.href && canOpen(step.href, [...roles]) ? screenFor(step.href) : null;
   const stepNo = (id: string) => flow.steps.findIndex((s) => s.id === id) + 1;
+  const see = step.see ? flowById(step.see) : null;
   return (
     <Card className={cn(yours && 'border-2 border-accent')}>
       <CardBody className="flex flex-col gap-2">
@@ -65,12 +68,18 @@ function Step({ step, n, flow, mine, roles }: { step: FlowStep; n: number; flow:
                     <span aria-hidden="true"> → </span>
                     <span className="sr-only">: </span>
                     {b.text}
-                    {to && to !== n + 1 ? <span className="text-text-2"> Sigue en el paso {to}.</span> : null}
+                    {jumpWords(to, n) ? <span className="text-text-2">{jumpWords(to, n)}</span> : null}
                   </li>
                 );
               })}
             </ul>
           </div>
+        ) : null}
+        {see ? (
+          <Link href={`/ayuda/flujos?f=${see.id}`} className="inline-flex min-h-11 w-fit items-center gap-1 rounded-[var(--radius-control)] text-[15px] font-semibold text-accent-ink hover:underline">
+            {SEE_FLOW} «{see.title}»
+            <ChevronRight className="h-4 w-4" aria-hidden />
+          </Link>
         ) : null}
         {open ? (
           <Link href={step.href!} className="inline-flex min-h-11 w-fit items-center gap-1 rounded-[var(--radius-control)] text-[15px] font-semibold text-accent-ink hover:underline">

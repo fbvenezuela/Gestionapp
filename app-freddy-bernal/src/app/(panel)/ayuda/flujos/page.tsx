@@ -34,7 +34,7 @@ export default async function FlowsPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Cómo va el trabajo entre todos" subtitle="Cómo pasa el trabajo de un rol a otro. Toca uno para verlo paso a paso." back={{ href: '/ayuda', label: 'Ayuda y guías' }} />
+      <PageHeader title="Cómo va el trabajo entre todos" subtitle="Un flujo es el camino que sigue un trabajo de un rol a otro. Toca uno para verlo paso a paso." back={{ href: '/ayuda', label: 'Ayuda y guías' }} />
       <Card solid>
         <ul className="divide-y divide-border">
           {FLOWS.map((f) => {

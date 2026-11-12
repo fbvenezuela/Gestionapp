@@ -13,7 +13,7 @@ export const CAMERA_GUIDE: RoleGuide = {
     mission: 'Grabas lo que te asignan y entregas el material limpio, con lo que Redes necesita para editar.',
     responsibilities: [
       'Leer la ficha técnica y el storyboard de Redes antes de grabar.',
-      'Subir el material por casillas, ya limpio y en el archivo original.',
+      'Subir el material, cada parte en su casilla, ya limpio y en el archivo original (tal como sale de la cámara).',
       'Dejar tu entrega: el storyboard con el que grabaste y una nota para quien edita.',
       'Marcar realizado el evento cuando ya empezó.',
       'Subir el material el mismo día: Hoy te avisa lo que falta.',
@@ -21,7 +21,7 @@ export const CAMERA_GUIDE: RoleGuide = {
     never: [
       'Escribir fechas, horas, direcciones ni teléfonos en la nota para el editor: la lee Redes.',
       'Cambiar el storyboard de Redes: el tuyo va en tu entrega.',
-      'Escribirle a Redes o a política la fecha o la hora de un evento: la plataforma no lo deja.',
+      'Escribirle a Redes o a política la fecha o la hora de un evento: la app no lo deja.',
     ],
     worksWith: [
       { role: 'dispatch', what: 'Te asigna los eventos en «Quién graba» y te deja la ficha técnica lista.' },
@@ -35,7 +35,7 @@ export const CAMERA_GUIDE: RoleGuide = {
     ],
   },
   day: [
-    'Abres la plataforma y caes en Hoy.',
+    'Abres la app y caes en Hoy.',
     'Si dice «Sube el material», ese evento ya pasó y todavía no tiene archivos.',
     'En la Agenda, «Mis eventos»: los que te tocan, con su fecha y su dirección.',
     'Antes de salir, abres el evento: la ficha y el storyboard.',
@@ -60,10 +60,10 @@ export const CAMERA_GUIDE: RoleGuide = {
       title: 'Subir el material',
       when: 'El mismo día que grabas.',
       steps: [
-        'Abre el evento: abre en la pestaña «Material».',
+        'Abre el evento: se abre directo en la pestaña «Material».',
         'Cada parte en su casilla: lo del jefe hablando, el dron, las tomas de apoyo y lo demás, con el botón «Subir» de cada una.',
-        'Sube el material ya limpio (sin tiempos ni tomas muertas), en el archivo original.',
-        'Se sube por partes: si se va la señal, sigue sola cuando vuelve.',
+        'Sube el material ya limpio (sin esperas ni tomas que no sirven) y en el archivo original: tal como sale de la cámara, sin pasarlo por WhatsApp.',
+        'Si se va la señal, la subida sigue sola cuando vuelve.',
       ],
       flow: 'entrega',
       tour: 'evento-grabacion-material',
@@ -73,7 +73,7 @@ export const CAMERA_GUIDE: RoleGuide = {
       title: 'Dejar tu entrega',
       when: 'Después de subir.',
       steps: [
-        'En «Entrega de Grabación», «Subir el storyboard (foto o PDF)» o «O escríbelo aquí» y «Guardar storyboard».',
+        'Más abajo, en «Storyboard con el que se grabó»: «Subir el storyboard (foto o PDF)», o «O escríbelo aquí» y «Guardar storyboard».',
         'En «Tu nota para el editor», qué toma sirve, qué falló y qué falta; después «Guardar nota».',
         'Sin hora, fecha, dirección ni teléfonos: la lee Redes. Si pones un teléfono, no se guarda.',
       ],
@@ -117,11 +117,11 @@ export const CAMERA_GUIDE: RoleGuide = {
       tour: 'evento-grabacion-material',
       what: 'Donde subes lo que grabaste y dejas tu entrega.',
       youDo: [
-        'Arriba, el aviso: sube el material ya limpio, en el archivo original.',
+        'Arriba, el aviso: sube el material ya limpio y en el archivo original (tal como sale de la cámara).',
         'Las casillas: cada una con su botón «Subir». Sigue sola si se va la señal.',
-        '«Entrega de Grabación»: «Storyboard con el que se grabó» («Subir el storyboard (foto o PDF)» o «O escríbelo aquí», y «Guardar storyboard») y «Nota para el editor» («Tu nota para el editor» y «Guardar nota»).',
+        'Tu entrega: «Storyboard con el que se grabó» («Subir el storyboard (foto o PDF)» o «O escríbelo aquí», y «Guardar storyboard») y «Nota para el editor» («Tu nota para el editor» y «Guardar nota»).',
       ],
-      cannot: ['Poner teléfonos en la nota: no se guarda. Una fecha o una hora te las marca antes.'],
+      cannot: ['Poner teléfonos en la nota: no se guarda. Si escribes una fecha o una hora, la app te avisa antes de guardar.'],
     },
     ...messagesSections('camera'),
     ...everyoneSections('camera').filter((x) => x.menu === TOP),
@@ -132,6 +132,6 @@ export const CAMERA_GUIDE: RoleGuide = {
     { q: '¿Por qué no tengo el botón «Crear»?', a: 'Porque Grabación no crea eventos ni piezas: graba lo que te asignan y sube el material.' },
     { q: '¿Qué hago si se fue la señal subiendo?', a: 'Nada: la subida sigue sola cuando vuelve la señal. No cierres la app hasta que termine.' },
     { q: '¿Puedo ver los eventos de otro de Grabación?', a: 'No: solo ves los que te asignaron.' },
-    { q: '¿Le puedo escribir a Redes un tiempo del video?', a: 'Sí. Si escribes un tiempo del video (los minutos y los segundos), la plataforma te pregunta si es del video: «Sí, es del video» o «Corregir». Una hora de la agenda no va.' },
+    { q: '¿Le puedo escribir a Redes un tiempo del video?', a: 'Sí. Si escribes un tiempo del video (los minutos y los segundos), la app te pregunta si es del video: «Sí, es del video» o «Corregir». Una hora de la agenda no va.' },
   ],
 };

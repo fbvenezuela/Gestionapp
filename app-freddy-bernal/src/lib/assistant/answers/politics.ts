@@ -40,7 +40,7 @@ export const POLITICS: Answer[] = [
       'por que siempre me abre municipios',
       'al entrar a donde me lleva',
     ],
-    a: 'Tu inicio es Municipios: al entrar caes ahí. Hoy es solo una versión corta, con lo vencido y «Ver municipios».',
+    a: 'Tu inicio es Municipios: al entrar caes ahí.',
     go: '/municipios',
   },
   {
@@ -321,7 +321,7 @@ export const POLITICS: Answer[] = [
       'que diferencia hay entre hoy y municipios',
       'para que sirve hoy si tengo municipios',
     ],
-    a: 'Hoy es una versión corta de tu inicio: lo vencido («Vencidas en los municipios») y «Ver municipios», que te lleva a tu pantalla. Tu inicio es Municipios.',
+    a: 'Hoy no está en tu menú: tu inicio es Municipios.',
     go: '/municipios',
   },
 

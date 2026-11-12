@@ -194,7 +194,7 @@ test.describe('con la llave del teléfono (como el resto de la suite)', () => {
     await dismissTips(page);
     await page.getByRole('button', { name: /asistente del equipo/ }).click();
     const dialog = page.getByRole('dialog');
-    await expect(dialog.getByText('Administración ve lo que le preguntas a', { exact: false })).toContainText('no pegues aquí mensajes del equipo.');
+    await expect(dialog.getByText('Administración puede leer lo que le preguntas a', { exact: false })).toContainText('no pegues aquí mensajes del equipo.');
 
     const ask = async (q: string) => {
       await dialog.getByLabel(/Tu pregunta/).fill(q);

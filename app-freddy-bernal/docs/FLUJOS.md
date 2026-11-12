@@ -4,7 +4,7 @@
 
 <!-- Generado por `npm run docs:guides` desde src/lib/guides/ (flows.ts). No se edita a mano: se cambia la fuente y se corre otra vez. -->
 
-Cómo pasa el trabajo de un rol a otro. GitHub dibuja cada diagrama; debajo va el mismo flujo en lista. En la app está en «Mi cuenta» → «Ayuda y guías» → «Cómo va el trabajo entre todos», con «tú» en los pasos de cada quien. Ningún flujo lleva fechas ni horas.
+Cómo pasa el trabajo de un rol a otro. GitHub dibuja cada diagrama; debajo va el mismo flujo en lista. En la app está en Mi cuenta → «Ayuda y guías» → «Cómo va el trabajo entre todos», con «tú» en los pasos de cada quien. Ningún flujo lleva fechas ni horas.
 
 - [Un evento, de la agenda a la publicación](#flujo-evento)
 - [Una obra, de la ficha a la visita](#flujo-obra)
@@ -25,7 +25,7 @@ Lo hacen: Jefe, Despacho, Redes y Grabación.
 flowchart TD
   evento_crear["Jefe o Despacho: «Crear» → «Nuevo evento», con su ficha técnica, y «Guardar evento»."]
   evento_crear --> evento_crear_q{"¿Lo creó el jefe?"}
-  evento_crear_q -- Sí --> evento_crear_b1["Nace «Aceptado»."]
+  evento_crear_q -- Sí --> evento_crear_b1["Queda «Aceptado» desde que se guarda."]
   evento_crear_b1 --> evento_graba
   evento_crear_q -- No --> evento_crear_b2["Le llega al jefe «Por decidir»."]
   evento_crear_b2 --> evento_decide
@@ -33,18 +33,18 @@ flowchart TD
   evento_decide --> evento_decide_q{"¿Lo acepta?"}
   evento_decide_q -- Sí --> evento_decide_b1["«Aceptar»."]
   evento_decide_b1 --> evento_graba
-  evento_decide_q -- No --> evento_decide_b2["«Rechazar»: sale de la lista de Redes y le avisamos a quien lo propuso."]
+  evento_decide_q -- No --> evento_decide_b2["«Rechazar»: sale de la lista de Redes y a quien lo propuso le llega un aviso."]
   evento_graba["Despacho, Jefe o Redes: «Quién graba»: eligen a la persona de Grabación, y le llega el aviso."]
   evento_graba --> evento_storyboard
   evento_storyboard["Redes: Pestaña «Storyboard»: el plan de lo que se graba, y «Guardar storyboard»."]
   evento_storyboard --> evento_material
-  evento_material["Grabación: Graba, sube el material por casillas y deja su «Entrega de Grabación». Cuando ya empezó, «Marcar realizado»."]
+  evento_material["Grabación: Graba, sube cada parte en su casilla y deja su entrega para Redes. Cuando ya empezó, «Marcar realizado»."]
   evento_material --> evento_pieza
-  evento_pieza["Redes: La pieza en la sección de su formato, o desde la pestaña «Piezas» del evento con «Nueva pieza» (el «Formato» y el «Mes»): el archivo, sus campos y los copies con «Escribir desde la ficha»."]
+  evento_pieza["Redes: La pieza en la sección de su formato, o desde la pestaña «Piezas» del evento con «Nueva pieza» (el «Formato» y el «Mes»): el archivo, lo que pide su formato y los copies con «Escribir desde la ficha»."]
   evento_pieza --> evento_aprueba
-  evento_aprueba["Jefe: La aprobación, con el semáforo: tiene su propio flujo."]
+  evento_aprueba["Jefe: La aprobación, con el semáforo. Sigue en el flujo «El semáforo»."]
   evento_aprueba --> evento_publica
-  evento_publica["Redes: «Nueva publicación» → «Programar en n redes» → publica a mano → «Ya lo publiqué»."]
+  evento_publica["Redes: «Nueva publicación» → «Programar en 2 redes» → publica a mano → «Ya lo publiqué»."]
   evento_publica --> evento_resultados
   evento_resultados["Redes: En la publicación, «Cargar resultados»."]
   evento_resultados --> evento_digital
@@ -53,18 +53,18 @@ flowchart TD
 
 1. **Jefe o Despacho:** «Crear» → «Nuevo evento», con su ficha técnica, y «Guardar evento». (`/agenda/nuevo`)
    ¿Lo creó el jefe?
-   - Sí → Nace «Aceptado». Sigue en el paso 3.
+   - Sí → Queda «Aceptado» desde que se guarda. Sigue en el paso 3.
    - No → Le llega al jefe «Por decidir».
 2. **Jefe:** En el evento, «Tu decisión»: la importancia de 1 a 10. (`/jefe/politica`)
    ¿Lo acepta?
    - Sí → «Aceptar».
-   - No → «Rechazar»: sale de la lista de Redes y le avisamos a quien lo propuso.
+   - No → «Rechazar»: sale de la lista de Redes y a quien lo propuso le llega un aviso.
 3. **Despacho, Jefe o Redes:** «Quién graba»: eligen a la persona de Grabación, y le llega el aviso.
 4. **Redes:** Pestaña «Storyboard»: el plan de lo que se graba, y «Guardar storyboard». (`/agenda`)
-5. **Grabación:** Graba, sube el material por casillas y deja su «Entrega de Grabación». Cuando ya empezó, «Marcar realizado». (`/agenda`)
-6. **Redes:** La pieza en la sección de su formato, o desde la pestaña «Piezas» del evento con «Nueva pieza» (el «Formato» y el «Mes»): el archivo, sus campos y los copies con «Escribir desde la ficha». (`/redes`)
-7. **Jefe:** La aprobación, con el semáforo: tiene su propio flujo. (`/aprobar`)
-8. **Redes:** «Nueva publicación» → «Programar en n redes» → publica a mano → «Ya lo publiqué». (`/publicar`)
+5. **Grabación:** Graba, sube cada parte en su casilla y deja su entrega para Redes. Cuando ya empezó, «Marcar realizado». (`/agenda`)
+6. **Redes:** La pieza en la sección de su formato, o desde la pestaña «Piezas» del evento con «Nueva pieza» (el «Formato» y el «Mes»): el archivo, lo que pide su formato y los copies con «Escribir desde la ficha». (`/redes`)
+7. **Jefe:** La aprobación, con el semáforo. Sigue en el flujo [El semáforo](#flujo-aprobacion). (`/aprobar`)
+8. **Redes:** «Nueva publicación» → «Programar en 2 redes» → publica a mano → «Ya lo publiqué». (`/publicar`)
 9. **Redes:** En la publicación, «Cargar resultados». (`/resultados`)
 10. **Jefe:** Ve cómo nos va en Digital. (`/jefe/digital`)
 
@@ -77,46 +77,46 @@ Lo hacen: IVT, Jefe, Despacho, Redes y Grabación.
 flowchart TD
   obra_ficha["IVT: «Nueva ficha de obra»: los cinco grupos, las cifras con su fuente."]
   obra_ficha --> obra_ficha_q{"¿Está completa?"}
-  obra_ficha_q -- No --> obra_ficha_b1["«Guardar borrador»: todavía no le llega al jefe."]
+  obra_ficha_q -- No --> obra_ficha_b1["«Guardar borrador»: todavía no le llega al jefe. La completa después."]
   obra_ficha_b1 --> obra_ficha
   obra_ficha_q -- Sí --> obra_ficha_b2["«Guardar y avisar al jefe»."]
   obra_ficha_b2 --> obra_fotos
   obra_fotos["IVT: En la ficha: las fotos del antes y del avance, y «Generar diálogo FAB»."]
   obra_fotos --> obra_fecha
-  obra_fecha["Jefe o Despacho: «Por ponerle fecha» → «Ponerle fecha»: nace la «Visita de obra»."]
+  obra_fecha["Jefe o Despacho: «Por ponerle fecha» → «Ponerle fecha»: la «Visita de obra» se crea en la agenda."]
   obra_fecha --> obra_fecha_q{"¿Va a la agenda?"}
   obra_fecha_q -- Sí --> obra_fecha_b1["«Guardar la fecha». Si la puso el despacho, al jefe le llega «Por decidir»."]
   obra_fecha_b1 --> obra_visitas
   obra_fecha_q -- No --> obra_fecha_b2["«No va»: la ficha queda «Archivada»."]
-  obra_visitas["IVT: Ve la fecha en «Mis visitas de obra», con el doble factor."]
-  obra_visitas --> obra_discurso
+  obra_visitas["IVT: Ve la fecha en «Mis visitas de obra», si entró con el doble factor."]
+  obra_visitas --> obra_visitas_q{"¿Se canceló o el jefe la rechazó?"}
+  obra_visitas_q -- Sí --> obra_visitas_b1["La ficha vuelve sola a «Por ponerle fecha» y al IVT le llega un aviso."]
+  obra_visitas_b1 --> obra_fecha
+  obra_visitas_q -- No --> obra_visitas_b2["Se sigue con el paso 5."]
+  obra_visitas_b2 --> obra_discurso
   obra_discurso["Redes: Ve la pestaña «Ficha de obra» (sin contactos) y, en el storyboard, toca «Usar como discurso»."]
   obra_discurso --> obra_lee
   obra_lee["Jefe: Lee lo que va a decir en el «Modo lectura»."]
   obra_lee --> obra_hecho
   obra_hecho["Jefe, Despacho o Grabación: Después de la visita, «Marcar realizado»: la ficha pasa a «Visitas realizadas»."]
-  obra_hecho --> obra_hecho_q{"¿Se canceló o el jefe la rechazó?"}
-  obra_hecho_q -- Sí --> obra_hecho_b1["La ficha vuelve sola a «Por ponerle fecha» y le avisamos al IVT."]
-  obra_hecho_b1 --> obra_fecha
-  obra_hecho_q -- No --> obra_hecho_b2["Listo."]
 ```
 
 1. **IVT:** «Nueva ficha de obra»: los cinco grupos, las cifras con su fuente. (`/obras/nueva`)
    ¿Está completa?
-   - No → «Guardar borrador»: todavía no le llega al jefe. Sigue en el paso 1.
+   - No → «Guardar borrador»: todavía no le llega al jefe. La completa después. Vuelve a este paso.
    - Sí → «Guardar y avisar al jefe».
 2. **IVT:** En la ficha: las fotos del antes y del avance, y «Generar diálogo FAB». (`/obras`)
-3. **Jefe o Despacho:** «Por ponerle fecha» → «Ponerle fecha»: nace la «Visita de obra». (`/agenda/por-fecha`)
+3. **Jefe o Despacho:** «Por ponerle fecha» → «Ponerle fecha»: la «Visita de obra» se crea en la agenda. (`/agenda/por-fecha`)
    ¿Va a la agenda?
    - Sí → «Guardar la fecha». Si la puso el despacho, al jefe le llega «Por decidir».
    - No → «No va»: la ficha queda «Archivada».
-4. **IVT:** Ve la fecha en «Mis visitas de obra», con el doble factor. (`/agenda`)
+4. **IVT:** Ve la fecha en «Mis visitas de obra», si entró con el doble factor. (`/agenda`)
+   ¿Se canceló o el jefe la rechazó?
+   - Sí → La ficha vuelve sola a «Por ponerle fecha» y al IVT le llega un aviso. Vuelve al paso 3.
+   - No → Se sigue con el paso 5.
 5. **Redes:** Ve la pestaña «Ficha de obra» (sin contactos) y, en el storyboard, toca «Usar como discurso».
 6. **Jefe:** Lee lo que va a decir en el «Modo lectura».
 7. **Jefe, Despacho o Grabación:** Después de la visita, «Marcar realizado»: la ficha pasa a «Visitas realizadas».
-   ¿Se canceló o el jefe la rechazó?
-   - Sí → La ficha vuelve sola a «Por ponerle fecha» y le avisamos al IVT. Sigue en el paso 3.
-   - No → Listo.
 
 <a id="flujo-comunitario"></a>
 
@@ -131,15 +131,15 @@ flowchart TD
   comunitario_reporte_b1 --> comunitario_seguimiento
   comunitario_reporte_q -- Sí --> comunitario_reporte_b2["«Guardar y avisar al jefe»."]
   comunitario_reporte_b2 --> comunitario_fecha
-  comunitario_fecha["Jefe o Despacho: «Por ponerle fecha» → «Ponerle fecha»: nace la actividad en la agenda."]
+  comunitario_fecha["Jefe o Despacho: «Por ponerle fecha» → «Ponerle fecha»: la actividad se crea en la agenda."]
   comunitario_fecha --> comunitario_ya
-  comunitario_ya["Política: Ve “ya tiene fecha” en «Agenda del jefe», nunca la fecha."]
+  comunitario_ya["Política: Ve «Ya tiene fecha» en «Agenda del jefe», nunca la fecha."]
   comunitario_ya --> comunitario_seguimiento
   comunitario_seguimiento["Política: El seguimiento: «Cambiar estado» con su motivo, las evidencias y «Guardar nota»."]
   comunitario_seguimiento --> comunitario_vencida
   comunitario_vencida["Política o Jefe: Si pasa su fecha de seguimiento sin terminar, sale arriba en Municipios y en el Inicio del jefe."]
   comunitario_vencida --> comunitario_vencida_q{"¿Está finalizada?"}
-  comunitario_vencida_q -- No --> comunitario_vencida_b1["Sigue el seguimiento."]
+  comunitario_vencida_q -- No --> comunitario_vencida_b1["Le sigue dando seguimiento."]
   comunitario_vencida_b1 --> comunitario_seguimiento
   comunitario_vencida_q -- Sí --> comunitario_vencida_b2["Queda en la historia del municipio."]
 ```
@@ -148,12 +148,12 @@ flowchart TD
    ¿Va a la agenda del jefe?
    - No → «Guardar»: queda en el registro del municipio. Sigue en el paso 4.
    - Sí → «Guardar y avisar al jefe».
-2. **Jefe o Despacho:** «Por ponerle fecha» → «Ponerle fecha»: nace la actividad en la agenda. (`/agenda/por-fecha`)
-3. **Política:** Ve “ya tiene fecha” en «Agenda del jefe», nunca la fecha.
+2. **Jefe o Despacho:** «Por ponerle fecha» → «Ponerle fecha»: la actividad se crea en la agenda. (`/agenda/por-fecha`)
+3. **Política:** Ve «Ya tiene fecha» en «Agenda del jefe», nunca la fecha.
 4. **Política:** El seguimiento: «Cambiar estado» con su motivo, las evidencias y «Guardar nota». (`/municipios`)
 5. **Política o Jefe:** Si pasa su fecha de seguimiento sin terminar, sale arriba en Municipios y en el Inicio del jefe.
    ¿Está finalizada?
-   - No → Sigue el seguimiento. Sigue en el paso 4.
+   - No → Le sigue dando seguimiento. Vuelve al paso 4.
    - Sí → Queda en la historia del municipio.
 
 <a id="flujo-tweets"></a>
@@ -167,7 +167,7 @@ flowchart TD
   tweets_sube --> tweets_reparte
   tweets_reparte["Redes: Revisa cada tweet y «Repartir en la semana y enviar a aprobación»."]
   tweets_reparte --> tweets_aprueba
-  tweets_aprueba["Jefe: «Por aprobar» → «Tweets (n)»: desmarca los que no van."]
+  tweets_aprueba["Jefe: «Por aprobar» → «Tweets (3)»: desmarca los que no van."]
   tweets_aprueba --> tweets_aprueba_q{"¿Los aprueba?"}
   tweets_aprueba_q -- Sí --> tweets_aprueba_b1["«Aprobar marcados»."]
   tweets_aprueba_b1 --> tweets_programa
@@ -179,7 +179,7 @@ flowchart TD
 
 1. **Redes:** «Tweets de la semana»: sube el documento o pega el texto, y «Separar tweets». (`/tweets/nueva`)
 2. **Redes:** Revisa cada tweet y «Repartir en la semana y enviar a aprobación».
-3. **Jefe:** «Por aprobar» → «Tweets (n)»: desmarca los que no van. (`/aprobar`)
+3. **Jefe:** «Por aprobar» → «Tweets (3)»: desmarca los que no van. (`/aprobar`)
    ¿Los aprueba?
    - Sí → «Aprobar marcados».
    - No → Los desmarcados no salen.
@@ -193,7 +193,7 @@ Lo hacen: Redes y Jefe.
 
 ```mermaid
 flowchart TD
-  aprobacion_envia["Redes: En la tarjeta, «Enviar a aprobación» (el «Nivel de aprobación» se elige en la pieza en grande)."]
+  aprobacion_envia["Redes: En la tarjeta, «Enviar a aprobación» (el nivel de aprobación se elige en la pieza en grande)."]
   aprobacion_envia --> aprobacion_envia_q{"¿De qué color es?"}
   aprobacion_envia_q -- Verde --> aprobacion_envia_b1["Rutina: el jefe las aprueba todas de un toque, en el día."]
   aprobacion_envia_b1 --> aprobacion_aprobada
@@ -208,14 +208,14 @@ flowchart TD
   aprobacion_aprobada["Redes: Le llega «Aprobada: lista para publicar» y la tarjeta dice «Revisado y listo para publicar». Si vence el plazo sin respuesta, sigue sin aprobar y sale en «Trancado»."]
 ```
 
-1. **Redes:** En la tarjeta, «Enviar a aprobación» (el «Nivel de aprobación» se elige en la pieza en grande). (`/redes`)
+1. **Redes:** En la tarjeta, «Enviar a aprobación» (el nivel de aprobación se elige en la pieza en grande). (`/redes`)
    ¿De qué color es?
    - Verde → Rutina: el jefe las aprueba todas de un toque, en el día. Sigue en el paso 3.
    - Amarillo o rojo → Amarillo en 60 minutos, rojo en 30.
 2. **Jefe:** Abre la pieza (o «Revisar» en su tarjeta), la mira, lee los avisos y marca «Antes de aprobar». (`/aprobar`)
    ¿La aprueba?
    - Sí → «Aprobar».
-   - No → «Pedir cambios»: a Redes le llega «Cambios», corrige y la envía otra vez. Sigue en el paso 1.
+   - No → «Pedir cambios»: a Redes le llega «Cambios», corrige y la envía otra vez. Vuelve al paso 1.
 3. **Redes:** Le llega «Aprobada: lista para publicar» y la tarjeta dice «Revisado y listo para publicar». Si vence el plazo sin respuesta, sigue sin aprobar y sale en «Trancado». (`/publicar`)
 
 <a id="flujo-mes-redes"></a>
@@ -227,7 +227,7 @@ Lo hacen: Redes y Jefe.
 flowchart TD
   mes_redes_mes["Redes: Elige el mes en las pestañas (o «+ Nuevo mes») y mira el cupo de cada formato."]
   mes_redes_mes --> mes_redes_crea
-  mes_redes_crea["Redes: Crea las piezas en la sección de cada formato («Nuevo reel», «Nuevo post»…) y llena sus tarjetas: el archivo, los campos y los copies."]
+  mes_redes_crea["Redes: Crea las piezas en la sección de cada formato («Nuevo reel», «Nuevo post»…) y llena sus tarjetas: el archivo, lo que pide su formato y los copies."]
   mes_redes_crea --> mes_redes_feed
   mes_redes_feed["Redes: Arma el «Feed»: cada espacio con su pieza, del n.º 1 abajo a la derecha al n.º 24 arriba a la izquierda."]
   mes_redes_feed --> mes_redes_envia
@@ -243,20 +243,20 @@ flowchart TD
   mes_redes_publica --> mes_redes_tablero
   mes_redes_tablero["Redes o Jefe: El tablero dice lo que falta en cada formato: «Por revisar», «Copy faltante», «Imagen faltante»."]
   mes_redes_tablero --> mes_redes_cierre
-  mes_redes_cierre["Redes o Jefe: Al cierre, la pieza de «Fin de mes» y, arriba de esa sección, el «Resumen del mes» para el jefe."]
+  mes_redes_cierre["Redes o Jefe: Al cierre, la pieza de «Fin de mes» y, arriba de esa sección, el «Resumen del mes · Mes 1» para el jefe."]
 ```
 
 1. **Redes:** Elige el mes en las pestañas (o «+ Nuevo mes») y mira el cupo de cada formato. (`/redes`)
-2. **Redes:** Crea las piezas en la sección de cada formato («Nuevo reel», «Nuevo post»…) y llena sus tarjetas: el archivo, los campos y los copies. (`/redes`)
+2. **Redes:** Crea las piezas en la sección de cada formato («Nuevo reel», «Nuevo post»…) y llena sus tarjetas: el archivo, lo que pide su formato y los copies. (`/redes`)
 3. **Redes:** Arma el «Feed»: cada espacio con su pieza, del #1 abajo a la derecha al #24 arriba a la izquierda. (`/redes/feed`)
 4. **Redes:** «Enviar a aprobación» en cada tarjeta, con sus avisos de cumplimiento si hacen falta.
 5. **Jefe:** «Revisar»: mira la pieza, lee los avisos y marca «Antes de aprobar». (`/aprobar`)
    ¿La aprueba?
    - Sí → «Aprobar»: la tarjeta dice «Revisado y listo para publicar».
-   - No → «Pedir cambios»: vuelve a Redes con su comentario. Sigue en el paso 2.
+   - No → «Pedir cambios»: vuelve a Redes con su comentario. Vuelve al paso 2.
 6. **Redes:** Publica a mano y marca «Ya lo publiqué» en la tarjeta, con el link de cada red: se pone verde. (`/redes`)
 7. **Redes o Jefe:** El tablero dice lo que falta en cada formato: «Por revisar», «Copy faltante», «Imagen faltante». (`/redes`)
-8. **Redes o Jefe:** Al cierre, la pieza de «Fin de mes» y, arriba de esa sección, el «Resumen del mes» para el jefe. (`/redes`)
+8. **Redes o Jefe:** Al cierre, la pieza de «Fin de mes» y, arriba de esa sección, el «Resumen del mes · Mes 1» para el jefe. (`/redes`)
 
 <a id="flujo-entrega"></a>
 
@@ -269,7 +269,7 @@ flowchart TD
   entrega_graba --> entrega_sube
   entrega_sube["Grabación: En «Material», sube cada parte en su casilla. Si se va la señal, sigue sola."]
   entrega_sube --> entrega_entrega
-  entrega_entrega["Grabación: «Entrega de Grabación»: el storyboard con el que grabó («Guardar storyboard») y la nota para el editor («Guardar nota»)."]
+  entrega_entrega["Grabación: Deja su entrega: el storyboard con el que grabó («Guardar storyboard») y la nota para el editor («Guardar nota»)."]
   entrega_entrega --> entrega_avisa
   entrega_avisa["Redes o Jefe: Les sale «Notas de Grabación nuevas»."]
   entrega_avisa --> entrega_baja
@@ -278,7 +278,7 @@ flowchart TD
 
 1. **Grabación:** Lee la ficha y el storyboard de Redes, y graba. (`/agenda`)
 2. **Grabación:** En «Material», sube cada parte en su casilla. Si se va la señal, sigue sola.
-3. **Grabación:** «Entrega de Grabación»: el storyboard con el que grabó («Guardar storyboard») y la nota para el editor («Guardar nota»).
+3. **Grabación:** Deja su entrega: el storyboard con el que grabó («Guardar storyboard») y la nota para el editor («Guardar nota»).
 4. **Redes o Jefe:** Les sale «Notas de Grabación nuevas». (`/hoy`)
 5. **Redes:** Lee la nota y toca «Descargar todo el material» para editar.
 
@@ -295,13 +295,13 @@ flowchart TD
   mensajes_entra --> mensajes_escribe
   mensajes_escribe["Jefe, Despacho, Política, IVT, Grabación o Redes: Escribe en el canal."]
   mensajes_escribe --> mensajes_revisa
-  mensajes_revisa["Jefe, Despacho, IVT o Grabación: Si conoces la agenda y en el canal está Redes o política, la plataforma revisa el texto."]
+  mensajes_revisa["Jefe, Despacho, IVT o Grabación: Si conoces la agenda y en el canal está Redes o política, la app revisa el texto."]
   mensajes_revisa --> mensajes_revisa_q{"¿Lleva una fecha, una hora, un mapa o un teléfono?"}
   mensajes_revisa_q -- Sí --> mensajes_revisa_b1["No lo deja enviar y dice cómo decirlo sin eso."]
   mensajes_revisa_b1 --> mensajes_escribe
-  mensajes_revisa_q -- No --> mensajes_revisa_b2["Sale."]
+  mensajes_revisa_q -- No --> mensajes_revisa_b2["El mensaje se envía. Si dice “mañana” o “el lunes”, antes pregunta, con «Enviar igual» o «Corregir»."]
   mensajes_revisa_b2 --> mensajes_llega
-  mensajes_llega["Jefe, Despacho, Política, IVT, Grabación o Redes: Les llega al teléfono “Mensaje nuevo”, sin el texto, a los que están en el canal."]
+  mensajes_llega["Jefe, Despacho, Política, IVT, Grabación o Redes: Les llega al teléfono «Mensaje nuevo», sin el texto, a los que están en el canal."]
   mensajes_llega --> mensajes_miembros
   mensajes_miembros["Jefe: Si hace falta, cambia quién está en «Editar canal», o lo archiva cuando ya no se usa."]
 ```
@@ -309,11 +309,11 @@ flowchart TD
 1. **Jefe:** Arma un canal con «Nuevo canal»: nombre, para qué es y quiénes van. Él está en todos. (`/mensajes/canales/nuevo`)
 2. **Jefe, Despacho, Política, IVT, Grabación o Redes:** El canal le sale en Mensajes a cada persona que está en él, con la lista de quiénes están. (`/mensajes`)
 3. **Jefe, Despacho, Política, IVT, Grabación o Redes:** Escribe en el canal.
-4. **Jefe, Despacho, IVT o Grabación:** Si conoces la agenda y en el canal está Redes o política, la plataforma revisa el texto.
+4. **Jefe, Despacho, IVT o Grabación:** Si conoces la agenda y en el canal está Redes o política, la app revisa el texto.
    ¿Lleva una fecha, una hora, un mapa o un teléfono?
-   - Sí → No lo deja enviar y dice cómo decirlo sin eso. Sigue en el paso 3.
-   - No → Sale.
-5. **Jefe, Despacho, Política, IVT, Grabación o Redes:** Les llega al teléfono “Mensaje nuevo”, sin el texto, a los que están en el canal.
+   - Sí → No lo deja enviar y dice cómo decirlo sin eso. Vuelve al paso 3.
+   - No → El mensaje se envía. Si dice “mañana” o “el lunes”, antes pregunta, con «Enviar igual» o «Corregir».
+5. **Jefe, Despacho, Política, IVT, Grabación o Redes:** Les llega al teléfono «Mensaje nuevo», sin el texto, a los que están en el canal.
 6. **Jefe:** Si hace falta, cambia quién está en «Editar canal», o lo archiva cuando ya no se usa.
 
 <a id="flujo-ayuda"></a>
@@ -323,17 +323,17 @@ Lo hacen: Jefe, Despacho, Política, IVT, Grabación y Redes.
 
 ```mermaid
 flowchart TD
-  ayuda_ofrece["Jefe, Despacho, Política, IVT, Grabación o Redes: 360 te ofrece en una línea “¿Te muestro esta pantalla?”."]
+  ayuda_ofrece["Jefe, Despacho, Política, IVT, Grabación o Redes: 360 te ofrece en una línea «¿Te muestro esta pantalla?»."]
   ayuda_ofrece --> ayuda_ofrece_q{"¿Quieres verla?"}
   ayuda_ofrece_q -- Sí --> ayuda_ofrece_b1["Un tutorial paso a paso, en esa misma pantalla."]
   ayuda_ofrece_b1 --> ayuda_cuando
-  ayuda_ofrece_q -- No --> ayuda_ofrece_b2["La cierras con la X. Tras dos veces, 360 deja de ofrecer."]
+  ayuda_ofrece_q -- No --> ayuda_ofrece_b2["La cierras con la X. Si la cierras dos veces, 360 ya no te la ofrece en ese teléfono."]
   ayuda_ofrece_b2 --> ayuda_cuando
-  ayuda_cuando["Jefe, Despacho, Política, IVT, Grabación o Redes: Cuando quieras: le escribes a 360, o «Mi cuenta» → «Ayuda y guías»: tu guía, cada pantalla, los flujos y «Ver el tutorial de esta pantalla»."]
+  ayuda_cuando["Jefe, Despacho, Política, IVT, Grabación o Redes: Cuando quieras: le escribes a 360, o Mi cuenta → «Ayuda y guías»: tu guía, cada pantalla, los flujos y «Ver el tutorial de esta pantalla»."]
 ```
 
-1. **Jefe, Despacho, Política, IVT, Grabación o Redes:** 360 te ofrece en una línea “¿Te muestro esta pantalla?”.
+1. **Jefe, Despacho, Política, IVT, Grabación o Redes:** 360 te ofrece en una línea «¿Te muestro esta pantalla?».
    ¿Quieres verla?
    - Sí → Un tutorial paso a paso, en esa misma pantalla.
-   - No → La cierras con la X. Tras dos veces, 360 deja de ofrecer.
-2. **Jefe, Despacho, Política, IVT, Grabación o Redes:** Cuando quieras: le escribes a 360, o «Mi cuenta» → «Ayuda y guías»: tu guía, cada pantalla, los flujos y «Ver el tutorial de esta pantalla». (`/ayuda`)
+   - No → La cierras con la X. Si la cierras dos veces, 360 ya no te la ofrece en ese teléfono.
+2. **Jefe, Despacho, Política, IVT, Grabación o Redes:** Cuando quieras: le escribes a 360, o Mi cuenta → «Ayuda y guías»: tu guía, cada pantalla, los flujos y «Ver el tutorial de esta pantalla». (`/ayuda`)

@@ -1,13 +1,15 @@
 // The guides' content keeps its rules (R3, D-42, design §7.2, U16, U17): every screen a role opens has its section,
-// every «…» is a label that exists on a screen (or a counted one, or a chip built in code), no concrete date or
-// time, no phone, no demo name, Administración only in 360's line, and Mensajes explained the same way in every guide:
-// channels the boss arms and is in, each showing who is in it, and NO notice anywhere (R5, D-79). A guide that drifts from the screens fails here, not in front of the team.
+// every «…» is a label that exists on a screen (or a counted one with its example number, or a chip built in code), no
+// concrete date or time, no phone, no demo name, Administración only where the team needs it (360's line, who recovers a
+// deleted piece, its word in «Palabras de la app»), and Mensajes explained the same way in every guide: channels the boss
+// arms and is in, each showing who is in it, and NO notice anywhere (R5, D-79). A guide that drifts from the screens fails
+// here, not in front of the team.
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { SCREENS, canOpen, screenFor } from '@/lib/assistant/screens';
 import { TEAM_ROLES, type TeamRole } from '@/lib/roles';
-import { ADMIN_GUIDE, FLOWS, SHARED, TOURS, allGuides, guideFor, sectionCards } from '@/lib/guides';
+import { ADMIN_GUIDE, FLOWS, GLOSSARY, SHARED, TOURS, allGuides, glossaryLine, guideFor, sectionCards } from '@/lib/guides';
 import {
   DEMO_WORDS,
   LABEL_ALLOW,
@@ -16,6 +18,7 @@ import {
   concreteDateTime,
   hasPhone,
   quotedLabels,
+  withoutRatios,
 } from '@/lib/guides/check';
 import { ADMIN_MENTIONS, MSG_AGENDA, MSG_CHANNELS, MSG_ENTER, MSG_FREE, MSG_PHONES, MSG_RELATIVE, MSG_TEAM } from '@/lib/guides/shared';
 import type { RoleGuide, TourText } from '@/lib/guides';
@@ -43,6 +46,8 @@ const bodies = (b: TourText) => (typeof b === 'string' ? [b] : Object.values(b))
 
 const TEAM_TEXTS: Text[] = [
   ...SHARED.flatMap((t) => [t.title, ...t.body].map((text) => ({ where: `para todos: ${t.id}`, text }))),
+  // «Palabras de la app», as 360 says each word («Término: lo que significa»).
+  ...GLOSSARY.map((g) => ({ where: `palabras: ${g.id}`, text: glossaryLine(g) })),
   ...allGuides().flatMap(guideTexts),
   ...FLOWS.flatMap((f) => [f.title, ...f.steps.flatMap((s) => [s.text, s.question ?? '', ...(s.branches ?? []).flatMap((b) => [b.label, b.text])])].filter(Boolean).map((text) => ({ where: `flujo ${f.id}`, text }))),
 ];
@@ -116,7 +121,22 @@ describe('sin datos concretos (U17)', () => {
     expect(hits).toEqual([]);
   });
 
-  it('las guías del equipo nombran a administración solo en la línea de 360 (D-43; Mensajes ya no tiene aviso)', () => {
+  it('las proporciones de pantalla pasan («9:16», «16:9», «4:5», «1:1»); una hora de verdad no', () => {
+    expect(concreteDateTime('9:16 es vertical, como la pantalla del teléfono; 16:9 es horizontal y 4:5, casi cuadrado.')).toBe(false);
+    expect(concreteDateTime('Una foto 1:1 o un video 9:16.')).toBe(false);
+    for (const hour of ['a las 9:16', 'las 9:16', 'Las 9:16 y listo', '9:16 am', '9:16 p. m.', '9:16 de la mañana', '9:16 h', 'a las 16:9', 'el video en 9:16 sale a las 9:16', 'en 19:16', 'tipo 9:16'])
+      expect(concreteDateTime(hour), hour).toBe(true);
+    expect(withoutRatios('el video en 9:16 sale a las 9:16')).toContain('a las 9:16');
+  });
+
+  it('las contadas llevan un número de ejemplo, como la pantalla; la «n» de antes sigue pasando', () => {
+    const counted = (l: string) => LABEL_PATTERNS.some((p) => p.re.test(l));
+    for (const l of ['Aprobar todas las verdes (2)', '3 tweets por aprobar', 'Mes 1 · 8 de 8', 'Espacio #07', 'Publicar antes (#20)', 'Publicar después (#22)', 'Resumen del mes · Mes 1', 'Nivel amarillo', 'Todo bien para Instagram.', 'Ver el tutorial: Bienvenida', '5 personas', 'Aprobar todas las verdes (n)', 'N personas'])
+      expect(counted(l), l).toBe(true);
+    for (const l of ['Aprobar todas las verdes', 'Espacio #7', 'Nivel morado', 'Ver el tutorial: lo que sea', 'Resumen del mes']) expect(counted(l), l).toBe(false);
+  });
+
+  it('las guías del equipo nombran a administración solo donde hace falta: la línea de 360, quién recupera lo eliminado y su palabra (D-43; Mensajes ya no tiene aviso)', () => {
     const hits = [...TEAM_TEXTS, ...TOUR_TEXTS].filter((t) => {
       let rest = t.text;
       for (const m of ADMIN_MENTIONS) rest = rest.replace(m, ' ');
@@ -197,7 +217,7 @@ describe('Mensajes, dicho igual en todas las guías (§7.2, R5)', () => {
   it('«Para todos» dice que son canales del jefe, «Todo el equipo», Enter, sin teléfonos y la agenda; ningún aviso', () => {
     const body = SHARED.find((t) => t.id === 'mensajes')!.body.join(' ');
     for (const s of [MSG_CHANNELS, MSG_TEAM, MSG_ENTER, MSG_PHONES, MSG_AGENDA, MSG_RELATIVE, MSG_FREE]) expect(body).toContain(s);
-    expect(body).toContain('«N personas»');
+    expect(body).toContain('«5 personas»');
   });
 
   for (const role of TEAM_ROLES) {
@@ -305,5 +325,51 @@ describe('la guía de administración va aparte (D-43)', () => {
     const notes = ADMIN_GUIDE.notes.join(' ');
     expect(notes).toContain('Mensajes no es para administración');
     expect(notes).toContain('--jefe');
+  });
+});
+
+// The team guide's fixes (12/11): «Palabras de la app», «la app» everywhere, no «Hoy» for política and the IVT, and
+// nothing about the profile's phone (it goes away in the next round).
+describe('lo que la guía del equipo dice ahora (12/11)', () => {
+  it('«Palabras de la app»: las 28 palabras, en el orden de la guía, cada una con las palabras con que se pregunta', () => {
+    expect(GLOSSARY.map((g) => g.term)).toEqual([
+      'Pieza', 'Reel y Short', 'Carrusel y lámina', 'Historia y sticker', 'Copy', 'Caption', 'Hook y CTA', 'Texto del arte', 'Feed',
+      'Mes, cupo y pilar', 'Storyboard', 'Ficha técnica', 'Diálogo FAB', 'Nota para el editor', 'El semáforo', 'Motivos rápidos',
+      'Avisos de cumplimiento', 'Receptividad', 'Programar', 'Tanda', 'Trancado', 'Etiquetas', 'Campos', 'Números y medidas', 'CSV',
+      'La oficina', 'Web y Atención', 'Administración',
+    ]);
+    expect(new Set(GLOSSARY.map((g) => g.id)).size).toBe(GLOSSARY.length);
+    for (const g of GLOSSARY) {
+      expect(g.id, g.term).toMatch(/^[a-z0-9-]+$/);
+      expect(g.aka.length, g.term).toBeGreaterThan(0);
+      for (const w of g.aka) expect(w, g.term).toBe(w.toLowerCase());
+      expect(g.text.length, g.term).toBeGreaterThan(20);
+    }
+    // «Historia» alone is also a ficha's «Historia»: the word asks with «de instagram» or in plural.
+    expect(GLOSSARY.flatMap((g) => g.aka)).not.toContain('historia');
+    // The pillars are each instance's own: no example of the demo.
+    expect(GLOSSARY.find((g) => g.id === 'mes-cupo-y-pilar')!.text).not.toMatch(/«/);
+  });
+
+  it('dicen «la app», nunca «la plataforma»; y nunca el teléfono del perfil', () => {
+    expect(ALL_TEXTS.filter((t) => /\bla plataforma\b/i.test(t.text)).map((t) => `${t.where}: ${t.text}`)).toEqual([]);
+    expect(ALL_TEXTS.filter((t) => /Teléfono \(opcional\)/.test(t.text)).map((t) => t.where)).toEqual([]);
+  });
+
+  it('«Hoy» no está en el menú de política ni del IVT: sus guías no lo traen y la pantalla no abre para ellos', () => {
+    for (const role of ['politics', 'ivt'] as const) {
+      expect(guideFor(role).sections.some((s) => s.screen === '/hoy'), role).toBe(false);
+      expect(canOpen('/hoy', [role]), role).toBe(false);
+    }
+    // The boss gets there from his Redes tile; despacho, Grabación and Redes have it in their menu.
+    for (const role of ['boss', 'dispatch', 'camera', 'social'] as const) {
+      expect(guideFor(role).sections.some((s) => s.screen === '/hoy'), role).toBe(true);
+      expect(canOpen('/hoy', [role]), role).toBe(true);
+    }
+  });
+
+  it('las contadas de las guías llevan su número de ejemplo, no la «n»', () => {
+    const withN = [...TEAM_TEXTS, ...TOUR_TEXTS].filter((t) => quotedLabels(t.text).some((l) => /\(n\)|^n |^N | n$|· x de y|#nn?\b/.test(l)));
+    expect(withN.map((t) => `${t.where}: ${t.text}`)).toEqual([]);
   });
 });

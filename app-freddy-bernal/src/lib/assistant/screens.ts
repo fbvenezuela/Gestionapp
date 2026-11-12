@@ -21,7 +21,7 @@ export type Screen = {
 };
 
 const BASE_SCREENS: Screen[] = [
-  { href: '/hoy', label: 'Hoy', roles: null, file: '(panel)/hoy/page.tsx', phrases: ['pantalla de hoy', 'pantalla hoy', 'en hoy', 'lo que espera por mi'], nav: ['hoy', 'inicio'], about: 'lo que te toca' },
+  { href: '/hoy', label: 'Hoy', roles: ['admin', 'boss', 'dispatch', 'social', 'camera'], file: '(panel)/hoy/page.tsx', phrases: ['pantalla de hoy', 'pantalla hoy', 'en hoy', 'lo que espera por mi'], nav: ['hoy', 'inicio'], about: 'lo que te toca' },
   { href: '/avisos', label: 'Avisos', roles: null, file: '(panel)/avisos/page.tsx', phrases: ['mis avisos', 'tus avisos', 'ver los avisos', 'la campana'], nav: ['avisos', 'notificaciones', 'campana', 'campanita'], about: 'la campana de arriba' },
   { href: '/perfil', label: 'Mi perfil', roles: null, file: '(panel)/perfil/page.tsx', phrases: ['mi perfil', 'tu perfil', 'activar avisos', 'activa los avisos', 'preferencias de avisos'], nav: ['perfil', 'mi cuenta', 'preferencias'], about: 'en el menú de tu cuenta, arriba a la derecha' },
   { href: '/buscar', label: 'Buscar', roles: null, file: '(panel)/buscar/page.tsx', phrases: ['el buscador', 'buscar un evento', 'buscar una pieza'], nav: ['buscador', 'lupa'], about: 'la lupa de arriba' },

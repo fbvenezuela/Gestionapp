@@ -51,6 +51,9 @@ export type FlowStep = {
   href?: string; // a screen of SCREENS; the app shows «Abrir» only when the reader can open it (canOpen)
   question?: string; // a decision step: «¿Va a la agenda del jefe?», answered by `branches`
   branches?: FlowBranch[];
+  // The next part of this work is another flow («La aprobación, con el semáforo.» goes on in «El semáforo»): the app
+  // links to it and the docs write it as a link.
+  see?: FlowId;
 };
 
 export type Flow = {
@@ -92,6 +95,10 @@ export type RoleGuide = {
 
 // «Para todos» (shared.ts): signing in, the top bar, the phone, no signal, the date rule, Mensajes, 360, Ayuda.
 export type SharedTopic = { id: string; title: string; body: string[] };
+
+// «Palabras de la app» (glossary.ts): a word a new person does not know, as the team uses it. `term` is how the guide
+// writes it («Reel y Short»), `aka` the words people ask with (lower case, singular and plural), `text` what it means.
+export type GlossaryTerm = { id: string; term: string; aka: string[]; text: string };
 
 // Administración's own guide (D-43): apart from the team's guides, only for admin (/ayuda/administracion).
 export type AdminGuide = {

@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ADMIN_GUIDE, FLOWS, SHARED, TOURS, allGuides } from '@/lib/guides';
+import { ADMIN_GUIDE, FLOWS, GLOSSARY, SHARED, TOURS, allGuides } from '@/lib/guides';
 import { NOT_SENT, flowMermaid, renderAllDocs } from '@/lib/guides/render-md';
 
 const docs = renderAllDocs({ shared: SHARED, guides: allGuides(), flows: FLOWS, tours: TOURS, admin: ADMIN_GUIDE });
@@ -23,16 +23,29 @@ describe('los documentos de las guías están al día', () => {
     });
   }
 
-  it('la guía por rol trae «Para todos», los seis roles con sus cuatro partes y cómo probar en la demo', () => {
+  it('la guía por rol trae «Para todos» con «Palabras de la app», los seis roles con sus partes y cómo probar en la demo', () => {
     const md = docs['docs/GUIA-POR-ROL.md'];
     expect(md).toContain('## Para todos');
+    const words = md.slice(md.indexOf('### Palabras de la app\n'), md.indexOf('\n## ', md.indexOf('### Palabras de la app\n')));
+    for (const g of GLOSSARY) expect(words, g.term).toContain(`- **${g.term}.** ${g.text}`);
     for (const g of allGuides()) {
       const part = md.slice(md.indexOf(`\n## ${g.label}\n`));
       expect(md, g.label).toContain(`\n## ${g.label}\n`);
-      for (const h of ['### Tu trabajo', '### Tu día', '### Paso a paso', '### Cada sección de la app', '### Flujos', '### Preguntas']) expect(part, `${g.label}: ${h}`).toContain(h);
+      for (const h of ['### Tu trabajo', '### Tu día', '### Paso a paso', '### Cada sección de la app', '### Cómo pasa tu trabajo a los demás', '### Preguntas']) expect(part, `${g.label}: ${h}`).toContain(h);
     }
     expect(md).toContain('## Cómo probar en la demo');
     expect(md).not.toMatch(/administraci[oó]n:/i);
+    // «Cómo sigue el trabajo:» under each task, and the tutorial's title as the screen says it.
+    expect(md).toContain('Cómo sigue el trabajo: [');
+    expect(md).not.toMatch(/^Flujo: /m);
+    expect(md).toMatch(/Tutorial en la app: «[^»]+»/);
+  });
+
+  it('los flujos dicen a qué paso vuelve una rama y en qué flujo sigue un paso', () => {
+    const md = docs['docs/FLUJOS.md'];
+    expect(md).toContain('- No → Le sigue dando seguimiento. Vuelve al paso 4.');
+    expect(md).toContain('- No → «Guardar borrador»: todavía no le llega al jefe. La completa después. Vuelve a este paso.');
+    expect(md).toContain('La aprobación, con el semáforo. Sigue en el flujo [El semáforo](#flujo-aprobacion).');
   });
 
   it('los flujos van en Mermaid sencillo, uno por flujo, con su ancla', () => {

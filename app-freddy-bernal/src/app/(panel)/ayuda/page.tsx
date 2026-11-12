@@ -2,7 +2,8 @@ import { BookOpen, LayoutList, PlayCircle, ShieldCheck, Users, Workflow } from '
 import { menuRoles, requireSession } from '@/lib/auth/session';
 import { homeFor, isTeamRole, TEAM_ROLES } from '@/lib/roles';
 import { screenFor } from '@/lib/assistant/screens';
-import { GUIDE_SLUGS, GUIDE_TITLES, guideFor, sharedFor, teamRolesOf, tourHref, toursForRoles } from '@/lib/guides';
+import { GLOSSARY, GUIDE_SLUGS, GUIDE_TITLES, guideFor, sharedFor, teamRolesOf, tourHref, toursForRoles } from '@/lib/guides';
+import { HOW_TO_READ } from '@/lib/guides/shared';
 import { PageHeader } from '@/components/ui/page';
 import { Card } from '@/components/ui/card';
 import { HelpList, HelpRow, type HelpItem } from '@/components/guides/help-list';
@@ -12,9 +13,9 @@ import { OfferReset } from '@/components/guides/offer-reset';
 export const metadata = { title: 'Ayuda' };
 
 // Ayuda y guías (R3, D-42, D-46, design §5.4): the guide of the person's role (it follows «Ver como»: menu roles),
-// every screen, the flows between roles, «Para todos» and the tutorials of their screens. The boss and Administración
-// also get every role's guide; Administración, its own. The guides are read here, on the server: nothing of them goes
-// to the phone but this page.
+// every screen, the flows between roles, «Para todos» with «Palabras de la app» and the tutorials of their screens. The
+// boss and Administración also get every role's guide; Administración, its own. The guides are read here, on the
+// server: nothing of them goes to the phone but this page.
 export default async function HelpPage() {
   const s = await requireSession();
   const roles = menuRoles(s);
@@ -28,6 +29,8 @@ export default async function HelpPage() {
   const everyone = s.roles.includes('boss') || admin;
   // Mensajes only for the team, never for an account with Administración (not even with «Ver como»), as the envelope.
   const messages = !admin && s.roles.some((r) => isTeamRole(r));
+  // «Palabras de la app» for whoever uses the guides: the team and Administración (not the web's nor the desk's people).
+  const glossary = admin || s.roles.some((r) => isTeamRole(r)) ? GLOSSARY : undefined;
 
   const tourItems: HelpItem[] = tours.map(({ t, href }) => ({
     href,
@@ -38,7 +41,15 @@ export default async function HelpPage() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-5">
-      <PageHeader title="Ayuda y guías" subtitle="La guía de tu trabajo, lo que se hace en cada pantalla, cómo va el trabajo entre todos y los tutoriales." />
+      <PageHeader
+        title="Ayuda y guías"
+        subtitle={
+          <>
+            La guía de tu trabajo, lo que se hace en cada pantalla, cómo va el trabajo entre todos y los tutoriales.
+            <span className="mt-1 block text-sm">{HOW_TO_READ}</span>
+          </>
+        }
+      />
 
       <Card solid>
         <div className="divide-y divide-border">
@@ -78,13 +89,13 @@ export default async function HelpPage() {
         <HelpList
           data-tour="help-tours"
           title="Tutoriales de mis pantallas"
-          subtitle="Cada uno te lleva a su pantalla y te la muestra paso a paso. Los de un evento o una pieza están en «Mi cuenta» → «Ver el tutorial de esta pantalla», con la pantalla abierta."
+          subtitle="Cada uno te lleva a su pantalla y te la muestra paso a paso. Los de un evento o una pieza están en Mi cuenta → «Ver el tutorial de esta pantalla», con la pantalla abierta."
           items={tourItems}
           footer={<OfferReset userId={s.userId} />}
         />
       ) : null}
 
-      <SharedTopics topics={sharedFor({ messages })} id="para-todos" />
+      <SharedTopics topics={sharedFor({ messages })} glossary={glossary} id="para-todos" />
 
       {everyone ? (
         <HelpList
@@ -99,7 +110,7 @@ export default async function HelpPage() {
           items={[{ href: '/ayuda/administracion', label: 'Guía de administración', detail: 'Equipo, ajustes, el asistente y lo que no es tuyo', icon: ShieldCheck }]}
         />
       ) : null}
-      <p className="text-sm text-text-2">La guía necesita señal: la plataforma no guarda páginas en el teléfono, por privacidad.</p>
+      <p className="text-sm text-text-2">La guía y los tutoriales solo se ven con señal.</p>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { EVENT_NOUNS, aboutEvent, asksAboutPublishing, asksRoute, asksWhenWhere,
 import { scrubTeamFicha, scrubTeamScript } from './guard';
 import { carriesWhen, hasDate, hasPlaceOrContact, redact, redactDeep, redactEventSpeech, redactLandmarks, redactQuoted } from './redact';
 import { fillHuecos, plain, sentences, HUECO, type Huecos } from './text';
-import { sectionCards } from '../guides';
+import { GLOSSARY, sectionCards } from '../guides';
 import { findAnswers } from './answers/engine';
 import { screenFor } from './screens';
 import { ANY_TOKEN, NO_TITLES, Placeholders, type TitleSet } from './titles';
@@ -244,6 +244,17 @@ export function sectionFichas(roles: Role[]): Ficha[] {
 }
 export const isSection = (f: Pick<Ficha, 'key'>) => !!f.key?.startsWith(SECTION_PREFIX);
 export const sectionKey = (screen: string, role: Role) => `${SECTION_PREFIX}${screen}:${role}`;
+// «Palabras de la app» (src/lib/guides/glossary.ts) for the model chain: one card per word, from the code, scored with
+// the general fichas of the turn (systemPrompt → pickFichas), so «¿qué es un hook?» brings its meaning. The demo brain
+// has them in its own index (answers/engine.ts glossaryEntries); they are not section cards and not the database's.
+export const GLOSSARY_PREFIX = 'palabra:';
+let WORDS: Ficha[] | null = null;
+/** The glossary's words, as fichas of the platform. */
+export function glossaryFichas(): Ficha[] {
+  WORDS ??= GLOSSARY.map((g) => ({ key: `${GLOSSARY_PREFIX}${g.id}`, title: g.term, body: g.text, tags: [...g.aka], origin: 'plataforma' }));
+  return WORDS;
+}
+
 /** The section cards of this screen for these roles (in the order of the roles). */
 export function sectionsFor(all: Ficha[] | null, screen: string | null | undefined, roles: Role[]): Ficha[] {
   if (!all || !screen) return [];
@@ -328,7 +339,7 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string, 
   if (ctx.knowledge === null) {
     L.push('Ahora mismo no tienes las fichas (no se pudieron leer). No inventes datos de la plataforma: si la respuesta depende de ellas, di «Déjame confirmarlo con el equipo» y ofrece avisar a administración.');
   } else {
-    const general = ctx.knowledge.filter((x) => !isSection(x));
+    const general = [...ctx.knowledge.filter((x) => !isSection(x)), ...glossaryFichas()];
     const picked = [
       ...sectionsFor(ctx.knowledge, ctx.screen, ctx.roles).slice(0, 1),
       ...pickFichas(general, `${question} ${ctx.history.filter((h) => h.who === 'persona').slice(-2).map((h) => h.body).join(' ')}`, ctx.roles, 4, true, 3),

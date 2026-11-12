@@ -39,7 +39,7 @@ export const IVT: Answer[] = [
       'al entrar a donde me lleva',
       'mi pantalla principal es obras',
     ],
-    a: 'Tu inicio es Obras: al entrar caes ahí. Hoy es solo una versión corta, con cuántas tienes en borrador y por ponerle fecha, y «Ver obras».',
+    a: 'Tu inicio es Obras: al entrar caes ahí.',
     go: '/obras',
   },
   {
@@ -215,7 +215,7 @@ export const IVT: Answer[] = [
       'que diferencia hay entre hoy y obras',
       'para que sirve hoy si tengo obras',
     ],
-    a: 'Hoy es una versión corta: cuántas fichas tienes en borrador y cuántas por ponerle fecha, con «Ver obras». Tu inicio es Obras.',
+    a: 'Hoy no está en tu menú: tu inicio es Obras.',
     go: '/obras',
   },
   {
