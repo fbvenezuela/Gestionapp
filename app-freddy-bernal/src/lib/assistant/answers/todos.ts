@@ -287,6 +287,9 @@ export const TODOS: Answer[] = [
       'cambie de telefono y me pide el codigo de la app',
       'en el cel nuevo me pide el codigo de la aplicacion',
       'telefono nuevo y me pide el autenticador',
+      // Without the phone that has the codes (13/11: since Mi perfil says «Doble factor: entraste con él», its answer
+      // has those words too, and it is not what this person needs).
+      'no tengo a mano el telefono del doble factor',
     ],
     a: {
       default:

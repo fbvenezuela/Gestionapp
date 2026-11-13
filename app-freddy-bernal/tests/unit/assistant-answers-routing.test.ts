@@ -206,6 +206,10 @@ const CLASSES: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿se ve en la foto dónde la tomé?', { has: /sin la ubicación/, not: REFUSAL }],
     ['epa como reporto un bote de aguas negras', { has: /ficha comunitaria/, not: /^¡Hola/ }],
     ['¿y sabes la fecha de mi reporte?', A],
+    // (13/11) Mi perfil now says «Doble factor: entraste con él»: without the phone that has the codes, the answer is
+    // still that administración resets it, not where Mi perfil says how you signed in; asked where to see it, Mi perfil.
+    ['¿me puedes dar el código del doble factor? no tengo el teléfono a mano', { has: /te reinicia el doble factor/, not: /«Mis datos»/ }],
+    ['donde veo si tengo activo el doble factor', { has: /«Doble factor: entraste con él»/ }],
   ],
   admin: [
     // (last pass) Tutorials: how they work and «Ver como» are the answers'; administración's screens have none.
