@@ -42,10 +42,12 @@ for (const p of PEOPLE) {
     } else await expect(page.getByText('Se arma en la siguiente etapa.')).toHaveCount(0);
     const bar = page.getByRole('navigation', { name: 'Menú' });
     await expect(bar.getByRole('link')).toHaveText([p.item]);
-    // No 360, no Mensajes, no «Crear».
+    // No 360, no Mensajes, no «Crear», and no search: it finds events and pieces, which they can never read.
     await expect(page.getByRole('button', { name: /360/ })).toHaveCount(0);
     await expect(page.getByRole('link', { name: /Mensajes/ })).toHaveCount(0);
     await expect(page.getByText('Crear', { exact: true })).toHaveCount(0);
+    await expect(page.getByRole('search').or(page.getByPlaceholder('Buscar evento o pieza'))).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Buscar', exact: true })).toHaveCount(0);
     await noSerious(page, p.home);
     // The team's screens send them back home with the polite note.
     await page.goto('/redes');
