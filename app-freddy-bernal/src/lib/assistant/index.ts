@@ -205,7 +205,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   const name = prof.name;
   const ctx: TurnContext = {
     profile: prof,
-    huecos: { name, app: brand.shortName || brand.appName || 'la plataforma', boss: brand.bossLabel || 'el jefe', person: firstName(session.name) },
+    huecos: { name, app: brand.shortName || brand.appName || 'la app', boss: brand.bossLabel || 'el jefe', person: firstName(session.name) },
     roles,
     personName: session.name,
     knowledge: withSections(await loadKnowledge(roles), roles),

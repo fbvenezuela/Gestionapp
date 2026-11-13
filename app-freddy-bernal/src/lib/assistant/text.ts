@@ -16,7 +16,7 @@ export function firstName(full: string | null | undefined): string {
 
 /** The intro when the panel leaves it empty: says the CURRENT name, nothing else about the client. */
 export function neutralIntro(name: string): string {
-  return `Soy ${name.trim() || 'el asistente'}, el asistente del equipo. Te ayudo con la plataforma.`;
+  return `Soy ${name.trim() || 'el asistente'}, el asistente del equipo. Te ayudo con la app.`;
 }
 
 export type Huecos = { name: string; app: string; boss: string; person: string };

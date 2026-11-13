@@ -16,6 +16,9 @@ import knowledge from '../../config/assistant/knowledge.json';
 import scripts from '../../config/assistant/scripts.json';
 import persona from '../../config/assistant/persona.json';
 import roles from '../../config/assistant/roles.json';
+import client from '../../config/clients/fb.json';
+import { defaultProfile } from '@/lib/assistant/config';
+import { neutralIntro } from '@/lib/assistant/text';
 
 type Said = { where: string; text: string };
 
@@ -124,6 +127,14 @@ const SAID: Said[] = [
   ...strings(roles, 'roles', []),
   ...codeStrings('src/lib/assistant/local.ts'),
   ...codeStrings('src/lib/assistant/tools.ts'),
+  // Its introduction, the first bubble of every conversation and the prompt's «Así te presentas» (13/11): the client's,
+  // the defaults when the panel leaves it empty, and the name 360 gives the app when the brand has none.
+  ...strings((client as { assistant: unknown }).assistant, 'fb.json assistant', []),
+  { where: 'defaultProfile().intro', text: defaultProfile().intro },
+  { where: 'neutralIntro', text: neutralIntro('360') },
+  ...codeStrings('src/lib/assistant/config.ts'),
+  ...codeStrings('src/lib/assistant/text.ts'),
+  ...codeStrings('src/lib/assistant/index.ts'),
 ];
 
 describe('360 dice lo que dice la guía del equipo', () => {

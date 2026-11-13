@@ -36,7 +36,7 @@ export function defaultProfile(brandKey?: string): AssistantProfile {
   return {
     name: a.name?.trim() || 'Asistente',
     emoji: a.emoji?.trim() || '',
-    intro: a.intro?.trim() || 'Soy el asistente del equipo. Te ayudo con la plataforma.',
+    intro: a.intro?.trim() || 'Soy el asistente del equipo. Te ayudo con la app.',
   };
 }
 

@@ -138,6 +138,10 @@ describe('fichas automáticas (assistant_refresh)', () => {
     const marca = await t.system((sql) => sql.one<{ body: string }>(`select body from public.assistant_knowledge where key = 'auto:marca'`));
     const brand = await t.system((sql) => sql.one<{ value: { appName: string } }>(`select value from public.app_settings where key = 'brand'`));
     expect(marca!.body).toContain(brand!.value.appName);
+    // 360 says «la app», never «la plataforma» (13/11): the generated fichas too.
+    const fichas = await t.system((sql) => sql.query<{ key: string; title: string; body: string }>(`select key, title, body from public.assistant_knowledge where origin = 'plataforma' and active and key like 'auto:%'`));
+    expect(marca!.body).toMatch(/^La app se llama /);
+    expect(fichas.filter((f) => /plataforma/i.test(`${f.title} ${f.body}`)).map((f) => f.key)).toEqual([]);
   });
 
   it('un cambio en la plataforma se entera solo (disparador por sentencia)', async () => {
