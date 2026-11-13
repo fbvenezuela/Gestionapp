@@ -25,10 +25,11 @@ function files(p: string): string[] {
   return fs.readdirSync(abs).flatMap((f) => files(path.join(p, f)));
 }
 
-// The code without its comments (// to the end of a line unless inside a URL, /* … */ and {/* … */}).
+// The code without its comments (// to the end of a line unless inside a URL, /* … */ and {/* … */}; never the «/*» of
+// an «accept="image/*"»).
 const withoutComments = (src: string) =>
   src
-    .replace(/\{?\/\*[\s\S]*?\*\/\}?/g, (m) => m.replace(/[^\n]/g, ' '))
+    .replace(/(^|[\s{(;,])\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
     .split('\n')
     .map((line) => line.replace(/(^|[^:'"`\w])\/\/.*$/, '$1'));
 
