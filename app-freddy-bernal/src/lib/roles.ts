@@ -99,7 +99,10 @@ export const ROLE_MIX_MESSAGE = 'Administración no puede ser también el jefe n
 export const ADMIN_WEB_MIX_MESSAGE = 'Administración no publica la web ni lee las solicitudes ciudadanas: usa otra cuenta.';
 // The boss reads every conversation and approves everything: the role is given only by the system, with
 // `npm run db:first-admin -- <correo> "<nombre>" --jefe` (D-58; guard_boss_grant, 20261028002350_boss_grant.sql).
-export const BOSS_GRANT_MESSAGE = 'El rol de jefe lo da el comando de instalación.';
+// On the screen, in plain words: whoever installs the app gives it.
+export const BOSS_GRANT_MESSAGE = 'El rol de jefe lo da quien instala la app.';
+// The boss's option in «Invitar a alguien», always off.
+export const BOSS_OPTION_LABEL = 'Jefe (lo da quien instala la app)';
 
 /** Why this role cannot be given (on) to this person, or null. Taking a role away is never refused here. Your own
  * roles and the mix with Administración say so first (the more specific reason); then the boss's role, never here. */

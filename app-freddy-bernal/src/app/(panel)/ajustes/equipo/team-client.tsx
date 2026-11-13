@@ -7,7 +7,7 @@ import { useAction } from '@/lib/hooks/use-action';
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Field, Input, Select } from '@/components/ui/field';
-import { BOSS_GRANT_MESSAGE, INVITABLE_ROLES, ROLE_LABEL, TEAM_ROLES, WEB_ROLES, isWebRole, roleGrantProblem, type InvitableRole, type Role } from '@/lib/roles';
+import { BOSS_GRANT_MESSAGE, BOSS_OPTION_LABEL, INVITABLE_ROLES, ROLE_LABEL, TEAM_ROLES, WEB_ROLES, isWebRole, roleGrantProblem, type InvitableRole, type Role } from '@/lib/roles';
 
 // The six team roles, then the web's and the attention desk's (D-93: always with the second factor, a responsible of an
 // area with its areas), then Administración apart: the technical role, never part of the team lists.
@@ -66,7 +66,7 @@ export function InviteForm({ areas }: { areas: AreaChoice[] }) {
             <optgroup key={g.label} label={g.label}>
               {g.roles.map((r) => (
                 <option key={r} value={r} disabled={r === 'boss'}>
-                  {r === 'boss' ? `${ROLE_LABEL[r]} (lo da el comando de instalación)` : roleLabel(r)}
+                  {r === 'boss' ? BOSS_OPTION_LABEL : roleLabel(r)}
                 </option>
               ))}
             </optgroup>
@@ -97,7 +97,7 @@ export function MemberActions({ userId, name, roles, active, isSelf, twoFactor, 
   const { confirm, dialog } = useConfirm();
   const [open, setOpen] = useState(false);
   // Roles that cannot be given here, and why (your own, Administración with the boss, despacho or a role of the web or
-  // the desk, or the boss's role, which only the installation command gives). The database refuses them too; the screen
+  // the desk, or the boss's role, which only whoever installs the app gives). The database refuses them too; the screen
   // says why before anyone taps.
   const problems = new Map(INVITABLE_ROLES.map((r) => [r, roleGrantProblem({ isSelf, roles, role: r })] as const));
   const reasons = [...new Set([...problems.values()].filter((x): x is string => !!x))];

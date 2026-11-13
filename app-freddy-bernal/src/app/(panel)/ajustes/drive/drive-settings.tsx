@@ -48,8 +48,8 @@ export function DriveSettings(p: Props) {
       <Card>
         <CardHeader title="Drive no está activado" action={<Chip>Apagado</Chip>} />
         <CardBody className="flex flex-col gap-2 text-[15px]">
-          <p>Los archivos se guardan como siempre, en la plataforma.</p>
-          <p className="text-text-2">Para guardarlos en el Google Drive del cliente hay que poner <code>STORAGE_PROVIDER=drive</code> en Vercel (solo Production) y las variables de Google. Los pasos están en <code>docs/DRIVE.md</code>.</p>
+          <p>Los archivos se guardan como siempre, en la app.</p>
+          <p className="text-text-2">Para guardarlos en el Google Drive del cliente, avísale a quien instaló la app: es quien lo enciende.</p>
         </CardBody>
       </Card>
     );
@@ -112,9 +112,9 @@ export function DriveSettings(p: Props) {
   async function disconnect(o: { changeAccount?: boolean; revoke?: boolean } = {}) {
     const ok = await confirm(
       o.revoke
-        ? { title: '¿Quitar el permiso en Google?', body: 'Google le quita el acceso a la plataforma y al script de importación. Úsalo solo si crees que alguien de afuera tiene el permiso. Después hay que conectar de nuevo, y puede que haya que volver a elegir lo que se trajo con «Elegir de Drive».', confirmLabel: 'Quitar el permiso', tone: 'danger' }
+        ? { title: '¿Quitar el permiso en Google?', body: 'Google le quita el acceso a la app, también para traer lo que ya estaba en Drive. Úsalo solo si crees que alguien de afuera tiene el permiso. Después hay que conectar de nuevo, y puede que haya que volver a elegir lo que se trajo con «Elegir de Drive».', confirmLabel: 'Quitar el permiso', tone: 'danger' }
         : o.changeAccount
-          ? { title: '¿Cambiar de cuenta de Google?', body: 'Los archivos guardados en la cuenta actual dejan de abrirse en la plataforma. Úsalo solo si el cliente cambió de cuenta a propósito.', confirmLabel: 'Cambiar de cuenta', tone: 'danger' }
+          ? { title: '¿Cambiar de cuenta de Google?', body: 'Los archivos guardados en la cuenta actual dejan de abrirse en la app. Úsalo solo si el cliente cambió de cuenta a propósito.', confirmLabel: 'Cambiar de cuenta', tone: 'danger' }
           : { title: '¿Desconectar Drive?', body: 'Mientras tanto no se puede subir ni abrir lo que está en Drive. No se borra nada: al conectar la misma cuenta, todo vuelve.', confirmLabel: 'Desconectar', tone: 'danger' },
     );
     if (!ok) return;
@@ -123,7 +123,7 @@ export function DriveSettings(p: Props) {
     setBusy(null);
     setSteps(null);
     if (r.ok) {
-      toast.success(o.revoke ? 'Listo: Google ya no le da acceso a la plataforma.' : 'Drive quedó desconectado.');
+      toast.success(o.revoke ? 'Listo: Google ya no le da acceso a la app.' : 'Drive quedó desconectado.');
       router.refresh();
     } else toast.error(r.error);
   }
@@ -145,9 +145,9 @@ export function DriveSettings(p: Props) {
           {p.fake ? <p className="rounded-[var(--radius-control)] bg-info-soft px-3 py-2 text-info">Drive de prueba (en memoria): nada sale a Google.</p> : null}
           {!configured ? (
             <div className="rounded-[var(--radius-control)] bg-warn-soft px-3 py-2 text-warn">
-              <p className="font-semibold">Falta llenar en Vercel (solo Production):</p>
+              <p className="font-semibold">Faltan datos de la instalación:</p>
               <ul className="mt-1 list-disc pl-5">{p.missing.map((m) => <li key={m}><code>{m}</code></li>)}</ul>
-              <p className="mt-1">Después, «Redeploy». Los pasos están en <code>docs/DRIVE.md</code>.</p>
+              <p className="mt-1">Pásale esta lista a quien instaló la app.</p>
             </div>
           ) : null}
           <dl className="grid gap-2">
@@ -156,12 +156,12 @@ export function DriveSettings(p: Props) {
             <Row label="Carpeta">
               «{p.folder}» · {p.rootReady ? 'lista' : 'se crea al conectar'}
             </Row>
-            <Row label="Subidas">{p.uploadMode === 'proxy' ? 'pasan por la plataforma (DRIVE_UPLOAD_MODE=proxy)' : 'van del teléfono directo a Drive'}</Row>
+            <Row label="Subidas">{p.uploadMode === 'proxy' ? 'pasan por la app' : 'van del teléfono directo a Drive'}</Row>
           </dl>
           <p className="text-sm text-text-2">Adentro de la carpeta: Videos, Fotos, Portadas, Audios y Documentos, con una carpeta por evento con su código (nunca con la fecha).</p>
           {p.status === 'expired' || p.status === 'error' ? (
             <p className="rounded-[var(--radius-control)] bg-danger-soft px-3 py-2 text-danger">
-              {p.status === 'expired' ? 'Google dejó de darle permiso a la plataforma.' : 'No se puede leer el permiso guardado.'} Toca «Volver a conectar» con la misma cuenta. No se pierde nada.
+              {p.status === 'expired' ? 'Google dejó de darle permiso a la app.' : 'No se puede leer el permiso guardado.'} Toca «Volver a conectar» con la misma cuenta. No se pierde nada.
             </p>
           ) : null}
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -208,13 +208,13 @@ export function DriveSettings(p: Props) {
 
       {p.capBytes ? (
         <Card>
-          <CardHeader title="Transferencia de este mes" subtitle="Ver, adelantar y descargar videos de Drive pasa por la plataforma." />
+          <CardHeader title="Transferencia de este mes" subtitle="Ver, adelantar y descargar videos de Drive pasa por la app." />
           <CardBody className="flex flex-col gap-2 text-[15px]">
             <p>{gb(p.monthBytes)} de {gb(p.capBytes)}</p>
             <div className="h-2 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Transferencia usada este mes">
               <div className={cn('h-full', pct >= 90 ? 'bg-danger' : pct >= 70 ? 'bg-warn' : 'bg-accent')} style={{ width: `${pct}%` }} />
             </div>
-            <p className="text-sm text-text-2">Al llegar al tope se pausa ver y descargar desde Drive hasta el mes que viene, para que Vercel no pause la plataforma. Subir sigue funcionando.</p>
+            <p className="text-sm text-text-2">Al llegar al tope se pausa ver y descargar desde Drive hasta el mes que viene, para que no se pare toda la app. Subir sigue funcionando.</p>
           </CardBody>
         </Card>
       ) : null}
@@ -223,7 +223,7 @@ export function DriveSettings(p: Props) {
         <CardHeader title="Si el permiso se vence" />
         <CardBody className="flex flex-col gap-2 text-[15px]">
           <p>Te llega un aviso y aquí sale «Se venció el permiso». Toca «Volver a conectar» y entra con la misma cuenta de Google. No se pierde nada.</p>
-          <p className="text-text-2">Mientras tanto, quien use la plataforma ve «El material no se puede abrir ahora» en vez de una pantalla rota.</p>
+          <p className="text-text-2">Mientras tanto, quien use la app ve «El material no se puede abrir ahora» en vez de una pantalla rota.</p>
         </CardBody>
       </Card>
 

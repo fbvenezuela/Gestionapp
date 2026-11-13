@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Bell, Plus, Search, UserRound } from 'lucide-react';
 import { requireSession, menuRoles, db } from '@/lib/auth/session';
-import { createFor, navFor, ROLE_LABEL } from '@/lib/roles';
+import { createFor, isStaffRole, navFor, ROLE_LABEL } from '@/lib/roles';
 import { brand } from '@/lib/client-config';
 import { isDemo } from '@/lib/env';
 import { SideNav, BottomNav } from '@/components/shell/nav';
@@ -28,6 +28,9 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   const { visible, mobile, more } = navFor(roles);
   const unread = await db(s, async (sql) => (await sql.one<{ n: number }>(`select count(*)::int as n from public.notifications where read_at is null`))!.n);
   const create = createFor(roles);
+  // The search finds events and pieces: only the team and Administración can read them (the web's and the attention
+  // desk's roles never could, so they do not get it).
+  const team = roles.some((r) => isStaffRole(r));
   // The tutorials of the menu roles (they follow «Ver como»); Mensajes' never for an account with Administración (D-49).
   const tours = toursForRoles(roles, { admin: s.roles.includes('admin') });
 
@@ -55,22 +58,28 @@ export default async function PanelLayout({ children }: { children: React.ReactN
               <span className="grid h-9 w-9 place-items-center rounded-[var(--radius-control)] bg-accent font-bold text-on-accent">{brand.logoText}</span>
               <span className="sr-only">{brand.appName}</span>
             </Link>
-            <form action="/buscar" className="relative ml-1 hidden max-w-md flex-1 sm:block" data-tour="search">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
-              <input name="q" type="search" placeholder="Buscar evento o pieza" aria-label="Buscar" className="min-h-10 w-full rounded-[var(--radius-control)] border border-border bg-surface-2 pl-9 pr-3 text-[15px]" />
-            </form>
+            {team ? (
+              <form action="/buscar" className="relative ml-1 hidden max-w-md flex-1 sm:block" data-tour="search">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
+                <input name="q" type="search" placeholder="Buscar evento o pieza" aria-label="Buscar" className="min-h-10 w-full rounded-[var(--radius-control)] border border-border bg-surface-2 pl-9 pr-3 text-[15px]" />
+              </form>
+            ) : null}
             <div className="ml-auto flex items-center gap-1.5">
               {s.roles.includes('admin') ? <div className="hidden md:block"><ViewAs current={s.viewAs} /></div> : null}
-              <Link href="/buscar" className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'sm:hidden' })} aria-label="Buscar" data-tour="search">
-                <Search className="h-5 w-5" aria-hidden />
-              </Link>
+              {team ? (
+                <Link href="/buscar" className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'sm:hidden' })} aria-label="Buscar" data-tour="search">
+                  <Search className="h-5 w-5" aria-hidden />
+                </Link>
+              ) : null}
               {create.length > 0 ? (
-                <MenuDetails className="relative">
+                // On a phone the panel hangs from the header (sticky, so it is the containing block), 16 px from its
+                // right edge: from the button it ran past the left edge at 360 px.
+                <MenuDetails className="sm:relative">
                   <summary className={buttonVariants({ size: 'sm', className: 'list-none [&::-webkit-details-marker]:hidden cursor-pointer' })} data-tour="create">
                     <Plus className="h-4 w-4" aria-hidden /> <span className="hidden sm:inline">Crear</span>
                     <span className="sr-only sm:hidden">Crear</span>
                   </summary>
-                  <div className={cn(menuPanelClass, 'absolute right-0 z-30 mt-2 w-56')}>
+                  <div className={cn(menuPanelClass, 'absolute right-4 top-full z-30 mt-2 w-56 max-w-[calc(100vw-2rem)] sm:right-0 sm:top-auto')}>
                     {create.map((c) => (
                       <Link key={c.href} href={c.href} className="flex min-h-11 items-center rounded-[var(--radius-control)] px-3 text-[15px] hover:bg-surface-2">
                         {c.label}

@@ -203,7 +203,7 @@ test('el jefe donde está Redes: «mañana» se pregunta (E1); una hora concreta
   await loginAs(page, 'jefe@demo.test');
   await page.goto(c1);
   await shown(page);
-  await expect(page.getByText('Aquí está Redes o política: sin fechas, horas, ni cuándo sales o llegas.')).toBeVisible();
+  await expect(page.getByText('Aquí está Redes o política: sin fechas, horas ni cuándo sales o llegas.')).toBeVisible();
 
   const relative = `Mañana te mando la frase ${RUN}`;
   await sendText(page, relative);

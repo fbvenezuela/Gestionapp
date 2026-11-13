@@ -42,10 +42,16 @@ for (const p of PEOPLE) {
     } else await expect(page.getByText('Se arma en la siguiente etapa.')).toHaveCount(0);
     const bar = page.getByRole('navigation', { name: 'Menú' });
     await expect(bar.getByRole('link')).toHaveText([p.item]);
-    // No 360, no Mensajes, no «Crear».
+    // No 360, no Mensajes, no «Crear», and no search in the top bar: it finds events and pieces, which they can never
+    // read (their own screens keep their own: the attention inbox has «Buscar y filtrar solicitudes»).
     await expect(page.getByRole('button', { name: /360/ })).toHaveCount(0);
     await expect(page.getByRole('link', { name: /Mensajes/ })).toHaveCount(0);
     await expect(page.getByText('Crear', { exact: true })).toHaveCount(0);
+    const top = page.locator('header').first();
+    await expect(top.getByRole('search').or(top.getByPlaceholder('Buscar evento o pieza'))).toHaveCount(0);
+    await expect(page.getByPlaceholder('Buscar evento o pieza')).toHaveCount(0);
+    await expect(page.locator('form[action="/buscar"], a[href="/buscar"]')).toHaveCount(0);
+    await expect(top.getByRole('link', { name: 'Buscar', exact: true })).toHaveCount(0);
     await noSerious(page, p.home);
     // The team's screens send them back home with the polite note.
     await page.goto('/redes');

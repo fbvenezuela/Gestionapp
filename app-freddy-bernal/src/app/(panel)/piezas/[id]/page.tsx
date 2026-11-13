@@ -11,7 +11,7 @@ import { FORMAT } from '@/lib/domain/redes';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
-import { NETWORK_LABEL, PUB_STATUS } from '@/lib/data/labels';
+import { NETWORK_LABEL, PUB_STATUS, versionLabel } from '@/lib/data/labels';
 import { fmtDateTime, ms } from '@/lib/time';
 import { MediaPreview } from '@/components/media/media-preview';
 import { DownloadLink } from '@/components/media/drive-download';
@@ -63,7 +63,7 @@ export default async function PiecePage({ params }: { params: Promise<{ id: stri
       />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Chip tone={card.chip.tone}>{card.chip.label}</Chip>
-        <Chip>Versión {p.current_version || '—'}</Chip>
+        <Chip>{versionLabel(p.current_version)}</Chip>
         <Chip tone={LEVELS[p.review_level].tone}>{LEVELS[p.review_level].label}: aprueba {LEVELS[p.review_level].who}</Chip>
         {p.approved_by_name ? <Chip tone="ok">Aprobó {p.approved_by_name} · {fmtDateTime(p.approved_at)}</Chip> : null}
       </div>
@@ -192,7 +192,7 @@ export default async function PiecePage({ params }: { params: Promise<{ id: stri
                   .sort((a, b) => ms(b.at) - ms(a.at))
                   .map((h, i) => (
                     <li key={i} className="px-4 py-3">
-                      <p><b>{h.who}</b> {h.tag.toLowerCase()} (v{h.v})</p>
+                      <p><b>{h.who}</b> {h.tag.toLowerCase()} (versión {h.v})</p>
                       {h.text ? <p className="whitespace-pre-wrap text-text-2">{h.text}</p> : null}
                       <p className="text-sm text-muted">{fmtDateTime(h.at)}</p>
                     </li>

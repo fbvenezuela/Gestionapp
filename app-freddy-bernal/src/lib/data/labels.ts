@@ -28,9 +28,15 @@ export const EVENT_KIND: Record<string, string> = {
 export const EVENT_ORIGIN: Record<string, string> = {
   dispatch: 'Propuesto por Despacho',
   boss: 'Lo agregó el jefe',
-  ivt: 'Nació de una ficha del IVT',
-  politics: 'Nació de un reporte de política',
+  ivt: 'Viene de una ficha del IVT',
+  politics: 'Viene de un reporte de política',
 };
+
+/** A piece's version, said the same way on every screen: «Versión 2», or «Sin archivo todavía» before the first file
+ * (version 0). Inside a sentence the screens write «versión 2» in lower case. */
+export function versionLabel(n: number | null | undefined): string {
+  return n ? `Versión ${n}` : 'Sin archivo todavía';
+}
 
 export const PIECE_STATUS: Record<string, { label: string; tone: Tone }> = {
   draft: { label: 'Borrador', tone: 'neutral' },

@@ -27,7 +27,7 @@ export function DraftActions({ id, to }: { id: string; to: string }) {
         onClick={async () => {
           const body = (
             <>
-              <p>Les llega en los avisos de la plataforma. No se puede retirar.</p>
+              <p>Les llega en los avisos de la app. No se puede retirar.</p>
               <p className="mt-2 font-medium text-text">{NOTICE_REMINDER}</p>
             </>
           );

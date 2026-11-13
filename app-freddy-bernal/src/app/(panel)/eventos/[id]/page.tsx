@@ -10,7 +10,7 @@ import { PageHeader } from '@/components/ui/page';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
-import { BOSS_DECISION, EVENT_KIND, EVENT_ORIGIN, WORK_STATUS, PIECE_STATUS } from '@/lib/data/labels';
+import { BOSS_DECISION, EVENT_KIND, EVENT_ORIGIN, WORK_STATUS, PIECE_STATUS, versionLabel } from '@/lib/data/labels';
 import { FORMAT, isFormat } from '@/lib/domain/redes';
 import { fmtDateTime, fmtTime, fmtDay, dt } from '@/lib/time';
 import { cn } from '@/lib/cn';
@@ -241,7 +241,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
                 )}
               </CardBody>
             </Card>
-            {canEdit ? <HistoryCard rows={data.history} /> : null}
+            {canEdit ? <HistoryCard rows={data.history} categories={data.categories} /> : null}
           </div>
         </div>
       ) : null}
@@ -298,7 +298,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
                   <Link href={`/piezas/${p.id}`} className="flex min-h-14 flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3 hover:bg-surface-2">
                     <span className="min-w-0 flex-1 basis-40">
                       <span className="block font-semibold">{p.title}</span>
-                      <span className="block text-sm text-text-2">Versión {p.current_version || '—'}</span>
+                      <span className="block text-sm text-text-2">{versionLabel(p.current_version)}</span>
                     </span>
                     <span className="flex flex-wrap items-center gap-1.5">
                       <Chip tone="accent">{isFormat(p.format) ? FORMAT[p.format].label : 'Pieza'}</Chip>

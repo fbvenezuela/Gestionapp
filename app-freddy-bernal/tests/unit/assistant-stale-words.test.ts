@@ -5,7 +5,7 @@
 // último cambio guardado»; «te llega un aviso»; «si entraste con el doble factor»; «la app», never «la plataforma» nor
 // anything internal (the database, the server, the install command). The ways of asking (`q:`, the matchers of the
 // brain) keep how people talk («el sobre», «la plataforma»): they are not read here. A «label» the screen shows is
-// read apart: the word rules skip it («Nació de una ficha del IVT» is the screen's text).
+// read apart: the word rules skip it (the fichas' «Historia» says «… solo se agrega.» on the screen).
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import ts from 'typescript';
@@ -186,7 +186,7 @@ describe('360 dice lo que dice la guía del equipo', () => {
     ])
       expect(hit(old), old).toBe(true);
     for (const ok of [
-      'Al lado dice de dónde viene: «Nació de una ficha del IVT».',
+      'Debajo de «Historia» dice «Quién hizo qué y cuándo. No se borra ni se cambia: solo se agrega.».',
       'Si dice «Los contactos se ven con el doble factor.», entra otra vez.',
       'Habla sobre el evento, no sobre la fecha.',
       'Solo tú, con el doble factor, desde los tres puntos de su tarjeta.',

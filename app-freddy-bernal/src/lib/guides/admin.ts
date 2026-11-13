@@ -1,5 +1,6 @@
 // Administración's own guide, apart from the team's (R3, D-43): /ayuda/administracion and docs/GUIA-ADMINISTRACION.md.
 // The technical role: the settings, the team's accounts and 360's panel. It never reads Mensajes.
+import { BOSS_GRANT_MESSAGE } from '../roles';
 import type { AdminGuide } from './types';
 
 export const ADMIN_GUIDE: AdminGuide = {
@@ -20,7 +21,7 @@ export const ADMIN_GUIDE: AdminGuide = {
       cannot: [
         'Darte tus propios roles: los da otra persona de administración.',
         'Ser también el jefe o el despacho en la misma cuenta: usa otra cuenta.',
-        'Dar el rol de jefe: lo da quien instala la app.',
+        `Dar el rol de jefe: «${BOSS_GRANT_MESSAGE}»`,
       ],
     },
     { screen: '/ajustes/categorias', title: 'Categorías', what: 'La lista de categorías del contenido (eventos, piezas y tweets).', youDo: ['Agregas, cambias el nombre o apagas una categoría.'] },
@@ -103,7 +104,7 @@ export const ADMIN_GUIDE: AdminGuide = {
   ],
   faq: [
     { q: 'Alguien perdió el teléfono, ¿qué hago?', a: 'En Equipo, «Cerrar sus sesiones» y «Reiniciar doble factor». La próxima vez que entre, lo activa de nuevo.' },
-    { q: '¿Por qué no puedo marcar «Jefe» en Equipo?', a: 'El rol de jefe lo da quien instala la app, una sola vez. Así nadie arma otra cuenta que apruebe todo o esté en todos los canales.' },
+    { q: '¿Por qué no puedo marcar «Jefe» en Equipo?', a: `«${BOSS_GRANT_MESSAGE}» Se da una sola vez: así nadie arma otra cuenta que apruebe todo o esté en todos los canales.` },
     { q: '¿Puedo leer los mensajes del equipo?', a: 'No. Mensajes no tiene entrada para administración, ni con «Ver como», ni en el registro de cambios.' },
     { q: '¿Qué ve el equipo de lo que hago?', a: 'Cada rol que das le llega al jefe como aviso. Las personas saben que lees lo que le preguntan a 360: el panel de 360 lo dice.' },
     { q: '¿Puedo eliminar una pieza?', a: 'No: solo el jefe elimina piezas. Tú la recuperas en Ajustes → «Cupo y pilares» → «Piezas eliminadas» → «Recuperar».' },

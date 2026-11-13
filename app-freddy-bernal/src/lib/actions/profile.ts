@@ -16,9 +16,9 @@ const hhmm = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Hora no válida.');
 
 export async function updateProfile(raw: unknown) {
   return act(
+    // No phone: Mi perfil does not ask it any more, and what is stored stays as it is (the column too).
     z.object({
       fullName: z.string().trim().min(2).max(120),
-      phone: z.string().trim().max(40).default(''),
       // Per-kind on/off (booleans) plus quiet hours: quiet (on/off), quiet_from / quiet_to ("21:00").
       prefs: z
         .record(z.string().max(40), z.union([z.boolean(), hhmm]))
@@ -28,7 +28,7 @@ export async function updateProfile(raw: unknown) {
     }),
     raw,
     async (sql, i) => {
-      await sql.query(`update public.profiles set full_name = $1, phone = nullif($2, ''), notify_prefs = $3::text::jsonb where id = auth.uid()`, [i.fullName, i.phone, JSON.stringify(i.prefs)]);
+      await sql.query(`update public.profiles set full_name = $1, notify_prefs = $2::text::jsonb where id = auth.uid()`, [i.fullName, JSON.stringify(i.prefs)]);
     },
     { revalidate: ['/perfil'] },
   );
@@ -79,7 +79,7 @@ export async function removePushSubscription(raw: unknown) {
 // «Probar aviso»: only to the phones of the person who taps it. Read with RLS, sent after the
 // transaction ends.
 export async function sendTestPush(): Promise<Result> {
-  if (!vapidConfig()) return { ok: false, error: 'Los avisos al teléfono están apagados en el servidor.' };
+  if (!vapidConfig()) return { ok: false, error: 'Los avisos al teléfono todavía no están encendidos en la app: avísale a quien la instaló.' };
   const r = await act(z.object({}), {}, async (sql) => {
     const subs = await sql.query<PushSub>(`select endpoint, p256dh, auth from public.push_subscriptions where user_id = auth.uid()`);
     if (!subs.length) throw new UserError('Este teléfono todavía no tiene los avisos activos.');

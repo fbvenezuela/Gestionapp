@@ -35,7 +35,7 @@ export default async function TeamPage() {
       <PageHeader title="Equipo" subtitle="Cada persona tiene su usuario, aunque compartan el mismo rol. También la web y la atención ciudadana, siempre con doble factor." back={{ href: '/ajustes', label: 'Ajustes' }} />
       <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
         <Card solid>
-          <CardHeader title="Personas" subtitle={`${data.members.length} en la plataforma`} />
+          <CardHeader title="Personas" subtitle={`${data.members.length} en la app`} />
           <ul className="divide-y divide-border">
             {data.members.map((m) => (
               <li key={m.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">

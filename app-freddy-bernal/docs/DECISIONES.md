@@ -781,7 +781,7 @@ comando, los mensajes no se borran).
     enlace con una fecha. Se aceptan: el rechazo explica cómo decirlo sin fecha («lo antes posible», «el día del
     evento»), y la app avisa **mientras escribes**, nombrando la palabra («“10:30” no puede ir aquí»). El texto queda en
     la caja; nunca se repite el texto en el error ni en los registros.
-  - La nota «Aquí está Redes o política: sin fechas, horas, ni cuándo sales o llegas.» la ve solo quien conoce la
+  - La nota «Aquí está Redes o política: sin fechas, horas ni cuándo sales o llegas.» la ve solo quien conoce la
     agenda, y solo en esas conversaciones. «Cuándo sales o llegas» no lo detecta la base: es guía.
   - **Nombres de grupo:** siempre con el detector completo (`text_has_datetime`, también «hoy» o «mañana») y sin
     mapas, estén o no Redes o política: nadie pregunta antes de guardar un nombre, todos lo leen cada vez, y un nombre
@@ -808,7 +808,7 @@ comando, los mensajes no se borran).
   cualquier conversación y venga de quien venga, revisando el texto completo salvo la ruta interna exacta y el número
   de un post de X (un enlace como `https://x.com/0414-555-1234` o uno de `wa.me` se rechaza). Mensaje: «Los teléfonos no
   van en los mensajes: los contactos van en la ficha, con doble factor.»; si el número largo es parte de un enlace:
-  «Ese enlace tiene un número largo que parece un teléfono. Si es de la plataforma, pega su dirección; si no, quita el
+  «Ese enlace tiene un número largo que parece un teléfono. Si es de la app, pega su dirección; si no, quita el
   número.»
 - **Por qué:** los contactos de terceros se guardan aparte y con doble factor (D-34, D-41); Grabación y Redes no usan
   doble factor, y el jefe lee todo. Una sola regla fácil de explicar.
@@ -868,7 +868,8 @@ comando, los mensajes no se borran).
 - **Qué:** migración `20261028002350_boss_grant.sql`: dar el rol `boss` (en `user_roles` y en `invitations.roles`)
   solo lo puede hacer el sistema (sin persona: la semilla, una migración, el comando de instalación o el alta de
   Supabase que copia los roles de una invitación que hizo el sistema). Administración ya no lo da, ni en «Equipo» ni en
-  «Invitar»; la casilla «Jefe» se ve apagada con «El rol de jefe lo da el comando de instalación.». Una invitación que
+  «Invitar»; la casilla «Jefe» se ve apagada con «El rol de jefe lo da quien instala la app.» (hasta el 13/11 decía «el
+  comando de instalación», también en la base: `20261113000200_rol_de_jefe_quien_instala.sql`). Una invitación que
   nombra al jefe solo se puede anular. El comando: `npm run db:first-admin -- <correo> "<nombre>" --jefe` (el mismo
   script del primer administrador; no manda nada). Además, cada rol del equipo que da **una persona** crea un aviso en
   la campana del jefe («Administración le dio el rol Grabación a <nombre>.» o «Administración invitó a … como Redes.»),
@@ -1166,8 +1167,9 @@ la agenda, Tweets ni la publicación manual. Las preguntas para Hillary siguen l
   un post y un carrusel **en revisión** para que el jefe pruebe «Revisar» fuera de Reels. Copies con las reglas de FB
   (FAB, PAS y AIDA, «¡Saludos, Táchira!», «Por amor al Táchira»); nada de la referencia; sin nombres, teléfonos, fechas
   ni horas. En la demo (cada servidor tiene su base, D-39): un aviso una vez por persona, con «Entendido» («En la
-  demostración, cada servidor guarda lo suyo: lo que creas o mueves puede no verse al recargar, con otra cuenta o en
-  otro teléfono. Lo sembrado siempre está.»); lo recién creado se abre en la misma pantalla; una pieza o miniatura
+  demostración, cada copia guarda lo suyo: lo que creas o mueves puede no verse al recargar, con otra cuenta o en
+  otro teléfono. Lo que la demostración ya trae siempre está.»; hasta el 13/11 decía «cada servidor» y «Lo sembrado»);
+  lo recién creado se abre en la misma pantalla; una pieza o miniatura
   de otro servidor lo dice así en vez de «no encontrado» o una imagen rota (como Mensajes, D-57).
 - **Por qué:** §2.1 «lo que ya hay se conecta, no se tira» y §3 «llena el Mes 1». Lo primero que Hillary va a probar
   (crear un reel, subir una imagen, armar el feed) es justo lo que la demo por servidor puede perder.

@@ -16,7 +16,7 @@ const ITEMS = [
   { href: '/ajustes/contenido', label: 'Cupo y pilares', detail: 'El cupo del mes por formato, los pilares y las piezas eliminadas', icon: SlidersHorizontal },
   { href: '/ajustes/marca', label: 'Marca', detail: 'Nombre, colores y logos', icon: Palette },
   { href: '/ajustes/asistente', label: 'Asistente', detail: 'Lo que sabe, cómo contesta y cómo le va', icon: Bot },
-  { href: '/ajustes/buzon', label: 'Buzón de correos', detail: 'Los correos que la plataforma generó', icon: Inbox },
+  { href: '/ajustes/buzon', label: 'Buzón de correos', detail: 'Los correos que la app generó', icon: Inbox },
   { href: '/ajustes/registro', label: 'Registro de cambios', detail: 'Quién cambió qué y cuándo', icon: History },
 ];
 

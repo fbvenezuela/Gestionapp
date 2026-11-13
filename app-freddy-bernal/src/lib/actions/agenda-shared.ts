@@ -187,7 +187,8 @@ export async function clashWith(sql: Sql, starts: string, ends: string, except: 
   return clash?.title ?? null;
 }
 
-export const CLASH = (title: string) => `Choca con «${title}». Si igual quieres guardarlo, marca «Guardar aunque choque».`;
+// The checkbox's own words (agenda/nuevo, the «Ponerle fecha» and «Mover» sheets).
+export const CLASH = (title: string) => `Choca con «${title}». Si va igual, marca «Guardar aunque choque con otro evento».`;
 
 // Date, time and place of an event: an upsert (an event without a date gets one here). `onlyWhen` = «Mover»: only
 // the date, time and duration. Moving it onto a date its title names would put that date in the title.

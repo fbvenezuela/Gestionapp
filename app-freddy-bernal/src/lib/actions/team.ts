@@ -66,7 +66,7 @@ export async function inviteUser(raw: unknown) {
       } else {
         const { supabaseAdmin } = await import('../supabase/server');
         const { error } = await supabaseAdmin().auth.admin.createUser({ email: input.email, email_confirm: true, user_metadata: { full_name: input.fullName } });
-        if (error && !/already/i.test(error.message)) return { ok: false as const, error: 'No se pudo crear la cuenta. Revisa la configuración de Supabase.' };
+        if (error && !/already/i.test(error.message)) return { ok: false as const, error: 'No se pudo crear la cuenta. Avísale a quien instaló la app.' };
       }
       // The account exists now (the sign-in trigger made its profile with the invited role): its areas, as Administración.
       if (input.role === 'reports_operator' && input.areaIds.length) {
@@ -117,7 +117,7 @@ const userSchema = z.object({ userId: z.string().uuid() });
 // The Auth step runs after the profile change is committed (sessions_revoked_at set), and the app
 // already refuses their old sessions (readClaims checks when each one began): a failed Auth delete
 // is a partial success, not an error that would make the admin think nothing happened.
-const AUTH_NOT_ENDED = 'No se pudieron borrar sus sesiones en Supabase, pero la app ya no las acepta.';
+const AUTH_NOT_ENDED = 'No se pudieron borrar todas sus sesiones, pero la app ya no las acepta.';
 const partial = <T extends { ok: true }>(res: T) => ({ ...res, message: `Listo. ${AUTH_NOT_ENDED}` });
 
 // The database also drops their phones' notices (migration 20261025001000_revoke_push.sql).

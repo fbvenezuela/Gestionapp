@@ -22,7 +22,7 @@ function baseUrl(): URL {
 export const metadata: Metadata = {
   metadataBase: baseUrl(),
   title: { default: brand.appName, template: `%s · ${brand.shortName}` },
-  description: 'Plataforma interna del equipo: agenda, material, piezas, aprobación y publicaciones.',
+  description: 'La app interna del equipo: agenda, material, piezas, aprobación y publicaciones.',
   robots: { index: false, follow: false },
   appleWebApp: { capable: true, title: brand.shortName, statusBarStyle: 'default' },
   // Google Search Console proves the domain is ours when Google asks it to publish the OAuth app (docs/DRIVE.md).

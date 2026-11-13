@@ -91,7 +91,7 @@ describe('«Descargar todo» en el evento sembrado de la demo', () => {
     expect(handed).toEqual([`${code}-Storyboard-1.jpg`]);
     expect(run.files.map(fileStateText).sort()).toEqual(['Listo', 'No hay un archivo detrás.', 'No hay un archivo detrás.', 'No hay un archivo detrás.']);
     expect(runHeadline({ running: false, cancelled: false, stopped: null, sent: true, files: run.files })).toBe(
-      'Listo: lo demás va a tus descargas. 3 archivos no se bajaron porque no están guardados en la plataforma.',
+      'Listo: lo demás va a tus descargas. 3 archivos no se bajaron porque no están guardados en la app.',
     );
   });
 
@@ -100,7 +100,7 @@ describe('«Descargar todo» en el evento sembrado de la demo', () => {
     const files = pauta.map((m) => ({ id: m.id, drive: false }));
     const missing = await missingStored(files, { check: (id) => checkStored(id, { fetcher }) });
     expect(pauta.filter((m) => missing.has(m.id)).map((m) => m.kind).sort()).toEqual(['boss', 'broll', 'drone']);
-    expect(missingListLine(missing.size)).toBe('3 archivos no se pueden bajar porque no están guardados en la plataforma.');
+    expect(missingListLine(missing.size)).toBe('3 archivos no se pueden bajar porque no están guardados en la app.');
   });
 
   it('HEAD pide lo mismo que GET: sin sesión 401; quien no ve el archivo, 404 (un documento de un reporte para Administración y Redes)', async () => {

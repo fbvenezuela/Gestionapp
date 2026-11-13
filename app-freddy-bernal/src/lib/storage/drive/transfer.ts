@@ -147,7 +147,7 @@ export async function budgetReached() {
   await noticeAdmins({
     kind: 'drive_quota',
     title: 'Se llegó al tope de transferencia de Drive de este mes',
-    body: 'Ver y descargar videos de Drive queda en pausa hasta el mes que viene, para que Vercel no pause la plataforma. Ajustes → Google Drive.',
+    body: 'Ver y descargar videos de Drive queda en pausa hasta el mes que viene, para que no se pare toda la app. Ajustes → Google Drive.',
     key: `drive_quota:${transferMonth()}`,
   });
 }

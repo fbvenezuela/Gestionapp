@@ -1488,7 +1488,7 @@ export const DISPATCH: Answer[] = [
       'que es propuesto por despacho',
       'que es el codigo del evento',
     ],
-    a: 'Arriba del evento, las etiquetas: el número del evento, el tipo, cómo va y la decisión del jefe. Al lado dice de dónde viene («Propuesto por Despacho», «Lo agregó el jefe», «Nació de una ficha del IVT» o «Nació de un reporte de política»).',
+    a: 'Arriba del evento, las etiquetas: el número del evento, el tipo, cómo va y la decisión del jefe. Al lado dice de dónde viene («Propuesto por Despacho», «Lo agregó el jefe», «Viene de una ficha del IVT» o «Viene de un reporte de política»).',
     go: '/agenda',
     tutorial: 'evento-despacho',
   },

@@ -84,7 +84,7 @@ describe('setRole e inviteUser', () => {
 
 // R3 (D-58): the boss reads every conversation and approves everything, so the role is given only by the system
 // (the installation command, `npm run db:first-admin -- … --jefe`), never from «Equipo» or «Invitar».
-describe('el rol de jefe solo lo da el comando de instalación', () => {
+describe('el rol de jefe solo lo da quien instala la app', () => {
   it('roleGrantProblem: el jefe a otra cuenta, nunca; quien ya lo tiene, nada que dar; los motivos de antes, primero', () => {
     expect(roleGrantProblem({ isSelf: false, roles: ['camera'], role: 'boss' })).toBe(BOSS_GRANT_MESSAGE);
     expect(roleGrantProblem({ isSelf: false, roles: [], role: 'boss' })).toBe(BOSS_GRANT_MESSAGE);

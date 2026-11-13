@@ -264,7 +264,10 @@ describe('conectar Drive (Administración con doble factor)', () => {
     const probes = [...fake.files.values()].filter((f) => f.appProperties.fb360 === 'probe');
     expect(probes).toHaveLength(1);
     expect(probes[0].trashed).toBe(true);
-    expect(await drive.finishDriveProbe({ direct: false })).toMatchObject({ data: { message: expect.stringContaining('OK de Juan') } });
+    // Without the proxy: says what it costs and who to tell, in plain words (no names, no settings).
+    const off = await drive.finishDriveProbe({ direct: false });
+    expect(off).toMatchObject({ data: { message: expect.stringContaining('avísale a quien instaló la app') } });
+    expect(JSON.stringify(off)).not.toMatch(/Juan|Vercel|DRIVE_UPLOAD_MODE|plataforma/);
   });
 
   it('el Picker: un token corto solo para Administración; a los demás se les niega sin llamar a Google', async () => {
@@ -778,7 +781,7 @@ describe('elegir de Drive (Picker, Administración)', () => {
     for (const c of fake.calls('get')) expect(c.fields ?? '').not.toMatch(/\bname\b|originalFilename|\btime\b|location/);
     // The picked file was not touched.
     expect(fake.files.get(fileId)!.parents).toEqual([]);
-    expect(await drive.registerDriveFile({ fileId, eventId: ev.id, kind: 'broll' })).toEqual({ ok: false, error: 'Ese archivo ya está en la plataforma.' });
+    expect(await drive.registerDriveFile({ fileId, eventId: ev.id, kind: 'broll' })).toEqual({ ok: false, error: 'Ese archivo ya está en la app.' });
   });
 
   it('una foto con GPS: se registra una copia limpia en la carpeta de la plataforma; la original queda igual', async () => {
@@ -796,7 +799,7 @@ describe('elegir de Drive (Picker, Administración)', () => {
     expect(copy.name).toMatch(/^pieza-Captura-\d+\.jpg$/);
     expect(fake.files.get(copy.parents[0])!.name).toBe('Capturas');
     expect(contains(fake.files.get(fileId)!.bytes, SECRET)).toBe(true);
-    expect(await drive.registerDriveFile({ fileId, eventId: null, kind: 'evidence' })).toEqual({ ok: false, error: 'Ese archivo ya está en la plataforma.' });
+    expect(await drive.registerDriveFile({ fileId, eventId: null, kind: 'evidence' })).toEqual({ ok: false, error: 'Ese archivo ya está en la app.' });
   });
 
   it('HEIC, SVG o un tipo que no va con lo pedido: no se registra', async () => {

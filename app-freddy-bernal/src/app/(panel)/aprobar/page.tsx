@@ -6,6 +6,7 @@ import { Tip } from '@/components/ui/tip';
 import { Card } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { FORMAT } from '@/lib/domain/redes';
+import { versionLabel } from '@/lib/data/labels';
 import { canApprove as canApproveNow, getDeadlines, piecesInReview } from '@/lib/data/review';
 import { LEVELS, LEVEL_ORDER, reviewClock } from '@/lib/domain/review';
 import { cn } from '@/lib/cn';
@@ -73,7 +74,7 @@ export default async function ApprovalsPage({ searchParams }: { searchParams: Pr
                           <Link href={`/aprobar/${p.id}`} className="flex min-h-16 flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3 hover:bg-surface-2">
                             <span className="min-w-0 flex-1 basis-48">
                               <span className="block font-semibold">{p.title}</span>
-                              <span className="block truncate text-sm text-text-2">v{p.current_version}{p.event_title ? ` · ${p.event_title}` : ''}</span>
+                              <span className="block truncate text-sm text-text-2">{versionLabel(p.current_version)}{p.event_title ? ` · ${p.event_title}` : ''}</span>
                             </span>
                             <span className="flex flex-wrap items-center gap-1.5">
                               <Chip tone="accent">{FORMAT[p.format]?.label ?? 'Pieza'}</Chip>

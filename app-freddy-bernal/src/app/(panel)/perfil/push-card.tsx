@@ -115,7 +115,7 @@ export function PushCard({ publicKey, devices, appName }: { publicKey: string | 
       <CardHeader title="Avisos en este teléfono" subtitle="Te avisa aunque la app esté cerrada. De noche solo llegan los importantes." />
       <CardBody className="flex flex-col gap-3">
         {!publicKey ? (
-          <p className="text-[15px] text-text-2">Los avisos al teléfono están apagados en el servidor.</p>
+          <p className="text-[15px] text-text-2">Los avisos al teléfono todavía no están encendidos en la app: avísale a quien la instaló.</p>
         ) : (
           <>
             <p className="flex items-start gap-2 text-[15px]" role="status">

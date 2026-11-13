@@ -61,6 +61,7 @@ export function FichaForm(p: Props) {
   const values: FormValues = { ...shown.values, ...priv };
   const marks: Marks = { ...shown.marks, ...privMarks };
   const conflicts = isNew ? [] : draftConflicts(draft, base);
+  const conflictNames = conflicts.map((k) => fieldLabel(p.kind, k)).filter((l): l is string => !!l);
 
   const setValue = (key: string, v: string, isPrivate: boolean) => {
     if (isPrivate) setPriv((x) => ({ ...x, [key]: v }));
@@ -122,7 +123,7 @@ export function FichaForm(p: Props) {
       ) : null}
       {conflicts.length ? (
         <p className="rounded-[var(--radius-control)] bg-warn-soft px-3 py-2 text-sm text-warn" role="status">
-          Ojo: alguien cambió {conflicts.map((k) => `«${fieldLabel(p.kind, k)}»`).join(', ')} después de que empezaste. Si guardas, queda lo tuyo y lo
+          Ojo: alguien cambió {conflictNames.length ? conflictNames.map((l) => `«${l}»`).join(', ') : 'la ficha'} después de que empezaste. Si guardas, queda lo tuyo y lo
           anterior queda en la historia.
         </p>
       ) : null}

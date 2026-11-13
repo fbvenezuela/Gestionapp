@@ -125,7 +125,7 @@ describe('getSession sin permiso directo sobre auth.sessions', () => {
 });
 
 describe('acciones de administración sin DELETE sobre auth.sessions', () => {
-  const PARTIAL = 'No se pudieron borrar sus sesiones en Supabase, pero la app ya no las acepta.';
+  const PARTIAL = 'No se pudieron borrar todas sus sesiones, pero la app ya no las acepta.';
 
   it('«Reiniciar doble factor» quita el doble factor igual y anota el error; «Cerrar sus sesiones» dice que se hizo', async () => {
     const team = await import('@/lib/actions/team');

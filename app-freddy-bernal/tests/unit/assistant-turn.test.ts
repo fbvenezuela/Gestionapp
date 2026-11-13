@@ -146,6 +146,9 @@ describe('cerebro de demostración (sin IA)', () => {
     const p = await handleTurn(sessionOf('social'), { question: '¿Qué tengo pendiente?' }, LOCAL);
     expect(p.did).toContainEqual({ tool: 'mis_pendientes' });
     expect(p.goTo).toEqual({ href: '/hoy', label: 'Hoy' });
+    // A count is said in a sentence, not between «» as if it were a title (APP-39).
+    expect(p.answer).toMatch(/les? falta el copy/);
+    expect(p.answer).not.toMatch(/faltante: «/);
     const t = await handleTurn(sessionOf('social'), { question: '¿Cuántos días de tweets quedan?' }, LOCAL);
     expect(t.did).toContainEqual({ tool: 'dias_de_tweets' });
     expect(t.answer).toMatch(/d[ií]as? de tweets|No quedan tweets/);

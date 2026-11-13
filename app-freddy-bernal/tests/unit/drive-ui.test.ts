@@ -294,7 +294,7 @@ describe('«Elegir de Drive»: lo que se le pide al Picker y lo que se toma', ()
     expect(pickProgress(0, 1)).toBe('Agregando…');
     expect(pickSummary(1, 0, null)).toEqual({ ok: true, text: 'Listo: se agregó 1 archivo de Drive.' });
     expect(pickSummary(3, 0, null).text).toBe('Listo: se agregaron 3 archivos de Drive.');
-    expect(pickSummary(0, 1, 'Ese archivo ya está en la plataforma.')).toEqual({ ok: false, text: 'Ese archivo ya está en la plataforma.' });
+    expect(pickSummary(0, 1, 'Ese archivo ya está en la app.')).toEqual({ ok: false, text: 'Ese archivo ya está en la app.' });
     expect(pickSummary(2, 1, 'Ese tipo de archivo no se puede guardar aquí.').text).toBe('Se agregaron 2; 1 no: Ese tipo de archivo no se puede guardar aquí.');
     expect(importSummary({ added: 0, failed: 0, error: null })).toEqual({ ok: true, text: 'No hay nada nuevo en la carpeta «Importado».' });
   });
@@ -307,7 +307,7 @@ describe('«Probar»: qué falta, en palabras', () => {
     const steps: DriveCheckStep[] = [{ key: 'config', level: 'fail', missing: ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'] }];
     const s = checkSummary(steps, F);
     expect(s.level).toBe('fail');
-    expect(s.todo).toBe('Falta llenar en Vercel: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET. Ponlas en Settings → Environment Variables (solo Production) y vuelve a publicar.');
+    expect(s.todo).toBe('Faltan datos de la instalación: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET. Pásale esta lista a quien instaló la app.');
   });
 
   it('permiso vencido o clave cambiada: volver a conectar, sin perder nada', () => {
@@ -339,7 +339,7 @@ describe('«Probar»: qué falta, en palabras', () => {
     ];
     expect(checkSummary(ok, F)).toEqual({ level: 'ok', title: 'Todo bien: Drive está listo', todo: null });
     expect(ok.map((s) => checkLine(s, F))).toEqual([
-      'Las variables de Vercel están completas.',
+      'Los datos de la instalación están completos.',
       'Google responde. Cuenta: cuenta@demo.test.',
       'Espacio: 2,3 GB usados de 15 GB.',
       'La carpeta «FB Operaciones 360» está lista.',

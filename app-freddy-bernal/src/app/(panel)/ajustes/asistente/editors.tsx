@@ -72,7 +72,7 @@ export function KnowledgeEditor({
         {f.automatic ? (
           <p className="flex items-start gap-2 rounded-[var(--radius-control)] border border-warn/40 bg-warn-soft p-3 text-sm text-text" role="note">
             <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-warn" aria-hidden />
-            Esta ficha es automática: sale de los ajustes de la plataforma. Si la editas, ya no se actualiza sola.
+            Esta ficha es automática: sale de los ajustes de la app. Si la editas, ya no se actualiza sola.
           </p>
         ) : null}
         <Field label="Título" htmlFor={`${id}-t`}>
@@ -161,7 +161,7 @@ export function ScriptEditor({
             <p className="whitespace-pre-line rounded-[var(--radius-control)] bg-surface p-2 font-mono text-xs text-text">
               {'Persona: cómo lo pregunta alguien\n[ASISTENTE]: una forma de contestar\n[ASISTENTE]: otra forma, distinta de verdad\nSi dice «…» → [ASISTENTE]: …'}
             </p>
-            <p>Dos o tres formas de contestar, cada una distinta. Huecos: [ASISTENTE] es su nombre, [APP] la plataforma, [JEFE] y [NOMBRE] de quien pregunta.</p>
+            <p>Dos o tres formas de contestar, cada una distinta. Huecos: [ASISTENTE] es su nombre, [APP] el nombre de la app, [JEFE] y [NOMBRE] de quien pregunta.</p>
             <p>[usa avisar_al_equipo] en una línea hace que llame a esa herramienta de verdad.</p>
           </div>
         </details>

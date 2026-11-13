@@ -228,7 +228,7 @@ test('el jefe la elimina desde la pieza en grande; administración la recupera e
   await page.waitForURL((u) => u.pathname === '/redes/posts' && u.searchParams.get('mes') === m2 && !u.hash);
   await expect(page.getByRole('heading', { level: 1, name: 'Posts' })).toBeVisible();
   await expect(card(page, NEW_TITLE)).toHaveCount(0);
-  await expect(page.getByText('Esta pieza se creó en otro servidor')).toHaveCount(0);
+  await expect(page.getByText('Esta pieza se creó en otra copia de la demostración')).toHaveCount(0);
 
   await switchTo(page, 'admin@demo.test');
   await page.goto('/ajustes');

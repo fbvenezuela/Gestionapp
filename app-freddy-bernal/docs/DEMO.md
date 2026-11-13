@@ -38,7 +38,7 @@ probar **sobre lo sembrado**:
 **Lo que puede perderse al recargar** (cada servidor de Vercel tiene su base, D-39): lo que se crea o se sube (un reel
 nuevo, una imagen, un mes nuevo, un cambio en el feed) vive solo en el servidor donde se hizo. Lo recién creado se abre
 en la misma pantalla y la miniatura recién subida se ve desde el teléfono; si después otro servidor contesta, la tarjeta
-dice «Esta pieza se creó en otro servidor de la demostración…» o «La miniatura está en otro servidor de la
+dice «Esta pieza se creó en otra copia de la demostración…» o «La miniatura está en otra copia de la
 demostración.». Un aviso lo explica una vez por persona en Redes, con «Entendido». La comparación con la referencia,
 pantalla por pantalla, está en `docs/capturas/mila-vs-fb/README.md`.
 
@@ -68,14 +68,14 @@ Con cualquier rol del equipo, en este orden:
    campana le llega un aviso cuando Administración da un rol del equipo («Un rol
    nuevo en el equipo») o invita a alguien («Alguien nuevo en el equipo»).
 6. **Administración** (`admin@demo.test`): no tiene los globitos, y `/mensajes` la devuelve a su inicio con «Esa pantalla
-   no es de tu rol». En Equipo, la casilla «Jefe» está apagada: el rol de jefe lo da el comando de instalación (D-58).
+   no es de tu rol». En Equipo, la opción «Jefe (lo da quien instala la app)» está apagada (D-58).
 7. **360 y Mensajes:** pregúntale «¿qué me escribió Daniela?» o «dile a Kevin que ya subí la pieza»: contesta que no
    lee ni manda mensajes, con el botón a Mensajes. «Muéstrame cómo se usa esta pantalla» trae «Ver el tutorial de…».
 
 **Lo que la demo no puede mostrar de Mensajes (para Hillary; la pantalla no lo dice):** cada servidor de Vercel tiene
 su base en memoria. Lo sembrado es igual en todos (mismos ids), pero un mensaje, un canal nuevo o un cambio de miembros
 vive solo en el servidor donde se hizo: con otra cuenta o en otro teléfono puede no verse, y un canal creado en otro
-servidor dice «Este canal no está en tu lista: o no estás en él, o se creó en otro servidor de la demostración.»
+servidor dice «Este canal no está en tu lista: o no estás en él, o se creó en otra copia de la demostración.»
 (D-88). Con el canal abierto, si la revisión de cada 5 s o un envío llega a otro servidor, la pantalla sigue como
 estaba (un envío devuelve el texto a la caja con esa misma frase): «Ya no estás en este canal.» sale solo cuando la
 base de ese servidor dice que el jefe te sacó. Dos personas en un canal desde dos teléfonos se prueba en `fb-dev`. La demo es una base de prueba con datos

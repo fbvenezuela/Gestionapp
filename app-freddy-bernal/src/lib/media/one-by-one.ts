@@ -27,7 +27,7 @@ const FAILED = 'No se pudo descargar. Revisa la señal y vuelve a tocar «Descar
 const STOP_TEXT: Record<number, string> = {
   401: 'Entra de nuevo.',
   429: 'Ya pediste muchos archivos seguidos. Espera unos minutos y vuelve a intentarlo.',
-  503: 'La plataforma no responde ahora. Vuelve a intentarlo en unos minutos.',
+  503: 'La app no responde ahora. Vuelve a intentarlo en unos minutos.',
 };
 
 type Fetcher = (url: string, init: RequestInit) => Promise<Response>;
@@ -70,8 +70,8 @@ export async function missingStored(
 export function missingListLine(n: number): string | null {
   if (!n) return null;
   return n === 1
-    ? '1 archivo no se puede bajar porque no está guardado en la plataforma.'
-    : `${n} archivos no se pueden bajar porque no están guardados en la plataforma.`;
+    ? '1 archivo no se puede bajar porque no está guardado en la app.'
+    : `${n} archivos no se pueden bajar porque no están guardados en la app.`;
 }
 
 /** Runs one Drive download and says how it ended (a DownloadError carries the server's status and sentence). */
@@ -179,7 +179,7 @@ export function runHeadline(run: { running: boolean; cancelled: boolean; stopped
   if (run.files.some((f) => f.phase === 'error')) return 'Algunos archivos no se bajaron. Vuelve a intentarlo con esos.';
   const missing = run.files.filter((f) => f.phase === 'missing').length;
   if (!missing) return run.sent ? 'Listo: todo va a tus descargas.' : 'Listo: todo está en la carpeta.';
-  const why = missing === 1 ? '1 archivo no se bajó porque no está guardado en la plataforma.' : `${missing} archivos no se bajaron porque no están guardados en la plataforma.`;
-  if (!run.files.some((f) => f.phase === 'done' || f.phase === 'skipped')) return `No se bajó ningún archivo: ${missing === 1 ? 'no está guardado' : 'no están guardados'} en la plataforma. Solo el LEEME.`;
+  const why = missing === 1 ? '1 archivo no se bajó porque no está guardado en la app.' : `${missing} archivos no se bajaron porque no están guardados en la app.`;
+  if (!run.files.some((f) => f.phase === 'done' || f.phase === 'skipped')) return `No se bajó ningún archivo: ${missing === 1 ? 'no está guardado' : 'no están guardados'} en la app. Solo el LEEME.`;
   return `${run.sent ? 'Listo: lo demás va a tus descargas.' : 'Listo: lo demás está en la carpeta.'} ${why}`;
 }

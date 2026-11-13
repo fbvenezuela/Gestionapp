@@ -36,8 +36,9 @@ beforeAll(async () => {
 describe('el rol de jefe solo lo da el sistema', () => {
   it('B1: administración no le da el rol de jefe a otra cuenta, ni en la tabla', async () => {
     const e = await errorOf(t.as('admin', (sql) => sql.query(`insert into public.user_roles (user_id, role, granted_by) values ($1, 'boss', auth.uid())`, [t.ids.camera2])));
-    expect(e.message).toMatch(/^El rol de jefe lo da el comando de instalación/);
-    expect(friendlyDbError(e)).toMatch(/^El rol de jefe lo da el comando de instalación/);
+    // In plain words (20261113000200_rol_de_jefe_quien_instala.sql): who gives it, never «el comando de instalación».
+    expect(e.message).toBe('El rol de jefe lo da quien instala la app, no la pantalla de Equipo.');
+    expect(friendlyDbError(e)).toBe('El rol de jefe lo da quien instala la app, no la pantalla de Equipo.');
     expect(await rolesOf(t.ids.camera2)).toEqual(['camera']);
     // What the policies already refused still reads as their refusal (the guard runs after them).
     const self = await errorOf(t.as('admin', (sql) => sql.query(`insert into public.user_roles (user_id, role) values (auth.uid(), 'boss')`)));
@@ -52,7 +53,7 @@ describe('el rol de jefe solo lo da el sistema', () => {
     const insert = await errorOf(
       t.as('admin', (sql) => sql.query(`insert into public.invitations (email, full_name, roles, invited_by) values ('otro.jefe@demo.test', 'Otro Jefe', '{boss}', auth.uid())`)),
     );
-    expect(insert.message).toMatch(/^El rol de jefe lo da el comando de instalación, no una invitación/);
+    expect(insert.message).toBe('El rol de jefe lo da quien instala la app, no una invitación.');
     const mixed = await errorOf(
       t.as('admin', (sql) => sql.query(`insert into public.invitations (email, full_name, roles, invited_by) values ('otro.jefe@demo.test', 'Otro Jefe', '{boss,social}', auth.uid())`)),
     );
@@ -74,6 +75,10 @@ describe('el rol de jefe solo lo da el sistema', () => {
     }
     // Revoking it: yes, once.
     expect(await t.as('admin', (sql) => sql.query(`update public.invitations set revoked_at = now() where id = $1 returning id`, [sys]))).toHaveLength(1);
+    // «Anular» again (another person of Administración had just done it): the person reads the guard's own words.
+    const again = await errorOf(t.as('admin', (sql) => sql.query(`update public.invitations set revoked_at = now() where id = $1 and accepted_at is null`, [sys])));
+    expect(friendlyDbError(again)).toBe('Una invitación con el rol de jefe solo se anula; la da quien instala la app.');
+    for (const m of [add.message, insert.message, mixed.message, again.message]) expect(m).not.toMatch(/comando|instalación/);
     const back = await errorOf(t.as('admin', (sql) => sql.query(`update public.invitations set revoked_at = null where id = $1`, [sys])));
     expect(back.message).toMatch(/^Una invitación con el rol de jefe solo se anula/);
     const row = await t.system((sql) => sql.one<{ email: string; roles: string[]; revoked: boolean }>(

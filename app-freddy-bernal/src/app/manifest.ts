@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: brand.appName,
     short_name: brand.shortName,
-    description: 'Plataforma interna del equipo',
+    description: 'La app interna del equipo',
     // The panel's entry (D-91): `/` is the public website. The id stays the old start address, so the app already
     // installed on a phone is the same app and simply opens here from now on.
     id: '/',

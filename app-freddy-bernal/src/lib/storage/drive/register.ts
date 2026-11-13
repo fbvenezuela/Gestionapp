@@ -19,7 +19,7 @@ import { driveFolderPath, mediaFileName, type MediaKind } from './names';
 
 export const PICK_PHOTO_MAX = 30 * 1024 * 1024;
 const CANT_CLEAN = 'Esta foto no se puede limpiar. Pásala a JPG y súbela con «Subir».';
-const DUPLICATE = 'Ese archivo ya está en la plataforma.';
+const DUPLICATE = 'Ese archivo ya está en la app.';
 
 async function readAll(res: Response, max: number): Promise<Uint8Array> {
   if (!res.body) return new Uint8Array();

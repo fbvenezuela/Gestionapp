@@ -9,6 +9,8 @@ export type CalEvent = { id: string; title: string; place_name: string; starts_a
 const HOUR_START = 6;
 const HOUR_END = 23;
 const HOUR_PX = 56;
+// The hour column: «12 p. m.» fits whole at 360 px (at 52 px and in a fixed-width font, «10 a. m.» lost its «1»).
+const HOUR_COL = 60;
 
 // A cancelled event stays in its place, struck through (it is not deleted: who and why are on its page).
 function tone(e: CalEvent) {
@@ -19,6 +21,12 @@ function tone(e: CalEvent) {
 }
 
 const local = (iso: string) => DateTime.fromJSDate(new Date(iso)).setZone(TZ).setLocale('es');
+
+/** The hour column of the week and day views: «6 a. m.», «12 p. m.», like every other time in the app (with no
+ * locale, Luxon wrote «6 AM»). */
+export function hourLabel(h: number): string {
+  return fmtAt(DateTime.fromObject({ hour: h }, { zone: TZ, locale: 'es' }), 'h a');
+}
 
 // Both views are long grids (up to 42 days, or 17 hours a day): a solid Card, without blur behind them (docs/DISENO.md).
 export function MonthView({ anchor, events }: { anchor: DateTime; events: CalEvent[] }) {
@@ -70,7 +78,7 @@ export function TimeGrid({ days, events }: { days: DateTime[]; events: CalEvent[
   return (
     <Card solid className="overflow-x-auto">
       <div style={{ minWidth: days.length > 1 ? 720 : undefined }}>
-        <div className="grid border-b border-border bg-surface-2" style={{ gridTemplateColumns: `52px repeat(${days.length}, minmax(0,1fr))` }}>
+        <div className="grid border-b border-border bg-surface-2" style={{ gridTemplateColumns: `${HOUR_COL}px repeat(${days.length}, minmax(0,1fr))` }}>
           <div />
           {days.map((d) => (
             <Link key={d.toISODate()} href={`/agenda?vista=dia&fecha=${d.toISODate()}`} className="py-2 text-center">
@@ -79,11 +87,11 @@ export function TimeGrid({ days, events }: { days: DateTime[]; events: CalEvent[
             </Link>
           ))}
         </div>
-        <div className="relative grid" style={{ gridTemplateColumns: `52px repeat(${days.length}, minmax(0,1fr))` }}>
+        <div className="relative grid" style={{ gridTemplateColumns: `${HOUR_COL}px repeat(${days.length}, minmax(0,1fr))` }}>
           <div>
             {hours.map((h) => (
-              <div key={h} className="relative border-b border-border text-right font-mono text-[11px] text-text-2" style={{ height: HOUR_PX }}>
-                <span className="absolute -top-2 right-1.5 bg-surface px-0.5">{fmtAt(DateTime.fromObject({ hour: h }), 'h a')}</span>
+              <div key={h} className="relative border-b border-border text-right text-[11px] tabular-nums text-text-2" style={{ height: HOUR_PX }}>
+                <span className="absolute -top-2 right-1 whitespace-nowrap bg-surface px-0.5">{hourLabel(h)}</span>
               </div>
             ))}
           </div>
@@ -107,7 +115,8 @@ export function TimeGrid({ days, events }: { days: DateTime[]; events: CalEvent[
                       className={cn('absolute inset-x-1 overflow-hidden rounded-[var(--radius-chip)] border-l-4 px-1.5 py-1 text-xs shadow-sm', tone(e))}
                       style={{ top, height }}
                     >
-                      <span className="block font-mono font-semibold">{fmtAt(s, 'h:mm a')}</span>
+                      {/* One line: «9:00 a. m.» broke into «9:00 a.» and «m.» in a day of the week at 360 px. */}
+                      <span className="block whitespace-nowrap font-semibold tabular-nums">{fmtAt(s, 'h:mm a')}</span>
                       <span className="block font-semibold leading-tight">{e.cancelled_at ? <span className="sr-only">Cancelado: </span> : null}{e.title}</span>
                       <span className="block truncate text-text-2">{e.place_name}</span>
                     </Link>

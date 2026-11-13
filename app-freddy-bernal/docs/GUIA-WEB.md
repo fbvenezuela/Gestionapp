@@ -484,8 +484,7 @@ Cada persona entra con su propio usuario y con doble factor: un código que lleg
 Authenticator, una aplicación gratuita que se instala en el teléfono. No hay contraseñas. En la versión de
 prueba se entra con un toque, sin código (ver 3.5). Administración da los roles en «Ajustes» → «Equipo» → «Invitar a
 alguien», en el grupo «Web y atención ciudadana (siempre con doble factor)». Estos roles solo tienen «Web» o «Atención»
-en el menú. El buscador de arriba, «Buscar evento o pieza», es de otra parte de la app: para la web y la atención no
-hace falta.
+en el menú.
 
 | Rol | Menú | En una línea |
 |---|---|---|

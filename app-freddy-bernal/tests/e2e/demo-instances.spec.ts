@@ -174,7 +174,7 @@ test('los canales sembrados de Mensajes abren con el mismo id en los dos servido
   for (const href of [`${other}/mensajes/00000000-0000-4000-8000-00000000c0de`, `/mensajes/${chatChannelId('jefe-y-despacho')}`]) {
     await page.goto(href);
     await shown(page, href);
-    await expect(page.getByText('Este canal no está en tu lista: o no estás en él, o se creó en otro servidor de la demostración.'), href).toBeVisible();
+    await expect(page.getByText('Este canal no está en tu lista: o no estás en él, o se creó en otra copia de la demostración.'), href).toBeVisible();
     await expect(page.getByText('No encontramos esto'), href).toHaveCount(0);
     await expect(page.getByText('Jefe y despacho'), href).toHaveCount(0);
   }
@@ -207,7 +207,7 @@ test('el feed de Mes 1 y una tarjeta sembrada abren iguales en los dos servidore
   // The first piece of the feed, big (/piezas/[id]), on both servers.
   const id = placed[0].split(':')[1];
   await sameOnTheOther(page, `/piezas/${id}`);
-  await expect(page.getByText('se creó en otro servidor de la demostración')).toHaveCount(0);
+  await expect(page.getByText('se creó en otra copia de la demostración')).toHaveCount(0);
 });
 
 // «Ir al inicio» goes to each person's own home: Hoy for despacho, Municipios for política (not Hoy for everyone).
