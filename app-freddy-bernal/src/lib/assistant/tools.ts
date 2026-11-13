@@ -119,7 +119,9 @@ export const TOOLS: Tool[] = [
     async run(_a, ctx) {
       const s = ctx.session;
       const out = await db(s, async (sql) => {
-        const items: { que: string; titulo: string }[] = [];
+        // `frase`: how 360 says an item that is a count or a network, not a title («a 11 piezas de Mes 1 les falta el
+        // copy»): «» is only for titles. `que` and `titulo` stay the same for whoever reads them.
+        const items: { que: string; titulo: string; frase?: string }[] = [];
         const push = (que: string, rows: { title: string }[]) => rows.forEach((r) => items.push({ que, titulo: r.title }));
         // The same as each home (Hoy, /jefe, /municipios, /obras). «Lo vencido sale arriba» in política's home (§4.2):
         // community reports past their follow-up day. The boss gets them after what waits for his approval.
@@ -135,8 +137,9 @@ export const TOOLS: Tool[] = [
             const pieces = (n: number) => `${n} ${n === 1 ? 'pieza' : 'piezas'} de ${mc.active!.label}`;
             const copy = counts.reduce((n, c) => n + c.copyMissing, 0);
             const image = counts.reduce((n, c) => n + c.imageMissing, 0);
-            if (copy) items.push({ que: 'Copy faltante', titulo: pieces(copy) });
-            if (image) items.push({ que: 'Imagen faltante', titulo: pieces(image) });
+            const lacks = (n: number, what: string) => `a ${pieces(n)} ${n === 1 ? 'le' : 'les'} falta ${what}`;
+            if (copy) items.push({ que: 'Copy faltante', titulo: pieces(copy), frase: lacks(copy, 'el copy') });
+            if (image) items.push({ que: 'Imagen faltante', titulo: pieces(image), frase: lacks(image, 'la imagen') });
           }
           push('Falta el storyboard', await sql.query(
             `select e.title from public.events e left join public.storyboards sb on sb.event_id = e.id
@@ -151,9 +154,15 @@ export const TOOLS: Tool[] = [
             `select p.title from public.pieces p where p.status = 'approved' and p.deleted_at is null
                 and not exists (select 1 from public.publications x where x.piece_id = p.id and x.status in ('scheduled','published') and x.deleted_at is null) limit 5`));
           const failed = await sql.query<{ network: string }>(`select network from public.publications where status = 'failed' and deleted_at is null limit 3`);
-          failed.forEach((f) => items.push({ que: 'Falló una publicación', titulo: NETWORK_LABEL[f.network] ?? f.network }));
+          failed.forEach((f) => {
+            const network = NETWORK_LABEL[f.network] ?? f.network;
+            items.push({ que: 'Falló una publicación', titulo: network, frase: `falló una publicación en ${network}` });
+          });
           const stock = await tweetStock(sql);
-          if (stock.lowStock) items.push({ que: 'Tweets', titulo: stock.daysLeft ? `Quedan ${stock.daysLeft} días de tweets programados` : 'No quedan tweets programados' });
+          if (stock.lowStock) {
+            const left = stock.daysLeft === 1 ? 'queda 1 día de tweets programados' : stock.daysLeft ? `quedan ${stock.daysLeft} días de tweets programados` : 'no quedan tweets programados';
+            items.push({ que: 'Tweets', titulo: stock.daysLeft ? `Quedan ${stock.daysLeft} días de tweets programados` : 'No quedan tweets programados', frase: left });
+          }
         }
         if (has(s, 'boss')) {
           // The boss approves every level and the tweets (public.can_approve()).
@@ -162,7 +171,7 @@ export const TOOLS: Tool[] = [
               order by case review_level when 'rojo' then 0 when 'amarillo' then 1 else 2 end, sent_to_review_at nulls last limit 8`);
           review.forEach((p) => items.push({ que: `Te toca aprobar (${p.review_level})`, titulo: p.title }));
           const tw = await sql.one<{ n: number }>(`select count(*)::int as n from public.tweets where status = 'draft' and deleted_at is null`);
-          if (tw?.n) items.push({ que: 'Tweets por aprobar', titulo: `${tw.n} tweets` });
+          if (tw?.n) items.push({ que: 'Tweets por aprobar', titulo: `${tw.n} tweets`, frase: `hay ${tw.n} ${tw.n === 1 ? 'tweet' : 'tweets'} por aprobar` });
           push('Espera tu decisión', await sql.query(`select title from public.events where boss_decision = 'pending' and deleted_at is null and cancelled_at is null order by created_at limit 8`));
           push('Vencida', overdue);
         }
@@ -188,7 +197,13 @@ export const TOOLS: Tool[] = [
           // His obra fichas (Obras, and the card in Hoy): the drafts to finish and send, and how many wait for a date.
           push('Ficha de obra en borrador', await sql.query(`select name as title from public.obra_fichas where stage = 'draft' and deleted_at is null order by updated_at desc limit 5`));
           const waitingDate = (await obraStageCounts(sql)).to_schedule ?? 0;
-          if (waitingDate) items.push({ que: 'Esperan fecha (la ponen el jefe o el despacho)', titulo: `${waitingDate} ${waitingDate === 1 ? 'obra' : 'obras'} por ponerle fecha` });
+          if (waitingDate) {
+            items.push({
+              que: 'Esperan fecha (la ponen el jefe o el despacho)',
+              titulo: `${waitingDate} ${waitingDate === 1 ? 'obra' : 'obras'} por ponerle fecha`,
+              frase: `${waitingDate === 1 ? '1 obra espera' : `${waitingDate} obras esperan`} fecha (la ponen el jefe o el despacho)`,
+            });
+          }
         }
         const unread = await sql.one<{ n: number }>(`select count(*)::int as n from public.notifications where read_at is null`);
         // How many pieces wait for the boss, all of them (the list above shows the first 8): «¿cuántas piezas tengo por aprobar?».

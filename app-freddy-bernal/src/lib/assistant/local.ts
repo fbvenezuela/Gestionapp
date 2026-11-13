@@ -1251,18 +1251,20 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   if (pending) {
     const r = await call('mis_pendientes');
     if (!r.ok) return done(`No pude revisar tus pendientes: ${r.error}`);
-    const res = r.result as { total: number; pendientes: { que: string; titulo: string }[]; avisos_sin_leer: number; piezas_por_aprobar?: number };
+    const res = r.result as { total: number; pendientes: { que: string; titulo: string; frase?: string }[]; avisos_sin_leer: number; piezas_por_aprobar?: number };
+    // A count or a network has its own sentence; «» is only for a title («te toca aprobar (rojo): «…»»).
+    const say = (p: { que: string; titulo: string; frase?: string }) => p.frase ?? `${p.que.toLowerCase()}: «${p.titulo}»`;
     const unread = res.avisos_sin_leer ? ` Además tienes ${count(res.avisos_sin_leer, 'aviso', 'avisos')} sin leer.` : '';
     // The person's own home screen, by its label in the menu (the boss's is «Inicio», not «Hoy»).
     const home = (r.goTo && screenFor(r.goTo)?.label) || 'Hoy';
     // «¿Cuántas piezas tengo por aprobar?»: only the pieces, all of them counted (D-89).
     if (PIECES_TO_APPROVE.test(q) && typeof res.piezas_por_aprobar === 'number') {
       if (!res.piezas_por_aprobar) return done(`No tienes piezas por aprobar ahora mismo.${unread}`);
-      const first = res.pendientes.filter((p) => /^Te toca aprobar/.test(p.que)).slice(0, 3).map((p) => `${p.que.toLowerCase()}: «${p.titulo}»`);
+      const first = res.pendientes.filter((p) => /^Te toca aprobar/.test(p.que)).slice(0, 3).map(say);
       return done(`Tienes ${count(res.piezas_por_aprobar, 'pieza', 'piezas')} por aprobar.${first.length ? ` Lo primero: ${list(first)}.` : ''}${unread} Están en ${home}, en «Te toca aprobar».`);
     }
     if (!res.total) return done(`No tienes nada pendiente ahora mismo. ¡Bien ahí!${unread}`);
-    const top = res.pendientes.slice(0, 3).map((p) => `${p.que.toLowerCase()}: «${p.titulo}»`);
+    const top = res.pendientes.slice(0, 3).map(say);
     return done(`Tienes ${count(res.total, 'pendiente', 'pendientes')}. Lo primero: ${list(top)}.${unread} Todo eso está en ${home}.`);
   }
 
