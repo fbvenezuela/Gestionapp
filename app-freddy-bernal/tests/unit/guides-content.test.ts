@@ -328,7 +328,10 @@ describe('la guía de administración va aparte (D-43)', () => {
     for (const s of ADMIN_GUIDE.sections) if (s.screen) expect(canOpen(s.screen, ['admin']), s.screen).toBe(true);
     const notes = ADMIN_GUIDE.notes.join(' ');
     expect(notes).toContain('Mensajes no es para administración');
-    expect(notes).toContain('--jefe');
+    expect(notes).toContain('lo da quien instala la app');
+    // Nothing internal (13/11): no command, no server. The command is for whoever installs, in README.md.
+    const all = JSON.stringify(ADMIN_GUIDE);
+    expect(all).not.toMatch(/npm run|db:first-admin|--jefe|\bservidor/);
   });
 });
 

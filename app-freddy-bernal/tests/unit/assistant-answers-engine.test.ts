@@ -65,6 +65,13 @@ describe('las entradas', () => {
     expect(bad).toEqual([]);
   });
 
+  it('lo que 360 le dice a administración de su guía no trae nada interno (13/11)', () => {
+    const admin = entries.filter((e) => e.source.startsWith('admin:'));
+    expect(admin.length).toBeGreaterThan(30);
+    const bad = admin.flatMap((e) => [e.doc ?? '', textFor(e.a, ['admin'])].filter((t) => /npm run|db:first-admin|--jefe|\bservidor/.test(t)).map((t) => `${e.id}: ${t}`));
+    expect(bad).toEqual([]);
+  });
+
   it('lo que un rol no puede hacer solo contesta «¿puedo…?» (lleva may)', () => {
     for (const e of entries.filter((x) => x.kind === 'cannot')) expect(e.may, e.id).toBe(true);
     expect(entries.find((e) => e.kind === 'cannot' && e.roles?.includes('ivt'))?.a).toMatch(/^No puedes /);

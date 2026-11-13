@@ -46,7 +46,7 @@ export const ADMIN_GUIDE: AdminGuide = {
       what: 'Dónde se guardan los videos, la conexión y una prueba. Solo sale en Ajustes cuando el material va a Drive.',
       youDo: [
         'Conectas la cuenta de Drive del cliente y pruebas que sube y baja.',
-        '«Organizar por orden del feed» sale aquí solo cuando lo encienden en la configuración del servidor; hoy está apagado.',
+        '«Organizar por orden del feed» sale aquí solo cuando lo enciende quien instala la app; hoy está apagado.',
       ],
     },
     {
@@ -98,7 +98,7 @@ export const ADMIN_GUIDE: AdminGuide = {
   ],
   notes: [
     'Mensajes no es para administración: no entras a los canales del equipo, y una cuenta con administración no entra a Mensajes aunque tenga otro rol.',
-    'El rol de jefe no se da desde Equipo: se da con el comando de instalación (npm run db:first-admin con la opción --jefe). Cada rol del equipo que das le llega al jefe como aviso.',
+    'El rol de jefe no se da desde Equipo: lo da quien instala la app, una sola vez. Cada rol del equipo que das le llega al jefe como aviso.',
     'Las guías del equipo nombran a administración solo donde hace falta (quién lee lo que le preguntan a 360 y quién recupera una pieza eliminada): esta guía es aparte.',
     'Nada sale hacia afuera mientras se prueba: los correos quedan en el «Buzón de correos» y nada se publica solo.',
   ],
