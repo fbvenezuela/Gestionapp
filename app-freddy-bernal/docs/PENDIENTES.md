@@ -257,6 +257,10 @@ frena: lo que dice entre paréntesis ya está construido así y se cambia en un 
 - **«¿A qué hora nos va mejor?» por día de la semana:** hoy va por franja horaria; el día queda pendiente (Resultados).
 - En la demo, lo que se crea o se mueve en Redes vive en un solo servidor (D-39, D-76): para probar creando entre roles
   hace falta `fb-dev`.
+- **X y el video vertical (13/11), por verificar:** la documentación pública de X da un máximo para el video horizontal
+  (1920×1200) y otro para el vertical (1200×1900), y `config/network-specs.json` guarda un solo par (1920 de ancho,
+  1200 de alto). Por eso un reel vertical 1080×1920 sale «el video es muy alto… Expórtalo más bajo» en X. Revisar la
+  documentación vigente y, si se confirma, guardar los dos pares (la regla y `checkVideo` tendrían que leer cuál toca).
 
 ## Nuevo (06/11/2026): migrar la web vieja y salir a producción
 El importador está listo y probado (D-97); **no se migró nada todavía**. El orden completo, la lista para marcar y cómo

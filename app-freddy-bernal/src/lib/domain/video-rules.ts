@@ -81,7 +81,12 @@ export function checkVideo(network: string, formatName: string, rule: FormatRule
     if (rule.min_width && m.width < rule.min_width) say('error', `el ancho es ${m.width} px y el mínimo es ${rule.min_width} px. Exporta en mejor calidad.`);
     if (rule.min_height && m.height < rule.min_height) say('error', `el alto es ${m.height} px y el mínimo es ${rule.min_height} px. Exporta en mejor calidad.`);
     if (rule.max_width && m.width > rule.max_width) say('error', `el ancho es ${m.width} px y el máximo es ${rule.max_width} px. Exporta más pequeño.`);
-    if (rule.max_height && m.height > rule.max_height) say('error', `el alto es ${m.height} px y el máximo es ${rule.max_height} px.`);
+    // Says what to do, like the others (APP-41: «el alto es 1920 px y el máximo es 1200 px.» stopped there).
+    if (rule.max_height && m.height > rule.max_height) {
+      say('error', m.isImage
+        ? `la imagen es muy alta: mide ${m.height} px y aquí el máximo es ${rule.max_height} px. Expórtala más baja.`
+        : `el video es muy alto: mide ${m.height} px y aquí el máximo es ${rule.max_height} px. Expórtalo más bajo.`);
+    }
   } else if (!m.isImage) say('warn', 'no se pudieron leer las medidas.');
 
   if (m.sizeBytes != null && rule.max_size_mb && m.sizeBytes > rule.max_size_mb * 1024 * 1024) {
