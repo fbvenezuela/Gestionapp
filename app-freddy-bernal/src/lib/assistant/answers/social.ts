@@ -851,7 +851,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-bajar-nivel',
     roles: ['social'],
     q: ['¿Puedo bajarle el nivel a una pieza de rojo a verde?', 'puedo cambiar de rojo a amarillo', 'me equivoque y la puse en rojo', 'como bajo el nivel', 'puedo bajar el nivel', 'cambiar de rojo a verde', 'me equivoque de color como lo cambio'],
-    a: 'No: Redes puede subir el nivel, no bajarlo. Si hace falta bajarlo, lo cambia el jefe (o administración).',
+    a: 'Antes de mandarla a aprobar la primera vez, sí, menos sacarla del rojo. Después solo lo puedes subir, y nunca mientras está en revisión: bajarlo, o sacarla del rojo, lo hacen el jefe o administración.',
   },
   {
     id: 'red-vence-sola',

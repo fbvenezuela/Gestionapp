@@ -2890,7 +2890,7 @@ export const TODOS: Answer[] = [
     a: {
       boss: 'Sí: en la revisión de la pieza, arriba, en la cajita del nivel (dice, por ejemplo, «Nivel amarillo»). Puedes subirla o bajarla, incluso sacarla del rojo.',
       admin: 'Sí: abre la pieza en Por aprobar y cámbialo arriba, en la cajita del nivel. Una pieza en rojo solo la bajan el jefe o administración.',
-      social: 'Puedes subirlo, no bajarlo: el jefe (o administración) lo cambia si hace falta.',
+      social: 'Antes de mandarla a aprobar la primera vez, sí, menos sacarla del rojo. Después solo lo puedes subir, y nunca mientras está en revisión: bajarlo, o sacarla del rojo, lo hacen el jefe o administración.',
       default: 'El nivel lo elige Redes al mandar la pieza a aprobar, y el jefe o administración lo cambian.',
     },
   },

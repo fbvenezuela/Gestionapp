@@ -565,7 +565,7 @@ export function redesSections(role: 'boss' | 'social', group: (label: string) =>
         '«Frases pedidas al jefe»: si hace falta su voz, aquí se sube con «Subir el audio del jefe».',
         '«Publicaciones» y el «Historial de revisión»; «Ver evento» te lleva al evento de la pieza.',
       ],
-      cannot: boss ? undefined : ['Bajar el nivel que puso el jefe.', 'Publicar una pieza que no está aprobada.'],
+      cannot: boss ? undefined : ['Bajar el nivel de una pieza que ya mandaste a aprobar, o sacarla del rojo.', 'Publicar una pieza que no está aprobada.'],
     },
     {
       screen: '/tweets',

@@ -306,7 +306,7 @@ export const SOCIAL_GUIDE: RoleGuide = {
   faq: [
     { q: '¿Por qué no veo la fecha de los eventos?', a: 'Porque la agenda del jefe es información de seguridad: Redes ve los eventos sin fecha, sin hora y sin dirección. La app nunca te manda esos datos.' },
     { q: 'No encuentro un evento que ya pasó', a: 'Los eventos realizados no salen en tu lista. Ábrelo desde Hoy («Grabación»), la Biblioteca o la pieza, con «Ver evento».' },
-    { q: '¿Puedo bajar el nivel de una pieza?', a: 'No: Redes puede subirlo, no bajarlo. El jefe lo cambia si hace falta.' },
+    { q: '¿Puedo bajar el nivel de una pieza?', a: 'Antes de mandarla a aprobar la primera vez, sí, menos sacarla del rojo. Después solo lo puedes subir, y nunca mientras está en revisión: bajarlo, o sacarla del rojo, lo hace el jefe.' },
     { q: '¿Qué pasa si vence el plazo de aprobación?', a: 'La pieza sigue sin aprobar y sale en «Trancado». Nunca se publica sola.' },
     { q: '¿Se publica solo?', a: 'No. La app no publica sola: bajas el paquete, lo publicas tú en la red y marcas «Ya lo publiqué».' },
     { q: '¿Dónde están las piezas?', a: 'En Redes, cada una en la sección de su formato y en el mes que elijas: Reels, Posts, Carruseles, Historias, YouTube y Fin de mes.' },
