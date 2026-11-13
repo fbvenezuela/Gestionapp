@@ -120,14 +120,14 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
               ))}
               {p.comments.map((c) => (
                 <li key={c.id} className="px-4 py-3">
-                  <p><b>{c.author}</b> {c.at_second !== null ? <span className="font-mono text-sm">[{fmtSecond(c.at_second)}]</span> : null} <span className="text-sm text-text-2">v{c.version}</span></p>
+                  <p><b>{c.author}</b> {c.at_second !== null ? <span className="font-mono text-sm">[{fmtSecond(c.at_second)}]</span> : null} <span className="text-sm text-text-2">versión {c.version}</span></p>
                   <p className="whitespace-pre-wrap text-text-2">{c.body}</p>
                   <p className="text-sm text-muted">{fmtDateTime(c.created_at)}</p>
                 </li>
               ))}
               {p.reviews.map((r, i) => (
                 <li key={i} className="px-4 py-3">
-                  <p><b>{r.reviewer}</b> {r.decision === 'approved' ? 'aprobó' : 'pidió cambios'} (v{r.version})</p>
+                  <p><b>{r.reviewer}</b> {r.decision === 'approved' ? 'aprobó' : 'pidió cambios'} (versión {r.version})</p>
                   {r.comment ? <p className="whitespace-pre-wrap text-text-2">{r.comment}</p> : null}
                   <p className="text-sm text-muted">{fmtDateTime(r.created_at)}</p>
                 </li>
