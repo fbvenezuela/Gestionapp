@@ -113,7 +113,6 @@ export default async function BossPolitics() {
           </ul>
         )}
       </div>
-      <p className="mt-6 text-sm text-text-2">La sección de ropa llega en una fase siguiente.</p>
     </>
   );
 }

@@ -1029,8 +1029,7 @@ export const BOSS: Answer[] = [
       'donde esta lo de la ropa',
       'la seccion de la ropa no funciona',
     ],
-    a: 'Todavía no está: la sección de ropa de Política llega más adelante. Mientras tanto, no hay nada que hacer ahí.',
-    go: '/jefe/politica',
+    a: 'Todavía no hay una sección de ropa en la app. Por ahora no hay nada que hacer ahí.',
   },
 
   // ── Por ponerle fecha ──────────────────────────────────────────────────────────────────────────────────────────────
