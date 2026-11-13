@@ -557,9 +557,23 @@ function sharedEntries(): Entry[] {
 // words people ask with, each said the ways a meaning is asked («¿qué es un reel?», «¿qué significa CSV?», «¿qué quiere
 // decir trancado?»), and the word alone; it says «Reel y Short: Un video corto…». A task that names the word («¿cómo subo
 // un reel?») is a «¿cómo…?»: these ways of asking are of another kind, so the task goes first.
+// What a word means is the same for everyone; who does it is not (13/11). «Programar» says «a esa hora la publicas tú»:
+// to whoever does not publish (publishing is Redes', the boss's and administración's), who does. «La oficina» is what
+// «Oficina» opens in the menu: política and the IVT do not have it.
+const NOT_PUBLISHING: Role[] = ['dispatch', 'politics', 'ivt', 'camera'];
+const GLOSSARY_FOR: Record<string, (line: string) => Partial<Record<Role, string>>> = {
+  programar: (line) => Object.fromEntries(NOT_PUBLISHING.map((r) => [r, line.replace('a esa hora la publicas tú y marcas «Ya lo publiqué»', 'a esa hora la publica a mano quien publica (Redes, el jefe o administración) y marca «Ya lo publiqué»')])),
+  oficina: () => {
+    const text = 'La oficina: El trabajo dibujado como una oficina de diez salas, de «Recepción» a «Analizador». No está en tu menú: la abren el jefe, el despacho, Redes, Grabación y administración, con «Oficina».';
+    return { politics: text, ivt: text };
+  },
+};
+
 function glossaryEntries(): Entry[] {
   return GLOSSARY.map((g) => {
     const names = [...new Set([g.term, ...g.aka].map((x) => x.toLowerCase()))];
+    const line = glossaryLine(g);
+    const byRole = GLOSSARY_FOR[g.id]?.(line);
     return {
       id: `palabra:${g.id}`,
       kind: 'term' as const,
@@ -567,7 +581,7 @@ function glossaryEntries(): Entry[] {
       roles: null,
       q: names.flatMap((x) => [`que es ${x}`, `que son ${x}`, `que significa ${x}`, `que quiere decir ${x}`, `para que es ${x}`, x]),
       doc: g.text,
-      a: glossaryLine(g),
+      a: byRole ? { default: line, ...byRole } : line,
       go: '/ayuda',
       names,
     };

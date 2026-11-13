@@ -12,7 +12,7 @@ import type { Session } from '@/lib/auth/session';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import type { Role } from '@/lib/roles';
 import { GLOSSARY, glossaryLine } from '@/lib/guides';
-import { allEntries, bestAnswer, findAnswers, readable } from '@/lib/assistant/answers/engine';
+import { allEntries, bestAnswer, findAnswers, readable, textFor } from '@/lib/assistant/answers/engine';
 import { handleTurn } from '@/lib/assistant';
 import { glossaryFichas, systemPrompt, type TurnContext } from '@/lib/assistant/brain';
 import { defaultProfile } from '@/lib/assistant/config';
@@ -64,10 +64,23 @@ describe('las palabras de la app en el índice de 360', () => {
       expect(e, g.id).toBeTruthy();
       expect(e.kind).toBe('term');
       expect(e.roles).toBeNull();
-      expect(e.a).toBe(glossaryLine(g));
+      expect(textFor(e.a, ['social'])).toBe(glossaryLine(g));
       expect(e.go).toBe('/ayuda');
       expect(KEY[g.id].test(g.text), g.id).toBe(true);
+      // Each role is told what it means, also where who does it is another (13/11).
+      for (const role of ROLES) expect(KEY[g.id].test(textFor(e.a, [role])), `${g.id} · ${role}`).toBe(true);
     }
+    // «Programar»: whoever does not publish is told who does; «La oficina»: política and the IVT do not have it.
+    const programar = entries.find((x) => x.id === 'palabra:programar')!;
+    expect(textFor(programar.a, ['camera'])).toMatch(/la publica a mano quien publica \(Redes, el jefe o administración\)/);
+    expect(textFor(programar.a, ['camera'])).not.toMatch(/la publicas tú/);
+    expect(textFor(programar.a, ['social'])).toMatch(/la publicas tú/);
+    const oficina = entries.find((x) => x.id === 'palabra:oficina')!;
+    for (const role of ['politics', 'ivt'] as Role[]) {
+      expect(textFor(oficina.a, [role])).toMatch(/No está en tu menú/);
+      expect(textFor(oficina.a, [role])).not.toMatch(/Lo que abre «Oficina» en el menú/);
+    }
+    expect(textFor(oficina.a, ['boss'])).toMatch(/Lo que abre «Oficina» en el menú/);
   });
 
   it('«¿qué es…?», «¿qué significa…?», «¿qué quiere decir…?» y «¿para qué sirve…?» de cada palabra y cada nombre, para cada rol', () => {
