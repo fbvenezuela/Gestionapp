@@ -300,7 +300,7 @@ describe('360 lo explica en la conversación (el cerebro de la demo)', () => {
     expect(m.entry.id).toBe('curado:jefe-web-por-error');
     expect(m.confidence).toBe('strong');
     const r = await handleTurn(sessionOf('boss'), { question: 'se publico algo por error en la web que hago', conversationId: null }, { chain: [] });
-    expect(r.answer).toMatch(/«Archivar».*sale de la web al momento/);
+    expect(r.answer).toMatch(/«Archivar» \(te pregunta antes\)\. Sale de la web al momento y nada se borra/);
     expect(r.answer).not.toMatch(/Receptividad/);
   });
 });

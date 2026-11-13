@@ -3433,14 +3433,13 @@ export const BOSS: Answer[] = [
     id: 'jefe-web-por-error',
     roles: ['boss'],
     q: [
-      '¿Se publicó algo por error en la web, qué hago?',
-      'se publico algo por error en la web',
+      '¿Salió algo por error en la web, qué hago?',
+      'salio algo por error en la web',
       'como quito una noticia de la web',
       'como saco una noticia de la web',
       'como archivo una noticia de la web',
-      'quitar algo de la web',
-      'se publico un cambio equivocado en la web',
+      'salio un cambio equivocado en la web',
     ],
-    a: 'En «Web», abre ese contenido y toca «Revisar y publicar» → «Archivar» (te pregunta antes): sale de la web al momento, sin borrar nada, y «Desarchivar» lo vuelve a poner. Si lo equivocado es un cambio: «Versiones» → «Volver a esta versión», y otra vez «Revisar y publicar» → «Publicar ahora». Archivan solo tú y quien aprueba la web. Lo demás de la web está en su propia guía, aparte de esta.',
+    a: 'Si algo salió por error en la web: en «Web», abre ese contenido y toca «Revisar y publicar» → «Archivar» (te pregunta antes). Sale de la web al momento y nada se borra (no hay botón de borrar): «Desarchivar» lo vuelve a poner. Si lo equivocado es un cambio: «Versiones» → «Volver a esta versión», y otra vez «Publicar ahora». Lo demás de la web está en su propia guía, aparte de esta.',
   },
 ];
