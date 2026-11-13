@@ -27,13 +27,13 @@ export const moveAsk = (month: string, num: number) => `Está en ${month} · #${
 
 export type PickerTag = { text: string; tone: 'ok' | 'info' | 'neutral' | 'warn' };
 
-/** The tags of a title in the picker: «En este espacio», «Ya en Mes 1 · #4», «De Mes 2», «Sin media». */
+/** The tags of a title in the picker: «En este espacio», «Ya en Mes 1 · #4», «De Mes 2», «Sin archivo» (the cards' word). */
 export function pickerTags(item: Pick<PickerItem, 'place' | 'otherMonth' | 'monthLabel' | 'hasMedia'>, here: { month: string; num: number }): PickerTag[] {
   const tags: PickerTag[] = [];
   if (item.place && item.place.month === here.month && item.place.num === here.num) tags.push({ text: 'En este espacio', tone: 'ok' });
   else if (item.place) tags.push({ text: alreadyIn(item.place.month, item.place.num), tone: 'info' });
   if (item.otherMonth && item.monthLabel) tags.push({ text: `De ${item.monthLabel}`, tone: 'neutral' });
-  if (!item.hasMedia) tags.push({ text: 'Sin media', tone: 'warn' });
+  if (!item.hasMedia) tags.push({ text: 'Sin archivo', tone: 'warn' });
   return tags;
 }
 

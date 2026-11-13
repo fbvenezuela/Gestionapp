@@ -1052,7 +1052,7 @@ la agenda, Tweets ni la publicación manual. Las preguntas para Hillary siguen l
 - **Qué:** tabla `feed_slots` (mes, número 1–24, pieza). **El número es el orden real de publicación**: #1 abajo a la
   derecha, #24 arriba a la izquierda, en una rejilla de 3 columnas × 8 filas; una sola función lo calcula para la celda,
   el selector, el chip de la tarjeta, los avisos y Drive. Van posts, reels y carruseles (el 8/12/4 es el cupo, no un
-  molde). Celda vacía: «Elegir publicación · Espacio #NN» → selector (formato → título, con miniatura o «Sin media»;
+  molde). Celda vacía: «Elegir publicación · Espacio #NN» → selector (formato → título, con miniatura o «Sin archivo», antes «Sin media»;
   «Ya en Mes X · #N» si está puesta; «De Mes 2» si es de otro mes). Celda llena: portada actual (cambia sola al subir
   otra), número, receptividad y, si se publicó, **marco verde y «✓ Publicado»**; al tocarla, menú «Abrir la tarjeta»,
   «Publicar antes (#N−1)», «Publicar después (#N+1)», «Cambiar de espacio», «Mover a otro mes», «Quitar del feed». Con
