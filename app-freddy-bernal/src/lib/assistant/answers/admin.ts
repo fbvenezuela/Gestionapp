@@ -40,7 +40,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-invitar-roles',
     roles: ['admin'],
     q: ['cuantos roles hay pa escoger cuando invito a alguien', 'qué roles puedo dar', 'que opciones de rol hay', 'cuales roles existen'],
-    a: 'Los seis del equipo (Jefe, Director de despacho, Director de política, Director del IVT, Grabación y Redes) y «Administración (técnico)». El de jefe sale apagado: «El rol de jefe lo da el comando de instalación.»',
+    a: 'Los seis del equipo (Jefe, Director de despacho, Director de política, Director del IVT, Grabación y Redes) y «Administración (técnico)». El de jefe sale apagado: lo da quien instala la app.',
     go: '/ajustes/equipo',
   },
   {
@@ -140,7 +140,7 @@ export const ADMIN: Answer[] = [
       'puedo invitar a alguien como jefe',
       'que roles puedo dar al invitar',
     ],
-    a: 'Sí, a otra persona, con su propia cuenta: en «Invitar a alguien» eliges su rol (cualquiera de los seis del equipo o «Administración (técnico)») y tocas «Enviar invitación»; al jefe le llega el aviso de cada rol del equipo. El único que no das es el de jefe: «El rol de jefe lo da el comando de instalación.»',
+    a: 'Sí, a otra persona, con su propia cuenta: en «Invitar a alguien» eliges su rol (cualquiera de los seis del equipo o «Administración (técnico)») y tocas «Enviar invitación»; al jefe le llega el aviso de cada rol del equipo. El único que no das es el de jefe: lo da quien instala la app.',
     go: '/ajustes/equipo',
   },
   {
@@ -213,7 +213,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-rol-jefe-casilla',
     roles: ['admin'],
     q: ['¿por qué no puedo marcar Jefe en Equipo?', 'xq no me deja marcar la casilla de jefe', 'la casilla de jefe está apagada', 'no puedo invitar como jefe'],
-    a: '«El rol de jefe lo da el comando de instalación.» Así nadie arma otra cuenta que apruebe todo o esté en todos los canales.',
+    a: 'Porque el rol de jefe lo da quien instala la app, una sola vez. Así nadie arma otra cuenta que apruebe todo o esté en todos los canales.',
     go: '/ajustes/equipo',
   },
   {
@@ -338,7 +338,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-cerrar-sesiones',
     roles: ['admin'],
     q: ['qué hace cerrar sus sesiones', 'como saco a alguien de la plataforma ahora mismo', 'cerrar la sesion de otro', 'dice no se pudieron borrar sus sesiones en supabase'],
-    a: '«Cerrar sus sesiones» lo saca de la app en todos sus teléfonos: tiene que entrar de nuevo con el código. Si te sale «No se pudieron borrar sus sesiones en Supabase, pero la app ya no las acepta.», igual quedó fuera.',
+    a: '«Cerrar sus sesiones» lo saca de la app en todos sus teléfonos: tiene que entrar de nuevo con el código. Si te dice que no se pudieron borrar todas sus sesiones, igual quedó fuera: la app ya no las acepta.',
     go: '/ajustes/equipo',
   },
   {

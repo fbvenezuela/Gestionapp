@@ -1029,7 +1029,7 @@ export const BOSS: Answer[] = [
       'donde esta lo de la ropa',
       'la seccion de la ropa no funciona',
     ],
-    a: 'Todavía no está: Política dice «La sección de ropa llega en una fase siguiente.». Mientras tanto, no hay nada que hacer ahí.',
+    a: 'Todavía no está: la sección de ropa de Política llega más adelante. Mientras tanto, no hay nada que hacer ahí.',
     go: '/jefe/politica',
   },
 

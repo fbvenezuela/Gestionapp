@@ -24,7 +24,7 @@ Las personas del equipo, sus roles, su doble factor y sus sesiones. Cada persona
 - Cada rol del equipo que das le llega al jefe como aviso.
 - No puedes: Darte tus propios roles: los da otra persona de administración.
 - No puedes: Ser también el jefe o el despacho en la misma cuenta: usa otra cuenta.
-- No puedes: Dar el rol de jefe: El rol de jefe lo da el comando de instalación.
+- No puedes: Dar el rol de jefe: lo da quien instala la app.
 
 ### Categorías (`/ajustes/categorias`)
 La lista de categorías del contenido (eventos, piezas y tweets).
@@ -116,7 +116,7 @@ Lees la agenda, «Por ponerle fecha», las obras y los municipios.
 En Equipo, «Cerrar sus sesiones» y «Reiniciar doble factor». La próxima vez que entre, lo activa de nuevo.
 
 **¿Por qué no puedo marcar «Jefe» en Equipo?**
-El rol de jefe lo da el comando de instalación. Así nadie arma otra cuenta que apruebe todo o esté en todos los canales.
+El rol de jefe lo da quien instala la app, una sola vez. Así nadie arma otra cuenta que apruebe todo o esté en todos los canales.
 
 **¿Puedo leer los mensajes del equipo?**
 No. Mensajes no tiene entrada para administración, ni con «Ver como», ni en el registro de cambios.
