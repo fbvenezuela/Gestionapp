@@ -6,7 +6,7 @@ import { notify, usersWithRole } from '../notify';
 import { notifyReviewers } from './review-notify';
 import { brand } from '../client-config';
 import { buildCopies, copyLength, inventedNumbers, overLimits, type CopyOptions, type CopySet } from '../domain/copies';
-import type { Level } from '../domain/review';
+import { greenApprovedTitle, type Level } from '../domain/review';
 import { FORMAT, FORMATS, formatOfKind } from '../domain/redes';
 import { getCard } from '../data/redes';
 import type { Sql } from '../db/core';
@@ -197,7 +197,8 @@ export async function approveGreen(raw: unknown) {
     return { n: ok.length, skipped: i.pieces.length - ok.length - withNotices, withNotices, noticeText };
   }, { revalidate: ['/aprobar', '/piezas', '/redes', '/hoy', '/jefe'] }).then(async (r) => {
     if (r.ok && r.data!.n) {
-      await notify({ userIds: await usersWithRole('social'), kind: 'piece_approved', title: `Aprobadas ${r.data!.n} piezas verdes`, body: 'Ya se pueden publicar.', link: '/publicar/nueva', key: `green:${Date.now()}` });
+      // Redes reads it without knowing who approved (APP-38); never a date or an hour (push-text detector).
+      await notify({ userIds: await usersWithRole('social'), kind: 'piece_approved', title: greenApprovedTitle(r.data!.n), body: 'Ya se pueden publicar.', link: '/publicar/nueva', key: `green:${Date.now()}` });
     }
     return r;
   });
