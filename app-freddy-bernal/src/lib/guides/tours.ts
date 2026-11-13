@@ -165,8 +165,8 @@ export const TOURS: Tour[] = [
     title: 'Cómo se usa el modo lectura',
     steps: [
       { target: ['[aria-label="Letra más grande"]'], title: 'La letra', body: 'Desde aquí agrandas la letra hasta que se lea cómodo.' },
-      { target: ['[aria-label="Desplazar solo"]'], title: 'Desplazar solo', body: 'El texto sube solo, y lo pausas cuando quieras.' },
-      { target: ['[aria-label="Velocidad"]'], title: 'Velocidad', body: 'Qué tan rápido sube el texto: lento, medio o rápido.' },
+      { target: ['[aria-label="Desplazar solo"]'], title: 'El botón verde', body: 'Hace correr el texto solo; otro toque lo para.' },
+      { target: ['[aria-label="Velocidad"]'], title: 'La velocidad', body: 'Al lado eliges qué tan rápido sube: «Lento», «Medio» o «Rápido».' },
       {
         target: ['#antes-de-hablar'],
         title: 'Antes de hablar',
@@ -175,7 +175,7 @@ export const TOURS: Tour[] = [
           dispatch: 'Lo que el jefe debe saber antes de hablar: quién reportó y lo que pidió. Lo ven el jefe y tú.',
         },
       },
-      { target: ['[aria-label="Salir del modo lectura"]'], title: 'Salir', body: 'Para volver al evento.' },
+      { target: ['[aria-label="Salir del modo lectura"]'], title: 'La X', body: 'Sale del modo lectura y vuelves al evento.' },
     ],
   },
   {
