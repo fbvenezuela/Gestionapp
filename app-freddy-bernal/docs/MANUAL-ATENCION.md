@@ -364,8 +364,8 @@ municipio».
 
 **«Registro»** es de auditoría y de Administración, que lo abre con «Registro de atención». Dice quién hizo qué y
 cuándo: los cambios, los contactos vistos y las exportaciones. No se edita ni se borra, y no guarda lo que dicen los
-casos. Una línea que empieza con «El sistema o la persona desde la web» es algo que llegó desde la web, como una
-solicitud nueva, o algo que la app hizo sola.
+casos. Una línea que empieza con «La web» es algo que llegó desde la web, como una solicitud nueva, o
+algo que la app hizo sola.
 
 ## 22. Para practicar en la versión de prueba
 

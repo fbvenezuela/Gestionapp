@@ -69,7 +69,7 @@ export default async function AttentionAuditPage({ searchParams }: { searchParam
           <ul className="divide-y divide-border">
             {rows.map((r) => (
               <li key={r.id} className="px-4 py-3 text-[15px]">
-                <span className="font-semibold">{r.actor ?? 'El sistema o la persona desde la web'}</span> {what(r)}
+                <span className="font-semibold">{r.actor ?? 'La web'}</span> {what(r)}
                 {r.action === 'export' ? null : r.reference && r.request_id ? (
                   <>
                     {' '}
