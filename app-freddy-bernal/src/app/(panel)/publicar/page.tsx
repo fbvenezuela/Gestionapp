@@ -81,16 +81,20 @@ export default async function PublishPage() {
   );
 }
 
+// On a phone the state goes under the title, which reads whole («Cancha te…» before), and the hour stays on one line
+// («7:15 p.» over «m.» before); from sm, as one row with the title cut to fit.
 function PubRow({ p }: { p: Pub }) {
   return (
     <li>
-      <Link href={`/publicar/${p.id}`} className="flex min-h-14 items-center gap-3 px-4 py-3 hover:bg-surface-2">
-        <span className="w-20 shrink-0 font-mono text-sm font-semibold">{p.scheduled_at || p.published_at ? fmtDateTime(p.published_at ?? p.scheduled_at).split(', ').pop() : '—'}</span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold">{p.title}</span>
-          <span className="block text-sm text-text-2">{NETWORK_LABEL[p.network]} · {p.origin === 'boss_spontaneous' ? 'la publicó el jefe' : networkFormatLabel(p.format)}{p.republish_of ? ' · republicación' : ''}{p.failure_reason ? ` · ${p.failure_reason}` : ''}</span>
+      <Link href={`/publicar/${p.id}`} className="flex min-h-14 items-start gap-3 px-4 py-3 hover:bg-surface-2 sm:items-center">
+        <span className="w-24 shrink-0 whitespace-nowrap font-mono text-sm font-semibold">{p.scheduled_at || p.published_at ? fmtDateTime(p.published_at ?? p.scheduled_at).split(', ').pop() : '—'}</span>
+        <span className="flex min-w-0 flex-1 flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-3">
+          <span className="min-w-0 self-stretch sm:flex-1 sm:self-auto">
+            <span className="block break-words font-semibold sm:truncate">{p.title}</span>
+            <span className="block text-sm text-text-2">{NETWORK_LABEL[p.network]} · {p.origin === 'boss_spontaneous' ? 'la publicó el jefe' : networkFormatLabel(p.format)}{p.republish_of ? ' · republicación' : ''}{p.failure_reason ? ` · ${p.failure_reason}` : ''}</span>
+          </span>
+          <Chip tone={PUB_STATUS[p.status]?.tone}>{PUB_STATUS[p.status]?.label}</Chip>
         </span>
-        <Chip tone={PUB_STATUS[p.status]?.tone}>{PUB_STATUS[p.status]?.label}</Chip>
       </Link>
     </li>
   );
