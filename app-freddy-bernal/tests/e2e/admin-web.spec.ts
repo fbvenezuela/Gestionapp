@@ -277,6 +277,23 @@ test('la vista previa muestra a los editores lo que falta (la foto, los textos �
   await expect(page.getByText(/Por completar|Foto por subir/)).toHaveCount(0);
 });
 
+test('la página «Atención ciudadana» de «Páginas» avisa que lo que se escribe ahí no sale en la web; las demás no', async () => {
+  const e = editor.page;
+  const open = async (title: RegExp) => {
+    await e.goto('/admin/web/contenido/paginas');
+    await e.locator('main a[href^="/admin/web/editar/"]', { hasText: title }).first().click();
+    await e.waitForURL(/\/admin\/web\/editar\/[0-9a-f-]{36}$/);
+  };
+  await open(/^\s*Atención ciudadana/);
+  await expect(e.getByText('Esta página no sale en la web')).toBeVisible();
+  await expect(e.getByText('Lo que escribas aquí no se ve.', { exact: false })).toBeVisible();
+  await fitsWidth(e, 'editor de la página de atención');
+  await noSerious(e, 'editor de la página de atención');
+  await open(/^\s*El gobernador/);
+  await expect(e.getByRole('heading', { level: 1, name: 'El gobernador' })).toBeVisible();
+  await expect(e.getByText('Esta página no sale en la web')).toHaveCount(0);
+});
+
 test('programar un aviso: queda programado y no se ve antes de su hora; quitar la programación lo devuelve a borrador', async ({ page }) => {
   const e = editor.page;
   await e.goto('/admin/web/contenido/avisos');

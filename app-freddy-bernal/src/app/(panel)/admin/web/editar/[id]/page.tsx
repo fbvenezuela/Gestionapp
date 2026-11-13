@@ -56,6 +56,14 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
       />
       <FlowChips flow={item} />
 
+      {item.kind === 'page' && item.slug === 'atencion' ? (
+        // /atencion builds its own texts (src/app/(web)/atencion/page.tsx) and never reads this page (APP-20).
+        <Notice tone="info" title="Esta página no sale en la web">
+          La página «Atención ciudadana» de la web tiene sus propios textos. Lo que escribas aquí no se ve. Sus preguntas se cambian en
+          «Preguntas frecuentes», grupo «Atención ciudadana», y sus contactos en «Ajustes del sitio».
+        </Notice>
+      ) : null}
+
       {item.status === 'draft' && item.reviewNote ? (
         <Notice tone="danger" title="Te lo devolvieron con este comentario">
           <p className="whitespace-pre-line">{item.reviewNote}</p>

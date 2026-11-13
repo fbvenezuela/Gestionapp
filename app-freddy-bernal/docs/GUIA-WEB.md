@@ -176,7 +176,8 @@ Sus otras páginas, en el mismo menú:
 - Los contactos: «Ajustes del sitio» → «Contactos institucionales». Solo salen los marcados «Verificado».
 - Los casos: los publica la coordinación desde «Atención».
 
-En «Web» → «Páginas» también aparece «Atención ciudadana». No la uses: lo que se escribe ahí no sale en la web.
+En «Web» → «Páginas» también aparece «Atención ciudadana». No la uses: lo que se escribe ahí no sale en la web (su
+editor lo avisa arriba: «Esta página no sale en la web»).
 
 **Sin datos.** Sin preguntas, no sale esa parte. Sin contactos verificados, «Otros canales» muestra «Canal de atención»:
 «Las solicitudes se reciben únicamente a través de este sitio.», seguido del aviso contra estafas. Sin casos publicados,

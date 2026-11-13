@@ -77,9 +77,9 @@ dirección en la web sale de él) → **«Crear borrador»**. Se abre el editor.
 
 **Las páginas no se crean, se editan.** Son seis y ya existen: la portada («Inicio»), «El gobernador», «Atención
 ciudadana» y las tres legales («Aviso de privacidad», «Condiciones de participación» y «Accesibilidad»). No uses la
-página «Atención ciudadana»: lo que se escribe ahí no sale en la web. Los textos de la sección «Atención ciudadana» no
-se cambian desde el panel. De ella se cambian las preguntas («Preguntas frecuentes», grupo «Atención ciudadana») y los
-contactos verificados (ver 4.13).
+página «Atención ciudadana»: lo que se escribe ahí no sale en la web, y su editor lo avisa arriba («Esta página no
+sale en la web»). Los textos de la sección «Atención ciudadana» no se cambian desde el panel. De ella se cambian las
+preguntas («Preguntas frecuentes», grupo «Atención ciudadana») y los contactos verificados (ver 4.13).
 
 Lo que pide cada tipo:
 
