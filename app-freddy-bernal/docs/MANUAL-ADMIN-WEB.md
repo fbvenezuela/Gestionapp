@@ -151,9 +151,9 @@ oficiales, Accesos de participación y Casos atendidos. Cada uno dice para qué 
   subir desde el administrador». Si el mensaje todavía no está, escribe «Por completar: …» con lo que falta. El equipo
   lo ve como un espacio por llenar, y el público no ve nada.
 - **Video:** «Mostrar el episodio más reciente» cambia solo cada vez que se publica un episodio.
-- **Documentos, Preguntas, Indicadores y Obras:** «Salen en el orden en que los marques. Sin marcar ninguno, se usan
-  los últimos.» En Indicadores no es así: sin marcar ninguno, el bloque no sale. Lo que no está publicado dice «(no
-  publicado: no se verá)». Un indicador sin fuente dice «(sin fuente: no se verá)».
+- **Documentos, Preguntas y Obras:** «Salen en el orden en que los marques. Sin marcar ninguno, se usan los
+  últimos.» **Indicadores:** «Salen en el orden en que los marques. Sin marcar ninguno, el bloque no sale.» Lo que no
+  está publicado dice «(no publicado: no se verá)». Un indicador sin fuente dice «(sin fuente: no se verá)».
 - **Canales oficiales:** las cuentas se cambian en «Ajustes del sitio» (ver 4.13).
 - **Llamado a la acción:** al agregarlo, el «Enlace del botón» ya lleva al formulario «Nueva solicitud»: dice
   «/atencion/nueva». Para otra página de esta web, escribe solo el final de su dirección, el que empieza con «/». Para
