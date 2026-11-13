@@ -26,7 +26,7 @@ const BLOCK_HELP: Record<BlockType, string> = {
   text: 'Texto con títulos, listas, negritas y enlaces.',
   image: 'Una foto con su pie.',
   gallery: 'Varias fotos juntas.',
-  video: 'El Reporte Bernal más reciente o un video de YouTube (carga solo si lo tocan).',
+  video: 'El episodio más reciente del programa o un video de YouTube (carga solo si lo tocan).',
   documents: 'Documentos de Transparencia, elegidos o los últimos de una categoría.',
   faq: 'Preguntas frecuentes de un grupo o elegidas.',
   indicators: 'Las cifras de «Gestión en cifras» (solo salen las que tienen fuente).',
@@ -44,7 +44,8 @@ const STARTERS: Record<BlockType, Record<string, unknown>> = {
   text: { title: '', content: [] },
   image: { caption: '' },
   gallery: { title: '', mediaIds: [] },
-  video: { title: 'Reporte Bernal', latestEpisode: true },
+  // Its title is the program's name, as the client calls it (useEditor().programName, from the config).
+  video: { title: '', latestEpisode: true },
   documents: { title: 'Documentos', ids: [], limit: 6 },
   faq: { title: 'Preguntas frecuentes', group: 'atencion' },
   indicators: { title: 'Gestión en cifras', ids: [] },
@@ -56,6 +57,12 @@ const STARTERS: Record<BlockType, Record<string, unknown>> = {
   participation: { title: 'Atención ciudadana' },
   attended: { title: 'Casos atendidos', limit: 3 },
 };
+
+/** A new block's data: the starter, with the program's name as a video block's title. */
+export function starter(type: BlockType, programName: string): Record<string, unknown> {
+  const data = structuredClone(STARTERS[type]);
+  return type === 'video' ? { ...data, title: programName } : data;
+}
 
 const str = (v: unknown) => (typeof v === 'string' ? v : '');
 
@@ -89,7 +96,7 @@ function summary(b: B): string {
 }
 
 export function BlockEditor({ value, onChange }: { value: unknown; onChange: (blocks: B[]) => void }) {
-  const { readOnly } = useEditor();
+  const { readOnly, programName } = useEditor();
   const [list, setList] = useState<B[]>(() => coerceBlocks(value));
   const [open, setOpen] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -160,7 +167,7 @@ export function BlockEditor({ value, onChange }: { value: unknown; onChange: (bl
   };
   const add = (type: BlockType) => {
     const taken = new Set(list.map((b) => b.id));
-    const b: B = { id: newId(type, taken), type, visible: true, data: structuredClone(STARTERS[type]) };
+    const b: B = { id: newId(type, taken), type, visible: true, data: starter(type, programName) };
     commit([...list, b]);
     setAdding(false);
     setOpen(b.id);

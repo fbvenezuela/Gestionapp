@@ -39,9 +39,9 @@ export type EditorItem = {
 type Local = { base: number; slug: string; draft: Obj };
 
 export function Editor({
-  item, draft: initialDraft, caps, media: initialMedia, munis, refs, baseUrl, tz,
+  item, draft: initialDraft, caps, media: initialMedia, munis, refs, baseUrl, tz, programName,
 }: {
-  item: EditorItem; draft: Obj; caps: WebCaps; media: Record<string, MediaInfo>; munis: Municipality[]; refs: RefOption[]; baseUrl: string; tz: string;
+  item: EditorItem; draft: Obj; caps: WebCaps; media: Record<string, MediaInfo>; munis: Municipality[]; refs: RefOption[]; baseUrl: string; tz: string; programName: string;
 }) {
   const router = useRouter();
   const section = sectionOf(item.kind);
@@ -78,8 +78,8 @@ export function Editor({
   const slugOk = slugSchema.safeParse(value.slug).success;
   const slugEditable = item.kind !== 'page' && (!item.hasPublished || caps.canPublish);
   const ctx: EditorCtx = useMemo(
-    () => ({ media, addMedia: (m) => setMedia((all) => ({ ...all, [m.id]: m })), munis, refs, readOnly: false, tz }),
-    [media, munis, refs, tz],
+    () => ({ media, addMedia: (m) => setMedia((all) => ({ ...all, [m.id]: m })), munis, refs, readOnly: false, tz, programName }),
+    [media, munis, refs, tz, programName],
   );
 
   async function save(): Promise<boolean> {

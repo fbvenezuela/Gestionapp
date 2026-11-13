@@ -9,6 +9,7 @@ import { Input, Select } from '@/components/ui/field';
 import { CmsNav, FlowChips, KindTabs, flowLine } from '@/components/cms/chrome';
 import { ADMIN_PAGE_SIZE, adminList, kindCounts, reviewQueue, webCaps } from '@/lib/data/web-admin';
 import { ADMIN_WEB, sectionBySlug } from '@/lib/web/cms/kinds';
+import { sectionLabel } from '@/lib/web/cms/section-label';
 import { isStatusFilter, STATUS_FILTERS } from '@/lib/web/cms/status';
 import { pagePath, itemPath } from '@/lib/web/routes';
 import { fmtDateTime } from '@/lib/time';
@@ -20,7 +21,7 @@ type Search = Promise<Record<string, string | string[] | undefined>>;
 
 export async function generateMetadata({ params }: { params: Params }) {
   const section = sectionBySlug((await params).tipo);
-  return { title: section ? `${section.label} · Web` : 'Web' };
+  return { title: section ? `${sectionLabel(section)} · Web` : 'Web' };
 }
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? '';
@@ -54,11 +55,12 @@ export default async function ContentListPage({ params, searchParams }: { params
     return `${ADMIN_WEB.list(section.kind)}${qs ? `?${qs}` : ''}`;
   };
   const filtered = !!(status || q);
+  const label = sectionLabel(section);
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col">
       <PageHeader
-        title={section.label}
+        title={label}
         subtitle={section.hint}
         back={{ href: ADMIN_WEB.home, label: 'La web' }}
         actions={
@@ -72,7 +74,7 @@ export default async function ContentListPage({ params, searchParams }: { params
       <CmsNav current="contenido" caps={caps} waiting={data.waiting} />
       <KindTabs current={section.kind} counts={counts} />
 
-      <form action={ADMIN_WEB.list(section.kind)} method="get" role="search" aria-label={`Buscar en ${section.label}`} className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end">
+      <form action={ADMIN_WEB.list(section.kind)} method="get" role="search" aria-label={`Buscar en ${label}`} className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end">
         <label className="flex flex-1 flex-col gap-1.5 text-sm font-semibold">
           Buscar
           <Input name="q" type="search" defaultValue={q} placeholder="Palabras del título o del resumen" />
@@ -132,7 +134,7 @@ export default async function ContentListPage({ params, searchParams }: { params
         </Card>
       ) : (
         <EmptyState
-          title={filtered ? 'Nada coincide con esos filtros.' : `Todavía no hay ${section.label.toLowerCase()}.`}
+          title={filtered ? 'Nada coincide con esos filtros.' : `Todavía no hay ${section.kind === 'episode' ? 'episodios' : label.toLowerCase()}.`}
           action={
             caps.canEdit && section.create && !filtered ? (
               <LinkButton href={ADMIN_WEB.create(section.kind)} variant="secondary">

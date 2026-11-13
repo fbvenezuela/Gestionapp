@@ -11,6 +11,7 @@ import { adminItem, importOrigin, mediaByIds, municipalities, referenceOptions, 
 import { reviewFlagTexts } from '@/lib/web/import-marks';
 import { mediaIdsIn } from '@/lib/web/cms/drafts';
 import { ADMIN_WEB, sectionOf } from '@/lib/web/cms/kinds';
+import { programLabel, sectionLabel } from '@/lib/web/cms/section-label';
 import { hasPendingChanges, isLive, isScheduled } from '@/lib/web/cms/status';
 import { itemPath } from '@/lib/web/routes';
 import { siteBaseUrl } from '@/lib/web/site';
@@ -52,7 +53,7 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
       <PageHeader
         title={item.title || 'Sin título'}
         subtitle={`${WEB_KIND_LABEL[item.kind]} · versión ${item.draftVersion} del borrador${item.updatedByName ? ` · último cambio de ${item.updatedByName}` : ''}, ${fmtDateTime(item.updatedAt)}`}
-        back={{ href: ADMIN_WEB.list(item.kind), label: section.label }}
+        back={{ href: ADMIN_WEB.list(item.kind), label: sectionLabel(section) }}
       />
       <FlowChips flow={item} />
 
@@ -132,6 +133,7 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
           refs={data.refs}
           baseUrl={siteBaseUrl()}
           tz={TZ}
+          programName={programLabel()}
         />
       ) : (
         <Card>

@@ -4,6 +4,7 @@ import { cn } from '@/lib/cn';
 import { fmtDateTime } from '@/lib/time';
 import { flowChips, isScheduled, type ItemFlow } from '@/lib/web/cms/status';
 import { ADMIN_WEB, KIND_SECTIONS } from '@/lib/web/cms/kinds';
+import { sectionLabel } from '@/lib/web/cms/section-label';
 import type { WebCaps } from '@/lib/data/web-admin';
 import type { WebKind } from '@/lib/web/schema';
 
@@ -81,7 +82,7 @@ export function KindTabs({ current, counts }: { current?: WebKind; counts: Parti
                 current === s.kind ? 'bg-accent text-on-accent' : 'border border-border bg-surface text-text-2 hover:text-text',
               )}
             >
-              {s.label}
+              {sectionLabel(s)}
               <span className="tabular text-xs">{counts[s.kind] ?? 0}</span>
             </Link>
           </li>

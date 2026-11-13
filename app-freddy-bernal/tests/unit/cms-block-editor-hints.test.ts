@@ -17,6 +17,7 @@ const ctx: EditorCtx = {
   ],
   readOnly: false,
   tz: 'America/Caracas',
+  programName: 'Programa de prueba',
 };
 const text = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
 const render = (kind: 'indicator' | 'document') =>

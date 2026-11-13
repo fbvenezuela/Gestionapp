@@ -1,14 +1,16 @@
-import { WEB_KIND_LABEL, type WebKind } from '../schema';
+import type { WebKind } from '../schema';
 
 // The sections of the website's administrator (/admin/web, design §3): one per kind of content, with the words the team
 // reads and the address of its list (/admin/web/contenido/<section>). Pages are fixed (the home «inicio» and the site's
-// own pages): they are edited, never created here (a new page would have no address on the site). Pure.
+// own pages): they are edited, never created here (a new page would have no address on the site). Pure. The weekly
+// program's section shows the client's name for it (sectionLabel(), section-label.ts, from the config): here, only a
+// neutral one.
 
 export type KindSection = {
   kind: WebKind;
   /** The list's address piece. */
   section: string;
-  /** The list's title. */
+  /** The list's title (the panel says it with sectionLabel()). */
   label: string;
   /** «una noticia», «un aviso»: for sentences. */
   one: string;
@@ -24,7 +26,7 @@ export const KIND_SECTIONS: readonly KindSection[] = [
   { kind: 'page', section: 'paginas', label: 'Páginas', one: 'una página', create: null, hint: 'La portada (por bloques) y las páginas fijas: el gobernador y las legales.', ownPage: true },
   { kind: 'news', section: 'noticias', label: 'Noticias y comunicados', one: 'una noticia', create: 'Nueva noticia', hint: 'Noticias, comunicados, columnas de opinión y entrevistas: salen en «Noticias».', ownPage: true },
   { kind: 'project', section: 'obras', label: 'Obras y acciones', one: 'una obra', create: 'Nueva obra o acción', hint: 'La gestión: dónde, para quién, el estado y las evidencias.', ownPage: true },
-  { kind: 'episode', section: 'reporte-bernal', label: WEB_KIND_LABEL.episode, one: 'un episodio', create: 'Nuevo episodio', hint: 'Los episodios del programa semanal, con su video y sus temas.', ownPage: false },
+  { kind: 'episode', section: 'reporte-bernal', label: 'Programa semanal', one: 'un episodio', create: 'Nuevo episodio', hint: 'Los episodios del programa semanal, con su video y sus temas.', ownPage: false },
   { kind: 'document', section: 'documentos', label: 'Documentos', one: 'un documento', create: 'Nuevo documento', hint: 'Semanarios, informes y documentos en PDF de Transparencia.', ownPage: false },
   { kind: 'notice', section: 'avisos', label: 'Avisos de servicio', one: 'un aviso', create: 'Nuevo aviso', hint: 'Cortes, desvíos y horarios: con fecha de actualización y de vencimiento.', ownPage: false },
   { kind: 'faq', section: 'preguntas', label: 'Preguntas frecuentes', one: 'una pregunta', create: 'Nueva pregunta', hint: 'Las preguntas de Atención ciudadana, de la web y de la gestión.', ownPage: false },

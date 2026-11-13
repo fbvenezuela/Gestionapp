@@ -14,6 +14,8 @@ export type EditorCtx = {
   refs: RefOption[];
   readOnly: boolean;
   tz: string;
+  /** The weekly program's name, as the client calls it (from the config, on the server): a new video block's title. */
+  programName: string;
 };
 
 export const EditorContext = createContext<EditorCtx | null>(null);

@@ -14,7 +14,8 @@ export const WEB_KIND_LABEL: Record<WebKind, string> = {
   page: 'Página',
   news: 'Noticia',
   project: 'Obra o acción',
-  episode: 'Reporte Bernal',
+  // One episode of the weekly program (its name is the client's: sectionLabel(), cms/section-label.ts).
+  episode: 'Episodio',
   document: 'Documento',
   notice: 'Aviso de servicio',
   faq: 'Pregunta frecuente',
