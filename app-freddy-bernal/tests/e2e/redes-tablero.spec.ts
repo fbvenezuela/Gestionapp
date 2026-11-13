@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { loginAs } from './helpers';
+import { loginAs, readyForAxe } from './helpers';
 
 // The board of Redes (R4, WP-D, D-71) against the demo, at 360 px with axe and once at 1366: «Estado del contenido»
 // as blocks on the phone and a table on a computer; tapping Posts × «Copy faltante» twice opens two different pieces,
@@ -12,7 +12,7 @@ test.describe.configure({ mode: 'serial' });
 const CLOCK = /\b\d{1,2}:\d{2}\s?(a\.?\s?m\.?|p\.?\s?m\.?)/i;
 
 async function axe(page: Page) {
-  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 15_000 });
+  await readyForAxe(page, new URL(page.url()).pathname);
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
   expect(serious.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(' | ')}`)).toEqual([]);

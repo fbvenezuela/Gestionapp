@@ -261,6 +261,14 @@ describe('R3: un aviso que nombra un evento solo le pide algo al equipo', () => 
     expect(noticeIssues('manden las fotos el finde')).toEqual([]);
     expect(noticeIssues('el sábado a las 6, lleven baterías')).toEqual(['el día', 'la hora']);
     expect(noticeIssues('suban todo antes del viernes a las 3 pm')).toEqual([]);
+    // A deadline, or the work handed in at an hour, is the team's only after its verb in the same clause; after a full
+    // stop, or past an event verb, it is someone's agenda again (the rules look back over the clause).
+    expect(noticeIssues('el sábado lleven baterías y antes de las 7 suban el material')).toEqual([]);
+    expect(noticeIssues('el sábado lleven baterías. Antes de las 7, suban el material.')).toEqual(['el día', 'la hora']);
+    expect(noticeIssues('suban el material y a las 6 lleven el dron')).toEqual([]);
+    expect(noticeIssues('Suban el material. A las 6 lleven el dron.')).toEqual(['la hora']);
+    expect(noticeIssues('suban las fotos de la feria, la feria es hasta las 3 pm')).toEqual(['la hora', 'datos del evento']);
+    expect(noticeIssues('Suban las fotos de la feria. Antes de las 3 pm.')).toEqual(['la hora', 'datos del evento']);
   });
 
   it('al confirmar, administración ve el recordatorio en el diálogo', () => {

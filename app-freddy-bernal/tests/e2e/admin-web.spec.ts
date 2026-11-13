@@ -1,6 +1,6 @@
 import { test, expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { loginAs } from './helpers';
+import { loginAs, readyForAxe } from './helpers';
 import { QUIET_STATE } from './global-setup';
 import { pngOf } from '../unit/fixtures/web-png';
 
@@ -16,12 +16,21 @@ test.describe.configure({ mode: 'serial' });
 
 const EDITOR = 'web.editora@demo.test';
 const PUBLISHER = 'web.aprobador@demo.test';
-const NEWS_TITLE = 'Nueva cancha techada en el barrio de prueba (demo)';
-const NOTICE_TITLE = 'Corte de agua programado en el sector de prueba (demo)';
+// A token of this run in what it writes: CI retries the group from its first test on the same server, where the news
+// and the notice of the first attempt are still there (the news published): with the same title, the retry's news got
+// «…-demo-2» and its search found the first one.
+const RUN = Math.random().toString(36).slice(2, 7);
+const NEWS_TITLE = `Nueva cancha techada en el barrio de prueba ${RUN} (demo)`;
+const NEWS_SLUG = `nueva-cancha-techada-en-el-barrio-de-prueba-${RUN}-demo`;
+const NOTICE_TITLE = `Corte de agua programado en el sector de prueba ${RUN} (demo)`;
+const PHOTO_ALT = `Niños jugando en la cancha techada del barrio de prueba ${RUN} (demo)`;
+const HOME_NOTE = `Prueba ${RUN}: título de los accesos y avisos antes de las noticias`;
+const OLD_ADDRESS = `/2019/01/nota-vieja-de-prueba-${RUN}`;
 const PHONE = { viewport: { width: 360, height: 760 }, isMobile: true, hasTouch: true };
 const DESKTOP = { viewport: { width: 1280, height: 900 }, isMobile: false, hasTouch: false };
 
 async function noSerious(page: Page, where: string) {
+  await readyForAxe(page, where);
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = r.violations
     .filter((v) => v.impact === 'serious' || v.impact === 'critical')
@@ -108,7 +117,7 @@ test('el editor crea una noticia con su foto (el texto alternativo es obligatori
   await page.getByRole('link', { name: 'Nueva noticia' }).click();
   await page.waitForURL(/\/nuevo$/);
   await page.getByLabel('Título').fill(NEWS_TITLE);
-  await expect(page.getByText('/actualidad/nueva-cancha-techada-en-el-barrio-de-prueba-demo')).toBeVisible();
+  await expect(page.getByText(`/actualidad/${NEWS_SLUG}`)).toBeVisible();
   await page.getByRole('button', { name: 'Crear borrador' }).click();
   await page.waitForURL(/\/admin\/web\/editar\/[0-9a-f-]{36}$/);
   await expect(page.getByText('Borrador', { exact: true }).first()).toBeVisible();
@@ -129,10 +138,10 @@ test('el editor crea una noticia con su foto (el texto alternativo es obligatori
   await expect(sheet.getByRole('group', { name: /Punto de interés de la foto/ })).toBeVisible();
   await sheet.getByRole('button', { name: 'Subir y usar esta foto' }).click();
   await expect(sheet.getByText(/^Falta el texto alternativo/)).toBeVisible();
-  await sheet.getByLabel(/^Texto alternativo/).fill('Niños jugando en la cancha techada del barrio de prueba (demo)');
+  await sheet.getByLabel(/^Texto alternativo/).fill(PHOTO_ALT);
   await sheet.getByRole('button', { name: 'Subir y usar esta foto' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(page.getByRole('group', { name: 'Foto principal' }).getByText('Niños jugando en la cancha techada del barrio de prueba (demo)')).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Foto principal' }).getByText(PHOTO_ALT)).toBeVisible();
 
   await expect(page.getByRole('heading', { name: 'Listo para enviar a aprobación' })).toBeVisible();
   await noSerious(page, 'editor de noticia');
@@ -158,7 +167,7 @@ test('el editor crea una noticia con su foto (el texto alternativo es obligatori
   await expect(page.getByText(/^Enviado a aprobación/).first()).toBeVisible();
   await expect(page.getByText('En revisión', { exact: true }).first()).toBeVisible();
   newsSlug = (await page.getByLabel('Dirección en la web').inputValue()).trim();
-  expect(newsSlug).toBe('nueva-cancha-techada-en-el-barrio-de-prueba-demo');
+  expect(newsSlug).toBe(NEWS_SLUG);
 
   // Its review page shows the changes but no decision for the editor.
   const id = page.url().split('/').pop()!;
@@ -172,7 +181,7 @@ test('quien aprueba la publica y aparece en /actualidad, con su foto', async ({ 
   const p = publisher.page;
   await p.goto('/admin/web/por-aprobar');
   await noSerious(p, 'por aprobar');
-  await queued(p, 'Nueva cancha techada').click();
+  await queued(p, NEWS_TITLE).click();
   await p.waitForURL(/\/admin\/web\/revisar\//);
   await noSerious(p, 'revisar');
   await fitsWidth(p, 'revisar');
@@ -184,7 +193,7 @@ test('quien aprueba la publica y aparece en /actualidad, con su foto', async ({ 
   await page.getByRole('link', { name: NEWS_TITLE }).first().click();
   await page.waitForURL(`**/actualidad/${newsSlug}`);
   await expect(page.getByRole('heading', { level: 1, name: NEWS_TITLE })).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Niños jugando en la cancha techada del barrio de prueba (demo)' })).toBeVisible();
+  await expect(page.getByRole('img', { name: PHOTO_ALT })).toBeVisible();
   await expect(page.getByText('Por Prensa (demo)')).toBeVisible();
 });
 
@@ -200,7 +209,7 @@ test('el editor cambia y reordena bloques de la portada; quien aprueba lo public
   await up.focus();
   await e.keyboard.press('Enter');
   await expect(e.getByRole('button', { name: /^Subir Avisos de servicio .*\(bloque 7\)$/ })).toBeFocused();
-  await e.getByLabel('Nota de esta versión (opcional)').fill('Prueba: título de los accesos y avisos antes de las noticias');
+  await e.getByLabel('Nota de esta versión (opcional)').fill(HOME_NOTE);
   await e.getByRole('button', { name: 'Guardar borrador' }).first().click();
   await expect(e.getByText(/^Guardado \(versión \d+\)/).first()).toBeVisible();
   await e.getByRole('button', { name: 'Enviar a aprobación' }).click();
@@ -230,7 +239,7 @@ test('volver a una versión: el editor recupera la portada anterior, quien aprue
   await e.getByRole('link', { name: 'Versiones' }).click();
   await e.waitForURL(/\/versiones$/);
   await expect(e.getByText('La publicada')).toBeVisible();
-  await expect(e.getByText('«Prueba: título de los accesos y avisos antes de las noticias»')).toBeVisible();
+  await expect(e.getByText(`«${HOME_NOTE}»`)).toBeVisible();
   await noSerious(e, 'versiones');
   await e.getByRole('button', { name: /^Volver a esta versión/ }).first().click();
   await confirmDialog(e, 'Volver a esta versión');
@@ -283,7 +292,7 @@ test('programar un aviso: queda programado y no se ve antes de su hora; quitar l
 
   const p = publisher.page;
   await p.goto('/admin/web/por-aprobar');
-  await queued(p, 'Corte de agua programado').click();
+  await queued(p, NOTICE_TITLE).click();
   await p.waitForURL(/\/admin\/web\/revisar\//);
   // Tomorrow at 8:00 in the Táchira is the suggestion.
   await expect(p.getByLabel('Hora')).toHaveValue('08:00');
@@ -309,7 +318,7 @@ test.describe('en una computadora', () => {
     try {
       await p.goto('/admin/web/biblioteca');
       await noSerious(p, 'biblioteca (computadora)');
-      await p.getByRole('link', { name: /Niños jugando en la cancha techada/ }).first().click();
+      await p.getByRole('link', { name: PHOTO_ALT }).first().click();
       await p.waitForURL(/\/admin\/web\/biblioteca\/[0-9a-f-]{36}$/);
       await expect(p.getByRole('link', { name: new RegExp(NEWS_TITLE.replace(/[()?]/g, '.')) })).toBeVisible();
       await expect(p.getByText('En lo publicado')).toBeVisible();
@@ -328,17 +337,17 @@ test.describe('en una computadora', () => {
       await noSerious(p, 'ajustes del sitio');
 
       await p.goto('/admin/web/redirecciones');
-      await p.getByLabel('Dirección vieja').fill('/2019/01/nota-vieja-de-prueba-e2e/');
+      await p.getByLabel('Dirección vieja').fill(`${OLD_ADDRESS}/`);
       await p.getByLabel('Lleva a').fill('/actualidad');
       await p.getByRole('button', { name: 'Agregar la redirección' }).click();
-      await expect(p.getByText('/2019/01/nota-vieja-de-prueba-e2e', { exact: true })).toBeVisible();
+      await expect(p.getByText(OLD_ADDRESS, { exact: true })).toBeVisible();
       await noSerious(p, 'redirecciones');
-      const res = await page.request.get('/2019/01/nota-vieja-de-prueba-e2e', { maxRedirects: 0 });
+      const res = await page.request.get(OLD_ADDRESS, { maxRedirects: 0 });
       expect(res.status()).toBe(301);
       expect(res.headers().location).toMatch(/\/actualidad$/);
-      await p.getByRole('button', { name: /^Quitar la redirección de \/2019\/01\/nota-vieja-de-prueba-e2e/ }).click();
+      await p.getByRole('button', { name: `Quitar la redirección de ${OLD_ADDRESS}` }).click();
       await confirmDialog(p, 'Quitar');
-      await expect(p.getByText('/2019/01/nota-vieja-de-prueba-e2e', { exact: true })).toHaveCount(0);
+      await expect(p.getByText(OLD_ADDRESS, { exact: true })).toHaveCount(0);
     } finally {
       await pub.ctx.close();
     }

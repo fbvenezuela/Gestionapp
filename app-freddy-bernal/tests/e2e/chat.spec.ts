@@ -1,6 +1,6 @@
 import { test, expect, type Browser, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { loginAs } from './helpers';
+import { loginAs, readyForAxe } from './helpers';
 
 // Mensajes as channels (R5, D-79 to D-88) on the phone, with axe, on ONE server (the strict one). No notice anywhere,
 // for any role (Juan, 29/10: «se siente como si estuviéramos espiando a las personas»): each channel shows who is in
@@ -20,8 +20,7 @@ const NOTICE = /puede leer todas las conversaciones|puede leer esta conversació
 const TEAM = ['jefe@demo.test', 'despacho@demo.test', 'politica@demo.test', 'ivt@demo.test', 'redes@demo.test', 'redes2@demo.test', 'grabacion@demo.test', 'grabacion2@demo.test'];
 
 async function noSerious(page: Page, where: string) {
-  // A toast fading in or out is half transparent: axe would read its contrast mid-animation.
-  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 15_000 });
+  await readyForAxe(page, where);
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${where} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 2).join(' | ')}`);
   expect(serious, where).toEqual([]);

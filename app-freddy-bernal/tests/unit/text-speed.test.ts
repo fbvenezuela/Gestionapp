@@ -11,8 +11,11 @@ import * as push from '@/lib/push/text';
 import * as title from '@/lib/domain/event-title';
 import * as brain from '@/lib/assistant/brain';
 
+// «antes de las 3» and «suban el material»: what a notice's deadline rules look back from and for (guard.ts). Looked
+// back from at every letter, a 500-letter notice took a quarter of a second on CI.
 const UNITS = [' ', '  ', 'treinta y uno ', 'treinta y uno, ', 'y 1/1 ', '9,30 al ', 'a las 9 ', '[[', '[[E1 ', '«[', 'de la ', 'Calle 7 N° 4-23 ',
-  'Plaza Bolívar ', 'lo de la feria ', 'el sábado ', 'mañana ', '0414-1234567 ', 'Alto Verde ', 'entre 8 y 10 ', '12 m ', 'primero de marzo '];
+  'Plaza Bolívar ', 'lo de la feria ', 'el sábado ', 'mañana ', '0414-1234567 ', 'Alto Verde ', 'entre 8 y 10 ', '12 m ', 'primero de marzo ',
+  'antes de las 3 ', 'suban el material '];
 const LIMIT_MS = 250;
 // Fichas and scripts the team writes can be 6000 characters, and they are checked on every turn.
 const TEACHING = new Set(['guard.teachingProblem', 'guard.scrubTeamFicha', 'guard.scrubTeamScript']);
@@ -22,6 +25,17 @@ const fnsOf = (mod: Record<string, unknown>, name: string) =>
   Object.entries(mod).filter(([, v]) => typeof v === 'function').map(([k, v]) => [`${name}.${k}`, (s: string) => (v as (a: string, ...r: unknown[]) => unknown)(s, [], [])] as [string, Fn]);
 
 function slowest(fn: Fn, length: number) {
+  // A function's first call down a path compiles that path's patterns, once (up to ~40 ms here, more on CI): that is
+  // not a pattern that hangs, so every path is walked first with short text, which nothing can make slow.
+  for (const a of UNITS) {
+    for (const b of ['', ...UNITS]) {
+      try {
+        fn((a + b).repeat(2) + '!');
+      } catch {
+        // Only the warm-up matters here.
+      }
+    }
+  }
   let worst = { ms: 0, unit: '' };
   for (const a of UNITS) {
     for (const b of ['', ...UNITS]) {

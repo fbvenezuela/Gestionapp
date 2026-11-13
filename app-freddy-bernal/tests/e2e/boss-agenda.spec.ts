@@ -1,6 +1,6 @@
 import { test, expect, type Browser, type Locator, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { loginAs } from './helpers';
+import { loginAs, readyForAxe } from './helpers';
 
 // The boss's own agenda (cambios del 27/10/2026, §3 and §4), on the iPad (1024×768) and the phone (360 px), with axe:
 // he creates an event and a «Visita de obra» with the big buttons (accepted at once), a seeded ficha waits in «Por
@@ -10,8 +10,7 @@ import { loginAs } from './helpers';
 test.describe.configure({ mode: 'serial' });
 
 async function noSerious(page: Page, where: string) {
-  // A toast fading in or out is half transparent: axe would read its contrast mid-animation.
-  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 15_000 });
+  await readyForAxe(page, where);
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${where} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 2).join(' | ')}`);
   expect(serious, where).toEqual([]);

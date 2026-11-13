@@ -1,7 +1,7 @@
 import { test, expect, type Browser, type Locator, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import path from 'node:path';
-import { loginAs } from './helpers';
+import { loginAs, readyForAxe } from './helpers';
 
 // The sections of Redes and their cards (R4, WP-C1, D-60 to D-70), at 360 px against the demo (and one pass at 1366):
 // «+ Nuevo reel» on top without changing the address, the post's fields and its image, «Enviar a aprobación» with
@@ -16,7 +16,7 @@ const CLOCK = /\d{1,2}:\d{2}\s?[ap]\.\s?m\./i;
 
 async function axe(page: Page) {
   // The page itself, once the last toast is gone (the toasts are the app's, checked elsewhere).
-  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 15_000 });
+  await readyForAxe(page, new URL(page.url()).pathname);
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
   expect(serious.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(' | ')}`)).toEqual([]);

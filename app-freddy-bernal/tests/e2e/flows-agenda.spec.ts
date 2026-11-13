@@ -1,6 +1,6 @@
 import { test, expect, type Browser, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { loginAs } from './helpers';
+import { loginAs, noToasts, readyForAxe } from './helpers';
 
 // The shared agenda (§3): despacho and the boss on the SAME event. Despacho creates it (it reaches the boss «por
 // decidir»); both edit it at the same time: the last save wins, the other person gets «cambió lo mismo que tú»
@@ -11,8 +11,7 @@ test.describe.configure({ mode: 'serial' });
 const TITLE = 'Visita de prueba a la biblioteca comunal';
 
 async function noSerious(page: Page, where: string) {
-  // A toast fading in or out is half transparent: axe would read its contrast mid-animation.
-  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 15_000 });
+  await readyForAxe(page, where);
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${where} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 2).join(' | ')}`);
   expect(serious, where).toEqual([]);
@@ -81,7 +80,6 @@ test('los dos editan el mismo evento a la vez: gana el último, el otro recibe e
 // now (its values and version), not from the first one's: moving back to the old time is a real change, and changing
 // another field does not send the first one again over what the boss saved in between.
 test('en la misma página se guarda dos veces: mover y devolverlo, y cambiar otro dato después de que el jefe guardó el mismo', async ({ page, browser }) => {
-  const noToasts = () => expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 15_000 });
   await loginAs(page, 'despacho@demo.test');
   await page.goto('/buscar?q=biblioteca%20comunal');
   await page.getByRole('link', { name: new RegExp(TITLE) }).first().click();
@@ -97,7 +95,7 @@ test('en la misma página se guarda dos veces: mover y devolverlo, y cambiar otr
     await expect(page.getByText('Listo: la nueva fecha quedó. Le avisamos a quien graba.')).toBeVisible();
     await expect(page.getByText('No había cambios que guardar.')).toHaveCount(0);
     await expect(sheet).toHaveCount(0);
-    await noToasts();
+    await noToasts(page);
   };
   await move('15:05');
   await move('10:00');
@@ -117,7 +115,7 @@ test('en la misma página se guarda dos veces: mover y devolverlo, y cambiar otr
   // Despacho saves «De qué se trata»; the boss then saves his own; despacho, without reloading, changes only «A dónde
   // se va»: the boss's text stays and nobody is told that anything was overwritten.
   await editEvent(page, 'De qué se trata', 'Resumen del despacho, segunda vuelta');
-  await noToasts();
+  await noToasts(page);
   const boss = await phone(browser, 'jefe@demo.test');
   await boss.page.goto(eventUrl);
   await editEvent(boss.page, 'De qué se trata', 'Resumen del jefe, segunda vuelta');

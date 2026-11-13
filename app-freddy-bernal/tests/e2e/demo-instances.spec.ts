@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { test, expect, type Page } from '@playwright/test';
 import { loginAs } from './helpers';
 
@@ -5,6 +6,24 @@ import { loginAs } from './helpers';
 // event page can come from different servers, each with its own demo database. The two local
 // servers (strict and shortcuts) play those two instances; a session cookie works on both.
 const other = `http://localhost:${Number(process.env.E2E_PORT ?? 3100) + 1}`;
+
+// What the demo seeds has the same id on every server (src/lib/db/stable-ids.ts: the md5 of «fb-demo:» and a counter,
+// shaped as a v4 uuid). What a spec makes while the suite runs has a random id, and only the server it was made on has
+// it (docs/DEMO.md): boss-agenda.spec.ts, earlier in the run, dates a seeded ficha on the strict server and cancels the
+// visit, which stays in that week's agenda, struck through and with its «Ficha de obra» tab. So what these tests open
+// on the other server is what the demo seeded: the records of a screen whose id is a seeded one. The demo seeds fewer
+// than a thousand rows; the bound leaves room for it to grow.
+const demoId = (n: number) => {
+  const h = createHash('md5').update(`fb-demo:${n}`).digest('hex');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-8${h.slice(17, 20)}-${h.slice(20, 32)}`;
+};
+let seededIds: Set<string> | undefined;
+const isSeeded = (href: string) => (seededIds ??= new Set(Array.from({ length: 100_000 }, (_, k) => demoId(k + 1)))).has(href.split('/').pop() ?? '');
+/** The seeded records a screen links to (`prefix`: «/eventos/», «/reportes/»), in its order. */
+async function seededLinks(page: Page, prefix: string) {
+  const hrefs = await page.locator(`main a[href^="${prefix}"]`).evaluateAll((as) => as.map((a) => a.getAttribute('href')!.split('?')[0]));
+  return [...new Set(hrefs)].filter(isSeeded);
+}
 
 // The page itself, not the loading skeleton ((panel)/loading.tsx): the streamed page can take its place after the
 // load event, and until then «No encontramos esto» is absent even for a record that is missing.
@@ -17,9 +36,9 @@ test('la ficha de un evento abre aunque la sirva otro servidor de la demo', asyn
   test.skip(!!process.env.E2E_BASE_URL, 'solo con los dos servidores locales');
   await loginAs(page, 'despacho@demo.test');
   await page.goto('/agenda');
-  const link = page.locator('main a[href^="/eventos/"]').first();
-  await expect(link).toBeVisible();
-  const href = (await link.getAttribute('href'))!.split('?')[0];
+  await expect(page.locator('main a[href^="/eventos/"]').first()).toBeVisible();
+  const [href] = await seededLinks(page, '/eventos/');
+  expect(href, 'un evento sembrado en la agenda del despacho').toBeTruthy();
   await page.goto(href);
   const title = (await page.getByRole('heading', { level: 1 }).first().innerText()).trim();
 
@@ -47,7 +66,8 @@ test('la visita de obra y la ficha del IVT abren aunque las sirva otro servidor'
   await loginAs(page, 'ivt@demo.test');
   await page.goto('/agenda');
   await expect(page.getByRole('heading', { level: 1, name: 'Mis visitas de obra' })).toBeVisible();
-  const visit = (await page.locator('main a[href^="/eventos/"]').first().getAttribute('href'))!.split('?')[0];
+  const [visit] = await seededLinks(page, '/eventos/');
+  expect(visit, 'una visita de obra sembrada').toBeTruthy();
   await sameOnTheOther(page, visit);
   await page.goto(visit);
   const obra = (await page.getByRole('link', { name: 'Ver la ficha de obra' }).getAttribute('href'))!.split('?')[0];
@@ -61,8 +81,11 @@ test('el reporte y la actividad de política abren aunque los sirva otro servido
   test.skip(!!process.env.E2E_BASE_URL, 'solo con los dos servidores locales');
   await loginAs(page, 'politica@demo.test');
   await page.goto('/municipios/san-cristobal');
-  const activity = (await page.locator('main a[href^="/eventos/"]').first().getAttribute('href'))!.split('?')[0];
-  const report = (await page.locator('main a[href^="/reportes/"]').first().getAttribute('href'))!.split('?')[0];
+  await expect(page.locator('main a[href^="/reportes/"]').first()).toBeVisible();
+  const [activity] = await seededLinks(page, '/eventos/');
+  const [report] = await seededLinks(page, '/reportes/');
+  expect(activity, 'una actividad sembrada').toBeTruthy();
+  expect(report, 'un reporte sembrado').toBeTruthy();
   await sameOnTheOther(page, activity);
   // Still without the date on the other server.
   await expect(page.getByText('Ya tiene fecha. La ven el jefe y el despacho en la agenda.')).toBeVisible();
@@ -89,7 +112,7 @@ for (const { email, screens, fichaTabs } of ROLES) {
     for (const screen of screens) {
       await page.goto(screen);
       await shown(page, screen);
-      found.push(...(await page.locator('main a[href^="/eventos/"]').evaluateAll((as) => as.map((a) => a.getAttribute('href')!.split('?')[0]))));
+      found.push(...(await seededLinks(page, '/eventos/')));
     }
     const events = [...new Set(found)].filter((h) => EVENT.test(h));
     expect(events.length, email).toBeGreaterThan(0);
