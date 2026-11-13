@@ -122,7 +122,7 @@ const redirectInput = z.object({
   id: uuid.optional(),
   from: z.string().trim().max(500),
   to: z.string().trim().max(500),
-  status: z.number().int().refine((n) => (REDIRECT_STATUSES as readonly number[]).includes(n), 'El tipo de redirección es 301, 302, 307 o 308.').default(301),
+  status: z.number().int().refine((n) => (REDIRECT_STATUSES as readonly number[]).includes(n), 'Elige el tipo de la redirección en la lista.').default(301),
 });
 
 /** A redirect (old address → address of this site): new, or a new destination for one that exists. */

@@ -49,7 +49,7 @@ export function realFaqs(): Faq[] {
     { slug: 'quien-lee-una-denuncia', order: 5, q: '¿Quién lee una denuncia?', a: [p(DENUNCIA_NOTICE)] },
     {
       slug: 'cuanto-tarda-la-respuesta', order: 6, q: '¿Cuánto tarda la respuesta?',
-      a: [p('El personal de atención fija una fecha de atención para cada solicitud, según su categoría y su urgencia.'), p('Las solicitudes urgentes se atienden primero.')],
+      a: [p('Depende de lo que se pida y de su urgencia: las urgentes se atienden primero.'), p('Cada avance aparece en «Consultar mi solicitud».')],
     },
     { slug: 'servicio-de-emergencias', order: 7, q: '¿Es un servicio de emergencias?', a: [p(EMERGENCY_NOTICE)] },
   ];

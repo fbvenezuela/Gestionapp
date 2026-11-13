@@ -158,7 +158,7 @@ export function readinessIssues(kind: WebKind, value: unknown): Issue[] {
   // sentence (src/lib/web/import-marks.ts; the database refuses to publish it anyway).
   const marks = removedMarksIn(v);
   if (marks.length) {
-    out.push({ path: '', message: `Quedó ${marksText(marks)} donde el importador quitó un dato personal: reescribe esa frase.` });
+    out.push({ path: '', message: `Quedó ${marksText(marks)} donde se quitó un dato personal al traer la nota: reescribe esa frase.` });
   }
   return out;
 }

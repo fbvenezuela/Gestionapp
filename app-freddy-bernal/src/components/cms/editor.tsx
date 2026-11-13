@@ -39,9 +39,9 @@ export type EditorItem = {
 type Local = { base: number; slug: string; draft: Obj };
 
 export function Editor({
-  item, draft: initialDraft, caps, media: initialMedia, munis, refs, baseUrl, tz,
+  item, draft: initialDraft, caps, media: initialMedia, munis, refs, baseUrl, tz, programName,
 }: {
-  item: EditorItem; draft: Obj; caps: WebCaps; media: Record<string, MediaInfo>; munis: Municipality[]; refs: RefOption[]; baseUrl: string; tz: string;
+  item: EditorItem; draft: Obj; caps: WebCaps; media: Record<string, MediaInfo>; munis: Municipality[]; refs: RefOption[]; baseUrl: string; tz: string; programName: string;
 }) {
   const router = useRouter();
   const section = sectionOf(item.kind);
@@ -78,8 +78,8 @@ export function Editor({
   const slugOk = slugSchema.safeParse(value.slug).success;
   const slugEditable = item.kind !== 'page' && (!item.hasPublished || caps.canPublish);
   const ctx: EditorCtx = useMemo(
-    () => ({ media, addMedia: (m) => setMedia((all) => ({ ...all, [m.id]: m })), munis, refs, readOnly: false, tz }),
-    [media, munis, refs, tz],
+    () => ({ media, addMedia: (m) => setMedia((all) => ({ ...all, [m.id]: m })), munis, refs, readOnly: false, tz, programName }),
+    [media, munis, refs, tz, programName],
   );
 
   async function save(): Promise<boolean> {
@@ -157,7 +157,7 @@ export function Editor({
       <div className="flex flex-col gap-4">
         {restored ? (
           <div className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] bg-info-soft px-4 py-3 text-[15px]" role="status">
-            <span className="flex-1 text-text">Recuperamos cambios que no se habían guardado en este equipo.</span>
+            <span className="flex-1 text-text">Recuperamos cambios que no se habían guardado en este teléfono o computadora.</span>
             <Button type="button" size="sm" variant="secondary" onClick={discardLocal}>
               Descartarlos
             </Button>

@@ -14,7 +14,7 @@ type Entry =
   | { at: Date; key: string; kind: 'message'; m: CaseMessage };
 
 const who = (e: { actorKind: string; actorName: string | null }) =>
-  e.actorKind === 'citizen' ? 'La persona' : e.actorKind === 'system' ? 'El sistema' : (e.actorName ?? 'El equipo');
+  e.actorKind === 'citizen' ? 'La persona' : e.actorKind === 'system' ? 'La app' : (e.actorName ?? 'El equipo');
 
 function str(v: unknown): string | null {
   return typeof v === 'string' ? v : null;

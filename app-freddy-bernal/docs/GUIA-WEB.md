@@ -176,7 +176,8 @@ Sus otras páginas, en el mismo menú:
 - Los contactos: «Ajustes del sitio» → «Contactos institucionales». Solo salen los marcados «Verificado».
 - Los casos: los publica la coordinación desde «Atención».
 
-En «Web» → «Páginas» también aparece «Atención ciudadana». No la uses: lo que se escribe ahí no sale en la web.
+En «Web» → «Páginas» también aparece «Atención ciudadana». No la uses: lo que se escribe ahí no sale en la web (su
+editor lo avisa arriba: «Esta página no sale en la web»).
 
 **Sin datos.** Sin preguntas, no sale esa parte. Sin contactos verificados, «Otros canales» muestra «Canal de atención»:
 «Las solicitudes se reciben únicamente a través de este sitio.», seguido del aviso contra estafas. Sin casos publicados,
@@ -244,7 +245,7 @@ disponible.». Debajo están los botones «Ir al inicio» y «Ver noticias», y 
 
 - Una dirección de la web oficial de hoy, como la de una noticia vieja, lleva sola a su página nueva cuando tiene una
   redirección (ver el manual de la web, punto 14). Las noticias copiadas de la web oficial ya la tienen: en
-  «Redirecciones» salen con la etiqueta «Del importador», que quiere decir que se hicieron solas al copiar la noticia.
+  «Redirecciones» salen con la etiqueta «De la web vieja», que quiere decir que se hicieron solas al copiar la noticia.
 - Si una página no carga por una falla, dice «No se pudo cargar la página», con «Intentar de nuevo» e «Ir al inicio».
 
 ## 2. El recorrido del ciudadano

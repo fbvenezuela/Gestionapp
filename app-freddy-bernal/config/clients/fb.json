@@ -1504,7 +1504,7 @@
          },
          {
           "type": "paragraph",
-          "text": "Las solicitudes no se atienden de forma inmediata. El personal de atención fija una fecha de atención para cada una, según su categoría y su urgencia."
+          "text": "Las solicitudes no se atienden de forma inmediata. Se atienden según su categoría y su urgencia: las urgentes, primero."
          },
          {
           "type": "heading",

@@ -1314,7 +1314,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-registro-que-es',
     roles: ['admin'],
     q: ['para que sirve esto del registro', 'que es el registro de cambios', 'qué dice el sistema en el registro'],
-    a: 'El «Registro de cambios» es quién cambió qué y cuándo, en toda la app. Lo que hizo la app sola sale como «El sistema».',
+    a: 'El «Registro de cambios» es quién cambió qué y cuándo, en toda la app. Lo que hizo la app sola sale como «La app».',
     go: '/ajustes/registro',
   },
 

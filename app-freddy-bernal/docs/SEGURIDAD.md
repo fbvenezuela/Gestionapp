@@ -332,8 +332,8 @@ arregló tiene una prueba que falla con el código anterior y pasa con el nuevo.
    quedaba a la vista. El recibido decía «Recibimos tu denuncia» (los de estado nunca dicen el tipo), y un buzón o la
    pantalla bloqueada de un teléfono los ve otra gente.
    **Arreglo:** con datos reales, el buzón guarda la dirección enmascarada (`a***@e***.com`) para las plantillas de la
-   atención (`src/lib/email/send.ts`); el correo le sale igual a la persona. El recibido dice «Recibimos tu solicitud»
-   siempre. **Prueba:** `tests/unit/seguridad-correos.test.ts`.
+   atención (`src/lib/email/send.ts`); el correo le sale igual a la persona. El recibido dice «Su solicitud fue
+   recibida» siempre, sin el tipo. **Prueba:** `tests/unit/seguridad-correos.test.ts`.
 3. **Media. En la versión de prueba, lo que alguien manda por el formulario lo puede leer cualquiera.** La versión de
    prueba (sin `DATABASE_URL`) es una dirección pública con «Entrar como…» para cada rol, la atención incluida, y el
    formulario no lo decía (prometía «se guarda cifrado»). Además, el «buzón de prueba» de la pantalla de entrar es una

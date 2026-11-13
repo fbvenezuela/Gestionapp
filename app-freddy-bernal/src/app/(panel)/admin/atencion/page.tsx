@@ -84,8 +84,7 @@ export default async function AttentionInboxPage({ searchParams }: { searchParam
           <CardBody className="flex flex-col gap-2 text-[15px]">
             <p className="font-semibold">Exportar lo que ves (CSV)</p>
             <p className="text-text-2">
-              Con los filtros de arriba. El archivo es UTF-8 con «;» entre columnas, para que Excel en español lo abra con los acentos bien. No lleva
-              descripciones, mensajes ni archivos. Queda registrado quién exportó y cuándo.
+              Con los filtros de arriba. El archivo se abre en Excel con los acentos bien. No lleva descripciones, mensajes ni archivos. Queda registrado quién exportó y cuándo.
             </p>
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               <a href={exportHref(false)} className="inline-flex min-h-11 items-center gap-2 font-semibold text-accent-ink" download>
@@ -112,7 +111,7 @@ function AdminDesk() {
       <Card>
         <CardBody className="flex flex-col gap-3 text-[15px]">
           <p className="text-text-2">
-            Administración no lee las solicitudes ni sus contactos (D-93). Aquí armas lo que la atención necesita para funcionar: las áreas, quién
+            Administración no lee las solicitudes ni sus contactos. Aquí armas lo que la atención necesita para funcionar: las áreas, quién
             está en cada una, el área y los días de cada categoría, los plazos por prioridad y cuándo avisar de un caso sin movimiento.
           </p>
           <div className="flex flex-wrap items-center gap-3">

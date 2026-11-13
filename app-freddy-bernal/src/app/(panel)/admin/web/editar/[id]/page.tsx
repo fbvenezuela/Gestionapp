@@ -11,6 +11,7 @@ import { adminItem, importOrigin, mediaByIds, municipalities, referenceOptions, 
 import { reviewFlagTexts } from '@/lib/web/import-marks';
 import { mediaIdsIn } from '@/lib/web/cms/drafts';
 import { ADMIN_WEB, sectionOf } from '@/lib/web/cms/kinds';
+import { programLabel, sectionLabel } from '@/lib/web/cms/section-label';
 import { hasPendingChanges, isLive, isScheduled } from '@/lib/web/cms/status';
 import { itemPath } from '@/lib/web/routes';
 import { siteBaseUrl } from '@/lib/web/site';
@@ -44,7 +45,10 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
   const { item, caps } = data;
   const section = sectionOf(item.kind);
   const live = isLive(item);
-  const publicPath = itemPath(item.kind, item.slug);
+  // The page «atencion» of «Páginas»: /atencion builds its own texts (src/app/(web)/atencion/page.tsx) and never reads
+  // it (APP-20). The editor says so, and gives neither its address nor «Esto ya está en la web».
+  const unusedPage = item.kind === 'page' && item.slug === 'atencion';
+  const publicPath = unusedPage ? null : itemPath(item.kind, item.slug);
   const writable = caps.canEdit && !item.archivedAt;
 
   return (
@@ -52,9 +56,16 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
       <PageHeader
         title={item.title || 'Sin título'}
         subtitle={`${WEB_KIND_LABEL[item.kind]} · versión ${item.draftVersion} del borrador${item.updatedByName ? ` · último cambio de ${item.updatedByName}` : ''}, ${fmtDateTime(item.updatedAt)}`}
-        back={{ href: ADMIN_WEB.list(item.kind), label: section.label }}
+        back={{ href: ADMIN_WEB.list(item.kind), label: sectionLabel(section) }}
       />
       <FlowChips flow={item} />
+
+      {unusedPage ? (
+        <Notice tone="info" title="Esta página no sale en la web">
+          La página «Atención ciudadana» de la web tiene sus propios textos. Lo que escribas aquí no se ve. Sus preguntas se cambian en
+          «Preguntas frecuentes», grupo «Atención ciudadana», y sus contactos en «Ajustes del sitio».
+        </Notice>
+      ) : null}
 
       {item.status === 'draft' && item.reviewNote ? (
         <Notice tone="danger" title="Te lo devolvieron con este comentario">
@@ -68,7 +79,7 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
           {item.submittedByName ? ` por ${item.submittedByName}` : ''}. Quien aprueba la web o el jefe lo publica, lo programa o lo devuelve con un comentario.
         </Notice>
       ) : null}
-      {live && hasPendingChanges(item) ? (
+      {live && hasPendingChanges(item) && !unusedPage ? (
         <Notice tone="warn" title="Esto ya está en la web">
           Lo que cambies aquí sale solo cuando quien aprueba lo publique de nuevo. Mientras tanto, la web muestra lo aprobado
           {publicPath ? (
@@ -96,7 +107,7 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
         <Notice tone={data.origin.flags.length ? 'warn' : 'info'} title="Traído de la web vieja">
           <p>
             Era <span className="break-all font-mono text-sm">{data.origin.sourcePath}</span>
-            {data.origin.publishedAt ? `, publicado el ${fmtDateTime(data.origin.publishedAt)}` : ''}. Lo trajo el importador el{' '}
+            {data.origin.publishedAt ? `, publicado el ${fmtDateTime(data.origin.publishedAt)}` : ''}. Se trajo de la web vieja el{' '}
             {fmtDateTime(data.origin.importedAt)}: revísalo antes de enviarlo.
           </p>
           {reviewFlagTexts(data.origin.flags).length ? (
@@ -124,6 +135,7 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
           refs={data.refs}
           baseUrl={siteBaseUrl()}
           tz={TZ}
+          programName={programLabel()}
         />
       ) : (
         <Card>

@@ -77,9 +77,9 @@ dirección en la web sale de él) → **«Crear borrador»**. Se abre el editor.
 
 **Las páginas no se crean, se editan.** Son seis y ya existen: la portada («Inicio»), «El gobernador», «Atención
 ciudadana» y las tres legales («Aviso de privacidad», «Condiciones de participación» y «Accesibilidad»). No uses la
-página «Atención ciudadana»: lo que se escribe ahí no sale en la web. Los textos de la sección «Atención ciudadana» no
-se cambian desde el panel. De ella se cambian las preguntas («Preguntas frecuentes», grupo «Atención ciudadana») y los
-contactos verificados (ver 4.13).
+página «Atención ciudadana»: lo que se escribe ahí no sale en la web, y su editor lo avisa arriba («Esta página no
+sale en la web»). Los textos de la sección «Atención ciudadana» no se cambian desde el panel. De ella se cambian las
+preguntas («Preguntas frecuentes», grupo «Atención ciudadana») y los contactos verificados (ver 4.13).
 
 Lo que pide cada tipo:
 
@@ -91,7 +91,7 @@ Lo que pide cada tipo:
 | **Documento** | Categoría (Semanario, Informe, Memoria y Cuenta, Normativa, Material para la prensa u Otro), «Archivo PDF», «Versión» (la edición, por ejemplo «n.º 12») y Páginas | Todos salen en «Transparencia». El Semanario sale también en Noticias › Semanario, y el material para la prensa en «El gobernador» |
 | **Aviso de servicio** | Título, Servicio, «Texto del aviso», «Actualizado» (con «Ahora»), «Vence (opcional)» y «Municipios afectados» | La hora es la del Táchira. Al vencer deja de salir solo. Sin municipios marcados, es para todo el estado. Sin teléfonos que nadie verificó |
 | **Pregunta frecuente** | Pregunta, Grupo (Atención ciudadana, Esta web o La gestión), Respuesta y Orden | Las de «Atención ciudadana» salen en la página de Atención. Las demás salen donde se ponga un bloque «Preguntas frecuentes» (ver 4.6) |
-| **Indicador** | «Qué se cuenta», Cifra, Unidad, «Fecha del dato», Fuente, «Enlace de la fuente (si tiene)» y Cálculo | **Una cifra sin fuente nunca sale en la web.** «Cálculo»: «Escrita a mano», «Lo cuenta la plataforma: solicitudes atendidas» o «Lo cuenta la plataforma: obras concluidas». Con las dos últimas, la app cuenta la cifra sola y la web enlaza la lista que la respalda |
+| **Indicador** | «Qué se cuenta», Cifra, Unidad, «Fecha del dato», Fuente, «Enlace de la fuente (si tiene)» y Cálculo | **Una cifra sin fuente nunca sale en la web.** «Cálculo»: «Escrita a mano», «Lo cuenta la app: solicitudes atendidas» o «Lo cuenta la app: obras concluidas». Con las dos últimas, la app cuenta la cifra sola y la web enlaza la lista que la respalda |
 
 **Nunca se inventa nada:** ni biografía, ni fotos, ni teléfonos, ni correos, ni horarios, ni cuentas, ni parroquias.
 Lo que falte se deja como espacio **«Por completar»** (ver 4.6) y se llena cuando el dato llegue confirmado. Ese espacio
@@ -131,8 +131,8 @@ está en la web» (tus cambios salen solo cuando se publique de nuevo), «Progra
 vieja» (ver 4.15) y «Archivado: no se ve en la web».
 
 - **Lo que escribes y no guardas se queda solo en ese teléfono o esa computadora.** Si se va la luz o la señal, al
-  volver dice «Recuperamos cambios que no se habían guardado en este equipo.». «Descartarlos» los borra. Solo «Guardar
-  borrador» lo guarda en el panel, donde lo ven los demás.
+  volver dice «Recuperamos cambios que no se habían guardado en este teléfono o computadora.». «Descartarlos» los
+  borra. Solo «Guardar borrador» lo guarda en el panel, donde lo ven los demás.
 - **Dos personas a la vez:** si otra persona guardó mientras escribías, sale «Alguien guardó cambios en este contenido
   mientras lo editabas. Copia lo tuyo y vuelve a abrirlo para ver lo último.».
 
@@ -151,9 +151,9 @@ oficiales, Accesos de participación y Casos atendidos. Cada uno dice para qué 
   subir desde el administrador». Si el mensaje todavía no está, escribe «Por completar: …» con lo que falta. El equipo
   lo ve como un espacio por llenar, y el público no ve nada.
 - **Video:** «Mostrar el episodio más reciente» cambia solo cada vez que se publica un episodio.
-- **Documentos, Preguntas, Indicadores y Obras:** «Salen en el orden en que los marques. Sin marcar ninguno, se usan
-  los últimos.» En Indicadores no es así: sin marcar ninguno, el bloque no sale. Lo que no está publicado dice «(no
-  publicado: no se verá)». Un indicador sin fuente dice «(sin fuente: no se verá)».
+- **Documentos, Preguntas y Obras:** «Salen en el orden en que los marques. Sin marcar ninguno, se usan los
+  últimos.» **Indicadores:** «Salen en el orden en que los marques. Sin marcar ninguno, el bloque no sale.» Lo que no
+  está publicado dice «(no publicado: no se verá)». Un indicador sin fuente dice «(sin fuente: no se verá)».
 - **Canales oficiales:** las cuentas se cambian en «Ajustes del sitio» (ver 4.13).
 - **Llamado a la acción:** al agregarlo, el «Enlace del botón» ya lleva al formulario «Nueva solicitud»: dice
   «/atencion/nueva». Para otra página de esta web, escribe solo el final de su dirección, el que empieza con «/». Para
@@ -250,8 +250,8 @@ web hay que enviarla a aprobación y publicarla otra vez. El editor también pue
 
 - Solo se aceptan fotos JPG, PNG o WebP. Una foto en otro formato hay que guardarla antes como JPG. Antes de salir
   de tu teléfono o tu computadora, la foto **se achica y pierde la ubicación y los datos de la cámara**.
-- **Cada archivo va hasta 4 MB**, también los PDF, aunque «Subir un PDF» diga «Hasta 20 MB.». Si pesa más, sale «El
-  archivo pasa de 4 MB: súbelo más liviano.».
+- **Cada archivo va hasta 4 MB**, también los PDF («Subir un PDF» dice «Hasta 4 MB.»). Si pesa más, sale «El archivo
+  pasa de 4 MB: súbelo más liviano.».
 - Sirve cualquier foto normal de teléfono o de cámara. Una imagen diminuta, como un ícono, no se acepta.
 - Un PDF puede llevar escondido el nombre de quien lo hizo, y la app no lo quita. Antes de subirlo, ábrelo y mira en
   sus propiedades quién sale como autor.
@@ -297,7 +297,7 @@ aprobación** («Guardado. La web ya lo muestra.»). Cada sección tiene su «Gu
 | **Canal de WhatsApp**, **Portal institucional**, **Canal de YouTube del programa** | Cada uno con «La web lo muestra», «Verificado» y «Activo». El portal sale solo verificado. El canal de WhatsApp y el de YouTube siguen la regla de las cuentas |
 | **Nombre y saludo** | El nombre, el cargo, la región, el saludo y el «Nombre de la cabecera». El nombre y el cargo salen arriba de cada página y en el pie. El título grande de la portada no sale de aquí: se cambia en su bloque «Portada con foto» (ver 4.6). La web no muestra el saludo: no hace falta llenarlo. El «Nombre de la cabecera» también puede quedar vacío: la web usa el nombre y el cargo |
 | **Datos estructurados** | Lo que la web le dice a Google y a los demás buscadores sobre el gobernador y la Gobernación: «Nombre de la persona», «Cargo» e «Institución». Así el buscador sabe quién es y lo puede mostrar bien. Las cuentas que nombra son solo las activas y verificadas de «Cuentas en redes» |
-| **Avisos legales** | Se ven, pero no se cambian aquí: son textos fijos, los mismos en el pie de la web, en «Canales», en los formularios de Atención, en el comprobante y su PDF y en los correos. «Aviso de emergencias»: «Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.». «Aviso de las denuncias»: «Las denuncias son confidenciales. Solo las leen el personal encargado de denuncias y la coordinación de atención. Su contenido nunca se publica. Si se trata de un delito, acuda también a las autoridades competentes.». Cuando la Gobernación confirme el número oficial de emergencias, se agregará a ese aviso y saldrá igual en todas partes |
+| **Avisos legales** | Se ven, pero no se cambian desde el panel (si hace falta cambiar uno, Administración lo pide aparte): son textos fijos, los mismos en el pie de la web, en «Canales», en los formularios de Atención, en el comprobante y su PDF y en los correos. «Aviso de emergencias»: «Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.». «Aviso de las denuncias»: «Las denuncias son confidenciales. Solo las leen el personal encargado de denuncias y la coordinación de atención. Su contenido nunca se publica. Si se trata de un delito, acuda también a las autoridades competentes.». Cuando la Gobernación confirme el número oficial de emergencias, se agregará a ese aviso y saldrá igual en todas partes |
 | **Aviso de la versión de prueba** | La franja de arriba de cada página, que sale mientras la web sea de prueba. Dice «Versión de prueba en revisión. No es el sitio oficial.» y no se cambia (ver abajo) |
 
 **Regla:** nunca un teléfono, un correo o una cuenta que nadie del equipo confirmó. Las notas internas no salen en la
@@ -318,10 +318,11 @@ puede ser de la web anterior o una de esta web que cambió. Las ve y las cambia 
 
 - **«Nueva redirección»**: en «Dirección vieja», la dirección como estaba antes. En «Lleva a», la página de esta web
   adonde debe llevar. En las dos va solo el final de la dirección, el que empieza con «/», como en el ejemplo que trae
-  cada cuadro debajo. En «Tipo», deja la opción que ya viene marcada, la que dice «para siempre (lo normal)». Toca
-  **«Agregar la redirección»**.
+  cada cuadro debajo. En «Tipo», deja la opción que ya viene marcada, la que dice «Para siempre (lo normal)»; debajo
+  dice cuándo sirven las otras: «Por un tiempo», si la dirección vieja va a volver a usarse, y las que dicen
+  «(formularios)», si a la dirección vieja se enviaban formularios. Toca **«Agregar la redirección»**.
 - **«Buscar»** encuentra una por parte de su dirección vieja o nueva.
-- En la lista, cada una dice **«Del importador»** o **«A mano»**. Las «Del importador» se hicieron solas al traer las
+- En la lista, cada una dice **«De la web vieja»** o **«A mano»**. Las «De la web vieja» se hicieron solas al traer las
   noticias de la web anterior. Las «A mano» las agrega alguien del equipo aquí, y nunca cambian solas. En la versión de
   prueba ya vienen algunas «A mano», como la que lleva la biografía de la web oficial a «El gobernador».
 - Para corregir una, cambia el destino y toca «Guardar». El cuadro de al lado es su tipo: no hace falta tocarlo.

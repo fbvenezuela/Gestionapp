@@ -26,7 +26,7 @@ const BLOCK_HELP: Record<BlockType, string> = {
   text: 'Texto con títulos, listas, negritas y enlaces.',
   image: 'Una foto con su pie.',
   gallery: 'Varias fotos juntas.',
-  video: 'El Reporte Bernal más reciente o un video de YouTube (carga solo si lo tocan).',
+  video: 'El episodio más reciente del programa o un video de YouTube (carga solo si lo tocan).',
   documents: 'Documentos de Transparencia, elegidos o los últimos de una categoría.',
   faq: 'Preguntas frecuentes de un grupo o elegidas.',
   indicators: 'Las cifras de «Gestión en cifras» (solo salen las que tienen fuente).',
@@ -44,7 +44,8 @@ const STARTERS: Record<BlockType, Record<string, unknown>> = {
   text: { title: '', content: [] },
   image: { caption: '' },
   gallery: { title: '', mediaIds: [] },
-  video: { title: 'Reporte Bernal', latestEpisode: true },
+  // Its title is the program's name, as the client calls it (useEditor().programName, from the config).
+  video: { title: '', latestEpisode: true },
   documents: { title: 'Documentos', ids: [], limit: 6 },
   faq: { title: 'Preguntas frecuentes', group: 'atencion' },
   indicators: { title: 'Gestión en cifras', ids: [] },
@@ -56,6 +57,12 @@ const STARTERS: Record<BlockType, Record<string, unknown>> = {
   participation: { title: 'Atención ciudadana' },
   attended: { title: 'Casos atendidos', limit: 3 },
 };
+
+/** A new block's data: the starter, with the program's name as a video block's title. */
+export function starter(type: BlockType, programName: string): Record<string, unknown> {
+  const data = structuredClone(STARTERS[type]);
+  return type === 'video' ? { ...data, title: programName } : data;
+}
 
 const str = (v: unknown) => (typeof v === 'string' ? v : '');
 
@@ -89,7 +96,7 @@ function summary(b: B): string {
 }
 
 export function BlockEditor({ value, onChange }: { value: unknown; onChange: (blocks: B[]) => void }) {
-  const { readOnly } = useEditor();
+  const { readOnly, programName } = useEditor();
   const [list, setList] = useState<B[]>(() => coerceBlocks(value));
   const [open, setOpen] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -160,7 +167,7 @@ export function BlockEditor({ value, onChange }: { value: unknown; onChange: (bl
   };
   const add = (type: BlockType) => {
     const taken = new Set(list.map((b) => b.id));
-    const b: B = { id: newId(type, taken), type, visible: true, data: structuredClone(STARTERS[type]) };
+    const b: B = { id: newId(type, taken), type, visible: true, data: starter(type, programName) };
     commit([...list, b]);
     setAdding(false);
     setOpen(b.id);
@@ -283,14 +290,24 @@ function clean(d: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(d).filter(([, v]) => v !== undefined && v !== ''));
 }
 
-function RefChecklist({ label, kind, value, onChange, group }: { label: string; kind: 'document' | 'faq' | 'indicator' | 'project' | 'episode'; value: unknown; onChange: (ids: string[]) => void; group?: string }) {
+type RefKind = 'document' | 'faq' | 'indicator' | 'project' | 'episode';
+
+/** What a block does with the ticked items: documents, questions and works fall back to the latest ones; indicators
+ * show only the ticked ones (src/components/web/blocks/data.tsx), so with none the block does not show. */
+export function refChecklistHint(kind: RefKind): string {
+  return kind === 'indicator'
+    ? 'Salen en el orden en que los marques. Sin marcar ninguno, el bloque no sale.'
+    : 'Salen en el orden en que los marques. Sin marcar ninguno, se usan los últimos.';
+}
+
+export function RefChecklist({ label, kind, value, onChange, group }: { label: string; kind: RefKind; value: unknown; onChange: (ids: string[]) => void; group?: string }) {
   const { refs, readOnly } = useEditor();
   const ids = Array.isArray(value) ? value.filter((x): x is string => typeof x === 'string') : [];
   const options = refs.filter((r) => r.kind === kind && (!group || r.group === group));
   return (
     <fieldset className="flex flex-col gap-1.5">
       <legend className="text-sm font-semibold">{label}</legend>
-      <p className="text-sm text-text-2">Salen en el orden en que los marques. Sin marcar ninguno, se usan los últimos.</p>
+      <p className="text-sm text-text-2">{refChecklistHint(kind)}</p>
       {options.length ? (
         <ul className="max-h-72 overflow-y-auto rounded-[var(--radius-control)] border border-border">
           {options.map((o) => {

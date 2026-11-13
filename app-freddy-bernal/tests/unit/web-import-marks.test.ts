@@ -32,7 +32,7 @@ describe('las marcas del importador', () => {
 
   it('un borrador con una marca no se puede enviar ni publicar desde el editor', () => {
     const draft = { title: 'Nota (prueba)', category: 'noticia', body: [{ type: 'paragraph', text: `Llamar al ${REMOVED_MARKS.phone}.` }] };
-    expect(readinessIssues('news', draft)).toEqual([{ path: '', message: 'Quedó «[teléfono retirado]» donde el importador quitó un dato personal: reescribe esa frase.' }]);
+    expect(readinessIssues('news', draft)).toEqual([{ path: '', message: 'Quedó «[teléfono retirado]» donde se quitó un dato personal al traer la nota: reescribe esa frase.' }]);
     expect(draftProblems('news', draft)).toHaveLength(1);
     expect(draftProblems('news', { ...draft, body: [{ type: 'paragraph', text: 'Llamar a la oficina.' }] })).toEqual([]);
   });

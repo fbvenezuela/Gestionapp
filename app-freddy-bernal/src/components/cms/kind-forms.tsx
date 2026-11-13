@@ -264,11 +264,11 @@ export function IndicatorForm({ draft, set }: Props) {
           value={draft.computedFrom ?? ''}
           onChange={(v) => set({ computedFrom: v || null })}
           options={[
-            ['attended_requests', 'Lo cuenta la plataforma: solicitudes atendidas'],
-            ['projects_concluded', 'Lo cuenta la plataforma: obras concluidas'],
+            ['attended_requests', 'Lo cuenta la app: solicitudes atendidas'],
+            ['projects_concluded', 'Lo cuenta la app: obras concluidas'],
           ]}
           empty="Escrita a mano"
-          hint="Si lo cuenta la plataforma, la web enlaza la lista que respalda la cifra."
+          hint="Si lo cuenta la app, la web enlaza la lista que respalda la cifra."
         />
         <NumberField label="Orden" value={draft.order} onChange={(n) => set({ order: n })} min={0} max={1000} />
       </Group>

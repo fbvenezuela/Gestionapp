@@ -173,8 +173,7 @@ también leen las notas internas.
 coordinación en la pestaña «Respuestas guardadas», en dos grupos: «Para responder» y «Para pedir información». Una
 nueva se hace en «Nueva respuesta guardada» → «Crear la respuesta». Una que ya existe se cambia con «Cambiar» →
 «Guardar». Para apagarla, se desmarca «En uso (apagada, no se ofrece; nada se borra)». Sin nombres, teléfonos ni
-direcciones de nadie. Las respuestas guardadas que ya trae la app están escritas de tú: antes de usarlas, la
-coordinación las cambia a usted.
+direcciones de nadie. Las que ya trae la app le hablan de usted a la persona, como todo lo que ella lee.
 
 ## 9. El contacto de la persona
 
@@ -364,8 +363,8 @@ municipio».
 
 **«Registro»** es de auditoría y de Administración, que lo abre con «Registro de atención». Dice quién hizo qué y
 cuándo: los cambios, los contactos vistos y las exportaciones. No se edita ni se borra, y no guarda lo que dicen los
-casos. Una línea que empieza con «El sistema o la persona desde la web» es algo que llegó desde la web, como una
-solicitud nueva, o algo que la app hizo sola.
+casos. Una línea que empieza con «La web» es algo que llegó desde la web, como una solicitud nueva, o
+algo que la app hizo sola.
 
 ## 22. Para practicar en la versión de prueba
 

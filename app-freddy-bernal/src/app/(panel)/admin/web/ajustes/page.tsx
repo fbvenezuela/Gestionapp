@@ -47,7 +47,7 @@ export default async function SiteSettingsPage() {
       <Card>
         <CardHeader
           title="Avisos legales"
-          subtitle="Son textos fijos: salen iguales en el pie de la web, en Canales, en los formularios de Atención, en el comprobante y su PDF y en los correos. No se cambian aquí: se cambian en el código de la app, para que digan lo mismo en todas partes."
+          subtitle="Son textos fijos: salen iguales en el pie de la web, en Canales, en los formularios de Atención, en el comprobante y su PDF y en los correos. No se cambian desde el panel: si hace falta cambiar uno, Administración lo pide aparte, para que digan lo mismo en todas partes."
         />
         <CardBody>
           <dl className="flex flex-col gap-3 text-[15px]">

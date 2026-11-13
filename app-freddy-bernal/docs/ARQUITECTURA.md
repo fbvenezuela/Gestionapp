@@ -444,6 +444,7 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 | `20261106300100_web_importador.sql` | De dónde vino cada borrador y foto importados de la web vieja (`web_import_items`, `web_import_media`, lectura con RLS para el equipo de la web, sin escritura por la API) y `guard_web_item_ready`: no se publica «[Por escribir]» ni las marcas de datos quitados (D-97). No está en `fb-dev` |
 | `20261106400100_seguridad_web.sql` | Revisión del 06/11: la auditoría de `web_media` y de los ajustes privados del sitio guarda quién, cuándo y qué campos, nunca el contenido (`SEGURIDAD.md`). No está en `fb-dev` |
 | `20261106400200_citizen_solo_app.sql` | Revisión del 06/11: las funciones del ciudadano con límite se niegan si las llaman por la Data API de Supabase (`SEGURIDAD.md`). No está en `fb-dev` |
+| `20261113100000_respuestas_guardadas_de_usted.sql` | Las nueve respuestas guardadas que trae la app pasan a «usted» (solo las que siguen tal como vinieron; una que la coordinación cambió se queda como está). No está en `fb-dev` |
 
 ## Tareas programadas
 - `/api/cron/tick` (con `CRON_SECRET`): aviso de tweets por acabarse (una vez al día) y publicaciones vencidas
