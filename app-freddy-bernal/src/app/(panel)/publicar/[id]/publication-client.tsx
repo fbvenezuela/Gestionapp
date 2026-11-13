@@ -117,7 +117,7 @@ export function MetricsForm({ publicationId }: { publicationId: string }) {
   const fields: [keyof typeof f, string][] = [['views', 'Vistas'], ['reach', 'Alcance'], ['likes', 'Me gusta'], ['comments', 'Comentarios'], ['shares', 'Compartidos'], ['saves', 'Guardados']];
   return (
     <Card data-tour="load-metrics">
-      <CardHeader title="Cargar resultados" subtitle="Copia los números de la red. Puedes cargarlos varias veces (se guarda cada foto)." />
+      <CardHeader title="Cargar resultados" subtitle="Copia los números de la red. Puedes cargarlos varias veces: cada carga queda guardada." />
       <CardBody>
         <form className="grid grid-cols-2 gap-3 sm:grid-cols-3" onSubmit={(e) => {
           e.preventDefault();

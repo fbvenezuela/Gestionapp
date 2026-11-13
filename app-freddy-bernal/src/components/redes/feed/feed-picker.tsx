@@ -11,7 +11,7 @@ import { FeedSheet } from './feed-sheet';
 import { PICKER_HINT, moveAsk, pickerTags, pickerTitle, titlesCount } from './feed-core';
 
 // «Elegir publicación» (R4, D-69, A11): the sheet of an empty place. First the format (Posts, Reels, Carruseles, one
-// group open at a time), then the title, each with its thumbnail or «Sin media», where it already is («Ya en Mes 1 ·
+// group open at a time), then the title, each with its thumbnail or «Sin archivo», where it already is («Ya en Mes 1 ·
 // #4») and whose month it is («De Mes 2»). A piece that already has a place is never in two: tapping it asks «¿La
 // mueves a este espacio?» first.
 type Group = (typeof FEED_FORMATS)[number];

@@ -96,9 +96,9 @@ export async function seedClient(sql: Sql, brandKey?: string) {
   await sql.query(`do $$ begin perform public.assistant_refresh(); exception when others then raise warning 'El asistente no pudo ponerse al día: %', sqlerrm; end $$`);
 }
 
-// Formats added to the network rules after the first seed (R4, 29/10/2026): seedClient adds them to a network that
-// lacks them, without touching the rest of its rules.
-export const ADDED_FORMATS = ['story', 'carousel'] as const;
+// Formats added to the network rules after the first seed (R4, 29/10/2026; the photo of a post on Facebook, Threads and
+// X, 13/11/2026, APP-25): seedClient adds them to a network that lacks them, without touching the rest of its rules.
+export const ADDED_FORMATS = ['story', 'carousel', 'photo'] as const;
 
 // {"<municipality>": ["<parish>", …]} without the notes for people ("$source"…), which stay in the config file.
 // Empty until the official list arrives; meanwhile the parish is free text (check_territory, 20261027001700_fichas.sql).

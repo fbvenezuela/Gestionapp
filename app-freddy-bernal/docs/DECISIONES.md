@@ -1053,7 +1053,7 @@ la agenda, Tweets ni la publicación manual. Las preguntas para Hillary siguen l
 - **Qué:** tabla `feed_slots` (mes, número 1–24, pieza). **El número es el orden real de publicación**: #1 abajo a la
   derecha, #24 arriba a la izquierda, en una rejilla de 3 columnas × 8 filas; una sola función lo calcula para la celda,
   el selector, el chip de la tarjeta, los avisos y Drive. Van posts, reels y carruseles (el 8/12/4 es el cupo, no un
-  molde). Celda vacía: «Elegir publicación · Espacio #NN» → selector (formato → título, con miniatura o «Sin media»;
+  molde). Celda vacía: «Elegir publicación · Espacio #NN» → selector (formato → título, con miniatura o «Sin archivo», antes «Sin media»;
   «Ya en Mes X · #N» si está puesta; «De Mes 2» si es de otro mes). Celda llena: portada actual (cambia sola al subir
   otra), número, receptividad y, si se publicó, **marco verde y «✓ Publicado»**; al tocarla, menú «Abrir la tarjeta»,
   «Publicar antes (#N−1)», «Publicar después (#N+1)», «Cambiar de espacio», «Mover a otro mes», «Quitar del feed». Con
@@ -1134,6 +1134,10 @@ la agenda, Tweets ni la publicación manual. Las preguntas para Hillary siguen l
 - **Por qué:** «Publicar con validación propia por red» (§0); hoy no hay `story` ni `carousel` en las reglas.
 - **Cómo se cambia:** `config/network-specs.json` (+ `npm run db:seed-client` en `fb-dev`), `validateFor` en
   `src/lib/data/publish.ts`.
+- **Ajuste del 13/11:** Post → foto también en Facebook (hasta 4 MB), Threads (8 MB) y X (5 MB). Solo Instagram tenía
+  `photo`, así que un post no se podía programar en esas tres redes, que sí reciben imágenes («Facebook: esta red no
+  recibe posts»). TikTok y YouTube siguen sin foto. `ADDED_FORMATS` (`src/lib/db/seed-client.ts`) la suma en `fb-dev`
+  con `npm run db:seed-client` sin tocar lo que editó Administración; los pesos, por verificar (`PENDIENTES.md`).
 
 ## D-74. Drive: «Organizar por orden del feed», apagado (29/10/2026)
 - **Qué:** botón en Ajustes → Google Drive, solo si están las cuatro llaves: variable `REDES_DRIVE_ORGANIZE=true`, Drive
@@ -1166,10 +1170,12 @@ la agenda, Tweets ni la publicación manual. Las preguntas para Hillary siguen l
   YouTube, 1 de fin de mes), con 21 de los 24 espacios del feed ocupados (la fila de arriba libre, lo que viene), y con
   un post y un carrusel **en revisión** para que el jefe pruebe «Revisar» fuera de Reels. Copies con las reglas de FB
   (FAB, PAS y AIDA, «¡Saludos, Táchira!», «Por amor al Táchira»); nada de la referencia; sin nombres, teléfonos, fechas
-  ni horas. En la demo (cada servidor tiene su base, D-39): un aviso una vez por persona, con «Entendido» («En la
-  demostración, cada copia guarda lo suyo: lo que creas o mueves puede no verse al recargar, con otra cuenta o en
-  otro teléfono. Lo que la demostración ya trae siempre está.»; hasta el 13/11 decía «cada servidor» y «Lo sembrado»);
-  lo recién creado se abre en la misma pantalla; una pieza o miniatura
+  ni horas. Desde el 13/11 el saludo, los cierres y los hashtags de esos copies, de los tweets y del guion salen de
+  `config/clients/fb.json` (`src/lib/db/seed-parts/voice.ts`), no del código: con otro archivo de cliente la demo dice
+  sus palabras (`tests/unit/demo-seed-brand.test.ts`). En la demo (cada servidor tiene su base, D-39): un aviso una vez
+  por persona, con «Entendido» («En la demostración, cada copia guarda lo suyo: lo que creas o mueves puede no verse al
+  recargar, con otra cuenta o en otro teléfono. Lo que la demostración ya trae siempre está.»; hasta el 13/11 decía
+  «cada servidor» y «Lo sembrado»); lo recién creado se abre en la misma pantalla; una pieza o miniatura
   de otro servidor lo dice así en vez de «no encontrado» o una imagen rota (como Mensajes, D-57).
 - **Por qué:** §2.1 «lo que ya hay se conecta, no se tira» y §3 «llena el Mes 1». Lo primero que Hillary va a probar
   (crear un reel, subir una imagen, armar el feed) es justo lo que la demo por servidor puede perder.

@@ -79,7 +79,7 @@ export function SpontaneousForm() {
         <Field label="Día en que salió" htmlFor="sp-date" error={dateError}>
           <Input id="sp-date" type="date" value={f.date} min={minDate} max={today} onChange={set('date')} />
         </Field>
-        <Field label="Hora en que salió (Táchira)" htmlFor="sp-time" hint={date === today ? 'Vacía = ahora.' : 'Obligatoria si no salió hoy.'} error={timeError}>
+        <Field label="Hora en que salió (Táchira)" htmlFor="sp-time" hint={date === today ? 'Si la dejas vacía, se usa la hora de ahora.' : 'Obligatoria si no salió hoy.'} error={timeError}>
           <Input id="sp-time" type="time" value={f.time} required={date !== today} onChange={set('time')} />
         </Field>
         <div className="sm:col-span-2">

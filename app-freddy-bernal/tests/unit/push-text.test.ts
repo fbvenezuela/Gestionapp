@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { firstDateTime, looksLikeDateTime, pushText, stripDateTime } from '@/lib/push/text';
 import { DATETIME_CASES, generatedTexts } from './fixtures/privacy-text-cases';
+import { greenApprovedTitle } from '@/lib/domain/review';
 
 describe('guardia de texto: nada que parezca fecha u hora sale al teléfono', () => {
   it('quita horas en todos sus formatos', () => {
@@ -43,7 +44,13 @@ describe('guardia de texto: nada que parezca fecha u hora sale al teléfono', ()
       'Te asignaron un evento',
       'Beneficiados: unas 1.200 personas',
       'Aprobadas 3 piezas verdes',
+      // The notice Redes gets after «Aprobar todas las verdes» (APP-38), as the app writes it.
+      greenApprovedTitle(1),
+      greenApprovedTitle(3),
     ]) expect(stripDateTime(s)).toBe(s);
+    expect(greenApprovedTitle(1)).toBe('El jefe aprobó 1 pieza verde');
+    expect(greenApprovedTitle(3)).toBe('El jefe aprobó 3 piezas verdes');
+    expect(looksLikeDateTime(greenApprovedTitle(12))).toBe(false);
   });
 
   it('ordena lo que queda y nunca deja el título vacío', () => {

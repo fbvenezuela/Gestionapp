@@ -28,3 +28,7 @@ export function reviewClock(level: Level, sentAt: Date | string | null, deadline
   const left = Math.round((due - now) / 60_000);
   return left >= 0 ? { overdue: false, text: `Vence en ${span(Math.max(1, left))}` } : { overdue: true, text: `Venció hace ${span(-left)}` };
 }
+
+/** The notice Redes gets after «Aprobar todas las verdes»: it says who approved (APP-38, it was «Aprobadas 2 piezas
+ * verdes»). Only the boss approves (can_approve()). */
+export const greenApprovedTitle = (n: number) => (n === 1 ? 'El jefe aprobó 1 pieza verde' : `El jefe aprobó ${n} piezas verdes`);

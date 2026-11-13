@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/ui/page';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
-import { NETWORK_LABEL, PUB_STATUS } from '@/lib/data/labels';
+import { NETWORK_LABEL, PUB_STATUS, networkFormatLabel } from '@/lib/data/labels';
 import { fmtDateTime } from '@/lib/time';
 import { MediaThumb } from '@/components/media/media-thumb';
 import { Package, PublishedForm, FailForm, MetricsForm, AttachEvidence, type PackageFile } from './publication-client';
@@ -54,7 +54,7 @@ export default async function PublicationPage({ params }: { params: Promise<{ id
       <PageHeader
         back={{ href: '/publicar', label: 'Publicar' }}
         title={`${NETWORK_LABEL[p.network]} · ${p.title}`}
-        subtitle={spontaneous ? 'La publicó el jefe; el equipo la registró después' : `${p.format}${p.republish_of ? ' · republicación' : ''}`}
+        subtitle={spontaneous ? 'La publicó el jefe; el equipo la registró después' : `${networkFormatLabel(p.format)}${p.republish_of ? ' · republicación' : ''}`}
         actions={p.status === 'published' && p.piece_id ? <LinkButton variant="secondary" href={`/publicar/nueva?pieza=${p.piece_id}&republica=${p.id}`}>Republicar</LinkButton> : undefined}
       />
       <div className="mb-4 flex flex-wrap items-center gap-2">

@@ -20,9 +20,9 @@ export async function addMetrics(raw: unknown) {
   );
 }
 
-// CSV with columns: link (or url), vistas/views, alcance/reach, me_gusta/likes,
-// comentarios/comments, compartidos/shares, guardados/saves. Rows are matched to
-// publications by their link.
+// CSV whose first row names the columns: enlace (or link, url), vistas/views, alcance/reach, me gusta/likes,
+// comentarios/comments, compartidos/shares, guardados/saves. The names are read in lower case, without accents and
+// with spaces as «_» («Me gusta» = «me_gusta»). Rows are matched to publications by their link.
 export async function importMetricsCsv(raw: unknown) {
   return act(z.object({ csv: z.string().max(2_000_000) }), raw, async (sql, i) => {
     const lines = i.csv.replace(/\r/g, '').split('\n').filter((l) => l.trim());
@@ -40,7 +40,7 @@ export async function importMetricsCsv(raw: unknown) {
       shares: col('compartidos', 'shares', 'compartir'),
       saves: col('guardados', 'saves'),
     };
-    if (c.url < 0) throw new UserError('Falta la columna «link».');
+    if (c.url < 0) throw new UserError('Falta la columna «enlace» (el enlace de cada publicación).');
     let matched = 0;
     const unmatched: string[] = [];
     for (const l of lines.slice(1)) {

@@ -115,7 +115,7 @@ export default async function PiecePage({ params }: { params: Promise<{ id: stri
           <Card data-tour="final-file">
             <CardHeader title="Archivo final" subtitle={current ? `Versión ${current.version}` : 'Todavía no hay archivo'} />
             <CardBody className="flex flex-col gap-3">
-              {current?.media_asset_id ? <MediaPreview id={current.media_asset_id} mime={current.mime ?? ''} drive={current.bucket === 'drive'} /> : null}
+              {current?.media_asset_id ? <MediaPreview id={current.media_asset_id} mime={current.mime ?? ''} drive={current.bucket === 'drive'} demo={isDemo()} /> : null}
               {current?.cover_asset_id ? (
                 <DownloadLink
                   file={{ id: current.cover_asset_id, label: current.cover_label || 'Portada', size: Number(current.cover_size ?? 0) }}

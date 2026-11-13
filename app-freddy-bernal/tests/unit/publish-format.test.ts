@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { formatsFor, validateFor, type PublishContext } from '@/lib/data/publish';
 import { checkCarousel, checkStory, type FormatRule } from '@/lib/domain/video-rules';
 import type { Format } from '@/lib/domain/redes';
+import networkSpecs from '../../config/network-specs.json';
 
 const SPECS = [
   {
@@ -29,7 +30,7 @@ type Media = NonNullable<PublishContext['media']>;
 const video = (x: Partial<Media> = {}): Media => ({ mime: 'video/mp4', duration_s: 30, width: 1080, height: 1920, fps: 30, video_codec: 'avc1', audio_codec: 'mp4a', size_bytes: 10_000_000, ...x });
 const image = (w = 1080, h = 1350): Media => ({ mime: 'image/jpeg', duration_s: null, width: w, height: h, fps: null, video_codec: null, audio_codec: null, size_bytes: 300_000 });
 
-function ctx(format: Format, x: Partial<Pick<PublishContext, 'media' | 'slides' | 'copies'>> = {}): PublishContext {
+function ctx(format: Format, x: Partial<Pick<PublishContext, 'media' | 'slides' | 'copies' | 'specs'>> = {}): PublishContext {
   return {
     piece: { id: 'p', title: 'Pieza de prueba', status: 'approved', kind: 'video', format, current_version: 1, approved_version: 1, design_status: null, design_at: null, approved_at: null },
     version: { media_asset_id: 'm', cover_asset_id: null, slide_asset_ids: [] },
@@ -63,6 +64,43 @@ describe('el formato de la red sale del formato de la pieza', () => {
     expect(validateFor(c, 'instagram')).toMatchObject({ format: 'photo', formats: ['photo'] });
     expect(errors(validateFor(c, 'instagram'))).toEqual([]);
     expect(errors(validateFor(c, 'tiktok'))).toEqual(['TikTok: esta red no recibe posts.']);
+  });
+
+  // The rules as the app seeds them (config/network-specs.json, APP-25): a post goes out as a photo on Instagram and
+  // also on Facebook, Threads and X, with each one's maximum weight; TikTok and YouTube take no photos.
+  describe('con las reglas de config/network-specs.json', () => {
+    const REAL = networkSpecs.specs.map((s) => ({
+      network: s.network, label: s.label, length_group: s.length_group as 'long' | 'medium' | 'short', copy_max_chars: s.copy_max_chars,
+      // A JSON import types each network's formats apart; the app reads them as rules (as seedClient stores them).
+      formats: s.formats as unknown as Record<string, FormatRule>,
+    }));
+    const three = [
+      { length_group: 'long' as const, body: 'Copy largo de prueba.' },
+      { length_group: 'medium' as const, body: 'Copy medio de prueba.' },
+      { length_group: 'short' as const, body: 'Corto.' },
+    ];
+    const post = (size: number) => ctx('post', { media: { ...image(), size_bytes: size }, copies: three, specs: REAL });
+
+    it('una imagen 4:5 sale como foto en Instagram, Facebook, Threads y X, sin avisos', () => {
+      for (const n of ['instagram', 'facebook', 'threads', 'x']) {
+        const v = validateFor(post(300_000), n);
+        expect(v.format, n).toBe('photo');
+        expect(v.issues, n).toEqual([]);
+      }
+    });
+
+    it('TikTok y YouTube siguen sin recibir posts', () => {
+      expect(errors(validateFor(post(300_000), 'tiktok'))).toEqual(['TikTok: esta red no recibe posts.']);
+      expect(errors(validateFor(post(300_000), 'youtube'))).toEqual(['YouTube: esta red no recibe posts.']);
+    });
+
+    it('el peso máximo de cada red: 9 MB no pasa en X; 4,5 MB pasa en X y Threads, no en Facebook', () => {
+      expect(errors(validateFor(post(9 * 1024 * 1024), 'x'))).toEqual(['X: pesa 9 MB y el máximo es 5 MB. Expórtalo con menos peso.']);
+      const mid = post(4.5 * 1024 * 1024);
+      expect(errors(validateFor(mid, 'x'))).toEqual([]);
+      expect(errors(validateFor(mid, 'threads'))).toEqual([]);
+      expect(errors(validateFor(mid, 'facebook'))).toEqual(['Facebook: pesa 5 MB y el máximo es 4 MB. Expórtalo con menos peso.']);
+    });
   });
 
   it('historia: sin copy no avisa; un clip de 75 s no pasa; TikTok no recibe historias', () => {

@@ -11,7 +11,7 @@ import { Field, Select, Textarea } from '@/components/ui/field';
 import { fmtSecond } from '@/lib/data/pieces';
 import { LEVELS, type Level } from '@/lib/domain/review';
 import { cn } from '@/lib/cn';
-import { MediaFailure, useMediaFailure } from '@/components/media/media-preview';
+import { DEMO_VIDEO_NOTE, MediaFailure, useDemoVideo, useMediaFailure, videoPoster } from '@/components/media/media-preview';
 import { QUICK_REASONS, hasReason, toggleReason } from '@/lib/domain/review-reasons';
 
 // Quick check before approving, on the phone (from the diagnosis' approval flow). A story has no copy: what goes out
@@ -36,7 +36,7 @@ export function LevelPicker({ pieceId, level, canLower }: { pieceId: string; lev
 // `back`: where a decision lands (the card «Revisar» came from, or «Por aprobar»: afterReview in format-view.tsx).
 // `details`: the format's fields, read-only, under the file; `band`: the open notices, above the checklist.
 export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, canAskVoice, note, media, back = '/aprobar', details, band, noticeCount = 0, format = null }: {
-  pieceId: string; revision: number; canApprove: boolean; canRequestChanges: boolean; canAskVoice: boolean; note: string; media: { id: string; mime: string; drive?: boolean } | null;
+  pieceId: string; revision: number; canApprove: boolean; canRequestChanges: boolean; canAskVoice: boolean; note: string; media: { id: string; mime: string; drive?: boolean; demo?: boolean } | null;
   back?: string; details?: ReactNode; band?: ReactNode; noticeCount?: number; format?: string | null;
 }) {
   const checks = checksFor(format);
@@ -58,6 +58,8 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
   const isVideo = media && !media.mime.startsWith('image/');
   const src = media ? `/api/media/${media.id}?ver=1` : '';
   const { message: failure, attempt, watch, onError, retry } = useMediaFailure(src, media?.mime ?? '', !!media?.drive);
+  // In the demo a seeded video has no file behind it: the player shows its picture and the line under it says so.
+  const sample = useDemoVideo(!!media?.demo && !media.drive);
 
   const grabTime = () => {
     if (video.current) setAtSecond(Math.floor(video.current.currentTime));
@@ -75,15 +77,17 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
               ref={(el) => {
                 video.current = el;
                 watch(el);
+                sample.watch(el);
               }}
               src={src}
+              poster={videoPoster(media.id, !!media.drive)}
               controls
               playsInline
               preload="metadata"
               data-tour="review-video"
               className="max-h-[60vh] w-full rounded-[var(--radius-control)] bg-slate"
               onPause={grabTime}
-              onError={onError}
+              onError={onError ?? sample.onError}
             />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
@@ -92,6 +96,7 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
         ) : (
           <p className="rounded-[var(--radius-control)] bg-surface-2 p-6 text-center text-text-2">Esta pieza no tiene archivo todavía.</p>
         )}
+        {isVideo && !failure && sample.failed ? <p className="-mt-2 text-sm text-text-2">{DEMO_VIDEO_NOTE}</p> : null}
 
         {details}
 

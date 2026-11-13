@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { requireRole, db } from '@/lib/auth/session';
+import { isDemo } from '@/lib/env';
 import { getPiece, fmtSecond } from '@/lib/data/pieces';
 import { PageHeader } from '@/components/ui/page';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
@@ -66,7 +67,7 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
             canRequestChanges={inReview && approver}
             canAskVoice={isAdmin}
             note={inReview && !approver ? 'La aprueba el jefe. Tú puedes cambiar el nivel o comentar.' : ''}
-            media={current?.media_asset_id ? { id: current.media_asset_id, mime: current.mime ?? '', drive: current.bucket === 'drive' } : null}
+            media={current?.media_asset_id ? { id: current.media_asset_id, mime: current.mime ?? '', drive: current.bucket === 'drive', demo: isDemo() } : null}
             back={back}
             details={card ? <FormatView card={card} /> : null}
             band={card ? <NoticesBand notices={card.notices} /> : null}

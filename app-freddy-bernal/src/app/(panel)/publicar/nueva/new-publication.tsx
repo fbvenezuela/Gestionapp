@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input, Select } from '@/components/ui/field';
 import type { NetworkCheck } from '@/lib/data/publish';
-import { NETWORK_LABEL } from '@/lib/data/labels';
+import { NETWORK_LABEL, networkFormatLabel } from '@/lib/data/labels';
 import { windowHint, windowWarnings, type PublishingWindows } from '@/lib/domain/publishing-windows';
 import { TZ, fmtDateTime } from '@/lib/time';
 import { cn } from '@/lib/cn';
@@ -66,7 +66,7 @@ export function NewPublication({
                   </label>
                   {c.formats.length > 1 ? (
                     <Select aria-label={`Formato en ${c.label}`} value={selected[c.network] ?? c.format} disabled={!on} onChange={(e) => setSelected((s) => ({ ...s, [c.network]: e.target.value }))} className="w-auto">
-                      {c.formats.map((f) => <option key={f}>{f}</option>)}
+                      {c.formats.map((f) => <option key={f} value={f}>{networkFormatLabel(f)}</option>)}
                     </Select>
                   ) : null}
                 </div>

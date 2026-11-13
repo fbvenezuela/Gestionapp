@@ -603,8 +603,8 @@ export const TOURS: Tour[] = [
         title: 'La tanda',
         placement: 'center',
         body: {
-          social: 'Cuántos tweets están por aprobar, aprobados y con su día y hora. Si cambias uno aprobado, vuelve al jefe.',
-          boss: 'Cuántos tweets están por aprobar, aprobados y con su día y hora. Si cambias uno aprobado, vuelve a «Por aprobar».',
+          social: 'Cuántos tweets están por aprobar, aprobados sin programar y programados (con día y hora). Si cambias uno aprobado, vuelve al jefe.',
+          boss: 'Cuántos tweets están por aprobar, aprobados sin programar y programados (con día y hora). Si cambias uno aprobado, vuelve a «Por aprobar».',
         },
       },
       {

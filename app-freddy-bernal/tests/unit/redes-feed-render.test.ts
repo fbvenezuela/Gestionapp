@@ -126,10 +126,10 @@ describe('el selector, la línea en vivo y «Vaciar este mes»', () => {
   const here = { month: 'Mes 1', num: 7 };
   const item = (over: Partial<PickerItem>): PickerItem => ({ id: id(1), title: 'X', thumbIds: [], hasMedia: true, monthId: M1, monthLabel: 'Mes 1', otherMonth: false, place: null, ...over });
 
-  it('cada título dice dónde está: «En este espacio», «Ya en Mes 1 · #4», «De Mes 2», «Sin media»', () => {
+  it('cada título dice dónde está: «En este espacio», «Ya en Mes 1 · #4», «De Mes 2», «Sin archivo»', () => {
     expect(core.pickerTags(item({ place: { month: 'Mes 1', num: 7 } }), here).map((t) => t.text)).toEqual(['En este espacio']);
     expect(core.pickerTags(item({ place: { month: 'Mes 1', num: 4 } }), here).map((t) => t.text)).toEqual(['Ya en Mes 1 · #4']);
-    expect(core.pickerTags(item({ otherMonth: true, monthLabel: 'Mes 2', hasMedia: false }), here).map((t) => t.text)).toEqual(['De Mes 2', 'Sin media']);
+    expect(core.pickerTags(item({ otherMonth: true, monthLabel: 'Mes 2', hasMedia: false }), here).map((t) => t.text)).toEqual(['De Mes 2', 'Sin archivo']);
     expect(core.pickerTags(item({}), here)).toEqual([]);
     expect(core.pickerTitle('Mes 1', 7)).toBe('Mes 1 · Espacio #07');
     expect(core.moveAsk('Mes 1', 4)).toBe('Está en Mes 1 · #4. ¿La mueves a este espacio?');

@@ -265,6 +265,12 @@ describe('diseño, receptividad y avisos', () => {
     for (const f of ['story', 'youtube', 'month_end'] as const) expect(render(card({ format: f }), { ...REDES, format: f })).not.toContain('role="radiogroup"');
   });
 
+  it('sin evaluar: solo «Sin evaluar», sin la raya delante (APP-34)', () => {
+    const t = text(render(card({ rating: null })));
+    expect(t).toContain('Receptividad del público (1 a 10) Sin evaluar');
+    expect(t).not.toMatch(/— ·|\/10 · Sin evaluar/);
+  });
+
   it('la banda «Antes de publicar:» con sus avisos y «Resuelto»', () => {
     const html = render(card({ notices: [{ id: 'n1', kind: 'testimonial', body: 'Falta la autorización escrita (prueba).', by: 'Redes', at: '2026-10-20T10:00:00.000Z' }] }));
     const t = text(html);

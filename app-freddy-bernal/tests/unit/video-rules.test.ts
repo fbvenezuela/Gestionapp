@@ -28,4 +28,12 @@ describe('checkVideo', () => {
   it('Reels de Facebook: más de 90 s no', () => {
     expect(checkVideo('Facebook', 'reel', rule('facebook', 'reel'), { ...good, durationS: 120 })[0].level).toBe('error');
   });
+  it('X: un video vertical 1080×1920 dice que es muy alto y qué hacer (APP-41)', () => {
+    const r = checkVideo('X', 'video', rule('x', 'video'), good);
+    expect(r).toEqual([{ level: 'error', text: 'X: el video es muy alto: mide 1920 px y aquí el máximo es 1200 px. Expórtalo más bajo.' }]);
+    // The same check on a picture speaks of the picture.
+    expect(checkVideo('X', 'foto', { max_height: 1200 }, { ...good, isImage: true, durationS: null, fps: null, videoCodec: null, audioCodec: null })[0].text).toBe(
+      'X: la imagen es muy alta: mide 1920 px y aquí el máximo es 1200 px. Expórtala más baja.',
+    );
+  });
 });
