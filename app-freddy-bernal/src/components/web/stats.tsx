@@ -12,7 +12,7 @@ export const STAT_DEFINITIONS = [
   { term: 'Recibidas', text: 'Solicitudes recibidas en el período. No incluye las improcedentes ni las unificadas por referirse al mismo problema.' },
   { term: 'Resueltas', text: 'Solicitudes resueltas en el período.' },
   { term: 'Pendientes', text: 'Solicitudes en trámite al cierre del período.' },
-  { term: 'Vencidas', text: 'Solicitudes pendientes que superaron la fecha prevista de atención.' },
+  { term: 'Vencidas', text: 'Solicitudes pendientes que pasaron su plazo de atención.' },
   { term: 'Primera respuesta', text: 'Tiempo promedio entre la recepción de la solicitud y la primera respuesta de Atención ciudadana.' },
   { term: 'Resolución', text: 'Tiempo promedio entre la llegada y la resolución, para las resueltas en el período.' },
   { term: 'Por categoría y por municipio', text: 'Solicitudes recibidas, sin las denuncias, que por confidencialidad no se muestran por lugar ni por tema.' },

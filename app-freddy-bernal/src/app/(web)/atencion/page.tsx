@@ -25,7 +25,7 @@ const STEPS = [
   {
     icon: Send,
     title: 'Revisión y asignación',
-    text: 'El personal de atención revisa la solicitud y la asigna al área correspondiente, con una fecha prevista de atención.',
+    text: 'El personal de atención revisa la solicitud y la asigna al área correspondiente.',
   },
   { icon: MessagesSquare, title: 'Seguimiento', text: 'En «Consultar mi solicitud» puede ver el estado y las respuestas.' },
 ];

@@ -13,6 +13,8 @@ import { CITIZEN_EMAIL_FOOTER, HOW_TO_CONSULT, receiptEmail, statusEmail } from 
 import { CONTACT_CHANNEL_OPTION, REQUEST_STATES, REQUEST_TYPES, REQUEST_TYPE_HINT } from '@/lib/participation/input';
 import { receiptPdf } from '@/lib/participation/pdf';
 import { DB_MESSAGES_SAID_AGAIN, citizenDbText, failureOf } from '@/lib/actions/participation-core';
+import { STAT_DEFINITIONS } from '@/components/web/stats';
+import { realFaqs } from '@/lib/db/seed-parts/web-real';
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: () => {}, refresh: () => {}, replace: () => {} }), usePathname: () => '/atencion' }));
 vi.mock('@/lib/actions/participation', () => ({
@@ -222,5 +224,22 @@ describe('lo que lee la persona en el formulario, el comprobante y la consulta',
     for (const t of ['Historial de la solicitud', 'Apoyar este reporte', 'caracteres', 'Casos atendidos', 'No se pudo cargar la página']) expect(all).toContain(t);
     expect(text(html(NoJsForm, { municipalities: MUNIS, categories: CATS, formKey: '00000000-0000-4000-8000-00000000f001', linkedItemId: null, presetType: null, today: '2026-11-06' })))
       .toContain('Si no marca esta casilla, solo se publicarán sus iniciales.');
+  });
+});
+
+describe('lo público no promete una fecha de atención', () => {
+  // The date of a case is internal (the coordination sets it; the consultation never shows it): nothing the citizen
+  // reads may promise one (APP-17).
+  const PROMISE = /fecha prevista|fija una fecha|una fecha de atención/i;
+
+  it('ni los pasos de /atencion, ni las definiciones de las cifras, ni las páginas base, ni las preguntas de la web real', () => {
+    const said: [string, string][] = [
+      ['/atencion', fs.readFileSync(path.join(process.cwd(), 'src/app/(web)/atencion/page.tsx'), 'utf8')],
+      ['cifras', JSON.stringify(STAT_DEFINITIONS)],
+      ['páginas base', JSON.stringify(getClientConfig().web.pages)],
+      ['preguntas de la web real', JSON.stringify(realFaqs())],
+    ];
+    for (const [label, s] of said) expect(s, label).not.toMatch(PROMISE);
+    expect(STAT_DEFINITIONS.find((d) => d.term === 'Vencidas')?.text).toBe('Solicitudes pendientes que pasaron su plazo de atención.');
   });
 });
