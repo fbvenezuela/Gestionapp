@@ -12,13 +12,13 @@ import { deleteRedirect, saveRedirect } from '@/lib/actions/web-site';
 // Redirects of old addresses (design §2): «/2024/05/una-nota» → «/actualidad/una-nota», 301 by default. Only to an
 // address of this site (no open redirect, also in the database). The importer fills most of them; here they are added
 // or fixed by hand. The type is said in words, never by its number (301 and 308 are permanent, 302 and 307 temporary;
-// 307 and 308 keep a form's sending as it was).
+// 307 and 308 keep a form's sending as it was). Each label fits its closed list at 360 px and in the row's 18rem.
 
-const STATUS = [
+export const REDIRECT_TYPES = [
   ['301', 'Para siempre (lo normal)'],
-  ['308', 'Para siempre, también para formularios'],
+  ['308', 'Para siempre (formularios)'],
   ['302', 'Por un tiempo'],
-  ['307', 'Por un tiempo, también para formularios'],
+  ['307', 'Por un tiempo (formularios)'],
 ] as const;
 
 export function NewRedirectForm() {
@@ -54,9 +54,13 @@ export function NewRedirectForm() {
           <Input id={`${id}-to`} value={to} onChange={(e) => setTo(e.target.value)} maxLength={500} className="font-mono text-[15px]" placeholder="/…" />
         </Field>
       </div>
-      <Field label="Tipo" htmlFor={`${id}-st`}>
+      <Field
+        label="Tipo"
+        htmlFor={`${id}-st`}
+        hint="«Por un tiempo», si la dirección vieja va a volver a usarse. «(formularios)», si a la dirección vieja se enviaban formularios."
+      >
         <Select id={`${id}-st`} value={status} onChange={(e) => setStatus(e.target.value)} className="sm:w-80">
-          {STATUS.map(([v, l]) => (
+          {REDIRECT_TYPES.map(([v, l]) => (
             <option key={v} value={v}>
               {l}
             </option>
@@ -111,7 +115,7 @@ export function RedirectRowForm({ r }: { r: { id: string; from: string; to: stri
       <div className="grid gap-2 sm:grid-cols-[1fr_18rem]">
         <Input id={`${id}-to`} value={to} onChange={(e) => setTo(e.target.value)} maxLength={500} className="font-mono text-[15px]" aria-label={`Destino de ${r.from}`} />
         <Select value={status} onChange={(e) => setStatus(e.target.value)} aria-label={`Tipo de la redirección de ${r.from}`}>
-          {STATUS.map(([v, l]) => (
+          {REDIRECT_TYPES.map(([v, l]) => (
             <option key={v} value={v}>
               {l}
             </option>
