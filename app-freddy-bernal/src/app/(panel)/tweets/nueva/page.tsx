@@ -10,7 +10,7 @@ export default async function NewBatchPage() {
   const categories = await db(s, (sql) => contentCategories(sql));
   return (
     <>
-      <PageHeader title="Tweets de la semana" subtitle="Sube el documento (o pega el texto). La plataforma los separa, revisa y reparte en la semana." back={{ href: '/tweets', label: 'Tweets' }} />
+      <PageHeader title="Tweets de la semana" subtitle="Sube el documento (o pega el texto). La app los separa, revisa y reparte en la semana." back={{ href: '/tweets', label: 'Tweets' }} />
       <NewBatch categories={categories} />
     </>
   );
