@@ -34,7 +34,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   if (isDemo()) {
     const file = demoFilePath(row.storage_path);
-    if (!fs.existsSync(file)) return new NextResponse('Archivo de demostración: no hay un archivo real detrás.', { status: 404 });
+    if (!fs.existsSync(file)) {
+      // A seeded picture has no file behind it, only the small one kept as if at upload (media_thumbs): to look at it
+      // (?ver=1) the demo shows that one, not a broken image (APP-40). Only a picture and only to look at it: a
+      // download («Descargar todo», the folder) and HEAD still say honestly that there is no file, and a video too.
+      // The person's own query (RLS) already answered for the row above.
+      if (inline && row.mime.startsWith('image/')) {
+        const { storedThumb, thumbResponse } = await import('@/lib/storage/thumbs');
+        const t = await storedThumb(id);
+        if (t) return thumbResponse(t.mime, t.bytes);
+      }
+      return new NextResponse('Archivo de demostración: no hay un archivo real detrás.', { status: 404 });
+    }
     const stream = Readable.toWeb(fs.createReadStream(file)) as ReadableStream;
     return new NextResponse(stream, {
       headers: { 'Content-Type': row.mime || 'application/octet-stream', 'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename="${name}"`, 'Cache-Control': 'private, no-store' },

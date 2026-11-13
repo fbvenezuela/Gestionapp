@@ -5,17 +5,64 @@ import { RotateCcw } from 'lucide-react';
 
 // Private file preview through the signed download route (never a public URL). A file kept in
 // Drive that cannot be played (Drive down, permission expired, this month's cap) says why
-// instead of leaving a dead player.
-export function MediaPreview({ id, mime, drive = false }: { id: string; mime: string; drive?: boolean }) {
+// instead of leaving a dead player. A video shows the picture kept at upload until it plays
+// (`videoPoster`); in the demo, one with no file behind it says so under the player (`demo`).
+export function MediaPreview({ id, mime, drive = false, demo = false }: { id: string; mime: string; drive?: boolean; demo?: boolean }) {
   const src = `/api/media/${id}?ver=1`;
   const { message, attempt, watch, onError, retry } = useMediaFailure(src, mime, drive);
+  const sample = useDemoVideo(demo && !drive);
+  const sampleWatch = sample.watch;
+  const videoRef = useCallback(
+    (el: HTMLVideoElement | null) => {
+      watch(el);
+      sampleWatch(el);
+    },
+    [watch, sampleWatch],
+  );
   if (message) return <MediaFailure message={message} onRetry={retry} />;
   if (mime.startsWith('image/')) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img key={attempt} ref={watch} src={src} alt="Vista previa" onError={onError} className="max-h-[60vh] w-full rounded-[var(--radius-control)] bg-slate object-contain" />;
   }
   if (mime.startsWith('audio/')) return <audio key={attempt} ref={watch} src={src} controls preload="none" onError={onError} className="w-full" />;
-  return <video key={attempt} ref={watch} src={src} controls preload="metadata" playsInline onError={onError} className="max-h-[60vh] w-full rounded-[var(--radius-control)] bg-slate" />;
+  return (
+    <>
+      <video
+        key={attempt}
+        ref={videoRef}
+        src={src}
+        poster={videoPoster(id, drive)}
+        controls
+        preload="metadata"
+        playsInline
+        onError={onError ?? sample.onError}
+        className="max-h-[60vh] w-full rounded-[var(--radius-control)] bg-slate"
+      />
+      {sample.failed ? <p className="text-sm text-text-2">{DEMO_VIDEO_NOTE}</p> : null}
+    </>
+  );
+}
+
+/**
+ * The picture a video shows until it plays: the frame kept at upload (/api/media/<id>/thumb, the same RLS check as the
+ * file), so the player is not a black box at 0:00 (APP-40). None for a Drive file: its picture counts against the
+ * month's Drive cap (src/app/api/media/[id]/thumb/route.ts).
+ */
+export const videoPoster = (id: string, drive: boolean) => (drive ? undefined : `/api/media/${id}/thumb`);
+
+/** Under a demo video that cannot play: the demo's files have no video behind them, only their picture. */
+export const DEMO_VIDEO_NOTE = 'Video de demostración: no hay un video real detrás.';
+
+/** In the demo, whether the video could not load (also before the page came alive), so the line above shows. */
+export function useDemoVideo(enabled: boolean) {
+  const [failed, setFailed] = useState(false);
+  const watch = useCallback(
+    (el: HTMLMediaElement | null) => {
+      if (el && enabled && el.error != null) setFailed(true);
+    },
+    [enabled],
+  );
+  return { failed: enabled && failed, watch, onError: enabled ? () => setFailed(true) : undefined };
 }
 
 /** The box shown in place of a player that could not load. */

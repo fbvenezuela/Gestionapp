@@ -150,3 +150,56 @@ describe('el archivo del storyboard en el almacén de la demo', () => {
     }
   });
 });
+
+// APP-40: a seeded picture has no file behind it, only the small one kept as if at upload. To look at it (?ver=1, the
+// piece's preview and the review room) the demo shows that one instead of a broken image; a download and HEAD still say
+// there is no file, and a video too (its player shows that picture as its poster, from /thumb). Same RLS check first.
+describe('la vista previa de la demo', () => {
+  const look = (id: string) => route.GET(new NextRequest(`http://localhost:3000/api/media/${id}?ver=1`), { params: Promise.resolve({ id }) });
+  const seeded = async (label: string, mime: string) =>
+    (await t.system((sql) =>
+      sql.one<{ id: string; bytes: Uint8Array }>(
+        `select m.id, th.bytes from public.media_assets m join public.media_thumbs th on th.media_id = m.id
+          where m.label = $1 and m.mime like $2 and m.deleted_at is null order by m.created_at limit 1`,
+        [label, mime],
+      )))!;
+
+  it('la imagen de un post: para verla sale su miniatura; para bajarla, el 404 honesto; HEAD también 404', async () => {
+    const post = await seeded('Imagen del post v1', 'image/%');
+    for (const who of ['social', 'boss'] as const) {
+      as(who);
+      const res = await look(post.id);
+      expect(res.status, who).toBe(200);
+      expect(res.headers.get('content-type'), who).toBe('image/jpeg');
+      expect(res.headers.get('x-content-type-options'), who).toBe('nosniff');
+      expect(Buffer.from(await res.arrayBuffer()).equals(Buffer.from(post.bytes)), who).toBe(true);
+    }
+    as('social');
+    const download = await ask('GET', post.id);
+    expect(download.status).toBe(404);
+    expect(await download.text()).toBe('Archivo de demostración: no hay un archivo real detrás.');
+    expect((await ask('HEAD', post.id)).status).toBe(404);
+  });
+
+  it('un video sigue sin archivo para verlo (404), y su miniatura es la portada del reproductor', async () => {
+    const reel = await seeded('Video final v1', 'video/%');
+    as('social');
+    const res = await look(reel.id);
+    expect(res.status).toBe(404);
+    expect(await res.text()).toBe('Archivo de demostración: no hay un archivo real detrás.');
+    const thumbRoute = await import('@/app/api/media/[id]/thumb/route');
+    const poster = await thumbRoute.GET(new NextRequest(`http://localhost:3000/api/media/${reel.id}/thumb`), { params: Promise.resolve({ id: reel.id }) });
+    expect(poster.status).toBe(200);
+    expect(Buffer.from(await poster.arrayBuffer()).equals(Buffer.from(reel.bytes))).toBe(true);
+  });
+
+  it('la miniatura solo después de la misma revisión: sin sesión 401, y Política (que no ve piezas) 404 sin la imagen', async () => {
+    const post = await seeded('Imagen del post v1', 'image/%');
+    as(null);
+    expect((await look(post.id)).status).toBe(401);
+    as('politics');
+    const res = await look(post.id);
+    expect(res.status).toBe(404);
+    expect(res.headers.get('content-type') ?? '').not.toMatch(/^image\//);
+  });
+});

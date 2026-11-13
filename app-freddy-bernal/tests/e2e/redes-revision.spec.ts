@@ -275,3 +275,31 @@ test('a 1366 px: la pieza en grande, la sala de revisión y «Nueva pieza», sin
     await axe(page);
   }
 });
+
+// APP-40: the demo's files have no bytes behind them. A post's picture shows the small one kept with it (it was a broken
+// image), and a video shows that picture as its poster (it was a black box at 0:00) and says under it that there is no
+// real video behind. Only looks: nothing changes.
+test('en la demo: la imagen del post se ve y el video muestra su miniatura y dice que no hay un video real detrás', async ({ page }) => {
+  await loginAs(page, 'jefe@demo.test');
+  const loaded = (img: Locator) => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0);
+  const post = await idOf(page, '/redes/posts', 'La vecina que volvió a tener agua');
+  await page.goto(`/aprobar/${post}`);
+  const picture = page.getByRole('img', { name: 'Pieza a revisar' });
+  await expect(picture).toBeVisible();
+  await expect.poll(() => loaded(picture)).toBe(true);
+
+  const reel = await idOf(page, '/redes/reels', 'Avance del puente La Quebrada');
+  for (const [path, player] of [[`/aprobar/${reel}`, 'video[data-tour="review-video"]'], [`/piezas/${reel}`, '[data-tour="final-file"] video']] as const) {
+    await page.goto(path);
+    const video = page.locator(player);
+    await expect(video).toBeVisible();
+    const poster = await video.getAttribute('poster');
+    expect(poster, path).toMatch(/^\/api\/media\/[0-9a-f-]{36}\/thumb$/);
+    const res = await page.request.get(poster!);
+    expect(res.status(), path).toBe(200);
+    expect(res.headers()['content-type'], path).toBe('image/jpeg');
+    await expect(page.getByText('Video de demostración: no hay un video real detrás.'), path).toBeVisible();
+    await noSideScroll(page);
+    await axe(page);
+  }
+});

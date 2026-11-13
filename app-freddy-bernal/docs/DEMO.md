@@ -188,4 +188,7 @@ es lo sembrado (lo que ya espera aprobación y los tres comprobantes), o tu comp
   cancha de El Mirador (ese sí tiene su imagen) y dice cuántos archivos no se bajaron porque no están guardados. En el
   iPhone y el iPad, donde cada archivo tiene su «Bajar», la lista dice cuántos no se pueden bajar y cada video dice «No
   hay un archivo detrás.» en vez de «Bajar».
+- Por lo mismo, las imágenes de la demo son muestras pequeñas: la imagen de un post se ve con la miniatura que se guardó
+  con ella, y un video muestra esa miniatura en el reproductor pero no se reproduce (debajo dice «Video de demostración:
+  no hay un video real detrás.»). Lo que se sube en la demo sí se ve y se reproduce entero.
 - Ningún correo sale: todos quedan en Ajustes → Buzón de correos.
