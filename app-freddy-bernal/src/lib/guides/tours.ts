@@ -366,8 +366,24 @@ export const TOURS: Tour[] = [
     steps: [
       { target: [anchor('ficha-group')], title: 'Por grupos', body: 'Cinco grupos que se abren y se cierran. Las cifras, con su fuente.' },
       { target: ['[role=group][aria-label^="Otra respuesta"]'], title: 'No aplica', body: 'Si una pregunta no va, «No aplica»; si todavía no lo sabes, «Por confirmar».' },
-      { target: [anchor('save-draft')], title: 'Borrador', body: 'Si te falta algo, «Guardar borrador»: todavía no le llega al jefe.' },
-      { target: [anchor('save-notify')], title: 'Avisar al jefe', body: 'Con todo respondido, al jefe y al despacho les llega para ponerle fecha.' },
+      {
+        target: [anchor('save-draft')],
+        title: 'Borrador',
+        body: {
+          boss: 'Si te falta algo, «Guardar borrador»: todavía no te llega para ponerle fecha.',
+          dispatch: 'Si te falta algo, «Guardar borrador»: todavía no le llega al jefe.',
+          ivt: 'Si te falta algo, «Guardar borrador»: todavía no le llega al jefe.',
+        },
+      },
+      {
+        target: [anchor('save-notify')],
+        title: 'Avisar al jefe',
+        body: {
+          boss: 'Con todo respondido, a ti y al despacho les llega para ponerle fecha.',
+          dispatch: 'Con todo respondido, al jefe y a ti les llega para ponerle fecha.',
+          ivt: 'Con todo respondido, al jefe y al despacho les llega para ponerle fecha.',
+        },
+      },
     ],
   },
   {
@@ -545,7 +561,7 @@ export const TOURS: Tour[] = [
       { target: [anchor('copies')], title: 'Copies', body: 'La fórmula, la voz y el cierre: tres textos (largo, medio y corto), solo con cifras de la ficha.' },
       { target: [anchor('write-copies')], title: 'Escribir desde la ficha', body: 'Arma los tres copies con la ficha técnica. Después los revisas uno por uno.' },
       { target: ['select[aria-label="Nivel de aprobación"]'], title: 'El nivel', body: 'Verde, amarillo o rojo: el color dice qué tan rápido la mira el jefe.' },
-      { target: [anchor('send-review')], title: 'Enviar', body: 'Aquí está «Enviar a aprobación»: le llega al jefe.' },
+      { target: [anchor('send-review')], title: 'Enviar', body: { social: 'Aquí está «Enviar a aprobación»: le llega al jefe.', boss: 'Aquí está «Enviar a aprobación»: te llega para aprobar.' } },
     ],
   },
   {
@@ -587,11 +603,15 @@ export const TOURS: Tour[] = [
         title: 'La tanda',
         placement: 'center',
         body: {
-          social: 'Una tanda: cuántos están por aprobar, aprobados y programados. Si cambias uno aprobado, vuelve al jefe.',
-          boss: 'Una tanda: cuántos están por aprobar, aprobados y programados. Si cambias uno aprobado, vuelve a «Por aprobar».',
+          social: 'Cuántos tweets están por aprobar, aprobados y con su día y hora. Si cambias uno aprobado, vuelve al jefe.',
+          boss: 'Cuántos tweets están por aprobar, aprobados y con su día y hora. Si cambias uno aprobado, vuelve a «Por aprobar».',
         },
       },
-      { target: [anchor('tweets-schedule')], title: 'Programar', body: 'Cuando el jefe aprobó, aquí está «Programar»: quedan en el tablero.' },
+      {
+        target: [anchor('tweets-schedule')],
+        title: 'Programar',
+        body: { social: 'Cuando el jefe aprobó, aquí está «Programar»: quedan en el tablero.', boss: 'Cuando apruebas, aquí está «Programar»: quedan en el tablero.' },
+      },
     ],
   },
   {
