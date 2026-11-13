@@ -208,7 +208,6 @@ export const IVT: Answer[] = [
     roles: ['ivt'],
     q: [
       '¿Qué es la pantalla Hoy para mí?',
-      'para que es esta pantalla',
       'que hago en hoy',
       'q es hoy si mi inicio es obras',
       'es lo mismo hoy que obras',

@@ -313,7 +313,6 @@ export const POLITICS: Answer[] = [
     roles: ['politics'],
     q: [
       '¿Qué es la pantalla Hoy para mí?',
-      'que hago aqui',
       'para que me sirve hoy',
       'q es hoy si mi inicio es municipios',
       'es lo mismo hoy que municipios',

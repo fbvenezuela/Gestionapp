@@ -109,6 +109,18 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
   ],
 };
 
+// «Hoy no está en tu menú» is for the person who is on Hoy (13/11): with no screen, or on a screen 360 does not describe
+// (a municipality, a guide, the reading mode of an obra), «¿qué hago aquí?» never says it.
+describe('«Hoy no está en tu menú» solo en Hoy', () => {
+  it('política y el IVT: sin pantalla o en otra pantalla, nunca dice que Hoy no está en su menú', async () => {
+    for (const [role, q] of [['politics', '¿qué hago aquí?'], ['ivt', '¿para qué es esta pantalla?']] as [DemoUserKey, string][])
+      for (const screen of [null, '/municipios/[municipio]', '/ayuda/[id]', '/obras/[id]/lectura']) {
+        const r = await handleTurn(sessionOf(role), { question: q, screen }, { chain: [] });
+        expect(r.answer, `${role} ${screen}: ${q} → ${r.answer}`).not.toMatch(/Hoy no está en tu menú/);
+      }
+  });
+});
+
 describe('360 sabe la pantalla, arranca tutoriales y contesta con la guía (cerebro de demostración)', () => {
   for (const [role, rows] of Object.entries(TABLE) as [DemoUserKey, [string, Expect][]][]) {
     it(`${role}: cada pregunta tiene su tutorial, su pantalla o su respuesta`, async () => {

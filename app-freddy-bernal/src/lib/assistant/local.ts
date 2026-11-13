@@ -1,5 +1,5 @@
 import 'server-only';
-import { TEAM_ROLES } from '../roles';
+import { TEAM_ROLES, homeFor, navFor } from '../roles';
 import { GUIDE_SLUGS } from '../guides/slugs';
 import { quotedLabels } from '../guides/check';
 import { AGENDA_FALLBACK, canon, hasWord, isSection, keyWords, makesOne, roleFichaKeys, scoreFichas, sectionsFor, stem, type BrainOutput, type ChosenScript, type TurnContext } from './brain';
@@ -787,6 +787,12 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       // A screen the person cannot open (Hoy for política or the IVT since 12/11: their home is Municipios or Obras) is
       // not described as theirs: the answers below say whose it is, or that it is not in their menu.
       if (info && !screen.includes('[') && info.about && canOpen(screen, i.ctx.roles)) return done(`${info.label}: ${info.about}.${tutorial ? ' Si quieres, te la muestro paso a paso: toca el botón.' : ''}`, tutorial ? undefined : info.href, tutorial);
+      // The one they are on and cannot open (Hoy, for política or the IVT): not in their menu, their home is (13/11).
+      if (info && !whatHere[1] && !screen.includes('[') && !canOpen(screen, i.ctx.roles)) {
+        const home = homeFor(i.ctx.roles);
+        const label = navFor(i.ctx.roles).visible.find((n) => n.href === home)?.label ?? screenFor(home)?.label;
+        if (label && home !== screen) return done(`${info.label} no está en tu menú: tu inicio es ${label}.`, canOpen(home, i.ctx.roles) ? home : undefined);
+      }
     }
   }
 
