@@ -32,6 +32,24 @@ describe('lo nuevo de «Ayuda y guías» en el índice de 360', () => {
     }
   });
 
+  // What the guide explains, explained (13/11): the feed's menu, what política sees of a date, what a flow is, the cupo.
+  it('lo que la guía explica, 360 lo explica igual', () => {
+    for (const [role, q, id, says] of [
+      ['social', '¿qué hace Publicar antes en el feed?', 'curado:red-feed-mover', /«Publicar antes \(#20\)»/],
+      ['social', '¿cómo muevo una pieza un espacio antes en el feed?', 'curado:red-feed-mover', /«Cambiar de espacio»/],
+      ['politics', 'cuando el jefe le pone fecha a mi reporte, ¿qué veo yo?', 'curado:pol-saber-agenda', /«Ya tiene fecha/],
+      ['politics', '¿qué hace el jefe con mi reporte?', 'curado:pol-jefe-hace', /«Por ponerle fecha»/],
+      ['social', '¿qué es un flujo?', 'curado:todo-flujos', /^Un flujo es el camino que sigue un trabajo de un rol a otro\./],
+      ['social', '¿qué pasa si hago más piezas que el cupo?', 'curado:red-cupo-pasarse', /si haces más piezas, no pasa nada/],
+      ['social', '¿qué pasa si me paso del cupo?', 'curado:red-cupo-pasarse', /si haces más piezas, no pasa nada/],
+    ] as [Role, string, string, RegExp][]) {
+      const m = bestAnswer(q, { roles: [role] })!;
+      expect(m.entry.id, `${role}: ${q} → ${m.text}`).toBe(id);
+      expect(m.confidence, `${role}: ${q}`).toBe('strong');
+      expect(m.text, `${role}: ${q}`).toMatch(says);
+    }
+  });
+
   it('cómo leer la guía dice lo mismo que la línea de arriba de «Ayuda y guías»', () => {
     const m = bestAnswer('¿qué quiere decir lo que va entre comillas?', { roles: ['ivt'] })!;
     const [quotes, numbers] = HOW_TO_READ.split('. ');

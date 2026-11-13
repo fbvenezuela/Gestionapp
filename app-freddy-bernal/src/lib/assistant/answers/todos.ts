@@ -1885,11 +1885,11 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-flujos',
     roles: null,
-    q: ['¿dónde veo los flujogramas?', 'cómo va el trabajo entre todos', 'flujo del trabajo', 'cómo pasa el trabajo de un rol a otro', 'diagrama del proceso'],
+    q: ['¿dónde veo los flujogramas?', 'cómo va el trabajo entre todos', 'flujo del trabajo', 'cómo pasa el trabajo de un rol a otro', 'diagrama del proceso', 'que es un flujo', 'que es un flujograma'],
     a: {
       default:
-        'Mi cuenta → «Ayuda y guías» → «Cómo va el trabajo entre todos»: un evento, una obra, un reporte de la comunidad, los tweets, el semáforo, el mes de Redes, la entrega de Grabación, Mensajes y la ayuda. Los pasos que son tuyos dicen «tú».',
-      admin: 'Mi cuenta → «Ayuda y guías» → «Cómo va el trabajo entre todos»: cómo pasa el trabajo de un rol a otro del equipo, paso a paso.',
+        'Un flujo es el camino que sigue un trabajo de un rol a otro. Están en Mi cuenta → «Ayuda y guías» → «Cómo va el trabajo entre todos»: un evento, una obra, un reporte de la comunidad, los tweets, el semáforo, el mes de Redes, la entrega de Grabación, Mensajes y la ayuda. Los pasos que son tuyos dicen «tú».',
+      admin: 'Un flujo es el camino que sigue un trabajo de un rol a otro. Están en Mi cuenta → «Ayuda y guías» → «Cómo va el trabajo entre todos», paso a paso.',
     },
     go: '/ayuda/flujos',
   },

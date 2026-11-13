@@ -964,7 +964,7 @@ export const SOCIAL: Answer[] = [
   {
     id: 'red-feed-mover',
     roles: ['social'],
-    q: ['como muevo un post a otro espacio del feed', 'chamo como arrastro las piezas en el feed desde el cel', 'como cambio el orden del feed', 'publicar antes que hace', 'como cambio de lugar un post en el feed', 'intercambiar dos posts del feed', 'como subo o bajo una pieza en el feed', 'reordenar el feed desde el telefono', 'como paso una pieza a otro espacio'],
+    q: ['como muevo un post a otro espacio del feed', 'chamo como arrastro las piezas en el feed desde el cel', 'como cambio el orden del feed', 'publicar antes que hace', 'que hace publicar antes en el feed', 'que hace publicar despues', 'como muevo una pieza un espacio antes en el feed', 'adelantar una pieza en el feed', 'como cambio de lugar un post en el feed', 'intercambiar dos posts del feed', 'como subo o bajo una pieza en el feed', 'reordenar el feed desde el telefono', 'como paso una pieza a otro espacio'],
     a: 'Toca el espacio lleno → «Publicar antes (#20)», «Publicar después (#22)» (si está en el #21) o «Cambiar de espacio». En el teléfono no se arrastra; en la computadora también puedes arrastrar una pieza sobre otra.',
     go: '/redes/feed',
     tutorial: 'feed',
@@ -1062,7 +1062,7 @@ export const SOCIAL: Answer[] = [
   {
     id: 'red-cupo-pasarse',
     roles: ['social'],
-    q: ['¿Qué pasa si me paso del cupo de posts?', 'puedo hacer mas reels que el cupo', 'el cupo me bloquea', 'me pase del cupo', 'que pasa si hago mas posts del cupo', 'el cupo es obligatorio', 'me pase del cupo pasa algo', 'me pase del cupo de historias', 'hice mas de las que dice el cupo', 'pasarse del cupo que pasa'],
+    q: ['¿Qué pasa si me paso del cupo de posts?', 'que pasa si me paso del cupo', 'que pasa si hago mas piezas que el cupo', 'puedo hacer mas reels que el cupo', 'el cupo me bloquea', 'me pase del cupo', 'que pasa si hago mas posts del cupo', 'el cupo es obligatorio', 'me pase del cupo pasa algo', 'me pase del cupo de historias', 'hice mas de las que dice el cupo', 'pasarse del cupo que pasa'],
     a: 'El cupo es una meta: si haces más piezas, no pasa nada.',
     go: '/redes',
   },
