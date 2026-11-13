@@ -91,7 +91,7 @@ export default async function WebAdminPage() {
                     </span>
                     <span className="text-sm text-text-2">{sec.hint}</span>
                     <span className="mt-auto pt-1 text-sm text-text-2">
-                      {c ? `${c.live} en la web · ${c.drafts} en borrador${c.inReview ? ` · ${c.inReview} en revisión` : ''}${c.scheduled ? ` · ${c.scheduled} programados` : ''}` : 'Nada todavía'}
+                      {c ? `${c.live} en la web · ${c.drafts} en borrador${c.inReview ? ` · ${c.inReview} en revisión` : ''}${c.scheduled ? ` · ${c.scheduled} ${c.scheduled === 1 ? 'programado' : 'programados'}` : ''}` : 'Nada todavía'}
                     </span>
                   </Link>
                 </Card>

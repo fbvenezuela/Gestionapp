@@ -22,7 +22,7 @@ export type KindSection = {
 
 export const KIND_SECTIONS: readonly KindSection[] = [
   { kind: 'page', section: 'paginas', label: 'Páginas', one: 'una página', create: null, hint: 'La portada (por bloques) y las páginas fijas: el gobernador y las legales.', ownPage: true },
-  { kind: 'news', section: 'noticias', label: 'Noticias y comunicados', one: 'una noticia', create: 'Nueva noticia', hint: 'Noticias, comunicados, artículos y entrevistas de Actualidad.', ownPage: true },
+  { kind: 'news', section: 'noticias', label: 'Noticias y comunicados', one: 'una noticia', create: 'Nueva noticia', hint: 'Noticias, comunicados, columnas de opinión y entrevistas: salen en «Noticias».', ownPage: true },
   { kind: 'project', section: 'obras', label: 'Obras y acciones', one: 'una obra', create: 'Nueva obra o acción', hint: 'La gestión: dónde, para quién, el estado y las evidencias.', ownPage: true },
   { kind: 'episode', section: 'reporte-bernal', label: WEB_KIND_LABEL.episode, one: 'un episodio', create: 'Nuevo episodio', hint: 'Los episodios del programa semanal, con su video y sus temas.', ownPage: false },
   { kind: 'document', section: 'documentos', label: 'Documentos', one: 'un documento', create: 'Nuevo documento', hint: 'Semanarios, informes y documentos en PDF de Transparencia.', ownPage: false },
