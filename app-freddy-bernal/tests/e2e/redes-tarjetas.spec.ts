@@ -26,6 +26,14 @@ async function noSideScroll(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
 }
 
+// An open menu panel is whole inside the screen, edge to edge.
+async function insideScreen(panel: Locator) {
+  const box = (await panel.boundingBox())!;
+  const width = panel.page().viewportSize()!.width;
+  expect(box.x, 'el menú empieza dentro de la pantalla').toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width, 'el menú termina dentro de la pantalla').toBeLessThanOrEqual(width);
+}
+
 const card = (page: Page, title: string) => page.getByRole('article', { name: title, exact: true });
 
 // A card that starts folded on the phone: open it (the first one of a section is never folded). Until the page comes
@@ -222,6 +230,13 @@ test('Redes: mover a otro mes y volver; el mes elegido sigue de Posts a Reels; l
     if (!(await tabs.getByRole('button', { name: 'Borrar este mes' }).isVisible())) await options.click();
     await expect(tabs.getByRole('button', { name: 'Borrar este mes' })).toBeVisible({ timeout: 1500 });
   }).toPass({ timeout: 20_000 });
+  // The panel opens whole on the phone's screen (APP-02: hung from the «⋯», it started at -45 px), and on a tablet
+  // without the side menu, where four months also push the «⋯» under the tabs.
+  const panel = tabs.locator('details[open] > div');
+  await insideScreen(panel);
+  await page.setViewportSize({ width: 640, height: 760 });
+  await insideScreen(panel);
+  await page.setViewportSize({ width: 360, height: 760 });
   await tabs.getByRole('button', { name: 'Borrar este mes' }).click();
   const ask = page.getByRole('dialog', { name: 'Borrar este mes' });
   await expect(ask.getByText('¿Borrar «Mes 4»? No tiene piezas.')).toBeVisible();

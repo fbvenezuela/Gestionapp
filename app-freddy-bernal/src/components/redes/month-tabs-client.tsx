@@ -117,11 +117,15 @@ export function MonthMenu({
   return (
     <>
       {dialog}
-      <MenuDetails className="relative shrink-0">
+      {/* When the tabs fill the row, «+ Nuevo mes» and the «⋯» wrap under them at the left, and a panel hung from the
+          «⋯»'s right edge started at -45 px on a phone (APP-02; on a tablet too, once there are enough months). So
+          without the side menu (below lg) the panel hangs from the tabs row (the nav, `relative`): under it and flush
+          with its right edge. From lg the side menu leaves room on the left and it stays under the button. */}
+      <MenuDetails className="shrink-0 lg:relative">
         <summary className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'list-none cursor-pointer [&::-webkit-details-marker]:hidden' })} aria-label={`Opciones de ${month.label}`}>
           <MoreHorizontal className="h-5 w-5" aria-hidden />
         </summary>
-        <div className={cn(menuPanelClass, 'absolute right-0 z-30 mt-2 w-60 max-w-[calc(100vw-2rem)]')}>
+        <div className={cn(menuPanelClass, 'absolute right-0 top-full z-30 mt-2 w-60 max-w-[calc(100vw-2rem)] lg:top-auto')}>
           {canRename ? (
             <button type="button" className={item} disabled={pending} onClick={() => void rename()}>
               <Pencil className="h-4 w-4" aria-hidden /> Cambiar nombre
