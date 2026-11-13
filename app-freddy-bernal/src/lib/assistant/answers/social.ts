@@ -1334,7 +1334,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-csv',
     roles: ['social'],
     q: ['tengo un csv de meta con las metricas como lo subo', 'cargar resultados desde un archivo', 'que columnas lleva el csv', 'subir muchas metricas de una vez', 'tengo un excel con los numeros', 'subir todos los resultados de una vez', 'cargar las metricas de varias publicaciones juntas', 'puedo subir una hoja de calculo con los resultados', 'tengo un archivo con las metricas de todas'],
-    a: 'Resultados → «Cargar resultados desde un archivo (CSV)» → «Elegir archivo CSV»: carga muchas publicaciones de una vez. Si lo tienes en Excel, guárdalo como CSV con las columnas link, vistas, alcance, me_gusta, comentarios, compartidos y guardados.',
+    a: 'Resultados → «Cargar resultados desde un archivo (CSV)» → «Elegir archivo CSV»: carga muchas publicaciones de una vez. Si lo tienes en Excel, guárdalo como CSV con estos nombres en la primera fila: enlace, vistas, alcance, me gusta, comentarios, compartidos y guardados. Solo «enlace» es obligatoria.',
     go: '/resultados',
     tutorial: 'resultados',
   },
