@@ -1169,7 +1169,9 @@ la agenda, Tweets ni la publicación manual. Las preguntas para Hillary siguen l
   YouTube, 1 de fin de mes), con 21 de los 24 espacios del feed ocupados (la fila de arriba libre, lo que viene), y con
   un post y un carrusel **en revisión** para que el jefe pruebe «Revisar» fuera de Reels. Copies con las reglas de FB
   (FAB, PAS y AIDA, «¡Saludos, Táchira!», «Por amor al Táchira»); nada de la referencia; sin nombres, teléfonos, fechas
-  ni horas. En la demo (cada servidor tiene su base, D-39): un aviso una vez por persona, con «Entendido» («En la
+  ni horas. Desde el 13/11 el saludo, los cierres y los hashtags de esos copies, de los tweets y del guion salen de
+  `config/clients/fb.json` (`src/lib/db/seed-parts/voice.ts`), no del código: con otro archivo de cliente la demo dice
+  sus palabras (`tests/unit/demo-seed-brand.test.ts`). En la demo (cada servidor tiene su base, D-39): un aviso una vez por persona, con «Entendido» («En la
   demostración, cada servidor guarda lo suyo: lo que creas o mueves puede no verse al recargar, con otra cuenta o en
   otro teléfono. Lo sembrado siempre está.»); lo recién creado se abre en la misma pantalla; una pieza o miniatura
   de otro servidor lo dice así en vez de «no encontrado» o una imagen rota (como Mensajes, D-57).

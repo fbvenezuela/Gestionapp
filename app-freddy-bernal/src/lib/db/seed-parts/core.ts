@@ -2,10 +2,12 @@ import { DateTime } from 'luxon';
 import { tweetLength } from '../../domain/tweets';
 import type { DemoUserKey } from '../seed-demo';
 import { asPerson, type SeedCtx } from './context';
+import { GREETING, HELLO, KEEP_ON, LAST_WORDS, LOVE, TAG, TAGS, said } from './voice';
 
 // INVENTED demonstration data: the six events and everything around them (storyboards, material, pieces,
 // copies, approvals, publications, results and the tweets of the week). No real people, phones, addresses or
-// cases. Approvals are the boss's, through the same database functions the screens use.
+// cases. Approvals are the boss's, through the same database functions the screens use. The client's greeting, closings
+// and hashtags come from its config (voice.ts, APP-07).
 export async function seedCore(ctx: SeedCtx): Promise<void> {
   const { sql, ids, today, at, cat } = ctx;
   type Ev = {
@@ -95,11 +97,11 @@ export async function seedCore(ctx: SeedCtx): Promise<void> {
   // Storyboards for the first four events.
   const boards: { speech: string; blocks: [string, string, string, string, string, string][] }[] = [
     {
-      speech: '¡Saludos, Táchira! Hoy entregamos esta cancha techada a la comunidad de El Mirador. Son 600 metros cuadrados para que los muchachos entrenen con lluvia o con sol.',
+      speech: `${GREETING} Hoy entregamos esta cancha techada a la comunidad de El Mirador. Son 600 metros cuadrados para que los muchachos entrenen con lluvia o con sol.`,
       blocks: [
         ['Plano general', 'Dron desde el norte', 'Saludo y contexto de la obra', 'Cancha llena, niños jugando', 'Superficie: 600 m²', 'Ficha técnica'],
         ['Plano medio', 'Frontal, a la altura de los ojos', 'Para qué sirve la cancha', 'Clubes entrenando', 'Unas 1.200 personas beneficiadas', 'Ficha técnica'],
-        ['Primer plano', 'Lateral', 'Cierre: Seguimos trabajando', 'Corte de cinta', '', ''],
+        ['Primer plano', 'Lateral', `Cierre: ${KEEP_ON}`, 'Corte de cinta', '', ''],
       ],
     },
     {
@@ -172,9 +174,9 @@ export async function seedCore(ctx: SeedCtx): Promise<void> {
 
   const fab = await sql.one<{ id: string }>(`select id from public.copy_formulas where code = 'FAB'`);
   const copiesP1: [string, string][] = [
-    ['long', '¡Saludos, Táchira! 👋 Entregamos la cancha techada de El Mirador: 600 m² con techo y piso nuevo. Ahora los clubes juveniles entrenan con lluvia o con sol, y la comunidad tiene un espacio para sus actividades. Unas 1.200 personas se benefician. 💛 Por amor al Táchira.'],
-    ['medium', 'Entregamos la cancha techada de El Mirador 🏀 600 m² para que los clubes juveniles entrenen con lluvia o con sol. Unas 1.200 personas se benefician. Seguimos trabajando. ¿Juegas aquí? Cuéntame 👇'],
-    ['short', '🏀 Cancha techada de El Mirador: 600 m² para los clubes juveniles y la comunidad. Unas 1.200 personas beneficiadas. Seguimos trabajando 👇 #Tachira #FreddyBernal'],
+    ['long', `${HELLO} Entregamos la cancha techada de El Mirador: 600 m² con techo y piso nuevo. Ahora los clubes juveniles entrenan con lluvia o con sol, y la comunidad tiene un espacio para sus actividades. Unas 1.200 personas se benefician. ${LOVE}`],
+    ['medium', `Entregamos la cancha techada de El Mirador 🏀 600 m² para que los clubes juveniles entrenen con lluvia o con sol. Unas 1.200 personas se benefician. ${said(KEEP_ON)} ¿Juegas aquí? Cuéntame 👇`],
+    ['short', `🏀 Cancha techada de El Mirador: 600 m² para los clubes juveniles y la comunidad. Unas 1.200 personas beneficiadas. ${KEEP_ON} 👇 ${TAGS}`],
   ];
   for (const [g, body] of copiesP1) {
     await sql.query(`insert into public.copies (piece_id, formula_id, length_group, body, char_count, generated_by, updated_by) values ($1, $2, $3, $4, $5, 'template', $6)`, [
@@ -184,9 +186,9 @@ export async function seedCore(ctx: SeedCtx): Promise<void> {
   // p2 goes to review like any piece: with its three copies (sendToReview refuses it without them).
   const cifra = await sql.one<{ id: string }>(`select id from public.copy_formulas where code = 'CIFRA'`);
   for (const [g, body] of [
-    ['long', '¡Saludos, Táchira! 👋 Seguimos con la rehabilitación del puente La Quebrada: el avance ya llega al 60 %. Cuando terminemos vuelve a pasar la carga pesada y los productores sacan su cosecha sin dar la vuelta larga. 💛 Por amor al Táchira.'],
-    ['medium', 'El puente La Quebrada ya va por el 60 % 🚧 Pronto vuelve a pasar la carga pesada y la cosecha sale sin dar la vuelta larga. Seguimos trabajando. ¿Pasas por aquí? Cuéntame 👇'],
-    ['short', '🚧 Puente La Quebrada: ya va por el 60 %. Pronto vuelve a pasar la carga pesada. Seguimos trabajando 👇 #Tachira'],
+    ['long', `${HELLO} Seguimos con la rehabilitación del puente La Quebrada: el avance ya llega al 60 %. Cuando terminemos vuelve a pasar la carga pesada y los productores sacan su cosecha sin dar la vuelta larga. ${LOVE}`],
+    ['medium', `El puente La Quebrada ya va por el 60 % 🚧 Pronto vuelve a pasar la carga pesada y la cosecha sale sin dar la vuelta larga. ${said(KEEP_ON)} ¿Pasas por aquí? Cuéntame 👇`],
+    ['short', `🚧 Puente La Quebrada: ya va por el 60 %. Pronto vuelve a pasar la carga pesada. ${KEEP_ON} 👇 ${TAG}`],
   ] as const) {
     await sql.query(`insert into public.copies (piece_id, formula_id, length_group, body, char_count, generated_by, updated_by) values ($1, $2, $3, $4, $5, 'template', $6)`, [
       p2, cifra?.id ?? fab!.id, g, body, [...body].length, ids.social,
@@ -202,9 +204,9 @@ export async function seedCore(ctx: SeedCtx): Promise<void> {
   ))!.id;
   await sql.query(`insert into public.piece_versions (piece_id, version, media_asset_id, created_by) values ($1, 1, $2, $3)`, [p4, final2, ids.social]);
   for (const [g, body] of [
-    ['long', '¡Saludos, Táchira! 👋 Les explico qué pasa con el servicio de agua en la zona de prueba y qué estamos haciendo. 💛 Por amor al Táchira.'],
-    ['medium', 'Qué pasa con el servicio de agua en la zona de prueba y qué estamos haciendo. Seguimos trabajando.'],
-    ['short', 'Qué pasa con el agua en la zona de prueba y qué estamos haciendo. #Tachira #FreddyBernal'],
+    ['long', `${HELLO} Les explico qué pasa con el servicio de agua en la zona de prueba y qué estamos haciendo. ${LOVE}`],
+    ['medium', `Qué pasa con el servicio de agua en la zona de prueba y qué estamos haciendo. ${said(KEEP_ON)}`],
+    ['short', `Qué pasa con el agua en la zona de prueba y qué estamos haciendo. ${TAGS}`],
   ] as const) {
     await sql.query(`insert into public.copies (piece_id, formula_id, length_group, body, char_count, generated_by, updated_by) values ($1, $2, $3, $4, $5, 'manual', $6)`, [
       p4, fab!.id, g, body, [...body].length, ids.social,
@@ -258,11 +260,11 @@ export async function seedCore(ctx: SeedCtx): Promise<void> {
     [today.startOf('week').toISODate(), ids.social],
   );
   const tweetTexts = [
-    'Esta semana seguimos con la rehabilitación del puente La Quebrada. El avance ya llega al 60 %. Seguimos trabajando.',
+    `Esta semana seguimos con la rehabilitación del puente La Quebrada. El avance ya llega al 60 %. ${said(KEEP_ON)}`,
     'Entregamos la cancha techada de El Mirador: un espacio para que los muchachos entrenen con lluvia o con sol.',
     'Jornada de salud en la escuela Los Andes: la meta es atender a 300 estudiantes.',
     'Nos reunimos con productores de café de la zona alta para acordar el plan de vialidad agrícola.',
-    'Cada obra que entregamos es un compromiso cumplido con la gente. Por amor al Táchira.',
+    `Cada obra que entregamos es un compromiso cumplido con la gente. ${said(LAST_WORDS)}`,
     'El Táchira produce, el Táchira trabaja. Esta semana, feria de emprendedores en la plaza central.',
   ];
   for (const [i, body] of tweetTexts.entries()) {
@@ -289,9 +291,9 @@ export async function seedCore(ctx: SeedCtx): Promise<void> {
       catName: 'Deporte',
       mediaId: final1,
       copies: [
-        '¡Saludos, Táchira! 👋 Un saludo a todos los clubes deportivos que entrenan cada semana en sus comunidades. 💛 Por amor al Táchira.',
-        'Un saludo a los clubes deportivos que entrenan cada semana en sus comunidades. Seguimos trabajando 👇',
-        'Saludo a los clubes deportivos de cada comunidad 👇 #Tachira',
+        `${HELLO} Un saludo a todos los clubes deportivos que entrenan cada semana en sus comunidades. ${LOVE}`,
+        `Un saludo a los clubes deportivos que entrenan cada semana en sus comunidades. ${KEEP_ON} 👇`,
+        `Saludo a los clubes deportivos de cada comunidad 👇 ${TAG}`,
       ],
     },
     {
@@ -299,9 +301,9 @@ export async function seedCore(ctx: SeedCtx): Promise<void> {
       catName: 'Gestión de gobierno',
       mediaId: final2,
       copies: [
-        '¡Saludos, Táchira! 👋 Este es el resumen de las obras que avanzaron esta semana en los municipios. 💛 Por amor al Táchira.',
-        'Resumen de las obras que avanzaron esta semana en los municipios. Seguimos trabajando 👇',
-        'Las obras de la semana, en un minuto 👇 #Tachira',
+        `${HELLO} Este es el resumen de las obras que avanzaron esta semana en los municipios. ${LOVE}`,
+        `Resumen de las obras que avanzaron esta semana en los municipios. ${KEEP_ON} 👇`,
+        `Las obras de la semana, en un minuto 👇 ${TAG}`,
       ],
     },
   ];

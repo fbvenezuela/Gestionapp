@@ -2,6 +2,7 @@ import { FORMAT, type Format } from '../../domain/redes';
 import type { DemoUserKey } from '../seed-demo';
 import { asPerson, type SeedCtx } from './context';
 import { demoThumbBytes } from './thumbs';
+import { HELLO, KEEP_ON, LAST_WORDS, LOVE, TAG, TAGS, said } from './voice';
 
 // Redes by format in the demo (R4, D-76, design §7.1): Mes 1, Mes 2 and Mes 3; the six pieces of always as reels of
 // Mes 1; Mes 1 filled with INVENTED pieces for each format (8 posts, 12 reels, 4 carousels, 12 stories, 2 YouTube
@@ -59,8 +60,6 @@ const storyPhoto = (pic: Pic): File => ({ kind: 'final', label: 'Foto de la hist
 const storyClip = (pic: Pic): File => ({ kind: 'final', label: 'Clip de la historia', pic, video: { seconds: 15 }, w: 1080, h: 1920 });
 const slide = (pic: Pic, n: number): File => ({ kind: 'final', label: `Lámina ${n}`, pic, w: 1080, h: 1350 });
 
-const HELLO = '¡Saludos, Táchira! 👋';
-const LOVE = '💛 Por amor al Táchira.';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The pieces of Mes 1 (and two drafts of Mes 2). Invented: no real people, places, phones, days or hours.
@@ -73,14 +72,14 @@ const SPECS: Spec[] = [
     copies: {
       formula: 'FAB',
       long: `${HELLO} Así quedó el parque del sector: caminerías nuevas, bancos y luces para disfrutar sin apuro. Los niños ya tienen dónde jugar y la comunidad, dónde reunirse. ${LOVE}`,
-      medium: 'Así quedó el parque del sector 🌳 Caminerías nuevas, bancos y luces. Un espacio para jugar y para reunirse. Seguimos trabajando 👇',
-      short: '🌳 Así quedó el parque del sector: caminerías, bancos y luces nuevas. Seguimos trabajando 👇 #Tachira',
+      medium: `Así quedó el parque del sector 🌳 Caminerías nuevas, bancos y luces. Un espacio para jugar y para reunirse. ${KEEP_ON} 👇`,
+      short: `🌳 Así quedó el parque del sector: caminerías, bancos y luces nuevas. ${KEEP_ON} 👇 ${TAG}`,
     },
     details: {
       shots: [
         { says: 'Así quedó el parque del sector.', action: 'Toma abierta desde la entrada', on_screen: 'Así quedó' },
         { says: 'Caminerías nuevas, bancos y luces.', action: 'Paneo lento por las caminerías', on_screen: 'Caminerías nuevas' },
-        { says: 'Seguimos trabajando.', action: 'Niños jugando en el parque (sin caras)', on_screen: 'Por amor al Táchira' },
+        { says: said(KEEP_ON), action: 'Niños jugando en el parque (sin caras)', on_screen: LAST_WORDS },
       ],
     },
     pubs: [{ network: 'facebook', format: 'reel', status: 'scheduled', day: 5, hour: 19, slug: 'facebook/reel-parque' }],
@@ -92,8 +91,8 @@ const SPECS: Spec[] = [
     copies: {
       formula: 'FAB',
       long: `${HELLO} Acompañamos una jornada completa en el ambulatorio de la comunidad: consultas, vacunas y un equipo que atiende con cariño. Cuando el servicio funciona, la familia está tranquila. ${LOVE}`,
-      medium: 'Una jornada en el ambulatorio 🩺 Consultas, vacunas y un equipo que atiende con cariño. Seguimos trabajando 👇',
-      short: '🩺 Una jornada en el ambulatorio de la comunidad. Seguimos trabajando 👇 #Tachira',
+      medium: `Una jornada en el ambulatorio 🩺 Consultas, vacunas y un equipo que atiende con cariño. ${KEEP_ON} 👇`,
+      short: `🩺 Una jornada en el ambulatorio de la comunidad. ${KEEP_ON} 👇 ${TAG}`,
     },
     details: {
       shots: [
@@ -110,7 +109,7 @@ const SPECS: Spec[] = [
       formula: 'PAS',
       long: `${HELLO} Nos preguntan mucho por el agua. Sabemos lo que cuesta cuando no llega: por eso explicamos qué se está reparando y qué falta. Pregunta en los comentarios y respondemos. ${LOVE}`,
       medium: 'Preguntas de la gente: el agua 💧 Qué se está reparando y qué falta. Pregunta en los comentarios 👇',
-      short: '💧 Preguntas de la gente: el agua. Respondemos en los comentarios 👇 #Tachira',
+      short: `💧 Preguntas de la gente: el agua. Respondemos en los comentarios 👇 ${TAG}`,
     },
     details: {
       shots: [
@@ -153,12 +152,12 @@ const SPECS: Spec[] = [
       formula: 'AIDA',
       long: `${HELLO} ¿Sabes cuánto avanzó la gestión? En la imagen están las cifras de ejemplo de las obras, los operativos y las jornadas. Cada número es una familia atendida. Cuéntanos qué obra quieres ver. ${LOVE}`,
       medium: 'Las cifras de la gestión, en una imagen 📊 Obras, operativos y jornadas. Cuéntanos qué obra quieres ver 👇',
-      short: '📊 Las cifras de la gestión, en una imagen. Seguimos trabajando 👇 #Tachira',
+      short: `📊 Las cifras de la gestión, en una imagen. ${KEEP_ON} 👇 ${TAG}`,
     },
     details: {
       art_overline: 'Rendición de cuentas', art_headline: 'Lo que avanzó la gestión', art_seals: 'Cifras de ejemplo',
       art_fine_print: 'Datos de la ficha demo, solo para la demostración.', visual_concept: 'Fondo oliva con tres números grandes y un ícono por obra.',
-      cta: 'Cuéntanos qué obra quieres ver', hashtags: '#Tachira #FreddyBernal', publication_notes: 'Publicar la imagen en 4:5, sin recortes.',
+      cta: 'Cuéntanos qué obra quieres ver', hashtags: TAGS, publication_notes: 'Publicar la imagen en 4:5, sin recortes.',
       links: 'https://example.org/demo/cifras',
     },
     pubs: [{ network: 'instagram', format: 'photo', status: 'published', day: -21, hour: 12, slug: 'instagram/post-cifras' }],
@@ -171,12 +170,12 @@ const SPECS: Spec[] = [
       formula: 'FAB',
       long: `${HELLO} Tips para comprar en el mercado: lleva tu bolsa, compara precios entre puestos y apoya a los productores de la zona. Así rinde más el dinero y gana la economía local. ${LOVE}`,
       medium: 'Tips para comprar en el mercado 🛒 Lleva tu bolsa, compara precios y apoya a los productores de la zona 👇',
-      short: '🛒 Tips para comprar en el mercado: compara y apoya lo nuestro 👇 #Tachira',
+      short: `🛒 Tips para comprar en el mercado: compara y apoya lo nuestro 👇 ${TAG}`,
     },
     details: {
       art_overline: 'Tips', art_headline: 'Compra mejor en el mercado', art_seals: 'Apoya lo nuestro',
       visual_concept: 'Cesta de frutas y verduras dibujada, colores cálidos.', cta: 'Comparte con quien hace las compras',
-      hashtags: '#Tachira #HechoEnElTachira', post_ratio: '1:1',
+      hashtags: `${TAG} #HechoEnElTachira`, post_ratio: '1:1',
     },
     pubs: [{ network: 'instagram', format: 'photo', status: 'published', day: -19, hour: 19, slug: 'instagram/post-mercado' }],
     design: { status: 'approved', by: 'boss' }, rating: 7, feed: 4,
@@ -188,11 +187,11 @@ const SPECS: Spec[] = [
       formula: 'FAB',
       long: `${HELLO} Tips para ahorrar agua en casa: cierra la llave mientras te cepillas, revisa las fugas y reutiliza el agua de lavar. Entre todos cuidamos el servicio. ${LOVE}`,
       medium: 'Tips para ahorrar agua en casa 💧 Cierra la llave, revisa las fugas y reutiliza. Entre todos cuidamos el servicio 👇',
-      short: '💧 Tips para ahorrar agua en casa. Entre todos cuidamos el servicio 👇 #Tachira',
+      short: `💧 Tips para ahorrar agua en casa. Entre todos cuidamos el servicio 👇 ${TAG}`,
     },
     details: {
       art_overline: 'Tips', art_headline: 'Ahorra agua en casa', art_seals: 'Tres tips',
-      visual_concept: 'Gota grande con tres íconos: llave, fuga y balde.', hashtags: '#Tachira #CuidaElAgua',
+      visual_concept: 'Gota grande con tres íconos: llave, fuga y balde.', hashtags: `${TAG} #CuidaElAgua`,
     },
     notice: { kind: 'verify_source', body: 'Confirmar el dato del consumo de agua con la ficha antes de publicar.', by: 'social2', resolvedBy: 'boss' },
     feed: 9,
@@ -204,7 +203,7 @@ const SPECS: Spec[] = [
       formula: 'AIDA',
       long: `${HELLO} Detrás de cada emergencia hay un equipo listo para ayudar. Así trabajan los bomberos del estado: preparación, equipos nuevos y mucha vocación. Gracias por cuidarnos. ${LOVE}`,
       medium: 'Así trabajan los bomberos del estado 🚒 Preparación, equipos nuevos y mucha vocación. Gracias por cuidarnos 👇',
-      short: '🚒 Así trabajan los bomberos del estado. Gracias por cuidarnos 👇 #Tachira',
+      short: `🚒 Así trabajan los bomberos del estado. Gracias por cuidarnos 👇 ${TAG}`,
     },
     details: { art_overline: 'Nuestra gente', art_headline: 'Listos para ayudar', visual_concept: 'Casco y manguera en primer plano, sin caras.' },
     feed: 6,
@@ -216,11 +215,11 @@ const SPECS: Spec[] = [
       formula: 'PAS',
       long: `${HELLO} Durante meses, la vecina cargó tobos para tener agua en casa. Con la reparación de la tubería del sector, el agua volvió a llegar. Historias así nos dicen que vamos por buen camino. ${LOVE}`,
       medium: 'La vecina que volvió a tener agua 💧 Con la reparación de la tubería del sector, el agua volvió a llegar 👇',
-      short: '💧 La vecina que volvió a tener agua en casa. Seguimos trabajando 👇 #Tachira',
+      short: `💧 La vecina que volvió a tener agua en casa. ${KEEP_ON} 👇 ${TAG}`,
     },
     details: {
       art_overline: 'Historias de la gente', art_headline: 'El agua volvió a llegar', visual_concept: 'Manos abriendo una llave, luz cálida.',
-      cta: 'Cuéntanos si en tu sector ya llegó', hashtags: '#Tachira #AguaParaTodos',
+      cta: 'Cuéntanos si en tu sector ya llegó', hashtags: `${TAG} #AguaParaTodos`,
     },
     notice: { kind: 'written_consent', body: 'Testimonio: falta la autorización escrita de la vecina.', by: 'social' },
     feed: 13,
@@ -232,7 +231,7 @@ const SPECS: Spec[] = [
       formula: 'FAB',
       long: `${HELLO} ¿Tu comunidad necesita una jornada de salud? El consejo comunal hace la solicitud en la Gobernación y el equipo coordina la visita. Comparte para que llegue a quien lo necesita. ${LOVE}`,
       medium: 'Así pides una jornada de salud 🩺 El consejo comunal hace la solicitud y el equipo coordina la visita 👇',
-      short: '🩺 Así pides una jornada de salud para tu comunidad 👇 #Tachira',
+      short: `🩺 Así pides una jornada de salud para tu comunidad 👇 ${TAG}`,
     },
     details: { art_overline: 'Paso a paso', art_headline: 'Pide una jornada de salud', visual_concept: 'Tres pasos numerados con íconos.' },
     changes: 'El titular no se lee bien en el teléfono: súbelo de tamaño.',
@@ -243,7 +242,7 @@ const SPECS: Spec[] = [
     media: postImage('post-1'),
     details: {
       art_overline: 'Orgullo tachirense', art_headline: 'Café de altura', art_fine_print: 'Imagen de ejemplo para la demostración.',
-      visual_concept: 'Taza humeante sobre sacos de café, tonos tierra.', hashtags: '#Tachira #CafeTachirense',
+      visual_concept: 'Taza humeante sobre sacos de café, tonos tierra.', hashtags: `${TAG} #CafeTachirense`,
     },
     design: { status: 'disapproved', note: 'El titular se lee pequeño en el teléfono.', by: 'social2' }, feed: 19,
   },
@@ -260,10 +259,10 @@ const SPECS: Spec[] = [
       formula: 'AIDA',
       long: `${HELLO} ¿Viste una falla en tu sector? Desliza y aprende a reportarla paso a paso: qué datos dar, dónde enviarlos y cómo seguir tu reporte. Así llegamos más rápido. ${LOVE}`,
       medium: 'Paso a paso: reportar una falla 🛠️ Qué datos dar, dónde enviarlos y cómo seguir tu reporte 👇',
-      short: '🛠️ Reporta una falla en tu sector, paso a paso 👇 #Tachira',
+      short: `🛠️ Reporta una falla en tu sector, paso a paso 👇 ${TAG}`,
     },
     details: {
-      hook: '¿Viste una falla en tu sector?', cta: 'Guarda este carrusel', hashtags: '#Tachira #ReportaYa',
+      hook: '¿Viste una falla en tu sector?', cta: 'Guarda este carrusel', hashtags: `${TAG} #ReportaYa`,
       slides: [
         { role: 'cover', title: 'Reporta una falla', text: 'En cuatro pasos.' },
         { role: 'body', title: 'Qué datos dar', text: 'Qué pasó y en qué sector.' },
@@ -281,7 +280,7 @@ const SPECS: Spec[] = [
       formula: 'FAB',
       long: `${HELLO} Cinco obras que avanzaron este mes: vialidad, agua, canchas, escuelas y alumbrado. Desliza para ver cada una y cuéntanos cuál te tocó de cerca. ${LOVE}`,
       medium: 'Cinco obras que avanzaron este mes 🏗️ Desliza para ver cada una 👇',
-      short: '🏗️ Cinco obras que avanzaron este mes 👇 #Tachira',
+      short: `🏗️ Cinco obras que avanzaron este mes 👇 ${TAG}`,
     },
     details: {
       hook: 'Cinco obras que avanzaron', cta: 'Cuéntanos cuál te tocó de cerca',
@@ -302,7 +301,7 @@ const SPECS: Spec[] = [
       formula: 'PAS',
       long: `${HELLO} ¿Tu comunidad necesita un operativo y no sabes por dónde empezar? Desliza: te explicamos quién lo pide, qué hace falta y cómo se coordina. ${LOVE}`,
       medium: 'Cómo pedir un operativo 📋 Quién lo pide, qué hace falta y cómo se coordina 👇',
-      short: '📋 Cómo pedir un operativo para tu comunidad 👇 #Tachira',
+      short: `📋 Cómo pedir un operativo para tu comunidad 👇 ${TAG}`,
     },
     details: {
       hook: '¿No sabes por dónde empezar?', cta: 'Comparte con tu consejo comunal',
@@ -403,7 +402,7 @@ const SPECS: Spec[] = [
       formula: 'FAB',
       long: `${HELLO} Este es el reporte de la gestión: obras, servicios y lo que viene. Capítulos: 1. Lo que avanzó · 2. Los servicios · 3. Lo que viene. Comenta qué quieres ver en el próximo reporte. ${LOVE}`,
       medium: 'Reporte de la gestión 🎥 Obras, servicios y lo que viene. Comenta qué quieres ver en el próximo 👇',
-      short: '🎥 Reporte de la gestión: obras, servicios y lo que viene 👇 #Tachira',
+      short: `🎥 Reporte de la gestión: obras, servicios y lo que viene 👇 ${TAG}`,
     },
     details: {
       shots: [
@@ -431,7 +430,7 @@ const SPECS: Spec[] = [
       formula: 'FAB',
       long: `${HELLO} Así cerramos el mes: obras entregadas, servicios que mejoraron y mucha gente trabajando por el estado. Gracias por acompañarnos. ${LOVE}`,
       medium: 'Así cerramos el mes 📌 Obras, servicios y mucha gente trabajando 👇',
-      short: '📌 Así cerramos el mes 👇 #Tachira',
+      short: `📌 Así cerramos el mes 👇 ${TAG}`,
     },
     details: {
       slides: [
