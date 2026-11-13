@@ -181,12 +181,16 @@ export const REPORT_FIELDS: FieldDef[] = [
 export const FIELDS: Record<FichaKind, FieldDef[]> = { obra: OBRA_FIELDS, report: REPORT_FIELDS };
 export const GROUPS: Record<FichaKind, GroupDef[]> = { obra: OBRA_GROUPS, report: REPORT_GROUPS };
 
-// The label of a column, for the history («Actualizó: Avance, Inversión»). Unknown keys keep their name.
-export function fieldLabel(kind: FichaKind, key: string): string {
+// The label of a column, for the history («Actualizó: Avance, Inversión») and the form's «alguien cambió» note. A date
+// of the group «Fecha y hora» says its group too («Fecha y hora del reporte»: «Del reporte» alone says nothing out of
+// the form). A key with no label is null, and callers leave it out: an internal column never shows its name.
+export function fieldLabel(kind: FichaKind, key: string): string | null {
   if (key === 'fab_dialog' || key === 'fab_generated_by') return 'Lo que voy a decir';
   if (key === 'marks') return 'No aplica / Por confirmar';
   if (key === 'wants_agenda') return '¿Va a la agenda del jefe?';
-  return FIELDS[kind].find((f) => f.key === key)?.label ?? key;
+  const def = FIELDS[kind].find((f) => f.key === key);
+  if (!def) return null;
+  return def.group === 'dates' ? `Fecha y hora ${def.label.toLowerCase()}` : def.label;
 }
 
 // ---------------------------------------------------------------------------
