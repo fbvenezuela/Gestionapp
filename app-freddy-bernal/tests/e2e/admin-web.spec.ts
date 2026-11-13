@@ -1,6 +1,6 @@
 import { test, expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { loginAs } from './helpers';
+import { loginAs, readyForAxe } from './helpers';
 import { QUIET_STATE } from './global-setup';
 import { pngOf } from '../unit/fixtures/web-png';
 
@@ -22,6 +22,7 @@ const PHONE = { viewport: { width: 360, height: 760 }, isMobile: true, hasTouch:
 const DESKTOP = { viewport: { width: 1280, height: 900 }, isMobile: false, hasTouch: false };
 
 async function noSerious(page: Page, where: string) {
+  await readyForAxe(page, where);
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = r.violations
     .filter((v) => v.impact === 'serious' || v.impact === 'critical')

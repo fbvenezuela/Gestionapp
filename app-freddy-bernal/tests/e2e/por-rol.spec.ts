@@ -1,6 +1,6 @@
 import { test, expect, type Browser, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { loginAs } from './helpers';
+import { loginAs, readyForAxe } from './helpers';
 import { chatChannelId } from '../../src/lib/db/seed-parts/chat';
 
 // §8 of the change request, «Pruebas por rol», on the phone (360 px) with axe: each person walks its own screens and
@@ -18,8 +18,7 @@ const CLOCK = /\d{1,2}:\d{2}\s?[ap]\.\s?m\./i;
 type Sched = { href: string; when: string; time: string; day: string; until: string; address: string };
 
 async function noSerious(page: Page, where: string) {
-  // A toast fading in or out is half transparent: axe would read its contrast mid-animation.
-  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 15_000 });
+  await readyForAxe(page, where);
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${where} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 2).join(' | ')}`);
   expect(serious, where).toEqual([]);

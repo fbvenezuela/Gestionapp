@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import { test, expect, type Page } from '@playwright/test';
+import { readyForAxe } from './helpers';
 import AxeBuilder from '@axe-core/playwright';
 import { SECRET as GPS_TEXT, jpegWithGps } from '../unit/fixtures/photos';
 
@@ -22,6 +23,7 @@ test.beforeEach(async ({ context }) => {
 });
 
 async function axe(page: Page, label: string) {
+  await readyForAxe(page, label);
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = r.violations
     .filter((v) => v.impact === 'serious' || v.impact === 'critical')

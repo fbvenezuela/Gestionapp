@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { loginAs } from './helpers';
+import { loginAs, readyForAxe } from './helpers';
 import { toursForRoles, type Tour } from '../../src/lib/guides';
 
 // The tutorials' engine on real pixels (R3, D-45, design §6.1, §9.2): `bienvenida` step by step with Redes and «Seguir»
@@ -17,7 +17,7 @@ const tourOf = (roles: Parameters<typeof toursForRoles>[0], id: string) => tours
 const textFor = (body: Tour['steps'][number]['body'], role: string) => (typeof body === 'string' ? body : (body as Record<string, string>)[role]);
 
 async function noSerious(page: Page, where: string) {
-  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 15_000 });
+  await readyForAxe(page, where);
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${where} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 2).join(' | ')}`);
   expect(serious, where).toEqual([]);

@@ -1,6 +1,6 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { loginAs } from './helpers';
+import { loginAs, readyForAxe } from './helpers';
 
 // The piece in big, the review room and Ajustes → Cupo y pilares (R4, WP-C2, D-60, D-63, D-66, D-68, D-70), at 360 px
 // against the demo (and one pass at 1366): a story's review room shows what goes out in the app; a notice Redes puts
@@ -11,7 +11,7 @@ import { loginAs } from './helpers';
 test.describe.configure({ mode: 'serial' });
 
 async function axe(page: Page) {
-  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 15_000 });
+  await readyForAxe(page, new URL(page.url()).pathname);
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
   expect(serious.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(' | ')}`)).toEqual([]);

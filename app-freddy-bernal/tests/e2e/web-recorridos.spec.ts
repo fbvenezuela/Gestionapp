@@ -1,6 +1,6 @@
 import { test, expect, type Browser, type BrowserContext, type Page, type Request } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { loginAs } from './helpers';
+import { loginAs, noToasts, readyForAxe } from './helpers';
 import { QUIET_STATE } from './global-setup';
 import { SECRET as GPS_TEXT, jpegWithGps } from '../unit/fixtures/photos';
 
@@ -41,12 +41,7 @@ const nextIp = () => `${NET}.${host++ % 250}`;
 const PDF = Buffer.from('%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n', 'latin1');
 
 async function axe(page: Page, where: string) {
-  // A toast that is fading out is not part of the screen (the other specs wait for it too).
-  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 15_000 });
-  // The <title> comes with Next's streamed metadata: once (1 run in 3, right after a lookup) axe ran before it was back
-  // and saw a page without a title; 22 probe runs never saw it again (docs/INFORME-PRUEBAS-WEB.md). Wait for it here: a
-  // page that really has no title still fails, after 5 s.
-  await expect.poll(() => page.title(), { message: `${where}: la página no tiene título`, timeout: 5_000 }).not.toBe('');
+  await readyForAxe(page, where);
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = r.violations
     .filter((v) => v.impact === 'serious' || v.impact === 'critical')
@@ -411,7 +406,7 @@ test.describe('de punta a punta en la computadora: llega, se asigna, se pide inf
     await page.getByRole('button', { name: 'Cambiar el estado' }).click();
     await expect(page.getByText('Listo: cambió el estado.')).toBeVisible();
     await expect(history.getByText('Pasó de «En revisión» a «En atención».')).toBeVisible();
-    await expect(page.locator('[data-sonner-toast]')).toHaveCount(0, { timeout: 15_000 });
+    await noToasts(page);
     await page.getByLabel('Pasar a').selectOption('resuelto');
     await page.getByLabel('Cómo se resolvió (justificación)').fill(RESOLUTION);
     await page.getByRole('button', { name: 'Cambiar el estado' }).click();
