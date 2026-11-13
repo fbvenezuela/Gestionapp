@@ -1133,6 +1133,10 @@ la agenda, Tweets ni la publicación manual. Las preguntas para Hillary siguen l
 - **Por qué:** «Publicar con validación propia por red» (§0); hoy no hay `story` ni `carousel` en las reglas.
 - **Cómo se cambia:** `config/network-specs.json` (+ `npm run db:seed-client` en `fb-dev`), `validateFor` en
   `src/lib/data/publish.ts`.
+- **Ajuste del 13/11:** Post → foto también en Facebook (hasta 4 MB), Threads (8 MB) y X (5 MB). Solo Instagram tenía
+  `photo`, así que un post no se podía programar en esas tres redes, que sí reciben imágenes («Facebook: esta red no
+  recibe posts»). TikTok y YouTube siguen sin foto. `ADDED_FORMATS` (`src/lib/db/seed-client.ts`) la suma en `fb-dev`
+  con `npm run db:seed-client` sin tocar lo que editó Administración; los pesos, por verificar (`PENDIENTES.md`).
 
 ## D-74. Drive: «Organizar por orden del feed», apagado (29/10/2026)
 - **Qué:** botón en Ajustes → Google Drive, solo si están las cuatro llaves: variable `REDES_DRIVE_ORGANIZE=true`, Drive

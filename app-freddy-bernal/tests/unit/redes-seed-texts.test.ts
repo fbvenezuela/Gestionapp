@@ -119,13 +119,17 @@ describe('la semilla de Redes por formato', () => {
 });
 
 describe('seedClient y Redes por formato (también en fb-dev)', () => {
-  it('crea «Mes 1» una sola vez, le pasa las piezas sin mes y suma historias y carruseles sin pisar lo editado', async () => {
+  it('crea «Mes 1» una sola vez, le pasa las piezas sin mes y suma historias, carruseles y fotos sin pisar lo editado', async () => {
     const { db, backend } = await createMemoryDb();
     try {
-      // A database from before the months: a piece without a month, and a network rule administración edited.
+      // A database from before the months: a piece without a month, and network rules administración edited (Facebook
+      // from before the photo of a post, APP-25).
       await asSystem(backend, async (sql) => {
         await sql.query(`insert into public.network_specs (network, label, formats, copy_max_chars, length_group) values ('instagram', 'Instagram', $1::text::jsonb, 2200, 'long')`, [
           JSON.stringify({ reel: { max_duration_s: 90 } }),
+        ]);
+        await sql.query(`insert into public.network_specs (network, label, formats, copy_max_chars, length_group) values ('facebook', 'Facebook', $1::text::jsonb, 63206, 'long')`, [
+          JSON.stringify({ reel: { max_duration_s: 60 }, story: { max_duration_s: 30 } }),
         ]);
         await sql.query(`insert into public.pieces (kind, format, title) values ('video', 'reel', 'Pieza de antes de los meses')`);
       });
@@ -138,11 +142,20 @@ describe('seedClient y Redes por formato (también en fb-dev)', () => {
       expect((await db.query<{ m: string }>(`select content_month_id as m from public.pieces`)).rows[0].m).toBe(months[0].id);
       const ig = (await db.query<{ formats: Record<string, Record<string, unknown>> }>(`select formats from public.network_specs where network = 'instagram'`)).rows[0].formats;
       expect(ig.reel).toEqual({ max_duration_s: 90 });
-      expect(Object.keys(ig).sort()).toEqual(['carousel', 'reel', 'story']);
+      expect(Object.keys(ig).sort()).toEqual(['carousel', 'photo', 'reel', 'story']);
       expect(ig.carousel).toMatchObject({ max_items: 20 });
+      // Facebook: what was edited stays (reel, story); what it lacked comes in, the photo with its weight; the video
+      // (not an added format) does not.
       const fb = (await db.query<{ formats: Record<string, unknown> }>(`select formats from public.network_specs where network = 'facebook'`)).rows[0].formats;
-      expect(fb).toHaveProperty('story');
+      expect(fb.reel).toEqual({ max_duration_s: 60 });
+      expect(fb.story).toEqual({ max_duration_s: 30 });
       expect(fb).toHaveProperty('carousel');
+      expect(fb.photo).toEqual({ max_size_mb: 4 });
+      expect(fb).not.toHaveProperty('video');
+      // Threads and X were not there: they come in whole, with the photo.
+      const photo = async (n: string) => (await db.query<{ p: unknown }>(`select formats -> 'photo' as p from public.network_specs where network = $1`, [n])).rows[0].p;
+      expect(await photo('threads')).toEqual({ max_size_mb: 8 });
+      expect(await photo('x')).toEqual({ max_size_mb: 5 });
       const settings = (await db.query<{ key: string; value: unknown }>(`select key, value from public.app_settings where key like 'redes.%' order by key`)).rows;
       expect(settings).toEqual([
         { key: 'redes.pillars', value: [] },

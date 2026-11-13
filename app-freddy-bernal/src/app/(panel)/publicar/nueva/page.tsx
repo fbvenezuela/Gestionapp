@@ -27,7 +27,7 @@ export default async function NewPublicationPage({ searchParams }: { searchParam
   }
   return (
     <>
-      <PageHeader title="Nueva publicación" subtitle="Revisamos el video para cada red antes de programar." back={{ href: '/publicar', label: 'Publicar' }} />
+      <PageHeader title="Nueva publicación" subtitle="La app revisa la pieza para cada red antes de programarla." back={{ href: '/publicar', label: 'Publicar' }} />
       <NewPublication
         approved={data.approved}
         pieceId={pieza ?? ''}

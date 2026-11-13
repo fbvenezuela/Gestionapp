@@ -257,6 +257,10 @@ frena: lo que dice entre paréntesis ya está construido así y se cambia en un 
 - **«¿A qué hora nos va mejor?» por día de la semana:** hoy va por franja horaria; el día queda pendiente (Resultados).
 - En la demo, lo que se crea o se mueve en Redes vive en un solo servidor (D-39, D-76): para probar creando entre roles
   hace falta `fb-dev`.
+- **La foto de un post en Facebook, Threads y X (13/11, D-73):** los pesos máximos (4, 8 y 5 MB) son los de la
+  documentación pública de cada red, por verificar en Ajustes → Reglas por red. En `fb-dev` las tres redes la tienen
+  cuando se corra `npm run db:seed-client` (la suma sin tocar lo editado); mientras, ahí un post sigue sin poder
+  programarse en esas redes.
 - **X y el video vertical (13/11), por verificar:** la documentación pública de X da un máximo para el video horizontal
   (1920×1200) y otro para el vertical (1200×1900), y `config/network-specs.json` guarda un solo par (1920 de ancho,
   1200 de alto). Por eso un reel vertical 1080×1920 sale «el video es muy alto… Expórtalo más bajo» en X. Revisar la
