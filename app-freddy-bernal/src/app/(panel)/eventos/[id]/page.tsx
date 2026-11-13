@@ -241,7 +241,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
                 )}
               </CardBody>
             </Card>
-            {canEdit ? <HistoryCard rows={data.history} /> : null}
+            {canEdit ? <HistoryCard rows={data.history} categories={data.categories} /> : null}
           </div>
         </div>
       ) : null}
