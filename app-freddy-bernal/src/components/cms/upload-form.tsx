@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useId, useRef, useState } from 'react';
 import { FileText, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Textarea } from '@/components/ui/field';
 import { compressImage } from '@/lib/media/probe';
 import { ADMIN_WEB } from '@/lib/web/cms/kinds';
-import { ALT_HELP, ALT_MISSING } from '@/lib/web/cms/media-file';
+import { ALT_HELP, ALT_MISSING, WEB_MEDIA_LIMITS } from '@/lib/web/cms/media-file';
 import type { MediaInfo } from '@/lib/data/web-admin';
 import { FocalPicker } from './focal-picker';
 
@@ -17,8 +17,21 @@ import { FocalPicker } from './focal-picker';
 
 type Kind = 'image' | 'document';
 
+// The largest file the server takes for each kind, read where the server runs (maxMediaBytes: on the hosting, 4 MB for
+// every file) and passed down by src/app/(panel)/admin/web/layout.tsx, so the hint says the limit that applies. Without
+// it, the smallest one.
+export type UploadLimitsValue = Record<Kind, number>;
+const LimitsContext = createContext<UploadLimitsValue>({ image: WEB_MEDIA_LIMITS.vercelBytes, document: WEB_MEDIA_LIMITS.vercelBytes });
+
+export function UploadLimits({ value, children }: { value: UploadLimitsValue; children: React.ReactNode }) {
+  return <LimitsContext.Provider value={value}>{children}</LimitsContext.Provider>;
+}
+
+const megabytes = (n: number) => Math.max(1, Math.round(n / (1024 * 1024)));
+
 export function UploadForm({ kind, onUploaded, submitLabel }: { kind: Kind; onUploaded: (m: MediaInfo) => void; submitLabel?: string }) {
   const id = useId();
+  const limits = useContext(LimitsContext);
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -101,7 +114,7 @@ export function UploadForm({ kind, onUploaded, submitLabel }: { kind: Kind; onUp
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4" noValidate aria-label={kind === 'image' ? 'Subir una foto' : 'Subir un documento PDF'}>
-      <Field label={kind === 'image' ? 'Foto (JPG, PNG o WebP)' : 'Documento (PDF)'} htmlFor={`${id}-file`} hint={kind === 'image' ? 'Se achica y pierde la ubicación y los datos de la cámara antes de salir de este equipo.' : 'Hasta 20 MB.'}>
+      <Field label={kind === 'image' ? 'Foto (JPG, PNG o WebP)' : 'Documento (PDF)'} htmlFor={`${id}-file`} hint={kind === 'image' ? 'Se achica y pierde la ubicación y los datos de la cámara antes de salir de este teléfono o computadora.' : `Hasta ${megabytes(limits.document)} MB.`}>
         <input
           ref={input}
           id={`${id}-file`}

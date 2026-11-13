@@ -49,7 +49,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Sear
 
       {caps.canEdit ? (
         <Card className="mb-5">
-          <CardHeader title="Subir" subtitle="La foto se achica y pierde la ubicación antes de salir de este equipo. El texto alternativo es obligatorio." />
+          <CardHeader title="Subir" subtitle="La foto se achica y pierde la ubicación antes de salir de este teléfono o computadora. El texto alternativo es obligatorio." />
           <CardBody>
             <LibraryUpload />
           </CardBody>

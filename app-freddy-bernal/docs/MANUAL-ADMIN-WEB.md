@@ -131,8 +131,8 @@ está en la web» (tus cambios salen solo cuando se publique de nuevo), «Progra
 vieja» (ver 4.15) y «Archivado: no se ve en la web».
 
 - **Lo que escribes y no guardas se queda solo en ese teléfono o esa computadora.** Si se va la luz o la señal, al
-  volver dice «Recuperamos cambios que no se habían guardado en este equipo.». «Descartarlos» los borra. Solo «Guardar
-  borrador» lo guarda en el panel, donde lo ven los demás.
+  volver dice «Recuperamos cambios que no se habían guardado en este teléfono o computadora.». «Descartarlos» los
+  borra. Solo «Guardar borrador» lo guarda en el panel, donde lo ven los demás.
 - **Dos personas a la vez:** si otra persona guardó mientras escribías, sale «Alguien guardó cambios en este contenido
   mientras lo editabas. Copia lo tuyo y vuelve a abrirlo para ver lo último.».
 
@@ -250,8 +250,8 @@ web hay que enviarla a aprobación y publicarla otra vez. El editor también pue
 
 - Solo se aceptan fotos JPG, PNG o WebP. Una foto en otro formato hay que guardarla antes como JPG. Antes de salir
   de tu teléfono o tu computadora, la foto **se achica y pierde la ubicación y los datos de la cámara**.
-- **Cada archivo va hasta 4 MB**, también los PDF, aunque «Subir un PDF» diga «Hasta 20 MB.». Si pesa más, sale «El
-  archivo pasa de 4 MB: súbelo más liviano.».
+- **Cada archivo va hasta 4 MB**, también los PDF («Subir un PDF» dice «Hasta 4 MB.»). Si pesa más, sale «El archivo
+  pasa de 4 MB: súbelo más liviano.».
 - Sirve cualquier foto normal de teléfono o de cámara. Una imagen diminuta, como un ícono, no se acepta.
 - Un PDF puede llevar escondido el nombre de quien lo hizo, y la app no lo quita. Antes de subirlo, ábrelo y mira en
   sus propiedades quién sale como autor.

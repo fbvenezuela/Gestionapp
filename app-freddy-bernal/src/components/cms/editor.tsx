@@ -157,7 +157,7 @@ export function Editor({
       <div className="flex flex-col gap-4">
         {restored ? (
           <div className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] bg-info-soft px-4 py-3 text-[15px]" role="status">
-            <span className="flex-1 text-text">Recuperamos cambios que no se habían guardado en este equipo.</span>
+            <span className="flex-1 text-text">Recuperamos cambios que no se habían guardado en este teléfono o computadora.</span>
             <Button type="button" size="sm" variant="secondary" onClick={discardLocal}>
               Descartarlos
             </Button>
