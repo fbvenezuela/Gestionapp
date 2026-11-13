@@ -26,10 +26,11 @@ type BoardDraft = Board & { base: Board | null; baseRev: number | null };
 
 // fab: «Lo que voy a decir» of the obra ficha the event was born from (§4.1, the FAB dialog), '' when there is none:
 // whoever writes the storyboard can take it as the speech with one tap («Usar como discurso») and change it before
-// saving; everyone else reads it.
+// saving; everyone else reads it. greeting: the client's own greeting (config/clients/<brand>.json, passed by the page),
+// the start of the speech's example; never written here (§11.6).
 export function StoryboardEditor({
-  eventId, canEdit, speech, blocks, facts, rev, fab = '',
-}: { eventId: string; canEdit: boolean; speech: string; blocks: DbBlock[]; facts: string; rev: number | null; fab?: string }) {
+  eventId, canEdit, speech, blocks, facts, rev, fab = '', greeting = '',
+}: { eventId: string; canEdit: boolean; speech: string; blocks: DbBlock[]; facts: string; rev: number | null; fab?: string; greeting?: string }) {
   const server: Board = {
     speech,
     blocks: blocks.map((b) => ({ id: b.id, shot: b.shot, angle: b.angle, bossLine: b.boss_line, broll: b.broll, fact: b.fact, factSource: b.fact_source })),
@@ -127,7 +128,7 @@ export function StoryboardEditor({
       <Card>
         <CardHeader title="Lo que va a decir" subtitle="El texto que el jefe lee en su iPad (modo lectura)." />
         <CardBody>
-          <Textarea aria-label="Lo que va a decir" rows={6} value={value.speech} onChange={(e) => setValue({ ...value, speech: e.target.value })} placeholder="¡Saludos, Táchira! Hoy estamos en…" />
+          <Textarea aria-label="Lo que va a decir" rows={6} value={value.speech} onChange={(e) => setValue({ ...value, speech: e.target.value })} placeholder={greeting ? `${greeting} Hoy estamos en…` : 'Hoy estamos en…'} />
           <p className="mt-1.5 text-sm text-text-2">{DICTATE_HINT}</p>
         </CardBody>
       </Card>

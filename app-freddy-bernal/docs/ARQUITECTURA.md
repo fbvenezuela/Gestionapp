@@ -5,7 +5,8 @@ Actualizado: 29/10/2026 (seis roles, fichas, agenda compartida y entrega de Grab
 `20261028002400`; ronda 4: Redes por formato, meses y feed, `20261029000100`; ronda 5: Mensajes como canales,
 `20261029090000`; 06/11: la base de la web pública y la atención ciudadana, `20261106000050` a `20261106000300`, y
 después sus pantallas, su administrador, la atención, el importador y la revisión de seguridad, `20261106100100` a
-`20261106400200`).
+`20261106400200`; 13/11: los textos de 360, del rol de jefe y de las respuestas guardadas, `20261113000100` a
+`20261113100000`).
 
 ## Piezas
 - **Next.js 16 (App Router), React 19, TypeScript estricto, Tailwind 4.** Server Components para leer y server
@@ -437,6 +438,7 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 | `20261029000100_redes_formatos.sql` | Ronda 4: Redes por formato, meses y feed: `pieces.format` y lo de la tarjeta, `content_months`, `feed_slots`, `piece_details`, `piece_notices`; las funciones del feed y de los meses; lo que vuelve al jefe; retención por diseño desaprobado; eliminar solo el jefe (D-60 a D-78). En `fb-dev` desde el 30/10 |
 | `20261029090000_chat_channels.sql` | Ronda 5: Mensajes como canales que arma el jefe, el jefe en todos por la base, sin aviso ni «Quién habla con quién»; lo que había queda en canales archivados (D-79 a D-88). En `fb-dev` desde el 30/10 |
 | `20261106000050_web_roles_enum.sql` | Web pública: los roles `web_publisher`, `attention_coordinator` y `auditor` (D-93). No está en `fb-dev` |
+| `20261106000100_office.sql` | La oficina: `event_office` (la lectura de recepción, el guion que aprueba solo el jefe y los dos pasos del editor, una fila por evento, con RLS por quien ve el evento) y `office_facts()` (D-100). No está en `fb-dev` |
 | `20261106000110_web_publica.sql` | Los seis roles de la web y la atención se dan; puertas con doble factor del token; territorios, contenido, versiones, biblioteca, ajustes, redirecciones; funciones de publicar; lo que lee anon; baldes de Storage (D-90, D-93, D-96). No está en `fb-dev` |
 | `20261106000200_participacion.sql` | Áreas, categorías, solicitudes y todo alrededor, la máquina de estados y las funciones del equipo, auditoría sin contenido (D-92). No está en `fb-dev` |
 | `20261106000300_citizen.sql` | El esquema `citizen`: lo que hace el ciudadano sin cuenta, solo para anon (D-96). No está en `fb-dev` |
@@ -444,6 +446,8 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 | `20261106300100_web_importador.sql` | De dónde vino cada borrador y foto importados de la web vieja (`web_import_items`, `web_import_media`, lectura con RLS para el equipo de la web, sin escritura por la API) y `guard_web_item_ready`: no se publica «[Por escribir]» ni las marcas de datos quitados (D-97). No está en `fb-dev` |
 | `20261106400100_seguridad_web.sql` | Revisión del 06/11: la auditoría de `web_media` y de los ajustes privados del sitio guarda quién, cuándo y qué campos, nunca el contenido (`SEGURIDAD.md`). No está en `fb-dev` |
 | `20261106400200_citizen_solo_app.sql` | Revisión del 06/11: las funciones del ciudadano con límite se niegan si las llaman por la Data API de Supabase (`SEGURIDAD.md`). No está en `fb-dev` |
+| `20261113000100_asistente_la_app.sql` | Las fichas que arma 360 (`assistant_refresh()`) dicen «la app», no «la plataforma»; una ficha que el equipo cambió no se pisa. No está en `fb-dev` |
+| `20261113000200_rol_de_jefe_quien_instala.sql` | Las negativas de `guard_boss_grant()` dicen «quien instala la app», no «el comando de instalación» (las mismas reglas; solo cambian los tres textos, que una persona puede leer). No está en `fb-dev` |
 | `20261113100000_respuestas_guardadas_de_usted.sql` | Las nueve respuestas guardadas que trae la app pasan a «usted» (solo las que siguen tal como vinieron; una que la coordinación cambió se queda como está). No está en `fb-dev` |
 
 ## Tareas programadas

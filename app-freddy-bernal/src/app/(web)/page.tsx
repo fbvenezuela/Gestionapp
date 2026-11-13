@@ -9,7 +9,7 @@ import { getSite, type Site } from '@/lib/web/site';
 import { navLabel } from '@/lib/web/site-settings';
 
 // Inicio (design §2): built from the blocks of the page «inicio» that the publisher approved (hero, the participation
-// accesses, indicators, the attended cases, the work, the latest Reporte Bernal, news, notices, channels). Static and
+// accesses, indicators, the attended cases, the work, the latest weekly program, news, notices, channels). Static and
 // cached; read again every minute (WEB_REVALIDATE, src/lib/web/tags.ts) and at once when something is published.
 export const revalidate = 60;
 

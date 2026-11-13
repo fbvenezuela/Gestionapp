@@ -386,7 +386,7 @@ const DEFINITE_EVENT = new RegExp(String.raw`\b(?:el|la|los|las|este|esta|estos|
 const NAMED_EVENT = new RegExp(String.raw`\b(?:el|la|los|las|este|esta|estos|estas|ese|esa|esos|esas|del|al|aquel|aquella)\s+(?!(?:agenda|entrega de grabacion|eventos?|actividad|actividades|visitas?(?: de obra)?)\b)(?:${EVENT_NOUNS})\b`);
 // The boss going somewhere or coming («¿el jefe ya fue a la ermita?», «¿viene el jefe?»): his agenda.
 const BOSS_GOES = /\b(?:fue|va|van|viene|vienen|vino|llega|llego|llegara|ira|iria|vendra|estuvo|estara|visita|visito|visitara|pasa por|paso por)\b(?! a [a-z]+(?:ar|er|ir)\b)/;
-// The screens' labels («Por ponerle fecha», «Hoy en la agenda», «Esperan al jefe», «Guardar aunque choque»): every «…» the
+// The screens' labels («Por ponerle fecha», «Hoy en la agenda», «Esperan al jefe», «Ya tiene fecha»): every «…» the
 // help content quotes. Written without «», they go only when the question asks what one is, where it is or how it is
 // filled («¿qué sale en hoy en la agenda?», «¿qué es lo de esperan al jefe?»): «¿qué hay hoy en la agenda?», «¿qué hay a fin
 // de mes?» or «los próximos 7 días» are still the agenda. The labels that name the agenda's data (a place, a contact, the

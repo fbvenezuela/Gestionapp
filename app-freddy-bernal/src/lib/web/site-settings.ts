@@ -198,7 +198,7 @@ export function normalizeSite(raw: Record<string, unknown>, opts: SiteOptions): 
   };
 }
 
-/** The label the site's navigation gives an address («/reporte-bernal» → «Reporte Bernal»), or the fallback. */
+/** The label the site's navigation gives an address (the program's route → the program's name), or the fallback. */
 export function navLabel(site: Pick<Site, 'navigation'>, path: string, fallback: string): string {
   return site.navigation.find((n) => n.path === path)?.label ?? fallback;
 }

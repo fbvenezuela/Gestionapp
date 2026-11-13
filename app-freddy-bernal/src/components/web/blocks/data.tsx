@@ -13,7 +13,7 @@ import { Container, ExternalText, SectionHeading, WebLink } from '../ui';
 import type { BlockContext, BlockData } from './types';
 import { AttendedView, DemoNote, FaqView, IndicatorsView, NoticesView } from './views';
 
-// The blocks that read published content (as anon, cached, cache.ts): projects, news, the latest Reporte Bernal,
+// The blocks that read published content (as anon, cached, cache.ts): projects, news, the latest weekly program,
 // documents, questions, indicators, notices, the attended cases, the channels and the participation accesses. A block
 // whose content is not there yet draws nothing, never something invented and never a note about how the site works.
 
@@ -95,8 +95,8 @@ export async function NewsBlock({ data, ctx }: { data: BlockData<'news'>; ctx: B
   );
 }
 
-/** The latest Reporte Bernal (or the episode or video the block names), lite: nothing of YouTube loads until a tap. An
- * episode without its video shows its title and the links (the public site draws no empty player). */
+/** The latest episode of the weekly program (or the episode or video the block names), lite: nothing of YouTube loads
+ * until a tap. An episode without its video shows its title and the links (the public site draws no empty player). */
 export async function VideoBlock({ data, ctx }: { data: BlockData<'video'>; ctx: BlockContext }) {
   let episode: WebItem<'episode'> | null = null;
   if (data.episodeId) episode = kindOf(await itemsByIds([data.episodeId]), 'episode')[0] ?? null;

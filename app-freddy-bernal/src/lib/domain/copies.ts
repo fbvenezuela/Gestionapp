@@ -141,7 +141,7 @@ function breaks(text: string): { end: number; next: number }[] {
 export function endDot(s: string) {
   if (FINISHED.test(s)) return s;
   const t = s.replace(/[\s,;:]+$/, '');
-  // Never a period after an emoji ("Seguimos trabajando 💪").
+  // Never a period after an emoji ("Adelante 💪").
   return /[\p{Extended_Pictographic}\u{FE0F}\u{20E3}]$/u.test(t) ? t : `${t}.`;
 }
 
@@ -598,7 +598,7 @@ export function buildCopies(input: CopyInput, formula: Formula, brand: CopyBrand
   for (const t of [hashtagFor(input.title), ...brand.hashtags]) if (t && !tagList.some((u) => plain(u) === plain(t))) tagList.push(t);
   const tags = tagList.slice(0, 3).join(' ');
   const join = (t: string) => (t ? cap(sentences(prose(t)).join(' ')) : '');
-  // The first sentence, past a greeting ("¡Saludos, Táchira!", "Muy buenos días…"): the lead of PAS,
+  // The first sentence, past a greeting (the client's own, "Muy buenos días…"): the lead of PAS,
   // DAR or HIST says what happened, and the boss's greeting has its own line in his voice.
   const greeting = /\p{L}/u.test(brand.greeting) ? norm(brand.greeting) : '';
   const greets = (s: string) => GREETING.test(plain(s)) || (!!greeting && norm(s).startsWith(greeting));

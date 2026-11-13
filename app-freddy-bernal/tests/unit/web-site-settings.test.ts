@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { getClientConfig } from '@/lib/client-config';
 import { channelShown, defaultSettings, navLabel, normalizeSite } from '@/lib/web/site-settings';
+import { programNameOf } from '@/lib/web/program-name';
 
 const opts = (demo: boolean) => ({ demo, indexable: false, baseUrl: 'https://web.prueba.test/' });
 
@@ -64,9 +65,12 @@ describe('los canales: una sola regla en toda la web', () => {
 describe('lo demás de los ajustes', () => {
   it('la navegación por defecto: las ocho secciones en su orden', () => {
     const s = normalizeSite({}, opts(true));
-    expect(s.navigation.map((n) => n.label)).toEqual(['Inicio', 'El gobernador', 'Gestión y obras', 'Noticias', 'Reporte Bernal', 'Atención ciudadana', 'Transparencia', 'Canales']);
+    // The program's name is the client's (its menu label in the config), never written in the code.
+    const program = programNameOf(getClientConfig());
+    expect(program).not.toBe('');
+    expect(s.navigation.map((n) => n.label)).toEqual(['Inicio', 'El gobernador', 'Gestión y obras', 'Noticias', program, 'Atención ciudadana', 'Transparencia', 'Canales']);
     expect(navLabel(s, '/actualidad', 'x')).toBe('Noticias');
-    expect(navLabel(s, '/reporte-bernal', 'x')).toBe('Reporte Bernal');
+    expect(navLabel(s, '/reporte-bernal', 'x')).toBe(program);
     expect(navLabel(s, '/no-esta', 'Otro')).toBe('Otro');
   });
 

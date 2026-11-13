@@ -6,7 +6,14 @@ import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const DIRS = [path.join('src', 'components', 'cms'), path.join('src', 'components', 'attention'), path.join('src', 'app', '(panel)', 'admin')];
+// Since 13/11 also the event's «Historial» and the fichas' «Historia» (APP-03, APP-04): the same words.
+const DIRS = [
+  path.join('src', 'components', 'cms'),
+  path.join('src', 'components', 'attention'),
+  path.join('src', 'app', '(panel)', 'admin'),
+  path.join('src', 'components', 'agenda'),
+  path.join('src', 'components', 'fichas'),
+];
 const FILES = [
   path.join('src', 'lib', 'web', 'import-marks.ts'),
   path.join('src', 'lib', 'domain', 'attention.ts'),
@@ -50,6 +57,8 @@ describe('las pantallas de «Web» y «Atención» hablan claro', () => {
     expect(files.length).toBeGreaterThan(40);
     expect(files).toContain(path.join('src', 'components', 'cms', 'settings-forms.tsx'));
     expect(files).toContain(path.join('src', 'app', '(panel)', 'admin', 'atencion', 'page.tsx'));
+    expect(files).toContain(path.join('src', 'components', 'agenda', 'history-card.tsx'));
+    expect(files).toContain(path.join('src', 'components', 'fichas', 'history-timeline.tsx'));
   });
 
   it('sin palabras técnicas, códigos ni números de decisiones', () => {

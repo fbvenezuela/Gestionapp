@@ -81,7 +81,8 @@ export const BLOCK_DATA = {
   text: z.object({ ...titled, content: richText }),
   image: z.object({ mediaId: uuid, caption: short(500).optional(), wide: z.boolean().optional() }),
   gallery: z.object({ ...titled, mediaIds: z.array(uuid).min(1).max(24) }),
-  // A YouTube video (lite: thumbnail and button, youtube-nocookie.com only on tap), or the latest Reporte Bernal.
+  // A YouTube video (lite: thumbnail and button, youtube-nocookie.com only on tap), or the latest episode of the weekly
+  // program.
   video: z.object({
     ...titled,
     youtubeId: z.string().regex(/^[A-Za-z0-9_-]{11}$/, 'El código del video de YouTube tiene 11 caracteres.').nullable().optional(),

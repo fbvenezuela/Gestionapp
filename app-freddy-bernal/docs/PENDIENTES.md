@@ -353,3 +353,29 @@ cliente falta esto:
 | T14 | **La primera construcción de producción en Vercel**, revisada | Que el registro diga «encendido (despliegue de producción en Vercel)», cuántas notas, fotos y emisiones trajo, que `.next/cache` se conserve entre construcciones y cuánto tarda en arrancar. Y en la web: que una foto de una nota pedida por `/_next/image` responda 200 con `image/avif` o `image/webp` (es la primera vez que el optimizador de Vercel recibe fotos de la biblioteca; si da error o se acaba la cuota, esas fotos pueden ir con `unoptimized`, ya son de 1600 px como máximo) y que el PDF del Semanario baje entero. Desde aquí no se pudo desplegar |
 | T15 | **Las capturas del PDF «Guía de la web y sus flujos»** (el que lee el equipo del cliente) | Las de la web pública y casi todas las de «Web» se tomaron el 09/11 de la versión publicada, con el contenido de la web oficial. Siguen siendo de la demo local con lo inventado (franja «Versión de prueba. El contenido es de ejemplo.» fuera de cuadro): «Por aprobar», la revisión y «Versiones», que piden algo esperando aprobación y una obra con dos versiones; el formulario, el comprobante y la consulta del ciudadano; «Casos atendidos» (en la versión publicada no hay ninguno); y las de «Atención», con las mismas 60 solicitudes de ejemplo. Tomarlas de la versión publicada pide crear contenido y enviar solicitudes allí |
 | T16 | **Las fichas de 360 que cambiaron el 13/11 en `fb-dev`**: `rol-jefe`, `rol-despacho`, `rol-ivt`, `rol-redes`, `rol-grabacion` y `rol-administracion` (el menú de cada rol, con «Oficina») | Se suben con «no pisar», como hace `seedAssistant`, y se comparan con `config/assistant/knowledge.json`; mientras tanto, en `fb-dev` 360 dice los menús sin «Oficina» |
+
+## Nuevo (13/11/2026): lo que queda de los arreglos de la app que salieron de las guías
+Las pantallas que quedaban cortadas en el teléfono, las palabras técnicas, los datos equivocados y los textos raros
+que encontraron las revisiones de las dos guías en PDF ya están arreglados en la app (y en «Ayuda y guías», 360 y los
+documentos que los citan). Queda esto:
+
+**Preguntas para Juan:**
+1. **«Registro de cambios» y la atención:** Administración ve ahí que hubo un cambio en lo de la atención (por ejemplo
+   «creó · Mensaje de una solicitud»), con su nombre claro y nunca lo que escribió la persona. ¿Se quitan esas líneas
+   de esa página? «Consulta y auditoría» ya tiene «Registro de atención». (Así está: se ven, con nombres claros. D-93.)
+2. **La página «Atención ciudadana» en «Web» → «Páginas»:** la web no la usa (la página de la atención tiene sus
+   propios textos), y su editor ahora lo dice arriba: «Esta página no sale en la web». ¿Que la página de la atención la
+   lea, o que la demo deje de crearla? (Así está: el aviso.)
+3. **El botón «Política» del Inicio del jefe:** ¿se queda o pasa a «Mi agenda»? (Así está: «Política», la palabra del
+   cliente.)
+
+**Lo que falta de nuestra parte:**
+- En `fb-dev`: las migraciones nuevas van en la fila T1 de arriba; las fotos de un post en Facebook, Threads y X,
+  con `npm run db:seed-client` (más arriba, Redes).
+- Los textos públicos que ya no prometen una fecha de atención («Plazos» en `config/clients/fb.json` y la pregunta
+  «¿Cuánto tarda la respuesta?» del contenido real) solo llegan a una base sembrada de nuevo y a la próxima construcción
+  con el contenido real. En `fb-dev` y en la versión publicada, «Condiciones de participación» y esa pregunta siguen
+  con el texto de antes hasta que alguien las cambie en «Web».
+- Ajustes → Google Drive, con Drive encendido y la instalación a medias, sigue nombrando los datos que faltan tal como
+  se llaman en la instalación, para que quien instaló la app sepa cuáles llenar (la pantalla le dice a Administración
+  que le pase esa lista). Con Drive apagado o completo no sale nada de eso.

@@ -5,12 +5,12 @@ import path from 'node:path';
 // What the team reads on its screens, and in the messages the app sends it, says «la app»: never «la plataforma», nor
 // the names of the services the app runs on, nor «el comando de instalación» or «el servidor» (RV-09, 13/11). Who
 // gives the boss's role or turns something on is «quien instala la app». The code's comments are not read here.
-// Left out on purpose: the public pages of the internal app (src/app/(publico): the privacy page names its providers),
-// 360's ways of asking (people say «la plataforma»; 360's answers have their own test, assistant-stale-words), and the
-// screens of Redes' tweets and of the web, whose texts change in their own round (see the list below).
+// Left out on purpose: the public pages of the internal app (src/app/(publico): the privacy page names its providers)
+// and 360's ways of asking (people say «la plataforma»; 360's answers have their own test, assistant-stale-words).
+// Since 13/11 this also reads the screens of Redes' tweets, «Web» and «Atención» (src/app/(panel)/admin,
+// src/components/cms): they say «la app» too.
 const ROOT = process.cwd();
 const DIRS = ['src/app/(auth)', 'src/app/(panel)', 'src/components', 'src/lib/actions', 'src/lib/domain', 'src/lib/media', 'src/lib/storage', 'src/lib/db/core.ts', 'src/lib/roles.ts'];
-const OTHER_ROUND = ['src/app/(panel)/tweets/nueva/page.tsx', 'src/components/cms/', 'src/app/(panel)/admin/'];
 const WORDS: [string, RegExp][] = [
   ['la plataforma', /\b(la|de la|en la) plataforma\b/i],
   ['un servicio de afuera', /\b(Vercel|Supabase)\b/],
@@ -34,13 +34,19 @@ const withoutComments = (src: string) =>
     .map((line) => line.replace(/(^|[^:'"`\w])\/\/.*$/, '$1'));
 
 describe('las pantallas del equipo dicen «la app», sin palabras de adentro', () => {
-  const sources = DIRS.flatMap(files)
-    .filter((f) => /\.(tsx?|mts)$/.test(f))
-    .filter((f) => !OTHER_ROUND.some((o) => f.startsWith(o)));
+  const sources = DIRS.flatMap(files).filter((f) => /\.(tsx?|mts)$/.test(f));
 
   it('lee las pantallas que tiene que leer', () => {
     expect(sources.length).toBeGreaterThan(100);
-    for (const f of ['src/app/(auth)/sin-acceso/page.tsx', 'src/app/(panel)/ajustes/drive/drive-settings.tsx', 'src/lib/media/one-by-one.ts', 'src/lib/domain/chat.ts']) {
+    for (const f of [
+      'src/app/(auth)/sin-acceso/page.tsx',
+      'src/app/(panel)/ajustes/drive/drive-settings.tsx',
+      'src/lib/media/one-by-one.ts',
+      'src/lib/domain/chat.ts',
+      'src/app/(panel)/tweets/nueva/page.tsx',
+      'src/components/cms/kind-forms.tsx',
+      'src/app/(panel)/admin/atencion/page.tsx',
+    ]) {
       expect(sources).toContain(f);
     }
   });

@@ -1,6 +1,8 @@
 import { brotliCompressSync, constants as zlibConstants } from 'node:zlib';
 import { test, expect, type Browser, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import fb from '../../config/clients/fb.json';
+import { programNameOf } from '../../src/lib/web/program-name';
 
 // The public website (D-91, design §1–§3), with no session, at 360 px and on a desktop: every page opens with its h1,
 // fits the phone and has no serious accessibility problem; filters, search, pages and the timeline work with plain links;
@@ -10,6 +12,9 @@ import AxeBuilder from '@axe-core/playwright';
 // («Por completar», «Foto por subir…», «Video por enlazar…») reaches any public page; and the home's weight is measured
 // with and without photos (docs/diagnostico.md problem 11: the brief's target is under 200 KB without photos).
 
+// The weekly program's name is the client's (its menu label in config/clients/fb.json), never written here.
+const PROGRAM = programNameOf(fb);
+
 const PAGES: [string, RegExp | string][] = [
   ['/', /Freddy Bernal/],
   ['/gobernador', /Freddy Bernal/],
@@ -17,7 +22,7 @@ const PAGES: [string, RegExp | string][] = [
   ['/gestion?vista=linea', 'Gestión y obras'],
   ['/actualidad', 'Noticias'],
   ['/actualidad/semanario', 'Semanario'],
-  ['/reporte-bernal', 'Reporte Bernal'],
+  ['/reporte-bernal', PROGRAM],
   ['/transparencia', 'Documentos y cifras'],
   ['/canales', 'Canales oficiales'],
   ['/aviso-de-privacidad', 'Aviso de privacidad'],
@@ -159,7 +164,7 @@ test.describe('la web pública en el teléfono (360 px)', () => {
     }
     await expect(main.getByText(/no es un servicio de emergencias/i).first()).toBeVisible();
     await expect(main.getByText(/Fuente: Cifra inventada para la demostración/).first()).toBeVisible();
-    for (const h2 of ['Atención ciudadana', 'Gestión en cifras', 'Casos atendidos', 'Gestión y obras', 'Reporte Bernal', 'Últimas publicaciones', 'Avisos de servicio', 'Canales oficiales']) {
+    for (const h2 of ['Atención ciudadana', 'Gestión en cifras', 'Casos atendidos', 'Gestión y obras', PROGRAM, 'Últimas publicaciones', 'Avisos de servicio', 'Canales oficiales']) {
       await expect(main.getByRole('heading', { level: 2, name: h2 }), h2).toBeVisible();
     }
     // F1: the demo has no photos and its episodes no video: nothing of that is drawn (no empty frame with a sign).
@@ -298,7 +303,7 @@ test.describe('la web pública en el teléfono (360 px)', () => {
     await expect(page.getByRole('link', { name: 'Últimos 30 días' })).toHaveAttribute('aria-current', 'page');
   });
 
-  test('Reporte Bernal: el canal activo y ninguna emisión sin video dibuja un reproductor vacío', async ({ page }) => {
+  test('el programa semanal: el canal activo y ninguna emisión sin video dibuja un reproductor vacío', async ({ page }) => {
     await page.goto('/reporte-bernal');
     await expect(page.getByRole('link', { name: /Canal de YouTube @FreddyBernal\.oficial/ })).toHaveAttribute('href', 'https://www.youtube.com/@FreddyBernal.oficial');
     await expect(page.getByRole('main').getByText('sin verificar')).toHaveCount(0);

@@ -25,6 +25,7 @@ import { MoveSheet } from '@/components/agenda/move-sheet';
 import { CancelButton, RestoreButton } from '@/components/agenda/cancel-button';
 import { HistoryCard } from '@/components/agenda/history-card';
 import { scheduleValues, whenOf } from '@/lib/domain/schedule-form';
+import { brand } from '@/lib/client-config';
 
 export const metadata = { title: 'Evento' };
 
@@ -267,6 +268,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
             facts={ev.brief?.key_facts ?? ''}
             rev={ev.storyboard?.rev ?? null}
             fab={ficha?.fab ?? ''}
+            greeting={brand.greeting}
           />
           {canBoard ? <HistoryCard rows={data.boardHistory} title="Historial del storyboard" /> : null}
         </div>

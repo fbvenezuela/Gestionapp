@@ -5,6 +5,8 @@
 // (src/lib/participation/notices.ts). Plain data, read by seed-parts/web.ts.
 import type { TextNode } from '../../web/blocks';
 import { DENUNCIA_NOTICE, EMERGENCY_NOTICE } from '../../participation/notices';
+import { getClientConfig } from '../../client-config';
+import { programNameOf } from '../../web/program-name';
 
 export type DemoNews = { slug: string; category: 'noticia' | 'comunicado' | 'articulo' | 'entrevista'; muni: string | null; day: number; title: string; excerpt: string; body: string[]; topics: string[]; status?: 'draft' | 'in_review' | 'scheduled' };
 export type DemoProject = {
@@ -110,10 +112,14 @@ export const DEMO_PROJECTS: DemoProject[] = [
     description: ['Techo nuevo y baños.', 'Datos inventados para la versión de prueba.'], progress: 55, started: -25, expected: 30 },
 ];
 
+// The weekly program's name is the client's (its menu label in the config, §11.6), never written here; the slugs keep
+// the program's route.
+const PROGRAM = programNameOf(getClientConfig());
+
 export const DEMO_EPISODES = [1, 2, 3, 4, 5, 6].map((n) => ({
   slug: `reporte-bernal-programa-${30 - n}-demo`,
   day: -1 - (n - 1) * 7,
-  title: `Reporte Bernal · Programa ${30 - n} (demo)`,
+  title: `${PROGRAM} · Programa ${30 - n} (demo)`,
   excerpt: ['Obras de la semana y casos atendidos en la web.', 'Salud, vialidad y las preguntas de la gente.', 'Agua y electricidad: lo que se hizo y lo que falta.', 'Vivienda y deporte en los municipios.', 'Lo que llegó por la web y cómo se resolvió.', 'Educación: escuelas y liceos rehabilitados.'][n - 1],
   topics: [['obras', 'participación'], ['salud', 'vialidad'], ['agua', 'electricidad'], ['vivienda', 'deporte'], ['participación'], ['educación']][n - 1],
   minutes: 40 + n * 3,

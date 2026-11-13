@@ -3,6 +3,7 @@ import { Card, CardHeader } from '@/components/ui/card';
 import { HISTORY_FIELD_LABEL } from '@/lib/domain/agenda-merge';
 import type { HistoryRow } from '@/lib/data/events';
 import { BOSS_DECISION, WORK_STATUS } from '@/lib/data/labels';
+import { AUDIT_ACTION_LABEL, AUDIT_NO_ACTOR } from '@/lib/domain/audit-log';
 import { dt, fmtDateTime, fmtDay, fmtTime } from '@/lib/time';
 import { cn } from '@/lib/cn';
 
@@ -10,6 +11,8 @@ import { cn } from '@/lib/cn';
 // event_history() decides). Who changed what, with the value before, so nothing typed is lost when the last save
 // wins; a storyboard block that was added or removed shows what it said. Only plain words reach the screen: a column
 // without a name of its own, a link between rows or a code is left out, and a change with nothing left to say too.
+// The parts of an event in the words of its screen; the verbs and «La app» are the ones of «Registro de cambios»
+// (src/lib/domain/audit-log.ts).
 const TABLE: Record<string, string> = {
   events: 'Datos del evento',
   event_schedule: 'Fecha, hora y lugar',
@@ -18,7 +21,6 @@ const TABLE: Record<string, string> = {
   storyboards: 'Storyboard',
   storyboard_blocks: 'Bloque del storyboard',
 };
-const ACTION: Record<string, string> = { insert: 'creó', update: 'cambió', delete: 'quitó', soft_delete: 'borró' };
 const HIDDEN = new Set([
   'user_id', 'duty', 'storyboard_id', 'position', 'origin', 'kind', 'deleted_at',
   // The ficha an event comes from, who cancelled it (the row says who) and the row's own bookkeeping.
@@ -82,7 +84,7 @@ export function HistoryCard({ rows, title = 'Historial', categories = [] }: { ro
           {shown.map(({ r, lines }, i) => (
             <li key={i} className="px-4 py-3 text-[15px]">
               <p>
-                <b>{r.actor_name ?? 'La app'}</b> {ACTION[r.action] ?? 'cambió'} · {TABLE[r.table_name] ?? 'otro dato'}
+                <b>{r.actor_name ?? AUDIT_NO_ACTOR}</b> {AUDIT_ACTION_LABEL[r.action] ?? 'cambió'} · {TABLE[r.table_name] ?? 'otro dato'}
               </p>
               <p className="text-sm text-text-2">{fmtDateTime(r.at)}</p>
               {r.block && (r.action === 'insert' || r.action === 'soft_delete') ? (
