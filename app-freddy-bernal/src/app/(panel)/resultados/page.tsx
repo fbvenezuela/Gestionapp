@@ -4,7 +4,7 @@ import { requireRole, db } from '@/lib/auth/session';
 import { PageHeader, EmptyState, Stat } from '@/components/ui/page';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
-import { NETWORK_LABEL } from '@/lib/data/labels';
+import { NETWORK_LABEL, networkFormatLabel } from '@/lib/data/labels';
 import { bestTimes, MIN_POINTS } from '@/lib/domain/best-times';
 import { dt, fmtDateTime } from '@/lib/time';
 import { PUB_THUMB_COLUMNS, PUB_THUMB_JOINS, pubThumbOf, type PubThumbCols } from '@/lib/data/pub-thumbs';
@@ -106,7 +106,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
                     <div className="min-w-0 flex-1">
                       <PubTitle r={r} canLoad={canLoad} card />
                       {r.republish_of ? <span className="text-xs text-text-2">(republicación)</span> : null}
-                      <p className="text-sm text-text-2">{NETWORK_LABEL[r.network]} · {r.format} · {fmtDateTime(r.published_at)}</p>
+                      <p className="text-sm text-text-2">{NETWORK_LABEL[r.network]} · {networkFormatLabel(r.format)} · {fmtDateTime(r.published_at)}</p>
                     </div>
                   </div>
                   {r.views != null ? (
@@ -145,7 +145,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
                           </div>
                         </div>
                       </td>
-                      <td className="px-3 py-2">{NETWORK_LABEL[r.network]} · {r.format}</td>
+                      <td className="px-3 py-2">{NETWORK_LABEL[r.network]} · {networkFormatLabel(r.format)}</td>
                       <td className="px-3 py-2 whitespace-nowrap">{fmtDateTime(r.published_at)}</td>
                       <td className="px-3 py-2 tabular">{r.views != null ? nf.format(r.views) : <span className="text-muted">sin cargar</span>}</td>
                       <td className="px-3 py-2 tabular">{r.reach != null ? nf.format(r.reach) : '—'}</td>

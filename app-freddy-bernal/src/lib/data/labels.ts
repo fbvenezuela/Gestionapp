@@ -97,6 +97,21 @@ export const NETWORK_LABEL: Record<string, string> = {
   youtube: 'YouTube',
 };
 
+// The format a publication goes out as in its network (publications.format, the keys of network_specs.formats and
+// NETWORK_FORMATS in src/lib/domain/redes.ts), as the team says it: never the stored word (APP-36: «reel», «photo»,
+// «story» were on screen). «post» is what the publications made before the formats and the boss's own posts keep.
+// Always next to the network («YouTube · Short»), so «Short» needs no «de YouTube».
+export const NETWORK_FORMAT_LABEL: Record<string, string> = {
+  reel: 'Reel',
+  short: 'Short',
+  video: 'Video',
+  photo: 'Foto',
+  story: 'Historia',
+  carousel: 'Carrusel',
+  post: 'Post',
+};
+export const networkFormatLabel = (f: string) => NETWORK_FORMAT_LABEL[f] ?? f;
+
 export const LENGTH_GROUP: Record<string, { label: string; networks: string }> = {
   long: { label: 'Largo', networks: 'Instagram, TikTok y Facebook' },
   medium: { label: 'Medio', networks: 'Threads' },

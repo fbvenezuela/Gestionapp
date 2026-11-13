@@ -6,7 +6,7 @@ import { Tip } from '@/components/ui/tip';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
-import { NETWORK_LABEL, PUB_STATUS } from '@/lib/data/labels';
+import { NETWORK_LABEL, PUB_STATUS, networkFormatLabel } from '@/lib/data/labels';
 import { fmtDateTime, fmtDay, dt, ms } from '@/lib/time';
 
 export const metadata = { title: 'Publicar' };
@@ -88,7 +88,7 @@ function PubRow({ p }: { p: Pub }) {
         <span className="w-20 shrink-0 font-mono text-sm font-semibold">{p.scheduled_at || p.published_at ? fmtDateTime(p.published_at ?? p.scheduled_at).split(', ').pop() : '—'}</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold">{p.title}</span>
-          <span className="block text-sm text-text-2">{NETWORK_LABEL[p.network]} · {p.origin === 'boss_spontaneous' ? 'la publicó el jefe' : p.format}{p.republish_of ? ' · republicación' : ''}{p.failure_reason ? ` · ${p.failure_reason}` : ''}</span>
+          <span className="block text-sm text-text-2">{NETWORK_LABEL[p.network]} · {p.origin === 'boss_spontaneous' ? 'la publicó el jefe' : networkFormatLabel(p.format)}{p.republish_of ? ' · republicación' : ''}{p.failure_reason ? ` · ${p.failure_reason}` : ''}</span>
         </span>
         <Chip tone={PUB_STATUS[p.status]?.tone}>{PUB_STATUS[p.status]?.label}</Chip>
       </Link>
