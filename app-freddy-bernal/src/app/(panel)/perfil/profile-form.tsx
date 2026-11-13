@@ -50,10 +50,11 @@ export function ProfileForm({ fullName, prefs, mfa, admin }: { fullName: string;
       </Card>
       <Card data-tour="notify-prefs">
         <CardHeader title="Qué avisos quiero" subtitle="Por correo y en el teléfono. Los importantes siempre llegan." />
+        {/* shrink-0: a label in two lines («Cada cambio que el otro hace en la agenda (viene apagado)») squeezed its box. */}
         <CardBody className="flex flex-col gap-1">
           {OPTIONAL.map((o) => (
             <label key={o.key} className="flex min-h-11 items-center gap-3 text-[15px]">
-              <input type="checkbox" className="h-5 w-5 accent-accent" checked={OPT_IN_KINDS.has(o.key) ? f.prefs[o.key] === true : f.prefs[o.key] !== false} onChange={(e) => set(o.key, e.target.checked)} />
+              <input type="checkbox" className="h-5 w-5 shrink-0 accent-accent" checked={OPT_IN_KINDS.has(o.key) ? f.prefs[o.key] === true : f.prefs[o.key] !== false} onChange={(e) => set(o.key, e.target.checked)} />
               {o.label}
             </label>
           ))}
@@ -67,7 +68,7 @@ export function ProfileForm({ fullName, prefs, mfa, admin }: { fullName: string;
         <CardHeader title="Horas de silencio" subtitle="De noche el teléfono no suena. Los avisos importantes sí llegan y todo queda en «Avisos»." />
         <CardBody className="flex flex-col gap-3">
           <label className="flex min-h-11 items-center gap-3 text-[15px]">
-            <input type="checkbox" className="h-5 w-5 accent-accent" checked={quietOn} onChange={(e) => set('quiet', e.target.checked)} />
+            <input type="checkbox" className="h-5 w-5 shrink-0 accent-accent" checked={quietOn} onChange={(e) => set('quiet', e.target.checked)} />
             <Moon className="h-4 w-4" aria-hidden /> No mandar avisos al teléfono de noche
           </label>
           <div className="grid grid-cols-2 gap-3">

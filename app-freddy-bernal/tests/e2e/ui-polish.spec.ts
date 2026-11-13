@@ -179,6 +179,24 @@ test('el menú «Crear» se abre entero dentro de la pantalla a 360 px', async (
   }
 });
 
+test('la agenda a 360 px: las horas en español y enteras, y la hora de cada evento en una línea', async ({ page }) => {
+  // APP-10: «6 a. m.» … «10 p. m.»; in the 52 px column «10 a. m.» lost its «1», and «9:00 a. m.» broke in two.
+  await loginAs(page, 'jefe@demo.test');
+  await page.goto('/agenda?vista=semana');
+  const grid = page.locator('[data-tour="calendar"]');
+  const left = (await grid.boundingBox())!.x;
+  const hours = grid.getByText(/^\d{1,2} [ap]\. m\.$/);
+  await expect(hours).toHaveCount(17);
+  for (const h of await hours.all()) {
+    const box = (await h.boundingBox())!;
+    expect(box.x, await h.innerText()).toBeGreaterThanOrEqual(left);
+  }
+  await expect(grid.getByText(/\b(AM|PM)\b/)).toHaveCount(0);
+  for (const t of await grid.getByText(/^\d{1,2}:\d{2} [ap]\. m\.$/).all()) {
+    expect(await t.evaluate((n) => n.getClientRects().length === 1 && n.scrollWidth <= n.clientWidth + 1), await t.innerText()).toBe(true);
+  }
+});
+
 test('con el teclado, un menú se cierra al salir de él, y abrir uno cierra el otro', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');
   await page.goto('/hoy');
