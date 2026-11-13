@@ -781,7 +781,7 @@ comando, los mensajes no se borran).
     enlace con una fecha. Se aceptan: el rechazo explica cómo decirlo sin fecha («lo antes posible», «el día del
     evento»), y la app avisa **mientras escribes**, nombrando la palabra («“10:30” no puede ir aquí»). El texto queda en
     la caja; nunca se repite el texto en el error ni en los registros.
-  - La nota «Aquí está Redes o política: sin fechas, horas, ni cuándo sales o llegas.» la ve solo quien conoce la
+  - La nota «Aquí está Redes o política: sin fechas, horas ni cuándo sales o llegas.» la ve solo quien conoce la
     agenda, y solo en esas conversaciones. «Cuándo sales o llegas» no lo detecta la base: es guía.
   - **Nombres de grupo:** siempre con el detector completo (`text_has_datetime`, también «hoy» o «mañana») y sin
     mapas, estén o no Redes o política: nadie pregunta antes de guardar un nombre, todos lo leen cada vez, y un nombre

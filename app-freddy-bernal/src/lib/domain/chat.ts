@@ -29,7 +29,7 @@ export const CHAT_MEMBERS_MAX = 50;
 // Texts
 // ---------------------------------------------------------------------------------------------------------------
 // Only to whoever knows the agenda, only where Redes or política read (U13); and to the boss choosing members.
-export const CHAT_AGENDA_NOTE = 'Aquí está Redes o política: sin fechas, horas, ni cuándo sales o llegas.';
+export const CHAT_AGENDA_NOTE = 'Aquí está Redes o política: sin fechas, horas ni cuándo sales o llegas.';
 export const CHAT_HIDDEN = 'Mensaje oculto: tenía una fecha o una hora de la agenda.';
 // A channel the person cannot open: not in it, or (in the demo) made on another server. One text for both (D-88).
 export const CHAT_NOT_IN_LIST = 'Este canal no está en tu lista: o no estás en él, o se creó en otro servidor de la demostración.';
