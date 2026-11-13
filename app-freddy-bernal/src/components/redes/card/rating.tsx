@@ -50,8 +50,15 @@ export function Rating({ first = false }: { first?: boolean }) {
         <p id={labelId} className="text-sm font-semibold">
           {RATING_LABEL}
         </p>
+        {/* Unrated: only «Sin evaluar» (APP-34: «— · Sin evaluar» looked like a glitch). */}
         <p className="text-sm text-text-2">
-          <span className="font-bold tabular text-text">{value ? `${value}/10` : '—'}</span> · {receptivityLabel(value)}
+          {value ? (
+            <>
+              <span className="font-bold tabular text-text">{value}/10</span> · {receptivityLabel(value)}
+            </>
+          ) : (
+            receptivityLabel(value)
+          )}
         </p>
       </div>
       <div role="radiogroup" aria-labelledby={labelId} className="grid w-fit grid-cols-5 gap-1 min-[600px]:grid-cols-10">
