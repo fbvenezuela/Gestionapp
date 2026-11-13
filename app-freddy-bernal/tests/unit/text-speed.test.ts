@@ -25,6 +25,17 @@ const fnsOf = (mod: Record<string, unknown>, name: string) =>
   Object.entries(mod).filter(([, v]) => typeof v === 'function').map(([k, v]) => [`${name}.${k}`, (s: string) => (v as (a: string, ...r: unknown[]) => unknown)(s, [], [])] as [string, Fn]);
 
 function slowest(fn: Fn, length: number) {
+  // A function's first call down a path compiles that path's patterns, once (up to ~40 ms here, more on CI): that is
+  // not a pattern that hangs, so every path is walked first with short text, which nothing can make slow.
+  for (const a of UNITS) {
+    for (const b of ['', ...UNITS]) {
+      try {
+        fn((a + b).repeat(2) + '!');
+      } catch {
+        // Only the warm-up matters here.
+      }
+    }
+  }
   let worst = { ms: 0, unit: '' };
   for (const a of UNITS) {
     for (const b of ['', ...UNITS]) {

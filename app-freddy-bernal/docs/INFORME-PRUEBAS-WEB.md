@@ -189,8 +189,9 @@ Al mirarlas se encontraron y arreglaron cuatro cosas (§8.2 a §8.5). Lo que que
    (`ff7c287`): ahora va en un renglón. Este arreglo llegó después de la corrida completa; se repitieron las pruebas de
    la bandeja (§2).
 
-Además, solo en las pruebas: toda revisión de axe espera a que no quede ningún aviso y a que la página tenga su título
-(`readyForAxe()` en `tests/e2e/helpers.ts`; §11).
+Además, solo en las pruebas: en las pruebas que revisan una pantalla justo después de una acción (16 de los 33 archivos
+con axe, entre ellos los del panel de la web, la atención, el formulario y los recorridos), axe espera a que no quede
+ningún aviso y a que la página tenga su título (`readyForAxe()` en `tests/e2e/helpers.ts`; §11).
 
 ## 9. Revisión de seguridad
 
@@ -297,8 +298,9 @@ Todo lo de esta sección **no se probó**; lo que el informe dice de ello es lo 
 - **El título que llega después:** justo después de una acción que redibuja la página (abrir una consulta, agregar una
   redirección), axe vio la página sin su título (`<title>`): una vez aquí y dos veces en CI (runs 54 y 58, 07–09/11).
   Next pone el título con los metadatos de la página, en un límite propio que llega después del resto; aquí no se
-  repitió en 48 corridas buscándolo (22 antes, 26 el 13/11, con la máquina cargada y la red frenada). Toda revisión de
-  axe espera el título (hasta 5 s); si una página de verdad no tuviera título, igual fallaría.
+  repitió en 48 corridas buscándolo (22 antes, 26 el 13/11, con la máquina cargada y la red frenada). En esas pruebas y
+  en las otras que revisan una pantalla justo después de una acción (16 de los 33 archivos con axe), axe espera el
+  título (hasta 5 s); si una página de verdad no tuviera título, igual fallaría.
 
 ## 12. Cómo repetir estas pruebas
 
