@@ -71,7 +71,8 @@ describe('el formato de la red sale del formato de la pieza', () => {
   describe('con las reglas de config/network-specs.json', () => {
     const REAL = networkSpecs.specs.map((s) => ({
       network: s.network, label: s.label, length_group: s.length_group as 'long' | 'medium' | 'short', copy_max_chars: s.copy_max_chars,
-      formats: s.formats as Record<string, FormatRule>,
+      // A JSON import types each network's formats apart; the app reads them as rules (as seedClient stores them).
+      formats: s.formats as unknown as Record<string, FormatRule>,
     }));
     const three = [
       { length_group: 'long' as const, body: 'Copy largo de prueba.' },
