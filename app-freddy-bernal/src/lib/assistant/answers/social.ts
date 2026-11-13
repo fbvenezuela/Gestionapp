@@ -1167,7 +1167,7 @@ export const SOCIAL: Answer[] = [
   {
     id: 'red-receptividad-media',
     roles: ['social'],
-    q: ['la receptividad media cuenta las q no tienen estrellas?', 'como se calcula la receptividad media', 'que es receptividad media', 'las sin evaluar cuentan como cero', 'como se calcula la receptividad', 'que cuenta la receptividad media'],
+    q: ['la receptividad media cuenta las q no tienen estrellas?', 'como se calcula la receptividad media', 'las sin evaluar cuentan como cero', 'como se calcula la receptividad', 'que cuenta la receptividad media'],
     a: 'No: la «Receptividad media» es el promedio de las piezas que ya tienen nota; las «Sin evaluar» no cuentan como cero.',
     go: '/redes',
   },

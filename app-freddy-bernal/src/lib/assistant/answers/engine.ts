@@ -717,13 +717,18 @@ export const WEAK = 0.45;
 const ALSO_SAID = 0.25;
 // «¿Qué es X?» where X is a word of «Palabras de la app» and nothing more («¿qué es copy?», «¿qué significa trancado?»,
 // «¿para qué sirve el semáforo?»): what it means goes first, before an answer that only uses the word («No escribo
-// copies sueltos…»). A question that names more («¿qué es «Copy faltante»?») gets no such lift, and a question that does
-// not ask what a word means («¿cómo hago un copy?», «¿cómo funciona el semáforo?») gets the task or the answer that says
-// how, with the meaning a bit behind; a «¿dónde…?» («¿dónde veo las etiquetas?»), the answer that says where, with the
-// meaning further behind: it still answers when nothing says where («¿dónde está la oficina?») (12/11).
+// copies sueltos…»), unless an answer for that person was written for exactly that question (termAsked, ownExact). A
+// question that names more («¿qué es «Copy faltante»?», «¿qué significa «Sin programar»?») gets no such lift, and a
+// question that does not ask what a word means («¿cómo hago un copy?», «¿cómo funciona el semáforo?») gets the task or
+// the answer that says how, with the meaning a bit behind and never sure by itself (TERM_SURE); a «¿dónde…?» («¿dónde veo
+// las etiquetas?»), the answer that says where, with the meaning further behind: it still answers when nothing says
+// where («¿dónde está la oficina?») (12/11, 13/11).
 const TERM_ASKED = 0.3;
 const TERM_ELSE = 0.88;
 const TERM_WHERE = 0.75;
+// A question that does not say any of the word's names, only a word with the same root («¿qué es el título?»: «Titular»
+// is a part of the art): another word, far behind and never sure.
+const TERM_OTHER = 0.8;
 const TERM_WHAT = /\b(?:que es|que son|que significa\w*|que quiere decir|que quieren decir|paraque es|paraque son|paraque sirven?)\b/;
 // Where a word that only ways of asking have is capped: the weight of the word at this share of the index (a common one).
 const DETAIL_AT = 0.2;
@@ -887,19 +892,43 @@ function partsOf(question: string): string[] {
 }
 
 /**
- * Whether a question asks about this word of the glossary and nothing more: one of the word's names, said as it is
- * («¿qué es programado?» is not «programar»: política's reports have a state «Programado»), and nothing else that says
- * something but «la palabra».
+ * Whether a question asks what this word of the glossary means and nothing more: without its frame («¿qué es…?», «¿para
+ * qué sirve…?»), the words that open it («y», «oye», «exactamente») and the articles before the word («el feed», «eso de
+ * trancado», «la palabra trancado»), what is left is one of the word's names, whole, as it is said («¿qué es programado?»
+ * is not «programar»: política's reports have a state «Programado»). A label or a field that only has the word is
+ * another question: «¿qué significa «Sin programar»?», «¿qué es lo que va a decir en el storyboard?», «¿qué es lo que
+ * tengo que hacer con el copy?»; so is another word with the same root («¿qué es el título?» is not «Titular»).
  */
-const nameWords = new Map<string, { roots: string[]; said: string }>();
-const TERM_FRAME = new Set(['palabra', 'palabrita', 'termino'].map((w) => rootOf(w)));
-function termAsked(e: Entry, a: Asked): boolean {
-  const own = a.own.filter((r) => !TERM_FRAME.has(r));
-  return !!own.length && (e.names ?? []).some((n) => {
-    const w = nameWords.get(n) ?? (nameWords.set(n, { roots: tokens(n), said: ` ${readable(n)} ` }), nameWords.get(n)!);
-    return own.every((r) => w.roots.includes(r)) && ` ${a.text} `.includes(w.said);
-  });
+const TERM_OPEN = new Set(['y', 'e', 'pero', 'entonces', 'oye', 'bueno', 'ok', 'okey', 'aja', 'ya', 'hola', 'mira', 'chamo', 'chama', 'epa', 'vale', 'disculpa', 'perdon', 'pues', 'por', 'favor', 'me', 'dices', 'dime', 'sabes', 'exactamente', 'realmente', 'aqui', 'algo']);
+const TERM_LEAD = /^(?:(?:el|la|los|las|un|una|unos|unas|lo|eso|esto|ese|esa) )*(?:(?:de|del) )?(?:(?:palabra|palabrita|termino) )?(?:(?:el|la|los|las|lo|un|una) )?/;
+// A name as it is said (first), and a one-word name with one more or one less «s» or «es» («cupos», «guiones», «sello»):
+// said in a question, it is the word. Asked what it means, only the name as it is: «¿qué son las programadas?» asks for
+// the board's «Programadas», not for «programar».
+const nameForms = new Map<string, string[]>();
+function formsOf(n: string): string[] {
+  let f = nameForms.get(n);
+  if (!f) {
+    const r = readable(n);
+    f = r.includes(' ') ? [r] : [...new Set([r, `${r}s`, `${r}es`, r.replace(/es$/, ''), r.replace(/s$/, '')])].filter((x) => x.length >= 2);
+    nameForms.set(n, f);
+  }
+  return f;
 }
+/** Whether a question says one of the word's names (a word that only shares a root, «título» for «Titular», does not). */
+function saysName(e: Entry, text: string): boolean {
+  return (e.names ?? []).some((n) => formsOf(n).some((f) => ` ${text} `.includes(` ${f} `)));
+}
+function termAsked(e: Entry, a: Asked): boolean {
+  const frame = TERM_WHAT.exec(a.text);
+  if (!frame) return false;
+  const rest = `${a.text.slice(0, frame.index)} ${a.text.slice(frame.index + frame[0].length)}`.split(' ').filter((w) => w && !TERM_OPEN.has(w)).join(' ');
+  const asked = `${rest} `.replace(TERM_LEAD, '').trim();
+  return !!asked && (e.names ?? []).some((n) => formsOf(n)[0] === asked);
+}
+// The kinds of question a word's meaning answers for sure: what it is, where it is (when nothing says where) and the
+// word alone. Any other («¿cómo hago un reel?», «¿puedo cambiar el copy?», «¿quién arma el feed?», «¿cuántos reels…?»,
+// «no me sale el feed»): the meaning only backs up another answer, never a sure one by itself (13/11).
+const TERM_SURE = new Set<AskKind | null>(['what', 'where', null]);
 
 function rank(question: string, o: FindOptions): Match[] {
   const ix = index();
@@ -978,6 +1007,11 @@ function rank(question: string, o: FindOptions): Match[] {
   const yesNo = !wh && /\b(?:puedo|podemos|puede|pueden|se puede|es posible|me deja|me dejan|tengo que|hay que|debo|es seguro|esta bien)\b/.test(a.text);
   const howTo = /^(?:y )?como (?!(?:va|van|esta|estan|quedo|salio|es|son)\b)/.test(a.text) || /\b(?:como (?:hago|se hace|le hago|lo hago)|que (?:tengo|hay) que hacer|que hago) para\b/.test(a.text);
   const exactly = new Set(ix.asked.get(a.text) ?? []);
+  // An answer for this person written for exactly this question («¿qué es el feed?» of the IVT: «Son cosas de Redes…»;
+  // «¿qué es FAB?» of Redes: the copy's formula; «¿qué son los pilares?» of administración: «Los pones tú…»): a word of
+  // «Palabras de la app» does not go before it, its meaning stays behind (13/11).
+  const ownExact = [...exactly].some((x) => x.kind !== 'term' && forRoles(x, o.roles));
+  const termSure = TERM_SURE.has(a.kind) && !howTo;
   // The words of «Palabras de la app» asked what they mean by one of their names (below): sure answers.
   const named = new Set<Entry>();
   const out: Match[] = [];
@@ -1010,10 +1044,13 @@ function rank(question: string, o: FindOptions): Match[] {
     else if (!why && /^Porque\b/.test(said)) s *= 0.85;
     if (o.screen && e.screen && e.screen === o.screen) s += 0.04;
     if (e.kind === 'term') {
-      if (TERM_WHAT.test(a.text) && termAsked(e, a)) {
+      // (A label quoted in the question, «¿qué es «Sin pilar»?», that is not one of its names: another question.)
+      const says = saysName(e, a.text) && (!quoted.length || quoted.some((l) => (e.names ?? []).some((n) => formsOf(n).includes(l))));
+      if (says && !ownExact && termAsked(e, a)) {
         s += TERM_ASKED;
         named.add(e);
-      } else if (!TERM_WHAT.test(a.text)) s *= whereAsk ? TERM_WHERE : TERM_ELSE;
+      } else s *= !says ? TERM_OTHER : whereAsk ? TERM_WHERE : TERM_ELSE;
+      if (!termSure || !says) s = Math.min(s, STRONG - 0.01);
     }
     // A curated answer, more when it was written for the asker's role (not everyone's).
     if (e.kind === 'curated') s += e.roles ? ROLE_OWN : 0.03;
@@ -1024,9 +1061,12 @@ function rank(question: string, o: FindOptions): Match[] {
   // One word, and another entry says it almost as well as the first («¿qué tengo que hacer para publicar?»: a question
   // of the guide, a task, the screen): none of them is a sure answer, unless the first is asked word for word, or is a
   // word of «Palabras de la app» asked what it means by its name («¿qué es el feed?», «¿qué es un copy?»: a weak first
-  // would let a card that only uses the word answer instead).
-  if (oneWord && !exactly.has(out[0]?.entry) && !named.has(out[0]?.entry) && out.length > 1 && out[0].confidence === 'strong' && out[1].score >= out[0].score - 0.1)
-    for (const m of out) if (m.score >= out[0].score - 0.1) m.confidence = 'weak';
+  // would let a card that only uses the word answer instead), or one of those that tie is an answer for this person asked
+  // word for word (the word's meaning then stays behind: «¿qué significa trancado?» of Grabación, 13/11).
+  const tied = out.filter((m) => m.score >= (out[0]?.score ?? 0) - 0.1);
+  const tiedExact = tied.some((m) => m.entry.kind !== 'term' && exactly.has(m.entry));
+  if (oneWord && !exactly.has(out[0]?.entry) && !named.has(out[0]?.entry) && !tiedExact && out.length > 1 && out[0].confidence === 'strong' && out[1].score >= out[0].score - 0.1)
+    for (const m of tied) m.confidence = 'weak';
   return out.slice(0, o.limit ?? 8);
 }
 

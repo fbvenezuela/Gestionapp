@@ -324,7 +324,16 @@ Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene ad
     - Una sola palabra que solo aparece en un texto nunca da una respuesta segura. Tampoco una sola palabra que varias
       entradas dicen casi igual de bien, salvo una palabra de «Palabras de la app» preguntada por su nombre («¿qué es el
       feed?»): esa da lo que significa, segura, y en Redes le gana a la ficha de la sección cuando la ficha no tiene una
-      frase propia para ella.
+      frase propia para ella. También es segura cuando una de las que empatan se escribió para esa pregunta tal cual.
+    - Una palabra de «Palabras de la app» (13/11):
+      - va primero solo si la pregunta es «¿qué es…?» de su nombre y nada más (sin el marco, «y», «exactamente», el
+        artículo o «la palabra»), y si ninguna respuesta del rol se escribió para esa pregunta tal cual: «¿qué es FAB?»
+        de Redes es la fórmula del copy, «¿qué es el feed?» del IVT dice que es de Redes;
+      - una etiqueta o un campo que solo la lleva es otra pregunta («¿qué significa «Sin programar»?», «¿qué es lo que va
+        a decir en el storyboard?»), y también otra palabra con la misma raíz («¿qué es el título?» no es «Titular»):
+        su significado queda atrás y nunca seguro;
+      - a un «¿cómo…?», «¿puedo…?», «¿quién…?», «¿cuántos…?» o algo que falla, su significado solo acompaña: nunca es
+        la respuesta segura («¿cómo hago un reel?» de Grabación: «Las piezas las hace Redes…»).
     - En una pregunta corta (hasta tres palabras que dicen algo), un texto o el nombre de un botón al que le falta una
       de ellas no es seguro. Por ejemplo, «¿cómo pido cambios en un copy?» no es «¿Pedir cambios también?» del diseño.
     - «Mi nombre», «mi teléfono» o «mis avisos» llevan a Mi perfil; «los números de arriba» no (un número de teléfono es
