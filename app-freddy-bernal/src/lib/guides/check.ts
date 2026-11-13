@@ -18,13 +18,25 @@ export function concreteDateTime(text: string): boolean {
 }
 
 // The four shapes of a picture or a video («9:16 es vertical, 16:9 es horizontal y 4:5, casi cuadrado», «1:1»): «9:16»
-// reads as a clock time, so they go out before the check, unless the text says it is an hour («a las 9:16», «las 9:16»,
-// «9:16 am», «9:16 de la mañana»), which still fails. Only here: the messages and the seeds keep their own detectors.
+// reads as a clock time, so they go out before the check, but only next to what a shape is about, in the same clause
+// (RATIO_WORD: «vertical», «pantalla», «video», «foto», «imagen», «proporción»…), and never when the text says it is an
+// hour («a las 9:16», «las 9:16», «9:16 am», «9:16 de la mañana», «por la tarde», «en punto»), which still fails: «Hora:
+// 9:16», «hoy 9:16», «el lunes 9:16», «antes de 9:16» are hours (13/11). Only here: the messages and the seeds keep their
+// own detectors.
 const RATIO =
-  /(?<![\p{L}\p{N}:])(?<!(?:^|[^\p{L}])(?:a|las?|desde|hasta|para|tipo)\s{1,3})(?:9:16|16:9|4:5|1:1)(?![\p{N}:])(?!\s*(?:[ap]\.?\s?m\.?(?![\p{L}])|h(?:s|rs?|oras?)?(?![\p{L}])|de(?:\s+la)?\s+(?:mañana|tarde|noche|madrugada)(?![\p{L}])|del?\s+d[ií]a(?![\p{L}])))/giu;
-/** `text` without the screen ratios that are not an hour. */
+  /(?<![\p{L}\p{N}:])(?<!(?:^|[^\p{L}])(?:a|las?|desde|hasta|para|tipo)\s{1,3})(?:9:16|16:9|4:5|1:1)(?![\p{N}:])(?!\s*(?:[ap]\.?\s?m\.?(?![\p{L}])|h(?:s|rs?|oras?)?(?![\p{L}])|(?:de|por|en)(?:\s+la)?\s+(?:mañana|tarde|noche|madrugada)(?![\p{L}])|del?\s+d[ií]a(?![\p{L}])|en\s+punto(?![\p{L}])))/giu;
+const RATIO_WORD =
+  /(?<![\p{L}])(?:verticale?s?|horizontale?s?|cuadrad[oa]s?|proporci[oó]n(?:es)?|formatos?|pantallas?|videos?|fotos?|im[aá]gen(?:es)?|reels?|posts?|l[aá]minas?|portadas?|miniaturas?)(?![\p{L}])/iu;
+// The clause around a place of the text (between «.», «;», «?», «!» or a line break).
+function clauseAt(text: string, at: number, len: number): string {
+  const start = Math.max(...['.', ';', '?', '!', '\n'].map((c) => text.lastIndexOf(c, at - 1)));
+  const ends = ['.', ';', '?', '!', '\n'].map((c) => text.indexOf(c, at + len)).filter((i) => i >= 0);
+  return text.slice(start + 1, ends.length ? Math.min(...ends) : text.length);
+}
+/** `text` without the screen ratios that are not an hour (said next to what a shape is about). */
 export function withoutRatios(text: string): string {
-  return (text ?? '').normalize('NFKC').replace(RATIO, ' ');
+  const t = (text ?? '').normalize('NFKC');
+  return t.replace(RATIO, (m: string, at: number) => (RATIO_WORD.test(clauseAt(t, at, m.length)) ? ' ' : m));
 }
 
 export function hasPhone(text: string): boolean {

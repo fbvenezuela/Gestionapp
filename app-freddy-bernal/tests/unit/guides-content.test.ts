@@ -126,6 +126,10 @@ describe('sin datos concretos (U17)', () => {
     expect(concreteDateTime('Una foto 1:1 o un video 9:16.')).toBe(false);
     for (const hour of ['a las 9:16', 'las 9:16', 'Las 9:16 y listo', '9:16 am', '9:16 p. m.', '9:16 de la mañana', '9:16 h', 'a las 16:9', 'el video en 9:16 sale a las 9:16', 'en 19:16', 'tipo 9:16'])
       expect(concreteDateTime(hour), hour).toBe(true);
+    // Without a word of what a shape is about in its clause, «9:16» is an hour (13/11).
+    for (const hour of ['Hora: 9:16', 'hora 9:16', 'hoy 9:16', 'mañana 9:16', 'el lunes 9:16', 'El evento es 9:16 en punto.', 'Salimos 9:16.', 'empieza 9:16 en la mañana', 'Llega como 9:16 por la tarde.', 'a eso de 9:16', 'antes de 9:16', 'después de 9:16'])
+      expect(concreteDateTime(hour), hour).toBe(true);
+    expect(concreteDateTime('Instagram recibe hasta 20 imágenes, en 4:5 o 1:1 (la lámina va de 1080×1350).')).toBe(false);
     expect(withoutRatios('el video en 9:16 sale a las 9:16')).toContain('a las 9:16');
   });
 
