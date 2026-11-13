@@ -75,6 +75,30 @@ const clean = (s: string) => prose(s.replace(NO_EMOJI, '')).trim();
 const bare = (s: string) => clean(s).replace(/[\s.;:,]+$/, '');
 // Lowercase the first letter when the text starts a phrase mid-sentence («Rehabilitación de…» → «rehabilitación
 // de…»), but not a name («La Quebrada se cayó…»: the second word is capitalized too) nor an acronym («IVT»).
+// A place typed with its generic word first («Sector Las Palmas», «Parroquia norte») is said with its article and in
+// lower case («el sector Las Palmas», «parroquia norte»); its own name keeps its capitals.
+const SPOKEN_PLACE: [RegExp, string][] = [
+  [/^sector\s+/i, 'el sector '],
+  [/^urbanizaci[oó]n\s+/i, 'la urbanización '],
+  [/^barrio\s+/i, 'el barrio '],
+  [/^caser[ií]o\s+/i, 'el caserío '],
+  [/^aldea\s+/i, 'la aldea '],
+  [/^parroquia\s+/i, 'parroquia '],
+];
+function spokenPlace(p: string): string {
+  const rule = SPOKEN_PLACE.find(([re]) => re.test(p));
+  return rule ? p.replace(rule[0], rule[1]) : p;
+}
+
+// «en la obra de rehabilitación del puente»; a name that already says «obra» does not say it twice («en la obra del
+// puente», never «en la obra de obra del puente»), and «de el» is «del».
+function theObra(name: string): string {
+  if (/^la\s+obra\b/i.test(name)) return name;
+  if (/^obra\b/i.test(name)) return `la ${name}`;
+  if (/^el\s+/i.test(name)) return `la obra del ${name.replace(/^el\s+/i, '')}`;
+  return `la obra de ${name}`;
+}
+
 function lc(s: string): string {
   const m = /^([¡¿«"“‘'\s]*)(\p{Lu})(\p{Ll}*)(\s+(\S))?/u.exec(s);
   if (!m) return s;
@@ -112,16 +136,17 @@ export function buildObraDialog(input: ObraDialogInput, brand: DialogBrand): Obr
     return all.slice(0, MAX_SENTENCES).join(' ');
   };
 
-  // Opening: the greeting and where we are.
+  // Opening: the greeting and where we are, as the boss says it: «Estamos en el sector Las Palmas, parroquia norte,
+  // municipio Cárdenas, en la obra de asfaltado de la vía.»
   const name = bare(take('name'));
-  // «parroquia La Concordia», unless the name already says it («Parroquia centro»).
+  // «parroquia La Concordia», unless the name already says it («Parroquia centro» is said «parroquia centro»).
   const parish = bare(take('parish', false));
   const where = placeOf(
-    [bare(take('sector', false)), parish && !/^parroquia\b/i.test(parish) ? `parroquia ${parish}` : parish].filter(Boolean).join(', '),
+    [spokenPlace(bare(take('sector', false))), parish && !/^parroquia\b/i.test(parish) ? `parroquia ${parish}` : spokenPlace(parish)].filter(Boolean).join(', '),
     take('municipality', false) ? `municipio ${bare(f.municipality)}` : '',
   );
   const greeting = bare(brand.greeting.replace(NO_EMOJI, '')) ? endDot(brand.greeting.replace(NO_EMOJI, '').trim()) : '';
-  const opening = [greeting, where || name ? endDot(`Estamos${where ? ` en ${where}` : ''}${name ? `, en la obra ${lc(name)}` : ''}`.replace('Estamos, en', 'Estamos en')) : ''].filter(Boolean).join(' ');
+  const opening = [greeting, where || name ? endDot(`Estamos${where ? ` en ${where}` : ''}${name ? `, en ${theObra(lc(name))}` : ''}`.replace('Estamos, en', 'Estamos en')) : ''].filter(Boolean).join(' ');
 
   // Característica: what we are doing, who does it, how far it is, what it costs.
   const feature: string[] = [];

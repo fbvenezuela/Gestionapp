@@ -20,12 +20,33 @@ const base = (over: Partial<ObraDialogInput> = {}): ObraDialogInput => ({
   ...over,
 });
 
+describe('el comienzo, como lo dice el jefe (APP-28)', () => {
+  const opening = (over: Partial<ObraDialogInput>) => buildObraDialog(base(over), BRAND).text.split('\n')[0];
+  it('el lugar con su artículo y en minúscula, y «la obra de…»', () => {
+    expect(opening({ sector: 'Sector Las Palmas (demo)', parish: 'Parroquia norte (demo)', municipality: 'Cárdenas', name: 'Asfaltado de la vía del sector Las Palmas (demo)' })).toContain(
+      'Estamos en el sector Las Palmas (demo), parroquia norte (demo), municipio Cárdenas, en la obra de asfaltado de la vía del sector Las Palmas (demo).',
+    );
+    expect(opening({ sector: 'Urbanización Los Pinos (demo)' })).toContain('Estamos en la urbanización Los Pinos (demo),');
+    expect(opening({ sector: 'Barrio Obrero (demo)' })).toContain('Estamos en el barrio Obrero (demo),');
+    // A place without the generic word stays as typed.
+    expect(opening({ sector: 'Las Flores (demo)' })).toContain('Estamos en Las Flores (demo), parroquia La Petrólea (demo)');
+  });
+
+  it('el nombre de la obra no dice «obra» dos veces', () => {
+    expect(opening({ name: 'Rehabilitación del puente' })).toContain('en la obra de rehabilitación del puente.');
+    expect(opening({ name: 'Obra del puente' })).toContain('en la obra del puente.');
+    expect(opening({ name: 'Obra del puente' })).not.toMatch(/de obra|obra obra/i);
+    expect(opening({ name: 'La obra del puente' })).toContain('en la obra del puente.');
+    expect(opening({ name: 'El asfaltado de la vía' })).toContain('en la obra del asfaltado de la vía.');
+  });
+});
+
 describe('el orden FAB y la voz del jefe', () => {
   it('saludo y lugar, Característica, Ventaja, Beneficio y cierre, en ese orden', () => {
     const d = buildObraDialog(base(), BRAND);
     const at = (s: string) => d.text.indexOf(s);
     expect(at('¡Saludos, Táchira!')).toBe(0);
-    expect(at('Estamos en Sector El Llano (demo), parroquia La Petrólea (demo), municipio Junín')).toBeGreaterThan(0);
+    expect(at('Estamos en el sector El Llano (demo), parroquia La Petrólea (demo), municipio Junín, en la obra de rehabilitación del puente de prueba.')).toBeGreaterThan(0);
     expect(at('Lo que estamos haciendo')).toBeGreaterThan(at('Estamos en'));
     expect(at('Esta obra resuelve un problema')).toBeGreaterThan(at('Lo que estamos haciendo'));
     expect(at('Beneficia a')).toBeGreaterThan(at('Esta obra resuelve un problema'));
