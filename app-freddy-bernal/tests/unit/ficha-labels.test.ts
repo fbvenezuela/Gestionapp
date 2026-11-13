@@ -3,7 +3,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { readMigrations, readShim } from '@/lib/db/migrations';
 import * as L from '@/lib/data/ficha-labels';
 import { describeUpdate } from '@/components/fichas/history-timeline';
-import { fieldLabel } from '@/lib/domain/ficha-fields';
+import { FIELDS, fieldLabel, missingMessage } from '@/lib/domain/ficha-fields';
 
 // The screens' value lists and the database CHECK lists of the fichas must be the same: a value the database
 // refuses would fail on save, and one without a label would show raw English.
@@ -101,5 +101,18 @@ describe('la historia de una ficha: los campos que cambiaron (APP-04)', () => {
     // The rest keep the form's label.
     expect(fieldLabel('report', 'reporter_phone')).toBe('Teléfono');
     expect(fieldLabel('obra', 'fab_dialog')).toBe('Lo que voy a decir');
+  });
+});
+
+describe('«Guardar y avisar» con datos sin responder (APP-31)', () => {
+  const first = 'Falta «Nombre de la obra»: escríbelo o marca «No aplica» o «Por confirmar».';
+  it('nombra el primero y cuenta los demás con una frase completa', () => {
+    expect(missingMessage(FIELDS.obra.slice(0, 1))).toBe(first);
+    expect(missingMessage(FIELDS.obra.slice(0, 2))).toBe(`${first} Falta 1 dato más.`);
+    const many = FIELDS.obra.slice(0, 37);
+    expect(many).toHaveLength(37);
+    expect(missingMessage(many)).toBe(`${first} Faltan 36 datos más.`);
+    expect(missingMessage(many)).not.toMatch(/ Y \d/);
+    expect(missingMessage([])).toBe('');
   });
 });

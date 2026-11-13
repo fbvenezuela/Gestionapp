@@ -244,7 +244,8 @@ export function groupProgress(defs: FieldDef[], group: string, values: Record<st
 export function missingMessage(missing: FieldDef[]): string {
   if (!missing.length) return '';
   const first = `Falta «${missing[0].label}»: escríbelo o marca «No aplica» o «Por confirmar».`;
-  return missing.length === 1 ? first : `${first} Y ${missing.length - 1} ${missing.length === 2 ? 'dato más' : 'datos más'}.`;
+  if (missing.length === 1) return first;
+  return missing.length === 2 ? `${first} Falta 1 dato más.` : `${first} Faltan ${missing.length - 1} datos más.`;
 }
 
 // ---------------------------------------------------------------------------
