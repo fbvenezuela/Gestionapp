@@ -68,7 +68,7 @@ Con cualquier rol del equipo, en este orden:
    campana le llega un aviso cuando Administración da un rol del equipo («Un rol
    nuevo en el equipo») o invita a alguien («Alguien nuevo en el equipo»).
 6. **Administración** (`admin@demo.test`): no tiene los globitos, y `/mensajes` la devuelve a su inicio con «Esa pantalla
-   no es de tu rol». En Equipo, la casilla «Jefe» está apagada: el rol de jefe lo da el comando de instalación (D-58).
+   no es de tu rol». En Equipo, la opción «Jefe (lo da quien instala la app)» está apagada (D-58).
 7. **360 y Mensajes:** pregúntale «¿qué me escribió Daniela?» o «dile a Kevin que ya subí la pieza»: contesta que no
    lee ni manda mensajes, con el botón a Mensajes. «Muéstrame cómo se usa esta pantalla» trae «Ver el tutorial de…».
 

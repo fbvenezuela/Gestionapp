@@ -868,7 +868,8 @@ comando, los mensajes no se borran).
 - **Qué:** migración `20261028002350_boss_grant.sql`: dar el rol `boss` (en `user_roles` y en `invitations.roles`)
   solo lo puede hacer el sistema (sin persona: la semilla, una migración, el comando de instalación o el alta de
   Supabase que copia los roles de una invitación que hizo el sistema). Administración ya no lo da, ni en «Equipo» ni en
-  «Invitar»; la casilla «Jefe» se ve apagada con «El rol de jefe lo da el comando de instalación.». Una invitación que
+  «Invitar»; la casilla «Jefe» se ve apagada con «El rol de jefe lo da quien instala la app.» (hasta el 13/11 decía «el
+  comando de instalación», también en la base: `20261113000200_rol_de_jefe_quien_instala.sql`). Una invitación que
   nombra al jefe solo se puede anular. El comando: `npm run db:first-admin -- <correo> "<nombre>" --jefe` (el mismo
   script del primer administrador; no manda nada). Además, cada rol del equipo que da **una persona** crea un aviso en
   la campana del jefe («Administración le dio el rol Grabación a <nombre>.» o «Administración invitó a … como Redes.»),

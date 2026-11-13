@@ -137,7 +137,7 @@ describe('cerrar sesiones', () => {
 
 // Supabase refuses the delete (a missing grant, a newer GoTrue): a real error from the database.
 describe('si no se pueden borrar las sesiones de Supabase', () => {
-  const PARTIAL = 'Listo. No se pudieron borrar sus sesiones en Supabase, pero la app ya no las acepta.';
+  const PARTIAL = 'Listo. No se pudieron borrar todas sus sesiones, pero la app ya no las acepta.';
   const revokedAt = () => t.system((sql) => sql.one<{ at: Date | null }>(`select sessions_revoked_at as at from public.profiles where id = $1`, [t.ids.social2]));
 
   beforeAll(async () => {
@@ -156,7 +156,7 @@ describe('si no se pueden borrar las sesiones de Supabase', () => {
     as('admin');
     expect(await team.resetTwoFactor({ userId: t.ids.social2 })).toEqual({
       ok: true,
-      message: 'Listo. La próxima vez que entre, tendrá que activar el doble factor otra vez. No se pudieron borrar sus sesiones en Supabase, pero la app ya no las acepta.',
+      message: 'Listo. La próxima vez que entre, tendrá que activar el doble factor otra vez. No se pudieron borrar todas sus sesiones, pero la app ya no las acepta.',
     });
     const factors = await t.system((sql) => sql.one<{ n: number }>(`select count(*)::int as n from demo_auth.totp_factors where user_id = $1`, [t.ids.social2]));
     expect(factors?.n).toBe(0);
