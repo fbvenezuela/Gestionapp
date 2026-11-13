@@ -45,7 +45,7 @@ export function CopiesEditor({
 
   return (
     <Card data-tour="copies">
-      <CardHeader title="Copies" subtitle="La misma fórmula en tres largos. Solo usan cifras de la ficha." />
+      <CardHeader title="Copies" subtitle="Tres textos con la misma fórmula: largo, medio y corto. Solo usan cifras de la ficha." />
       {dialog}
       <CardBody className="flex flex-col gap-4">
         <div className="grid gap-3 sm:grid-cols-3">
