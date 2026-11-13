@@ -93,7 +93,12 @@ const SHORTHAND: [RegExp, string][] = [
   [/\b(?:copies)\b/g, 'copy'],
   // The screen's pictures, said as people say them: the bell, the envelope, the pencil, the magnifier, the gear.
   [/\b(?:campanit[ao]|campanaso)\b/g, 'campana'],
-  [/\b(?:sobrecito|sobresito|el sobre|cartica|cartita|globitos|globito|burbujitas|burbujita)\b/g, 'mensajes'],
+  // The bubbles: Mensajes are the bubbles at the top («los globitos», «el globito de arriba»); the one at the bottom
+  // right is 360's own button («¿para qué es el globito de abajo?», «la burbujita que me sale abajo»). A bubble alone
+  // («el globito») says neither (13/11).
+  [/\b(?:globit[oa]s?|burbujit[ao]s?)\b(?=(?: [a-z0-9]+){0,4} (?:abajo|de abajo)\b)/g, 'boton redondo'],
+  [/\b(?:globit[oa]s?|burbujit[ao]s?)\b(?=(?: [a-z0-9]+){0,3} (?:arriba|de arriba)\b)/g, 'mensajes'],
+  [/\b(?:sobrecito|sobresito|el sobre|cartica|cartita|globitos|burbujitas)\b/g, 'mensajes'],
   [/\b(?:lapicito|lapicero|lapisito)\b/g, 'lapiz'],
   [/\b(?:lupita)\b/g, 'lupa'],
   [/\b(?:engranaje|engranajito|tuerquita|tuerca|ruedita)\b/g, 'ajustes'],

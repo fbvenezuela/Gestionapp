@@ -84,9 +84,19 @@ describe('las entradas', () => {
     expect(labels.some((l) => /\b2\b/.test(l) && l.startsWith('aprobar todas'))).toBe(false);
   });
 
-  it('«los globitos» de arriba son Mensajes, como «el sobre»', () => {
+  it('«los globitos» de arriba son Mensajes, como «el sobre»; el de abajo es el botón de 360', () => {
     expect(readable('donde estan los globitos')).toBe('donde estan los mensajes');
     expect(readable('para que es el sobre')).toBe('paraque es mensajes');
+    expect(readable('que es el globito de arriba')).toBe('que es el mensajes de arriba');
+    // The bubble at the bottom right is 360's button (13/11), never Mensajes.
+    for (const q of ['¿para qué sirve el globito de abajo?', 'la burbujita que me sale abajo que es']) {
+      expect(readable(q), q).not.toMatch(/mensajes/);
+      const m = findAnswers(q, { roles: ['social'], limit: 1 })[0]!;
+      expect(m.text, q).toMatch(/botón redondo de abajo/);
+      expect(m.text, q).not.toMatch(/Mensajes/);
+    }
+    // A bubble alone says neither.
+    expect(readable('el globito')).toBe('el globito');
   });
 
   it('una tarea se dice paso a paso, hasta unas 420 letras', () => {
