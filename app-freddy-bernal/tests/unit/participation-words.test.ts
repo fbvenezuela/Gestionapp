@@ -1,7 +1,8 @@
 // The attention desk's words (copy audit §1, §6, F4): one text for each legal notice, the same in the client's config;
 // the database's older messages said as «usted» on their way to the citizen, and still tied to real migrations; the
 // emails never say the secret or the kind of request; and nothing the citizen reads on these pages speaks as «tú» or
-// names «el equipo». All data invented. The server actions are mocked (nothing here touches the database).
+// names «el equipo». All data invented. The server actions are mocked; only the saved replies that come with the app
+// are read from a throwaway test database (the one of the RLS tests), as the migrations leave them.
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, it, expect, vi } from 'vitest';
@@ -15,6 +16,7 @@ import { receiptPdf } from '@/lib/participation/pdf';
 import { DB_MESSAGES_SAID_AGAIN, citizenDbText, failureOf } from '@/lib/actions/participation-core';
 import { STAT_DEFINITIONS } from '@/components/web/stats';
 import { realFaqs } from '@/lib/db/seed-parts/web-real';
+import { makeTestDb } from '../rls/setup';
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: () => {}, refresh: () => {}, replace: () => {} }), usePathname: () => '/atencion' }));
 vi.mock('@/lib/actions/participation', () => ({
@@ -242,4 +244,29 @@ describe('lo público no promete una fecha de atención', () => {
     for (const [label, s] of said) expect(s, label).not.toMatch(PROMISE);
     expect(STAT_DEFINITIONS.find((d) => d.term === 'Vencidas')?.text).toBe('Solicitudes pendientes que pasaron su plazo de atención.');
   });
+});
+
+describe('las respuestas guardadas de fábrica hablan de usted', () => {
+  const USTED = path.resolve('supabase/migrations/20261113100000_respuestas_guardadas_de_usted.sql');
+
+  it('ninguna tutea ni nombra «el equipo»; la que la coordinación ya cambió se queda como la dejó', async () => {
+    const t = await makeTestDb();
+    const read = () => t.system((sql) => sql.query<{ title: string; body: string }>(`select title, body from public.request_reply_templates order by sort, title`));
+    const rows = await read();
+    expect(rows.length).toBeGreaterThanOrEqual(9);
+    for (const r of rows) citizenReads(r.title, r.body);
+    expect(rows.find((r) => r.title === 'Atención programada')?.body).toBe('Ya está programada la atención de su solicitud. Le avisaremos por aquí cuando se haga.');
+
+    // The change touches only what still says, word for word, what the app brought: one put back as it came, one that
+    // the coordination rewrote; the same migration again changes the first and leaves the second.
+    const OWN = 'Texto que escribió la coordinación para este caso (prueba).';
+    await t.system(async (sql) => {
+      await sql.query(`update public.request_reply_templates set body = 'Tu solicitud quedó resuelta. Si no es así, dínoslo desde tu consulta y la revisamos de nuevo.' where title = 'Quedó resuelta'`);
+      await sql.query(`update public.request_reply_templates set body = $1 where title = 'Falta un dato'`, [OWN]);
+      await sql.query(fs.readFileSync(USTED, 'utf8'));
+    });
+    const after = await read();
+    expect(after.find((r) => r.title === 'Quedó resuelta')?.body).toBe('Su solicitud quedó resuelta. Si no es así, díganoslo desde su consulta y la revisamos de nuevo.');
+    expect(after.find((r) => r.title === 'Falta un dato')?.body).toBe(OWN);
+  }, 120_000);
 });
