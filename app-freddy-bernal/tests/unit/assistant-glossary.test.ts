@@ -292,4 +292,15 @@ describe('360 lo explica en la conversación (el cerebro de la demo)', () => {
     const hour = await handleTurn(sessionOf('camera2'), { question: '¿a qué hora es la jornada de salud? ¿a las 9:16?', conversationId: null }, { chain: [] });
     expect(hour.answer).toMatch(REFUSAL);
   });
+
+  // A problem that names a word («… en la web, ¿qué hago?») is not asked what the word means (13/11): the meaning stays
+  // unsure, and a card that only shares a root with it («publicó», «público») is not the answer either.
+  it('un problema que nombra la palabra va a lo que se hace, no a lo que significa ni a una ficha parecida', async () => {
+    const m = bestAnswer('¿se publicó algo por error en la web, qué hago?', { roles: ['boss'] })!;
+    expect(m.entry.id).toBe('curado:jefe-web-por-error');
+    expect(m.confidence).toBe('strong');
+    const r = await handleTurn(sessionOf('boss'), { question: 'se publico algo por error en la web que hago', conversationId: null }, { chain: [] });
+    expect(r.answer).toMatch(/«Archivar».*sale de la web al momento/);
+    expect(r.answer).not.toMatch(/Receptividad/);
+  });
 });

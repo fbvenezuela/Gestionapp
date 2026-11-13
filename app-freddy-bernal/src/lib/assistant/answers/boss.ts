@@ -3427,4 +3427,20 @@ export const BOSS: Answer[] = [
     a: 'Pídele ayuda a quien te invitó (administración): te reinicia el doble factor y, la próxima vez que entres desde el iPad o el teléfono nuevo, lo activas otra vez con «Mostrar el código QR». Si se perdió, pídele también que te cierre las sesiones.',
     go: '/perfil',
   },
+  {
+    // The web has its own guide (glossary «Web y Atención»); what to do when something went out by mistake is the one
+    // thing the boss asks of it here (its manual, «Si algo sale mal»). Without it the definition answered a problem.
+    id: 'jefe-web-por-error',
+    roles: ['boss'],
+    q: [
+      '¿Se publicó algo por error en la web, qué hago?',
+      'se publico algo por error en la web',
+      'como quito una noticia de la web',
+      'como saco una noticia de la web',
+      'como archivo una noticia de la web',
+      'quitar algo de la web',
+      'se publico un cambio equivocado en la web',
+    ],
+    a: 'En «Web», abre ese contenido y toca «Revisar y publicar» → «Archivar» (te pregunta antes): sale de la web al momento, sin borrar nada, y «Desarchivar» lo vuelve a poner. Si lo equivocado es un cambio: «Versiones» → «Volver a esta versión», y otra vez «Revisar y publicar» → «Publicar ahora». Archivan solo tú y quien aprueba la web. Lo demás de la web está en su propia guía, aparte de esta.',
+  },
 ];
