@@ -20,6 +20,12 @@ function tone(e: CalEvent) {
 
 const local = (iso: string) => DateTime.fromJSDate(new Date(iso)).setZone(TZ).setLocale('es');
 
+/** The hour column of the week and day views: «6 a. m.», «12 p. m.», like every other time in the app (with no
+ * locale, Luxon wrote «6 AM»). */
+export function hourLabel(h: number): string {
+  return fmtAt(DateTime.fromObject({ hour: h }, { zone: TZ, locale: 'es' }), 'h a');
+}
+
 // Both views are long grids (up to 42 days, or 17 hours a day): a solid Card, without blur behind them (docs/DISENO.md).
 export function MonthView({ anchor, events }: { anchor: DateTime; events: CalEvent[] }) {
   const first = anchor.startOf('month').startOf('week');
@@ -83,7 +89,7 @@ export function TimeGrid({ days, events }: { days: DateTime[]; events: CalEvent[
           <div>
             {hours.map((h) => (
               <div key={h} className="relative border-b border-border text-right font-mono text-[11px] text-text-2" style={{ height: HOUR_PX }}>
-                <span className="absolute -top-2 right-1.5 bg-surface px-0.5">{fmtAt(DateTime.fromObject({ hour: h }), 'h a')}</span>
+                <span className="absolute -top-2 right-1.5 whitespace-nowrap bg-surface px-0.5">{hourLabel(h)}</span>
               </div>
             ))}
           </div>
