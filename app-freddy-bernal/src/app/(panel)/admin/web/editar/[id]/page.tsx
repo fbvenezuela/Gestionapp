@@ -96,7 +96,7 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
         <Notice tone={data.origin.flags.length ? 'warn' : 'info'} title="Traído de la web vieja">
           <p>
             Era <span className="break-all font-mono text-sm">{data.origin.sourcePath}</span>
-            {data.origin.publishedAt ? `, publicado el ${fmtDateTime(data.origin.publishedAt)}` : ''}. Lo trajo el importador el{' '}
+            {data.origin.publishedAt ? `, publicado el ${fmtDateTime(data.origin.publishedAt)}` : ''}. Se trajo de la web vieja el{' '}
             {fmtDateTime(data.origin.importedAt)}: revísalo antes de enviarlo.
           </p>
           {reviewFlagTexts(data.origin.flags).length ? (

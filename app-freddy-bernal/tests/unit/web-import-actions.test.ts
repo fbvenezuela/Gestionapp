@@ -62,7 +62,7 @@ describe('un borrador importado en el administrador', () => {
     const { id, mediaId } = await imported('importada-marca', `Escribir a ${REMOVED_MARKS.email} (prueba).`);
     await t.system((sql) => sql.query(`update public.web_media set alt = 'Una plaza con árboles (prueba)' where id = $1`, [mediaId]));
     as('webEditor');
-    expect(await web.submitWebItem({ id })).toEqual({ ok: false, error: expect.stringContaining('Quedó «[correo retirado]» donde el importador quitó un dato personal') });
+    expect(await web.submitWebItem({ id })).toEqual({ ok: false, error: expect.stringContaining('Quedó «[correo retirado]» donde se quitó un dato personal al traer la nota') });
     as('webPublisher');
     expect(await web.publishWebItem({ id, rev: await rev(id) })).toEqual({ ok: false, error: expect.stringContaining('Todavía no se puede publicar: Quedó «[correo retirado]»') });
   });

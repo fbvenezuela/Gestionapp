@@ -111,7 +111,7 @@ export default async function WebAdminPage() {
               Navegación, pie de página, contactos y cuentas verificadas, WhatsApp, portal y datos estructurados.
             </DoorCard>
             <DoorCard href={ADMIN_WEB.redirects} icon={<Shuffle className="h-5 w-5" aria-hidden />} title="Redirecciones">
-              Direcciones viejas que llevan a las nuevas (301), para que ningún enlace se pierda.
+              Direcciones de la web vieja que llevan a las nuevas, para que ningún enlace se pierda.
             </DoorCard>
           </>
         ) : null}

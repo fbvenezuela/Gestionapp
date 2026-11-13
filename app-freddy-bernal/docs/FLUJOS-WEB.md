@@ -440,7 +440,7 @@ flowchart TD
 
 **Qué hay que saber**
 - No se redirige una dirección que la web ya usa. Tampoco se hacen dos desde la misma.
-- Las que se hicieron solas al traer las noticias de la web vieja dicen «Del importador». Las hechas aquí dicen «A mano», y nunca cambian solas.
+- Las que se hicieron solas al traer las noticias de la web vieja dicen «De la web vieja». Las hechas aquí dicen «A mano», y nunca cambian solas.
 - Cuando quien aprueba cambia la «Dirección en la web» de algo publicado, la vieja sigue llevando a la nueva sola.
 - Un cambio se nota en la web en más o menos un minuto. Un archivo viejo es una foto o un documento que estaba en la web anterior.
 

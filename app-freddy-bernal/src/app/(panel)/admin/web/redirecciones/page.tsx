@@ -60,7 +60,7 @@ export default async function RedirectsPage({ searchParams }: { searchParams: Se
               <li key={r.id} className="flex flex-col gap-2 px-4 py-3">
                 <span className="flex flex-wrap items-center gap-2">
                   <span className="break-all font-mono text-[15px] font-semibold">{r.from}</span>
-                  <Chip tone={r.source === 'importador' ? 'info' : 'neutral'}>{r.source === 'importador' ? 'Del importador' : 'A mano'}</Chip>
+                  <Chip tone={r.source === 'importador' ? 'info' : 'neutral'}>{r.source === 'importador' ? 'De la web vieja' : 'A mano'}</Chip>
                 </span>
                 <span className="text-xs text-text-2">
                   {fmtDateTime(r.createdAt)}

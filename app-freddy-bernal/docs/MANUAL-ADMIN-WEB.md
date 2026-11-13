@@ -318,10 +318,10 @@ puede ser de la web anterior o una de esta web que cambió. Las ve y las cambia 
 
 - **«Nueva redirección»**: en «Dirección vieja», la dirección como estaba antes. En «Lleva a», la página de esta web
   adonde debe llevar. En las dos va solo el final de la dirección, el que empieza con «/», como en el ejemplo que trae
-  cada cuadro debajo. En «Tipo», deja la opción que ya viene marcada, la que dice «para siempre (lo normal)». Toca
+  cada cuadro debajo. En «Tipo», deja la opción que ya viene marcada, la que dice «Para siempre (lo normal)». Toca
   **«Agregar la redirección»**.
 - **«Buscar»** encuentra una por parte de su dirección vieja o nueva.
-- En la lista, cada una dice **«Del importador»** o **«A mano»**. Las «Del importador» se hicieron solas al traer las
+- En la lista, cada una dice **«De la web vieja»** o **«A mano»**. Las «De la web vieja» se hicieron solas al traer las
   noticias de la web anterior. Las «A mano» las agrega alguien del equipo aquí, y nunca cambian solas. En la versión de
   prueba ya vienen algunas «A mano», como la que lleva la biografía de la web oficial a «El gobernador».
 - Para corregir una, cambia el destino y toca «Guardar». El cuadro de al lado es su tipo: no hace falta tocarlo.

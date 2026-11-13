@@ -11,13 +11,14 @@ import { deleteRedirect, saveRedirect } from '@/lib/actions/web-site';
 
 // Redirects of old addresses (design §2): «/2024/05/una-nota» → «/actualidad/una-nota», 301 by default. Only to an
 // address of this site (no open redirect, also in the database). The importer fills most of them; here they are added
-// or fixed by hand.
+// or fixed by hand. The type is said in words, never by its number (301 and 308 are permanent, 302 and 307 temporary;
+// 307 and 308 keep a form's sending as it was).
 
 const STATUS = [
-  ['301', '301 · para siempre (lo normal)'],
-  ['308', '308 · para siempre, mismo método'],
-  ['302', '302 · por un tiempo'],
-  ['307', '307 · por un tiempo, mismo método'],
+  ['301', 'Para siempre (lo normal)'],
+  ['308', 'Para siempre, también para formularios'],
+  ['302', 'Por un tiempo'],
+  ['307', 'Por un tiempo, también para formularios'],
 ] as const;
 
 export function NewRedirectForm() {
@@ -107,12 +108,12 @@ export function RedirectRowForm({ r }: { r: { id: string; from: string; to: stri
   return (
     <div className="flex flex-col gap-2">
       {dialog}
-      <div className="grid gap-2 sm:grid-cols-[1fr_9rem]">
+      <div className="grid gap-2 sm:grid-cols-[1fr_18rem]">
         <Input id={`${id}-to`} value={to} onChange={(e) => setTo(e.target.value)} maxLength={500} className="font-mono text-[15px]" aria-label={`Destino de ${r.from}`} />
         <Select value={status} onChange={(e) => setStatus(e.target.value)} aria-label={`Tipo de la redirección de ${r.from}`}>
-          {STATUS.map(([v]) => (
+          {STATUS.map(([v, l]) => (
             <option key={v} value={v}>
-              {v}
+              {l}
             </option>
           ))}
         </Select>

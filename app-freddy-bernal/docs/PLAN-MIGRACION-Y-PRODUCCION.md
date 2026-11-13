@@ -45,7 +45,7 @@ abrir y cómo volver atrás. Lo que no se pudo comprobar desde aquí está dicho
    WordPress hasta 2.048 px de lado (`--max-side` para otro). Si WordPress tenía texto alternativo o pie, se usa; si no,
    «[Por escribir] Foto traída de la web vieja: describe lo que se ve.». Una foto alojada en otra página no se trae.
    La misma foto en dos artículos es un solo archivo.
-6. **Redirecciones 301** de las direcciones viejas a las nuevas (§3), marcadas «Del importador» en
+6. **Redirecciones 301** de las direcciones viejas a las nuevas (§3), marcadas «De la web vieja» en
    `/admin/web/redirecciones`. Una redirección hecha a mano nunca se cambia.
 7. **Se puede correr las veces que haga falta.** Recuerda de dónde vino cada borrador (tabla `web_import_items`) y
    cada foto (`web_import_media`). Otra corrida actualiza solo los borradores que **nadie tocó** desde la anterior;
@@ -154,7 +154,7 @@ Inventario de `docs/diagnostico.md` §1 y §5. Todas responden **301** (permanen
 - Una redirección a un **borrador que no se ha publicado** termina en «No encontrada» hasta que se publique. Por eso,
   antes del cambio de DNS: publicar lo que se quiere conservar y archivar lo que no.
 - Los blogs viejos de wordpress.com no son de este dominio: no se pueden redirigir desde aquí.
-- El equipo las ve y las cambia en `/admin/web/redirecciones` (las del importador dicen «Del importador»). Un cambio
+- El equipo las ve y las cambia en `/admin/web/redirecciones` (las del importador dicen «De la web vieja»). Un cambio
   se nota en un minuto.
 
 ## 4. La salida a producción, en orden
