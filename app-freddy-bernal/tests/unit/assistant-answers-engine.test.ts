@@ -74,6 +74,15 @@ describe('las entradas', () => {
     const admin = entries.filter((e) => e.roles?.includes('admin') && e.source === 'shared:arriba');
     expect(admin.some((e) => e.a === NO_MESSAGES_LINE)).toBe(true);
     expect(entries.some((e) => e.source === 'shared:mensajes' && (e.roles === null || e.roles.includes('admin')))).toBe(false);
+    // The topic «Lo de arriba de la pantalla» too (13/11): to administración, the bubbles are not its own.
+    const topic = entries.find((e) => e.id === 'todos:arriba')!;
+    expect(textFor(topic.a, ['admin'])).toContain(NO_MESSAGES_LINE);
+    expect(textFor(topic.a, ['admin'])).not.toMatch(/tus canales de Mensajes/);
+    expect(textFor(topic.a, ['social'])).toMatch(/tus canales de Mensajes/);
+    for (const q of ['¿qué es lo de arriba de la pantalla?', '¿cómo funciona lo de arriba de la pantalla?', '¿qué hay arriba de la pantalla?']) {
+      const m = findAnswers(q, { roles: ['admin'], limit: 1 })[0]!;
+      expect(m.text, q).not.toMatch(/tus canales de Mensajes/);
+    }
   });
 
   it('los textos de la pantalla con una palabra de tiempo están entre las etiquetas que se conocen', () => {

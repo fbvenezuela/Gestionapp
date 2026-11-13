@@ -4,7 +4,7 @@
 // source as /ayuda, so 360 never drifts from it). Pure: no database, no I/O. The demo brain answers with the best entry; with a model chain the
 // best ones go into the prompt as fichas (brain.ts pickFichas). Static, date-free text: answering never leaks the agenda.
 import { ROLE_LABEL, TEAM_ROLES, type Role, type TeamRole } from '../../roles';
-import { ADMIN_GUIDE, FLOWS, GLOSSARY, SHARED, allGuides, glossaryLine } from '../../guides';
+import { ADMIN_GUIDE, FLOWS, GLOSSARY, SHARED, allGuides, glossaryLine, sharedFor } from '../../guides';
 import { NO_MESSAGES_LINE, TOP_MESSAGES_LINE } from '../../guides/shared';
 import { everyoneSections } from '../../guides/sections';
 import type { SectionGuide, Task } from '../../guides/types';
@@ -530,10 +530,17 @@ function guideEntries(): Entry[] {
 function sharedEntries(): Entry[] {
   const out: Entry[] = [];
   const team = [...TEAM_ROLES] as Role[];
+  // What administración reads of «Para todos» (sharedFor): no Mensajes, and «Lo de arriba» without the bubbles.
+  const forAdmin = new Map(sharedFor({ messages: false }).map((t) => [t.id, t]));
   for (const t of SHARED) {
     // Administración has no Mensajes (D-49): the topic is the team's, and the envelope line says so (sharedFor).
     const roles: Role[] | null = t.id === 'mensajes' ? team : null;
-    out.push({ id: `todos:${t.id}`, kind: 'topic', source: `shared:${t.id}`, roles, q: [t.title, `como funciona ${t.title}`, `que es ${t.title}`], doc: t.body[0], a: t.body.slice(0, 2).join(' '), ...(t.id === 'mensajes' ? { go: '/mensajes' } : t.id === 'ayuda' ? { go: '/ayuda' } : {}) });
+    // A topic said to everyone says administración's own lines to administración («Lo de arriba de la pantalla»: never
+    // that it has the bubbles of Mensajes, 13/11).
+    const lead = t.body.slice(0, 2).join(' ');
+    const adminLead = forAdmin.get(t.id)?.body.slice(0, 2).join(' ');
+    const a: AnswerText = roles === null && adminLead && adminLead !== lead ? { default: lead, admin: adminLead } : lead;
+    out.push({ id: `todos:${t.id}`, kind: 'topic', source: `shared:${t.id}`, roles, q: [t.title, `como funciona ${t.title}`, `que es ${t.title}`], doc: t.body[0], a, ...(t.id === 'mensajes' ? { go: '/mensajes' } : t.id === 'ayuda' ? { go: '/ayuda' } : {}) });
     t.body.forEach((line, k) => {
       const envelope = line === TOP_MESSAGES_LINE;
       const id = `todos:${t.id}:${k}`;
