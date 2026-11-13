@@ -18,7 +18,7 @@ import { SECRET as GPS_TEXT, jpegWithGps } from '../unit/fixtures/photos';
 //   coordination finds exactly one with that title;
 // - on a computer, the editor writes a news item and looks at its preview (not public before it is approved), the
 //   approver publishes it (public) and archives it (gone again).
-// Everything it writes is invented and says «(prueba)»; it leaves nothing waiting for approval (web-roles counts it).
+// Everything it writes is invented and says «(prueba)»; it leaves nothing waiting for approval.
 
 const YEAR = new Date().getFullYear();
 const RUN = Math.random().toString(36).slice(2, 7);

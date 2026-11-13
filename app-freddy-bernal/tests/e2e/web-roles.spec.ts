@@ -69,7 +69,13 @@ test('lo que cuenta cada quien es lo que su RLS deja leer: la coordinación todo
   await loginAs(page, 'web.editora@demo.test');
   await page.goto('/admin/web');
   expect(await stat(page, 'Publicados')).toBeGreaterThan(50);
-  expect(await stat(page, 'Esperan aprobación')).toBe(2);
+  // «Esperan aprobación» is what «Por aprobar» shows her: the demo's two (a news item and a change to a live project) and
+  // whatever another spec of the run left there on this server (CI's retry of admin-web left one), counted the same.
+  const waiting = await stat(page, 'Esperan aprobación');
+  await page.goto('/admin/web/por-aprobar');
+  const queue = page.locator('main a[href^="/admin/web/revisar/"]');
+  await expect(queue).toHaveCount(waiting);
+  for (const title of ['Ferias de alimentos del fin de semana (demo)', 'Limpieza y canalización de quebradas (demo)']) await expect(queue.filter({ hasText: title })).toHaveCount(1);
   await page.goto('/admin/atencion');
   await expect(page).toHaveURL(/\/admin\/web\?sin-permiso=1$/);
 });
