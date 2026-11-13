@@ -189,8 +189,8 @@ Al mirarlas se encontraron y arreglaron cuatro cosas (§8.2 a §8.5). Lo que que
    (`ff7c287`): ahora va en un renglón. Este arreglo llegó después de la corrida completa; se repitieron las pruebas de
    la bandeja (§2).
 
-Además, solo en las pruebas: la revisión de axe de `web-recorridos.spec.ts` espera a que la página tenga su título
-antes de revisar (§11, la observación sin causa encontrada).
+Además, solo en las pruebas: toda revisión de axe espera a que no quede ningún aviso y a que la página tenga su título
+(`readyForAxe()` en `tests/e2e/helpers.ts`; §11).
 
 ## 9. Revisión de seguridad
 
@@ -294,9 +294,11 @@ Todo lo de esta sección **no se probó**; lo que el informe dice de ello es lo 
   la web de prueba no se deja indexar.
 - **Mapas en producción.** Los mosaicos de OpenStreetMap no cargan en este contenedor; con tráfico real hace falta un
   proveedor de mosaicos (su política de uso).
-- **Una observación sin causa encontrada:** una vez, justo después de abrir una consulta, axe vio la página sin su
-  título (`<title>`); en 22 corridas de prueba hechas para buscarlo no volvió a pasar. La prueba nueva espera el título
-  (hasta 5 s) antes de revisar con axe; si una página de verdad no tuviera título, igual fallaría.
+- **El título que llega después:** justo después de una acción que redibuja la página (abrir una consulta, agregar una
+  redirección), axe vio la página sin su título (`<title>`): una vez aquí y dos veces en CI (runs 54 y 58, 07–09/11).
+  Next pone el título con los metadatos de la página, en un límite propio que llega después del resto; aquí no se
+  repitió en 48 corridas buscándolo (22 antes, 26 el 13/11, con la máquina cargada y la red frenada). Toda revisión de
+  axe espera el título (hasta 5 s); si una página de verdad no tuviera título, igual fallaría.
 
 ## 12. Cómo repetir estas pruebas
 
