@@ -221,7 +221,7 @@ export const BOSS: Answer[] = [
       'aprobar todas las piezas verdes de un solo toque',
       'las verdes se aprueban juntas?',
     ],
-    a: 'En tu Inicio, en «Te toca aprobar», toca «Aprobar todas las verdes (2)»: se aprueban todas de un toque. El mismo botón está en «Por aprobar».',
+    a: 'En tu Inicio, en «Te toca aprobar», toca «Aprobar todas las verdes (2)» (el número es el de las verdes que esperan): se aprueban todas de un toque. El mismo botón está en «Por aprobar».',
     go: '/aprobar',
     tutorial: 'jefe-inicio',
   },

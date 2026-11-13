@@ -1198,7 +1198,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-publicar-pasos',
     roles: ['social'],
     q: ['¿Cómo publico una pieza aprobada?', 'como programo una publicacion', 'pasos para publicar', 'nueva publicacion como', 'como publico', 'como subo una pieza a las redes', 'como programo un post aprobado', 'como programo en varias redes', 'como hago una nueva publicacion', 'que pasos sigo para publicar', 'como programo un post en instagram', 'programar una publicacion para instagram', 'como programo un reel para tiktok', 'puedo programar la misma pieza en dos redes', 'publicar en varias redes a la vez', 'programar en instagram y facebook juntas', 'como publico una pieza', 'como publico en tiktok', 'como publico un post en instagram'],
-    a: 'Publicar → «Nueva publicación» → «¿Qué pieza vas a publicar?», eliges las redes (arregla lo que salga en rojo), el «Día» y la hora, y tocas «Programar en 2 redes». La app no publica sola: después bajas el «Paquete para publicar», lo publicas tú en la red y marcas «Ya lo publiqué».',
+    a: 'Publicar → «Nueva publicación» → «¿Qué pieza vas a publicar?», eliges las redes (arregla lo que salga en rojo), el «Día» y la hora, y tocas «Programar en 2 redes» (con el número de redes que elegiste). La app no publica sola: después bajas el «Paquete para publicar», lo publicas tú en la red y marcas «Ya lo publiqué».',
     go: '/publicar/nueva',
     tutorial: 'publicar-nueva',
   },
@@ -1251,7 +1251,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-rojo-publicar',
     roles: ['social'],
     q: ['me sale arregla lo marcado en rojo que hago', 'no me deja programar la publicacion', 'programar en redes esta apagado', 'error al programar', 'programar en redes no se prende', 'no puedo programar la publicacion', 'me sale arregla lo marcado en rojo'],
-    a: 'Corrige primero lo que sale en rojo en cada red, o quita esa red, y vuelve a «Programar en 2 redes».',
+    a: 'Corrige primero lo que sale en rojo en cada red, o quita esa red, y vuelve a «Programar en 2 redes» (con el número de redes que elegiste).',
     go: '/publicar/nueva',
   },
   {

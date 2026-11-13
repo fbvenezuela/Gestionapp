@@ -1247,7 +1247,7 @@ export const TODOS: Answer[] = [
       'cuantas personas estan en este canal',
       'cuantos somos en el canal',
     ],
-    a: { default: 'Tú: abre el canal y toca «5 personas», arriba; sale la lista «Miembros», con el jefe primero. Yo no leo Mensajes, así que ábrelo tú.', admin: NO_MSG },
+    a: { default: 'Tú: abre el canal y toca arriba el número de personas (por ejemplo, «5 personas»); sale la lista «Miembros», con el jefe primero. Yo no leo Mensajes, así que ábrelo tú.', admin: NO_MSG },
     go: '/mensajes',
     tutorial: 'canal',
   },
@@ -1292,8 +1292,8 @@ export const TODOS: Answer[] = [
     ],
     a: {
       default:
-        'Los que están en ese canal, y el jefe, que está en todos: cada quien ve solo los canales donde está (toca «5 personas» para ver quiénes). Administración no entra a Mensajes y yo no los leo. El registro guarda solo que hubo un mensaje, quién y cuándo, nunca el texto.',
-      boss: 'Los que están en cada canal (toca «5 personas» para verlos), y tú, que estás en todos. Administración no entra a Mensajes y yo no los leo; el registro guarda solo que hubo un mensaje, quién y cuándo, nunca el texto.',
+        'Los que están en ese canal, y el jefe, que está en todos: cada quien ve solo los canales donde está (toca el número de personas, por ejemplo «5 personas», para ver quiénes). Administración no entra a Mensajes y yo no los leo. El registro guarda solo que hubo un mensaje, quién y cuándo, nunca el texto.',
+      boss: 'Los que están en cada canal (toca el número de personas, por ejemplo «5 personas», para verlos), y tú, que estás en todos. Administración no entra a Mensajes y yo no los leo; el registro guarda solo que hubo un mensaje, quién y cuándo, nunca el texto.',
       admin:
         'No: administración no entra a Mensajes, ni con «Ver como». El registro de cambios dice solo que hubo un mensaje, un canal o un cambio de miembros, quién y cuándo: nunca el texto, el nombre del canal ni quiénes.',
     },
@@ -1899,11 +1899,48 @@ export const TODOS: Answer[] = [
     q: ['que es eso de ayuda y guias', 'para que sirve ayuda y guias', 'donde esta ayuda', 'qué hay en ayuda'],
     a: {
       default:
-        'Es la ayuda de la app, en Mi cuenta → «Ayuda y guías»: «Mi trabajo, paso a paso», «Qué se hace en cada pantalla», «Cómo va el trabajo entre todos», los «Tutoriales de mis pantallas» y lo que es para todos (entrar, el teléfono, sin señal, la regla de la fecha, Mensajes y 360).',
-      admin: 'Es la ayuda de la app, en Mi cuenta → «Ayuda y guías»: para ti, la «Guía de administración», «Cómo va el trabajo entre todos» y «La guía de cada persona».',
+        'Es la ayuda de la app, en Mi cuenta → «Ayuda y guías»: «Mi trabajo, paso a paso», «Qué se hace en cada pantalla», «Cómo va el trabajo entre todos», los «Tutoriales de mis pantallas» y lo que es para todos (entrar, el teléfono, sin señal, la regla de la fecha, Mensajes, 360 y las palabras de la app).',
+      admin: 'Es la ayuda de la app, en Mi cuenta → «Ayuda y guías»: para ti, la «Guía de administración», «Cómo va el trabajo entre todos», «La guía de cada persona» y «Para todos», con las palabras de la app.',
     },
     go: '/ayuda',
     tutorial: 'ayuda',
+  },
+  // The parts of «Ayuda y guías» the team guide added (12/11): how to read it, its words, and how the work goes on.
+  {
+    id: 'todo-ayuda-comillas',
+    roles: null,
+    q: [
+      'que quiere decir lo que va entre comillas',
+      'que significa lo que va entre comillas en la guia',
+      'por que la guia dice (2)',
+      'que significan los numeros entre parentesis de la guia',
+      'por que hay numeros entre parentesis en la guia',
+      'en la guia sale un numero y en mi pantalla otro',
+      'por que la guia pone las cosas entre comillas',
+    ],
+    a: 'Lo que va entre comillas, «así», es el texto exacto de la pantalla: lo buscas tal cual. Los números entre paréntesis cambian según el día: «Aprobar todas las verdes (2)» dice cuántas hay ese día, y en tu pantalla puede salir otro número.',
+    go: '/ayuda',
+  },
+  {
+    id: 'todo-palabras-app',
+    roles: null,
+    q: ['que es palabras de la app', 'donde estan las palabras de la app', 'donde veo lo que significa cada palabra', 'hay un glosario', 'donde busco que significa una palabra de la app', 'palabras de la app'],
+    a: 'Mi cuenta → «Ayuda y guías» → «Para todos» → «Palabras de la app»: lo que quiere decir cada palabra, como la usa el equipo (pieza, copy, feed, semáforo, trancado y las demás). También me la puedes preguntar: “¿qué es un hook?”.',
+    go: '/ayuda',
+  },
+  {
+    id: 'todo-ayuda-como-pasa',
+    roles: ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'],
+    q: ['que es como pasa tu trabajo a los demas', 'como pasa mi trabajo a los demas', 'donde veo a quien le paso mi trabajo', 'a quien le llega lo que hago', 'donde estan los flujos de mi rol'],
+    a: 'En tu guía, en «Tu trabajo», al final: «Cómo pasa tu trabajo a los demás» trae los flujos de tu rol, y cada uno abre su dibujo, paso a paso, en «Cómo va el trabajo entre todos».',
+    go: '/ayuda',
+  },
+  {
+    id: 'todo-ayuda-como-sigue',
+    roles: ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'],
+    q: ['que es como sigue el trabajo', 'que hay debajo de cada tarea del paso a paso', 'donde veo como sigue el trabajo despues de mi tarea', 'como sigue el trabajo despues de una tarea'],
+    a: 'En tu guía, en «Paso a paso», debajo de cada tarea: «Cómo sigue el trabajo» abre el dibujo del flujo por el que sigue esa tarea, con lo que hace cada rol después.',
+    go: '/ayuda',
   },
   {
     id: 'todo-guia-pantallas',
