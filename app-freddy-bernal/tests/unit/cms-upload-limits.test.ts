@@ -14,8 +14,8 @@ const text = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '
 
 describe('el límite que dice «Subir un PDF»', () => {
   it('dice el límite que le pasa el servidor', () => {
-    expect(text(renderToStaticMarkup(h(UploadLimits, { value: { image: 4 * MB, document: 4 * MB } }, form('document'))))).toContain('Hasta 4 MB.');
-    expect(text(renderToStaticMarkup(h(UploadLimits, { value: { image: 10 * MB, document: 20 * MB } }, form('document'))))).toContain('Hasta 20 MB.');
+    expect(text(renderToStaticMarkup(h(UploadLimits, { value: { image: 4 * MB, document: 4 * MB }, children: form('document') })))).toContain('Hasta 4 MB.');
+    expect(text(renderToStaticMarkup(h(UploadLimits, { value: { image: 10 * MB, document: 20 * MB }, children: form('document') })))).toContain('Hasta 20 MB.');
   });
 
   it('sin el límite del servidor dice el más chico, nunca más de lo que se acepta', () => {
@@ -25,7 +25,7 @@ describe('el límite que dice «Subir un PDF»', () => {
   it('el límite del servidor es el de maxMediaBytes: 4 MB en el hosting, 20 MB fuera de él', () => {
     expect(maxMediaBytes('document', '1')).toBe(4 * MB);
     expect(maxMediaBytes('document', undefined)).toBe(20 * MB);
-    const html = text(renderToStaticMarkup(h(AdminWebLayout, null, form('document'))));
+    const html = text(renderToStaticMarkup(h(AdminWebLayout, { children: form('document') })));
     expect(html).toContain(`Hasta ${Math.round(maxMediaBytes('document') / MB)} MB.`);
   });
 

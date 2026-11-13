@@ -187,7 +187,7 @@ export function AccountsForm({ value }: { value: unknown }) {
   return (
     <Section
       title="Cuentas en redes"
-      subtitle="Solo las activas y verificadas salen en la web, en «Canales» y en los datos estructurados (sameAs). En la versión de prueba también salen las «por confirmar», marcadas."
+      subtitle="Solo las activas y verificadas salen en la web, en «Canales» y en lo que la web le dice a Google. En la versión de prueba también salen las «por confirmar», marcadas."
       onSave={() => save(rows.map(clean))}
       busy={busy}
     >
@@ -239,7 +239,7 @@ export function ChannelForm({ settingKey, title, subtitle, value }: { settingKey
           <TextField label="Enlace" value={c.url} onChange={(x) => setC({ ...c, url: x })} max={500} mono placeholder="https://…" />
           <TextField label="Nota interna (no sale en la web)" value={c.note} onChange={(x) => setC({ ...c, note: x })} max={300} />
           <div className="flex flex-col gap-3 sm:flex-row sm:gap-8">
-            <CheckField label="Verificado" hint="Sin verificar, en producción no sale." checked={c.verified} onChange={(x) => setC({ ...c, verified: x })} />
+            <CheckField label="Verificado" hint="Sin verificar, no sale cuando la web abra al público." checked={c.verified} onChange={(x) => setC({ ...c, verified: x })} />
             <CheckField label="Activo" checked={c.active} onChange={(x) => setC({ ...c, active: x })} />
           </div>
         </>
@@ -258,7 +258,7 @@ export function IdentityForm({ identity, structured }: { identity: unknown; stru
   const opt = (o: Record<string, string>) => Object.fromEntries(Object.entries(o).filter(([, x]) => x.trim()).map(([k, x]) => [k, x.trim()]));
   return (
     <>
-      <Section title="Nombre y saludo" subtitle="Cómo se nombra la web en la cabecera, el título de cada página y el saludo de la portada." onSave={() => a.save(opt(id))} busy={a.busy}>
+      <Section title="Nombre y saludo" subtitle="Cómo se nombra la web arriba de cada página, en el pie y en el título de cada página." onSave={() => a.save(opt(id))} busy={a.busy}>
         <div className="grid gap-3 sm:grid-cols-2">
           <TextField label="Nombre" value={id.name} onChange={(x) => setId({ ...id, name: x })} max={120} />
           <TextField label="Cargo" value={id.title} onChange={(x) => setId({ ...id, title: x })} max={160} />
@@ -267,7 +267,7 @@ export function IdentityForm({ identity, structured }: { identity: unknown; stru
         </div>
         <TextField label="Nombre de la cabecera" value={id.wordmark} onChange={(x) => setId({ ...id, wordmark: x })} max={200} hint="Vacío: «Nombre · Cargo»." />
       </Section>
-      <Section title="Datos estructurados" subtitle="Lo que leen los buscadores sobre la persona y la institución (JSON-LD). Las cuentas de sameAs salen solo de las verificadas." onSave={() => b.save(opt(st))} busy={b.busy}>
+      <Section title="Datos estructurados" subtitle="Lo que la web le dice a Google y a los demás buscadores sobre la persona y la institución. Solo nombra las cuentas verificadas." onSave={() => b.save(opt(st))} busy={b.busy}>
         <div className="grid gap-3 sm:grid-cols-2">
           <TextField label="Nombre de la persona" value={st.personName} onChange={(x) => setSt({ ...st, personName: x })} max={120} />
           <TextField label="Cargo" value={st.jobTitle} onChange={(x) => setSt({ ...st, jobTitle: x })} max={160} />

@@ -417,7 +417,7 @@ flowchart TD
 - Lo que se guarda aquí sale en la web al momento. Por eso nunca va un dato que nadie confirmó.
 - Un contacto sale solo marcado «Verificado». Una cuenta sale solo «Activa» y «Verificada». En la versión de prueba también salen las cuentas por confirmar, con una línea que lo avisa.
 - Arriba, la pantalla avisa lo que no se cambia. Eso es solo de la versión de prueba: nadie debe poder hacerla pasar por la web oficial (ver 7.4).
-- Los «Avisos legales» se ven, pero no se cambian aquí. Salen iguales en toda la web, en los formularios, en el comprobante y en los correos.
+- Los «Avisos legales» se ven, pero no se cambian desde el panel: si hace falta cambiar uno, Administración lo pide aparte. Salen iguales en toda la web, en los formularios, en el comprobante y en los correos.
 - El editor de la web no entra a «Ajustes del sitio».
 
 <a id="flujo-web-redirecciones"></a>
