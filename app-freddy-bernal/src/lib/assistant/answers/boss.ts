@@ -176,8 +176,9 @@ export const BOSS: Answer[] = [
       'en el iphone no me sale digital',
       'que hay en mas',
       'dnd esta digital en el telefono',
+      'que hay en el boton mas',
     ],
-    a: 'En el teléfono, la barra de abajo trae Inicio, Agenda, Por aprobar, Redes y «Más»; adentro de «Más» están Obras, Municipios, Digital, Web y Atención. En la computadora salen todas en el menú de la izquierda.',
+    a: 'En el teléfono, la barra de abajo trae Inicio, Agenda, Por aprobar, Redes y «Más»; adentro de «Más» están Oficina, Obras, Municipios, Digital, Web y Atención. En la computadora salen todas en el menú de la izquierda.',
   },
   {
     id: 'jefe-biblioteca-donde',

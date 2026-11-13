@@ -201,11 +201,11 @@ describe('las palabras de la app en el índice de 360', () => {
     const labels = bestAnswer('¿dónde veo las etiquetas?', { roles: ['politics'] })!;
     expect(labels.entry.kind, labels.text).not.toBe('term');
     expect(labels.text).toMatch(/[Aa]rriba/);
-    // Nothing else says where the office is: its meaning says it («Lo que abre «Oficina» en el menú…»), never the
-    // answer about codes and keys that «la oficina» used to bring.
+    // Its meaning says where the office is («Lo que abre «Oficina» en el menú…»), or the boss's Digital («En Digital:
+    // arriba, «La oficina»…»), never the answer about codes and keys that «la oficina» used to bring.
     for (const [role, q] of [['boss', '¿dónde está la oficina?'], ['admin', '¿dónde veo la oficina?']] as [Role, string][]) {
       const m = bestAnswer(q, { roles: [role] })!;
-      expect(m.text, `${role}: ${q}`).toMatch(/Oficina/);
+      expect(m.text, `${role}: ${q}`).toMatch(/«Oficina» en el menú|En Digital: arriba, «La oficina»/);
       expect(m.text, `${role}: ${q}`).not.toMatch(/c[oó]digos|claves/);
     }
   });

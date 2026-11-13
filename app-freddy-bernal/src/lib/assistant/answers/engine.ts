@@ -99,6 +99,8 @@ const SHORTHAND: [RegExp, string][] = [
   [/\b(?:globit[oa]s?|burbujit[ao]s?)\b(?=(?: [a-z0-9]+){0,4} (?:abajo|de abajo)\b)/g, 'boton redondo'],
   [/\b(?:globit[oa]s?|burbujit[ao]s?)\b(?=(?: [a-z0-9]+){0,3} (?:arriba|de arriba)\b)/g, 'mensajes'],
   [/\b(?:sobrecito|sobresito|el sobre|cartica|cartita|globitos|burbujitas)\b/g, 'mensajes'],
+  // «El botón Más» of the phone's bar: «más» alone is a filler word, the button is not (13/11).
+  [/\bboton (?:de |del )?mas\b(?! (?:de|que|grande|chiquit\w*|pequen\w*)\b)/g, 'boton masmenu'],
   [/\b(?:lapicito|lapicero|lapisito)\b/g, 'lapiz'],
   [/\b(?:lupita)\b/g, 'lupa'],
   [/\b(?:engranaje|engranajito|tuerquita|tuerca|ruedita)\b/g, 'ajustes'],

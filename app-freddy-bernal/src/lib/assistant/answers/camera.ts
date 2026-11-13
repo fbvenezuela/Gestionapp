@@ -851,7 +851,7 @@ export const CAMERA: Answer[] = [
     id: 'gra-biblioteca',
     roles: ['camera'],
     q: ['¿Puedo entrar a la Biblioteca?', 'donde esta la biblioteca', 'no veo biblioteca en mi menu', 'veo el material de otros eventos', 'no tengo biblioteca', 'por que no tengo la biblioteca', 'no me aparece la biblioteca', 'yo no tengo biblioteca'],
-    a: 'No: la Biblioteca es del despacho, Redes, el jefe y administración. Tu menú es Hoy y Agenda.',
+    a: 'No: la Biblioteca es del despacho, Redes, el jefe y administración. Tu menú es Hoy, Agenda y Oficina.',
   },
   {
     id: 'gra-pantalla-otro-rol',
@@ -967,7 +967,7 @@ export const CAMERA: Answer[] = [
     id: 'gra-menu',
     roles: ['camera'],
     q: ['en el telefono donde estan mis pantallas', 'que hay en mi menu', 'por que solo tengo hoy y agenda', 'cuales son mis pantallas', 'que pantallas tengo'],
-    a: 'Tus pantallas son Hoy y Agenda, abajo en el teléfono. Arriba están la lupa, los globitos de Mensajes, la campana y el muñequito de Mi cuenta.',
+    a: 'Tus pantallas son Hoy, Agenda y Oficina, abajo en el teléfono. Arriba están la lupa, los globitos de Mensajes, la campana y el muñequito de Mi cuenta.',
   },
   {
     id: 'gra-doble-factor',

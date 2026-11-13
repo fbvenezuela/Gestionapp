@@ -411,7 +411,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-biblioteca-telefono',
     roles: ['social'],
     q: ['en el telefono no encuentro la biblioteca', 'donde esta resultados en el cel', 'no veo biblioteca en la barra', 'donde esta mas', 'donde esta la biblioteca en el telefono', 'como entro a resultados desde el cel', 'que es mas en la barra de abajo'],
-    a: 'En el teléfono, tu barra de abajo trae Hoy, Agenda, Redes y Tweets; Publicar, Resultados y Biblioteca están en «Más».',
+    a: 'En el teléfono, tu barra de abajo trae Hoy, Agenda, Redes y Tweets; Oficina, Publicar, Resultados y Biblioteca están en «Más».',
   },
   {
     id: 'red-archivo-equivocado',
@@ -1317,7 +1317,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-publicar-telefono',
     roles: ['social'],
     q: ['en el telefono no encuentro publicar', 'donde esta publicar en el cel', 'no veo publicar abajo', 'como publico desde el telefono', 'donde esta publicar en el telefono', 'no encuentro publicar en el menu'],
-    a: 'En el teléfono, Publicar está en «Más», en la barra de abajo (con Resultados y Biblioteca).',
+    a: 'En el teléfono, Publicar está en «Más», en la barra de abajo (con Oficina, Resultados y Biblioteca).',
     go: '/publicar',
   },
 
@@ -1598,7 +1598,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-pantallas',
     roles: ['social'],
     q: ['¿Cuáles son mis pantallas en la plataforma?', 'que hay en mi menu', 'cuales son mis pantallas', 'que pantallas tengo', 'que pantallas tengo yo', 'que hay en mi menu de redes', 'cuales son mis botones'],
-    a: 'Hoy, Agenda, Redes, Tweets, Publicar, Resultados y Biblioteca. En el teléfono, abajo: Hoy, Agenda, Redes, Tweets y «Más» con el resto.',
+    a: 'Hoy, Agenda, Redes, Oficina, Tweets, Publicar, Resultados y Biblioteca. En el teléfono, abajo: Hoy, Agenda, Redes, Tweets y «Más» (Oficina, Publicar, Resultados y Biblioteca).',
   },
   {
     id: 'red-chamba',

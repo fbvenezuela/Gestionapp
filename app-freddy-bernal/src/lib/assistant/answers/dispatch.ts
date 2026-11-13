@@ -229,7 +229,7 @@ export const DISPATCH: Answer[] = [
       'que trae mi menu',
       'donde estan obras y municipios en el telefono',
     ],
-    a: 'Tu menú: Hoy, Agenda, Obras, Municipios y Biblioteca; en el teléfono, todas caben en la barra de abajo. «Por ponerle fecha» se abre desde Hoy y desde la Agenda.',
+    a: 'Tu menú: Hoy, Agenda, Oficina, Obras, Municipios y Biblioteca. En el teléfono, abajo: Hoy, Agenda, Obras, Municipios y «Más» (Oficina y Biblioteca). «Por ponerle fecha» se abre desde Hoy y desde la Agenda.',
   },
   {
     id: 'desp-no-veo-redes',
@@ -241,7 +241,7 @@ export const DISPATCH: Answer[] = [
       'por que no tengo la pantalla de redes',
       'no veo por aprobar en mi menu',
     ],
-    a: 'Redes, Por aprobar y Digital no son de tu rol: son del jefe y de Redes. Tu menú trae Hoy, Agenda, Obras, Municipios y Biblioteca. Si necesitas algo de una pieza, pregúntale a Redes por Mensajes.',
+    a: 'Redes, Por aprobar y Digital no son de tu rol: son del jefe y de Redes. Tu menú trae Hoy, Agenda, Oficina, Obras, Municipios y Biblioteca. Si necesitas algo de una pieza, pregúntale a Redes por Mensajes.',
   },
   {
     id: 'desp-crear-cel',
