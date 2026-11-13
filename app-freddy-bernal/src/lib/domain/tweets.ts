@@ -207,3 +207,17 @@ export function daysOfStock(scheduled: string[], now: DateTime, tz: string): num
   const last = future.reduce((a, b) => (b > a ? b : a));
   return Math.max(0, Math.floor(last.startOf('day').diff(now.setZone(tz).startOf('day'), 'days').days) + 1);
 }
+
+// The counts on top of a batch. The statuses are exclusive (a scheduled tweet was approved first, then scheduled), so
+// the approved ones are those still without a day and hour: «aprobados sin programar». «Por aprobar» always shows
+// («0 por aprobar» says nothing waits for the boss); the other two only when there is one (APP-24: «0 aprobados» next
+// to «3 programados» read as «nothing was approved»).
+export type BatchCounts = { draft: number; approved: number; scheduled: number };
+export type BatchChip = { status: keyof BatchCounts; text: string };
+
+export function batchChips(c: BatchCounts): BatchChip[] {
+  const out: BatchChip[] = [{ status: 'draft', text: `${c.draft} por aprobar` }];
+  if (c.approved > 0) out.push({ status: 'approved', text: `${c.approved} ${c.approved === 1 ? 'aprobado sin programar' : 'aprobados sin programar'}` });
+  if (c.scheduled > 0) out.push({ status: 'scheduled', text: `${c.scheduled} ${c.scheduled === 1 ? 'programado' : 'programados'}` });
+  return out;
+}

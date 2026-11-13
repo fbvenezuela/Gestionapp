@@ -12,11 +12,11 @@ import { useConfirm } from '@/components/ui/confirm-dialog';
 import { CategorySelect } from '@/components/ui/category-select';
 import type { CategoryOption } from '@/lib/data/common';
 import { TWEET_STATUS } from '@/lib/data/labels';
-import { tweetLength, X_MAX } from '@/lib/domain/tweets';
+import { batchChips, tweetLength, X_MAX, type BatchCounts } from '@/lib/domain/tweets';
 import { approvedToast } from '@/components/tweets/approved-toast';
 
 // drafts: the text on screen goes with each id, so a tweet changed since the page loaded is not approved blind.
-export function BatchActions({ batchId, counts, drafts, canApprove, canEdit }: { batchId: string; counts: { draft: number; approved: number; scheduled: number }; drafts: { id: string; body: string }[]; canApprove: boolean; canEdit: boolean }) {
+export function BatchActions({ batchId, counts, drafts, canApprove, canEdit }: { batchId: string; counts: BatchCounts; drafts: { id: string; body: string }[]; canApprove: boolean; canEdit: boolean }) {
   const { run, pending } = useAction();
   const { confirm, dialog } = useConfirm();
   return (
@@ -25,9 +25,7 @@ export function BatchActions({ batchId, counts, drafts, canApprove, canEdit }: {
       <Card className="mb-4">
         <CardBody className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex flex-wrap gap-2">
-            <Chip tone="warn">{counts.draft} por aprobar</Chip>
-            <Chip tone="info">{counts.approved} aprobados</Chip>
-            <Chip tone="accent">{counts.scheduled} programados</Chip>
+            {batchChips(counts).map((c) => <Chip key={c.status} tone={TWEET_STATUS[c.status].tone}>{c.text}</Chip>)}
           </div>
           <div className="flex flex-wrap gap-2 sm:ml-auto">
             {canApprove && counts.draft ? (

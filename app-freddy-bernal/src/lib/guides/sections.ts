@@ -602,7 +602,7 @@ export function redesSections(role: 'boss' | 'social', group: (label: string) =>
       menu: group('Tweets'),
       title: 'Una tanda de tweets',
       tour: 'tanda',
-      what: 'Una tanda: cuántos tweets están por aprobar, cuántos aprobados (todavía sin día y hora) y cuántos programados (aprobados y con su día y hora).',
+      what: 'Una tanda: cuántos tweets están por aprobar, cuántos aprobados sin programar (todavía sin día y hora) y cuántos programados (aprobados y con su día y hora). Lo que está en cero no sale, salvo «por aprobar».',
       youDo: [
         boss ? '«Aprobar los 3» si ya los leíste todos.' : 'Esperas a que el jefe los apruebe.',
         'Con los aprobados, «Programar»: quedan en el tablero con «Copiar texto» y «Ya lo publiqué».',

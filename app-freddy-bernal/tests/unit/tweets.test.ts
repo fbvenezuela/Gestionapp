@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { DateTime } from 'luxon';
-import { splitTweets, checkTweets, distribute, daysOfStock, suggestCategory, tweetLength } from '@/lib/domain/tweets';
+import { splitTweets, checkTweets, distribute, daysOfStock, suggestCategory, tweetLength, batchChips } from '@/lib/domain/tweets';
 
 const TZ = 'America/Caracas';
 
@@ -128,5 +128,21 @@ describe('suggestCategory', () => {
     expect(suggestCategory('Seguimos con el bacheo de la vía principal', cats)).toBe('v');
     expect(suggestCategory('Jornada de vacunación en la escuela', cats)).toBe('s');
     expect(suggestCategory('Nada que ver', cats)).toBeNull();
+  });
+});
+
+// APP-24: a scheduled tweet was approved first, so «0 aprobados» next to «3 programados» read as «nothing approved».
+describe('batchChips (lo que cuenta una tanda)', () => {
+  const texts = (c: Parameters<typeof batchChips>[0]) => batchChips(c).map((x) => x.text);
+  it('3 por aprobar y 3 programados: sin «0 aprobados»', () => {
+    expect(texts({ draft: 3, approved: 0, scheduled: 3 })).toEqual(['3 por aprobar', '3 programados']);
+    expect(texts({ draft: 3, approved: 0, scheduled: 3 }).join(' ')).not.toMatch(/\b0 aprobad/);
+  });
+  it('los aprobados son los que todavía no tienen día y hora; singular y plural', () => {
+    expect(texts({ draft: 0, approved: 1, scheduled: 1 })).toEqual(['0 por aprobar', '1 aprobado sin programar', '1 programado']);
+    expect(texts({ draft: 1, approved: 2, scheduled: 0 })).toEqual(['1 por aprobar', '2 aprobados sin programar']);
+  });
+  it('«por aprobar» sale siempre, aunque sea 0', () => {
+    expect(batchChips({ draft: 0, approved: 0, scheduled: 0 })).toEqual([{ status: 'draft', text: '0 por aprobar' }]);
   });
 });

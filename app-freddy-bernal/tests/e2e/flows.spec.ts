@@ -269,6 +269,8 @@ test('tweets de la semana: se separan, se validan y se reparten', async ({ page 
   await page.getByRole('button', { name: 'Quitar tweet 3' }).click();
   await page.getByRole('button', { name: /Repartir en la semana/ }).click();
   await expect(page.getByText('2 por aprobar')).toBeVisible();
+  // Nothing approved or scheduled yet: no «0 aprobados» or «0 programados» next to it (APP-24).
+  await expect(page.getByText(/^0 (aprobad|programad)/)).toHaveCount(0);
 });
 
 test('administración invita a una persona y el correo queda en el buzón de prueba', async ({ page }) => {
