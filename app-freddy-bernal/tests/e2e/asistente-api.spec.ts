@@ -35,7 +35,7 @@ test('asistente: sin sesión no contesta; con sesión contesta con las claves de
 
   // Support: there is no support phone, and 360 offers to tell administración (also as a second turn).
   const r3 = await page.request.post('/api/asistente', { data: { pregunta: '¿Cuál es el teléfono de soporte?', conversacion: j1.conversacion } });
-  expect((await r3.json()).respuesta).toMatch(/^No hay teléfono de soporte en la plataforma; si algo falla, le aviso a administración\./);
+  expect((await r3.json()).respuesta).toMatch(/^No hay teléfono de soporte en la app; si algo falla, le aviso a administración\./);
 
   const bad = await page.request.post('/api/asistente', { data: { pregunta: 'x'.repeat(1501) } });
   expect(bad.status()).toBe(400);
