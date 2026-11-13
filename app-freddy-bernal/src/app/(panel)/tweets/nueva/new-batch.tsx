@@ -71,7 +71,7 @@ export function NewBatch({ categories }: { categories: CategoryOption[] }) {
               <FileText className="h-5 w-5" aria-hidden /> {busy ? 'Leyendo…' : 'Subir el documento (.docx, .txt o .md)'}
             </Button>
             <p className="text-center text-sm text-text-2">o pega el texto</p>
-            <Textarea aria-label="Texto con los tweets" rows={10} value={value.raw} onChange={(e) => setValue({ ...value, raw: e.target.value })} placeholder={'1. Primer tweet…\n2. Segundo tweet…\n\n(También sirven líneas en blanco o ---)'} />
+            <Textarea aria-label="Texto con los tweets" rows={10} value={value.raw} onChange={(e) => setValue({ ...value, raw: e.target.value })} placeholder={'1. Primer tweet…\n2. Segundo tweet…\n\nTambién puedes separarlos con una línea en blanco.'} />
             <Button type="button" size="lg" data-tour="tweets-split" disabled={busy || !value.raw.trim()} onClick={() => separate(value.raw)}>
               <Wand2 className="h-5 w-5" aria-hidden /> Separar tweets
             </Button>
