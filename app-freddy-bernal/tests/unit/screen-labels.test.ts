@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { versionLabel } from '@/lib/data/labels';
+import { EVENT_ORIGIN, versionLabel } from '@/lib/data/labels';
 
 // Words the team reads on many screens, said one way everywhere.
 describe('la versión de una pieza (APP-22)', () => {
@@ -8,5 +8,13 @@ describe('la versión de una pieza (APP-22)', () => {
     expect(versionLabel(null)).toBe('Sin archivo todavía');
     expect(versionLabel(1)).toBe('Versión 1');
     expect(versionLabel(2)).toBe('Versión 2');
+  });
+});
+
+describe('de dónde viene un evento (APP-30)', () => {
+  it('con verbos de todos los días: «Viene de…», nunca «Nació de…»', () => {
+    expect(EVENT_ORIGIN.ivt).toBe('Viene de una ficha del IVT');
+    expect(EVENT_ORIGIN.politics).toBe('Viene de un reporte de política');
+    for (const v of Object.values(EVENT_ORIGIN)) expect(v).not.toMatch(/Naci[oó]/);
   });
 });

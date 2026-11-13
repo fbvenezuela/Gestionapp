@@ -1029,7 +1029,7 @@ export const BOSS: Answer[] = [
       'donde esta lo de la ropa',
       'la seccion de la ropa no funciona',
     ],
-    a: 'Todavía no hay una sección de ropa en la app. Por ahora no hay nada que hacer ahí.',
+    a: 'Todavía no hay una sección de ropa en la app. Mientras tanto, no hay nada que hacer ahí.',
   },
 
   // ── Por ponerle fecha ──────────────────────────────────────────────────────────────────────────────────────────────
@@ -1683,7 +1683,7 @@ export const BOSS: Answer[] = [
       'que quiere decir lo agrego el jefe',
       'propuesto por despacho que es',
     ],
-    a: 'Arriba del evento, las etiquetas: el número del evento, el tipo, cómo va y tu decisión. Al lado dice de dónde viene: «Lo agregó el jefe», «Propuesto por Despacho», «Nació de una ficha del IVT» o «Nació de un reporte de política».',
+    a: 'Arriba del evento, las etiquetas: el número del evento, el tipo, cómo va y tu decisión. Al lado dice de dónde viene: «Lo agregó el jefe», «Propuesto por Despacho», «Viene de una ficha del IVT» o «Viene de un reporte de política».',
     go: '/agenda',
     tutorial: 'evento-jefe',
   },

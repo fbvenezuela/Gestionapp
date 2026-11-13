@@ -28,8 +28,8 @@ export const EVENT_KIND: Record<string, string> = {
 export const EVENT_ORIGIN: Record<string, string> = {
   dispatch: 'Propuesto por Despacho',
   boss: 'Lo agregó el jefe',
-  ivt: 'Nació de una ficha del IVT',
-  politics: 'Nació de un reporte de política',
+  ivt: 'Viene de una ficha del IVT',
+  politics: 'Viene de un reporte de política',
 };
 
 /** A piece's version, said the same way on every screen: «Versión 2», or «Sin archivo todavía» before the first file
