@@ -45,7 +45,10 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
   const { item, caps } = data;
   const section = sectionOf(item.kind);
   const live = isLive(item);
-  const publicPath = itemPath(item.kind, item.slug);
+  // The page «atencion» of «Páginas»: /atencion builds its own texts (src/app/(web)/atencion/page.tsx) and never reads
+  // it (APP-20). The editor says so, and gives neither its address nor «Esto ya está en la web».
+  const unusedPage = item.kind === 'page' && item.slug === 'atencion';
+  const publicPath = unusedPage ? null : itemPath(item.kind, item.slug);
   const writable = caps.canEdit && !item.archivedAt;
 
   return (
@@ -57,8 +60,7 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
       />
       <FlowChips flow={item} />
 
-      {item.kind === 'page' && item.slug === 'atencion' ? (
-        // /atencion builds its own texts (src/app/(web)/atencion/page.tsx) and never reads this page (APP-20).
+      {unusedPage ? (
         <Notice tone="info" title="Esta página no sale en la web">
           La página «Atención ciudadana» de la web tiene sus propios textos. Lo que escribas aquí no se ve. Sus preguntas se cambian en
           «Preguntas frecuentes», grupo «Atención ciudadana», y sus contactos en «Ajustes del sitio».
@@ -77,7 +79,7 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
           {item.submittedByName ? ` por ${item.submittedByName}` : ''}. Quien aprueba la web o el jefe lo publica, lo programa o lo devuelve con un comentario.
         </Notice>
       ) : null}
-      {live && hasPendingChanges(item) ? (
+      {live && hasPendingChanges(item) && !unusedPage ? (
         <Notice tone="warn" title="Esto ya está en la web">
           Lo que cambies aquí sale solo cuando quien aprueba lo publique de nuevo. Mientras tanto, la web muestra lo aprobado
           {publicPath ? (

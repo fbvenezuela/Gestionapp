@@ -287,6 +287,8 @@ test('la página «Atención ciudadana» de «Páginas» avisa que lo que se esc
   await open(/^\s*Atención ciudadana/);
   await expect(e.getByText('Esta página no sale en la web')).toBeVisible();
   await expect(e.getByText('Lo que escribas aquí no se ve.', { exact: false })).toBeVisible();
+  // Nor a link to «/atencion» as if it were this page.
+  await expect(e.getByText(/^\s*En la web:/)).toHaveCount(0);
   await fitsWidth(e, 'editor de la página de atención');
   await noSerious(e, 'editor de la página de atención');
   await open(/^\s*El gobernador/);
