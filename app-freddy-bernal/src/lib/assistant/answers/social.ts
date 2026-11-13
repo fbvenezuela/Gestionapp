@@ -964,7 +964,7 @@ export const SOCIAL: Answer[] = [
   {
     id: 'red-feed-mover',
     roles: ['social'],
-    q: ['como muevo un post a otro espacio del feed', 'chamo como arrastro las piezas en el feed desde el cel', 'como cambio el orden del feed', 'publicar antes que hace', 'que hace publicar antes en el feed', 'que hace publicar despues', 'como muevo una pieza un espacio antes en el feed', 'adelantar una pieza en el feed', 'como cambio de lugar un post en el feed', 'intercambiar dos posts del feed', 'como subo o bajo una pieza en el feed', 'reordenar el feed desde el telefono', 'como paso una pieza a otro espacio'],
+    q: ['como muevo un post a otro espacio del feed', 'chamo como arrastro las piezas en el feed desde el cel', 'como cambio el orden del feed', 'publicar antes que hace', 'que hace publicar antes en el feed', 'que hace publicar despues en el feed', 'como muevo una pieza un espacio antes en el feed', 'adelantar una pieza en el feed', 'como cambio de lugar un post en el feed', 'intercambiar dos posts del feed', 'como subo o bajo una pieza en el feed', 'reordenar el feed desde el telefono', 'como paso una pieza a otro espacio'],
     a: 'Toca el espacio lleno → «Publicar antes (#20)», «Publicar después (#22)» (si está en el #21) o «Cambiar de espacio». En el teléfono no se arrastra; en la computadora también puedes arrastrar una pieza sobre otra.',
     go: '/redes/feed',
     tutorial: 'feed',

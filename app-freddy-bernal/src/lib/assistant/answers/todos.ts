@@ -168,6 +168,7 @@ export const TODOS: Answer[] = [
     q: [
       'como activo el doble factor',
       'bueno, ¿cómo activo el doble factor?',
+      'es la primera vez que entro y me sale protege tu cuenta',
       'cómo configuro el autenticador',
       'qué hago en protege tu cuenta',
       'como escaneo el codigo qr',

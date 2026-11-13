@@ -1089,12 +1089,19 @@ function rank(question: string, o: FindOptions): Match[] {
   // One word, and another entry says it almost as well as the first («¿qué tengo que hacer para publicar?»: a question
   // of the guide, a task, the screen): none of them is a sure answer, unless the first is asked word for word, or is a
   // word of «Palabras de la app» asked what it means by its name («¿qué es el feed?», «¿qué es un copy?»: a weak first
-  // would let a card that only uses the word answer instead), or one of those that tie is an answer for this person asked
-  // word for word (the word's meaning then stays behind: «¿qué significa trancado?» of Grabación, 13/11).
-  const tied = out.filter((m) => m.score >= (out[0]?.score ?? 0) - 0.1);
-  const tiedExact = tied.some((m) => m.entry.kind !== 'term' && exactly.has(m.entry));
-  if (oneWord && !exactly.has(out[0]?.entry) && !named.has(out[0]?.entry) && !tiedExact && out.length > 1 && out[0].confidence === 'strong' && out[1].score >= out[0].score - 0.1)
-    for (const m of tied) m.confidence = 'weak';
+  // would let a card that only uses the word answer instead). When one of those that tie is an answer for this person
+  // asked word for word, that one goes first and is sure (13/11: «¿qué significa trancado?» of Grabación; «¿cómo sé
+  // quién está en un canal?» of the despacho is the members' list, not who arms the channels).
+  if (oneWord && !exactly.has(out[0]?.entry) && !named.has(out[0]?.entry) && out.length > 1 && out[0].confidence === 'strong' && out[1].score >= out[0].score - 0.1) {
+    const tied = out.filter((m) => m.score >= out[0].score - 0.1);
+    const own = tied.find((m) => m.entry.kind !== 'term' && exactly.has(m.entry));
+    for (const m of tied) if (m !== own) m.confidence = 'weak';
+    if (own) {
+      own.score = out[0].score + 0.001;
+      own.confidence = 'strong';
+      out.sort((x, y) => y.score - x.score);
+    }
+  }
   return out.slice(0, o.limit ?? 8);
 }
 
