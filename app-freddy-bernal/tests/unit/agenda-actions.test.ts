@@ -366,6 +366,19 @@ describe('administración en la agenda: lee y borra, no la mueve', () => {
   });
 });
 
+describe('dos eventos a la misma hora', () => {
+  it('sin marcar la casilla no se guarda, y el aviso nombra la casilla como dice la pantalla', async () => {
+    as('boss');
+    const first = await agenda.scheduleObraFicha(sched(await readyObra(), when(50, '09:00')));
+    expect(first.ok, JSON.stringify(first)).toBe(true);
+    const r = await agenda.scheduleObraFicha(sched(await readyObra(), { ...when(50, '09:00'), allowOverlap: false }));
+    expect(r.ok).toBe(false);
+    const error = (r as { error: string }).error;
+    expect(error).toMatch(/^Choca con «Visita de obra: prueba \d+»\./);
+    expect(error).toContain('marca «Guardar aunque choque con otro evento».');
+  });
+});
+
 describe('Mover y Cancelar', () => {
   it('mover una visita de obra: Grabación y el IVT reciben «Cambió la fecha u hora» (crítico), sin la nueva', async () => {
     const obra = await readyObra();
