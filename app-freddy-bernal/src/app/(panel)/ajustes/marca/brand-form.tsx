@@ -16,7 +16,7 @@ export function BrandForm({ value }: { value: V }) {
     <Card>
       <CardHeader title="Textos" />
       <CardBody className="flex flex-col gap-3">
-        <Field label="Nombre de la plataforma" htmlFor="ba"><Input id="ba" value={f.appName} onChange={(e) => setF({ ...f, appName: e.target.value })} /></Field>
+        <Field label="Nombre de la app" htmlFor="ba"><Input id="ba" value={f.appName} onChange={(e) => setF({ ...f, appName: e.target.value })} /></Field>
         <Field label="Nombre corto" htmlFor="bs"><Input id="bs" value={f.shortName} onChange={(e) => setF({ ...f, shortName: e.target.value })} /></Field>
         <Field label="Saludo con que abren los copies" htmlFor="bg"><Input id="bg" value={f.greeting} onChange={(e) => setF({ ...f, greeting: e.target.value })} /></Field>
         <Field label="Cierres (separados por |)" htmlFor="bc"><Input id="bc" value={f.closings} onChange={(e) => setF({ ...f, closings: e.target.value })} /></Field>

@@ -726,6 +726,8 @@ export const TODOS: Answer[] = [
     roles: null,
     q: [
       'dice que se creo en otro servidor de la demostracion',
+      'dice que se creo en otra copia de la demostracion',
+      'que es eso de otra copia de la demo',
       'que es eso de otro servidor de la demo',
       'la pieza que cree no aparece en la demo',
       'en la demo no sale lo que hice hace rato',

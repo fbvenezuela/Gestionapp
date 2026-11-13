@@ -146,7 +146,7 @@ test('en el iPhone, cada archivo con su «Bajar»; los videos de ejemplo de la c
   await page.getByRole('button', { name: /^Descargar todo el material \(\d+\)$/ }).click();
   const sheet = page.getByRole('dialog', { name: 'Descargar todo' });
   await expect(sheet.getByText('En el iPhone y el iPad cada archivo se baja con su propio toque.', { exact: false })).toBeVisible();
-  await expect(sheet.getByRole('status').filter({ hasText: '3 archivos no se pueden bajar porque no están guardados en la plataforma.' })).toBeVisible();
+  await expect(sheet.getByRole('status').filter({ hasText: '3 archivos no se pueden bajar porque no están guardados en la app.' })).toBeVisible();
   const row = (name: RegExp) => sheet.getByRole('listitem').filter({ hasText: name });
   for (const video of ['Jefe-hablando', 'Dron', 'Apoyo']) {
     await expect(row(new RegExp(`-${video}-1\\.mp4`))).toContainText('No hay un archivo detrás.');

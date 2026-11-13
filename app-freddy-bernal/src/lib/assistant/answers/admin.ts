@@ -707,7 +707,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-marca-nombre',
     roles: ['admin'],
     q: ['cambiar el nombre de la plataforma', 'nombre corto de la app', 'el nombre que sale en el menú'],
-    a: 'En Ajustes → Marca están «Nombre de la plataforma» y «Nombre corto», pero esos textos los usan los copies: el nombre del menú y de los correos sale del archivo del cliente.',
+    a: 'En Ajustes → Marca están «Nombre de la app» y «Nombre corto», pero esos textos los usan los copies: el nombre del menú y de los correos sale del archivo del cliente.',
     go: '/ajustes/marca',
   },
 

@@ -31,12 +31,12 @@ const PROBLEM: Record<string, string> = {
   bad_key: 'Cambió la clave que guarda el permiso (DRIVE_TOKEN_KEY o SESSION_SECRET). Toca «Conectar Drive» otra vez.',
   busy: 'Google no respondió. Intenta en un momento.',
   full: 'Drive está lleno. Libera espacio en la cuenta de Google (Drive, Gmail y Fotos comparten los 15 GB).',
-  not_found: 'La carpeta de la plataforma ya no está en Drive. Toca «Conectar Drive» otra vez para crearla de nuevo.',
-  refused: 'Drive no aceptó el archivo de prueba. Avísale a quien mantiene la plataforma.',
-  not_configured: 'Faltan variables en Vercel. Revisa docs/DRIVE.md, paso B.',
+  not_found: 'La carpeta de la app ya no está en Drive. Toca «Conectar Drive» otra vez para crearla de nuevo.',
+  refused: 'Drive no aceptó el archivo de prueba. Avísale a quien instaló la app.',
+  not_configured: 'Faltan datos de la instalación. Avísale a quien instaló la app.',
   budget: 'Este mes ya se usó todo el cupo de transferencia. Vuelve a probar el mes que viene o sube el tope.',
-  bad_key_format: 'DRIVE_TOKEN_KEY no sirve: tienen que ser 32 bytes en base64. Corrígela en Vercel o bórrala.',
-  mismatch: 'El archivo de prueba volvió distinto. Avísale a quien mantiene la plataforma.',
+  bad_key_format: 'DRIVE_TOKEN_KEY no sirve: tienen que ser 32 bytes en base64. Avísale a quien instaló la app para que la corrija o la borre.',
+  mismatch: 'El archivo de prueba volvió distinto. Avísale a quien instaló la app.',
 };
 
 const problem = (code: string | undefined) => PROBLEM[code ?? ''] ?? PROBLEM.busy;
@@ -45,8 +45,8 @@ const problem = (code: string | undefined) => PROBLEM[code ?? ''] ?? PROBLEM.bus
 export function checkLine(s: DriveCheckStep, folder: string): string {
   switch (s.key) {
     case 'config':
-      if (s.level === 'ok') return 'Las variables de Vercel están completas.';
-      if (s.missing?.length) return `Falta llenar en Vercel: ${s.missing.join(', ')}. Ponlas en Settings → Environment Variables (solo Production) y vuelve a publicar.`;
+      if (s.level === 'ok') return 'Los datos de la instalación están completos.';
+      if (s.missing?.length) return `Faltan datos de la instalación: ${s.missing.join(', ')}. Pásale esta lista a quien instaló la app.`;
       return problem(s.code);
     case 'connection':
       return s.level === 'ok' ? `Google responde. Cuenta: ${s.account || 'sin correo'}.` : problem(s.code);

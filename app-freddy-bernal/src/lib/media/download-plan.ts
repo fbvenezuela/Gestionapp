@@ -83,7 +83,7 @@ const NOTE_TITLE: Record<PlanNote['kind'], string> = {
 export function readmeText(title: string, code: string, notes: readonly PlanNote[] | null, entries: readonly PlanEntry[]): string {
   const t = stripDateTime(title ?? '').trim();
   const lines: string[] = [[GROUP_CODE.test(code ?? '') ? code : '', t].filter(Boolean).join(' · ') || 'Material de la pauta', ''];
-  lines.push('El material de esta pauta, bajado de la plataforma. Los nombres de los archivos no llevan fecha, hora ni lugar.', '');
+  lines.push('El material de esta pauta, bajado de la app. Los nombres de los archivos no llevan fecha, hora ni lugar.', '');
   for (const kind of notes ? (['editor_note', 'storyboard_text'] as const) : []) {
     const list = (notes ?? []).filter((n) => n.kind === kind && n.body.trim());
     lines.push(NOTE_TITLE[kind]);

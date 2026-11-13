@@ -29,7 +29,7 @@ export const UPLOAD_SHARE_MESSAGE = 'Ya usaste tu cupo de hoy de Drive. Sigue ma
 
 // A request with no Range for a file past FULL_MAX (range.ts): only the platform's own «Descargar»
 // (by pieces) gets it.
-export const TOO_BIG_MESSAGE = 'Este archivo es grande: descárgalo con el botón «Descargar» de la plataforma.';
+export const TOO_BIG_MESSAGE = 'Este archivo es grande: descárgalo con el botón «Descargar» de la app.';
 
 // HTTP status the media routes answer with for each code.
 export const DRIVE_STATUS: Record<DriveErrorCode, number> = {

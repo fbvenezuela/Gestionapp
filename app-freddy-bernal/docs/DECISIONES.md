@@ -808,7 +808,7 @@ comando, los mensajes no se borran).
   cualquier conversación y venga de quien venga, revisando el texto completo salvo la ruta interna exacta y el número
   de un post de X (un enlace como `https://x.com/0414-555-1234` o uno de `wa.me` se rechaza). Mensaje: «Los teléfonos no
   van en los mensajes: los contactos van en la ficha, con doble factor.»; si el número largo es parte de un enlace:
-  «Ese enlace tiene un número largo que parece un teléfono. Si es de la plataforma, pega su dirección; si no, quita el
+  «Ese enlace tiene un número largo que parece un teléfono. Si es de la app, pega su dirección; si no, quita el
   número.»
 - **Por qué:** los contactos de terceros se guardan aparte y con doble factor (D-34, D-41); Grabación y Redes no usan
   doble factor, y el jefe lee todo. Una sola regla fácil de explicar.

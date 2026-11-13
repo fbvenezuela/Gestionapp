@@ -28,9 +28,9 @@ export const CONNECT_ERROR = {
   estado: 'El intento de conexión venció o no es de esta sesión. Vuelve a tocar «Conectar Drive».',
   negado: 'No diste el permiso en Google. Vuelve a intentar y acepta.',
   alcance: 'Marca la casilla de Google Drive en la pantalla de Google y vuelve a intentar.',
-  cuenta: 'Esa no es la cuenta de Google de la plataforma. Entra con la de siempre (la ves en Ajustes → Google Drive).',
+  cuenta: 'Esa no es la cuenta de Google de la app. Entra con la de siempre (la ves en Ajustes → Google Drive).',
   google: 'Google no respondió. Intenta en un momento.',
-  config: 'Drive no está configurado. Faltan variables en Vercel (ver docs/DRIVE.md).',
+  config: 'Drive todavía no está listo: faltan datos de la instalación. Avísale a quien instaló la app.',
 } as const;
 export type ConnectError = keyof typeof CONNECT_ERROR;
 
@@ -47,7 +47,7 @@ export function beginConnect(s: Session, requestOrigin: string | null): { url: s
   if (!isAdmin(s)) throw new UserError(CONNECT_ERROR.permiso);
   if (storageProvider() !== 'drive') throw new UserError('Drive no está activado en esta versión (STORAGE_PROVIDER).');
   const missing = driveMissingConfig();
-  if (missing.length) throw new UserError(`Falta llenar en Vercel: ${missing.join(', ')}.`);
+  if (missing.length) throw new UserError(`Faltan datos de la instalación: ${missing.join(', ')}. Avísale a quien instaló la app.`);
   const key = driveKey();
   if (!key) throw new UserError('DRIVE_TOKEN_KEY no es válida: tienen que ser 32 bytes en base64.');
   let origin: string;
@@ -55,7 +55,7 @@ export function beginConnect(s: Session, requestOrigin: string | null): { url: s
   else {
     // Google only accepts redirect addresses registered exactly: production (APP_URL) or local.
     origin = new URL(env.appUrl).origin;
-    if (requestOrigin && requestOrigin !== origin) throw new UserError(`Conecta Drive desde la dirección principal de la plataforma: ${origin}`);
+    if (requestOrigin && requestOrigin !== origin) throw new UserError(`Conecta Drive desde la dirección principal de la app: ${origin}`);
   }
   const state = crypto.randomBytes(24).toString('base64url');
   const { verifier, challenge } = pkce();

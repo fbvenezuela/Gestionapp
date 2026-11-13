@@ -74,7 +74,7 @@ const PRIVACY_CHECKS: [string, string][] = [
   // 20261028002300_report_files_notes.sql
   ['ficha_updates_report_note_no_phone', 'No se guardó: la nota tiene algo que parece un teléfono, y la historia del reporte se lee sin doble factor. Los teléfonos van en «Teléfono» de la persona que reporta; si es una cifra, escríbela con puntos: 1.500.000.'],
   // 20261028002400_internal_chat.sql (Mensajes). The text never comes back in the error.
-  ['chat_messages_no_phone', 'Los teléfonos no van en los mensajes: los contactos van en la ficha, con doble factor. Si es un número largo dentro de un enlace, pega la dirección de la plataforma o quita el número.'],
+  ['chat_messages_no_phone', 'Los teléfonos no van en los mensajes: los contactos van en la ficha, con doble factor. Si es un número largo dentro de un enlace, pega la dirección de la app o quita el número.'],
   ['chat_messages_no_agenda_when', 'Aquí está Redes o política: el mensaje no puede llevar una hora, una fecha ni un mapa. Escribe «lo antes posible» o «el día del evento».'],
   // 20261029090000_chat_channels.sql (Mensajes as channels): CHAT_TEXT_REFUSED and the boss's channel rules.
   ['chat_title_private', 'El nombre y la descripción no llevan teléfonos, fechas, horas ni mapas: todos los del canal los leen siempre.'],

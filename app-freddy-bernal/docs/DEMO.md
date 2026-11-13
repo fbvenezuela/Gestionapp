@@ -38,7 +38,7 @@ probar **sobre lo sembrado**:
 **Lo que puede perderse al recargar** (cada servidor de Vercel tiene su base, D-39): lo que se crea o se sube (un reel
 nuevo, una imagen, un mes nuevo, un cambio en el feed) vive solo en el servidor donde se hizo. Lo recién creado se abre
 en la misma pantalla y la miniatura recién subida se ve desde el teléfono; si después otro servidor contesta, la tarjeta
-dice «Esta pieza se creó en otro servidor de la demostración…» o «La miniatura está en otro servidor de la
+dice «Esta pieza se creó en otra copia de la demostración…» o «La miniatura está en otra copia de la
 demostración.». Un aviso lo explica una vez por persona en Redes, con «Entendido». La comparación con la referencia,
 pantalla por pantalla, está en `docs/capturas/mila-vs-fb/README.md`.
 
@@ -75,7 +75,7 @@ Con cualquier rol del equipo, en este orden:
 **Lo que la demo no puede mostrar de Mensajes (para Hillary; la pantalla no lo dice):** cada servidor de Vercel tiene
 su base en memoria. Lo sembrado es igual en todos (mismos ids), pero un mensaje, un canal nuevo o un cambio de miembros
 vive solo en el servidor donde se hizo: con otra cuenta o en otro teléfono puede no verse, y un canal creado en otro
-servidor dice «Este canal no está en tu lista: o no estás en él, o se creó en otro servidor de la demostración.»
+servidor dice «Este canal no está en tu lista: o no estás en él, o se creó en otra copia de la demostración.»
 (D-88). Con el canal abierto, si la revisión de cada 5 s o un envío llega a otro servidor, la pantalla sigue como
 estaba (un envío devuelve el texto a la caja con esa misma frase): «Ya no estás en este canal.» sale solo cuando la
 base de ese servidor dice que el jefe te sacó. Dos personas en un canal desde dos teléfonos se prueba en `fb-dev`. La demo es una base de prueba con datos

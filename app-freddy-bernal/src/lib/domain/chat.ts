@@ -32,7 +32,7 @@ export const CHAT_MEMBERS_MAX = 50;
 export const CHAT_AGENDA_NOTE = 'Aquí está Redes o política: sin fechas, horas ni cuándo sales o llegas.';
 export const CHAT_HIDDEN = 'Mensaje oculto: tenía una fecha o una hora de la agenda.';
 // A channel the person cannot open: not in it, or (in the demo) made on another server. One text for both (D-88).
-export const CHAT_NOT_IN_LIST = 'Este canal no está en tu lista: o no estás en él, o se creó en otro servidor de la demostración.';
+export const CHAT_NOT_IN_LIST = 'Este canal no está en tu lista: o no estás en él, o se creó en otra copia de la demostración.';
 // The open channel when the boss takes the person out of it meanwhile.
 export const CHAT_REMOVED = 'Ya no estás en este canal.';
 // The list when there is nothing but «Todo el equipo» (a member) or no channel yet (the boss).
@@ -54,7 +54,7 @@ export const CHAT_TIMECODE_ASK = '¿{t} es un tiempo del video? Si es una hora, 
 export const CHAT_RELATIVE_ASK = '“{w}”: ¿dice cuándo va el jefe? Si es de la agenda, no va aquí.';
 // A phone (D-53), and a phone inside a link.
 export const CHAT_PHONE_TEXT = 'Los teléfonos no van en los mensajes: van en los contactos de la ficha.';
-export const CHAT_PHONE_LINK_TEXT = 'Ese enlace tiene un número largo que parece un teléfono. Si es de la plataforma, pega su dirección; si no, quita el número.';
+export const CHAT_PHONE_LINK_TEXT = 'Ese enlace tiene un número largo que parece un teléfono. Si es de la app, pega su dirección; si no, quita el número.';
 
 /** A text with its {w} or {t} filled. */
 export function fillWord(template: string, word: string): string {

@@ -78,7 +78,7 @@ describe('uno por uno, sin carpeta', () => {
     expect(run.files.map((f) => f.phase)).toEqual(['missing', 'done']);
     // Counted, not hidden under «Listo».
     expect(runHeadline({ running: false, cancelled: false, stopped: null, sent: true, files: run.files })).toBe(
-      'Listo: lo demás va a tus descargas. 1 archivo no se bajó porque no está guardado en la plataforma.',
+      'Listo: lo demás va a tus descargas. 1 archivo no se bajó porque no está guardado en la app.',
     );
   });
 
@@ -127,12 +127,12 @@ describe('uno por uno, sin carpeta', () => {
     expect(run.stopped).toBeNull();
     expect(run.files.map(fileStateText)).toEqual(['Listo', 'No hay un archivo detrás.', 'No hay un archivo detrás.', 'No hay un archivo detrás.']);
     expect(runHeadline({ running: false, cancelled: false, stopped: null, sent: true, files: run.files })).toBe(
-      'Listo: lo demás va a tus descargas. 3 archivos no se bajaron porque no están guardados en la plataforma.',
+      'Listo: lo demás va a tus descargas. 3 archivos no se bajaron porque no están guardados en la app.',
     );
     // None of them there: nothing but the LEEME, and it says so.
     const none = await sendPlanOneByOne(plan([file('j1', 'boss', 'Jefe hablando', false), file('d1', 'drone', 'Dron', false)]), sinks(srv.fetcher).options);
     expect(runHeadline({ running: false, cancelled: false, stopped: null, sent: true, files: none.files })).toBe(
-      'No se bajó ningún archivo: no están guardados en la plataforma. Solo el LEEME.',
+      'No se bajó ningún archivo: no están guardados en la app. Solo el LEEME.',
     );
   });
 
@@ -140,7 +140,7 @@ describe('uno por uno, sin carpeta', () => {
     for (const [status, text] of [
       [401, 'Entra de nuevo.'],
       [429, 'Ya pediste muchos archivos seguidos. Espera unos minutos y vuelve a intentarlo.'],
-      [503, 'La plataforma no responde ahora. Vuelve a intentarlo en unos minutos.'],
+      [503, 'La app no responde ahora. Vuelve a intentarlo en unos minutos.'],
     ] as const) {
       const p = plan([file('a', 'drone', 'Dron', false), file('b', 'drone', 'Dron', false), file('c', 'drone', 'Dron', true)]);
       const srv = server({ a: { status }, b: 'ok', c: 'ok' });
@@ -192,10 +192,10 @@ describe('uno por uno, sin carpeta', () => {
     const skipped = { phase: 'skipped' as const, received: 1, total: 1 };
     const missing = { phase: 'missing' as const, received: 0, total: null };
     expect(runHeadline({ running: false, cancelled: false, stopped: null, sent: false, files: [skipped, missing, missing] })).toBe(
-      'Listo: lo demás está en la carpeta. 2 archivos no se bajaron porque no están guardados en la plataforma.',
+      'Listo: lo demás está en la carpeta. 2 archivos no se bajaron porque no están guardados en la app.',
     );
     expect(runHeadline({ running: false, cancelled: false, stopped: null, sent: false, files: [missing] })).toBe(
-      'No se bajó ningún archivo: no está guardado en la plataforma. Solo el LEEME.',
+      'No se bajó ningún archivo: no está guardado en la app. Solo el LEEME.',
     );
   });
 });
@@ -208,8 +208,8 @@ describe('en el iPhone y el iPad, un «Bajar» por archivo', () => {
     expect([...missing].sort()).toEqual(['gone', 'j1']);
     // A Drive file is never asked for (its download says by itself how it ended).
     expect(heads).toEqual(['sb', 'j1', 'gone']);
-    expect(missingListLine(missing.size)).toBe('2 archivos no se pueden bajar porque no están guardados en la plataforma.');
-    expect(missingListLine(1)).toBe('1 archivo no se puede bajar porque no está guardado en la plataforma.');
+    expect(missingListLine(missing.size)).toBe('2 archivos no se pueden bajar porque no están guardados en la app.');
+    expect(missingListLine(1)).toBe('1 archivo no se puede bajar porque no está guardado en la app.');
     expect(missingListLine(0)).toBeNull();
   });
 

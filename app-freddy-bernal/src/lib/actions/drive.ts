@@ -73,7 +73,7 @@ export async function drivePickerConfig(raw: unknown = {}) {
     const { accessToken } = await import('../storage/drive/connection');
     const { driveIsFake } = await import('../storage/provider');
     const fake = driveIsFake();
-    if (!fake && !env.google.pickerApiKey) throw new UserError('Falta GOOGLE_PICKER_API_KEY en Vercel.');
+    if (!fake && !env.google.pickerApiKey) throw new UserError('«Elegir de Drive» todavía no está listo: falta un dato de la instalación. Avísale a quien instaló la app.');
     const appId = env.google.projectNumber || /^(\d+)-/.exec(env.google.clientId)?.[1] || '';
     return { accessToken: await accessToken(), apiKey: fake ? 'fake-picker-key' : env.google.pickerApiKey, appId: fake ? '0' : appId };
   });
@@ -130,8 +130,8 @@ export async function finishDriveProbe(raw: unknown) {
       message: i.direct
         ? 'Todo bien: los videos van del teléfono directo a Drive.'
         : env.drive.uploadMode === 'proxy'
-          ? 'Google no deja subir directo desde aquí; las subidas pasan por la plataforma (DRIVE_UPLOAD_MODE=proxy).'
-          : 'Google no deja subir directo desde este navegador. Pasar las subidas por la plataforma gasta transferencia de Vercel: hace falta el OK de Juan para poner DRIVE_UPLOAD_MODE=proxy.',
+          ? 'Google no deja subir directo desde aquí; las subidas pasan por la app.'
+          : 'Google no deja subir directo desde este navegador. Las subidas pueden pasar por la app, pero eso gasta transferencia: avísale a quien instaló la app.',
     };
   });
 }
