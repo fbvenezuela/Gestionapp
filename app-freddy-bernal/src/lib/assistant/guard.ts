@@ -47,8 +47,14 @@ const DAY = String.raw`pasado manana|manana|hoy|anoche|esta (?:noche|tarde)|${WE
 // A deadline: what the team hands in, then «antes de / hasta / para / a más tardar» + an hour or a day,
 // in the same clause and with no event verb in between («suban todo, la feria es hasta las…» is the
 // event's); or «tienen hasta…».
+// Each pattern below that looks back over the clause («what the team hands in, earlier in it») first
+// looks ahead for its own words, like TEAM_SOON: the look back reads the whole clause, and done at
+// every letter of the notice it made a check quadratic (a 500-letter notice took a quarter of a second
+// on a slow machine). Both are conditions on the same spot, so what matches is the same.
+const BY = String.raw`(?:antes del?|hasta(?: el)?|para(?: el)?|a mas tardar(?: el| a)?)\s+`;
+const BY_HOUR_OR_DAY = String.raw`${BY}(?:(?:las?\s+)?\[hora\]|(?:${DAY})\b)`;
 const DEADLINE = new RegExp(
-  String.raw`(?<=\b(?:${DELIVER})\b(?:(?!\b(?:${EVENT_VERB})\b)[^.;!?])*)\b(?:antes del?|hasta(?: el)?|para(?: el)?|a mas tardar(?: el| a)?)\s+(?:(?:las?\s+)?\[hora\]|(?:${DAY})\b)|\b(?:tienen|tenemos|tienes)\s+hasta(?:\s+(?:el|las?))?\s+(?:\[hora\]|(?:${DAY})\b)`,
+  String.raw`\b(?=${BY_HOUR_OR_DAY})(?<=\b(?:${DELIVER})\b(?:(?!\b(?:${EVENT_VERB})\b)[^.;!?])*)${BY_HOUR_OR_DAY}|\b(?:tienen|tenemos|tienes)\s+hasta(?:\s+(?:el|las?))?\s+(?:\[hora\]|(?:${DAY})\b)`,
   'g',
 );
 // A day said right next to what the team hands in: «suban hoy», «hoy suben», «mañana hay que subir»
@@ -56,12 +62,13 @@ const DEADLINE = new RegExp(
 const TEAM_DAY = new RegExp(String.raw`\b(?:${DELIVER})\s+(?:mismo\s+)?(?:el\s+)?(?:${DAY})\b|(?<!\b(?:de|del|la|el)\s)\b(?:el\s+)?(?:${DAY})\s+(?:mismo\s+)?(?:${DELIVER})\b`, 'g');
 // In a notice that names no event, any deadline the team is given counts («tengan listo… antes de las 7»).
 const TEAM_LEAD = String.raw`(?:${VERBS})${CLITIC}|(?:hay|tienen|tenemos|deben|debemos) (?:que |para )?[a-z]+(?:ar|er|ir)${CLITIC}`;
+const BY_HOUR_DATE_OR_DAY = String.raw`${BY}(?:(?:las?\s+)?\[(?:hora|fecha)\]|(?:${DAY})\b)`;
 const ANY_DEADLINE = new RegExp(
-  String.raw`(?<=\b(?:${TEAM_LEAD})\b[^.;!?]*)\b(?:antes del?|hasta(?: el)?|para(?: el)?|a mas tardar(?: el| a)?)\s+(?:(?:las?\s+)?\[(?:hora|fecha)\]|(?:${DAY})\b)|\b(?:tienen|tenemos|tienes)\s+hasta(?:\s+(?:el|las?))?\s+(?:\[(?:hora|fecha)\]|(?:${DAY})\b)`,
+  String.raw`\b(?=${BY_HOUR_DATE_OR_DAY})(?<=\b(?:${TEAM_LEAD})\b[^.;!?]*)${BY_HOUR_DATE_OR_DAY}|\b(?:tienen|tenemos|tienes)\s+hasta(?:\s+(?:el|las?))?\s+(?:\[(?:hora|fecha)\]|(?:${DAY})\b)`,
   'g',
 );
 // The work handed in at an hour («suban el material a las 3»): a deadline too.
-const DELIVER_AT = new RegExp(String.raw`(?<=\b(?:${DELIVER})\b[^.;!?]*)\ba\s+las?\s+\[hora\]`, 'g');
+const DELIVER_AT = new RegExp(String.raw`\b(?=a\s+las?\s+\[hora\])(?<=\b(?:${DELIVER})\b[^.;!?]*)a\s+las?\s+\[hora\]`, 'g');
 // Soon («al rato», «ya mismo», «dentro de poco»): next to an event it is when the event is, unless it is
 // for what the team hands in («suban las fotos al rato»), like a deadline.
 const SOON = String.raw`al rato|al ratico|en un rato|en un ratico|dentro de un rato|dentro de poco|en un momento|ya mismo|ahora mismo|ahorita`;

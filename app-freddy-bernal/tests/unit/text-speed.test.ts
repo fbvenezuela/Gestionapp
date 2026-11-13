@@ -11,8 +11,11 @@ import * as push from '@/lib/push/text';
 import * as title from '@/lib/domain/event-title';
 import * as brain from '@/lib/assistant/brain';
 
+// «antes de las 3» and «suban el material»: what a notice's deadline rules look back from and for (guard.ts). Looked
+// back from at every letter, a 500-letter notice took a quarter of a second on CI.
 const UNITS = [' ', '  ', 'treinta y uno ', 'treinta y uno, ', 'y 1/1 ', '9,30 al ', 'a las 9 ', '[[', '[[E1 ', '«[', 'de la ', 'Calle 7 N° 4-23 ',
-  'Plaza Bolívar ', 'lo de la feria ', 'el sábado ', 'mañana ', '0414-1234567 ', 'Alto Verde ', 'entre 8 y 10 ', '12 m ', 'primero de marzo '];
+  'Plaza Bolívar ', 'lo de la feria ', 'el sábado ', 'mañana ', '0414-1234567 ', 'Alto Verde ', 'entre 8 y 10 ', '12 m ', 'primero de marzo ',
+  'antes de las 3 ', 'suban el material '];
 const LIMIT_MS = 250;
 // Fichas and scripts the team writes can be 6000 characters, and they are checked on every turn.
 const TEACHING = new Set(['guard.teachingProblem', 'guard.scrubTeamFicha', 'guard.scrubTeamScript']);
