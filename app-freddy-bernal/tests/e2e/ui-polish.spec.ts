@@ -160,6 +160,25 @@ test('«Más», «Mi cuenta» y «Crear» se cierran con un toque afuera, con Es
   await expect(create).not.toHaveAttribute('open');
 });
 
+test('el menú «Crear» se abre entero dentro de la pantalla a 360 px', async ({ page }) => {
+  // From the button it hung 30 px past the left edge for every role with Mensajes next to it (APP-01).
+  for (const email of ['jefe@demo.test', 'despacho@demo.test', 'politica@demo.test', 'ivt@demo.test', 'redes@demo.test']) {
+    await page.context().clearCookies();
+    await loginAs(page, email);
+    const create = page.locator('header details').filter({ has: page.getByText('Crear', { exact: true }) });
+    await create.locator('summary').click();
+    await expect(create, email).toHaveAttribute('open', '');
+    const panel = create.locator('summary + div');
+    const box = (await panel.boundingBox())!;
+    expect(box.x, email).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width, email).toBeLessThanOrEqual(360);
+    const links = panel.getByRole('link');
+    expect(await links.count(), email).toBeGreaterThan(0);
+    for (const link of await links.all()) await expect(link, email).toBeInViewport({ ratio: 1 });
+    await page.keyboard.press('Escape');
+  }
+});
+
 test('con el teclado, un menú se cierra al salir de él, y abrir uno cierra el otro', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');
   await page.goto('/hoy');

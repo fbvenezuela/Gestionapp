@@ -65,12 +65,14 @@ export default async function PanelLayout({ children }: { children: React.ReactN
                 <Search className="h-5 w-5" aria-hidden />
               </Link>
               {create.length > 0 ? (
-                <MenuDetails className="relative">
+                // On a phone the panel hangs from the header (sticky, so it is the containing block), 16 px from its
+                // right edge: from the button it ran past the left edge at 360 px.
+                <MenuDetails className="sm:relative">
                   <summary className={buttonVariants({ size: 'sm', className: 'list-none [&::-webkit-details-marker]:hidden cursor-pointer' })} data-tour="create">
                     <Plus className="h-4 w-4" aria-hidden /> <span className="hidden sm:inline">Crear</span>
                     <span className="sr-only sm:hidden">Crear</span>
                   </summary>
-                  <div className={cn(menuPanelClass, 'absolute right-0 z-30 mt-2 w-56')}>
+                  <div className={cn(menuPanelClass, 'absolute right-4 top-full z-30 mt-2 w-56 max-w-[calc(100vw-2rem)] sm:right-0 sm:top-auto')}>
                     {create.map((c) => (
                       <Link key={c.href} href={c.href} className="flex min-h-11 items-center rounded-[var(--radius-control)] px-3 text-[15px] hover:bg-surface-2">
                         {c.label}
