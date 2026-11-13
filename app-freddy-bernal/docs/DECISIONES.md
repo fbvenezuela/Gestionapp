@@ -1167,8 +1167,9 @@ la agenda, Tweets ni la publicación manual. Las preguntas para Hillary siguen l
   un post y un carrusel **en revisión** para que el jefe pruebe «Revisar» fuera de Reels. Copies con las reglas de FB
   (FAB, PAS y AIDA, «¡Saludos, Táchira!», «Por amor al Táchira»); nada de la referencia; sin nombres, teléfonos, fechas
   ni horas. En la demo (cada servidor tiene su base, D-39): un aviso una vez por persona, con «Entendido» («En la
-  demostración, cada servidor guarda lo suyo: lo que creas o mueves puede no verse al recargar, con otra cuenta o en
-  otro teléfono. Lo sembrado siempre está.»); lo recién creado se abre en la misma pantalla; una pieza o miniatura
+  demostración, cada copia guarda lo suyo: lo que creas o mueves puede no verse al recargar, con otra cuenta o en
+  otro teléfono. Lo que la demostración ya trae siempre está.»; hasta el 13/11 decía «cada servidor» y «Lo sembrado»);
+  lo recién creado se abre en la misma pantalla; una pieza o miniatura
   de otro servidor lo dice así en vez de «no encontrado» o una imagen rota (como Mensajes, D-57).
 - **Por qué:** §2.1 «lo que ya hay se conecta, no se tira» y §3 «llena el Mes 1». Lo primero que Hillary va a probar
   (crear un reel, subir una imagen, armar el feed) es justo lo que la demo por servidor puede perder.
