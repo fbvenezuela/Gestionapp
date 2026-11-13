@@ -42,6 +42,8 @@ describe('lo nuevo de «Ayuda y guías» en el índice de 360', () => {
       ['social', '¿qué es un flujo?', 'curado:todo-flujos', /^Un flujo es el camino que sigue un trabajo de un rol a otro\./],
       ['social', '¿qué pasa si hago más piezas que el cupo?', 'curado:red-cupo-pasarse', /si haces más piezas, no pasa nada/],
       ['social', '¿qué pasa si me paso del cupo?', 'curado:red-cupo-pasarse', /si haces más piezas, no pasa nada/],
+      // The boss is told in «tú» that the tweets come to him (the guide's boss texts).
+      ['boss', '¿cómo subo los tweets de la semana?', 'curado:todo-quien-tweets', /te los manda para aprobar/],
     ] as [Role, string, string, RegExp][]) {
       const m = bestAnswer(q, { roles: [role] })!;
       expect(m.entry.id, `${role}: ${q} → ${m.text}`).toBe(id);

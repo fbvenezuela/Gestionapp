@@ -2660,6 +2660,7 @@ export const TODOS: Answer[] = [
     q: ['quién sube los tweets', 'puedo subir la tanda de tweets', 'como subo los tweets de la semana', 'quien hace los tweets'],
     a: {
       default: '«Crear» → Tweets de la semana: pegas o subes el documento, tocas «Separar tweets» y la app los reparte en la semana y se los manda al jefe para aprobar.',
+      boss: '«Crear» → «Tweets de la semana»: pegas o subes el documento, tocas «Separar tweets» y la app los reparte en la semana y te los manda para aprobar.',
       dispatch: 'Redes (también el jefe y administración) sube la tanda de la semana, y el jefe la aprueba.',
       politics: 'Redes (también el jefe y administración) sube la tanda de la semana, y el jefe la aprueba.',
       ivt: 'Redes (también el jefe y administración) sube la tanda de la semana, y el jefe la aprueba.',
