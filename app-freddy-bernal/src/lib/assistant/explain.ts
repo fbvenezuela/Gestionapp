@@ -535,10 +535,11 @@ function partAbout(u: Unit, about: string, roles: Role[], define = false, last =
 }
 
 // The colours of the semáforo, said alone («¿qué significa roja?»), and other names of a word the glossary does not list.
+// Never «programado»: it is also the state of a ficha comunitaria (por hacerse), as the glossary says; the topic's own
+// parts answer it.
 const MORE_NAMES: Record<string, string[]> = {
   semaforo: ['rojo', 'roja', 'rojas', 'rojos', 'amarillo', 'amarilla', 'amarillas', 'amarillos', 'verde', 'verdes', 'el color', 'los colores'],
   trancado: ['trancada', 'trancadas', 'trancados'],
-  programar: ['programado', 'programados'],
 };
 const namesOf = (g: GlossaryTerm) => [g.term, ...g.aka, ...(MORE_NAMES[g.id] ?? [])];
 const ARTICLES = /^(?:(?:el|la|los|las|un|una|lo|eso|esa|ese|esto|esta|este|eso de|lo de) )+/;
@@ -565,6 +566,8 @@ function termIn(text: string): GlossaryTerm | null {
 
 const facetText = (u: Unit, key: 'easy' | 'example' | 'why', roles: Role[]) => forRole(facetsOf(u.id)?.[key], roles);
 const termFacet = (g: GlossaryTerm, key: 'easy' | 'example' | 'why', roles: Role[]) => forRole(facetsOf(`palabra:${g.id}`)?.[key], roles);
+// A word's line as the index says it to this person («Programar» to whoever does not publish says who publishes).
+const termLine = (g: GlossaryTerm, roles: Role[]) => textFor(entryById(`palabra:${g.id}`)?.a ?? glossaryLine(g), roles);
 
 // What a unit is, in the guide's words (its «Para qué es», the task's title and «Cuándo», the word's meaning).
 function guideText(u: Unit, roles: Role[]): string {
@@ -572,13 +575,14 @@ function guideText(u: Unit, roles: Role[]): string {
   if (u.kind === 'screen') return `${u.section.title.replace(/: /g, ', ')}: ${lcFirst(end(u.section.what))}`;
   if (u.kind === 'flow') return `${u.flow.title}: ${stepsOf(u, roles)[0] ?? ''}`;
   if (u.kind === 'topic') return topicLines(u.topic, roles)[0] ?? '';
-  if (u.kind === 'term') return glossaryLine(u.term);
+  if (u.kind === 'term') return termLine(u.term, roles);
   if (u.kind === 'job') return u.guide ? u.guide.job.mission : ADMIN_GUIDE.mission;
   return textFor(u.entry.a, roles);
 }
-// What a unit is called: a task's or a screen's title, a curated answer's first way of asking (the word of «Palabras de
-// la app» it names is what it is about).
-const nameOf = (u: Unit): string => (u.kind === 'task' ? u.task.title : u.kind === 'screen' ? u.section.title : u.kind === 'entry' ? (u.entry.q[0] ?? '') : '');
+// What a unit is called: a task's or a screen's title; a curated answer's id, without its file's prefix («red-carrusel»
+// is «carrusel»: the word of «Palabras de la app» it names is what it is about; its ways of asking name anything).
+const nameOf = (u: Unit): string =>
+  u.kind === 'task' ? u.task.title : u.kind === 'screen' ? u.section.title : u.kind === 'entry' ? u.entry.id.replace(/^curado:[a-z]+-/, '').replace(/-/g, ' ') : '';
 const tourOfUnit = (u: Unit): string | undefined => (u.kind === 'task' ? u.task.tour : u.kind === 'screen' ? u.section.tour : u.kind === 'entry' ? u.entry.tutorial : undefined);
 
 type Candidate = Omit<ExplainAnswer, 'facet'>;
@@ -593,7 +597,7 @@ function simpler(u: Unit, ctx: ExplainContext, tours: Set<string>): Candidate[] 
   const name = nameOf(u);
   const g = name ? termIn(name) : null;
   const first = stepsOf(u, ctx.roles)[0];
-  if (g) out.push({ text: [termFacet(g, 'easy', ctx.roles) ?? glossaryLine(g), first ? `Lo primero: ${lcFirst(end(first))}` : ''].filter(Boolean).join(' '), entryId: u.id });
+  if (g) out.push({ text: [termFacet(g, 'easy', ctx.roles) ?? termLine(g, ctx.roles), first ? `Lo primero: ${lcFirst(end(first))}` : ''].filter(Boolean).join(' '), entryId: u.id });
   // Its first sentence, and the tutorial when there is one.
   const tour = tourOfUnit(u);
   const lead = sentencesOf(guideText(u, ctx.roles))[0];
@@ -677,7 +681,7 @@ function purpose(u: Unit, ctx: ExplainContext): Candidate[] {
   const roles = ctx.roles;
   const out: Candidate[] = [];
   const easy = facetText(u, 'easy', roles);
-  if (u.kind === 'term') out.push({ text: glossaryLine(u.term), entryId: u.id });
+  if (u.kind === 'term') out.push({ text: termLine(u.term, roles), entryId: u.id });
   if (u.kind === 'screen') out.push({ text: guideText(u, roles), entryId: u.id });
   if (easy) out.push({ text: easy, entryId: u.id });
   if (u.kind === 'task') {
@@ -717,7 +721,7 @@ function meaning(u: Unit | null, ctx: ExplainContext): Candidate[] {
     if (easy) out.push({ text: easy, entryId: u.id });
   }
   if (g) {
-    out.push({ text: glossaryLine(g), entryId: `palabra:${g.id}` });
+    out.push({ text: termLine(g, roles), entryId: `palabra:${g.id}` });
     const easy = termFacet(g, 'easy', roles);
     if (easy) out.push({ text: easy, entryId: `palabra:${g.id}` });
   }
@@ -788,7 +792,7 @@ function aboutCandidates(facet: Facet, u: Unit | null, about: string, ctx: Expla
   const word: Candidate[] = [];
   if (g) {
     const id = `palabra:${g.id}`;
-    const line = textFor(entryById(id)?.a ?? glossaryLine(g), roles);
+    const line = termLine(g, roles);
     const easy = termFacet(g, 'easy', roles);
     const ex = termFacet(g, 'example', roles);
     const w = termFacet(g, 'why', roles);

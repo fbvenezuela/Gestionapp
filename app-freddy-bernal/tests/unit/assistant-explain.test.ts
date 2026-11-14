@@ -12,7 +12,7 @@ import { canOpen } from '@/lib/assistant/screens';
 import { allEntries, entryById } from '@/lib/assistant/answers/engine';
 import { explainAnswer, explainAsk, explainUnitId, type ExplainContext, type Facet } from '@/lib/assistant/explain';
 import { facetsOf } from '@/lib/guides/explain';
-import { toursForRoles } from '@/lib/guides';
+import { allGuides, toursForRoles } from '@/lib/guides';
 
 const FACETS: Facet[] = ['simpler', 'steps', 'example', 'next', 'purpose', 'why', 'meaning', 'more'];
 const ask = (q: string, last?: string) => explainAsk(q, last ? { last } : {});
@@ -264,6 +264,19 @@ describe('explainAnswer: cada faceta', () => {
     // A colour of the semáforo, said alone.
     const c = explainAnswer('meaning', 'jefe:paso-a-paso:aprobar-pieza', ctx(BOSS, { about: 'roja' }))!;
     expect(c.text).toMatch(/^El semáforo: .*sensible/);
+  });
+
+  it('la palabra se dice como el índice se la dice a ese rol; «programado» no es «Programar» (también es un estado de ficha)', () => {
+    // To whoever does not publish, «Programar» says who publishes.
+    const d = explainAnswer('meaning', null, ctx(['dispatch'], { said: ['Eso pasa al programar la pieza.'] }))!;
+    expect(d.text).toMatch(/^Programar: /);
+    expect(d.text).toContain('quien publica');
+    expect(d.text).not.toContain('la publicas tú');
+    // For política, «Programado» is the state of a ficha comunitaria: the screen's own line says it.
+    const k = allGuides().find((g) => g.role === 'politics')!.sections.findIndex((s) => s.screen === '/municipios');
+    const p = explainAnswer('meaning', `politica:pantalla:${k}`, ctx(['politics'], { about: 'programado' }))!;
+    expect(p.text).toContain('«Programado»');
+    expect(p.text).not.toMatch(/^Programar/);
   });
 
   it('«no entendí lo de X»: lo que la tarea dice de X, con su paso', () => {
