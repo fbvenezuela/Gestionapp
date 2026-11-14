@@ -94,7 +94,7 @@ export function ReviewRoom({ pieceId, revision, canApprove, canRequestChanges, c
             <img key={attempt} ref={watch} src={src} alt="Pieza a revisar" data-tour="review-video" onError={onError} className="max-h-[60vh] w-full rounded-[var(--radius-control)] bg-slate object-contain" />
           )
         ) : (
-          <p className="rounded-[var(--radius-control)] bg-surface-2 p-6 text-center text-text-2">Esta pieza no tiene archivo todavía.</p>
+          <p className="rounded-[var(--radius-control)] bg-surface-2 p-6 text-center text-text-2">Sin archivo todavía.</p>
         )}
         {isVideo && !failure && sample.failed ? <p className="-mt-2 text-sm text-text-2">{DEMO_VIDEO_NOTE}</p> : null}
 

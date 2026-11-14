@@ -55,7 +55,7 @@ describe('cargar resultados desde un CSV', () => {
   it('sin la columna del enlace, lo dice con su nombre y no carga nada', async () => {
     const before = (await csvRows(pub.id)).length;
     const r = await results.importMetricsCsv({ csv: 'Vistas;Me gusta\n100;3\n' });
-    expect(r).toEqual({ ok: false, error: 'Falta la columna «enlace» (el enlace de cada publicación).' });
+    expect(r).toEqual({ ok: false, error: 'Falta la columna «enlace» (el link de cada publicación).' });
     expect((await csvRows(pub.id)).length).toBe(before);
   });
 });

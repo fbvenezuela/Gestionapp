@@ -42,14 +42,15 @@ Las franjas del día y cuántos tweets salen por día, para repartir la tanda de
 - Cambias las franjas y el número por día.
 
 ### Reglas por red (`/ajustes/redes`)
-La duración, las medidas y el peso de video de cada red, con los que se revisa una publicación.
+La duración, las medidas y el peso de lo que se publica en cada red, con los que se revisa una publicación.
 
 - Cambias el número de una red cuando la red cambia sus reglas.
 
 ### Marca (`/ajustes/marca`)
-El nombre, los colores, los logos, el saludo, los cierres y los hashtags.
+El nombre de la app para 360, los colores, los logos, el saludo, los cierres y los hashtags.
 
 - Cambias los textos de la marca que usan los copies.
+- El «Nombre de la app» y el «Nombre corto» los usa 360; el nombre del menú y de los correos lo cambia quien instaló la app.
 
 ### Cupo y pilares (`/ajustes/contenido`)
 El cupo del mes de cada formato de Redes, los pilares del contenido y las piezas que eliminó el jefe.
@@ -63,7 +64,7 @@ El cupo del mes de cada formato de Redes, los pilares del contenido y las piezas
 ### Google Drive
 Dónde se guardan los videos, la conexión y una prueba. Solo sale en Ajustes cuando el material va a Drive.
 
-- Conectas la cuenta de Drive del cliente y pruebas que sube y baja.
+- Conectas la cuenta de Drive del equipo y pruebas que sube y baja.
 - «Organizar por orden del feed» sale aquí solo cuando lo enciende quien instala la app; hoy está apagado.
 
 ### Asistente (`/ajustes/asistente`)
@@ -84,6 +85,7 @@ Quién cambió qué y cuándo, en toda la app.
 
 - Lees los cambios del más nuevo al más viejo, con quién, qué y cuándo; abajo, «Ver más antiguos» trae los anteriores. No tiene buscador ni filtro.
 - De Mensajes sale solo que hubo un mensaje, un canal o un cambio de miembros, quién y cuándo: nunca el texto, el nombre del canal ni quiénes son.
+- Lo que hizo la app sola sale como «La app»; lo que una persona mandó desde la web, como «La web».
 
 ### Ver como
 Para ver los menús de otro rol, arriba (en el teléfono, dentro de Mi cuenta). Tus permisos no cambian.

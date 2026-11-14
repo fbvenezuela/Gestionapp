@@ -68,6 +68,10 @@ test('Redes registra lo que publicó el jefe con una captura, y esa es su miniat
   await page.goto('/resultados');
   const row = page.locator('h2:text-is("Por publicación") + ul > li').filter({ hasText: 'Historia del jefe saludando (prueba)' });
   await expect(row).toHaveCount(1);
+  // Said once, where the others say their format (R07): never «Instagram · Post».
+  await expect(row).toContainText('Instagram · la publicó el jefe');
+  await expect(row).not.toContainText('(la publicó el jefe)');
+  await expect(row).not.toContainText('· Post');
   await expect.poll(() => thumbState(row), { timeout: 15_000 }).toBe('img');
 });
 

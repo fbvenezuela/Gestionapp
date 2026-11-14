@@ -3,8 +3,8 @@ import type { WebKind } from '../schema';
 // The sections of the website's administrator (/admin/web, design §3): one per kind of content, with the words the team
 // reads and the address of its list (/admin/web/contenido/<section>). Pages are fixed (the home «inicio» and the site's
 // own pages): they are edited, never created here (a new page would have no address on the site). Pure. The weekly
-// program's section shows the client's name for it (sectionLabel(), section-label.ts, from the config): here, only a
-// neutral one.
+// program's section shows the name the public site gives it (sectionLabel(), section-label.ts: the saved menu, else the
+// config): here, only a neutral one.
 
 export type KindSection = {
   kind: WebKind;

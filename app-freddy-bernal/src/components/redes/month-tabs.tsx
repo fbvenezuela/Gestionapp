@@ -30,7 +30,7 @@ export function MonthTabs({ months, active, counts, quotaLabel, hrefFor, canCrea
   const target = months.find((m) => m.id !== open?.id)?.label ?? '';
   const template = hrefFor(MONTH_SLOT);
   return (
-    // `relative`: below lg the «⋯» panel hangs from this row, not from its button (APP-02, month-tabs-client.tsx).
+    // The «⋯» panel hangs from its button and stays inside the screen (month-tabs-client.tsx).
     <nav aria-label="Meses de contenido" data-tour="month-tabs" className="relative mb-4 flex min-w-0 flex-wrap items-center gap-2">
       <ul className="-mx-4 flex min-w-0 max-w-full gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
         {months.map((m) => (

@@ -13,7 +13,7 @@ export default async function SpecsPage() {
   );
   return (
     <>
-      <PageHeader title="Reglas de video por red" subtitle="Con esto se revisa cada video antes de programar. Verifica los valores con la documentación de cada red." back={{ href: '/ajustes', label: 'Ajustes' }} />
+      <PageHeader title="Reglas de video por red" subtitle="Con esto se revisa cada video y cada foto antes de programar. Verifica los valores con la documentación de cada red." back={{ href: '/ajustes', label: 'Ajustes' }} />
       <div className="flex flex-col gap-4">{rows.map((r) => <SpecEditor key={r.network} row={r} />)}</div>
     </>
   );

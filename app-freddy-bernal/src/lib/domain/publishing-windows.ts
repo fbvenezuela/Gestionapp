@@ -1,4 +1,5 @@
-import type { DateTime } from 'luxon';
+import { DateTime } from 'luxon';
+import { TZ, fmtAt } from '../time';
 
 // Best and worst hours per network, from the client's own measurements
 // (config/clients/<brand>.json → setting `publishing.windows`). Advice only: it never
@@ -19,14 +20,25 @@ function inside(w: Window, m: number) {
   return m >= minutes(w.from) && m <= minutes(w.to);
 }
 
-const range = (w: Window) => `${w.from}–${w.to}`;
+/** «2 p. m.», «11:59 p. m.»: an hour as every other time in the app says it (R27, like the agenda's «6 a. m.»). */
+function clock(hhmm: string): string {
+  const [h, m] = hhmm.split(':').map(Number);
+  return fmtAt(DateTime.fromObject({ hour: h, minute: m }, { zone: TZ, locale: 'es' }), m ? 'h:mm a' : 'h a');
+}
+const MERIDIEM = / [ap]\. m\.$/;
+/** «de 12 a 2 p. m.», «de 6 a. m. a 1 p. m.»: the «a. m.» or «p. m.» once when both ends share it. */
+function range(w: Window): string {
+  const [a, b] = [clock(w.from), clock(w.to)];
+  const same = MERIDIEM.exec(a)?.[0] === MERIDIEM.exec(b)?.[0];
+  return `de ${same ? a.replace(MERIDIEM, '') : a} a ${b}`;
+}
 
 function days(list: number[]) {
   const names = list.map((d) => DAY[d]).filter(Boolean);
   return names.length > 1 ? `${names.slice(0, -1).join(', ')} y ${names.at(-1)}` : names[0] ?? '';
 }
 
-/** One line for the form: "Mejor 22:00–23:59 o 07:00–11:59 · jueves, miércoles y domingo. Evitar 12:00–16:59." */
+/** One line for the form: "Mejor de 10 a 11:59 p. m. o de 7 a 11:59 a. m. · jueves, miércoles y domingo. Evitar de 12 a 4:59 p. m." */
 export function windowHint(w: NetworkWindows | undefined): string {
   if (!w) return '';
   const parts: string[] = [];
@@ -44,7 +56,7 @@ export function windowWarnings(label: string, w: NetworkWindows | undefined, at:
   const m = at.hour * 60 + at.minute;
   const out: string[] = [];
   const bad = w.avoid.find((x) => inside(x, m));
-  if (bad) out.push(`${label}: ${range(bad)} es de las horas que peor rinden.`);
+  if (bad) out.push(`${label}: la franja ${range(bad)} es de las que peor rinden.`);
   else if (w.best.length && !w.best.some((x) => inside(x, m))) out.push(`${label}: fuera de las mejores horas (${w.best.map(range).join(' o ')}).`);
   if (w.avoidDays.includes(at.weekday)) out.push(`${label}: el ${DAY[at.weekday]} es de los días que peor rinden.`);
   return out;

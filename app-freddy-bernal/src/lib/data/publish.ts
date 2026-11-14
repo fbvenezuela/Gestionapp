@@ -69,7 +69,7 @@ export function formatsFor(ctx: Pick<PublishContext, 'piece'>, spec: Pick<Spec, 
 /**
  * Checks the piece for one network before scheduling or registering it. The network format comes from the piece's
  * format (Reel → reel/short/video, Post → photo, Carrusel and Fin de mes → carousel slide by slide, Historia → story,
- * YouTube → video); a network that does not take that format says so («Esta red no recibe historias»). `format`: the
+ * YouTube → video); a network whose rules lack that format says so («TikTok: la app no programa historias en esta red.»). `format`: the
  * one the person chose, when the network has more than one for this piece.
  */
 export function validateFor(ctx: PublishContext, network: string, format?: string): NetworkCheck {

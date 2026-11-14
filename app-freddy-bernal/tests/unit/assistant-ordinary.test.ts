@@ -83,7 +83,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     // Since 27/10/2026 the boss approves everything (what Supervisión did is his).
     ['¿Cómo apruebo las verdes de una vez?', { has: /«Te toca aprobar».*«Aprobar todas las verdes \(\d+\)»/ }],
     // His approvals come by level (red, yellow, green): since R4 the demo has a red and three yellow ones first.
-    ['¿Cuántas piezas tengo en verde?', { tool: 'mis_pendientes', has: /Lo primero: te toca aprobar \(rojo\): «[^»]+», te toca aprobar \(amarillo\)/ }],
+    ['¿Cuántas piezas tengo en verde?', { tool: 'mis_pendientes', has: /Lo primero: te toca aprobar \(rojo\): «[^»]+»; te toca aprobar \(amarillo\)/ }],
     ['¿Qué reviso antes de aprobar?', { has: /lista: cifras con fuente|«Cada cifra tiene su fuente»/ }],
     ['¿Dónde está el botón de aprobar?', { go: '/aprobar', has: /botón Aprobar/ }],
     ['donde apruebo', { go: '/aprobar' }],
@@ -134,7 +134,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
   // Director de política and Director del IVT (27/10/2026): no dates, no content; their screens come next.
   politics: [
     // Its overdue reports, as on its Municipios (the demo has one).
-    ['¿Qué tengo pendiente?', { tool: 'mis_pendientes', has: /vencida: «.+»\. Todo eso está en Municipios/ }],
+    ['¿Qué tengo pendiente?', { tool: 'mis_pendientes', has: /pendientes? en Municipios\. Lo primero: vencida: «.+»/ }],
     ['¿Qué puedo hacer yo en la plataforma?', { has: /registro de cada municipio/ }],
     ['¿Puedo ver la agenda?', { has: /no está en tu menú/ }],
     ['¿Dónde está la agenda?', { has: /no está en tu menú/ }],
@@ -155,7 +155,7 @@ const TABLE: Partial<Record<DemoUserKey, [string, Expect][]>> = {
   ],
   ivt: [
     // Its obra drafts and how many wait for a date, as on its Obras (never the date).
-    ['¿Qué tengo pendiente?', { tool: 'mis_pendientes', has: /ficha de obra en borrador: «.+».*Todo eso está en Fichas de obra/ }],
+    ['¿Qué tengo pendiente?', { tool: 'mis_pendientes', has: /pendientes? en Fichas de obra\. Lo primero: ficha de obra en borrador: «.+»/ }],
     ['¿Qué puedo hacer yo en la plataforma?', { has: /ficha de cada obra/ }],
     ['¿Qué hace el director del IVT?', { has: /ficha de cada obra/ }],
     // «Mis visitas de obra» (the shared agenda): the dates of the visits to its obras only.

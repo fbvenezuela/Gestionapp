@@ -1,6 +1,8 @@
-// Ajustes → «Registro de cambios» in plain words (APP-05): every table that writes to audit_log has a name for
-// Administración, an action or a table nobody named yet reads «cambió» / «otro dato», what nobody signed in did reads
-// «La app», and the fields that changed are counted, never listed by their column names. The list of tables comes from
+// Ajustes → «Registro de cambios» and Atención → «Registro de atención» in plain words (APP-05, APP-14): every table that
+// writes to audit_log has a name for Administración, an action or a table nobody named yet reads «cambió» / «otro dato»,
+// what a person did on the public web reads «La web» and what else nobody signed in did reads «La app» (the same rule
+// on both screens), each line reads as a sentence, and the fields that changed are counted, never listed by their
+// column names. The list of tables comes from
 // the migrations and the app code themselves, so a new audited table without a name fails here. The session and the
 // database are mocked for the page; all data here is invented.
 import { describe, it, expect, vi } from 'vitest';
@@ -8,7 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { readMigrations } from '@/lib/db/migrations';
-import { AUDIT_ACTION_LABEL, AUDIT_TABLE_LABEL, auditChanged, auditWhat } from '@/lib/domain/audit-log';
+import { AUDIT_ACTION_LABEL, AUDIT_TABLE_LABEL, auditChanged, auditWho, auditWhat } from '@/lib/domain/audit-log';
 
 // The arguments of a call, split at the top-level commas: «(a, f(b, c), 'd')» -> ['a', 'f(b, c)', "'d'"].
 function topLevelArgs(s: string, open: number): string[] {
@@ -89,9 +91,32 @@ describe('«Registro de cambios»: los nombres', () => {
 
   it('lo que no tiene nombre todavía dice «cambió» y «otro dato», nunca el nombre crudo', () => {
     expect(auditWhat('tabla_nueva_x', 'accion_nueva')).toEqual({ verb: 'cambió', object: 'otro dato' });
-    expect(auditWhat('events', 'insert')).toEqual({ verb: 'creó', object: 'Evento' });
-    expect(auditWhat('requests', 'export')).toEqual({ verb: 'exportó', object: 'Solicitudes' });
-    expect(auditWhat('request_contacts', 'contact_view')).toEqual({ verb: 'vio', object: 'Contacto de una solicitud' });
+    expect(auditWhat('events', 'insert')).toEqual({ verb: 'creó', object: 'un evento' });
+    expect(auditWhat('requests', 'export')).toEqual({ verb: 'exportó', object: 'solicitudes' });
+    expect(auditWhat('request_contacts', 'contact_view')).toEqual({ verb: 'vio', object: 'el contacto de una solicitud' });
+  });
+
+  it('cada línea se lee como una frase, con artículo (R13): nunca «creó Caso atendido publicado»', () => {
+    const line = (t: string, a: string) => Object.values(auditWhat(t, a)).join(' ');
+    expect(line('attended_publications', 'insert')).toBe('publicó un caso atendido');
+    expect(line('two_factor', 'mfa_reset')).toBe('reinició el doble factor de una persona');
+    expect(line('pieces', 'update')).toBe('cambió una pieza');
+    expect(line('event_assignments', 'insert')).toBe('eligió quién graba un evento');
+    expect(line('user_roles', 'insert')).toBe('le dio un rol a una persona');
+    expect(line('area_members', 'delete')).toBe('sacó a una persona de un área');
+    expect(line('request_messages', 'insert')).toBe('escribió un mensaje en una solicitud');
+    expect(line('media_assets', 'soft_delete')).toBe('borró un archivo del material');
+    // The parts of an event say what their «Historial» says.
+    expect(AUDIT_TABLE_LABEL.event_schedule).toBe('la fecha, la hora y el lugar de un evento');
+    expect(AUDIT_TABLE_LABEL.storyboard_blocks).toBe('un bloque del storyboard');
+    for (const [t, label] of Object.entries(AUDIT_TABLE_LABEL)) expect(label, t).toMatch(/^(un|una|el|la|los|las|quién|algo) /);
+  });
+
+  it('quién: la persona; «La web» lo que alguien hizo desde la web; «La app» todo lo demás', () => {
+    expect(auditWho('Ana Prueba', true)).toBe('Ana Prueba');
+    expect(auditWho(null, true)).toBe('La web');
+    expect(auditWho(null, false)).toBe('La app');
+    expect(auditWho(null, null)).toBe('La app');
   });
 
   it('los campos que cambiaron se cuentan', () => {
@@ -103,6 +128,7 @@ describe('«Registro de cambios»: los nombres', () => {
 });
 
 const rows = [
+  { id: 7, at: '2026-11-10T16:00:00.000Z', actor: null, table_name: 'requests', action: 'insert', row_id: 'x', changed: null, from_web: true },
   { id: 6, at: '2026-11-10T15:00:00.000Z', actor: null, table_name: 'attended_publications', action: 'insert', row_id: 'x', changed: null },
   { id: 5, at: '2026-11-10T14:00:00.000Z', actor: null, table_name: 'request_messages', action: 'insert', row_id: 'x', changed: null },
   { id: 4, at: '2026-11-10T13:00:00.000Z', actor: 'Ana Prueba', table_name: 'events', action: 'update', row_id: 'x', changed: 2 },
@@ -120,11 +146,12 @@ describe('«Registro de cambios»: la pantalla', () => {
     const { default: AuditPage } = await import('@/app/(panel)/ajustes/registro/page');
     const html = renderToStaticMarkup(await AuditPage({ searchParams: Promise.resolve({ antes: 'no-es-un-numero' }) }));
     const text = html.replace(/<[^>]+>/g, '');
-    expect(text).toContain('La app creó Caso atendido publicado');
-    expect(text).toContain('La app creó Mensaje de una solicitud');
-    expect(text).toContain('Ana Prueba cambió Evento (2 datos)');
-    expect(text).toContain('Ana Prueba cambió Contenido de la web (1 dato)');
-    expect(text).toContain('Ana Prueba exportó Solicitudes');
+    expect(text).toContain('La web creó una solicitud');
+    expect(text).toContain('La app publicó un caso atendido');
+    expect(text).toContain('La app escribió un mensaje en una solicitud');
+    expect(text).toContain('Ana Prueba cambió un evento (2 datos)');
+    expect(text).toContain('Ana Prueba cambió un contenido de la web (1 dato)');
+    expect(text).toContain('Ana Prueba exportó solicitudes');
     expect(text).toContain('Ana Prueba cambió otro dato');
     expect(text).not.toMatch(/El sistema|[a-z]+_[a-z_]+|algo_nuevo/);
   });

@@ -19,8 +19,8 @@ export default async function ProfilePage() {
       <PageHeader title="Mi perfil" subtitle={`${s.email} · ${s.roles.map((r) => ROLE_LABEL[r]).join(', ')}`} />
       <div className="flex flex-col gap-4">
         {/* The public key is rendered by the server (not a NEXT_PUBLIC variable). appName = the name on the home screen. */}
-        <PushCard publicKey={vapidPublicKey()} devices={devices} appName={brand.shortName} />
-        <ProfileForm fullName={p?.full_name ?? ''} prefs={p?.notify_prefs ?? {}} mfa={s.aal === 'aal2'} admin={s.roles.includes('admin')} />
+        <PushCard publicKey={vapidPublicKey()} devices={devices} appName={brand.shortName} admin={s.roles.includes('admin')} />
+        <ProfileForm fullName={p?.full_name ?? ''} prefs={p?.notify_prefs ?? {}} mfa={s.aal === 'aal2'} mfaRequired={s.mfaRequired} roles={s.roles} />
       </div>
     </>
   );

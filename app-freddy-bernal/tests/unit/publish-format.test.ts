@@ -63,7 +63,7 @@ describe('el formato de la red sale del formato de la pieza', () => {
     const c = ctx('post', { media: image() });
     expect(validateFor(c, 'instagram')).toMatchObject({ format: 'photo', formats: ['photo'] });
     expect(errors(validateFor(c, 'instagram'))).toEqual([]);
-    expect(errors(validateFor(c, 'tiktok'))).toEqual(['TikTok: esta red no recibe posts.']);
+    expect(errors(validateFor(c, 'tiktok'))).toEqual(['TikTok: la app no programa posts en esta red.']);
   });
 
   // The rules as the app seeds them (config/network-specs.json, APP-25): a post goes out as a photo on Instagram and
@@ -90,8 +90,8 @@ describe('el formato de la red sale del formato de la pieza', () => {
     });
 
     it('TikTok y YouTube siguen sin recibir posts', () => {
-      expect(errors(validateFor(post(300_000), 'tiktok'))).toEqual(['TikTok: esta red no recibe posts.']);
-      expect(errors(validateFor(post(300_000), 'youtube'))).toEqual(['YouTube: esta red no recibe posts.']);
+      expect(errors(validateFor(post(300_000), 'tiktok'))).toEqual(['TikTok: la app no programa posts en esta red.']);
+      expect(errors(validateFor(post(300_000), 'youtube'))).toEqual(['YouTube: la app no programa posts en esta red.']);
     });
 
     it('el peso máximo de cada red: 9 MB no pasa en X; 4,5 MB pasa en X y Threads, no en Facebook', () => {
@@ -99,7 +99,9 @@ describe('el formato de la red sale del formato de la pieza', () => {
       const mid = post(4.5 * 1024 * 1024);
       expect(errors(validateFor(mid, 'x'))).toEqual([]);
       expect(errors(validateFor(mid, 'threads'))).toEqual([]);
-      expect(errors(validateFor(mid, 'facebook'))).toEqual(['Facebook: pesa 5 MB y el máximo es 4 MB. Expórtalo con menos peso.']);
+      expect(errors(validateFor(mid, 'facebook'))).toEqual(['Facebook: pesa 4,5 MB y el máximo es 4 MB. Expórtalo con menos peso.']);
+      // Just over the limit is said with its decimal (F4), never «pesa 4 MB y el máximo es 4 MB».
+      expect(errors(validateFor(post(4.3 * 1024 * 1024), 'facebook'))).toEqual(['Facebook: pesa 4,3 MB y el máximo es 4 MB. Expórtalo con menos peso.']);
     });
   });
 
@@ -110,7 +112,7 @@ describe('el formato de la red sale del formato de la pieza', () => {
     expect(ig.issues).toEqual([{ level: 'error', text: 'La historia dura 75 s: Instagram deja hasta 60 s.' }]);
     expect(validateFor(ctx('story', { media: video({ duration_s: 20 }), copies: [] }), 'facebook').issues).toEqual([]);
     expect(validateFor(ctx('story', { media: image(1080, 1920), copies: [] }), 'instagram').issues).toEqual([]);
-    expect(errors(validateFor(c, 'tiktok'))).toEqual(['TikTok: esta red no recibe historias.']);
+    expect(errors(validateFor(c, 'tiktok'))).toEqual(['TikTok: la app no programa historias en esta red.']);
   });
 
   it('YouTube: video, con su descripción como copy largo', () => {
@@ -118,7 +120,7 @@ describe('el formato de la red sale del formato de la pieza', () => {
     const yt = validateFor(c, 'youtube');
     expect(yt).toMatchObject({ format: 'video', formats: ['video'] });
     expect(yt.copy).toBe('¡Saludos, Táchira! Copy de prueba.');
-    expect(errors(validateFor(c, 'instagram'))).toEqual(['Instagram: esta red no recibe videos de YouTube.']);
+    expect(errors(validateFor(c, 'instagram'))).toEqual(['Instagram: la app no programa videos de YouTube en esta red.']);
   });
 });
 
@@ -133,11 +135,11 @@ describe('carrusel y fin de mes: lámina por lámina', () => {
     expect(errors(validateFor(ctx('carousel', { slides: twelve }), 'facebook'))).toEqual(['Facebook deja hasta 10 imágenes: este carrusel tiene 12.']);
     expect(errors(validateFor(ctx('carousel', { slides: [image(), null, image(1920, 1080)] }), 'instagram'))).toEqual([
       'Instagram: la lámina 2 no tiene imagen.',
-      'Instagram: la lámina 3 es horizontal (1920×1080) y aquí va 4:5 o 1:1.',
+      'Instagram: la lámina 3 es horizontal (1920×1080) y en Instagram va 4:5 o 1:1.',
     ]);
   });
   it('X no recibe carruseles', () => {
-    expect(errors(validateFor(ctx('carousel', { slides: four }), 'x'))).toEqual(['X: esta red no recibe carruseles.']);
+    expect(errors(validateFor(ctx('carousel', { slides: four }), 'x'))).toEqual(['X: la app no programa carruseles en esta red.']);
     expect(formatsFor(ctx('carousel'), SPECS[3])).toEqual([]);
   });
 });

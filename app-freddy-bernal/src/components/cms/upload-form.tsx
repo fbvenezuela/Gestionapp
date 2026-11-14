@@ -114,7 +114,7 @@ export function UploadForm({ kind, onUploaded, submitLabel }: { kind: Kind; onUp
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4" noValidate aria-label={kind === 'image' ? 'Subir una foto' : 'Subir un documento PDF'}>
-      <Field label={kind === 'image' ? 'Foto (JPG, PNG o WebP)' : 'Documento (PDF)'} htmlFor={`${id}-file`} hint={kind === 'image' ? 'Se achica y pierde la ubicación y los datos de la cámara antes de salir de este teléfono o computadora.' : `Hasta ${megabytes(limits.document)} MB.`}>
+      <Field label={kind === 'image' ? 'Foto (JPG, PNG o WebP)' : 'Documento (PDF)'} htmlFor={`${id}-file`} hint={kind === 'image' ? 'Se achica y pierde la ubicación y los datos de la cámara antes de salir de este teléfono o de esta computadora.' : `Hasta ${megabytes(limits.document)} MB.`}>
         <input
           ref={input}
           id={`${id}-file`}

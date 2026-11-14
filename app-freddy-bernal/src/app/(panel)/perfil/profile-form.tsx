@@ -5,12 +5,14 @@ import { Moon, ShieldCheck } from 'lucide-react';
 import { updateProfile } from '@/lib/actions/profile';
 import { useAction } from '@/lib/hooks/use-action';
 import { OPT_IN_KINDS, QUIET_DEFAULT } from '@/lib/push/quiet';
+import { agendaChangedLabel, alwaysNoticesLine, showsSwitch } from '@/lib/domain/profile-notices';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Field, Input } from '@/components/ui/field';
 
-// Critical notices (src/lib/notify.ts, CRITICAL) cannot be turned off: the note under the list says which. These
-// switches apply to email and phone alike.
+// Critical notices (src/lib/notify.ts, CRITICAL) cannot be turned off: the note under the list says which of them reach
+// this person (src/lib/domain/profile-notices.ts). These switches apply to email and phone alike; the agenda's two are
+// shown only to whoever can get them (showsSwitch), and «Cada cambio…» names the other manager.
 const OPTIONAL = [
   { key: 'material_ready', label: 'Llegó material nuevo' },
   { key: 'recording_note', label: 'Grabación dejó su nota o su storyboard' },
@@ -22,8 +24,8 @@ const OPTIONAL = [
   { key: 'to_schedule', label: 'Hay una ficha por ponerle fecha' },
   { key: 'agenda_scheduled', label: 'Una ficha ya tiene fecha' },
   { key: 'agenda_overwritten', label: 'Alguien cambió lo mismo que yo en la agenda' },
-  { key: 'agenda_changed', label: 'Cada cambio que el otro hace en la agenda (viene apagado)' },
-  { key: 'assistant_notice', label: 'Avisos que Administración le manda al equipo' },
+  { key: 'agenda_changed', label: 'Cada cambio que hacen el jefe o el despacho en la agenda (viene apagado)' },
+  { key: 'assistant_notice', label: 'Avisos del equipo (los manda Administración)' },
   { key: 'chat_message', label: 'Mensajes nuevos del equipo' },
   { key: 'daily_digest', label: 'Resumen diario por correo' },
 ];
@@ -32,8 +34,13 @@ type Prefs = Record<string, boolean | string>;
 
 // The profile's phone is not asked any more (a phone of the team goes nowhere; other people's go in each ficha's
 // contacts): the column and what is stored stay, and saving never touches them (updateProfile).
-export function ProfileForm({ fullName, prefs, mfa, admin }: { fullName: string; prefs: Prefs; mfa: boolean; admin: boolean }) {
+// The two-factor line only for the roles that use it (Redes and Grabación sign in with the email code alone: their guide
+// and 360 say «Mis datos» brings the name).
+export function ProfileForm({ fullName, prefs, mfa, mfaRequired, roles }: { fullName: string; prefs: Prefs; mfa: boolean; mfaRequired: boolean; roles: string[] }) {
   const { run, pending } = useAction();
+  const always = alwaysNoticesLine(roles);
+  const agenda = agendaChangedLabel(roles);
+  const switches = OPTIONAL.filter((o) => showsSwitch(o.key, roles)).map((o) => (o.key === 'agenda_changed' && agenda ? { ...o, label: agenda } : o));
   const [f, setF] = useState({ fullName, prefs });
   const set = (k: string, v: boolean | string) => setF({ ...f, prefs: { ...f.prefs, [k]: v } });
   const quietOn = f.prefs.quiet !== false;
@@ -45,23 +52,22 @@ export function ProfileForm({ fullName, prefs, mfa, admin }: { fullName: string;
         <CardHeader title="Mis datos" />
         <CardBody className="flex flex-col gap-3">
           <Field label="Nombre" htmlFor="pn"><Input id="pn" value={f.fullName} onChange={(e) => setF({ ...f, fullName: e.target.value })} /></Field>
-          <p className="flex items-center gap-2 text-sm text-text-2"><ShieldCheck className="h-4 w-4" aria-hidden /> {mfa ? 'Doble factor: entraste con él' : 'Doble factor: esta vez entraste sin él'}</p>
+          {mfaRequired ? (
+            <p className="flex items-center gap-2 text-sm text-text-2"><ShieldCheck className="h-4 w-4" aria-hidden /> {mfa ? 'Doble factor: entraste con él' : 'Doble factor: esta vez entraste sin él'}</p>
+          ) : null}
         </CardBody>
       </Card>
       <Card data-tour="notify-prefs">
         <CardHeader title="Qué avisos quiero" subtitle="Por correo y en el teléfono. Los importantes siempre llegan." />
-        {/* shrink-0: a label in two lines («Cada cambio que el otro hace en la agenda (viene apagado)») squeezed its box. */}
+        {/* shrink-0: a label in two lines («Cada cambio que hace el despacho en la agenda (viene apagado)») squeezed its box. */}
         <CardBody className="flex flex-col gap-1">
-          {OPTIONAL.map((o) => (
+          {switches.map((o) => (
             <label key={o.key} className="flex min-h-11 items-center gap-3 text-[15px]">
               <input type="checkbox" className="h-5 w-5 shrink-0 accent-accent" checked={OPT_IN_KINDS.has(o.key) ? f.prefs[o.key] === true : f.prefs[o.key] !== false} onChange={(e) => set(o.key, e.target.checked)} />
               {o.label}
             </label>
           ))}
-          <p className="mt-2 text-sm text-text-2">
-            Estos llegan siempre, aunque los apagues: un evento que te asignan, que se mueve o que se cancela, cambios pedidos en una pieza, una pieza roja o que se pasó de su plazo, una publicación que falló y cuando se acaban los tweets.
-            {admin ? ' A Administración también le llegan siempre los avisos de 360 y los de Google Drive.' : ''}
-          </p>
+          {always ? <p className="mt-2 text-sm text-text-2">{always}</p> : null}
         </CardBody>
       </Card>
       <Card data-tour="quiet-hours">

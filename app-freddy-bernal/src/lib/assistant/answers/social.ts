@@ -566,7 +566,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-historia-duracion',
     roles: ['social'],
     q: ['¿Cuánto puede durar una historia?', 'de que tamaño va la historia', 'la historia va vertical', 'en que redes va una historia', 'cuanto dura una historia', 'la historia puede ser un video largo', 'historia de cuantos segundos'],
-    a: 'Una foto o un clip vertical de hasta 60 segundos, para Instagram y Facebook. Si la red no recibe historias, al programar sale que no pasa.',
+    a: 'Una foto o un clip vertical de hasta 60 segundos, para Instagram y Facebook. En otra red, al programar sale que no pasa: la app no programa historias ahí.',
     go: '/redes',
   },
   {
@@ -1235,7 +1235,7 @@ export const SOCIAL: Answer[] = [
   {
     id: 'red-no-pasa',
     roles: ['social'],
-    q: ['que significa no pasa al lado de una red', 'que es revisar en una red', 'todo bien no pasa revisar', 'esta red no recibe historias', 'dice no pasa que hago', 'no pasa en instagram como lo arreglo', 'por que dice no pasa', 'una red dice revisar que hago', 'en tiktok dice no pasa', 'una red no pasa que hago', 'tiktok no pasa por que', 'me aparece no pasa al programar', 'dice no pasa para tiktok', 'que significa no pasa cuando elijo las redes', 'que quiere decir la marca roja de una red'],
+    q: ['que significa no pasa al lado de una red', 'que es revisar en una red', 'todo bien no pasa revisar', 'esta red no recibe historias', 'dice la app no programa historias en esta red', 'dice no pasa que hago', 'no pasa en instagram como lo arreglo', 'por que dice no pasa', 'una red dice revisar que hago', 'en tiktok dice no pasa', 'una red no pasa que hago', 'tiktok no pasa por que', 'me aparece no pasa al programar', 'dice no pasa para tiktok', 'que significa no pasa cuando elijo las redes', 'que quiere decir la marca roja de una red'],
     a: 'Al elegir las redes, cada una lleva una marca, y la roja quiere decir que no pasa: debajo dice qué arreglar (duración, medidas, peso o largo del copy); arréglalo o quita esa red, y vuelve a «Programar en 2 redes». La verde dice, por ejemplo, «Todo bien para Instagram.», y la amarilla, que hay algo que revisar.',
     go: '/publicar/nueva',
     tutorial: 'publicar-nueva',
@@ -1334,7 +1334,7 @@ export const SOCIAL: Answer[] = [
     id: 'red-csv',
     roles: ['social'],
     q: ['tengo un csv de meta con las metricas como lo subo', 'cargar resultados desde un archivo', 'que columnas lleva el csv', 'subir muchas metricas de una vez', 'tengo un excel con los numeros', 'subir todos los resultados de una vez', 'cargar las metricas de varias publicaciones juntas', 'puedo subir una hoja de calculo con los resultados', 'tengo un archivo con las metricas de todas'],
-    a: 'Resultados → «Cargar resultados desde un archivo (CSV)» → «Elegir archivo CSV»: carga muchas publicaciones de una vez. Si lo tienes en Excel, guárdalo como CSV con estos nombres en la primera fila: enlace, vistas, alcance, me gusta, comentarios, compartidos y guardados. Solo «enlace» es obligatoria.',
+    a: 'Resultados → «Cargar resultados desde un archivo (CSV)» → «Elegir archivo CSV»: carga muchas publicaciones de una vez. Si lo tienes en Excel, guárdalo como CSV con estos nombres en la primera fila: enlace (el link de cada publicación), vistas, alcance, me gusta, comentarios, compartidos y guardados. Solo «enlace» es obligatoria.',
     go: '/resultados',
     tutorial: 'resultados',
   },

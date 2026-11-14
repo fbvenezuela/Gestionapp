@@ -14,7 +14,7 @@ describe('la versión de una pieza (APP-22)', () => {
 describe('de dónde viene un evento (APP-30)', () => {
   it('con verbos de todos los días: «Viene de…», nunca «Nació de…»', () => {
     expect(EVENT_ORIGIN.ivt).toBe('Viene de una ficha del IVT');
-    expect(EVENT_ORIGIN.politics).toBe('Viene de un reporte de política');
+    expect(EVENT_ORIGIN.politics).toBe('Viene de un reporte comunitario');
     for (const v of Object.values(EVENT_ORIGIN)) expect(v).not.toMatch(/Naci[oó]/);
   });
 });

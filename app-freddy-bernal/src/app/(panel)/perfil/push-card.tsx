@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Bell, BellOff, BellRing } from 'lucide-react';
 import { toast } from 'sonner';
 import { removePushSubscription, savePushSubscription, sendTestPush, syncPushSubscription } from '@/lib/actions/profile';
+import { pushOffText } from '@/lib/domain/profile-notices';
 import { useAction } from '@/lib/hooks/use-action';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
@@ -21,7 +22,7 @@ function subInput(sub: PushSubscription) {
 
 // «Avisos en este teléfono»: the permission is asked ONLY when the person taps «Activar avisos».
 // «Activos» is shown only after the server confirms this phone is the signed-in person's.
-export function PushCard({ publicKey, devices, appName }: { publicKey: string | null; devices: number; appName: string }) {
+export function PushCard({ publicKey, devices, appName, admin }: { publicKey: string | null; devices: number; appName: string; admin: boolean }) {
   const router = useRouter();
   const { run, pending } = useAction();
   const [env, setEnv] = useState<PushEnv | null>(null);
@@ -115,7 +116,7 @@ export function PushCard({ publicKey, devices, appName }: { publicKey: string | 
       <CardHeader title="Avisos en este teléfono" subtitle="Te avisa aunque la app esté cerrada. De noche solo llegan los importantes." />
       <CardBody className="flex flex-col gap-3">
         {!publicKey ? (
-          <p className="text-[15px] text-text-2">Los avisos al teléfono todavía no están encendidos en la app: avísale a quien la instaló.</p>
+          <p className="text-[15px] text-text-2">{pushOffText(admin)}</p>
         ) : (
           <>
             <p className="flex items-start gap-2 text-[15px]" role="status">

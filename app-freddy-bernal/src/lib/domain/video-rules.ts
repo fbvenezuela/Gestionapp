@@ -40,6 +40,24 @@ function dur(s: number) {
   return r ? `${m} min ${r} s` : `${m} ${m === 1 ? 'minuto' : 'minutos'}`;
 }
 
+/** The weight in MB as a person reads it: one decimal below 10 MB («4,3 MB»), and always more than the maximum when the
+ * file is over it, never «pesa 4 MB y el máximo es 4 MB» (F4: the photo limits are 4, 5 and 8 MB). */
+export function weightMb(bytes: number, max?: number): string {
+  const n = bytes / 1024 / 1024;
+  const at = (d: number) => Number(n.toFixed(d));
+  let d = n < 10 ? 1 : 0;
+  while (d < 2 && max != null && at(d) <= max) d++;
+  let v = at(d);
+  if (max != null && v <= max && n > max) v = Math.ceil(n * 100) / 100;
+  return String(v).replace('.', ',');
+}
+
+/** The shape of a picture: «horizontal», «vertical» or «cuadrada». */
+const shapeOf = (w: number, h: number) => (w / h > 1.05 ? 'horizontal' : w / h < 0.95 ? 'vertical' : 'cuadrada');
+
+/** «4:5, 1:1 o 1.91:1». */
+const orList = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} o ${xs[xs.length - 1]}` : xs.join(''));
+
 function ratio(a: string) {
   const [w, h] = a.split(':').map(Number);
   return w / h;
@@ -73,24 +91,25 @@ export function checkVideo(network: string, formatName: string, rule: FormatRule
       const tol = rule.aspect_tolerance ?? 0.03;
       const ok = rule.aspects.some((a) => Math.abs(actual - ratio(a)) / ratio(a) <= tol);
       if (!ok) {
-        const want = rule.aspects.join(' o ');
-        const shape = actual > 1.05 ? 'horizontal' : actual < 0.95 ? 'vertical' : 'cuadrado';
-        say('error', `el video es ${shape} (${m.width}×${m.height}) y aquí va ${want}${rule.aspects.includes('9:16') ? ' (vertical, por ejemplo 1080×1920)' : ''}.`);
+        // A photo is «la imagen … horizontal/vertical/cuadrada» (F10, like the height below); a video, «el video …».
+        const shape = m.isImage ? shapeOf(m.width, m.height) : actual > 1.05 ? 'horizontal' : actual < 0.95 ? 'vertical' : 'cuadrado';
+        say('error', `${m.isImage ? 'la imagen' : 'el video'} es ${shape} (${m.width}×${m.height}) y en ${network} va ${orList(rule.aspects)}${rule.aspects.includes('9:16') ? ' (vertical, por ejemplo 1080×1920)' : ''}.`);
       }
     }
     if (rule.min_width && m.width < rule.min_width) say('error', `el ancho es ${m.width} px y el mínimo es ${rule.min_width} px. Exporta en mejor calidad.`);
     if (rule.min_height && m.height < rule.min_height) say('error', `el alto es ${m.height} px y el mínimo es ${rule.min_height} px. Exporta en mejor calidad.`);
     if (rule.max_width && m.width > rule.max_width) say('error', `el ancho es ${m.width} px y el máximo es ${rule.max_width} px. Exporta más pequeño.`);
-    // Says what to do, like the others (APP-41: «el alto es 1920 px y el máximo es 1200 px.» stopped there).
+    // Says what to do, like the others (APP-41: «el alto es 1920 px y el máximo es 1200 px.» stopped there), with the
+    // network's name rather than «aquí» (read as «in this app») and the width's words (R19: «más bajo» read as quality).
     if (rule.max_height && m.height > rule.max_height) {
       say('error', m.isImage
-        ? `la imagen es muy alta: mide ${m.height} px y aquí el máximo es ${rule.max_height} px. Expórtala más baja.`
-        : `el video es muy alto: mide ${m.height} px y aquí el máximo es ${rule.max_height} px. Expórtalo más bajo.`);
+        ? `la imagen es muy alta: mide ${m.height} px y en ${network} el máximo es ${rule.max_height} px. Exporta más pequeña.`
+        : `el video es muy alto: mide ${m.height} px y en ${network} el máximo es ${rule.max_height} px. Exporta más pequeño.`);
     }
   } else if (!m.isImage) say('warn', 'no se pudieron leer las medidas.');
 
   if (m.sizeBytes != null && rule.max_size_mb && m.sizeBytes > rule.max_size_mb * 1024 * 1024) {
-    say('error', `pesa ${(m.sizeBytes / 1024 / 1024).toFixed(0)} MB y el máximo es ${rule.max_size_mb} MB. Expórtalo con menos peso.`);
+    say('error', `pesa ${weightMb(m.sizeBytes, rule.max_size_mb)} MB y el máximo es ${rule.max_size_mb} MB. Expórtalo con menos peso.`);
   }
   // Neither codec nor fps known: the file was never read (a video picked from Google Drive gives
   // only duration and size, or the phone could not read it). Say so once, instead of «no tiene
@@ -128,7 +147,6 @@ function fitsAspect(w: number, h: number, rule: FormatRule): boolean {
   return rule.aspects.some((a) => Math.abs(w / h - ratio(a)) / ratio(a) <= tol);
 }
 
-const shapeOf = (w: number, h: number) => (w / h > 1.05 ? 'horizontal' : w / h < 0.95 ? 'vertical' : 'cuadrada');
 
 /** A story: a photo or a clip. «La historia dura 75 s: Instagram deja hasta 60 s.» */
 export function checkStory(network: string, rule: FormatRule | undefined, m: MediaFacts): Issue[] {
@@ -146,7 +164,7 @@ export function checkStory(network: string, rule: FormatRule | undefined, m: Med
     }
   } else if (!m.isImage) out.push({ level: 'warn', text: `${network}: no se pudieron leer las medidas del clip.` });
   if (m.sizeBytes != null && rule.max_size_mb && m.sizeBytes > rule.max_size_mb * 1024 * 1024) {
-    out.push({ level: 'error', text: `${network}: la historia pesa ${(m.sizeBytes / 1024 / 1024).toFixed(0)} MB y el máximo es ${rule.max_size_mb} MB.` });
+    out.push({ level: 'error', text: `${network}: la historia pesa ${weightMb(m.sizeBytes, rule.max_size_mb)} MB y el máximo es ${rule.max_size_mb} MB.` });
   }
   return out;
 }
@@ -171,10 +189,10 @@ export function checkCarousel(network: string, rule: FormatRule | undefined, sli
       return;
     }
     if (s.width && s.height && !fitsAspect(s.width, s.height, rule)) {
-      out.push({ level: 'error', text: `${network}: la lámina ${i + 1} es ${shapeOf(s.width, s.height)} (${s.width}×${s.height}) y aquí va ${rule.aspects!.join(' o ')}.` });
+      out.push({ level: 'error', text: `${network}: la lámina ${i + 1} es ${shapeOf(s.width, s.height)} (${s.width}×${s.height}) y en ${network} va ${orList(rule.aspects!)}.` });
     }
     if (s.sizeBytes != null && rule.max_size_mb && s.sizeBytes > rule.max_size_mb * 1024 * 1024) {
-      out.push({ level: 'error', text: `${network}: la lámina ${i + 1} pesa ${(s.sizeBytes / 1024 / 1024).toFixed(0)} MB y el máximo es ${rule.max_size_mb} MB.` });
+      out.push({ level: 'error', text: `${network}: la lámina ${i + 1} pesa ${weightMb(s.sizeBytes, rule.max_size_mb)} MB y el máximo es ${rule.max_size_mb} MB.` });
     }
   });
   return out;

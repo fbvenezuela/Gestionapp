@@ -12,7 +12,7 @@ import { reviewFlagTexts } from '@/lib/web/import-marks';
 import { mediaIdsIn } from '@/lib/web/cms/drafts';
 import { ADMIN_WEB, sectionOf } from '@/lib/web/cms/kinds';
 import { programLabel, sectionLabel } from '@/lib/web/cms/section-label';
-import { hasPendingChanges, isLive, isScheduled } from '@/lib/web/cms/status';
+import { hasPendingChanges, isLive, isScheduled, isUnusedPage } from '@/lib/web/cms/status';
 import { itemPath } from '@/lib/web/routes';
 import { siteBaseUrl } from '@/lib/web/site';
 import { WEB_KIND_LABEL } from '@/lib/web/schema';
@@ -43,11 +43,15 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
   });
   if (!data) notFound();
   const { item, caps } = data;
+  // After the person's transaction (never nested in it): the name the public site gives the program.
+  const program = await programLabel();
   const section = sectionOf(item.kind);
   const live = isLive(item);
   // The page «atencion» of «Páginas»: /atencion builds its own texts (src/app/(web)/atencion/page.tsx) and never reads
-  // it (APP-20). The editor says so, and gives neither its address nor «Esto ya está en la web».
-  const unusedPage = item.kind === 'page' && item.slug === 'atencion';
+  // it (APP-20). The editor says so, and nothing around it says the opposite (R01): one chip «No sale en la web»
+  // instead of «Publicado» (FlowChips, as in every list), no address, no «Esto ya está en la web», and no «Vista
+  // previa» nor the way to approval until Juan decides whether the page stays (docs/PENDIENTES.md).
+  const unusedPage = isUnusedPage(item);
   const publicPath = unusedPage ? null : itemPath(item.kind, item.slug);
   const writable = caps.canEdit && !item.archivedAt;
 
@@ -56,7 +60,7 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
       <PageHeader
         title={item.title || 'Sin título'}
         subtitle={`${WEB_KIND_LABEL[item.kind]} · versión ${item.draftVersion} del borrador${item.updatedByName ? ` · último cambio de ${item.updatedByName}` : ''}, ${fmtDateTime(item.updatedAt)}`}
-        back={{ href: ADMIN_WEB.list(item.kind), label: sectionLabel(section) }}
+        back={{ href: ADMIN_WEB.list(item.kind), label: sectionLabel(section, program) }}
       />
       <FlowChips flow={item} />
 
@@ -135,7 +139,8 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
           refs={data.refs}
           baseUrl={siteBaseUrl()}
           tz={TZ}
-          programName={programLabel()}
+          programName={program}
+          unused={unusedPage}
         />
       ) : (
         <Card>
@@ -146,13 +151,15 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
                 : 'Puedes leer este borrador y sus versiones; lo escriben el editor de la web, quien aprueba y el jefe.'}
             </p>
             <div className="flex flex-wrap gap-2">
-              <LinkButton href={ADMIN_WEB.preview(item.id)} variant="secondary">
-                <Eye className="h-4 w-4" aria-hidden /> Vista previa
-              </LinkButton>
+              {unusedPage ? null : (
+                <LinkButton href={ADMIN_WEB.preview(item.id)} variant="secondary">
+                  <Eye className="h-4 w-4" aria-hidden /> Vista previa
+                </LinkButton>
+              )}
               <LinkButton href={ADMIN_WEB.versions(item.id)} variant="secondary">
                 <History className="h-4 w-4" aria-hidden /> Versiones
               </LinkButton>
-              {caps.canPublish ? <LinkButton href={ADMIN_WEB.review(item.id)}>Revisar y decidir</LinkButton> : null}
+              {caps.canPublish && !unusedPage ? <LinkButton href={ADMIN_WEB.review(item.id)}>Revisar y decidir</LinkButton> : null}
             </div>
           </CardBody>
         </Card>

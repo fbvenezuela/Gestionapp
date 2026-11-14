@@ -16,6 +16,7 @@ import { receiptPdf } from '@/lib/participation/pdf';
 import { DB_MESSAGES_SAID_AGAIN, citizenDbText, failureOf } from '@/lib/actions/participation-core';
 import { STAT_DEFINITIONS } from '@/components/web/stats';
 import { realFaqs } from '@/lib/db/seed-parts/web-real';
+import { DEMO_FAQS, DEMO_NEWS } from '@/lib/db/seed-parts/web-content';
 import { makeTestDb } from '../rls/setup';
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: () => {}, refresh: () => {}, replace: () => {} }), usePathname: () => '/atencion' }));
@@ -232,14 +233,17 @@ describe('lo que lee la persona en el formulario, el comprobante y la consulta',
 describe('lo público no promete una fecha de atención', () => {
   // The date of a case is internal (the coordination sets it; the consultation never shows it): nothing the citizen
   // reads may promise one (APP-17).
-  const PROMISE = /fecha prevista|fija una fecha|una fecha de atención/i;
+  const PROMISE = /fecha prevista|fija una fecha|una fecha de atención|fecha comprometida/i;
 
-  it('ni los pasos de /atencion, ni las definiciones de las cifras, ni las páginas base, ni las preguntas de la web real', () => {
+  it('ni los pasos de /atencion, ni las definiciones de las cifras, ni las páginas base, ni las preguntas y noticias de la web real o inventada', () => {
     const said: [string, string][] = [
       ['/atencion', fs.readFileSync(path.join(process.cwd(), 'src/app/(web)/atencion/page.tsx'), 'utf8')],
       ['cifras', JSON.stringify(STAT_DEFINITIONS)],
       ['páginas base', JSON.stringify(getClientConfig().web.pages)],
       ['preguntas de la web real', JSON.stringify(realFaqs())],
+      // The invented FAQ is published on /atencion in every demo with invented content (F3).
+      ['preguntas inventadas', JSON.stringify(DEMO_FAQS)],
+      ['noticias inventadas', JSON.stringify(DEMO_NEWS)],
     ];
     for (const [label, s] of said) expect(s, label).not.toMatch(PROMISE);
     expect(STAT_DEFINITIONS.find((d) => d.term === 'Vencidas')?.text).toBe('Solicitudes pendientes que pasaron su plazo de atención.');
@@ -248,6 +252,7 @@ describe('lo público no promete una fecha de atención', () => {
 
 describe('las respuestas guardadas de fábrica hablan de usted', () => {
   const USTED = path.resolve('supabase/migrations/20261113100000_respuestas_guardadas_de_usted.sql');
+  const CLEARER = path.resolve('supabase/migrations/20261113200000_respuestas_guardadas_mas_claras.sql');
 
   it('ninguna tutea ni nombra «el equipo»; la que la coordinación ya cambió se queda como la dejó', async () => {
     const t = await makeTestDb();
@@ -256,6 +261,12 @@ describe('las respuestas guardadas de fábrica hablan de usted', () => {
     expect(rows.length).toBeGreaterThanOrEqual(9);
     for (const r of rows) citizenReads(r.title, r.body);
     expect(rows.find((r) => r.title === 'Atención programada')?.body).toBe('Ya está programada la atención de su solicitud. Le avisaremos por aquí cuando se haga.');
+    // R14: one «le» for each person, and the page by its name.
+    expect(rows.find((r) => r.title === 'La atiende otra institución')?.body).toBe(
+      'Lo que nos cuenta lo atiende otra institución. Ya le enviamos su solicitud a esa institución y le avisaremos por aquí cuando responda.',
+    );
+    for (const r of rows) expect(r.body, r.title).not.toContain('desde su consulta');
+    expect(rows.filter((r) => r.body.includes('desde «Consultar mi solicitud»')).map((r) => r.title).sort()).toEqual(['Falta un dato', 'Falta una foto', 'Quedó resuelta']);
 
     // The change touches only what still says, word for word, what the app brought: one put back as it came, one that
     // the coordination rewrote; the same migration again changes the first and leaves the second.
@@ -268,5 +279,16 @@ describe('las respuestas guardadas de fábrica hablan de usted', () => {
     const after = await read();
     expect(after.find((r) => r.title === 'Quedó resuelta')?.body).toBe('Su solicitud quedó resuelta. Si no es así, díganoslo desde su consulta y la revisamos de nuevo.');
     expect(after.find((r) => r.title === 'Falta un dato')?.body).toBe(OWN);
+
+    // F9: a reply the coordination only renamed still had the «tú» text the app brought; the text alone decides now.
+    await t.system(async (sql) => {
+      await sql.query(`update public.request_reply_templates set title = 'Visita programada', body = 'Ya está programada la atención de tu solicitud. Te avisamos por aquí cuando se haga.' where title = 'Atención programada'`);
+      await sql.query(fs.readFileSync(CLEARER, 'utf8'));
+    });
+    const last = await read();
+    expect(last.find((r) => r.title === 'Visita programada')?.body).toBe('Ya está programada la atención de su solicitud. Le avisaremos por aquí cuando se haga.');
+    expect(last.find((r) => r.title === 'Quedó resuelta')?.body).toBe('Su solicitud quedó resuelta. Si no es así, díganoslo desde «Consultar mi solicitud» y la revisamos de nuevo.');
+    expect(last.find((r) => r.title === 'Falta un dato')?.body).toBe(OWN);
+    for (const r of last) citizenReads(r.title, r.body);
   }, 120_000);
 });

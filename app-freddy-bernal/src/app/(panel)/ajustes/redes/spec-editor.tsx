@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
 import { Field, Input } from '@/components/ui/field';
+import { networkFormatLabel } from '@/lib/data/labels';
 
 const FIELDS: [string, string][] = [
   ['min_duration_s', 'Duración mínima (s)'], ['max_duration_s', 'Duración máxima (s)'], ['min_width', 'Ancho mínimo (px)'], ['max_width', 'Ancho máximo (px)'],
@@ -32,7 +33,7 @@ export function SpecEditor({ row }: { row: Row }) {
         <Field label="Máximo de caracteres del copy" htmlFor={`mx-${row.network}`}><Input id={`mx-${row.network}`} type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} className="max-w-40" /></Field>
         {Object.entries(formats).map(([fmt, rule]) => (
           <fieldset key={fmt} className="rounded-[var(--radius-control)] border border-border p-3">
-            <legend className="px-1 font-semibold">{fmt} {Array.isArray(rule.aspects) ? <span className="text-sm font-normal text-text-2">· {(rule.aspects as string[]).join(', ')}</span> : null}</legend>
+            <legend className="px-1 font-semibold">{networkFormatLabel(fmt)} {Array.isArray(rule.aspects) ? <span className="text-sm font-normal text-text-2">· {(rule.aspects as string[]).join(', ')}</span> : null}</legend>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {FIELDS.map(([k, label]) => (
                 <Field key={k} label={label} htmlFor={`${row.network}-${fmt}-${k}`}>

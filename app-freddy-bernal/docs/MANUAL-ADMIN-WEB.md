@@ -77,9 +77,10 @@ dirección en la web sale de él) → **«Crear borrador»**. Se abre el editor.
 
 **Las páginas no se crean, se editan.** Son seis y ya existen: la portada («Inicio»), «El gobernador», «Atención
 ciudadana» y las tres legales («Aviso de privacidad», «Condiciones de participación» y «Accesibilidad»). No uses la
-página «Atención ciudadana»: lo que se escribe ahí no sale en la web, y su editor lo avisa arriba («Esta página no
-sale en la web»). Los textos de la sección «Atención ciudadana» no se cambian desde el panel. De ella se cambian las
-preguntas («Preguntas frecuentes», grupo «Atención ciudadana») y los contactos verificados (ver 4.13).
+página «Atención ciudadana»: lo que se escribe ahí no sale en la web. En la lista lleva el chip «No sale en la web»,
+y su editor lo avisa arriba («Esta página no sale en la web»), sin «Vista previa» ni «Enviar a aprobación». Los textos
+de la sección «Atención ciudadana» no se cambian desde el panel. De ella se cambian las preguntas («Preguntas
+frecuentes», grupo «Atención ciudadana») y los contactos verificados (ver 4.13).
 
 Lo que pide cada tipo:
 
@@ -131,7 +132,7 @@ está en la web» (tus cambios salen solo cuando se publique de nuevo), «Progra
 vieja» (ver 4.15) y «Archivado: no se ve en la web».
 
 - **Lo que escribes y no guardas se queda solo en ese teléfono o esa computadora.** Si se va la luz o la señal, al
-  volver dice «Recuperamos cambios que no se habían guardado en este teléfono o computadora.». «Descartarlos» los
+  volver dice «Recuperamos cambios que no se habían guardado en este teléfono o en esta computadora.». «Descartarlos» los
   borra. Solo «Guardar borrador» lo guarda en el panel, donde lo ven los demás.
 - **Dos personas a la vez:** si otra persona guardó mientras escribías, sale «Alguien guardó cambios en este contenido
   mientras lo editabas. Copia lo tuyo y vuelve a abrirlo para ver lo último.».
@@ -295,9 +296,9 @@ aprobación** («Guardado. La web ya lo muestra.»). Cada sección tiene su «Gu
 | **Contactos institucionales** | Teléfonos, correos o direcciones («Agregar contacto»). **Solo los marcados «Verificado» salen** |
 | **Cuentas en redes** | Red, usuario y enlace de cada cuenta («Agregar cuenta»), con «Verificada», «Activa» y una «Nota interna (no sale en la web)». Salen en el pie y en «Canales». En la versión de prueba salen también las que faltan por confirmar, con una sola línea que dice que están en proceso de confirmación. Cuando la web se abra al público, saldrán solo las activas y verificadas. Una cuenta abandonada se apaga («Activa» sin marcar): nunca sale |
 | **Canal de WhatsApp**, **Portal institucional**, **Canal de YouTube del programa** | Cada uno con «La web lo muestra», «Verificado» y «Activo». El portal sale solo verificado. El canal de WhatsApp y el de YouTube siguen la regla de las cuentas |
-| **Nombre y saludo** | El nombre, el cargo, la región, el saludo y el «Nombre de la cabecera». El nombre y el cargo salen arriba de cada página y en el pie. El título grande de la portada no sale de aquí: se cambia en su bloque «Portada con foto» (ver 4.6). La web no muestra el saludo: no hace falta llenarlo. El «Nombre de la cabecera» también puede quedar vacío: la web usa el nombre y el cargo |
+| **Nombre de la web** | El nombre, el cargo, la región y el «Nombre al compartir». El nombre y el cargo salen arriba de cada página y en el pie. El título grande de la portada no sale de aquí: se cambia en su bloque «Portada con foto» (ver 4.6). El «Nombre al compartir» es lo que leen quienes no ven la imagen cuando se comparte un enlace de la web; puede quedar vacío: la web usa el nombre y el cargo |
 | **Datos estructurados** | Lo que la web le dice a Google y a los demás buscadores sobre el gobernador y la Gobernación: «Nombre de la persona», «Cargo» e «Institución». Así el buscador sabe quién es y lo puede mostrar bien. Las cuentas que nombra son solo las activas y verificadas de «Cuentas en redes» |
-| **Avisos legales** | Se ven, pero no se cambian desde el panel (si hace falta cambiar uno, Administración lo pide aparte): son textos fijos, los mismos en el pie de la web, en «Canales», en los formularios de Atención, en el comprobante y su PDF y en los correos. «Aviso de emergencias»: «Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.». «Aviso de las denuncias»: «Las denuncias son confidenciales. Solo las leen el personal encargado de denuncias y la coordinación de atención. Su contenido nunca se publica. Si se trata de un delito, acuda también a las autoridades competentes.». Cuando la Gobernación confirme el número oficial de emergencias, se agregará a ese aviso y saldrá igual en todas partes |
+| **Avisos legales** | Se ven, pero no se cambian aquí (si hace falta cambiar uno, se le avisa a quien instaló la app): son textos fijos, los mismos en el pie de la web, en «Canales», en los formularios de Atención, en el comprobante y su PDF y en los correos. «Aviso de emergencias»: «Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.». «Aviso de las denuncias»: «Las denuncias son confidenciales. Solo las leen el personal encargado de denuncias y la coordinación de atención. Su contenido nunca se publica. Si se trata de un delito, acuda también a las autoridades competentes.». Cuando la Gobernación confirme el número oficial de emergencias, se agregará a ese aviso y saldrá igual en todas partes |
 | **Aviso de la versión de prueba** | La franja de arriba de cada página, que sale mientras la web sea de prueba. Dice «Versión de prueba en revisión. No es el sitio oficial.» y no se cambia (ver abajo) |
 
 **Regla:** nunca un teléfono, un correo o una cuenta que nadie del equipo confirmó. Las notas internas no salen en la
@@ -319,8 +320,8 @@ puede ser de la web anterior o una de esta web que cambió. Las ve y las cambia 
 - **«Nueva redirección»**: en «Dirección vieja», la dirección como estaba antes. En «Lleva a», la página de esta web
   adonde debe llevar. En las dos va solo el final de la dirección, el que empieza con «/», como en el ejemplo que trae
   cada cuadro debajo. En «Tipo», deja la opción que ya viene marcada, la que dice «Para siempre (lo normal)»; debajo
-  dice cuándo sirven las otras: «Por un tiempo», si la dirección vieja va a volver a usarse, y las que dicen
-  «(formularios)», si a la dirección vieja se enviaban formularios. Toca **«Agregar la redirección»**.
+  dice cuándo sirven las otras: «Por un tiempo», si la dirección vieja se va a volver a usar, y las de «formularios»,
+  solo si en la dirección vieja había un formulario. Toca **«Agregar la redirección»**.
 - **«Buscar»** encuentra una por parte de su dirección vieja o nueva.
 - En la lista, cada una dice **«De la web vieja»** o **«A mano»**. Las «De la web vieja» se hicieron solas al traer las
   noticias de la web anterior. Las «A mano» las agrega alguien del equipo aquí, y nunca cambian solas. En la versión de

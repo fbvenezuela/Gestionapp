@@ -34,6 +34,16 @@ async function insideScreen(panel: Locator) {
   expect(box.x + box.width, 'el menú termina dentro de la pantalla').toBeLessThanOrEqual(width);
 }
 
+// …and right under the button that opened it (F8, R17: hung from the row's right edge, it opened far from the «⋯»).
+async function underButton(panel: Locator, button: Locator) {
+  await expect(async () => {
+    const [p, b] = [(await panel.boundingBox())!, (await button.boundingBox())!];
+    expect(p.x, 'el menú no empieza a la derecha del botón').toBeLessThanOrEqual(b.x + b.width);
+    expect(p.x + p.width, 'el menú no termina a la izquierda del botón').toBeGreaterThanOrEqual(b.x);
+    expect(p.y, 'el menú sale debajo del botón').toBeGreaterThanOrEqual(b.y + b.height - 1);
+  }).toPass({ timeout: 5000 });
+}
+
 const card = (page: Page, title: string) => page.getByRole('article', { name: title, exact: true });
 
 // A card that starts folded on the phone: open it (the first one of a section is never folded). Until the page comes
@@ -234,8 +244,12 @@ test('Redes: mover a otro mes y volver; el mes elegido sigue de Posts a Reels; l
   // without the side menu, where four months also push the «⋯» under the tabs.
   const panel = tabs.locator('details[open] > div');
   await insideScreen(panel);
-  await page.setViewportSize({ width: 640, height: 760 });
-  await insideScreen(panel);
+  await underButton(panel, options);
+  for (const width of [640, 768, 1000]) {
+    await page.setViewportSize({ width, height: 760 });
+    await insideScreen(panel);
+    await underButton(panel, options);
+  }
   await page.setViewportSize({ width: 360, height: 760 });
   await tabs.getByRole('button', { name: 'Borrar este mes' }).click();
   const ask = page.getByRole('dialog', { name: 'Borrar este mes' });

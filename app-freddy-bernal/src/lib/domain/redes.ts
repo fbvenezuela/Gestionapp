@@ -64,9 +64,10 @@ export const NETWORK_FORMATS: Record<Format, readonly string[]> = {
   youtube: ['video'],
   month_end: ['carousel'],
 };
-// «Esta red no recibe historias» (D-73).
+// «TikTok: la app no programa posts en esta red» (D-73): what the app's rules for that network take (Ajustes →
+// Reglas por red), never a claim about what the network itself accepts (R22).
 const RECEIVED_NOUN: Record<Format, string> = { reel: 'reels', post: 'posts', carousel: 'carruseles', story: 'historias', youtube: 'videos de YouTube', month_end: 'carruseles' };
-export const notReceived = (network: string, f: Format) => `${network}: esta red no recibe ${RECEIVED_NOUN[f]}.`;
+export const notReceived = (network: string, f: Format) => `${network}: la app no programa ${RECEIVED_NOUN[f]} en esta red.`;
 
 // Why «Ya lo publiqué» and Publicar are off (D-63, D-64): the same words on the card and in the actions.
 export const NO_APPROVAL = 'Falta la aprobación del jefe';
@@ -274,8 +275,8 @@ export type NavCount = { reviewed: number; quota: number | null; copyMissing: nu
 // The demo (D-39, D-76, F3): each server keeps its own database, so what one creates or moves may not show on
 // another. Said once per person, honestly.
 // ---------------------------------------------------------------------------------------------------------------
-export const REDES_DEMO_NOTICE = 'En la demostración, cada copia guarda lo suyo: lo que creas o mueves puede no verse al recargar, con otra cuenta o en otro teléfono. Lo que la demostración ya trae siempre está.';
-export const DEMO_OTHER_SERVER_PIECE = 'Esta pieza se creó en otra copia de la demostración: aquí no está. Créala de nuevo con «+ Nuevo …».';
+export const REDES_DEMO_NOTICE = 'La demostración corre en varias copias a la vez y cada una guarda lo suyo: lo que creas o mueves puede no verse al recargar, con otra cuenta o en otro teléfono. Lo que la demostración ya trae siempre está.';
+export const DEMO_OTHER_SERVER_PIECE = 'Se creó en otra copia de la demostración: créala de nuevo con «+ Nuevo …».';
 export const DEMO_OTHER_SERVER_THUMB = 'La miniatura está en otra copia de la demostración.';
 // localStorage, read and written with try/catch (src/components/ui/device-store.ts).
 export const DEMO_NOTICE_KEY = (userId: string) => `fb:redes:demo-notice:${userId}`;

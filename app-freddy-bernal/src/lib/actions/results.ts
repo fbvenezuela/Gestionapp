@@ -40,7 +40,7 @@ export async function importMetricsCsv(raw: unknown) {
       shares: col('compartidos', 'shares', 'compartir'),
       saves: col('guardados', 'saves'),
     };
-    if (c.url < 0) throw new UserError('Falta la columna «enlace» (el enlace de cada publicación).');
+    if (c.url < 0) throw new UserError('Falta la columna «enlace» (el link de cada publicación).');
     let matched = 0;
     const unmatched: string[] = [];
     for (const l of lines.slice(1)) {

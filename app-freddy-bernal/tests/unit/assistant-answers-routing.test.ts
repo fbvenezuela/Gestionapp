@@ -163,6 +163,9 @@ const CLASSES: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['como archivo un canal', { has: /jefe/, not: /^Mensajes está en los globitos/ }],
     ['me sale Enviar igual o Corregir que hago', { has: /Enviar igual/, not: /^Mensajes está en los globitos/ }],
     ['¿cuánto dura una historia?', { tool: 'reglas_de_video', has: /Instagram y Facebook/, not: /¿Para qué red\?/ }],
+    // A network's rules name each format as the screens do (F2): «Foto», never the stored «photo», «reel» or «story».
+    ['¿cuáles son las reglas de video de facebook?', { tool: 'reglas_de_video', has: /Foto hasta 4 MB/, not: /\b(photo|reel|story|carousel)\b/ }],
+    ['cuanto puede pesar el video en x', { tool: 'reglas_de_video', has: /Foto hasta 5 MB/, not: /\bphoto\b/ }],
     ['kevin me pregunto si el acto de las viviendas es mañana o pasado, tu sabes?', A],
     ['chamo pasame la direccion del acto d mañana', A],
     // (last pass) The copy too long with no network: how to fix it; with a network, its limit.

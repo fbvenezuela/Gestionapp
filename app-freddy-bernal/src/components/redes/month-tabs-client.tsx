@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useTransition, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
@@ -75,6 +75,28 @@ export function MonthMenu({
   const { confirm, dialog } = useConfirm();
   const input = useRef<HTMLInputElement>(null);
   const item = 'flex min-h-11 w-full items-center gap-2 rounded-[var(--radius-control)] px-3 text-left text-[15px] hover:bg-surface-2 disabled:opacity-50';
+  // Where the panel starts, from the left edge of its «⋯» (null: closed, or not measured yet).
+  const [left, setLeft] = useState<number | null>(null);
+  const opened = useRef<HTMLDetailsElement | null>(null);
+  const place = useCallback((d?: HTMLDetailsElement) => {
+    if (d) opened.current = d;
+    const box = opened.current;
+    const button = box?.querySelector('summary');
+    if (!box || !button) return;
+    const screen = document.documentElement.clientWidth;
+    const width = Math.min(240, screen - 32);
+    const b = button.getBoundingClientRect();
+    const at = Math.min(Math.max(b.right - width, 16), screen - 16 - width);
+    setLeft(Math.round(at - box.getBoundingClientRect().left));
+  }, []);
+  const isOpen = left !== null;
+  useEffect(() => {
+    if (!isOpen) return;
+    const again = () => place();
+    window.addEventListener('resize', again);
+    return () => window.removeEventListener('resize', again);
+  }, [isOpen, place]);
+
   const del = canDelete && total !== null;
   if (!canRename && !del) return null;
 
@@ -117,15 +139,22 @@ export function MonthMenu({
   return (
     <>
       {dialog}
-      {/* When the tabs fill the row, «+ Nuevo mes» and the «⋯» wrap under them at the left, and a panel hung from the
-          «⋯»'s right edge started at -45 px on a phone (APP-02; on a tablet too, once there are enough months). So
-          without the side menu (below lg) the panel hangs from the tabs row (the nav, `relative`): under it and flush
-          with its right edge. From lg the side menu leaves room on the left and it stays under the button. */}
-      <MenuDetails className="shrink-0 lg:relative">
-        <summary className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'list-none cursor-pointer [&::-webkit-details-marker]:hidden' })} aria-label={`Opciones de ${month.label}`}>
+      {/* The panel opens under its «⋯» and inside the screen (APP-02, F8, R17): its right edge with the button's when there
+          is room on the left; when the «⋯» sits near the left edge (the tabs filled the row and it wrapped under them, or a
+          phone), it moves right just enough to start 16 px from the edge, and never past the right one. Measured when it
+          opens and again if the window changes size while it is open; without the page's script, under the button. */}
+      <MenuDetails className="relative shrink-0" onToggle={(e) => (e.currentTarget.open ? place(e.currentTarget) : setLeft(null))}>
+        <summary
+          className={buttonVariants({ variant: 'ghost', size: 'icon', className: 'list-none cursor-pointer [&::-webkit-details-marker]:hidden' })}
+          aria-label={`Opciones de ${month.label}`}
+          onClick={(e) => {
+            const d = e.currentTarget.parentElement;
+            if (d instanceof HTMLDetailsElement && !d.open) place(d);
+          }}
+        >
           <MoreHorizontal className="h-5 w-5" aria-hidden />
         </summary>
-        <div className={cn(menuPanelClass, 'absolute right-0 top-full z-30 mt-2 w-60 max-w-[calc(100vw-2rem)] lg:top-auto')}>
+        <div className={cn(menuPanelClass, 'absolute top-full z-30 mt-2 w-60 max-w-[calc(100vw-2rem)]', left === null && 'right-0')} style={left === null ? undefined : { left }}>
           {canRename ? (
             <button type="button" className={item} disabled={pending} onClick={() => void rename()}>
               <Pencil className="h-4 w-4" aria-hidden /> Cambiar nombre

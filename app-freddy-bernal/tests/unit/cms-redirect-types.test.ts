@@ -23,9 +23,9 @@ describe('los tipos de una redirección', () => {
     for (const [, label] of REDIRECT_TYPES) expect(label.length, label).toBeLessThanOrEqual(27);
   });
 
-  it('el formulario nuevo explica «Por un tiempo» y «(formularios)»; la fila muestra el tipo guardado', () => {
+  it('el formulario nuevo dice cuál va casi siempre y cuándo van «Por un tiempo» y las de «formularios»; la fila muestra el tipo guardado', () => {
     const form = text(renderToStaticMarkup(h(NewRedirectForm)));
-    expect(form).toContain('«(formularios)», si a la dirección vieja se enviaban formularios.');
+    expect(form).toContain('Casi siempre, «Para siempre (lo normal)». «Por un tiempo», si la dirección vieja se va a volver a usar. Las de «formularios», solo si en la dirección vieja había un formulario.');
     for (const [, label] of REDIRECT_TYPES) expect(form).toContain(label);
     expect(form).not.toMatch(/30[1278] ·/);
     const row = renderToStaticMarkup(h(RedirectRowForm, { r: { id: 'r-demo', from: '/vieja-demo', to: '/actualidad', status: 308 } }));

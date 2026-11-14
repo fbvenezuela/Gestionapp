@@ -287,13 +287,25 @@ test('la página «Atención ciudadana» de «Páginas» avisa que lo que se esc
   await open(/^\s*Atención ciudadana/);
   await expect(e.getByText('Esta página no sale en la web')).toBeVisible();
   await expect(e.getByText('Lo que escribas aquí no se ve.', { exact: false })).toBeVisible();
-  // Nor a link to «/atencion» as if it were this page.
+  // Nor a link to «/atencion» as if it were this page, nor anything that says it is on the web or offers to send it (R01).
   await expect(e.getByText(/^\s*En la web:/)).toHaveCount(0);
+  await expect(e.getByText('/atencion', { exact: false })).toHaveCount(0);
+  await expect(e.getByText('No sale en la web', { exact: true })).toBeVisible();
+  await expect(e.getByText('Publicado', { exact: true })).toHaveCount(0);
+  await expect(e.getByRole('button', { name: /Vista previa|Enviar a aprobación|Guardar y enviar a aprobación/ })).toHaveCount(0);
+  // It can still be saved: the toolbar's «Guardar borrador» (the other one, with the version's note, is further down).
+  await expect(e.getByRole('toolbar', { name: 'Guardar', exact: true }).getByRole('button', { name: 'Guardar borrador' })).toBeVisible();
   await fitsWidth(e, 'editor de la página de atención');
   await noSerious(e, 'editor de la página de atención');
+  // In «Páginas» too: its chip, never «Publicado», and no address (R01).
+  await e.goto('/admin/web/contenido/paginas');
+  const row = e.locator('main a[href^="/admin/web/editar/"]', { hasText: /^\s*Atención ciudadana/ }).first();
+  await expect(row.getByText('No sale en la web', { exact: true })).toBeVisible();
+  await expect(row.getByText(/Publicado|\/atencion/)).toHaveCount(0);
   await open(/^\s*El gobernador/);
   await expect(e.getByRole('heading', { level: 1, name: 'El gobernador' })).toBeVisible();
   await expect(e.getByText('Esta página no sale en la web')).toHaveCount(0);
+  await expect(e.getByRole('toolbar', { name: 'Guardar y enviar' }).getByRole('button', { name: 'Vista previa' })).toBeVisible();
 });
 
 test('programar un aviso: queda programado y no se ve antes de su hora; quitar la programación lo devuelve a borrador', async ({ page }) => {

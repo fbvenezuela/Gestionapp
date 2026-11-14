@@ -15,7 +15,7 @@ export function CsvImport() {
     <Card data-tour="csv">
       <CardHeader
         title="Cargar resultados desde un archivo (CSV)"
-        subtitle="La primera fila lleva los nombres de las columnas: enlace, vistas, alcance, me gusta, comentarios, compartidos y guardados. Solo «enlace» es obligatoria."
+        subtitle="La primera fila lleva los nombres de las columnas: enlace (el link de cada publicación), vistas, alcance, me gusta, comentarios, compartidos y guardados. Solo «enlace» es obligatoria."
       />
       <CardBody>
         <input ref={ref} type="file" accept=".csv,text/csv" className="sr-only" aria-label="Archivo CSV" onChange={async (e) => {
@@ -26,7 +26,7 @@ export function CsvImport() {
             onOk: (r) => {
               if (!r.ok) return;
               toast.success(`Se cargaron ${r.data!.matched} ${r.data!.matched === 1 ? 'publicación' : 'publicaciones'}.`);
-              if (r.data!.unmatchedCount) toast.warning(r.data!.unmatchedCount === 1 ? '1 enlace no coincide con ninguna publicación.' : `${r.data!.unmatchedCount} enlaces no coinciden con ninguna publicación.`);
+              if (r.data!.unmatchedCount) toast.warning(r.data!.unmatchedCount === 1 ? '1 link no coincide con ninguna publicación.' : `${r.data!.unmatchedCount} links no coinciden con ninguna publicación.`);
             },
           });
           e.target.value = '';

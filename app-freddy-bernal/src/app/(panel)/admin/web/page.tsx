@@ -6,7 +6,7 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { CmsNav, FlowChips } from '@/components/cms/chrome';
 import { kindCounts, recentChanges, reviewQueue, statusCounts, webCaps } from '@/lib/data/web-admin';
 import { ADMIN_WEB, KIND_SECTIONS } from '@/lib/web/cms/kinds';
-import { sectionLabel } from '@/lib/web/cms/section-label';
+import { programLabel, sectionLabel } from '@/lib/web/cms/section-label';
 import { WEB_KIND_LABEL } from '@/lib/web/schema';
 import { fmtDateTime } from '@/lib/time';
 
@@ -26,6 +26,8 @@ export default async function WebAdminPage() {
     recent: await recentChanges(sql, 6),
   }));
   const { caps, status, queue } = data;
+  // Read after the person's transaction (never nested in it): the name the public site gives the program.
+  const program = await programLabel();
   const byKind = new Map(data.kinds.map((k) => [k.kind, k]));
   const subtitle = caps.canPublish
     ? 'Lo que se publica en la página del gobernador. Tú revisas, publicas, programas y archivas.'
@@ -87,7 +89,7 @@ export default async function WebAdminPage() {
                 <Card className="h-full">
                   <Link href={ADMIN_WEB.list(sec.kind)} className="flex h-full min-h-24 flex-col gap-1 p-4 hover:bg-surface-2 sm:p-5">
                     <span className="flex items-center justify-between gap-2 font-semibold">
-                      {sectionLabel(sec)}
+                      {sectionLabel(sec, program)}
                       <ArrowRight className="h-4 w-4 shrink-0 text-muted" aria-hidden />
                     </span>
                     <span className="text-sm text-text-2">{sec.hint}</span>

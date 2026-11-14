@@ -221,7 +221,10 @@ describe('cerebro de demostración (sin IA)', () => {
       const r = await handleTurn(sessionOf('social'), { question: q }, LOCAL);
       expect(r.did.map((d) => d.tool), q).toEqual(['mejores_horas']);
       expect(r.answer, q).not.toMatch(/no lo manejo|no la tengo/);
-      assertNoAgenda(r.answer.replace(/\d{1,2}:\d{2}/g, '')); // best hours carry times; nothing else of the agenda
+      // Best hours carry times («de 10 a 11:59 p. m.», «noche (7 p. m. a 12 a. m.)», R27); nothing else of the agenda.
+      const HOUR = String.raw`\d{1,2}(?::\d{2})?`;
+      const hours = new RegExp(String.raw`\b${HOUR}(?= a ${HOUR} [ap]\. m\.)|\b${HOUR} [ap]\. m\.|\b\d{1,2}:\d{2}`, 'g');
+      assertNoAgenda(r.answer.replace(hours, ''));
     }
     // A real question about an event's time is still refused.
     const no = await handleTurn(sessionOf('social'), { question: '¿A qué hora es la entrega de viviendas?' }, LOCAL);
@@ -366,7 +369,7 @@ describe('cerebro de demostración (sin IA)', () => {
     expect(rec.answer).toMatch(/Tus pendientes van sin fecha/);
     const own = await ask('camera', '¿Qué me toca grabar?');
     expect(own.did).toEqual([{ tool: 'mis_pendientes' }]);
-    expect(own.answer).toMatch(/^Tienes 1 pendiente/);
+    expect(own.answer).toMatch(/^Tienes 1 pendiente en Hoy\./);
     // A notice to a group is prepared (or sent to whom prepares them), unless it carries a date or a time.
     const notice = await ask('admin', 'Mándales un aviso a redes de que hoy suben el material de la entrega');
     expect(notice.did).toEqual([{ tool: 'preparar_aviso' }]);
@@ -462,11 +465,17 @@ describe('cerebro de demostración (sin IA)', () => {
 
   it('«¿qué tengo pendiente?» nombra la pantalla de inicio de cada rol (la del jefe es «Inicio»)', async () => {
     const boss = await handleTurn(sessionOf('boss'), { question: '¿Qué tengo pendiente?' }, LOCAL);
-    expect(boss.answer).toMatch(/Todo eso está en Inicio\.$/);
+    expect(boss.answer).toMatch(/^Tienes \d+ pendientes? en Inicio\. Lo primero: /);
     expect(boss.answer).not.toMatch(/\bHoy\b/);
     expect(boss.goTo).toEqual({ href: '/jefe', label: 'Inicio' });
     const social = await handleTurn(sessionOf('social'), { question: '¿Qué tengo pendiente?' }, LOCAL);
-    expect(social.answer).toMatch(/Todo eso está en Hoy\.$/);
+    expect(social.answer).toMatch(/^Tienes \d+ pendientes? en Hoy\. Lo primero: /);
+    // R12: the changes asked for are «en» their piece, the month's two counts said once, the lines apart with «;».
+    expect(social.answer).toMatch(/el jefe pidió cambios en «[^»]+»/);
+    expect(social.answer).toMatch(/les falta el copy y a \d+, la imagen/);
+    expect(social.answer).not.toMatch(/la imagen de Mes|pidió cambios: «/);
+    // One colon before a title, never two («aprobada: lista para publicar: «…»»).
+    expect(social.answer).not.toMatch(/: [^«;.]*: «/);
   });
 
   it('pasado el tope por hora, contesta como el asistente (no como avería)', async () => {

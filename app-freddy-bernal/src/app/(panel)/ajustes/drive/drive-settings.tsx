@@ -49,7 +49,7 @@ export function DriveSettings(p: Props) {
         <CardHeader title="Drive no está activado" action={<Chip>Apagado</Chip>} />
         <CardBody className="flex flex-col gap-2 text-[15px]">
           <p>Los archivos se guardan como siempre, en la app.</p>
-          <p className="text-text-2">Para guardarlos en el Google Drive del cliente, avísale a quien instaló la app: es quien lo enciende.</p>
+          <p className="text-text-2">Para guardarlos en el Google Drive del equipo, avísale a quien instaló la app: es quien lo enciende.</p>
         </CardBody>
       </Card>
     );
@@ -114,7 +114,7 @@ export function DriveSettings(p: Props) {
       o.revoke
         ? { title: '¿Quitar el permiso en Google?', body: 'Google le quita el acceso a la app, también para traer lo que ya estaba en Drive. Úsalo solo si crees que alguien de afuera tiene el permiso. Después hay que conectar de nuevo, y puede que haya que volver a elegir lo que se trajo con «Elegir de Drive».', confirmLabel: 'Quitar el permiso', tone: 'danger' }
         : o.changeAccount
-          ? { title: '¿Cambiar de cuenta de Google?', body: 'Los archivos guardados en la cuenta actual dejan de abrirse en la app. Úsalo solo si el cliente cambió de cuenta a propósito.', confirmLabel: 'Cambiar de cuenta', tone: 'danger' }
+          ? { title: '¿Cambiar de cuenta de Google?', body: 'Los archivos guardados en la cuenta actual dejan de abrirse en la app. Úsalo solo si el equipo cambió de cuenta a propósito.', confirmLabel: 'Cambiar de cuenta', tone: 'danger' }
           : { title: '¿Desconectar Drive?', body: 'Mientras tanto no se puede subir ni abrir lo que está en Drive. No se borra nada: al conectar la misma cuenta, todo vuelve.', confirmLabel: 'Desconectar', tone: 'danger' },
     );
     if (!ok) return;

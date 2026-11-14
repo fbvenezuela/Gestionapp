@@ -21,6 +21,6 @@ describe('el registro y lo que había en Mensajes antes de los canales', () => {
     const html = renderToStaticMarkup(await AuditPage({ searchParams: Promise.resolve({}) }));
     expect(html).not.toMatch(/chat_notice_ack|chat_rules|chat_conversations/);
     expect(html.match(/Mensajes \(antes de los canales\)/g)).toHaveLength(2);
-    expect(html).toContain('creó <span class="font-semibold">Canal</span>');
+    expect(html).toContain('creó <span class="font-semibold">un canal</span>');
   });
 });

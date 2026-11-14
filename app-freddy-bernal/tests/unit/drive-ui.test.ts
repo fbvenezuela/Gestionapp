@@ -312,7 +312,9 @@ describe('«Probar»: qué falta, en palabras', () => {
 
   it('permiso vencido o clave cambiada: volver a conectar, sin perder nada', () => {
     expect(checkLine({ key: 'connection', level: 'fail', code: 'expired' }, F)).toBe('Se venció el permiso de Google. Toca «Conectar Drive» otra vez; no se pierde nada.');
-    expect(checkLine({ key: 'connection', level: 'fail', code: 'bad_key' }, F)).toMatch(/DRIVE_TOKEN_KEY o SESSION_SECRET/);
+    // In words, never the name of a setting (R15): who installed the app knows which one.
+    expect(checkLine({ key: 'connection', level: 'fail', code: 'bad_key' }, F)).toBe('Cambió la clave que guarda el permiso. Toca «Conectar Drive» otra vez.');
+    expect(checkLine({ key: 'connection', level: 'fail', code: 'bad_key_format' }, F)).toBe('La clave que guarda el permiso de Drive no sirve. Avísale a quien instaló la app para que la cambie.');
     expect(checkLine({ key: 'connection', level: 'fail', code: 'not_connected' }, F)).toBe('Drive no está conectado. Toca «Conectar Drive».');
     expect(checkLine({ key: 'write', level: 'fail', code: 'full' }, F)).toMatch(/lleno/);
     expect(checkLine({ key: 'read', level: 'fail', code: 'mismatch' }, F)).toMatch(/volvió distinto/);

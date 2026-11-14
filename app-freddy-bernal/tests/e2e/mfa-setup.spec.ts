@@ -15,14 +15,19 @@ test('el código QR sale solo con el botón y, si se recarga, hay que tocarlo ot
   await loginAs(page, 'admin@demo.test');
   await page.goto('/ajustes/equipo');
   const row = page.getByRole('listitem').filter({ hasText: 'Rubén Contreras' });
+  // count() does not wait: right after the page loads, its content can still sit in the hidden part React reveals a
+  // moment later (the panel's loading.tsx), where a role query finds no row, and the reset was skipped (full run of
+  // 14/11). So first his row with its two-factor chip, whichever it is.
+  await expect(row.getByText(/^(Doble factor activo|Sin doble factor)$/)).toBeVisible();
   if (await row.getByText('Doble factor activo').count()) {
     await row.getByRole('button', { name: 'Cambiar' }).click();
     await row.getByRole('button', { name: 'Reiniciar doble factor' }).click();
     await page.getByRole('button', { name: 'Reiniciar', exact: true }).click();
     await expect(page.getByText(/La próxima vez que entre, tendrá que activar el doble factor/)).toBeVisible();
     // The reset also closes his sessions, and token times are whole seconds: a sign-in within the
-    // same second would count as closed.
-    await page.waitForTimeout(1_100);
+    // same second would count as closed. So the next sign-in waits for the clock's next second.
+    const second = Math.floor(Date.now() / 1000);
+    await expect.poll(() => Math.floor(Date.now() / 1000), { intervals: [50] }).toBeGreaterThan(second);
   }
   await page.context().clearCookies();
 

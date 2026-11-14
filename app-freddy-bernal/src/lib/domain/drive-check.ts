@@ -28,14 +28,14 @@ const PROBLEM: Record<string, string> = {
   not_connected: 'Drive no está conectado. Toca «Conectar Drive».',
   expired: 'Se venció el permiso de Google. Toca «Conectar Drive» otra vez; no se pierde nada.',
   auth: 'Se venció el permiso de Google. Toca «Conectar Drive» otra vez; no se pierde nada.',
-  bad_key: 'Cambió la clave que guarda el permiso (DRIVE_TOKEN_KEY o SESSION_SECRET). Toca «Conectar Drive» otra vez.',
+  bad_key: 'Cambió la clave que guarda el permiso. Toca «Conectar Drive» otra vez.',
   busy: 'Google no respondió. Intenta en un momento.',
   full: 'Drive está lleno. Libera espacio en la cuenta de Google (Drive, Gmail y Fotos comparten los 15 GB).',
   not_found: 'La carpeta de la app ya no está en Drive. Toca «Conectar Drive» otra vez para crearla de nuevo.',
   refused: 'Drive no aceptó el archivo de prueba. Avísale a quien instaló la app.',
   not_configured: 'Faltan datos de la instalación. Avísale a quien instaló la app.',
   budget: 'Este mes ya se usó todo el cupo de transferencia. Vuelve a probar el mes que viene o sube el tope.',
-  bad_key_format: 'DRIVE_TOKEN_KEY no sirve: tienen que ser 32 bytes en base64. Avísale a quien instaló la app para que la corrija o la borre.',
+  bad_key_format: 'La clave que guarda el permiso de Drive no sirve. Avísale a quien instaló la app para que la cambie.',
   mismatch: 'El archivo de prueba volvió distinto. Avísale a quien instaló la app.',
 };
 

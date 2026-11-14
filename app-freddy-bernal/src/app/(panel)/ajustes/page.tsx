@@ -12,7 +12,7 @@ const ITEMS = [
   { href: '/ajustes/categorias', label: 'Categorías', detail: 'La lista de categorías del contenido', icon: Tags },
   { href: '/ajustes/formulas', label: 'Fórmulas de copies', detail: 'FAB, PAS, AIDA y las que agregues', icon: PenLine },
   { href: '/ajustes/horarios', label: 'Horarios de tweets', detail: 'Franjas y cuántos por día', icon: Clock },
-  { href: '/ajustes/redes', label: 'Reglas por red', detail: 'Duración, medidas y peso de video de cada red', icon: Video },
+  { href: '/ajustes/redes', label: 'Reglas por red', detail: 'Duración, medidas y peso de lo que se publica en cada red', icon: Video },
   { href: '/ajustes/contenido', label: 'Cupo y pilares', detail: 'El cupo del mes por formato, los pilares y las piezas eliminadas', icon: SlidersHorizontal },
   { href: '/ajustes/marca', label: 'Marca', detail: 'Nombre, colores y logos', icon: Palette },
   { href: '/ajustes/asistente', label: 'Asistente', detail: 'Lo que sabe, cómo contesta y cómo le va', icon: Bot },

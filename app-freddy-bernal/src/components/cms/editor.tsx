@@ -38,10 +38,12 @@ export type EditorItem = {
 
 type Local = { base: number; slug: string; draft: Obj };
 
+// `unused`: a page the web never shows (APP-20, the page «Atención ciudadana»): it can be saved, but nothing here offers
+// to preview it or send it to approval, and it has no address on the web (R01).
 export function Editor({
-  item, draft: initialDraft, caps, media: initialMedia, munis, refs, baseUrl, tz, programName,
+  item, draft: initialDraft, caps, media: initialMedia, munis, refs, baseUrl, tz, programName, unused = false,
 }: {
-  item: EditorItem; draft: Obj; caps: WebCaps; media: Record<string, MediaInfo>; munis: Municipality[]; refs: RefOption[]; baseUrl: string; tz: string; programName: string;
+  item: EditorItem; draft: Obj; caps: WebCaps; media: Record<string, MediaInfo>; munis: Municipality[]; refs: RefOption[]; baseUrl: string; tz: string; programName: string; unused?: boolean;
 }) {
   const router = useRouter();
   const section = sectionOf(item.kind);
@@ -99,7 +101,7 @@ export function Editor({
     const now = { slug: value.slug, draft: value.draft };
     reset({ base: r.data.draftVersion, ...now });
     setSaved(now);
-    toast.success(r.data.problems.length ? `Guardado (versión ${r.data.draftVersion}). Para enviarlo falta algo: mira la lista.` : `Guardado (versión ${r.data.draftVersion}).`);
+    toast.success(r.data.problems.length && !unused ? `Guardado (versión ${r.data.draftVersion}). Para enviarlo falta algo: mira la lista.` : `Guardado (versión ${r.data.draftVersion}).`);
     if (r.data.redirected) toast.info(`La dirección vieja ${r.data.redirected} lleva ahora a la nueva.`);
     router.refresh();
     return true;
@@ -157,21 +159,23 @@ export function Editor({
       <div className="flex flex-col gap-4">
         {restored ? (
           <div className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] bg-info-soft px-4 py-3 text-[15px]" role="status">
-            <span className="flex-1 text-text">Recuperamos cambios que no se habían guardado en este teléfono o computadora.</span>
+            <span className="flex-1 text-text">Recuperamos cambios que no se habían guardado en este teléfono o en esta computadora.</span>
             <Button type="button" size="sm" variant="secondary" onClick={discardLocal}>
               Descartarlos
             </Button>
           </div>
         ) : null}
 
-        <div className={cn(menuPanelClass, 'sticky top-16 z-10 flex flex-wrap items-center gap-2 p-2.5')} role="toolbar" aria-label="Guardar y enviar">
+        <div className={cn(menuPanelClass, 'sticky top-16 z-10 flex flex-wrap items-center gap-2 p-2.5')} role="toolbar" aria-label={unused ? 'Guardar' : 'Guardar y enviar'}>
           <Button type="button" size="sm" onClick={save} disabled={!!busy || !dirty}>
             <Save className="h-4 w-4" aria-hidden /> {busy === 'save' ? 'Guardando…' : 'Guardar borrador'}
           </Button>
-          <Button type="button" size="sm" variant="secondary" onClick={preview} disabled={!!busy}>
-            <Eye className="h-4 w-4" aria-hidden /> Vista previa
-          </Button>
-          {inReview ? (
+          {unused ? null : (
+            <Button type="button" size="sm" variant="secondary" onClick={preview} disabled={!!busy}>
+              <Eye className="h-4 w-4" aria-hidden /> Vista previa
+            </Button>
+          )}
+          {unused && !inReview ? null : inReview ? (
             <Button type="button" size="sm" variant="secondary" onClick={withdraw} disabled={!!busy}>
               <Undo2 className="h-4 w-4" aria-hidden /> Retirar de revisión
             </Button>
@@ -180,7 +184,7 @@ export function Editor({
               <Send className="h-4 w-4" aria-hidden /> {dirty ? 'Guardar y enviar a aprobación' : 'Enviar a aprobación'}
             </Button>
           )}
-          {caps.canPublish ? (
+          {caps.canPublish && !unused ? (
             <LinkButton href={ADMIN_WEB.review(item.id)} size="sm" variant="slate">
               <CheckCircle2 className="h-4 w-4" aria-hidden /> Revisar y publicar
             </LinkButton>
@@ -192,9 +196,11 @@ export function Editor({
 
         <div className="flex flex-col gap-4">
           {item.kind === 'page' ? (
-            <p className="text-sm text-text-2">
-              Dirección en la web: <span className="font-mono">{path ?? 'esta página no tiene dirección propia'}</span>
-            </p>
+            unused ? null : (
+              <p className="text-sm text-text-2">
+                Dirección en la web: <span className="font-mono">{path ?? 'esta página no tiene dirección propia'}</span>
+              </p>
+            )
           ) : (
             <div className="flex flex-col gap-2">
               <TextField
@@ -223,9 +229,9 @@ export function Editor({
 
           <Form key={formKey} draft={value.draft} set={set} />
 
-          {section.ownPage ? <SeoPanel key={`seo-${formKey}`} kind={item.kind} slug={value.slug} draft={value.draft} onChange={(seo) => set({ seo: Object.keys(seo).length ? seo : undefined })} baseUrl={baseUrl} /> : null}
+          {section.ownPage && !unused ? <SeoPanel key={`seo-${formKey}`} kind={item.kind} slug={value.slug} draft={value.draft} onChange={(seo) => set({ seo: Object.keys(seo).length ? seo : undefined })} baseUrl={baseUrl} /> : null}
 
-          <section id="falta" tabIndex={-1} aria-labelledby="falta-t" className={cn('rounded-[var(--radius-control)] px-4 py-3', problems.length ? 'bg-warn-soft' : 'bg-ok-soft')}>
+          <section id="falta" tabIndex={-1} aria-labelledby="falta-t" hidden={unused} className={cn('rounded-[var(--radius-control)] px-4 py-3', problems.length ? 'bg-warn-soft' : 'bg-ok-soft')}>
             <h2 id="falta-t" className={cn('font-semibold', problems.length ? 'text-warn' : 'text-ok')}>
               {problems.length ? 'Para enviarlo a aprobación falta esto' : 'Listo para enviar a aprobación'}
             </h2>

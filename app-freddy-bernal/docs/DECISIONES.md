@@ -1130,7 +1130,8 @@ la agenda, Tweets ni la publicación manual. Las preguntas para Hillary siguen l
 - **Qué:** las reglas por red suman los formatos `story` (Instagram y Facebook, 9:16, foto o clip de hasta 60 s) y
   `carousel` (Instagram hasta 20 imágenes, Facebook hasta 10, 4:5 o 1:1). La validación elige el formato de la red por
   el formato de la pieza (Reel → reel/video/short; Post → photo; Carrusel y Fin de mes → carousel con cada lámina;
-  Historia → story; YouTube → video). Una red que no recibe ese formato sale con ✖ «Esta red no recibe historias».
+  Historia → story; YouTube → video). Una red que no recibe ese formato sale con ✖ «Esta red no recibe historias» (desde
+  el 14/11, «TikTok: la app no programa historias en esta red.»: lo que dicen las reglas de la app, no lo que acepta la red).
 - **Por qué:** «Publicar con validación propia por red» (§0); hoy no hay `story` ni `carousel` en las reglas.
 - **Cómo se cambia:** `config/network-specs.json` (+ `npm run db:seed-client` en `fb-dev`), `validateFor` en
   `src/lib/data/publish.ts`.
@@ -1173,9 +1174,10 @@ la agenda, Tweets ni la publicación manual. Las preguntas para Hillary siguen l
   ni horas. Desde el 13/11 el saludo, los cierres y los hashtags de esos copies, de los tweets y del guion salen de
   `config/clients/fb.json` (`src/lib/db/seed-parts/voice.ts`), no del código: con otro archivo de cliente la demo dice
   sus palabras (`tests/unit/demo-seed-brand.test.ts`). En la demo (cada servidor tiene su base, D-39): un aviso una vez
-  por persona, con «Entendido» («En la demostración, cada copia guarda lo suyo: lo que creas o mueves puede no verse al
-  recargar, con otra cuenta o en otro teléfono. Lo que la demostración ya trae siempre está.»; hasta el 13/11 decía
-  «cada servidor» y «Lo sembrado»); lo recién creado se abre en la misma pantalla; una pieza o miniatura
+  por persona, con «Entendido» («La demostración corre en varias copias a la vez y cada una guarda lo suyo: lo que creas
+  o mueves puede no verse al recargar, con otra cuenta o en otro teléfono. Lo que la demostración ya trae siempre
+  está.»; hasta el 13/11 decía «cada servidor» y «Lo sembrado», y el 13/11 «En la demostración, cada copia guarda lo
+  suyo», sin decir qué es una copia); lo recién creado se abre en la misma pantalla; una pieza o miniatura
   de otro servidor lo dice así en vez de «no encontrado» o una imagen rota (como Mensajes, D-57).
 - **Por qué:** §2.1 «lo que ya hay se conecta, no se tira» y §3 «llena el Mes 1». Lo primero que Hillary va a probar
   (crear un reel, subir una imagen, armar el feed) es justo lo que la demo por servidor puede perder.

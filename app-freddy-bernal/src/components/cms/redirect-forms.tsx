@@ -57,7 +57,7 @@ export function NewRedirectForm() {
       <Field
         label="Tipo"
         htmlFor={`${id}-st`}
-        hint="«Por un tiempo», si la dirección vieja va a volver a usarse. «(formularios)», si a la dirección vieja se enviaban formularios."
+        hint="Casi siempre, «Para siempre (lo normal)». «Por un tiempo», si la dirección vieja se va a volver a usar. Las de «formularios», solo si en la dirección vieja había un formulario."
       >
         <Select id={`${id}-st`} value={status} onChange={(e) => setStatus(e.target.value)} className="sm:w-80">
           {REDIRECT_TYPES.map(([v, l]) => (

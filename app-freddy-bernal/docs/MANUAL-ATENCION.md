@@ -363,8 +363,9 @@ municipio».
 
 **«Registro»** es de auditoría y de Administración, que lo abre con «Registro de atención». Dice quién hizo qué y
 cuándo: los cambios, los contactos vistos y las exportaciones. No se edita ni se borra, y no guarda lo que dicen los
-casos. Una línea que empieza con «La web» es algo que llegó desde la web, como una solicitud nueva, o
-algo que la app hizo sola.
+casos. Una línea que empieza con «La web» es lo que una persona hizo desde la web: una solicitud nueva, un apoyo,
+un mensaje o un archivo suyo. Una que empieza con «La app» es algo que la app hizo sola, como las respuestas guardadas
+que trae o la revisión de un archivo. Ajustes → «Registro de cambios» dice esas líneas con las mismas palabras.
 
 ## 22. Para practicar en la versión de prueba
 

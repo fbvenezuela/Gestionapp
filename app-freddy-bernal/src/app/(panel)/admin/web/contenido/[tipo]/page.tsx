@@ -9,8 +9,8 @@ import { Input, Select } from '@/components/ui/field';
 import { CmsNav, FlowChips, KindTabs, flowLine } from '@/components/cms/chrome';
 import { ADMIN_PAGE_SIZE, adminList, kindCounts, reviewQueue, webCaps } from '@/lib/data/web-admin';
 import { ADMIN_WEB, sectionBySlug } from '@/lib/web/cms/kinds';
-import { sectionLabel } from '@/lib/web/cms/section-label';
-import { isStatusFilter, STATUS_FILTERS } from '@/lib/web/cms/status';
+import { programLabel, sectionLabel } from '@/lib/web/cms/section-label';
+import { isStatusFilter, isUnusedPage, STATUS_FILTERS } from '@/lib/web/cms/status';
 import { pagePath, itemPath } from '@/lib/web/routes';
 import { fmtDateTime } from '@/lib/time';
 import { cn } from '@/lib/cn';
@@ -21,7 +21,7 @@ type Search = Promise<Record<string, string | string[] | undefined>>;
 
 export async function generateMetadata({ params }: { params: Params }) {
   const section = sectionBySlug((await params).tipo);
-  return { title: section ? `${sectionLabel(section)} · Web` : 'Web' };
+  return { title: section ? `${sectionLabel(section, await programLabel())} · Web` : 'Web' };
 }
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? '';
@@ -55,7 +55,7 @@ export default async function ContentListPage({ params, searchParams }: { params
     return `${ADMIN_WEB.list(section.kind)}${qs ? `?${qs}` : ''}`;
   };
   const filtered = !!(status || q);
-  const label = sectionLabel(section);
+  const label = sectionLabel(section, await programLabel());
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col">
@@ -111,7 +111,8 @@ export default async function ContentListPage({ params, searchParams }: { params
         <Card solid>
           <ul className="divide-y divide-border">
             {list.rows.map((r) => {
-              const where = section.kind === 'page' ? pagePath(r.slug) : itemPath(section.kind, r.slug);
+              // The page «Atención ciudadana» has no address on the web: its chip says so (R01).
+              const where = isUnusedPage(r) ? null : section.kind === 'page' ? pagePath(r.slug) : itemPath(section.kind, r.slug);
               const line = flowLine(r);
               return (
                 <li key={r.id}>

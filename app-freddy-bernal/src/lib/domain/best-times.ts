@@ -5,11 +5,12 @@
 export type PubPoint = { network: string; publishedAt: Date; views: number | null; interactions: number | null };
 
 export const BANDS = [
-  { key: 'madrugada', label: 'Madrugada (0–6)', from: 0, to: 6 },
-  { key: 'manana', label: 'Mañana (6–12)', from: 6, to: 12 },
-  { key: 'mediodia', label: 'Mediodía (12–15)', from: 12, to: 15 },
-  { key: 'tarde', label: 'Tarde (15–19)', from: 15, to: 19 },
-  { key: 'noche', label: 'Noche (19–24)', from: 19, to: 24 },
+  // The hours as every other time in the app says them (R27: «Noche (19–24)» sat next to «8:15 p. m.»).
+  { key: 'madrugada', label: 'Madrugada (12 a. m. a 6 a. m.)', from: 0, to: 6 },
+  { key: 'manana', label: 'Mañana (6 a. m. a 12 p. m.)', from: 6, to: 12 },
+  { key: 'mediodia', label: 'Mediodía (12 a 3 p. m.)', from: 12, to: 15 },
+  { key: 'tarde', label: 'Tarde (3 a 7 p. m.)', from: 15, to: 19 },
+  { key: 'noche', label: 'Noche (7 p. m. a 12 a. m.)', from: 19, to: 24 },
 ] as const;
 
 export const MIN_POINTS = 3; // fewer than this per slot = "todavía pocos datos"

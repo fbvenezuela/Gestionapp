@@ -45,11 +45,11 @@ function sameText(a: string, b: string): boolean {
 /** Starts the flow: returns Google's consent URL and the sealed cookie value to set. */
 export function beginConnect(s: Session, requestOrigin: string | null): { url: string; cookie: string; maxAge: number } {
   if (!isAdmin(s)) throw new UserError(CONNECT_ERROR.permiso);
-  if (storageProvider() !== 'drive') throw new UserError('Drive no está activado en esta versión (STORAGE_PROVIDER).');
+  if (storageProvider() !== 'drive') throw new UserError('Drive no está activado en esta versión.');
   const missing = driveMissingConfig();
   if (missing.length) throw new UserError(`Faltan datos de la instalación: ${missing.join(', ')}. Avísale a quien instaló la app.`);
   const key = driveKey();
-  if (!key) throw new UserError('DRIVE_TOKEN_KEY no es válida: tienen que ser 32 bytes en base64.');
+  if (!key) throw new UserError('La clave que guarda el permiso de Drive no sirve. Avísale a quien instaló la app para que la cambie.');
   let origin: string;
   if (driveIsFake()) origin = pageOrigin(requestOrigin);
   else {

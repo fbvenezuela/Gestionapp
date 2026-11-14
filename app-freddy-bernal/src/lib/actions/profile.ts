@@ -5,6 +5,8 @@ import { act, UserError, type Result } from './run';
 import { isAllowedEndpoint } from '../push/endpoint';
 import { sendToSubscriptions, type PushSub } from '../push/deliver';
 import { vapidConfig } from '../push/config';
+import { getSession } from '../auth/session';
+import { pushOffText } from '../domain/profile-notices';
 
 export async function markAllRead() {
   return act(z.object({}), {}, async (sql) => {
@@ -79,7 +81,7 @@ export async function removePushSubscription(raw: unknown) {
 // «Probar aviso»: only to the phones of the person who taps it. Read with RLS, sent after the
 // transaction ends.
 export async function sendTestPush(): Promise<Result> {
-  if (!vapidConfig()) return { ok: false, error: 'Los avisos al teléfono todavía no están encendidos en la app: avísale a quien la instaló.' };
+  if (!vapidConfig()) return { ok: false, error: pushOffText(!!(await getSession())?.roles.includes('admin')) };
   const r = await act(z.object({}), {}, async (sql) => {
     const subs = await sql.query<PushSub>(`select endpoint, p256dh, auth from public.push_subscriptions where user_id = auth.uid()`);
     if (!subs.length) throw new UserError('Este teléfono todavía no tiene los avisos activos.');

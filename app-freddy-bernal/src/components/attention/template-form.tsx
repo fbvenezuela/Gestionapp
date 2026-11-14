@@ -48,7 +48,7 @@ export function TemplateForm({ template }: { template?: Template }) {
           <Input id={ids.sort} type="number" inputMode="numeric" min={0} max={1000} value={sort} onChange={(e) => setSort(e.target.value)} />
         </Field>
       </div>
-      <Field label="Texto" htmlFor={ids.body} hint="Lo lee la persona. Sin nombres, teléfonos ni direcciones de nadie.">
+      <Field label="Texto" htmlFor={ids.body} hint="Lo lee la persona: escríbelo de «usted», sin nombres, teléfonos ni direcciones de nadie.">
         <Textarea id={ids.body} value={body} onChange={(e) => setBody(e.target.value)} required minLength={10} maxLength={2000} rows={3} />
       </Field>
       {template ? (

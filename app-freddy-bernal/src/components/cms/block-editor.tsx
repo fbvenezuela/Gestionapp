@@ -44,7 +44,7 @@ const STARTERS: Record<BlockType, Record<string, unknown>> = {
   text: { title: '', content: [] },
   image: { caption: '' },
   gallery: { title: '', mediaIds: [] },
-  // Its title is the program's name, as the client calls it (useEditor().programName, from the config).
+  // Its title is the program's name, as the public site calls it (useEditor().programName: the saved menu, else the config).
   video: { title: '', latestEpisode: true },
   documents: { title: 'Documentos', ids: [], limit: 6 },
   faq: { title: 'Preguntas frecuentes', group: 'atencion' },

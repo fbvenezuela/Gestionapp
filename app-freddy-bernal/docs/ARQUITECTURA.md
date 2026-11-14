@@ -6,7 +6,7 @@ Actualizado: 29/10/2026 (seis roles, fichas, agenda compartida y entrega de Grab
 `20261029090000`; 06/11: la base de la web pública y la atención ciudadana, `20261106000050` a `20261106000300`, y
 después sus pantallas, su administrador, la atención, el importador y la revisión de seguridad, `20261106100100` a
 `20261106400200`; 13/11: los textos de 360, del rol de jefe y de las respuestas guardadas, `20261113000100` a
-`20261113100000`).
+`20261113200000`).
 
 ## Piezas
 - **Next.js 16 (App Router), React 19, TypeScript estricto, Tailwind 4.** Server Components para leer y server
@@ -449,6 +449,7 @@ El rol de jefe (28/10, `20261028002350_boss_grant.sql`): `guard_boss_grant()` (s
 | `20261113000100_asistente_la_app.sql` | Las fichas que arma 360 (`assistant_refresh()`) dicen «la app», no «la plataforma»; una ficha que el equipo cambió no se pisa. No está en `fb-dev` |
 | `20261113000200_rol_de_jefe_quien_instala.sql` | Las negativas de `guard_boss_grant()` dicen «quien instala la app», no «el comando de instalación» (las mismas reglas; solo cambian los tres textos, que una persona puede leer). No está en `fb-dev` |
 | `20261113100000_respuestas_guardadas_de_usted.sql` | Las nueve respuestas guardadas que trae la app pasan a «usted» (solo las que siguen tal como vinieron; una que la coordinación cambió se queda como está). No está en `fb-dev` |
+| `20261113200000_respuestas_guardadas_mas_claras.sql` | Lo que dejó la anterior: una respuesta que la coordinación solo renombró también pasa a «usted» (decide el texto, no el título), y cuatro textos más claros («Ya le enviamos su solicitud a esa institución…», «desde «Consultar mi solicitud»»). Solo las que siguen tal como vinieron. No está en `fb-dev` |
 
 ## Tareas programadas
 - `/api/cron/tick` (con `CRON_SECRET`): aviso de tweets por acabarse (una vez al día) y publicaciones vencidas

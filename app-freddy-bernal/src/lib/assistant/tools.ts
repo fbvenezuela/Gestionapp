@@ -8,7 +8,7 @@ import { HOME_SCREEN, tourHref, toursForRoles, type Tour } from '../guides';
 import { tweetStock } from '../data/tweets';
 import { toSchedule } from '../data/events';
 import { obraStageCounts, overdueReports } from '../data/fichas';
-import { BOSS_DECISION, NETWORK_LABEL, PIECE_STATUS, WORK_STATUS } from '../data/labels';
+import { BOSS_DECISION, NETWORK_LABEL, PIECE_STATUS, WORK_STATUS, networkFormatLabel } from '../data/labels';
 import { getNavCounts, getRedesSettings, monthContext } from '../data/redes';
 import { FEED_FORMATS, FORMAT, isFormat, type Format } from '../domain/redes';
 import { windowHint, type PublishingWindows } from '../domain/publishing-windows';
@@ -369,8 +369,9 @@ export const TOOLS: Tool[] = [
           redes: rows.map((s) => ({
             red: s.label,
             copy_hasta_caracteres: s.copy_max_chars,
+            // The format as the screens say it («Foto», «Historia»), never the stored word (APP-36).
             formatos: Object.entries(s.formats ?? {}).map(([fmt, f]) => ({
-              formato: fmt,
+              formato: networkFormatLabel(fmt),
               duracion_segundos: f.min_duration_s != null || f.max_duration_s != null ? `${f.min_duration_s ?? 0} a ${f.max_duration_s ?? 'sin máximo'}` : null,
               proporcion: Array.isArray(f.aspects) ? (f.aspects as string[]).join(' o ') : null,
               peso_maximo_mb: f.max_size_mb ?? null,

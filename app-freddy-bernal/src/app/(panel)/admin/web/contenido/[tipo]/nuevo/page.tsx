@@ -5,7 +5,7 @@ import { Card, CardBody } from '@/components/ui/card';
 import { NewItemForm } from '@/components/cms/new-item-form';
 import { webCaps } from '@/lib/data/web-admin';
 import { ADMIN_WEB, sectionBySlug } from '@/lib/web/cms/kinds';
-import { sectionLabel } from '@/lib/web/cms/section-label';
+import { programLabel, sectionLabel } from '@/lib/web/cms/section-label';
 import { noPermissionUrl } from '@/components/shell/no-permission';
 
 export const metadata = { title: 'Nuevo · Web' };
@@ -19,7 +19,7 @@ export default async function NewItemPage({ params }: { params: Promise<{ tipo: 
   if (!caps.canEdit) redirect(noPermissionUrl(ADMIN_WEB.list(section.kind)));
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={section.create} subtitle="Empieza por el título: la dirección en la web sale de él y la puedes cambiar después." back={{ href: ADMIN_WEB.list(section.kind), label: sectionLabel(section) }} />
+      <PageHeader title={section.create} subtitle="Empieza por el título: la dirección en la web sale de él y la puedes cambiar después." back={{ href: ADMIN_WEB.list(section.kind), label: sectionLabel(section, await programLabel()) }} />
       <Card>
         <CardBody>
           <NewItemForm kind={section.kind} />

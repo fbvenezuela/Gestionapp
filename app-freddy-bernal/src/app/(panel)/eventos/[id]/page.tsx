@@ -196,7 +196,12 @@ export default async function EventPage({ params, searchParams }: { params: Prom
 
       {has('boss') && !cancelled ? <BossPanel id={ev.id} priority={ev.priority} decision={ev.boss_decision} /> : null}
 
-      <nav className="mb-4 flex gap-1 overflow-x-auto border-b border-border" aria-label="Secciones del evento">
+      {/* On a phone the last tab can be past the edge («Pieza…», R16): the row fades at its right end and keeps room after
+          the last tab, so it reads as «there is more» and the last one scrolls whole into view. */}
+      <nav
+        className="mb-4 flex gap-1 overflow-x-auto border-b border-border max-sm:pr-8 max-sm:[mask-image:linear-gradient(to_right,black_calc(100%_-_2rem),transparent)]"
+        aria-label="Secciones del evento"
+      >
         {visibleTabs.map((t) => (
           <Link
             key={t.key}
@@ -292,7 +297,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
       {tab === 'piezas' ? (
         // R4 (D-60, D-61): each piece with its format; «Nueva pieza» asks the «Formato» and the «Mes» (never this date).
         <Card>
-          <CardHeader title="Piezas de este evento" action={has('admin', 'social', 'boss') ? <LinkButton size="sm" href={`/piezas/nueva?evento=${ev.id}`}>Nueva pieza</LinkButton> : undefined} />
+          <CardHeader title="Piezas de este evento" action={has('admin', 'social', 'boss') ? <LinkButton size="sm" href={`/piezas/nueva?evento=${ev.id}`} className="whitespace-nowrap">Nueva pieza</LinkButton> : undefined} />
           {data.pieces.length ? (
             <ul className="divide-y divide-border">
               {data.pieces.map((p) => (

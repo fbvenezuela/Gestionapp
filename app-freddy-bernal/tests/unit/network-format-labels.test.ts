@@ -25,7 +25,10 @@ describe('los formatos de cada red, en palabras', () => {
     expect(read('publicar/page.tsx')).toContain('networkFormatLabel(p.format)');
     expect(read('publicar/[id]/page.tsx')).toContain('networkFormatLabel(p.format)');
     const results = read('resultados/page.tsx');
-    expect(results.match(/networkFormatLabel\(r\.format\)/g)).toHaveLength(2);
+    // Both rows (the phone's card and the table) say it through one helper; what the boss published himself says «la
+    // publicó el jefe» instead of its stored «post» (R07).
+    expect(results).toContain("r.origin === 'boss_spontaneous' ? 'la publicó el jefe' : networkFormatLabel(r.format)");
+    expect(results.match(/\{howOut\(r\)\}/g)).toHaveLength(2);
     for (const f of ['publicar/page.tsx', 'publicar/[id]/page.tsx', 'resultados/page.tsx']) expect(read(f), f).not.toMatch(/· \{[pr]\.format\}|\$\{p\.format\}/);
   });
 });

@@ -213,6 +213,13 @@ describe('los chips del estado', () => {
     expect(labels({ status: 'archived', archivedAt: '2026-11-02T00:00:00Z', hasPublished: true, publishAt: '2026-11-01T12:00:00Z' })).toEqual(['Archivado']);
   });
 
+  it('la página «Atención ciudadana» de «Páginas» dice «No sale en la web», nunca «Publicado» (R01); las demás, su estado', () => {
+    const live = { ...base, status: 'published' as const, hasPublished: true, publishAt: '2026-11-01T12:00:00Z', publishedVersion: 1 };
+    expect(flowChips({ ...live, kind: 'page', slug: 'atencion' }, now).map((c) => c.label)).toEqual(['No sale en la web']);
+    expect(flowChips({ ...live, kind: 'page', slug: 'gobernador' }, now).map((c) => c.label)).toEqual(['Publicado']);
+    expect(flowChips({ ...live, kind: 'news', slug: 'atencion' }, now).map((c) => c.label)).toEqual(['Publicado']);
+  });
+
   it('lo programado cuenta como publicado apenas llega su hora, aunque el reloj del servidor no lo haya marcado', () => {
     const f = { ...base, status: 'scheduled' as const, hasPublished: true, publishAt: '2026-11-06T11:59:00Z', publishedVersion: 1 };
     expect(isLive(f, now)).toBe(true);

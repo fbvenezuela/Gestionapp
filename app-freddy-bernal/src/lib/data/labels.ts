@@ -29,7 +29,7 @@ export const EVENT_ORIGIN: Record<string, string> = {
   dispatch: 'Propuesto por Despacho',
   boss: 'Lo agregó el jefe',
   ivt: 'Viene de una ficha del IVT',
-  politics: 'Viene de un reporte de política',
+  politics: 'Viene de un reporte comunitario',
 };
 
 /** A piece's version, said the same way on every screen: «Versión 2», or «Sin archivo todavía» before the first file

@@ -35,8 +35,16 @@ export function hasPendingChanges(f: Pick<ItemFlow, 'hasPublished' | 'draftVersi
   return f.hasPublished && f.publishedVersion !== f.draftVersion;
 }
 
-/** The chips of an item: its main state first, then what else the person should know. */
-export function flowChips(f: ItemFlow, now: Date = new Date()): Chip[] {
+/** The page «Atención ciudadana» of «Páginas»: /atencion builds its own texts (src/app/(web)/atencion/page.tsx) and
+ * never reads it (APP-20). Wherever it is listed, and in its editor, it says so instead of its flow (R01). */
+export function isUnusedPage(f: { kind?: string; slug?: string }): boolean {
+  return f.kind === 'page' && f.slug === 'atencion';
+}
+
+/** The chips of an item: its main state first, then what else the person should know. A page the web never shows has
+ * one chip, «No sale en la web», never «Publicado». */
+export function flowChips(f: ItemFlow & { kind?: string; slug?: string }, now: Date = new Date()): Chip[] {
+  if (isUnusedPage(f)) return [{ label: 'No sale en la web', tone: 'neutral' }];
   if (f.archivedAt) return [{ label: 'Archivado', tone: 'neutral' }];
   const chips: Chip[] = [];
   if (isLive(f, now)) chips.push({ label: 'Publicado', tone: 'ok' });

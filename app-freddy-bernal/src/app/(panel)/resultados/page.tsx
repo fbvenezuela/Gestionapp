@@ -18,6 +18,10 @@ type Row = PubThumbCols & { id: string; title: string; network: string; format: 
 
 const nf = new Intl.NumberFormat('es-VE');
 
+// What the boss published himself has no format of its own (it is stored as «post», whatever it was): it says «la
+// publicó el jefe» where the others say their format, once and as Publicar says it (R07).
+const howOut = (r: Pick<Row, 'origin' | 'format'>) => (r.origin === 'boss_spontaneous' ? 'la publicó el jefe' : networkFormatLabel(r.format));
+
 export default async function ResultsPage({ searchParams }: { searchParams: Promise<{ dias?: string }> }) {
   const s = await requireRole('admin', 'social', 'boss');
   const { dias } = await searchParams;
@@ -26,7 +30,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
   // Each publication with its picture's candidates (cover, final file, screenshot), in the same query.
   const rows = await db(s, (sql) =>
     sql.query<Row>(
-      `select x.id, coalesce(p.title, x.title || ' (la publicó el jefe)') as title, x.published_at, x.url, x.republish_of,
+      `select x.id, coalesce(p.title, x.title) as title, x.published_at, x.url, x.republish_of,
               m.views, m.reach, m.likes, m.comments, m.shares, m.saves, ${PUB_THUMB_COLUMNS}
          from public.publications x left join public.pieces p on p.id = x.piece_id ${PUB_THUMB_JOINS}
          left join lateral (select * from public.publication_metrics pm where pm.publication_id = x.id order by pm.captured_at desc limit 1) m on true
@@ -106,7 +110,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
                     <div className="min-w-0 flex-1">
                       <PubTitle r={r} canLoad={canLoad} card />
                       {r.republish_of ? <span className="text-xs text-text-2">(republicación)</span> : null}
-                      <p className="text-sm text-text-2">{NETWORK_LABEL[r.network]} · {networkFormatLabel(r.format)} · {fmtDateTime(r.published_at)}</p>
+                      <p className="text-sm text-text-2">{NETWORK_LABEL[r.network]} · {howOut(r)} · {fmtDateTime(r.published_at)}</p>
                     </div>
                   </div>
                   {r.views != null ? (
@@ -145,7 +149,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
                           </div>
                         </div>
                       </td>
-                      <td className="px-3 py-2">{NETWORK_LABEL[r.network]} · {networkFormatLabel(r.format)}</td>
+                      <td className="px-3 py-2">{NETWORK_LABEL[r.network]} · {howOut(r)}</td>
                       <td className="px-3 py-2 whitespace-nowrap">{fmtDateTime(r.published_at)}</td>
                       <td className="px-3 py-2 tabular">{r.views != null ? nf.format(r.views) : <span className="text-muted">sin cargar</span>}</td>
                       <td className="px-3 py-2 tabular">{r.reach != null ? nf.format(r.reach) : '—'}</td>

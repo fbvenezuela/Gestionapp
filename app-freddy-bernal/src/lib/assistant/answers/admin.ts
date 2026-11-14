@@ -666,7 +666,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-red-para-que',
     roles: ['admin'],
     q: ['pa que sirven las reglas por red', 'qué son las reglas de video', 'para que es reglas por red', 'que revisa la plataforma antes de publicar'],
-    a: 'Son la duración, las medidas y el peso de video de cada red, y el «Máximo de caracteres del copy»: con eso se revisa cada video antes de programar, y Publicar dice en rojo lo que no cumple.',
+    a: 'Son la duración, las medidas y el peso de lo que se publica en cada red, y el «Máximo de caracteres del copy»: con eso se revisa cada video y cada foto antes de programar, y Publicar dice en rojo lo que no cumple.',
     go: '/ajustes/redes',
   },
   {
@@ -707,7 +707,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-marca-nombre',
     roles: ['admin'],
     q: ['cambiar el nombre de la plataforma', 'nombre corto de la app', 'el nombre que sale en el menú'],
-    a: 'En Ajustes → Marca están «Nombre de la app» y «Nombre corto», pero esos textos los usan los copies: el nombre del menú y de los correos sale del archivo del cliente.',
+    a: 'En Ajustes → Marca están «Nombre de la app» y «Nombre corto»: los usa 360 para nombrar la app. El nombre del menú y de los correos lo cambia quien instaló la app.',
     go: '/ajustes/marca',
   },
 
@@ -876,7 +876,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-drive-conectar',
     roles: ['admin'],
     q: ['¿cómo conecto el Google Drive del cliente?', 'conectar drive', 'configurar google drive', 'vincular la cuenta de drive'],
-    a: 'En Ajustes → Google Drive (solo sale cuando el material va a Drive): «Conectar Drive» con la cuenta de Google del cliente, y después «Probar» para revisar que sube y baja.',
+    a: 'En Ajustes → Google Drive (solo sale cuando el material va a Drive): «Conectar Drive» con la cuenta de Google del equipo, y después «Probar» para revisar que sube y baja.',
     go: '/ajustes',
   },
   {
@@ -899,7 +899,7 @@ export const ADMIN: Answer[] = [
       'donde estan guardadas las fotos de los eventos',
       'los videos se guardan en drive',
     ],
-    a: 'En la app, o en el Drive del cliente si el material va a Drive: ahí, en una carpeta con Videos, Fotos, Portadas, Audios y Documentos, y una carpeta por evento con su código (nunca con la fecha). Ajustes → Google Drive dice cuál.',
+    a: 'En la app, o en el Drive del equipo si el material va a Drive: ahí, en una carpeta con Videos, Fotos, Portadas, Audios y Documentos, y una carpeta por evento con su código (nunca con la fecha). Ajustes → Google Drive dice cuál.',
     go: '/ajustes',
   },
   {
@@ -922,7 +922,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-drive-elegir',
     roles: ['admin'],
     q: ['quien puede usar elegir de drive', 'que es elegir de drive', 'traer archivos de drive a la plataforma'],
-    a: 'Solo administración: «Elegir de Drive» trae a la app archivos que ya están en el Drive del cliente. Los demás suben y bajan por la app.',
+    a: 'Solo administración: «Elegir de Drive» trae a la app archivos que ya están en el Drive del equipo. Los demás suben y bajan por la app.',
   },
   {
     id: 'adm-drive-vencio',
@@ -1314,7 +1314,7 @@ export const ADMIN: Answer[] = [
     id: 'adm-registro-que-es',
     roles: ['admin'],
     q: ['para que sirve esto del registro', 'que es el registro de cambios', 'qué dice el sistema en el registro'],
-    a: 'El «Registro de cambios» es quién cambió qué y cuándo, en toda la app. Lo que hizo la app sola sale como «La app».',
+    a: 'El «Registro de cambios» es quién cambió qué y cuándo, en toda la app. Lo que hizo la app sola sale como «La app»; lo que una persona mandó desde la web, como «La web».',
     go: '/ajustes/registro',
   },
 

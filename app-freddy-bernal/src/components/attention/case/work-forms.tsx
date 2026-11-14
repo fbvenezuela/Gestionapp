@@ -351,9 +351,9 @@ export function Composer({ id, state, templates, merged }: { id: string; state: 
         <p id={ids.legend} className={sectionHint}>{c.hint}</p>
       </fieldset>
       {list.length ? (
-        <Field label="Usar una respuesta guardada" htmlFor={ids.tpl}>
+        <Field label="Usar una respuesta guardada" htmlFor={ids.tpl} hint="La puedes cambiar antes de enviar.">
           <Select id={ids.tpl} value="" onChange={(e) => setBody(list.find((t) => t.id === e.target.value)?.body ?? body)}>
-            <option value="">Elige una (la puedes cambiar antes de enviar)</option>
+            <option value="">Elige una</option>
             {list.map((t) => (
               <option key={t.id} value={t.id}>{t.title}</option>
             ))}

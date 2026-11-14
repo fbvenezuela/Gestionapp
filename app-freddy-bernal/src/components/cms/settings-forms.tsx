@@ -258,14 +258,21 @@ export function IdentityForm({ identity, structured }: { identity: unknown; stru
   const opt = (o: Record<string, string>) => Object.fromEntries(Object.entries(o).filter(([, x]) => x.trim()).map(([k, x]) => [k, x.trim()]));
   return (
     <>
-      <Section title="Nombre y saludo" subtitle="Cómo se nombra la web arriba de cada página, en el pie y en el título de cada página." onSave={() => a.save(opt(id))} busy={a.busy}>
+      {/* No public page shows the greeting (src/app/(web)/page.tsx): it is not asked here, and the stored one is saved back
+          unchanged. The «wordmark» is only what a person who cannot see the picture hears when a link is shared (R05). */}
+      <Section title="Nombre de la web" subtitle="Cómo se nombra la web arriba de cada página, en el pie y en el título de cada página." onSave={() => a.save(opt(id))} busy={a.busy}>
         <div className="grid gap-3 sm:grid-cols-2">
           <TextField label="Nombre" value={id.name} onChange={(x) => setId({ ...id, name: x })} max={120} />
           <TextField label="Cargo" value={id.title} onChange={(x) => setId({ ...id, title: x })} max={160} />
           <TextField label="Región" value={id.region} onChange={(x) => setId({ ...id, region: x })} max={80} />
-          <TextField label="Saludo" value={id.greeting} onChange={(x) => setId({ ...id, greeting: x })} max={120} />
         </div>
-        <TextField label="Nombre de la cabecera" value={id.wordmark} onChange={(x) => setId({ ...id, wordmark: x })} max={200} hint="Vacío: «Nombre · Cargo»." />
+        <TextField
+          label="Nombre al compartir"
+          value={id.wordmark}
+          onChange={(x) => setId({ ...id, wordmark: x })}
+          max={200}
+          hint="Lo leen quienes no ven la imagen cuando se comparte un enlace de la web. Vacío: «Nombre · Cargo»."
+        />
       </Section>
       <Section title="Datos estructurados" subtitle="Lo que la web le dice a Google y a los demás buscadores sobre la persona y la institución. Solo nombra las cuentas verificadas." onSave={() => b.save(opt(st))} busy={b.busy}>
         <div className="grid gap-3 sm:grid-cols-2">

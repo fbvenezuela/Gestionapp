@@ -29,9 +29,9 @@ describe('el límite que dice «Subir un PDF»', () => {
     expect(html).toContain(`Hasta ${Math.round(maxMediaBytes('document') / MB)} MB.`);
   });
 
-  it('la foto: se achica en este teléfono o computadora (el «equipo» es la gente)', () => {
+  it('la foto: se achica en este teléfono o en esta computadora (el «equipo» es la gente)', () => {
     const html = text(renderToStaticMarkup(form('image')));
-    expect(html).toContain('antes de salir de este teléfono o computadora.');
+    expect(html).toContain('antes de salir de este teléfono o de esta computadora.');
     expect(html).not.toMatch(/este equipo|MB/);
   });
 });

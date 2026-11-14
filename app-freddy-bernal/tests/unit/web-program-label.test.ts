@@ -3,9 +3,20 @@
 // code (read by the browser too) only has neutral words. All data here is invented except the config, read as it is.
 import fs from 'node:fs';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { getClientConfig, type ClientConfig } from '@/lib/client-config';
-import { programLabel, sectionLabel } from '@/lib/web/cms/section-label';
+import type { Site } from '@/lib/web/site-settings';
+
+// The menu as «Ajustes del sitio» saved it (F7, R23): null = the settings could not be read.
+const saved = vi.hoisted(() => ({ navigation: null as { label: string; path: string }[] | null, programName: '' }));
+vi.mock('@/lib/web/site', () => ({
+  getSite: vi.fn(async () => {
+    if (!saved.navigation) throw new Error('sin ajustes (prueba)');
+    return { navigation: saved.navigation, programName: saved.programName } as unknown as Site;
+  }),
+}));
+
+const { configProgramLabel, programLabel, sectionLabel } = await import('@/lib/web/cms/section-label');
 import { KIND_SECTIONS, sectionOf } from '@/lib/web/cms/kinds';
 import { WEB_KIND_LABEL } from '@/lib/web/schema';
 import { starter } from '@/components/cms/block-editor';
@@ -17,15 +28,28 @@ const withMenu = (nav: unknown): ClientConfig => ({ ...cfg, web: { ...cfg.web, s
 
 describe('el nombre del programa semanal sale de la configuración del cliente', () => {
   it('lo que dice el menú de la web; sin esa entrada, el nombre del programa de la marca', () => {
-    expect(programLabel()).toBe(fromMenu);
-    expect(programLabel(withMenu([{ label: 'Programa de prueba', path: '/reporte-bernal' }]))).toBe('Programa de prueba');
-    expect(programLabel(withMenu([{ label: 'Inicio', path: '/' }]))).toBe(cfg.brand.programName);
-    expect(programLabel(withMenu([{ label: '  ', path: '/reporte-bernal' }]))).toBe(cfg.brand.programName);
+    expect(configProgramLabel()).toBe(fromMenu);
+    expect(configProgramLabel(withMenu([{ label: 'Programa de prueba', path: '/reporte-bernal' }]))).toBe('Programa de prueba');
+    expect(configProgramLabel(withMenu([{ label: 'Inicio', path: '/' }]))).toBe(cfg.brand.programName);
+    expect(configProgramLabel(withMenu([{ label: '  ', path: '/reporte-bernal' }]))).toBe(cfg.brand.programName);
+  });
+
+  it('el panel dice lo que dice la web: el menú guardado en «Ajustes del sitio»; sin poder leerlo, el de la configuración', async () => {
+    saved.navigation = [{ label: 'Programa renombrado (prueba)', path: '/reporte-bernal' }];
+    saved.programName = 'Programa de la marca (prueba)';
+    expect(await programLabel()).toBe('Programa renombrado (prueba)');
+    // Without its entry in the saved menu, what /reporte-bernal says then: the brand's program name.
+    saved.navigation = [{ label: 'Inicio', path: '/' }];
+    expect(await programLabel()).toBe('Programa de la marca (prueba)');
+    saved.programName = '';
+    expect(await programLabel()).toBe(fromMenu);
+    saved.navigation = null;
+    expect(await programLabel()).toBe(fromMenu);
   });
 
   it('la sección de episodios del panel lo usa; las demás, su nombre de siempre', () => {
-    expect(sectionLabel(sectionOf('episode'))).toBe(fromMenu);
-    for (const s of KIND_SECTIONS.filter((x) => x.kind !== 'episode')) expect(sectionLabel(s)).toBe(s.label);
+    expect(sectionLabel(sectionOf('episode'), 'Programa de prueba')).toBe('Programa de prueba');
+    for (const s of KIND_SECTIONS.filter((x) => x.kind !== 'episode')) expect(sectionLabel(s, 'Programa de prueba')).toBe(s.label);
   });
 
   it('un bloque de video nuevo lleva el nombre del programa; los demás, su texto de siempre', () => {

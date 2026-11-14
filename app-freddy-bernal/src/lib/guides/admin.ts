@@ -27,8 +27,8 @@ export const ADMIN_GUIDE: AdminGuide = {
     { screen: '/ajustes/categorias', title: 'Categorías', what: 'La lista de categorías del contenido (eventos, piezas y tweets).', youDo: ['Agregas, cambias el nombre o apagas una categoría.'] },
     { screen: '/ajustes/formulas', title: 'Fórmulas de copies', what: 'Las fórmulas con las que se escriben los copies (FAB, PAS, AIDA y las que agregues).', youDo: ['Agregas o corriges una fórmula; Redes la elige en cada pieza.'] },
     { screen: '/ajustes/horarios', title: 'Horarios de tweets', what: 'Las franjas del día y cuántos tweets salen por día, para repartir la tanda de la semana.', youDo: ['Cambias las franjas y el número por día.'] },
-    { screen: '/ajustes/redes', title: 'Reglas por red', what: 'La duración, las medidas y el peso de video de cada red, con los que se revisa una publicación.', youDo: ['Cambias el número de una red cuando la red cambia sus reglas.'] },
-    { screen: '/ajustes/marca', title: 'Marca', what: 'El nombre, los colores, los logos, el saludo, los cierres y los hashtags.', youDo: ['Cambias los textos de la marca que usan los copies.'] },
+    { screen: '/ajustes/redes', title: 'Reglas por red', what: 'La duración, las medidas y el peso de lo que se publica en cada red, con los que se revisa una publicación.', youDo: ['Cambias el número de una red cuando la red cambia sus reglas.'] },
+    { screen: '/ajustes/marca', title: 'Marca', what: 'El nombre de la app para 360, los colores, los logos, el saludo, los cierres y los hashtags.', youDo: ['Cambias los textos de la marca que usan los copies.', 'El «Nombre de la app» y el «Nombre corto» los usa 360; el nombre del menú y de los correos lo cambia quien instaló la app.'] },
     {
       screen: '/ajustes/contenido',
       title: 'Cupo y pilares',
@@ -45,7 +45,7 @@ export const ADMIN_GUIDE: AdminGuide = {
       title: 'Google Drive',
       what: 'Dónde se guardan los videos, la conexión y una prueba. Solo sale en Ajustes cuando el material va a Drive.',
       youDo: [
-        'Conectas la cuenta de Drive del cliente y pruebas que sube y baja.',
+        'Conectas la cuenta de Drive del equipo y pruebas que sube y baja.',
         '«Organizar por orden del feed» sale aquí solo cuando lo enciende quien instala la app; hoy está apagado.',
       ],
     },
@@ -65,7 +65,7 @@ export const ADMIN_GUIDE: AdminGuide = {
       screen: '/ajustes/registro',
       title: 'Registro de cambios',
       what: 'Quién cambió qué y cuándo, en toda la app.',
-      youDo: ['Lees los cambios del más nuevo al más viejo, con quién, qué y cuándo; abajo, «Ver más antiguos» trae los anteriores. No tiene buscador ni filtro.', 'De Mensajes sale solo que hubo un mensaje, un canal o un cambio de miembros, quién y cuándo: nunca el texto, el nombre del canal ni quiénes son.'],
+      youDo: ['Lees los cambios del más nuevo al más viejo, con quién, qué y cuándo; abajo, «Ver más antiguos» trae los anteriores. No tiene buscador ni filtro.', 'De Mensajes sale solo que hubo un mensaje, un canal o un cambio de miembros, quién y cuándo: nunca el texto, el nombre del canal ni quiénes son.', 'Lo que hizo la app sola sale como «La app»; lo que una persona mandó desde la web, como «La web».'],
     },
     {
       title: 'Ver como',

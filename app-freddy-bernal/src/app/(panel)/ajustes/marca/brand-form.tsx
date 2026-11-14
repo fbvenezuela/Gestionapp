@@ -17,11 +17,15 @@ export function BrandForm({ value }: { value: V }) {
       <CardHeader title="Textos" />
       <CardBody className="flex flex-col gap-3">
         <Field label="Nombre de la app" htmlFor="ba"><Input id="ba" value={f.appName} onChange={(e) => setF({ ...f, appName: e.target.value })} /></Field>
-        <Field label="Nombre corto" htmlFor="bs"><Input id="bs" value={f.shortName} onChange={(e) => setF({ ...f, shortName: e.target.value })} /></Field>
+        {/* Only 360 reads these two (src/lib/assistant/index.ts, its [APP]): the menu, the e-mails and the installed app take
+            the name from the client's file (R06). */}
+        <Field label="Nombre corto" htmlFor="bs" hint="Los dos los usa 360 para nombrar la app. El nombre del menú y de los correos lo cambia quien instaló la app.">
+          <Input id="bs" value={f.shortName} onChange={(e) => setF({ ...f, shortName: e.target.value })} />
+        </Field>
         <Field label="Saludo con que abren los copies" htmlFor="bg"><Input id="bg" value={f.greeting} onChange={(e) => setF({ ...f, greeting: e.target.value })} /></Field>
         <Field label="Cierres (separados por |)" htmlFor="bc"><Input id="bc" value={f.closings} onChange={(e) => setF({ ...f, closings: e.target.value })} /></Field>
         <Field label="Hashtags base" htmlFor="bh"><Input id="bh" value={f.hashtags} onChange={(e) => setF({ ...f, hashtags: e.target.value })} /></Field>
-        <p className="text-sm text-text-2">El nombre en el menú y los correos sale del archivo del cliente; estos textos los usan los copies.</p>
+        <p className="text-sm text-text-2">El saludo, los cierres y los hashtags los usan los copies.</p>
         <Button disabled={pending} onClick={() => run(() => saveSetting({ key: 'brand', value: { ...f.raw, appName: f.appName, shortName: f.shortName, greeting: f.greeting, closings: f.closings.split('|').map((x) => x.trim()).filter(Boolean), hashtags: f.hashtags.split(/\s+/).filter(Boolean) } }), { success: 'Guardado.' })}>Guardar</Button>
       </CardBody>
     </Card>

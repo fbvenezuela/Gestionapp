@@ -263,8 +263,13 @@ frena: lo que dice entre paréntesis ya está construido así y se cambia en un 
   programarse en esas redes.
 - **X y el video vertical (13/11), por verificar:** la documentación pública de X da un máximo para el video horizontal
   (1920×1200) y otro para el vertical (1200×1900), y `config/network-specs.json` guarda un solo par (1920 de ancho,
-  1200 de alto). Por eso un reel vertical 1080×1920 sale «el video es muy alto… Expórtalo más bajo» en X. Revisar la
+  1200 de alto). Por eso un reel vertical 1080×1920 sale «el video es muy alto… Exporta más pequeño» en X. Revisar la
   documentación vigente y, si se confirma, guardar los dos pares (la regla y `checkVideo` tendrían que leer cuál toca).
+- **TikTok y las fotos (14/11), por decidir con Redes:** las reglas de la app para TikTok solo tienen video, así que un
+  post dice «TikTok: la app no programa posts en esta red.» (y lo mismo una historia o un carrusel): es lo que dicen
+  las reglas de la app, no lo que acepta TikTok, que tiene publicaciones de fotos (por verificar en su documentación).
+  Si el equipo publica fotos ahí, se agrega «Foto» (y «Carrusel») a TikTok en `config/network-specs.json` y en las
+  formas que suma `seed-client.ts`, con sus medidas y pesos verificados en la documentación vigente.
 
 ## Nuevo (06/11/2026): migrar la web vieja y salir a producción
 El importador está listo y probado (D-97); **no se migró nada todavía**. El orden completo, la lista para marcar y cómo
@@ -309,7 +314,7 @@ para usarlos con gente de verdad. Mientras no esté, la web sigue en la versión
 
 | # | Qué falta | Por qué, y qué pasa mientras |
 |---|---|---|
-| T1 | **Aplicar las migraciones de la web en `fb-dev`**: `20261106000050`, `000110`, `000200`, `000300`, `100100`, `300100`, `400100` y `400200` (entre la primera y la segunda va `000100`, la de la oficina, que tampoco está), y después `20261113000100` (las fichas que arma 360 dicen «la app», no «la plataforma»), `20261113000200` (los avisos del rol de jefe dicen «quien instala la app», no «el comando de instalación») y `20261113100000` (las respuestas guardadas de fábrica, de usted) | El 05/11 la conexión de Supabase rechazó la contraseña de la base y no se pudo subir nada. Con la conexión de vuelta: aplicarlas en orden, comprobar que el rol de `DATABASE_URL` puede `set role anon` y que el esquema `citizen` no está expuesto (las dos cosas **no se pudieron comprobar**) |
+| T1 | **Aplicar las migraciones de la web en `fb-dev`**: `20261106000050`, `000110`, `000200`, `000300`, `100100`, `300100`, `400100` y `400200` (entre la primera y la segunda va `000100`, la de la oficina, que tampoco está), y después `20261113000100` (las fichas que arma 360 dicen «la app», no «la plataforma»), `20261113000200` (los avisos del rol de jefe dicen «quien instala la app», no «el comando de instalación»), `20261113100000` (las respuestas guardadas de fábrica, de usted) y `20261113200000` (la renombrada también, y cuatro textos más claros) | El 05/11 la conexión de Supabase rechazó la contraseña de la base y no se pudo subir nada. Con la conexión de vuelta: aplicarlas en orden, comprobar que el rol de `DATABASE_URL` puede `set role anon` y que el esquema `citizen` no está expuesto (las dos cosas **no se pudieron comprobar**) |
 | T2 | **El proyecto de producción** con plan de pago | El plan gratis no tiene copias automáticas (`docs/COPIAS-Y-RECUPERACION.md`) ni cabe la biblioteca vieja completa (≈1,7 GB) |
 | T3 | **`PARTICIPATION_PEPPER` y `PARTICIPATION_DATA_KEY`** generadas, puestas en Vercel y guardadas aparte | Sin ellas, con datos reales no se guarda ningún comprobante ni contacto. Si se pierden, no se recuperan |
 | T4 | **Un revisor de archivos** (ClamAV en un servidor aparte u otro servicio) y `ATTACHMENT_SCANNER=clamav` | Vercel no puede correr ClamAV. Sin revisor, en producción los archivos que manda la gente quedan «sin analizar» y **no se abren** |
@@ -361,7 +366,7 @@ documentos que los citan). Queda esto:
 
 **Preguntas para Juan:**
 1. **«Registro de cambios» y la atención:** Administración ve ahí que hubo un cambio en lo de la atención (por ejemplo
-   «creó · Mensaje de una solicitud»), con su nombre claro y nunca lo que escribió la persona. ¿Se quitan esas líneas
+   «La web escribió un mensaje en una solicitud»), con su nombre claro y nunca lo que escribió la persona. ¿Se quitan esas líneas
    de esa página? «Consulta y auditoría» ya tiene «Registro de atención». (Así está: se ven, con nombres claros. D-93.)
 2. **La página «Atención ciudadana» en «Web» → «Páginas»:** la web no la usa (la página de la atención tiene sus
    propios textos), y su editor ahora lo dice arriba: «Esta página no sale en la web». ¿Que la página de la atención la

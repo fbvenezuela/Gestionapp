@@ -8,12 +8,12 @@ const tiktok = getClientConfig('fb').publishingWindows.tiktok;
 
 describe('mejores horas por red', () => {
   it('resume la franja en una línea', () => {
-    expect(windowHint(tiktok)).toBe('Mejor 22:00–23:59 o 07:00–11:59 · jueves, miércoles y domingo. Evitar 12:00–16:59 · martes y sábado.');
+    expect(windowHint(tiktok)).toBe('Mejor de 10 a 11:59 p. m. o de 7 a 11:59 a. m. · jueves, miércoles y domingo. Evitar de 12 a 4:59 p. m. · martes y sábado.');
     expect(windowHint(undefined)).toBe('');
   });
   it('avisa si la hora es de las peores', () => {
     const at = DateTime.fromISO('2026-10-29T14:30', { zone: TZ }); // jueves
-    expect(windowWarnings('TikTok', tiktok, at)).toEqual(['TikTok: 12:00–16:59 es de las horas que peor rinden.']);
+    expect(windowWarnings('TikTok', tiktok, at)).toEqual(['TikTok: la franja de 12 a 4:59 p. m. es de las que peor rinden.']);
   });
   it('avisa si el día es de los peores, y calla en la mejor hora', () => {
     expect(windowWarnings('TikTok', tiktok, DateTime.fromISO('2026-10-31T22:30', { zone: TZ }))).toEqual(['TikTok: el sábado es de los días que peor rinden.']);

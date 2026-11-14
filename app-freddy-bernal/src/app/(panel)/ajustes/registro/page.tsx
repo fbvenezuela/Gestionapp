@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/ui/page';
 import { Card } from '@/components/ui/card';
 import { fmtDateTime } from '@/lib/time';
 import { RETIRED_ROLES, ROLE_LABEL } from '@/lib/roles';
-import { AUDIT_CHANGED_COUNT_SQL, AUDIT_NO_ACTOR, auditChanged, auditWhat } from '@/lib/domain/audit-log';
+import { AUDIT_CHANGED_COUNT_SQL, AUDIT_FROM_WEB_SQL, auditChanged, auditWho, auditWhat } from '@/lib/domain/audit-log';
 
 export const metadata = { title: 'Registro de cambios' };
 
@@ -16,9 +16,9 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   // Only the id of the last line seen; anything else starts from the newest.
   const before = antes && /^\d{1,18}$/.test(antes) ? antes : null;
   const rows = await db(s, (sql) =>
-    sql.query<{ id: number; at: string; actor: string | null; table_name: string; action: string; row_id: string | null; changed: number | null }>(
+    sql.query<{ id: number; at: string; actor: string | null; table_name: string; action: string; row_id: string | null; changed: number | null; from_web?: boolean | null }>(
       `select a.id, a.at, coalesce(nullif(btrim(p.full_name), ''), p.email) as actor, a.table_name, a.action, a.row_id,
-              ${AUDIT_CHANGED_COUNT_SQL} as changed
+              ${AUDIT_CHANGED_COUNT_SQL} as changed, ${AUDIT_FROM_WEB_SQL} as from_web
          from public.audit_log a left join public.profiles p on p.id = a.actor_id
         where ($1::bigint is null or a.id < $1::bigint) order by a.id desc limit 100`,
       [before],
@@ -34,7 +34,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
             const changed = auditChanged(r.changed);
             return (
               <li key={r.id} className="px-4 py-3 text-[15px] [overflow-wrap:anywhere]">
-                <span className="font-semibold">{r.actor ?? AUDIT_NO_ACTOR}</span>{' '}
+                <span className="font-semibold">{auditWho(r.actor, r.from_web)}</span>{' '}
                 {r.action === 'roles_retired' ? RETIRED : (
                   <>
                     {verb} <span className="font-semibold">{object}</span>

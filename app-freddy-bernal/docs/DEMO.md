@@ -38,8 +38,9 @@ probar **sobre lo sembrado**:
 **Lo que puede perderse al recargar** (cada servidor de Vercel tiene su base, D-39): lo que se crea o se sube (un reel
 nuevo, una imagen, un mes nuevo, un cambio en el feed) vive solo en el servidor donde se hizo. Lo recién creado se abre
 en la misma pantalla y la miniatura recién subida se ve desde el teléfono; si después otro servidor contesta, la tarjeta
-dice «Esta pieza se creó en otra copia de la demostración…» o «La miniatura está en otra copia de la
-demostración.». Un aviso lo explica una vez por persona en Redes, con «Entendido». La comparación con la referencia,
+dice «Esta pieza no está en esta copia de la demostración» («Se creó en otra copia de la demostración…») o «La
+miniatura está en otra copia de la demostración.». Un aviso lo explica una vez por persona en Redes, con «Entendido»
+(«La demostración corre en varias copias a la vez y cada una guarda lo suyo…»). La comparación con la referencia,
 pantalla por pantalla, está en `docs/capturas/mila-vs-fb/README.md`.
 
 ## Mensajes, guías y tutoriales (28/10): qué probar primero

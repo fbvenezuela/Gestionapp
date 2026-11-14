@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { DeskNav } from '@/components/attention/desk-nav';
 import { REQUEST_STATE_LABEL, deskAccess, type RequestState } from '@/lib/domain/attention';
 import { fmtDateTime } from '@/lib/time';
+import { AUDIT_CHANGED_COUNT_SQL, AUDIT_FROM_WEB_SQL, auditChanged, auditWho, auditWhat } from '@/lib/domain/audit-log';
 
 export const metadata = { title: 'Registro de atención' };
 
@@ -16,30 +17,30 @@ export const metadata = { title: 'Registro de atención' };
 const TABLES = ['areas', 'area_members', 'request_categories', 'requests', 'request_supports', 'request_contacts', 'request_events', 'request_messages',
   'request_attachments', 'attended_publications', 'request_reply_templates'];
 
-const TABLE: Record<string, string> = {
-  areas: 'un área', area_members: 'quién está en un área', request_categories: 'una categoría', requests: 'una solicitud', request_supports: 'un apoyo',
-  request_contacts: 'un contacto', request_events: 'la historia de una solicitud', request_messages: 'un mensaje', request_attachments: 'un archivo',
-  attended_publications: '«Casos atendidos»', request_reply_templates: 'una respuesta guardada',
-};
-const ACTION: Record<string, string> = { insert: 'agregó', update: 'cambió', delete: 'quitó' };
-
 type Row = {
-  id: number; at: Date; action: string; table_name: string; actor: string | null; request_id: string | null; reference: string | null;
-  new_data: Record<string, unknown> | null;
+  id: number; at: Date; action: string; table_name: string; actor: string | null; from_web: boolean | null; request_id: string | null;
+  reference: string | null; new_data: Record<string, unknown> | null; old_state: string | null; old_status: string | null; changed: number | null;
 };
 
-function what(r: Row): string {
+// The same words as Ajustes → «Registro de cambios» (src/lib/domain/audit-log.ts); here a line can also say which
+// request it was (its code, a link to the case), how many it exported and the state a request took.
+function what(r: Row): { verb: string; object: string } {
   const d = r.new_data ?? {};
-  if (r.action === 'contact_view') return 'vio el contacto de';
   if (r.action === 'export') {
     const rows = Number(d.rows ?? 0);
-    return `exportó ${rows === 1 ? '1 solicitud' : `${rows} solicitudes`} en CSV${d.with_contact ? ', con el contacto' : ', sin contactos'}`;
+    return { verb: 'exportó', object: `${rows === 1 ? '1 solicitud' : `${rows} solicitudes`} en CSV${d.with_contact ? ', con el contacto' : ', sin contactos'}` };
   }
-  if (r.table_name === 'requests' && r.action === 'update' && typeof d.state === 'string') {
-    return `cambió (${REQUEST_STATE_LABEL[d.state as RequestState] ?? d.state})`;
+  if (r.table_name === 'requests' && r.action === 'update' && typeof d.state === 'string' && d.state !== r.old_state) {
+    return { verb: `pasó a «${REQUEST_STATE_LABEL[d.state as RequestState] ?? 'otro estado'}»`, object: 'una solicitud' };
   }
-  return `${ACTION[r.action] ?? r.action} ${TABLE[r.table_name] ?? r.table_name}`;
+  if (r.table_name === 'attended_publications' && r.action === 'update' && d.status === 'withdrawn' && r.old_status !== 'withdrawn') {
+    return { verb: 'retiró', object: 'un caso atendido' };
+  }
+  return auditWhat(r.table_name, r.action);
 }
+
+// «… de una solicitud» + its code reads «… de la solicitud FB-…».
+const withCode = (object: string) => object.replace(/una solicitud$/, 'la solicitud');
 
 export default async function AttentionAuditPage({ searchParams }: { searchParams: Promise<{ antes?: string }> }) {
   const s = await requireRole('auditor', 'admin');
@@ -49,7 +50,9 @@ export default async function AttentionAuditPage({ searchParams }: { searchParam
   const uuid = (x: string) => `case when ${x} ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then (${x})::uuid end`;
   const rows = await db(s, (sql) =>
     sql.query<Row>(
-      `select a.id, a.at, a.action, a.table_name, a.new_data, coalesce(nullif(btrim(p.full_name), ''), p.email) as actor, r.id as request_id, r.reference
+      `select a.id, a.at, a.action, a.table_name, a.new_data, a.old_data ->> 'state' as old_state, a.old_data ->> 'status' as old_status,
+              coalesce(nullif(btrim(p.full_name), ''), p.email) as actor, ${AUDIT_FROM_WEB_SQL} as from_web,
+              ${AUDIT_CHANGED_COUNT_SQL} as changed, r.id as request_id, r.reference
          from public.audit_log a
          left join public.profiles p on p.id = a.actor_id
          left join public.requests r on r.id = (case
@@ -67,20 +70,24 @@ export default async function AttentionAuditPage({ searchParams }: { searchParam
       {rows.length ? (
         <Card solid>
           <ul className="divide-y divide-border">
-            {rows.map((r) => (
-              <li key={r.id} className="px-4 py-3 text-[15px]">
-                <span className="font-semibold">{r.actor ?? 'La web'}</span> {what(r)}
-                {r.action === 'export' ? null : r.reference && r.request_id ? (
-                  <>
-                    {' '}
-                    <Link href={`/admin/atencion/${r.request_id}`} className="font-mono font-semibold text-accent-ink underline-offset-2 hover:underline">{r.reference}</Link>
-                  </>
-                ) : r.action === 'contact_view' ? (
-                  ' una solicitud'
-                ) : null}
-                <span className="block text-sm text-text-2">{fmtDateTime(r.at)}</span>
-              </li>
-            ))}
+            {rows.map((r) => {
+              const { verb, object } = what(r);
+              const code = r.action !== 'export' && r.reference && r.request_id;
+              const changed = r.action === 'update' && !/^pasó a|^retiró/.test(verb) ? auditChanged(r.changed) : null;
+              return (
+                <li key={r.id} className="px-4 py-3 text-[15px] [overflow-wrap:anywhere]">
+                  <span className="font-semibold">{auditWho(r.actor, r.from_web)}</span> {verb} {code ? withCode(object) : object}
+                  {code ? (
+                    <>
+                      {' '}
+                      <Link href={`/admin/atencion/${r.request_id}`} className="font-mono font-semibold text-accent-ink underline-offset-2 hover:underline">{r.reference}</Link>
+                    </>
+                  ) : null}
+                  {changed ? <span className="text-text-2"> {changed}</span> : null}
+                  <span className="block text-sm text-text-2">{fmtDateTime(r.at)}</span>
+                </li>
+              );
+            })}
           </ul>
           {rows.length === 100 ? (
             <Link href={`/admin/atencion/registro?antes=${rows[rows.length - 1].id}`} className="block min-h-11 border-t border-border p-4 text-center font-semibold text-accent-ink">

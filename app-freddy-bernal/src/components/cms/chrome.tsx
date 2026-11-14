@@ -2,16 +2,17 @@ import Link from 'next/link';
 import { Chip } from '@/components/ui/chip';
 import { cn } from '@/lib/cn';
 import { fmtDateTime } from '@/lib/time';
-import { flowChips, isScheduled, type ItemFlow } from '@/lib/web/cms/status';
+import { flowChips, isScheduled, isUnusedPage, type ItemFlow } from '@/lib/web/cms/status';
 import { ADMIN_WEB, KIND_SECTIONS } from '@/lib/web/cms/kinds';
-import { sectionLabel } from '@/lib/web/cms/section-label';
+import { programLabel, sectionLabel } from '@/lib/web/cms/section-label';
 import type { WebCaps } from '@/lib/data/web-admin';
 import type { WebKind } from '@/lib/web/schema';
 
 // The frame of the website's administrator (/admin/web): its own row of sections under the panel's menu (the panel's
 // «Más» and phone bar stay as they are), the chips of an item's state and small shared pieces. Server components.
 
-export function FlowChips({ flow, className }: { flow: ItemFlow; className?: string }) {
+// The flow may carry the item's kind and slug: the page «Atención ciudadana» then says «No sale en la web» (R01).
+export function FlowChips({ flow, className }: { flow: ItemFlow & { kind?: string; slug?: string }; className?: string }) {
   return (
     <span className={cn('flex flex-wrap items-center gap-1.5', className)}>
       {flowChips(flow).map((c) => (
@@ -24,7 +25,8 @@ export function FlowChips({ flow, className }: { flow: ItemFlow; className?: str
 }
 
 /** «Programado para el jue 7 de nov, 8:00 a. m.», «Publicado el …», for a list's meta line. */
-export function flowLine(flow: ItemFlow & { publishedAt?: Date | string | null }): string | null {
+export function flowLine(flow: ItemFlow & { publishedAt?: Date | string | null; kind?: string; slug?: string }): string | null {
+  if (isUnusedPage(flow)) return null;
   if (flow.archivedAt) return `Archivado el ${fmtDateTime(flow.archivedAt)}`;
   if (isScheduled(flow)) return `Sale el ${fmtDateTime(flow.publishAt)}`;
   if (flow.hasPublished && flow.publishedAt) return `Publicado el ${fmtDateTime(flow.publishedAt)}`;
@@ -68,7 +70,8 @@ export function CmsNav({ current, caps, waiting }: { current: string; caps: WebC
 }
 
 /** The kinds of content, as chips that lead to their lists (with how many there are). */
-export function KindTabs({ current, counts }: { current?: WebKind; counts: Partial<Record<WebKind, number>> }) {
+export async function KindTabs({ current, counts }: { current?: WebKind; counts: Partial<Record<WebKind, number>> }) {
+  const program = await programLabel();
   return (
     <nav aria-label="Tipos de contenido" className="mb-4">
       <ul className="flex flex-wrap gap-1.5">
@@ -82,7 +85,7 @@ export function KindTabs({ current, counts }: { current?: WebKind; counts: Parti
                 current === s.kind ? 'bg-accent text-on-accent' : 'border border-border bg-surface text-text-2 hover:text-text',
               )}
             >
-              {sectionLabel(s)}
+              {sectionLabel(s, program)}
               <span className="tabular text-xs">{counts[s.kind] ?? 0}</span>
             </Link>
           </li>
