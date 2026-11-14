@@ -11,7 +11,7 @@ import { DEMO_WORDS, LABEL_ALLOW, LABEL_PATTERNS, balancedQuotes, concreteDateTi
 import { canOpen } from '@/lib/assistant/screens';
 import { allEntries, entryById } from '@/lib/assistant/answers/engine';
 import { explainAnswer, explainAsk, explainUnitId, type ExplainContext, type Facet } from '@/lib/assistant/explain';
-import { facetsOf } from '@/lib/guides/explain';
+import { FLOW_FACET_IDS, facetsOf } from '@/lib/guides/explain';
 import { allGuides, toursForRoles } from '@/lib/guides';
 
 const FACETS: Facet[] = ['simpler', 'steps', 'example', 'next', 'purpose', 'why', 'meaning', 'more'];
@@ -347,9 +347,17 @@ describe('explainAnswer: lo que nunca hace', () => {
       for (const facet of FACETS) expect(explainAnswer(facet, 'palabra:feed', ctx([r])), `${r} ${facet}`).toBeNull();
     expect(explainAnswer('steps', 'jefe:paso-a-paso:aprobar-pieza', ctx(SOCIAL))).toBeNull();
     expect(explainAnswer('simpler', 'admin:pantalla:0', ctx(BOSS))).toBeNull();
-    // Administración is out of Mensajes.
+    // Administración is out of Mensajes: not the topic, not the flow (and, as the index, no flow of the team).
     expect(explainAnswer('simpler', 'todos:mensajes', ctx(['admin']))).toBeNull();
     expect(explainAnswer('simpler', 'todos:mensajes', ctx(['admin', 'social']))).toBeNull();
+    for (const facet of FACETS) {
+      expect(explainAnswer(facet, 'flujo:mensajes', ctx(['admin'])), facet).toBeNull();
+      expect(explainAnswer(facet, 'flujo:mensajes:escribe', ctx(['admin', 'boss'])), facet).toBeNull();
+      expect(explainAnswer(facet, 'flujo:evento', ctx(['admin'])), facet).toBeNull();
+    }
+    expect(explainAnswer('steps', 'flujo:mensajes', ctx(['social']))?.text).toMatch(/^Cómo se habla en Mensajes, paso a paso: 1\) /);
+    // A flow only to the roles whose guide has it: política's guide has no «El semáforo».
+    expect(explainAnswer('steps', 'flujo:aprobacion', ctx(['politics']))).toBeNull();
   });
 
   it('una etiqueta que solo contiene el nombre de una palabra no es esa palabra, si el tema no la dice', () => {
@@ -402,6 +410,15 @@ describe('explainAnswer: las reglas del contenido en todo lo que dice', () => {
       for (const facet of FACETS) {
         const r = explainAnswer(facet, e, ctx([role]));
         if (r) said.push({ where: `${e.id} ${role} ${facet}`, text: r.text, goTo: r.goTo, tutorial: r.tutorial, roles: [role], cursor: r.cursor });
+      }
+    }
+  }
+  // And each whole flow (`flujo:<id>`, as a «¿y después?» stores it), to everyone it is for.
+  for (const id of FLOW_FACET_IDS) {
+    for (const role of EVERYONE) {
+      for (const facet of FACETS) {
+        const r = explainAnswer(facet, id, ctx([role]));
+        if (r) said.push({ where: `${id} ${role} ${facet}`, text: r.text, goTo: r.goTo, tutorial: r.tutorial, roles: [role], cursor: r.cursor });
       }
     }
   }

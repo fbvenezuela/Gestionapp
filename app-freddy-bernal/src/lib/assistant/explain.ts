@@ -868,11 +868,12 @@ export function explainAnswer(facet: Facet, topic: Entry | string | null | undef
 }
 
 // A unit for this person: a role's guide only to that role (or the boss, who reads every guide, never asks about another
-// role's task as his own: the topic came from his own answers), administración's screens only to administración.
+// role's task as his own: the topic came from his own answers), administración's screens only to administración, a flow
+// only to the roles whose guide has it (as the index gives its steps).
 function allowed(u: Unit, roles: Role[]): boolean {
   if (u.kind === 'task' || u.kind === 'job' || u.kind === 'screen') return roles.includes(u.role);
-  if (u.kind === 'flow') return u.flow.roles.some((r) => roles.includes(r)) || roles.includes('admin');
-  // Administración is out of Mensajes (D-49), with any other role too.
+  // Administración is out of Mensajes (D-49), with any other role too: not its topic of «Para todos», not its flow.
+  if (u.kind === 'flow') return (u.flow.id !== 'mensajes' || !roles.includes('admin')) && allGuides().some((g) => g.flows.includes(u.flow.id) && roles.includes(g.role));
   if (u.kind === 'topic') return u.topic.id !== 'mensajes' || !roles.includes('admin');
   if (u.kind === 'entry') return u.entry.roles === null || u.entry.roles.some((r) => roles.includes(r));
   return true;
