@@ -505,19 +505,24 @@ const definesWord = (text: string, w: string) => {
   return new RegExp(String.raw`\b${stem}[a-z]*»?(?: \([^)]*\))?(?: [a-z]+){0,4}:|\b${stem}[a-z]* (?:es|son) |que (?:es|son) (?:una?|el|la|los|las) (?:[a-z]+ ){0,2}${stem}`).test(fold(text));
 };
 
+const TURNS = new Set(['sin', 'no', 'nunca', 'menos', 'solo', 'nada']);
 /** The part of the unit that says X best (its labels named whole first, then its words; what defines X, asked what it means), or null. */
 function partAbout(u: Unit, about: string, roles: Role[], define = false, last = false): Part | null {
   const want = tokens(about).filter((w) => w.length >= 3);
   if (!want.length) return null;
   const a = ` ${readable(about)} `;
-  const scored = partsOf(u, roles).map((p) => {
+  // A phrase with a word that turns its meaning around and that tokens() leaves out («sin programar» is «programar» to
+  // it): the part must say the phrase itself.
+  const phrase = readable(about).replace(ARTICLES, '').trim();
+  const whole = phrase.split(' ').some((w) => TURNS.has(w)) ? phrase : null;
+  const scored = partsOf(u, roles).filter((p) => !whole || ` ${readable(p.text)} `.includes(` ${whole} `)).map((p) => {
     const labels = [...p.text.matchAll(/«([^«»]+)»/g)].map((m) => readable(m[1]));
-    const whole = labels.some((l) => l.length >= 3 && (a.includes(` ${l} `) || ` ${l} `.includes(a)));
+    const named = labels.some((l) => l.length >= 3 && (a.includes(` ${l} `) || ` ${l} `.includes(a)));
     const have = tokens(p.text);
     const like = (w: string) => have.some((h) => h === w || (h.length >= 4 && w.length >= 4 && (h.startsWith(w) || w.startsWith(h))));
     const share = want.filter(like).length / want.length;
     const defines = define && want.some((w) => definesWord(p.text, w));
-    return { p, score: share + (whole ? 0.5 : 0) + (defines ? 0.4 : 0) + (p.own ? 0.1 : 0) };
+    return { p, score: share + (named ? 0.5 : 0) + (defines ? 0.4 : 0) + (p.own ? 0.1 : 0) };
   });
   // The best (the last of the best, «¿y después de …?»: the step where it is done).
   let best: { p: Part; score: number } | null = null;
@@ -814,6 +819,9 @@ function aboutCandidates(facet: Facet, u: Unit | null, about: string, ctx: Expla
       fromPart.push({ text: step !== undefined ? `Es el paso ${step + 1}: ${lcFirst(end(part.text))}` : end(ucFirst(part.text)), entryId: u.id, ...(step !== undefined ? { cursor: step + 1 } : {}) });
     }
   }
+  // X more than a word's name and nothing of the topic says it («¿qué significa «Sin programar»?» after another topic):
+  // not the word («Programar»); the answers of today take that question.
+  if (named && !named.only && !part) return [];
   return named?.only || !part ? [...word, ...fromPart] : [...fromPart, ...word];
 }
 

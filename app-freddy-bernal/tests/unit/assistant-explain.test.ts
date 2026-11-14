@@ -339,6 +339,13 @@ describe('explainAnswer: lo que nunca hace', () => {
     expect(explainAnswer('simpler', 'todos:mensajes', ctx(['admin', 'social']))).toBeNull();
   });
 
+  it('una etiqueta que solo contiene el nombre de una palabra no es esa palabra, si el tema no la dice', () => {
+    expect(explainAnswer('meaning', 'redes:paso-a-paso:tweets', ctx(SOCIAL, { about: 'sin programar' }))).toBeNull();
+    expect(explainAnswer('simpler', 'redes:paso-a-paso:tweets', ctx(SOCIAL, { about: 'la marca roja' }))).toBeNull();
+    // Said by the topic, it is the topic's («Quitar del feed» la deja «Sin programar»).
+    expect(explainAnswer('meaning', 'redes:paso-a-paso:feed', ctx(SOCIAL, { about: 'sin programar' }))?.text).toContain('«Sin programar»');
+  });
+
   it('sin tema no explica (salvo «¿qué significa eso?» con una palabra en la respuesta de antes)', () => {
     for (const facet of FACETS) expect(explainAnswer(facet, null, ctx(SOCIAL)), facet).toBeNull();
     expect(explainAnswer('simpler', 'no-es-una-entrada', ctx(SOCIAL))).toBeNull();

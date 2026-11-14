@@ -19,6 +19,7 @@ import roles from '../../config/assistant/roles.json';
 import client from '../../config/clients/fb.json';
 import { defaultProfile } from '@/lib/assistant/config';
 import { neutralIntro } from '@/lib/assistant/text';
+import { explainFacets } from '@/lib/guides/explain';
 
 type Said = { where: string; text: string };
 
@@ -135,6 +136,15 @@ const SAID: Said[] = [
   ...codeStrings('src/lib/assistant/config.ts'),
   ...codeStrings('src/lib/assistant/text.ts'),
   ...codeStrings('src/lib/assistant/index.ts'),
+  // How 360 explains (design §4(c)): its own lines and «Explicado fácil» (the easy text, the example and the reason).
+  ...codeStrings('src/lib/assistant/explain.ts'),
+  ...Object.entries(explainFacets()).flatMap(([id, f]) =>
+    (['easy', 'example', 'why'] as const).flatMap((k) => {
+      const t = f[k];
+      if (t === undefined) return [];
+      return typeof t === 'string' ? [{ where: `explain/${id}.${k}`, text: t }] : Object.entries(t).map(([r, x]) => ({ where: `explain/${id}.${k}/${r}`, text: String(x) }));
+    }),
+  ),
 ];
 
 describe('360 dice lo que dice la guía del equipo', () => {
