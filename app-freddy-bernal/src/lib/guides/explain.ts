@@ -65,7 +65,7 @@ const TASKS: Record<string, Facets> = {
     why: NOTICE_WHY,
   },
   'jefe:paso-a-paso:leer': {
-    easy: 'Antes de un acto abres lo que vas a decir, en letra grande. La agrandas con el +, el botón verde hace correr el texto solo y la X de arriba te saca.',
+    easy: 'Antes de un acto abres «Lo que voy a decir», en letra grande. La agrandas con el +, el botón verde hace correr el texto solo y la X de arriba te saca.',
     example: 'Por ejemplo: vas saliendo a una visita de obra. En Política tocas «Lo que voy a decir», agrandas la letra con el +, lees «Antes de hablar» y tocas el botón verde en «Lento» para que corra solo.',
   },
   'jefe:paso-a-paso:digital': {
@@ -81,11 +81,11 @@ const TASKS: Record<string, Facets> = {
     example: 'Por ejemplo: al cierre tocas «Resumen del mes · Mes 1» y ves que en Reels se hicieron 6 de 8, se aprobaron 5 y salieron 4, con la receptividad media debajo.',
   },
   'jefe:paso-a-paso:diseno': {
-    easy: 'Si no te gusta cómo se ve una pieza, marcas que el diseño no va y dices qué no te gustó. Si ya estaba aprobada, no sale hasta que la vuelvas a aprobar.',
+    easy: 'Si no te gusta cómo se ve una pieza, tocas «Diseño desaprobado» y dices qué no te gustó. Si ya estaba aprobada, no sale hasta que la vuelvas a aprobar.',
     example: 'Por ejemplo: un post aprobado tiene la letra muy pequeña. Tocas «Diseño desaprobado», lo escribes en «¿Qué no le gustó del diseño?», tocas «Guardar nota» y eliges «Sí, pedir cambios» para que Redes lo corrija.',
   },
   'jefe:paso-a-paso:eliminar-pieza': {
-    easy: 'Si una pieza ya no va, la eliminas desde los tres puntos de su tarjeta. Solo tú puedes, con el doble factor, y si fue un error, administración la recupera.',
+    easy: 'Si una pieza ya no va, la quitas con «Eliminar», en los tres puntos de su tarjeta. Solo tú puedes, con el doble factor, y si fue un error, administración la recupera.',
     example: 'Por ejemplo: un reel quedó repetido. En su tarjeta tocas los tres puntos → «Eliminar» y confirmas: sale de su sección y del feed.',
   },
   'jefe:paso-a-paso:armar-canal': {
@@ -113,12 +113,12 @@ const TASKS: Record<string, Facets> = {
     why: TITLE_WHY,
   },
   'despacho:paso-a-paso:ficha-tecnica': {
-    easy: 'La ficha técnica es lo que se sabe de un evento antes de ir. Cuando Hoy dice que está incompleta, la abres, la llenas y la guardas.',
+    easy: 'La ficha técnica es lo que se sabe de un evento antes de ir. Cuando Hoy dice que está incompleta, la abres, tocas «Editar», la llenas y la guardas.',
     example: 'Por ejemplo: Hoy dice «Ficha técnica incompleta». Abres el evento, pestaña «Ficha», tocas «Editar», escribes quién lo dirige y los datos con su fuente, y tocas «Guardar ficha».',
     why: 'Porque Redes escribe los copies solo con las cifras de la ficha: un dato que no está en la ficha no sale en lo que se publica.',
   },
   'despacho:paso-a-paso:quien-graba': {
-    easy: 'Le dices a la app qué persona de Grabación va a ese evento. A esa persona le llega un aviso de que le asignaron el evento, sin la fecha.',
+    easy: 'En «Quién graba» le dices a la app qué persona de Grabación va a ese evento. A esa persona le llega un aviso de que le asignaron el evento, sin la fecha.',
     example: 'Por ejemplo: un evento ya tiene fecha. Lo abres, pestaña «Ficha», y en «Quién graba» marcas a dos personas de Grabación: a ambas les llega «Te asignaron un evento».',
     why: NOTICE_WHY,
   },
@@ -128,7 +128,7 @@ const TASKS: Record<string, Facets> = {
     why: NOTICE_WHY,
   },
   'despacho:paso-a-paso:realizado': {
-    easy: 'Cuando el evento ya empezó o terminó, lo marcas como realizado. Su material pasa a la Biblioteca y ya no cambia de fecha ni de lugar.',
+    easy: 'Cuando el evento ya empezó o terminó, tocas «Marcar realizado». Su material pasa a la Biblioteca y ya no cambia de fecha ni de lugar.',
     example: 'Por ejemplo: termina una visita de obra. Abres el evento y, en la tarjeta de fecha y lugar, tocas «Marcar realizado»: lo grabado queda en la Biblioteca.',
   },
   'despacho:paso-a-paso:fichas': {
@@ -138,11 +138,11 @@ const TASKS: Record<string, Facets> = {
 
   // Política
   'politica:paso-a-paso:nueva-ficha': {
-    easy: 'Cuando pasa algo en una comunidad, lo cargas en una ficha comunitaria. Si es para la agenda del jefe, lo marcas y le llega al jefe para ponerle fecha.',
+    easy: 'Cuando pasa algo en una comunidad, lo cargas con «Nueva ficha comunitaria». Si es para la agenda del jefe, lo marcas y le llega al jefe para ponerle fecha.',
     example: 'Por ejemplo: una comunidad pide que el jefe la visite. En Municipios tocas «Nueva ficha comunitaria», llenas los grupos, prendes «¿Va a la agenda del jefe?» y tocas «Guardar y avisar al jefe».',
   },
   'politica:paso-a-paso:seguimiento': {
-    easy: 'Después de cada visita o noticia, le cuentas a la ficha cómo va: le cambias el estado o le agregas una nota. Todo queda en su historia.',
+    easy: 'Después de cada visita o noticia, le cuentas a la ficha cómo va: le cambias el estado con «Cambiar estado» o le agregas una nota. Todo queda en su historia.',
     example: 'Por ejemplo: empezó el arreglo que pidió una comunidad. Abres su ficha, en «Estado» eliges «En ejecución», escribes el avance en «Motivo o avance (opcional)» y tocas «Cambiar estado».',
   },
   'politica:paso-a-paso:vencidas': {
@@ -158,7 +158,7 @@ const TASKS: Record<string, Facets> = {
 
   // El IVT
   'ivt:paso-a-paso:nueva-obra': {
-    easy: 'Antes de cada visita del jefe, cargas la ficha de la obra con lo que sabes. Si te falta algo, la guardas como borrador; completa, le avisas al jefe.',
+    easy: 'Antes de cada visita del jefe cargas la ficha de la obra con «Nueva ficha de obra». Si te falta algo, la guardas como borrador; completa, le avisas al jefe.',
     example: 'Por ejemplo: el jefe va a visitar una obra. En Obras tocas «Nueva ficha de obra», llenas los cinco grupos, en lo que falta saber pones «Por confirmar» y tocas «Guardar y avisar al jefe».',
     why: 'Porque lo que va a decir el jefe sale solo de las cifras de la ficha: por eso cada dato lleva su fuente, y lo que no sabes va «Por confirmar».',
   },
@@ -167,7 +167,7 @@ const TASKS: Record<string, Facets> = {
     example: 'Por ejemplo: vas a la obra y tomas fotos de cómo va. Abres su ficha, tocas «Subir fotos del avance» y eliges las fotos; si se cae la señal, siguen subiendo cuando vuelve.',
   },
   'ivt:paso-a-paso:fab': {
-    easy: 'La app te arma lo que va a decir el jefe en la obra, en tres partes: qué es, qué mejora y qué gana la gente. Tú lo revisas, lo corriges y lo guardas.',
+    easy: 'Con «Generar diálogo FAB» la app te arma lo que va a decir el jefe en la obra: qué es, qué mejora y qué gana la gente. Tú lo revisas, lo corriges y lo guardas.',
     example: 'Por ejemplo: en la ficha tocas «Generar diálogo FAB». Abajo, en «Lo que la ficha no tiene (no se dice):», ves que falta cuántas familias se benefician: eso no sale en el texto. Corriges y tocas «Guardar».',
     why: 'Porque el jefe solo dice lo que está en la ficha: el diálogo usa solo sus cifras, y lo que la ficha no tiene no sale en el texto, para no inventar nada.',
   },
@@ -187,7 +187,7 @@ const TASKS: Record<string, Facets> = {
     example: 'Por ejemplo: te llega «Te asignaron un evento». Vas a Agenda → «Mis eventos», lo abres, lees «Cómo se llega» y en la pestaña «Storyboard» ves que Redes pide una toma del jefe hablando.',
   },
   'grabacion:paso-a-paso:subir': {
-    easy: 'El mismo día que grabas, subes lo grabado en el evento: cada parte en su casilla, ya limpio y tal como sale de la cámara.',
+    easy: 'El mismo día que grabas, subes lo grabado en el evento con el botón «Subir» de cada casilla, ya limpio y tal como sale de la cámara.',
     example: 'Por ejemplo: grabaste al jefe hablando y unas tomas con el dron. Abres el evento, en «Material» tocas «Subir» en la casilla del jefe y luego en la del dron, con los archivos sin pasar por WhatsApp.',
   },
   'grabacion:paso-a-paso:entrega': {
@@ -196,7 +196,7 @@ const TASKS: Record<string, Facets> = {
     why: 'Porque la nota la lee Redes, y Redes nunca ve la fecha, la hora ni la dirección: por eso va sin eso, y con un teléfono la nota no se guarda.',
   },
   'grabacion:paso-a-paso:realizado': {
-    easy: 'Cuando el evento ya empezó, lo marcas como realizado en la tarjeta de arriba. Su material pasa al registro por día.',
+    easy: 'Cuando el evento ya empezó, tocas «Marcar realizado» en la tarjeta de arriba. Su material pasa al registro por día.',
     example: 'Por ejemplo: llegas al evento y ya empezó. Lo abres, tocas «Marcar realizado» en la tarjeta de arriba y sigues grabando; después subes el material.',
   },
 
@@ -206,7 +206,7 @@ const TASKS: Record<string, Facets> = {
     example: 'Por ejemplo: en la pestaña «Storyboard» escribes el saludo del jefe en «Lo que va a decir», tocas «Agregar bloque» para una toma de la gente y otra del jefe hablando, y tocas «Guardar storyboard».',
   },
   'redes:paso-a-paso:material': {
-    easy: 'Cuando Grabación sube lo grabado, abres el evento, lees su nota para el editor y bajas todo el material a una carpeta para editar.',
+    easy: 'Cuando Grabación sube lo grabado, abres el evento, lees su nota para el editor y tocas «Descargar todo el material» para bajarlo a una carpeta.',
     example: 'Por ejemplo: Hoy dice «Material». Abres el evento, pestaña «Material», lees la «Nota para el editor» y tocas «Descargar todo el material».',
   },
   'redes:paso-a-paso:pieza': {
@@ -253,7 +253,7 @@ const TASKS: Record<string, Facets> = {
     example: 'Por ejemplo: en Publicar tocas «Nueva publicación», eliges el reel aprobado, Instagram y TikTok, pones el «Día» y la «Hora (Táchira)» y tocas «Programar en 2 redes»; a esa hora bajas el «Video» y tocas «Copiar el copy».',
   },
   'redes:paso-a-paso:resultados': {
-    easy: 'Unos días después de publicar, anotas cómo le fue: vistas, alcance, me gusta y lo demás. Con eso la app te dice a qué hora nos va mejor.',
+    easy: 'Unos días después de publicar, anotas cómo le fue con «Cargar resultados»: vistas, alcance, me gusta y lo demás. Con eso sabes a qué hora nos va mejor.',
     example: 'Por ejemplo: abres la publicación del reel, tocas «Cargar resultados», escribes las vistas y los me gusta que dice Instagram y tocas «Guardar resultados».',
   },
   'redes:paso-a-paso:tweets': {

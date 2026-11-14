@@ -18,7 +18,7 @@ import type { Flow, FlowStep, GlossaryTerm, RoleGuide, SharedTopic, Task } from 
 import { entryById, findAnswers, readable, textFor, tokens, WEAK, type Entry } from './answers/engine';
 import { asksAgendaData, asksPlace, asksWhenIndirect, eventSignals, eventThread, type EventSignal } from './events';
 import { canOpen } from './screens';
-import { plain, sentences } from './text';
+import { plain } from './text';
 import type { TitleSet } from './titles';
 
 // ── What is asked ──────────────────────────────────────────────────────────────────────────────────────────────────
@@ -132,7 +132,7 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
   const tail = t.replace(TAIL, '');
   if (o.last && ASKED_TO_GO_ON.test(o.last) && YES.test(tail)) return { facet: 'more' };
   if (WHAT_ELSE.test(tail)) return { facet: 'more' };
-  let core = tail.replace(LEAD, '').replace(TAIL, '').trim();
+  let core = tail.replace(LEAD, '').replace(TAIL, '').trim() || t.replace(LEAD, '').trim() || tail;
   if (!core) return null;
   // «No entendí, dame un ejemplo»: the second ask says what is wanted.
   const after = /^no (?:te |le )?(?:entendi|entiendo|capte|comprendi)(?: nada| bien)? (.+)$/.exec(core)?.[1];
@@ -232,11 +232,15 @@ function unitOf(id: string, e?: Entry): Unit | null {
   return e ? { kind: 'entry', id, entry: e } : null;
 }
 
-// The guide units a curated answer is about: the best of the guide's entries (tasks, screens, flows, «Para todos»,
-// words) for its ways of asking, for this person. Asked the way the curated answer is asked, the guide's own entry is the
-// first one that is not curated; it must come back for most of its ways of asking (or its tutorial must be that unit's).
+// The guide unit a curated answer is about (a task, a screen, a flow, a topic of «Para todos», a word), for this person:
+// asked the way the curated answer is asked (its ways of asking and its own text), the guide's entries that come first
+// after the curated ones vote for their unit (the first more than the next ones); the curated answer's tutorial votes
+// for the task, or else the screen, of the person's guide that has it. The unit wins only by a clear margin: a wrong one
+// would explain another thing.
 const relatedCache = new Map<string, string | null>();
 const UNIT_KINDS = new Set(['task', 'step', 'screen', 'item', 'flow', 'topic', 'line', 'term']);
+const VOTE_MIN = 1.2;
+const VOTE_MARGIN = 1.6;
 function relatedOf(e: Entry, roles: Role[]): Unit | null {
   const key = `${e.id}|${[...roles].sort().join(',')}`;
   if (!relatedCache.has(key)) relatedCache.set(key, relatedId(e, roles));
@@ -245,18 +249,48 @@ function relatedOf(e: Entry, roles: Role[]): Unit | null {
 }
 function relatedId(e: Entry, roles: Role[]): string | null {
   const votes = new Map<string, number>();
-  const qs = e.q.slice(0, 8);
-  for (const q of qs) {
-    const m = findAnswers(q, { roles, limit: 6 }).find((x) => x.entry.kind !== 'curated' && UNIT_KINDS.has(x.entry.kind) && x.score >= WEAK);
-    const u = m ? unitOf(m.entry.id, m.entry) : null;
-    if (u && u.kind !== 'entry') votes.set(u.id, (votes.get(u.id) ?? 0) + 1);
+  for (const q of [...e.q.slice(0, 8), textFor(e.a, roles)]) {
+    const found = findAnswers(q, { roles, limit: 8 }).filter((x) => x.entry.kind !== 'curated' && UNIT_KINDS.has(x.entry.kind) && x.score >= WEAK);
+    const seen = new Set<string>();
+    let w = 1;
+    for (const m of found) {
+      const u = unitOf(m.entry.id, m.entry);
+      if (!u || u.kind === 'entry' || seen.has(u.id)) continue;
+      seen.add(u.id);
+      votes.set(u.id, (votes.get(u.id) ?? 0) + w * m.score);
+      w /= 2;
+      if (seen.size >= 3) break;
+    }
   }
-  const [best, n] = [...votes.entries()].sort((a, b) => b[1] - a[1])[0] ?? [null, 0];
-  if (!best) return null;
-  const u = unitOf(best, entryById(best));
-  const tour = u?.kind === 'task' ? u.task.tour : u?.kind === 'screen' ? u.section.tour : undefined;
-  // Most of its ways of asking land there, or two of them and its tutorial is that unit's.
-  return n * 2 > qs.length || (n >= 2 && !!e.tutorial && tour === e.tutorial) ? best : null;
+  if (e.tutorial) {
+    const mine = allGuides().filter((g) => roles.includes(g.role));
+    const task = mine.flatMap((g) => g.tasks.filter((t) => t.tour === e.tutorial).map((t) => `${g.slug}:paso-a-paso:${t.id}`));
+    const screen = mine.flatMap((g) => g.sections.map((s, k) => (s.tour === e.tutorial ? `${g.slug}:pantalla:${k}` : null)).filter((x): x is string => !!x));
+    const by = task.length === 1 ? task[0] : task.length === 0 && screen.length === 1 ? screen[0] : null;
+    if (by) votes.set(by, (votes.get(by) ?? 0) + 1);
+  }
+  const ranked = [...votes.entries()].sort((a, b) => b[1] - a[1]);
+  const [best, second] = ranked;
+  if (!best || best[1] < VOTE_MIN || (second && best[1] < second[1] * VOTE_MARGIN)) return null;
+  // And the unit says what the curated answer says: a fair share of its words («Cambiar nombre» of a month is not «¿cómo
+  // cambio mi nombre?», answered with Mi perfil).
+  const u = unitOf(best[0], entryById(best[0]));
+  const said = new Set(tokens(textFor(e.a, roles)).filter((w) => w.length >= 4));
+  const has = new Set(u ? tokens(unitText(u, roles)) : []);
+  const share = said.size ? [...said].filter((w) => has.has(w)).length / said.size : 0;
+  return share >= OVERLAP ? best[0] : null;
+}
+// The share of a curated answer's words its unit must say.
+const OVERLAP = 0.25;
+/** All a unit says, for the overlap above. */
+function unitText(u: Unit, roles: Role[]): string {
+  if (u.kind === 'task') return [u.task.title, u.task.when, ...u.task.steps].join(' ');
+  if (u.kind === 'screen') return [u.section.title, u.section.what, ...u.section.youDo, ...(u.section.cannot ?? [])].join(' ');
+  if (u.kind === 'flow') return [u.flow.title, ...u.flow.steps.flatMap((s) => [s.text, ...(s.branches ?? []).map((b) => b.text)])].join(' ');
+  if (u.kind === 'topic') return [u.topic.title, ...topicLines(u.topic, roles)].join(' ');
+  if (u.kind === 'term') return [u.term.term, ...u.term.aka, u.term.text].join(' ');
+  if (u.kind === 'job') return u.guide ? [u.guide.job.mission, ...u.guide.job.responsibilities, ...u.guide.job.never].join(' ') : ADMIN_GUIDE.mission;
+  return textFor(u.entry.a, roles);
 }
 
 /** The unit of the topic for this person: its own, or the one a curated answer is about (or its own text, when none). */
@@ -457,7 +491,7 @@ function partsOf(u: Unit, roles: Role[]): Part[] {
   if (u.kind === 'topic') return [...topicLines(u.topic, roles).map((text, step) => ({ text, step, own: true })), ...extra(easy)];
   if (u.kind === 'term') return [{ text: u.term.text, own: true }, ...extra(easy)];
   if (u.kind === 'job') return [...(u.guide ? [u.guide.job.mission, ...u.guide.job.responsibilities, ...u.guide.job.never] : [ADMIN_GUIDE.mission]).map((text) => ({ text, own: true })), ...extra([...faq(u.guide), ...easy])];
-  return sentences(textFor(u.entry.a, roles)).map((text) => ({ text, own: true }));
+  return sentencesOf(textFor(u.entry.a, roles)).map((text) => ({ text, own: true }));
 }
 
 // A part that says what X is (asked what it means or what it is for): the label or the word, then «:» within a few words
@@ -557,7 +591,7 @@ function simpler(u: Unit, ctx: ExplainContext, tours: Set<string>): Candidate[] 
   if (g) out.push({ text: [termFacet(g, 'easy', ctx.roles) ?? glossaryLine(g), first ? `Lo primero: ${lcFirst(end(first))}` : ''].filter(Boolean).join(' '), entryId: u.id });
   // Its first sentence, and the tutorial when there is one.
   const tour = tourOfUnit(u);
-  const lead = sentences(guideText(u, ctx.roles))[0];
+  const lead = sentencesOf(guideText(u, ctx.roles))[0];
   if (lead && tour && tours.has(tour)) out.push({ text: `${lead} ¿Te lo muestro? Toca el botón y te lo enseño en la pantalla.`, entryId: u.id, tutorial: tour });
   return out;
 }
@@ -651,6 +685,9 @@ function purpose(u: Unit, ctx: ExplainContext): Candidate[] {
   return out;
 }
 
+// Without a reason in the data: the guide does not give it (or, for a curated answer of 360, 360 does not have it).
+const noWhy = (u: Unit) => (u.kind === 'entry' ? 'De eso no tengo el porqué.' : 'La guía no da el porqué de eso.');
+
 function why(u: Unit, ctx: ExplainContext): Candidate[] {
   const roles = ctx.roles;
   const out: Candidate[] = [];
@@ -658,9 +695,9 @@ function why(u: Unit, ctx: ExplainContext): Candidate[] {
   if (w) out.push({ text: w, entryId: u.id });
   // Without a reason in the guide: what the guide says, and the guide.
   const go = guideHref(u, roles);
-  const says = sentences(guideText(u, roles)).find((s) => !wasSaid(s, ctx.said ?? [])) ?? null;
-  if (says) out.push({ text: `La guía no da el porqué de eso. Lo que dice es esto: ${lcFirst(end(says))}`, entryId: u.id, ...(go ? { goTo: go } : {}) });
-  if (go) out.push({ text: 'La guía no da el porqué de eso. Tu guía completa está en «Ayuda y guías»: toca el botón.', entryId: u.id, goTo: go });
+  const says = sentencesOf(guideText(u, roles)).find((s) => !wasSaid(s, ctx.said ?? [])) ?? null;
+  if (says) out.push({ text: `${noWhy(u)} ${u.kind === 'entry' ? 'Lo que sé es esto' : 'Lo que dice es esto'}: ${lcFirst(end(says))}`, entryId: u.id, ...(go ? { goTo: go } : {}) });
+  if (go) out.push({ text: `${noWhy(u)} Tu guía completa está en «Ayuda y guías»: toca el botón.`, entryId: u.id, goTo: go });
   return out;
 }
 
@@ -719,7 +756,7 @@ function more(u: Unit, ctx: ExplainContext): Candidate[] {
   }
   // A curated answer that was cut: its sentences after the cut.
   if (u.kind === 'entry') {
-    const all = sentences(textFor(u.entry.a, roles));
+    const all = sentencesOf(textFor(u.entry.a, roles));
     const rest = all.filter((s) => !wasSaid(s, said));
     if (rest.length && rest.length < all.length) out.push({ text: rest.slice(0, 2).join(' '), entryId: u.id });
   }
@@ -771,7 +808,7 @@ function aboutCandidates(facet: Facet, u: Unit | null, about: string, ctx: Expla
       const w = facetText(u, 'why', roles);
       if (w) fromPart.push({ text: w, entryId: u.id });
       const go = guideHref(u, roles);
-      fromPart.push({ text: `La guía no da el porqué de eso. Lo que dice es esto: ${lcFirst(end(part.text))}`, entryId: u.id, ...(go ? { goTo: go } : {}) });
+      fromPart.push({ text: `${noWhy(u)} ${u.kind === 'entry' ? 'Lo que sé es esto' : 'Lo que dice es esto'}: ${lcFirst(end(part.text))}`, entryId: u.id, ...(go ? { goTo: go } : {}) });
     } else {
       const step = part.own && part.step !== undefined && u.kind === 'task' ? part.step : undefined;
       fromPart.push({ text: step !== undefined ? `Es el paso ${step + 1}: ${lcFirst(end(part.text))}` : end(ucFirst(part.text)), entryId: u.id, ...(step !== undefined ? { cursor: step + 1 } : {}) });
@@ -829,11 +866,33 @@ function allowed(u: Unit, roles: Role[]): boolean {
   return true;
 }
 
+/** The sentences of a text, never cutting a «label» in two («Sin señal. Lo que escribas…» is one label). */
+export function sentencesOf(text: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '«') depth++;
+    else if (c === '»') depth = Math.max(0, depth - 1);
+    const ends = depth === 0 && (/[.!?…]/.test(c) || (c === '»' && /[.!?…]/.test(text[i - 1] ?? ''))) && (i + 1 === text.length || /\s/.test(text[i + 1]));
+    if (ends) {
+      // A sentence ends here (and the quote that closes right after it, «… se envía cuando vuelva.»).
+      const piece = text.slice(start, i + 1).trim();
+      if (piece) out.push(piece);
+      start = i + 1;
+    }
+  }
+  const rest = text.slice(start).trim();
+  if (rest) out.push(rest);
+  return out;
+}
+
 // Up to about 460 letters, by whole sentences (as local.ts says an answer), never cutting «¿Sigo?» from its steps.
 function clip(t: string): string {
   if (t.length <= 480) return t;
   let out = '';
-  for (const x of sentences(t)) {
+  for (const x of sentencesOf(t)) {
     if (`${out} ${x}`.trim().length > 460) break;
     out = `${out} ${x}`.trim();
   }
