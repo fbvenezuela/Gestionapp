@@ -23,7 +23,7 @@ export const GUIA_WEB: WebDoc = {
       audience: ['boss', 'admin'],
       blocks: [
         { kind: 'p', text: 'Esta guía cuenta qué tiene la web del gobernador, sección por sección, y cómo la usa la gente. También dice qué hace cada rol en el panel. El detalle de cada pantalla del panel está en dos manuales: el **manual de la web** (escribir y publicar) y el **manual de atención** (atender solicitudes).', wrap: [110, 118, 81] },
-        { kind: 'p', text: 'Hoy la web y el panel se usan en una **versión de prueba** (ver 3.1). Google no la muestra. Todavía no está abierta al público. Lo que va entre comillas, «así», es el texto exacto que sale en la pantalla.' },
+        { kind: 'p', text: 'Hoy la web y el panel se usan en una **versión de prueba** (ver [§prueba-que-es]). Google no la muestra. Todavía no está abierta al público. Lo que va entre comillas, «así», es el texto exacto que sale en la pantalla.' },
       ],
     },
     {
@@ -36,7 +36,7 @@ export const GUIA_WEB: WebDoc = {
         {
           kind: 'note',
           paras: [
-            '**Las capturas de esta guía.** Usan noticias, fotos y textos de ejemplo, para que en la guía no aparezca ninguna noticia real. En la web y en el panel se ven las noticias, las columnas de opinión, las fotos, la biografía y el Semanario de la web oficial (ver 3.2).',
+            '**Las capturas de esta guía.** Usan noticias, fotos y textos de ejemplo, para que en la guía no aparezca ninguna noticia real. En la web y en el panel se ven las noticias, las columnas de opinión, las fotos, la biografía y el Semanario de la web oficial (ver [§prueba-real-y-ejemplo]).',
           ],
         },
         { kind: 'p', text: 'Todas las páginas tienen el mismo marco:' },
@@ -44,9 +44,9 @@ export const GUIA_WEB: WebDoc = {
           kind: 'list',
           items: [
             '**Arriba:** el nombre y el cargo del gobernador, y los dos botones de la gente: **«Hacer un reporte»** (en naranja) y **«Consultar mi solicitud»**. En el teléfono, los botones van en su propia fila, debajo del nombre. En la computadora van al lado del nombre. En el teléfono, las secciones se abren con **«Menú»** y se cierran con «Cerrar». En la computadora van en una barra, debajo del nombre.',
-            '**El menú:** las secciones de la web. Hoy son «Inicio», «El gobernador», «Noticias», «[PROGRAMA]», «Atención ciudadana», «Transparencia» y «Canales». El menú se cambia en «Ajustes del sitio» → «Navegación». Ahí se agrega «Gestión y obras» cuando haya obras publicadas (ver 1.3).',
+            '**El menú:** las secciones de la web. Hoy son «Inicio», «El gobernador», «Noticias», «[PROGRAMA]», «Atención ciudadana», «Transparencia» y «Canales». El menú se cambia en «Ajustes del sitio» → «Navegación». Ahí se agrega «Gestión y obras» cuando haya obras publicadas (ver [§gestion-y-obras]).',
             '**Abajo, el pie:** los mismos dos botones. Debajo, el aviso «Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.». Después vienen «Secciones» (el menú otra vez) y «Canales oficiales», con el enlace «Cómo identificar las cuentas oficiales». Al final van las páginas legales y «Acceso del personal», que lleva al panel.',
-            '**La franja de la versión de prueba:** «Versión de prueba en revisión. No es el sitio oficial.». Sale arriba de cada página y se repite al final del pie. No se puede cerrar (ver 3.3).',
+            '**La franja de la versión de prueba:** «Versión de prueba en revisión. No es el sitio oficial.». Sale arriba de cada página y se repite al final del pie. No se puede cerrar (ver [§la-franja]).',
           ],
         },
         { kind: 'p', text: 'Cada sección de abajo dice qué ve la persona y de qué pantalla del panel sale. También dice qué pasa cuando no hay datos. El párrafo **Hoy** de cada sección cuenta lo que se ve ahora, en la versión de prueba. El público nunca ve un espacio vacío ni un «Por completar»: eso solo sale en la «Vista previa» del panel.' },
@@ -71,7 +71,7 @@ export const GUIA_WEB: WebDoc = {
             '**«Canales oficiales»:** las cuentas, con «Cómo identificar las cuentas oficiales».',
           ],
         },
-        { kind: 'p', text: 'Entre «Atención ciudadana» y «Últimas publicaciones» va el bloque **«[PROGRAMA]»**: la última emisión, con «Ver todas las emisiones» y el enlace al canal de YouTube. Hoy no aparece, porque todavía no hay emisiones publicadas (ver 1.5).' },
+        { kind: 'p', text: 'Entre «Atención ciudadana» y «Últimas publicaciones» va el bloque **«[PROGRAMA]»**: la última emisión, con «Ver todas las emisiones» y el enlace al canal de YouTube. Hoy no aparece, porque todavía no hay emisiones publicadas (ver [§programa]).' },
         { kind: 'p', text: 'Hay cuatro bloques más. Hoy están ocultos, porque todavía no hay contenido real para ellos:' },
         {
           kind: 'list',
@@ -188,9 +188,9 @@ export const GUIA_WEB: WebDoc = {
         {
           kind: 'list',
           items: [
-            '«Nueva solicitud»: el formulario (ver 2.1).',
-            '«Consultar mi solicitud»: la consulta (ver 2.4).',
-            '«Casos atendidos»: las solicitudes resueltas que se publican (ver 2.7).',
+            '«Nueva solicitud»: el formulario (ver [§hacer-un-reporte]).',
+            '«Consultar mi solicitud»: la consulta (ver [§consultar]).',
+            '«Casos atendidos»: las solicitudes resueltas que se publican (ver [§ver-casos-atendidos]).',
           ],
         },
         { kind: 'p', text: '**De dónde sale.** Los textos de esta página no se cambian desde el panel. Lo que sí se cambia:' },
@@ -224,7 +224,7 @@ export const GUIA_WEB: WebDoc = {
         },
         { kind: 'p', text: '**De dónde sale.** Los documentos, de «Web» → «Documentos» (todas las categorías). Las cifras las cuenta la app con las solicitudes de Atención: nadie las escribe.', wrap: [115, 47] },
         { kind: 'p', text: '**Sin datos.** «Aún no hay documentos publicados.». Sin solicitudes en el período: «No hay solicitudes en este período.». Las denuncias no cuentan por categoría ni por municipio.' },
-        { kind: 'p', text: '**Hoy.** En «Documentos» está la última edición del Semanario. Las cifras salen de las solicitudes de ejemplo (ver 3.2). Por eso, antes de la primera cifra dice «Cifras de ejemplo de la versión de prueba, calculadas con solicitudes inventadas.».' },
+        { kind: 'p', text: '**Hoy.** En «Documentos» está la última edición del Semanario. Las cifras salen de las solicitudes de ejemplo (ver [§prueba-real-y-ejemplo]). Por eso, antes de la primera cifra dice «Cifras de ejemplo de la versión de prueba, calculadas con solicitudes inventadas.».' },
       ],
     },
     {
@@ -237,7 +237,7 @@ export const GUIA_WEB: WebDoc = {
         { kind: 'p', text: '**Qué ve la persona.** «Canales oficiales», con una tarjeta por cuenta. La cuenta confirmada lleva la marca «verificada». Si están verificados, salen también el «Portal institucional» y los «Contactos institucionales». Después viene «Cómo identificar las cuentas oficiales», con cuatro consejos. Uno es el aviso contra estafas: «Ningún funcionario de la Gobernación solicita dinero, claves, códigos de verificación ni datos bancarios. Desconfíe de quien lo haga en su nombre.». Al final va el aviso de emergencias.', wrap: [107, 118, 120, 119, 46] },
         { kind: 'p', text: '**De dónde sale.** «Ajustes del sitio»: «Cuentas en redes», «Canal de YouTube del programa», «Canal de WhatsApp», «Portal institucional» y «Contactos institucionales».' },
         { kind: 'p', text: '**Sin datos.** «Las cuentas oficiales se publicarán próximamente.».' },
-        { kind: 'p', text: '**Hoy.** La versión de prueba muestra también las cuentas que faltan por confirmar. Arriba va una sola línea: «Estas cuentas están en proceso de confirmación.» o «Las cuentas sin la marca de verificación están en proceso de confirmación.». La marca «verificada» ya viene puesta y no se cambia (ver 3.4). Cuando la web abra al público, el equipo marca «Verificada» en «Ajustes del sitio» → «Cuentas en redes». Entonces saldrán solo las cuentas activas y verificadas.' },
+        { kind: 'p', text: '**Hoy.** La versión de prueba muestra también las cuentas que faltan por confirmar. Arriba va una sola línea: «Estas cuentas están en proceso de confirmación.» o «Las cuentas sin la marca de verificación están en proceso de confirmación.». La marca «verificada» ya viene puesta y no se cambia (ver [§prueba-lo-que-no-se-cambia]). Cuando la web abra al público, el equipo marca «Verificada» en «Ajustes del sitio» → «Cuentas en redes». Entonces saldrán solo las cuentas activas y verificadas.' },
       ],
     },
     {
@@ -293,10 +293,10 @@ export const GUIA_WEB: WebDoc = {
             'Toca **«Hacer un reporte»**, arriba en naranja. Se abre el formulario con el título «Hacer un reporte» y la línea «El formulario tiene cuatro pasos. No necesita registrarse.». En la versión de prueba, arriba dice «Versión de prueba. No escriba datos reales.».',
             '**Paso 1, «Tipo de solicitud».** En «Seleccione una opción» ya está marcado «Reporte». Elige la «Categoría», por ejemplo «Agua». Toca **«Siguiente»**.',
             '**Paso 2, «Lugar».** Elige el «Municipio»: en un reporte es obligatorio. «Parroquia, localidad o sector» y «Punto de referencia» son opcionales. En «Ubicación exacta (opcional)», «Usar mi ubicación» o «Marcar en el mapa» guardan el punto con el permiso de la persona. «Quitar ubicación» lo borra. Toca **«Siguiente»**.',
-            'Si ya hay reportes abiertos del mismo problema cerca, sale **«Reportes parecidos»**, con cuántos hay: por ejemplo, «Hay 2 reportes abiertos del mismo problema cerca de ese lugar.». **«Apoyar este reporte»** suma el apoyo (ver 2.2). **«No, es otro problema»** sigue con el reporte propio.',
+            'Si ya hay reportes abiertos del mismo problema cerca, sale **«Reportes parecidos»**, con cuántos hay: por ejemplo, «Hay 2 reportes abiertos del mismo problema cerca de ese lugar.». **«Apoyar este reporte»** suma el apoyo (ver [§apoyar-un-reporte]). **«No, es otro problema»** sigue con el reporte propio.',
             '**Paso 3, «Detalle de la solicitud».** Escribe el «Título» y la «Descripción». La «Fecha del hecho» es opcional. En «Fotos o documentos» van hasta 3 archivos: fotos JPG, PNG o WebP, o documentos PDF. Toca **«Siguiente»**.',
             '**Paso 4, «Contacto y envío».** Arriba sale el resumen («Tipo», «Lugar» y «Detalle»), con «Cambiar» en cada fila. En «Datos de contacto (opcional)», marca «Enviar como anónimo» o llena «Nombre», «Correo», «Teléfono» y «Medio de contacto preferido». Con un nombre aparece la casilla «Autorizo que se publique mi nombre si mi solicitud aparece en «Casos atendidos».». Marca «Leí el aviso de privacidad (se abre en otra pestaña) y acepto el uso de mis datos para atender esta solicitud.».',
-            'Toca **«Enviar»**. Sale «Solicitud recibida», con el comprobante (ver 2.3).',
+            'Toca **«Enviar»**. Sale «Solicitud recibida», con el comprobante (ver [§comprobante]).',
           ],
           wrap: { 0: [117, 117, 23], 2: [113, 114, 89], 5: [113, 113, 116, 114, 25] },
         },
@@ -471,11 +471,11 @@ export const GUIA_WEB: WebDoc = {
           items: [
             'Es la web del gobernador y el panel del equipo. Se abre con su propio enlace, que no es el de la web oficial.',
             'En algunas pantallas se llama «demostración» o «demo»: es lo mismo que la versión de prueba.',
-            'Arriba de cada página va la franja «Versión de prueba en revisión. No es el sitio oficial.» (ver 3.3).',
+            'Arriba de cada página va la franja «Versión de prueba en revisión. No es el sitio oficial.» (ver [§la-franja]).',
             'Google y los demás buscadores no la muestran.',
             'Las noticias, las columnas de opinión, la biografía, las fotos y el Semanario son una copia de la web oficial, [WEB_OFICIAL].',
             'Esa copia se hace de nuevo de vez en cuando. Por eso lo más nuevo de la web oficial no sale aquí enseguida.',
-            '«Atención ciudadana» trae solicitudes de ejemplo para practicar. Los tres comprobantes de prueba se abren en «Consultar mi solicitud» (ver 3.6).',
+            '«Atención ciudadana» trae solicitudes de ejemplo para practicar. Los tres comprobantes de prueba se abren en «Consultar mi solicitud» (ver [§comprobantes-de-prueba]).',
             'Por ahora la versión de prueba no envía correos. Los que mandaría quedan en «Ajustes» → «Buzón de correos», que solo ve Administración.',
           ],
         },
@@ -492,9 +492,9 @@ export const GUIA_WEB: WebDoc = {
           kind: 'list',
           items: [
             '**Viene de la web oficial:** el nombre, el cargo y la foto de la portada. En «El gobernador», la «Biografía», «Elección y toma de posesión» y «Condecoraciones», con su fuente. Las noticias y las columnas de «Opinión» más recientes, con sus fotos. La última edición del Semanario.',
-            '**Es de ejemplo:** las personas del panel (ver 3.5). También las 60 solicitudes de «Atención ciudadana», que llevan «(demo)» en el título, con sus tres comprobantes (ver 3.6). Las cifras de «Transparencia» salen de esas solicitudes, y la página lo dice.',
+            '**Es de ejemplo:** las personas del panel (ver [§entrar-con-un-toque]). También las 60 solicitudes de «Atención ciudadana», que llevan «(demo)» en el título, con sus tres comprobantes (ver [§comprobantes-de-prueba]). Las cifras de «Transparencia» salen de esas solicitudes, y la página lo dice.',
             '**Ya venía escrito en la app:** las siete preguntas frecuentes de «Atención ciudadana». Cuentan cómo funciona la atención.',
-            '**Todavía no sale:** las emisiones del «[PROGRAMA]»: su página lleva al canal oficial de YouTube. En la portada, «Gestión en cifras», «Casos atendidos», «Gestión y obras» y «Avisos de servicio». En el menú, «Gestión y obras». En «El gobernador», «Material para la prensa». Para ellos todavía no hay contenido real (ver 1.1, 1.2 y 1.5).',
+            '**Todavía no sale:** las emisiones del «[PROGRAMA]»: su página lleva al canal oficial de YouTube. En la portada, «Gestión en cifras», «Casos atendidos», «Gestión y obras» y «Avisos de servicio». En el menú, «Gestión y obras». En «El gobernador», «Material para la prensa». Para ellos todavía no hay contenido real (ver [§inicio], [§el-gobernador] y [§programa]).',
           ],
         },
         { kind: 'p', text: 'En el panel, cada nota traída de la web oficial lleva arriba el aviso «Traído de la web vieja».' },
@@ -511,7 +511,7 @@ export const GUIA_WEB: WebDoc = {
           kind: 'list',
           items: [
             'Arriba de cada página de la web va la franja «Versión de prueba en revisión. No es el sitio oficial.». Se repite al final del pie.',
-            'No se puede cerrar. Tampoco se cambia: dice siempre lo mismo (ver 3.4).',
+            'No se puede cerrar. Tampoco se cambia: dice siempre lo mismo (ver [§prueba-lo-que-no-se-cambia]).',
             'Los formularios de «Atención ciudadana» avisan aparte, arriba: «Versión de prueba. No escriba datos reales.». Debajo explican que cualquier persona que use la prueba puede ver lo que se envía. También dicen que se borra.',
           ],
         },
@@ -618,7 +618,7 @@ export const GUIA_WEB: WebDoc = {
       heading: { level: 2, num: '4.' },
       audience: ['boss', 'admin'],
       blocks: [
-        { kind: 'p', text: 'Cada persona entra con su propio usuario y con doble factor: un código que llega por correo y otro que da Google Authenticator, una aplicación gratuita que se instala en el teléfono. No hay contraseñas. En la versión de prueba se entra con un toque, sin código (ver 3.5). Administración da los roles en «Ajustes» → «Equipo» → «Invitar a alguien», en el grupo «Web y atención ciudadana (siempre con doble factor)». Estos roles solo tienen «Web» o «Atención» en el menú.', wrap: [112, 106, 116, 119, 11] },
+        { kind: 'p', text: 'Cada persona entra con su propio usuario y con doble factor: un código que llega por correo y otro que da Google Authenticator, una aplicación gratuita que se instala en el teléfono. No hay contraseñas. En la versión de prueba se entra con un toque, sin código (ver [§entrar-con-un-toque]). Administración da los roles en «Ajustes» → «Equipo» → «Invitar a alguien», en el grupo «Web y atención ciudadana (siempre con doble factor)». Estos roles solo tienen «Web» o «Atención» en el menú.', wrap: [112, 106, 116, 119, 11] },
         {
           kind: 'table',
           head: ['Rol', 'Menú', 'En una línea'],

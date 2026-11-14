@@ -25,7 +25,7 @@ export const FLUJOS_WEB: WebDoc = {
         {
           kind: 'note',
           paras: [
-            'Hoy todo esto se usa en la versión de prueba (ver 6.18). Sus solicitudes son de ejemplo. Por ahora no envía correos.',
+            'Hoy todo esto se usa en la versión de prueba (ver [§flujo-web-prueba]). Sus solicitudes son de ejemplo. Por ahora no envía correos.',
           ],
         },
         { kind: 'p', text: 'Cómo va cada cosa de la web pública y de la atención ciudadana. Debajo de cada diagrama va lo que hay que saber. Los nombres de los botones están escritos tal como salen en la pantalla. El detalle de cada pantalla está en las partes 4 y 5.' },
@@ -370,7 +370,7 @@ export const FLUJOS_WEB: WebDoc = {
         'Sale en la página «Casos atendidos» de «Atención ciudadana» y en la portada. Solo de casos resueltos, nunca de uno marcado como spam o unido a otro.',
         'El permiso lo da la persona en el formulario. Sin él, solo se pueden poner iniciales. Una solicitud anónima sale sin nombre ni iniciales.',
         '«Actualizar la publicación» cambia el texto. «Retirar de «Casos atendidos»» lo quita, con su motivo.',
-        'El enlace «Casos atendidos» sale en el menú de «Atención ciudadana» cuando hay casos publicados. Hoy no hay ninguno. En la portada, ese bloque está oculto (ver 6.18).',
+        'El enlace «Casos atendidos» sale en el menú de «Atención ciudadana» cuando hay casos publicados. Hoy no hay ninguno. En la portada, ese bloque está oculto (ver [§flujo-web-prueba]).',
       ],
       layout: [{ node: 'atendido_abre' }, { edge: 0, def: 'to' }, { edge: 1, def: 'to' }, { edge: 2, def: 'to' }, { edge: 3, def: 'to' }, { edge: 4, def: 'to' }, { edge: 5, def: 'to' }],
     },
@@ -563,7 +563,7 @@ export const FLUJOS_WEB: WebDoc = {
       know: [
         'Lo que se guarda aquí sale en la web al momento. Por eso nunca va un dato que nadie confirmó.',
         'Un contacto sale solo marcado «Verificado». Una cuenta sale solo «Activa» y «Verificada». En la versión de prueba también salen las cuentas por confirmar, con una línea que lo avisa.',
-        'Arriba, la pantalla avisa lo que no se cambia. Eso es solo de la versión de prueba: nadie debe poder hacerla pasar por la web oficial (ver 7.4).',
+        'Arriba, la pantalla avisa lo que no se cambia. Eso es solo de la versión de prueba: nadie debe poder hacerla pasar por la web oficial (ver [§prueba-lo-que-no-se-cambia]).',
         'Los «Avisos legales» se ven, pero no se cambian en «Ajustes del sitio»: si hace falta cambiar uno, se le avisa a quien instaló la app. Salen iguales en toda la web, en los formularios, en el comprobante y en los correos.',
         'El editor de la web no entra a «Ajustes del sitio».',
       ],
@@ -628,11 +628,11 @@ export const FLUJOS_WEB: WebDoc = {
         { from: 'prueba_consulta', to: 'prueba_borra' },
       ],
       know: [
-        'Trae las noticias y las columnas de opinión más recientes. Lo más nuevo de la web oficial no sale aquí enseguida (ver 7.1). En «Web», cada noticia copiada dice «Traído de la web vieja».',
+        'Trae las noticias y las columnas de opinión más recientes. Lo más nuevo de la web oficial no sale aquí enseguida (ver [§prueba-que-es]). En «Web», cada noticia copiada dice «Traído de la web vieja».',
         'En la portada, «Gestión en cifras», «Casos atendidos», «Gestión y obras» y «Avisos de servicio» llevan la marca «Oculto». Todavía no tienen contenido real. Con «Mostrar», en «Web» → «Páginas» → «Inicio», vuelven a salir cuando se publica la portada.',
         '«Gestión y obras» tampoco está en el menú. Se agrega en «Ajustes del sitio» → «Navegación» cuando haya obras publicadas.',
         'El «[PROGRAMA]» todavía no tiene emisiones: su página lleva al canal oficial de YouTube.',
-        'Las solicitudes de ejemplo llevan «(demo)» en el título. Sus tres comprobantes están en 7.6, y lo que se borra, en 7.7.',
+        'Las solicitudes de ejemplo llevan «(demo)» en el título. Sus tres comprobantes están en [§comprobantes-de-prueba], y lo que se borra, en [§prueba-lo-que-se-borra].',
       ],
       layout: [{ node: 'prueba_trae' }, { edge: 0, def: 'to' }, { edge: 1, def: 'to' }, { edge: 2, def: 'to' }, { edge: 3, def: 'to' }, { edge: 4, def: 'to' }, { edge: 5, def: 'to' }],
     },

@@ -25,8 +25,8 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         {
           kind: 'note',
           paras: [
-            '**Hoy la web es una versión de prueba.** Arriba de cada página dice «Versión de prueba en revisión. No es el sitio oficial.». Google no la muestra. La web oficial sigue siendo [WEB_OFICIAL]. Las noticias, las columnas de opinión, la biografía y el Semanario son una copia de la web oficial, con sus fotos (ver 7.1). En el panel, cada nota copiada lleva arriba el aviso «Traído de la web vieja» (ver 4.15). En la web, termina con «Publicado originalmente en …». En «Atención» hay solicitudes de ejemplo para practicar, y los comprobantes de prueba se abren en «Consultar mi solicitud».',
-            'La versión de prueba es para practicar. Lo que se cambie en ella no queda: cada cierto tiempo vuelve a como estaba. Algo recién creado puede no verse desde otra cuenta o desde otro teléfono (ver 7.7). Algunos ajustes del sitio no se cambian (ver 4.13).',
+            '**Hoy la web es una versión de prueba.** Arriba de cada página dice «Versión de prueba en revisión. No es el sitio oficial.». Google no la muestra. La web oficial sigue siendo [WEB_OFICIAL]. Las noticias, las columnas de opinión, la biografía y el Semanario son una copia de la web oficial, con sus fotos (ver [§prueba-que-es]). En el panel, cada nota copiada lleva arriba el aviso «Traído de la web vieja» (ver [§contenido-traido]). En la web, termina con «Publicado originalmente en …». En «Atención» hay solicitudes de ejemplo para practicar, y los comprobantes de prueba se abren en «Consultar mi solicitud».',
+            'La versión de prueba es para practicar. Lo que se cambie en ella no queda: cada cierto tiempo vuelve a como estaba. Algo recién creado puede no verse desde otra cuenta o desde otro teléfono (ver [§prueba-lo-que-se-borra]). Algunos ajustes del sitio no se cambian (ver [§ajustes-del-sitio]).',
           ],
         },
         { kind: 'p', text: '**La idea en una línea:** cada contenido tiene un **borrador** (lo que se escribe) y **lo publicado** (exactamente lo que se aprobó, lo único que ve la gente). Cambiar un borrador nunca cambia la web hasta que alguien lo publique otra vez. Nada se borra: lo que sobra se archiva.' },
@@ -113,7 +113,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
       audience: ['boss', 'admin'],
       blocks: [
         { kind: 'p', text: 'En la lista del tipo, el botón de arriba (**«Nueva noticia»**, **«Nueva obra o acción»**, **«Nuevo episodio»**, **«Nuevo documento»**, **«Nuevo aviso»**, **«Nueva pregunta»** o **«Nuevo indicador»**) → escribe el **«Título»** (la dirección en la web sale de él) → **«Crear borrador»**. Se abre el editor.' },
-        { kind: 'p', text: '**Las páginas no se crean, se editan.** Son seis y ya existen: la portada («Inicio»), «El gobernador», «Atención ciudadana» y las tres legales («Aviso de privacidad», «Condiciones de participación» y «Accesibilidad»). No uses la página «Atención ciudadana»: lo que se escribe ahí no sale en la web. En la lista lleva el chip «No sale en la web», y su editor lo avisa arriba («Esta página no sale en la web»), sin «Vista previa» ni «Enviar a aprobación». Los textos de la sección «Atención ciudadana» no se cambian desde el panel. De ella se cambian las preguntas («Preguntas frecuentes», grupo «Atención ciudadana») y los contactos verificados (ver 4.13).', wrap: [112, 115, 116, 118, 109, 80] },
+        { kind: 'p', text: '**Las páginas no se crean, se editan.** Son seis y ya existen: la portada («Inicio»), «El gobernador», «Atención ciudadana» y las tres legales («Aviso de privacidad», «Condiciones de participación» y «Accesibilidad»). No uses la página «Atención ciudadana»: lo que se escribe ahí no sale en la web. En la lista lleva el chip «No sale en la web», y su editor lo avisa arriba («Esta página no sale en la web»), sin «Vista previa» ni «Enviar a aprobación». Los textos de la sección «Atención ciudadana» no se cambian desde el panel. De ella se cambian las preguntas («Preguntas frecuentes», grupo «Atención ciudadana») y los contactos verificados (ver [§ajustes-del-sitio]).', wrap: [112, 115, 116, 118, 109, 80] },
         { kind: 'p', text: 'Lo que pide cada tipo:' },
         {
           kind: 'table',
@@ -124,11 +124,11 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
             ['**[PROGRAMA]** (episodio)', 'Fecha, video, «Duración (minutos)», «Foto de portada», Temas y Enlaces', 'Sin código de video, la web no muestra el reproductor. La vista previa avisa «Video por enlazar desde el administrador»'],
             ['**Documento**', 'Categoría (Semanario, Informe, Memoria y Cuenta, Normativa, Material para la prensa u Otro), «Archivo PDF», «Versión» (la edición, por ejemplo «n.º 12») y Páginas', 'Todos salen en «Transparencia». El Semanario sale también en Noticias › Semanario, y el material para la prensa en «El gobernador»'],
             ['**Aviso de servicio**', 'Título, Servicio, «Texto del aviso», «Actualizado» (con «Ahora»), «Vence (opcional)» y «Municipios afectados»', 'La hora es la del Táchira. Al vencer deja de salir solo. Sin municipios marcados, es para todo el estado. Sin teléfonos que nadie verificó'],
-            ['**Pregunta frecuente**', 'Pregunta, Grupo (Atención ciudadana, Esta web o La gestión), Respuesta y Orden', 'Las de «Atención ciudadana» salen en la página de Atención. Las demás salen donde se ponga un bloque «Preguntas frecuentes» (ver 4.6)'],
+            ['**Pregunta frecuente**', 'Pregunta, Grupo (Atención ciudadana, Esta web o La gestión), Respuesta y Orden', 'Las de «Atención ciudadana» salen en la página de Atención. Las demás salen donde se ponga un bloque «Preguntas frecuentes» (ver [§bloques-y-formato])'],
             ['**Indicador**', '«Qué se cuenta», Cifra, Unidad, «Fecha del dato», Fuente, «Enlace de la fuente (si tiene)» y Cálculo', '**Una cifra sin fuente nunca sale en la web.** «Cálculo»: «Escrita a mano», «Lo cuenta la app: solicitudes atendidas» o «Lo cuenta la app: obras concluidas». Con las dos últimas, la app cuenta la cifra sola y la web enlaza la lista que la respalda'],
           ],
         },
-        { kind: 'p', text: '**Nunca se inventa nada:** ni biografía, ni fotos, ni teléfonos, ni correos, ni horarios, ni cuentas, ni parroquias. Lo que falte se deja como espacio **«Por completar»** (ver 4.6) y se llena cuando el dato llegue confirmado. Ese espacio nunca sale en la web: solo lo ve el equipo en la vista previa. Lo mismo una foto, un video o un archivo que falta: la web no muestra nada en su lugar y la vista previa avisa qué falta.', wrap: [116, 120, 117, 66] },
+        { kind: 'p', text: '**Nunca se inventa nada:** ni biografía, ni fotos, ni teléfonos, ni correos, ni horarios, ni cuentas, ni parroquias. Lo que falte se deja como espacio **«Por completar»** (ver [§bloques-y-formato]) y se llena cuando el dato llegue confirmado. Ese espacio nunca sale en la web: solo lo ve el equipo en la vista previa. Lo mismo una foto, un video o un archivo que falta: la web no muestra nada en su lugar y la vista previa avisa qué falta.', wrap: [116, 120, 117, 66] },
       ],
     },
     {
@@ -142,8 +142,8 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         {
           kind: 'list',
           items: [
-            '**«Guardar borrador»**: guarda lo escrito y deja una copia en «Versiones», el historial de cambios de ese contenido (ver 4.11).',
-            '**«Vista previa»**: guarda si hace falta y muestra el borrador tal como se vería (ver 4.7).',
+            '**«Guardar borrador»**: guarda lo escrito y deja una copia en «Versiones», el historial de cambios de ese contenido (ver [§versiones]).',
+            '**«Vista previa»**: guarda si hace falta y muestra el borrador tal como se vería (ver [§vista-previa]).',
             '**«Enviar a aprobación»** (dice **«Guardar y enviar a aprobación»** si hay cambios sin guardar). Mientras espera, el botón cambia a **«Retirar de revisión»**, que lo devuelve a borrador.',
             '**«Revisar y publicar»**: solo para quien aprueba.',
             'A la derecha dice **«Cambios sin guardar»** o **«Todo guardado»**.',
@@ -155,13 +155,13 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
           kind: 'list',
           items: [
             '**«Dirección en la web»**: minúsculas, números y guiones (sin espacios ni acentos). «Usar el título como dirección» la arma del título. Después de publicado, la dirección solo la cambia quien aprueba, y la vieja sigue llevando a la nueva sola. La dirección de una página no se cambia.',
-            'El formulario del tipo (ver 4.4) y, en páginas, noticias y obras, **«Buscadores y redes»**. Ahí van «Título para buscadores» (unas 60 letras), «Descripción para buscadores» (unas 155) e «Imagen para redes» (mejor una foto horizontal). Deja vacía la «Dirección canónica (opcional)»: solo sirve cuando el mismo texto ya está publicado en otra página. «Pedir a los buscadores que no la muestren» le pide a Google que no muestre ese contenido. Mientras la web sea de prueba, ningún buscador la muestra de todos modos. La tarjeta **«Así se ve al compartir el enlace»** muestra cómo queda en WhatsApp, Facebook o X. Si los dejas vacíos se usan el título, el resumen y la foto principal. También pasan por la aprobación.',
+            'El formulario del tipo (ver [§crear-contenido]) y, en páginas, noticias y obras, **«Buscadores y redes»**. Ahí van «Título para buscadores» (unas 60 letras), «Descripción para buscadores» (unas 155) e «Imagen para redes» (mejor una foto horizontal). Deja vacía la «Dirección canónica (opcional)»: solo sirve cuando el mismo texto ya está publicado en otra página. «Pedir a los buscadores que no la muestren» le pide a Google que no muestre ese contenido. Mientras la web sea de prueba, ningún buscador la muestra de todos modos. La tarjeta **«Así se ve al compartir el enlace»** muestra cómo queda en WhatsApp, Facebook o X. Si los dejas vacíos se usan el título, el resumen y la foto principal. También pasan por la aprobación.',
             '**«Para enviarlo a aprobación falta esto»**: la lista de lo que falta. Cuando está completo dice **«Listo para enviar a aprobación»**.',
             '**«Nota de esta versión (opcional)»**: para saber después qué cambió («Corregí la fecha»).',
           ],
           wrap: { 0: [104, 112, 66], 1: [112, 108, 118, 107, 114, 105, 43], 2: [110, 23] },
         },
-        { kind: 'p', text: 'Avisos que pueden salir arriba del editor: «Te lo devolvieron con este comentario», «Esperando aprobación», «Esto ya está en la web» (tus cambios salen solo cuando se publique de nuevo), «Programado: sale el …», «Traído de la web vieja» (ver 4.15) y «Archivado: no se ve en la web».', wrap: [116, 112, 52] },
+        { kind: 'p', text: 'Avisos que pueden salir arriba del editor: «Te lo devolvieron con este comentario», «Esperando aprobación», «Esto ya está en la web» (tus cambios salen solo cuando se publique de nuevo), «Programado: sale el …», «Traído de la web vieja» (ver [§contenido-traido]) y «Archivado: no se ve en la web».', wrap: [116, 112, 52] },
         {
           kind: 'list',
           items: [
@@ -187,7 +187,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
             '**Portada con foto:** sin foto, la portada sale solo con el texto, a lo ancho. La vista previa muestra «Foto por subir desde el administrador». Si el mensaje todavía no está, escribe «Por completar: …» con lo que falta. El equipo lo ve como un espacio por llenar, y el público no ve nada.',
             '**Video:** «Mostrar el episodio más reciente» cambia solo cada vez que se publica un episodio.',
             '**Documentos, Preguntas y Obras:** «Salen en el orden en que los marques. Sin marcar ninguno, se usan los últimos.» **Indicadores:** «Salen en el orden en que los marques. Sin marcar ninguno, el bloque no sale.» Lo que no está publicado dice «(no publicado: no se verá)». Un indicador sin fuente dice «(sin fuente: no se verá)».',
-            '**Canales oficiales:** las cuentas se cambian en «Ajustes del sitio» (ver 4.13).',
+            '**Canales oficiales:** las cuentas se cambian en «Ajustes del sitio» (ver [§ajustes-del-sitio]).',
             '**Llamado a la acción:** al agregarlo, el «Enlace del botón» ya lleva al formulario «Nueva solicitud»: dice «/atencion/nueva». Para otra página de esta web, escribe solo el final de su dirección, el que empieza con «/». Para otra web, pega la dirección completa, copiada del navegador.',
           ],
           wrap: { 2: [105, 115, 106] },
@@ -240,10 +240,10 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
           kind: 'list',
           items: [
             '**«Publicar ahora»**: sale en la web en ese momento, exactamente como lo viste. Pregunta antes.',
-            '**«Programar»**: elige «Día» y «Hora» (ver 4.9). Pregunta antes.',
+            '**«Programar»**: elige «Día» y «Hora» (ver [§programar]). Pregunta antes.',
             '**«Devolver con comentario»**: escribe en «Qué hay que cambiar» y toca «Devolver con comentario». Quien lo envió lo lee en su aviso y arriba del editor.',
             '**«Quitar la programación»** (si estaba programado): vuelve a borrador.',
-            '**«Archivar»** (ver 4.10). Pregunta antes.',
+            '**«Archivar»** (ver [§archivar]). Pregunta antes.',
           ],
         },
         { kind: 'p', text: 'Si alguien cambió el borrador mientras revisabas, la app no lo publica: «El contenido cambió mientras lo revisabas. Ábrelo de nuevo para ver lo último.». Así sale exactamente lo que se revisó.' },
@@ -348,7 +348,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
             ['**Contactos institucionales**', 'Teléfonos, correos o direcciones («Agregar contacto»). **Solo los marcados «Verificado» salen**'],
             ['**Cuentas en redes**', 'Red, usuario y enlace de cada cuenta («Agregar cuenta»), con «Verificada», «Activa» y una «Nota interna (no sale en la web)». Salen en el pie y en «Canales». En la versión de prueba salen también las que faltan por confirmar, con una sola línea que dice que están en proceso de confirmación. Cuando la web se abra al público, saldrán solo las activas y verificadas. Una cuenta abandonada se apaga («Activa» sin marcar): nunca sale'],
             ['**Canal de WhatsApp**, **Portal institucional**, **Canal de YouTube del programa**', 'Cada uno con «La web lo muestra», «Verificado» y «Activo». El portal sale solo verificado. El canal de WhatsApp y el de YouTube siguen la regla de las cuentas'],
-            ['**Nombre de la web**', 'El nombre, el cargo, la región y el «Nombre al compartir». El nombre y el cargo salen arriba de cada página y en el pie. El título grande de la portada no sale de aquí: se cambia en su bloque «Portada con foto» (ver 4.6). El «Nombre al compartir» es lo que leen quienes no ven la imagen cuando se comparte un enlace de la web; puede quedar vacío: la web usa el nombre y el cargo'],
+            ['**Nombre de la web**', 'El nombre, el cargo, la región y el «Nombre al compartir». El nombre y el cargo salen arriba de cada página y en el pie. El título grande de la portada no sale de aquí: se cambia en su bloque «Portada con foto» (ver [§bloques-y-formato]). El «Nombre al compartir» es lo que leen quienes no ven la imagen cuando se comparte un enlace de la web; puede quedar vacío: la web usa el nombre y el cargo'],
             ['**Datos estructurados**', 'Lo que la web le dice a Google y a los demás buscadores sobre el gobernador y la Gobernación: «Nombre de la persona», «Cargo» e «Institución». Así el buscador sabe quién es y lo puede mostrar bien. Las cuentas que nombra son solo las activas y verificadas de «Cuentas en redes»'],
             ['**Avisos legales**', 'Se ven, pero no se cambian aquí (si hace falta cambiar uno, se le avisa a quien instaló la app): son textos fijos, los mismos en el pie de la web, en «Canales», en los formularios de Atención, en el comprobante y su PDF y en los correos. «Aviso de emergencias»: «Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.». «Aviso de las denuncias»: «Las denuncias son confidenciales. Solo las leen el personal encargado de denuncias y la coordinación de atención. Su contenido nunca se publica. Si se trata de un delito, acuda también a las autoridades competentes.». Cuando la Gobernación confirme el número oficial de emergencias, se agregará a ese aviso y saldrá igual en todas partes'],
             ['**Aviso de la versión de prueba**', 'La franja de arriba de cada página, que sale mientras la web sea de prueba. Dice «Versión de prueba en revisión. No es el sitio oficial.» y no se cambia (ver abajo)'],
@@ -415,7 +415,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
             ['Se publicó algo por error', '«Archivar»: sale de la web al momento'],
             ['Se publicó un cambio equivocado', '«Versiones» → «Volver a esta versión» → enviar → publicar'],
             ['Una dirección vieja lleva a donde no es', '«Redirecciones»: cambia el destino o «Quitar»'],
-            ['Se subió a la biblioteca un archivo que no debía ser público', 'Archívalo, cámbialo donde se use y avísale a Administración para borrarlo del todo (ver 4.12)'],
+            ['Se subió a la biblioteca un archivo que no debía ser público', 'Archívalo, cámbialo donde se use y avísale a Administración para borrarlo del todo (ver [§biblioteca])'],
             ['No puedo publicar: «falta esto»', 'Completa lo que dice la lista. En lo traído de la web anterior, el texto alternativo y las marcas'],
             ['Perdí el teléfono del doble factor', 'Administración: Ajustes → Equipo → «Cambiar» en la fila de la persona → «Reiniciar doble factor»'],
           ],

@@ -25,7 +25,7 @@ export const MANUAL_ATENCION: WebDoc = {
         {
           kind: 'note',
           paras: [
-            '**Hoy se usa una versión de prueba.** Arriba de cada página de la web dice «Versión de prueba en revisión. No es el sitio oficial.». Google no la muestra. Las noticias, las columnas de opinión, la biografía y el Semanario son una copia de la web oficial, [WEB_OFICIAL] (ver 7.1). En «Atención» hay 60 solicitudes de ejemplo para practicar: todas llevan «(demo)» en el título. Los comprobantes de prueba se abren en «Consultar mi solicitud» (ver 5.22).',
+            '**Hoy se usa una versión de prueba.** Arriba de cada página de la web dice «Versión de prueba en revisión. No es el sitio oficial.». Google no la muestra. Las noticias, las columnas de opinión, la biografía y el Semanario son una copia de la web oficial, [WEB_OFICIAL] (ver [§prueba-que-es]). En «Atención» hay 60 solicitudes de ejemplo para practicar: todas llevan «(demo)» en el título. Los comprobantes de prueba se abren en «Consultar mi solicitud» (ver [§practicar]).',
             'Por ahora la versión de prueba no envía correos. No escribas datos reales de nadie: lo que se envía en la versión de prueba lo puede ver cualquiera que la use. El formulario de la web lo avisa con «Versión de prueba. No escriba datos reales.».',
           ],
         },
@@ -54,7 +54,7 @@ export const MANUAL_ATENCION: WebDoc = {
         {
           kind: 'list',
           items: [
-            '**Siempre con doble factor:** el código que llega por correo y Google Authenticator. No hay contraseñas. En la versión de prueba se entra con un toque, sin código (ver 5.22).',
+            '**Siempre con doble factor:** el código que llega por correo y Google Authenticator. No hay contraseñas. En la versión de prueba se entra con un toque, sin código (ver [§practicar]).',
             '**Teléfono perdido:** Administración → «Ajustes» → «Equipo» → «Cambiar» en la fila de la persona → «Reiniciar doble factor».',
             '**Cómo se da el rol:** Administración → «Ajustes» → «Equipo» → «Invitar a alguien». El rol va en «Web y atención ciudadana (siempre con doble factor)» → «Enviar invitación». A un responsable se le marcan sus áreas en «Sus áreas (ve y atiende lo de estas áreas y lo que le asignen)». Después se cambian con «Cambiar».',
             'Un caso que no te toca **no lo ves**: no sale en tu lista. Aunque alguien te mande su enlace, la pantalla dice «No encontramos esto».',
@@ -78,10 +78,10 @@ export const MANUAL_ATENCION: WebDoc = {
             ['**Observación**', '«Opiniones u observaciones sobre la gestión, una obra o una publicación.»'],
             ['**Sugerencia**', '«Propuestas para mejorar un servicio.»'],
             ['**Reconocimiento**', '«Agradecimientos por un trabajo bien hecho.»'],
-            ['**Denuncia**', '«Hechos irregulares que deben investigarse. Es confidencial.» Es privada de punta a punta (ver 5.13)'],
+            ['**Denuncia**', '«Hechos irregulares que deben investigarse. Es confidencial.» Es privada de punta a punta (ver [§denuncias])'],
           ],
         },
-        { kind: 'p', text: 'Cada formulario dice que **esto no es un servicio de emergencias**, con estas palabras: «Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.». Ese aviso no se cambia desde el panel (ver 5.18).' },
+        { kind: 'p', text: 'Cada formulario dice que **esto no es un servicio de emergencias**, con estas palabras: «Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.». Ese aviso no se cambia desde el panel (ver [§lo-que-nunca-se-promete]).' },
         { kind: 'p', text: '**La web le habla de usted a la persona** y firma como «Atención ciudadana». Lo que le escribas también va de usted.' },
       ],
     },
@@ -147,14 +147,14 @@ export const MANUAL_ATENCION: WebDoc = {
             '**Léelo** completo. Si no es de tu área, avísale a la coordinación: ella cambia el área.',
             'Pásalo a **«En revisión»**. En el tablero es un toque.',
             '**Asígnalo** en «Área y responsable» con «Guardar asignación», o con «Tomar el caso» si es tuyo. Queda «Asignado».',
-            '**Respóndele a la persona** que ya lo tienen (ver 5.8): «Escribir» → «Respuesta a la persona» → «Enviar respuesta».',
+            '**Respóndele a la persona** que ya lo tienen (ver [§escribir]): «Escribir» → «Respuesta a la persona» → «Enviar respuesta».',
             'Mientras trabajan, pásalo a **«En atención»**. Lo que hablen entre ustedes va en **notas internas**.',
             'Si falta un dato, usa **«Pedir más información»**.',
             'Al terminar, sube la **evidencia** (la foto del después) con «Subir evidencia».',
             'Pásalo a **«Resuelto»** con «Cómo se resolvió (justificación)». Mejor si le dejas también un mensaje a la persona.',
             'La persona confirma desde su consulta. Ahí ve «¿Se resolvió el problema?», con «Sí, se resolvió» y «No, todavía no». Si dice que no, el caso vuelve solo a «En atención».',
             'Pásalo a **«Cerrado»** con su motivo cuando ya no haya más que hacer.',
-            'Si vale la pena contarlo, la coordinación lo publica en **«Casos atendidos»** (ver 5.12).',
+            'Si vale la pena contarlo, la coordinación lo publica en **«Casos atendidos»** (ver [§casos-atendidos]).',
           ],
           wrap: { 8: [111, 57] },
         },
@@ -204,12 +204,12 @@ export const MANUAL_ATENCION: WebDoc = {
         {
           kind: 'list',
           items: [
-            'Cada solicitud nueva llega al **área de su categoría** (ver 5.19).',
+            'Cada solicitud nueva llega al **área de su categoría** (ver [§areas-y-plazos]).',
             '**El área la cambia la coordinación.** Un responsable asigna dentro de su área, o se lo queda con «Tomar el caso». Lo que escribas en «Motivo (opcional)» queda en el historial.',
             '**Una denuncia no tiene área.** En su caso, la tarjeta «Área y responsable» dice «Denuncias». Su responsable solo puede ser un operador de denuncias o alguien de la coordinación.',
             '**Prioridad** (Baja, Normal, Alta, Urgente) → «Guardar prioridad». **«Fecha comprometida»** → «Guardar fecha». Las pone la coordinación (y en una denuncia, el operador de denuncias). La fecha vale hasta el final de ese día.',
             'La fecha comprometida sale sola: **el plazo más corto** entre los días de la categoría y los de la prioridad. Hoy, en «Áreas y plazos», son 15 días por categoría, 2 para Urgente y 5 para Alta. Si nadie la puso a mano, cambia cuando cambia la prioridad.',
-            '**La fecha comprometida es interna: la persona no la ve. Nunca se la prometas** (ver 5.18).',
+            '**La fecha comprometida es interna: la persona no la ve. Nunca se la prometas** (ver [§lo-que-nunca-se-promete]).',
             'Para cambiar quién tiene un caso terminado, primero hay que reabrirlo.',
           ],
           wrap: { 1: [114, 61] },
@@ -304,7 +304,7 @@ export const MANUAL_ATENCION: WebDoc = {
       heading: { level: 2, num: '12.' },
       audience: ['boss'],
       blocks: [
-        { kind: 'p', text: 'La coordinación publica en la web lo que se resolvió, **sin datos de la persona**. Sale en la página «Casos atendidos» de «Atención ciudadana». También puede salir en la portada, en el bloque «Casos atendidos». Solo se publica un caso que se marcó «Resuelto», también si después se cerró. Nunca el spam ni un caso unido. El botón «Casos atendidos» sale en la web cuando hay al menos un caso publicado. Todavía no hay ninguno. En la portada, ese bloque está oculto por ahora: lo muestra el equipo de la web en «Web» → «Páginas» → «Inicio» (ver 4.6).' },
+        { kind: 'p', text: 'La coordinación publica en la web lo que se resolvió, **sin datos de la persona**. Sale en la página «Casos atendidos» de «Atención ciudadana». También puede salir en la portada, en el bloque «Casos atendidos». Solo se publica un caso que se marcó «Resuelto», también si después se cerró. Nunca el spam ni un caso unido. El botón «Casos atendidos» sale en la web cuando hay al menos un caso publicado. Todavía no hay ninguno. En la portada, ese bloque está oculto por ahora: lo muestra el equipo de la web en «Web» → «Páginas» → «Inicio» (ver [§bloques-y-formato]).' },
         {
           kind: 'list',
           items: [
@@ -414,7 +414,7 @@ export const MANUAL_ATENCION: WebDoc = {
           items: [
             '**Una crítica o una queja nunca es spam:** se atiende, o se cierra con su motivo.',
             '**Spam** (publicidad o mensajes repetidos sin nada que atender): «Marcar como spam: por qué» → «Marcar como spam». Queda en «No procede», guardada, y no se le escribe a quien la envió. Sale de la bandeja. Se ve con «Incluir las unidas a otro caso y el spam».',
-            '**Datos de alguien expuestos** (por ejemplo, el teléfono de un vecino o la foto de un documento): en «Retirar un dato que expone a alguien», elige el dato: «El título», «La descripción», «El punto de referencia», «La parroquia, localidad o sector» o «La ubicación en el mapa». Escribe el «Por qué» → «Retirar el dato». Para un mensaje: «Retirar el texto de un mensaje» → «Retirar el texto». En su lugar queda «[Texto retirado por el equipo]». Para un archivo: «Retirar este archivo» (ver 5.10). Lo retirado se reemplaza para siempre. El historial guarda qué dato y por qué, nunca lo que decía.',
+            '**Datos de alguien expuestos** (por ejemplo, el teléfono de un vecino o la foto de un documento): en «Retirar un dato que expone a alguien», elige el dato: «El título», «La descripción», «El punto de referencia», «La parroquia, localidad o sector» o «La ubicación en el mapa». Escribe el «Por qué» → «Retirar el dato». Para un mensaje: «Retirar el texto de un mensaje» → «Retirar el texto». En su lugar queda «[Texto retirado por el equipo]». Para un archivo: «Retirar este archivo» (ver [§archivos-y-evidencias]). Lo retirado se reemplaza para siempre. El historial guarda qué dato y por qué, nunca lo que decía.',
             '**Amenazas** a cualquier persona, también al gobernador o al equipo: no la respondas desde el caso. Avisa de inmediato a la coordinación. Retira los datos que expongan a alguien. Si no hay nada que atender, ponla en «No procede» con su motivo. Mientras la Gobernación no defina cómo actuar en estos casos, lo que se haga fuera de la app lo decide la coordinación.',
           ],
         },
@@ -538,13 +538,13 @@ export const MANUAL_ATENCION: WebDoc = {
         {
           kind: 'list',
           items: [
-            'Por ahora la versión de prueba no envía correos. La persona sigue su caso en «Consultar mi solicitud» (ver 5.9).',
-            'Por ahora la versión de prueba no les pasa el antivirus a los archivos que llegan (ver 5.10).',
+            'Por ahora la versión de prueba no envía correos. La persona sigue su caso en «Consultar mi solicitud» (ver [§contacto]).',
+            'Por ahora la versión de prueba no les pasa el antivirus a los archivos que llegan (ver [§archivos-y-evidencias]).',
             'Cada archivo, el de la persona o la evidencia, va hasta 4 MB.',
             'El tablero no arrastra tarjetas y muestra 12 por estado. La lista tiene todo.',
             'No guarda filtros. Para volver a la misma vista, guárdala en los favoritos del navegador.',
             'La exportación trae hasta 5.000 solicitudes.',
-            'La web todavía no da los contactos de las autoridades ni un número de emergencias (ver 5.13 y 5.18).',
+            'La web todavía no da los contactos de las autoridades ni un número de emergencias (ver [§denuncias] y [§lo-que-nunca-se-promete]).',
           ],
         },
       ],

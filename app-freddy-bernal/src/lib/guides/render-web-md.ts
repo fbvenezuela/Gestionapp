@@ -169,8 +169,28 @@ function flowsMd(doc: WebDoc, fill: (s: string) => string): string {
   return out.join('\n') + '\n';
 }
 
+// A reference to another section or flow, «[§aprobar]»: each doc prints the number it uses for it. The manuals and the
+// flows say the PDF's («4.8»); GUIA-WEB.md says its own chapters, so the PDF's part 7 is its chapter 3 and part 3 its
+// chapter 4 (parts 1 and 2 are the same).
+const REF = /\[§([a-z0-9-]+)\]/g;
+function docNumber(doc: WebDoc, pdf: string): string {
+  if (doc.id !== 'guia-web') return pdf;
+  const [a, b] = pdf.split('.');
+  return `${a === '7' ? '3' : a === '3' ? '4' : a}.${b}`;
+}
+
 /** The four docs, by their path under the app's folder. */
 export function renderWebDocs(docs: readonly WebDoc[], words: ClientWords): Record<string, string> {
-  const fill = (s: string) => fillClientWords(s, words);
-  return Object.fromEntries(docs.map((d) => [d.file, d.flows ? flowsMd(d, fill) : proseMd(d, fill)]));
+  const pdfOf = new Map(docs.flatMap((d) => [...d.sections, ...(d.flows ?? [])].map((x) => [x.id, x.pdf] as const)));
+  return Object.fromEntries(
+    docs.map((d) => {
+      const fill = (s: string) =>
+        fillClientWords(s, words).replace(REF, (_m, id: string) => {
+          const pdf = pdfOf.get(id);
+          if (!pdf) throw new Error(`${d.file}: la referencia «[§${id}]» no es de ninguna sección.`);
+          return docNumber(d, pdf);
+        });
+      return [d.file, d.flows ? flowsMd(d, fill) : proseMd(d, fill)];
+    }),
+  );
 }

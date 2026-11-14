@@ -8,6 +8,7 @@ import { GUIA_WEB } from './guia-web';
 import { MANUAL_ADMIN_WEB } from './manual-admin-web';
 import { MANUAL_ATENCION } from './manual-atencion';
 import { FLUJOS_WEB } from './flujos-web';
+import { fillClientWords, type ClientWords } from './words';
 
 export { GUIA_WEB, MANUAL_ADMIN_WEB, MANUAL_ATENCION, FLUJOS_WEB };
 export { CLIENT_HUECOS, clientWords, fillClientWords, type ClientWords } from './words';
@@ -145,15 +146,31 @@ export function webFacetTexts(x: WebSection | WebFlow): string[] {
   ];
 }
 
-// ── References («ver 4.13») ────────────────────────────────────────────────────────────────────────────────────────
+// ── References («ver [§ajustes-del-sitio]») ───────────────────────────────────────────────────────────────────────
 
-// «ver 3.2», «ver 1.1 y 1.2», «ver 5.13 y 5.18»: one or more numbers after «ver».
-const VER_REF = /\bver(\s+)(\d+\.\d+(?:(?:,\s*|\s+y\s+)\d+\.\d+)*)/g;
-// GUIA-WEB.md says its own chapters: in the PDF, chapter 3 («La versión de prueba») is part 7 and chapter 4 («Quién hace
-// qué») is part 3, and «el manual de la web, punto 6» is 4.6. The manuals and the flows already say the PDF's numbers.
-const GUIA_WORDS: [RegExp | string, string][] = [
-  [/\(ver\s+el\s+manual\s+de\s+la\s+web,\s+punto\s+(\d+)\)/g, '(ver 4.$1)'],
-  [/\(ver\s+el\s+manual\s+de\s+atención,\s+punto\s+(\d+)\)/g, '(ver 5.$1)'],
+/** A reference to another section or flow: «[§id]». The docs print each one as the number they use for it («ver
+ * 4.13»); «Ayuda y guías» as the PDF's number, linked; 360 as it likes (never the bare marker). */
+export const WEB_REF = /\[§([a-z0-9-]+)\]/g;
+
+/** The ids a text points at, in order. */
+export function webRefs(text: string): string[] {
+  return [...text.matchAll(WEB_REF)].map((m) => m[1]);
+}
+
+/** A web text ready to read: the client's words filled, and each reference as `ref` says (the PDF's number by default). */
+export function fillWebText(text: string, words: ClientWords, ref: (id: string) => string = (id) => webEntry(id)?.pdf ?? ''): string {
+  return fillClientWords(text, words).replace(WEB_REF, (_m, id: string) => ref(id));
+}
+
+// GUIA-WEB.md names the two manuals in words where the PDF gives a number or a part: «(ver el manual de la web, punto 6)»
+// is 4.6 there, «El detalle está en el manual de la web.» is part 4. The manuals and the flows already say the PDF's.
+const marker = (pdf: string) => {
+  const x = webEntry(pdf);
+  return x ? `[§${x.id}]` : pdf;
+};
+const GUIA_WORDS: [RegExp | string, string | ((m: string, n: string) => string)][] = [
+  [/\(ver\s+el\s+manual\s+de\s+la\s+web,\s+punto\s+(\d+)\)/g, (_m, n) => `(ver ${marker(`4.${n}`)})`],
+  [/\(ver\s+el\s+manual\s+de\s+atención,\s+punto\s+(\d+)\)/g, (_m, n) => `(ver ${marker(`5.${n}`)})`],
   ['El detalle está en el manual de la web.', 'El detalle está en la parte 4.'],
   ['El manual de atención trae el detalle:', 'La parte 5 trae el detalle:'],
   ['paso a paso: el manual de la web.', 'paso a paso: la parte 4.'],
@@ -162,18 +179,16 @@ const GUIA_WORDS: [RegExp | string, string][] = [
 ];
 
 /**
- * A text as «Guía de la web y sus flujos» says it: GUIA-WEB.md's references to its own chapters and to the two manuals
- * become the PDF's numbers and parts («ver 3.2» → «ver 7.2», «el manual de la web» → «la parte 4»), as the PDF does;
- * the other docs already say them. «Ayuda y guías» numbers its sections like the PDF.
+ * A text as «Guía de la web y sus flujos» says it, the way «Ayuda y guías» shows it: GUIA-WEB.md's words for the two
+ * manuals become the PDF's references and parts («(ver el manual de la web, punto 6)» → «(ver [§bloques-y-formato])»,
+ * «el manual de la web» → «la parte 4»), as the PDF does. The other docs already say them.
  */
 export function pdfText(doc: WebDoc | null, text: string): string {
   if (doc?.id !== 'guia-web') return text;
-  let t = text.replace(VER_REF, (_m, sp: string, nums: string) => `ver${sp}${nums.replace(/\b([34])\.(\d+)\b/g, (_r, a: string, b: string) => `${a === '3' ? '7' : '3'}.${b}`)}`);
-  for (const [from, to] of GUIA_WORDS) t = typeof from === 'string' ? t.replaceAll(from, to) : t.replace(from, to);
+  let t = text;
+  for (const [from, to] of GUIA_WORDS) {
+    if (typeof from === 'string') t = t.replaceAll(from, to as string);
+    else t = t.replace(from, to as (m: string, n: string) => string);
+  }
   return t;
-}
-
-/** The PDF numbers a text points at with «ver …» (after pdfText), in order. */
-export function webRefs(text: string): string[] {
-  return [...text.matchAll(VER_REF)].flatMap((m) => m[2].match(/\d+\.\d+/g) ?? []);
 }
