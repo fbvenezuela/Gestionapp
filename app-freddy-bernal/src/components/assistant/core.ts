@@ -208,15 +208,17 @@ export function fromApi(status: number, body: unknown): Outcome {
 // ---------------------------------------------------------------------------
 // The screen the person is on, as 360 may know it (R3, design §8.1): the pattern only. An id (any uuid) becomes
 // [id], a role's guide (/ayuda/<slug>) becomes /ayuda/[id], a section of Redes (/redes/reels, R4) becomes
-// /redes/[formato]; never the query, the hash or anything typed.
+// /redes/[formato]; never the query, the hash or anything typed. The pages of Ayuda with a name of their own (the flows,
+// Administración's guide and the web's and Atención's guides, WF-C) stay as they are.
 // ---------------------------------------------------------------------------
 const UUID_SEGMENT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SCREEN = /^\/[a-z0-9\-/[\]]{1,80}$/;
+const HELP_PAGES = ['flujos', 'administracion', 'web', 'atencion'];
 
 export function screenPattern(pathname: string | null | undefined): string | null {
   const path = String(pathname ?? '').split(/[?#]/)[0].replace(/\/+$/, '') || '/';
   const segs = path.split('/').map((seg, i, all) => {
-    if (UUID_SEGMENT.test(seg) || (i === 2 && all[1] === 'ayuda' && all.length === 3 && !['flujos', 'administracion'].includes(seg))) return '[id]';
+    if (UUID_SEGMENT.test(seg) || (i === 2 && all[1] === 'ayuda' && all.length === 3 && !HELP_PAGES.includes(seg))) return '[id]';
     return i === 2 && all[1] === 'redes' && all.length === 3 && formatFromSlug(seg) ? '[formato]' : seg;
   });
   const out = segs.join('/');
