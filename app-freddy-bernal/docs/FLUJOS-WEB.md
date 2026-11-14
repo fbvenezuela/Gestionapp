@@ -2,7 +2,7 @@
 
 > Hoy todo esto se usa en la versión de prueba (ver 6.18). Sus solicitudes son de ejemplo. Por ahora no envía correos.
 
-<!-- Escrito a mano desde la app. Si la app cambia, se cambia aquí. Cada diagrama se revisa para que quepa en una hoja A4 con la letra legible. -->
+<!-- Generado por `npm run docs:guides` desde src/lib/guides/web/ (flujos-web.ts). No se edita a mano: se cambia la fuente y se corre otra vez. Cada diagrama se revisa para que quepa en una hoja A4 con la letra legible. -->
 
 Cómo va cada cosa de la web pública y de la atención ciudadana. Debajo de cada diagrama va lo que hay que saber. Los nombres de los botones están escritos tal como salen en la pantalla. El detalle de cada pantalla está en las partes 4 y 5.
 

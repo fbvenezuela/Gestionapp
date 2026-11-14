@@ -1,5 +1,6 @@
 # Manual del administrador de la web
 
+<!-- Generado por `npm run docs:guides` desde src/lib/guides/web/ (manual-admin-web.ts). No se edita a mano: se cambia la fuente y se corre otra vez. -->
 **09/11/2026.** Para el equipo que escribe y publica la web del gobernador: el editor de la web, quien aprueba, el
 jefe y Administración. Todo se hace desde el panel, en el menú **«Web»**. Lo que va entre comillas, «así», es el nombre
 exacto que sale en la pantalla.

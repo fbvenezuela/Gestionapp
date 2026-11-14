@@ -1,5 +1,6 @@
 # Manual de atención ciudadana
 
+<!-- Generado por `npm run docs:guides` desde src/lib/guides/web/ (manual-atencion.ts). No se edita a mano: se cambia la fuente y se corre otra vez. -->
 **09/11/2026.** Para quienes atienden lo que la gente manda desde la web: la coordinación de atención, los
 responsables de área, el operador de denuncias, auditoría, el jefe y Administración. Todo está en el panel, en el
 menú **«Atención»**, que abre la pantalla «Atención ciudadana». En el teléfono, el jefe y Administración lo encuentran

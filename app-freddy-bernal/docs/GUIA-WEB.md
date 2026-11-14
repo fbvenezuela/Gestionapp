@@ -1,5 +1,6 @@
 # Guía de la web para el equipo
 
+<!-- Generado por `npm run docs:guides` desde src/lib/guides/web/ (guia-web.ts). No se edita a mano: se cambia la fuente y se corre otra vez. -->
 **09/11/2026.** Esta guía cuenta qué tiene la web del gobernador, sección por sección, y cómo la usa la gente.
 También dice qué hace cada rol en el panel. El detalle de cada pantalla del panel está en dos manuales: el **manual de
 la web** (escribir y publicar) y el **manual de atención** (atender solicitudes).
