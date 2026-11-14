@@ -108,7 +108,7 @@ export const MANUAL_ATENCION: WebDoc = {
           kind: 'list',
           items: [
             '**Bandeja:** tarjetas en el teléfono y una tabla desde la tableta, 25 por página. Arriba dice cuántas hay en cada estado. Cada una muestra su código, su tipo y su estado. También dice «Vencida» si ya pasó su fecha, y la prioridad si no es normal.',
-            '**Tablero:** una columna por estado, de Recibido a Resuelto, y una última de «Cerradas y «No procede»». Cada columna muestra las 12 más nuevas. Si hay más, sale un enlace con cuántas son, por ejemplo «Ver las 19 en la lista». El botón de un toque (por ejemplo «→ En revisión») da el paso de siempre cuando no pide motivo. Para lo demás, «Otro estado…» abre el caso. Las tarjetas no se arrastran.',
+            '**Tablero:** una columna por estado, de Recibido a Resuelto, y una última de «Cerradas y «No procede»». Cada columna muestra las más nuevas, hasta 12. Si hay más, sale un enlace con cuántas son, por ejemplo «Ver las 140 en la lista». El botón de un toque (por ejemplo «→ En revisión») da el paso de siempre cuando no pide motivo. Para lo demás, «Otro estado…» abre el caso. Las tarjetas no se arrastran.',
           ],
         },
       ],
@@ -290,10 +290,10 @@ export const MANUAL_ATENCION: WebDoc = {
             '**Apoyos («Apoyar este reporte»):** antes de enviar un reporte, la web le muestra a la persona «Reportes parecidos»: cuántos hay abiertos del mismo problema cerca. Puede tocar «Apoyar este reporte» → «Enviar apoyo», o «No, es otro problema». Quien apoya recibe «Apoyo registrado» con su propio código.',
             'El cuarto reporte del mismo problema en el mismo lugar se suma solo al más viejo.',
             'En «Lo que llegó» sale cuántos se sumaron, por ejemplo «4 personas o casos se sumaron». Lo que escribió cada una dice «(solo el equipo)».',
-            '**Unir dos casos** (la coordinación), cuando son el mismo problema, del mismo tipo y están abiertos: «Casos iguales» → «Buscar el otro caso» (por código o palabras) → «Buscar» → «Elige el caso» → «¿Cuál se queda?» → «Motivo» → «Unir los casos». Las dos historias se guardan. El repetido se cierra y apunta al que se queda, y sus apoyos pasan a ese. Quien mandó el repetido lo sigue con su mismo código.',
+            '**Unir dos casos** (la coordinación), cuando son el mismo problema, del mismo tipo y están abiertos: «Casos iguales» → «Buscar el otro caso» (por código o palabras) → «Buscar» → «Elige el caso» → «¿Cuál se queda?» → «Motivo» → «Unir los casos». Se guardan las historias de los dos. El repetido se cierra y apunta al que se queda, y sus apoyos pasan a ese. Quien mandó el repetido lo sigue con su mismo código.',
             'Un caso unido dice «Este caso está unido a …: se atiende allí.». Se trabaja en el que se quedó.',
           ],
-          wrap: { 2: [112, 24], 3: [118, 117, 117, 47] },
+          wrap: { 2: [112, 24] },
         },
       ],
     },
@@ -308,12 +308,11 @@ export const MANUAL_ATENCION: WebDoc = {
         {
           kind: 'list',
           items: [
-            '**«Resumen para la web»:** lo que se hizo, en pocas palabras. Sin nombres, teléfonos ni direcciones de nadie. Tampoco detalles que la identifiquen («la señora de la casa azul frente a la plaza»).',
+            '**«Resumen para la web»:** lo que se hizo, en pocas palabras. Sin nombres, teléfonos ni direcciones de nadie. Tampoco detalles que la identifiquen (“la señora de la casa azul frente a la plaza”).',
             '**El nombre** sale solo si dio permiso: «Nombre que sale (dio permiso)». Míralo en «Ver contacto». Si no dio permiso, van **iniciales**: «Iniciales que salen (no dio permiso para su nombre)», por ejemplo «M. P.». Si la mandó anónima, sale sin nombre ni iniciales. Se puede dejar vacío.',
             '**Una denuncia** sale solo como «Denuncia atendida en el municipio …». No lleva nada más.',
             'Toca «Publicar en «Casos atendidos»» (o «Actualizar la publicación»). Para quitarla: «Retirar de «Casos atendidos»» → «Por qué se retira» → «Retirar».',
           ],
-          wrap: { 0: [109, 85] },
         },
       ],
     },
@@ -348,7 +347,7 @@ export const MANUAL_ATENCION: WebDoc = {
         {
           kind: 'list',
           items: [
-            'Un caso abierto avisa si **pasó su fecha comprometida** o si lleva **varios días sin movimiento**. Hoy son 5 días, y los cambia Administración en «Áreas y plazos». Avisa **una vez al día por caso**, en la mañana, desde las 7:00 a. m. (hora del Táchira).',
+            'Un caso abierto avisa si **pasó su fecha comprometida** o si lleva **varios días sin movimiento**. Hoy son 5 días, y los cambia Administración en «Áreas y plazos». Avisa **una vez al día por caso**, cada mañana.',
             'Le llega a la coordinación y a su responsable. Si nadie lo tiene, les llega a los responsables de su área. En una denuncia, al equipo de denuncias. Sale en la campana («Avisos»). Si activaste los avisos en «Mi cuenta» → «Mi perfil y avisos» → «Activar avisos», también llega al teléfono. Nunca por correo.',
             'El aviso dice solo el código: «Solicitud vencida: AC-…» o «Solicitud sin movimiento: AC-…». Nunca lo que escribió la persona.',
           ],
@@ -430,13 +429,12 @@ export const MANUAL_ATENCION: WebDoc = {
         {
           kind: 'list',
           items: [
-            '**Esto no es un servicio de emergencias.** La web lo dice así: «Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.». Nunca digas «ya va la ambulancia» o «ya va la patrulla». La web no da ningún número de emergencias. Ese aviso no se cambia desde el panel. Cuando la Gobernación confirme el número oficial de emergencias, se agregará al aviso.',
-            '**Ni fechas ni plazos.** La fecha comprometida es interna. Di lo que es cierto, de usted: «Lo estamos revisando», «Le avisaremos por aquí».',
+            '**Esto no es un servicio de emergencias.** La web lo dice así: «Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.». Nunca digas “ya va la ambulancia” o “ya va la patrulla”. La web no da ningún número de emergencias. Ese aviso no se cambia desde el panel. Cuando la Gobernación confirme el número oficial de emergencias, se agregará al aviso.',
+            '**Ni fechas ni plazos.** La fecha comprometida es interna. Di lo que es cierto, de usted: “Lo estamos revisando”, “Le avisaremos por aquí”.',
             '**Ni resultados que no dependen del equipo**, como una ayuda o la decisión de otro organismo.',
             '**Ni publicar su nombre sin su permiso**, ni contarle a otra persona que alguien escribió.',
             '**Nunca pidas datos de más**, como la cédula o la afiliación política. Pide solo lo que hace falta para atender.',
           ],
-          wrap: { 1: [113, 25] },
         },
       ],
     },

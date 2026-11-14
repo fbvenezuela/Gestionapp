@@ -77,11 +77,11 @@ En la lista del tipo, el botón de arriba (**«Nueva noticia»**, **«Nueva obra
 dirección en la web sale de él) → **«Crear borrador»**. Se abre el editor.
 
 **Las páginas no se crean, se editan.** Son seis y ya existen: la portada («Inicio»), «El gobernador», «Atención
-ciudadana» y las tres legales («Aviso de privacidad», «Condiciones de participación» y «Accesibilidad»). No uses la
-página «Atención ciudadana»: lo que se escribe ahí no sale en la web. En la lista lleva el chip «No sale en la web»,
-y su editor lo avisa arriba («Esta página no sale en la web»), sin «Vista previa» ni «Enviar a aprobación». Los textos
-de la sección «Atención ciudadana» no se cambian desde el panel. De ella se cambian las preguntas («Preguntas
-frecuentes», grupo «Atención ciudadana») y los contactos verificados (ver 4.13).
+ciudadana» y tres legales («Aviso de privacidad», «Condiciones de participación» y «Accesibilidad»). No uses la página
+«Atención ciudadana»: lo que se escribe ahí no sale en la web. En la lista lleva el chip «No sale en la web», y su
+editor lo avisa arriba («Esta página no sale en la web»), sin «Vista previa» ni «Enviar a aprobación». Los textos de la
+sección «Atención ciudadana» no se cambian desde el panel. De ella se cambian las preguntas («Preguntas frecuentes»,
+grupo «Atención ciudadana») y los contactos verificados (ver 4.13).
 
 Lo que pide cada tipo:
 
@@ -93,7 +93,7 @@ Lo que pide cada tipo:
 | **Documento** | Categoría (Semanario, Informe, Memoria y Cuenta, Normativa, Material para la prensa u Otro), «Archivo PDF», «Versión» (la edición, por ejemplo «n.º 12») y Páginas | Todos salen en «Transparencia». El Semanario sale también en Noticias › Semanario, y el material para la prensa en «El gobernador» |
 | **Aviso de servicio** | Título, Servicio, «Texto del aviso», «Actualizado» (con «Ahora»), «Vence (opcional)» y «Municipios afectados» | La hora es la del Táchira. Al vencer deja de salir solo. Sin municipios marcados, es para todo el estado. Sin teléfonos que nadie verificó |
 | **Pregunta frecuente** | Pregunta, Grupo (Atención ciudadana, Esta web o La gestión), Respuesta y Orden | Las de «Atención ciudadana» salen en la página de Atención. Las demás salen donde se ponga un bloque «Preguntas frecuentes» (ver 4.6) |
-| **Indicador** | «Qué se cuenta», Cifra, Unidad, «Fecha del dato», Fuente, «Enlace de la fuente (si tiene)» y Cálculo | **Una cifra sin fuente nunca sale en la web.** «Cálculo»: «Escrita a mano», «Lo cuenta la app: solicitudes atendidas» o «Lo cuenta la app: obras concluidas». Con las dos últimas, la app cuenta la cifra sola y la web enlaza la lista que la respalda |
+| **Indicador** | «Qué se cuenta», Cifra, Unidad, «Fecha del dato», Fuente, «Enlace de la fuente (si tiene)» y Cálculo | **Una cifra sin fuente nunca sale en la web.** «Cálculo»: «Escrita a mano», «Lo cuenta la app: solicitudes atendidas» o «Lo cuenta la app: obras concluidas». Con estas dos últimas, la app cuenta la cifra sola y la web enlaza la lista que la respalda |
 
 **Nunca se inventa nada:** ni biografía, ni fotos, ni teléfonos, ni correos, ni horarios, ni cuentas, ni parroquias.
 Lo que falte se deja como espacio **«Por completar»** (ver 4.6) y se llena cuando el dato llegue confirmado. Ese espacio
@@ -150,7 +150,7 @@ Preguntas frecuentes, Indicadores, Obras y gestión, Noticias, Llamado a la acci
 oficiales, Accesos de participación y Casos atendidos. Cada uno dice para qué sirve. Algunos detalles:
 
 - **Portada con foto:** sin foto, la portada sale solo con el texto, a lo ancho. La vista previa muestra «Foto por
-  subir desde el administrador». Si el mensaje todavía no está, escribe «Por completar: …» con lo que falta. El equipo
+  subir desde el administrador». Si el mensaje todavía no está, escribe “Por completar: …” con lo que falta. El equipo
   lo ve como un espacio por llenar, y el público no ve nada.
 - **Video:** «Mostrar el episodio más reciente» cambia solo cada vez que se publica un episodio.
 - **Documentos, Preguntas y Obras:** «Salen en el orden en que los marques. Sin marcar ninguno, se usan los
@@ -174,7 +174,7 @@ papelera las quita. En una lista, un punto por línea. Dentro de un párrafo o u
 - **«Así se ve en la web»** (debajo del texto) lo muestra como quedará.
 - Un enlace puede llevar a otra web, a un correo o a otra página de esta web. Para otra web, pega la dirección
   completa, copiada del navegador. Para un correo, escribe «mailto:» pegado al correo, como
-  «mailto:nombre@ejemplo.com». Para otra página de esta web, basta el final de su dirección, el que empieza con «/». Si
+  “mailto:nombre@ejemplo.com”. Para otra página de esta web, basta el final de su dirección, el que empieza con «/». Si
   la dirección no sirve, la pantalla lo dice en rojo.
 - Lo que se pega llega como texto simple. La negrita, la cursiva y los enlaces se ponen aquí, con los botones.
 - Si un asterisco o un corchete de tu texto desaparece en «Así se ve en la web», escribe antes una barra inclinada
@@ -262,8 +262,9 @@ web hay que enviarla a aprobación y publicarla otra vez. El editor también pue
 
 - **«Texto alternativo»** (obligatorio): lo oyen las personas ciegas, con un programa que les lee la pantalla en voz
   alta. También lo usan buscadores como Google. Describe lo que se ve en pocas palabras, como se lo contarías a alguien
-  que no puede verla: quién, qué hace, dónde. No empieces con «foto de…». Si la foto tiene un texto importante, escríbelo. Por ejemplo (inventado): «Obreros
-  asfaltan una calle de tierra frente a una escuela» y no «foto1» ni «Obra».
+  que no puede verla: quién, qué hace, dónde. No empieces con «foto de…». Si la foto tiene un texto importante,
+  escríbelo. Por ejemplo (inventado): “Obreros asfaltan una calle de tierra frente a una escuela” y no “foto1” ni
+  “Obra”.
 - «Pie de foto» (lo que cuenta la foto, debajo de ella) y «Crédito» (quién la tomó), opcionales.
 - **Punto de interés:** toca en la foto lo que siempre debe verse (una cara, la obra), o muévelo con las flechas del
   teclado o con «Horizontal» y «Vertical». Así, cuando la web la recorta, eso no se pierde.
@@ -306,10 +307,10 @@ aprobación** («Guardado. La web ya lo muestra.»). Cada sección tiene su «Gu
 web.
 
 **En la versión de prueba,** arriba de los ajustes dice «Esta demostración muestra el contenido de la web oficial: el
-nombre, el cargo, las cuentas, los contactos y la franja de aviso quedan como están.». En ella no se guardan «Nombre y
-saludo», «Datos estructurados», «Cuentas en redes», «Canal de WhatsApp», «Portal institucional», «Canal de YouTube del
-programa», «Contactos institucionales» ni «Aviso de la versión de prueba». Si alguien lo intenta, sale «En esta
-versión de prueba con el contenido de la web oficial, el nombre, las cuentas, los contactos y la franja de aviso no se
+nombre, el cargo, las cuentas, los contactos y la franja de aviso quedan como están.». En ella no se guardan «Nombre de
+la web», «Datos estructurados», «Cuentas en redes», «Canal de WhatsApp», «Portal institucional», «Canal de YouTube del
+programa», «Contactos institucionales» ni «Aviso de la versión de prueba». Si alguien lo intenta, sale «En esta versión
+de prueba con el contenido de la web oficial, el nombre, las cuentas, los contactos y la franja de aviso no se
 cambian.». «Navegación» y «Pie de página» sí se cambian. La razón: cualquiera puede entrar a la versión de prueba, y
 nadie debe poder hacerla pasar por la web oficial.
 
@@ -319,7 +320,7 @@ Llevan una dirección vieja a la nueva, para que ningún enlace guardado o compa
 puede ser de la web anterior o una de esta web que cambió. Las ve y las cambia el aprobador, el jefe o Administración.
 
 - **«Nueva redirección»**: en «Dirección vieja», la dirección como estaba antes. En «Lleva a», la página de esta web
-  adonde debe llevar. En las dos va solo el final de la dirección, el que empieza con «/», como en el ejemplo que trae
+  adonde debe llevar. En ambas va solo el final de la dirección, el que empieza con «/», como en el ejemplo que trae
   cada cuadro debajo. En «Tipo», deja la opción que ya viene marcada, la que dice «Para siempre (lo normal)»; debajo
   dice cuándo sirven las otras: «Por un tiempo», si la dirección vieja se va a volver a usar, y las de «formularios»,
   solo si en la dirección vieja había un formulario. Toca **«Agregar la redirección»**.

@@ -66,7 +66,7 @@ export const GUIA_WEB: WebDoc = {
             '**El título grande:** el nombre del gobernador y, debajo, su cargo. Al lado va su foto, la de la portada de la web oficial.',
             '**«Atención ciudadana»:** el botón grande «Hacer un reporte» y cuatro más: «Hacer una petición», «Enviar una observación», «Hacer una denuncia» y «Consultar mi solicitud». Debajo dice «También puede enviar sugerencias y reconocimientos.» y repite el aviso de emergencias.',
             '**«Últimas publicaciones»:** la noticia más nueva en grande y tres más, con «Ver todas las noticias».',
-            '**«Opinión»:** las dos columnas más nuevas, una al lado de la otra, con «Ver más artículos de opinión».',
+            '**«Opinión»:** dos columnas, las más nuevas, una al lado de la otra, con «Ver más artículos de opinión».',
             '**«[SEMANARIO]»:** la última edición, con «Ver todas las ediciones».',
             '**«Canales oficiales»:** las cuentas, con «Cómo identificar las cuentas oficiales».',
           ],
@@ -78,7 +78,7 @@ export const GUIA_WEB: WebDoc = {
           items: [
             '**«Gestión en cifras»:** cada cifra con su fuente y su fecha.',
             '**«Casos atendidos»:** los tres últimos, con «Ver todos los casos».',
-            '**«Gestión y obras»:** las tres últimas obras, con «Ver todas las obras».',
+            '**«Gestión y obras»:** las últimas tres obras, con «Ver todas las obras».',
             '**«Avisos de servicio»:** solo los vigentes, cada uno con «Actualizado el …» y «Vigente hasta el …».',
           ],
         },
@@ -249,7 +249,7 @@ export const GUIA_WEB: WebDoc = {
       blocks: [
         { kind: 'p', text: 'Son tres y salen en el pie: «Aviso de privacidad», «Condiciones de participación» y «Accesibilidad».' },
         { kind: 'p', text: '**Qué ve la persona.** El texto por partes y, al final, «Texto sujeto a revisión jurídica.». En «Accesibilidad» dice «Texto sujeto a revisión.». Debajo va la «Última actualización».' },
-        { kind: 'p', text: '**De dónde sale.** «Web» → «Páginas», cada una por su nombre. Las tres esperan la revisión jurídica: tienen espacios «Por completar antes de publicar: …».' },
+        { kind: 'p', text: '**De dónde sale.** «Web» → «Páginas», cada una por su nombre. Todas esperan la revisión jurídica: tienen espacios «Por completar antes de publicar: …».' },
         { kind: 'p', text: '**Sin datos.** Los espacios «Por completar» no salen. Una página sin publicar dice «Página en preparación.».' },
       ],
     },
@@ -492,8 +492,8 @@ export const GUIA_WEB: WebDoc = {
           kind: 'list',
           items: [
             '**Viene de la web oficial:** el nombre, el cargo y la foto de la portada. En «El gobernador», la «Biografía», «Elección y toma de posesión» y «Condecoraciones», con su fuente. Las noticias y las columnas de «Opinión» más recientes, con sus fotos. La última edición del Semanario.',
-            '**Es de ejemplo:** las personas del panel (ver [§entrar-con-un-toque]). También las 60 solicitudes de «Atención ciudadana», que llevan «(demo)» en el título, con sus tres comprobantes (ver [§comprobantes-de-prueba]). Las cifras de «Transparencia» salen de esas solicitudes, y la página lo dice.',
-            '**Ya venía escrito en la app:** las siete preguntas frecuentes de «Atención ciudadana». Cuentan cómo funciona la atención.',
+            '**Es de ejemplo:** las personas del panel (ver [§entrar-con-un-toque]). También las solicitudes de «Atención ciudadana», 60 en total, que llevan «(demo)» en el título, con sus tres comprobantes (ver [§comprobantes-de-prueba]). Las cifras de «Transparencia» salen de esas solicitudes, y la página lo dice.',
+            '**Ya venía escrito en la app:** siete preguntas frecuentes de «Atención ciudadana». Cuentan cómo funciona la atención.',
             '**Todavía no sale:** las emisiones del «[PROGRAMA]»: su página lleva al canal oficial de YouTube. En la portada, «Gestión en cifras», «Casos atendidos», «Gestión y obras» y «Avisos de servicio». En el menú, «Gestión y obras». En «El gobernador», «Material para la prensa». Para ellos todavía no hay contenido real (ver [§inicio], [§el-gobernador] y [§programa]).',
           ],
         },

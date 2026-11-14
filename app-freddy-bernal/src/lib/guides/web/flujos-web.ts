@@ -273,7 +273,7 @@ export const FLUJOS_WEB: WebDoc = {
         { from: 'iguales_une', to: 'iguales_sigue' },
       ],
       know: [
-        'Solo se unen casos del mismo tipo, y los dos abiertos. Las dos historias se guardan.',
+        'Solo se unen casos del mismo tipo, y los dos abiertos. Se guardan las historias de los dos.',
         'Un caso unido dice «Este caso está unido a …: se atiende allí.». Se trabaja en el que se quedó.',
         'Lo que escribe quien se suma lo lee solo el personal. Quien se suma nunca ve el texto del reporte.',
       ],
@@ -382,7 +382,7 @@ export const FLUJOS_WEB: WebDoc = {
       audience: ['boss'],
       nodes: [
         { id: 'aviso_fecha', shape: 'box', text: 'Al llegar, el caso recibe su fecha comprometida. La persona nunca la ve.' },
-        { id: 'aviso_revisa', shape: 'box', text: 'La app, cada mañana desde las 7:00 a. m. del Táchira, revisa los casos abiertos.' },
+        { id: 'aviso_revisa', shape: 'box', text: 'La app, cada mañana, revisa los casos abiertos.' },
         { id: 'aviso_vencida_q', shape: 'decision', text: '¿Pasó su fecha?' },
         { id: 'aviso_vencida', shape: 'box', text: '«Solicitud vencida: AC-…»' },
         { id: 'aviso_quieto_q', shape: 'decision', text: '¿5 días sin movimiento?' },
@@ -598,7 +598,7 @@ export const FLUJOS_WEB: WebDoc = {
       ],
       know: [
         'No se redirige una dirección que la web ya usa. Tampoco se hacen dos desde la misma.',
-        'Las que se hicieron solas al traer las noticias de la web vieja dicen «De la web vieja». Las hechas aquí dicen «A mano», y nunca cambian solas.',
+        'Las que se hicieron solas al traer las noticias de la web vieja dicen «De la web vieja». Las hechas aquí dicen «A mano», y nunca cambian solas.',
         'Cuando quien aprueba cambia la «Dirección en la web» de algo publicado, la vieja sigue llevando a la nueva sola.',
         'Un cambio se nota en la web en más o menos un minuto. Un archivo viejo es una foto o un documento que estaba en la web anterior.',
       ],
