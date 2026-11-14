@@ -45,6 +45,15 @@ export function hasPhone(text: string): boolean {
   return phonesIn(text).length > 0;
 }
 
+/**
+ * A citizen's receipt (D-96) or a piece of one: a code («AC-2026-K7QM2H», also cut short, «AC-2026-K7»), a key
+ * («K7QM-2HXP-9WRT-4BNE») or the suffix of a demo case («DEMR01»). The web's guide prints the demo receipts for whoever
+ * practices (2.3, 5.4, 5.22, 7.5, 7.6); 360 never says one (design §4(e)). «AC-…» (no characters) is a label, not a code.
+ */
+export function hasReceiptCode(text: string): boolean {
+  return /\bAC-?\d{4}-?[A-Z0-9]{2,6}\b|\b[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}\b|\bDEMR\d{2}\b/.test(text);
+}
+
 /** The labels a text quotes with «…», at the top level: «Ver todo en «Por aprobar»» is one label, with its inner one. */
 export function quotedLabels(text: string): string[] {
   const out: string[] = [];

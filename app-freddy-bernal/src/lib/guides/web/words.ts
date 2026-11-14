@@ -1,8 +1,8 @@
 // The client's words in the web's and Atención's guide (WF-C): the docs and «Ayuda y guías» name the weekly program,
 // the weekly paper and the official site, but src never does (the repository is public, §11.6): the data writes huecos
 // and these fill them from config/clients/<brand>.json, the same words the public site uses: the program's name is
-// the label of its page in the site's menu (programNameOf, as /reporte-bernal says it), the paper's is the brand's
-// «weeklyName» and the official site's address is «realSite.source». Whatever prints a web text fills it first.
+// the label of its page in the site's menu (programNameOf, as the program's own page says it), the paper's is the
+// brand's «weeklyName» and the official site's address is «realSite.source». Whatever prints a web text fills it first.
 import { getClientConfig, type ClientConfig } from '../../client-config';
 import { programNameOf } from '../../web/program-name';
 

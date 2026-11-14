@@ -179,17 +179,22 @@ function docNumber(doc: WebDoc, pdf: string): string {
   return `${a === '7' ? '3' : a === '3' ? '4' : a}.${b}`;
 }
 
+/** How a doc prints a text of its own: the client's words filled and each reference as the number that doc uses. */
+export function docFill(doc: WebDoc, docs: readonly WebDoc[], words: ClientWords): (s: string) => string {
+  const pdfOf = new Map(docs.flatMap((d) => [...d.sections, ...(d.flows ?? [])].map((x) => [x.id, x.pdf] as const)));
+  return (s: string) =>
+    fillClientWords(s, words).replace(REF, (_m, id: string) => {
+      const pdf = pdfOf.get(id);
+      if (!pdf) throw new Error(`${doc.file}: la referencia «[§${id}]» no es de ninguna sección.`);
+      return docNumber(doc, pdf);
+    });
+}
+
 /** The four docs, by their path under the app's folder. */
 export function renderWebDocs(docs: readonly WebDoc[], words: ClientWords): Record<string, string> {
-  const pdfOf = new Map(docs.flatMap((d) => [...d.sections, ...(d.flows ?? [])].map((x) => [x.id, x.pdf] as const)));
   return Object.fromEntries(
     docs.map((d) => {
-      const fill = (s: string) =>
-        fillClientWords(s, words).replace(REF, (_m, id: string) => {
-          const pdf = pdfOf.get(id);
-          if (!pdf) throw new Error(`${d.file}: la referencia «[§${id}]» no es de ninguna sección.`);
-          return docNumber(d, pdf);
-        });
+      const fill = docFill(d, docs, words);
       return [d.file, d.flows ? flowsMd(d, fill) : proseMd(d, fill)];
     }),
   );

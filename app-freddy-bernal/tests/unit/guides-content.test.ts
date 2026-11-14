@@ -162,7 +162,10 @@ describe('cada pantalla de cada rol tiene su sección', () => {
 
     it(`${g.label}: cada pantalla sin [id] que abre (salvo Ajustes) tiene su sección, y las importantes con [id] también`, () => {
       const have = new Set(g.sections.map((s) => screenFor(s.screen)!.href));
-      const want = SCREENS.filter((s) => !s.href.includes('[') && !s.href.startsWith('/ajustes') && canOpen(s.href, [role])).map((s) => s.href);
+      // The web's and Atención's guides (WF-C) are guides, reached from «La guía de cada persona» like the role guides
+      // (/ayuda/[id]): the boss's «Ayuda y guías» section names them.
+      const guides = new Set(['/ayuda/web', '/ayuda/atencion']);
+      const want = SCREENS.filter((s) => !s.href.includes('[') && !s.href.startsWith('/ajustes') && !guides.has(s.href) && canOpen(s.href, [role])).map((s) => s.href);
       const important: Record<TeamRole, string[]> = {
         boss: ['/eventos/[id]', '/piezas/[id]', '/aprobar/[id]', '/obras/[id]', '/reportes/[id]', '/publicar/[id]', '/tweets/[id]', '/mensajes/[id]'],
         dispatch: ['/eventos/[id]', '/obras/[id]', '/reportes/[id]', '/mensajes/[id]'],

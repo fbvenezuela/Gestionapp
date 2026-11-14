@@ -3,6 +3,7 @@
 // managers read) and where each section is in «Ayuda y guías». Data and pure functions only. The docs come back out of
 // it (src/lib/guides/render-web-md.ts, `npm run docs:guides`), /ayuda/web and /ayuda/atencion show it, and 360 reads it
 // (only the boss and Administración: the web's and the desk's own roles get no guides and no 360).
+import type { Role } from '../../roles';
 import type { WebBlock, WebDoc, WebFlow, WebPage, WebPart, WebSection } from '../types';
 import { GUIA_WEB } from './guia-web';
 import { MANUAL_ADMIN_WEB } from './manual-admin-web';
@@ -72,6 +73,21 @@ export function webPageOf(pdf: string): WebPage {
 }
 
 export const WEB_PAGE_HREF: Record<WebPage, string> = { web: '/ayuda/web', atencion: '/ayuda/atencion' };
+
+/** The two rows «Ayuda y guías» adds under «La guía de cada persona», with the page's title, in that order. */
+export const WEB_GUIDE_ROWS: readonly { page: WebPage; href: string; label: string; detail: string }[] = [
+  { page: 'web', href: WEB_PAGE_HREF.web, label: 'La web', detail: 'Qué tiene la web, cómo se escribe y se publica, y la versión de prueba' },
+  { page: 'atencion', href: WEB_PAGE_HREF.atencion, label: 'Atención ciudadana', detail: 'Cómo se atiende lo que la gente manda desde la web' },
+];
+
+/**
+ * The web's guide rows a person gets in «Ayuda y guías»: only the boss and Administración, who have «Web» and «Atención»
+ * in their menu. The web's and the desk's own roles get no guides (WEB_ROLES), and neither does the rest of the team.
+ * `roles`: the session's roles (not «Ver como»: the pages check the real ones, requireRole('boss', 'admin')).
+ */
+export function webGuideRows(roles: readonly Role[]): typeof WEB_GUIDE_ROWS {
+  return roles.includes('boss') || roles.includes('admin') ? WEB_GUIDE_ROWS : [];
+}
 
 export type WebPartView = { part: WebPart; sections: WebSection[]; flows: WebFlow[] };
 
