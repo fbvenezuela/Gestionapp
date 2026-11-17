@@ -302,6 +302,9 @@ describe('explicar un tema de la web y contar un flujo', () => {
     const chips = await ask('admin', 'explicame mas facil', ['q diferencia hay entre de la web vieja y a mano']);
     expect(chips.answer).toMatch(/«De la web vieja».*«A mano»/);
     expect(chips.answer).not.toMatch(/No estoy seguro/);
+    // «No entendí lo de X»: the part of the section that says X (design §4(c)1), not the whole section said simply.
+    const shortest = await ask('admin', 'no entendi lo de gana el mas corto', ['como cambio los plazos en areas y plazos']);
+    expect(shortest.answer).toMatch(/^Entre los días de la prioridad y los de la categoría gana el más corto/);
   });
 
   it('«¿qué es…?» lo contesta lo que dice qué es, no una regla que nombra la etiqueta; cada pantalla de la web, con su botón', async () => {

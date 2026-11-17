@@ -10,13 +10,13 @@ import type { Role } from '../roles';
 import type { Audience, RoleText, WebBlock, WebFlow, WebSection, WebTask } from '../guides/types';
 import { hasReceiptCode } from '../guides/check';
 import { PANEL_SCREENS, isWebFlow, webEntry, webHref } from '../guides/web';
-import { entryById, textFor, type Entry } from './answers/engine';
+import { entryById, textFor, tokens, type Entry } from './answers/engine';
 import { sentencesOf, type Facet } from './explain';
 import { canOpen } from './screens';
 import { plain } from './text';
 
 export type WebExplained = { text: string; entryId: string; goTo?: string; cursor?: number };
-type Ctx = { roles: Role[]; said?: string[]; cursor?: number };
+type Ctx = { roles: Role[]; said?: string[]; cursor?: number; about?: string };
 
 const PAGE = 3;
 const PAGE_LETTERS = 440;
@@ -116,6 +116,29 @@ function partsOf(x: WebSection | WebFlow, roles: Role[], guideFirst = false): st
   const fromBlocks = x.blocks.flatMap((b) => (b.kind === 'p' ? [b.text] : b.kind === 'list' ? b.items : b.kind === 'note' ? b.paras : [])).filter(sayable).map((t) => clean(t)).filter((t) => t && !/:\s*$/.test(t)).map(end);
   return guideFirst ? [...fromBlocks, ...own] : [...own, ...fromBlocks];
 }
+/**
+ * «No entendí lo de gana el más corto»: the part of the section that says X (its items, the guide's words, its rules, its
+ * questions' answers, this person's steps), when it has most of X's words; else null (the facet goes on as without X).
+ */
+function partNamed(x: WebSection | WebFlow, roles: Role[], about: string): string | null {
+  const want = tokens(about).filter((w) => w.length >= 3);
+  if (!want.length) return null;
+  const like = (have: string[], w: string) => have.some((h) => h === w || (h.length >= 4 && w.length >= 4 && (h.startsWith(w) || w.startsWith(h))));
+  const parts = [
+    ...partsOf(x, roles),
+    ...(x.rules ?? []).filter(sayable).map((r) => end(clean(r))),
+    ...(x.faq ?? []).map((f) => forRole(f.a, roles)).filter(sayable).map((t) => end(clean(t))),
+    ...stepsOf(x, roles),
+  ];
+  let best: string | null = null;
+  let top = 0;
+  for (const t of parts) {
+    const have = tokens(t);
+    const share = want.filter((w) => like(have, w)).length / want.length;
+    if (share > top) [best, top] = [t, share];
+  }
+  return top >= 0.6 ? best : null;
+}
 /** A section's own question that asks what it is for («¿Para qué sirve la vista previa?», «¿Para qué es…?»). */
 const PURPOSE_Q = /^¿?\s*para\s+qu[eé]\s+(?:sirve|sirven|es|son)\b/i;
 /** The section a curated answer of the web is about: the one its button's anchor names, else the panel screen's. */
@@ -170,12 +193,15 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
   const stepNo = /(?:^|:)(?:pasos:\d+:|tarea:[a-z0-9-]+:)(\d+)$/.exec(place.rest)?.[1];
   const at = ctx.cursor ?? (e.kind === 'flowStory' ? e.cursor : stepNo ? Number(stepNo) : undefined);
   const lead = sentencesOf(textFor(e.a, roles));
+  // The «lo de X» of the ask, when the section says it (design §4(c)1: X is a topic, never an event).
+  const named = ctx.about ? partNamed(x, roles, ctx.about) : null;
   switch (facet) {
     case 'simpler': {
       // The section's «dicho más fácil» is about the whole section: one of its items, rules or questions («Vencidas» of
       // «Cifras») is said again, plainly, with the guide (never the whole section's instead).
       const whole = place.rest === '' || /^(?:tarea|pasos):/.test(place.rest);
       return fresh([
+        named ? { text: `${named}${guide ? ' La guía lo explica con calma: toca el botón.' : ''}`, ...own, ...(guide ? { goTo: guide } : {}) } : null,
         whole && forRole(x.easy, roles) ? { text: end(clean(forRole(x.easy, roles)!)), ...own } : null,
         lead[0] ? { text: `${lead[0]}${guide ? ' La guía lo explica con calma: toca el botón.' : ''}`, ...own, ...(guide ? { goTo: guide } : {}) } : null,
       ]);
@@ -186,7 +212,7 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
         guide ? { text: 'La guía no trae un ejemplo de eso: lo explica completo en «Ayuda y guías». Toca el botón.', ...own, goTo: guide } : null,
       ]);
     case 'why': {
-      const says = lead.find((s) => !wasSaid(s, said)) ?? lead[0];
+      const says = named ?? lead.find((s) => !wasSaid(s, said)) ?? lead[0];
       return fresh([
         sayable(x.why) ? { text: end(clean(x.why)), ...own } : null,
         says ? { text: `La guía no da el porqué de eso. Lo que dice es esto: ${lcFirst(end(says))}`, ...own, ...(guide ? { goTo: guide } : {}) } : null,
@@ -199,7 +225,7 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
       const what = forRole(x.what, roles);
       const asked = (x.faq ?? []).filter((f) => PURPOSE_Q.test(f.q)).map((f) => forRole(f.a, roles)).filter(sayable);
       const first = partsOf(x, roles, true).find((t) => !wasSaid(t, said));
-      return fresh([what ? { text: end(clean(what)), ...own } : null, ...asked.map((t) => ({ text: end(clean(t)), ...own })), first ? { text: `${title}: ${lcFirst(first)}`, ...own } : null]);
+      return fresh([named ? { text: named, ...own } : null, what ? { text: end(clean(what)), ...own } : null, ...asked.map((t) => ({ text: end(clean(t)), ...own })), first ? { text: `${title}: ${lcFirst(first)}`, ...own } : null]);
     }
     case 'steps': {
       // A how-to that only the other one does: this person's own «No: …» of the section, never its steps as theirs.

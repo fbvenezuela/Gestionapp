@@ -851,7 +851,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     const webTopic = aboutEntry ? entryById(aboutEntry) : undefined;
     if (webTopic?.domain && webTopic.domain !== 'equipo') {
       const said = i.ctx.history.filter((h) => h.who === 'asistente').map((h) => h.body);
-      const w = webExplain(ask.facet, webTopic, { roles: i.ctx.roles, said, ...(i.ctx.last?.cursor !== undefined && i.ctx.last.entry === aboutEntry ? { cursor: i.ctx.last.cursor } : {}) });
+      const w = webExplain(ask.facet, webTopic, { roles: i.ctx.roles, said, ...(ask.about ? { about: ask.about } : {}), ...(i.ctx.last?.cursor !== undefined && i.ctx.last.entry === aboutEntry ? { cursor: i.ctx.last.cursor } : {}) });
       if (w) {
         const text = clip(fill(w.text));
         const go = w.goTo ?? (webTopic.go && canOpen(webTopic.go, i.ctx.roles) ? webTopic.go : undefined);

@@ -650,6 +650,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         { q: '¿Qué le pongo en el texto alternativo a una foto?', a: 'Lo que se ve, en pocas palabras, como se lo contarías a alguien que no puede verla: quién, qué hace, dónde. No empieces con “foto de…”, y si la foto tiene un texto importante, escríbelo.' },
         { q: '¿Qué es el punto de interés de una foto?', a: 'Lo que siempre debe verse en la foto, como una cara o la obra. Se toca en la foto, y así, cuando la web la recorta, eso no se pierde.' },
         { q: '¿Qué fotos y archivos acepta la biblioteca?', a: 'Fotos JPG, PNG o WebP y PDF, hasta 4 MB cada uno. Una imagen diminuta, como un ícono, no se acepta.' },
+        { q: '¿Cómo busco una foto en la biblioteca?', a: 'Con «Buscar», que busca en el texto alternativo, el pie, el crédito o el título; también están «Tipo» (Todo, Fotos, Documentos) y «Archivados».' },
         { q: '¿Qué significa «Sin usar» en la biblioteca?', a: 'Que ese archivo no está en ningún contenido. Si se usa, dice en cuántos, por ejemplo «Se usa en 1 contenido», y «Dónde se usa» los lista.' },
         { q: 'Le cambié el texto a una foto y en la web sigue igual, ¿por qué?', a: 'Porque lo ya publicado conserva los textos con que se aprobó: cambia cuando se publique de nuevo.' },
         { q: 'Si archivo una foto de la biblioteca, ¿se cae de las noticias?', a: 'No: las páginas publicadas que la usan la siguen mostrando. Pero nadie puede elegirla, y un borrador que la use no se puede enviar hasta cambiarla.' },
