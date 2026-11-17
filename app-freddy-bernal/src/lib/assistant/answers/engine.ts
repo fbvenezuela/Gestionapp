@@ -646,7 +646,11 @@ const STORY_LETTERS = 400;
 // semana» asked alone is what the word means or how it works, the glossary's and the curated answers'.)
 function storyAsks(title: string): string[] {
   const noun = lcFirst(title.split(/,\s/)[0]);
-  return [...(title.includes(', ') ? [title] : []), `el camino de ${noun}`, `como es el camino de ${noun}`, `cual es el flujo de ${noun}`, `el flujo de ${noun}`, `como funciona el flujo de ${noun}`, `quien hace que en ${noun}`, `por donde pasa ${noun}`];
+  // («de» + «el mes de Redes» is said «del mes de Redes».)
+  return [...(title.includes(', ') ? [title] : []), ...storyFrames(noun)].map((x) => x.replace(/\bde el\b/g, 'del').replace(/\ba el\b/g, 'al'));
+}
+function storyFrames(noun: string): string[] {
+  return [`el camino de ${noun}`, `como es el camino de ${noun}`, `cual es el flujo de ${noun}`, `el flujo de ${noun}`, `como funciona el flujo de ${noun}`, `quien hace que en ${noun}`, `por donde pasa ${noun}`];
 }
 /** The first clause of a step («Graba, sube cada parte… Cuando ya empezó, «Marcar realizado».» → its first sentence). */
 const firstSentence = (t: string) => {
@@ -1096,7 +1100,7 @@ const WEB_DOMAIN = new RegExp(
   String.raw`\b(?:la web|de la web|en la web|(?:en|de|mi|tu|el|del|al) web|web y atencion|pagina web|paginas web|sitio web|web publica|web oficial|web vieja|menu web|noticias?|comunicados?|columnas? de opinion|redirecci\w*|ajustes del sitio|vista previa|editor de la web|aprobador de la web|publicar ahora|devolver con comentario|devuelto con comentario|cambios sin publicar|desarchiv\w*|volver a esta version|texto alternativo|punto de interes|avisos? de servicio|episodios?|indicadores?|obras y acciones|gestion y obras|transparencia|paginas? legales|canales oficiales|semanario|pie de pagina|portada de la web)\b`,
 );
 const ATTENTION_DOMAIN = new RegExp(
-  String.raw`\b(?:atencion ciudadana|menu atencion|(?:registro|cifras|mapa|bandeja|tablero|plazos|areas|roles?) de atencion|solicitudes|solicitud (?:de la gente|de la web|ciudadana|de la persona|de alguien|que llego|que llega)|ciudadan\w*|bandeja|denuncias|una denuncia|operador de denuncias|comprobantes?|consultar mi solicitud|casos? atendidos?|coordinacion|coordinador\w* de atencion|responsables? de area|areas y plazos|auditoria|fecha comprometida|respuestas? guardadas?|notas? internas?|respuesta a la persona|pedido de informacion|requiere informacion|no procede|derivad[oa]s?|reportes? parecidos|casos? iguales|lo que (?:manda|escribe|reporta|pide) la gente|la gente (?:que escribe|que manda|manda|reporta|escribe)|ac \d{4})\b|(?<!\ben )\b(?:el|un|los|cada|del|al|mis|sus) casos?\b`,
+  String.raw`\b(?:atencion ciudadana|menu atencion|(?:en|a) atencion(?! a\b)|(?:registro|cifras|mapa|bandeja|tablero|plazos|areas|roles?) de atencion|solicitudes|solicitud (?:de la gente|de la web|ciudadana|de la persona|de alguien|que llego|que llega)|ciudadan\w*|bandeja|denuncias|una denuncia|operador de denuncias|comprobantes?|consultar mi solicitud|casos? atendidos?|coordinacion|coordinador\w* de atencion|responsables? de area|areas y plazos|auditoria|fecha comprometida|respuestas? guardadas?|notas? internas?|respuesta a la persona|pedido de informacion|requiere informacion|no procede|derivad[oa]s?|reportes? parecidos|casos? iguales|lo que (?:manda|escribe|reporta|pide) la gente|la gente (?:que escribe|que manda|manda|reporta|escribe)|ac \d{4})\b|(?<!\ben )\b(?:el|los) casos?\b|\b(?:un|cada|del|al|mis|sus) casos?\b`,
 );
 // The team's own things: on a screen of the web, a question that names them is the team's («¿cómo apruebo una pieza?»).
 const TEAM_DOMAIN = /\b(?:pieza|piezas|reel|reels|tweet|tweets|storyboard|fichas?|eventos?|agenda|copy|feed|semaforo|grabacion|tanda|municipios|obras del ivt)\b/;

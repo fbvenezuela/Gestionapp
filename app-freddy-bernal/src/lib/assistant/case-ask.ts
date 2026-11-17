@@ -27,6 +27,8 @@ const READ = String.raw`(?:lee|leeme|leelo|leela|leelos|leelas|leer|leerme|resum
 const SAID = String.raw`(?:pidio|pide|piden|pidieron|dice|dicen|decia|dijo|dijeron|escribio|escribieron|mando|mandaron|envio|enviaron|reporto|reportaron|denuncio|denunciaron|contesto|contestaron|respondio|respondieron|le dijeron|le contestaron|le respondieron|le escribieron|subieron|llego|llegaron|entro|entraron|se queja|se quejan|reclama|reclaman|foto|fotos|evidencia|evidencias|archivo|archivos)`;
 
 const who = (q: string) => new RegExp(String.raw`\b${SENDER}\b`).test(q) || (new RegExp(String.raw`\b${SOMEONE}\b`).test(q) && CITIZEN.test(q));
+// Someone of the team said as «la persona de…» («¿qué fotos mandó la persona de Grabación?»): not a citizen.
+const TEAM_PERSON = /\b(?:la persona|la gente|las personas|una persona) (?:de|del) (?:grabacion|redes|despacho|politica|ivt|equipo|la oficina|administracion)\b/;
 const CONTENT: ((q: string) => boolean)[] = [
   // «Léeme la última denuncia», «resúmeme las solicitudes de hoy», «léeme la última que llegó», «léeme lo que escribió…».
   (q) => new RegExp(String.raw`\b${READ}\b(?: [a-z]+){0,4} ${CASE_NOUN}\b`).test(q),
@@ -38,6 +40,10 @@ const CONTENT: ((q: string) => boolean)[] = [
   // «¿Qué solicitudes llegaron?», «¿qué reportes mandó la gente?», «¿de qué se queja la gente…?».
   (q) => new RegExp(String.raw`\bque (?:${CASE_NOUN}|reportes) (?:\w+ ){0,3}(?:llegaron|llego|hay|mandaron|mando|entraron|tenemos|enviaron)\b`).test(q) && CITIZEN.test(q),
   (q) => /\bde que se (?:queja|quejan)\b/.test(q) && who(q),
+  // What a person sent with it: «¿qué fotos mandó la persona del derrumbe?», «¿qué archivos subió el vecino?».
+  (q) =>
+    /\bque (?:fotos?|archivos?|adjuntos?|evidencias?|videos?|documentos?) (?:\w+ ){0,2}(?:mando|mandaron|subio|subieron|envio|enviaron|adjunto|adjuntaron|puso|pusieron)\b/.test(q) &&
+    (who(q) || (new RegExp(String.raw`\b${SOMEONE}\b`).test(q) && !TEAM_PERSON.test(q))),
   // «¿Quién vio el contacto de la señora…?», «¿cuál fue el último que publicaron?», «¿tú eres la bandeja?».
   (q) => /\b(?:quien|quienes) (?:vio|vieron|abrio|abrieron|exporto|exportaron|miro|miraron) (?:el|los) contactos?\b/.test(q),
   (q) => /\btu eres la bandeja\b/.test(q),
@@ -62,6 +68,13 @@ const CODE = [
   /\b(?:dame|dime|pasame|me das|me pasas|mandame|cual es|necesito)\b.*\bclave\b.*\b(?:solicitud|caso|denuncia|senora|senor|persona)\b/,
   /\b(?:recupera|recuperame|recuperala|recuperamela|recuperarle)\b.*\bclave\b|\bclave\b.*\b(?:recupera|recuperame|recuperala|recuperamela)\b/,
 ];
+// «¿Me la recuperas?» of a citizen's key (of a team member's, it is how to come in: no passwords).
+const RECOVER_FOR = /\b(?:recuperas|recuperasela|recuperarsela|recuperarla|recuperamela|me la recuperas|se la recuperas)\b/;
+const OF_CITIZEN = /\b(?:solicitud|comprobante|caso|denuncia|senora|senor|vecin[oa]|ciudadan[oa]|la persona)\b/;
+// Who sent it, asked: «¿quién denunció al alcalde por la web?», «¿quién mandó la solicitud del hueco?» (a denuncia is
+// only Atención's; the rest, said next to the web or what it sent).
+const WHO_SENT = /^(?:(?:y|e|pero|oye) )?(?:quien|quienes) (?:denuncio|denunciaron|reporto|reportaron|mando|mandaron|envio|enviaron|escribio|escribieron|pidio|pidieron|hizo|hicieron|puso|pusieron)\b/;
+const SENT_OF_DESK = /\bdenunci|\b(?:solicitud|solicitudes|por la web|en la web|desde la web|atencion|observacion|peticion|queja)\b/;
 // Asked as a rule or a how-to («¿cómo veo…?», «¿quién ve…?», «¿puedo…?», «¿qué es…?»): the guide answers it.
 const RULE = /^(?:(?:y|e|pero|oye) )?(?:como|donde|quien|quienes|puedo|podemos|se puede|que es|que son|que significa|para que|por que|cuando|en que)\b/;
 
@@ -74,9 +87,10 @@ export function caseAsk(text: string, before?: string | null): CaseAsk | null {
   const q = plain(text).replace(/\b(?:en|por si|para) (?:caso|ese caso|el caso|este caso|un caso|todo caso|cualquier caso|tal caso)\b/g, ' ').replace(/\s+/g, ' ').trim();
   if (!q) return null;
   const rule = RULE.test(q);
-  if (CODE.some((re) => re.test(q))) return 'code';
+  if (CODE.some((re) => re.test(q)) || (RECOVER_FOR.test(q) && /\bclave\b|\bla recuper/.test(q) && OF_CITIZEN.test(q))) return 'code';
   if (!rule && EXPORT.test(q) && EXPORT_OF_DESK.test(q)) return 'export';
   if (COUNT.test(q) && COUNT_OF_DESK.test(q)) return 'count';
+  if (WHO_SENT.test(q) && SENT_OF_DESK.test(q)) return 'person';
   if (((!rule && DATA_ASK.test(q)) || NAME_OR_HOME.test(q)) && OF_SENDER.test(q) && (who(q) || /\b(?:de quien|del que|de la que|de la solicitud|del caso|de la denuncia)\b/.test(q))) return 'person';
   if (!/^(?:(?:y|e|pero|oye) )?(?:como|donde|puedo|podemos|se puede|que es|que son|que significa|para que|por que)\b/.test(q) && CONTENT.some((t) => t(q))) return 'content';
   // «¿Y qué pidió la última persona?», «léeme la última que llegó» after a question about Atención.
