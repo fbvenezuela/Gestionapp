@@ -777,36 +777,52 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // say, the steps of today answer (the tutorials, the agenda's refusal, all the rest). Only after an answer: a first
   // «¿qué significa el rojo?» is a question of its own (the answers below).
   const ask = followsEvent || !lastSaid ? null : explainAsk(i.question, { titles: seenNow, last: lastSaid, withoutLabels });
-  if (ask) {
-    const again = () => {
-      const m = before ? findAnswers(before, { roles: i.ctx.roles, screen: i.ctx.screen, names })[0] : undefined;
-      return m && m.confidence !== 'none' ? m.entry.id : null;
-    };
-    const topic = i.ctx.last ? i.ctx.last.entry : again();
-    const r = explainAnswer(ask.facet, topic, {
+  const again = () => {
+    const m = before ? findAnswers(before, { roles: i.ctx.roles, screen: i.ctx.screen, names })[0] : undefined;
+    return m && m.confidence !== 'none' ? m.entry.id : null;
+  };
+  const aboutEntry = ask ? (i.ctx.last ? i.ctx.last.entry : again()) : null;
+  // A bare «¿y después?» goes to the step that comes next first (below: the entry's `next`, the task after it); after
+  // 360's own «¿Sigo?» or with «después de X» («¿y después de aprobarla?»), the explanation goes on here.
+  const bareNext = ask?.facet === 'next' && !ask.about && i.ctx.last?.cursor === undefined;
+  // An answer of the index written for that follow-up (a curated one, sure, other than the one just said) knows better what
+  // comes next after a bare «¿y después?» and what a label it quotes is («¿qué significa por revisar?»: ««Por revisar» son
+  // las piezas…»): it answers, with the steps below. A word of «Palabras de la app» is still said with its meaning.
+  const written = !!ask && strong && best!.entry.kind === 'curated' && best!.entry.id !== aboutEntry;
+  const aboutWords = ask?.about ? plain(ask.about).replace(/^(?:(?:el|la|los|las|lo|eso|esto) (?:de |del )?)+/, '') : '';
+  const definesAsked = written && !!aboutWords && quotedLabels(best!.text).some((l) => plain(l) === aboutWords);
+  const explained = async (): Promise<BrainOutput | null> => {
+    if (!ask) return null;
+    const r = explainAnswer(ask.facet, aboutEntry, {
       roles: i.ctx.roles,
       screen: i.ctx.screen,
       said: i.ctx.history.filter((h) => h.who === 'asistente').map((h) => h.body),
       earlier,
       question: i.question,
       titles: seenNow,
-      ...(i.ctx.last?.cursor !== undefined && i.ctx.last.entry === topic ? { cursor: i.ctx.last.cursor } : {}),
+      ...(i.ctx.last?.cursor !== undefined && i.ctx.last.entry === aboutEntry ? { cursor: i.ctx.last.cursor } : {}),
       ...(ask.about ? { about: ask.about } : {}),
       ...(ask.pair ? { pair: ask.pair } : {}),
     });
-    if (r) {
-      const text = clip(fill(r.text));
-      const tour = r.tutorial && offered('ver_tutorial') ? ((await call('ver_tutorial', { tutorial: r.tutorial })).tutorial ?? null) : null;
-      const go = r.goTo ?? screenNamedIn(text);
-      // The cursor goes with an answer that still asks «¿Sigo?» (a «sí» or «sigue» then says the next steps).
-      const cursor = r.cursor !== undefined && ASKED_TO_GO_ON.test(text) ? { cursor: r.cursor } : {};
-      return { ...(tour?.href ? done(text, undefined, tour) : done(text, go)), fixed: true, entry: r.entryId, ...cursor };
-    }
+    if (!r || (written && ask.facet === 'next' && bareNext) || (definesAsked && ask.facet === 'meaning' && !r.entryId.startsWith('palabra:'))) return null;
+    const text = clip(fill(r.text));
+    const tour = r.tutorial && offered('ver_tutorial') ? ((await call('ver_tutorial', { tutorial: r.tutorial })).tutorial ?? null) : null;
+    // Its button, else the first screen it names, else the topic's own screen.
+    const own = aboutEntry ? entryById(aboutEntry)?.go : undefined;
+    const go = r.goTo ?? screenNamedIn(text) ?? (own && canOpen(own, i.ctx.roles) ? own : undefined);
+    // The cursor goes with an answer that still asks «¿Sigo?» (a «sí» or «sigue» then says the next steps).
+    const cursor = r.cursor !== undefined && ASKED_TO_GO_ON.test(text) ? { cursor: r.cursor } : {};
+    return { ...(tour?.href ? done(text, undefined, tour) : done(text, go)), fixed: true, entry: r.entryId, ...cursor };
+  };
+  if (ask && !bareNext) {
+    const r = await explained();
+    if (r) return r;
   }
 
   // «¿Y después?»: the step that comes after what answered the question before (a task, a step of one or of a flow). When
   // the answer before already said a later step (every label of it is in that answer: «Pasa a «En revisión» y dice
-  // «Espera al jefe»»), it goes on after the last one said, not after the first one the question matched.
+  // «Espera al jefe»»), it goes on after the last one said, not after the first one the question matched; when it
+  // already said the last one, never again (the explanation says what comes after it, below).
   if (NEXT_ASK.test(q) && goesOnWith) {
     const prev = findAnswers(before, { roles: i.ctx.roles, screen: i.ctx.screen, names }).find((m) => m.entry.next && m.score >= WEAK);
     let next = prev?.entry.next ? entryById(prev.entry.next) : undefined;
@@ -815,7 +831,12 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       return labels.length > 0 && labels.every((l) => lastSaid.includes(`«${l}»`));
     };
     for (let e = next, k = 0; e?.next && k < 12; e = entryById(e.next), k++) if (saidBefore(e)) next = entryById(e.next) ?? next;
-    if (prev && next) return sayEntry({ ...prev, entry: next, text: textFor(next.a, i.ctx.roles) }, false);
+    const repeats = !!next && !next.next && saidBefore(next);
+    if (prev && next && !(repeats && bareNext)) return sayEntry({ ...prev, entry: next, text: textFor(next.a, i.ctx.roles) }, false);
+  }
+  if (ask && bareNext) {
+    const r = await explained();
+    if (r) return r;
   }
 
   // M2. How to write to someone of the team: the guide card of Mensajes and the button to Mensajes (R5: channels).

@@ -429,23 +429,6 @@ function saidUpTo(steps: string[], said: string[]): number {
   return upTo;
 }
 
-// How far a task's steps were said in the answer before in its own words (a curated answer that does not number them):
-// the last step whose labels it all quotes and whose words it mostly says («Pasa a «En revisión» y dice «Espera al
-// jefe»» is step 3, so «¿y después?» is step 4, «Cuando el jefe la aprueba…»), or -1 when it says none.
-function saidInWords(steps: string[], last: string | undefined): number {
-  if (!last) return -1;
-  const quoted = new Set(quotedLabels(last).map((l) => plain(l)));
-  const words = new Set(tokens(last));
-  let upTo = -1;
-  steps.forEach((s, k) => {
-    const labels = quotedLabels(s).map((l) => plain(l));
-    const own = tokens(s.replace(/«[^«»]*»/g, ' '));
-    const share = own.length ? own.filter((w) => words.has(w)).length / own.length : 1;
-    if (labels.every((l) => quoted.has(l)) && share >= (labels.length ? 0.3 : 0.6)) upTo = k;
-  });
-  return upTo;
-}
-
 // The step of its flow a task is: one of the task's role, the one that shares most of its labels and words.
 function flowStepOf(task: Task, role: TeamRole): { flow: Flow; index: number } | null {
   const flow = task.flow ? FLOWS.find((f) => f.id === task.flow) : undefined;
@@ -721,9 +704,7 @@ function next(u: Unit, ctx: ExplainContext): Candidate[] {
     // Where the person is in the task: the step asked about, the cursor, the step the topic was, or what was said.
     const whole = ctx.about && !who ? aboutTitle(u.task.title, ctx.about) : false;
     const at = ctx.about && !who && !whole ? partAbout(u, ctx.about, roles, false, true)?.step : whole ? steps.length - 1 : undefined;
-    const listed = saidUpTo(steps, said);
-    const told = listed >= 0 ? listed : saidInWords(steps, said.at(-1));
-    const pos = at ?? (ctx.cursor !== undefined ? ctx.cursor - 1 : (u.step ?? (told >= 0 ? told : steps.length - 1)));
+    const pos = at ?? (ctx.cursor !== undefined ? ctx.cursor - 1 : (u.step ?? (saidUpTo(steps, said) >= 0 ? saidUpTo(steps, said) : steps.length - 1)));
     if (pos + 1 < steps.length && !who) {
       const k = pos + 1;
       const left = k + 1 < steps.length;
