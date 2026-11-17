@@ -341,6 +341,8 @@ function unitText(u: Unit, roles: Role[]): string {
 function unitFor(topic: Entry | string, roles: Role[]): Unit | null {
   const id = typeof topic === 'string' ? topic : topic.id;
   const e = typeof topic === 'string' ? entryById(topic) : topic;
+  // The web's and Atención's entries are explained from their own sections (assistant/web-explain.ts), not here.
+  if (e?.domain && e.domain !== 'equipo') return null;
   if (e?.kind === 'curated') return relatedOf(e, roles) ?? { kind: 'entry', id: e.id, entry: e };
   return unitOf(id, e);
 }

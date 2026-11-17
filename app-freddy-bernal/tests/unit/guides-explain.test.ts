@@ -61,6 +61,8 @@ describe('«Explicado fácil»: las claves', () => {
   it('cada tarea, pantalla, flujo, tema de «Para todos» y palabra tiene su versión fácil y su ejemplo', () => {
     const want = [
       ...allEntries()
+        // (The web's and Atención's entries, screens and tasks alike, are explained from their own sections.)
+        .filter((e) => (e.domain ?? 'equipo') === 'equipo')
         .filter((e) => e.kind === 'task' || e.kind === 'topic' || e.kind === 'term' || (e.kind === 'screen' && !WEB_SCREEN.test(e.screen ?? '')))
         .map((e) => e.id),
       ...FLOWS.map((f) => `flujo:${f.id}`),

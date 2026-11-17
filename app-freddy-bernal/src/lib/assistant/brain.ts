@@ -63,7 +63,8 @@ export type TurnContext = {
 // shown: the event titles the demo brain quoted as it showed them (without their place, red team 05/11): the output net
 // masks them like the titles its tools returned. entry: the index entry the answer said (an «Explicado fácil» topic too,
 // `flujo:<id>`, `palabra:<id>`) and cursor: the next step after its «¿Sigo?»; both go into go_to, for the next turn.
-export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[]; restore?: (t: string) => string; goTo?: string; tutorial?: TutorialLink; fixed?: boolean; shown?: string[]; entry?: string; cursor?: number };
+// domain: the answer is the web's or Atención's (design §4(d)4): its button is never a team screen named by its words.
+export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[]; restore?: (t: string) => string; goTo?: string; tutorial?: TutorialLink; fixed?: boolean; shown?: string[]; entry?: string; cursor?: number; domain?: 'web' | 'atencion' };
 
 // ---------------------------------------------------------------------------
 // Which fichas go into this turn: the relevant ones, not all of them (a turn should weigh

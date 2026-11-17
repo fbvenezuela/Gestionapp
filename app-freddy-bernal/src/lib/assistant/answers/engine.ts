@@ -1092,7 +1092,7 @@ export function entryForScreen(screen: string, roles: Role[]): Entry | undefined
 // «comprobante», «AC-…», «coordinación»… Never «bloque» (the storyboard's), «borrador» (a ficha's), «portada» (a reel's),
 // «solicitud» or «la denuncia» alone (a ficha comunitaria's type and field), «área» alone («el área de Redes»).
 const WEB_DOMAIN = new RegExp(
-  String.raw`\b(?:la web|de la web|en la web|(?:en|de|mi|tu|el|del|al) web|pagina web|paginas web|sitio web|web publica|web oficial|web vieja|menu web|noticias?|comunicados?|columnas? de opinion|redirecci\w*|ajustes del sitio|vista previa|editor de la web|aprobador de la web|publicar ahora|devolver con comentario|devuelto con comentario|cambios sin publicar|desarchiv\w*|volver a esta version|texto alternativo|punto de interes|avisos? de servicio|episodios?|indicadores?|obras y acciones|gestion y obras|transparencia|paginas? legales|canales oficiales|semanario|pie de pagina|portada de la web)\b`,
+  String.raw`\b(?:la web|de la web|en la web|(?:en|de|mi|tu|el|del|al) web|web y atencion|pagina web|paginas web|sitio web|web publica|web oficial|web vieja|menu web|noticias?|comunicados?|columnas? de opinion|redirecci\w*|ajustes del sitio|vista previa|editor de la web|aprobador de la web|publicar ahora|devolver con comentario|devuelto con comentario|cambios sin publicar|desarchiv\w*|volver a esta version|texto alternativo|punto de interes|avisos? de servicio|episodios?|indicadores?|obras y acciones|gestion y obras|transparencia|paginas? legales|canales oficiales|semanario|pie de pagina|portada de la web)\b`,
 );
 const ATTENTION_DOMAIN = new RegExp(
   String.raw`\b(?:atencion ciudadana|menu atencion|(?:registro|cifras|mapa|bandeja|tablero|plazos|areas|roles?) de atencion|solicitudes|solicitud (?:de la gente|de la web|ciudadana|de la persona|de alguien|que llego|que llega)|ciudadan\w*|bandeja|denuncias|una denuncia|operador de denuncias|comprobantes?|consultar mi solicitud|casos? atendidos?|coordinacion|coordinador\w* de atencion|responsables? de area|areas y plazos|auditoria|fecha comprometida|respuestas? guardadas?|notas? internas?|respuesta a la persona|pedido de informacion|requiere informacion|no procede|derivad[oa]s?|reportes? parecidos|casos? iguales|lo que (?:manda|escribe|reporta|pide) la gente|la gente (?:que escribe|que manda|manda|reporta|escribe)|ac \d{4})\b|(?<!\ben )\b(?:el|un|los|cada|del|al|mis|sus) casos?\b`,
@@ -1350,6 +1350,31 @@ function termAsked(e: Entry, a: Asked): boolean {
   const asked = `${rest} `.replace(TERM_LEAD, '').trim();
   return !!asked && (e.names ?? []).some((n) => formsOf(n)[0] === asked);
 }
+/**
+ * The word of «Palabras de la app» a question asks the meaning of, by one of its names and nothing more (step W of the
+ * demo brain: «¿qué es el feed?», «explícame qué es un copy», «¿qué significa trancado en la app?»), for these roles;
+ * null when it asks anything else, or when an answer for this person was written for exactly that question (it says it
+ * better: «¿qué es el feed?» of the IVT is «Son cosas de Redes…»).
+ */
+export function askedTerm(question: string, roles: Role[]): Entry | null {
+  const ix = index();
+  const a = askedOf(question);
+  if (!a) return null;
+  if ((ix.asked.get(a.text) ?? []).some((x) => x.kind !== 'term' && forRoles(x, roles))) return null;
+  // Without the polite words before it and where it is said after it («… en la app», «… en Redes»).
+  const text = a.text
+    .replace(/^(?:(?:y|e|oye|bueno|mira|chamo|porfa|por favor) )*(?:explicame|explica|explicanos|dime|me dices|me explicas|sabes|quisiera saber|quiero saber|me puedes decir|podrias decirme)\b\s*/, '')
+    .replace(/ (?:en|de|del) (?:la app|la aplicacion|redes|la web|el panel|la pantalla|aqui)$/, '')
+    .trim();
+  const quoted = labelsOf(question).map((l) => readable(l));
+  for (const t of [a.text, text]) {
+    const at = { ...a, text: t };
+    const e = ix.entries.find((x) => x.kind === 'term' && forRoles(x, roles) && saysName(x, t) && termAsked(x, at) && (!quoted.length || quoted.some((l) => (x.names ?? []).some((n) => formsOf(n).includes(l)))));
+    if (e) return e;
+  }
+  return null;
+}
+
 // The kinds of question a word's meaning answers for sure: what it is, where it is (when nothing says where) and the
 // word alone. Any other («¿cómo hago un reel?», «¿puedo cambiar el copy?», «¿quién arma el feed?», «¿cuántos reels…?»,
 // «no me sale el feed»): the meaning only backs up another answer, never a sure one by itself (13/11).
