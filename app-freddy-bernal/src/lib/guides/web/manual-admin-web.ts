@@ -812,7 +812,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
       why: 'Para que ningún enlace guardado o compartido se pierda cuando una dirección cambia.',
       faq: [
         { q: '¿Para qué sirven las redirecciones?', a: 'Para que una dirección vieja lleve a la nueva: así ningún enlace guardado o compartido se pierde.' },
-        { q: '¿Qué diferencia hay entre «De la web vieja» y «A mano»?', a: 'Las «De la web vieja» se hicieron solas al traer las noticias de la web anterior. Las «A mano» las agrega alguien del equipo en «Redirecciones», y nunca cambian solas.' },
+        { q: '¿Qué significa «De la web vieja» o «A mano» en «Redirecciones»?', a: 'Las «De la web vieja» se hicieron solas al traer las noticias de la web anterior. Las «A mano» las agrega alguien del equipo en «Redirecciones», y nunca cambian solas.' },
         { q: 'Una dirección vieja lleva a donde no es, ¿cómo lo arreglo?', a: 'En «Redirecciones», búscala, cambia el destino y toca «Guardar». Si ya no hace falta, «Quitar».' },
         { q: '¿Cuánto tarda en notarse una redirección?', a: 'Más o menos un minuto en la web.' },
         { q: '¿Quién puede tocar las redirecciones?', a: { boss: 'El aprobador de la web, tú y Administración.', admin: 'El aprobador de la web, el jefe y tú.' } },
