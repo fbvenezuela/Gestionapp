@@ -311,6 +311,10 @@ describe('explicar un tema de la web y contar un flujo', () => {
     expect((await ask('boss', '¿Qué es el texto alternativo?')).answer).toMatch(/personas ciegas/);
     expect((await ask('admin', 'pa que sirve el texto alternativo')).answer).toMatch(/personas ciegas/);
     expect((await ask('boss', 'q ve la gente si entra a una pagina que no existe')).answer).toMatch(/«Esta página no existe»/);
+    // «Por aprobar» of the web is its list (not «el aprobador», a word of the same root), for each one as theirs.
+    expect((await ask('admin', '¿Qué es Por aprobar en la web?')).answer).toMatch(/espera aprobación en la web.*tú lo lees, pero no apruebas/);
+    expect((await ask('boss', '¿Qué es Por aprobar en la web?')).answer).toMatch(/espera tu decisión en la web/);
+    expect((await ask('boss', '¿Qué es el aprobador de la web?')).answer).toMatch(/^El aprobador de la web revisa y decide/);
     // On a screen of «Web», «¿qué es esto?» keeps its button: never a team screen its words name («Biblioteca»).
     for (const [screen, role] of [['/admin/web/biblioteca', 'boss'], ['/admin/web', 'boss'], ['/admin/web/biblioteca', 'admin']] as const) {
       const r = await ask(role, 'q es esto', [], screen);
