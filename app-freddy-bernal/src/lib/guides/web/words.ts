@@ -30,5 +30,10 @@ export function fillClientWords(text: string, w: ClientWords): string {
   return out;
 }
 
+/** The words by their hueco («[PROGRAMA]» → the program's name…): how 360 fills them (assistant/text.ts fillHuecos). */
+export function wordsByHueco(w: ClientWords = clientWords()): Record<string, string> {
+  return Object.fromEntries((Object.keys(CLIENT_HUECOS) as (keyof ClientWords)[]).map((k) => [CLIENT_HUECOS[k], w[k]]));
+}
+
 /** Any hueco left in a text (a text printed without its words filled). */
 export const UNFILLED_HUECO = /\[(?:PROGRAMA|SEMANARIO|WEB_OFICIAL|ORGANIZACION)\]/;

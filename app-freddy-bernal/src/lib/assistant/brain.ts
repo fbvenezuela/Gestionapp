@@ -49,6 +49,10 @@ export type TurnContext = {
   history: HistoryMsg[];
   // The screen the person is on, as a SCREENS pattern ('/eventos/[id]'), when the window said it (index.ts screenOf).
   screen?: string | null;
+  // What 360's last answer in this thread was about (design §4(c)2, stored with it in assistant_messages.go_to): the index
+  // entry it said (null: none, e.g. the agenda's refusal or a tool) and where its steps go on after «¿Sigo?». Unset: no
+  // answer yet, or one saved before 360 kept it (the demo brain then matches the question before again).
+  last?: { entry: string | null; cursor?: number } | null;
 };
 
 // restore: on the model path, `text` carries the placeholders of the titles (titles.ts); this puts the
@@ -57,8 +61,9 @@ export type TurnContext = {
 // («Ver el tutorial de Publicar»). fixed: the text is one of 360's answers (answers/engine.ts: the help content, static and
 // checked by its own tests), so the agenda net only looks for a concrete date, time, place or contact in it (index.ts).
 // shown: the event titles the demo brain quoted as it showed them (without their place, red team 05/11): the output net
-// masks them like the titles its tools returned.
-export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[]; restore?: (t: string) => string; goTo?: string; tutorial?: TutorialLink; fixed?: boolean; shown?: string[] };
+// masks them like the titles its tools returned. entry: the index entry the answer said (an «Explicado fácil» topic too,
+// `flujo:<id>`, `palabra:<id>`) and cursor: the next step after its «¿Sigo?»; both go into go_to, for the next turn.
+export type BrainOutput = { text: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; calls: ToolRun[]; restore?: (t: string) => string; goTo?: string; tutorial?: TutorialLink; fixed?: boolean; shown?: string[]; entry?: string; cursor?: number };
 
 // ---------------------------------------------------------------------------
 // Which fichas go into this turn: the relevant ones, not all of them (a turn should weigh

@@ -6,6 +6,7 @@ import { AGENDA_FALLBACK, canon, hasWord, isSection, keyWords, makesOne, roleFic
 import { EVENT_NOUNS, EVENT_WORDS, GOAL, OCCURRENCE, PLATFORM, WORK, aboutEvent, asksAboutPublishing, asksAgendaData, asksPlace, asksPlaceWord, asksRoute, asksSchedule, asksWhenIndirect, asksWhenWhere, eventAt, eventSignals, eventThread, goesOn, namedTitleWords, namesPlatform, spoken, withoutAgendaThings, withoutWhenWhere } from './events';
 import { STRONG, WEAK, askKind, entryById, entryForScreen, findAnswers, knownLabels, readable, scoreFicha, textFor, tokens, type Match } from './answers/engine';
 import { NOTICE_MAX, NOTICE_TOO_LONG, noticeIssues } from './guard';
+import { explainAnswer, explainAsk } from './explain';
 import { coverOf, taskAnswer, taskFor, type GuideTask } from './guide-help';
 import { MESSAGES_ADMIN_TEXT, MESSAGES_READ_TEXT, MESSAGES_TELL_TEXT, asksHowToWrite, messagesAsk } from './messages-ask';
 import { carriesEventWhen, carriesWhen, hasDateOrTime, namesKnownPlace, placeSafeTitle, safeTitle } from './redact';
@@ -262,6 +263,8 @@ const LOST = /^(?:no entiendo|no le entiendo|no entiendo nada|no entiendo esto|n
 const HOW_USED = /\bcomo (?:se )?(?:usa|usan|uso|funciona|funcionan)\b/;
 const THIS_SCREEN = /\b(?:esta pantalla|esta parte|esta seccion|aqui|esto)\b/;
 const WELCOME = /\b(?:bienvenida|como empiezo|por donde empiezo|primeros pasos)\b/;
+// 360's answer that stops its steps to ask whether to go on (explain.ts): a «sí» after it says the next ones.
+const ASKED_TO_GO_ON = /¿Sigo\?\s*$/;
 // The words that ask for a tutorial: they never name a screen here («tutoriales» is a word of Ayuda).
 const NOT_A_SCREEN = ['tutoriales', 'guia', 'guias', 'ayuda'];
 // «¿Qué hago aquí?», «¿para qué sirve esta pantalla?», «¿qué se hace en Publicar?» (design §8.2 S): what the screen
@@ -693,7 +696,9 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // «¿cómo estás?», an insult, «ok». Before the agenda's refusal: «¿quién ve lo que te pregunto?» is not about a date.
   const isAdmin = i.ctx.roles.includes('admin');
   const onEventScreen = /^\/eventos\/\[id\]/.test(i.ctx.screen ?? '');
-  const chat = codeAsk ? undefined : SMALL_TALK.find((x) => x.re.test(q));
+  // A «sí», «dale» or «ok» right after 360's «¿Sigo?» goes on with the steps (step E, below), not the small talk.
+  const goOn = ASKED_TO_GO_ON.test(lastSaid) && explainAsk(i.question, { last: lastSaid })?.facet === 'more';
+  const chat = codeAsk || goOn ? undefined : SMALL_TALK.find((x) => x.re.test(q));
   // To «¿puedes aprobar las verdes por mí?», the no and then how it is done, when the answers have it for sure.
   const how = chat === ACT_FOR_ME ? findAnswers(i.question, { roles: i.ctx.roles, screen: i.ctx.screen }).find((m) => !m.entry.may && (m.entry.kind === 'task' || m.entry.kind === 'step' || m.entry.kind === 'curated')) : undefined;
   if (chat && how?.confidence === 'strong') {
@@ -745,20 +750,59 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       return { ...done(`Yo no doy ni pido códigos ni claves. ${clip(fill(best!.text))}`), fixed: true };
     return { ...done(CODE_TEXT), fixed: true };
   }
-  const sayEntry = async (m: Match, follow = true) => {
+  // The first screen a text names that this person can open (a step or a line without a screen of its own). «Ajustes →
+  // «Cupo y pilares»» names two screens: the more specific one («/ajustes/contenido», not «/ajustes»).
+  const screenNamedIn = (text: string): string | undefined => {
+    const named = screensIn(text).filter((x) => !x.href.includes('[') && canOpen(x.href, i.ctx.roles)).map((x) => ({ x, at: Math.min(...x.phrases.map((p) => ` ${plain(text)} `.indexOf(` ${plain(p)} `)).filter((n) => n >= 0)) }));
+    const specific = named.filter((n) => !named.some((m) => m !== n && m.x.href.startsWith(`${n.x.href}/`)));
+    return specific.sort((a, b) => a.at - b.at)[0]?.x.href;
+  };
+  // An answer of the index says which entry it was (BrainOutput.entry): the next turn's topic, if it asks to explain it.
+  const sayEntry = async (m: Match, follow = true): Promise<BrainOutput> => {
     const e = follow && NEXT_ASK.test(q) && m.entry.next ? (entryById(m.entry.next) ?? m.entry) : m.entry;
     // An answer to a yes-or-no question («¿Se publica solo?» → «No, por ahora…») said to a «¿qué…?», «¿cómo…?»: without
     // its «No,» or «Sí,».
     const said = fill(textFor(e.a, i.ctx.roles));
     const text = clip(WH_ASK.test(q) ? said.replace(/^(?:No|Sí)[,:] (\p{L})/u, (_, c: string) => c.toUpperCase()) : said);
-    // A step or a line without a screen of its own: the first screen it names that this person can open.
-    const named = e.go ? [] : screensIn(text).filter((x) => !x.href.includes('[') && canOpen(x.href, i.ctx.roles)).map((x) => ({ x, at: Math.min(...x.phrases.map((p) => ` ${plain(text)} `.indexOf(` ${plain(p)} `)).filter((n) => n >= 0)) }));
-    // «Ajustes → «Cupo y pilares»» names two screens: the more specific one («/ajustes/contenido», not «/ajustes»).
-    const specific = named.filter((n) => !named.some((m) => m !== n && m.x.href.startsWith(`${n.x.href}/`)));
-    const go = e.go && canOpen(e.go, i.ctx.roles) ? e.go : specific.sort((a, b) => a.at - b.at)[0]?.x.href;
+    const go = e.go && canOpen(e.go, i.ctx.roles) ? e.go : e.go ? undefined : screenNamedIn(text);
     const tour = e.tutorial && (e.kind === 'task' || e.kind === 'screen' || e.kind === 'curated') && offered('ver_tutorial') ? ((await call('ver_tutorial', { tutorial: e.tutorial })).tutorial ?? null) : null;
-    return { ...(tour?.href ? done(text, undefined, tour) : done(text, go)), fixed: true };
+    return { ...(tour?.href ? done(text, undefined, tour) : done(text, go)), fixed: true, entry: e.id };
   };
+
+  // E. 360 explains what it just said (design §4(c)): «no entendí», «más fácil», «paso a paso», «dame un ejemplo», «¿y
+  // después?», «¿para qué sirve?», «¿por qué?», «¿qué significa eso?», «dime más», «sí» after its «¿Sigo?». The topic is
+  // the entry its last answer said (go_to.entry; for a thread saved before 360 kept it, the question before matched
+  // again). Never after a turn about an event (followsEvent: that thread keeps the steps below and the refusal), never
+  // with an event, a place, a day or an hour in the ask (explainAsk), never a text it already said; with nothing new to
+  // say, the steps of today answer (the tutorials, the agenda's refusal, all the rest). Only after an answer: a first
+  // «¿qué significa el rojo?» is a question of its own (the answers below).
+  const ask = followsEvent || !lastSaid ? null : explainAsk(i.question, { titles: seenNow, last: lastSaid, withoutLabels });
+  if (ask) {
+    const again = () => {
+      const m = before ? findAnswers(before, { roles: i.ctx.roles, screen: i.ctx.screen, names })[0] : undefined;
+      return m && m.confidence !== 'none' ? m.entry.id : null;
+    };
+    const topic = i.ctx.last ? i.ctx.last.entry : again();
+    const r = explainAnswer(ask.facet, topic, {
+      roles: i.ctx.roles,
+      screen: i.ctx.screen,
+      said: i.ctx.history.filter((h) => h.who === 'asistente').map((h) => h.body),
+      earlier,
+      question: i.question,
+      titles: seenNow,
+      ...(i.ctx.last?.cursor !== undefined && i.ctx.last.entry === topic ? { cursor: i.ctx.last.cursor } : {}),
+      ...(ask.about ? { about: ask.about } : {}),
+      ...(ask.pair ? { pair: ask.pair } : {}),
+    });
+    if (r) {
+      const text = clip(fill(r.text));
+      const tour = r.tutorial && offered('ver_tutorial') ? ((await call('ver_tutorial', { tutorial: r.tutorial })).tutorial ?? null) : null;
+      const go = r.goTo ?? screenNamedIn(text);
+      // The cursor goes with an answer that still asks «¿Sigo?» (a «sí» or «sigue» then says the next steps).
+      const cursor = r.cursor !== undefined && ASKED_TO_GO_ON.test(text) ? { cursor: r.cursor } : {};
+      return { ...(tour?.href ? done(text, undefined, tour) : done(text, go)), fixed: true, entry: r.entryId, ...cursor };
+    }
+  }
 
   // «¿Y después?»: the step that comes after what answered the question before (a task, a step of one or of a flow). When
   // the answer before already said a later step (every label of it is in that answer: «Pasa a «En revisión» y dice
@@ -791,10 +835,12 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       const card = sectionsFor(i.ctx.knowledge, screen, TEAM_ROLES.filter((r) => i.ctx.roles.includes(r)))[0];
       const info = screenFor(screen);
       const tutorial = offered('ver_tutorial') ? (await call('ver_tutorial', { pantalla: screen })).tutorial ?? null : null;
-      if (card) return done(`${sentences(fill(card.body)).slice(0, 2).join(' ')}${tutorial ? ' Si quieres, te lo muestro paso a paso: toca el botón.' : ''}`, undefined, tutorial);
-      // Administración's screens have no section card: its guide says what each one is for (D-89).
+      // (The screen's entry of the index is what the answer was about: «no entendí», «dame un ejemplo» explain it.)
       const own = entryForScreen(screen, i.ctx.roles);
-      if (own) return done(clip(fill(textFor(own.a, i.ctx.roles))), tutorial ? undefined : own.go && canOpen(own.go, i.ctx.roles) ? own.go : undefined, tutorial);
+      const about = own ? { entry: own.id } : {};
+      if (card) return { ...done(`${sentences(fill(card.body)).slice(0, 2).join(' ')}${tutorial ? ' Si quieres, te lo muestro paso a paso: toca el botón.' : ''}`, undefined, tutorial), ...about };
+      // Administración's screens have no section card: its guide says what each one is for (D-89).
+      if (own) return { ...done(clip(fill(textFor(own.a, i.ctx.roles))), tutorial ? undefined : own.go && canOpen(own.go, i.ctx.roles) ? own.go : undefined, tutorial), ...about };
       // A screen the person cannot open (Hoy for política or the IVT since 12/11: their home is Municipios or Obras) is
       // not described as theirs: the answers below say whose it is, or that it is not in their menu.
       if (info && !screen.includes('[') && info.about && canOpen(screen, i.ctx.roles)) return done(`${info.label}: ${info.about}.${tutorial ? ' Si quieres, te la muestro paso a paso: toca el botón.' : ''}`, tutorial ? undefined : info.href, tutorial);
@@ -1464,9 +1510,11 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // that says only part of it, or only who does what (a role's summary is not a how-to), or of «no estoy seguro»
   // (after step 15). A card that says all of it keeps answering. Never next to an event.
   const task = !eventTurn && (howTo || HOW_ANY.test(q)) ? taskFor(topic, i.ctx.roles) : null;
-  const byTask = async (t: GuideTask) => {
+  // (The task is an entry of the index too: what the answer was about.)
+  const byTask = async (t: GuideTask): Promise<BrainOutput> => {
     const tutorial = t.tour && offered('ver_tutorial') ? (await call('ver_tutorial', { tutorial: t.tour })).tutorial ?? null : null;
-    return tutorial?.href ? done(taskAnswer(t), undefined, tutorial) : done(taskAnswer(t), t.guide);
+    const entry = `${GUIDE_SLUGS[t.role]}:paso-a-paso:${t.id}`;
+    return { ...(tutorial?.href ? done(taskAnswer(t), undefined, tutorial) : done(taskAnswer(t), t.guide)), ...(entryById(entry) ? { entry } : {}) };
   };
   // The answers (D-89) against the fichas: a strong answer wins when it is the better match (a team card wins a tie);
   // a weak one never answers (it would beat «No estoy seguro…» with a guess). Never next to an event that is not a how-to.

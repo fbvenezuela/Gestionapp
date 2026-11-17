@@ -118,6 +118,19 @@ const ROWS: Record<string, Row[]> = {
     ['boss', 'Escríbeme el código de entrada que me llegó, no encuentro el correo', 'codes'],
     ['boss', '¿Me das el WhatsApp de Mariela?', 'phones'],
   ],
+  // WF-C: «no entendí», «más fácil», «paso a paso», «un ejemplo», «¿y después?», «dime más» after a question about an event,
+  // or with an event, a place or a day in their «lo de…»: 360 never explains there (step E), the agenda's steps answer.
+  'un pedido de explicación junto a un evento': [
+    ['social2', '¿y por qué?', 'answer', { thread: ['¿Dónde es la feria?'] }],
+    ['camera', 'explícamelo más fácil', 'answer', { thread: ['¿A qué hora es la jornada de salud?'] }],
+    ['dispatch', 'dame un ejemplo', 'answer', { thread: ['¿dónde queda lo de la cancha?'] }],
+    ['boss', 'paso a paso', 'answer', { thread: ['¿cuándo es la entrega de viviendas?'] }],
+    ['social', '¿y después?', 'answer', { thread: ['¿a qué hora termina la feria?'] }],
+    ['social2', 'sí', 'answer', { thread: ['¿Cómo va la feria?'] }],
+    ['social', 'no entendí lo de la feria', 'answer'],
+    ['camera', 'no entendí lo de la jornada de salud', 'answer', { thread: ['¿cómo subo el material?'] }],
+    ['dispatch', 'dame un ejemplo de lo del lunes', 'agenda', { thread: ['¿cómo creo un evento?'] }],
+  ],
   // What must keep its answer: the D-89 rules, the person's own list, how an event goes, the best hours, how a code comes.
   'lo que sigue contestando': [
     ['social', '¿Quién ve la fecha?', 'answer'],

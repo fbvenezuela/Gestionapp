@@ -30,6 +30,7 @@ import { localTurn } from './local';
 import { estimateCost, parseChain, type ChatOptions, type Link } from './providers';
 import { hasPlaceOrContact, redact } from './redact';
 import { concreteDateTime, hasPhone } from '../guides/check';
+import { wordsByHueco } from '../guides/web/words';
 import { MESSAGES_MARK, messagesAsk } from './messages-ask';
 import { pickGoTo, screenFor, type GoTo } from './screens';
 import { MESSAGES_PER_HOUR, loadKnowledge, loadScripts, noteHeard, openTurn, saveTurn, type Reserve } from './store';
@@ -196,7 +197,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
 
   // Limit per person and hour: answered as the assistant, not as a breakdown.
   if (basics && basics.sentLastHour >= MESSAGES_PER_HOUR) {
-    await save({ answer: LIMIT_TEXT, model: 'tope', provider: null, tokensIn: 0, tokensOut: 0, error: null, degraded: false, calls: [], goTo: null });
+    await save({ answer: LIMIT_TEXT, model: 'tope', provider: null, tokensIn: 0, tokensOut: 0, error: null, degraded: false, calls: [], goTo: { entry: null } });
     return finish({ answer: LIMIT_TEXT, model: 'tope', degraded: false, did: [], goTo: null, conversationId });
   }
 
@@ -205,7 +206,8 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   const name = prof.name;
   const ctx: TurnContext = {
     profile: prof,
-    huecos: { name, app: brand.shortName || brand.appName || 'la app', boss: brand.bossLabel || 'el jefe', person: firstName(session.name) },
+    // The client's words fill their huecos ([PROGRAMA], [SEMANARIO]…) from config/clients, never from src (§11.6).
+    huecos: { name, app: brand.shortName || brand.appName || 'la app', boss: brand.bossLabel || 'el jefe', person: firstName(session.name), words: wordsByHueco() },
     roles,
     personName: session.name,
     knowledge: withSections(await loadKnowledge(roles), roles),
@@ -213,6 +215,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     scripts: await loadScripts([routing, ...history.filter((h) => h.who === 'persona').slice(-2).map((h) => h.body)].join(' '), roles),
     history,
     screen,
+    last: basics?.last ?? null,
   };
   if (!aboutMessages) await noteHeard(question, roles[0] ?? null);
 
@@ -244,9 +247,12 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   const shown = (t: string) => (out.restore ? out.restore(t) : t);
   let answer = out.text ? filterOutput(out.text, name) : '';
   let degraded = false;
+  // What the answer was about, for the next turn (design §4(c)2): gone when a net replaces the answer.
+  let topic: string | null = out.entry ?? null;
   if (!answer || !looksLikeText(shown(answer))) {
     // Honest degraded answer, marked, and the team is told (if telling fails, we don't say we did).
     degraded = true;
+    topic = null;
     error = error ?? (answer ? `respuesta que no parece texto: ${answer.slice(0, 80)}` : 'respuesta vacía');
     answer = DEGRADED_UNNOTIFIED;
     if (conversationId) {
@@ -266,7 +272,10 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     // breaks the rule only with a concrete date, time, map, phone, place or contact in it, by the same check its content
     // test uses (guides/check); anything else, by the whole net.
     const breaks = out.fixed ? concreteDateTime(checked) || hasPhone(checked) || hasPlaceOrContact(checked) : breaksAgendaRule(checked, question, out.calls, seen, { answerToo: !!out.restore, sectionAsk: asksRedesSection(routing, seen) });
-    if (breaks) answer = AGENDA_FALLBACK;
+    if (breaks) {
+      answer = AGENDA_FALLBACK;
+      topic = null;
+    }
     // The promise net: says it told the team but avisar_al_equipo did not succeed → the server
     // tells them; if that fails too, the sentence changes (promising and not keeping is worse).
     const told = out.calls.some((c) => c.tool === 'avisar_al_equipo' && c.ok);
@@ -281,7 +290,10 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
           console.error('[asistente] no se pudo cumplir el aviso prometido:', (e as Error).message);
         }
       }
-      if (!ok) answer = PROMISE_FALLBACK;
+      if (!ok) {
+        answer = PROMISE_FALLBACK;
+        topic = null;
+      }
     }
   }
 
@@ -294,7 +306,11 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     ? null
     : pickGoTo(session.roles, { toolHrefs: [out.goTo, ...out.calls.filter((c) => c.ok).map((c) => c.goTo).reverse()], answer, question });
   const model = degraded && !out.model ? 'ninguno' : out.model || 'local';
-  await save({ answer, model, provider: out.provider, tokensIn: out.tokensIn, tokensOut: out.tokensOut, error, degraded, calls: out.calls, goTo: tutorial ? { href: tutorial.href, label: tutorial.label, tutorial: tutorial.id } : goTo });
+  // go_to keeps the button and what the answer was about: its index entry (null when none: every answer says it, so one
+  // saved before is told apart) and, after its «¿Sigo?», the next step (the window reads only the button).
+  const button = tutorial ? { href: tutorial.href, label: tutorial.label, tutorial: tutorial.id } : goTo;
+  const about = { entry: topic, ...(topic && out.cursor !== undefined ? { cursor: out.cursor } : {}) };
+  await save({ answer, model, provider: out.provider, tokensIn: out.tokensIn, tokensOut: out.tokensOut, error, degraded, calls: out.calls, goTo: { ...(button ?? {}), ...about } });
   return finish({
     answer,
     model,

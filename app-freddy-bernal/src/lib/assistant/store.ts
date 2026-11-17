@@ -54,13 +54,13 @@ export async function openTurn(userId: string, requested: string | null | undefi
     );
     const settings = await sql.query<{ key: string; value: unknown }>(`select key, value from public.app_settings where key in ('brand', 'assistant')`);
     // The thread is read before this question goes in (it is the last message, not history).
-    const history = (
-      await sql.query<HistoryMsg>(
-        `select who, body from (select who, body, created_at from public.assistant_messages where conversation_id = $1
-          order by created_at desc, (who = 'persona') limit $2) t order by created_at, (who = 'asistente')`,
-        [conversationId, THREAD_MESSAGES],
-      )
-    ).map((h) => ({ who: h.who, body: h.body }));
+    const rows = await sql.query<HistoryMsg & { go_to: unknown }>(
+      `select who, body, go_to from (select who, body, go_to, created_at from public.assistant_messages where conversation_id = $1
+        order by created_at desc, (who = 'persona') limit $2) t order by created_at, (who = 'asistente')`,
+      [conversationId, THREAD_MESSAGES],
+    );
+    const history = rows.map((h) => ({ who: h.who, body: h.body }));
+    const last = lastTopic(rows.filter((h) => h.who === 'asistente').at(-1)?.go_to);
     const sentLastHour = recent?.n ?? 0;
     // clock_timestamp(): the question and the answer of one turn never share a timestamp.
     await sql.query(`insert into public.assistant_messages (conversation_id, who, body, created_at) values ($1, 'persona', $2, clock_timestamp())`, [conversationId, question]);
@@ -86,8 +86,22 @@ export async function openTurn(userId: string, requested: string | null | undefi
       brand: (get('brand') ?? {}) as Brand,
       profile: mergeProfile(get('assistant')) as AssistantProfile,
       history,
+      last,
     };
   });
+}
+
+/**
+ * What 360's last answer was about, from its go_to (saveTurn writes `entry` with every answer, null when it said no
+ * entry of the index, and `cursor` after a «¿Sigo?»): null for an answer saved before 360 kept it (no `entry` key).
+ * Only the server writes go_to; the values are still checked (an id of the index's shape, a small step number).
+ */
+export function lastTopic(goTo: unknown): { entry: string | null; cursor?: number } | null {
+  if (!goTo || typeof goTo !== 'object' || !('entry' in goTo)) return null;
+  const g = goTo as { entry?: unknown; cursor?: unknown };
+  const entry = typeof g.entry === 'string' && /^[a-z0-9:-]{3,120}$/.test(g.entry) ? g.entry : null;
+  const cursor = typeof g.cursor === 'number' && Number.isInteger(g.cursor) && g.cursor > 0 && g.cursor < 100 ? g.cursor : undefined;
+  return { entry, ...(cursor !== undefined && entry ? { cursor } : {}) };
 }
 
 /** Fichas offered to these roles. null = could not be read (the prompt declares it). */

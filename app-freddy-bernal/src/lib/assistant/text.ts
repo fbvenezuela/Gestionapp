@@ -19,13 +19,15 @@ export function neutralIntro(name: string): string {
   return `Soy ${name.trim() || 'el asistente'}, el asistente del equipo. Te ayudo con la app.`;
 }
 
-export type Huecos = { name: string; app: string; boss: string; person: string };
+// words: the client's words by their hueco («[PROGRAMA]», «[SEMANARIO]», «[WEB_OFICIAL]», «[ORGANIZACION]» → what
+// config/clients says: guides/web/words.ts, filled by index.ts). Never written in src (the repository is public, §11.6).
+export type Huecos = { name: string; app: string; boss: string; person: string; words?: Record<string, string> };
 
-/** Fills the fixed huecos. Data huecos ([estado], [dias]…) are left for the brain to fill or drop. */
+/** Fills the fixed huecos and the client's words. Data huecos ([estado], [dias]…) are left for the brain to fill or drop. */
 export function fillHuecos(text: string, h: Huecos): string {
-  return contract(
-    text.replaceAll('[ASISTENTE]', h.name).replaceAll('[APP]', h.app).replaceAll('[JEFE]', h.boss).replaceAll('[NOMBRE]', h.person),
-  );
+  let out = text.replaceAll('[ASISTENTE]', h.name).replaceAll('[APP]', h.app).replaceAll('[JEFE]', h.boss).replaceAll('[NOMBRE]', h.person);
+  for (const [hueco, word] of Object.entries(h.words ?? {})) if (word) out = out.replaceAll(hueco, word);
+  return contract(out);
 }
 
 /** «de el jefe» → «del jefe», «a el jefe» → «al jefe» (lower-case «el» only: «de El Mirador» stays). */

@@ -499,6 +499,22 @@ Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene ad
   - La prueba: `tests/unit/assistant-redteam.test.ts`, una fila por clase y ninguna respuesta con un lugar de los eventos
     de la demo (su «A dónde se va», la parte de lugar de su título, su municipio) que la pregunta no dijo.
 
+## 360 explica lo que acaba de decir (desde el 17/11/2026, WF-C)
+
+- «No entendí», «más fácil», «paso a paso», «dame un ejemplo», «¿y después?», «¿para qué sirve?», «¿por qué?», «¿qué
+  significa eso?», «dime más» y un «sí» después de su «¿Sigo?»: el paso E de `local.ts`, antes del «¿Y después?» de
+  siempre, con `src/lib/assistant/explain.ts` (qué se pide y qué decir) y los textos de «Explicado fácil»
+  (`src/lib/guides/explain.ts`: lo fácil, el ejemplo y el porqué que da la guía).
+- El tema es lo que dijo la respuesta de antes: cada respuesta guarda en `assistant_messages.go_to`, junto al botón,
+  `entry` (la entrada del índice que dijo, `null` si no dijo ninguna: la negativa, una herramienta, la charla) y, después
+  de «¿Sigo?», `cursor` (el paso que sigue). Sin migración. Una conversación de antes de esto vuelve a buscar la pregunta
+  anterior.
+- Nunca después de una pregunta de un evento (`followsEvent`), nunca con un evento, un lugar, un día o una hora en lo
+  que se pide («no entendí lo de la feria» sigue con los pasos de la agenda), nunca dos veces lo mismo, y solo después de
+  una respuesta. Sin nada nuevo que decir, contestan los pasos de siempre.
+- Pruebas: `tests/unit/assistant-explain.test.ts` (el módulo), `tests/unit/assistant-explain-turn.test.ts` (la
+  conversación entera y `go_to`) y la clase «un pedido de explicación junto a un evento» del red team.
+
 ## Datos (migración `20261025000900_assistant.sql`)
 Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: solo el servidor las toca.
 - `assistant_knowledge` (fichas): `id, roles app_role[] null` (null = todos los roles), `title, body, tags text[],

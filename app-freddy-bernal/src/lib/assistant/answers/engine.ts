@@ -9,6 +9,7 @@ import { NO_MESSAGES_LINE, TOP_MESSAGES_LINE } from '../../guides/shared';
 import { everyoneSections } from '../../guides/sections';
 import type { SectionGuide, Task } from '../../guides/types';
 import { plain } from '../text';
+import { UNFILLED_HUECO, clientWords, fillClientWords, type ClientWords } from '../../guides/web/words';
 import { ANSWERS, ANSWER_FILES, type Answer, type AnswerText } from './index';
 
 // kind: what the entry is (it decides how it is matched and how 360 says it): a curated entry, a question of a guide's
@@ -659,21 +660,39 @@ export function allEntries(): Entry[] {
   return index().entries;
 }
 
+// The client's words (config/clients, guides/web/words.ts: the program's, the paper's, the official site's and the
+// organization's names) where the help content writes their huecos: filled in the ways of asking and in what an entry
+// says, so «¿qué es el …?» with that name matches the entry that names it. Its answer keeps the hueco: 360 fills it when
+// it says it (text.ts fillHuecos), as it fills [APP] or [JEFE].
+const withWords = (t: string, w: ClientWords) => (UNFILLED_HUECO.test(t) ? fillClientWords(t, w) : t);
+function withClientWords(e: Entry, w: ClientWords): Entry {
+  const q = e.q.map((x) => withWords(x, w));
+  const doc = e.doc === undefined ? undefined : withWords(e.doc, w);
+  return q.some((x, k) => x !== e.q[k]) || doc !== e.doc ? { ...e, q, ...(doc !== undefined ? { doc } : {}) } : e;
+}
+/** A text of the help content as the index reads it: with the client's words in place of their huecos. */
+export function indexedText(text: string): string {
+  return withWords(text, clientWords());
+}
+
 function index(): Index {
   if (INDEX) return INDEX;
   // The file of each curated entry, for its source tag.
   const files = new Map<Answer, string>(Object.entries(ANSWER_FILES).flatMap(([f, list]) => list.map((a): [Answer, string] => [a, f])));
-  const entries = [...curatedEntries(ANSWERS, (a) => files.get(a) ?? 'respuestas'), ...guideEntries(), ...sharedEntries(), ...glossaryEntries(), ...flowEntries(), ...adminEntries()];
+  const words = clientWords();
+  const filled = (t: string) => withWords(t, words);
+  const entries = [...curatedEntries(ANSWERS, (a) => files.get(a) ?? 'respuestas'), ...guideEntries(), ...sharedEntries(), ...glossaryEntries(), ...flowEntries(), ...adminEntries()].map((e) => withClientWords(e, words));
+  const saidOf = (e: Entry) => saidBy(e).map(([t, roles]): [string, Role[] | undefined] => [filled(t), roles]);
   // Document frequency per root, over the entries (each entry once).
   const df = new Map<string, number>();
-  const entryToks = entries.map((e) => new Set([...e.q, e.doc ?? '', ...(e.kind === 'curated' ? saidBy(e).map(([t]) => t) : [])].flatMap((t) => tokens(t))));
+  const entryToks = entries.map((e) => new Set([...e.q, e.doc ?? '', ...(e.kind === 'curated' ? saidOf(e).map(([t]) => t) : [])].flatMap((t) => tokens(t))));
   for (const set of entryToks) for (const r of set) df.set(r, (df.get(r) ?? 0) + 1);
   const n = entries.length;
   const idf = new Map<string, number>();
   for (const [r, c] of df) idf.set(r, Math.log(1 + n / c));
   // A word only some ways of asking have, and no answer or guide text says («Kevin», «la ermita», «chamo»): an example
   // detail of how it was asked, not what it is about. It weighs like a common word.
-  const said = new Set(entries.flatMap((e) => [e.doc ?? '', ...(e.kind === 'curated' ? saidBy(e).map(([t]) => t) : [typeof e.a === 'string' ? e.a : textFor(e.a, [...TEAM_ROLES, 'admin'])])]).flatMap((t) => tokens(t)));
+  const said = new Set(entries.flatMap((e) => [e.doc ?? '', ...(e.kind === 'curated' ? saidOf(e).map(([t]) => t) : [filled(typeof e.a === 'string' ? e.a : textFor(e.a, [...TEAM_ROLES, 'admin']))])]).flatMap((t) => tokens(t)));
   const common = [...idf.values()].sort((a, b) => a - b)[Math.floor(idf.size * DETAIL_AT)] ?? 1;
   for (const [r, w] of idf) if (!said.has(r) && w > common) idf.set(r, common);
   const weigh = (r: string): Tok => ({ root: r, w: r in LIGHT ? LIGHT[r] : idf.get(r) ?? Math.log(1 + n), light: r in LIGHT });
@@ -683,7 +702,7 @@ function index(): Index {
   // «Label»: what it is. The entries that say what a label is, as `entry label`.
   const defines = new Set<string>();
   entries.forEach((e, k) => {
-    for (const m of `${e.doc ?? ''} ${typeof e.a === 'string' ? e.a : (e.a.default ?? '')}`.matchAll(/«([^«»]{3,60})»:/g)) defines.add(`${k} ${readable(m[1])}`);
+    for (const m of filled(`${e.doc ?? ''} ${typeof e.a === 'string' ? e.a : (e.a.default ?? '')}`).matchAll(/«([^«»]{3,60})»:/g)) defines.add(`${k} ${readable(m[1])}`);
     const add = (text: string, kind: 'q' | 'doc', roles?: Role[]) => {
       const toks = tokens(kind === 'doc' ? text.replace(/“[^”]*”/g, ' ') : text).map(weigh);
       if (!toks.length) return;
@@ -701,9 +720,9 @@ function index(): Index {
     for (const q of e.q) add(q, 'q');
     if (e.doc) add(e.doc, 'doc');
     // What a curated entry answers says the asked words too (design §A): one way, per role, as a guide's text does.
-    if (e.kind === 'curated') for (const [text, roles] of saidBy(e)) add(text, 'doc', roles);
+    if (e.kind === 'curated') for (const [text, roles] of saidOf(e)) add(text, 'doc', roles);
     // The screen's labels it quotes (two words or more): asked by name, they point here.
-    for (const l of new Set([...labelsOf(e.doc ?? ''), ...labelsOf(typeof e.a === 'string' ? e.a : ''), ...e.q.flatMap(labelsOf)])) {
+    for (const l of new Set([...labelsOf(e.doc ?? ''), ...labelsOf(filled(typeof e.a === 'string' ? e.a : '')), ...e.q.flatMap(labelsOf)])) {
       const p = readable(labelWords(l));
       if (p.split(' ').length < 2 || p.length < 8) continue;
       labels.set(p, [...(labels.get(p) ?? []), k]);
