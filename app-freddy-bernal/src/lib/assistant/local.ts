@@ -181,6 +181,12 @@ const WEB_NOT_YOURS_SHORT = 'No están en tu menú: las manejan el jefe, adminis
 const WEB_SAID = /\b(?:la web|de la web|en la web|por la web|a la web|pagina web|sitio web|web publica|web y atencion|atencion ciudadana|(?:el menu|en|a|por) atencion(?! a\b)|(?:registro|cifras|mapa|tablero|plazos|areas|roles?|guias?|manual) de atencion|bandeja|consultar mi solicitud|comprobantes?|casos atendidos|transparencia|redirecci\w*|ajustes del sitio|vista previa|solicitudes? (?:de la web|de la gente|ciudadanas?)|lista de solicitudes|la gente que (?:escribe|manda|reporta)|que (?:manda|mandan|escribe|escriben) la gente)\b/;
 // Where the words of the app are (step W): «Ayuda y guías», «Palabras de la app».
 const TERM_WHERE = 'Las palabras de la app están en «Ayuda y guías», en «Palabras de la app».';
+// …and those of the web and of Atención, on their own pages of «Ayuda y guías», the boss's and Administración's (the
+// titles of src/components/guides/web-guide.tsx WEB_WORDS_TITLE; a test keeps them the same).
+export const TERM_WHERE_WEB: Record<'web' | 'atencion', string> = {
+  web: 'Las palabras de la web están en «Ayuda y guías» → «La web», en «Palabras de la web».',
+  atencion: 'Las palabras de la atención están en «Ayuda y guías» → «Atención ciudadana», en «Palabras de la atención».',
+};
 export const NOT_SURE = 'No estoy seguro de eso y no quiero darte un dato malo. ¿Quieres que le avise a administración para que te ayuden?';
 // Administración is never offered to tell administración (D-89): its guide, instead.
 export const NOT_SURE_ADMIN = 'No estoy seguro de eso y no quiero darte un dato malo. Tu guía, en «Ayuda y guías», lo explica pantalla por pantalla.';
@@ -1007,10 +1013,13 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // index says it to this person, and where the words are. Not when an answer for this person was written for exactly
   // that question (askedTerm), not for a section of Redes whose card has a line of its own for it («¿qué es un pilar?»),
   // and never with a when or an event in it (the whole question is the word asked: no room for one).
-  const term = !followsEvent && !carriesWhen(i.question) && eventAt(i.question) < 0 && !(redesTopic && (redesTopic.from || redesTopic.defines)) ? askedTerm(i.question, i.ctx.roles) : null;
+  // (A word of the web or of Atención, the boss's and Administración's: where it is, its domain for the button.)
+  const term = !followsEvent && !carriesWhen(i.question) && eventAt(i.question) < 0 && !(redesTopic && (redesTopic.from || redesTopic.defines)) ? askedTerm(i.question, i.ctx.roles, i.ctx.screen) : null;
   if (term) {
     const go = term.go && canOpen(term.go, i.ctx.roles) ? term.go : undefined;
-    return { ...done(clip(`${fill(textFor(term.a, i.ctx.roles))} ${TERM_WHERE}`), go), fixed: true, entry: term.id };
+    const dom = term.domain === 'web' || term.domain === 'atencion' ? term.domain : null;
+    const where = dom ? (term.source.startsWith('web:') ? TERM_WHERE_WEB[dom] : TERM_WHERE) : TERM_WHERE;
+    return { ...done(clip(`${fill(textFor(term.a, i.ctx.roles))} ${where}`), go), fixed: true, entry: term.id, ...(dom && term.source.startsWith('web:') ? { domain: dom } : {}) };
   }
   // A strong curated answer that says it better than the section's card (measured the same way) answers instead (D-89);
   // so does a word of «Palabras de la app» asked what it means, when the card has no sentence of its own for it

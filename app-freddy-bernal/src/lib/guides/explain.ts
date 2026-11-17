@@ -13,8 +13,10 @@
 // screen shows, «tú», no date, hour, phone or demo name, nothing internal.
 import type { Role } from '../roles';
 import { ADMIN_GUIDE } from './admin';
+import { GLOSSARY } from './glossary';
 import { allGuides } from './index';
 import { everyoneSections } from './sections';
+import { WEB_GLOSSARY } from './web/glossary';
 
 /** One text for everyone, or one per role (`default` for the rest), as 360's answers are written. */
 export type FacetText = string | (Partial<Record<Role, string>> & { default?: string });
@@ -793,140 +795,17 @@ const TOPICS: Record<string, Facets> = {
   },
 };
 
-// ── «Palabras de la app»: `palabra:<id>` ──────────────────────────────────────────────────────────────────────────
+// ── «Palabras de la app», «Palabras de la web» y «Palabras de la atención»: `palabra:<id>` ────────────────────────
+// Each word's own fields (src/lib/guides/glossary.ts and web/glossary.ts: easy, example, why), next to what it means,
+// so the glossary is one source for /ayuda, the docs and 360.
 
-const WORDS: Record<string, Facets> = {
-  'palabra:pieza': {
-    easy: 'Es cada publicación que se prepara, sea un video, una foto o varias fotos. Cada una tiene su tarjeta en Redes.',
-    example: 'Por ejemplo: el video corto de un evento es una pieza, y el post con la foto del jefe es otra.',
-  },
-  'palabra:reel-y-short': {
-    easy: 'Es un video cortico y parado, como se ve en el teléfono. En Instagram le dicen reel y en YouTube, Short.',
-    example: 'Por ejemplo: un video vertical del jefe saludando es un reel en Instagram; el mismo video en YouTube es un Short.',
-  },
-  'palabra:carrusel-y-lamina': {
-    easy: 'Es un post con varias imágenes que se pasan de lado. Cada imagen se llama lámina.',
-    example: 'Por ejemplo: un post con cinco imágenes de una obra, de la portada al CTA, es un carrusel de cinco láminas.',
-  },
-  'palabra:historia-y-sticker': {
-    easy: 'La historia es lo que se ve un día en el perfil y después se va. El sticker es lo que se le pega encima, como una encuesta.',
-    example: 'Por ejemplo: una historia con la foto de un evento y un sticker de pregunta que dice “¿Qué te pareció?”.',
-  },
-  'palabra:copy': {
-    easy: 'Es el texto que va con la publicación. Cada pieza lleva tres: uno largo, uno medio y uno corto, según la red.',
-    example: 'Por ejemplo: en un reel, el copy largo va en Instagram, el medio en Threads y el corto en X.',
-  },
-  'palabra:caption': {
-    easy: 'Es el texto que sale debajo de la foto o del video. Es lo mismo que el copy largo.',
-    example: 'Por ejemplo: en Instagram, lo que se lee debajo de un post es su caption.',
-  },
-  'palabra:hook-y-cta': {
-    easy: 'El hook es la primera frase, la que hace que la gente se quede. El CTA es lo que se le pide al final, como comentar.',
-    example: 'Por ejemplo: “¿Sabías que esta obra cambia tu calle?” es un hook, y “Cuéntanos en los comentarios” es un CTA.',
-  },
-  'palabra:texto-del-arte': {
-    easy: 'Es lo que va escrito dentro de la imagen de un post, como el título grande y la línea chica de arriba.',
-    example: 'Por ejemplo: en un post, el «Antetítulo» puede decir “Obras”, el «Titular» “Llegó el agua” y un sello “Tres tips”.',
-  },
-  'palabra:feed': {
-    easy: 'Es la vista del perfil con todas las publicaciones juntas, en cuadritos. En la app ordenas las del mes en 24 espacios.',
-    example: 'Por ejemplo: cuando abres el Instagram del jefe, la cuadrícula de fotos y videos es el feed.',
-  },
-  'palabra:mes-cupo-y-pilar': {
-    easy: 'El mes junta las piezas de un mes, el cupo dice cuántas de cada formato tocan y el pilar es el tema fijo de cada una.',
-    example: 'Por ejemplo: si el cupo del mes dice 8 posts, ese mes se planean 8 posts, y cada uno lleva su pilar.',
-  },
-  'palabra:storyboard': {
-    easy: 'Es el plan de lo que se va a grabar, toma por toma, para que Grabación sepa qué hacer y qué se dice.',
-    example: 'Por ejemplo: toma 1, la gente llegando; toma 2, el jefe hablando, con lo que dice; toma 3, un detalle de la obra.',
-  },
-  'palabra:ficha-tecnica': {
-    easy: 'Es lo que hay que saber de un evento antes de ir: de qué es, quién lo dirige y los datos, cada uno con su fuente.',
-    example: 'Por ejemplo: un dato como “200 familias beneficiadas” va en la ficha técnica con su fuente, como el informe de la obra.',
-  },
-  'palabra:dialogo-fab': {
-    easy: 'Es lo que el jefe dice en una obra, en tres partes cortas: qué es, qué mejora y qué gana la gente con ella.',
-    example: 'Por ejemplo: “Esta es la tubería nueva; ya no se va el agua; las familias tienen agua todos los días.”',
-  },
-  'palabra:nota-para-el-editor': {
-    easy: 'Es un mensaje corto de quien grabó a quien edita, para que sepa qué toma usar y qué salió mal.',
-    example: 'Por ejemplo: “La mejor toma es la del final; la del inicio tiene viento; faltó la gente aplaudiendo.”',
-  },
-  'palabra:semaforo': {
-    easy: 'Es el color de cada pieza, que le dice al jefe qué tan rápido revisarla: verde es rutina, amarillo es normal y rojo es lo delicado, que va primero.',
-    example: 'Por ejemplo: un post de saludo va en verde, uno de una obra en amarillo y una aclaratoria en rojo.',
-    why: 'Porque el color dice cuánto apura: el verde se aprueba con las demás verdes en el día, el amarillo en 60 minutos y el rojo, lo sensible, en 30.',
-  },
-  'palabra:motivos-rapidos': {
-    easy: 'Son motivos ya escritos que el jefe toca para pedir un cambio sin tener que escribirlo.',
-    example: 'Por ejemplo: el jefe toca «Muy largo» en un copy, y a Redes le llega ese motivo con la pieza.',
-  },
-  'palabra:avisos-de-cumplimiento': {
-    easy: 'Es una alerta de cuidado en una pieza antes de publicarla, como cuando lleva un testimonio o un dato que hay que verificar.',
-    example: 'Por ejemplo: un post usa una cifra nueva; Redes le pone «Verificar la fuente y la fecha del dato» y el jefe lo ve antes de aprobar.',
-  },
-  'palabra:receptividad': {
-    easy: 'Es una nota de 1 a 10 de cómo le cayó una pieza a la gente en redes. No mide si apoyan al jefe.',
-    example: 'Por ejemplo: un reel con muchos comentarios buenos puede llevar 9; uno que casi nadie comentó, 3.',
-  },
-  'palabra:programar': {
-    easy: 'Es apartar el día y la hora en que sale una publicación. La app no la sube sola: a esa hora alguien la publica a mano.',
-    example: {
-      social: 'Por ejemplo: programas un reel en Instagram; cuando llega la hora, lo subes tú y marcas «Ya lo publiqué».',
-      boss: 'Por ejemplo: programas un reel en Instagram; cuando llega la hora, lo subes tú y marcas «Ya lo publiqué».',
-      admin: 'Por ejemplo: programas un reel en Instagram; cuando llega la hora, lo subes tú y marcas «Ya lo publiqué».',
-      default: 'Por ejemplo: Redes programa un reel en Instagram; cuando llega la hora, lo sube a mano y marca «Ya lo publiqué».',
-    },
-  },
-  'palabra:tanda': {
-    easy: 'Son los tweets de una semana, que se suben todos juntos desde un documento.',
-    example: 'Por ejemplo: Redes sube el documento con los 15 tweets de la semana: esa es la tanda.',
-  },
-  'palabra:trancado': {
-    easy: 'Es algo que se paró y necesita que alguien lo mueva, como una publicación que falló.',
-    example: 'Por ejemplo: una pieza venció sin aprobar y sale en «Trancado» hasta que alguien la atiende.',
-  },
-  'palabra:etiquetas': {
-    easy: 'Son los recuadritos de color que dicen cómo va algo, como si ya se aceptó o si todavía espera.',
-    example: 'Por ejemplo: un evento que espera al jefe tiene la etiqueta «Por decidir», y cuando lo acepta, «Aceptado».',
-  },
-  'palabra:campos': {
-    easy: 'Son los espacios donde escribes en una tarjeta o en un formulario.',
-    example: 'Por ejemplo: en un reel, el título es un campo y la portada es otro.',
-  },
-  'palabra:numeros-y-medidas': {
-    easy: 'Son los números que salen junto a un texto o un archivo: cuántas letras lleva, si es vertical u horizontal y cuánto pesa.',
-    example: 'Por ejemplo: “85/280” junto a un tweet quiere decir que lleva 85 letras de las 280 que caben.',
-  },
-  'palabra:csv': {
-    easy: 'Es un archivo de tabla, como los de Excel, que sirve para cargar muchos resultados de una sola vez.',
-    example: 'Por ejemplo: guardas los resultados en Excel como CSV y los subes en Resultados con «Elegir archivo CSV».',
-  },
-  'palabra:oficina': {
-    easy: {
-      politics: 'Es un dibujo del trabajo como una oficina de diez salas. No está en tu menú: la abren el jefe, el despacho, Redes, Grabación y administración.',
-      ivt: 'Es un dibujo del trabajo como una oficina de diez salas. No está en tu menú: la abren el jefe, el despacho, Redes, Grabación y administración.',
-      default: 'Es un dibujo del trabajo como una oficina de diez salas: cada actividad del jefe está en la sala donde va su trabajo.',
-    },
-    example: {
-      politics: 'Por ejemplo: el jefe la ve arriba de Digital, con «Ver todas las salas».',
-      ivt: 'Por ejemplo: el jefe la ve arriba de Digital, con «Ver todas las salas».',
-      default: 'Por ejemplo: tocas una sala y ves las actividades que están ahí; el jefe también la ve arriba de Digital.',
-    },
-  },
-  'palabra:web-y-atencion': {
-    easy: {
-      boss: 'Son la página web pública y la atención a la gente que escribe por ella. Están en tu menú y tienen su propia guía.',
-      admin: 'Son la página web pública y la atención a la gente que escribe por ella. Están en tu menú y tienen su propia guía.',
-      default: 'Son la página web pública y la atención a la gente que escribe por ella. No están en tu menú: las manejan el jefe, administración y las personas de la web y de la atención.',
-    },
-    example: 'Por ejemplo: en la web la gente puede mandar una solicitud, y en Atención las personas que atienden la responden.',
-  },
-  'palabra:administracion': {
-    easy: 'Son las personas que ven la parte técnica de la app: invitan a la gente, ayudan con el doble factor y recuperan lo eliminado.',
-    example: 'Por ejemplo: si cambias de teléfono y ya no te llega el código de tu aplicación, administración te ayuda a activarlo de nuevo.',
-  },
-};
+const WORDS: Record<string, Facets> = Object.fromEntries(
+  [...GLOSSARY, ...WEB_GLOSSARY].map((g) => {
+    const f: Facets = {};
+    for (const k of ['easy', 'example', 'why'] as const) if (g[k]) f[k] = g[k];
+    return [`palabra:${g.id}`, f];
+  }),
+);
 
 // ── The index of facets, by entry id ──────────────────────────────────────────────────────────────────────────────
 
