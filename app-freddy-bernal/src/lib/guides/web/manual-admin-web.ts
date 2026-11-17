@@ -891,9 +891,9 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
       heading: { level: 2, num: '16.' },
       audience: ['boss', 'admin'],
       screen: '/admin/web',
-      what: 'Qué hacer si algo sale mal en la web: lo publicado por error se archiva, un cambio equivocado se arregla con «Versiones», y una dirección vieja mal llevada, en «Redirecciones».',
+      what: 'Qué hacer cuando algo sale mal en la web: lo que no debía salir se archiva, un cambio equivocado se arregla con «Versiones», y una dirección vieja mal llevada, en «Redirecciones».',
       items: [
-        'Se publicó algo por error: «Archivar», y sale de la web al momento, sin borrar nada.',
+        { boss: 'Se publicó algo por error: «Archivar», y sale de la web al momento, sin borrar nada.', admin: 'Si se publicó algo por error, avísale al aprobador de la web o al jefe: ellos lo archivan y sale de la web al momento, sin borrar nada.' },
         'Se publicó un cambio equivocado: «Versiones» → «Volver a esta versión» → enviar a aprobación → publicar.',
         'Una dirección vieja lleva a donde no es: en «Redirecciones», cambia el destino o «Quitar».',
         'Se subió a la biblioteca un archivo que no debía ser público: archivarlo, cambiarlo donde se use y avisarle a Administración para borrarlo del todo.',
@@ -902,7 +902,6 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         'Límites de hoy: la app no compara palabra por palabra ni programa un cambio a algo ya publicado, y solo acepta fotos JPG, PNG o WebP y archivos de hasta 4 MB. Al jefe no le avisa de lo que espera en «Por aprobar»: lo ve en la lista.',
       ],
       faq: [
-        { q: 'Se publicó algo por error en la web, ¿qué hago?', a: { boss: '«Archivar»: sale de la web al momento, sin borrar nada. Si lo equivocado fue un cambio, «Versiones» → «Volver a esta versión», y se publica otra vez.', admin: 'Avísale al aprobador de la web o al jefe: ellos lo archivan y sale de la web al momento, sin borrar nada.' } },
         { q: 'Publiqué un cambio que estaba malo, ¿cómo vuelvo a lo de antes?', a: '«Versiones» → «Volver a esta versión», y después se envía a aprobación y se publica otra vez.' },
         { q: 'No puedo publicar, me dice que falta algo, ¿qué hago?', a: 'Completa lo que dice la lista. En lo traído de la web anterior suele ser el texto alternativo de las fotos y las marcas como «[correo retirado]».' },
         { q: '¿Qué cosas no hace todavía la web?', a: 'No compara palabra por palabra ni programa un cambio a algo ya publicado. Solo acepta fotos JPG, PNG o WebP y archivos de hasta 4 MB, y al jefe no le avisa de lo que espera en «Por aprobar».' },
