@@ -970,10 +970,10 @@ function curatedEntries(list: Answer[], file: (a: Answer) => string): Entry[] {
 
 // roles: only for whoever is told that text (a curated entry's answer per role); unset = whoever gets the entry.
 // quoted: the label a way of asking is about («¿Qué significa «Sube el material»?»), when it is most of it.
-type Doc = { entry: number; toks: Tok[]; total: number; kind: 'q' | 'doc'; labels: string[]; weight: number; label: boolean; text: string; ask: AskKind | null; quoted?: string; roles?: Role[] };
+type Doc = { entry: number; toks: Tok[]; total: number; kind: 'q' | 'doc'; labels: string[]; weight: number; label: boolean; text: string; ask: AskKind | null; quoted?: string; roles?: Role[]; web?: boolean };
 // What a kind's text weighs as an answer: a line of the job or the day says less than a screen, a task or a question.
 const KIND_WEIGHT: Partial<Record<Kind, number>> = { job: 0.85, day: 0.85, with: 0.95, flow: 0.95, never: 0.95, line: 0.9 };
-type Index = { entries: Entry[]; docs: Doc[]; byKey: Map<string, number[]>; idf: Map<string, number>; unknown: number; labels: Map<string, number[]>; byId: Map<string, Entry>; asked: Map<string, Entry[]>; defines: Set<string>; whoLabels: RegExp | null; said: Set<string> };
+type Index = { entries: Entry[]; docs: Doc[]; byKey: Map<string, number[]>; idf: Map<string, number>; unknown: number; idfAll: Map<string, number>; unknownAll: number; labels: Map<string, number[]>; byId: Map<string, Entry>; asked: Map<string, Entry[]>; defines: Set<string>; whoLabels: RegExp | null; said: Set<string>; saidAll: Set<string> };
 
 let INDEX: Index | null = null;
 
@@ -1020,19 +1020,28 @@ function index(): Index {
     .map((e) => withClientWords(e, words))
     .map((e): Entry => (e.domain ? e : { ...e, domain: 'equipo' }));
   const saidOf = (e: Entry) => saidBy(e).map(([t, roles]): [string, Role[] | undefined] => [filled(t), roles]);
-  // Document frequency per root, over the entries (each entry once).
-  const df = new Map<string, number>();
-  const entryToks = entries.map((e) => new Set([...e.q, e.doc ?? '', ...(e.kind === 'curated' ? saidOf(e).map(([t]) => t) : [])].flatMap((t) => tokens(t))));
-  for (const set of entryToks) for (const r of set) df.set(r, (df.get(r) ?? 0) + 1);
-  const n = entries.length;
-  const idf = new Map<string, number>();
-  for (const [r, c] of df) idf.set(r, Math.log(1 + n / c));
-  // A word only some ways of asking have, and no answer or guide text says («Kevin», «la ermita», «chamo»): an example
-  // detail of how it was asked, not what it is about. It weighs like a common word.
-  const said = new Set(entries.flatMap((e) => [e.doc ?? '', ...(e.kind === 'curated' ? saidOf(e).map(([t]) => t) : [filled(typeof e.a === 'string' ? e.a : textFor(e.a, [...TEAM_ROLES, 'admin']))])]).flatMap((t) => tokens(t)));
-  const common = [...idf.values()].sort((a, b) => a - b)[Math.floor(idf.size * DETAIL_AT)] ?? 1;
-  for (const [r, w] of idf) if (!said.has(r) && w > common) idf.set(r, common);
-  const weigh = (r: string): Tok => ({ root: r, w: r in LIGHT ? LIGHT[r] : idf.get(r) ?? Math.log(1 + n), light: r in LIGHT });
+  // How much each word says: document frequency per root, over the entries (each entry once). Two tables: the team's
+  // entries are weighed among themselves, so the web's and Atención's guide and the flows told as stories (WF-C) never
+  // change a team question's scores; the web's entries, among all of them, as one index.
+  const weights = (list: Entry[]) => {
+    const df = new Map<string, number>();
+    for (const e of list) for (const r of new Set([...e.q, e.doc ?? '', ...(e.kind === 'curated' ? saidOf(e).map(([t]) => t) : [])].flatMap((t) => tokens(t)))) df.set(r, (df.get(r) ?? 0) + 1);
+    const n = list.length;
+    const idf = new Map<string, number>();
+    for (const [r, c] of df) idf.set(r, Math.log(1 + n / c));
+    // A word only some ways of asking have, and no answer or guide text says («Kevin», «la ermita», «chamo»): an example
+    // detail of how it was asked, not what it is about. It weighs like a common word.
+    const said = new Set(list.flatMap((e) => [e.doc ?? '', ...(e.kind === 'curated' ? saidOf(e).map(([t]) => t) : [filled(typeof e.a === 'string' ? e.a : textFor(e.a, [...TEAM_ROLES, 'admin']))])]).flatMap((t) => tokens(t)));
+    const common = [...idf.values()].sort((a, b) => a - b)[Math.floor(idf.size * DETAIL_AT)] ?? 1;
+    for (const [r, w] of idf) if (!said.has(r) && w > common) idf.set(r, common);
+    return { idf, said, n };
+  };
+  const teamOnly = (e: Entry) => e.domain === 'equipo' && e.kind !== 'flowStory';
+  const { idf, said, n } = weights(entries.filter(teamOnly));
+  const all = weights(entries);
+  const weighOf = (table: Map<string, number>, size: number) => (r: string): Tok => ({ root: r, w: r in LIGHT ? LIGHT[r] : table.get(r) ?? Math.log(1 + size), light: r in LIGHT });
+  const weighTeam = weighOf(idf, n);
+  const weighAll = weighOf(all.idf, all.n);
   const docs: Doc[] = [];
   const byKey = new Map<string, number[]>();
   const labels = new Map<string, number[]>();
@@ -1040,6 +1049,8 @@ function index(): Index {
   const defines = new Set<string>();
   entries.forEach((e, k) => {
     for (const m of filled(`${e.doc ?? ''} ${typeof e.a === 'string' ? e.a : (e.a.default ?? '')}`).matchAll(/«([^«»]{3,60})»:/g)) defines.add(`${k} ${readable(m[1])}`);
+    const web = e.domain === 'web' || e.domain === 'atencion';
+    const weigh = web ? weighAll : weighTeam;
     const add = (text: string, kind: 'q' | 'doc', roles?: Role[]) => {
       const toks = tokens(kind === 'doc' ? text.replace(/“[^”]*”/g, ' ') : text).map(weigh);
       if (!toks.length) return;
@@ -1047,7 +1058,7 @@ function index(): Index {
       const weight = label ? 0.8 : e.q.length || kind === 'q' ? 1 : (KIND_WEIGHT[e.kind] ?? 1);
       const named = kind === 'q' ? labelsOf(text)[0] : undefined;
       const quoted = named && tokens(named).length * 5 >= toks.length * 3 ? readable(named) : undefined;
-      const d = docs.push({ entry: k, toks, total: toks.reduce((s, t) => s + t.w, 0), kind, labels: [], weight, label, text, ask: kind === 'q' ? askKind(readable(text)) : null, ...(quoted ? { quoted } : {}), ...(roles ? { roles } : {}) }) - 1;
+      const d = docs.push({ entry: k, toks, total: toks.reduce((s, t) => s + t.w, 0), kind, labels: [], weight, label, text, ask: kind === 'q' ? askKind(readable(text)) : null, ...(quoted ? { quoted } : {}), ...(roles ? { roles } : {}), ...(web ? { web } : {}) }) - 1;
       for (const t of toks) {
         const list = byKey.get(key(t.root)) ?? [];
         if (list.at(-1) !== d) list.push(d);
@@ -1071,7 +1082,7 @@ function index(): Index {
   // The labels that say «quién» («Quién graba»): named in a question, they do not make it a «¿quién…?».
   const who = [...labels.keys()].filter((l) => /\bquien(?:es)?\b/.test(l));
   const whoLabels = who.length ? new RegExp(`\\b(?:${who.map((l) => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'g') : null;
-  INDEX = { entries, docs, byKey, idf, unknown: 0.6 * Math.log(1 + n), labels, byId: new Map(entries.map((e) => [e.id, e])), asked, defines, whoLabels, said };
+  INDEX = { entries, docs, byKey, idf, unknown: 0.6 * Math.log(1 + n), idfAll: all.idf, unknownAll: 0.6 * Math.log(1 + all.n), labels, byId: new Map(entries.map((e) => [e.id, e])), asked, defines, whoLabels, said, saidAll: all.said };
   return INDEX;
 }
 
@@ -1100,7 +1111,7 @@ const WEB_DOMAIN = new RegExp(
   String.raw`\b(?:la web|de la web|en la web|(?:en|de|mi|tu|el|del|al) web|web y atencion|pagina web|paginas web|sitio web|web publica|web oficial|web vieja|menu web|noticias?|comunicados?|columnas? de opinion|redirecci\w*|ajustes del sitio|vista previa|editor de la web|aprobador de la web|publicar ahora|devolver con comentario|devuelto con comentario|cambios sin publicar|desarchiv\w*|volver a esta version|texto alternativo|punto de interes|avisos? de servicio|episodios?|indicadores?|obras y acciones|gestion y obras|transparencia|paginas? legales|canales oficiales|semanario|pie de pagina|portada de la web)\b`,
 );
 const ATTENTION_DOMAIN = new RegExp(
-  String.raw`\b(?:atencion ciudadana|menu atencion|(?:en|a) atencion(?! a\b)|(?:registro|cifras|mapa|bandeja|tablero|plazos|areas|roles?) de atencion|solicitudes|solicitud (?:de la gente|de la web|ciudadana|de la persona|de alguien|que llego|que llega)|ciudadan\w*|bandeja|denuncias|una denuncia|operador de denuncias|comprobantes?|consultar mi solicitud|casos? atendidos?|coordinacion|coordinador\w* de atencion|responsables? de area|areas y plazos|auditoria|fecha comprometida|respuestas? guardadas?|notas? internas?|respuesta a la persona|pedido de informacion|requiere informacion|no procede|derivad[oa]s?|reportes? parecidos|casos? iguales|lo que (?:manda|escribe|reporta|pide) la gente|la gente (?:que escribe|que manda|manda|reporta|escribe)|ac \d{4})\b|(?<!\ben )\b(?:el|los) casos?\b|\b(?:un|cada|del|al|mis|sus) casos?\b`,
+  String.raw`\b(?:atencion ciudadana|menu atencion|(?:en|a) atencion(?! a\b)|(?:registro|cifras|mapa|bandeja|tablero|plazos|areas|roles?) de atencion|solicitudes|solicitud (?:de la gente|de la web|ciudadana|de la persona|de alguien|que llego|que llega)|ciudadan\w*|bandeja|denuncias|una denuncia|operador de denuncias|comprobantes?|consultar mi solicitud|casos? atendidos?|coordinacion|coordinador\w* de atencion|responsables? de area|areas y plazos|auditoria|fecha comprometida|respuestas? guardadas?|notas? internas?|respuesta a la persona|pedido de informacion|requiere informacion|no procede|derivad[oa]s?|reportes? parecidos|casos? iguales|lo que (?:manda|escribe|reporta|pide) la gente|la gente (?:que escribe|que manda|manda|reporta|escribe)|que (?:manda|mandan|escribe|escriben|reporta|reportan|pide|piden) la gente|observacion(?:es)? (?:sobre|de) (?:una|la|esta|las) obras?|ac \d{4})\b|(?<!\ben )\b(?:el|los) casos?\b|\b(?:un|cada|del|al|mis|sus) casos?\b`,
 );
 // The team's own things: on a screen of the web, a question that names them is the team's («¿cómo apruebo una pieza?»).
 const TEAM_DOMAIN = /\b(?:pieza|piezas|reel|reels|tweet|tweets|storyboard|fichas?|eventos?|agenda|copy|feed|semaforo|grabacion|tanda|municipios|obras del ivt)\b/;
@@ -1193,8 +1204,11 @@ const PROFILE = rootOf('perfil');
 const LABEL_KIND = new Set(['lista', 'boton', 'pestaña', 'casilla', 'seccion', 'pantalla', 'chip', 'opcion', 'campo', 'menu', 'aviso', 'tarjeta'].map((w) => rootOf(plain(w))));
 // What is asked, weighed (the follow-up's words at half), and its pairs of words in a row.
 type Asked = { toks: { root: string; w: number }[]; total: number; pairs: string[]; text: string; own: string[]; kind: AskKind | null };
-function askedOf(question: string, extra?: string, names?: string[]): Asked | null {
+function askedOf(question: string, extra?: string, names?: string[], web = false): Asked | null {
   const ix = index();
+  // (The words of a question weigh, for the web's entries, as all the entries weigh them: index() above.)
+  const table = web ? ix.idfAll : ix.idf;
+  const unknown = web ? ix.unknownAll : ix.unknown;
   // A word the index does not know, said as a diminutive («los numeritos», «la cosita»), is its word.
   const dim = new Map<string, string>();
   for (const w of readable(question).split(' ')) {
@@ -1203,14 +1217,14 @@ function askedOf(question: string, extra?: string, names?: string[]): Asked | nu
     const u = undiminished(w);
     if (u && ix.idf.has(u)) dim.set(r, u);
   }
-  const skip = new Set((names ?? []).flatMap((w) => tokens(w)).filter((r) => !ix.said.has(r)));
+  const skip = new Set((names ?? []).flatMap((w) => tokens(w)).filter((r) => !(web ? ix.saidAll : ix.said).has(r)));
   const all = [...new Set(tokens(question).map((r) => dim.get(r) ?? r))];
   // Without the names, unless less than two words that say something are left (then the name is what it is about).
   const own = all.filter((r) => !skip.has(r) && !(r in LIGHT)).length >= 2 ? all.filter((r) => !skip.has(r)) : all;
   // «Mi nombre», «mi teléfono», «mis avisos»: the person's own things live in Mi perfil (not «el nombre» of a category).
   const mine = own.some((r, k) => r === 'mio' && /^(?:nomb|tele|mail|abis|foto|cuen|dato)/.test(own[k + 1] ?? '')) && !own.includes(PROFILE);
   const more = [...(extra ? tokens(extra).filter((t) => !own.includes(t)) : []), ...(mine ? [PROFILE] : [])];
-  const weigh = (r: string, half = false) => (r in LIGHT ? LIGHT[r] : ix.idf.get(r) ?? ix.unknown) * (half ? 0.5 : 1);
+  const weigh = (r: string, half = false) => (r in LIGHT ? LIGHT[r] : table.get(r) ?? unknown) * (half ? 0.5 : 1);
   // The verb of a «¿cómo…?» is what is asked to do («¿cómo apruebo una pieza en rojo?» is about approving): it weighs
   // more than the things around it.
   const verb = /\bcomo (?:(?:se|le|lo|la|los|las|les|me|te|nos) )*([a-z]{3,})/.exec(readable(question))?.[1];
@@ -1389,6 +1403,8 @@ const TERM_SURE = new Set<AskKind | null>(['what', 'where', null]);
 function rank(question: string, o: FindOptions): Match[] {
   const ix = index();
   const a = askedOf(question, o.extra, o.names);
+  // The same question weighed for the web's entries (index(): two tables of weights).
+  const aw = a && (o.roles.includes('boss') || o.roles.includes('admin')) ? askedOf(question, o.extra, o.names, true) ?? a : a;
   if (!a) {
     // Only light words («¿qué no debo hacer nunca?», «¿qué no hago yo?»): a way of asking said exactly like that, maybe
     // without its «nunca» or «yo», is still the answer.
@@ -1412,7 +1428,7 @@ function rank(question: string, o: FindOptions): Match[] {
     const doc = ix.docs[d];
     if (!forRoles(ix.entries[doc.entry], o.roles) || (doc.roles && !doc.roles.some((r) => o.roles.includes(r)))) continue;
     // A way of asking about a label («¿Qué significa «Sube el material»?») is for a question that names it whole.
-    const s = scoreDoc(a, doc.toks, doc.total, doc.kind, doc.ask) * doc.weight * (doc.quoted && !` ${a.text} `.includes(` ${doc.quoted} `) ? 0.85 : 1);
+    const s = scoreDoc(doc.web && aw ? aw : a, doc.toks, doc.total, doc.kind, doc.ask) * doc.weight * (doc.quoted && !` ${a.text} `.includes(` ${doc.quoted} `) ? 0.85 : 1);
     if (!s) continue;
     const has = a.own.filter((r) => doc.toks.some((u) => likeness(r, u.root) > 0)).length;
     // A short question: a text or a button's name must say every word of it; a way of asking, at least half of them.

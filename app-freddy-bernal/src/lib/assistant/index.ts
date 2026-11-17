@@ -32,7 +32,7 @@ import { hasPlaceOrContact, redact } from './redact';
 import { concreteDateTime, hasPhone } from '../guides/check';
 import { wordsByHueco } from '../guides/web/words';
 import { MESSAGES_MARK, messagesAsk } from './messages-ask';
-import { CASE_MARK, caseAsk } from './case-ask';
+import { CASE_MARK, caseAsk, caseOverMessages } from './case-ask';
 import { pickGoTo, screenFor, type GoTo } from './screens';
 import { MESSAGES_PER_HOUR, loadKnowledge, loadScripts, noteHeard, openTurn, saveTurn, type Reserve } from './store';
 import { firstName } from './text';
@@ -129,7 +129,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   // messages. Neither its text nor a word of it is kept: it is stored as a mark, it stays out of «Lo que preguntan»,
   // and no provider gets it (the demo brain answers with the button to Mensajes). The same for what people send from
   // the web (design §4(e)): what a request or a denuncia says, a person's data, a receipt's code, the desk's counts.
-  const aboutCase = !messagesAsk(routing) && !!caseAsk(routing);
+  const aboutCase = !!caseAsk(routing) && (!messagesAsk(routing) || caseOverMessages(routing));
   const aboutMessages = messagesAsk(routing) || aboutCase;
 
   // With a model chain, the titles this person can see are read first, once, AS THE PERSON: a

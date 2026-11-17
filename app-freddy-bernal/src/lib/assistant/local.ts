@@ -7,7 +7,7 @@ import { EVENT_NOUNS, EVENT_WORDS, GOAL, OCCURRENCE, PLATFORM, WORK, aboutEvent,
 import { STRONG, WEAK, askKind, askedTerm, domainOf, entryById, entryForScreen, findAnswers, knownLabels, readable, scoreFicha, textFor, tokens, type Domain, type Match } from './answers/engine';
 import { NOTICE_MAX, NOTICE_TOO_LONG, noticeIssues } from './guard';
 import { explainAnswer, explainAsk } from './explain';
-import { caseAsk, type CaseAsk } from './case-ask';
+import { caseAsk, caseOverMessages, type CaseAsk } from './case-ask';
 import { webExplain } from './web-explain';
 import { GLOSSARY, glossaryLine } from '../guides';
 import { webHref } from '../guides/web';
@@ -177,6 +177,8 @@ const RECEIPT_GUIDE = 'La guía de atención explica cómo se practica: toca el 
 // whose they are.
 export const WEB_NOT_YOURS = 'La web y Atención no están en tu menú: las manejan el jefe, administración y las personas de la web y de la atención.';
 const WEB_NOT_YOURS_SHORT = 'No están en tu menú: las manejan el jefe, administración y las personas de la web y de la atención.';
+// The web or Atención said by name (step D2): words the team's own work never uses.
+const WEB_SAID = /\b(?:la web|de la web|en la web|por la web|a la web|pagina web|sitio web|web publica|web y atencion|atencion ciudadana|(?:el menu|en|a) atencion(?! a\b)|bandeja de atencion|consultar mi solicitud|comprobantes?|casos atendidos|redirecci\w*|ajustes del sitio|vista previa|solicitudes? (?:de la web|ciudadanas?)|la gente que (?:escribe|manda|reporta)|que (?:manda|mandan|escribe|escriben) la gente)\b/;
 // Where the words of the app are (step W): «Ayuda y guías», «Palabras de la app».
 const TERM_WHERE = 'Las palabras de la app están en «Ayuda y guías», en «Palabras de la app».';
 export const NOT_SURE = 'No estoy seguro de eso y no quiero darte un dato malo. ¿Quieres que le avise a administración para que te ayuden?';
@@ -697,13 +699,15 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     return done('Ahora no consigo avisar al equipo por aquí. Escríbele directo a administración, por favor.');
   }
 
-  // M1. What a message of the team says: 360 does not read them (D-50). Kept only as a mark (index.ts).
-  if (msgs === 'read') return inMensajes ? done(MESSAGES_READ_TEXT, '/mensajes') : done(MESSAGES_ADMIN_TEXT);
+  // M1. What a message of the team says: 360 does not read them (D-50). Kept only as a mark (index.ts). Unless it is what
+  // a person sent from the web (step C says it: «¿qué escribió el vecino que reportó el poste?»).
+  const personBefore = i.ctx.history.filter((h) => h.who === 'persona').at(-1)?.body;
+  if (msgs === 'read' && !caseOverMessages(i.question, personBefore)) return inMensajes ? done(MESSAGES_READ_TEXT, '/mensajes') : done(MESSAGES_ADMIN_TEXT);
 
   // C. What people send from the web (design §4(e)): what a request, a case or a denuncia says, a person's contact or data,
   // the desk's counts, the exported list, a receipt's code or key. 360 never reads nor gives any of it: one fixed line for
   // each role, with the button to «Atención» for whoever opens it. Kept only as a mark (index.ts), never to a provider.
-  const caseQ = caseAsk(i.question, i.ctx.history.filter((h) => h.who === 'persona').at(-1)?.body);
+  const caseQ = caseAsk(i.question, personBefore);
   if (caseQ) {
     const boss = i.ctx.roles.includes('boss');
     const admin = i.ctx.roles.includes('admin');
@@ -1219,7 +1223,8 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
 
   // D2. The web or Atención asked by a role that has neither in its menu (design §4(d)2): what they are and whose they
   // are, nothing of how they work. After the agenda's refusal (an event named on the web is still the agenda's).
-  const webOrDesk = domainOf(i.question, null);
+  // (Said by its name: «una denuncia de un vecino» is política's own work, its ficha comunitaria.)
+  const webOrDesk = domainOf(i.question, null) && WEB_SAID.test(q);
   if (webOrDesk && !i.ctx.roles.includes('boss') && !i.ctx.roles.includes('admin')) {
     const word = GLOSSARY.find((g) => g.id === 'web-y-atencion');
     const what = askKind(readable(q)) === 'what' && word;

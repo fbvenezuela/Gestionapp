@@ -29,20 +29,23 @@ const SAID = String.raw`(?:pidio|pide|piden|pidieron|dice|dicen|decia|dijo|dijer
 const who = (q: string) => new RegExp(String.raw`\b${SENDER}\b`).test(q) || (new RegExp(String.raw`\b${SOMEONE}\b`).test(q) && CITIZEN.test(q));
 // Someone of the team said as «la persona de…» («¿qué fotos mandó la persona de Grabación?»): not a citizen.
 const TEAM_PERSON = /\b(?:la persona|la gente|las personas|una persona) (?:de|del) (?:grabacion|redes|despacho|politica|ivt|equipo|la oficina|administracion)\b/;
-const CONTENT: ((q: string) => boolean)[] = [
+// What may come before the «qué» that asks: «y», «oye», «dime», «sabes»…
+const LEAD = String.raw`(?:(?:y|e|pero|oye|mira|dime|sabes|cuentame|me dices|me puedes decir|entonces|bueno|chamo|porfa) )*`;
+const CONTENT: ((q: string, clauses: string[]) => boolean)[] = [
   // «Léeme la última denuncia», «resúmeme las solicitudes de hoy», «léeme la última que llegó», «léeme lo que escribió…».
   (q) => new RegExp(String.raw`\b${READ}\b(?: [a-z]+){0,4} ${CASE_NOUN}\b`).test(q),
   (q) => new RegExp(String.raw`\b${READ}\b(?: [a-z]+){0,3} (?:la|el|lo|las|los) (?:ultima|ultimo|ultimas|ultimos)\b`).test(q) && (CITIZEN.test(q) || /\bque (?:llego|llegaron|entro|entraron)\b/.test(q)),
   (q) => new RegExp(String.raw`\b${READ}\b(?: [a-z]+){0,2} (?:lo que|que) (?:\w+ ){0,2}${SAID}\b`).test(q) && (who(q) || new RegExp(String.raw`\b${CASE_NOUN}\b`).test(q)),
-  // «¿Qué pidió la señora…?», «¿qué dice el caso del bote?», «¿qué le contestaron a la señora…?», «¿qué foto mandó…?».
-  (q) => new RegExp(String.raw`\bque ${SAID}\b`).test(q) && (new RegExp(String.raw`\b${CASE_NOUN}\b`).test(q) || who(q)),
+  // «¿Qué pidió la señora…?», «¿qué dice el caso del bote?», «¿qué le contestaron a la señora…?», «¿qué foto mandó…?»: the
+  // «qué» that asks starts a clause («el vecino que reportó me dio su número» says who, it asks nothing).
+  (q, c) => c.some((x) => new RegExp(String.raw`^${LEAD}(?:de |a |con |en |por )?(?:que|lo que) (?:le |les |me |nos )?(?:\w+ )?${SAID}\b`).test(x)) && (new RegExp(String.raw`\b${CASE_NOUN}\b`).test(q) || who(q)),
   (q) => /\bque (?:dice|dicen|decia) (?:la|el|las|los) (?:nota interna|notas internas|respuesta|respuestas|historial)\b/.test(q),
   // «¿Qué solicitudes llegaron?», «¿qué reportes mandó la gente?», «¿de qué se queja la gente…?».
   (q) => new RegExp(String.raw`\bque (?:${CASE_NOUN}|reportes) (?:\w+ ){0,3}(?:llegaron|llego|hay|mandaron|mando|entraron|tenemos|enviaron)\b`).test(q) && CITIZEN.test(q),
   (q) => /\bde que se (?:queja|quejan)\b/.test(q) && who(q),
   // What a person sent with it: «¿qué fotos mandó la persona del derrumbe?», «¿qué archivos subió el vecino?».
-  (q) =>
-    /\bque (?:fotos?|archivos?|adjuntos?|evidencias?|videos?|documentos?) (?:\w+ ){0,2}(?:mando|mandaron|subio|subieron|envio|enviaron|adjunto|adjuntaron|puso|pusieron)\b/.test(q) &&
+  (q, c) =>
+    c.some((x) => new RegExp(String.raw`^${LEAD}que (?:fotos?|archivos?|adjuntos?|evidencias?|videos?|documentos?) (?:\w+ ){0,2}(?:mando|mandaron|subio|subieron|envio|enviaron|adjunto|adjuntaron|puso|pusieron)\b`).test(x)) &&
     (who(q) || (new RegExp(String.raw`\b${SOMEONE}\b`).test(q) && !TEAM_PERSON.test(q))),
   // «¿Quién vio el contacto de la señora…?», «¿cuál fue el último que publicaron?», «¿tú eres la bandeja?».
   (q) => /\b(?:quien|quienes) (?:vio|vieron|abrio|abrieron|exporto|exportaron|miro|miraron) (?:el|los) contactos?\b/.test(q),
@@ -78,6 +81,15 @@ const SENT_OF_DESK = /\bdenunci|\b(?:solicitud|solicitudes|por la web|en la web|
 // Asked as a rule or a how-to («¿cómo veo…?», «¿quién ve…?», «¿puedo…?», «¿qué es…?»): the guide answers it.
 const RULE = /^(?:(?:y|e|pero|oye) )?(?:como|donde|quien|quienes|puedo|podemos|se puede|que es|que son|que significa|para que|por que|cuando|en que)\b/;
 
+// A word of what people send («la solicitud», «el vecino», «la denuncia», «por la web»): with it, a question that also
+// reads as one about the team's messages («¿qué escribió el vecino que reportó…?») is about a case.
+const DESK_WORDS = /\b(?:solicitud|solicitudes|denuncia|denuncias|caso|casos|reporte|reportes|reporto|reportaron|vecin[oa]s?|ciudadan[oa]s?|senora|senor|por la web|de la web|en la web|atencion|observacion|observaciones)\b/;
+
+/** Whether a question about a case goes before the Mensajes one (both would refuse; the case's line says it right). */
+export function caseOverMessages(text: string, before?: string | null): boolean {
+  return !!caseAsk(text, before) && DESK_WORDS.test(plain(text));
+}
+
 /**
  * What a question asks 360 to read or give of the citizens' requests (null: nothing of that). `before`: the question
  * before in the thread, for a «¿y la última?» that goes on with one about a denuncia or a case.
@@ -92,7 +104,9 @@ export function caseAsk(text: string, before?: string | null): CaseAsk | null {
   if (COUNT.test(q) && COUNT_OF_DESK.test(q)) return 'count';
   if (WHO_SENT.test(q) && SENT_OF_DESK.test(q)) return 'person';
   if (((!rule && DATA_ASK.test(q)) || NAME_OR_HOME.test(q)) && OF_SENDER.test(q) && (who(q) || /\b(?:de quien|del que|de la que|de la solicitud|del caso|de la denuncia)\b/.test(q))) return 'person';
-  if (!/^(?:(?:y|e|pero|oye) )?(?:como|donde|puedo|podemos|se puede|que es|que son|que significa|para que|por que)\b/.test(q) && CONTENT.some((t) => t(q))) return 'content';
+  // Each clause of the question, for the «qué» that starts one («el caso lleva días quieto, ¿qué le respondieron?»).
+  const clauses = String(text ?? '').split(/[,.;:¿?!¡]+/).map((x) => plain(x).replace(/\s+/g, ' ').trim()).filter(Boolean);
+  if (!/^(?:(?:y|e|pero|oye) )?(?:como|donde|puedo|podemos|se puede|que es|que son|que significa|para que|por que)\b/.test(q) && CONTENT.some((t) => t(q, clauses))) return 'content';
   // «¿Y qué pidió la última persona?», «léeme la última que llegó» after a question about Atención.
   const prev = plain(before ?? '');
   if (prev && /\b(?:solicitud|solicitudes|denuncia|denuncias|caso|casos|atencion ciudadana|casos atendidos|bandeja)\b/.test(prev)) {

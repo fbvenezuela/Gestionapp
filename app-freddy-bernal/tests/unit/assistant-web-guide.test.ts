@@ -8,7 +8,7 @@ import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import { ROLES, TEAM_ROLES, type Role } from '@/lib/roles';
 import { handleTurn } from '@/lib/assistant';
 import { allEntries, bestAnswer, domainOf, entryById, entryForScreen, textFor } from '@/lib/assistant/answers/engine';
-import { CASE_MARK, caseAsk } from '@/lib/assistant/case-ask';
+import { CASE_MARK, caseAsk, caseOverMessages } from '@/lib/assistant/case-ask';
 import { WEB_NOT_YOURS } from '@/lib/assistant/local';
 import { domainOfScreen, screenFor } from '@/lib/assistant/screens';
 import { webExplain } from '@/lib/assistant/web-explain';
@@ -132,8 +132,21 @@ describe('lo que manda la gente por la web (paso C)', () => {
       ['¿qué fotos mandó la persona de Grabación?', null],
       ['¿quién pidió cambios en la pieza del puente?', null],
       ['¿cómo recupero mi clave?', null],
+      // The «qué» that asks starts a clause; «el vecino que reportó…» says who.
+      ['el vecino que reportó me dio su número, ¿lo pongo en la nota pa no perderlo?', null],
+      ['el caso del hueco lleva días quieto, ¿qué le respondieron a la señora?', 'content'],
+      ['¿De qué se queja la gente del hueco de la avenida principal?', 'content'],
     ];
     for (const [q, want] of rows) expect(caseAsk(q), q).toBe(want);
+    // Read as a case before Mensajes when it says what people send; a teammate's message stays Mensajes'.
+    expect(caseOverMessages('que escribio el vecino que reporto el poste caido')).toBe(true);
+    expect(caseOverMessages('¿Qué me escribió Daniela?')).toBe(false);
+  });
+
+  it('«una denuncia de un vecino» es trabajo de política (su ficha comunitaria), no la web', async () => {
+    const r = await ask('politics', 'Me llegó una denuncia de un vecino, ¿cómo la registro en la plataforma?');
+    expect(r.answer).not.toMatch(/no están en tu menú|No leo las solicitudes/);
+    expect(r.answer).toMatch(/ficha comunitaria/);
   });
 
   it('la línea fija para cada rol, guardada solo como marca, sin pasar por ningún modelo', async () => {
