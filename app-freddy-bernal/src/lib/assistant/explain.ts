@@ -25,8 +25,11 @@ import type { TitleSet } from './titles';
 
 /** What an explain ask wants of the topic (design §4(c)1). */
 export type Facet = 'simpler' | 'steps' | 'example' | 'next' | 'purpose' | 'why' | 'meaning' | 'more';
-/** The facet asked and, when the ask names it («no entendí lo de X», «¿qué significa X?», «¿y después de X?»), what of the topic. */
-export type ExplainAsk = { facet: Facet; about?: string };
+/**
+ * The facet asked and, when the ask names it («no entendí lo de X», «¿qué significa X?», «¿y después de X?»), what of the
+ * topic; `pair`: the two things of «no entendí la diferencia entre A y B».
+ */
+export type ExplainAsk = { facet: Facet; about?: string; pair?: [string, string] };
 /**
  * `titles`: what this person can see (the event detectors read titles and places with it). `last`: 360's last answer in
  * the thread, so a bare «sí» or «dale» after its «¿Sigo?» goes on with the steps. `withoutLabels`: how the agenda's
@@ -150,7 +153,9 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
     if (!about) return { facet };
     if (about.split(' ').length > 8 || about.length > 70 || (facet === 'simpler' && ABOUT_THE_APP.test(about))) return null;
     if (blocked(bare(about), titles)) return null;
-    return { facet, about };
+    // «La diferencia entre A y B»: both (A, at its first «y»).
+    const pair = /\bla diferencia entre\b/.test(core) ? /^(.+?) y (.+)$/.exec(about) : null;
+    return { facet, about, ...(pair ? { pair: [pair[1], pair[2]] as [string, string] } : {}) };
   }
   return null;
 }
@@ -163,7 +168,7 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
  * before this one, oldest first, and `question`: this one, as written: a question that goes on with a thread about an
  * event gets no explain answer (local.ts followsEvent; without `question`, any thread about an event stops it).
  * `titles`: what this person can see. `cursor`: stored with the previous answer, the next step to say on «¿Sigo?».
- * `about`: explainAsk()'s about. `tours`: the tutorial ids this person has (default: those of `roles`).
+ * `about` and `pair`: explainAsk()'s. `tours`: the tutorial ids this person has (default: those of `roles`).
  */
 export type ExplainContext = {
   roles: Role[];
@@ -174,6 +179,7 @@ export type ExplainContext = {
   titles?: TitleSet;
   cursor?: number;
   about?: string;
+  pair?: [string, string];
   tours?: string[];
 };
 
@@ -611,11 +617,13 @@ function simpler(u: Unit, ctx: ExplainContext, tours: Set<string>): Candidate[] 
   const out: Candidate[] = [];
   const easy = facetText(u, 'easy', ctx.roles);
   if (easy) out.push({ text: easy, entryId: u.id });
-  // The word of «Palabras de la app» its title names, said simply (its first sentence), and its first step.
+  // The word of «Palabras de la app» its title names, said simply, and its first step (then only the word's first
+  // sentence: an answer says two).
   const name = nameOf(u);
   const g = name ? termIn(name) : null;
   const first = stepsOf(u, ctx.roles)[0];
-  const word = g ? sentencesOf(termFacet(g, 'easy', ctx.roles) ?? termLine(g, ctx.roles))[0] : undefined;
+  const said = g ? (termFacet(g, 'easy', ctx.roles) ?? termLine(g, ctx.roles)) : undefined;
+  const word = said && first ? sentencesOf(said)[0] : said;
   if (word) out.push({ text: [word, first ? `Lo primero: ${lcFirst(end(first))}` : ''].filter(Boolean).join(' '), entryId: u.id });
   // Its first sentence, and the tutorial when there is one.
   const tour = tourOfUnit(u);
@@ -809,6 +817,12 @@ function aboutCandidates(facet: Facet, u: Unit | null, about: string, ctx: Expla
   const named = termNamed(about);
   const g = named?.g ?? null;
   const define = facet === 'meaning' || facet === 'purpose';
+  // «La diferencia entre A y B»: what the topic says of each, first (one sentence each: an answer says two).
+  const both: Candidate[] = [];
+  if (u && ctx.pair && facet !== 'example' && facet !== 'why') {
+    const [a, b] = ctx.pair.map((x) => partAbout(u, x, roles, define));
+    if (a && b && plain(a.text) !== plain(b.text)) both.push({ text: [a, b].map((p) => end(ucFirst(sentencesOf(p.text)[0] ?? p.text))).join(' '), entryId: u.id });
+  }
   const part = u ? partAbout(u, about, roles, define) : null;
   const word: Candidate[] = [];
   if (g) {
@@ -846,8 +860,8 @@ function aboutCandidates(facet: Facet, u: Unit | null, about: string, ctx: Expla
   }
   // X more than a word's name and nothing of the topic says it («¿qué significa «Sin programar»?» after another topic):
   // not the word («Programar»); the answers of today take that question.
-  if (named && !named.only && !part) return [];
-  return named?.only || !part ? [...word, ...fromPart] : [...fromPart, ...word];
+  if (named && !named.only && !part) return both;
+  return [...both, ...(named?.only || !part ? [...word, ...fromPart] : [...fromPart, ...word])];
 }
 
 /**

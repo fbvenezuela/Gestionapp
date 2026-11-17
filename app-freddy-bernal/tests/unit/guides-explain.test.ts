@@ -10,6 +10,7 @@ import { FLOWS, GLOSSARY, SHARED } from '@/lib/guides';
 import { DEMO_WORDS, LABEL_ALLOW, LABEL_PATTERNS, balancedQuotes, concreteDateTime, hasPhone, quotedLabels } from '@/lib/guides/check';
 import { FLOW_FACET_IDS, explainFacets, type FacetText } from '@/lib/guides/explain';
 import { allEntries, textFor } from '@/lib/assistant/answers/engine';
+import { sentencesOf } from '@/lib/assistant/explain';
 
 // The screens' text: src/ outside the help content (the guides, 360's answers and 360's explain lines), without comments.
 const HELP = [path.join('src', 'lib', 'guides'), path.join('src', 'lib', 'assistant', 'answers'), path.join('src', 'lib', 'assistant', 'explain.ts')];
@@ -106,6 +107,11 @@ describe('«Explicado fácil»: lo que dice', () => {
         if (textFor(e.a, roles).trim() === easy.trim()) bad.push(`${id}.easy: dice lo mismo que la guía`);
       }
     }
+    expect(bad).toEqual([]);
+  });
+
+  it('cada texto dice a lo sumo dos oraciones (design §4(c)6: dos oraciones y el botón)', () => {
+    const bad = ALL.filter((x) => sentencesOf(x.text).length > 2).map((x) => `${x.where}: ${sentencesOf(x.text).length} oraciones`);
     expect(bad).toEqual([]);
   });
 

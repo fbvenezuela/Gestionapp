@@ -10,7 +10,8 @@ import { TEAM_ROLES, type Role } from '@/lib/roles';
 import { DEMO_WORDS, LABEL_ALLOW, LABEL_PATTERNS, balancedQuotes, concreteDateTime, hasPhone, quotedLabels } from '@/lib/guides/check';
 import { canOpen } from '@/lib/assistant/screens';
 import { allEntries, entryById } from '@/lib/assistant/answers/engine';
-import { explainAnswer, explainAsk, explainUnitId, type ExplainContext, type Facet } from '@/lib/assistant/explain';
+import { explainAnswer, explainAsk, explainUnitId, followsEventThread, sentencesOf, type ExplainContext, type Facet } from '@/lib/assistant/explain';
+import { withoutLabels } from '@/lib/assistant/local';
 import { FLOW_FACET_IDS, facetsOf } from '@/lib/guides/explain';
 import { allGuides, toursForRoles } from '@/lib/guides';
 
@@ -54,6 +55,8 @@ describe('explainAsk: lo que se pide', () => {
     ['me das un ejemplo porfa', 'example'],
     ['un ejemplito', 'example'],
     ['dame un ejemplo de nota', 'example', 'nota'],
+    // («Esa aplicación» is the one 360 just named, the codes' app: not «no entiendo la app».)
+    ['¿me das un ejemplo de esa aplicación?', 'example', 'esa app'],
     // next
     ['¿y después?', 'next'],
     ['y luego?', 'next'],
@@ -64,6 +67,8 @@ describe('explainAsk: lo que se pide', () => {
     ['y despues de avisar al jefe?', 'next', 'avisar al jefe'],
     ['y después qué hace Grabación', 'next', 'grabacion'],
     ['y despues de aprobarla q pasa', 'next', 'aprobarla'],
+    ['y despues que pasa con ellas', 'next'],
+    ['¿y luego qué pasa con eso?', 'next'],
     // purpose
     ['¿para qué sirve?', 'purpose'],
     ['¿y eso pa qué sirve?', 'purpose'],
@@ -156,6 +161,32 @@ describe('explainAsk: lo que se pide', () => {
     expect(explainAsk('explícame lo de Sector Alto', { titles }), 'lugar').toBeNull();
     // Without those titles, «la cajita» stays a topic.
     expect(explainAsk('no entendí lo de la cajita', { titles })?.facet).toBe('simpler');
+  });
+
+  it('una etiqueta con «fecha» es de la app cuando se lee como la agenda (withoutLabels de local.ts); un día, una hora o un evento no', () => {
+    const o = { withoutLabels };
+    for (const [q, facet, about] of [
+      ['no entendí lo de ya tiene fecha', 'simpler', 'ya tiene fecha'],
+      ['no entendi la diferencia entre mover y cambiar fecha o lugar', 'simpler', 'mover y cambiar fecha o lugar'],
+      ['¿qué significa ponerle fecha?', 'meaning', 'ponerle fecha'],
+      ['no entendí lo de guardar la nueva fecha', 'simpler', 'guardar la nueva fecha'],
+    ] as [string, Facet, string][]) {
+      expect(explainAsk(q, o), q).toMatchObject({ facet, about });
+      // Without the agenda's reading, the label's «fecha» stops it (the safe side).
+      expect(explainAsk(q), q).toBeNull();
+    }
+    for (const q of ['no entendí lo de mañana', 'explícame lo de la hora', 'no entendí lo de la dirección', 'no entendí lo de cómo se llega', 'no entendí lo de la feria', '¿y después de la feria?', 'no entendi lo del acto del sábado'])
+      expect(explainAsk(q, o), q).toBeNull();
+  });
+
+  it('las oraciones no se cortan dentro de una etiqueta ni después de una que termina en «?» dentro de la oración', () => {
+    expect(sentencesOf('Por ejemplo: una comunidad pide una visita. En Municipios prendes «¿Va a la agenda del jefe?» y tocas «Guardar y avisar al jefe». La ficha dice «Ya tiene fecha. La ven el jefe y el despacho en la agenda.» Listo.')).toEqual([
+      'Por ejemplo: una comunidad pide una visita.',
+      'En Municipios prendes «¿Va a la agenda del jefe?» y tocas «Guardar y avisar al jefe».',
+      'La ficha dice «Ya tiene fecha. La ven el jefe y el despacho en la agenda.»',
+      'Listo.',
+    ]);
+    expect(sentencesOf('1) Abre la pieza. 2) Toca «Aprobar». ¿Sigo?')).toEqual(['1) Abre la pieza.', '2) Toca «Aprobar».', '¿Sigo?']);
   });
 });
 
@@ -292,6 +323,15 @@ describe('explainAnswer: cada faceta', () => {
     expect(e.text).toContain('«Publicar antes (#20)»');
   });
 
+  it('«no entendí la diferencia entre A y B»: lo que el tema dice de cada uno', () => {
+    const a = explainAsk('no entendi la diferencia entre mover y cambiar fecha o lugar', { withoutLabels })!;
+    expect(a).toEqual({ facet: 'simpler', about: 'mover y cambiar fecha o lugar', pair: ['mover', 'cambiar fecha o lugar'] });
+    const r = explainAnswer('simpler', 'jefe:paso-a-paso:cambiar-evento', ctx(BOSS, { about: a.about, pair: a.pair }))!;
+    expect(r.text).toMatch(/^«Mover» cambia solo el día o la hora/);
+    expect(r.text).toContain('«Cambiar fecha o lugar» abre todo junto');
+    expect(explainAsk('no entendí lo de mover y cambiar fecha o lugar', { withoutLabels })?.pair).toBeUndefined();
+  });
+
   it('dime más: lo que la pantalla tiene que no se dijo', () => {
     const screen = entryById('jefe:pantalla:10')!;
     const said = typeof screen.a === 'string' ? screen.a : '';
@@ -336,10 +376,36 @@ describe('explainAnswer: lo que nunca hace', () => {
   });
 
   it('nunca después de una conversación sobre un evento', () => {
-    for (const earlier of [['¿cuándo es la feria?'], ['¿dónde queda el acto?', 'y eso'], ['¿a qué hora llega el jefe a la visita?']])
+    for (const earlier of [['¿cuándo es la feria?'], ['¿dónde queda el acto?', 'y eso'], ['¿a qué hora llega el jefe a la visita?']]) {
       for (const facet of FACETS) expect(explainAnswer(facet, 'jefe:paso-a-paso:aprobar-pieza', ctx(BOSS, { earlier })), `${earlier.join(' / ')} ${facet}`).toBeNull();
+      // Said short, or pointing back, the ask goes on with that thread.
+      for (const question of ['no te entendí', '¿y por qué?', 'dame un ejemplo', 'explícame eso más fácil'])
+        for (const facet of FACETS) expect(explainAnswer(facet, 'jefe:paso-a-paso:aprobar-pieza', ctx(BOSS, { earlier, question })), `${earlier.join(' / ')} «${question}» ${facet}`).toBeNull();
+    }
     // A thread about the app is fine.
     expect(explainAnswer('simpler', 'jefe:paso-a-paso:aprobar-pieza', ctx(BOSS, { earlier: ['¿cómo apruebo una amarilla?'] }))).not.toBeNull();
+  });
+
+  it('el hilo de un evento se decide como en local.ts (followsEvent): el hilo trata de un evento y esta pregunta sigue con él', () => {
+    // «¿Cómo mando una pieza al jefe?» names the boss: a thread about an event for eventThread(). A short ask goes on
+    // with it; one that stands alone («no entendí lo del nivel») starts another, and gets its explanation.
+    expect(followsEventThread({ earlier: ['como mando una pieza al jefe'], question: 'no te entendí' })).toBe(true);
+    expect(followsEventThread({ earlier: ['como mando una pieza al jefe'], question: 'no entendi lo del nivel' })).toBe(false);
+    expect(followsEventThread({ earlier: ['como mando una pieza al jefe'] })).toBe(true);
+    expect(followsEventThread({ earlier: ['¿cómo apruebo una amarilla?'], question: 'no te entendí' })).toBe(false);
+    expect(followsEventThread({ earlier: [], question: 'no te entendí' })).toBe(false);
+    const r = explainAnswer('simpler', 'redes:paso-a-paso:enviar', ctx(SOCIAL, { earlier: ['como mando una pieza al jefe'], question: 'no entendi lo del nivel', about: 'nivel' }))!;
+    expect(r.text).toMatch(/verde es rutina, amarillo es normal y rojo/);
+    expect(explainAnswer('simpler', 'redes:paso-a-paso:enviar', ctx(SOCIAL, { earlier: ['como mando una pieza al jefe'], question: 'no te entendí' }))).toBeNull();
+  });
+
+  it('paso a paso cuando ya se dijeron todos los pasos: el tutorial, o la guía; nunca la lista de los tutoriales', () => {
+    const e = entryById('redes:paso-a-paso:aviso')!;
+    expect(e.tutorial).toBeUndefined();
+    const r = explainAnswer('steps', e, ctx(SOCIAL, { said: [String(e.a)] }))!;
+    expect(r.text).toMatch(/^Esos son todos los pasos/);
+    expect(r.goTo).toBe('/ayuda/redes?ver=pasos');
+    expect(r.text).not.toMatch(/Bienvenida|Puedo mostrarte/);
   });
 
   it('nada para los roles de la web y de la atención, y nada de la guía de otro rol', () => {
