@@ -171,6 +171,9 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   const conversationId = basics?.conversationId ?? null;
   const profile = basics?.profile;
   const history = basics?.history ?? [];
+  // A follow-up that is about a case only by the question before («¿y la última?» after one about the requests, whose
+  // mark says «caso»): it goes neither to a provider nor to «Lo que preguntan» (its own text names no one: it is kept).
+  const caseByThread = !aboutMessages && !!caseAsk(routing, history.filter((h) => h.who === 'persona').at(-1)?.body);
   const save = async (t: { answer: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; error: string | null; degraded: boolean; calls: ToolRun[]; goTo: unknown }) => {
     const ms = Date.now() - t0;
     if (!conversationId) return ms;
@@ -220,7 +223,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     screen,
     last: basics?.last ?? null,
   };
-  if (!aboutMessages) await noteHeard(question, roles[0] ?? null);
+  if (!aboutMessages && !caseByThread) await noteHeard(question, roles[0] ?? null);
 
   // Only a turn with its reservation and the titles asks the model, and never one about an event: this
   // question, or one that goes on with a thread about one («¿y a qué hora?», «¿y quién la cubre?» after
@@ -228,7 +231,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   // the monthly AI cap (or if the turn could not be counted, or the titles not read) the demo brain
   // answers (it costs nothing): never a breakdown (the reservation is released when saving).
   const thread = eventThread([...history.filter((h) => h.who === 'persona').map((h) => h.body), question], seen);
-  const useModel = !!basics?.usageId && !!titles && !eventTurn && !thread.at(-1) && !aboutMessages;
+  const useModel = !!basics?.usageId && !!titles && !eventTurn && !thread.at(-1) && !aboutMessages && !caseByThread;
   const tools = toolsFor(roles, !!conversationId);
   const toolCtx = { session, conversationId, escalate: escalateFn };
 

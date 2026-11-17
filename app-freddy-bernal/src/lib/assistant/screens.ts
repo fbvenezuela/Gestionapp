@@ -137,13 +137,14 @@ export function navTarget(text: string, roles?: Role[], domain?: Domain | null):
   return screenNamed(text, roles, [], domain);
 }
 
+// The words as wide as «la web» or «atención» (screenNamed).
+const WIDE = new Set(['la web', 'web', 'pagina web', 'atencion', 'la atencion']);
 /**
  * The screen a text names by its label, its phrases or its nav words (a lone word is enough), ranked as navTarget does;
  * null when it names none. `skip`: words that do not count here («tutoriales» names Ayuda, but «¿hay tutoriales?»
  * asks for one of them). `domain`: the web's or Atención's, when the question is about them (engine.ts domainOf): their
  * screens go before the team's, after the ones the person can open (without it, the order of today).
  */
-const WIDE = new Set(['la web', 'web', 'pagina web', 'atencion', 'la atencion']);
 export function screenNamed(text: string, roles?: Role[], skip: readonly string[] = [], domain?: Domain | null): Screen | null {
   const t = ` ${plain(text)} `;
   const skipped = new Set(skip.map((w) => plain(w)));

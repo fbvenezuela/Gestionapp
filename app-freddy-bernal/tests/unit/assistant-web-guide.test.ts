@@ -2,11 +2,12 @@
 // index for the boss and Administración only, with its domain and its button; a web question goes to the web's entries
 // and a team one keeps the team's; what people send from the web is never read (step C); the words of the app keep
 // their meaning (step W); a whole flow is told as a story that goes on with «¿Sigo?». Invented data.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import type { Session } from '@/lib/auth/session';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import { ROLES, TEAM_ROLES, type Role } from '@/lib/roles';
 import { handleTurn } from '@/lib/assistant';
+import { parseChain } from '@/lib/assistant/providers';
 import { allEntries, bestAnswer, domainOf, entryById, entryForScreen, textFor } from '@/lib/assistant/answers/engine';
 import { CASE_MARK, caseAsk, caseOverMessages } from '@/lib/assistant/case-ask';
 import { WEB_NOT_YOURS } from '@/lib/assistant/local';
@@ -140,8 +141,18 @@ describe('lo que manda la gente por la web (paso C)', () => {
       ['el vecino que reportó me dio su número, ¿lo pongo en la nota pa no perderlo?', null],
       ['el caso del hueco lleva días quieto, ¿qué le respondieron a la señora?', 'content'],
       ['¿De qué se queja la gente del hueco de la avenida principal?', 'content'],
+      // The team's own papers: política's ficha comunitaria records a denuncia or a «Solicitud»; «casos» alone is any
+      // Spanish (the despacho's pending list). Named with the web or Atención, they are the desk's again.
+      ['¿qué dice la denuncia de la ficha comunitaria del sector norte?', null],
+      ['¿cuántas denuncias cargué en mis fichas comunitarias?', null],
+      ['¿cuántos casos tengo pendientes?', null],
+      ['¿cuántos casos abiertos hay en atención?', 'count'],
+      ['¿qué dice la denuncia que llegó por la web sobre la ficha de la obra?', 'content'],
     ];
     for (const [q, want] of rows) expect(caseAsk(q), q).toBe(want);
+    // «¿Y la última?» after a question about the requests (stored as its mark) is one of them too.
+    expect(caseAsk('¿y la última?', CASE_MARK)).toBe('content');
+    expect(caseAsk('¿y la última?', '¿cómo apruebo una pieza?')).toBeNull();
     // Read as a case before Mensajes when it says what people send; a teammate's message stays Mensajes'.
     expect(caseOverMessages('que escribio el vecino que reporto el poste caido')).toBe(true);
     expect(caseOverMessages('¿Qué me escribió Daniela?')).toBe(false);
@@ -162,6 +173,18 @@ describe('lo que manda la gente por la web (paso C)', () => {
     expect(team.answer).toMatch(/Atención no está en tu menú/);
     expect(team.goTo ?? null).toBeNull();
     expect(CASE_MARK).toBe('[pregunta sobre un caso]');
+  });
+
+  it('con modelo: ni la pregunta sobre un caso ni su «¿y la última?» le llegan al proveedor', async () => {
+    process.env.GROQ_API_KEY = 'gsk_FAKE_test_key_0000';
+    const fetchImpl = vi.fn(async () => new Response('{}', { status: 500 })) as unknown as typeof fetch;
+    const deps = { chain: parseChain('groq:llama-3.3-70b'), chatOptions: { fetchImpl } };
+    const first = await handleTurn(sessionOf('boss'), { question: '¿cuántas solicitudes llegaron hoy?' }, deps);
+    expect(first.model).toBe('local');
+    const next = await handleTurn(sessionOf('boss'), { question: '¿y la última?', conversationId: first.conversationId }, deps);
+    expect(next.model).toBe('local');
+    expect(next.answer).toMatch(/^No leo las solicitudes/);
+    expect(fetchImpl).not.toHaveBeenCalled();
   });
 });
 

@@ -60,9 +60,10 @@ const CONTENT: ((q: string, clauses: string[]) => boolean)[] = [
 const DATA_ASK = /\b(?:dame|dime|pasame|me das|me pasas|mandame|enviame|cual es|cuales son|necesito|quiero|tienes|sabes)\b(?: [a-z]+){0,3} (?:el |la |los |las |su |sus )?(?:telefono|telefonos|numero|correo|correos|contacto|contactos|datos|nombre|nombres|direccion|whatsapp|cedula)\b/;
 const NAME_OR_HOME = /^(?:(?:y|e|pero|oye) )?(?:como se llama|como se llaman|donde vive|donde viven)\b/;
 const OF_SENDER = /\b(?:reporto|reportaron|denuncio|denunciaron|pidio|pidieron|mando|mandaron|escribio|solicitud|solicitudes|caso|casos|denuncia|denuncias|reporte|la web|por la web|atencion|casos atendidos)\b/;
-// The desk's numbers, asked to 360 («¿cuántas solicitudes vencidas hay?», «¿y cuántas hay en no procede?»).
+// The desk's numbers, asked to 360 («¿cuántas solicitudes vencidas hay?», «¿y cuántas hay en no procede?»). «Casos» alone
+// is any Spanish («¿cuántos casos tengo pendientes?» of the despacho is its own list): only said as the desk's.
 const COUNT = /^(?:(?:y|e|pero|oye|dime|sabes) )*cuant[oa]s\b/;
-const COUNT_OF_DESK = /\b(?:solicitudes|denuncias|casos|peticiones|quejas|observaciones|no procede|derivad[oa]s|sin responder|por la web|de la web|atencion)\b/;
+const COUNT_OF_DESK = /\b(?:solicitudes|denuncias|peticiones|quejas|observaciones|no procede|derivad[oa]s|sin responder|por la web|de la web|atencion|bandeja|casos (?:de la web|de atencion|abiertos|vencidos|resueltos|cerrados|nuevos|sin asignar|asignados|unidos))\b/;
 // The list exported for someone, by 360 («expórtame…», «mándame por aquí el excel de los casos…»).
 const EXPORT = /\b(?:exporta|exportame|exportalo|exportala|descarga|descargame|bajame|mandame|pasame|enviame|dame|sacame)\b(?: [a-z]+){0,5} (?:el excel|un excel|la lista|el csv|la hoja|los contactos|las solicitudes|los casos|las denuncias)\b/;
 const EXPORT_OF_DESK = /\b(?:solicitudes|casos|denuncias|contactos|telefonos|atencion)\b/;
@@ -80,6 +81,11 @@ const OF_CITIZEN = /\b(?:solicitud|comprobante|caso|denuncia|senora|senor|vecin[
 // only Atención's; the rest, said next to the web or what it sent).
 const WHO_SENT = /^(?:(?:y|e|pero|oye) )?(?:quien|quienes) (?:denuncio|denunciaron|reporto|reportaron|mando|mandaron|envio|enviaron|escribio|escribieron|pidio|pidieron|hizo|hicieron|puso|pusieron)\b/;
 const SENT_OF_DESK = /\bdenunci|\b(?:solicitud|solicitudes|por la web|en la web|desde la web|atencion|observacion|peticion|queja)\b/;
+// The team's own papers (política's ficha comunitaria, with its «Tipo» «Solicitud» and the denuncia it records; the IVT's
+// «Reporte de la comunidad»): «¿qué dice la denuncia de la ficha comunitaria…?» is the team's, unless the web or Atención
+// is named too.
+const TEAM_PAPERS = /\b(?:ficha|fichas|reporte de la comunidad|registro del municipio)\b/;
+const DESK_NAMED = /\b(?:la web|por la web|de la web|en la web|desde la web|pagina web|atencion|comprobantes?|consultar mi solicitud|casos atendidos|bandeja)\b/;
 // Asked as a rule or a how-to («¿cómo veo…?», «¿quién ve…?», «¿puedo…?», «¿qué es…?»): the guide answers it.
 const RULE = /^(?:(?:y|e|pero|oye) )?(?:como|donde|quien|quienes|puedo|podemos|se puede|que es|que son|que significa|para que|por que|cuando|en que)\b/;
 
@@ -104,6 +110,7 @@ export function caseAsk(text: string, before?: string | null): CaseAsk | null {
   if (!q) return null;
   const rule = RULE.test(q);
   if (CODE.some((re) => re.test(q)) || (RECOVER_FOR.test(q) && /\bclave\b|\bla recuper/.test(q) && OF_CITIZEN.test(q))) return 'code';
+  if (TEAM_PAPERS.test(q) && !DESK_NAMED.test(q) && !/\bac\s?\d{4}\b/.test(q)) return null;
   if (!rule && EXPORT.test(q) && EXPORT_OF_DESK.test(q)) return 'export';
   if (COUNT.test(q) && COUNT_OF_DESK.test(q)) return 'count';
   if (WHO_SENT.test(q) && SENT_OF_DESK.test(q)) return 'person';
@@ -115,6 +122,8 @@ export function caseAsk(text: string, before?: string | null): CaseAsk | null {
   const prev = plain(before ?? '');
   if (prev && /\b(?:solicitud|solicitudes|denuncia|denuncias|caso|casos|atencion ciudadana|casos atendidos|bandeja)\b/.test(prev)) {
     if (/^(?:(?:y|e|pero) )?(?:que (?:pidio|dice|dijo|escribio|mando|reporto)|leeme|lee|dime|cual fue)\b/.test(q) && /\b(?:ultim[oa]s?|persona|senora|senor|vecino|ese|esa|eso)\b/.test(q)) return 'content';
+    // «¿Y la última?», «¿y la de ayer?»: the next one of them.
+    if (/^(?:(?:y|e|pero) )?(?:la|el|las|los) (?:ultim[oa]s?|primer[oa]s?|nuev[oa]s?|mas nuev[oa]s?|de hoy|de ayer|otra|otro)$/.test(q)) return 'content';
     if (/^(?:(?:y|e|pero) )?cuant[oa]s\b/.test(q)) return 'count';
   }
   return null;

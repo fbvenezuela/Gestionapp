@@ -640,9 +640,10 @@ function adminEntries(): Entry[] {
   return out;
 }
 
-// A whole flow told as a story (design §4(c)4): who does what, in order, in up to four short sentences, with the page of
-// the flows as its button; «¿Sigo?» when more steps follow (a «sí» or «¿y después?» walks them: explain.ts). Asked
-// «¿cómo es el camino de un evento?», «¿cuál es el flujo del mes de Redes?», «¿quién hace qué en los tweets?».
+// A whole flow told as a story (design §4(c)4): who does what, in order, in up to four short sentences, with the flow's
+// own page as its button (/ayuda/flujos?f=<id>); «¿Sigo?» when more steps follow (a «sí» or «¿y después?» walks them:
+// explain.ts). Asked «¿cómo es el camino de un evento?», «¿cuál es el flujo del mes de Redes?», «¿quién hace qué en los
+// tweets?».
 const STORY_STEPS = 4;
 const STORY_ASK = /\b(?:flujos?|camino|de punta a punta|quien hace que|por donde pasa|el proceso|todo el proceso|los pasos de todo|en que orden)\b/;
 const STORY_LETTERS = 400;
@@ -682,7 +683,7 @@ function teamFlowStories(): Entry[] {
     const roles = guides.filter((g) => g.flows.includes(f.id)).map((g) => g.role as Role);
     const lines = f.steps.map((s) => `${ucFirst(whoOf(s.roles))}: ${lcFirst(end(firstSentence(s.text)))}`);
     const { text, said } = storyText(f.title, lines);
-    return { id: `flujo:${f.id}`, kind: 'flowStory', source: `flows:${f.id} story`, roles, q: storyAsks(f.title), doc: `${f.title}. ${f.steps.map((s) => s.text).join(' ')}`, a: text, go: '/ayuda/flujos', ...(said < lines.length ? { cursor: said } : {}) };
+    return { id: `flujo:${f.id}`, kind: 'flowStory', source: `flows:${f.id} story`, roles, q: storyAsks(f.title), doc: `${f.title}. ${f.steps.map((s) => s.text).join(' ')}`, a: text, go: `/ayuda/flujos?f=${f.id}`, ...(said < lines.length ? { cursor: said } : {}) };
   });
 }
 
@@ -1188,7 +1189,9 @@ const WHAT_IS = /\b(?:que es|que son|que significa\w*|que quiere decir|que sale 
 // A question that asks what, how, where, who… (not yes or no), maybe after a word that opens it («vale y cómo sé si…»).
 const WH_ASK = /^(?:(?:y|e|pero|entonces|oye|vale|ok|okey|bueno|mira|chamo|epa|aja|ya|disculpa|perdon) )*(?:que|como|donde|cuando|quien|quienes|cual|cuales|cuanto|cuantos|cuantas|por que|paraque|de que|en que|a que|con que)\b/;
 // Someone named in an answer: a role, the boss, administración.
-const NAMES_SOMEONE = /\b(?:jefe|despacho|politica|ivt|grabacion|redes|administracion|solo el|nadie|cualquiera|todos|todo el equipo)\b/;
+// (Also the people of the web and of Atención, for the boss's and Administración's «¿quién…?»: «quienes atienden su
+// caso», «la coordinación», «el aprobador de la web».)
+const NAMES_SOMEONE = /\b(?:jefe|despacho|politica|ivt|grabacion|redes|administracion|solo el|nadie|cualquiera|todos|todo el equipo|coordinacion|coordinador\w*|responsables? de(?:l)? area|operador de denuncias|auditoria|editor(?:es)? de la web|aprobador\w*|quien aprueba|quienes atienden|cualquier persona)\b/;
 // An answer in «tú» names the person who asks («Tú, en Ajustes → Equipo…», «Lo haces tú…»).
 const NAMES_YOU = /(?<![\p{L}])tú(?![\p{L}])/iu;
 const forRoles = (e: Entry, roles: Role[]) => e.roles === null || e.roles.some((r) => roles.includes(r));
