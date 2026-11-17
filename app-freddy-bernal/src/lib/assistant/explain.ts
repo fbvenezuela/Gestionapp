@@ -642,8 +642,8 @@ function simpler(u: Unit, ctx: ExplainContext, tours: Set<string>): Candidate[] 
   const name = nameOf(u);
   const g = name ? termIn(name) : null;
   const first = stepsOf(u, ctx.roles)[0];
-  const said = g ? (termFacet(g, 'easy', ctx.roles) ?? termLine(g, ctx.roles)) : undefined;
-  const word = said && first ? sentencesOf(said)[0] : said;
+  const wordText = g ? (termFacet(g, 'easy', ctx.roles) ?? termLine(g, ctx.roles)) : undefined;
+  const word = wordText && first ? sentencesOf(wordText)[0] : wordText;
   if (word) out.push({ text: [word, first ? `Lo primero: ${lcFirst(end(first))}` : ''].filter(Boolean).join(' '), entryId: u.id });
   // Its first sentence, and the tutorial when there is one.
   const tour = tourOfUnit(u);
