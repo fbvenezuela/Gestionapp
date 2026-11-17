@@ -1332,7 +1332,7 @@ export const GUIA_WEB: WebDoc = {
         boss: [
           'No: tú no exportas la lista de solicitudes. La exportan la coordinación y auditoría.',
           'No: tú no lees las denuncias. Las leen el operador de denuncias y la coordinación; tú las ves solo en los totales.',
-          'No: tú no ves el contacto de la persona. Lo ven solo quienes atienden el caso: la coordinación y su responsable.',
+          'No: tú no ves el contacto de la persona. Lo ven solo quienes atienden el caso: la coordinación, su responsable y, en una denuncia, el operador de denuncias.',
           'No: tú no respondes a la gente ni cambias un caso. Lo atienden la coordinación, los responsables de área y el operador de denuncias; tú lo lees, como auditoría.',
         ],
       },

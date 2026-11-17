@@ -311,6 +311,21 @@ describe('cada sección dice lo que cada uno puede, según el código', () => {
     expect(bad).toEqual([]);
   });
 
+  it('cada texto por rol trae el de cada uno que lee la sección, o uno para todos: nadie recibe el texto del otro', () => {
+    // A text for the boss alone, in a section Administración reads too, would reach Administración as the boss's words
+    // («tú lo lees») wherever a reader falls back to another key; so each one who reads has its own, or a `default`.
+    const bad: string[] = [];
+    for (const x of ALL) {
+      const own = [['what', x.what], ...(x.items ?? []).map((t, k) => [`item ${k}`, t]), ...(x.faq ?? []).map((f) => [`«${f.q}»`, f.a]), ['easy', x.easy], ['example', x.example]] as [string, RoleText | undefined][];
+      for (const [k, t] of own) {
+        const keys = roleKeys(t);
+        if (!keys.length || keys.includes('default')) continue;
+        for (const a of x.audience) if (!keys.includes(a)) bad.push(`${where(x)} ${k}: falta el texto de ${a}: ${roleTexts(t).join(' | ')}`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
   it('cada pantalla de una sección es una pantalla del panel, sin [id], que abre cada uno de su público', () => {
     const bad: string[] = [];
     for (const x of ALL) {
