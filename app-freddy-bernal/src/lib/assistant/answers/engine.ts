@@ -432,7 +432,10 @@ function screenEntries(role: Role, prefix: string, source: string, s: SectionGui
   const out: Entry[] = [];
   const go = staticScreen(s.screen);
   const title = s.title;
-  const base = { roles: [role], source, screen: s.screen?.split('?')[0], ...(go ? { go } : {}) };
+  // A section of a role's guide about a screen of «Web» or «Atención» (the boss's and Administración's, APP-42) is of
+  // that domain, like the web's guide (its button and its weights, design §4(d)3); every other one is the team's.
+  const domain = domainOfScreen(s.screen);
+  const base = { roles: [role], source, screen: s.screen?.split('?')[0], ...(go ? { go } : {}), ...(domain && domain !== 'equipo' ? { domain } : {}) };
   const tour = 'tour' in s ? s.tour : undefined;
   out.push({
     ...base,

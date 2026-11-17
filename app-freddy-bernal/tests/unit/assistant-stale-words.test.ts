@@ -138,6 +138,8 @@ const SAID: Said[] = [
   ...codeStrings('src/lib/assistant/index.ts'),
   // How 360 explains (design §4(c)): its own lines and «Explicado fácil» (the easy text, the example and the reason).
   ...codeStrings('src/lib/assistant/explain.ts'),
+  // How it explains the web's and Atención's guide (WF-C): its own lines.
+  ...codeStrings('src/lib/assistant/web-explain.ts'),
   ...Object.entries(explainFacets()).flatMap(([id, f]) =>
     (['easy', 'example', 'why'] as const).flatMap((k) => {
       const t = f[k];

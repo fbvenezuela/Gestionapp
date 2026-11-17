@@ -12,8 +12,11 @@ import { CASE_MARK, caseAsk, caseOverMessages } from '@/lib/assistant/case-ask';
 import { WEB_NOT_YOURS } from '@/lib/assistant/local';
 import { domainOfScreen, screenFor } from '@/lib/assistant/screens';
 import { webExplain } from '@/lib/assistant/web-explain';
-import { hasReceiptCode } from '@/lib/guides/check';
+import type { Facet } from '@/lib/assistant/explain';
+import { fillHuecos } from '@/lib/assistant/text';
+import { DEMO_WORDS, concreteDateTime, hasPhone, hasReceiptCode } from '@/lib/guides/check';
 import { webFlows, webSections } from '@/lib/guides/web';
+import { UNFILLED_HUECO, wordsByHueco } from '@/lib/guides/web/words';
 
 function sessionOf(key: DemoUserKey): Session {
   const u = DEMO_USERS.find((x) => x.key === key)!;
@@ -185,6 +188,42 @@ describe('explicar un tema de la web y contar un flujo', () => {
     expect(webExplain('simpler', e, { roles: ['social'] })).toBeNull();
     const r = await ask('boss', 'no entendí', ['para que sirven las redirecciones de la web']);
     expect(r.answer).toMatch(/dirección vieja/);
+  });
+
+  it('ninguna explicación de la web dice un código, una clave, una fecha, un teléfono ni nada interno', () => {
+    // Every facet of every entry of the web's guide, for each role that has it, from the start and after a «¿Sigo?»,
+    // with the client's words filled as a turn fills them. Before 18/11, «¿para qué sirve?» and «dime más» of the
+    // receipt's section and of «Buscar y filtrar» read the guide's example codes («por ejemplo AC-2026-…»).
+    const FACETS: Facet[] = ['simpler', 'steps', 'example', 'next', 'purpose', 'why', 'meaning', 'more'];
+    const words = wordsByHueco();
+    // «usted» only inside «» (the web's own words) or as the register's name («de usted»).
+    const usted = (t: string) => /\busted\b/i.test(t.replace(/«[^«»]*(?:«[^«»]*»[^«»]*)*»/g, ' ').replace(/\bde usted\b/gi, ' '));
+    const bad: string[] = [];
+    let n = 0;
+    for (const e of web())
+      for (const role of (e.roles ?? []) as Role[])
+        for (const facet of FACETS)
+          for (const cursor of [undefined, 2]) {
+            const r = webExplain(facet, e, { roles: [role], ...(cursor !== undefined ? { cursor } : {}) });
+            if (!r) continue;
+            n++;
+            const t = fillHuecos(r.text, { name: '360', app: 'la app', boss: 'el jefe', person: 'Ana', words });
+            const why = [
+              hasReceiptCode(t) && 'código',
+              concreteDateTime(t) && 'fecha u hora',
+              hasPhone(t) && 'teléfono',
+              usted(t) && 'usted',
+              (UNFILLED_HUECO.test(t) || /\[§/.test(t)) && 'hueco o [§',
+              /—|\*\*|`/.test(t) && 'marcas',
+              /\b(?:Supabase|servidor|base de datos|fase \d)\b/i.test(t) && 'interno',
+              DEMO_WORDS.find((w) => t.includes(w)),
+            ].filter(Boolean);
+            if (why.length) bad.push(`${e.id} ${role} ${facet} ${cursor ?? '-'} (${why.join(', ')}): ${t}`);
+          }
+    expect(n).toBeGreaterThan(5000);
+    expect(bad, bad.slice(0, 5).join('\n')).toEqual([]);
+    // The sections that print the receipts are only pointed to, whatever is asked about them.
+    for (const facet of FACETS) expect(webExplain(facet, 'web:comprobante', { roles: ['boss'] })?.text ?? '', facet).not.toMatch(/AC-|por ejemplo/);
   });
 
   it('un flujo contado: hasta cuatro pasos y «¿Sigo?»; un «sí» sigue donde quedó', async () => {

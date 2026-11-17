@@ -2,10 +2,13 @@
 // paso», «dame un ejemplo», «¿y después?», «¿para qué sirve?», «¿por qué?», «dime más», «sí» after «¿Sigo?»), for a topic
 // that is a section or a flow of src/lib/guides/web (an entry `web:<section>…` or `webflujo:<flow>…` of the index).
 // From the section's own 360 fields (easy, example, why, what, tasks) when the guide has them, else from what the guide
-// says, never a text said before in the thread, and null when there is nothing new (the caller goes on as today).
+// says, never a text said before in the thread, and null when there is nothing new (the caller goes on as today). Never
+// a receipt's code or key, not even the demo's or an example's (design §4(e)): a section that prints them is only
+// pointed to (its own entry is the fixed line, engine.ts `quiet`), and any other text that has one is left out.
 // Pure: no database, no I/O.
 import type { Role } from '../roles';
 import type { Audience, RoleText, WebFlow, WebSection } from '../guides/types';
+import { hasReceiptCode } from '../guides/check';
 import { isWebFlow, webEntry, webHref } from '../guides/web';
 import { entryById, textFor, type Entry } from './answers/engine';
 import { sentencesOf, type Facet } from './explain';
@@ -39,9 +42,13 @@ function placeOf(id: string): { x: WebSection | WebFlow; rest: string } | null {
 const audienceOf = (roles: Role[]): Audience | 'default' => (roles.includes('boss') ? 'boss' : roles.includes('admin') ? 'admin' : 'default');
 function forRole(t: RoleText | undefined, roles: Role[]): string | undefined {
   if (t === undefined) return undefined;
-  if (typeof t === 'string') return t;
-  return t[audienceOf(roles)] ?? t.default;
+  const s = typeof t === 'string' ? t : (t[audienceOf(roles)] ?? t.default);
+  return sayable(s) ? s : undefined;
 }
+/** A text 360 may say: one without a receipt's code or key. */
+const sayable = (t: string | undefined): t is string => !!t && !hasReceiptCode(t);
+/** A section whose text 360 never says (it prints the demo receipts, keys or example codes): its entry only points. */
+const quietOf = (x: WebSection | WebFlow) => !isWebFlow(x) && !!entryById(`web:${x.id}`)?.quiet;
 const wasSaid = (text: string, said: string[]) => {
   const p = plain(text);
   return !!p && said.some((s) => plain(s).includes(p));
@@ -52,7 +59,10 @@ const guideOf = (x: WebSection | WebFlow, roles: Role[]) => {
   return h && canOpen(h, roles) ? h : undefined;
 };
 
-/** The numbered steps of a section (its 360 tasks, else its first list of steps), or a flow's main path. */
+/**
+ * The numbered steps of a section (its first 360 task with no code in it, else its first list of steps, unless the
+ * section is one 360 never says), or a flow's main path (without a box that has a code).
+ */
 function stepsOf(x: WebSection | WebFlow): string[] {
   if (isWebFlow(x)) {
     const byId = new Map(x.nodes.map((n) => [n.id, n]));
@@ -61,23 +71,25 @@ function stepsOf(x: WebSection | WebFlow): string[] {
     let n = x.nodes[0];
     while (n && !seen.has(n.id)) {
       seen.add(n.id);
-      out.push(end(clean(n.text)));
+      if (sayable(n.text)) out.push(end(clean(n.text)));
       const exits = x.edges.filter((e) => e.from === n!.id && !e.dotted);
       const next = exits.find((e) => /^s[ií]$/i.test(e.label ?? '')) ?? exits[0];
       n = next ? byId.get(next.to)! : undefined!;
     }
     return out;
   }
-  const task = x.tasks?.[0];
+  const task = x.tasks?.find((t) => t.steps.every(sayable));
   if (task) return task.steps.map((s) => end(clean(s)));
+  if (quietOf(x)) return [];
   const block = x.blocks.find((b) => b.kind === 'steps');
-  return block && block.kind === 'steps' ? block.items.map((s) => end(clean(s))) : [];
+  return block && block.kind === 'steps' && block.items.every(sayable) ? block.items.map((s) => end(clean(s))) : [];
 }
-/** What a section says, unit by unit (its 360 items first, then its paragraphs and lists). */
+/** What a section says, unit by unit (its 360 items first, then its paragraphs and lists; none of a quiet one's). */
 function partsOf(x: WebSection | WebFlow, roles: Role[]): string[] {
-  const own = (x.items ?? []).map((t) => forRole(t, roles)).filter((t): t is string => !!t).map((t) => end(clean(t)));
-  if (isWebFlow(x)) return [...own, ...x.know.map((k) => end(clean(k)))];
-  const fromBlocks = x.blocks.flatMap((b) => (b.kind === 'p' ? [b.text] : b.kind === 'list' ? b.items : b.kind === 'note' ? b.paras : [])).map((t) => clean(t)).filter((t) => t && !/:\s*$/.test(t)).map(end);
+  const own = (x.items ?? []).map((t) => forRole(t, roles)).filter(sayable).map((t) => end(clean(t)));
+  if (isWebFlow(x)) return [...own, ...x.know.filter(sayable).map((k) => end(clean(k)))];
+  if (quietOf(x)) return own;
+  const fromBlocks = x.blocks.flatMap((b) => (b.kind === 'p' ? [b.text] : b.kind === 'list' ? b.items : b.kind === 'note' ? b.paras : [])).filter(sayable).map((t) => clean(t)).filter((t) => t && !/:\s*$/.test(t)).map(end);
   return [...own, ...fromBlocks];
 }
 function page(title: string | null, steps: string[], from: number): { text: string; next?: number } {
@@ -133,7 +145,7 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
     case 'why': {
       const says = lead.find((s) => !wasSaid(s, said)) ?? lead[0];
       return fresh([
-        x.why ? { text: end(clean(x.why)), ...own } : null,
+        sayable(x.why) ? { text: end(clean(x.why)), ...own } : null,
         says ? { text: `La guía no da el porqué de eso. Lo que dice es esto: ${lcFirst(end(says))}`, ...own, ...(guide ? { goTo: guide } : {}) } : null,
         guide ? { text: 'La guía no da el porqué de eso. Está completa en «Ayuda y guías»: toca el botón.', ...own, goTo: guide } : null,
       ]);
