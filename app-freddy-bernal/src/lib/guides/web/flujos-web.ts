@@ -21,6 +21,18 @@ export const FLUJOS_WEB: WebDoc = {
       pdf: '6.0',
       title: 'Flujos de la web y de la atención ciudadana',
       audience: ['boss', 'admin'],
+      what: 'Los flujos de la web y de la atención ciudadana: cada uno dibujado en un diagrama, con lo que hay que saber debajo. El detalle de cada pantalla está en las partes 4 y 5.',
+      items: [
+        'Los de la atención: enviar una solicitud, consultarla, una denuncia, un caso de la bandeja al cierre, los estados y sus desvíos, casos iguales y apoyos, el spam, los correos, «Casos atendidos» y los casos vencidos.',
+        'Los de la web: escribir y enviar a aprobación, revisar y decidir, cambiar o quitar lo publicado, fotos y documentos, ajustes del sitio, direcciones de la web vieja y lo que trae la versión de prueba.',
+        'Hoy todo se usa en la versión de prueba: sus solicitudes son de ejemplo, y por ahora no envía correos.',
+        'Están en «Ayuda y guías»: los de la atención en «Atención ciudadana» y los de la web en «La web».',
+      ],
+      faq: [
+        { q: '¿Qué traen los flujos de la guía de la web?', a: 'Cómo va cada cosa de la web pública y de la atención ciudadana, dibujada en un diagrama, con lo que hay que saber. El detalle de cada pantalla está en las partes 4 y 5.' },
+        { q: '¿Dónde veo los flujos de atención dibujados?', a: 'En «Ayuda y guías» → «Atención ciudadana»: cada flujo en su diagrama, con lo que hay que saber debajo.' },
+        { q: '¿Esos flujos ya funcionan con gente de verdad?', a: 'Todavía no: hoy se usan en la versión de prueba, con solicitudes de ejemplo, y por ahora no envía correos.' },
+      ],
       blocks: [
         {
           kind: 'note',
@@ -39,6 +51,19 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Enviar una solicitud',
       who: 'Lo hace cualquier persona, sin cuenta, en «Atención ciudadana» → «Nueva solicitud».',
       audience: ['boss', 'admin'],
+      what: 'Cómo llega una solicitud: la persona abre «Nueva solicitud», elige el tipo y su categoría y dice el lugar. Si es un reporte y hay parecidos cerca, puede apoyar uno. Después pone el detalle y su contacto, o «Enviar como anónimo», y toca «Enviar»: le sale «Solicitud recibida», con su código y su clave.',
+      items: [
+        'Los parecidos y el apoyo solo existen para un reporte. Quien apoya también recibe su código y su clave.',
+        'Si ya hay 3 iguales, el reporte nuevo se suma solo al más viejo: le sale «Apoyo registrado», con su propio código.',
+        'Lo escrito se queda en esa pestaña: si se va la señal, no se pierde. Si la persona toca «Enviar» dos veces, llega una sola solicitud.',
+        'La clave se muestra una sola vez y nunca va por correo.',
+        'Cada formulario avisa que esto no es un servicio de emergencias.',
+      ],
+      faq: [
+        { q: 'Si la persona toca «Enviar» dos veces, ¿llegan dos solicitudes?', a: 'No: llega una sola.' },
+        { q: '¿Cómo es el camino de una solicitud desde que la persona la manda?', a: '«Nueva solicitud» → el tipo y su categoría → el lugar → el detalle → su contacto o «Enviar como anónimo» → «Enviar». Le sale «Solicitud recibida», con su código y su clave.' },
+      ],
+      easy: 'La persona llena cuatro pasos, toca «Enviar» y recibe un código y una clave para seguir lo suyo.',
       nodes: [
         { id: 'envio_inicio', shape: 'box', text: 'La persona: «Nueva solicitud». Paso 1, «Tipo»: el tipo y su «Categoría». Paso 2, «Lugar»: el «Municipio» y el sector.' },
         { id: 'envio_parecidos_q', shape: 'decision', text: '¿Hay parecidos?' },
@@ -76,6 +101,20 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Consultar la solicitud',
       who: 'Lo hace la persona con su código y su clave, en «Consultar mi solicitud».',
       audience: ['boss', 'admin'],
+      what: 'Cómo consulta la persona: escribe su «Código» y su «Clave» y toca «Consultar». Si están bien, ve el «Estado» y el «Historial de la solicitud»; según el estado, responde lo que le pidieron, confirma si se resolvió o agrega información, y al final toca «Salir».',
+      items: [
+        'Si el código o la clave están mal, siempre dice lo mismo: «No hay ninguna solicitud con esos datos.». Si alguien se equivoca muchas veces seguidas, la página le pide esperar unos minutos.',
+        'Al responder lo que se le pidió, la solicitud vuelve a «En revisión». Con «No, todavía no», escribe «¿Qué falta por resolver?» y vuelve a «En atención».',
+        'La persona nunca ve las notas internas ni el motivo de un cambio de estado, ni quién del personal hizo cada cosa.',
+        'Una solicitud «Cerrada» o «No procede» ya no recibe información. Quien apoyó un reporte ve solo su estado.',
+        'Si no toca «Salir», la consulta se cierra sola a los 30 minutos.',
+      ],
+      faq: [
+        { q: '¿La persona ve quién del equipo le respondió?', a: 'No: nunca ve quién del personal hizo cada cosa, ni las notas internas ni el motivo de un cambio de estado.' },
+        { q: '¿Qué pasa si alguien prueba muchos códigos seguidos en «Consultar mi solicitud»?', a: 'Siempre ve lo mismo, «No hay ninguna solicitud con esos datos.», y si se equivoca muchas veces seguidas, la página le pide esperar unos minutos.' },
+        { q: '¿Qué ve en su consulta quien apoyó un reporte?', a: 'Solo el estado de ese reporte.' },
+        { q: '¿La persona ve las notas internas o el motivo de un cambio?', a: 'Nunca: ni las notas internas ni el motivo de un cambio de estado.' },
+      ],
       nodes: [
         { id: 'consulta_entra', shape: 'box', text: 'La persona: su «Código» y su «Clave» → «Consultar».' },
         { id: 'consulta_bien_q', shape: 'decision', text: '¿Están bien?' },
@@ -114,6 +153,14 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Una denuncia',
       who: 'La envía cualquier persona, como las demás. La atienden solo el operador de denuncias y la coordinación.',
       audience: [],
+      cannot: {
+        boss: [
+          'No: tú no sigues las denuncias por dentro. Llegan a la «Bandeja» sin área, y las ven y atienden solo el operador de denuncias y la coordinación; tú las cuentas en los totales. Si se publica, «Casos atendidos» dice solo «Denuncia atendida en el municipio …»; si no, no sale nada en la web.',
+        ],
+        admin: [
+          'No: tú no ves las denuncias. Llegan sin área y las atienden solo el operador de denuncias y la coordinación.',
+        ],
+      },
       nodes: [
         { id: 'denuncia_entra', shape: 'box', text: 'La persona: «Hacer una denuncia». El formulario avisa que es confidencial.' },
         { id: 'denuncia_lugar', shape: 'box', text: '«Lugar aproximado»: solo el «Municipio» y el sector. Sin mapa.' },
@@ -147,6 +194,27 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Un caso, de la bandeja al cierre',
       who: 'Lo hacen la coordinación y los responsables de área, en el menú «Atención» del panel. En una denuncia, el operador de denuncias.',
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'Cómo va un caso de la bandeja al cierre: llega «Recibido»; la coordinación o el responsable lo lee, lo pasa a «En revisión», lo asigna y le responde a la persona. Si falta un dato, le pide la información; al terminar sube la evidencia y lo pasa a «Resuelto»; cuando la persona lo confirma, o no contesta, queda «Cerrado».',
+      items: [
+        'Llega con el área de su categoría. El área la cambia la coordinación.',
+        'Un responsable de área ve lo de sus áreas y lo que le asignen: lo demás no le sale en la lista.',
+        'Lo que es solo para el personal va en «Nota interna»: la persona nunca la lee.',
+        'Si la persona dice «No, todavía no», el caso vuelve solo a «En atención».',
+        'Auditoría y el jefe leen el caso, pero no lo cambian. Administración nunca ve un caso.',
+      ],
+      cannot: {
+        boss: [
+          'No: tú no atiendes los casos. Lo hacen la coordinación y los responsables de área (en una denuncia, el operador de denuncias); tú los lees.',
+        ],
+        admin: [
+          'No: tú nunca ves un caso. Los atienden la coordinación y los responsables de área.',
+        ],
+      },
+      faq: [
+        { q: '¿Quién atiende los casos que llegan?', a: 'La coordinación de atención y los responsables de área; en una denuncia, el operador de denuncias.' },
+      ],
+      easy: 'Un caso entra, alguien lo toma, le avisa a la persona, lo resuelve y, cuando ella confirma, se cierra.',
       nodes: [
         { id: 'caso_llega', shape: 'box', text: 'Llega a la «Bandeja» como «Recibido». Coordinación o responsable de área: lo lee y lo pasa a «En revisión».' },
         { id: 'caso_asigna', shape: 'box', text: '«Área y responsable» → «Guardar asignación», o «Tomar el caso». Queda «Asignado».' },
@@ -184,6 +252,18 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Los estados: el camino de siempre',
       who: 'En el caso, «Estado» → «Pasar a» → «Cambiar el estado». La pantalla solo ofrece los pasos que se pueden dar desde ese estado.',
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'El camino de siempre de un caso: «Recibido», «En revisión», «Asignado», «En atención», «Resuelto» y «Cerrado». En el caso, «Estado» → «Pasar a» → «Cambiar el estado»; la pantalla solo ofrece los pasos que se pueden dar desde ese estado.',
+      items: [
+        '«Resuelto» pide «Cómo se resolvió (justificación)»; «Cerrado», «Por qué se cierra»; reabrir, «Por qué se reabre». El motivo es interno: la persona no lo ve.',
+        'Lo que la persona lee va en «Mensaje para la persona (opcional)».',
+        'Al asignarlo, un caso «Recibido» o «En revisión» pasa solo a «Asignado».',
+        'El «No, todavía no» de la persona lo pasa solo a «En atención».',
+        'Desde «Resuelto» se reabre a «En atención»; desde «Cerrado», a «En revisión», siempre con motivo.',
+      ],
+      faq: [
+        { q: 'Cuando asignan un caso, ¿cambia de estado solo?', a: 'Sí: al asignarlo, un caso «Recibido» o «En revisión» pasa solo a «Asignado».' },
+      ],
       nodes: [
         { id: 'estados_recibido', shape: 'round', text: 'Recibido' },
         { id: 'estados_revision', shape: 'round', text: 'En revisión' },
@@ -220,6 +300,18 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Los estados: los desvíos',
       who: 'Cuando falta un dato o el caso no se atiende aquí. Se hace en el mismo «Pasar a».',
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'Los desvíos de un caso, desde «Pasar a»: «Requiere información» cuando falta un dato, «Derivado» cuando lo atiende otro organismo y «No procede» cuando no se atiende por esta vía. Todos piden su motivo.',
+      items: [
+        '«Requiere información» pide «Qué información necesitas (lo lee la persona)». También se llega con «Escribir» → «Pedir más información».',
+        '«Derivado» pide «A quién se derivó y por qué»; «No procede», «Por qué no procede».',
+        'Cuando la persona responde, el caso vuelve solo a «En revisión».',
+        'Desde «Derivado» se pasa a «En atención», «Resuelto» o «Cerrado»; desde «No procede» solo se reabre a «En revisión», con motivo.',
+        'A un caso «Cerrado» o «No procede» la persona ya no le agrega información.',
+      ],
+      faq: [
+        { q: '¿Cuáles son los desvíos de los estados?', a: '«Requiere información», «Derivado» y «No procede», desde «Pasar a». Cada uno pide su motivo.' },
+      ],
       nodes: [
         { id: 'desvio_abierto', shape: 'round', text: 'Recibido, En revisión, Asignado o En atención' },
         { id: 'desvio_info', shape: 'round', text: 'Requiere información (con motivo)' },
@@ -254,6 +346,22 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Casos iguales y apoyos',
       who: 'Los une la coordinación, desde la tarjeta «Casos iguales» del caso.',
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'Casos iguales y apoyos: la persona apoya un reporte, o el suyo se suma solo, y «Lo que llegó» cuenta cuántos se sumaron. La coordinación une dos casos iguales desde «Casos iguales»: el repetido queda «Cerrado», unido al otro, y quien lo mandó lo sigue con su mismo código.',
+      items: [
+        'Solo se unen casos del mismo tipo, y los dos abiertos. Se guardan las historias de los dos.',
+        'Si no se pueden unir, la pantalla dice por qué.',
+        'Un caso unido dice «Este caso está unido a …: se atiende allí.».',
+        'Lo que escribe quien se suma lo lee solo el personal. Quien se suma nunca ve el texto del reporte.',
+      ],
+      cannot: {
+        boss: [
+          'No: tú no unes casos. Los une la coordinación, desde la tarjeta «Casos iguales» del caso.',
+        ],
+      },
+      faq: [
+        { q: '¿Se puede unir una denuncia con un reporte?', a: 'No: solo se unen casos del mismo tipo, y los dos abiertos.' },
+      ],
       nodes: [
         { id: 'iguales_apoyo', shape: 'box', text: 'La persona: «Apoyar este reporte», o su reporte se suma solo.' },
         { id: 'iguales_cuenta', shape: 'box', text: '«Lo que llegó» dice cuántos se sumaron, como «4 personas o casos se sumaron».' },
@@ -285,6 +393,22 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Spam',
       who: 'Lo marca la coordinación en «Moderación». En una denuncia, también el operador de denuncias.',
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'Cómo se decide si algo es spam: la coordinación lee el caso; una crítica o una queja nunca es spam. Si es publicidad o basura, «Marcar como spam: por qué» → «Marcar como spam»: queda «No procede», con la etiqueta «Spam», sale de la bandeja y no se le escribe a quien la envió.',
+      items: [
+        'Lo marcado como spam se guarda. Se ve con «Incluir las unidas a otro caso y el spam».',
+        'Un dato que expone a alguien se quita con «Retirar un dato que expone a alguien»: la historia guarda qué dato y por qué, nunca lo que decía.',
+        'En una denuncia, también lo marca el operador de denuncias.',
+      ],
+      cannot: {
+        boss: [
+          'No: tú no marcas spam. Lo marca la coordinación (en una denuncia, también el operador de denuncias), en «Moderación».',
+        ],
+      },
+      faq: [
+        { q: '¿Una queja puede ser spam?', a: 'Nunca: una crítica o una queja se atiende, o se cierra con su motivo.' },
+        { q: '¿Qué pasa con lo que marcan como spam?', a: 'Queda «No procede», guardado, y sale de la bandeja; no se le escribe a quien lo envió. Se ve con «Incluir las unidas a otro caso y el spam».' },
+      ],
       nodes: [
         { id: 'spam_lee', shape: 'box', text: 'Coordinación: lee el caso.' },
         { id: 'spam_queja_q', shape: 'decision', text: '¿Crítica o queja?' },
@@ -316,6 +440,31 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Los correos que recibe la persona',
       who: 'Los manda la app sola, después de cada paso.',
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'Los correos que recibe la persona, que manda la app sola: si dejó un correo, le llega uno al enviar y otro cada vez que le responden, le piden información, cambia el estado o su caso se une a otro. Si no dejó correo, no le llega ninguno: todo está en «Consultar mi solicitud».',
+      items: [
+        'Al enviar: «Solicitud recibida AC-…» o «Apoyo registrado AC-…». Si le responden: «Respuesta a su solicitud AC-…».',
+        'Si le piden información: «Se necesita información sobre su solicitud AC-…». Si cambia de estado: «Su solicitud AC-…: Resuelta», con el estado nuevo. Si se une a otra: «Su solicitud AC-… se tramita junto con otra».',
+        'Si eligió «Prefiero que no me contacten», no le llega ninguno. Una nota interna o un caso marcado como spam tampoco mandan correo.',
+        'La respuesta y el pedido de información le llegan solo a quien la envió. El cambio de estado también les llega a quienes se sumaron o mandaron un caso unido, cada uno con su código.',
+        'Cada correo lleva a «Consultar mi solicitud»: nunca lleva la clave ni lo que escribió el personal, y nunca dice «denuncia».',
+        'Por ahora la versión de prueba no envía correos: los que mandaría quedan en «Ajustes» → «Buzón de correos», que solo ve Administración.',
+      ],
+      cannot: {
+        boss: [
+          'No: los correos no los escribe nadie del equipo. Los manda la app sola, sin el texto del equipo, y llevan a «Consultar mi solicitud».',
+        ],
+        admin: [
+          'No: tú no le mandas correos a la persona desde el panel. Los manda la app sola; mientras se prueba, quedan en «Ajustes» → «Buzón de correos», que solo ves tú.',
+        ],
+      },
+      faq: [
+        { q: 'Si la persona no dejó correo, ¿cómo se entera?', a: 'No le llega ningún correo: todo está en «Consultar mi solicitud», con su código y su clave.' },
+        { q: '¿Qué correos le llegan a la persona?', a: '«Solicitud recibida AC-…» al enviar, «Respuesta a su solicitud AC-…», «Se necesita información sobre su solicitud AC-…», el cambio de estado, como «Su solicitud AC-…: Resuelta», y «Su solicitud AC-… se tramita junto con otra».' },
+        { q: 'Si unen dos casos, ¿a quién le llega el aviso del cambio de estado?', a: 'A quien mandó cada caso y a quienes se sumaron, cada uno con su código.' },
+        { q: '¿La app le escribe a la gente por WhatsApp?', a: 'No: la app solo le escribe a la persona por correo. Si prefiere llamada o WhatsApp, el equipo sigue lo que diga la coordinación y deja una nota interna.' },
+        { q: '¿Qué dicen los correos que le llegan a la gente, y en la prueba dónde quedan?', a: 'Dicen qué pasó y que entre a «Consultar mi solicitud»; nunca llevan el texto del equipo ni la clave. En la prueba no sale ninguno: quedan en «Ajustes» → «Buzón de correos».' },
+      ],
       nodes: [
         { id: 'correo_envia', shape: 'box', text: 'La persona envía su solicitud o su apoyo.' },
         { id: 'correo_q', shape: 'decision', text: '¿Dejó un correo?' },
@@ -349,6 +498,22 @@ export const FLUJOS_WEB: WebDoc = {
       title: '«Casos atendidos»',
       who: 'Lo publica la coordinación desde el caso, cuando ya está «Resuelto».',
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'Cómo se publica un caso en «Casos atendidos»: la coordinación abre, en un caso «Resuelto», su tarjeta «Casos atendidos». Si es denuncia, sale solo «Denuncia atendida en el municipio …»; si no, escribe el «Resumen para la web» y, según el permiso, el nombre o las iniciales, y toca «Publicar en «Casos atendidos»».',
+      items: [
+        'Sale en la página «Casos atendidos» de «Atención ciudadana» y en la portada. Solo de casos resueltos, nunca de uno marcado como spam o unido a otro.',
+        'El permiso lo da la persona en el formulario. Sin él, solo se pueden poner iniciales; una solicitud anónima sale sin nombre ni iniciales.',
+        '«Actualizar la publicación» cambia el texto. «Retirar de «Casos atendidos»» lo quita, con su motivo.',
+        'El enlace «Casos atendidos» sale en el menú de «Atención ciudadana» cuando hay casos publicados. Hoy no hay ninguno, y en la portada ese bloque está oculto.',
+      ],
+      cannot: {
+        boss: [
+          'No: tú no publicas en «Casos atendidos». Publica la coordinación, desde un caso resuelto.',
+        ],
+      },
+      faq: [
+        { q: '¿Por qué en «Casos atendidos» salen solo iniciales?', a: 'Por privacidad: se publican solo las iniciales de cada persona, salvo que autorice su nombre en el formulario. De una denuncia, solo el municipio.' },
+      ],
       nodes: [
         { id: 'atendido_abre', shape: 'box', text: 'Coordinación: en un caso «Resuelto», la tarjeta «Casos atendidos».' },
         { id: 'atendido_denuncia_q', shape: 'decision', text: '¿Es denuncia?' },
@@ -380,6 +545,18 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Casos vencidos y sin movimiento',
       who: 'Los avisa la app sola, cada mañana, a quienes atienden el caso.',
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'Cómo avisan los casos vencidos y quietos: al llegar, cada caso recibe su fecha comprometida, que la persona nunca ve. La app revisa cada mañana los casos abiertos y avisa si alguno pasó su fecha o lleva 5 días sin movimiento, una vez al día.',
+      items: [
+        'El aviso dice «Solicitud vencida: AC-…» o «Solicitud sin movimiento: AC-…»: solo el código. En una denuncia dice «Denuncia vencida» o «Denuncia sin movimiento».',
+        'Le llega a la coordinación y a su responsable, en «Avisos» y en el teléfono. Sin responsable, a los responsables de su área; en una denuncia, a los operadores de denuncias. Nunca por correo.',
+        'La fecha es el menor entre los días de la categoría y los de la prioridad: hoy 15 días, Urgente baja a 2 y Alta a 5.',
+        'Los 5 días los cambia Administración en «Áreas y plazos». Cuenta como movimiento cualquier cambio o mensaje del caso.',
+      ],
+      faq: [
+        { q: '¿Qué cuenta como movimiento en un caso?', a: 'Cualquier cambio o mensaje del caso.' },
+        { q: 'Si el caso no tiene responsable, ¿a quién le avisan?', a: 'A los responsables de su área; en una denuncia, a los operadores de denuncias.' },
+      ],
       nodes: [
         { id: 'aviso_fecha', shape: 'box', text: 'Al llegar, el caso recibe su fecha comprometida. La persona nunca la ve.' },
         { id: 'aviso_revisa', shape: 'box', text: 'La app, cada mañana, revisa los casos abiertos.' },
@@ -414,6 +591,28 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'La web: escribir y enviar a aprobación',
       who: 'Lo hace el editor de la web, en el menú «Web» del panel. También pueden el aprobador y el jefe.',
       audience: ['boss', 'admin'],
+      screen: '/admin/web',
+      what: 'Cómo se escribe y se envía a aprobación: el editor crea el borrador («Nueva noticia» → «Título» → «Crear borrador»), escribe y guarda, lo mira en «Vista previa» y, si no falta nada, toca «Enviar a aprobación». Queda «En revisión», y al aprobador le llega «Hay contenido de la web por aprobar».',
+      items: [
+        'Cada guardado queda en «Versiones».',
+        'Si falta algo, «Para enviarlo a aprobación falta esto» lo dice, y se completa antes de enviar.',
+        'Si hace falta, «Retirar de revisión» lo vuelve a borrador.',
+        'El editor escribe y envía, pero nunca publica. También escriben el aprobador y el jefe.',
+        'Las páginas no se crean: se editan. La portada se arma por bloques.',
+        'Lo que se escribe y no se guarda queda solo en ese teléfono o esa computadora: solo «Guardar borrador» lo sube.',
+        { boss: 'Administración lee todo, los borradores también, pero nunca escribe ni publica contenido.', admin: 'Tú lees todo, los borradores también, pero nunca escribes ni publicas contenido.' },
+      ],
+      cannot: {
+        admin: [
+          'No: tú no escribes ni envías contenido a aprobación. Lo hacen el editor de la web, el aprobador y el jefe.',
+        ],
+      },
+      faq: [
+        { q: '¿Cómo es el camino de una noticia desde que se escribe hasta que sale publicada?', a: 'El editor crea el borrador y lo guarda, lo mira en «Vista previa» y toca «Enviar a aprobación»: queda «En revisión». Quien aprueba lo abre en «Por aprobar» y decide: «Publicar ahora», «Programar» o «Devolver con comentario».' },
+        { q: '¿Y si se arrepiente de haberla mandado a aprobar?', a: '«Retirar de revisión»: vuelve a borrador.' },
+        { q: '¿Y si le falta algo cuando la va a mandar?', a: '«Para enviarlo a aprobación falta esto» dice qué falta: se completa y después se envía.' },
+      ],
+      easy: 'Se escribe un borrador, se mira cómo va a quedar y se manda a aprobar. Si alguien se arrepiente, lo retira.',
       nodes: [
         { id: 'contenido_nuevo', shape: 'box', text: 'Editor: «Web» → un tipo, como «Noticias y comunicados» → «Nueva noticia» → «Título» → «Crear borrador».' },
         { id: 'contenido_escribe', shape: 'box', text: 'Escribe → «Guardar borrador». Cada guardado queda en «Versiones».' },
@@ -449,6 +648,26 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'La web: revisar y decidir',
       who: 'Lo hacen el aprobador de la web y el jefe, en «Web» → «Por aprobar».',
       audience: ['boss', 'admin'],
+      screen: '/admin/web/por-aprobar',
+      what: { boss: 'Cómo se revisa y se decide: el aprobador o tú abren el contenido en «Por aprobar» y miran «Qué cambia si lo publicas» y la vista previa. Si no sale así, «Devolver con comentario»; si sale ya, «Publicar ahora»; si sale después, «Día» y «Hora» → «Programar».', admin: 'Cómo se revisa y se decide: el aprobador o el jefe abren el contenido en «Por aprobar» y miran «Qué cambia si lo publicas». Si no sale así, «Devolver con comentario»; si sale ya, «Publicar ahora»; si sale después, «Programar».' },
+      items: [
+        'Al publicar queda «Publicado»; al programar, «Programado». A quien lo envió le llega «Tu contenido ya está en la web» o «Tu contenido de la web quedó programado».',
+        'Al devolverlo vuelve a borrador, y a quien lo envió le llega «Te devolvieron un contenido de la web», con el comentario arriba del editor.',
+        'Con «Le falta esto para publicarse», «Publicar ahora» no se puede tocar.',
+        'Se publica exactamente lo que se revisó: si alguien cambió el borrador mientras tanto, no se publica, y la pantalla pide abrirlo de nuevo.',
+        'Lo que ya está en la web no se programa: sus cambios se publican ahora. «Quitar la programación» devuelve a borrador algo programado.',
+        { boss: 'El aviso de «Por aprobar» le llega solo al aprobador; tú lo ves en la lista.', admin: 'El aviso de «Por aprobar» le llega solo al aprobador; el jefe lo ve en la lista.' },
+      ],
+      cannot: {
+        admin: [
+          'No: tú no decides en «Por aprobar»: ni publicas, ni programas, ni devuelves. Deciden el aprobador de la web y el jefe.',
+        ],
+      },
+      faq: [
+        { q: '¿Y después de aprobarla, qué pasa?', a: 'Queda «Publicado» (o «Programado»), y a quien la envió le llega «Tu contenido ya está en la web» o «Tu contenido de la web quedó programado».' },
+        { q: '¿Y si la devuelvo?', a: 'Vuelve a borrador, y a quien la envió le llega «Te devolvieron un contenido de la web», con el comentario arriba del editor.' },
+        { q: '¿Qué hay que saber cuando se aprueba en la web?', a: 'Que con «Le falta esto para publicarse» no se puede publicar; que se publica exactamente lo que se revisó; que lo ya publicado no se programa, y que el aviso de «Por aprobar» le llega solo al aprobador.' },
+      ],
       nodes: [
         { id: 'decidir_abre', shape: 'box', text: 'Aprobador o jefe: «Por aprobar» → el contenido. Mira «Qué cambia si lo publicas» y la vista previa.' },
         { id: 'decidir_sale_q', shape: 'decision', text: '¿Sale así?' },
@@ -483,6 +702,23 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'La web: cambiar o quitar lo publicado',
       who: 'Para lo que ya está en la web. Archivan el aprobador y el jefe. Volver a una versión lo puede hacer también el editor.',
       audience: ['boss', 'admin'],
+      screen: '/admin/web',
+      what: 'Cómo se cambia o se quita lo publicado: si se publicó por error, el aprobador o el jefe lo archivan y sale de la web al momento, sin borrar nada; «Desarchivar» lo vuelve a poner. Si fue un cambio equivocado, «Versiones» → «Volver a esta versión», y se envía a aprobación y se publica otra vez.',
+      items: [
+        'Mientras no se publique otra vez, la web sigue mostrando lo aprobado, y la lista dice «Cambios sin publicar».',
+        'En «Versiones», «Borrador actual» y «La publicada» marcan cuál es cuál; «Ver» abre una en la vista previa.',
+        'No hay botón de borrar: lo que sobra se archiva. Un contenido archivado no se cambia hasta desarchivarlo.',
+        'Archivan el aprobador y el jefe; volver a una versión lo puede hacer también el editor.',
+      ],
+      cannot: {
+        admin: [
+          'No: tú no archivas ni vuelves a una versión. Archivan el aprobador de la web y el jefe, y volver a una versión lo puede hacer también el editor.',
+        ],
+      },
+      faq: [
+        { q: 'Mientras no se publique otra vez, ¿qué ve la gente?', a: 'Lo aprobado: la web sigue mostrando lo publicado, y la lista dice «Cambios sin publicar».' },
+        { q: '¿Quién puede hacer cada cosa de ese flujo?', a: 'Archivan y desarchivan el aprobador de la web y el jefe; volver a una versión lo puede hacer también el editor. Para que salga, se publica otra vez.' },
+      ],
       nodes: [
         { id: 'arreglo_mal', shape: 'box', text: 'Algo publicado salió mal.' },
         { id: 'arreglo_q', shape: 'decision', text: '¿Qué pasó?' },
@@ -513,6 +749,25 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Fotos y documentos',
       who: 'Los sube el editor de la web, en «Web» → «Biblioteca». También pueden el aprobador y el jefe.',
       audience: ['boss', 'admin'],
+      screen: '/admin/web/biblioteca',
+      what: 'El camino de una foto: el editor la sube a la «Biblioteca» con «Subir una foto», y antes de subir se achica y pierde la ubicación. Le pone el «Punto de interés» y el «Texto alternativo», la elige en el editor con «Elegir foto» → «De la biblioteca» y, al publicar, la foto queda con los textos que tenía en ese momento.',
+      items: [
+        'Frena el envío una foto archivada, o una que dice «[Por escribir]», y también una marca como «[correo retirado]» en el texto.',
+        'Todo lo que está en la biblioteca es público: nunca fotos ni archivos de quienes escriben a Atención ciudadana.',
+        'Sin «Texto alternativo», una foto no se sube. Un PDF pide su «Título del documento».',
+        'Hoy cada archivo llega hasta 4 MB; si pesa más, la pantalla pide subirlo más liviano.',
+        'Cambiar los textos de una foto no toca lo publicado hasta publicarlo otra vez. «Archivar» la saca de la biblioteca, pero lo publicado la sigue mostrando.',
+      ],
+      cannot: {
+        admin: [
+          'No: tú no subes fotos ni documentos a la biblioteca. Los suben el editor de la web, el aprobador y el jefe.',
+        ],
+      },
+      faq: [
+        { q: '¿Qué frena que se pueda enviar un contenido con fotos?', a: 'Una foto archivada, una que dice «[Por escribir]» (sin texto alternativo) o una marca como «[correo retirado]» en el texto.' },
+        { q: '¿Qué hay que saber de las fotos y documentos de la web?', a: 'Que todo lo de la biblioteca es público, que sin «Texto alternativo» una foto no se sube, que un PDF pide su «Título del documento» y que cada archivo va hasta 4 MB.' },
+      ],
+      easy: 'Una foto se sube con sus palabras, se elige en el editor y, al publicar, queda tal cual estaba.',
       nodes: [
         { id: 'foto_sube', shape: 'box', text: 'Editor: «Biblioteca» → «Subir una foto» o «Subir un PDF».' },
         { id: 'foto_limpia', shape: 'box', text: 'La foto se achica y pierde la ubicación y los datos de la cámara antes de subir.' },
@@ -547,6 +802,18 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Ajustes del sitio',
       who: 'Los cambian el aprobador y el jefe, en «Web» → «Ajustes del sitio». También Administración.',
       audience: ['boss', 'admin'],
+      screen: '/admin/web/ajustes',
+      what: { boss: 'Cómo se cambian los ajustes del sitio: el aprobador, tú o Administración entran a «Web» → «Ajustes del sitio». En «Navegación» o «Pie de página» se cambia lo que haga falta → «Guardar», y sale «Guardado. La web ya lo muestra.», sin aprobación.', admin: 'Cómo se cambian los ajustes del sitio: tú, el aprobador o el jefe entran a «Ajustes del sitio». En «Navegación» o «Pie de página» se cambia lo que haga falta → «Guardar», y sale «Guardado. La web ya lo muestra.», sin aprobación.' },
+      items: [
+        'En la versión de prueba no se guardan las otras secciones, como «Cuentas en redes»: el nombre, las cuentas, los canales, los contactos y la franja quedan como están.',
+        'Lo que se guarda aquí sale en la web al momento: por eso nunca va un dato que nadie confirmó.',
+        'Un contacto sale solo marcado «Verificado»; una cuenta, solo «Activa» y «Verificada». En la prueba también salen las cuentas por confirmar, con una línea que lo avisa.',
+        'Los «Avisos legales» se ven pero no se cambian en «Ajustes del sitio»: si hace falta cambiar uno, se le avisa a quien instaló la app.',
+        'El editor de la web no entra a «Ajustes del sitio».',
+      ],
+      faq: [
+        { q: '¿Cómo es el flujo de «Ajustes del sitio»?', a: 'Se entra a «Ajustes del sitio», se cambia la sección y se toca «Guardar»: sale «Guardado. La web ya lo muestra.», sin pasar por aprobación. En la prueba, solo «Navegación» y «Pie de página» se guardan.' },
+      ],
       nodes: [
         { id: 'ajustes_entra', shape: 'box', text: 'Aprobador o jefe, también Administración: «Web» → «Ajustes del sitio».' },
         { id: 'ajustes_q', shape: 'decision', text: '¿Qué sección?' },
@@ -575,6 +842,20 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Direcciones de la web vieja',
       who: 'Las cambian el aprobador y el jefe, en «Web» → «Redirecciones». También Administración.',
       audience: ['boss', 'admin'],
+      screen: '/admin/web/redirecciones',
+      what: 'El camino de una dirección vieja: el aprobador, el jefe o Administración hacen «Nueva redirección», con «Dirección vieja» y «Lleva a» → «Agregar la redirección». Después, quien abre la dirección vieja llega a la nueva; si no tiene redirección, ve «Esta página no existe», o «Este archivo de la web anterior ya no está disponible.» si era un archivo viejo.',
+      items: [
+        'Al guardarla dice «Redirección guardada. La dirección vieja ya lleva a la nueva.».',
+        'No se redirige una dirección que la web ya usa, ni se hacen dos desde la misma.',
+        'Las que se hicieron solas al traer las noticias de la web vieja dicen «De la web vieja»; las hechas en la pantalla dicen «A mano», y nunca cambian solas.',
+        'Cuando quien aprueba cambia la «Dirección en la web» de algo publicado, la vieja sigue llevando a la nueva sola.',
+        'Un archivo viejo es una foto o un documento que estaba en la web anterior. Un cambio se nota en la web en más o menos un minuto.',
+      ],
+      faq: [
+        { q: 'Si quien aprueba le cambia la dirección a una noticia publicada, ¿qué pasa con la vieja?', a: 'La vieja sigue llevando a la nueva sola: no hay que hacer nada más.' },
+        { q: '¿Y si lo que abren es un archivo viejo de la web anterior?', a: 'Si no tiene redirección, ve «Este archivo de la web anterior ya no está disponible.». Un archivo viejo es una foto o un documento de la web anterior.' },
+        { q: '¿Qué dice la pantalla después de agregar la redirección?', a: '«Redirección guardada. La dirección vieja ya lleva a la nueva.».' },
+      ],
       nodes: [
         { id: 'direccion_nueva', shape: 'box', text: 'Aprobador o jefe, también Administración: «Redirecciones» → «Nueva redirección».' },
         { id: 'direccion_llena', shape: 'box', text: '«Dirección vieja» y «Lleva a» → «Agregar la redirección».' },
@@ -610,6 +891,21 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Lo que trae la versión de prueba',
       who: 'Qué trae copiado de la web oficial y qué es de ejemplo.',
       audience: ['boss', 'admin'],
+      what: 'Lo que trae la versión de prueba: una copia de la web oficial, [WEB_OFICIAL], con las noticias, las columnas de opinión, la biografía, las fotos y el último Semanario, y datos de ejemplo: las solicitudes de «Atención ciudadana» y las personas del panel. Lo que se practica se borra de vez en cuando.',
+      items: [
+        'La web sale con la franja «Versión de prueba en revisión. No es el sitio oficial.», y Google no la muestra.',
+        'Los comprobantes de prueba se abren en «Consultar mi solicitud», y cada rol entra al panel con un toque.',
+        'Lo que todavía no tiene contenido real no sale, como «Gestión y obras» o las emisiones del «[PROGRAMA]».',
+        'En «Web», cada noticia copiada dice «Traído de la web vieja». Lo más nuevo de la web oficial no sale aquí enseguida.',
+        'En la portada, «Gestión en cifras», «Casos atendidos», «Gestión y obras» y «Avisos de servicio» llevan la marca «Oculto». Con «Mostrar», en «Web» → «Páginas» → «Inicio», vuelven a salir cuando se publica la portada.',
+        '«Gestión y obras» tampoco está en el menú: se agrega en «Ajustes del sitio» → «Navegación» cuando haya obras publicadas.',
+        'Las solicitudes de ejemplo llevan «(demo)» en el título.',
+      ],
+      faq: [
+        { q: '¿Qué trae la versión de prueba de la web?', a: 'Una copia de la web oficial y datos de ejemplo: solicitudes y personas del panel. Cada rol entra con un toque, los comprobantes de prueba se abren en «Consultar mi solicitud», y lo que se practica se borra de vez en cuando.' },
+        { q: '¿Qué no sale todavía en la web de prueba?', a: 'Lo que no tiene contenido real: «Gestión y obras», las emisiones del «[PROGRAMA]» y, en la portada, «Gestión en cifras», «Casos atendidos» y «Avisos de servicio». En «El gobernador», «Material para la prensa».' },
+        { q: '¿Qué hay que saber de la versión de prueba?', a: 'Que cada noticia copiada dice «Traído de la web vieja», que los bloques sin contenido real llevan la marca «Oculto», que «Gestión y obras» todavía no está en el menú y que las solicitudes de ejemplo llevan «(demo)».' },
+      ],
       nodes: [
         { id: 'prueba_trae', shape: 'box', text: 'La versión de prueba trae:' },
         { id: 'prueba_copia', shape: 'box', text: 'Una copia de la web oficial, [WEB_OFICIAL]: las noticias, las columnas de opinión, la biografía, las fotos y el último Semanario.' },

@@ -20,6 +20,24 @@ export const MANUAL_ATENCION: WebDoc = {
       pdf: '5.0',
       title: 'Manual de atención ciudadana',
       audience: ['boss', 'admin'],
+      screen: '/admin/atencion',
+      what: 'El manual de atención: cómo se atiende lo que la gente manda desde la web, en el menú «Atención» del panel, que abre «Atención ciudadana». En el teléfono, el jefe y Administración lo encuentran en «Más».',
+      items: [
+        'Es para la coordinación de atención, los responsables de área, el operador de denuncias, auditoría, el jefe y Administración.',
+        'Cada solicitud es privada y tiene un código. La persona la sigue con su código y su clave en «Consultar mi solicitud», y nadie del equipo ve esa clave ni la puede recuperar.',
+        'Hoy se usa una versión de prueba: en «Atención» hay solicitudes de ejemplo para practicar, todas con «(demo)» en el título, y los comprobantes de prueba se abren en «Consultar mi solicitud».',
+        'Por ahora la versión de prueba no envía correos. No escribas datos reales de nadie: lo que se envía lo puede ver cualquiera que use la prueba.',
+        'Lo que va entre comillas, «así», es el texto exacto que sale en la pantalla.',
+      ],
+      faq: [
+        { q: 'No encuentro «Atención» en el teléfono, ¿dónde está?', a: 'En «Más», abajo: en el teléfono, el jefe y Administración tienen «Atención» ahí.' },
+        { q: 'Los casos que salen en «Atención», ¿son de verdad?', a: 'No: es la versión de prueba, con solicitudes de ejemplo para practicar. Todas llevan «(demo)» en el título.' },
+        { q: '¿Puedo escribir datos de verdad para probar el formulario?', a: 'No: no escribas datos reales de nadie. Lo que se envía en la versión de prueba lo puede ver cualquiera que la use; por eso el formulario dice «Versión de prueba. No escriba datos reales.».' },
+        { q: 'En una línea, ¿cómo funcionan las solicitudes de la gente?', a: 'Cada solicitud es privada y tiene un código: la persona la sigue con su código y su clave en «Consultar mi solicitud», y nadie del equipo ve esa clave.' },
+        { q: '¿Nadie del equipo puede ver la clave de una solicitud?', a: 'Nadie: nadie del equipo ve esa clave ni la puede recuperar. Solo la tiene la persona, en su comprobante.' },
+        { q: '¿Para quién es el manual de atención?', a: 'Para la coordinación de atención, los responsables de área, el operador de denuncias, auditoría, el jefe y Administración.' },
+      ],
+      easy: 'Atención es donde el equipo recibe y resuelve lo que la gente manda desde la web. Cada caso es privado.',
       blocks: [
         { kind: 'p', text: 'Para quienes atienden lo que la gente manda desde la web: la coordinación de atención, los responsables de área, el operador de denuncias, auditoría, el jefe y Administración. Todo está en el panel, en el menú **«Atención»**, que abre la pantalla «Atención ciudadana». En el teléfono, el jefe y Administración lo encuentran en «Más». Lo que va entre comillas, «así», es el texto exacto que sale en la pantalla.', wrap: [106, 113, 118, 86] },
         {
@@ -38,6 +56,43 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Quién ve y hace qué',
       heading: { level: 2, num: '1.' },
       audience: ['boss', 'admin'],
+      screen: '/admin/atencion',
+      what: { boss: 'Quién ve y hace qué en «Atención». Tú lees como auditoría: todo menos las denuncias, sin contactos, y miras las cifras. Los casos los atienden la coordinación, los responsables de área y el operador de denuncias.', admin: 'Quién ve y hace qué en «Atención». Tú nunca ves un caso: armas las áreas y los plazos («Áreas y plazos») y lees el «Registro». Los casos los atienden la coordinación, los responsables de área y el operador de denuncias.' },
+      items: [
+        'Coordinador de atención: ve todo, denuncias también, y hace todo: asigna a cualquier área, pone prioridad y fecha comprometida, une casos, corrige tipo o categoría, modera, borra un contacto a pedido, publica en «Casos atendidos», arma las «Respuestas guardadas», ve las cifras y exporta, con o sin contacto.',
+        'Responsable de área: lo de sus áreas y lo que le asignen, nunca denuncias. Responde, escribe notas internas, cambia estados, sube evidencias y ve el contacto. Asigna dentro de su área o usa «Tomar el caso».',
+        'Operador de denuncias: solo denuncias. Lo mismo que un responsable y, además, en las denuncias pone prioridad y fecha, y modera. Una denuncia no tiene área.',
+        'Consulta y auditoría: todo menos las denuncias, que cuentan solo en los totales, y sin contactos. Solo lee: ve las cifras, exporta sin contactos y lee el «Registro».',
+        { boss: 'Tú lees como auditoría y ves las cifras: no respondes ni cambias nada.', admin: 'El jefe lee como auditoría y ve las cifras: no responde ni cambia nada.' },
+        { boss: 'Administración nunca ve un caso: arma las áreas, quién está en cada una, el área y los días de cada categoría y los plazos, y lee el «Registro».', admin: 'Tú nunca ves un caso: armas las áreas, quién está en cada una, el área y los días de cada categoría y los plazos («Áreas y plazos»), y lees el «Registro».' },
+        'Siempre con doble factor: el código que llega por correo y Google Authenticator. No hay contraseñas.',
+        { boss: 'Los roles los da Administración en «Ajustes» → «Equipo» → «Invitar a alguien», en «Web y atención ciudadana (siempre con doble factor)». A un responsable se le marcan sus áreas en «Sus áreas (ve y atiende lo de estas áreas y lo que le asignen)».', admin: 'Los roles los das tú en «Ajustes» → «Equipo» → «Invitar a alguien», en «Web y atención ciudadana (siempre con doble factor)». A un responsable le marcas sus áreas en «Sus áreas (ve y atiende lo de estas áreas y lo que le asignen)»; después se cambian con «Cambiar».' },
+        { boss: 'Un caso que no te toca no lo ves: no sale en tu lista. Aunque alguien te mande su enlace, la pantalla dice «No encontramos esto».', admin: 'Tú no abres casos: si alguien te manda el enlace de uno, la app te lleva a tu inicio y dice «Esa pantalla no es de tu rol. Te trajimos a tu inicio.».' },
+      ],
+      tasks: [
+        { id: 'dar-rol-atencion', title: 'Darle un rol de atención a alguien', audience: ['admin'], steps: ['Administración: «Ajustes» → «Equipo» → «Invitar a alguien».', 'Elige el rol en «Web y atención ciudadana (siempre con doble factor)». A un responsable, márcale sus áreas en «Sus áreas (ve y atiende lo de estas áreas y lo que le asignen)».', 'Toca «Enviar invitación». Después, sus áreas se cambian con «Cambiar».'] },
+      ],
+      cannot: {
+        boss: [
+          'No: tú no das roles de atención. Los da Administración, en «Ajustes» → «Equipo» → «Invitar a alguien».',
+          'No: tú no respondes ni cambias los casos. Los atienden la coordinación, los responsables de área y el operador de denuncias; tú los lees, como auditoría.',
+        ],
+        admin: [
+          'No: tú nunca abres ni lees un caso, ni para ver cómo va. Los leen y los atienden la coordinación y los responsables de área; también los leen auditoría y el jefe.',
+          'No: tú no ves las solicitudes de la gente. Tu «Atención» muestra «Áreas y plazos» y el «Registro de atención».',
+        ],
+      },
+      faq: [
+        { q: '¿Por qué no veo las denuncias?', a: { boss: 'Porque una denuncia es privada: la ven solo la coordinación y el operador de denuncias. Tú no, ni auditoría.', admin: 'Porque tú no ves ningún caso, y una denuncia es privada: la ven solo la coordinación y el operador de denuncias.' } },
+        { q: '¿Qué veo yo en Atención?', a: { boss: 'Todo lo que llega, menos las denuncias, que ves solo en los totales, sin contactos, y las «Cifras». Lo lees como auditoría: no respondes ni cambias nada.', admin: 'Ningún caso: tu «Atención» muestra «Áreas y plazos» y el «Registro de atención». Nunca abres un caso.' } },
+        { q: '¿Quién hace qué en Atención ciudadana?', a: 'La coordinación ve y dirige todo; cada responsable de área atiende lo de su área; el operador de denuncias, solo las denuncias; auditoría y el jefe leen; Administración arma las áreas y los plazos y nunca ve un caso.' },
+        { q: '¿Y auditoría qué hace?', a: 'Solo lee: todo menos las denuncias, sin contactos. Ve las «Cifras», lee el «Registro» y exporta, siempre sin contactos.' },
+        { q: 'Me mandaron el enlace de un caso y me sale «No encontramos esto», ¿por qué?', a: { boss: 'Porque ese caso no te toca: lo que no es de tu rol no sale en tu lista, y aunque te manden su enlace, la pantalla dice «No encontramos esto».', admin: 'Porque tú no abres casos: el enlace de un caso te lleva a tu inicio, con «Esa pantalla no es de tu rol. Te trajimos a tu inicio.».' } },
+        { q: 'A alguien de Atención se le perdió el teléfono, ¿cómo vuelve a entrar?', a: { boss: 'Lo resuelve Administración: «Ajustes» → «Equipo» → «Cambiar» en la fila de la persona → «Reiniciar doble factor».', admin: 'Tú: «Ajustes» → «Equipo» → «Cambiar» en la fila de la persona → «Reiniciar doble factor».' } },
+        { q: '¿Los de Atención entran con contraseña?', a: 'No: no hay contraseñas. Entran siempre con doble factor: el código que les llega por correo y Google Authenticator.' },
+        { q: '¿Cómo le doy a alguien el rol de responsable de área?', a: { boss: 'Lo da Administración: «Ajustes» → «Equipo» → «Invitar a alguien», el rol en «Web y atención ciudadana (siempre con doble factor)» y sus áreas en «Sus áreas (ve y atiende lo de estas áreas y lo que le asignen)».', admin: '«Ajustes» → «Equipo» → «Invitar a alguien», el rol en «Web y atención ciudadana (siempre con doble factor)» y sus áreas en «Sus áreas (ve y atiende lo de estas áreas y lo que le asignen)». Después se cambian con «Cambiar».' } },
+      ],
+      easy: { boss: 'En Atención unos atienden y otros solo miran: tú miras todo menos las denuncias y los contactos.', admin: 'En Atención unos atienden y otros solo miran: tú no ves casos, preparas las áreas y los plazos para que la atención funcione.' },
       blocks: [
         {
           kind: 'table',
@@ -68,6 +123,29 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Lo que llega: seis tipos',
       heading: { level: 2, num: '2.' },
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'Lo que llega a «Atención»: seis tipos. Reporte, una falla en los servicios públicos de la comunidad; petición, ayuda o apoyo al despacho del gobernador; observación, sugerencia, reconocimiento y denuncia, que es confidencial.',
+      items: [
+        'Reporte: «Fallas en los servicios públicos de su comunidad.».',
+        'Petición: «Solicitudes de ayuda o de apoyo al despacho del gobernador.».',
+        'Observación: «Opiniones u observaciones sobre la gestión, una obra o una publicación.».',
+        'Sugerencia: «Propuestas para mejorar un servicio.». Reconocimiento: «Agradecimientos por un trabajo bien hecho.».',
+        'Denuncia: «Hechos irregulares que deben investigarse. Es confidencial.». Es privada de punta a punta.',
+        'Cada formulario dice que esto no es un servicio de emergencias, con el aviso «Esto no es un servicio de emergencias. Ante una emergencia o si una vida está en peligro, llame a los servicios de emergencia.». Ese aviso no se cambia desde el panel.',
+        'La web le habla de usted a la persona y firma como «Atención ciudadana». Lo que le escribe el equipo también va de usted.',
+      ],
+      cannot: {
+        boss: [
+          'No: el aviso de emergencias no se cambia desde el panel. Es un texto fijo; cuando la Gobernación confirme el número oficial de emergencias, se agregará a ese aviso.',
+        ],
+        admin: [
+          'No: el aviso de emergencias del formulario no se cambia desde el panel. Es un texto fijo; cuando la Gobernación confirme el número oficial de emergencias, se agregará a ese aviso.',
+        ],
+      },
+      faq: [
+        { q: '¿Qué diferencia hay entre un reporte y una petición?', a: 'Un reporte es una falla en los servicios públicos de la comunidad; una petición, una solicitud de ayuda o de apoyo al despacho del gobernador.' },
+        { q: '¿Atención ciudadana sirve para emergencias?', a: 'No: cada formulario dice que esto no es un servicio de emergencias y que, ante una emergencia, hay que llamar a los servicios de emergencia.' },
+      ],
       blocks: [
         {
           kind: 'table',
@@ -91,6 +169,34 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'La bandeja y el tablero',
       heading: { level: 2, num: '3.' },
       audience: ['boss', 'admin'],
+      screen: '/admin/atencion',
+      what: { boss: '«Atención ciudadana» abre la «Bandeja»: lo que llega de la web, para consultar, sin contactos ni cambios. Arriba, tus pestañas: «Bandeja», «Tablero», «Mapa», «Cifras» y «Áreas y plazos».', admin: 'Tu «Atención» no abre la bandeja: muestra «Áreas y plazos» y «Registro de atención». Administración nunca lee las solicitudes ni sus contactos.' },
+      items: [
+        { boss: 'Cada rol ve las pestañas de lo que puede usar. «Áreas y plazos» tú la lees; «Respuestas guardadas» y «Registro» son de otros roles.', admin: 'En «Áreas y plazos» armas las áreas, quién está en cada una, el área y los días de cada categoría y los plazos. El «Registro de atención» dice quién hizo qué y cuándo, sin lo que dicen los casos.' },
+        { boss: 'Tú lees: no respondes, no cambias el estado y no ves los contactos.', admin: 'Las pestañas de los casos, «Bandeja», «Tablero» y «Mapa», son de quienes los leen: la coordinación, los responsables de área, denuncias, auditoría y el jefe; «Cifras», de la coordinación, auditoría y el jefe.' },
+        { boss: 'Cuatro números cuentan lo que puedes ver, sin el spam ni lo unido a otro caso: «Por revisar» (Recibido y En revisión), «En atención» (Asignado, En atención, Requiere información y Derivado), «Resueltas» (Resuelto y Cerrado) y «Vencidas».', admin: 'Las personas de la atención (coordinación, responsables de área, denuncias y auditoría) se invitan en «Ajustes» → «Equipo», siempre con doble factor.' },
+        { boss: '«Vencidas» son las abiertas que ya pasaron su fecha comprometida.', admin: '«Vencidas» son los casos abiertos que ya pasaron su fecha comprometida, que sale de los días que armas en «Áreas y plazos».' },
+        { boss: 'La bandeja: tarjetas en el teléfono y una tabla desde la tableta, 25 por página. Cada una muestra su código, su tipo y su estado, «Vencida» si ya pasó su fecha y la prioridad si no es normal.', admin: 'La bandeja es la lista de lo que llega, en tarjetas en el teléfono y en una tabla desde la tableta. La leen quienes atienden los casos, auditoría y el jefe; tu «Atención» no la abre.' },
+        { boss: 'El tablero: una columna por estado, de Recibido a Resuelto, y una última de «Cerradas y «No procede»». Cada columna muestra las más nuevas, hasta 12; si hay más, un enlace al final de la columna lleva a la lista con todas.', admin: 'El tablero pone los casos en una columna por estado, de Recibido a Resuelto. Es de quienes atienden y leen los casos; tú no lo ves.' },
+        { boss: 'En el tablero no ves botones, porque lo lees: quien atiende el caso lo mueve con el botón de un toque (por ejemplo «→ En revisión») o con «Otro estado…».', admin: 'En el tablero nadie arrastra tarjetas: quien atiende el caso lo mueve con el botón de un toque (por ejemplo «→ En revisión») o con «Otro estado…».' },
+      ],
+      cannot: {
+        boss: [
+          'No: las tarjetas del tablero no se arrastran, y tú no las mueves. Quien atiende el caso lo mueve con sus botones; tú lo lees.',
+        ],
+        admin: [
+          'No: tú no ves la bandeja ni los casos que llegan. Tu «Atención» muestra «Áreas y plazos» y el «Registro de atención».',
+        ],
+      },
+      faq: [
+        { q: '¿Qué son los cuatro números de arriba de la bandeja?', a: { boss: '«Por revisar», «En atención», «Resueltas» y «Vencidas»: cuentan lo que puedes ver, sin el spam ni lo unido a otro caso.', admin: 'Son los de la «Bandeja», que tú no abres: «Por revisar», «En atención», «Resueltas» y «Vencidas» cuentan los casos de quien los lee, sin el spam ni lo unido a otro caso.' } },
+        { q: '¿Qué significa «Vencidas» en Atención?', a: 'Las solicitudes abiertas que ya pasaron su fecha comprometida.' },
+        { q: '¿Qué es el tablero de Atención?', a: 'Una columna por estado, de Recibido a Resuelto, con hasta 12 casos por columna, los más nuevos. El botón de un toque da el paso de siempre; las tarjetas no se arrastran.' },
+        { q: '¿Qué es la bandeja de Atención?', a: 'La lista de lo que llega: cuatro números arriba («Por revisar», «En atención», «Resueltas» y «Vencidas»), el buscador, los filtros y una tarjeta por caso, con su código, su tipo y su estado.' },
+        { q: '¿Esos números cuentan el spam?', a: 'No: no cuentan el spam ni lo que se unió a otro caso.' },
+        { q: '¿Qué pestañas tengo en Atención?', a: { boss: '«Bandeja», «Tablero», «Mapa», «Cifras» y «Áreas y plazos» (para leer).', admin: '«Áreas y plazos» y «Registro»: nunca un caso.' } },
+      ],
+      easy: { boss: 'La bandeja es la lista de todo lo que llega, con cuántos esperan y cuántos están vencidos. Tú la miras; la trabajan los que atienden.', admin: 'Tú no ves la bandeja: la trabajan la coordinación y las áreas. Tu parte es que las áreas y los plazos estén bien armados.' },
       blocks: [
         { kind: 'p', text: 'Arriba, las pestañas de lo que tu rol puede usar: **«Bandeja»**, **«Tablero»**, **«Mapa»**, **«Cifras»**, **«Áreas y plazos»**, **«Respuestas guardadas»** y **«Registro»**.' },
         { kind: 'p', text: 'Cuatro números cuentan lo que puedes ver, sin el spam ni lo unido a otro caso:' },
@@ -119,6 +225,28 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Buscar y filtrar',
       heading: { level: 2, num: '4.' },
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'Cómo se busca un caso: «Buscar por código o título», con el código entero o una parte, o palabras del título, más «Estado» y «Filtrar». «Más filtros» trae el resto.',
+      items: [
+        '«Más filtros»: Tipo, Categoría, Municipio, Parroquia, «Parroquia, localidad o sector», Prioridad, Área («Sin área»), Responsable («Las mías», «Sin responsable» o una persona), «Llegó desde», «Llegó hasta», «Solo las vencidas» e «Incluir las unidas a otro caso y el spam».',
+        '«Quitar los filtros» vuelve a todo.',
+        'Si copias la dirección de la página y se la mandas a un compañero, verá los mismos filtros, pero solo lo que su rol le deja ver.',
+        'La app no guarda filtros: para volver a la misma vista, se guarda en los favoritos del navegador.',
+      ],
+      tasks: [
+        { id: 'ver-vencidas', title: 'Ver solo los casos vencidos', steps: ['«Atención» → «Bandeja» → «Más filtros».', 'Marca «Solo las vencidas».', 'Toca «Filtrar».'] },
+      ],
+      cannot: {
+        admin: [
+          'No: tú no buscas casos, ni por su código. Los buscan quienes los atienden y los leen: la coordinación, los responsables, auditoría y el jefe.',
+        ],
+      },
+      faq: [
+        { q: '¿Cómo busco un caso por el código?', a: 'En «Buscar por código o título», con el código entero o una parte, y «Filtrar».' },
+        { q: '¿Qué filtros tiene la bandeja?', a: '«Estado» y, en «Más filtros», tipo, categoría, municipio, parroquia o sector, prioridad, área, responsable, «Llegó desde», «Llegó hasta» y «Solo las vencidas».' },
+        { q: '¿Los filtros se quedan guardados para la próxima vez?', a: 'No: la app no guarda filtros. Guarda la vista en los favoritos del navegador; «Quitar los filtros» vuelve a todo.' },
+        { q: '¿Le puedo pasar a alguien la lista con mis filtros?', a: 'Sí: copia la dirección de la página y mándasela. Verá los mismos filtros, pero solo lo que su rol le deja ver.' },
+      ],
       blocks: [
         {
           kind: 'list',
@@ -138,6 +266,36 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Un caso, paso a paso',
       heading: { level: 2, num: '5.' },
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'Lo que tiene un caso por dentro y cómo se trabaja un reporte de principio a fin, de «Recibido» a «Cerrado». Tú lo lees: dice «Lo puedes consultar, pero no te toca atenderlo: sin contacto y sin cambios.».',
+      items: [
+        'Arriba: el título, el código, el tipo y el estado; si aplica, «Vencida», la prioridad y «Spam».',
+        '«Lo que llegó»: el texto, la categoría, dónde, cuándo pasó, si marcó un punto con su permiso, si dejó contacto, si permite su nombre y la noticia u obra de la que habla.',
+        'Las tarjetas: «Estado», «Área y responsable», «Prioridad y fecha comprometida», «Contacto de la persona», «Archivos», «Resolución», «Casos iguales», «Casos atendidos», «Corregir tipo o categoría», «Moderación», «Escribir» y el «Historial».',
+        'Cada quien ve los botones de lo que puede hacer en ese caso.',
+        'Un reporte de principio a fin: leerlo; pasarlo a «En revisión»; asignarlo («Guardar asignación» o «Tomar el caso»), y queda «Asignado»; responderle a la persona; «En atención» mientras trabajan; «Pedir más información» si falta un dato; «Subir evidencia»; «Resuelto» con su justificación; la persona confirma, y «Cerrado» con su motivo.',
+        '«Tomar el caso» es el botón del responsable de área: se queda el caso, y queda «Asignado».',
+        'Si vale la pena contarlo, la coordinación lo publica en «Casos atendidos».',
+      ],
+      tasks: [
+        { id: 'trabajar-reporte', title: 'Trabajar un reporte de principio a fin (lo hacen la coordinación y los responsables)', steps: ['Léelo completo. Si no es de tu área, avísale a la coordinación: ella cambia el área.', 'Pásalo a «En revisión». En el tablero es un toque.', 'Asígnalo en «Área y responsable» con «Guardar asignación», o con «Tomar el caso» si es tuyo. Queda «Asignado».', '«Escribir» → «Respuesta a la persona» → «Enviar respuesta», para decirle que ya lo tienen.', 'Mientras trabajan, «En atención». Lo que hablan entre ustedes va en notas internas; si falta un dato, «Pedir más información».', 'Al terminar, «Subir evidencia» y «Resuelto», con «Cómo se resolvió (justificación)».', 'La persona confirma desde su consulta: si dice que no, el caso vuelve solo a «En atención». Cuando ya no hay más que hacer, «Cerrado» con su motivo.'] },
+      ],
+      cannot: {
+        boss: [
+          'No: tú no trabajas los casos. Los atienden la coordinación, los responsables de área y el operador de denuncias; tú los lees, sin contacto y sin cambios.',
+        ],
+        admin: [
+          'No: tú nunca abres un caso, ni para ver cómo va. Los abren y los leen la coordinación, los responsables, auditoría y el jefe.',
+        ],
+      },
+      faq: [
+        { q: '¿Por qué el caso dice que lo puedo consultar pero no me toca?', a: 'Porque solo puedes leerlo: «Lo puedes consultar, pero no te toca atenderlo: sin contacto y sin cambios.». Lo atienden la coordinación y su responsable.' },
+        { q: '¿Qué es todo esto que sale en el caso?', a: 'Arriba, el título, el código, el tipo y el estado; después «Lo que llegó», las tarjetas como «Estado» y «Área y responsable», y al final el «Historial».' },
+        { q: '¿Cómo se trabaja un reporte desde que llega hasta que se cierra?', a: 'Se lee y se pasa a «En revisión»; se asigna y queda «Asignado»; se le responde a la persona; se trabaja «En atención»; al terminar, «Subir evidencia» y «Resuelto»; la persona confirma, y queda «Cerrado».' },
+        { q: '¿Qué es «Tomar el caso»?', a: '«Tomar el caso» es el botón con que un responsable de área se queda un caso de su área: queda «Asignado» a él.' },
+        { q: '¿Qué hace el equipo cuando necesita un dato de la persona?', a: '«Pedir más información» → «Pedir la información»: la solicitud queda «Requiere información» hasta que la persona responda.' },
+      ],
+      easy: 'Un caso se lee, se asigna, se le avisa a la persona, se resuelve y se cierra. Tú lo puedes leer, pero no lo cambias.',
       blocks: [
         { kind: 'p', text: 'Al abrir un caso se ve el título, el código, el tipo y el estado. Si aplica, también «Vencida», la prioridad y «Spam». Debajo está **«Lo que llegó»**: el texto, la categoría, dónde, cuándo pasó, si marcó un punto con su permiso, si dejó contacto, si permite su nombre y la noticia u obra de la que habla. Después vienen las tarjetas «Estado», «Área y responsable», «Prioridad y fecha comprometida», «Contacto de la persona», «Archivos», «Resolución», «Casos iguales», «Casos atendidos», «Corregir tipo o categoría», «Moderación», «Escribir» y el «Historial». Cada quien ve los botones de lo que puede hacer en **ese** caso. Si solo puedes leerlo, dice «Lo puedes consultar, pero no te toca atenderlo: sin contacto y sin cambios.».' },
         { kind: 'p', text: 'Un reporte de principio a fin:' },
@@ -166,6 +324,41 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Los estados y cuándo hace falta un motivo',
       heading: { level: 2, num: '6.' },
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'Los estados de un caso y cuándo hace falta un motivo. Se cambian en la tarjeta «Estado»: «Pasar a» → el estado → «Cambiar el estado». La lista solo trae los pasos que se pueden dar desde el estado en que está.',
+      items: [
+        '«Recibido» (la persona lee «Recibida»): acaba de llegar.',
+        '«En revisión»: alguien la está leyendo.',
+        '«Asignado» («Asignada»): ya tiene área o responsable.',
+        '«En atención»: el área está trabajando.',
+        '«Requiere información»: falta un dato de la persona. Pide «Qué información necesitas (lo lee la persona)»: este motivo sí lo lee la persona.',
+        '«Derivado» («Derivada»): se mandó al organismo que lo atiende. Pide «A quién se derivó y por qué».',
+        '«Resuelto» («Resuelta»): se hizo lo que se pedía. Pide «Cómo se resolvió (justificación)».',
+        '«Cerrado» («Cerrada»): terminó y no recibe más movimientos. Pide «Por qué se cierra».',
+        '«No procede»: no se puede atender por esta vía. Pide «Por qué no procede».',
+        'Reabrir («Reabrir: …», desde Resuelto, Cerrado o No procede): hay que volver a trabajarlo. Pide «Por qué se reabre».',
+        'Los que piden motivo dicen «(con motivo)». El motivo es interno: la persona nunca lo lee. Ella lee el cuadro «Mensaje para la persona (opcional)».',
+        'En «No procede», la consulta de la persona dice «Se explicó por qué no puede atenderse por esta vía.»: siempre hay que escribirle esas líneas. En «Derivado» y «Cerrado», también unas líneas.',
+        'Cuando la persona responde a un pedido de información, el caso vuelve solo a «En revisión». A un caso «Cerrado» o «No procede» ya no le puede agregar información.',
+      ],
+      cannot: {
+        boss: [
+          'No: tú no cambias el estado de un caso ni lo reabres. Eso lo hacen la coordinación y su responsable; tú lo lees.',
+        ],
+        admin: [
+          'No: tú no cambias el estado de un caso ni lo reabres. Eso lo hacen la coordinación y los responsables; tú nunca abres un caso.',
+        ],
+      },
+      faq: [
+        { q: '¿Qué estados tiene una solicitud?', a: '«Recibido», «En revisión», «Asignado», «En atención», «Requiere información», «Derivado», «Resuelto», «Cerrado» y «No procede».' },
+        { q: '¿Qué significa «Derivado»?', a: 'Que el caso se mandó al organismo que lo atiende. Pide el motivo «A quién se derivó y por qué».' },
+        { q: '¿Qué es «No procede»?', a: 'Que no se puede atender por esta vía. Pide «Por qué no procede», y a la persona se le escriben unas líneas: su consulta dice «Se explicó por qué no puede atenderse por esta vía.».' },
+        { q: '¿Cuáles estados piden motivo?', a: 'Los que dicen «(con motivo)»: «Requiere información», «Derivado», «Resuelto», «Cerrado», «No procede» y reabrir.' },
+        { q: '¿La persona lee el motivo cuando le cambian el estado?', a: 'No: el motivo es interno, la persona nunca lo lee; ella lee el «Mensaje para la persona (opcional)». La excepción es «Requiere información»: ese sí lo lee la persona.' },
+        { q: '¿Por qué la lista de «Pasar a» no trae todos los estados?', a: 'Porque solo trae los pasos que se pueden dar desde el estado en que está el caso.' },
+        { q: '¿Qué es reabrir un caso?', a: 'Volver a trabajar un caso «Resuelto», «Cerrado» o «No procede». Sale como «Reabrir: …» en «Pasar a» y pide «Por qué se reabre».' },
+      ],
+      easy: 'Cada caso va pasando por estados, como un trámite: recibido, en revisión, asignado, en atención y resuelto. Algunos pasos piden explicar por qué.',
       blocks: [
         { kind: 'p', text: 'En la tarjeta «Estado»: **«Pasar a»** → el estado → **«Cambiar el estado»**. La lista solo trae los pasos que se pueden dar desde el estado en que está el caso. Los que piden motivo dicen «(con motivo)».', wrap: [112, 90] },
         {
@@ -200,6 +393,38 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Asignar, prioridad y fecha comprometida',
       heading: { level: 2, num: '7.' },
       audience: ['boss', 'admin'],
+      screen: '/admin/atencion',
+      what: { boss: 'Cómo se asigna un caso y de dónde sale su fecha comprometida: cada solicitud nueva llega al área de su categoría, la coordinación cambia el área y pone la prioridad, y la fecha comprometida sale sola, con el plazo más corto.', admin: 'De dónde sale la fecha comprometida de un caso: el plazo más corto entre los días de la categoría y los de la prioridad, que armas tú en «Áreas y plazos». Asignar y poner la prioridad es de la coordinación.' },
+      items: [
+        'Cada solicitud nueva llega al área de su categoría.',
+        'El área la cambia la coordinación. Un responsable asigna dentro de su área, o se lo queda con «Tomar el caso». Lo que se escribe en «Motivo (opcional)» queda en el historial.',
+        'Una denuncia no tiene área: su tarjeta «Área y responsable» dice «Denuncias», y su responsable solo puede ser un operador de denuncias o alguien de la coordinación.',
+        'Prioridad (Baja, Normal, Alta, Urgente) → «Guardar prioridad»; «Fecha comprometida» → «Guardar fecha». Las pone la coordinación (en una denuncia, el operador de denuncias). La fecha vale hasta el final de ese día.',
+        'La fecha comprometida sale sola: el plazo más corto entre los días de la categoría y los de la prioridad. Hoy son 15 días por categoría, 2 para Urgente y 5 para Alta. Si nadie la puso a mano, cambia cuando cambia la prioridad.',
+        'La fecha comprometida es interna: la persona no la ve. Nunca se le promete.',
+        'Para cambiar quién tiene un caso terminado, primero hay que reabrirlo.',
+      ],
+      cannot: {
+        boss: [
+          'No: tú no asignas casos ni les pones prioridad o fecha. Eso lo hace la coordinación (en una denuncia, el operador de denuncias); tú lo lees.',
+          'No: a la persona no se le dice la fecha comprometida. Es interna: nunca se le promete.',
+        ],
+        admin: [
+          'No: tú no asignas casos ni les pones prioridad o fecha comprometida. Lo hace la coordinación (en una denuncia, el operador de denuncias); tú armas los días de cada categoría y de cada prioridad en «Áreas y plazos».',
+        ],
+      },
+      why: 'La fecha comprometida es interna porque a la gente nunca se le prometen fechas ni plazos.',
+      faq: [
+        { q: '¿A qué área llega una solicitud nueva?', a: 'Al área de su categoría. Si hace falta, la coordinación la cambia.' },
+        { q: '¿Quién le cambia el área a un caso?', a: 'La coordinación. Un responsable solo asigna dentro de su área, o se queda el caso con «Tomar el caso».' },
+        { q: '¿Qué es la fecha comprometida?', a: 'La fecha interna en que el caso debería estar atendido: el plazo más corto entre los días de la categoría y los de la prioridad. La persona no la ve, y nunca se le promete.' },
+        { q: '¿Cuántos días tiene un caso urgente para atenderse?', a: 'Hoy, 2 días para Urgente y 5 para Alta; si no, los 15 días de la categoría. Gana el plazo más corto.' },
+        { q: '¿Hasta cuándo vale la fecha comprometida?', a: 'Hasta el final de ese día.' },
+        { q: '¿De qué área es una denuncia?', a: 'De ninguna: una denuncia no tiene área. Su tarjeta «Área y responsable» dice «Denuncias», y la atienden el operador de denuncias o la coordinación.' },
+        { q: '¿Cómo se cambia quién tiene un caso que ya está resuelto?', a: 'Primero hay que reabrirlo; después se asigna otra vez.' },
+      ],
+      easy: 'Cada caso tiene una fecha límite interna, la más corta entre la de su categoría y la de su urgencia. La persona no la ve.',
+      example: { boss: 'Por ejemplo: un reporte tiene 15 días por su categoría; si la coordinación le pone prioridad Urgente, su fecha comprometida baja a 2 días, porque gana el plazo más corto.', admin: 'Por ejemplo: si una categoría tiene 15 días y la prioridad Urgente 2, un caso urgente de esa categoría tiene 2 días: gana el plazo más corto.' },
       blocks: [
         {
           kind: 'list',
@@ -222,6 +447,41 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Escribir: nota interna, respuesta y pedido de información',
       heading: { level: 2, num: '8.' },
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'En «Escribir» se elige qué se escribe: «Nota interna» (solo el equipo), «Respuesta a la persona» (la lee en su consulta) o «Pedir más información» (el caso pasa a «Requiere información»).',
+      items: [
+        '«Nota interna» → «Guardar nota interna»: solo la lee el equipo, la persona nunca.',
+        '«Respuesta a la persona» → «Enviar respuesta»: la persona la lee en su consulta. Si dejó un correo, le llega un aviso sin el texto.',
+        '«Pedir más información» → «Pedir la información»: la persona lo lee, y el caso queda «Requiere información» hasta que responda.',
+        'Nunca se mezclan: lo que es para el equipo va solo en notas internas (opiniones, nombres de funcionarios, lo que dijo otra persona o lo de otros casos).',
+        'Antes de «Enviar respuesta» hay que leerla otra vez: la persona la lee tal cual y no se puede borrar.',
+        'En el «Historial», cada mensaje dice «no la ve la persona» o «la ve la persona».',
+        'Tú también lees las notas internas, igual que auditoría.',
+        '«Respuestas guardadas»: en «Usar una respuesta guardada» se elige una, se ajusta al caso y se envía. Las arma la coordinación en dos grupos: «Para responder» y «Para pedir información».',
+        'Una respuesta guardada nueva se hace en «Nueva respuesta guardada» → «Crear la respuesta»; una que existe se cambia con «Cambiar» → «Guardar»; para apagarla, se desmarca «En uso (apagada, no se ofrece; nada se borra)».',
+        'Las respuestas guardadas que ya trae la app le hablan de usted a la persona, como todo lo que ella lee. Van sin nombres, teléfonos ni direcciones de nadie.',
+      ],
+      cannot: {
+        boss: [
+          'No: tú no escribes en los casos: ni respuestas, ni notas internas, ni pedidos de información. Lo hacen la coordinación, los responsables de área y el operador de denuncias; tú lo lees.',
+          'No: tú no creas respuestas guardadas. Las arma la coordinación, en la pestaña «Respuestas guardadas».',
+          'No: una respuesta ya enviada no se puede borrar: la persona la lee tal cual. Por eso se lee otra vez antes de enviarla.',
+        ],
+        admin: [
+          'No: tú no le respondes a la persona ni escribes notas internas. Eso lo hacen la coordinación y los responsables de área.',
+          'No: tú no le pides más información a la persona. La piden la coordinación y los responsables, con «Pedir más información».',
+          'No: tú no creas respuestas guardadas. Las arma la coordinación.',
+        ],
+      },
+      faq: [
+        { q: '¿Qué diferencia hay entre una nota interna y una respuesta?', a: 'La nota interna la lee solo el equipo, nunca la persona («Guardar nota interna»). La respuesta la lee la persona en su consulta («Enviar respuesta»).' },
+        { q: '¿Yo puedo leer las notas internas?', a: 'Sí: tú y auditoría también leen las notas internas de los casos que ven.' },
+        { q: '¿Qué no se debe poner en una respuesta a la persona?', a: 'Nada que sea solo del equipo: opiniones, nombres de funcionarios, lo que dijo otra persona o lo de otros casos. Eso va en notas internas.' },
+        { q: '¿Cómo sé si la persona vio un mensaje del historial?', a: 'En el «Historial», cada mensaje dice «no la ve la persona» o «la ve la persona».' },
+        { q: '¿Qué son las respuestas guardadas?', a: 'Respuestas ya escritas que se eligen en «Usar una respuesta guardada» y se ajustan al caso. Las arma la coordinación, en «Para responder» y «Para pedir información».' },
+        { q: 'Las respuestas guardadas que trae la app, ¿están de tú o de usted?', a: 'De usted: le hablan de usted a la persona, como todo lo que ella lee. No hace falta cambiarlas para eso.' },
+      ],
+      easy: 'Hay dos maneras de escribir en un caso: una nota que solo ve el equipo y una respuesta que lee la persona. Nunca se mezclan.',
       blocks: [
         { kind: 'p', text: 'En **«Escribir»**, elige en «Qué vas a escribir»:' },
         {
@@ -243,6 +503,19 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'El contacto de la persona',
       heading: { level: 2, num: '9.' },
       audience: [],
+      cannot: {
+        boss: [
+          'No: tú no ves el contacto de la persona (su nombre, su teléfono o su correo). Lo ven solo quienes atienden el caso: la coordinación, su responsable y, en una denuncia, el operador de denuncias. Está cifrado, y al verlo queda registrado quién lo miró y cuándo.',
+          'No: el contacto de una persona se usa solo para atender su caso. Nunca se copia a grupos de WhatsApp, a notas personales ni a otro caso.',
+          'No: la app solo le escribe a la persona por correo. Si prefiere llamada o WhatsApp, el equipo sigue lo que diga la coordinación y deja una nota interna; si eligió «Que no me contacten», no se le escribe.',
+          'No: tú no borras contactos. Si la persona pide borrar el suyo, la coordinación toca «Borrar el contacto», con su motivo; no se puede recuperar, y el caso sigue.',
+        ],
+        admin: [
+          'No: tú no ves el contacto de quien escribió. Lo ven solo quienes atienden el caso, y queda registrado quién lo miró y cuándo: eso lo ves en el «Registro de atención», nunca el dato.',
+          'No: tú no borras contactos. Si la persona lo pide, lo borra la coordinación, con «Borrar el contacto».',
+          'No: tú no le escribes a la persona desde el panel. La app le manda los correos sola; mientras se prueba, quedan en «Ajustes» → «Buzón de correos», que solo ves tú.',
+        ],
+      },
       blocks: [
         {
           kind: 'list',
@@ -262,6 +535,33 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Archivos y evidencias',
       heading: { level: 2, num: '10.' },
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'En «Archivos» están los de la persona y las evidencias del equipo. Nunca son públicos: cada uno tiene «Descargar», y las fotos también «Ver la foto».',
+      items: [
+        'Cada archivo dice si ya lo revisó el antivirus: «Revisado: limpio», «Sin analizar», «Revisándose» o «Peligroso: no se abre».',
+        'Por ahora la versión de prueba no les pasa el antivirus: todos dicen «Sin analizar», y la tarjeta avisa «Archivos sin analizar (versión de prueba): ábrelos solo si confías en ellos.». Cuando la web abra al público, solo se abrirá lo que diga «Revisado: limpio».',
+        '«Subir evidencia»: en «Foto o documento de la atención» se elige el archivo (JPG, PNG o PDF, hasta 4 MB). A las fotos se les quitan los datos de ubicación.',
+        'La casilla «Que la vea la persona en su consulta» viene marcada: se desmarca si la evidencia es solo para el equipo. Después se cambia con «Compartir con la persona» o «Dejar de compartir».',
+        'Antes de compartir, hay que mirar que no salgan caras de otras personas, placas ni documentos con datos.',
+        '«Retirar este archivo» (la coordinación; en denuncias, el operador): «Por qué se retira» → «Retirar». Queda guardado, pero ya nadie lo puede abrir.',
+        'Se descarga solo lo necesario. Los archivos de la gente nunca se reenvían ni se suben a la «Biblioteca» de «Web»: todo lo que está ahí es público.',
+      ],
+      cannot: {
+        boss: [
+          'No: una foto que mandó una persona nunca va a la biblioteca de la web, que es pública. Los archivos de las solicitudes nunca son públicos.',
+          'No: tú no subes evidencias ni retiras archivos. Lo hacen la coordinación y su responsable (en denuncias, el operador de denuncias).',
+        ],
+        admin: [
+          'No: tú no subes evidencias a un caso. Las suben la coordinación y los responsables.',
+          'No: tú no descargas los archivos que manda la gente: nunca abres un caso, y esos archivos nunca son públicos.',
+        ],
+      },
+      faq: [
+        { q: '¿Los archivos que manda la gente son públicos?', a: 'Nunca: están en el caso, con «Descargar» y, las fotos, «Ver la foto». Nunca se reenvían ni van a la biblioteca de la web.' },
+        { q: '¿Qué significa «Sin analizar» en los archivos?', a: 'Que el antivirus no lo revisó. En la versión de prueba todos dicen así; cuando la web abra al público, solo se abrirá lo que diga «Revisado: limpio».' },
+        { q: '¿La persona ve las evidencias que sube el equipo?', a: 'Si está marcada «Que la vea la persona en su consulta», sí. Se desmarca si es solo para el equipo, y después se cambia con «Compartir con la persona» o «Dejar de compartir».' },
+        { q: '¿Quién puede retirar un archivo de un caso?', a: 'La coordinación y, en una denuncia, el operador de denuncias: «Retirar este archivo» → «Por qué se retira» → «Retirar». Queda guardado, pero nadie lo puede abrir.' },
+      ],
       blocks: [
         {
           kind: 'list',
@@ -283,6 +583,35 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Casos iguales y apoyos',
       heading: { level: 2, num: '11.' },
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'Cuando varias personas reportan lo mismo: los apoyos se suman a un reporte, y la coordinación une dos casos iguales en uno, sin perder las historias.',
+      items: [
+        'Apoyos: antes de enviar un reporte, la web le muestra a la persona «Reportes parecidos», cuántos hay abiertos del mismo problema cerca. Puede «Apoyar este reporte» → «Enviar apoyo», o «No, es otro problema». Quien apoya recibe «Apoyo registrado», con su propio código.',
+        'El cuarto reporte del mismo problema en el mismo lugar se suma solo al más viejo.',
+        'En «Lo que llegó» sale cuántos se sumaron, por ejemplo «4 personas o casos se sumaron». Lo que escribió cada una dice «(solo el equipo)».',
+        'Unir dos casos (la coordinación), cuando son el mismo problema, del mismo tipo y abiertos: «Casos iguales» → «Buscar el otro caso» → «Buscar» → «Elige el caso» → «¿Cuál se queda?» → «Motivo» → «Unir los casos».',
+        'Se guardan las historias de los dos. El repetido se cierra y apunta al que se queda, y sus apoyos pasan a ese. Quien mandó el repetido lo sigue con su mismo código.',
+        'Un caso unido dice «Este caso está unido a …: se atiende allí.»: se trabaja en el que se quedó.',
+      ],
+      tasks: [
+        { id: 'unir-casos', title: 'Unir dos casos repetidos (lo hace la coordinación)', steps: ['En el caso, la tarjeta «Casos iguales» → «Buscar el otro caso», por código o palabras → «Buscar».', '«Elige el caso» y di «¿Cuál se queda?».', 'Escribe el «Motivo» y toca «Unir los casos». El repetido se cierra y apunta al que se queda.'] },
+      ],
+      cannot: {
+        boss: [
+          'No: tú no unes casos. Los une la coordinación, desde la tarjeta «Casos iguales».',
+        ],
+        admin: [
+          'No: tú no unes casos repetidos. Los une la coordinación.',
+        ],
+      },
+      faq: [
+        { q: '¿Qué es un caso unido?', a: 'Un caso que se unió a otro igual: dice «Este caso está unido a …: se atiende allí.», y se trabaja en el que se quedó.' },
+        { q: '¿Qué pasa cuando llegan varios reportes del mismo hueco?', a: 'Quien reporta ve «Reportes parecidos» y puede apoyar. Y cuando ya hay 3 iguales, el cuarto reporte del mismo problema en el mismo lugar se suma solo al más viejo, como un apoyo.' },
+        { q: '¿Cómo se unen dos casos repetidos?', a: 'La coordinación, en la tarjeta «Casos iguales»: «Buscar el otro caso», «Elige el caso», «¿Cuál se queda?», el «Motivo» y «Unir los casos».' },
+        { q: '¿Qué significa «Este caso está unido a …: se atiende allí.»?', a: 'Que el caso se unió a otro igual y se atiende allí: se trabaja en el que se quedó.' },
+        { q: '¿Cómo sigue su caso quien mandó el repetido?', a: 'Con su mismo código: el repetido queda cerrado, unido al que se queda.' },
+        { q: '¿Qué es un apoyo en atención?', a: 'Una persona que se suma a un reporte del mismo problema, desde «Reportes parecidos» → «Apoyar este reporte». Recibe su propio código.' },
+      ],
       blocks: [
         {
           kind: 'list',
@@ -303,6 +632,38 @@ export const MANUAL_ATENCION: WebDoc = {
       title: '«Casos atendidos» y el anonimato',
       heading: { level: 2, num: '12.' },
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'La coordinación publica en la web lo que se resolvió, sin datos de la persona: en la página «Casos atendidos» y, si se muestra, en el bloque de la portada. Solo se publica un caso que se marcó «Resuelto».',
+      items: [
+        'También sirve un caso resuelto que después se cerró. Nunca el spam ni un caso unido.',
+        'El botón «Casos atendidos» sale en la web cuando hay al menos un caso publicado; todavía no hay ninguno. En la portada, ese bloque está oculto: lo muestra el equipo de la web en «Web» → «Páginas» → «Inicio».',
+        '«Resumen para la web»: lo que se hizo, en pocas palabras, sin nombres, teléfonos ni direcciones de nadie, ni detalles que identifiquen a la persona.',
+        'El nombre sale solo si dio permiso: «Nombre que sale (dio permiso)». Si no, van iniciales: «Iniciales que salen (no dio permiso para su nombre)». Si la mandó anónima, sale sin nombre ni iniciales.',
+        'Una denuncia sale solo como «Denuncia atendida en el municipio …», y nada más.',
+        'Se toca «Publicar en «Casos atendidos»» (o «Actualizar la publicación»). Para quitarla: «Retirar de «Casos atendidos»» → «Por qué se retira» → «Retirar».',
+      ],
+      tasks: [
+        { id: 'publicar-caso-atendido', title: 'Publicar un caso en «Casos atendidos» (lo hace la coordinación)', steps: ['En un caso «Resuelto», la tarjeta «Casos atendidos».', 'Escribe el «Resumen para la web»: lo que se hizo, sin datos de nadie.', 'El nombre, solo si dio permiso, en «Nombre que sale (dio permiso)»; si no, sus iniciales en «Iniciales que salen (no dio permiso para su nombre)». Se puede dejar vacío.', 'Toca «Publicar en «Casos atendidos»».'] },
+      ],
+      cannot: {
+        boss: [
+          'No: tú no publicas en «Casos atendidos». Publica la coordinación, desde cada caso resuelto.',
+        ],
+        admin: [
+          'No: tú no publicas en «Casos atendidos». Publica la coordinación, desde cada caso.',
+          'No: tú no muestras el bloque «Casos atendidos» de la portada. Lo muestra el equipo de la web en «Web» → «Páginas» → «Inicio»; tú nunca escribes contenido.',
+        ],
+      },
+      why: 'Por privacidad: de la persona salen solo sus iniciales, salvo que dé permiso, y de una denuncia, solo el municipio.',
+      faq: [
+        { q: '¿Cómo se publica un caso en «Casos atendidos»?', a: 'Lo hace la coordinación en un caso «Resuelto»: escribe el «Resumen para la web», sin nombres ni datos de nadie, y toca «Publicar en «Casos atendidos»».' },
+        { q: '¿Qué no puede llevar el resumen para la web?', a: 'Nombres, teléfonos ni direcciones de nadie, ni detalles que identifiquen a la persona.' },
+        { q: '¿Qué casos se pueden publicar en «Casos atendidos»?', a: 'Solo los que se marcaron «Resuelto», también si después se cerraron. Nunca el spam ni un caso unido.' },
+        { q: '¿Por qué no sale el bloque «Casos atendidos» en la portada?', a: 'Porque está oculto mientras no haya casos publicados. Lo muestra el equipo de la web en «Web» → «Páginas» → «Inicio».' },
+        { q: '¿Cómo sale el nombre de la persona en «Casos atendidos»?', a: 'Solo si dio permiso. Si no, sus iniciales; si la mandó anónima, sin nombre ni iniciales.' },
+        { q: '¿Cómo se quita un caso ya publicado?', a: '«Retirar de «Casos atendidos»» → «Por qué se retira» → «Retirar».' },
+      ],
+      easy: 'Lo que se resolvió se cuenta en la web en pocas palabras, sin decir quién lo pidió, salvo que la persona lo haya permitido.',
       blocks: [
         { kind: 'p', text: 'La coordinación publica en la web lo que se resolvió, **sin datos de la persona**. Sale en la página «Casos atendidos» de «Atención ciudadana». También puede salir en la portada, en el bloque «Casos atendidos». Solo se publica un caso que se marcó «Resuelto», también si después se cerró. Nunca el spam ni un caso unido. El botón «Casos atendidos» sale en la web cuando hay al menos un caso publicado. Todavía no hay ninguno. En la portada, ese bloque está oculto por ahora: lo muestra el equipo de la web en «Web» → «Páginas» → «Inicio» (ver [§bloques-y-formato]).' },
         {
@@ -322,6 +683,19 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Denuncias',
       heading: { level: 2, num: '13.' },
       audience: [],
+      cannot: {
+        boss: [
+          'No: tú no lees las denuncias. Son privadas de punta a punta: solo las leen el operador de denuncias y la coordinación; tú y auditoría las ven solo en los totales.',
+          'No: las denuncias nunca van al mapa ni llevan el punto exacto ni un punto de referencia: solo el municipio y el sector.',
+          'No: a quien denuncia no se le dan números de autoridades que nadie confirmó. Los contactos de esas autoridades todavía no están en la web; se agregan cuando estén verificados.',
+          'No: la app no avisa a ninguna autoridad. Si una denuncia habla de un delito o de una vida en riesgo, se avisa de inmediato a la coordinación, que decide qué se hace fuera de la app.',
+          'No: tú no corriges el tipo de una solicitud. Si en realidad es una denuncia, la coordinación la corrige en «Corregir tipo o categoría»: así pierde la ubicación exacta y sale del área.',
+        ],
+        admin: [
+          'No: tú no lees las denuncias. Solo las leen el operador de denuncias y la coordinación.',
+          'No: tú no corriges el tipo de una solicitud, aunque sea una denuncia. La corrige la coordinación, en «Corregir tipo o categoría».',
+        ],
+      },
       blocks: [
         {
           kind: 'list',
@@ -343,6 +717,31 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Avisos de casos vencidos o quietos',
       heading: { level: 2, num: '14.' },
       audience: ['boss', 'admin'],
+      screen: '/admin/atencion',
+      what: { boss: 'Los avisos de casos vencidos o quietos: un caso abierto avisa si pasó su fecha comprometida o si lleva varios días sin movimiento, una vez al día, cada mañana. Les llegan a quienes lo atienden, no a ti.', admin: 'Los avisos de casos vencidos o quietos: un caso abierto avisa si pasó su fecha comprometida o si lleva varios días sin movimiento (hoy 5, y los cambias tú en «Áreas y plazos»). Les llegan a quienes lo atienden.' },
+      items: [
+        'Avisa una vez al día por caso, cada mañana.',
+        'Los días sin movimiento hoy son 5, y los cambia Administración en «Áreas y plazos». Cuenta como movimiento cualquier cambio o mensaje del caso.',
+        'Le llega a la coordinación y a su responsable. Si nadie lo tiene, a los responsables de su área; en una denuncia, al equipo de denuncias.',
+        'Sale en la campana («Avisos») y, si se activaron los avisos en «Mi cuenta» → «Mi perfil y avisos» → «Activar avisos», también en el teléfono. Nunca por correo.',
+        'El aviso dice solo el código: «Solicitud vencida: AC-…» o «Solicitud sin movimiento: AC-…»; en una denuncia, «Denuncia vencida» o «Denuncia sin movimiento». Nunca lo que escribió la persona.',
+      ],
+      cannot: {
+        boss: [
+          'No: los avisos de casos vencidos no te llegan a ti. Les llegan a la coordinación y a su responsable.',
+        ],
+        admin: [
+          'No: los avisos de casos vencidos no te llegan a ti. Les llegan a la coordinación y a su responsable; tú cambias los días en «Áreas y plazos».',
+        ],
+      },
+      faq: [
+        { q: '¿Cuándo avisa la app de un caso vencido?', a: 'Cuando un caso abierto pasó su fecha comprometida, o lleva 5 días sin movimiento. Avisa una vez al día por caso, cada mañana.' },
+        { q: '¿A quién le llega el aviso de un caso sin movimiento?', a: 'A la coordinación y a su responsable, en «Avisos» y en el teléfono. Si nadie lo tiene, a los responsables de su área.' },
+        { q: '¿El aviso de una vencida dice lo que pidió la persona?', a: 'Nunca: dice solo el código, por ejemplo «Solicitud vencida: AC-…».' },
+        { q: '¿Cuántos días sin movimiento hacen falta para que avise?', a: 'Hoy son 5 días. Los cambia Administración en «Áreas y plazos».' },
+        { q: '¿Los avisos de casos vencidos llegan por correo?', a: 'Nunca por correo: salen en la campana y, si se activaron, en el teléfono.' },
+        { q: '¿Qué es un caso vencido?', a: 'Uno abierto que ya pasó su fecha comprometida: el plazo más corto de su categoría y su prioridad, que se arma en «Áreas y plazos».' },
+      ],
       blocks: [
         {
           kind: 'list',
@@ -361,6 +760,36 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Las cifras y lo que quiere decir cada una',
       heading: { level: 2, num: '15.' },
       audience: ['boss'],
+      screen: '/admin/atencion/estadisticas',
+      what: '«Cifras» cuenta lo que llegó y cómo se atendió entre dos fechas: se eligen con «Desde», «Hasta» y «Ver», o con «Últimos 30 días», «Este mes» y «Todo». Al abrir, muestra los últimos 30 días.',
+      items: [
+        '«Recibidas»: las solicitudes que llegaron entre las dos fechas, sin el spam ni las unidas a otro caso igual.',
+        '«Resueltas»: las que el equipo marcó «Resuelto» entre las dos fechas, hayan llegado cuando hayan llegado.',
+        '«Pendientes»: las abiertas hoy (ni resueltas, ni cerradas, ni «No procede») que llegaron hasta la fecha final. «Vencidas»: de las pendientes, las que ya pasaron su fecha comprometida.',
+        '«Tiempo a la primera respuesta»: desde que llegó hasta la primera respuesta del equipo, que es una respuesta, un pedido de información o un cambio de estado. Una nota interna no es una respuesta.',
+        '«Tiempo de resolución»: desde que llegó hasta que el equipo la marcó «Resuelto».',
+        'Mediana y promedio: la mediana es el tiempo del caso del medio, la mitad tardó menos y la otra mitad más. El promedio se mueve mucho con unos pocos casos muy lentos: para decir cuánto se tarda, se usa la mediana.',
+        'Por tipo, estado, categoría, municipio y área: lo que llegó entre las dos fechas. Para auditoría y para ti, las denuncias cuentan solo en los totales por tipo y estado.',
+        'Sin datos, dice «Nada llegó en estas fechas.» o «Sin casos para medir en estas fechas.».',
+        'La ven la coordinación, auditoría y el jefe.',
+      ],
+      cannot: {
+        admin: [
+          'No: tú no ves las «Cifras» de atención. Las ven la coordinación, auditoría y el jefe.',
+        ],
+      },
+      why: 'La mediana dice mejor cuánto se tarda, porque el promedio se mueve mucho con unos pocos casos muy lentos.',
+      faq: [
+        { q: '¿Dónde veo las cifras de atención?', a: 'En «Atención» → «Cifras»: eliges las fechas con «Desde», «Hasta» y «Ver», o con «Últimos 30 días», «Este mes» y «Todo».' },
+        { q: '¿Las denuncias salen en mis cifras?', a: 'Solo en los totales por tipo y estado: no salen por categoría, municipio ni área.' },
+        { q: '¿Qué significa la mediana en las cifras?', a: 'La mediana es el tiempo del caso del medio: la mitad tardó menos y la otra mitad más. Dice mejor cuánto se tarda que el promedio, que se mueve mucho con unos pocos casos muy lentos.' },
+        { q: '¿Qué cifra uso para decir cuánto tardamos en atender?', a: 'La mediana del «Tiempo de resolución»: el promedio se mueve mucho con unos pocos casos muy lentos.' },
+        { q: '¿«Resueltas» cuenta solo las que llegaron en esas fechas?', a: 'No: cuenta las que el equipo marcó «Resuelto» entre las dos fechas, hayan llegado cuando hayan llegado.' },
+        { q: 'En «Cifras» me sale que no hay casos para medir, ¿qué hago?', a: 'Cambia las fechas con «Desde» y «Hasta», o mira «Todo»: en esas fechas no llegó nada, o no hay casos para medir.' },
+        { q: '¿Qué es el tiempo a la primera respuesta?', a: 'Desde que llegó la solicitud hasta la primera respuesta del equipo: una respuesta a la persona, un pedido de información o un cambio de estado. Una nota interna no cuenta.' },
+      ],
+      easy: 'Cifras dice cuánto llegó, cuánto se resolvió y cuánto se tarda, entre las fechas que elijas.',
+      example: 'Por ejemplo: si tres casos tardaron 2, 3 y 20 días, la mediana es 3 días, el del medio, y el promedio pasa de 8 por el caso lento. Por eso se usa la mediana.',
       blocks: [
         { kind: 'p', text: 'En **«Cifras»** (coordinación, auditoría y el jefe) se eligen las fechas con «Desde», «Hasta» y «Ver», o con «Últimos 30 días», «Este mes» y «Todo». Al abrir, muestra los últimos 30 días.' },
         { kind: 'p', text: 'Las definiciones son las mismas que dice la pantalla:' },
@@ -387,6 +816,16 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Exportar la lista y sus cuidados',
       heading: { level: 2, num: '16.' },
       audience: [],
+      cannot: {
+        boss: [
+          'No: tú no exportas la lista de solicitudes. La exportan la coordinación, con o sin el contacto, y auditoría, siempre sin contactos, con «Descargar CSV».',
+          'No: yo no te mando la lista ni sus contactos. El archivo lo baja quien exporta, con «Exportar lo que ves (CSV)»: una fila por solicitud, hasta 5.000, sin descripciones, mensajes ni archivos. Cada exportación queda registrada: quién, cuándo y con qué filtros.',
+          'No: el archivo exportado no se manda por WhatsApp ni por correo, no se deja en «Descargas» de una computadora compartida y nunca se sube a una carpeta pública: es información de personas, y se borra al terminar.',
+        ],
+        admin: [
+          'No: tú no exportas la lista de solicitudes. La exportan la coordinación y auditoría, y cada exportación queda en el «Registro de atención», con quién, cuándo y con qué filtros.',
+        ],
+      },
       blocks: [
         {
           kind: 'list',
@@ -406,6 +845,30 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Spam, amenazas y datos expuestos',
       heading: { level: 2, num: '17.' },
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: '«Moderación» es para el spam, las amenazas y los datos expuestos. La usa la coordinación (en denuncias, el operador de denuncias), y todo queda en el historial con su motivo.',
+      items: [
+        'Una crítica o una queja nunca es spam: se atiende, o se cierra con su motivo.',
+        'Spam es publicidad o mensajes repetidos sin nada que atender: «Marcar como spam: por qué» → «Marcar como spam». Queda en «No procede», guardada, y no se le escribe a quien la envió. Sale de la bandeja, y se ve con «Incluir las unidas a otro caso y el spam».',
+        'Un dato que expone a alguien (el teléfono de un vecino, la foto de un documento): en «Retirar un dato que expone a alguien» se elige el dato y se escribe el «Por qué» → «Retirar el dato».',
+        'Para un mensaje, «Retirar el texto de un mensaje» → «Retirar el texto»: queda «[Texto retirado por el equipo]». Para un archivo, «Retirar este archivo». Lo retirado se reemplaza para siempre, y el historial guarda qué dato y por qué, nunca lo que decía.',
+        'Una amenaza a cualquier persona, también al gobernador o al equipo, no se responde desde el caso: se avisa de inmediato a la coordinación, se retiran los datos que expongan a alguien y, si no hay nada que atender, va a «No procede» con su motivo.',
+      ],
+      cannot: {
+        boss: [
+          'No: tú no marcas spam ni retiras datos. Lo hace la coordinación (en denuncias, el operador de denuncias), en «Moderación».',
+        ],
+        admin: [
+          'No: tú no marcas spam ni retiras datos de un caso. Lo hacen la coordinación y, en denuncias, el operador de denuncias, en «Moderación».',
+        ],
+      },
+      faq: [
+        { q: 'Una queja contra la Gobernación, ¿es spam?', a: 'Nunca: una crítica o una queja se atiende, o se cierra con su motivo.' },
+        { q: '¿Qué es spam en Atención y qué pasa cuando lo marcan?', a: 'Publicidad o mensajes repetidos sin nada que atender. Se marca con «Marcar como spam»: queda en «No procede», guardada, sale de la bandeja y no se le escribe a quien la envió.' },
+        { q: '¿Dónde veo lo que marcaron como spam?', a: 'Con el filtro «Incluir las unidas a otro caso y el spam»: lo marcado se guarda.' },
+        { q: 'Si alguien puso el teléfono de un vecino en el reporte, ¿qué se hace?', a: 'La coordinación lo quita en «Retirar un dato que expone a alguien» → «Retirar el dato», con su motivo. El historial guarda qué dato y por qué, nunca lo que decía.' },
+        { q: '¿Qué hacemos si llega una amenaza contra el gobernador?', a: 'No se responde desde el caso: se avisa de inmediato a la coordinación, se retiran los datos que expongan a alguien y, si no hay nada que atender, va a «No procede» con su motivo.' },
+      ],
       blocks: [
         { kind: 'p', text: 'Están en **«Moderación»** (la coordinación; en denuncias, el operador de denuncias). Todo queda en el historial con su motivo.' },
         {
@@ -425,6 +888,25 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Lo que nunca se promete',
       heading: { level: 2, num: '18.' },
       audience: ['boss'],
+      screen: '/admin/atencion',
+      what: 'Lo que nunca se le promete a la persona: atención de emergencia, fechas o plazos, resultados que no dependen del equipo, ni publicar su nombre sin permiso. Tampoco se le piden datos de más.',
+      cannot: {
+        boss: [
+          'No: a la persona no se le piden datos de más, como la cédula o la afiliación política: solo lo que hace falta para atender.',
+          'No: a la persona no se le promete una fecha ni un plazo. La fecha comprometida es interna.',
+        ],
+      },
+      rules: [
+        'Esto no es un servicio de emergencias: nunca se dice “ya va la ambulancia” ni “ya va la patrulla”, y la web no da ningún número de emergencias.',
+        'Ni fechas ni plazos: la fecha comprometida es interna. Se dice lo que es cierto, de usted: “Lo estamos revisando”, “Le avisaremos por aquí”.',
+        'Ni resultados que no dependen del equipo, como una ayuda o la decisión de otro organismo.',
+        'Ni publicar su nombre sin su permiso, ni contarle a otra persona que alguien escribió.',
+        'Nunca se piden datos de más, como la cédula o la afiliación política: solo lo que hace falta para atender.',
+      ],
+      faq: [
+        { q: '¿Qué no se le puede prometer a la gente?', a: 'Una atención de emergencia (“ya va la ambulancia”), fechas o plazos, resultados que no dependen del equipo, como la decisión de otro organismo, ni publicar su nombre sin permiso.' },
+        { q: '¿Qué se le dice a la persona mientras se resuelve lo suyo?', a: 'Lo que es cierto, de usted: “Lo estamos revisando”, “Le avisaremos por aquí”.' },
+      ],
       blocks: [
         {
           kind: 'list',
@@ -444,6 +926,37 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Áreas y plazos (Administración)',
       heading: { level: 2, num: '19.' },
       audience: ['boss', 'admin'],
+      screen: '/admin/atencion/areas',
+      what: { boss: '«Áreas y plazos» es lo que la atención necesita para funcionar: las áreas, quién está en cada una, el área y los días de cada categoría y los plazos. Lo arma Administración; tú lo lees.', admin: '«Áreas y plazos» es lo que armas para que la atención funcione: las áreas, quién está en cada una, el área y los días de cada categoría y los plazos. La coordinación, auditoría y el jefe lo leen.' },
+      items: [
+        { admin: '«Nueva área»: «Nombre del área» y «Qué atiende» → «Crear el área». Para cambiar una: «Cambiar el nombre o apagarla» → «Guardar el área».', boss: 'Una tarjeta por área, con sus «Responsables» (o «Nadie todavía.»).' },
+        { admin: 'Para apagar un área: «Cambiar el nombre o apagarla», se desmarca «Activa (apagada, no recibe casos nuevos; nada se borra)» y «Guardar el área».', boss: 'Un área «Apagada» no recibe casos nuevos, y nada se borra. La apaga Administración.' },
+        { admin: 'Responsables: «Agregar un responsable» → la persona → «Agregar». «Quitar» la saca del área. Solo salen las personas que tienen el rol de responsable de área.', boss: 'Los responsables de cada área los pone Administración, y solo pueden ser personas con el rol de responsable de área.' },
+        { admin: '«Categorías»: a qué área va cada una y sus «Días» → «Guardar». Sin área, la asigna la coordinación. «En el formulario» decide si la categoría sale en el formulario de la web.', boss: '«Categorías»: a qué área va cada una y sus días. «Sin área» quiere decir que la asigna la coordinación, y «(fuera del formulario)», que no sale en el formulario de la web.' },
+        { admin: '«Plazos y avisos»: los días por prioridad y «Avisar de un caso sin movimiento después de (días)» → «Guardar los plazos».', boss: '«Plazos y avisos»: los días de cada prioridad (o «los de la categoría») y, en «Sin movimiento», después de cuántos días avisa de un caso quieto.' },
+        'Entre los días de la prioridad y los de la categoría gana el más corto. Si la prioridad está vacía, valen los de la categoría.',
+      ],
+      tasks: [
+        { id: 'crear-area', title: 'Crear un área nueva', audience: ['admin'], steps: ['«Atención» → «Áreas y plazos» → «Nueva área».', 'Escribe el «Nombre del área» y «Qué atiende», y toca «Crear el área».', 'Agrégale sus responsables con «Agregar un responsable», y en «Categorías» pon el área y los «Días» de cada una.'] },
+        { id: 'agregar-responsable', title: 'Agregar un responsable a un área', audience: ['admin'], steps: ['En el área, «Agregar un responsable».', 'Elige la persona: solo salen las que tienen el rol de responsable de área.', 'Toca «Agregar». «Quitar» la saca del área.'] },
+        { id: 'cambiar-plazos', title: 'Cambiar los días de una categoría o los plazos', audience: ['admin'], steps: ['«Atención» → «Áreas y plazos».', 'En «Categorías», cambia los «Días» de la categoría y toca «Guardar».', 'En «Plazos y avisos», cambia los días por prioridad y «Avisar de un caso sin movimiento después de (días)», y toca «Guardar los plazos».'] },
+      ],
+      cannot: {
+        boss: [
+          'No: tú no cambias las áreas ni los plazos. Los arma Administración; tú los lees, igual que la coordinación y auditoría.',
+        ],
+      },
+      faq: [
+        { q: '¿Qué hay en «Áreas y plazos»?', a: 'Las áreas y quién está en cada una, el área y los días de cada categoría, y los plazos por prioridad, con cuándo avisar de un caso sin movimiento.' },
+        { q: 'Si apago un área, ¿qué pasa con los casos?', a: 'Deja de recibir casos nuevos, y nada se borra.' },
+        { q: 'No me sale la persona para ponerla de responsable del área, ¿por qué?', a: { boss: 'Porque solo salen las personas que tienen el rol de responsable de área. Ese rol lo da Administración, en «Ajustes» → «Equipo».', admin: 'Porque solo salen las personas con el rol de responsable de área. Dáselo en «Ajustes» → «Equipo», con «Invitar a alguien» o «Cambiar».' } },
+        { q: '¿Cómo escondo una categoría para que la gente no la vea al hacer un reporte?', a: { boss: 'Desmarcando «En el formulario» en «Categorías», y «Guardar». Eso lo hace Administración.', admin: 'En «Categorías», desmarca «En el formulario» y toca «Guardar»: la categoría deja de salir en el formulario de la web.' } },
+        { q: 'Una categoría sin área, ¿a quién le llega?', a: 'A la coordinación, que la asigna.' },
+        { q: 'Si Urgente tiene 2 días y la categoría 15, ¿cuál vale?', a: 'El más corto: 2 días. Y si la prioridad no tiene días puestos, valen los de la categoría.' },
+        { q: '¿Quién más ve «Áreas y plazos»?', a: { boss: 'Lo arma Administración, y lo leen la coordinación, auditoría y tú.', admin: 'La coordinación, auditoría y el jefe: lo leen, y tú lo armas.' } },
+      ],
+      easy: { boss: 'Aquí se decide qué área atiende cada tipo de problema y cuántos días tiene. Lo arma Administración; tú lo miras.', admin: 'Aquí decides qué área atiende cada tipo de problema, quién está en cada área y cuántos días tiene cada caso.' },
+      example: 'Por ejemplo: se crea un área de vialidad, se le agrega su responsable, y la categoría de huecos va a esa área con 15 días; si un caso es Urgente, tiene 2.',
       blocks: [
         { kind: 'p', text: 'Lo arma Administración, que entra por «Atención» → «Áreas y plazos». La coordinación, auditoría y el jefe lo leen.' },
         {
@@ -464,6 +977,23 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'El mapa',
       heading: { level: 2, num: '20.' },
       audience: ['boss'],
+      screen: '/admin/atencion/mapa',
+      what: '«Mapa» muestra solo los casos con un punto que la persona marcó con su permiso. Las denuncias nunca van ahí. Carga solo al tocar «Ver el mapa», para ahorrar datos.',
+      items: [
+        'Se filtra con «Cuáles» (Las abiertas o Todas), «Categoría», «Área» y «Ver».',
+        'Debajo están «La lista de estos casos» y los que no tienen punto, contados en «Sin ubicación, por municipio».',
+      ],
+      cannot: {
+        admin: [
+          'No: tú no ves el mapa de los casos. Muestra el punto de cada caso, y tú nunca ves un caso.',
+        ],
+      },
+      faq: [
+        { q: '¿Qué casos salen en el mapa de atención?', a: 'Solo los que tienen un punto que la persona marcó con su permiso. Las denuncias nunca van al mapa: llevan solo el municipio y el sector.' },
+        { q: '¿Las denuncias salen en el mapa?', a: 'Nunca: una denuncia no lleva el punto exacto, solo el municipio y el sector.' },
+        { q: '¿Por qué no carga el mapa?', a: 'Porque carga solo al tocar «Ver el mapa», para ahorrar datos.' },
+        { q: '¿Y los casos que no tienen ubicación?', a: 'Están debajo, en «La lista de estos casos», y contados en «Sin ubicación, por municipio».' },
+      ],
       blocks: [
         { kind: 'p', text: '**«Mapa»** muestra solo los casos con un punto que la persona marcó **con su permiso**. Las denuncias nunca van ahí. Se filtra con «Cuáles» (Las abiertas o Todas), «Categoría», «Área» y «Ver». El mapa carga solo al tocar **«Ver el mapa»**, para ahorrar datos. Debajo están «La lista de estos casos» y los que no tienen punto, contados en «Sin ubicación, por municipio».' },
       ],
@@ -474,6 +1004,30 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'El registro',
       heading: { level: 2, num: '21.' },
       audience: ['admin'],
+      screen: '/admin/atencion/registro',
+      what: '«Registro de atención» dice quién hizo qué y cuándo: los cambios, los contactos vistos y las exportaciones. Es tuyo y de auditoría; no se edita ni se borra, y no guarda lo que dicen los casos.',
+      items: [
+        'Lo abres con «Registro de atención», desde tu «Atención».',
+        'Una línea que empieza con «La web» es lo que una persona hizo desde la web: una solicitud nueva, un apoyo, un mensaje o un archivo suyo.',
+        'Una que empieza con «La app» es algo que la app hizo sola, como las respuestas guardadas que trae o la revisión de un archivo.',
+        'Ajustes → «Registro de cambios» dice esas líneas con las mismas palabras.',
+        'También queda cada exportación de la lista: quién, cuándo y con qué filtros.',
+      ],
+      cannot: {
+        boss: [
+          'No: tú no ves el «Registro» de atención. Es de auditoría y de Administración.',
+        ],
+        admin: [
+          'No: nadie edita ni borra una línea del registro.',
+          'No: el registro no guarda lo que dicen los casos. Dice quién hizo qué y cuándo, y tú nunca ves un caso.',
+        ],
+      },
+      faq: [
+        { q: '¿Qué es el registro de atención?', a: 'Quién hizo qué y cuándo en la atención: los cambios, los contactos vistos y las exportaciones. No se edita ni se borra.' },
+        { q: '¿Dónde veo quién miró el contacto de una persona?', a: 'En el «Registro de atención»: dice quién lo miró y cuándo, nunca el contacto.' },
+        { q: 'En el registro hay líneas que dicen «La web» o «La app», ¿qué es eso?', a: '«La web» es lo que una persona hizo desde la web, como una solicitud nueva o un apoyo. «La app» es lo que la app hizo sola, como las respuestas guardadas que trae.' },
+        { q: '¿Dónde veo quién exportó la lista de solicitudes?', a: 'En el «Registro de atención»: cada exportación queda con quién, cuándo y con qué filtros.' },
+      ],
       blocks: [
         { kind: 'p', text: '**«Registro»** es de auditoría y de Administración, que lo abre con «Registro de atención». Dice quién hizo qué y cuándo: los cambios, los contactos vistos y las exportaciones. No se edita ni se borra, y no guarda lo que dicen los casos. Una línea que empieza con «La web» es lo que una persona hizo desde la web: una solicitud nueva, un apoyo, un mensaje o un archivo suyo. Una que empieza con «La app» es algo que la app hizo sola, como las respuestas guardadas que trae o la revisión de un archivo. Ajustes → «Registro de cambios» dice esas líneas con las mismas palabras.', wrap: [113, 116, 113, 118, 111] },
       ],
@@ -484,6 +1038,38 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Para practicar en la versión de prueba',
       heading: { level: 2, num: '22.' },
       audience: ['boss', 'admin'],
+      screen: '/admin/atencion',
+      what: 'Para practicar en la versión de prueba: «Acceso del personal», la tarjeta «Versión de demostración», «La web y la atención ciudadana», y se toca un rol. Se entra directo, sin código ni doble factor.',
+      items: [
+        'Para cambiar de rol: «Mi cuenta» (arriba a la derecha) → «Salir».',
+        '«Coordinador de atención»: ve todas, denuncias también. Prueba «Ver contacto», «Escribir» → «Respuesta a la persona» y «Pasar a» → «Cambiar el estado»; mira también «Tablero», «Mapa», «Cifras», «Respuestas guardadas» y «Descargar CSV».',
+        '«Responsable de área · Servicios públicos»: solo lo de su área (agua, luz, aseo…) o lo que le asignen, nunca denuncias. Prueba «Tomar el caso», una nota interna y «Subir evidencia».',
+        '«Responsable de área · Vialidad y transporte»: lo mismo, con vialidad y transporte. No ve los casos de otras áreas.',
+        '«Operador de denuncias»: solo las denuncias. Su mapa sale vacío, porque las denuncias nunca van al mapa.',
+        '«Consulta y auditoría»: todo menos las denuncias, sin contactos y sin poder cambiar nada: «Cifras», «Registro» y «Descargar CSV».',
+        { boss: 'Más arriba, en la misma tarjeta, están «El jefe» (lees las solicitudes y ves las cifras) y «Administración» (abre «Áreas y plazos», nunca un caso).', admin: 'Más arriba, en la misma tarjeta, están «El jefe» (lee las solicitudes y ve las cifras) y «Administración» (abres «Áreas y plazos», nunca un caso).' },
+        'Los comprobantes de prueba se abren en la web, en «Consultar mi solicitud», sin entrar al panel: un reporte de un hueco «En atención», uno resuelto y uno que «Requiere información». Sus códigos y sus claves están en la guía: yo no doy ni pido códigos ni claves.',
+        'El número del medio de cada código es el año en curso.',
+        'Lo que se crea o se cambia se borra cada cierto tiempo, y lo recién hecho puede no verse desde otra cuenta u otro teléfono: para practicar entre roles, lo mejor son los casos de ejemplo y los tres comprobantes.',
+      ],
+      cannot: {
+        boss: [
+          'No: yo no doy ni pido códigos ni claves, tampoco los de los comprobantes de prueba. Están en la guía de atención y se abren en «Consultar mi solicitud».',
+        ],
+        admin: [
+          'No: yo no doy ni pido códigos ni claves, tampoco los de los comprobantes de prueba. Están en la guía de atención y se abren en «Consultar mi solicitud».',
+        ],
+      },
+      faq: [
+        { q: '¿Cómo pruebo los roles de atención en la demo?', a: '«Acceso del personal», al final de la web → «Versión de demostración» → «La web y la atención ciudadana» → toca un rol: entras sin código. Para cambiar, «Mi cuenta» → «Salir».' },
+        { q: '¿Qué puedo probar como coordinador en la demo?', a: '«Ver contacto», «Escribir» → «Respuesta a la persona» y «Pasar a» → «Cambiar el estado», y también «Tablero», «Mapa», «Cifras», «Respuestas guardadas» y «Descargar CSV».' },
+        { q: '¿Qué ve el responsable de área en la prueba?', a: 'Solo lo de su área y lo que le asignen, nunca denuncias: puede probar «Tomar el caso», una nota interna y «Subir evidencia».' },
+        { q: '¿Por qué el mapa del operador de denuncias sale vacío?', a: 'Porque ve solo las denuncias, y una denuncia nunca va al mapa: no lleva el punto exacto. Por eso su mapa sale vacío.' },
+        { q: '¿Dónde se abren los comprobantes de prueba?', a: 'En la web, en «Consultar mi solicitud», sin entrar al panel.' },
+        { q: '¿Qué es el número que va en medio de los códigos?', a: 'El año en curso.' },
+        { q: 'Lo que hago en la demo, ¿se guarda para siempre?', a: 'No: se borra cada cierto tiempo, y la prueba vuelve a lo que traía. Para practicar entre roles, usa los casos de ejemplo y los tres comprobantes.' },
+        { q: '¿Qué pruebo yo en la demo?', a: { boss: 'Entra como «El jefe»: lees las solicitudes, sin denuncias ni contactos, y ves las cifras.', admin: 'Entra como «Administración»: abres «Áreas y plazos» y el «Registro de atención», nunca un caso.' } },
+      ],
       blocks: [
         {
           kind: 'steps',
@@ -532,6 +1118,21 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'Límites de hoy',
       heading: { level: 2, num: '23.' },
       audience: ['boss', 'admin'],
+      screen: '/admin/atencion',
+      what: 'Lo que la atención todavía no hace en la versión de prueba: no envía correos, no les pasa el antivirus a los archivos y no da los contactos de las autoridades ni un número de emergencias.',
+      items: [
+        'Por ahora la versión de prueba no envía correos: la persona sigue su caso en «Consultar mi solicitud».',
+        'Por ahora no les pasa el antivirus a los archivos que llegan: todos dicen «Sin analizar».',
+        'Cada archivo, el de la persona o la evidencia, va hasta 4 MB.',
+        'El tablero no arrastra tarjetas y muestra 12 por estado; la lista tiene todo.',
+        'No guarda filtros: para volver a la misma vista, se guarda en los favoritos del navegador.',
+        'La exportación trae hasta 5.000 solicitudes.',
+        'La web todavía no da los contactos de las autoridades ni un número de emergencias.',
+      ],
+      faq: [
+        { q: '¿Qué no hace todavía la versión de prueba de Atención?', a: 'No envía correos, no les pasa el antivirus a los archivos y la web todavía no da los contactos de las autoridades ni un número de emergencias.' },
+        { q: '¿Por qué los archivos dicen «Sin analizar»?', a: 'Porque la versión de prueba todavía no les pasa el antivirus. Cuando la web abra al público, solo se abrirá lo que diga «Revisado: limpio».' },
+      ],
       blocks: [
         {
           kind: 'list',

@@ -4,7 +4,7 @@
 
 <!-- Generado por `npm run docs:guides` desde src/lib/guides/ (admin.ts). No se edita a mano: se cambia la fuente y se corre otra vez. -->
 
-Administración es el rol técnico: invita al equipo y le da sus roles, cuida los ajustes de la app y el asistente 360. No decide, no aprueba y no escribe en la agenda. En la app: `/ayuda/administracion` (solo administración).
+Administración es el rol técnico: invita al equipo y le da sus roles, cuida los ajustes de la app y el asistente 360, y también los ajustes de la página web y las áreas y los plazos de la atención. No decide, no aprueba, no escribe en la agenda, no publica en la web y nunca abre un caso de la atención. En la app: `/ayuda/administracion` (solo administración).
 
 ## Lo que no es de administración
 - Mensajes no es para administración: no entras a los canales del equipo, y una cuenta con administración no entra a Mensajes aunque tenga otro rol.
@@ -112,6 +112,83 @@ Lees la agenda, «Por ponerle fecha», las obras y los municipios.
 - En el material de un evento, «Quitar» un archivo que no va.
 - No puedes: Crear eventos, ponerles fecha o decidirlos: eso es del jefe y del despacho.
 - No puedes: Ver los contactos ni los documentos de un reporte comunitario.
+
+### La web (`/admin/web`)
+«La web» es la pantalla del contenido: arriba, «Inicio», «Por aprobar», «Biblioteca», «Ajustes del sitio» y «Redirecciones». Tú la lees toda, borradores incluidos; tu «Web» abre directo «Ajustes del sitio».
+
+- La pestaña «Por aprobar» dice cuántos contenidos esperan aprobación, por ejemplo «Por aprobar (2)».
+- En «Inicio», cuatro números: «Borradores», «Esperan aprobación», «Programados» y «Publicados».
+- Si algo espera aprobación, debajo de los números sale «Esperando aprobación», con «Ver todo»: lo revisa el aprobador o el jefe, y tú lo lees.
+- «Contenido»: una tarjeta por tipo, con cuántos hay en la web, en borrador, en revisión y programados.
+- Tú no escribes, no envías a aprobación ni publicas desde «La web». Lo hacen el editor de la web, el aprobador y el jefe; tú lo lees todo.
+
+### Por aprobar de la web (`/admin/web/por-aprobar`)
+«Por aprobar» lista lo que espera aprobación, lo más viejo primero. Ahí deciden el aprobador de la web y el jefe; tú lo lees, pero no apruebas.
+
+- Cada línea dice si es «primera publicación» o «cambios a algo publicado», quién lo envió y cuándo.
+- Al abrirlo: quién lo envió, el último cambio y, si está en la web, cuándo se publicó; «Ver la vista previa», «Abrir el editor», «Versiones» y «Verlo en la web».
+- «Le falta esto para publicarse» dice lo que falta. Mientras falte algo, «Publicar ahora» no se puede tocar.
+- «Qué cambia si lo publicas» compara campo por campo, con «Antes» y «Ahora», y etiquetas «Nuevo», «Quitado», «Cambió», «Se oculta» y «Se muestra». En una página, también los bloques y su orden. Si es la primera vez, dice que todo es nuevo.
+- Tú no apruebas ni publicas en la web. Deciden el aprobador de la web y el jefe: «Publicar ahora», «Programar» o «Devolver con comentario».
+- Tú no devuelves contenidos. Los devuelven el aprobador de la web y el jefe, con «Qué hay que cambiar» y «Devolver con comentario».
+
+### Biblioteca de la web (`/admin/web/biblioteca`)
+La «Biblioteca» guarda las fotos y los PDF de la web. Todo lo que está ahí es público. Suben el editor de la web, el aprobador y el jefe; tú la lees.
+
+- Nunca fotos ni archivos de las personas que escriben a Atención, ni cédulas, ni documentos privados, ni menores sin permiso. Los archivos de las solicitudes van aparte, en privado, y nunca pasan por aquí.
+- Solo se aceptan fotos JPG, PNG o WebP, y cada archivo va hasta 4 MB, también los PDF. Si pesa más, sale «El archivo pasa de 4 MB: súbelo más liviano.».
+- «Texto alternativo» (obligatorio): lo oyen las personas ciegas, con un programa que les lee la pantalla en voz alta, y lo usan buscadores como Google. Describe lo que se ve en pocas palabras: quién, qué hace, dónde.
+- «Buscar» busca en el texto alternativo, el pie, el crédito o el título; también están «Tipo» (Todo, Fotos, Documentos) y «Archivados». Cada archivo dice «Sin usar» o en cuántos contenidos se usa, por ejemplo «Se usa en 1 contenido».
+- Tú no subes fotos ni PDF a la biblioteca. Suben el editor de la web, el aprobador y el jefe, con «Subir una foto» o «Subir un PDF»; tú la lees.
+
+### Ajustes del sitio (`/admin/web/ajustes`)
+«Ajustes del sitio» es lo fijo de la web: el menú, el pie, los contactos, las cuentas, los canales y el nombre. Tu «Web» abre directo aquí: lo que guardas sale en la web al momento, sin aprobación.
+
+- Lo cambian el aprobador de la web, el jefe y Administración. Cada sección tiene su «Guardar», y al guardar dice «Guardado. La web ya lo muestra.».
+- «Navegación»: el menú de la web, en orden («Agregar enlace»), cada enlace con su «Nombre» y su «Dirección», el final de la dirección, que empieza con «/». La de «Gestión y obras» es «/gestion».
+- «Pie de página»: un texto corto y los enlaces legales («Agregar enlace legal»).
+- «Contactos institucionales»: teléfonos, correos o direcciones («Agregar contacto»). Solo salen los marcados «Verificado».
+- «Cuentas en redes»: red, usuario y enlace de cada cuenta («Agregar cuenta»), con «Verificada», «Activa» y una «Nota interna (no sale en la web)». Una cuenta abandonada se apaga: con «Activa» sin marcar, nunca sale.
+- Aquí nunca va un teléfono, un correo o una cuenta que nadie del equipo confirmó, porque sale en la web al momento.
+- Los «Avisos legales», como el aviso de emergencias, no se cambian aquí. Son textos fijos; cuando la Gobernación confirme el número oficial de emergencias, se agregará a ese aviso en todas partes.
+- La franja «Versión de prueba en revisión. No es el sitio oficial.» no se cambia mientras la web sea de prueba.
+
+### Redirecciones (`/admin/web/redirecciones`)
+Las redirecciones llevan una dirección vieja a la nueva, para que ningún enlace guardado o compartido se pierda. Las ven y las cambian el aprobador de la web, el jefe y Administración.
+
+- La dirección vieja puede ser de la web anterior o una de esta web que cambió.
+- «Nueva redirección»: en «Dirección vieja», la dirección como estaba; en «Lleva a», la página de esta web adonde debe llevar. En ambas va solo el final de la dirección, el que empieza con «/».
+- En «Tipo» se deja la opción que viene marcada, «Para siempre (lo normal)». Debajo dice cuándo sirven las otras, como «Por un tiempo», si la dirección vieja se va a volver a usar.
+- Se toca «Agregar la redirección», y sale «Redirección guardada. La dirección vieja ya lleva a la nueva.».
+- Una página que todavía existe en la web no se redirige. No se puede redirigir una dirección que la web ya usa, ni hacer dos redirecciones desde la misma dirección.
+
+### Atención ciudadana (`/admin/atencion`)
+Tu «Atención» no abre la bandeja: muestra «Áreas y plazos» y «Registro de atención». Administración nunca lee las solicitudes ni sus contactos.
+
+- En «Áreas y plazos» armas las áreas, quién está en cada una, el área y los días de cada categoría y los plazos. El «Registro de atención» dice quién hizo qué y cuándo, sin lo que dicen los casos.
+- Las pestañas de los casos, «Bandeja», «Tablero» y «Mapa», son de quienes los leen: la coordinación, los responsables de área, denuncias, auditoría y el jefe; «Cifras», de la coordinación, auditoría y el jefe.
+- Las personas de la atención (coordinación, responsables de área, denuncias y auditoría) se invitan en «Ajustes» → «Equipo», siempre con doble factor.
+- Tú no ves la bandeja ni los casos que llegan. Tu «Atención» muestra «Áreas y plazos» y el «Registro de atención».
+
+### Áreas y plazos (`/admin/atencion/areas`)
+«Áreas y plazos» es lo que armas para que la atención funcione: las áreas, quién está en cada una, el área y los días de cada categoría y los plazos. La coordinación, auditoría y el jefe lo leen.
+
+- «Nueva área»: «Nombre del área» y «Qué atiende» → «Crear el área». Para cambiar una: «Cambiar el nombre o apagarla» → «Guardar el área».
+- Para apagar un área: «Cambiar el nombre o apagarla», se desmarca «Activa (apagada, no recibe casos nuevos; nada se borra)» y «Guardar el área».
+- Responsables: «Agregar un responsable» → la persona → «Agregar». «Quitar» la saca del área. Solo salen las personas que tienen el rol de responsable de área.
+- «Categorías»: a qué área va cada una y sus «Días» → «Guardar». Sin área, la asigna la coordinación. «En el formulario» decide si la categoría sale en el formulario de la web.
+- «Plazos y avisos»: los días por prioridad y «Avisar de un caso sin movimiento después de (días)» → «Guardar los plazos».
+- Entre los días de la prioridad y los de la categoría gana el más corto. Si la prioridad está vacía, valen los de la categoría.
+
+### Registro de atención (`/admin/atencion/registro`)
+«Registro de atención» dice quién hizo qué y cuándo: los cambios, los contactos vistos y las exportaciones. Es tuyo y de auditoría; no se edita ni se borra, y no guarda lo que dicen los casos.
+
+- Lo abres con «Registro de atención», desde tu «Atención».
+- Una línea que empieza con «La web» es lo que una persona hizo desde la web: una solicitud nueva, un apoyo, un mensaje o un archivo suyo.
+- Una que empieza con «La app» es algo que la app hizo sola, como las respuestas guardadas que trae o la revisión de un archivo.
+- Ajustes → «Registro de cambios» dice esas líneas con las mismas palabras.
+- Nadie edita ni borra una línea del registro.
+- El registro no guarda lo que dicen los casos. Dice quién hizo qué y cuándo, y tú nunca ves un caso.
 
 ## Preguntas
 **Alguien perdió el teléfono, ¿qué hago?**

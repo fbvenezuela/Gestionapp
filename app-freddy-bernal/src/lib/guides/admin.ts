@@ -2,10 +2,11 @@
 // The technical role: the settings, the team's accounts and 360's panel. It never reads Mensajes.
 import { BOSS_GRANT_MESSAGE } from '../roles';
 import type { AdminGuide } from './types';
+import { webSectionsFor } from './web/panel';
 
 export const ADMIN_GUIDE: AdminGuide = {
   mission:
-    'Administración es el rol técnico: invita al equipo y le da sus roles, cuida los ajustes de la app y el asistente 360. No decide, no aprueba y no escribe en la agenda.',
+    'Administración es el rol técnico: invita al equipo y le da sus roles, cuida los ajustes de la app y el asistente 360, y también los ajustes de la página web y las áreas y los plazos de la atención. No decide, no aprueba, no escribe en la agenda, no publica en la web y nunca abre un caso de la atención.',
   sections: [
     {
       screen: '/ajustes/equipo',
@@ -95,6 +96,9 @@ export const ADMIN_GUIDE: AdminGuide = {
       youDo: ['Puedes crear y completar fichas de obra.', 'En el material de un evento, «Quitar» un archivo que no va.'],
       cannot: ['Crear eventos, ponerles fecha o decidirlos: eso es del jefe y del despacho.', 'Ver los contactos ni los documentos de un reporte comunitario.'],
     },
+    // «Web» and «Atención» (APP-42): told by the web's own guide (src/lib/guides/web/panel.ts), so this guide, «Ayuda y
+    // guías» → «La web» / «Atención ciudadana» and 360 say one thing.
+    ...webSectionsFor('admin').map((s) => ({ screen: s.screen, title: s.title, what: s.what, youDo: s.youDo })),
   ],
   notes: [
     'Mensajes no es para administración: no entras a los canales del equipo, y una cuenta con administración no entra a Mensajes aunque tenga otro rol.',

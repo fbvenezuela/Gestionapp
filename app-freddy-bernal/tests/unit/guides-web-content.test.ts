@@ -236,14 +236,21 @@ describe('las reglas de las guías también en la web (check.ts)', () => {
     expect(hasReceiptCode('Busca AC-2026-K7')).toBe(true);
   });
 
-  it('los campos de 360 (vacíos hasta la próxima ronda) siguen las mismas reglas, sin códigos ni claves', () => {
+  it('los campos de 360 siguen las mismas reglas: etiquetas de la pantalla, sin fechas, horas, teléfonos, códigos ni claves, nada interno, «tú»', () => {
+    const bad: string[] = [];
+    const internal = /\bnpm\b|\.tsx?\b|\.md\b|\bsrc\/|base de datos|\bservidor|supabase|\bfase\b|\bD-\d+\b|la plataforma|[—–]/i;
     for (const t of FACETS) {
-      expect(balancedQuotes(t.text), t.where).toBe(true);
-      for (const l of quotedLabels(t.text)) expect(labelFound(l), `${t.where}: «${l}»`).toBe(true);
-      expect(concreteDateTime(t.text) || hasPhone(t.text) || hasReceiptCode(t.text), `${t.where}: ${t.text}`).toBe(false);
-      // 360 talks to the team with «tú»; «usted» only inside what it quotes from the citizen's screens.
-      expect(t.text.replace(/«[^«»]*»/g, ''), t.where).not.toMatch(/\[§|\busted\b/i);
+      if (!balancedQuotes(t.text)) bad.push(`${t.where}: «» sin cerrar: ${t.text}`);
+      for (const l of quotedLabels(t.text)) if (!labelFound(l)) bad.push(`${t.where}: «${l}»`);
+      if (concreteDateTime(t.text) || hasPhone(t.text) || hasReceiptCode(t.text)) bad.push(`${t.where}: fecha, hora, teléfono o código: ${t.text}`);
+      if (internal.test(t.text)) bad.push(`${t.where}: algo interno: ${t.text}`);
+      for (const w of DEMO_WORDS) if (t.text.includes(w)) bad.push(`${t.where}: ${w}`);
+      // 360 talks to the team with «tú»; «usted» only inside what it quotes from the citizen's screens, or as the name of
+      // the register the web uses with the citizen («la web le habla de usted»). Never a reference marker.
+      if (/\[§|\busted\b/i.test(t.text.replace(/«[^«»]*»/g, '').replace(/\bde usted\b/gi, ''))) bad.push(`${t.where}: ${t.text}`);
     }
+    expect(bad).toEqual([]);
+    expect(FACETS.length).toBeGreaterThan(1000);
   });
 });
 
