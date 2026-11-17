@@ -188,6 +188,24 @@ describe('lo que manda la gente por la web (paso C)', () => {
   });
 });
 
+describe('lo que la gente pregunta de la web y la guía dice en otra parte', () => {
+  it('las dos guías, las etiquetas de «Redirecciones», las líneas del registro y el buscador de arriba', async () => {
+    const guide = await ask('boss', 'web y atencion tienen su guia?');
+    expect(guide.answer).toMatch(/«Guía de la web».*«Guía de atención ciudadana».*«Ayuda y guías»/);
+    expect(guide.goTo?.href).toBe('/ayuda/web');
+    // A team role: whose they are, nothing more (step D2).
+    expect((await ask('social', '¿dónde está la guía de atención?')).answer).toBe(WEB_NOT_YOURS);
+    const chips = await ask('boss', 'q significa de la web vieja en redirecciones');
+    expect(chips.answer).toMatch(/«De la web vieja».*solas.*«A mano»/);
+    const lines = await ask('admin', 'en el registro hay lineas que no dicen nombre sino la web o la app, que es eso', [], '/admin/atencion/registro');
+    expect(lines.answer).toMatch(/«La web».*desde la web.*«La app».*sola/);
+    expect(lines.answer).not.toMatch(/Registro de cambios/);
+    const search = await ask('admin', 'por que el buscador de arriba no les sirve a los de la web');
+    expect(search.answer).toMatch(/no tienen el buscador de arriba/);
+    expect(search.answer).not.toMatch(/pieza/);
+  });
+});
+
 describe('la web para quien no la tiene en su menú (paso D2) y las palabras de la app (paso W)', () => {
   it('a un rol del equipo: de quién es, sin pasos ni botón de la web', async () => {
     const r = await ask('social', 'como subo una noticia a la web');

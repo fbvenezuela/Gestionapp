@@ -98,6 +98,80 @@ export const WEB: Answer[] = [
     ],
     a: 'El contacto de la persona lo ven solo quienes atienden su caso: la coordinación, el responsable de su área o a quien se lo asignen y, si es una denuncia, el operador de denuncias. Al verlo queda registrado quién lo miró y cuándo. Tú no lo ves, y auditoría tampoco.',
   },
+  // Where the two guides are, for whoever has them (a team role hears the fixed line of local.ts, step D2).
+  {
+    id: 'web-guia',
+    roles: ['boss', 'admin'],
+    q: ['web y atencion tienen su guia', 'la web tiene guia', 'hay una guia de la web', 'hay guia de la web', 'tiene manual la web', 'donde explican como funciona la web', 'la web tiene su propia guia'],
+    a: 'Sí: la «Guía de la web» y la «Guía de atención ciudadana» están en «Ayuda y guías», aparte de tu guía. Cuentan cada pantalla de «Web» y de «Atención», quién hace qué y sus flujos.',
+    go: '/ayuda/web',
+  },
+  {
+    id: 'atencion-guia',
+    roles: ['boss', 'admin'],
+    q: ['hay una guia de atencion ciudadana', 'hay guia de atencion', 'atencion tiene guia', 'tiene manual atencion', 'donde explican como funciona atencion', 'atencion ciudadana tiene su propia guia'],
+    a: 'Sí: la «Guía de atención ciudadana» y la «Guía de la web» están en «Ayuda y guías», aparte de tu guía. Cuentan cada pantalla de «Atención» y de «Web», quién hace qué y sus flujos.',
+    go: '/ayuda/atencion',
+  },
+  // The web's and the desk's roles have no search box at the top (the panel's layout): it finds the team's work.
+  {
+    id: 'web-roles-sin-buscador',
+    roles: ['boss', 'admin'],
+    q: [
+      'por que a los de la web no les sirve el buscador de arriba',
+      'por que el buscador de arriba no les sirve a los de la web',
+      'los de la web tienen el buscador de arriba',
+      'por que los de atencion no tienen el buscador',
+      'por que no le sale el buscador a los de la web',
+      'el editor de la web puede usar el buscador de arriba',
+    ],
+    a: 'No: las personas de la web y de la atención no tienen el buscador de arriba. Busca lo del equipo, y ellas solo tienen «Web» o «Atención» en el menú; lo usan el equipo y Administración.',
+  },
+  // The chips of «Redirecciones» (APP-13): where each one came from.
+  {
+    id: 'web-redirecciones-origen',
+    roles: ['boss', 'admin'],
+    q: [
+      'que significa de la web vieja en redirecciones',
+      'que significa de la web vieja',
+      'que significa a mano en redirecciones',
+      'que diferencia hay entre de la web vieja y a mano',
+      'que es de la web vieja y a mano',
+      'por que unas redirecciones dicen de la web vieja',
+      'que quiere decir a mano en las redirecciones',
+    ],
+    a: 'En «Redirecciones», cada una dice de dónde salió: las «De la web vieja» se hicieron solas al traer las noticias de la web anterior, y las «A mano» las hizo alguien del equipo. Ninguna cambia sola.',
+    go: '/admin/web/redirecciones',
+  },
+  // The lines of «Registro de atención» that name no one (APP-12): the web or the app.
+  {
+    id: 'atencion-registro-la-web-la-app',
+    roles: ['admin'],
+    q: [
+      'en el registro hay lineas que no dicen nombre sino la web o la app',
+      'que es la web en el registro de atencion',
+      'que significa la app en el registro de atencion',
+      'por que el registro dice la web',
+      'por que el registro dice la app',
+      'quien es la web en el registro',
+      'lineas del registro que dicen la web o la app',
+    ],
+    a: 'En «Registro de atención», una línea que empieza con «La web» es lo que una persona hizo desde la web: una solicitud nueva, un apoyo, un mensaje o un archivo suyo. Una que empieza con «La app» es algo que la app hizo sola, como las respuestas guardadas que trae o la revisión de un archivo.',
+    go: '/admin/atencion/registro',
+  },
+  // The saved replies that come with the app speak to the person as «usted» (APP-21).
+  {
+    id: 'atencion-respuestas-de-usted',
+    roles: ['boss', 'admin'],
+    q: [
+      'las respuestas guardadas que trae la app estan de tu o de usted',
+      'las respuestas guardadas estan de usted',
+      'las respuestas guardadas le hablan de tu a la persona',
+      'hay que cambiar las respuestas guardadas a usted',
+      'como le hablan las respuestas guardadas a la persona',
+    ],
+    a: 'Las respuestas guardadas que trae la app ya le hablan de usted a la persona, como todo lo que ella lee: no hay que cambiarlas. Las arma y las cambia la coordinación, en «Respuestas guardadas».',
+  },
   {
     id: 'atencion-jefe-solo-lee',
     roles: ['boss'],
