@@ -834,12 +834,15 @@ function facetEntries(x: WebFacets & { id: string; title: string; audience: Audi
   const safe = (t: string) => !hasReceiptCode(t);
   for (const t of x.tasks ?? []) {
     if (!t.steps.every(safe)) continue;
+    // A how-to that only one of the section's readers does (WebTask.audience: the boss writes and publishes, Administración
+    // gives the roles) goes to that one only, with its steps; the other one is told the section's `cannot` for them.
+    const tb = t.audience ? { ...base, roles: audienceRoles(t.audience) } : base;
     const id = `${prefix}:tarea:${t.id}`;
     const steps = t.steps.map((st) => webSaid(st));
-    out.push({ ...base, id, kind: 'task', q: [webPlain(t.title), `como ${webPlain(t.title)}`, ...(t.when ? [webPlain(t.when)] : [])], a: stepsAnswer(webSaid(t.title), steps) });
+    out.push({ ...tb, id, kind: 'task', q: [webPlain(t.title), `como ${webPlain(t.title)}`, ...(t.when ? [webPlain(t.when)] : [])], a: stepsAnswer(webSaid(t.title), steps) });
     steps.forEach((st, k) => {
       const nx = steps[k + 1];
-      out.push({ ...base, id: `${id}:${k + 1}`, kind: 'step', q: askedLabels(webPlain(t.steps[k])), doc: `${webPlain(t.title)}. ${webPlain(t.steps[k])}`, a: `Para ${lcFirst(webSaid(t.title))}: ${lcFirst(end(st))}${nx && st.length < 90 ? ` Después: ${lcFirst(end(nx))}` : ''}`, ...(nx ? { next: `${id}:${k + 2}` } : {}) });
+      out.push({ ...tb, id: `${id}:${k + 1}`, kind: 'step', q: askedLabels(webPlain(t.steps[k])), doc: `${webPlain(t.title)}. ${webPlain(t.steps[k])}`, a: `Para ${lcFirst(webSaid(t.title))}: ${lcFirst(end(st))}${nx && st.length < 90 ? ` Después: ${lcFirst(end(nx))}` : ''}`, ...(nx ? { next: `${id}:${k + 2}` } : {}) });
     });
   }
   for (const [aud, list] of Object.entries(x.cannot ?? {}) as [Audience, string[]][]) {
