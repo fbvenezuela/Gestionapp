@@ -1,4 +1,5 @@
-// All of 360's answers (types.ts), in one list: everyone's first, then administración and the six roles.
+// All of 360's answers (types.ts), in one list: everyone's first, then administración, the six roles, and what the boss
+// and administración do in «Web» and «Atención».
 import { ADMIN } from './admin';
 import { BOSS } from './boss';
 import { CAMERA } from './camera';
@@ -7,11 +8,12 @@ import { IVT } from './ivt';
 import { POLITICS } from './politics';
 import { SOCIAL } from './social';
 import { TODOS } from './todos';
+import { WEB } from './web';
 import type { Answer } from './types';
 
 export type { Answer, AnswerText } from './types';
 
-export const ANSWERS: Answer[] = [...TODOS, ...ADMIN, ...BOSS, ...DISPATCH, ...POLITICS, ...IVT, ...SOCIAL, ...CAMERA];
+export const ANSWERS: Answer[] = [...TODOS, ...ADMIN, ...BOSS, ...DISPATCH, ...POLITICS, ...IVT, ...SOCIAL, ...CAMERA, ...WEB];
 
 /** The entries by file, for the content test's messages. */
-export const ANSWER_FILES: Record<string, Answer[]> = { todos: TODOS, admin: ADMIN, boss: BOSS, dispatch: DISPATCH, politics: POLITICS, ivt: IVT, social: SOCIAL, camera: CAMERA };
+export const ANSWER_FILES: Record<string, Answer[]> = { todos: TODOS, admin: ADMIN, boss: BOSS, dispatch: DISPATCH, politics: POLITICS, ivt: IVT, social: SOCIAL, camera: CAMERA, web: WEB };

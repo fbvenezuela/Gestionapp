@@ -640,10 +640,13 @@ function adminEntries(): Entry[] {
 // the flows as its button; «¿Sigo?» when more steps follow (a «sí» or «¿y después?» walks them: explain.ts). Asked
 // «¿cómo es el camino de un evento?», «¿cuál es el flujo del mes de Redes?», «¿quién hace qué en los tweets?».
 const STORY_STEPS = 4;
+const STORY_ASK = /\b(?:flujos?|camino|de punta a punta|quien hace que|por donde pasa|el proceso|todo el proceso|los pasos de todo|en que orden)\b/;
 const STORY_LETTERS = 400;
+// (The title alone only when it says a journey, «Un evento, de la agenda a la publicación»: «El semáforo» or «Tweets de la
+// semana» asked alone is what the word means or how it works, the glossary's and the curated answers'.)
 function storyAsks(title: string): string[] {
   const noun = lcFirst(title.split(/,\s/)[0]);
-  return [title, `el camino de ${noun}`, `como es el camino de ${noun}`, `cual es el flujo de ${noun}`, `el flujo de ${noun}`, `como funciona el flujo de ${noun}`, `quien hace que en ${noun}`, `por donde pasa ${noun}`];
+  return [...(title.includes(', ') ? [title] : []), `el camino de ${noun}`, `como es el camino de ${noun}`, `cual es el flujo de ${noun}`, `el flujo de ${noun}`, `como funciona el flujo de ${noun}`, `quien hace que en ${noun}`, `por donde pasa ${noun}`];
 }
 /** The first clause of a step («Graba, sube cada parte… Cuando ya empezó, «Marcar realizado».» → its first sentence). */
 const firstSentence = (t: string) => {
@@ -696,8 +699,6 @@ function webDomain(pdf: string, id: string): Domain {
 // does not say it: «¿qué es esto?» there, a small bonus there, and «Ir a…».
 const SECTION_SCREENS: Record<string, string[]> = {
   'pantalla-la-web': ['/admin/web'],
-  'listas-y-etiquetas': ['/admin/web/contenido/[tipo]'],
-  'crear-contenido': ['/admin/web/contenido/[tipo]/nuevo'],
   editor: ['/admin/web/editar/[id]'],
   'vista-previa': ['/admin/web/vista-previa/[id]'],
   aprobar: ['/admin/web/por-aprobar', '/admin/web/revisar/[id]'],
@@ -1360,11 +1361,12 @@ export function askedTerm(question: string, roles: Role[]): Entry | null {
   const ix = index();
   const a = askedOf(question);
   if (!a) return null;
-  if ((ix.asked.get(a.text) ?? []).some((x) => x.kind !== 'term' && forRoles(x, roles))) return null;
+  // (Only the team's own: a section of the web's guide titled like the word, «Programar», is the web's, asked with it.)
+  if ((ix.asked.get(a.text) ?? []).some((x) => x.kind !== 'term' && (x.domain ?? 'equipo') === 'equipo' && forRoles(x, roles))) return null;
   // Without the polite words before it and where it is said after it («… en la app», «… en Redes»).
   const text = a.text
     .replace(/^(?:(?:y|e|oye|bueno|mira|chamo|porfa|por favor) )*(?:explicame|explica|explicanos|dime|me dices|me explicas|sabes|quisiera saber|quiero saber|me puedes decir|podrias decirme)\b\s*/, '')
-    .replace(/ (?:en|de|del) (?:la app|la aplicacion|redes|la web|el panel|la pantalla|aqui)$/, '')
+    .replace(/ (?:en|de|del) (?:la app|la aplicacion|redes|el panel|la pantalla|aqui)$/, '')
     .trim();
   const quoted = labelsOf(question).map((l) => readable(l));
   for (const t of [a.text, text]) {
@@ -1460,7 +1462,8 @@ function rank(question: string, o: FindOptions): Match[] {
   // An answer for this person written for exactly this question («¿qué es el feed?» of the IVT: «Son cosas de Redes…»;
   // «¿qué es FAB?» of Redes: the copy's formula; «¿qué son los pilares?» of administración: «Los pones tú…»): a word of
   // «Palabras de la app» does not go before it, its meaning stays behind (13/11).
-  const ownExact = [...exactly].some((x) => x.kind !== 'term' && forRoles(x, o.roles));
+  // (The team's own: a section of the web's guide asked with the word's name, «¿qué es programar?», does not count.)
+  const ownExact = [...exactly].some((x) => x.kind !== 'term' && (x.domain ?? 'equipo') === 'equipo' && forRoles(x, o.roles));
   const termSure = TERM_SURE.has(a.kind) && !howTo;
   // The words of «Palabras de la app» asked what they mean by one of their names (below): sure answers.
   const named = new Set<Entry>();
@@ -1499,10 +1502,14 @@ function rank(question: string, o: FindOptions): Match[] {
     // and the web's need to beat them clearly.
     const ed = e.domain ?? 'equipo';
     const qd = o.domain ?? null;
-    if (qd) s = ed === qd ? s + SAME_DOMAIN : ed === 'equipo' ? s * OTHER_DOMAIN : s + SIBLING_DOMAIN;
+    // (A word of «Palabras de la app» is everyone's: «¿qué es web y atención?» is its meaning.)
+    if (qd) s = ed === qd ? s + SAME_DOMAIN : ed === 'equipo' ? (e.kind === 'term' ? s : s * OTHER_DOMAIN) : s + SIBLING_DOMAIN;
     else if (ed !== 'equipo') s *= NO_DOMAIN;
     // A rule of the web's guide answers «¿por qué…?» first.
     if (e.kind === 'rule' && why) s += 0.03;
+    // A whole flow told as a story is for a question about the way («¿cuál es el flujo…?», «¿cómo es el camino…?»,
+    // «¿quién hace qué…?»): «¿cómo funciona el semáforo?» is what its colours mean.
+    if (e.kind === 'flowStory' && !STORY_ASK.test(a.text)) s *= 0.8;
     if (e.kind === 'term') {
       // (A label quoted in the question, «¿qué es «Sin pilar»?», that is not one of its names: another question.)
       const says = saysName(e, a.text) && (!quoted.length || quoted.some((l) => (e.names ?? []).some((n) => formsOf(n).includes(l))));

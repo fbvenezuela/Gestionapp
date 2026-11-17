@@ -99,14 +99,10 @@ export function toApi(r: TurnResult): ApiAnswer {
   return { respuesta: r.answer, ambito: r.scope, modelo: r.model, ms: r.ms, degradado: r.degraded, hizo: r.did, ir: r.goTo, tutorial, conversacion: r.conversationId };
 }
 
-/** The screen the window says the person is on, only when it is a pattern of SCREENS as it is (never an id). A list of
- * the web's administrator by its kind of content («/admin/web/contenido/noticias», a fixed word, never an id) is its
- * pattern. */
+/** The screen the window says the person is on, only when it is a pattern of SCREENS as it is (never an id). */
 export function screenOf(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  const s = screenFor(raw);
-  if (s?.href === raw) return raw;
-  return s && /^\/admin\/web\/contenido\/[a-z-]{2,30}(?:\/nuevo)?$/.test(raw) ? s.href : null;
+  return screenFor(raw)?.href === raw ? raw : null;
 }
 
 // The fichas of the turn: the database's (null when they could not be read: the prompt says so), and the section

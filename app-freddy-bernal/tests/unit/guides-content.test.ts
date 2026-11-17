@@ -7,7 +7,8 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { SCREENS, canOpen, screenFor } from '@/lib/assistant/screens';
+import { SCREENS, canOpen, domainOfScreen, screenFor } from '@/lib/assistant/screens';
+import { entryForScreen } from '@/lib/assistant/answers/engine';
 import { ROLES, TEAM_ROLES, type TeamRole } from '@/lib/roles';
 import { ADMIN_GUIDE, FLOWS, GLOSSARY, SHARED, TOURS, allGuides, glossaryLine, guideFor, sectionCards } from '@/lib/guides';
 import {
@@ -175,7 +176,9 @@ describe('cada pantalla de cada rol tiene su sección', () => {
       // The web's and Atención's guides (WF-C) are rows of «La guía de cada persona», like the role guides (/ayuda/[id]):
       // the boss's «Ayuda y guías» section names them (the test below), not a section of their own.
       const guides = new Set(WEB_GUIDE_ROWS.map((r) => r.href));
-      const want = SCREENS.filter((s) => !s.href.includes('[') && !s.href.startsWith('/ajustes') && !guides.has(s.href) && canOpen(s.href, [role])).map((s) => s.href);
+      // The panel's «Web» and «Atención» screens are explained by their own guide (WF-C, the test below), not by a
+      // section of the team's.
+      const want = SCREENS.filter((s) => !s.href.includes('[') && !s.href.startsWith('/ajustes') && !guides.has(s.href) && domainOfScreen(s.href) === 'equipo' && canOpen(s.href, [role])).map((s) => s.href);
       const important: Record<TeamRole, string[]> = {
         boss: ['/eventos/[id]', '/piezas/[id]', '/aprobar/[id]', '/obras/[id]', '/reportes/[id]', '/publicar/[id]', '/tweets/[id]', '/mensajes/[id]'],
         dispatch: ['/eventos/[id]', '/obras/[id]', '/reportes/[id]', '/mensajes/[id]'],
@@ -185,6 +188,18 @@ describe('cada pantalla de cada rol tiene su sección', () => {
         social: ['/eventos/[id]', '/piezas/[id]', '/publicar/[id]', '/tweets/[id]', '/mensajes/[id]'],
       };
       expect([...want, ...important[role]].filter((h) => !have.has(h))).toEqual([]);
+    });
+
+    it(`${g.label}: cada pantalla de «Web» y de «Atención» que abre tiene su sección en la guía de la web`, () => {
+      // (The guides themselves, «/ayuda/web» and «/ayuda/atencion», are rows of «La guía de cada persona»: above.)
+      const guides = new Set(WEB_GUIDE_ROWS.map((r) => r.href));
+      const web = SCREENS.filter((s) => domainOfScreen(s.href) !== 'equipo' && !guides.has(s.href) && canOpen(s.href, [role])).map((s) => s.href);
+      if (role !== 'boss') expect(web).toEqual([]);
+      const bare = web.filter((h) => {
+        const e = entryForScreen(h, [role]);
+        return !e || (e.domain ?? 'equipo') === 'equipo';
+      });
+      expect(bare).toEqual([]);
     });
 
     it(`${g.label}: tutoriales y flujos que existen; slug y cuenta`, () => {

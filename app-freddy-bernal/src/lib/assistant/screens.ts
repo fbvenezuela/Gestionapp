@@ -85,9 +85,7 @@ const WEB_SCREENS: Screen[] = [
   { href: '/admin/atencion/estadisticas', label: 'Cifras de atención', roles: ['attention_coordinator', 'auditor', 'boss'], file: '(panel)/admin/atencion/estadisticas/page.tsx', phrases: ['cifras de atencion'], nav: ['cifras de atencion', 'estadisticas de atencion'], about: 'cuánto llega, cuánto se resuelve y en cuánto tiempo' },
   { href: '/admin/atencion/areas', label: 'Áreas y plazos', roles: ['admin', 'attention_coordinator', 'auditor', 'boss'], file: '(panel)/admin/atencion/areas/page.tsx', phrases: ['areas y plazos'], nav: ['areas y plazos', 'plazos de atencion'], about: 'las áreas que atienden, quién está en cada una y los plazos' },
   { href: '/admin/atencion/registro', label: 'Registro de atención', roles: ['auditor', 'admin'], file: '(panel)/admin/atencion/registro/page.tsx', phrases: ['registro de atencion'], nav: ['registro de atencion'], about: 'quién hizo qué y cuándo en Atención' },
-  // Reached only with an id (or the kind of content in the address).
-  { href: '/admin/web/contenido/[tipo]', label: 'Abrir la lista de la web', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/contenido/[tipo]/page.tsx', phrases: [] },
-  { href: '/admin/web/contenido/[tipo]/nuevo', label: 'Abrir un contenido nuevo', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/contenido/[tipo]/nuevo/page.tsx', phrases: [] },
+  // Reached only with an id.
   { href: '/admin/web/editar/[id]', label: 'Abrir el editor', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/editar/[id]/page.tsx', phrases: [] },
   { href: '/admin/web/editar/[id]/versiones', label: 'Abrir las versiones', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/editar/[id]/versiones/page.tsx', phrases: [] },
   { href: '/admin/web/revisar/[id]', label: 'Abrir la revisión', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/revisar/[id]/page.tsx', phrases: [] },
