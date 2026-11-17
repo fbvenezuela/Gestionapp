@@ -15,16 +15,20 @@ import { UNFILLED_HUECO } from './words';
 export type PanelScreen = { screen: string; menu: 'Web' | 'Atención'; title: string; section: string; audience: Audience[]; items: number };
 
 /**
- * The screens, in the menu's order. The boss opens all but the desk's «Registro»; Administración, all but «Cifras»
- * (deskAccess(): stats are the coordinator's, the auditor's and the boss's; the audit trail the auditor's and
- * Administración's). «Por aprobar», «Biblioteca» and «Mapa» of the panel are told inside «La web» and «Atención
- * ciudadana»: their names are the team's too («Por aprobar», «Biblioteca»).
+ * The screens, in the menu's order, each one a static screen of «Web» or «Atención» in SCREENS (the test checks that a
+ * screen is here for exactly the audiences that open it). The boss opens all but the desk's «Registro»; Administración,
+ * all but the desk's «Mapa» and «Cifras» (deskAccess(): the cases are read by the desk and the boss, the figures by the
+ * coordinator, the auditor and the boss; the audit trail is the auditor's and Administración's). Named «… de la web» and
+ * «… de atención» where the team has a screen with the same word («Por aprobar», «Biblioteca»), as SCREENS does.
  */
 export const PANEL_SCREENS: readonly PanelScreen[] = [
   { screen: '/admin/web', menu: 'Web', title: 'La web', section: 'pantalla-la-web', audience: ['boss', 'admin'], items: 4 },
+  { screen: '/admin/web/por-aprobar', menu: 'Web', title: 'Por aprobar de la web', section: 'aprobar', audience: ['boss', 'admin'], items: 4 },
+  { screen: '/admin/web/biblioteca', menu: 'Web', title: 'Biblioteca de la web', section: 'biblioteca', audience: ['boss', 'admin'], items: 4 },
   { screen: '/admin/web/ajustes', menu: 'Web', title: 'Ajustes del sitio', section: 'ajustes-del-sitio', audience: ['boss', 'admin'], items: 5 },
   { screen: '/admin/web/redirecciones', menu: 'Web', title: 'Redirecciones', section: 'redirecciones', audience: ['boss', 'admin'], items: 4 },
   { screen: '/admin/atencion', menu: 'Atención', title: 'Atención ciudadana', section: 'bandeja-y-tablero', audience: ['boss', 'admin'], items: 7 },
+  { screen: '/admin/atencion/mapa', menu: 'Atención', title: 'Mapa de atención', section: 'mapa', audience: ['boss'], items: 2 },
   { screen: '/admin/atencion/estadisticas', menu: 'Atención', title: 'Cifras de atención', section: 'cifras', audience: ['boss'], items: 4 },
   { screen: '/admin/atencion/areas', menu: 'Atención', title: 'Áreas y plazos', section: 'areas-y-plazos', audience: ['boss', 'admin'], items: 6 },
   { screen: '/admin/atencion/registro', menu: 'Atención', title: 'Registro de atención', section: 'registro', audience: ['admin'], items: 4 },

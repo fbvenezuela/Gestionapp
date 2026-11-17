@@ -648,7 +648,7 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'La web: revisar y decidir',
       who: 'Lo hacen el aprobador de la web y el jefe, en «Web» → «Por aprobar».',
       audience: ['boss', 'admin'],
-      screen: '/admin/web',
+      screen: '/admin/web/por-aprobar',
       what: { boss: 'Cómo se revisa y se decide: el aprobador o tú abren el contenido en «Por aprobar» y miran «Qué cambia si lo publicas» y la vista previa. Si no sale así, «Devolver con comentario»; si sale ya, «Publicar ahora»; si sale después, «Día» y «Hora» → «Programar».', admin: 'Cómo se revisa y se decide: el aprobador o el jefe abren el contenido en «Por aprobar» y miran «Qué cambia si lo publicas». Si no sale así, «Devolver con comentario»; si sale ya, «Publicar ahora»; si sale después, «Programar».' },
       items: [
         'Al publicar queda «Publicado»; al programar, «Programado». A quien lo envió le llega «Tu contenido ya está en la web» o «Tu contenido de la web quedó programado».',
@@ -749,7 +749,7 @@ export const FLUJOS_WEB: WebDoc = {
       title: 'Fotos y documentos',
       who: 'Los sube el editor de la web, en «Web» → «Biblioteca». También pueden el aprobador y el jefe.',
       audience: ['boss', 'admin'],
-      screen: '/admin/web',
+      screen: '/admin/web/biblioteca',
       what: 'El camino de una foto: el editor la sube a la «Biblioteca» con «Subir una foto», y antes de subir se achica y pierde la ubicación. Le pone el «Punto de interés» y el «Texto alternativo», la elige en el editor con «Elegir foto» → «De la biblioteca» y, al publicar, la foto queda con los textos que tenía en ese momento.',
       items: [
         'Frena el envío una foto archivada, o una que dice «[Por escribir]», y también una marca como «[correo retirado]» en el texto.',

@@ -38,7 +38,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         { q: '¿Desde dónde se maneja la web?', a: { boss: 'Desde el panel, en tu menú «Web» (en el teléfono, en «Más»).', admin: 'Desde el panel, en tu menú «Web», que abre «Ajustes del sitio». Tú lees todo y cambias los ajustes y las redirecciones.' } },
         { q: 'Lo que cambio en la web de prueba, ¿se queda?', a: 'No: cada cierto tiempo la prueba vuelve a como estaba. Y algo recién creado puede no verse desde otra cuenta o desde otro teléfono.' },
       ],
-      easy: 'Lo que escribes es un borrador; la gente solo ve lo que se aprobó y se publicó. Nada se borra: se archiva.',
+      easy: 'Lo que se escribe es un borrador; la gente solo ve lo que se aprobó y se publicó. Nada se borra: se archiva.',
       blocks: [
         { kind: 'p', text: 'Para el equipo que escribe y publica la web del gobernador: el editor de la web, quien aprueba, el jefe y Administración. Todo se hace desde el panel, en el menú **«Web»**. Lo que va entre comillas, «así», es el nombre exacto que sale en la pantalla.', wrap: [114, 119, 31] },
         {
@@ -443,7 +443,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
       title: 'Aprobar: revisar, comparar y decidir',
       heading: { level: 2, num: '8.' },
       audience: ['boss', 'admin'],
-      screen: '/admin/web',
+      screen: '/admin/web/por-aprobar',
       what: { boss: '«Por aprobar» lista lo que espera, lo más viejo primero. Al abrir uno ves «Qué cambia si lo publicas» y, en «Decidir», eliges «Publicar ahora», «Programar» o «Devolver con comentario».', admin: '«Por aprobar» lista lo que espera aprobación, lo más viejo primero. Ahí deciden el aprobador de la web y el jefe; tú lo lees, pero no apruebas.' },
       items: [
         'Cada línea dice si es «primera publicación» o «cambios a algo publicado», quién lo envió y cuándo.',
@@ -512,7 +512,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
       title: 'Programar (hora del Táchira)',
       heading: { level: 2, num: '9.' },
       audience: ['boss', 'admin'],
-      screen: '/admin/web',
+      screen: '/admin/web/por-aprobar',
       what: { boss: '«Programar» pone algo nuevo en la web solo, a la hora que eliges: «Día» y «Hora», en hora del Táchira. A esa hora aparece en menos de un minuto; hasta entonces nadie lo ve.', admin: '«Programar» pone algo nuevo en la web solo, a la hora que se elige: «Día» y «Hora», en hora del Táchira. Programan el aprobador de la web y el jefe.' },
       items: [
         'Una hora que ya pasó no se acepta: «Elige una hora que todavía no haya pasado, o publica ahora.».',
@@ -612,18 +612,18 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
       title: 'La biblioteca de fotos y documentos',
       heading: { level: 2, num: '12.' },
       audience: ['boss', 'admin'],
-      screen: '/admin/web',
+      screen: '/admin/web/biblioteca',
       what: { boss: 'La «Biblioteca» guarda las fotos y los PDF de la web. Todo lo que está ahí es público. Se sube con «Subir una foto» o «Subir un PDF», y cada foto lleva su «Texto alternativo».', admin: 'La «Biblioteca» guarda las fotos y los PDF de la web. Todo lo que está ahí es público. Suben el editor de la web, el aprobador y el jefe; tú la lees.' },
       items: [
         'Nunca fotos ni archivos de las personas que escriben a Atención, ni cédulas, ni documentos privados, ni menores sin permiso. Los archivos de las solicitudes van aparte, en privado, y nunca pasan por aquí.',
         'Solo se aceptan fotos JPG, PNG o WebP, y cada archivo va hasta 4 MB, también los PDF. Si pesa más, sale «El archivo pasa de 4 MB: súbelo más liviano.».',
+        '«Texto alternativo» (obligatorio): lo oyen las personas ciegas, con un programa que les lee la pantalla en voz alta, y lo usan buscadores como Google. Describe lo que se ve en pocas palabras: quién, qué hace, dónde.',
+        '«Buscar» busca en el texto alternativo, el pie, el crédito o el título; también están «Tipo» (Todo, Fotos, Documentos) y «Archivados». Cada archivo dice «Sin usar» o en cuántos contenidos se usa, por ejemplo «Se usa en 1 contenido».',
         'Antes de salir del teléfono o la computadora, la foto se achica y pierde la ubicación y los datos de la cámara.',
         'Sirve cualquier foto normal de teléfono o de cámara; una imagen diminuta, como un ícono, no se acepta.',
         'Un PDF puede llevar escondido el nombre de quien lo hizo, y la app no lo quita: antes de subirlo, se mira en sus propiedades quién sale como autor.',
-        '«Texto alternativo» (obligatorio): lo oyen las personas ciegas, con un programa que les lee la pantalla en voz alta, y lo usan buscadores como Google. Describe lo que se ve en pocas palabras: quién, qué hace, dónde.',
         '«Pie de foto» (lo que cuenta la foto, debajo de ella) y «Crédito» (quién la tomó) son opcionales.',
         '«Punto de interés»: se toca en la foto lo que siempre debe verse (una cara, la obra), o se mueve con «Horizontal» y «Vertical». Así, cuando la web la recorta, eso no se pierde.',
-        '«Buscar» busca en el texto alternativo, el pie, el crédito o el título; también están «Tipo» (Todo, Fotos, Documentos) y «Archivados». Cada archivo dice «Sin usar» o en cuántos contenidos se usa, por ejemplo «Se usa en 1 contenido».',
         '«Dónde se usa» lista cada contenido, con «En lo publicado» o «En el borrador».',
         'Al cambiar sus palabras y su punto → «Guardar», lo ya publicado conserva los textos con que se aprobó hasta que se publique de nuevo.',
         '«Archivar» o «Devolver a la biblioteca»: archivado, nadie lo puede elegir; las páginas publicadas que lo usan lo siguen mostrando, y un borrador que lo use no se puede enviar hasta cambiarlo.',

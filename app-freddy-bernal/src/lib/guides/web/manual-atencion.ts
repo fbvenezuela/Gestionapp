@@ -975,7 +975,7 @@ export const MANUAL_ATENCION: WebDoc = {
       title: 'El mapa',
       heading: { level: 2, num: '20.' },
       audience: ['boss'],
-      screen: '/admin/atencion',
+      screen: '/admin/atencion/mapa',
       what: '«Mapa» muestra solo los casos con un punto que la persona marcó con su permiso. Las denuncias nunca van ahí. Carga solo al tocar «Ver el mapa», para ahorrar datos.',
       items: [
         'Se filtra con «Cuáles» (Las abiertas o Todas), «Categoría», «Área» y «Ver».',

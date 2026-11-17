@@ -56,17 +56,6 @@ const BASE_SCREENS: Screen[] = [
   { href: '/ajustes/buzon', label: 'Buzón', roles: ['admin'], file: '(panel)/ajustes/buzon/page.tsx', phrases: ['el buzon', 'buzon de correos'], nav: ['buzon', 'correos'], about: 'todos los correos que generó la app, en Ajustes' },
   { href: '/ajustes/registro', label: 'Registro de cambios', roles: ['admin'], file: '(panel)/ajustes/registro/page.tsx', phrases: ['registro de cambios', 'quien hizo que'], nav: ['registro', 'registro de cambios', 'historial de cambios', 'quien borro', 'quien cambio', 'quien edito', 'quien hizo'], about: 'quién hizo qué, en Ajustes' },
   { href: '/ajustes/asistente', label: 'Asistente', roles: ['admin'], file: '(panel)/ajustes/asistente/page.tsx', phrases: ['panel del asistente', 'ajustes del asistente'], nav: ['asistente', 'por confirmar'], about: 'lo que sé, cómo contesto y lo que dejé por confirmar, en Ajustes' },
-  // The panel's «Web» and «Atención» (APP-42, WF-C): the screens the boss's and Administración's guides explain
-  // (src/lib/guides/web/panel.ts). Not «Por aprobar», «Biblioteca» or «Mapa» of the web and the desk: their names are the
-  // team's too; the guides tell them inside «La web» and «Atención ciudadana». Never «solicitud» as a phrase: «solicitudes
-  // pendientes» are invitations (local.ts).
-  { href: '/admin/web', label: 'La web', roles: ['writer', 'web_publisher', 'boss', 'admin'], file: '(panel)/admin/web/page.tsx', phrases: ['la pagina web', 'el sitio web', 'publicar en la web', 'las noticias de la web'], nav: ['web', 'la web', 'pagina web'], about: 'lo que sale en la página pública' },
-  { href: '/admin/web/ajustes', label: 'Ajustes del sitio', roles: ['admin', 'web_publisher', 'boss', 'writer'], file: '(panel)/admin/web/ajustes/page.tsx', phrases: ['ajustes del sitio', 'los ajustes de la web'] },
-  { href: '/admin/web/redirecciones', label: 'Redirecciones', roles: ['admin', 'web_publisher', 'boss', 'writer'], file: '(panel)/admin/web/redirecciones/page.tsx', phrases: ['las redirecciones', 'una direccion vieja'] },
-  { href: '/admin/atencion', label: 'Atención ciudadana', roles: ['attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor', 'boss', 'admin'], file: '(panel)/admin/atencion/page.tsx', phrases: ['atencion ciudadana', 'los casos de atencion', 'lo que manda la gente'], nav: ['atencion'] },
-  { href: '/admin/atencion/estadisticas', label: 'Cifras de atención', roles: ['attention_coordinator', 'auditor', 'boss'], file: '(panel)/admin/atencion/estadisticas/page.tsx', phrases: ['cifras de atencion'] },
-  { href: '/admin/atencion/areas', label: 'Áreas y plazos', roles: ['admin', 'attention_coordinator', 'auditor', 'boss'], file: '(panel)/admin/atencion/areas/page.tsx', phrases: ['areas y plazos', 'los plazos de atencion'] },
-  { href: '/admin/atencion/registro', label: 'Registro de atención', roles: ['auditor', 'admin'], file: '(panel)/admin/atencion/registro/page.tsx', phrases: ['registro de atencion'] },
   // Reached only through a tool (they need an id).
   { href: '/piezas/[id]', label: 'Abrir la pieza', roles: ['admin', 'social', 'boss'], file: '(panel)/piezas/[id]/page.tsx', phrases: [] },
   { href: '/aprobar/[id]', label: 'Abrir la pieza', roles: ['boss', 'admin'], file: '(panel)/aprobar/[id]/page.tsx', phrases: [] },
@@ -77,10 +66,38 @@ const BASE_SCREENS: Screen[] = [
   { href: '/tweets/[id]', label: 'Abrir la tanda', roles: ['admin', 'social', 'boss'], file: '(panel)/tweets/[id]/page.tsx', phrases: [] },
 ];
 
+// The web's administrator (/admin/web) and the attention desk (/admin/atencion) (WF-C, design §4(d)4): every screen the
+// boss or Administración opens from «Web» and «Atención». The roles are copied from each page's requireRole, as the test
+// checks: the web's and the desk's own roles are there too, but they have no 360. Named «… de la web» or «… de atención»
+// where the team has a screen with the same word («Por aprobar», «Biblioteca», «Registro», «Mapa», «Cifras»): a team word
+// alone keeps its team screen, and only a question or a screen of the web or of Atención reaches these (screenNamed).
+// «Respuestas guardadas» is left out: neither the boss nor Administración opens it.
+const WEB_ROLES_ALL: Role[] = ['writer', 'web_publisher', 'boss', 'admin'];
+const DESK_READERS: Role[] = ['attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor', 'boss'];
+const WEB_SCREENS: Screen[] = [
+  { href: '/admin/web', label: 'La web', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/page.tsx', phrases: ['el menu web', 'la pantalla la web', 'administrar la web', 'el panel de la web', 'inicio de la web'], nav: ['la web', 'web', 'pagina web', 'menu web', 'contenido de la web'], about: 'cuántos borradores, programados y publicados hay, lo que espera aprobación y lo último que cambió' },
+  { href: '/admin/web/por-aprobar', label: 'Por aprobar de la web', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/por-aprobar/page.tsx', phrases: ['por aprobar de la web', 'lo que espera aprobacion en la web'], nav: ['por aprobar de la web', 'aprobar en la web', 'aprobar la web'], about: 'lo que espera aprobación en la web, lo más viejo primero' },
+  { href: '/admin/web/biblioteca', label: 'Biblioteca de la web', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/biblioteca/page.tsx', phrases: ['biblioteca de la web', 'fotos de la web', 'documentos de la web'], nav: ['biblioteca de la web', 'fotos de la web', 'documentos de la web'], about: 'las fotos y los documentos de la web' },
+  { href: '/admin/web/ajustes', label: 'Ajustes del sitio', roles: ['admin', 'web_publisher', 'boss', 'writer'], file: '(panel)/admin/web/ajustes/page.tsx', phrases: ['ajustes del sitio', 'ajustes de la web'], nav: ['ajustes del sitio', 'ajustes de la web', 'menu de la web', 'pie de pagina'], about: 'el menú, el pie de página, los canales y los contactos de la web' },
+  { href: '/admin/web/redirecciones', label: 'Redirecciones', roles: ['admin', 'web_publisher', 'boss', 'writer'], file: '(panel)/admin/web/redirecciones/page.tsx', phrases: ['las redirecciones', 'direcciones viejas', 'una direccion vieja'], nav: ['redirecciones', 'redireccion', 'direcciones viejas'], about: 'las direcciones viejas que llevan a las nuevas' },
+  { href: '/admin/atencion', label: 'Atención', roles: [...DESK_READERS, 'admin'], file: '(panel)/admin/atencion/page.tsx', phrases: ['la bandeja de atencion', 'el menu atencion', 'atencion ciudadana del panel', 'las solicitudes de la web'], nav: ['atencion', 'atencion ciudadana', 'bandeja', 'la bandeja', 'solicitudes de la web', 'casos de la web'], about: 'lo que la gente manda desde la web' },
+  { href: '/admin/atencion/mapa', label: 'Mapa de atención', roles: DESK_READERS, file: '(panel)/admin/atencion/mapa/page.tsx', phrases: ['mapa de atencion', 'el mapa de los casos'], nav: ['mapa de atencion', 'mapa de los casos', 'mapa de las solicitudes'], about: 'los puntos que la persona marcó con su permiso, nunca una denuncia' },
+  { href: '/admin/atencion/estadisticas', label: 'Cifras de atención', roles: ['attention_coordinator', 'auditor', 'boss'], file: '(panel)/admin/atencion/estadisticas/page.tsx', phrases: ['cifras de atencion'], nav: ['cifras de atencion', 'estadisticas de atencion'], about: 'cuánto llega, cuánto se resuelve y en cuánto tiempo' },
+  { href: '/admin/atencion/areas', label: 'Áreas y plazos', roles: ['admin', 'attention_coordinator', 'auditor', 'boss'], file: '(panel)/admin/atencion/areas/page.tsx', phrases: ['areas y plazos'], nav: ['areas y plazos', 'plazos de atencion'], about: 'las áreas que atienden, quién está en cada una y los plazos' },
+  { href: '/admin/atencion/registro', label: 'Registro de atención', roles: ['auditor', 'admin'], file: '(panel)/admin/atencion/registro/page.tsx', phrases: ['registro de atencion'], nav: ['registro de atencion'], about: 'quién hizo qué y cuándo en Atención' },
+  // Reached only with an id.
+  { href: '/admin/web/editar/[id]', label: 'Abrir el editor', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/editar/[id]/page.tsx', phrases: [] },
+  { href: '/admin/web/editar/[id]/versiones', label: 'Abrir las versiones', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/editar/[id]/versiones/page.tsx', phrases: [] },
+  { href: '/admin/web/revisar/[id]', label: 'Abrir la revisión', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/revisar/[id]/page.tsx', phrases: [] },
+  { href: '/admin/web/vista-previa/[id]', label: 'Abrir la vista previa', roles: WEB_ROLES_ALL, file: '(vista-previa)/admin/web/vista-previa/[id]/page.tsx', phrases: [] },
+  { href: '/admin/web/biblioteca/[id]', label: 'Abrir el archivo', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/biblioteca/[id]/page.tsx', phrases: [] },
+  { href: '/admin/atencion/[id]', label: 'Abrir el caso', roles: DESK_READERS, file: '(panel)/admin/atencion/[id]/page.tsx', phrases: [] },
+];
+
 // Mensajes and Ayuda (R3) and Redes by format (R4) keep their screens next to their own code (src/lib/chat-screens.ts,
 // src/lib/guides/screens.ts, src/lib/redes-screens.ts); they import only the Screen type from here, so there is no
 // import cycle at run time.
-export const SCREENS: Screen[] = [...BASE_SCREENS, ...CHAT_SCREENS, ...HELP_SCREENS, ...REDES_SCREENS];
+export const SCREENS: Screen[] = [...BASE_SCREENS, ...CHAT_SCREENS, ...HELP_SCREENS, ...REDES_SCREENS, ...WEB_SCREENS];
 
 export type GoTo = { href: string; label: string };
 

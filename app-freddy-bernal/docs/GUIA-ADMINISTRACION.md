@@ -122,6 +122,25 @@ Lees la agenda, «Por ponerle fecha», las obras y los municipios.
 - «Contenido»: una tarjeta por tipo, con cuántos hay en la web, en borrador, en revisión y programados.
 - Tú no escribes, no envías a aprobación ni publicas desde «La web». Lo hacen el editor de la web, el aprobador y el jefe; tú lo lees todo.
 
+### Por aprobar de la web (`/admin/web/por-aprobar`)
+«Por aprobar» lista lo que espera aprobación, lo más viejo primero. Ahí deciden el aprobador de la web y el jefe; tú lo lees, pero no apruebas.
+
+- Cada línea dice si es «primera publicación» o «cambios a algo publicado», quién lo envió y cuándo.
+- Al abrirlo: quién lo envió, el último cambio y, si está en la web, cuándo se publicó; «Ver la vista previa», «Abrir el editor», «Versiones» y «Verlo en la web».
+- «Le falta esto para publicarse» dice lo que falta. Mientras falte algo, «Publicar ahora» no se puede tocar.
+- «Qué cambia si lo publicas» compara campo por campo, con «Antes» y «Ahora», y etiquetas «Nuevo», «Quitado», «Cambió», «Se oculta» y «Se muestra». En una página, también los bloques y su orden. Si es la primera vez, dice que todo es nuevo.
+- Tú no apruebas ni publicas en la web. Deciden el aprobador de la web y el jefe: «Publicar ahora», «Programar» o «Devolver con comentario».
+- Tú no devuelves contenidos. Los devuelven el aprobador de la web y el jefe, con «Qué hay que cambiar» y «Devolver con comentario».
+
+### Biblioteca de la web (`/admin/web/biblioteca`)
+La «Biblioteca» guarda las fotos y los PDF de la web. Todo lo que está ahí es público. Suben el editor de la web, el aprobador y el jefe; tú la lees.
+
+- Nunca fotos ni archivos de las personas que escriben a Atención, ni cédulas, ni documentos privados, ni menores sin permiso. Los archivos de las solicitudes van aparte, en privado, y nunca pasan por aquí.
+- Solo se aceptan fotos JPG, PNG o WebP, y cada archivo va hasta 4 MB, también los PDF. Si pesa más, sale «El archivo pasa de 4 MB: súbelo más liviano.».
+- «Texto alternativo» (obligatorio): lo oyen las personas ciegas, con un programa que les lee la pantalla en voz alta, y lo usan buscadores como Google. Describe lo que se ve en pocas palabras: quién, qué hace, dónde.
+- «Buscar» busca en el texto alternativo, el pie, el crédito o el título; también están «Tipo» (Todo, Fotos, Documentos) y «Archivados». Cada archivo dice «Sin usar» o en cuántos contenidos se usa, por ejemplo «Se usa en 1 contenido».
+- Tú no subes fotos ni PDF a la biblioteca. Suben el editor de la web, el aprobador y el jefe, con «Subir una foto» o «Subir un PDF»; tú la lees.
+
 ### Ajustes del sitio (`/admin/web/ajustes`)
 «Ajustes del sitio» es lo fijo de la web: el menú, el pie, los contactos, las cuentas, los canales y el nombre. Tu «Web» abre directo aquí: lo que guardas sale en la web al momento, sin aprobación.
 
