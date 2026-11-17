@@ -109,7 +109,7 @@ export const WEB: Answer[] = [
   {
     id: 'atencion-guia',
     roles: ['boss', 'admin'],
-    q: ['hay una guia de atencion', 'hay guia de atencion', 'atencion tiene guia', 'tiene manual atencion', 'atencion tiene su propia guia'],
+    q: ['hay una guia de atencion', 'hay guia de atencion', 'atencion tiene guia', 'atencion tiene su propia guia'],
     a: 'Sí: la atención a la gente que escribe por la web y la web pública tienen su propia guía, aparte de la tuya: la «Guía de atención ciudadana» y la «Guía de la web», en «Ayuda y guías».',
     go: '/ayuda/atencion',
   },

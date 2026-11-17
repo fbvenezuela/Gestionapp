@@ -1223,8 +1223,9 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
 
   // D2. The web or Atención asked by a role that has neither in its menu (design §4(d)2): what they are and whose they
   // are, nothing of how they work. After the agenda's refusal (an event named on the web is still the agenda's).
-  // (Said by its name: «una denuncia de un vecino» is política's own work, its ficha comunitaria.)
-  const webOrDesk = domainOf(i.question, null) && WEB_SAID.test(q);
+  // (Said by its name, WEB_SAID: «una denuncia de un vecino» is política's own work, its ficha comunitaria; «la guía de
+  // atención» is the desk's guide.)
+  const webOrDesk = WEB_SAID.test(q);
   if (webOrDesk && !i.ctx.roles.includes('boss') && !i.ctx.roles.includes('admin')) {
     const word = GLOSSARY.find((g) => g.id === 'web-y-atencion');
     const what = askKind(readable(q)) === 'what' && word;
