@@ -342,6 +342,14 @@ describe('explainAnswer: cada faceta', () => {
 
   it('una respuesta curada se explica desde su tarea de la guía (su tutorial y sus formas de preguntar)', () => {
     expect(explainUnitId('curado:jefe-aprobar-pieza', BOSS)).toBe('jefe:paso-a-paso:aprobar-pieza');
+    // Close between a task and a screen: the tutorial of several tasks goes to the one asked most, else the labels decide.
+    expect(explainUnitId('curado:gra-subir', ['camera'])).toBe('grabacion:paso-a-paso:subir');
+    expect(explainUnitId('curado:jefe-decidir', BOSS)).toBe('jefe:paso-a-paso:decidir');
+    // (A clear winner stays as it was.)
+    expect(explainUnitId('curado:red-mes-nuevo', SOCIAL)).toBe('redes:pantalla:6');
+    // The design's o14: «¿cómo subo el material?» → «no entendí lo de limpio».
+    const o14 = explainAnswer('simpler', 'curado:gra-subir', ctx(['camera'], { earlier: ['como subo el material'], question: 'no entendí lo de limpio', about: 'limpio' }))!;
+    expect(o14.text).toContain('sin esperas ni tomas que no sirven');
     const r = explainAnswer('steps', 'curado:jefe-aprobar-pieza', ctx(BOSS))!;
     expect(r.text).toMatch(/^Aprobar una amarilla o una roja, paso a paso: 1\) /);
     expect(r.entryId).toBe('jefe:paso-a-paso:aprobar-pieza');

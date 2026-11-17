@@ -12,6 +12,7 @@
 // them back here.
 import { TEAM_ROLES, type Role, type TeamRole } from '../roles';
 import { ADMIN_GUIDE, FLOWS, GLOSSARY, SHARED, allGuides, glossaryLine, sharedFor, toursForRoles } from '../guides';
+import { quotedLabels } from '../guides/check';
 import { facetsOf, type FacetText } from '../guides/explain';
 import { everyoneSections } from '../guides/sections';
 import type { Flow, FlowStep, GlossaryTerm, RoleGuide, SharedTopic, Task } from '../guides/types';
@@ -286,23 +287,42 @@ function relatedId(e: Entry, roles: Role[]): string | null {
       if (seen.size >= 3) break;
     }
   }
-  if (e.tutorial) {
-    const mine = allGuides().filter((g) => roles.includes(g.role));
-    const task = mine.flatMap((g) => g.tasks.filter((t) => t.tour === e.tutorial).map((t) => `${g.slug}:paso-a-paso:${t.id}`));
-    const screen = mine.flatMap((g) => g.sections.map((s, k) => (s.tour === e.tutorial ? `${g.slug}:pantalla:${k}` : null)).filter((x): x is string => !!x));
-    const by = task.length === 1 ? task[0] : task.length === 0 && screen.length === 1 ? screen[0] : null;
-    if (by) votes.set(by, (votes.get(by) ?? 0) + 1);
+  // The curated answer's tutorial: the one task that has it, else the one screen. When that does not tell a unit clearly,
+  // of several tasks with it, the one the ways of asking voted most.
+  const mine = allGuides().filter((g) => roles.includes(g.role));
+  const task = e.tutorial ? mine.flatMap((g) => g.tasks.filter((t) => t.tour === e.tutorial).map((t) => `${g.slug}:paso-a-paso:${t.id}`)) : [];
+  const screen = e.tutorial ? mine.flatMap((g) => g.sections.map((s, k) => (s.tour === e.tutorial ? `${g.slug}:pantalla:${k}` : null)).filter((x): x is string => !!x)) : [];
+  const by = task.length === 1 ? task[0] : task.length === 0 && screen.length === 1 ? screen[0] : null;
+  if (by) votes.set(by, (votes.get(by) ?? 0) + 1);
+  const ranked = (v: Map<string, number>) => [...v.entries()].sort((a, b) => b[1] - a[1]);
+  let [best, second] = ranked(votes);
+  if (!best || best[1] < VOTE_MIN) return null;
+  let pick: string | null = !second || best[1] >= second[1] * VOTE_MARGIN ? best[0] : null;
+  if (!pick) {
+    const voted = by ? [] : task.filter((id) => votes.has(id)).sort((a, b) => votes.get(b)! - votes.get(a)!);
+    if (voted.length) [best, second] = ranked(new Map(votes).set(voted[0], votes.get(voted[0])! + 1));
+    if (!second || best[1] >= second[1] * VOTE_MARGIN) pick = best[0];
+    else {
+      // Still too close: the one of the two that says more of the curated answer's labels («Tu decisión», «Aceptar»…),
+      // two at least; else none.
+      const labels = new Set(quotedLabels(textFor(e.a, roles)).map(readable));
+      const shared = (id: string) => {
+        const u = unitOf(id, entryById(id));
+        const its = new Set(u ? quotedLabels(unitText(u, roles)).map(readable) : []);
+        return [...labels].filter((l) => its.has(l)).length;
+      };
+      const [a, b] = [shared(best[0]), shared(second[0])];
+      if (Math.max(a, b) < 2 || a === b) return null;
+      pick = a > b ? best[0] : second[0];
+    }
   }
-  const ranked = [...votes.entries()].sort((a, b) => b[1] - a[1]);
-  const [best, second] = ranked;
-  if (!best || best[1] < VOTE_MIN || (second && best[1] < second[1] * VOTE_MARGIN)) return null;
   // And the unit says what the curated answer says: a fair share of its words («Cambiar nombre» of a month is not «¿cómo
   // cambio mi nombre?», answered with Mi perfil).
-  const u = unitOf(best[0], entryById(best[0]));
+  const u = unitOf(pick, entryById(pick));
   const said = new Set(tokens(textFor(e.a, roles)).filter((w) => w.length >= 4));
   const has = new Set(u ? tokens(unitText(u, roles)) : []);
   const share = said.size ? [...said].filter((w) => has.has(w)).length / said.size : 0;
-  return share >= OVERLAP ? best[0] : null;
+  return share >= OVERLAP ? pick : null;
 }
 // The share of a curated answer's words its unit must say.
 const OVERLAP = 0.25;
@@ -770,7 +790,7 @@ function more(u: Unit, ctx: ExplainContext): Candidate[] {
       out.push({ text: page.text, entryId: u.id, ...(page.next !== undefined ? { cursor: page.next } : {}) });
     }
   }
-  // A screen: what is done there that was not said, then what cannot be done (two at a time: an answer says two things).
+  // A screen: what is done there that was not said, then what cannot be done (a page, as the steps).
   if (u.kind === 'screen') {
     const items = [...u.section.youDo.map((x) => end(ucFirst(x))), ...(u.section.cannot ?? []).map((x) => `No puedes: ${lcFirst(end(x))}`)];
     const left = items.filter((x) => !wasSaid(x, said));
@@ -778,7 +798,7 @@ function more(u: Unit, ctx: ExplainContext): Candidate[] {
     for (const x of left) {
       if (pick.length && [...pick, x].join(' ').length > PAGE_LETTERS) break;
       pick.push(x);
-      if (pick.length >= 2) break;
+      if (pick.length >= PAGE) break;
     }
     if (pick.length) out.push({ text: `En ${lcFirst(u.section.title.replace(/: /g, ', '))}, además: ${lcFirst(pick.join(' '))}`, entryId: u.id });
   }
