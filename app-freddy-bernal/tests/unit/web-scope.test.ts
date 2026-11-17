@@ -7,6 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { allEntries } from '@/lib/assistant/answers/engine';
 import { SCREENS, canOpen, screenFor } from '@/lib/assistant/screens';
 import { deskAccess, typesFor, type DeskAccess } from '@/lib/domain/attention';
 import { ROLES, STAFF_ROLES, TEAM_ROLES, WEB_ROLES, navFor, type Role } from '@/lib/roles';
@@ -382,6 +383,32 @@ describe('«Web» y «Atención» en las guías del jefe y de administración (A
     expect(menu('admin', 'Atención')).toBe('/admin/atencion');
     // Administración's «Atención» does not open the inbox (it reads no case), and its text says so.
     expect(roleTextFor(byId('bandeja-y-tablero').what, 'admin')).toMatch(deskAccess(['admin']).readsCases ? /bandeja/ : /no abre la bandeja/);
+  });
+});
+
+describe('lo que 360 dice de la guía de la web, cuando su índice la lee', () => {
+  // The web's guide reaches 360's index with the engine that reads it (webEntries(), WF-C); the engine of this branch
+  // does not read it yet, so these checks bite from the merge on. A how-to that only one audience does (WebTask.audience:
+  // the boss publishes, Administración arms the areas) must reach only those roles, steps included: otherwise 360 tells
+  // Administración «Revisar y publicar…» as if it could.
+  const web = allEntries().filter((e) => /^web(?:flujo)?:/.test(e.id));
+
+  it('un paso a paso de un solo público, y cada uno de sus pasos, va solo a ese público', () => {
+    if (!web.length) return;
+    const bad: string[] = [];
+    let seen = 0;
+    for (const x of ALL) {
+      for (const t of x.tasks ?? []) {
+        if (!t.audience) continue;
+        const own = new RegExp(`:${x.id}:tarea:${t.id}(?::\\d+)?$`);
+        for (const e of web.filter((y) => own.test(y.id))) {
+          seen++;
+          if (e.roles === null || e.roles.some((r) => !(t.audience as readonly string[]).includes(r))) bad.push(`${e.id}: ${e.roles}`);
+        }
+      }
+    }
+    expect(bad).toEqual([]);
+    expect(seen, 'ningún paso a paso de la guía de la web en el índice: ¿cambió cómo se llaman sus entradas?').toBeGreaterThan(0);
   });
 });
 
