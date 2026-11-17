@@ -135,8 +135,11 @@ export type WebBlock =
   | { kind: 'table'; head: string[]; rows: string[][] }
   | { kind: 'note'; paras: string[]; wrap?: Record<number, Wrap> }; // a «> …» box, paragraph by paragraph
 
-/** One task of a web or Atención section, for 360 (like the team's «Paso a paso»). */
-export type WebTask = { id: string; title: string; when?: string; steps: string[] };
+/** One task of a web or Atención section, for 360 (like the team's «Paso a paso»). `audience`: who does it, when only
+ * one of the section's audiences does (the boss writes and publishes content; Administración gives the roles and arms
+ * the desk's areas); absent, whoever reads the section. To the other one 360 says the section's `cannot` for them, never
+ * the steps as theirs. */
+export type WebTask = { id: string; title: string; when?: string; steps: string[]; audience?: Audience[] };
 
 /** What 360 says of a web or Atención section or flow (design §4(a), (c)): empty in the port, filled in the next round.
  * The texts follow the guides' rules (labels exist, no dates, hours, phones, codes, keys or demo names; «tú»). */

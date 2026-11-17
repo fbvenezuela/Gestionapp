@@ -104,7 +104,7 @@ export const GUIA_WEB: WebDoc = {
         'Un bloque sin contenido no aparece.',
       ],
       tasks: [
-        { id: 'mostrar-bloque-portada', title: 'Mostrar u ocultar un bloque de la portada', steps: ['«Web» → «Páginas» → «Inicio».', 'En «Bloques de la página», toca «Ocultar» o «Mostrar» en el bloque.', 'Envía la portada a aprobación: el cambio sale en la web cuando se publica.'] },
+        { id: 'mostrar-bloque-portada', title: 'Mostrar u ocultar un bloque de la portada', audience: ['boss'], steps: ['«Web» → «Páginas» → «Inicio».', 'En «Bloques de la página», toca «Ocultar» o «Mostrar» en el bloque.', 'Envía la portada a aprobación: el cambio sale en la web cuando se publica.'] },
       ],
       cannot: {
         admin: [
@@ -183,7 +183,7 @@ export const GUIA_WEB: WebDoc = {
         'Un espacio «Por completar» no sale al público. Una página sin publicar dice «Página en preparación.».',
       ],
       tasks: [
-        { id: 'cambiar-pagina-gobernador', title: 'Cambiar algo de la página del gobernador', steps: ['«Web» → «Páginas» → «El gobernador».', 'Cambia el texto y toca «Guardar borrador».', 'Mírala en «Vista previa» y toca «Enviar a aprobación». Sale cuando quien aprueba la publica.'] },
+        { id: 'cambiar-pagina-gobernador', title: 'Cambiar algo de la página del gobernador', audience: ['boss'], steps: ['«Web» → «Páginas» → «El gobernador».', 'Cambia el texto y toca «Guardar borrador».', 'Mírala en «Vista previa» y toca «Enviar a aprobación». Sale cuando quien aprueba la publica.'] },
       ],
       cannot: {
         admin: [
@@ -297,7 +297,7 @@ export const GUIA_WEB: WebDoc = {
         'Hoy todavía no hay emisiones publicadas: en el panel, la tarjeta «[PROGRAMA]» de «La web» dice «Nada todavía».',
       ],
       tasks: [
-        { id: 'subir-episodio', title: 'Subir el episodio del programa', steps: ['«Web» → «[PROGRAMA]» → «Nuevo episodio» → «Título» → «Crear borrador».', 'Pon la fecha, el código del video de YouTube, la «Duración (minutos)» y la «Foto de portada».', '«Guardar borrador», «Vista previa» y «Enviar a aprobación». Sin código de video, la web no muestra el reproductor.'] },
+        { id: 'subir-episodio', title: 'Subir el episodio del programa', audience: ['boss'], steps: ['«Web» → «[PROGRAMA]» → «Nuevo episodio» → «Título» → «Crear borrador».', 'Pon la fecha, el código del video de YouTube, la «Duración (minutos)» y la «Foto de portada».', '«Guardar borrador», «Vista previa» y «Enviar a aprobación». Sin código de video, la web no muestra el reproductor.'] },
       ],
       cannot: {
         admin: [
@@ -335,7 +335,7 @@ export const GUIA_WEB: WebDoc = {
         'Hoy salen siete preguntas frecuentes que ya venían escritas en la app, no de la web oficial. Se cambian en «Web» → «Preguntas frecuentes».',
       ],
       tasks: [
-        { id: 'agregar-pregunta-atencion', title: 'Agregar una pregunta frecuente a la página de atención', steps: ['«Web» → «Preguntas frecuentes» → «Nueva pregunta» → «Crear borrador».', 'Escribe la pregunta y la respuesta, y elige el grupo «Atención ciudadana».', 'Envíala a aprobación: sale en la página de atención cuando se publica.'] },
+        { id: 'agregar-pregunta-atencion', title: 'Agregar una pregunta frecuente a la página de atención', audience: ['boss'], steps: ['«Web» → «Preguntas frecuentes» → «Nueva pregunta» → «Crear borrador».', 'Escribe la pregunta y la respuesta, y elige el grupo «Atención ciudadana».', 'Envíala a aprobación: sale en la página de atención cuando se publica.'] },
       ],
       cannot: {
         admin: [
@@ -403,7 +403,7 @@ export const GUIA_WEB: WebDoc = {
         'Sin documentos dice «Aún no hay documentos publicados.»; sin solicitudes en el período, «No hay solicitudes en este período.».',
       ],
       tasks: [
-        { id: 'subir-documento', title: 'Subir un documento a Transparencia', steps: ['«Web» → «Documentos» → «Nuevo documento» → «Título» → «Crear borrador».', 'Elige la «Categoría» y el «Archivo PDF».', 'Envíalo a aprobación: todo documento publicado sale en «Transparencia».'] },
+        { id: 'subir-documento', title: 'Subir un documento a Transparencia', audience: ['boss'], steps: ['«Web» → «Documentos» → «Nuevo documento» → «Título» → «Crear borrador».', 'Elige la «Categoría» y el «Archivo PDF».', 'Envíalo a aprobación: todo documento publicado sale en «Transparencia».'] },
       ],
       cannot: {
         admin: [
@@ -1398,7 +1398,7 @@ export const GUIA_WEB: WebDoc = {
         'La portada y las páginas se arman por bloques: «Agregar un bloque», «Subir», «Bajar» y «Ocultar».',
       ],
       tasks: [
-        { id: 'editar-web', title: 'Editar la web en cinco pasos', steps: ['«Web» → el tipo de contenido (por ejemplo «Noticias y comunicados») → «Nueva noticia» → «Título» → «Crear borrador».', 'Escribe y toca «Guardar borrador». Las fotos van desde la biblioteca, siempre con su texto alternativo.', '«Vista previa» para verlo como saldrá → «Enviar a aprobación».', 'Quien aprueba entra a «Por aprobar», mira «Qué cambia si lo publicas» y decide: «Publicar ahora», «Programar» (hora del Táchira) o «Devolver con comentario».', 'Si algo salió mal: «Archivar» lo saca al momento, y «Versiones» → «Volver a esta versión» recupera lo de antes.'] },
+        { id: 'editar-web', title: 'Editar la web en cinco pasos', audience: ['boss'], steps: ['«Web» → el tipo de contenido (por ejemplo «Noticias y comunicados») → «Nueva noticia» → «Título» → «Crear borrador».', 'Escribe y toca «Guardar borrador». Las fotos van desde la biblioteca, siempre con su texto alternativo.', '«Vista previa» para verlo como saldrá → «Enviar a aprobación».', 'Quien aprueba entra a «Por aprobar», mira «Qué cambia si lo publicas» y decide: «Publicar ahora», «Programar» (hora del Táchira) o «Devolver con comentario».', 'Si algo salió mal: «Archivar» lo saca al momento, y «Versiones» → «Volver a esta versión» recupera lo de antes.'] },
       ],
       cannot: {
         admin: [
@@ -1431,7 +1431,7 @@ export const GUIA_WEB: WebDoc = {
       audience: ['boss', 'admin'],
       what: 'Cómo se atiende lo que llega, en cinco pasos: la bandeja, revisar y asignar, responderle a la persona, trabajar el caso y resolverlo con su justificación.',
       tasks: [
-        { id: 'atender-caso', title: 'Atender lo que llega en cinco pasos', steps: ['«Atención» → «Bandeja» (o «Tablero»). Lo nuevo está en «Por revisar».', 'Abre el caso, léelo y pásalo a «En revisión». Asígnalo con «Guardar asignación» o «Tomar el caso».', '«Escribir» → «Respuesta a la persona» para decirle que ya la tienen, de usted, como le habla la web. Lo que es solo para el equipo va en «Nota interna»: nunca las mezcles.', 'Trabájalo («En atención»). Si falta un dato, «Pedir más información». Al terminar, «Subir evidencia».', '«Resuelto» con su justificación. La persona confirma desde su consulta; después, «Cerrado». La coordinación publica en «Casos atendidos» sin datos de la persona.'] },
+        { id: 'atender-caso', title: 'Cómo se atiende lo que llega, en cinco pasos', steps: ['Quien atiende entra a «Atención» → «Bandeja» (o «Tablero»). Lo nuevo está en «Por revisar».', 'Abre el caso, lo lee y lo pasa a «En revisión». Lo asigna con «Guardar asignación», o lo toma con «Tomar el caso».', 'Con «Escribir» → «Respuesta a la persona» le dice que ya la tienen, de usted, como le habla la web. Lo que es solo para el equipo va en «Nota interna»: nunca se mezclan.', 'Lo trabaja («En atención»). Si falta un dato, «Pedir más información». Al terminar, «Subir evidencia».', '«Resuelto» con su justificación. La persona confirma desde su consulta; después, «Cerrado». La coordinación publica en «Casos atendidos» sin datos de la persona.'] },
       ],
       cannot: {
         boss: [

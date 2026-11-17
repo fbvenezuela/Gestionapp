@@ -70,7 +70,7 @@ export const MANUAL_ATENCION: WebDoc = {
         'Un caso que no te toca no lo ves: no sale en tu lista. Aunque alguien te mande su enlace, la pantalla dice «No encontramos esto».',
       ],
       tasks: [
-        { id: 'dar-rol-atencion', title: 'Darle un rol de atención a alguien', steps: ['Administración: «Ajustes» → «Equipo» → «Invitar a alguien».', 'Elige el rol en «Web y atención ciudadana (siempre con doble factor)». A un responsable, márcale sus áreas en «Sus áreas (ve y atiende lo de estas áreas y lo que le asignen)».', 'Toca «Enviar invitación». Después, sus áreas se cambian con «Cambiar».'] },
+        { id: 'dar-rol-atencion', title: 'Darle un rol de atención a alguien', audience: ['admin'], steps: ['Administración: «Ajustes» → «Equipo» → «Invitar a alguien».', 'Elige el rol en «Web y atención ciudadana (siempre con doble factor)». A un responsable, márcale sus áreas en «Sus áreas (ve y atiende lo de estas áreas y lo que le asignen)».', 'Toca «Enviar invitación». Después, sus áreas se cambian con «Cambiar».'] },
       ],
       cannot: {
         boss: [
@@ -171,17 +171,17 @@ export const MANUAL_ATENCION: WebDoc = {
       screen: '/admin/atencion',
       what: { boss: '«Atención ciudadana» abre la «Bandeja»: lo que llega de la web, para consultar, sin contactos ni cambios. Arriba, tus pestañas: «Bandeja», «Tablero», «Mapa», «Cifras» y «Áreas y plazos».', admin: 'Tu «Atención» no abre la bandeja: muestra «Áreas y plazos» y «Registro de atención». Administración nunca lee las solicitudes ni sus contactos.' },
       items: [
-        'Arriba, las pestañas de lo que cada rol puede usar: «Bandeja», «Tablero», «Mapa», «Cifras», «Áreas y plazos», «Respuestas guardadas» y «Registro».',
-        'Cuatro números cuentan lo que puedes ver, sin el spam ni lo unido a otro caso: «Por revisar» (Recibido y En revisión), «En atención» (Asignado, En atención, Requiere información y Derivado), «Resueltas» (Resuelto y Cerrado) y «Vencidas».',
-        '«Vencidas» son las abiertas que ya pasaron su fecha comprometida.',
-        'La bandeja: tarjetas en el teléfono y una tabla desde la tableta, 25 por página. Cada una muestra su código, su tipo y su estado, «Vencida» si ya pasó su fecha y la prioridad si no es normal.',
-        'El tablero: una columna por estado, de Recibido a Resuelto, y una última de «Cerradas y «No procede»». Cada columna muestra las más nuevas, hasta 12; si hay más, un enlace dice cuántas, por ejemplo «Ver las 140 en la lista».',
-        'En el tablero, el botón de un toque (por ejemplo «→ En revisión») da el paso de siempre cuando no pide motivo; para lo demás, «Otro estado…» abre el caso. Las tarjetas no se arrastran.',
-        { boss: 'Tú lees: no respondes, no cambias el estado y no ves los contactos.', admin: 'Las personas de la atención se invitan en «Ajustes» → «Equipo», siempre con doble factor.' },
+        { boss: 'Cada rol ve las pestañas de lo que puede usar. «Áreas y plazos» tú la lees; «Respuestas guardadas» y «Registro» son de otros roles.', admin: 'En «Áreas y plazos» armas las áreas, quién está en cada una, el área y los días de cada categoría y los plazos. El «Registro de atención» dice quién hizo qué y cuándo, sin lo que dicen los casos.' },
+        { boss: 'Tú lees: no respondes, no cambias el estado y no ves los contactos.', admin: 'Las pestañas de los casos, «Bandeja», «Tablero» y «Mapa», son de quienes los leen: la coordinación, los responsables de área, denuncias, auditoría y el jefe; «Cifras», de la coordinación, auditoría y el jefe.' },
+        { boss: 'Cuatro números cuentan lo que puedes ver, sin el spam ni lo unido a otro caso: «Por revisar» (Recibido y En revisión), «En atención» (Asignado, En atención, Requiere información y Derivado), «Resueltas» (Resuelto y Cerrado) y «Vencidas».', admin: 'Las personas de la atención (coordinación, responsables de área, denuncias y auditoría) se invitan en «Ajustes» → «Equipo», siempre con doble factor.' },
+        { boss: '«Vencidas» son las abiertas que ya pasaron su fecha comprometida.' },
+        { boss: 'La bandeja: tarjetas en el teléfono y una tabla desde la tableta, 25 por página. Cada una muestra su código, su tipo y su estado, «Vencida» si ya pasó su fecha y la prioridad si no es normal.' },
+        { boss: 'El tablero: una columna por estado, de Recibido a Resuelto, y una última de «Cerradas y «No procede»». Cada columna muestra las más nuevas, hasta 12; si hay más, un enlace dice cuántas, por ejemplo «Ver las 140 en la lista».' },
+        { boss: 'En el tablero no ves botones, porque lo lees: quien atiende el caso lo mueve con el botón de un toque (por ejemplo «→ En revisión») o con «Otro estado…».' },
       ],
       cannot: {
         boss: [
-          'No: las tarjetas del tablero no se arrastran. El botón de un toque da el paso de siempre y «Otro estado…» abre el caso, y eso lo hacen quienes atienden: tú lo lees.',
+          'No: las tarjetas del tablero no se arrastran, y tú no las mueves. Quien atiende el caso lo mueve con sus botones; tú lo lees.',
         ],
         admin: [
           'No: tú no ves la bandeja ni los casos que llegan. Tu «Atención» muestra «Áreas y plazos» y el «Registro de atención».',
@@ -927,17 +927,17 @@ export const MANUAL_ATENCION: WebDoc = {
       screen: '/admin/atencion/areas',
       what: { boss: '«Áreas y plazos» es lo que la atención necesita para funcionar: las áreas, quién está en cada una, el área y los días de cada categoría y los plazos. Lo arma Administración; tú lo lees.', admin: '«Áreas y plazos» es lo que armas para que la atención funcione: las áreas, quién está en cada una, el área y los días de cada categoría y los plazos. La coordinación, auditoría y el jefe lo leen.' },
       items: [
-        '«Nueva área»: «Nombre del área» y «Qué atiende» → «Crear el área». Para cambiar una: «Cambiar el nombre o apagarla» → «Guardar el área».',
-        'Para apagar un área se desmarca «Activa (apagada, no recibe casos nuevos; nada se borra)».',
-        'Responsables: «Agregar un responsable» → la persona → «Agregar». «Quitar» la saca del área. Solo salen las personas que tienen el rol de responsable de área.',
-        '«Categorías»: a qué área va cada una y sus «Días» → «Guardar». Sin área, la asigna la coordinación. «En el formulario» decide si la categoría sale en el formulario de la web.',
-        '«Plazos y avisos»: los días por prioridad y «Avisar de un caso sin movimiento después de (días)» → «Guardar los plazos».',
+        { admin: '«Nueva área»: «Nombre del área» y «Qué atiende» → «Crear el área». Para cambiar una: «Cambiar el nombre o apagarla» → «Guardar el área».', boss: 'Una tarjeta por área, con sus «Responsables» (o «Nadie todavía.»). Un área «Apagada» no recibe casos nuevos.' },
+        { admin: 'Para apagar un área se desmarca «Activa (apagada, no recibe casos nuevos; nada se borra)».', boss: '«Categorías»: a qué área va cada una y sus días. «Sin área» quiere decir que la asigna la coordinación, y «(fuera del formulario)», que no sale en el formulario de la web.' },
+        { admin: 'Responsables: «Agregar un responsable» → la persona → «Agregar». «Quitar» la saca del área. Solo salen las personas que tienen el rol de responsable de área.', boss: '«Plazos y avisos»: los días de cada prioridad (o «los de la categoría») y, en «Sin movimiento», después de cuántos días avisa de un caso quieto.' },
+        { admin: '«Categorías»: a qué área va cada una y sus «Días» → «Guardar». Sin área, la asigna la coordinación. «En el formulario» decide si la categoría sale en el formulario de la web.' },
+        { admin: '«Plazos y avisos»: los días por prioridad y «Avisar de un caso sin movimiento después de (días)» → «Guardar los plazos».' },
         'Entre los días de la prioridad y los de la categoría gana el más corto. Si la prioridad está vacía, valen los de la categoría.',
       ],
       tasks: [
-        { id: 'crear-area', title: 'Crear un área nueva', steps: ['«Atención» → «Áreas y plazos» → «Nueva área».', 'Escribe el «Nombre del área» y «Qué atiende», y toca «Crear el área».', 'Agrégale sus responsables con «Agregar un responsable», y en «Categorías» pon el área y los «Días» de cada una.'] },
-        { id: 'agregar-responsable', title: 'Agregar un responsable a un área', steps: ['En el área, «Agregar un responsable».', 'Elige la persona: solo salen las que tienen el rol de responsable de área.', 'Toca «Agregar». «Quitar» la saca del área.'] },
-        { id: 'cambiar-plazos', title: 'Cambiar los días de una categoría o los plazos', steps: ['«Atención» → «Áreas y plazos».', 'En «Categorías», cambia los «Días» de la categoría y toca «Guardar».', 'En «Plazos y avisos», cambia los días por prioridad y «Avisar de un caso sin movimiento después de (días)», y toca «Guardar los plazos».'] },
+        { id: 'crear-area', title: 'Crear un área nueva', audience: ['admin'], steps: ['«Atención» → «Áreas y plazos» → «Nueva área».', 'Escribe el «Nombre del área» y «Qué atiende», y toca «Crear el área».', 'Agrégale sus responsables con «Agregar un responsable», y en «Categorías» pon el área y los «Días» de cada una.'] },
+        { id: 'agregar-responsable', title: 'Agregar un responsable a un área', audience: ['admin'], steps: ['En el área, «Agregar un responsable».', 'Elige la persona: solo salen las que tienen el rol de responsable de área.', 'Toca «Agregar». «Quitar» la saca del área.'] },
+        { id: 'cambiar-plazos', title: 'Cambiar los días de una categoría o los plazos', audience: ['admin'], steps: ['«Atención» → «Áreas y plazos».', 'En «Categorías», cambia los «Días» de la categoría y toca «Guardar».', 'En «Plazos y avisos», cambia los días por prioridad y «Avisar de un caso sin movimiento después de (días)», y toca «Guardar los plazos».'] },
       ],
       cannot: {
         boss: [

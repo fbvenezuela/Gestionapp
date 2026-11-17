@@ -56,6 +56,17 @@ const BASE_SCREENS: Screen[] = [
   { href: '/ajustes/buzon', label: 'Buzón', roles: ['admin'], file: '(panel)/ajustes/buzon/page.tsx', phrases: ['el buzon', 'buzon de correos'], nav: ['buzon', 'correos'], about: 'todos los correos que generó la app, en Ajustes' },
   { href: '/ajustes/registro', label: 'Registro de cambios', roles: ['admin'], file: '(panel)/ajustes/registro/page.tsx', phrases: ['registro de cambios', 'quien hizo que'], nav: ['registro', 'registro de cambios', 'historial de cambios', 'quien borro', 'quien cambio', 'quien edito', 'quien hizo'], about: 'quién hizo qué, en Ajustes' },
   { href: '/ajustes/asistente', label: 'Asistente', roles: ['admin'], file: '(panel)/ajustes/asistente/page.tsx', phrases: ['panel del asistente', 'ajustes del asistente'], nav: ['asistente', 'por confirmar'], about: 'lo que sé, cómo contesto y lo que dejé por confirmar, en Ajustes' },
+  // The panel's «Web» and «Atención» (APP-42, WF-C): the screens the boss's and Administración's guides explain
+  // (src/lib/guides/web/panel.ts). Not «Por aprobar», «Biblioteca» or «Mapa» of the web and the desk: their names are the
+  // team's too; the guides tell them inside «La web» and «Atención ciudadana». Never «solicitud» as a phrase: «solicitudes
+  // pendientes» are invitations (local.ts).
+  { href: '/admin/web', label: 'La web', roles: ['writer', 'web_publisher', 'boss', 'admin'], file: '(panel)/admin/web/page.tsx', phrases: ['la pagina web', 'el sitio web', 'publicar en la web', 'las noticias de la web'], nav: ['web', 'la web', 'pagina web'], about: 'lo que sale en la página pública' },
+  { href: '/admin/web/ajustes', label: 'Ajustes del sitio', roles: ['admin', 'web_publisher', 'boss', 'writer'], file: '(panel)/admin/web/ajustes/page.tsx', phrases: ['ajustes del sitio', 'los ajustes de la web'] },
+  { href: '/admin/web/redirecciones', label: 'Redirecciones', roles: ['admin', 'web_publisher', 'boss', 'writer'], file: '(panel)/admin/web/redirecciones/page.tsx', phrases: ['las redirecciones', 'una direccion vieja'] },
+  { href: '/admin/atencion', label: 'Atención ciudadana', roles: ['attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor', 'boss', 'admin'], file: '(panel)/admin/atencion/page.tsx', phrases: ['atencion ciudadana', 'los casos de atencion', 'lo que manda la gente'], nav: ['atencion'] },
+  { href: '/admin/atencion/estadisticas', label: 'Cifras de atención', roles: ['attention_coordinator', 'auditor', 'boss'], file: '(panel)/admin/atencion/estadisticas/page.tsx', phrases: ['cifras de atencion'] },
+  { href: '/admin/atencion/areas', label: 'Áreas y plazos', roles: ['admin', 'attention_coordinator', 'auditor', 'boss'], file: '(panel)/admin/atencion/areas/page.tsx', phrases: ['areas y plazos', 'los plazos de atencion'] },
+  { href: '/admin/atencion/registro', label: 'Registro de atención', roles: ['auditor', 'admin'], file: '(panel)/admin/atencion/registro/page.tsx', phrases: ['registro de atencion'] },
   // Reached only through a tool (they need an id).
   { href: '/piezas/[id]', label: 'Abrir la pieza', roles: ['admin', 'social', 'boss'], file: '(panel)/piezas/[id]/page.tsx', phrases: [] },
   { href: '/aprobar/[id]', label: 'Abrir la pieza', roles: ['boss', 'admin'], file: '(panel)/aprobar/[id]/page.tsx', phrases: [] },

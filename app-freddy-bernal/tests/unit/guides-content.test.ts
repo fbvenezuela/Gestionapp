@@ -142,7 +142,12 @@ describe('sin datos concretos (U17)', () => {
   });
 
   it('las guías del equipo nombran a administración solo donde hace falta: la línea de 360, quién recupera lo eliminado y su palabra (D-43; Mensajes ya no tiene aviso)', () => {
+    // And the boss's «Web» and «Atención» screens (APP-42), told by the web's guide: there Administración is one of the
+    // hands (it changes the site's settings and the redirects with the boss, and it sets up the desk's areas and plazos
+    // that the boss reads), so the boss's guide says so (D-93).
+    const webScreen = (t: Text) => t.where.startsWith('jefe: pantalla /admin/');
     const hits = [...TEAM_TEXTS, ...TOUR_TEXTS].filter((t) => {
+      if (webScreen(t)) return false;
       let rest = t.text;
       for (const m of ADMIN_MENTIONS) rest = rest.replace(m, ' ');
       return /administraci[oó]n|\badmin\b/i.test(rest);

@@ -20,6 +20,7 @@ import {
   redesSections,
   toScheduleSection,
 } from './sections';
+import { webSectionsFor } from './web/panel';
 
 const g = (label: string) => menuGroup('boss', label);
 
@@ -38,6 +39,7 @@ export const BOSS_GUIDE: RoleGuide = {
       'Leer «Lo que voy a decir» en el modo lectura antes de cada acto.',
       'Mirar Digital: lo publicado, lo que viene y cómo nos va; y el mes de Redes, con su resumen al cierre.',
       'Armar los canales de Mensajes y decidir quién va en cada uno.',
+      'En «Web», revisar y publicar lo que prepara el equipo de la web; en «Atención», leer lo que manda la gente y sus cifras, sin contactos ni denuncias.',
     ],
     never: [
       'Aprobar sin revisar la lista «Antes de aprobar»: sin ella, «Aprobar» no se prende.',
@@ -311,6 +313,9 @@ export const BOSS_GUIDE: RoleGuide = {
         '«Lo publicado» (con su red y sus vistas) y «Lo que viene».',
       ],
     },
+    // «Web» and «Atención» (APP-42): told by the web's own guide (src/lib/guides/web/panel.ts), so this guide, «Ayuda y
+    // guías» → «La web» / «Atención ciudadana» and 360 say one thing.
+    ...webSectionsFor('boss').map((s) => ({ screen: s.screen, menu: g(s.menu), title: s.title, what: s.what, youDo: s.youDo })),
     ...messagesSections('boss'),
     ...everyoneSections('boss').filter((x) => x.menu === TOP),
     ...everyoneSections('boss').filter((x) => x.menu === ACCOUNT),

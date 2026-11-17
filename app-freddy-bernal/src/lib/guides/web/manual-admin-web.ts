@@ -68,9 +68,12 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         'Cada quien solo puede hacer lo que le toca a su rol, aunque abra una pantalla que no es suya.',
       ],
       tasks: [
-        { id: 'dar-rol-web', title: 'Darle un rol de la web a alguien', steps: ['Administración: «Ajustes» → «Equipo» → «Invitar a alguien».', 'Marca el rol en «Web y atención ciudadana (siempre con doble factor)».', 'Toca «Enviar invitación». Cada persona con su propio usuario.'] },
+        { id: 'dar-rol-web', title: 'Darle un rol de la web a alguien', audience: ['admin'], steps: ['Administración: «Ajustes» → «Equipo» → «Invitar a alguien».', 'Marca el rol en «Web y atención ciudadana (siempre con doble factor)».', 'Toca «Enviar invitación». Cada persona con su propio usuario.'] },
       ],
       cannot: {
+        boss: [
+          'No: tú no das roles de la web. Los da Administración, en «Ajustes» → «Equipo» → «Invitar a alguien».',
+        ],
         admin: [
           'No: tú no publicas en la web. Publican el aprobador de la web y el jefe, con «Publicar ahora».',
           'No: tú no escribes noticias ni otro contenido de la web. Escriben el editor de la web, el aprobador y el jefe; tú lees todo, también los borradores.',
@@ -116,9 +119,9 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
       screen: '/admin/web',
       what: { boss: '«La web» es la pantalla de tu menú «Web»: arriba, «Inicio», «Por aprobar», «Biblioteca», «Ajustes del sitio» y «Redirecciones». Ahí ves todo el contenido de la web y lo que espera aprobación.', admin: '«La web» es la pantalla del contenido: arriba, «Inicio», «Por aprobar», «Biblioteca», «Ajustes del sitio» y «Redirecciones». Tú la lees toda, borradores incluidos; tu «Web» abre directo «Ajustes del sitio».' },
       items: [
-        'Cuando algo espera aprobación, «Por aprobar» lleva cuántos son, por ejemplo «Por aprobar (2)».',
+        'La pestaña «Por aprobar» dice cuántos contenidos esperan aprobación, por ejemplo «Por aprobar (2)».',
         'En «Inicio», cuatro números: «Borradores», «Esperan aprobación», «Programados» y «Publicados».',
-        '«Por aprobar» (para quien aprueba) o «Esperando aprobación» (para el editor), con «Ver todo».',
+        { boss: 'Si algo espera tu aprobación, debajo de los números sale «Por aprobar», con «Ver todo». Lo revisas con la vista previa y lo publicas, lo programas o lo devuelves con un comentario.', admin: 'Si algo espera aprobación, debajo de los números sale «Esperando aprobación», con «Ver todo»: lo revisa el aprobador o el jefe, y tú lo lees.' },
         '«Contenido»: una tarjeta por tipo, con cuántos hay en la web, en borrador, en revisión y programados.',
         'Los accesos a la biblioteca, los ajustes y las redirecciones, y «Lo último que cambió».',
       ],
@@ -215,10 +218,10 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         'Nunca se inventa nada: ni biografía, ni fotos, ni teléfonos, ni correos, ni horarios, ni cuentas, ni parroquias. Lo que falte va como «Por completar»: nunca sale en la web, solo lo ve el equipo en la vista previa.',
       ],
       tasks: [
-        { id: 'crear-noticia', title: 'Crear una noticia en la web', steps: ['«Web» → «Noticias y comunicados» → «Nueva noticia».', 'Escribe el «Título» (la dirección en la web sale de él) y toca «Crear borrador».', 'Llena la noticia en el editor y toca «Guardar borrador».', 'Mírala en «Vista previa» y toca «Enviar a aprobación».'] },
-        { id: 'crear-aviso-servicio', title: 'Poner un aviso de servicio, como un corte de agua', steps: ['«Web» → «Avisos de servicio» → «Nuevo aviso» → «Título» → «Crear borrador».', 'Escribe el «Texto del aviso» y, si tiene, «Vence (opcional)». Marca los «Municipios afectados»: sin ninguno, es para todo el estado.', 'Envíalo a aprobación. Al vencer, deja de salir solo.'] },
-        { id: 'crear-indicador', title: 'Hacer un indicador para «Gestión en cifras»', steps: ['«Web» → «Indicadores» → «Nuevo indicador» → «Título» → «Crear borrador».', 'Llena «Qué se cuenta», la cifra, su unidad, «Fecha del dato» y la fuente, y elige el «Cálculo».', 'Envíalo a aprobación. Una cifra sin fuente nunca sale en la web.'] },
-        { id: 'crear-obra', title: 'Subir una obra a la web', steps: ['«Web» → «Obras y acciones» → «Nueva obra o acción» → «Título» → «Crear borrador».', 'Llena el estado, el municipio, la descripción y el «Organismo responsable». La inversión y el avance, solo con su fuente.', 'Envíala a aprobación.'] },
+        { id: 'crear-noticia', title: 'Crear una noticia en la web', audience: ['boss'], steps: ['«Web» → «Noticias y comunicados» → «Nueva noticia».', 'Escribe el «Título» (la dirección en la web sale de él) y toca «Crear borrador».', 'Llena la noticia en el editor y toca «Guardar borrador».', 'Mírala en «Vista previa» y toca «Enviar a aprobación».'] },
+        { id: 'crear-aviso-servicio', title: 'Poner un aviso de servicio, como un corte de agua', audience: ['boss'], steps: ['«Web» → «Avisos de servicio» → «Nuevo aviso» → «Título» → «Crear borrador».', 'Escribe el «Texto del aviso» y, si tiene, «Vence (opcional)». Marca los «Municipios afectados»: sin ninguno, es para todo el estado.', 'Envíalo a aprobación. Al vencer, deja de salir solo.'] },
+        { id: 'crear-indicador', title: 'Hacer un indicador para «Gestión en cifras»', audience: ['boss'], steps: ['«Web» → «Indicadores» → «Nuevo indicador» → «Título» → «Crear borrador».', 'Llena «Qué se cuenta», la cifra, su unidad, «Fecha del dato» y la fuente, y elige el «Cálculo».', 'Envíalo a aprobación. Una cifra sin fuente nunca sale en la web.'] },
+        { id: 'crear-obra', title: 'Subir una obra a la web', audience: ['boss'], steps: ['«Web» → «Obras y acciones» → «Nueva obra o acción» → «Título» → «Crear borrador».', 'Llena el estado, el municipio, la descripción y el «Organismo responsable». La inversión y el avance, solo con su fuente.', 'Envíala a aprobación.'] },
       ],
       cannot: {
         admin: [
@@ -362,8 +365,8 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         'Si un asterisco o un corchete del texto desaparece en «Así se ve en la web», se escribe antes una barra inclinada hacia atrás.',
       ],
       tasks: [
-        { id: 'acomodar-bloque', title: 'Ocultar o acomodar un bloque de una página', steps: ['«Web» → «Páginas» → la página, por ejemplo «Inicio».', 'En «Bloques de la página»: «Subir» o «Bajar» para el orden, y «Ocultar» o «Mostrar» para que salga o no.', '«Guardar borrador» y envía la página a aprobación: el cambio sale cuando se publica.'] },
-        { id: 'poner-enlace', title: 'Poner un enlace en un texto', steps: ['Selecciona las palabras y toca el botón de enlace (la cadena).', 'Pega la dirección en «Dirección del enlace».', 'Toca «Poner el enlace» y revísalo en «Así se ve en la web».'] },
+        { id: 'acomodar-bloque', title: 'Ocultar o acomodar un bloque de una página', audience: ['boss'], steps: ['«Web» → «Páginas» → la página, por ejemplo «Inicio».', 'En «Bloques de la página»: «Subir» o «Bajar» para el orden, y «Ocultar» o «Mostrar» para que salga o no.', '«Guardar borrador» y envía la página a aprobación: el cambio sale cuando se publica.'] },
+        { id: 'poner-enlace', title: 'Poner un enlace en un texto', audience: ['boss'], steps: ['Selecciona las palabras y toca el botón de enlace (la cadena).', 'Pega la dirección en «Dirección del enlace».', 'Toca «Poner el enlace» y revísalo en «Así se ve en la web».'] },
       ],
       cannot: {
         admin: [
@@ -455,8 +458,8 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         'Los avisos van a la campana y al teléfono, nunca por correo: al enviar, al aprobador le llega «Hay contenido de la web por aprobar»; al decidir, a quien lo envió le llega «Tu contenido ya está en la web», «Tu contenido de la web quedó programado» o «Te devolvieron un contenido de la web».',
       ],
       tasks: [
-        { id: 'publicar-contenido', title: 'Revisar y publicar lo que mandó el editor', steps: ['«Web» → «Por aprobar» → el contenido.', 'Mira «Qué cambia si lo publicas» y la vista previa. Si dice «Le falta esto para publicarse», todavía no se puede publicar.', 'En «Decidir», toca «Publicar ahora» (sale en ese momento) o «Programar» (eliges «Día» y «Hora»). La app pregunta antes.', 'A quien lo envió le llega «Tu contenido ya está en la web» o «Tu contenido de la web quedó programado».'] },
-        { id: 'devolver-contenido', title: 'Devolver un contenido con un comentario', steps: ['«Web» → «Por aprobar» → el contenido.', 'En «Decidir», escribe en «Qué hay que cambiar».', 'Toca «Devolver con comentario»: vuelve a borrador, y a quien lo envió le llega «Te devolvieron un contenido de la web», con el comentario arriba del editor.'] },
+        { id: 'publicar-contenido', title: 'Revisar y publicar lo que mandó el editor', audience: ['boss'], steps: ['«Web» → «Por aprobar» → el contenido.', 'Mira «Qué cambia si lo publicas» y la vista previa. Si dice «Le falta esto para publicarse», todavía no se puede publicar.', 'En «Decidir», toca «Publicar ahora» (sale en ese momento) o «Programar» (eliges «Día» y «Hora»). La app pregunta antes.', 'A quien lo envió le llega «Tu contenido ya está en la web» o «Tu contenido de la web quedó programado».'] },
+        { id: 'devolver-contenido', title: 'Devolver un contenido con un comentario', audience: ['boss'], steps: ['«Web» → «Por aprobar» → el contenido.', 'En «Decidir», escribe en «Qué hay que cambiar».', 'Toca «Devolver con comentario»: vuelve a borrador, y a quien lo envió le llega «Te devolvieron un contenido de la web», con el comentario arriba del editor.'] },
       ],
       cannot: {
         admin: [
@@ -518,7 +521,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         'Mientras espera, la lista dice «Programado», y el editor, «Programado: sale el …».',
       ],
       tasks: [
-        { id: 'programar-contenido', title: 'Programar una noticia para que salga sola', steps: ['«Web» → «Por aprobar» → la noticia.', 'En «Decidir», toca «Programar» y elige el «Día» y la «Hora» (hora del Táchira).', 'Confirma: queda «Programado» y sale sola a esa hora. Si te arrepientes, «Quitar la programación» la vuelve a borrador.'] },
+        { id: 'programar-contenido', title: 'Programar una noticia para que salga sola', audience: ['boss'], steps: ['«Web» → «Por aprobar» → la noticia.', 'En «Decidir», toca «Programar» y elige el «Día» y la «Hora» (hora del Táchira).', 'Confirma: queda «Programado» y sale sola a esa hora. Si te arrepientes, «Quitar la programación» la vuelve a borrador.'] },
       ],
       cannot: {
         boss: [
@@ -586,7 +589,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         'Para que salga en la web, hay que enviarla a aprobación y publicarla otra vez. El editor también puede volver a una versión.',
       ],
       tasks: [
-        { id: 'volver-version', title: 'Volver a una versión anterior', steps: ['En el editor del contenido, toca «Versiones».', 'Busca la versión que quieres; «Ver» la abre en la vista previa.', 'Toca «Volver a esta versión»: se copia al borrador como una versión nueva.', 'Envíala a aprobación y publícala otra vez para que salga en la web.'] },
+        { id: 'volver-version', title: 'Volver a una versión anterior', audience: ['boss'], steps: ['En el editor del contenido, toca «Versiones».', 'Busca la versión que quieres; «Ver» la abre en la vista previa.', 'Toca «Volver a esta versión»: se copia al borrador como una versión nueva.', 'Envíala a aprobación y publícala otra vez para que salga en la web.'] },
       ],
       cannot: {
         admin: [
@@ -627,9 +630,9 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         'En el editor, «Elegir foto», «Elegir PDF», «Cambiar» o «Agregar foto» abren la biblioteca con «De la biblioteca» y «Subir una nueva»; para un PDF, el botón dice «Subir uno nuevo».',
       ],
       tasks: [
-        { id: 'subir-foto', title: 'Subir una foto a la biblioteca de la web', steps: ['«Web» → «Biblioteca» → «Subir una foto».', 'Elige la foto (JPG, PNG o WebP, hasta 4 MB): se achica y pierde la ubicación antes de subir.', 'Toca en la foto el «Punto de interés», lo que siempre debe verse.', 'Escribe el «Texto alternativo» (obligatorio) y, si quieres, el «Pie de foto» y el «Crédito». Toca «Subir la foto».'] },
-        { id: 'subir-pdf', title: 'Subir un PDF a la biblioteca de la web', steps: ['«Web» → «Biblioteca» → «Subir un PDF» («Hasta 4 MB.»).', 'Antes, mira en sus propiedades quién sale como autor: la app no lo quita.', 'Ponle su «Título del documento» y súbelo.'] },
-        { id: 'quitar-archivo-publico', title: 'Si se subió algo que no debía ser público', steps: ['Archívalo en la biblioteca y avísale enseguida a Administración: la app no borra archivos, y Administración pide aparte borrarlo del todo.', 'Cámbialo en cada contenido de «Dónde se usa».', 'Publica de nuevo cada uno, para que la web deje de mostrarlo.'] },
+        { id: 'subir-foto', title: 'Subir una foto a la biblioteca de la web', audience: ['boss'], steps: ['«Web» → «Biblioteca» → «Subir una foto».', 'Elige la foto (JPG, PNG o WebP, hasta 4 MB): se achica y pierde la ubicación antes de subir.', 'Toca en la foto el «Punto de interés», lo que siempre debe verse.', 'Escribe el «Texto alternativo» (obligatorio) y, si quieres, el «Pie de foto» y el «Crédito». Toca «Subir la foto».'] },
+        { id: 'subir-pdf', title: 'Subir un PDF a la biblioteca de la web', audience: ['boss'], steps: ['«Web» → «Biblioteca» → «Subir un PDF» («Hasta 4 MB.»).', 'Antes, mira en sus propiedades quién sale como autor: la app no lo quita.', 'Ponle su «Título del documento» y súbelo.'] },
+        { id: 'quitar-archivo-publico', title: 'Si se subió algo que no debía ser público', audience: ['boss'], steps: ['Archívalo en la biblioteca y avísale enseguida a Administración: la app no borra archivos, y Administración pide aparte borrarlo del todo.', 'Cámbialo en cada contenido de «Dónde se usa».', 'Publica de nuevo cada uno, para que la web deje de mostrarlo.'] },
       ],
       cannot: {
         admin: [
@@ -850,7 +853,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         'Se publica lo que se conserva y se archiva lo que no: nada se borra.',
       ],
       tasks: [
-        { id: 'revisar-traido', title: 'Revisar una nota traída de la web anterior', steps: ['El texto alternativo de cada foto, en la biblioteca: ninguna puede decir «[Por escribir]».', 'Las marcas como «[correo retirado]»: reescribe la frase sin el dato.', 'Lo demás que dice el aviso, y los nombres de personas que no son figuras públicas, menores en fotos y datos de salud.', 'El tipo, los temas, el municipio, la fecha y la foto principal.', 'Envía a aprobación lo que se conserva; lo que no, se archiva.'] },
+        { id: 'revisar-traido', title: 'Revisar una nota traída de la web anterior', audience: ['boss'], steps: ['El texto alternativo de cada foto, en la biblioteca: ninguna puede decir «[Por escribir]».', 'Las marcas como «[correo retirado]»: reescribe la frase sin el dato.', 'Lo demás que dice el aviso, y los nombres de personas que no son figuras públicas, menores en fotos y datos de salud.', 'El tipo, los temas, el municipio, la fecha y la foto principal.', 'Envía a aprobación lo que se conserva; lo que no, se archiva.'] },
       ],
       cannot: {
         admin: [
