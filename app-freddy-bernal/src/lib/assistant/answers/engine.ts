@@ -961,8 +961,20 @@ function webFlowEntries(f: WebFlow): Entry[] {
   return [...out, ...facetEntries(f, base, prefix)];
 }
 
+/**
+ * A web entry with a text per reader goes only to the readers that have one (their own or the default): textFor() falls
+ * back to any text when the asker has none, which for the web would hand the boss Administración's «→ «Guardar»» steps
+ * or Administración the boss's «Tú publicas…». The data gives every reader its text (web-scope.test.ts); this keeps it so.
+ */
+export function ownReaders(e: Entry): Entry | null {
+  if (typeof e.a === 'string' || typeof e.a.default === 'string' || !e.roles) return e;
+  const a = e.a;
+  const roles = e.roles.filter((r) => typeof a[r] === 'string');
+  return roles.length === e.roles.length ? e : roles.length ? { ...e, roles } : null;
+}
+
 function webEntries(): Entry[] {
-  return [...webSections().flatMap(webSectionEntries), ...webFlows().flatMap(webFlowEntries)];
+  return [...webSections().flatMap(webSectionEntries), ...webFlows().flatMap(webFlowEntries)].map(ownReaders).filter((e): e is Entry => !!e);
 }
 
 function curatedEntries(list: Answer[], file: (a: Answer) => string): Entry[] {

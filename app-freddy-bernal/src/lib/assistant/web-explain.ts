@@ -7,7 +7,7 @@
 // pointed to (its own entry is the fixed line, engine.ts `quiet`), and any other text that has one is left out.
 // Pure: no database, no I/O.
 import type { Role } from '../roles';
-import type { Audience, RoleText, WebFlow, WebSection } from '../guides/types';
+import type { Audience, RoleText, WebBlock, WebFlow, WebSection, WebTask } from '../guides/types';
 import { hasReceiptCode } from '../guides/check';
 import { isWebFlow, webEntry, webHref } from '../guides/web';
 import { entryById, textFor, type Entry } from './answers/engine';
@@ -59,11 +59,25 @@ const guideOf = (x: WebSection | WebFlow, roles: Role[]) => {
   return h && canOpen(h, roles) ? h : undefined;
 };
 
+/** A 360 task this person does: one with no audience of its own, or one with theirs (WebTask.audience). */
+const doesIt = (t: WebTask, roles: Role[]) => !t.audience || (t.audience as readonly string[]).includes(audienceOf(roles));
+/** A section with a how-to that only the other one does (the boss publishes, Administración gives the roles). */
+const othersTask = (x: WebSection | WebFlow, roles: Role[]) => (x.tasks ?? []).some((t) => !doesIt(t, roles));
+/** This person's own «No: …» of a section, for a how-to that is someone else's (never its steps as theirs). */
+function cannotOf(x: WebSection | WebFlow, roles: Role[]): string | undefined {
+  const aud = audienceOf(roles);
+  if (aud === 'default' || !othersTask(x, roles)) return undefined;
+  const line = (x.cannot?.[aud] ?? []).find(sayable);
+  return line ? end(clean(line)) : undefined;
+}
+
 /**
- * The numbered steps of a section (its first 360 task with no code in it, else its first list of steps, unless the
- * section is one 360 never says), or a flow's main path (without a box that has a code).
+ * The numbered steps of a section or a flow's main path (without a box that has a code). A section's: the 360 task the
+ * topic is (its id says «tarea:<id>»), else this person's first one with no code in it; the guide's list the topic is
+ * («pasos:<n>», its n-th list of steps, as the index numbers them); else its first list of steps, unless the section is
+ * one 360 never says or its how-tos are someone else's (WebTask.audience: then none, and `cannotOf` says why).
  */
-function stepsOf(x: WebSection | WebFlow): string[] {
+function stepsOf(x: WebSection | WebFlow, roles: Role[], rest = ''): string[] {
   if (isWebFlow(x)) {
     const byId = new Map(x.nodes.map((n) => [n.id, n]));
     const out: string[] = [];
@@ -78,9 +92,15 @@ function stepsOf(x: WebSection | WebFlow): string[] {
     }
     return out;
   }
-  const task = x.tasks?.find((t) => t.steps.every(sayable));
+  const mine = (x.tasks ?? []).filter((t) => doesIt(t, roles) && t.steps.every(sayable));
+  const asked = /^tarea:([a-z0-9-]+)/.exec(rest)?.[1];
+  const task = mine.find((t) => t.id === asked) ?? mine[0];
   if (task) return task.steps.map((s) => end(clean(s)));
-  if (quietOf(x)) return [];
+  if (quietOf(x) || othersTask(x, roles)) return [];
+  // The index's lists of steps (engine.ts webUnits): not part 1's (the order of a page), none with a code.
+  const list = /^pasos:(\d+)/.exec(rest)?.[1];
+  const lists = x.pdf.startsWith('1.') ? [] : x.blocks.filter((b): b is Extract<WebBlock, { kind: 'steps' }> => b.kind === 'steps' && b.items.length > 0 && b.items.every(sayable));
+  if (list !== undefined && lists[Number(list)]) return lists[Number(list)].items.map((s) => end(clean(s)));
   const block = x.blocks.find((b) => b.kind === 'steps');
   return block && block.kind === 'steps' && block.items.every(sayable) ? block.items.map((s) => end(clean(s))) : [];
 }
@@ -121,7 +141,7 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
   const own = { entryId: e.id };
   const title = clean(x.title).replace(/\s*\([^)]*\)\s*$/, '');
   const fresh = (list: (WebExplained | null)[]) => list.find((c): c is WebExplained => !!c && !!c.text && !wasSaid(c.text, said)) ?? null;
-  const steps = stepsOf(x);
+  const steps = stepsOf(x, roles, place.rest);
   const stepsFrom = (from: number): WebExplained | null => {
     if (from >= steps.length) return null;
     const p = page(from === 0 ? title : null, steps, from);
@@ -155,8 +175,12 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
       const first = partsOf(x, roles)[0];
       return fresh([what ? { text: end(clean(what)), ...own } : null, first ? { text: `${title}: ${lcFirst(first)}`, ...own } : null]);
     }
-    case 'steps':
-      return fresh([stepsFrom(at ?? 0), stepsFrom(0), guide ? { text: 'Esos son todos los pasos. Para verlos con calma, están en «Ayuda y guías»: toca el botón.', ...own, goTo: guide } : null]);
+    case 'steps': {
+      // A how-to that only the other one does: this person's own «No: …» of the section, never its steps as theirs.
+      const not = steps.length ? undefined : cannotOf(x, roles);
+      const rest = not ? 'Cómo lo hace quien le toca está en la guía, en «Ayuda y guías»: toca el botón.' : 'Esos son todos los pasos. Para verlos con calma, están en «Ayuda y guías»: toca el botón.';
+      return fresh([stepsFrom(at ?? 0), stepsFrom(0), not ? { text: not, ...own } : null, guide ? { text: rest, ...own, goTo: guide } : null]);
+    }
     case 'next': {
       const nx = e.next ? entryById(e.next) : undefined;
       if (nx) return fresh([{ text: `Después: ${lcFirst(textFor(nx.a, roles))}`, entryId: nx.id, ...(guide ? { goTo: guide } : {}) }]);

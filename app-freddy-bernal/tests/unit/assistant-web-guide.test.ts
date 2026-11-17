@@ -8,7 +8,7 @@ import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import { ROLES, TEAM_ROLES, type Role } from '@/lib/roles';
 import { handleTurn } from '@/lib/assistant';
 import { parseChain } from '@/lib/assistant/providers';
-import { allEntries, bestAnswer, domainOf, entryById, entryForScreen, textFor } from '@/lib/assistant/answers/engine';
+import { allEntries, bestAnswer, domainOf, entryById, entryForScreen, ownReaders, textFor } from '@/lib/assistant/answers/engine';
 import { CASE_MARK, caseAsk, caseOverMessages } from '@/lib/assistant/case-ask';
 import { WEB_NOT_YOURS } from '@/lib/assistant/local';
 import { domainOfScreen, screenFor } from '@/lib/assistant/screens';
@@ -265,6 +265,40 @@ describe('explicar un tema de la web y contar un flujo', () => {
     expect(bad, bad.slice(0, 5).join('\n')).toEqual([]);
     // The sections that print the receipts are only pointed to, whatever is asked about them.
     for (const facet of FACETS) expect(webExplain(facet, 'web:comprobante', { roles: ['boss'] })?.text ?? '', facet).not.toMatch(/AC-|por ejemplo/);
+  });
+
+  it('«paso a paso» de una sección: los pasos de quien los hace; a quien no, su «No: …» (el público de cada paso a paso)', () => {
+    // (The merge of the engine with the guide's 360 fields, 18/11: «paso a paso» after «¿qué es Por aprobar?» gave
+    // Administración the boss's «Revisar y publicar…» steps, and the boss Administración's «Crear un área nueva».)
+    const steps = (id: string, role: Role, cursor?: number) => webExplain('steps', id, { roles: [role], ...(cursor !== undefined ? { cursor } : {}) })?.text ?? '';
+    expect(steps('web:aprobar', 'boss')).toMatch(/paso a paso: 1\) «Web» → «Por aprobar»/);
+    expect(steps('web:aprobar', 'admin')).toMatch(/^No: tú no apruebas ni publicas en la web\./);
+    expect(steps('web:areas-y-plazos', 'admin')).toMatch(/paso a paso: 1\) «Atención» → «Áreas y plazos» → «Nueva área»/);
+    expect(steps('web:areas-y-plazos', 'boss')).toMatch(/^No: tú no cambias las áreas ni los plazos\./);
+    // To no one is the other one's how-to its own, from any of the section's entries.
+    for (const x of webSections())
+      for (const t of x.tasks ?? [])
+        for (const role of x.audience as Role[]) {
+          if (!t.audience || (t.audience as string[]).includes(role)) continue;
+          for (const e of web().filter((y) => y.id === `web:${x.id}` || y.id.startsWith(`web:${x.id}:`)))
+            if (!e.roles || e.roles.includes(role)) expect(webExplain('steps', e, { roles: [role] })?.text ?? '', `${e.id} ${role}`).not.toContain(t.steps[0].replace(/\*\*/g, ''));
+        }
+    // A task's own steps go on in that task: «¿y después?» after its last step ends there, not in another task's.
+    const last = entryById('web:aprobar:tarea:devolver-contenido:3')!;
+    expect(last.roles).toEqual(['boss']);
+    expect(webExplain('next', last, { roles: ['boss'] })?.text).toMatch(/^Ahí termina/);
+    expect(steps('web:aprobar:tarea:devolver-contenido', 'boss')).toMatch(/^Aprobar.*?, paso a paso: 1\) «Web» → «Por aprobar» → el contenido\. 2\) En «Decidir», escribe en «Qué hay que cambiar»/);
+  });
+
+  it('un texto por lector de la web va solo a quien tiene el suyo: nadie recibe el del otro', () => {
+    const e = web().find((x) => x.roles?.length === 2 && typeof x.a !== 'string')!;
+    expect(e).toBeDefined();
+    expect(ownReaders({ ...e, a: { boss: 'Tú publicas.', admin: 'No: tú no publicas.' } })?.roles).toEqual(e.roles);
+    expect(ownReaders({ ...e, a: { admin: 'No: tú no publicas.' } })?.roles).toEqual(['admin']);
+    expect(ownReaders({ ...e, a: { default: 'Lo hace el aprobador.' } })?.roles).toEqual(e.roles);
+    expect(ownReaders({ ...e, a: {} })).toBeNull();
+    for (const x of web().filter((y) => y.kind !== 'curated'))
+      if (typeof x.a !== 'string' && x.a.default === undefined) for (const r of x.roles ?? []) expect(typeof x.a[r], `${x.id} ${r}`).toBe('string');
   });
 
   it('un flujo contado: hasta cuatro pasos y «¿Sigo?»; un «sí» sigue donde quedó', async () => {
