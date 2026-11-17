@@ -617,7 +617,7 @@ function flowEntries(): Entry[] {
 function adminEntries(): Entry[] {
   const out: Entry[] = [];
   const r: Role[] = ['admin'];
-  everyoneSections('dispatch')
+  everyoneSections('admin')
     .filter((x) => x.screen === '/avisos' || x.screen === '/buscar' || x.screen === '/perfil')
     .forEach((x, k) => out.push(...screenEntries('admin', `admin:todos:${k}`, `admin:sections ${x.title}`, x)));
   out.push({ id: 'admin:trabajo', kind: 'job', source: 'admin:mission', roles: r, q: ['que hago yo', 'cual es mi trabajo', 'que hace administracion', 'que hace mi rol', 'cual es mi funcion'], a: ADMIN_GUIDE.mission, go: '/ayuda/administracion' });

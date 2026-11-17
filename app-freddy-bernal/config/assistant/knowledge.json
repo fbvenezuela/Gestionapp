@@ -39,9 +39,31 @@
   },
   {
    "key": "mi-perfil",
-   "roles": null,
+   "roles": [
+    "admin",
+    "boss",
+    "dispatch",
+    "politics",
+    "ivt"
+   ],
    "title": "Mi perfil: nombre, doble factor y avisos",
-   "body": "En Mi perfil (Mi cuenta, el muñequito de arriba a la derecha → «Mi perfil y avisos») cambias tu nombre y ves cómo está tu doble factor («Mis datos»); eliges qué avisos te llegan por correo y al teléfono («Qué avisos quiero»: los importantes llegan siempre, aunque los desmarques) y las horas de silencio; ahí también activas los avisos en este teléfono. El correo con el que entras no se cambia ahí: si hace falta, pídeselo a administración.",
+   "body": "En Mi perfil (Mi cuenta, el muñequito de arriba a la derecha → «Mi perfil y avisos») cambias tu nombre y ves cómo está tu doble factor («Mis datos»); eliges qué avisos te llegan por correo y al teléfono («Qué avisos quiero»: abajo dice cuáles te llegan siempre, que no se pueden apagar) y las horas de silencio; ahí también activas los avisos en este teléfono. El correo con el que entras no se cambia ahí: si hace falta, pídeselo a administración.",
+   "tags": [
+    "perfil",
+    "nombre",
+    "numero",
+    "telefono",
+    "cuenta"
+   ]
+  },
+  {
+   "key": "mi-perfil-redes-grabacion",
+   "roles": [
+    "social",
+    "camera"
+   ],
+   "title": "Mi perfil: nombre y avisos",
+   "body": "En Mi perfil (Mi cuenta, el muñequito de arriba a la derecha → «Mi perfil y avisos») cambias tu nombre («Mis datos»); eliges qué avisos te llegan por correo y al teléfono («Qué avisos quiero»: abajo dice cuáles te llegan siempre, que no se pueden apagar) y las horas de silencio; ahí también activas los avisos en este teléfono. El correo con el que entras no se cambia ahí: si hace falta, pídeselo a administración.",
    "tags": [
     "perfil",
     "nombre",

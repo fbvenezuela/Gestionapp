@@ -955,7 +955,7 @@ function screenFacets(): Record<string, Facets> {
   };
   for (const g of allGuides()) g.sections.forEach((s, k) => put(`${g.slug}:pantalla:${k}`, g.role, s));
   // Administración's: the three screens it shares with everyone (answers/engine.ts adminEntries) and its own guide.
-  everyoneSections('dispatch')
+  everyoneSections('admin')
     .filter((x) => x.screen === '/avisos' || x.screen === '/buscar' || x.screen === '/perfil')
     .forEach((s, k) => put(`admin:todos:${k}`, 'admin', s));
   ADMIN_GUIDE.sections.forEach((s, k) => put(`admin:pantalla:${k}`, 'admin', s));

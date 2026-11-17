@@ -26,11 +26,23 @@ export const ALWAYS_NOTICES: { kind: string; label: string; roles: readonly Role
 
 const and = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} y ${xs[xs.length - 1]}` : xs.join(''));
 
+/** The notices that always reach these roles, said («un evento que se cancela y una pieza roja por aprobar»), or null. */
+export function alwaysNoticesFor(roles: readonly string[]): string | null {
+  const labels = [...new Set(ALWAYS_NOTICES.filter((n) => n.roles.some((r) => roles.includes(r))).map((n) => n.label))];
+  return labels.length ? and(labels) : null;
+}
+
 /** «Aparte de estos, siempre te llegan (no se pueden apagar): …», with the person's own; null when none reaches them. */
 export function alwaysNoticesLine(roles: readonly string[]): string | null {
-  const labels = [...new Set(ALWAYS_NOTICES.filter((n) => n.roles.some((r) => roles.includes(r))).map((n) => n.label))];
-  return labels.length ? `Aparte de estos, siempre te llegan (no se pueden apagar): ${and(labels)}.` : null;
+  const said = alwaysNoticesFor(roles);
+  return said ? `Aparte de estos, siempre te llegan (no se pueden apagar): ${said}.` : null;
 }
+
+/** The roles whose «Mis datos» says how the second factor is (the form shows it when the session needs it: the roles of
+ * config/clients «mfaRoles», seeded as security.mfa_roles). Grabación and Redes enter with the email code (F5/R03), so
+ * the guides and 360 never tell them about it. A test keeps this list equal to the config's. */
+export const TWO_FACTOR_ROLES: readonly Role[] = ['boss', 'dispatch', 'politics', 'ivt', 'admin'];
+export const showsTwoFactor = (roles: readonly string[]) => TWO_FACTOR_ROLES.some((r) => roles.includes(r));
 
 /** The agenda's two switches are for whoever edits it (the boss and despacho): the other one named. */
 export function agendaChangedLabel(roles: readonly string[]): string | null {

@@ -1,7 +1,22 @@
 // 360's answers for everyone (sign-in, two-factor, phone, no signal, Mensajes, tutorials and guides, 360 itself, who does what). See types.ts for the rules of an entry.
 // The «¿puedo…? / ¿quién…?» that depend on who asks live here, one entry with a text per role: the role that can do it
 // hears «Sí: …» and how; the rest hear who does it. Administración has no Mensajes (D-49, D-82): its key says so.
-import type { Answer } from './types';
+import { STAFF_ROLES } from '../../roles';
+import { TWO_FACTOR_ROLES, alwaysNoticesFor } from '../../domain/profile-notices';
+import type { Answer, AnswerText } from './types';
+
+// What always reaches each role in «Qué avisos quiero» and whether «Mis datos» says its two-factor (Mi perfil, R03/R04):
+// built from the same lists as the screen (src/lib/domain/profile-notices.ts), never retyped.
+const NOTICES_PREFS = 'En Mi perfil, «Qué avisos quiero»: marcas los que quieres recibir, por correo y en el teléfono, y tocas «Guardar».';
+const noticesByRole = (): AnswerText => ({
+  default: `${NOTICES_PREFS} Abajo dice cuáles te llegan siempre.`,
+  ...Object.fromEntries(STAFF_ROLES.map((r) => [r, `${NOTICES_PREFS} Aparte de esos, siempre te llegan (no se pueden apagar): ${alwaysNoticesFor([r])}.`])),
+});
+const myProfile = (data: string) => `Arriba a la derecha, Mi cuenta → «Mi perfil y avisos»: «Mis datos» (${data}), los «Avisos en este teléfono», «Qué avisos quiero» y las «Horas de silencio». El correo con el que entras no se cambia ahí.`;
+const myProfileByRole = (): AnswerText => ({
+  default: myProfile('tu nombre'),
+  ...Object.fromEntries(TWO_FACTOR_ROLES.map((r) => [r, myProfile('tu nombre y cómo está tu doble factor')])),
+});
 
 // What administración hears when it asks how to use Mensajes (shared.ts NO_MESSAGES_LINE).
 const NO_MSG = 'Mensajes es del equipo: administración no lo ve, y por eso no tiene los globitos.';
@@ -922,7 +937,7 @@ export const TODOS: Answer[] = [
       'que no me manden correos',
       'son muchas notificaciones',
     ],
-    a: 'En Mi perfil, «Qué avisos quiero»: marcas los que quieres recibir, por correo y en el teléfono, y tocas «Guardar». Los importantes llegan siempre, aunque los desmarques: por ejemplo, que te asignaron un evento, que uno cambió de fecha u hora o se canceló, o que el jefe pidió cambios.',
+    a: noticesByRole(),
     go: '/perfil',
     tutorial: 'perfil',
   },
@@ -979,7 +994,7 @@ export const TODOS: Answer[] = [
     id: 'todo-mi-perfil',
     roles: null,
     q: ['¿dónde está Mi perfil?', 'como entro a mi perfil', 'mis datos', 'donde estan mis preferencias', 'que puedo cambiar en mi perfil', 'para que sirve mi perfil', 'que es mis datos', 'donde edito mis datos', 'donde estan mis datos personales', 'mi perfil y avisos que es'],
-    a: 'Arriba a la derecha, Mi cuenta → «Mi perfil y avisos»: «Mis datos» (tu nombre), los «Avisos en este teléfono», «Qué avisos quiero» y las «Horas de silencio». El correo con el que entras no se cambia ahí.',
+    a: myProfileByRole(),
     go: '/perfil',
     tutorial: 'perfil',
   },

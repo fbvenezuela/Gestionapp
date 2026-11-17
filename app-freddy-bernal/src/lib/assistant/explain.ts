@@ -212,7 +212,7 @@ type Unit =
   | { kind: 'entry'; id: string; entry: Entry };
 
 const guideBySlug = (slug: string) => allGuides().find((g) => g.slug === slug);
-const ADMIN_EVERYONE = () => everyoneSections('dispatch').filter((x) => x.screen === '/avisos' || x.screen === '/buscar' || x.screen === '/perfil');
+const ADMIN_EVERYONE = () => everyoneSections('admin').filter((x) => x.screen === '/avisos' || x.screen === '/buscar' || x.screen === '/perfil');
 
 /** The unit of the guides an entry id is (or is part of): a task and its step, a screen and its item, a flow and its step… */
 function unitOf(id: string, e?: Entry): Unit | null {

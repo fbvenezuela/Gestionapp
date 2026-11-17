@@ -4,6 +4,7 @@
 import { navFor, type TeamRole } from '../roles';
 import { MSG_AGENDA, MSG_CHANNELS, MSG_ENTER, MSG_FREE, MSG_LINKS, MSG_PHONES, MSG_RELATIVE } from './shared';
 import { CHAT_ADD_READS_BEFORE } from '../domain/chat';
+import { alwaysNoticesFor, showsTwoFactor } from '../domain/profile-notices';
 import type { RoleGuide, SectionGuide } from './types';
 
 type S = SectionGuide;
@@ -118,8 +119,11 @@ export function messagesSections(role: TeamRole): S[] {
   return list;
 }
 
-export function everyoneSections(role: TeamRole): S[] {
-  const twoFactor = role !== 'camera' && role !== 'social';
+// Administración's own three (Avisos, Buscar, Mi perfil) come from here too: its notices and its two-factor line.
+export function everyoneSections(role: TeamRole | 'admin'): S[] {
+  const twoFactor = showsTwoFactor([role]);
+  // What always reaches this role, as Mi perfil lists it under «Qué avisos quiero» (src/lib/domain/profile-notices.ts).
+  const always = alwaysNoticesFor([role]);
   return [
     {
       screen: '/avisos',
@@ -144,7 +148,7 @@ export function everyoneSections(role: TeamRole): S[] {
       youDo: [
         'En «Mis datos», tu nombre' + (twoFactor ? ' y cómo está tu doble factor.' : '.'),
         'En «Avisos en este teléfono», «Activar avisos» para que el teléfono te avise aunque la app esté cerrada; «Probar aviso» para ver que llega.',
-        'En «Qué avisos quiero», marca los que quieres recibir. Los importantes llegan siempre, aunque los desmarques: por ejemplo, que te asignaron un evento, que uno cambió de fecha u hora o se canceló, o que el jefe pidió cambios.',
+        `En «Qué avisos quiero», marca los que quieres recibir. ${always ? `Aparte de esos, siempre te llegan (no se pueden apagar): ${always}.` : 'Los importantes llegan siempre.'}`,
         'En «Horas de silencio», el teléfono no suena de noche: lo importante llega igual y todo queda en «Avisos».',
         'Toca «Guardar».',
       ],
