@@ -3,10 +3,10 @@
 // (chapter 3 is part 7 and chapter 4 is part 3; 5, 6 and 7 are 3.9 to 3.11 and 8 is 7.8): each section's `pdf`.
 // Ported 1:1 from the doc (WF-C, design §4(a)): one source for the doc (src/lib/guides/render-web-md.ts writes it back
 // byte for byte), «Ayuda y guías» and 360. Never edit the .md: edit this and run `npm run docs:guides`. Text with the
-// screen's labels in «» (exact), the client's words as huecos ([PROGRAMA], [SEMANARIO], [WEB_OFICIAL]) that
-// fillClientWords() fills from config/clients/<brand>.json. `wrap`: only for the doc (the length of each of its lines);
-// change a text and drop its `wrap`. 360's fields of each section (what, items, tasks, cannot, rules, faq, easy, example,
-// why) are filled in the next round; `audience` says to whom 360 explains it (design §4(d)).
+// screen's labels in «» (exact), the client's words as huecos ([PROGRAMA], [SEMANARIO], [WEB_OFICIAL], [ORGANIZACION])
+// that fillClientWords() fills from config/clients/<brand>.json. `wrap`: only for the doc (the length of each of its
+// lines); change a text and drop its `wrap`. 360's fields of each section (what, items, tasks, cannot, rules, faq, easy,
+// example, why) are filled in the next round; `audience` says to whom 360 explains it (design §4(d)).
 import type { WebDoc } from '../types';
 
 export const GUIA_WEB: WebDoc = {
@@ -351,7 +351,7 @@ export const GUIA_WEB: WebDoc = {
         {
           kind: 'list',
           items: [
-            'El título dice «Solicitud recibida». El recuadro «Comprobante · Atención ciudadana · Gobernación del estado Táchira» trae el «Código» (por ejemplo `AC-2026-K7QM2H`) y la «Clave» (cuatro grupos de cuatro letras y números).',
+            'El título dice «Solicitud recibida». El recuadro «Comprobante · Atención ciudadana · [ORGANIZACION]» trae el «Código» (por ejemplo `AC-2026-K7QM2H`) y la «Clave» (cuatro grupos de cuatro letras y números).',
             'Debajo: «Guárdelos ahora. La clave se muestra una sola vez y no se puede recuperar. Sin ella no es posible consultar la solicitud. No la comparta.».',
             'Hay botones para guardarlo: «Descargar comprobante (PDF)», «Imprimir» y «Copiar código y clave».',
             'Los archivos suben después, uno por uno, en «Archivos adjuntos». Uno que falla tiene su botón «Reintentar».',

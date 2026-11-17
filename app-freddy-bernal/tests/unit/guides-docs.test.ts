@@ -8,7 +8,7 @@ import path from 'node:path';
 import { ADMIN_GUIDE, FLOWS, GLOSSARY, SHARED, TOURS, allGuides } from '@/lib/guides';
 import { NOT_SENT, flowMermaid, renderAllDocs } from '@/lib/guides/render-md';
 import { greedyLines, renderWebDocs, webFlowMermaid, wrapFits } from '@/lib/guides/render-web-md';
-import { WEB_DOCS, clientWords, webFlows } from '@/lib/guides/web';
+import { UNFILLED_HUECO, WEB_DOCS, clientWords, fillClientWords, webFlows } from '@/lib/guides/web';
 
 const docs = renderAllDocs({ shared: SHARED, guides: allGuides(), flows: FLOWS, tours: TOURS, admin: ADMIN_GUIDE });
 const words = clientWords();
@@ -82,7 +82,8 @@ describe('las guías de la web están al día (WF-C)', () => {
 
     it(`${file} dice arriba que se genera, y sin huecos ni marcas`, () => {
       expect(text.split('\n').slice(0, 6).join('\n')).toContain('<!-- Generado por `npm run docs:guides` desde src/lib/guides/web/');
-      expect(text).not.toMatch(/\[(?:PROGRAMA|SEMANARIO|WEB_OFICIAL)\]|\[§/);
+      expect(text).not.toMatch(UNFILLED_HUECO);
+      expect(text).not.toContain('[§');
     });
   }
 
@@ -100,20 +101,21 @@ describe('las guías de la web están al día (WF-C)', () => {
     for (const f of ['docs/GUIA-WEB.md', 'docs/MANUAL-ADMIN-WEB.md', 'docs/MANUAL-ATENCION.md']) expect(webDocs[f], f).toMatch(/^# .+\n\n<!-- .+ -->\n\*\*\d{2}\/\d{2}\/\d{4}\.\*\* /);
   });
 
-  it('las palabras del cliente salen de su configuración: el programa, el Semanario y la web oficial', () => {
+  it('las palabras del cliente salen de su configuración: el programa, el Semanario, la web oficial y la institución', () => {
     const all = Object.values(webDocs).join('\n');
     for (const w of Object.values(words)) expect(all, w).toContain(w);
     // Another client's words go in their place.
-    const other = renderWebDocs(WEB_DOCS, { program: 'Programa de prueba', weekly: 'Semanario de prueba', officialSite: 'web-de-prueba.test' });
+    const other = renderWebDocs(WEB_DOCS, { program: 'Programa de prueba', weekly: 'Semanario de prueba', officialSite: 'web-de-prueba.test', organization: 'Institución de prueba' });
     const theirs = Object.values(other).join('\n');
     for (const w of Object.values(words)) expect(theirs, w).not.toContain(w);
     expect(theirs).toContain('«Programa de prueba»');
+    expect(theirs).toContain('«Comprobante · Atención ciudadana · Institución de prueba»');
   });
 
   it('los flujos van en el Mermaid de siempre, uno por flujo, con su ancla y su lista arriba', () => {
     const md = webDocs['docs/FLUJOS-WEB.md'];
     const flows = webFlows();
-    const fill = (s: string) => s.replaceAll('[PROGRAMA]', words.program).replaceAll('[SEMANARIO]', words.weekly).replaceAll('[WEB_OFICIAL]', words.officialSite);
+    const fill = (s: string) => fillClientWords(s, words);
     expect(md.match(/```mermaid\nflowchart TD\n/g)?.length).toBe(flows.length);
     for (const f of flows) {
       expect(md).toContain(`- [${fill(f.title)}](#${f.id})`);

@@ -2,10 +2,10 @@
 // «Guía de la web y sus flujos»: its sections are 5.1 to 5.23 (`pdf`).
 // Ported 1:1 from the doc (WF-C, design §4(a)): one source for the doc (src/lib/guides/render-web-md.ts writes it back
 // byte for byte), «Ayuda y guías» and 360. Never edit the .md: edit this and run `npm run docs:guides`. Text with the
-// screen's labels in «» (exact), the client's words as huecos ([PROGRAMA], [SEMANARIO], [WEB_OFICIAL]) that
-// fillClientWords() fills from config/clients/<brand>.json. `wrap`: only for the doc (the length of each of its lines);
-// change a text and drop its `wrap`. 360's fields of each section (what, items, tasks, cannot, rules, faq, easy, example,
-// why) are filled in the next round; `audience` says to whom 360 explains it (design §4(d)).
+// screen's labels in «» (exact), the client's words as huecos ([PROGRAMA], [SEMANARIO], [WEB_OFICIAL], [ORGANIZACION])
+// that fillClientWords() fills from config/clients/<brand>.json. `wrap`: only for the doc (the length of each of its
+// lines); change a text and drop its `wrap`. 360's fields of each section (what, items, tasks, cannot, rules, faq, easy,
+// example, why) are filled in the next round; `audience` says to whom 360 explains it (design §4(d)).
 import type { WebDoc } from '../types';
 
 export const MANUAL_ATENCION: WebDoc = {

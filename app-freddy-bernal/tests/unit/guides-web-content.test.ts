@@ -12,6 +12,7 @@ import { DEMO_WORDS, LABEL_ALLOW, LABEL_PATTERNS, balancedQuotes, concreteDateTi
 import { docFill, flowLayout, wrapFits } from '@/lib/guides/render-web-md';
 import {
   CLIENT_HUECOS,
+  UNFILLED_HUECO,
   WEB_DOCS,
   WEB_GUIDE_ROWS,
   WEB_PARTS,
@@ -41,10 +42,13 @@ const ALL = [...SECTIONS, ...FLOWS];
 
 type Text = { where: string; text: string };
 // Every text a person reads, with the client's words filled; the references stay as their marker («[§id]»), which the
-// docs print as a number and «Ayuda y guías» as a link (a number like «4.13» would read as a date to the checks).
+// docs print as a number and «Ayuda y guías» as a link (a number like «4.13» would read as a date to the checks). Also
+// what «Ayuda y guías» adds around them: each part's title and opening line, and the two rows of «La guía de cada persona».
 const TEXTS: Text[] = [
   ...WEB_DOCS.map((d) => ({ where: `${d.id}: título`, text: fill(d.title) })),
   ...ALL.flatMap((x) => webTexts(x).map((text) => ({ where: `${x.pdf} ${x.id}`, text: fill(text) }))),
+  ...WEB_PARTS.flatMap((p) => [p.title, p.lede].map((text) => ({ where: `parte ${p.n}`, text }))),
+  ...WEB_GUIDE_ROWS.flatMap((r) => [r.label, r.detail].map((text) => ({ where: `fila ${r.href}`, text }))),
 ];
 const FACETS: Text[] = ALL.flatMap((x) => webFacetTexts(x).map((text) => ({ where: `${x.pdf} ${x.id} (360)`, text: fill(text) })));
 
@@ -252,15 +256,38 @@ describe('las palabras del cliente salen de su configuración (el repositorio es
     expect(hits).toEqual([]);
   });
 
-  it('los huecos se llenan con config/clients/fb.json: el nombre del programa en el menú de la web, el Semanario y la web oficial', () => {
+  it('ningún archivo de src/lib/guides escribe una palabra del cliente que trae su configuración', () => {
+    // The client's own words from config/clients/fb.json: its name and each part of it, its title, the program, the
+    // paper, the official site, the organization and its office (the region alone is the app's: «hora del Táchira»).
+    const b = cfg.brand;
+    const sd = cfg.web.structuredData as { organizationName: string; jobTitle?: string };
+    const own = [b.clientName, ...b.clientName.split(' '), b.clientTitle, b.programName, b.weeklyName, ...Object.values(words), sd.organizationName, sd.jobTitle ?? '']
+      .map((w) => w.trim())
+      .filter((w) => w.length > 3);
+    expect(own).toContain(words.organization);
+    const hits = files(path.join('src', 'lib', 'guides')).flatMap((f) => {
+      const text = fs.readFileSync(f, 'utf8').toLowerCase();
+      return own.filter((w) => text.includes(w.toLowerCase())).map((w) => `${f}: ${w}`);
+    });
+    expect(hits).toEqual([]);
+  });
+
+  it('los huecos se llenan con config/clients/fb.json: el nombre del programa en el menú de la web, el Semanario, la web oficial y la institución', () => {
     const menu = (cfg.web.settings as Record<string, unknown>)['site.navigation'] as { label: string; path: string }[];
-    expect(words).toEqual({ program: menu.find((n) => n.path === '/reporte-bernal')!.label, weekly: cfg.brand.weeklyName, officialSite: cfg.web.realSite.source });
-    expect(fill(`${CLIENT_HUECOS.program} · ${CLIENT_HUECOS.weekly} · ${CLIENT_HUECOS.officialSite}`)).toBe(`${words.program} · ${words.weekly} · ${words.officialSite}`);
+    expect(words).toEqual({
+      program: menu.find((n) => n.path === '/reporte-bernal')!.label,
+      weekly: cfg.brand.weeklyName,
+      officialSite: cfg.web.realSite.source,
+      organization: cfg.web.structuredData.organizationName,
+    });
+    expect(fill(`${CLIENT_HUECOS.program} · ${CLIENT_HUECOS.weekly} · ${CLIENT_HUECOS.officialSite} · ${CLIENT_HUECOS.organization}`)).toBe(
+      `${words.program} · ${words.weekly} · ${words.officialSite} · ${words.organization}`,
+    );
     // The data uses them where the docs name the client: the program, the paper and the official site.
     const raw = ALL.flatMap((x) => webTexts(x)).join('\n');
     for (const h of Object.values(CLIENT_HUECOS)) expect(raw, h).toContain(h);
     // Nothing is left unfilled in what a person reads.
-    for (const t of TEXTS) expect(t.text, t.where).not.toMatch(/\[(?:PROGRAMA|SEMANARIO|WEB_OFICIAL)\]/);
+    for (const t of TEXTS) expect(t.text, t.where).not.toMatch(UNFILLED_HUECO);
   });
 });
 

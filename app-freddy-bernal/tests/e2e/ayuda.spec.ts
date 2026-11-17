@@ -157,7 +157,8 @@ test('administración: su guía aparte y la de cada persona', async ({ page }) =
 
 // The web's and Atención's guides (WF-C): the boss and Administración have «La web» and «Atención ciudadana» in «La
 // guía de cada persona» and open both pages, a part (an anchor per section) and a flow (its steps linked), at 360 px with
-// axe; Redes has neither the rows nor the pages (back to its home with the notice).
+// axe; Redes and the web's and the desk's own people have neither the rows nor the pages (back to their home with the
+// notice).
 for (const p of [
   { email: 'jefe@demo.test', who: 'el jefe' },
   { email: 'admin@demo.test', who: 'administración' },
@@ -188,6 +189,7 @@ for (const p of [
     await page.goto('/ayuda/atencion');
     await expect(page.getByRole('heading', { level: 1, name: 'Atención ciudadana' })).toBeVisible();
     await expect(page.locator('#parte-5')).toBeVisible();
+    await readyForAxe(page, '/ayuda/atencion');
     await check(page, '/ayuda/atencion');
     const flow = FLUJOS_WEB.flows![0];
     await page.locator(`a[href="/ayuda/atencion?flujo=${flow.id}"]`).first().click();
@@ -202,17 +204,24 @@ for (const p of [
   });
 }
 
-test('Redes no ve las guías de la web: ni las filas en «Ayuda y guías» ni las páginas', async ({ page }) => {
-  await loginAs(page, 'redes@demo.test');
-  await page.goto('/ayuda');
-  await expect(page.getByRole('heading', { level: 1, name: 'Ayuda y guías' })).toBeVisible();
-  await expect(page.locator('a[href="/ayuda/web"]')).toHaveCount(0);
-  await expect(page.locator('a[href="/ayuda/atencion"]')).toHaveCount(0);
-  await page.goto('/ayuda/web');
-  await expect(page).toHaveURL(/\/hoy\?sin-permiso=1$/);
-  await page.goto('/ayuda/atencion?parte=5');
-  await expect(page).toHaveURL(/\/hoy\?sin-permiso=1$/);
-});
+for (const p of [
+  { email: 'redes@demo.test', who: 'Redes', home: '/hoy' },
+  { email: 'web.editora@demo.test', who: 'el editor de la web', home: '/admin/web' },
+  { email: 'atencion.coordinacion@demo.test', who: 'la coordinación de atención', home: '/admin/atencion' },
+]) {
+  test(`${p.who} no ve las guías de la web: ni las filas en «Ayuda y guías» ni las páginas`, async ({ page }) => {
+    await loginAs(page, p.email);
+    await page.goto('/ayuda');
+    await expect(page.getByRole('heading', { level: 1, name: 'Ayuda y guías' })).toBeVisible();
+    await expect(page.locator('a[href="/ayuda/web"]')).toHaveCount(0);
+    await expect(page.locator('a[href="/ayuda/atencion"]')).toHaveCount(0);
+    const back = new RegExp(`${p.home}\\?sin-permiso=1$`);
+    await page.goto('/ayuda/web');
+    await expect(page).toHaveURL(back);
+    await page.goto('/ayuda/atencion?parte=5');
+    await expect(page).toHaveURL(back);
+  });
+}
 
 test('los flujos: el índice y uno abierto, con «tú» en los pasos de Redes', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');

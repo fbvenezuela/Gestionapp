@@ -5,11 +5,12 @@ import { describe, it, expect } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { WebGuidePage } from '@/components/guides/web-guide';
-import { clientWords, webEntry, webFlows, webPart } from '@/lib/guides/web';
+import { UNFILLED_HUECO, clientWords, webEntry, webFlows, webPart } from '@/lib/guides/web';
 
 const words = clientWords();
 const html = (page: 'web' | 'atencion', q: { parte?: string; flujo?: string } = {}) => renderToStaticMarkup(createElement(WebGuidePage, { page, words, ...q }));
-const unfilled = /\[(?:PROGRAMA|SEMANARIO|WEB_OFICIAL)\]|\[§|\*\*/;
+// A hueco, a reference marker or a «**» left unprinted.
+const unfilled = new RegExp(`${UNFILLED_HUECO.source}|\\[§|\\*\\*`);
 
 describe('«La web» y «Atención ciudadana» en «Ayuda y guías»', () => {
   it('el índice de «La web»: su apertura y las partes 1, 2, 3, 4, 6 y 7, cada una con sus secciones', () => {
@@ -61,6 +62,12 @@ describe('«La web» y «Atención ciudadana» en «Ayuda y guías»', () => {
     expect(out).toContain('>Pregunta<');
     // A flow of the other page is not shown here: its page's index instead.
     expect(html('web', { flujo: f.id })).not.toContain(`aria-label="${f.title}`);
+  });
+
+  it('el recorrido del ciudadano dice el comprobante con el nombre de la institución de la configuración', () => {
+    const out = html('web', { parte: '2' });
+    expect(out).toContain(`«Comprobante · Atención ciudadana · ${words.organization}»`);
+    expect(out).not.toMatch(unfilled);
   });
 
   it('una parte o un flujo que no existe: el índice', () => {

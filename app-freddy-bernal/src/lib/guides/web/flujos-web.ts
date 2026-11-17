@@ -2,10 +2,10 @@
 // Part 6 of «Guía de la web y sus flujos»: 6.1 to 6.11 are the attention desk's, 6.12 to 6.18 the web's.
 // Ported 1:1 from the doc (WF-C, design §4(a)): one source for the doc (src/lib/guides/render-web-md.ts writes it back
 // byte for byte), «Ayuda y guías» and 360. Never edit the .md: edit this and run `npm run docs:guides`. Text with the
-// screen's labels in «» (exact), the client's words as huecos ([PROGRAMA], [SEMANARIO], [WEB_OFICIAL]) that
-// fillClientWords() fills from config/clients/<brand>.json. `wrap`: only for the doc (the length of each of its lines);
-// change a text and drop its `wrap`. 360's fields of each section (what, items, tasks, cannot, rules, faq, easy, example,
-// why) are filled in the next round; `audience` says to whom 360 explains it (design §4(d)).
+// screen's labels in «» (exact), the client's words as huecos ([PROGRAMA], [SEMANARIO], [WEB_OFICIAL], [ORGANIZACION])
+// that fillClientWords() fills from config/clients/<brand>.json. `wrap`: only for the doc (the length of each of its
+// lines); change a text and drop its `wrap`. 360's fields of each section (what, items, tasks, cannot, rules, faq, easy,
+// example, why) are filled in the next round; `audience` says to whom 360 explains it (design §4(d)).
 // `layout`: the order of the drawing's Mermaid lines, only for the doc: a node on its own line, or an edge (with
 // `def` when that line also writes its source, its target or both). Add a node or an edge and drop the flow's `layout`.
 import type { WebDoc } from '../types';

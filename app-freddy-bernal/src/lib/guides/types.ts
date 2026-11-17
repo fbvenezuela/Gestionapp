@@ -126,8 +126,8 @@ export type RoleText = string | Partial<Record<Audience | 'default', string>>;
 export type Wrap = number[];
 
 /** A block of a section, word for word as the doc prints it. Each text is one line, with the screen's labels in «»
- * (exact), `**bold**` and `` `code` `` inline, and the client's words as huecos ([PROGRAMA], [SEMANARIO], [WEB_OFICIAL]:
- * fillClientWords() in src/lib/guides/web/words.ts). `wrap` is keyed by the item's or paragraph's index. */
+ * (exact), `**bold**` and `` `code` `` inline, and the client's words as huecos ([PROGRAMA], [SEMANARIO], [WEB_OFICIAL],
+ * [ORGANIZACION]: fillClientWords() in src/lib/guides/web/words.ts). `wrap` is keyed by the item's or paragraph's index. */
 export type WebBlock =
   | { kind: 'p'; text: string; wrap?: Wrap }
   | { kind: 'list'; items: string[]; wrap?: Record<number, Wrap> } // «- …»
