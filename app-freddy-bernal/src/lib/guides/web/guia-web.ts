@@ -229,7 +229,8 @@ export const GUIA_WEB: WebDoc = {
       faq: [
         { q: '¿Por qué «Gestión y obras» no sale en el menú de la web?', a: 'Porque todavía no hay obras publicadas: la página diría «Aún no hay obras publicadas.». Se agrega en «Ajustes del sitio» → «Navegación» cuando las haya.' },
         { q: '¿La inversión de una obra sale siempre en la web?', a: 'Solo con su fuente: «Agregar la inversión (con su fuente)» pide de dónde sale la cifra. Sin fuente, no se pone.' },
-        { q: '¿Cómo manda la gente una observación sobre una obra?', a: 'En la ficha de la obra, con «Enviar una observación sobre esta obra»: el formulario abre en «Observación», con «Sobre esta obra» y su título.' },
+        { q: '¿Cómo manda la gente una observación sobre una obra o una noticia?', a: 'En la ficha de la obra, con «Enviar una observación sobre esta obra»; al final de una noticia, con «Enviar una observación». El formulario abre en «Observación», con «Sobre esta obra» o «Sobre esta noticia» y su título.' },
+        { q: '¿Qué dice «Gestión y obras» si no hay nada publicado?', a: 'Sin obras dice «Aún no hay obras publicadas.»; con filtros sin resultado, «No hay obras con esos filtros.».' },
       ],
       easy: 'Cuando haya obras publicadas, la gente verá cada obra con su estado, sus fotos y su ficha. Las cifras salen solo con su fuente.',
       blocks: [
@@ -867,7 +868,7 @@ export const GUIA_WEB: WebDoc = {
       title: 'Qué es',
       heading: { level: 3, num: '3.1' },
       audience: ['boss', 'admin'],
-      what: 'La versión de prueba es la web del gobernador y el panel del equipo, con su propio enlace, que no es el de la web oficial. Google y los demás buscadores no la muestran.',
+      what: 'La versión de prueba es la web del gobernador y el panel del equipo, con su propio enlace, que no es el de la web oficial: sirve para conocer la app y practicar cada rol antes de abrir la web al público. Google y los demás buscadores no la muestran.',
       items: [
         'Las noticias, las columnas de opinión, la biografía, las fotos y el Semanario son una copia de la web oficial, [WEB_OFICIAL].',
         'La copia se hace de nuevo de vez en cuando: por eso lo más nuevo de la web oficial no sale aquí enseguida.',

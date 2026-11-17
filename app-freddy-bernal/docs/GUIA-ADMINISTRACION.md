@@ -160,7 +160,7 @@ Las redirecciones llevan una dirección vieja a la nueva, para que ningún enlac
 - «Nueva redirección»: en «Dirección vieja», la dirección como estaba; en «Lleva a», la página de esta web adonde debe llevar. En ambas va solo el final de la dirección, el que empieza con «/».
 - En «Tipo» se deja la opción que viene marcada, «Para siempre (lo normal)». Debajo dice cuándo sirven las otras, como «Por un tiempo», si la dirección vieja se va a volver a usar.
 - Se toca «Agregar la redirección», y sale «Redirección guardada. La dirección vieja ya lleva a la nueva.».
-- No se puede redirigir una dirección que la web ya usa, ni hacer dos redirecciones desde la misma dirección.
+- Una página que todavía existe en la web no se redirige. No se puede redirigir una dirección que la web ya usa, ni hacer dos redirecciones desde la misma dirección.
 
 ### Atención ciudadana (`/admin/atencion`)
 Tu «Atención» no abre la bandeja: muestra «Áreas y plazos» y «Registro de atención». Administración nunca lee las solicitudes ni sus contactos.
@@ -174,7 +174,7 @@ Tu «Atención» no abre la bandeja: muestra «Áreas y plazos» y «Registro de
 «Áreas y plazos» es lo que armas para que la atención funcione: las áreas, quién está en cada una, el área y los días de cada categoría y los plazos. La coordinación, auditoría y el jefe lo leen.
 
 - «Nueva área»: «Nombre del área» y «Qué atiende» → «Crear el área». Para cambiar una: «Cambiar el nombre o apagarla» → «Guardar el área».
-- Para apagar un área se desmarca «Activa (apagada, no recibe casos nuevos; nada se borra)».
+- Para apagar un área: «Cambiar el nombre o apagarla», se desmarca «Activa (apagada, no recibe casos nuevos; nada se borra)» y «Guardar el área».
 - Responsables: «Agregar un responsable» → la persona → «Agregar». «Quitar» la saca del área. Solo salen las personas que tienen el rol de responsable de área.
 - «Categorías»: a qué área va cada una y sus «Días» → «Guardar». Sin área, la asigna la coordinación. «En el formulario» decide si la categoría sale en el formulario de la web.
 - «Plazos y avisos»: los días por prioridad y «Avisar de un caso sin movimiento después de (días)» → «Guardar los plazos».

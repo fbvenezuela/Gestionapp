@@ -157,7 +157,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
       heading: { level: 2, num: '3.' },
       audience: ['boss', 'admin'],
       screen: '/admin/web',
-      what: 'Cada tipo de contenido tiene su lista (por ejemplo «Noticias y comunicados»), con «Buscar», «Estado» y «Filtrar». Cada contenido lleva hasta tres etiquetas que dicen en qué va.',
+      what: 'Cada tipo de contenido tiene su lista (por ejemplo «Noticias y comunicados»), con «Buscar», «Estado» y «Filtrar». Cada contenido lleva hasta tres etiquetas que dicen en qué va: «Borrador», «En revisión», «Programado», «Publicado», «Cambios sin publicar», «Devuelto con comentario» o «Archivado».',
       items: [
         '«Buscar» busca palabras del título o del resumen; «Estado» filtra por Todos, Borradores, En revisión, Programados, Publicados o Archivados; «Quitar los filtros» vuelve a la lista completa. Lo que espera aprobación sale primero.',
         '«Borrador»: nunca se ha publicado.',
@@ -646,6 +646,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
       ],
       why: 'El texto alternativo es obligatorio porque lo oyen las personas ciegas y lo usan los buscadores, como Google.',
       faq: [
+        { q: '¿Qué es el «Texto alternativo»?', a: 'Las palabras que describen la foto: lo oyen las personas ciegas, con un programa que les lee la pantalla en voz alta, y lo usan buscadores como Google. Es obligatorio: sin él, la foto no se sube.' },
         { q: '¿Qué le pongo en el texto alternativo a una foto?', a: 'Lo que se ve, en pocas palabras, como se lo contarías a alguien que no puede verla: quién, qué hace, dónde. No empieces con “foto de…”, y si la foto tiene un texto importante, escríbelo.' },
         { q: '¿Qué es el punto de interés de una foto?', a: 'Lo que siempre debe verse en la foto, como una cara o la obra. Se toca en la foto, y así, cuando la web la recorta, eso no se pierde.' },
         { q: '¿Qué fotos y archivos acepta la biblioteca?', a: 'Fotos JPG, PNG o WebP y PDF, hasta 4 MB cada uno. Una imagen diminuta, como un ícono, no se acepta.' },
@@ -802,10 +803,10 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
       ],
       cannot: {
         boss: [
-          'No: no se puede redirigir una dirección que la web ya usa, ni hacer dos redirecciones desde la misma dirección.',
+          'No: una página que todavía existe en la web no se redirige. No se puede redirigir una dirección que la web ya usa, ni hacer dos redirecciones desde la misma dirección.',
         ],
         admin: [
-          'No: no se puede redirigir una dirección que la web ya usa, ni hacer dos redirecciones desde la misma dirección.',
+          'No: una página que todavía existe en la web no se redirige. No se puede redirigir una dirección que la web ya usa, ni hacer dos redirecciones desde la misma dirección.',
         ],
       },
       why: 'Para que ningún enlace guardado o compartido se pierda cuando una dirección cambia.',

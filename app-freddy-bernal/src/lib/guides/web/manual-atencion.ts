@@ -83,10 +83,11 @@ export const MANUAL_ATENCION: WebDoc = {
         ],
       },
       faq: [
+        { q: '¿Por qué no veo las denuncias?', a: { boss: 'Porque una denuncia es privada: la ven solo la coordinación y el operador de denuncias. Tú no, ni auditoría.', admin: 'Porque tú no ves ningún caso, y una denuncia es privada: la ven solo la coordinación y el operador de denuncias.' } },
         { q: '¿Qué veo yo en Atención?', a: { boss: 'Todo lo que llega, menos las denuncias, que ves solo en los totales, sin contactos, y las «Cifras». Lo lees como auditoría: no respondes ni cambias nada.', admin: 'Ningún caso: tu «Atención» muestra «Áreas y plazos» y el «Registro de atención». Nunca abres un caso.' } },
         { q: '¿Quién hace qué en Atención ciudadana?', a: 'La coordinación ve y dirige todo; cada responsable de área atiende lo de su área; el operador de denuncias, solo las denuncias; auditoría y el jefe leen; Administración arma las áreas y los plazos y nunca ve un caso.' },
         { q: '¿Y auditoría qué hace?', a: 'Solo lee: todo menos las denuncias, sin contactos. Ve las «Cifras», lee el «Registro» y exporta, siempre sin contactos.' },
-        { q: 'Me mandaron el enlace de un caso y me sale «No encontramos esto», ¿por qué?', a: 'Porque ese caso no te toca: lo que no es de tu rol no sale en tu lista, aunque te manden su enlace.' },
+        { q: 'Me mandaron el enlace de un caso y me sale «No encontramos esto», ¿por qué?', a: 'Porque ese caso no te toca: lo que no es de tu rol no sale en tu lista, y aunque te manden su enlace, la pantalla dice «No encontramos esto».' },
         { q: 'A alguien de Atención se le perdió el teléfono, ¿cómo vuelve a entrar?', a: { boss: 'Lo resuelve Administración: «Ajustes» → «Equipo» → «Cambiar» en la fila de la persona → «Reiniciar doble factor».', admin: 'Tú: «Ajustes» → «Equipo» → «Cambiar» en la fila de la persona → «Reiniciar doble factor».' } },
         { q: '¿Los de Atención entran con contraseña?', a: 'No: no hay contraseñas. Entran siempre con doble factor: el código que les llega por correo y Google Authenticator.' },
         { q: '¿Cómo le doy a alguien el rol de responsable de área?', a: { boss: 'Lo da Administración: «Ajustes» → «Equipo» → «Invitar a alguien», el rol en «Web y atención ciudadana (siempre con doble factor)» y sus áreas en «Sus áreas (ve y atiende lo de estas áreas y lo que le asignen)».', admin: '«Ajustes» → «Equipo» → «Invitar a alguien», el rol en «Web y atención ciudadana (siempre con doble factor)» y sus áreas en «Sus áreas (ve y atiende lo de estas áreas y lo que le asignen)». Después se cambian con «Cambiar».' } },
@@ -291,7 +292,7 @@ export const MANUAL_ATENCION: WebDoc = {
         { q: '¿Por qué el caso dice que lo puedo consultar pero no me toca?', a: 'Porque solo puedes leerlo: «Lo puedes consultar, pero no te toca atenderlo: sin contacto y sin cambios.». Lo atienden la coordinación y su responsable.' },
         { q: '¿Qué es todo esto que sale en el caso?', a: 'Arriba, el título, el código, el tipo y el estado; después «Lo que llegó», las tarjetas como «Estado» y «Área y responsable», y al final el «Historial».' },
         { q: '¿Cómo se trabaja un reporte desde que llega hasta que se cierra?', a: 'Se lee y se pasa a «En revisión»; se asigna y queda «Asignado»; se le responde a la persona; se trabaja «En atención»; al terminar, «Subir evidencia» y «Resuelto»; la persona confirma, y queda «Cerrado».' },
-        { q: '¿Qué es «Tomar el caso»?', a: 'El botón con que un responsable de área se queda un caso de su área: queda «Asignado» a él.' },
+        { q: '¿Qué es «Tomar el caso»?', a: '«Tomar el caso» es el botón con que un responsable de área se queda un caso de su área: queda «Asignado» a él.' },
         { q: '¿Qué hace el equipo cuando necesita un dato de la persona?', a: '«Pedir más información» → «Pedir la información»: la solicitud queda «Requiere información» hasta que la persona responda.' },
       ],
       easy: 'Un caso se lee, se asigna, se le avisa a la persona, se resuelve y se cierra. Tú lo puedes leer, pero no lo cambias.',
@@ -504,7 +505,7 @@ export const MANUAL_ATENCION: WebDoc = {
       audience: [],
       cannot: {
         boss: [
-          'No: tú no ves el contacto de la persona. Lo ven solo quienes atienden el caso: la coordinación, su responsable y, en una denuncia, el operador de denuncias. Está cifrado, y al verlo queda registrado quién lo miró y cuándo.',
+          'No: tú no ves el contacto de la persona (su nombre, su teléfono o su correo). Lo ven solo quienes atienden el caso: la coordinación, su responsable y, en una denuncia, el operador de denuncias. Está cifrado, y al verlo queda registrado quién lo miró y cuándo.',
           'No: el contacto de una persona se usa solo para atender su caso. Nunca se copia a grupos de WhatsApp, a notas personales ni a otro caso.',
           'No: la app solo le escribe a la persona por correo. Si prefiere llamada o WhatsApp, el equipo sigue lo que diga la coordinación y deja una nota interna; si eligió «Que no me contacten», no se le escribe.',
           'No: tú no borras contactos. Si la persona pide borrar el suyo, la coordinación toca «Borrar el contacto», con su motivo; no se puede recuperar, y el caso sigue.',
@@ -604,6 +605,7 @@ export const MANUAL_ATENCION: WebDoc = {
         ],
       },
       faq: [
+        { q: '¿Qué es un caso unido?', a: 'Un caso que se unió a otro igual: dice «Este caso está unido a …: se atiende allí.», y se trabaja en el que se quedó.' },
         { q: '¿Qué pasa cuando llegan varios reportes del mismo hueco?', a: 'Quien reporta ve «Reportes parecidos» y puede apoyar. Y cuando ya hay 3 iguales, el cuarto reporte del mismo problema en el mismo lugar se suma solo al más viejo, como un apoyo.' },
         { q: '¿Cómo se unen dos casos repetidos?', a: 'La coordinación, en la tarjeta «Casos iguales»: «Buscar el otro caso», «Elige el caso», «¿Cuál se queda?», el «Motivo» y «Unir los casos».' },
         { q: '¿Qué significa «Este caso está unido a …: se atiende allí.»?', a: 'Que el caso se unió a otro igual y se atiende allí: se trabaja en el que se quedó.' },
@@ -780,7 +782,7 @@ export const MANUAL_ATENCION: WebDoc = {
       faq: [
         { q: '¿Dónde veo las cifras de atención?', a: 'En «Atención» → «Cifras»: eliges las fechas con «Desde», «Hasta» y «Ver», o con «Últimos 30 días», «Este mes» y «Todo».' },
         { q: '¿Las denuncias salen en mis cifras?', a: 'Solo en los totales por tipo y estado: no salen por categoría, municipio ni área.' },
-        { q: '¿Qué significa la mediana?', a: 'El tiempo del caso del medio: la mitad tardó menos y la otra mitad más.' },
+        { q: '¿Qué significa la mediana en las cifras?', a: 'La mediana es el tiempo del caso del medio: la mitad tardó menos y la otra mitad más. Dice mejor cuánto se tarda que el promedio, que se mueve mucho con unos pocos casos muy lentos.' },
         { q: '¿Qué cifra uso para decir cuánto tardamos en atender?', a: 'La mediana del «Tiempo de resolución»: el promedio se mueve mucho con unos pocos casos muy lentos.' },
         { q: '¿«Resueltas» cuenta solo las que llegaron en esas fechas?', a: 'No: cuenta las que el equipo marcó «Resuelto» entre las dos fechas, hayan llegado cuando hayan llegado.' },
         { q: 'En «Cifras» me sale que no hay casos para medir, ¿qué hago?', a: 'Cambia las fechas con «Desde» y «Hasta», o mira «Todo»: en esas fechas no llegó nada, o no hay casos para medir.' },
@@ -928,7 +930,7 @@ export const MANUAL_ATENCION: WebDoc = {
       what: { boss: '«Áreas y plazos» es lo que la atención necesita para funcionar: las áreas, quién está en cada una, el área y los días de cada categoría y los plazos. Lo arma Administración; tú lo lees.', admin: '«Áreas y plazos» es lo que armas para que la atención funcione: las áreas, quién está en cada una, el área y los días de cada categoría y los plazos. La coordinación, auditoría y el jefe lo leen.' },
       items: [
         { admin: '«Nueva área»: «Nombre del área» y «Qué atiende» → «Crear el área». Para cambiar una: «Cambiar el nombre o apagarla» → «Guardar el área».', boss: 'Una tarjeta por área, con sus «Responsables» (o «Nadie todavía.»). Un área «Apagada» no recibe casos nuevos.' },
-        { admin: 'Para apagar un área se desmarca «Activa (apagada, no recibe casos nuevos; nada se borra)».', boss: '«Categorías»: a qué área va cada una y sus días. «Sin área» quiere decir que la asigna la coordinación, y «(fuera del formulario)», que no sale en el formulario de la web.' },
+        { admin: 'Para apagar un área: «Cambiar el nombre o apagarla», se desmarca «Activa (apagada, no recibe casos nuevos; nada se borra)» y «Guardar el área».', boss: '«Categorías»: a qué área va cada una y sus días. «Sin área» quiere decir que la asigna la coordinación, y «(fuera del formulario)», que no sale en el formulario de la web.' },
         { admin: 'Responsables: «Agregar un responsable» → la persona → «Agregar». «Quitar» la saca del área. Solo salen las personas que tienen el rol de responsable de área.', boss: '«Plazos y avisos»: los días de cada prioridad (o «los de la categoría») y, en «Sin movimiento», después de cuántos días avisa de un caso quieto.' },
         { admin: '«Categorías»: a qué área va cada una y sus «Días» → «Guardar». Sin área, la asigna la coordinación. «En el formulario» decide si la categoría sale en el formulario de la web.' },
         { admin: '«Plazos y avisos»: los días por prioridad y «Avisar de un caso sin movimiento después de (días)» → «Guardar los plazos».' },
@@ -1062,7 +1064,7 @@ export const MANUAL_ATENCION: WebDoc = {
         { q: '¿Cómo pruebo los roles de atención en la demo?', a: '«Acceso del personal», al final de la web → «Versión de demostración» → «La web y la atención ciudadana» → toca un rol: entras sin código. Para cambiar, «Mi cuenta» → «Salir».' },
         { q: '¿Qué puedo probar como coordinador en la demo?', a: '«Ver contacto», «Escribir» → «Respuesta a la persona» y «Pasar a» → «Cambiar el estado», y también «Tablero», «Mapa», «Cifras», «Respuestas guardadas» y «Descargar CSV».' },
         { q: '¿Qué ve el responsable de área en la prueba?', a: 'Solo lo de su área y lo que le asignen, nunca denuncias: puede probar «Tomar el caso», una nota interna y «Subir evidencia».' },
-        { q: '¿Por qué el mapa del operador de denuncias sale vacío?', a: 'Porque ve solo las denuncias, y una denuncia nunca va al mapa: no lleva el punto exacto.' },
+        { q: '¿Por qué el mapa del operador de denuncias sale vacío?', a: 'Porque ve solo las denuncias, y una denuncia nunca va al mapa: no lleva el punto exacto. Por eso su mapa sale vacío.' },
         { q: '¿Dónde se abren los comprobantes de prueba?', a: 'En la web, en «Consultar mi solicitud», sin entrar al panel.' },
         { q: '¿Qué es el número que va en medio de los códigos?', a: 'El año en curso.' },
         { q: 'Lo que hago en la demo, ¿se guarda para siempre?', a: 'No: se borra cada cierto tiempo, y la prueba vuelve a lo que traía. Para practicar entre roles, usa los casos de ejemplo y los tres comprobantes.' },
