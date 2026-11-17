@@ -37,7 +37,7 @@ const TASKS: Record<string, Facets> = {
   },
   'jefe:paso-a-paso:aprobar-pieza': {
     easy: 'Abres la pieza, la miras con calma, marcas la lista de lo que hay que revisar y, si está bien, tocas «Aprobar». Si no, pides cambios y le vuelve a Redes.',
-    example: 'Por ejemplo: Redes manda un post en amarillo. Lo abres en «Por aprobar», miras la imagen, revisas «Copies: cómo saldrá», marcas «Antes de aprobar» y tocas «Aprobar». Si el texto es muy largo, tocas «Muy largo» y «Pedir cambios».',
+    example: 'Por ejemplo: Redes manda un post en amarillo; lo abres en «Por aprobar», miras la imagen, revisas «Copies: cómo saldrá», marcas «Antes de aprobar» y tocas «Aprobar». Si el texto es muy largo, tocas «Muy largo» y «Pedir cambios».',
     why: 'Porque nada se publica sin tu aprobación: la lista «Antes de aprobar» es lo que se revisa antes, y hasta que la marcas toda, «Aprobar» no se prende.',
   },
   'jefe:paso-a-paso:aprobar-tweets': {
@@ -46,7 +46,7 @@ const TASKS: Record<string, Facets> = {
   },
   'jefe:paso-a-paso:decidir': {
     easy: 'Cuando el despacho propone un evento, tú decides si va: lo abres y, en «Tu decisión», le pones de 1 a 10 qué tan importante es y lo aceptas o lo rechazas.',
-    example: 'Por ejemplo: el despacho propone un evento nuevo. En Política tocas «Esperan tu decisión (2)», lo abres, le pones 8 de importancia y tocas «Aceptar». Al despacho le llega el aviso.',
+    example: 'Por ejemplo: el despacho propone un evento nuevo; en Política tocas «Esperan tu decisión (2)», lo abres, le pones 8 de importancia y tocas «Aceptar». Al despacho le llega el aviso.',
     why: 'Porque mientras no decides, el equipo no arranca: lo que propone el despacho se queda «Por decidir» hasta que lo aceptas o lo rechazas.',
   },
   'jefe:paso-a-paso:poner-fecha': {
@@ -61,7 +61,7 @@ const TASKS: Record<string, Facets> = {
   },
   'jefe:paso-a-paso:cambiar-evento': {
     easy: 'Si cambia el plan, abres el evento y eliges: cambiar solo el día o la hora, cambiar todo junto (también el lugar) o cancelarlo. Cancelado queda tachado: no se borra.',
-    example: 'Por ejemplo: un evento pasa a otra hora el mismo día. Lo abres, tocas «Mover», eliges la hora nueva y «Guardar la nueva fecha». A quien graba le llega un aviso, sin la fecha.',
+    example: 'Por ejemplo: un evento pasa a otra hora el mismo día; lo abres, tocas «Mover», eliges la hora nueva y «Guardar la nueva fecha». A quien graba le llega un aviso, sin la fecha.',
     why: NOTICE_WHY,
   },
   'jefe:paso-a-paso:leer': {
@@ -89,7 +89,7 @@ const TASKS: Record<string, Facets> = {
     example: 'Por ejemplo: un reel quedó repetido. En su tarjeta tocas los tres puntos → «Eliminar» y confirmas: sale de su sección y del feed.',
   },
   'jefe:paso-a-paso:armar-canal': {
-    easy: 'Un canal es un grupo de Mensajes para un trabajo. Lo creas con «Nuevo canal», le pones nombre y marcas quiénes van. Tú estás en todos.',
+    easy: 'Un canal es un grupo de Mensajes para un trabajo, y tú estás en todos. Lo creas con «Nuevo canal»: le pones nombre y marcas quiénes van.',
     example: 'Por ejemplo: abres los globitos, tocas «Nuevo canal», lo llamas “Material y piezas”, marcas a Redes y a Grabación y tocas «Crear canal».',
   },
   'jefe:paso-a-paso:miembros-canal': {
@@ -124,7 +124,7 @@ const TASKS: Record<string, Facets> = {
   },
   'despacho:paso-a-paso:cambiar': {
     easy: 'Si cambia el plan, abres el evento y eliges: cambiar solo el día o la hora, cambiar todo junto (también el lugar) o cancelarlo. Cancelado queda tachado: no se borra.',
-    example: 'Por ejemplo: cambian el sitio de un evento. Lo abres, tocas «Cambiar fecha o lugar», pones la dirección nueva y «Cómo se llega», y guardas. Si el jefe cambió lo mismo, se queda el último cambio guardado.',
+    example: 'Por ejemplo: cambian el sitio de un evento; lo abres, tocas «Cambiar fecha o lugar», pones la dirección nueva y «Cómo se llega», y guardas. Si el jefe cambió lo mismo, se queda el último cambio guardado.',
     why: NOTICE_WHY,
   },
   'despacho:paso-a-paso:realizado': {
@@ -168,7 +168,7 @@ const TASKS: Record<string, Facets> = {
   },
   'ivt:paso-a-paso:fab': {
     easy: 'Con «Generar diálogo FAB» la app te arma lo que va a decir el jefe en la obra: qué es, qué mejora y qué gana la gente. Tú lo revisas, lo corriges y lo guardas.',
-    example: 'Por ejemplo: en la ficha tocas «Generar diálogo FAB». Abajo, en «Lo que la ficha no tiene (no se dice):», ves que falta cuántas familias se benefician: eso no sale en el texto. Corriges y tocas «Guardar».',
+    example: 'Por ejemplo: en la ficha tocas «Generar diálogo FAB»; abajo, en «Lo que la ficha no tiene (no se dice):», ves que falta cuántas familias se benefician, y eso no sale en el texto. Corriges y tocas «Guardar».',
     why: 'Porque el jefe solo dice lo que está en la ficha: el diálogo usa solo sus cifras, y lo que la ficha no tiene no sale en el texto, para no inventar nada.',
   },
   'ivt:paso-a-paso:visitas': {
@@ -215,7 +215,7 @@ const TASKS: Record<string, Facets> = {
     why: 'Los copies salen de la ficha para no inventar cifras: la app escribe solo con las cifras que la ficha tiene.',
   },
   'redes:paso-a-paso:enviar': {
-    easy: 'Cuando la pieza está lista, se la mandas al jefe con «Enviar a aprobación». Si falta algo, la tarjeta te dice qué. Después espera al jefe.',
+    easy: 'Cuando la pieza está lista, se la mandas al jefe con «Enviar a aprobación» y esperas su respuesta. Si falta algo, la tarjeta te dice qué.',
     example: 'Por ejemplo: terminaste un post y tocas «Enviar a aprobación». Si está apagado y dice «Falta para enviarla:» y la imagen, subes la imagen y lo envías: pasa a «En revisión».',
     why: 'Porque nada se publica sin la aprobación del jefe: sin ella, la tarjeta dice «Falta la aprobación del jefe» y no puedes marcar «Ya lo publiqué».',
   },
@@ -224,8 +224,8 @@ const TASKS: Record<string, Facets> = {
     example: 'Por ejemplo: Hoy dice «Cambios». Abres la tarjeta, lees lo que pidió el jefe, acortas el copy que estaba muy largo y tocas «Enviar a aprobación».',
   },
   'redes:paso-a-paso:editar-aprobada': {
-    easy: 'Lo que sale de una pieza aprobada queda fijo. Si hay que cambiarlo, tocas «Editar (vuelve al jefe)» y el jefe la revisa otra vez. Lo demás se cambia libre.',
-    example: 'Por ejemplo: en un reel aprobado hay un error en el copy. Tocas «Editar (vuelve al jefe)», confirmas, lo corriges y la pieza vuelve a «En revisión». Cambiar el pilar o las notas no la devuelve.',
+    easy: 'Lo que sale de una pieza aprobada queda fijo; lo demás se cambia libre. Para cambiar lo que sale, tocas «Editar (vuelve al jefe)» y el jefe la revisa otra vez.',
+    example: 'Por ejemplo: en un reel aprobado hay un error en el copy; tocas «Editar (vuelve al jefe)», confirmas, lo corriges y la pieza vuelve a «En revisión». Cambiar el pilar o las notas no la devuelve.',
     why: 'Porque el jefe aprobó lo que sale (el copy, el archivo, el título, las láminas, el texto en pantalla y el sticker): si cambia, vuelve a él. Lo demás se cambia sin que vuelva.',
   },
   'redes:paso-a-paso:feed': {
@@ -428,7 +428,7 @@ const SCREENS: ScreenFacets[] = [
     screen: '/aprobar/[id]',
     easy: 'Es donde miras una pieza antes de aprobarla: el video o la imagen, sus textos y la lista que tienes que marcar. Con la lista marcada, se prende «Aprobar».',
     example: 'Por ejemplo: pausas el video donde se ve un error y escribes el comentario: queda en ese segundo. Marcas «Antes de aprobar» y, como falta corregir, tocas «Pedir cambios».',
-    why: 'Porque falta marcar la lista «Antes de aprobar»: hasta que la marcas toda, «Aprobar» no se prende.',
+    why: 'Porque nada se publica sin tu aprobación, y la lista «Antes de aprobar» es lo que se revisa antes: hasta que la marcas toda, «Aprobar» no se prende.',
   },
   {
     screen: '/redes',

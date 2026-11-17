@@ -16,7 +16,7 @@ import { facetsOf, type FacetText } from '../guides/explain';
 import { everyoneSections } from '../guides/sections';
 import type { Flow, FlowStep, GlossaryTerm, RoleGuide, SharedTopic, Task } from '../guides/types';
 import { entryById, findAnswers, readable, textFor, tokens, WEAK, type Entry } from './answers/engine';
-import { asksAgendaData, asksPlace, asksWhenIndirect, eventSignals, eventThread, type EventSignal } from './events';
+import { asksAgendaData, asksPlace, asksWhenIndirect, eventSignals, eventThread, goesOn, type EventSignal } from './events';
 import { canOpen } from './screens';
 import { plain } from './text';
 import type { TitleSet } from './titles';
@@ -29,9 +29,12 @@ export type Facet = 'simpler' | 'steps' | 'example' | 'next' | 'purpose' | 'why'
 export type ExplainAsk = { facet: Facet; about?: string };
 /**
  * `titles`: what this person can see (the event detectors read titles and places with it). `last`: 360's last answer in
- * the thread, so a bare «sí» or «dale» after its «¿Sigo?» goes on with the steps.
+ * the thread, so a bare «sí» or «dale» after its «¿Sigo?» goes on with the steps. `withoutLabels`: how the agenda's
+ * checks read a question (local.ts withoutLabels: the screens' labels with a time word taken out, «ya tiene fecha»,
+ * «ponerle fecha», «cambiar fecha o lugar»), so a label is read as the app's and never as an event's date; without it
+ * every such label stops the ask (the safe side).
  */
-export type AskOptions = { titles?: TitleSet; last?: string };
+export type AskOptions = { titles?: TitleSet; last?: string; withoutLabels?: (text: string) => string };
 
 const NO_TITLES: TitleSet = { events: [], pieces: [], places: [] };
 
@@ -73,7 +76,7 @@ const ASKS: [Facet, RegExp][] = [
   ['example', /^(?:(?:dame|deme|da|danos|ponme|pon|ponnos|dime|muestrame|ensename|me das|me da|me pones|me puedes dar|me podrias dar|puedes dar|puedes darme|podrias dar|podrias darme|tienes|hay|regalame|echame|quiero|necesito|con) )?(?:un |algun |unos |otro |un buen )?(?:ejemplo|ejemplito|ejemplos|caso)(?: (?:de|del|con|sobre|para) (?<about>.+))?$/],
   ['example', /^(?:por ejemplo|como por ejemplo|como seria|como seria eso|como seria en la practica|en la practica|en la vida real|con un ejemplo|(?:explica\w*|dime\w*|dimelo) con un ejemplo|ponme un caso|un caso real|como cual|como que)$/],
   // next: «¿y después?», «¿y luego?», «¿qué sigue?», «¿y entonces?».
-  ['next', /^(?:despues|luego|entonces|ahora)(?: (?:de eso|de esto|de ahi|de alli))?(?: que(?: (?:sigue|pasa|hago|viene|toca|hacemos|sucede|se hace))?)?$/],
+  ['next', /^(?:despues|luego|entonces|ahora)(?: (?:de eso|de esto|de ahi|de alli))?(?: que(?: (?:sigue|pasa|hago|viene|toca|hacemos|sucede|se hace))?(?: con (?:eso|esto|ella|ellas|el|ellos|esa|ese|esas|esos))?)?$/],
   ['next', /^(?:que sigue|que viene|que toca|cual es el siguiente paso|el siguiente paso|siguiente paso|el siguiente|que mas sigue|que pasa despues|que hago despues|que viene despues|que sigue despues|luego que|despues que|que pasa luego|que pasa entonces|que hago luego|luego que hago)$/],
   ['next', new RegExp(String.raw`^(?:despues|luego|entonces) que hace (?<about>${ROLE_NAMES})$`)],
   ['next', /^(?:despues|luego) quien (?:lo|la|los|las) (?:usa|lee|ve|recibe|aprueba|hace|sigue|revisa|publica|graba)$/],
@@ -114,7 +117,8 @@ const blocked = (text: string, titles: TitleSet) => {
   const s = eventSignals(text, titles);
   return BLOCK.some((b) => s.has(b)) || asksPlace(text) || asksWhenIndirect(text);
 };
-// What «no entiendo …» says about the app itself (local.ts LOST: the tutorials), not about the topic.
+// What «no entiendo …» says about the app itself (local.ts LOST: the tutorials), not about the topic. Only there: «un
+// ejemplo de esa aplicación» is the one 360 just named (the codes' app).
 const ABOUT_THE_APP = /^(?:(?:la|esta|tu|esa) (?:app|pantalla|parte|seccion)|nada|como (?:se )?usa\w*|que hacer|que hago)$/;
 
 /**
@@ -127,8 +131,10 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
   if (raw.length > 160) return null;
   const t = readable(raw);
   if (!t) return null;
+  // As the agenda's checks read it (the screens' labels with a time word out, when the caller says how).
+  const bare = (x: string) => (o.withoutLabels ? o.withoutLabels(x) : x);
   // The agenda asked as such, or any event signal in the whole ask (but its «lo de», read below on its own X).
-  if (asksAgendaData(raw) || blocked(raw.replace(/\blo\s+del?\b/gi, ' '), titles)) return null;
+  if (asksAgendaData(raw) || blocked(bare(raw).replace(/\blo\s+del?\b/gi, ' '), titles)) return null;
   const tail = t.replace(TAIL, '');
   if (o.last && ASKED_TO_GO_ON.test(o.last) && YES.test(tail)) return { facet: 'more' };
   if (WHAT_ELSE.test(tail)) return { facet: 'more' };
@@ -142,8 +148,8 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
     if (!m) continue;
     const about = m.groups?.about?.trim();
     if (!about) return { facet };
-    if (about.split(' ').length > 8 || about.length > 70 || ABOUT_THE_APP.test(about)) return null;
-    if (blocked(about, titles)) return null;
+    if (about.split(' ').length > 8 || about.length > 70 || (facet === 'simpler' && ABOUT_THE_APP.test(about))) return null;
+    if (blocked(bare(about), titles)) return null;
     return { facet, about };
   }
   return null;
@@ -152,22 +158,34 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
 // ── What it is about ───────────────────────────────────────────────────────────────────────────────────────────────
 
 /**
- * `roles`: the person's menu roles. `screen`: the SCREENS pattern the person is on. `said`: 360's answers in this thread,
- * oldest first (never said twice). `earlier`: the person's questions before this one, oldest first (a thread about an
- * event gets no explain answer). `titles`: what this person can see. `cursor`: stored with the previous answer, the
- * next step to say on «¿Sigo?». `about`: explainAsk()'s about. `tours`: the tutorial ids this person has (default: those
- * of `roles`).
+ * `roles`: the person's menu roles. `screen`: the SCREENS pattern the person is on (the hook passes it; no facet depends
+ * on it yet). `said`: 360's answers in this thread, oldest first (never said twice). `earlier`: the person's questions
+ * before this one, oldest first, and `question`: this one, as written: a question that goes on with a thread about an
+ * event gets no explain answer (local.ts followsEvent; without `question`, any thread about an event stops it).
+ * `titles`: what this person can see. `cursor`: stored with the previous answer, the next step to say on «¿Sigo?».
+ * `about`: explainAsk()'s about. `tours`: the tutorial ids this person has (default: those of `roles`).
  */
 export type ExplainContext = {
   roles: Role[];
   screen?: string | null;
   said?: string[];
   earlier?: string[];
+  question?: string;
   titles?: TitleSet;
   cursor?: number;
   about?: string;
   tours?: string[];
 };
+
+/**
+ * This turn goes on with a thread about an event (the earlier questions as eventThread() reads them, and this one goes
+ * on: goesOn()), exactly as local.ts decides followsEvent; with no `question`, a thread about an event is enough.
+ */
+export function followsEventThread(ctx: Pick<ExplainContext, 'earlier' | 'question' | 'titles'>): boolean {
+  const earlier = ctx.earlier ?? [];
+  if (!earlier.length || !eventThread(earlier, ctx.titles ?? NO_TITLES).at(-1)) return false;
+  return ctx.question === undefined || goesOn(ctx.question);
+}
 
 /**
  * What 360 says. `entryId`: the topic to store with this answer (the next explain ask's topic; a flow's whole story is
@@ -593,15 +611,16 @@ function simpler(u: Unit, ctx: ExplainContext, tours: Set<string>): Candidate[] 
   const out: Candidate[] = [];
   const easy = facetText(u, 'easy', ctx.roles);
   if (easy) out.push({ text: easy, entryId: u.id });
-  // The word of «Palabras de la app» its title names, said simply, and its first step.
+  // The word of «Palabras de la app» its title names, said simply (its first sentence), and its first step.
   const name = nameOf(u);
   const g = name ? termIn(name) : null;
   const first = stepsOf(u, ctx.roles)[0];
-  if (g) out.push({ text: [termFacet(g, 'easy', ctx.roles) ?? termLine(g, ctx.roles), first ? `Lo primero: ${lcFirst(end(first))}` : ''].filter(Boolean).join(' '), entryId: u.id });
+  const word = g ? sentencesOf(termFacet(g, 'easy', ctx.roles) ?? termLine(g, ctx.roles))[0] : undefined;
+  if (word) out.push({ text: [word, first ? `Lo primero: ${lcFirst(end(first))}` : ''].filter(Boolean).join(' '), entryId: u.id });
   // Its first sentence, and the tutorial when there is one.
   const tour = tourOfUnit(u);
   const lead = sentencesOf(guideText(u, ctx.roles))[0];
-  if (lead && tour && tours.has(tour)) out.push({ text: `${lead} ¿Te lo muestro? Toca el botón y te lo enseño en la pantalla.`, entryId: u.id, tutorial: tour });
+  if (lead && tour && tours.has(tour)) out.push({ text: `${lead} ¿Te lo muestro? Toca el botón.`, entryId: u.id, tutorial: tour });
   return out;
 }
 
@@ -618,9 +637,11 @@ function stepsFacet(u: Unit, ctx: ExplainContext, tours: Set<string>): Candidate
       const page = stepsPage(title, steps, from);
       return [{ text: page.text, entryId: u.id, ...(tutorial ? { tutorial } : {}), ...(page.next !== undefined ? { cursor: page.next } : {}), ...(u.kind === 'flow' ? { goTo: flowsHref(ctx.roles) } : {}) }];
     }
-    // All of them were said: the tutorial shows them on the screen.
+    // All of them were said: the tutorial shows them on the screen, or else the guide has them (never the list of the
+    // tutorials: the topic is this one).
     if (tutorial) return [{ text: 'Ya te dije todos los pasos. Si quieres, te los muestro en la pantalla: toca el botón.', entryId: u.id, tutorial }];
-    return [];
+    const go = u.kind === 'task' ? opens(`/ayuda/${u.guide.slug}?ver=pasos`, ctx.roles) : u.kind === 'flow' ? flowsHref(ctx.roles) : guideHref(u, ctx.roles);
+    return go ? [{ text: 'Esos son todos los pasos. Para verlos con calma, están en «Ayuda y guías»: toca el botón.', entryId: u.id, goTo: go }] : [];
   }
   // A screen: its tutorial; else the task of that screen.
   if (u.kind === 'screen') {
@@ -741,7 +762,7 @@ function more(u: Unit, ctx: ExplainContext): Candidate[] {
       out.push({ text: page.text, entryId: u.id, ...(page.next !== undefined ? { cursor: page.next } : {}) });
     }
   }
-  // A screen: what is done there that was not said, then what cannot be done.
+  // A screen: what is done there that was not said, then what cannot be done (two at a time: an answer says two things).
   if (u.kind === 'screen') {
     const items = [...u.section.youDo.map((x) => end(ucFirst(x))), ...(u.section.cannot ?? []).map((x) => `No puedes: ${lcFirst(end(x))}`)];
     const left = items.filter((x) => !wasSaid(x, said));
@@ -749,7 +770,7 @@ function more(u: Unit, ctx: ExplainContext): Candidate[] {
     for (const x of left) {
       if (pick.length && [...pick, x].join(' ').length > PAGE_LETTERS) break;
       pick.push(x);
-      if (pick.length >= PAGE) break;
+      if (pick.length >= 2) break;
     }
     if (pick.length) out.push({ text: `En ${lcFirst(u.section.title.replace(/: /g, ', '))}, además: ${lcFirst(pick.join(' '))}`, entryId: u.id });
   }
@@ -838,8 +859,8 @@ export function explainAnswer(facet: Facet, topic: Entry | string | null | undef
   const roles = ctx.roles;
   // The web's and Atención's roles get no 360 (D-90): nothing to explain to them here.
   if (!roles.some((r) => TEAM_ROLES.includes(r as TeamRole) || r === 'admin')) return null;
-  // Never after a turn about an event: that thread keeps the agenda's steps (and its refusal).
-  if (ctx.earlier?.length && eventThread(ctx.earlier, ctx.titles ?? NO_TITLES).at(-1)) return null;
+  // Never in a thread about an event: it keeps the agenda's steps (and its refusal).
+  if (followsEventThread(ctx)) return null;
   const said = ctx.said ?? [];
   const u = topic ? unitFor(topic, roles) : null;
   // «¿Qué significa eso?» can work from the answer before alone; anything else needs a topic.
@@ -879,7 +900,11 @@ function allowed(u: Unit, roles: Role[]): boolean {
   return true;
 }
 
-/** The sentences of a text, never cutting a «label» in two («Sin señal. Lo que escribas…» is one label). */
+/**
+ * The sentences of a text, never cutting a «label» in two («Sin señal. Lo que escribas…» is one label), nor after a
+ * label that ends in «?» or «.» inside a sentence («prendes «¿Va a la agenda del jefe?» y tocas…»): a sentence starts
+ * with no lower-case letter.
+ */
 export function sentencesOf(text: string): string[] {
   const out: string[] = [];
   let depth = 0;
@@ -888,7 +913,8 @@ export function sentencesOf(text: string): string[] {
     const c = text[i];
     if (c === '«') depth++;
     else if (c === '»') depth = Math.max(0, depth - 1);
-    const ends = depth === 0 && (/[.!?…]/.test(c) || (c === '»' && /[.!?…]/.test(text[i - 1] ?? ''))) && (i + 1 === text.length || /\s/.test(text[i + 1]));
+    const next = /^\s+(\S)/.exec(text.slice(i + 1, i + 6))?.[1];
+    const ends = depth === 0 && (/[.!?…]/.test(c) || (c === '»' && /[.!?…]/.test(text[i - 1] ?? ''))) && (i + 1 === text.length || (next !== undefined && !/\p{Ll}/u.test(next)));
     if (ends) {
       // A sentence ends here (and the quote that closes right after it, «… se envía cuando vuelva.»).
       const piece = text.slice(start, i + 1).trim();
