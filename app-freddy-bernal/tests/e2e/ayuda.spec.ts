@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { loginAs, readyForAxe } from './helpers';
 import { FLOWS, GLOSSARY, GUIDE_TITLES, flowById, guideFor } from '../../src/lib/guides';
 import { FLUJOS_WEB } from '../../src/lib/guides/web/flujos-web';
+import { WEB_PAGE_HREF, webFlows, webHref, webPartsOf } from '../../src/lib/guides/web';
 import type { TeamRole } from '../../src/lib/roles';
 import { HOW_TO_READ, MSG_CHANNELS } from '../../src/lib/guides/shared';
 
@@ -203,6 +204,29 @@ for (const p of [
     await check(page, `/ayuda/atencion?flujo=${flow.id}`);
   });
 }
+
+// Every part of both guides and every flow, as the boss reads them on his phone: nothing cut, nothing sideways, axe on
+// each part (the tables are lists; the demo receipts and long addresses are in parts 4, 5 and 7).
+test('el jefe: cada parte de las dos guías de la web y cada flujo caben a 360 px', async ({ page }) => {
+  test.setTimeout(240_000);
+  await loginAs(page, 'jefe@demo.test');
+  for (const where of ['web', 'atencion'] as const) {
+    for (const v of webPartsOf(where)) {
+      const href = `${WEB_PAGE_HREF[where]}?parte=${v.part.n}`;
+      await page.goto(href);
+      await expect(page.getByRole('heading', { level: 1, name: `Parte ${v.part.n} · ${v.part.title}` })).toBeVisible();
+      await readyForAxe(page, href);
+      await check(page, href);
+    }
+  }
+  for (const f of webFlows()) {
+    const href = webHref(f.id)!;
+    await page.goto(href);
+    await expect(page.getByRole('list', { name: `${f.title}, ${f.nodes.length} pasos` })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Algo no cargó' }), href).toHaveCount(0);
+    await noSideScroll(page, href);
+  }
+});
 
 for (const p of [
   { email: 'redes@demo.test', who: 'Redes', home: '/hoy' },
