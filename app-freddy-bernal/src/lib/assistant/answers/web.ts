@@ -102,15 +102,15 @@ export const WEB: Answer[] = [
   {
     id: 'web-guia',
     roles: ['boss', 'admin'],
-    q: ['web y atencion tienen su guia', 'la web tiene guia', 'hay una guia de la web', 'hay guia de la web', 'tiene manual la web', 'donde explican como funciona la web', 'la web tiene su propia guia'],
-    a: 'Sí: la «Guía de la web» y la «Guía de atención ciudadana» están en «Ayuda y guías», aparte de tu guía. Cuentan cada pantalla de «Web» y de «Atención», quién hace qué y sus flujos.',
+    q: ['web y atencion tienen su guia', 'la web tiene guia', 'hay una guia de la web', 'hay guia de la web', 'tiene manual la web', 'la web tiene su propia guia'],
+    a: 'Sí: la web pública y la atención a la gente que escribe por ella tienen su propia guía, aparte de la tuya: la «Guía de la web» y la «Guía de atención ciudadana», en «Ayuda y guías».',
     go: '/ayuda/web',
   },
   {
     id: 'atencion-guia',
     roles: ['boss', 'admin'],
-    q: ['hay una guia de atencion ciudadana', 'hay guia de atencion', 'atencion tiene guia', 'tiene manual atencion', 'donde explican como funciona atencion', 'atencion ciudadana tiene su propia guia'],
-    a: 'Sí: la «Guía de atención ciudadana» y la «Guía de la web» están en «Ayuda y guías», aparte de tu guía. Cuentan cada pantalla de «Atención» y de «Web», quién hace qué y sus flujos.',
+    q: ['hay una guia de atencion', 'hay guia de atencion', 'atencion tiene guia', 'tiene manual atencion', 'atencion tiene su propia guia'],
+    a: 'Sí: la atención a la gente que escribe por la web y la web pública tienen su propia guía, aparte de la tuya: la «Guía de atención ciudadana» y la «Guía de la web», en «Ayuda y guías».',
     go: '/ayuda/atencion',
   },
   // The web's and the desk's roles have no search box at the top (the panel's layout): it finds the team's work.
@@ -123,7 +123,6 @@ export const WEB: Answer[] = [
       'los de la web tienen el buscador de arriba',
       'por que los de atencion no tienen el buscador',
       'por que no le sale el buscador a los de la web',
-      'el editor de la web puede usar el buscador de arriba',
     ],
     a: 'No: las personas de la web y de la atención no tienen el buscador de arriba. Busca lo del equipo, y ellas solo tienen «Web» o «Atención» en el menú; lo usan el equipo y Administración.',
   },
@@ -131,16 +130,15 @@ export const WEB: Answer[] = [
   {
     id: 'web-redirecciones-origen',
     roles: ['boss', 'admin'],
+    // (Asked by the chips named whole: «¿qué es una redirección?» is the guide's section, «una versión vieja» another.)
     q: [
-      'que significa de la web vieja en redirecciones',
-      'que significa de la web vieja',
-      'que significa a mano en redirecciones',
-      'que diferencia hay entre de la web vieja y a mano',
-      'que es de la web vieja y a mano',
-      'por que unas redirecciones dicen de la web vieja',
-      'que quiere decir a mano en las redirecciones',
+      'que significa «De la web vieja»',
+      'que quiere decir «De la web vieja»',
+      'que diferencia hay entre «De la web vieja» y «A mano»',
+      'que es «De la web vieja» y «A mano»',
+      'por que unas dicen «De la web vieja» y otras «A mano»',
     ],
-    a: 'En «Redirecciones», cada una dice de dónde salió: las «De la web vieja» se hicieron solas al traer las noticias de la web anterior, y las «A mano» las hizo alguien del equipo. Ninguna cambia sola.',
+    a: 'En «Redirecciones», cada una dice de dónde viene: las «De la web vieja» se hicieron solas al traer lo de la web anterior, y las «A mano» las hizo alguien del equipo.',
     go: '/admin/web/redirecciones',
   },
   // The lines of «Registro de atención» that name no one (APP-12): the web or the app.
@@ -168,9 +166,52 @@ export const WEB: Answer[] = [
       'las respuestas guardadas estan de usted',
       'las respuestas guardadas le hablan de tu a la persona',
       'hay que cambiar las respuestas guardadas a usted',
-      'como le hablan las respuestas guardadas a la persona',
     ],
     a: 'Las respuestas guardadas que trae la app ya le hablan de usted a la persona, como todo lo que ella lee: no hay que cambiarlas. Las arma y las cambia la coordinación, en «Respuestas guardadas».',
+  },
+  // Administración and the roles of the web and the desk in one account (guard_role_mix: only the web's editor).
+  {
+    id: 'admin-rol-atencion-misma-cuenta',
+    roles: ['admin'],
+    q: [
+      'puedo ser yo coordinadora de atencion con mi misma cuenta',
+      'puedo tener un rol de atencion en mi cuenta',
+      'puedo ser aprobador de la web con mi cuenta',
+      'administracion puede tener un rol de la web o de atencion',
+    ],
+    a: 'No: en la misma cuenta, administración no puede tener un rol de atención ni ser aprobador de la web; de los roles de la web, solo puede ser editor. Para lo demás hace falta otra cuenta.',
+  },
+  // What the receipt is, without a code or a key (they are never said: design §4(e)).
+  {
+    id: 'atencion-comprobante',
+    roles: ['boss', 'admin'],
+    q: ['que es el comprobante', 'que es el comprobante de una solicitud', 'que trae el comprobante', 'para que sirve el comprobante', 'que es el codigo y la clave del comprobante', 'que recibe la persona cuando manda una solicitud'],
+    a: 'El comprobante es lo que recibe la persona al enviar: un «Código» y una «Clave». Con los dos consulta su solicitud en «Consultar mi solicitud». La clave se muestra una sola vez y no se puede recuperar. Yo no doy ni pido códigos ni claves, tampoco los de prueba.',
+  },
+  // A person of the web or the desk on a screen that is not of their role (requireRole sends them home).
+  {
+    id: 'web-pantalla-de-otro-rol',
+    roles: ['boss', 'admin'],
+    q: [
+      'si alguien de la web abre una pantalla que no es de su rol puede hacer cosas ahi',
+      'que pasa si alguien de la web abre una pantalla que no es suya',
+      'los de la web pueden entrar a otras pantallas',
+      'si el editor de la web abre una pantalla que no es de su rol',
+      'los de atencion pueden ver otras pantallas',
+    ],
+    a: 'No: si alguien de la web o de la atención abre una pantalla que no es de su rol, la app lo lleva a su inicio. Cada uno solo hace lo que le toca a su rol, aunque abra una pantalla por su dirección.',
+  },
+  // What the public sees of what is not published or not filled in (the web never invents it).
+  {
+    id: 'web-pagina-sin-publicar',
+    roles: ['boss', 'admin'],
+    q: [
+      'que ve la gente si una pagina de la web no se ha publicado',
+      'que sale en una pagina sin publicar',
+      'que dice una pagina sin publicar',
+      'que pasa con un espacio por completar',
+    ],
+    a: 'Una página sin publicar dice «Página en preparación.», y un espacio «Por completar» no sale al público: la web nunca inventa lo que falta.',
   },
   {
     id: 'atencion-jefe-solo-lee',

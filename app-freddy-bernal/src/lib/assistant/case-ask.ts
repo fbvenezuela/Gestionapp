@@ -40,8 +40,10 @@ const CONTENT: ((q: string, clauses: string[]) => boolean)[] = [
   // «qué» that asks starts a clause («el vecino que reportó me dio su número» says who, it asks nothing).
   (q, c) => c.some((x) => new RegExp(String.raw`^${LEAD}(?:de |a |con |en |por )?(?:que|lo que) (?:le |les |me |nos )?(?:\w+ )?${SAID}\b`).test(x)) && (new RegExp(String.raw`\b${CASE_NOUN}\b`).test(q) || who(q)),
   (q) => /\bque (?:dice|dicen|decia) (?:la|el|las|los) (?:nota interna|notas internas|respuesta|respuestas|historial)\b/.test(q),
-  // «… que le dijeron a la señora del caso…»: what was said to someone who wrote, wherever it goes.
-  (q) => /\bque (?:le|les) (?:dijeron|contestaron|respondieron|escribieron|mandaron|pidieron)\b/.test(q) && (new RegExp(String.raw`\b${CASE_NOUN}\b`).test(q) || who(q)),
+  // «… que le dijeron a la señora del caso…»: what was said to someone who wrote, wherever it goes («lo que le pidieron»
+  // is what the desk asked of them: «cuando la persona manda lo que le pidieron, ¿en qué estado queda el caso?» asks how
+  // a case moves).
+  (q) => /(?<!\blo )\bque (?:le|les) (?:dijeron|contestaron|respondieron|escribieron|mandaron|pidieron)\b/.test(q) && (new RegExp(String.raw`\b${CASE_NOUN}\b`).test(q) || who(q)),
   // «¿Qué solicitudes llegaron?», «¿qué reportes mandó la gente?», «¿de qué se queja la gente…?».
   (q) => new RegExp(String.raw`\bque (?:${CASE_NOUN}|reportes) (?:\w+ ){0,3}(?:llegaron|llego|hay|mandaron|mando|entraron|tenemos|enviaron)\b`).test(q) && CITIZEN.test(q),
   (q) => /\bde que se (?:queja|quejan)\b/.test(q) && who(q),
