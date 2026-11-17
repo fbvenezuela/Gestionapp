@@ -9,7 +9,7 @@
 import type { Role } from '../roles';
 import type { Audience, RoleText, WebBlock, WebFlow, WebSection, WebTask } from '../guides/types';
 import { hasReceiptCode } from '../guides/check';
-import { isWebFlow, webEntry, webHref } from '../guides/web';
+import { PANEL_SCREENS, isWebFlow, webEntry, webHref } from '../guides/web';
 import { entryById, textFor, type Entry } from './answers/engine';
 import { sentencesOf, type Facet } from './explain';
 import { canOpen } from './screens';
@@ -104,13 +104,29 @@ function stepsOf(x: WebSection | WebFlow, roles: Role[], rest = ''): string[] {
   const block = x.blocks.find((b) => b.kind === 'steps');
   return block && block.kind === 'steps' && block.items.every(sayable) ? block.items.map((s) => end(clean(s))) : [];
 }
-/** What a section says, unit by unit (its 360 items first, then its paragraphs and lists; none of a quiet one's). */
-function partsOf(x: WebSection | WebFlow, roles: Role[]): string[] {
+/**
+ * What a section says, unit by unit: its 360 items, then its paragraphs and lists (none of a quiet one's). `guideFirst`:
+ * the guide's own words before the items, for what something is for (an item says what is on the screen, the guide's
+ * first paragraph what it is).
+ */
+function partsOf(x: WebSection | WebFlow, roles: Role[], guideFirst = false): string[] {
   const own = (x.items ?? []).map((t) => forRole(t, roles)).filter(sayable).map((t) => end(clean(t)));
   if (isWebFlow(x)) return [...own, ...x.know.filter(sayable).map((k) => end(clean(k)))];
   if (quietOf(x)) return own;
   const fromBlocks = x.blocks.flatMap((b) => (b.kind === 'p' ? [b.text] : b.kind === 'list' ? b.items : b.kind === 'note' ? b.paras : [])).filter(sayable).map((t) => clean(t)).filter((t) => t && !/:\s*$/.test(t)).map(end);
-  return [...own, ...fromBlocks];
+  return guideFirst ? [...fromBlocks, ...own] : [...own, ...fromBlocks];
+}
+/** A section's own question that asks what it is for («¿Para qué sirve la vista previa?», «¿Para qué es…?»). */
+const PURPOSE_Q = /^¿?\s*para\s+qu[eé]\s+(?:sirve|sirven|es|son)\b/i;
+/** The section a curated answer of the web is about: the one its button's anchor names, else the panel screen's. */
+function sectionOfCurated(e: Entry): WebSection | null {
+  if (!e.go) return null;
+  const anchor = /#([a-z0-9-]+)$/.exec(e.go)?.[1];
+  const byAnchor = anchor ? webEntry(anchor) : undefined;
+  if (byAnchor && !isWebFlow(byAnchor)) return byAnchor;
+  const panel = PANEL_SCREENS.find((p) => p.screen === e.go!.split(/[?#]/)[0]);
+  const x = panel ? webEntry(panel.section) : undefined;
+  return x && !isWebFlow(x) ? x : null;
 }
 function page(title: string | null, steps: string[], from: number): { text: string; next?: number } {
   const out: string[] = [];
@@ -132,7 +148,10 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
   const e = typeof topic === 'string' ? entryById(topic) : topic;
   if (!e || !e.domain || e.domain === 'equipo') return null;
   if (e.roles && !e.roles.some((r) => ctx.roles.includes(r))) return null;
-  const place = placeOf(e.id);
+  // (A curated answer of the web, «¿qué es «De la web vieja»?», is explained from the section it is about, with its own
+  // words as what was said: «rest» says it is not the section itself.)
+  const curated = e.kind === 'curated' ? sectionOfCurated(e) : null;
+  const place = curated ? { x: curated as WebSection | WebFlow, rest: 'curado' } : placeOf(e.id);
   if (!place) return null;
   const { x } = place;
   const roles = ctx.roles;
@@ -152,11 +171,15 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
   const at = ctx.cursor ?? (e.kind === 'flowStory' ? e.cursor : stepNo ? Number(stepNo) : undefined);
   const lead = sentencesOf(textFor(e.a, roles));
   switch (facet) {
-    case 'simpler':
+    case 'simpler': {
+      // The section's «dicho más fácil» is about the whole section: one of its items, rules or questions («Vencidas» of
+      // «Cifras») is said again, plainly, with the guide (never the whole section's instead).
+      const whole = place.rest === '' || /^(?:tarea|pasos):/.test(place.rest);
       return fresh([
-        forRole(x.easy, roles) ? { text: end(clean(forRole(x.easy, roles)!)), ...own } : null,
+        whole && forRole(x.easy, roles) ? { text: end(clean(forRole(x.easy, roles)!)), ...own } : null,
         lead[0] ? { text: `${lead[0]}${guide ? ' La guía lo explica con calma: toca el botón.' : ''}`, ...own, ...(guide ? { goTo: guide } : {}) } : null,
       ]);
+    }
     case 'example':
       return fresh([
         forRole(x.example, roles) ? { text: end(clean(forRole(x.example, roles)!)), ...own } : null,
@@ -171,9 +194,12 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
       ]);
     }
     case 'purpose': {
+      // What it is for: its «para qué es», its own «¿Para qué sirve…?», then the first thing the guide says of it that
+      // was not said (the guide's words before 360's items, which say what is on the screen).
       const what = forRole(x.what, roles);
-      const first = partsOf(x, roles)[0];
-      return fresh([what ? { text: end(clean(what)), ...own } : null, first ? { text: `${title}: ${lcFirst(first)}`, ...own } : null]);
+      const asked = (x.faq ?? []).filter((f) => PURPOSE_Q.test(f.q)).map((f) => forRole(f.a, roles)).filter(sayable);
+      const first = partsOf(x, roles, true).find((t) => !wasSaid(t, said));
+      return fresh([what ? { text: end(clean(what)), ...own } : null, ...asked.map((t) => ({ text: end(clean(t)), ...own })), first ? { text: `${title}: ${lcFirst(first)}`, ...own } : null]);
     }
     case 'steps': {
       // A how-to that only the other one does: this person's own «No: …» of the section, never its steps as theirs.

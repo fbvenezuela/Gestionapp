@@ -925,8 +925,13 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       const tutorial = offered('ver_tutorial') ? (await call('ver_tutorial', { pantalla: screen })).tutorial ?? null : null;
       // (The screen's entry of the index is what the answer was about: «no entendí», «dame un ejemplo» explain it.)
       const own = entryForScreen(screen, i.ctx.roles);
-      const about = own ? { entry: own.id } : {};
-      if (card) return { ...done(`${sentences(fill(card.body)).slice(0, 2).join(' ')}${tutorial ? ' Si quieres, te lo muestro paso a paso: toca el botón.' : ''}`, undefined, tutorial), ...about };
+      // A screen of «Web» or «Atención» is answered as theirs: its own button, never a team screen its words name
+      // («Biblioteca» of «Biblioteca de la web»), as its guide section's card says it (APP-42).
+      const sd = domainOfScreen(screen);
+      const webScreen = sd === 'web' || sd === 'atencion';
+      const about = { ...(own ? { entry: own.id } : {}), ...(webScreen ? { domain: sd } : {}) };
+      const ownGo = webScreen && own?.go && canOpen(own.go, i.ctx.roles) ? own.go : undefined;
+      if (card) return { ...done(`${sentences(fill(card.body)).slice(0, 2).join(' ')}${tutorial ? ' Si quieres, te lo muestro paso a paso: toca el botón.' : ''}`, tutorial ? undefined : ownGo, tutorial), ...about };
       // Administración's screens have no section card: its guide says what each one is for (D-89).
       if (own) return { ...done(clip(fill(textFor(own.a, i.ctx.roles))), tutorial ? undefined : own.go && canOpen(own.go, i.ctx.roles) ? own.go : undefined, tutorial), ...about };
       // A screen the person cannot open (Hoy for política or the IVT since 12/11: their home is Municipios or Obras) is

@@ -504,6 +504,7 @@ export const GUIA_WEB: WebDoc = {
       faq: [
         { q: '¿Qué pasa si alguien abre el enlace viejo de una noticia de la web oficial?', a: 'Si tiene una redirección, lo lleva solo a su página nueva. Las noticias copiadas de la web oficial ya la tienen, con la etiqueta «De la web vieja». Si no, ve «Esta página no existe».' },
         { q: '¿Qué quiere decir «No se pudo cargar la página»?', a: 'Que la página no cargó por una falla. La persona toca «Intentar de nuevo» o «Ir al inicio».' },
+        { q: '¿Qué ve la gente si entra a una página que no existe?', a: '«Esta página no existe» y «La dirección puede estar incompleta o la página ya no está disponible.». Debajo, «Ir al inicio», «Ver noticias» y «Consultar mi solicitud».' },
       ],
       blocks: [
         { kind: 'p', text: '**Qué ve la persona.** «Esta página no existe» y «La dirección puede estar incompleta o la página ya no está disponible.». Debajo están los botones «Ir al inicio» y «Ver noticias», y el enlace «Consultar mi solicitud».' },

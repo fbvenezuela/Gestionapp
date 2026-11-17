@@ -18,13 +18,10 @@ export const WEB: Answer[] = [
     q: [
       'como creo una noticia nueva',
       'como escribo una noticia en la web',
-      'como publico algo en la web',
       'como publico la portada de la web',
       'como mando algo a aprobacion en la web',
       'como programo una nota en la web',
       'como devuelvo una noticia con un comentario',
-      'como archivo algo de la web',
-      'como subo una foto a la biblioteca de la web',
       'puedo publicar en la web',
       'puedo escribir una noticia en la web',
       'puedo aprobar lo de la web',
@@ -94,7 +91,6 @@ export const WEB: Answer[] = [
       'quien ve el telefono de la persona que reporto',
       'quien ve el correo de la persona que escribio por la web',
       'puedo ver el contacto de la persona',
-      'por que no veo el contacto de la persona',
     ],
     a: 'El contacto de la persona lo ven solo quienes atienden su caso: la coordinación, el responsable de su área o a quien se lo asignen y, si es una denuncia, el operador de denuncias. Al verlo queda registrado quién lo miró y cuándo. Tú no lo ves, y auditoría tampoco.',
   },
@@ -185,7 +181,7 @@ export const WEB: Answer[] = [
   {
     id: 'atencion-comprobante',
     roles: ['boss', 'admin'],
-    q: ['que es el comprobante', 'que es el comprobante de una solicitud', 'que trae el comprobante', 'para que sirve el comprobante', 'que es el codigo y la clave del comprobante', 'que recibe la persona cuando manda una solicitud'],
+    q: ['que es el comprobante', 'que es el comprobante de una solicitud', 'que trae el comprobante', 'para que sirve el comprobante', 'que recibe la persona cuando manda una solicitud'],
     a: 'El comprobante es lo que recibe la persona al enviar: un «Código» y una «Clave». Con los dos consulta su solicitud en «Consultar mi solicitud». La clave se muestra una sola vez y no se puede recuperar. Yo no doy ni pido códigos ni claves, tampoco los de prueba.',
   },
   // A person of the web or the desk on a screen that is not of their role (requireRole sends them home).
@@ -200,18 +196,6 @@ export const WEB: Answer[] = [
       'los de atencion pueden ver otras pantallas',
     ],
     a: 'No: si alguien de la web o de la atención abre una pantalla que no es de su rol, la app lo lleva a su inicio. Cada uno solo hace lo que le toca a su rol, aunque abra una pantalla por su dirección.',
-  },
-  // What the public sees of what is not published or not filled in (the web never invents it).
-  {
-    id: 'web-pagina-sin-publicar',
-    roles: ['boss', 'admin'],
-    q: [
-      'que ve la gente si una pagina de la web no se ha publicado',
-      'que sale en una pagina sin publicar',
-      'que dice una pagina sin publicar',
-      'que pasa con un espacio por completar',
-    ],
-    a: 'Una página sin publicar dice «Página en preparación.», y un espacio «Por completar» no sale al público: la web nunca inventa lo que falta.',
   },
   {
     id: 'atencion-jefe-solo-lee',

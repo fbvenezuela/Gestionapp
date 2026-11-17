@@ -290,6 +290,31 @@ describe('explicar un tema de la web y contar un flujo', () => {
     expect(steps('web:aprobar:tarea:devolver-contenido', 'boss')).toMatch(/^Aprobar.*?, paso a paso: 1\) «Web» → «Por aprobar» → el contenido\. 2\) En «Decidir», escribe en «Qué hay que cambiar»/);
   });
 
+  it('explicar con la guía de la web: para qué sirve, más fácil y lo que dice una respuesta escrita para la web', async () => {
+    // (18/11, at the merge of the engine with the guide's 360 fields: «¿y pa' qué sirve?» repeated an item already said,
+    // «más fácil» of «Vencidas» gave the whole «Cifras», and «más fácil» after a written answer of the web was «No estoy
+    // seguro».)
+    const purpose = await ask('admin', 'y pa que sirve', ['q es la vista previa']);
+    expect(purpose.answer).toMatch(/^Para ver el borrador como se verá en la web, sin publicarlo/);
+    const easier = await ask('boss', 'explicamelo mas facil', ['que significan las vencidas en cifras']);
+    expect(easier.answer).toMatch(/Vencidas/);
+    expect(easier.answer).not.toMatch(/^Cifras dice/);
+    const chips = await ask('admin', 'explicame mas facil', ['q diferencia hay entre de la web vieja y a mano']);
+    expect(chips.answer).toMatch(/«De la web vieja».*«A mano»/);
+    expect(chips.answer).not.toMatch(/No estoy seguro/);
+  });
+
+  it('«¿qué es…?» lo contesta lo que dice qué es, no una regla que nombra la etiqueta; cada pantalla de la web, con su botón', async () => {
+    expect((await ask('boss', '¿Qué es el texto alternativo?')).answer).toMatch(/personas ciegas/);
+    expect((await ask('admin', 'pa que sirve el texto alternativo')).answer).toMatch(/personas ciegas/);
+    expect((await ask('boss', 'q ve la gente si entra a una pagina que no existe')).answer).toMatch(/«Esta página no existe»/);
+    // On a screen of «Web», «¿qué es esto?» keeps its button: never a team screen its words name («Biblioteca»).
+    for (const [screen, role] of [['/admin/web/biblioteca', 'boss'], ['/admin/web', 'boss'], ['/admin/web/biblioteca', 'admin']] as const) {
+      const r = await ask(role, 'q es esto', [], screen);
+      expect(r.goTo?.href ?? null, `${role} ${screen}`).toBe(screen);
+    }
+  });
+
   it('un texto por lector de la web va solo a quien tiene el suyo: nadie recibe el del otro', () => {
     const e = web().find((x) => x.roles?.length === 2 && typeof x.a !== 'string')!;
     expect(e).toBeDefined();

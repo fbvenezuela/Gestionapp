@@ -1502,6 +1502,8 @@ function rank(question: string, o: FindOptions): Match[] {
   const why = /\b(?:por que|porque|paraque)\b/.test(a.text);
   const whereAsk = /\b(?:donde|en que parte|en que pantalla)\b/.test(a.text);
   const explain = /\b(?:como funciona\w*|que es|que son|que significa\w*|paraque sirve|paraque es|que quiere decir)\b/.test(a.text);
+  // «¿Para qué sirve…?», «¿pa' qué sirve…?»: what it is for, not why it is so (a rule of the web's guide is not its answer).
+  const purposeAsk = /\b(?:paraque|pa que) (?:sirve\w*|es|son)\b/.test(a.text);
   const yesNo = !wh && /\b(?:puedo|podemos|puede|pueden|se puede|es posible|me deja|me dejan|tengo que|hay que|debo|es seguro|esta bien)\b/.test(a.text);
   const howTo = /^(?:y )?como (?!(?:va|van|esta|estan|quedo|salio|es|son)\b)/.test(a.text) || /\b(?:como (?:hago|se hace|le hago|lo hago)|que (?:tengo|hay) que hacer|que hago) para\b/.test(a.text);
   const exactly = new Set(ix.asked.get(a.text) ?? []);
@@ -1550,8 +1552,11 @@ function rank(question: string, o: FindOptions): Match[] {
     const qd = o.domain ?? null;
     if (qd) s = ed === qd ? s + SAME_DOMAIN : ed === 'equipo' ? s * OTHER_DOMAIN : s + SIBLING_DOMAIN;
     else if (ed !== 'equipo') s *= NO_DOMAIN;
-    // A rule of the web's guide answers «¿por qué…?» first; a section 360 never says only points to the guide.
-    if (e.kind === 'rule' && why) s += 0.03;
+    // A rule of the web's guide answers «¿por qué…?» first, and not «¿qué es…?»: «Sin «Texto alternativo», una foto no se
+    // sube» quotes the label, the section's item and its question say what it is (a section 360 never says only points
+    // to the guide).
+    if (e.kind === 'rule' && why && !purposeAsk) s += 0.03;
+    else if (e.kind === 'rule' && (explain || purposeAsk)) s *= 0.9;
     if (e.quiet) s *= 0.85;
     // A whole flow told as a story is for a question about the way («¿cuál es el flujo…?», «¿cómo es el camino…?»,
     // «¿quién hace qué…?»): «¿cómo funciona el semáforo?» is what its colours mean.
