@@ -904,14 +904,14 @@ export const GUIA_WEB: WebDoc = {
       what: 'Qué es real y qué es de ejemplo en la versión de prueba: lo de la web viene de la web oficial; las personas del panel y las solicitudes son de ejemplo.',
       items: [
         'Viene de la web oficial: el nombre, el cargo y la foto de la portada; en «El gobernador», la «Biografía», «Elección y toma de posesión» y «Condecoraciones»; las noticias y las columnas de «Opinión» más recientes, y la última edición del Semanario.',
-        'Es de ejemplo: las personas del panel y las solicitudes de «Atención ciudadana», 60 en total, que llevan «(demo)» en el título, con sus tres comprobantes. Las cifras de «Transparencia» salen de esas solicitudes, y la página lo dice.',
+        'Es de ejemplo: las personas del panel y las solicitudes de «Atención ciudadana», que llevan «(demo)» en el título, con sus tres comprobantes. Las cifras de «Transparencia» salen de esas solicitudes, y la página lo dice.',
         'Ya venía escrito en la app: siete preguntas frecuentes de «Atención ciudadana», que cuentan cómo funciona la atención.',
         'Todavía no sale: las emisiones del «[PROGRAMA]»; en la portada, «Gestión en cifras», «Casos atendidos», «Gestión y obras» y «Avisos de servicio»; en el menú, «Gestión y obras»; en «El gobernador», «Material para la prensa».',
         'En el panel, cada nota traída de la web oficial lleva arriba el aviso «Traído de la web vieja».',
       ],
       faq: [
         { q: '¿Qué es de verdad y qué es de ejemplo en la web de prueba?', a: 'Lo de la web (noticias, opinión, biografía, fotos y Semanario) viene de la web oficial. Las personas del panel y las solicitudes de «Atención ciudadana» son de ejemplo, y sus siete preguntas frecuentes ya venían escritas en la app.' },
-        { q: '¿Qué significa «(demo)» en las solicitudes?', a: 'Que es una solicitud de ejemplo, para practicar: todas las solicitudes de la versión de prueba, 60 en total, lo llevan en el título.' },
+        { q: '¿Qué significa «(demo)» en las solicitudes?', a: 'Que es una solicitud de ejemplo, para practicar: todas las solicitudes de la versión de prueba lo llevan en el título.' },
       ],
       easy: 'Lo que se publica en la web de prueba es copia de la web oficial; la gente y las solicitudes que se ven en el panel son inventadas, para practicar.',
       blocks: [

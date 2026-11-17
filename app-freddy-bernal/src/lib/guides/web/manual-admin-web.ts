@@ -817,7 +817,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         { q: '¿Quién puede tocar las redirecciones?', a: { boss: 'El aprobador de la web, tú y Administración.', admin: 'El aprobador de la web, el jefe y tú.' } },
         { q: '¿Y si quito una redirección?', a: 'La app pregunta antes. Después, quien entre a esa dirección vieja verá «Esta página no existe».' },
       ],
-      easy: 'Una redirección es como dejar una nota en la puerta vieja: quien llega por la dirección de antes termina en la página nueva.',
+      easy: 'Una redirección es como dejar una nota en la puerta vieja: quien llega por la dirección vieja termina en la página nueva.',
       example: 'Por ejemplo: la biografía de la web oficial tiene su dirección vieja; con una redirección «A mano», quien la abre llega a «El gobernador» de esta web.',
       blocks: [
         { kind: 'p', text: 'Llevan una dirección vieja a la nueva, para que ningún enlace guardado o compartido se pierda. La dirección vieja puede ser de la web anterior o una de esta web que cambió. Las ve y las cambia el aprobador, el jefe o Administración.', wrap: [113, 118] },

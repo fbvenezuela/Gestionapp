@@ -25,13 +25,13 @@ export const MANUAL_ATENCION: WebDoc = {
       items: [
         'Es para la coordinación de atención, los responsables de área, el operador de denuncias, auditoría, el jefe y Administración.',
         'Cada solicitud es privada y tiene un código. La persona la sigue con su código y su clave en «Consultar mi solicitud», y nadie del equipo ve esa clave ni la puede recuperar.',
-        'Hoy se usa una versión de prueba: en «Atención» hay 60 solicitudes de ejemplo para practicar, todas con «(demo)» en el título, y los comprobantes de prueba se abren en «Consultar mi solicitud».',
+        'Hoy se usa una versión de prueba: en «Atención» hay solicitudes de ejemplo para practicar, todas con «(demo)» en el título, y los comprobantes de prueba se abren en «Consultar mi solicitud».',
         'Por ahora la versión de prueba no envía correos. No escribas datos reales de nadie: lo que se envía lo puede ver cualquiera que use la prueba.',
         'Lo que va entre comillas, «así», es el texto exacto que sale en la pantalla.',
       ],
       faq: [
         { q: 'No encuentro «Atención» en el teléfono, ¿dónde está?', a: 'En «Más», abajo: en el teléfono, el jefe y Administración tienen «Atención» ahí.' },
-        { q: 'Los casos que salen en «Atención», ¿son de verdad?', a: 'No: es la versión de prueba, con 60 solicitudes de ejemplo para practicar. Todas llevan «(demo)» en el título.' },
+        { q: 'Los casos que salen en «Atención», ¿son de verdad?', a: 'No: es la versión de prueba, con solicitudes de ejemplo para practicar. Todas llevan «(demo)» en el título.' },
         { q: '¿Puedo escribir datos de verdad para probar el formulario?', a: 'No: no escribas datos reales de nadie. Lo que se envía en la versión de prueba lo puede ver cualquiera que la use; por eso el formulario dice «Versión de prueba. No escriba datos reales.».' },
         { q: 'En una línea, ¿cómo funcionan las solicitudes de la gente?', a: 'Cada solicitud es privada y tiene un código: la persona la sigue con su código y su clave en «Consultar mi solicitud», y nadie del equipo ve esa clave.' },
         { q: '¿Nadie del equipo puede ver la clave de una solicitud?', a: 'Nadie: nadie del equipo ve esa clave ni la puede recuperar. Solo la tiene la persona, en su comprobante.' },
@@ -176,7 +176,7 @@ export const MANUAL_ATENCION: WebDoc = {
         { boss: 'Cuatro números cuentan lo que puedes ver, sin el spam ni lo unido a otro caso: «Por revisar» (Recibido y En revisión), «En atención» (Asignado, En atención, Requiere información y Derivado), «Resueltas» (Resuelto y Cerrado) y «Vencidas».', admin: 'Las personas de la atención (coordinación, responsables de área, denuncias y auditoría) se invitan en «Ajustes» → «Equipo», siempre con doble factor.' },
         { boss: '«Vencidas» son las abiertas que ya pasaron su fecha comprometida.' },
         { boss: 'La bandeja: tarjetas en el teléfono y una tabla desde la tableta, 25 por página. Cada una muestra su código, su tipo y su estado, «Vencida» si ya pasó su fecha y la prioridad si no es normal.' },
-        { boss: 'El tablero: una columna por estado, de Recibido a Resuelto, y una última de «Cerradas y «No procede»». Cada columna muestra las más nuevas, hasta 12; si hay más, un enlace dice cuántas, por ejemplo «Ver las 140 en la lista».' },
+        { boss: 'El tablero: una columna por estado, de Recibido a Resuelto, y una última de «Cerradas y «No procede»». Cada columna muestra las más nuevas, hasta 12; si hay más, un enlace al final de la columna lleva a la lista con todas.' },
         { boss: 'En el tablero no ves botones, porque lo lees: quien atiende el caso lo mueve con el botón de un toque (por ejemplo «→ En revisión») o con «Otro estado…».' },
       ],
       cannot: {
