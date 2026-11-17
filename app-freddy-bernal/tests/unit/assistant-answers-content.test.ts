@@ -6,9 +6,10 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { ROLES, TEAM_ROLES, type Role } from '@/lib/roles';
-import { SCREENS, canOpen } from '@/lib/assistant/screens';
+import { SCREENS, canOpen, domainOfScreen } from '@/lib/assistant/screens';
 import { TOURS } from '@/lib/guides';
-import { DEMO_WORDS, LABEL_ALLOW, LABEL_PATTERNS, balancedQuotes, concreteDateTime, hasPhone, quotedLabels } from '@/lib/guides/check';
+import { DEMO_WORDS, LABEL_ALLOW, LABEL_PATTERNS, balancedQuotes, concreteDateTime, hasPhone, hasReceiptCode, quotedLabels } from '@/lib/guides/check';
+import { clientWords } from '@/lib/guides/web/words';
 import { ANSWERS, ANSWER_FILES, type Answer } from '@/lib/assistant/answers';
 
 // The screens' text: src/ outside the help content (the guides and these answers), without comments.
@@ -118,6 +119,69 @@ describe('las respuestas de 360', () => {
         else if (!(a.roles ?? EVERYONE).some((r) => canOpen(a.go!, [r]))) bad.push(`${where}: ninguno de sus roles abre «${a.go}»`);
       }
       if (a.tutorial !== undefined && !TOURS.some((t) => t.id === a.tutorial)) bad.push(`${where}: tutorial «${a.tutorial}» no existe`);
+    }
+    expect(bad, `\n${bad.join('\n')}`).toEqual([]);
+  });
+});
+
+// The long tail of «Web» and «Atención» (answers/web.ts and answers/atencion.ts, WF-C): only the boss and Administración
+// ask it, each with a text of their own; it says the screens' words and nothing of the client, of a citizen or of the
+// app's inside; and its button goes to a screen of the web or of Atención (or its guide) that every one of its roles
+// opens, never to a team screen.
+describe('las respuestas de 360 sobre «Web» y «Atención»', () => {
+  const WEB_FILES = ['web', 'atencion'] as const;
+  const list = WEB_FILES.flatMap((f) => (ANSWER_FILES[f] ?? []).map((a) => [f, a] as const));
+  // The client's words come from config/clients (guides/web/words.ts), never from src: the program, the paper, the
+  // official site and the organization, and the client's own names.
+  const words = clientWords();
+  const CLIENT = [words.program, words.weekly, words.officialSite, words.organization, 'freddy', 'bernal', 'freddybernaloficial'].filter((w) => w && w.length > 3);
+  const INTERNAL = /\bbase de datos\b|\bservidor(?:es)?\b|\bsupabase\b|\bfase\b|\bnpm\b|\bD-\d{2,3}\b|\.tsx?\b|\bsrc\//i;
+  // «usted» only inside «» (the web's own words, as the screen says them) or as the register's name («de usted»).
+  const usted = (t: string) => /\busted\b/i.test(t.replace(/«[^«»]*(?:«[^«»]*»[^«»]*)*»/g, ' ').replace(/\bde usted\b/gi, ' '));
+
+  it('los dos archivos están en el índice y tienen respuestas', () => {
+    expect(ANSWER_FILES.web?.length ?? 0).toBeGreaterThan(40);
+    expect(ANSWER_FILES.atencion?.length ?? 0).toBeGreaterThan(40);
+    for (const [, a] of list) expect(ANSWERS).toContain(a);
+  });
+
+  it('solo para el jefe y Administración, con su id de la web o de Atención y un texto para cada uno', () => {
+    const bad: string[] = [];
+    for (const [file, a] of list) {
+      const where = `${file}/${a.id}`;
+      const roles = a.roles ?? [];
+      if (!roles.length || roles.some((r) => r !== 'boss' && r !== 'admin')) bad.push(`${where}: roles ${JSON.stringify(a.roles)}`);
+      // The index puts an entry in the web's or Atención's domain by its id (engine.ts curatedEntries).
+      if (!/(?:^|-)(?:web|atencion)(?:-|$)/.test(a.id)) bad.push(`${where}: el id no dice «web» ni «atencion»`);
+      if (file === 'atencion' && !a.id.startsWith('atencion-')) bad.push(`${where}: un id de atencion.ts empieza por «atencion-»`);
+      if (typeof a.a !== 'string') for (const r of roles) if (typeof a.a[r] !== 'string') bad.push(`${where}: sin texto para ${r}`);
+    }
+    expect(bad, `\n${bad.join('\n')}`).toEqual([]);
+  });
+
+  it('sin palabras del cliente, códigos, claves, nada interno, raya larga ni «usted» fuera de comillas', () => {
+    const bad: string[] = [];
+    for (const [file, a] of list)
+      for (const [key, text] of textsOf(a)) {
+        const where = `${file}/${a.id}${key ? `/${key}` : ''}`;
+        const low = text.toLowerCase();
+        for (const w of CLIENT) if (low.includes(w.toLowerCase())) bad.push(`${where}: palabra del cliente «${w}»`);
+        if (hasReceiptCode(text)) bad.push(`${where}: un código o una clave`);
+        if (INTERNAL.test(text)) bad.push(`${where}: algo interno`);
+        if (/—/.test(text)) bad.push(`${where}: raya larga`);
+        if (usted(text)) bad.push(`${where}: «usted» fuera de comillas`);
+      }
+    for (const [file, a] of list) for (const q of a.q) if (hasReceiptCode(q) || CLIENT.some((w) => q.toLowerCase().includes(w.toLowerCase()))) bad.push(`${file}/${a.id}: la pregunta «${q}»`);
+    expect(bad, `\n${bad.join('\n')}`).toEqual([]);
+  });
+
+  it('el botón va a una pantalla de la web o de Atención (o a su guía) que abre cada uno de sus roles', () => {
+    const bad: string[] = [];
+    for (const [file, a] of list) {
+      if (!a.go) continue;
+      const where = `${file}/${a.id} → ${a.go}`;
+      if (domainOfScreen(a.go) === 'equipo') bad.push(`${where}: pantalla del equipo`);
+      for (const r of a.roles ?? []) if (!canOpen(a.go, [r])) bad.push(`${where}: ${r} no la abre`);
     }
     expect(bad, `\n${bad.join('\n')}`).toEqual([]);
   });
