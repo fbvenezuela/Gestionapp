@@ -23,7 +23,7 @@ const mine = (r: Role) => [...new Set(ALWAYS_NOTICES.filter((n) => n.roles.inclu
 const notMine = (r: Role) => [...new Set(ALWAYS_NOTICES.filter((n) => !n.roles.includes(r)).map((n) => n.label))].filter((l) => !mine(r).includes(l));
 const forRole = (roles: Role[] | null, r: Role) => roles === null || roles.includes(r);
 const TWO_FACTOR = /cómo está tu doble factor/;
-const NO_TWO_FACTOR: Role[] = ['social', 'camera'];
+const NO_TWO_FACTOR = ['social', 'camera'] as const;
 
 describe('«Qué avisos quiero», rol por rol', () => {
   it('la guía nombra los avisos que siempre le llegan a cada rol, y ninguno de otro', () => {

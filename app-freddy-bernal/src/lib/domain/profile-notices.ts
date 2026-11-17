@@ -41,7 +41,7 @@ export function alwaysNoticesLine(roles: readonly string[]): string | null {
 /** The roles whose «Mis datos» says how the second factor is (the form shows it when the session needs it: the roles of
  * config/clients «mfaRoles», seeded as security.mfa_roles). Grabación and Redes enter with the email code (F5/R03), so
  * the guides and 360 never tell them about it. A test keeps this list equal to the config's. */
-export const TWO_FACTOR_ROLES: readonly Role[] = ['boss', 'dispatch', 'politics', 'ivt', 'admin'];
+export const TWO_FACTOR_ROLES = ['boss', 'dispatch', 'politics', 'ivt', 'admin'] as const satisfies readonly Role[];
 export const showsTwoFactor = (roles: readonly string[]) => TWO_FACTOR_ROLES.some((r) => roles.includes(r));
 
 /** The agenda's two switches are for whoever edits it (the boss and despacho): the other one named. */
