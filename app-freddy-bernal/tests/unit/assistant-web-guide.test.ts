@@ -268,7 +268,7 @@ describe('explicar un tema de la web y contar un flujo', () => {
   });
 
   it('«paso a paso» de una sección: los pasos de quien los hace; a quien no, su «No: …» (el público de cada paso a paso)', () => {
-    // (The merge of the engine with the guide's 360 fields, 18/11: «paso a paso» after «¿qué es Por aprobar?» gave
+    // (The merge of the engine with the guide's 360 fields, 17/11: «paso a paso» after «¿qué es Por aprobar?» gave
     // Administración the boss's «Revisar y publicar…» steps, and the boss Administración's «Crear un área nueva».)
     const steps = (id: string, role: Role, cursor?: number) => webExplain('steps', id, { roles: [role], ...(cursor !== undefined ? { cursor } : {}) })?.text ?? '';
     expect(steps('web:aprobar', 'boss')).toMatch(/paso a paso: 1\) «Web» → «Por aprobar»/);
@@ -291,7 +291,7 @@ describe('explicar un tema de la web y contar un flujo', () => {
   });
 
   it('explicar con la guía de la web: para qué sirve, más fácil y lo que dice una respuesta escrita para la web', async () => {
-    // (18/11, at the merge of the engine with the guide's 360 fields: «¿y pa' qué sirve?» repeated an item already said,
+    // (17/11, at the merge of the engine with the guide's 360 fields: «¿y pa' qué sirve?» repeated an item already said,
     // «más fácil» of «Vencidas» gave the whole «Cifras», and «más fácil» after a written answer of the web was «No estoy
     // seguro».)
     const purpose = await ask('admin', 'y pa que sirve', ['q es la vista previa']);
