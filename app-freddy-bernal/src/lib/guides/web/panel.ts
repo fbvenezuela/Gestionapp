@@ -20,6 +20,8 @@ export type PanelScreen = { screen: string; menu: 'Web' | 'Atención'; title: st
  * all but the desk's «Mapa» and «Cifras» (deskAccess(): the cases are read by the desk and the boss, the figures by the
  * coordinator, the auditor and the boss; the audit trail is the auditor's and Administración's). Named «… de la web» and
  * «… de atención» where the team has a screen with the same word («Por aprobar», «Biblioteca»), as SCREENS does.
+ * The desk's screen takes only its first items: the inbox and the board are told in full by the web's guide, and their
+ * words («tablero», «números») are Redes' too, where 360's answers to the team must not move.
  */
 export const PANEL_SCREENS: readonly PanelScreen[] = [
   { screen: '/admin/web', menu: 'Web', title: 'La web', section: 'pantalla-la-web', audience: ['boss', 'admin'], items: 4 },
@@ -27,7 +29,7 @@ export const PANEL_SCREENS: readonly PanelScreen[] = [
   { screen: '/admin/web/biblioteca', menu: 'Web', title: 'Biblioteca de la web', section: 'biblioteca', audience: ['boss', 'admin'], items: 4 },
   { screen: '/admin/web/ajustes', menu: 'Web', title: 'Ajustes del sitio', section: 'ajustes-del-sitio', audience: ['boss', 'admin'], items: 5 },
   { screen: '/admin/web/redirecciones', menu: 'Web', title: 'Redirecciones', section: 'redirecciones', audience: ['boss', 'admin'], items: 4 },
-  { screen: '/admin/atencion', menu: 'Atención', title: 'Atención ciudadana', section: 'bandeja-y-tablero', audience: ['boss', 'admin'], items: 7 },
+  { screen: '/admin/atencion', menu: 'Atención', title: 'Atención ciudadana', section: 'bandeja-y-tablero', audience: ['boss', 'admin'], items: 3 },
   { screen: '/admin/atencion/mapa', menu: 'Atención', title: 'Mapa de atención', section: 'mapa', audience: ['boss'], items: 2 },
   { screen: '/admin/atencion/estadisticas', menu: 'Atención', title: 'Cifras de atención', section: 'cifras', audience: ['boss'], items: 4 },
   { screen: '/admin/atencion/areas', menu: 'Atención', title: 'Áreas y plazos', section: 'areas-y-plazos', audience: ['boss', 'admin'], items: 6 },
