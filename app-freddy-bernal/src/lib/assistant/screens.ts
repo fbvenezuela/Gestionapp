@@ -66,10 +66,49 @@ const BASE_SCREENS: Screen[] = [
   { href: '/tweets/[id]', label: 'Abrir la tanda', roles: ['admin', 'social', 'boss'], file: '(panel)/tweets/[id]/page.tsx', phrases: [] },
 ];
 
+// The web's administrator (/admin/web) and the attention desk (/admin/atencion) (WF-C, design §4(d)4): every screen the
+// boss or Administración opens from «Web» and «Atención». The roles are copied from each page's requireRole, as the test
+// checks: the web's and the desk's own roles are there too, but they have no 360. Named «… de la web» or «… de atención»
+// where the team has a screen with the same word («Por aprobar», «Biblioteca», «Registro», «Mapa», «Cifras»): a team word
+// alone keeps its team screen, and only a question or a screen of the web or of Atención reaches these (screenNamed).
+// «Respuestas guardadas» is left out: neither the boss nor Administración opens it.
+const WEB_ROLES_ALL: Role[] = ['writer', 'web_publisher', 'boss', 'admin'];
+const DESK_READERS: Role[] = ['attention_coordinator', 'reports_operator', 'complaints_operator', 'auditor', 'boss'];
+const WEB_SCREENS: Screen[] = [
+  { href: '/admin/web', label: 'La web', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/page.tsx', phrases: ['el menu web', 'la pantalla la web', 'administrar la web', 'el panel de la web', 'inicio de la web'], nav: ['la web', 'web', 'pagina web', 'menu web', 'contenido de la web'], about: 'cuántos borradores, programados y publicados hay, lo que espera aprobación y lo último que cambió' },
+  { href: '/admin/web/por-aprobar', label: 'Por aprobar de la web', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/por-aprobar/page.tsx', phrases: ['por aprobar de la web', 'lo que espera aprobacion en la web'], nav: ['por aprobar de la web', 'aprobar en la web', 'aprobar la web'], about: 'lo que espera aprobación en la web, lo más viejo primero' },
+  { href: '/admin/web/biblioteca', label: 'Biblioteca de la web', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/biblioteca/page.tsx', phrases: ['biblioteca de la web', 'fotos de la web', 'documentos de la web'], nav: ['biblioteca de la web', 'fotos de la web', 'documentos de la web'], about: 'las fotos y los documentos de la web' },
+  { href: '/admin/web/ajustes', label: 'Ajustes del sitio', roles: ['admin', 'web_publisher', 'boss', 'writer'], file: '(panel)/admin/web/ajustes/page.tsx', phrases: ['ajustes del sitio', 'ajustes de la web'], nav: ['ajustes del sitio', 'ajustes de la web', 'menu de la web', 'pie de pagina'], about: 'el menú, el pie de página, los canales y los contactos de la web' },
+  { href: '/admin/web/redirecciones', label: 'Redirecciones', roles: ['admin', 'web_publisher', 'boss', 'writer'], file: '(panel)/admin/web/redirecciones/page.tsx', phrases: ['las redirecciones', 'direcciones viejas', 'una direccion vieja'], nav: ['redirecciones', 'redireccion', 'direcciones viejas'], about: 'las direcciones viejas que llevan a las nuevas' },
+  { href: '/admin/atencion', label: 'Atención', roles: [...DESK_READERS, 'admin'], file: '(panel)/admin/atencion/page.tsx', phrases: ['la bandeja de atencion', 'el menu atencion', 'atencion ciudadana del panel', 'las solicitudes de la web'], nav: ['atencion', 'atencion ciudadana', 'bandeja', 'la bandeja', 'solicitudes de la web', 'casos de la web'], about: 'lo que la gente manda desde la web' },
+  { href: '/admin/atencion/mapa', label: 'Mapa de atención', roles: DESK_READERS, file: '(panel)/admin/atencion/mapa/page.tsx', phrases: ['mapa de atencion', 'el mapa de los casos'], nav: ['mapa de atencion', 'mapa de los casos', 'mapa de las solicitudes'], about: 'los puntos que la persona marcó con su permiso, nunca una denuncia' },
+  { href: '/admin/atencion/estadisticas', label: 'Cifras de atención', roles: ['attention_coordinator', 'auditor', 'boss'], file: '(panel)/admin/atencion/estadisticas/page.tsx', phrases: ['cifras de atencion'], nav: ['cifras de atencion', 'estadisticas de atencion'], about: 'cuánto llega, cuánto se resuelve y en cuánto tiempo' },
+  { href: '/admin/atencion/areas', label: 'Áreas y plazos', roles: ['admin', 'attention_coordinator', 'auditor', 'boss'], file: '(panel)/admin/atencion/areas/page.tsx', phrases: ['areas y plazos'], nav: ['areas y plazos', 'plazos de atencion'], about: 'las áreas que atienden, quién está en cada una y los plazos' },
+  { href: '/admin/atencion/registro', label: 'Registro de atención', roles: ['auditor', 'admin'], file: '(panel)/admin/atencion/registro/page.tsx', phrases: ['registro de atencion'], nav: ['registro de atencion'], about: 'quién hizo qué y cuándo en Atención' },
+  // Reached only with an id.
+  { href: '/admin/web/editar/[id]', label: 'Abrir el editor', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/editar/[id]/page.tsx', phrases: [] },
+  { href: '/admin/web/editar/[id]/versiones', label: 'Abrir las versiones', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/editar/[id]/versiones/page.tsx', phrases: [] },
+  { href: '/admin/web/revisar/[id]', label: 'Abrir la revisión', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/revisar/[id]/page.tsx', phrases: [] },
+  { href: '/admin/web/vista-previa/[id]', label: 'Abrir la vista previa', roles: WEB_ROLES_ALL, file: '(vista-previa)/admin/web/vista-previa/[id]/page.tsx', phrases: [] },
+  { href: '/admin/web/biblioteca/[id]', label: 'Abrir el archivo', roles: WEB_ROLES_ALL, file: '(panel)/admin/web/biblioteca/[id]/page.tsx', phrases: [] },
+  { href: '/admin/atencion/[id]', label: 'Abrir el caso', roles: DESK_READERS, file: '(panel)/admin/atencion/[id]/page.tsx', phrases: [] },
+];
+
 // Mensajes and Ayuda (R3) and Redes by format (R4) keep their screens next to their own code (src/lib/chat-screens.ts,
 // src/lib/guides/screens.ts, src/lib/redes-screens.ts); they import only the Screen type from here, so there is no
 // import cycle at run time.
-export const SCREENS: Screen[] = [...BASE_SCREENS, ...CHAT_SCREENS, ...HELP_SCREENS, ...REDES_SCREENS];
+export const SCREENS: Screen[] = [...BASE_SCREENS, ...CHAT_SCREENS, ...HELP_SCREENS, ...REDES_SCREENS, ...WEB_SCREENS];
+
+/** What a screen is about: the team's work, the web's administrator or the attention desk (design §4(d)3). */
+export type Domain = 'equipo' | 'web' | 'atencion';
+/** The domain of a screen by its address: /admin/web and its guide are the web's, /admin/atencion and its guide Atención's. */
+export function domainOfScreen(href: string | null | undefined): Domain | null {
+  if (!href) return null;
+  const path = href.split(/[?#]/)[0];
+  if (/^\/(?:admin\/web|ayuda\/web)(?:\/|$)/.test(path)) return 'web';
+  if (/^\/(?:admin\/atencion|ayuda\/atencion)(?:\/|$)/.test(path)) return 'atencion';
+  return 'equipo';
+}
 
 export type GoTo = { href: string; label: string };
 
@@ -93,33 +132,39 @@ const GENERAL = new Set(['/avisos', '/hoy', '/buscar', '/perfil']);
  * horarios de los tweets?» is Horarios), the longer name and then its own label on a tie. When none of
  * them can be opened, the first one: the caller says it is not of this role.
  */
-export function navTarget(text: string, roles?: Role[]): Screen | null {
+export function navTarget(text: string, roles?: Role[], domain?: Domain | null): Screen | null {
   if (!WHERE_IS.test(` ${plain(text)} `)) return null;
-  return screenNamed(text, roles);
+  return screenNamed(text, roles, [], domain);
 }
 
+// The words as wide as «la web» or «atención» (screenNamed).
+const WIDE = new Set(['la web', 'web', 'pagina web', 'atencion', 'la atencion']);
 /**
  * The screen a text names by its label, its phrases or its nav words (a lone word is enough), ranked as navTarget does;
  * null when it names none. `skip`: words that do not count here («tutoriales» names Ayuda, but «¿hay tutoriales?»
- * asks for one of them).
+ * asks for one of them). `domain`: the web's or Atención's, when the question is about them (engine.ts domainOf): their
+ * screens go before the team's, after the ones the person can open (without it, the order of today).
  */
-export function screenNamed(text: string, roles?: Role[], skip: readonly string[] = []): Screen | null {
+export function screenNamed(text: string, roles?: Role[], skip: readonly string[] = [], domain?: Domain | null): Screen | null {
   const t = ` ${plain(text)} `;
   const skipped = new Set(skip.map((w) => plain(w)));
-  type Hit = { s: Screen; at: number; len: number; label: boolean; open: boolean; general: boolean };
+  const wanted = domain && domain !== 'equipo' ? domain : null;
+  type Hit = { s: Screen; at: number; len: number; label: boolean; open: boolean; general: boolean; own: boolean };
   const hits: Hit[] = [];
   for (const s of SCREENS) {
     if (s.href.includes('[')) continue;
     let first: Hit | null = null;
     for (const w of [plain(s.label), ...navOf(s)]) {
-      const at = w && !skipped.has(w) ? t.indexOf(` ${w} `) : -1;
+      // A word as wide as «la web» or «atención» names its screen only at the end («¿dónde está la web?», «desde dónde
+      // manejo la web»); «los correos que manda la web, ¿dónde quedan?» asks for something else.
+      const at = w && !skipped.has(w) && (!WIDE.has(w) || t.trimEnd().endsWith(` ${w}`)) ? t.indexOf(` ${w} `) : -1;
       if (at >= 0 && (!first || at < first.at || (at === first.at && w.length > first.len))) {
-        first = { s, at, len: w.length, label: w === plain(s.label), open: !roles || canOpen(s.href, roles), general: GENERAL.has(s.href) };
+        first = { s, at, len: w.length, label: w === plain(s.label), open: !roles || canOpen(s.href, roles), general: GENERAL.has(s.href), own: !!wanted && domainOfScreen(s.href) === wanted };
       }
     }
     if (first) hits.push(first);
   }
-  const rank = (a: Hit, b: Hit) => Number(b.open) - Number(a.open) || Number(a.general) - Number(b.general) || a.at - b.at || b.len - a.len || Number(b.label) - Number(a.label);
+  const rank = (a: Hit, b: Hit) => Number(b.open) - Number(a.open) || Number(b.own) - Number(a.own) || Number(a.general) - Number(b.general) || a.at - b.at || b.len - a.len || Number(b.label) - Number(a.label);
   return hits.sort(rank)[0]?.s ?? null;
 }
 
@@ -156,15 +201,17 @@ export function screensIn(text: string): Screen[] {
 /**
  * The button for an answer: the destination of the tool that was used, if this person can
  * open it; otherwise a screen the answer (or else the question) names by phrase. Else null.
+ * `domain`: an answer about the web or Atención (design §4(d)4) never gets a button to a team screen by its words.
  */
-export function pickGoTo(roles: Role[], o: { toolHrefs?: (string | null | undefined)[]; answer?: string; question?: string }): GoTo | null {
+export function pickGoTo(roles: Role[], o: { toolHrefs?: (string | null | undefined)[]; answer?: string; question?: string; domain?: Domain | null }): GoTo | null {
   for (const href of o.toolHrefs ?? []) {
     if (href && canOpen(href, roles)) return { href, label: redesSectionLabel(href) ?? screenFor(href)!.label };
   }
+  const own = o.domain && o.domain !== 'equipo' ? o.domain : null;
   // An answer that names several screens (the list of Ajustes) points to none of them.
   for (const text of [o.answer, o.question]) {
     if (!text) continue;
-    const named = screensIn(text).filter((x) => !x.href.includes('['));
+    const named = screensIn(text).filter((x) => !x.href.includes('[') && (!own || domainOfScreen(x.href) === own));
     if (text === o.answer && named.length > 1) continue;
     const s = named.find((x) => canOpen(x.href, roles));
     if (s) return { href: s.href, label: s.label };

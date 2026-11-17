@@ -8,7 +8,8 @@ import { ROLES, type Role } from '@/lib/roles';
 
 function accessOf(file: string): Role[] | null | 'none' {
   const src = fs.readFileSync(path.join('src', 'app', file), 'utf8');
-  const m = /requireRole\(([^)]*)\)/.exec(src.replace(/import[^;]+;/g, ''));
+  // Only the import statements (at the start of a line): a comment that says «importer» is not one.
+  const m = /requireRole\(([^)]*)\)/.exec(src.replace(/^import\s[^;]+;/gm, ''));
   if (m) return [...m[1].matchAll(/'([a-z_]+)'/g)].map((x) => x[1] as Role);
   return /requireSession\(\)/.test(src) ? null : 'none';
 }

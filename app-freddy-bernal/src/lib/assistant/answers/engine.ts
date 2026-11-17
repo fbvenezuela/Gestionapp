@@ -7,16 +7,22 @@ import { ROLE_LABEL, TEAM_ROLES, type Role, type TeamRole } from '../../roles';
 import { ADMIN_GUIDE, FLOWS, GLOSSARY, SHARED, allGuides, glossaryLine, sharedFor } from '../../guides';
 import { NO_MESSAGES_LINE, TOP_MESSAGES_LINE } from '../../guides/shared';
 import { everyoneSections } from '../../guides/sections';
-import type { SectionGuide, Task } from '../../guides/types';
-import { plain } from '../text';
+import { hasReceiptCode } from '../../guides/check';
+import type { Audience, Flow, RoleText, SectionGuide, Task, WebBlock, WebFacets, WebFlow, WebSection } from '../../guides/types';
+import { contract, plain } from '../text';
+import { domainOfScreen, type Domain } from '../screens';
+import { WEB_REF, webEntry, webFlows, webHref, webSections } from '../../guides/web';
 import { UNFILLED_HUECO, clientWords, fillClientWords, type ClientWords } from '../../guides/web/words';
 import { ANSWERS, ANSWER_FILES, type Answer, type AnswerText } from './index';
+
+export type { Domain } from '../screens';
 
 // kind: what the entry is (it decides how it is matched and how 360 says it): a curated entry, a question of a guide's
 // FAQ, a screen (what it is for), one thing done on a screen, something a role cannot do there, a task and one of its
 // steps, the job (what the role does, never does, with whom, its day), a topic of «Para todos» and one of its lines, a
-// step of a flow, one of administración's notes, and a word of «Palabras de la app» (what it means).
-export type Kind = 'curated' | 'faq' | 'screen' | 'item' | 'cannot' | 'task' | 'step' | 'job' | 'never' | 'with' | 'day' | 'topic' | 'line' | 'flow' | 'note' | 'term';
+// step of a flow, one of administración's notes, a word of «Palabras de la app» (what it means), a rule of the web's or
+// Atención's guide (and why it is so), and a whole flow told as a story (who does what, in order: design §4(c)4).
+export type Kind = 'curated' | 'faq' | 'screen' | 'item' | 'cannot' | 'task' | 'step' | 'job' | 'never' | 'with' | 'day' | 'topic' | 'line' | 'flow' | 'note' | 'term' | 'rule' | 'flowStory';
 
 export type Entry = {
   id: string;
@@ -32,6 +38,10 @@ export type Entry = {
   next?: string; // a step's next step («¿y después?»)
   may?: boolean; // a «No…» to «¿puedo…?» (what a role cannot or never does): only for that question
   names?: string[]; // a word of «Palabras de la app»: the names it is asked with («reel», «short»…)
+  domain?: Domain; // the team's work, the web or Atención (design §4(d)3): set on every entry of the index
+  also?: string[]; // other screens it is about (a web section: its list and its page with an id)
+  cursor?: number; // a flow told as a story: how many of its steps the story says (its «¿Sigo?» goes on from there)
+  quiet?: boolean; // a fixed line that only points to the guide (a section 360 never says): never before another answer
 };
 
 export type Confidence = 'strong' | 'weak' | 'none';
@@ -422,7 +432,10 @@ function screenEntries(role: Role, prefix: string, source: string, s: SectionGui
   const out: Entry[] = [];
   const go = staticScreen(s.screen);
   const title = s.title;
-  const base = { roles: [role], source, screen: s.screen?.split('?')[0], ...(go ? { go } : {}) };
+  // A section of a role's guide about a screen of «Web» or «Atención» (the boss's and Administración's, APP-42) is of
+  // that domain, like the web's guide (its button and its weights, design §4(d)3); every other one is the team's.
+  const domain = domainOfScreen(s.screen);
+  const base = { roles: [role], source, screen: s.screen?.split('?')[0], ...(go ? { go } : {}), ...(domain && domain !== 'equipo' ? { domain } : {}) };
   const tour = 'tour' in s ? s.tour : undefined;
   out.push({
     ...base,
@@ -627,18 +640,345 @@ function adminEntries(): Entry[] {
   return out;
 }
 
+// A whole flow told as a story (design §4(c)4): who does what, in order, in up to four short sentences, with the flow's
+// own page as its button (/ayuda/flujos?f=<id>); «¿Sigo?» when more steps follow (a «sí» or «¿y después?» walks them:
+// explain.ts). Asked «¿cómo es el camino de un evento?», «¿cuál es el flujo del mes de Redes?», «¿quién hace qué en los
+// tweets?».
+const STORY_STEPS = 4;
+const STORY_ASK = /\b(?:flujos?|camino|de punta a punta|quien hace que|por donde pasa|el proceso|todo el proceso|los pasos de todo|en que orden)\b/;
+const STORY_LETTERS = 400;
+// (The title alone only when it says a journey, «Un evento, de la agenda a la publicación»: «El semáforo» or «Tweets de la
+// semana» asked alone is what the word means or how it works, the glossary's and the curated answers'.)
+function storyAsks(title: string): string[] {
+  const noun = lcFirst(title.split(/,\s/)[0]);
+  // («de» + «el mes de Redes» is said «del mes de Redes».)
+  return [...(title.includes(', ') ? [title] : []), ...storyFrames(noun)].map((x) => x.replace(/\bde el\b/g, 'del').replace(/\ba el\b/g, 'al'));
+}
+function storyFrames(noun: string): string[] {
+  return [`el camino de ${noun}`, `como es el camino de ${noun}`, `cual es el flujo de ${noun}`, `el flujo de ${noun}`, `como funciona el flujo de ${noun}`, `quien hace que en ${noun}`, `por donde pasa ${noun}`];
+}
+/** The first clause of a step («Graba, sube cada parte… Cuando ya empezó, «Marcar realizado».» → its first sentence). */
+const firstSentence = (t: string) => {
+  let depth = 0;
+  for (let i = 0; i < t.length; i++) {
+    if (t[i] === '«') depth++;
+    else if (t[i] === '»') depth = Math.max(0, depth - 1);
+    else if (depth === 0 && t[i] === '.' && (i + 1 === t.length || t[i + 1] === ' ')) return t.slice(0, i + 1);
+  }
+  return t;
+};
+function storyText(title: string, lines: string[]): { text: string; said: number } {
+  const parts = [`${title.replace(/: /g, ', ')}:`];
+  let said = 0;
+  for (const l of lines) {
+    if (said >= STORY_STEPS || (said > 0 && `${parts.join(' ')} ${l}`.length > STORY_LETTERS)) break;
+    parts.push(l);
+    said++;
+  }
+  return { text: `${parts.join(' ')}${said < lines.length ? ' ¿Sigo?' : ''}`, said };
+}
+function teamFlowStories(): Entry[] {
+  const guides = allGuides();
+  return FLOWS.map((f: Flow): Entry => {
+    const roles = guides.filter((g) => g.flows.includes(f.id)).map((g) => g.role as Role);
+    const lines = f.steps.map((s) => `${ucFirst(whoOf(s.roles))}: ${lcFirst(end(firstSentence(s.text)))}`);
+    const { text, said } = storyText(f.title, lines);
+    return { id: `flujo:${f.id}`, kind: 'flowStory', source: `flows:${f.id} story`, roles, q: storyAsks(f.title), doc: `${f.title}. ${f.steps.map((s) => s.text).join(' ')}`, a: text, go: `/ayuda/flujos?f=${f.id}`, ...(said < lines.length ? { cursor: said } : {}) };
+  });
+}
+
+// ── The web's and Atención's guide (WF-C, design §4(a)-(d)) ─────────────────────────────────────────────────────────
+// Every section and flow of the four docs (src/lib/guides/web, the source of «Ayuda y guías» and the docs), for the boss
+// and Administración only (their `audience`; never a team role, never a web role): what each section says, block by
+// block, its tasks (the numbered steps), its flows (each step and the whole story) and, once the next round fills them,
+// 360's own fields (what, items, tasks, cannot, rules, faq, why). Each entry carries its domain (the web's or Atención's)
+// and its button: the panel's screen when there is one, else its place in the guide.
+
+// The sections whose text 360 never says (design §4(e)): they print the demo receipts, the demo keys or example codes.
+// 360 points to the guide instead (and, for a receipt, to «Consultar mi solicitud»).
+const NEVER_SAID = new Set(['2.3', '5.0', '5.4', '5.22', '7.5', '7.6']);
+const RECEIPT_SECTIONS = new Set(['2.3', '7.6']);
+// Atención's: its manual (part 5), its flows (6.1 to 6.11), the citizen's journey (part 2) and the desk's roles.
+const ATTENTION_SECTIONS = new Set(['atencion-ciudadana', 'rol-coordinador', 'rol-responsable', 'rol-operador-denuncias', 'rol-auditoria', 'atender-en-5-pasos']);
+function webDomain(pdf: string, id: string): Domain {
+  const [a, b] = pdf.split('.').map(Number);
+  return a === 2 || a === 5 || (a === 6 && b >= 1 && b <= 11) || ATTENTION_SECTIONS.has(id) ? 'atencion' : 'web';
+}
+// The panel's screens of a section (the first one is its own; a static one is its button), when 360's `screen` field
+// does not say it: «¿qué es esto?» there, a small bonus there, and «Ir a…».
+const SECTION_SCREENS: Record<string, string[]> = {
+  'pantalla-la-web': ['/admin/web'],
+  editor: ['/admin/web/editar/[id]'],
+  'vista-previa': ['/admin/web/vista-previa/[id]'],
+  aprobar: ['/admin/web/por-aprobar', '/admin/web/revisar/[id]'],
+  versiones: ['/admin/web/editar/[id]/versiones'],
+  biblioteca: ['/admin/web/biblioteca', '/admin/web/biblioteca/[id]'],
+  'ajustes-del-sitio': ['/admin/web/ajustes'],
+  redirecciones: ['/admin/web/redirecciones'],
+  'bandeja-y-tablero': ['/admin/atencion'],
+  'un-caso': ['/admin/atencion/[id]'],
+  cifras: ['/admin/atencion/estadisticas'],
+  'areas-y-plazos': ['/admin/atencion/areas'],
+  mapa: ['/admin/atencion/mapa'],
+  registro: ['/admin/atencion/registro'],
+};
+// What Administración is on when it opens «Atención» (it never sees the inbox: the page shows it «Áreas y plazos»).
+const ADMIN_SCREEN_ENTRY: Record<string, string> = { '/admin/atencion': 'web:areas-y-plazos' };
+
+// The client's words, as 360 says them in a web text: its answer is static help text, so it names them plainly («el
+// programa semanal», «el semanario», «la web oficial»), never as a hueco; its ways of asking and its text for matching
+// keep the hueco, which the index fills with the client's real words (withClientWords), so «¿qué es el …?» with the
+// program's name finds it.
+const NEUTRAL_WORDS: [RegExp, string][] = [
+  [/\b(bloque|tarjeta|lista|página|sección)\s+«\[PROGRAMA\]»/g, '$1 del programa semanal'],
+  [/«\[PROGRAMA\]»|\[PROGRAMA\]/g, 'el programa semanal'],
+  [/\b(bloque|tarjeta|lista|página|sección)\s+«\[SEMANARIO\]»/g, '$1 del semanario'],
+  [/«\[SEMANARIO\]»|\[SEMANARIO\]/g, 'el semanario'],
+  [/,\s*\[WEB_OFICIAL\]/g, ''],
+  [/\[WEB_OFICIAL\]/g, 'la web oficial'],
+  [/\[ORGANIZACION\]/g, 'la institución'],
+];
+/** A web text without its doc's marks: «(ver [§x])» out, any other [§x] as that section's title, no **bold** nor `code`. */
+function webPlain(text: string): string {
+  return text
+    .replace(/\s*\((?:ver|véase)\s+(?:\[§[a-z0-9-]+\](?:,\s*|\s+y\s+)?)+\)/g, '')
+    .replace(WEB_REF, (_m: string, id: string) => webEntry(id)?.title ?? '')
+    .replace(/\*\*/g, '')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/\s+([.,;:])/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+/** A web text as 360 says it (see NEUTRAL_WORDS). */
+function webSaid(text: string): string {
+  let t = webPlain(text);
+  for (const [re, to] of NEUTRAL_WORDS) t = t.replace(re, to);
+  return contract(t).replace(/\s+/g, ' ').trim();
+}
+const roleTextOf = (t: RoleText, f: (s: string) => string): AnswerText =>
+  typeof t === 'string' ? f(t) : (Object.fromEntries(Object.entries(t).filter((e): e is [string, string] => typeof e[1] === 'string').map(([k, v]) => [k, f(v)])) as AnswerText);
+const roleTexts = (t: RoleText): string[] => (typeof t === 'string' ? [t] : Object.values(t).filter((x): x is string => typeof x === 'string'));
+/** A role text for one key (an audience or `default`): its own, else the default, else (for one text for all) that one. */
+const roleFor = (t: RoleText, key: string): string | undefined => (typeof t === 'string' ? t : ((t as Record<string, string | undefined>)[key] ?? t.default));
+const audienceRoles = (a: readonly Audience[]): Role[] => a.filter((x) => x === 'boss' || x === 'admin');
+
+// One thing a section says: a paragraph, an item of a list or a box, a row of a table; and its lead («En «Decidir»:»).
+type WebUnit = { text: string; lead?: string; key?: string };
+const LEAD = (t: string) => t.length <= 80 && /:\s*$/.test(t);
+function tableRow(head: string[], row: string[]): WebUnit {
+  const cells = row.map((c) => webPlain(c));
+  const key = cells[0] ?? '';
+  const rest = cells.slice(1).map((c, k) => (head.length > 2 ? `${lcFirst(webPlain(head[k + 1] ?? ''))}, ${lcFirst(c)}` : lcFirst(c)));
+  return { text: `${key}: ${rest.join('; ')}`, key };
+}
+/** The units and the tasks (numbered steps) of a section's blocks. Part 1's numbered lists are the order of a page. */
+function webUnits(s: WebSection): { units: WebUnit[]; tasks: { title: string; steps: string[] }[] } {
+  const units: WebUnit[] = [];
+  const tasks: { title: string; steps: string[] }[] = [];
+  const listsAreSteps = !s.pdf.startsWith('1.');
+  let lead: string | undefined;
+  s.blocks.forEach((b: WebBlock) => {
+    if (b.kind === 'p') {
+      const t = webPlain(b.text);
+      if (LEAD(t)) lead = t;
+      else {
+        units.push({ text: t });
+        lead = undefined;
+      }
+      return;
+    }
+    if (b.kind === 'steps' && listsAreSteps) {
+      const title = lead ? lead.replace(/:\s*$/, '') : s.title;
+      tasks.push({ title: webPlain(title), steps: b.items.map((x) => webPlain(x)) });
+    } else if (b.kind === 'list' || b.kind === 'steps') for (const x of b.items) units.push({ text: webPlain(x), ...(lead ? { lead } : {}) });
+    else if (b.kind === 'note') for (const x of b.paras) units.push({ text: webPlain(x) });
+    else if (b.kind === 'table') for (const r of b.rows) units.push({ ...tableRow(b.head, r), ...(lead ? { lead } : {}) });
+    lead = undefined;
+  });
+  return { units: units.filter((u) => u.text && !hasReceiptCode(u.text)), tasks: tasks.filter((t) => t.steps.length && !t.steps.some(hasReceiptCode)) };
+}
+// What a section is about, said as the guide says it: its first unit, named, and the next ones up to about 400 letters.
+function webSectionText(title: string, texts: string[]): string {
+  const first = texts[0] ?? '';
+  const head = plain(webSaid(title)).split(' ').filter((w) => w.length > 3)[0];
+  let out = head && plain(first).includes(head) ? end(first) : `${ucFirst(webSaid(title)).replace(/: /g, ', ')}: ${lcFirst(end(first))}`;
+  for (const t of texts.slice(1)) {
+    const next = `${out} ${end(ucFirst(t))}`;
+    if (next.length > STORY_LETTERS) break;
+    out = next;
+  }
+  return out;
+}
+// The ways a web section is asked: its title (without what is in parentheses), as what it is, what it is for, how it
+// works, what is in it and where it is, also with the web or Atención named («¿qué es Inicio en la web?»).
+function webTitleAsks(title: string, domain: Domain): string[] {
+  const t = webPlain(title).replace(/\s*\([^)]*\)\s*$/, '').replace(/[«»]/g, '').trim();
+  const where = domain === 'atencion' ? 'en atencion' : 'en la web';
+  // «El comprobante: código y clave», «Versiones: el historial…»: asked by its head too.
+  const head = t.includes(':') ? t.split(':')[0].trim() : null;
+  // A title that is something done («Programar», «Archivar», «Hacer un reporte»): asked how too.
+  const done = /^\p{L}+(?:ar|er|ir)\b/u.test(t) ? [`como ${t}`, `como ${t} ${where}`] : [];
+  return [t, `${t} ${where}`, `que es ${t}`, `que es ${t} ${where}`, `para que sirve ${t}`, `como funciona ${t}`, `que hay en ${t}`, `que se hace en ${t}`, ...done, ...(head ? [head, `que es ${head}`, `${head} ${where}`] : [])];
+}
+/** A unit that starts with a button's or a field's label («Devolver con comentario»: …): asked by it, and how. */
+function leadLabelAsks(text: string): string[] {
+  const m = /^«([^«»]{3,60})»(?:\s*\([^)]*\))?\s*:/.exec(text);
+  if (!m || UNFILLED_HUECO.test(m[1])) return [];
+  return [m[1], `como ${m[1]}`, `que hace ${m[1]}`, `para que sirve ${m[1]}`];
+}
+const nodeSlug = (id: string) => id.replace(/_/g, '-');
+
+/** The entries of one web section or flow's 360 fields (design §4(a)): tasks, cannot, rules (and why) and questions. */
+function facetEntries(x: WebFacets & { id: string; title: string; audience: Audience[] }, base: Omit<Entry, 'id' | 'kind' | 'q' | 'a'>, prefix: string): Entry[] {
+  const out: Entry[] = [];
+  const safe = (t: string) => !hasReceiptCode(t);
+  for (const t of x.tasks ?? []) {
+    if (!t.steps.every(safe)) continue;
+    const id = `${prefix}:tarea:${t.id}`;
+    const steps = t.steps.map((st) => webSaid(st));
+    out.push({ ...base, id, kind: 'task', q: [webPlain(t.title), `como ${webPlain(t.title)}`, ...(t.when ? [webPlain(t.when)] : [])], a: stepsAnswer(webSaid(t.title), steps) });
+    steps.forEach((st, k) => {
+      const nx = steps[k + 1];
+      out.push({ ...base, id: `${id}:${k + 1}`, kind: 'step', q: askedLabels(webPlain(t.steps[k])), doc: `${webPlain(t.title)}. ${webPlain(t.steps[k])}`, a: `Para ${lcFirst(webSaid(t.title))}: ${lcFirst(end(st))}${nx && st.length < 90 ? ` Después: ${lcFirst(end(nx))}` : ''}`, ...(nx ? { next: `${id}:${k + 2}` } : {}) });
+    });
+  }
+  for (const [aud, list] of Object.entries(x.cannot ?? {}) as [Audience, string[]][]) {
+    list.filter(safe).forEach((c, k) => {
+      const t = webSaid(c);
+      out.push({ ...base, roles: [aud], id: `${prefix}:no:${aud}:${k}`, kind: 'cannot', may: true, q: [`puedo ${lcFirst(t.replace(/^No[,:]?\s*/, '').replace(/[.]$/, ''))}`], doc: `${webPlain(x.title)}. ${webPlain(c)}`, a: /^No\b/.test(t) ? end(t) : end(`No: ${lcFirst(t)}`) });
+    });
+  }
+  (x.rules ?? []).filter(safe).forEach((r, k) => out.push({ ...base, id: `${prefix}:regla:${k}`, kind: 'rule', q: askedLabels(webPlain(r)), doc: `${webPlain(x.title)}. ${webPlain(r)}`, a: end(webSaid(r)) }));
+  if (x.why && safe(x.why)) {
+    const t = webPlain(x.title).replace(/\s*\([^)]*\)\s*$/, '').replace(/[«»]/g, '');
+    out.push({ ...base, id: `${prefix}:porque`, kind: 'rule', q: [`por que ${t}`, `por que es asi ${t}`], doc: `${webPlain(x.title)}. ${webPlain(x.why)}`, a: end(webSaid(x.why)) });
+  }
+  (x.faq ?? []).forEach((f, k) => {
+    if (!roleTexts(f.a).every(safe)) return;
+    out.push({ ...base, id: `${prefix}:pregunta:${k}`, kind: 'faq', q: [webPlain(f.q)], doc: roleTexts(f.a).map(webPlain).join(' '), a: roleTextOf(f.a, (t) => end(webSaid(t))) });
+  });
+  return out;
+}
+
+function webSectionEntries(s: WebSection): Entry[] {
+  const roles = audienceRoles(s.audience);
+  const domain = webDomain(s.pdf, s.id);
+  const screens = s.screen ? [s.screen, ...(SECTION_SCREENS[s.id] ?? []).filter((x) => x !== s.screen)] : (SECTION_SCREENS[s.id] ?? []);
+  const go = screens.find((x) => !x.includes('[')) ?? webHref(s.id) ?? undefined;
+  const base = { source: `web:${s.pdf} ${s.id}`, roles, domain, ...(go ? { go } : {}), ...(screens[0] ? { screen: screens[0] } : {}), ...(screens.length > 1 ? { also: screens.slice(1) } : {}) };
+  const prefix = `web:${s.id}`;
+  // Nobody's (a citizen's contact, the denuncias, exporting: design §4(d)): only what each one cannot do, to «¿puedo…?».
+  if (!roles.length) return facetEntries(s, { ...base, roles: [] }, prefix).filter((e) => e.may);
+  const out: Entry[] = [];
+  const title = webPlain(s.title);
+  const asks = webTitleAsks(s.title, domain);
+  if (NEVER_SAID.has(s.pdf)) {
+    const said = RECEIPT_SECTIONS.has(s.pdf)
+      ? `${ucFirst(webSaid(s.title))}: está en la guía, con su botón. Yo no doy ni pido códigos ni claves, tampoco los de prueba: la persona consulta su solicitud con los suyos en «Consultar mi solicitud».`
+      : `${ucFirst(webSaid(s.title))}: está en la guía, con su botón. Yo no doy ni pido códigos ni claves, tampoco los de prueba.`;
+    out.push({ ...base, id: prefix, kind: 'screen', q: asks, doc: title, a: said, quiet: true });
+    return [...out, ...facetEntries(s, base, prefix)];
+  }
+  const { units, tasks } = webUnits(s);
+  const items = (s.items ?? []).filter((t) => roleTexts(t).every((x) => !hasReceiptCode(x)));
+  const what = s.what && roleTexts(s.what).every((x) => !hasReceiptCode(x)) ? s.what : undefined;
+  const lead = [...units.map((u) => u.text), ...tasks.map((t) => `${t.title}: ${t.steps[0] ?? ''}`)];
+  // 360's own «what» and items, per audience when they are written per audience; else the guide's own words.
+  const itemsFor = (key: string) => items.map((i) => roleFor(i, key)).filter((x): x is string => !!x).map(webPlain);
+  const said: RoleText = !what
+    ? webSectionText(s.title, lead)
+    : typeof what === 'string'
+      ? webSectionText(s.title, [webPlain(what), ...itemsFor('default')])
+      : Object.fromEntries(Object.entries(what).filter((e): e is [string, string] => typeof e[1] === 'string').map(([k, v]) => [k, webSectionText(s.title, [webPlain(v), ...itemsFor(k)])]));
+  out.push({ ...base, id: prefix, kind: 'screen', q: asks, doc: webPlain(what ? roleTexts(what)[0] : (lead[0] ?? title)), a: roleTextOf(said, webSaid) });
+  // 360's own items first (its words for this section), then what the guide says, block by block.
+  items.forEach((t, k) => out.push({ ...base, id: `${prefix}:cosa:${k}`, kind: 'item', q: roleTexts(t).flatMap((x) => askedLabels(webPlain(x))), doc: `${title}. ${webPlain(roleTexts(t)[0])}`, a: roleTextOf(t, (x) => end(webSaid(x))) }));
+  units.forEach((u, k) => {
+    const text = u.lead && !plain(u.text).startsWith(plain(u.lead).replace(/:$/, '')) ? `${u.lead} ${u.text}` : u.text;
+    const key = u.key && !UNFILLED_HUECO.test(u.key) ? u.key.replace(/[«»]/g, '') : '';
+    const q = [...askedLabels(u.text), ...leadLabelAsks(u.text), ...(key ? [`que significa ${key}`, `que es ${key}`] : [])];
+    out.push({ ...base, id: `${prefix}:${k}`, kind: 'item', q, doc: `${title}. ${u.lead ? `${u.lead} ` : ''}${u.text}`, a: end(webSaid(text)) });
+  });
+  tasks.forEach((t, b) => {
+    const id = `${prefix}:pasos:${b}`;
+    const steps = t.steps.map((x) => webSaid(x));
+    const name = t.title.replace(/\s*\([^)]*\)\s*$/, '');
+    out.push({ ...base, id, kind: 'task', q: [name, `como ${name}`, `como se hace ${name}`], doc: `${title}. ${t.title}`, a: stepsAnswer(webSaid(t.title), steps) });
+    steps.forEach((st, k) => {
+      const nx = steps[k + 1];
+      out.push({ ...base, id: `${id}:${k + 1}`, kind: 'step', q: askedLabels(t.steps[k]), doc: `${t.title}. ${t.steps[k]}`, a: `${ucFirst(webSaid(name))}, paso ${k + 1}: ${lcFirst(end(st))}`, ...(nx ? { next: `${id}:${k + 2}` } : {}) });
+    });
+  });
+  return [...out, ...facetEntries(s, base, prefix)];
+}
+
+/** The main path of a flow's drawing: from its first box, the first way out of each one (a question's «Sí» first). */
+function mainPath(f: WebFlow): WebFlow['nodes'] {
+  const byId = new Map(f.nodes.map((n) => [n.id, n]));
+  const out: WebFlow['nodes'] = [];
+  const seen = new Set<string>();
+  let n = f.nodes[0];
+  while (n && !seen.has(n.id)) {
+    seen.add(n.id);
+    out.push(n);
+    const exits = f.edges.filter((e) => e.from === n!.id && !e.dotted);
+    const next = exits.find((e) => /^s[ií]$/i.test(e.label ?? '')) ?? exits[0];
+    n = next ? byId.get(next.to)! : undefined!;
+  }
+  return out;
+}
+
+function webFlowEntries(f: WebFlow): Entry[] {
+  const roles = audienceRoles(f.audience);
+  const domain = webDomain(f.pdf, f.id);
+  const go = webHref(f.id) ?? undefined;
+  const base = { source: `web:${f.pdf} ${f.id}`, roles, domain, ...(go ? { go } : {}) };
+  const prefix = `webflujo:${f.id}`;
+  if (!roles.length) return facetEntries(f, { ...base, roles: [] }, prefix).filter((e) => e.may);
+  const out: Entry[] = [];
+  const byId = new Map(f.nodes.map((n) => [n.id, n]));
+  for (const n of f.nodes) {
+    if (hasReceiptCode(n.text)) continue;
+    const exits = f.edges.filter((e) => e.from === n.id && !e.dotted);
+    const branches = n.shape === 'decision' ? ` ${exits.map((e) => `${webPlain(e.label ?? '')}: ${lcFirst(end(webPlain(byId.get(e.to)?.text ?? '')))}`).join(' ')}` : '';
+    const next = n.shape !== 'decision' && exits[0] ? `${prefix}:${nodeSlug(exits[0].to)}` : undefined;
+    out.push({ ...base, id: `${prefix}:${nodeSlug(n.id)}`, kind: 'flow', q: [...askedLabels(webPlain(n.text)), ...leadLabelAsks(webPlain(n.text))], doc: `${webPlain(f.title)}. ${webPlain(n.text)}${branches}`, a: webSaid(`${end(webPlain(n.text))}${branches}`), ...(next ? { next } : {}) });
+  }
+  // The story: who does it, then the drawing's main path; its cursor is the next box of that path it did not say.
+  // «La web: revisar y decidir» is asked by what is done too («¿cómo funciona revisar y decidir?»).
+  const lines = mainPath(f).map((n) => end(webSaid(n.text)));
+  const { text, said } = storyText(webSaid(f.title), [end(webSaid(f.who)), ...lines]);
+  const rest = webPlain(f.title).includes(':') ? webPlain(f.title).split(':').slice(1).join(':').trim().replace(/[«»]/g, '') : '';
+  const restAsks = rest ? [`como funciona ${rest}`, `el flujo de ${rest}`, `como es el camino para ${rest}`, `quien hace que para ${rest}`] : [];
+  out.push({ ...base, id: prefix, kind: 'flowStory', q: [...storyAsks(webPlain(f.title).replace(/[«»]/g, '')), ...restAsks], doc: `${webPlain(f.title)}. ${webPlain(f.who)}`, a: text, ...(said - 1 < lines.length ? { cursor: said - 1 } : {}) });
+  f.know.forEach((k, i) => {
+    if (hasReceiptCode(k)) return;
+    out.push({ ...base, id: `${prefix}:saber:${i}`, kind: 'item', q: askedLabels(webPlain(k)), doc: `${webPlain(f.title)}. ${webPlain(k)}`, a: end(webSaid(k)) });
+  });
+  return [...out, ...facetEntries(f, base, prefix)];
+}
+
+function webEntries(): Entry[] {
+  return [...webSections().flatMap(webSectionEntries), ...webFlows().flatMap(webFlowEntries)];
+}
+
 function curatedEntries(list: Answer[], file: (a: Answer) => string): Entry[] {
-  return list.map((x) => ({ id: `curado:${x.id}`, kind: 'curated' as const, source: `curado:${file(x)}`, roles: x.roles, q: x.q, a: x.a, ...(x.go ? { go: x.go } : {}), ...(x.tutorial ? { tutorial: x.tutorial } : {}) }));
+  // A curated answer of the web (its id says so, or its button is a web or Atención screen) is of that domain.
+  const domainOf = (x: Answer): Domain => {
+    const d = domainOfScreen(x.go);
+    return d && d !== 'equipo' ? d : /(?:^|-)atencion(?:-|$)/.test(x.id) ? 'atencion' : /(?:^|-)web(?:-|$)/.test(x.id) ? 'web' : 'equipo';
+  };
+  return list.map((x) => ({ id: `curado:${x.id}`, kind: 'curated' as const, source: `curado:${file(x)}`, roles: x.roles, q: x.q, a: x.a, domain: domainOf(x), ...(x.go ? { go: x.go } : {}), ...(x.tutorial ? { tutorial: x.tutorial } : {}) }));
 }
 
 // ── The index ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
 // roles: only for whoever is told that text (a curated entry's answer per role); unset = whoever gets the entry.
 // quoted: the label a way of asking is about («¿Qué significa «Sube el material»?»), when it is most of it.
-type Doc = { entry: number; toks: Tok[]; total: number; kind: 'q' | 'doc'; labels: string[]; weight: number; label: boolean; text: string; ask: AskKind | null; quoted?: string; roles?: Role[] };
+type Doc = { entry: number; toks: Tok[]; total: number; kind: 'q' | 'doc'; labels: string[]; weight: number; label: boolean; text: string; ask: AskKind | null; quoted?: string; roles?: Role[]; web?: boolean };
 // What a kind's text weighs as an answer: a line of the job or the day says less than a screen, a task or a question.
 const KIND_WEIGHT: Partial<Record<Kind, number>> = { job: 0.85, day: 0.85, with: 0.95, flow: 0.95, never: 0.95, line: 0.9 };
-type Index = { entries: Entry[]; docs: Doc[]; byKey: Map<string, number[]>; idf: Map<string, number>; unknown: number; labels: Map<string, number[]>; byId: Map<string, Entry>; asked: Map<string, Entry[]>; defines: Set<string>; whoLabels: RegExp | null; said: Set<string> };
+type Index = { entries: Entry[]; docs: Doc[]; byKey: Map<string, number[]>; idf: Map<string, number>; unknown: number; idfAll: Map<string, number>; unknownAll: number; labels: Map<string, number[]>; byId: Map<string, Entry>; asked: Map<string, Entry[]>; defines: Set<string>; whoLabels: RegExp | null; said: Set<string>; saidAll: Set<string> };
 
 let INDEX: Index | null = null;
 
@@ -681,21 +1021,35 @@ function index(): Index {
   const files = new Map<Answer, string>(Object.entries(ANSWER_FILES).flatMap(([f, list]) => list.map((a): [Answer, string] => [a, f])));
   const words = clientWords();
   const filled = (t: string) => withWords(t, words);
-  const entries = [...curatedEntries(ANSWERS, (a) => files.get(a) ?? 'respuestas'), ...guideEntries(), ...sharedEntries(), ...glossaryEntries(), ...flowEntries(), ...adminEntries()].map((e) => withClientWords(e, words));
+  const entries = [...curatedEntries(ANSWERS, (a) => files.get(a) ?? 'respuestas'), ...guideEntries(), ...sharedEntries(), ...glossaryEntries(), ...flowEntries(), ...teamFlowStories(), ...adminEntries(), ...webEntries()]
+    .map((e) => withClientWords(e, words))
+    // (The word «Web y Atención» of «Palabras de la app» is the web's: asked with Atención's words, «¿qué son las vencidas
+    // en Atención?», it weighs them as the web's guide does, and its meaning does not answer what the guide says.)
+    .map((e): Entry => (e.domain ? e : { ...e, domain: e.id === 'palabra:web-y-atencion' ? 'web' : 'equipo' }));
   const saidOf = (e: Entry) => saidBy(e).map(([t, roles]): [string, Role[] | undefined] => [filled(t), roles]);
-  // Document frequency per root, over the entries (each entry once).
-  const df = new Map<string, number>();
-  const entryToks = entries.map((e) => new Set([...e.q, e.doc ?? '', ...(e.kind === 'curated' ? saidOf(e).map(([t]) => t) : [])].flatMap((t) => tokens(t))));
-  for (const set of entryToks) for (const r of set) df.set(r, (df.get(r) ?? 0) + 1);
-  const n = entries.length;
-  const idf = new Map<string, number>();
-  for (const [r, c] of df) idf.set(r, Math.log(1 + n / c));
-  // A word only some ways of asking have, and no answer or guide text says («Kevin», «la ermita», «chamo»): an example
-  // detail of how it was asked, not what it is about. It weighs like a common word.
-  const said = new Set(entries.flatMap((e) => [e.doc ?? '', ...(e.kind === 'curated' ? saidOf(e).map(([t]) => t) : [filled(typeof e.a === 'string' ? e.a : textFor(e.a, [...TEAM_ROLES, 'admin']))])]).flatMap((t) => tokens(t)));
-  const common = [...idf.values()].sort((a, b) => a - b)[Math.floor(idf.size * DETAIL_AT)] ?? 1;
-  for (const [r, w] of idf) if (!said.has(r) && w > common) idf.set(r, common);
-  const weigh = (r: string): Tok => ({ root: r, w: r in LIGHT ? LIGHT[r] : idf.get(r) ?? Math.log(1 + n), light: r in LIGHT });
+  // How much each word says: document frequency per root, over the entries (each entry once). Two tables: the team's
+  // entries are weighed among themselves, so the web's and Atención's guide and the flows told as stories (WF-C) never
+  // change a team question's scores; the web's entries, among all of them, as one index.
+  const weights = (list: Entry[]) => {
+    const df = new Map<string, number>();
+    for (const e of list) for (const r of new Set([...e.q, e.doc ?? '', ...(e.kind === 'curated' ? saidOf(e).map(([t]) => t) : [])].flatMap((t) => tokens(t)))) df.set(r, (df.get(r) ?? 0) + 1);
+    const n = list.length;
+    const idf = new Map<string, number>();
+    for (const [r, c] of df) idf.set(r, Math.log(1 + n / c));
+    // A word only some ways of asking have, and no answer or guide text says («Kevin», «la ermita», «chamo»): an example
+    // detail of how it was asked, not what it is about. It weighs like a common word.
+    const said = new Set(list.flatMap((e) => [e.doc ?? '', ...(e.kind === 'curated' ? saidOf(e).map(([t]) => t) : [filled(typeof e.a === 'string' ? e.a : textFor(e.a, [...TEAM_ROLES, 'admin']))])]).flatMap((t) => tokens(t)));
+    const common = [...idf.values()].sort((a, b) => a - b)[Math.floor(idf.size * DETAIL_AT)] ?? 1;
+    for (const [r, w] of idf) if (!said.has(r) && w > common) idf.set(r, common);
+    return { idf, said, n };
+  };
+  // (The team's: every entry but the web's guide, its curated answers and the flows told as stories, WF-C.)
+  const teamOnly = (e: Entry) => !e.source.startsWith('web:') && e.source !== 'curado:web' && e.kind !== 'flowStory';
+  const { idf, said, n } = weights(entries.filter(teamOnly));
+  const all = weights(entries);
+  const weighOf = (table: Map<string, number>, size: number) => (r: string): Tok => ({ root: r, w: r in LIGHT ? LIGHT[r] : table.get(r) ?? Math.log(1 + size), light: r in LIGHT });
+  const weighTeam = weighOf(idf, n);
+  const weighAll = weighOf(all.idf, all.n);
   const docs: Doc[] = [];
   const byKey = new Map<string, number[]>();
   const labels = new Map<string, number[]>();
@@ -703,6 +1057,8 @@ function index(): Index {
   const defines = new Set<string>();
   entries.forEach((e, k) => {
     for (const m of filled(`${e.doc ?? ''} ${typeof e.a === 'string' ? e.a : (e.a.default ?? '')}`).matchAll(/«([^«»]{3,60})»:/g)) defines.add(`${k} ${readable(m[1])}`);
+    const web = e.domain === 'web' || e.domain === 'atencion';
+    const weigh = web ? weighAll : weighTeam;
     const add = (text: string, kind: 'q' | 'doc', roles?: Role[]) => {
       const toks = tokens(kind === 'doc' ? text.replace(/“[^”]*”/g, ' ') : text).map(weigh);
       if (!toks.length) return;
@@ -710,7 +1066,7 @@ function index(): Index {
       const weight = label ? 0.8 : e.q.length || kind === 'q' ? 1 : (KIND_WEIGHT[e.kind] ?? 1);
       const named = kind === 'q' ? labelsOf(text)[0] : undefined;
       const quoted = named && tokens(named).length * 5 >= toks.length * 3 ? readable(named) : undefined;
-      const d = docs.push({ entry: k, toks, total: toks.reduce((s, t) => s + t.w, 0), kind, labels: [], weight, label, text, ask: kind === 'q' ? askKind(readable(text)) : null, ...(quoted ? { quoted } : {}), ...(roles ? { roles } : {}) }) - 1;
+      const d = docs.push({ entry: k, toks, total: toks.reduce((s, t) => s + t.w, 0), kind, labels: [], weight, label, text, ask: kind === 'q' ? askKind(readable(text)) : null, ...(quoted ? { quoted } : {}), ...(roles ? { roles } : {}), ...(web ? { web } : {}) }) - 1;
       for (const t of toks) {
         const list = byKey.get(key(t.root)) ?? [];
         if (list.at(-1) !== d) list.push(d);
@@ -734,7 +1090,7 @@ function index(): Index {
   // The labels that say «quién» («Quién graba»): named in a question, they do not make it a «¿quién…?».
   const who = [...labels.keys()].filter((l) => /\bquien(?:es)?\b/.test(l));
   const whoLabels = who.length ? new RegExp(`\\b(?:${who.map((l) => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'g') : null;
-  INDEX = { entries, docs, byKey, idf, unknown: 0.6 * Math.log(1 + n), labels, byId: new Map(entries.map((e) => [e.id, e])), asked, defines, whoLabels, said };
+  INDEX = { entries, docs, byKey, idf, unknown: 0.6 * Math.log(1 + n), idfAll: all.idf, unknownAll: 0.6 * Math.log(1 + all.n), labels, byId: new Map(entries.map((e) => [e.id, e])), asked, defines, whoLabels, said, saidAll: all.said };
   return INDEX;
 }
 
@@ -746,7 +1102,42 @@ export function entryById(id: string): Entry | undefined {
 /** What a screen is for, for these roles (its «screen» entry: «¿qué es esto?» on it). */
 export function entryForScreen(screen: string, roles: Role[]): Entry | undefined {
   const path = screen.split('?')[0];
-  return index().entries.find((e) => e.kind === 'screen' && e.screen === path && forRoles(e, roles));
+  const ix = index();
+  // Administración on «Atención» sees «Áreas y plazos», never the inbox (ADMIN_SCREEN_ENTRY).
+  const adminOwn = roles.includes('admin') && !roles.includes('boss') ? ADMIN_SCREEN_ENTRY[path] : undefined;
+  const own = adminOwn ? ix.byId.get(adminOwn) : undefined;
+  if (own && forRoles(own, roles)) return own;
+  return ix.entries.find((e) => e.kind === 'screen' && e.screen === path && forRoles(e, roles)) ?? ix.entries.find((e) => e.kind === 'screen' && !!e.also?.includes(path) && forRoles(e, roles));
+}
+
+// ── The domain of a question (design §4(d)3) ───────────────────────────────────────────────────────────────────────
+// The words that make a question the web's or Atención's, read on readable() text. Only words the team's own help never
+// uses that way: «la web», «noticia», «redirección», «vista previa»…; «solicitudes», «ciudadano», «bandeja», «denuncias»,
+// «comprobante», «AC-…», «coordinación»… Never «bloque» (the storyboard's), «borrador» (a ficha's), «portada» (a reel's),
+// «solicitud» or «la denuncia» alone (a ficha comunitaria's type and field), «área» alone («el área de Redes»).
+const WEB_DOMAIN = new RegExp(
+  String.raw`\b(?:la web|de la web|en la web|(?:en|de|mi|tu|el|del|al) web|web y atencion|pagina web|paginas web|sitio web|web publica|web oficial|web vieja|menu web|noticias?|comunicados?|columnas? de opinion|redirecci\w*|ajustes del sitio|vista previa|editor de la web|aprobador de la web|publicar ahora|devolver con comentario|devuelto con comentario|cambios sin publicar|desarchiv\w*|volver a esta version|texto alternativo|punto de interes|avisos? de servicio|episodios?|indicadores?|obras y acciones|gestion y obras|transparencia|paginas? legales|canales oficiales|semanario|pie de pagina|portada de la web)\b`,
+);
+const ATTENTION_DOMAIN = new RegExp(
+  String.raw`\b(?:atencion ciudadana|menu atencion|(?:en|a) atencion(?! a\b)|(?:registro|cifras|mapa|bandeja|tablero|plazos|areas|roles?) de atencion|solicitudes|solicitud (?:de la gente|de la web|ciudadana|de la persona|de alguien|que llego|que llega)|ciudadan\w*|bandeja|denuncias|una denuncia|operador de denuncias|comprobantes?|consultar mi solicitud|casos? atendidos?|coordinacion|coordinador\w* de atencion|responsables? de area|areas y plazos|auditoria|fecha comprometida|respuestas? guardadas?|notas? internas?|respuesta a la persona|pedido de informacion|requiere informacion|no procede|derivad[oa]s?|reportes? parecidos|casos? iguales|lo que (?:manda|escribe|reporta|pide) la gente|la gente (?:que escribe|que manda|manda|reporta|escribe)|que (?:manda|mandan|escribe|escriben|reporta|reportan|pide|piden) la gente|observacion(?:es)? (?:sobre|de) (?:una|la|esta|las) obras?|ac \d{4})\b|(?<!\ben )\b(?:el|los) casos?\b|\b(?:un|cada|del|al|mis|sus) casos?\b`,
+);
+// The team's own things: on a screen of the web, a question that names them is the team's («¿cómo apruebo una pieza?»).
+const TEAM_DOMAIN = /\b(?:pieza|piezas|reel|reels|tweet|tweets|storyboard|fichas?|eventos?|agenda|copy|feed|semaforo|grabacion|tanda|municipios|obras del ivt)\b/;
+
+/**
+ * The domain a question is about: the web's or Atención's when it says so by its words (both: Atención's, the more
+ * particular), else the screen the person is on (one of the web's or Atención's), unless the question names the team's
+ * own things; null when nothing says either (the team's, as today: the old banks do not move).
+ */
+export function domainOf(question: string, screen?: string | null): 'web' | 'atencion' | null {
+  const t = readable(String(question ?? '').replace(/«[^«»]*»/g, (m) => ` ${m.slice(1, -1)} `));
+  const att = ATTENTION_DOMAIN.test(t);
+  const web = WEB_DOMAIN.test(t);
+  if (att) return 'atencion';
+  if (web) return 'web';
+  if (TEAM_DOMAIN.test(t)) return null;
+  const s = domainOfScreen(screen);
+  return s === 'web' || s === 'atencion' ? s : null;
 }
 
 /** Every label (in «») the help content quotes, as plain words: the screen's own names, never an event's. */
@@ -779,17 +1170,28 @@ const TERM_OTHER = 0.8;
 const TERM_WHAT = /\b(?:que es|que son|que significa\w*|que quiere decir|que quieren decir|paraque es|paraque son|paraque sirven?)\b/;
 // Where a word that only ways of asking have is capped: the weight of the word at this share of the index (a common one).
 const DETAIL_AT = 0.2;
+// The domain's weights (design §4(d)3): an entry of the question's own domain adds, one of the other public domain (the
+// web for Atención, Atención for the web) adds less, the team's for a question of the web or Atención weighs less, and
+// the web's or Atención's for a question of neither weighs less too.
+const SAME_DOMAIN = 0.04;
+const SIBLING_DOMAIN = 0.02;
+const OTHER_DOMAIN = 0.8;
+const NO_DOMAIN = 0.88;
 
 // names: words of names in the question (an event's, a piece's or a place's title, a person of the team): left out unless
 // the help content says them («la entrega» of Grabación stays; «El Mirador», «Kevin» go).
-export type FindOptions = { roles: Role[]; screen?: string | null; limit?: number; extra?: string; names?: string[] };
+// domain: the web's or Atención's when the question is about them (domainOf); unset, it is read from the question and the
+// screen; null, none.
+export type FindOptions = { roles: Role[]; screen?: string | null; limit?: number; extra?: string; names?: string[]; domain?: 'web' | 'atencion' | null };
 
 // A question about what something is or where («¿qué es…?», «¿qué sale en…?»): a label named whole is what it asks.
 const WHAT_IS = /\b(?:que es|que son|que significa\w*|que quiere decir|que sale en|que hay en|que dice|paraque sirve|paraque es|donde esta|donde veo|que hago en|como (?:uso|funciona))\b/;
 // A question that asks what, how, where, who… (not yes or no), maybe after a word that opens it («vale y cómo sé si…»).
 const WH_ASK = /^(?:(?:y|e|pero|entonces|oye|vale|ok|okey|bueno|mira|chamo|epa|aja|ya|disculpa|perdon) )*(?:que|como|donde|cuando|quien|quienes|cual|cuales|cuanto|cuantos|cuantas|por que|paraque|de que|en que|a que|con que)\b/;
 // Someone named in an answer: a role, the boss, administración.
-const NAMES_SOMEONE = /\b(?:jefe|despacho|politica|ivt|grabacion|redes|administracion|solo el|nadie|cualquiera|todos|todo el equipo)\b/;
+// (Also the people of the web and of Atención, for the boss's and Administración's «¿quién…?»: «quienes atienden su
+// caso», «la coordinación», «el aprobador de la web».)
+const NAMES_SOMEONE = /\b(?:jefe|despacho|politica|ivt|grabacion|redes|administracion|solo el|nadie|cualquiera|todos|todo el equipo|coordinacion|coordinador\w*|responsables? de(?:l)? area|operador de denuncias|auditoria|editor(?:es)? de la web|aprobador\w*|quien aprueba|quienes atienden|cualquier persona)\b/;
 // An answer in «tú» names the person who asks («Tú, en Ajustes → Equipo…», «Lo haces tú…»).
 const NAMES_YOU = /(?<![\p{L}])tú(?![\p{L}])/iu;
 const forRoles = (e: Entry, roles: Role[]) => e.roles === null || e.roles.some((r) => roles.includes(r));
@@ -812,8 +1214,11 @@ const PROFILE = rootOf('perfil');
 const LABEL_KIND = new Set(['lista', 'boton', 'pestaña', 'casilla', 'seccion', 'pantalla', 'chip', 'opcion', 'campo', 'menu', 'aviso', 'tarjeta'].map((w) => rootOf(plain(w))));
 // What is asked, weighed (the follow-up's words at half), and its pairs of words in a row.
 type Asked = { toks: { root: string; w: number }[]; total: number; pairs: string[]; text: string; own: string[]; kind: AskKind | null };
-function askedOf(question: string, extra?: string, names?: string[]): Asked | null {
+function askedOf(question: string, extra?: string, names?: string[], web = false): Asked | null {
   const ix = index();
+  // (The words of a question weigh, for the web's entries, as all the entries weigh them: index() above.)
+  const table = web ? ix.idfAll : ix.idf;
+  const unknown = web ? ix.unknownAll : ix.unknown;
   // A word the index does not know, said as a diminutive («los numeritos», «la cosita»), is its word.
   const dim = new Map<string, string>();
   for (const w of readable(question).split(' ')) {
@@ -822,14 +1227,14 @@ function askedOf(question: string, extra?: string, names?: string[]): Asked | nu
     const u = undiminished(w);
     if (u && ix.idf.has(u)) dim.set(r, u);
   }
-  const skip = new Set((names ?? []).flatMap((w) => tokens(w)).filter((r) => !ix.said.has(r)));
+  const skip = new Set((names ?? []).flatMap((w) => tokens(w)).filter((r) => !(web ? ix.saidAll : ix.said).has(r)));
   const all = [...new Set(tokens(question).map((r) => dim.get(r) ?? r))];
   // Without the names, unless less than two words that say something are left (then the name is what it is about).
   const own = all.filter((r) => !skip.has(r) && !(r in LIGHT)).length >= 2 ? all.filter((r) => !skip.has(r)) : all;
   // «Mi nombre», «mi teléfono», «mis avisos»: the person's own things live in Mi perfil (not «el nombre» of a category).
   const mine = own.some((r, k) => r === 'mio' && /^(?:nomb|tele|mail|abis|foto|cuen|dato)/.test(own[k + 1] ?? '')) && !own.includes(PROFILE);
   const more = [...(extra ? tokens(extra).filter((t) => !own.includes(t)) : []), ...(mine ? [PROFILE] : [])];
-  const weigh = (r: string, half = false) => (r in LIGHT ? LIGHT[r] : ix.idf.get(r) ?? ix.unknown) * (half ? 0.5 : 1);
+  const weigh = (r: string, half = false) => (r in LIGHT ? LIGHT[r] : table.get(r) ?? unknown) * (half ? 0.5 : 1);
   // The verb of a «¿cómo…?» is what is asked to do («¿cómo apruebo una pieza en rojo?» is about approving): it weighs
   // more than the things around it.
   const verb = /\bcomo (?:(?:se|le|lo|la|los|las|les|me|te|nos) )*([a-z]{3,})/.exec(readable(question))?.[1];
@@ -902,7 +1307,9 @@ function scoreDoc(a: Asked, toks: Tok[], total: number, kind: 'q' | 'doc', ask: 
  * a label of the screen named whole, a small one on the screen the person is on; what an entry says (`doc`) counts one
  * way and less. `extra`: topic words of the question before (a follow-up), at half weight.
  */
-export function findAnswers(question: string, o: FindOptions): Match[] {
+export function findAnswers(question: string, opts: FindOptions): Match[] {
+  // The domain of the whole question (its parts are read with it).
+  const o: FindOptions = opts.domain !== undefined ? opts : { ...opts, domain: domainOf(question, opts.screen) };
   const whole = rank(question, o);
   const parts = partsOf(question);
   if (!parts.length) return whole;
@@ -972,6 +1379,32 @@ function termAsked(e: Entry, a: Asked): boolean {
   const asked = `${rest} `.replace(TERM_LEAD, '').trim();
   return !!asked && (e.names ?? []).some((n) => formsOf(n)[0] === asked);
 }
+/**
+ * The word of «Palabras de la app» a question asks the meaning of, by one of its names and nothing more (step W of the
+ * demo brain: «¿qué es el feed?», «explícame qué es un copy», «¿qué significa trancado en la app?»), for these roles;
+ * null when it asks anything else, or when an answer for this person was written for exactly that question (it says it
+ * better: «¿qué es el feed?» of the IVT is «Son cosas de Redes…»).
+ */
+export function askedTerm(question: string, roles: Role[]): Entry | null {
+  const ix = index();
+  const a = askedOf(question);
+  if (!a) return null;
+  // (Only the team's own: a section of the web's guide titled like the word, «Programar», is the web's, asked with it.)
+  if ((ix.asked.get(a.text) ?? []).some((x) => x.kind !== 'term' && (x.domain ?? 'equipo') === 'equipo' && forRoles(x, roles))) return null;
+  // Without the polite words before it and where it is said after it («… en la app», «… en Redes»).
+  const text = a.text
+    .replace(/^(?:(?:y|e|oye|bueno|mira|chamo|porfa|por favor) )*(?:explicame|explica|explicanos|dime|me dices|me explicas|sabes|quisiera saber|quiero saber|me puedes decir|podrias decirme)\b\s*/, '')
+    .replace(/ (?:en|de|del) (?:la app|la aplicacion|redes|el panel|la pantalla|aqui)$/, '')
+    .trim();
+  const quoted = labelsOf(question).map((l) => readable(l));
+  for (const t of [a.text, text]) {
+    const at = { ...a, text: t };
+    const e = ix.entries.find((x) => x.kind === 'term' && forRoles(x, roles) && saysName(x, t) && termAsked(x, at) && (!quoted.length || quoted.some((l) => (x.names ?? []).some((n) => formsOf(n).includes(l)))));
+    if (e) return e;
+  }
+  return null;
+}
+
 // The kinds of question a word's meaning answers for sure: what it is, where it is (when nothing says where) and the
 // word alone. Any other («¿cómo hago un reel?», «¿puedo cambiar el copy?», «¿quién arma el feed?», «¿cuántos reels…?»,
 // «no me sale el feed»): the meaning only backs up another answer, never a sure one by itself (13/11).
@@ -980,6 +1413,8 @@ const TERM_SURE = new Set<AskKind | null>(['what', 'where', null]);
 function rank(question: string, o: FindOptions): Match[] {
   const ix = index();
   const a = askedOf(question, o.extra, o.names);
+  // The same question weighed for the web's entries (index(): two tables of weights).
+  const aw = a && (o.roles.includes('boss') || o.roles.includes('admin')) ? askedOf(question, o.extra, o.names, true) ?? a : a;
   if (!a) {
     // Only light words («¿qué no debo hacer nunca?», «¿qué no hago yo?»): a way of asking said exactly like that, maybe
     // without its «nunca» or «yo», is still the answer.
@@ -1002,8 +1437,9 @@ function rank(question: string, o: FindOptions): Match[] {
   for (const d of cand) {
     const doc = ix.docs[d];
     if (!forRoles(ix.entries[doc.entry], o.roles) || (doc.roles && !doc.roles.some((r) => o.roles.includes(r)))) continue;
-    // A way of asking about a label («¿Qué significa «Sube el material»?») is for a question that names it whole.
-    const s = scoreDoc(a, doc.toks, doc.total, doc.kind, doc.ask) * doc.weight * (doc.quoted && !` ${a.text} `.includes(` ${doc.quoted} `) ? 0.85 : 1);
+    // A way of asking about a label («¿Qué significa «Sube el material»?») is for a question that names it whole. (A
+    // question of the web or of Atención weighs its words as all the entries do, for every answer: comparable.)
+    const s = scoreDoc((doc.web || o.domain) && aw ? aw : a, doc.toks, doc.total, doc.kind, doc.ask) * doc.weight * (doc.quoted && !` ${a.text} `.includes(` ${doc.quoted} `) ? 0.85 : 1);
     if (!s) continue;
     const has = a.own.filter((r) => doc.toks.some((u) => likeness(r, u.root) > 0)).length;
     // A short question: a text or a button's name must say every word of it; a way of asking, at least half of them.
@@ -1057,7 +1493,8 @@ function rank(question: string, o: FindOptions): Match[] {
   // An answer for this person written for exactly this question («¿qué es el feed?» of the IVT: «Son cosas de Redes…»;
   // «¿qué es FAB?» of Redes: the copy's formula; «¿qué son los pilares?» of administración: «Los pones tú…»): a word of
   // «Palabras de la app» does not go before it, its meaning stays behind (13/11).
-  const ownExact = [...exactly].some((x) => x.kind !== 'term' && forRoles(x, o.roles));
+  // (The team's own: a section of the web's guide asked with the word's name, «¿qué es programar?», does not count.)
+  const ownExact = [...exactly].some((x) => x.kind !== 'term' && (x.domain ?? 'equipo') === 'equipo' && forRoles(x, o.roles));
   const termSure = TERM_SURE.has(a.kind) && !howTo;
   // The words of «Palabras de la app» asked what they mean by one of their names (below): sure answers.
   const named = new Set<Entry>();
@@ -1073,8 +1510,9 @@ function rank(question: string, o: FindOptions): Match[] {
     if (who && (e.kind === 'screen' || !namesFirst)) s *= 0.72;
     // «¿Cómo…?» is answered by a task or one of its steps (not by a line that happens to have its words).
     if (howTo && (e.kind === 'task' || e.kind === 'step')) s += e.kind === 'task' ? 0.05 : 0.02;
-    // …and not by what a screen is (its name shares the words: «¿cómo subo la tanda?» and «Una tanda de tweets»).
-    if (howTo && e.kind === 'screen') s *= 0.85;
+    // …and not by what a screen is (its name shares the words: «¿cómo subo la tanda?» and «Una tanda de tweets»). A section
+    // of the web's guide is often the how itself («Programar», «Archivar»): not less.
+    if (howTo && e.kind === 'screen' && (e.domain ?? 'equipo') === 'equipo') s *= 0.85;
     // The answer to another kind of question: a «No.» or a «Sí,» to a «¿qué…?» or a «¿quién…?»; a «Porque…» to what
     // does not ask why.
     const said = textFor(e.a, o.roles);
@@ -1089,7 +1527,20 @@ function rank(question: string, o: FindOptions): Match[] {
     if (whereAsk && saysWhere) s += 0.04;
     else if (explain && /^(?:En|Desde)\b/.test(said)) s *= 0.92;
     else if (!why && /^Porque\b/.test(said)) s *= 0.85;
-    if (o.screen && e.screen && e.screen === o.screen) s += 0.04;
+    if (o.screen && ((e.screen && e.screen === o.screen) || e.also?.includes(o.screen))) s += 0.04;
+    // The domain (design §4(d)3): a question of the web or of Atención goes to the entries of its own (the other of the two
+    // a little less) and the team's far behind; a question that names neither keeps today's scores for the team's entries,
+    // and the web's need to beat them clearly.
+    const ed = e.domain ?? 'equipo';
+    const qd = o.domain ?? null;
+    if (qd) s = ed === qd ? s + SAME_DOMAIN : ed === 'equipo' ? s * OTHER_DOMAIN : s + SIBLING_DOMAIN;
+    else if (ed !== 'equipo') s *= NO_DOMAIN;
+    // A rule of the web's guide answers «¿por qué…?» first; a section 360 never says only points to the guide.
+    if (e.kind === 'rule' && why) s += 0.03;
+    if (e.quiet) s *= 0.85;
+    // A whole flow told as a story is for a question about the way («¿cuál es el flujo…?», «¿cómo es el camino…?»,
+    // «¿quién hace qué…?»): «¿cómo funciona el semáforo?» is what its colours mean.
+    if (e.kind === 'flowStory' && !STORY_ASK.test(a.text)) s *= 0.8;
     if (e.kind === 'term') {
       // (A label quoted in the question, «¿qué es «Sin pilar»?», that is not one of its names: another question.)
       const says = saysName(e, a.text) && (!quoted.length || quoted.some((l) => (e.names ?? []).some((n) => formsOf(n).includes(l))));

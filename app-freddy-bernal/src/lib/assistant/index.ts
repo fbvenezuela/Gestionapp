@@ -32,6 +32,7 @@ import { hasPlaceOrContact, redact } from './redact';
 import { concreteDateTime, hasPhone } from '../guides/check';
 import { wordsByHueco } from '../guides/web/words';
 import { MESSAGES_MARK, messagesAsk } from './messages-ask';
+import { CASE_MARK, caseAsk, caseOverMessages } from './case-ask';
 import { pickGoTo, screenFor, type GoTo } from './screens';
 import { MESSAGES_PER_HOUR, loadKnowledge, loadScripts, noteHeard, openTurn, saveTurn, type Reserve } from './store';
 import { firstName } from './text';
@@ -126,8 +127,10 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   const screen = screenOf(input.screen);
   // A question about what the team's messages say, or «dile a Kevin que…» (D-50, S8): 360 never reads or sends
   // messages. Neither its text nor a word of it is kept: it is stored as a mark, it stays out of «Lo que preguntan»,
-  // and no provider gets it (the demo brain answers with the button to Mensajes).
-  const aboutMessages = messagesAsk(routing);
+  // and no provider gets it (the demo brain answers with the button to Mensajes). The same for what people send from
+  // the web (design §4(e)): what a request or a denuncia says, a person's data, a receipt's code, the desk's counts.
+  const aboutCase = !!caseAsk(routing) && (!messagesAsk(routing) || caseOverMessages(routing));
+  const aboutMessages = messagesAsk(routing) || aboutCase;
 
   // With a model chain, the titles this person can see are read first, once, AS THE PERSON: a
   // question that names an event by its title is guarded like one with an event word, and on the
@@ -143,7 +146,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   // `question` is what is stored, goes to «Lo que preguntan» and to a provider: about an event, its
   // places and days go too.
   const seen = titles ?? NO_TITLES;
-  const question = aboutMessages ? MESSAGES_MARK : guardQuestion(routing, seen);
+  const question = aboutCase ? CASE_MARK : aboutMessages ? MESSAGES_MARK : guardQuestion(routing, seen);
   // Lo que habla de un evento lo contesta 360 sin IA: a turn about an event (the shared detector,
   // events.ts, on what was typed) never goes to a provider, even with a model chain. The demo brain has
   // the event tools and the agenda refusal. Nothing is reserved for it.
@@ -168,6 +171,9 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   const conversationId = basics?.conversationId ?? null;
   const profile = basics?.profile;
   const history = basics?.history ?? [];
+  // A follow-up that is about a case only by the question before («¿y la última?» after one about the requests, whose
+  // mark says «caso»): it goes neither to a provider nor to «Lo que preguntan» (its own text names no one: it is kept).
+  const caseByThread = !aboutMessages && !!caseAsk(routing, history.filter((h) => h.who === 'persona').at(-1)?.body);
   const save = async (t: { answer: string; model: string; provider: string | null; tokensIn: number; tokensOut: number; error: string | null; degraded: boolean; calls: ToolRun[]; goTo: unknown }) => {
     const ms = Date.now() - t0;
     if (!conversationId) return ms;
@@ -217,7 +223,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
     screen,
     last: basics?.last ?? null,
   };
-  if (!aboutMessages) await noteHeard(question, roles[0] ?? null);
+  if (!aboutMessages && !caseByThread) await noteHeard(question, roles[0] ?? null);
 
   // Only a turn with its reservation and the titles asks the model, and never one about an event: this
   // question, or one that goes on with a thread about one («¿y a qué hora?», «¿y quién la cubre?» after
@@ -225,7 +231,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   // the monthly AI cap (or if the turn could not be counted, or the titles not read) the demo brain
   // answers (it costs nothing): never a breakdown (the reservation is released when saving).
   const thread = eventThread([...history.filter((h) => h.who === 'persona').map((h) => h.body), question], seen);
-  const useModel = !!basics?.usageId && !!titles && !eventTurn && !thread.at(-1) && !aboutMessages;
+  const useModel = !!basics?.usageId && !!titles && !eventTurn && !thread.at(-1) && !aboutMessages && !caseByThread;
   const tools = toolsFor(roles, !!conversationId);
   const toolCtx = { session, conversationId, escalate: escalateFn };
 
@@ -304,7 +310,7 @@ export async function handleTurn(session: Session, input: TurnInput, deps: TurnD
   const tutorial = degraded ? null : (out.tutorial ?? fromTool ?? null);
   const goTo = degraded || tutorial
     ? null
-    : pickGoTo(session.roles, { toolHrefs: [out.goTo, ...out.calls.filter((c) => c.ok).map((c) => c.goTo).reverse()], answer, question });
+    : pickGoTo(session.roles, { toolHrefs: [out.goTo, ...out.calls.filter((c) => c.ok).map((c) => c.goTo).reverse()], answer, question, domain: out.domain ?? null });
   const model = degraded && !out.model ? 'ninguno' : out.model || 'local';
   // go_to keeps the button and what the answer was about: its index entry (null when none: every answer says it, so one
   // saved before is told apart) and, after its «¿Sigo?», the next step (the window reads only the button).
