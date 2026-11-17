@@ -34,6 +34,27 @@ export const HELP_SCREENS: Screen[] = [
     nav: ['guia de administracion'],
     about: 'en Ayuda y guías',
   },
+  // The web's and Atención's guides (WF-C): only the boss and Administración, as the pages check. Named «Guía de…» so a
+  // question about «la web» itself still goes to the web's screens; their parts and flows are ?parte=N and ?flujo=<id>.
+  // 360 says «<label>: <about>.»: one colon, so «about» has none of its own.
+  {
+    href: '/ayuda/web',
+    label: 'Guía de la web',
+    roles: ['boss', 'admin'],
+    file: '(panel)/ayuda/web/page.tsx',
+    phrases: ['guia de la web', 'manual de la web'],
+    nav: ['guia de la web', 'manual de la web'],
+    about: 'en Ayuda y guías, con cada página de la web, quién hace qué, cómo se escribe y se publica, y la versión de prueba',
+  },
+  {
+    href: '/ayuda/atencion',
+    label: 'Guía de atención ciudadana',
+    roles: ['boss', 'admin'],
+    file: '(panel)/ayuda/atencion/page.tsx',
+    phrases: ['guia de atencion', 'manual de atencion'],
+    nav: ['guia de atencion', 'manual de atencion'],
+    about: 'en Ayuda y guías, con cada paso para atender lo que la gente manda desde la web',
+  },
   // Reached only with a role's slug (/ayuda/redes).
   { href: '/ayuda/[id]', label: 'Abrir la guía del rol', roles: null, file: '(panel)/ayuda/[rol]/page.tsx', phrases: [] },
   // Not a help screen: an event's reading mode, reached only from its event. Here so its tutorial (`lectura`) and the

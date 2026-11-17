@@ -307,6 +307,9 @@ describe('la pantalla que sabe 360: solo el patrón', () => {
     expect(screenPattern('/ayuda/redes')).toBe('/ayuda/[id]');
     expect(screenPattern('/ayuda/flujos')).toBe('/ayuda/flujos');
     expect(screenPattern('/ayuda/administracion')).toBe('/ayuda/administracion');
+    // The web's and Atención's guides (WF-C): their part and their flow are the query, never the pattern.
+    expect(screenPattern('/ayuda/web?parte=4#aprobar')).toBe('/ayuda/web');
+    expect(screenPattern('/ayuda/atencion?flujo=flujo-web-envio')).toBe('/ayuda/atencion');
     expect(screenPattern('/publicar/')).toBe('/publicar');
     expect(screenPattern('/')).toBeNull(); // not a screen of the panel
     expect(screenPattern('/Eventos/ABC')).toBeNull();

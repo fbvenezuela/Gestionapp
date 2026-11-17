@@ -1,9 +1,10 @@
-import { BookOpen, LayoutList, PlayCircle, ShieldCheck, Users, Workflow } from 'lucide-react';
+import { BookOpen, Globe, Inbox, LayoutList, PlayCircle, ShieldCheck, Users, Workflow } from 'lucide-react';
 import { menuRoles, requireSession } from '@/lib/auth/session';
 import { homeFor, isTeamRole, TEAM_ROLES } from '@/lib/roles';
 import { screenFor } from '@/lib/assistant/screens';
 import { GLOSSARY, GUIDE_SLUGS, GUIDE_TITLES, guideFor, sharedFor, teamRolesOf, tourHref, toursForRoles } from '@/lib/guides';
 import { HOW_TO_READ } from '@/lib/guides/shared';
+import { webGuideRows } from '@/lib/guides/web';
 import { PageHeader } from '@/components/ui/page';
 import { Card } from '@/components/ui/card';
 import { HelpList, HelpRow, type HelpItem } from '@/components/guides/help-list';
@@ -100,8 +101,12 @@ export default async function HelpPage() {
       {everyone ? (
         <HelpList
           title="La guía de cada persona"
-          subtitle="Lo que hace cada rol del equipo."
-          items={TEAM_ROLES.map((r) => ({ href: `/ayuda/${GUIDE_SLUGS[r]}`, label: GUIDE_TITLES[r], detail: guideFor(r).job.mission, icon: Users }))}
+          subtitle="Lo que hace cada rol del equipo, la web y la atención ciudadana."
+          items={[
+            ...TEAM_ROLES.map((r) => ({ href: `/ayuda/${GUIDE_SLUGS[r]}`, label: GUIDE_TITLES[r], detail: guideFor(r).job.mission, icon: Users })),
+            // The web's and Atención's guides (WF-C): only the boss and Administración, who have «Web» and «Atención».
+            ...webGuideRows(s.roles).map((r) => ({ href: r.href, label: r.label, detail: r.detail, icon: r.page === 'web' ? Globe : Inbox })),
+          ]}
         />
       ) : null}
       {admin ? (

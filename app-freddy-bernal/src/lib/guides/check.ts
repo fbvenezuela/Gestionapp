@@ -14,7 +14,9 @@ import { phonesIn } from '../domain/phones';
  * keep their own, stricter detectors.
  */
 export function concreteDateTime(text: string): boolean {
-  return hasConcreteDateTime(withoutRatios(text)) || hasMap(text);
+  let t = text;
+  for (const l of TIME_LOOKALIKES) t = t.replaceAll(l, ' ');
+  return hasConcreteDateTime(withoutRatios(t)) || hasMap(text);
 }
 
 // The four shapes of a picture or a video («9:16 es vertical, 16:9 es horizontal y 4:5, casi cuadrado», «1:1»): «9:16»
@@ -41,6 +43,15 @@ export function withoutRatios(text: string): string {
 
 export function hasPhone(text: string): boolean {
   return phonesIn(text).length > 0;
+}
+
+/**
+ * A citizen's receipt (D-96) or a piece of one: a code («AC-2026-K7QM2H», also cut short, «AC-2026-K7»), a key
+ * («K7QM-2HXP-9WRT-4BNE») or the suffix of a demo case («DEMR01»). The web's guide prints the demo receipts for whoever
+ * practices (2.3, 5.4, 5.22, 7.5, 7.6); 360 never says one (design §4(e)). «AC-…» (no characters) is a label, not a code.
+ */
+export function hasReceiptCode(text: string): boolean {
+  return /\bAC-?\d{4}-?[A-Z0-9]{2,6}\b|\b[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}\b|\bDEMR\d{2}\b/.test(text);
 }
 
 /** The labels a text quotes with «…», at the top level: «Ver todo en «Por aprobar»» is one label, with its inner one. */
@@ -106,6 +117,40 @@ export const LABEL_PATTERNS: { re: RegExp; source: string }[] = [
   { re: /^Ver el tutorial: (?:Bienvenida|Cómo [^«»]+)$/, source: 'Ver el tutorial: ${title}' },
   // Mensajes: how many are in a channel (peopleCount, src/components/chat/chat-core.ts).
   { re: /^(?:N|\d+) personas$/, source: '${n} personas' },
+  // The web's and Atención's guide (WF-C, src/lib/guides/web): what the public site, the panel's «Web» and «Atención»
+  // and the citizen's e-mails build with a number, a date, a name or a code; «…» stands for the value.
+  { re: /^Por aprobar \(\d+\)$/, source: 'Por aprobar (${waiting})' },
+  { re: /^Actualizado el …$/, source: 'Actualizado el <time' },
+  { re: /^Vigente hasta el …$/, source: 'Vigente hasta el <time' },
+  { re: /^Publicado originalmente en …$/, source: 'Publicado originalmente en {original.url' },
+  { re: /^Las emisiones de \S[^«»]* se publican en el canal oficial de YouTube\.$/, source: 'Las emisiones de {name} se publican en el canal oficial de YouTube.' },
+  { re: /^Hay (?:1 reporte abierto|\d+ reportes abiertos) del mismo problema cerca de ese lugar\.$/, source: "{count === 1 ? 'abierto' : 'abiertos'} del mismo problema cerca de ese lugar." },
+  { re: /^Hay (?:1 reporte|\d+ reportes) más del mismo problema\.$/, source: 'Hay ${reportsCount(r.supportCount)} más del mismo problema.' },
+  { re: /^Sobre esta (?:noticia|obra)$/, source: 'Sobre esta ${linkedTitle.kindLabel' },
+  { re: /^Comprobante · Atención ciudadana · \S[^«»]*$/, source: 'Comprobante · {siteName}' },
+  { re: /^Denuncia atendida en el municipio …$/, source: 'Denuncia atendida en el municipio {' },
+  { re: /^Resuelta el …$/, source: 'Resuelta el <Time' },
+  { re: /^Programado: sale el …$/, source: 'Programado: sale el ${fmtDateTime(item.publishAt)}' },
+  { re: /^Hasta \d+ MB\.$/, source: 'Hasta ${megabytes(limits.document)} MB.' },
+  { re: /^El archivo pasa de \d+ MB: súbelo más liviano\.$/, source: 'El archivo pasa de ${mb(max)}: súbelo más liviano.' },
+  { re: /^Se usa en \d+ contenidos?$/, source: 'Se usa en ${data.uses.get(m.id)}' },
+  { re: /^Subir (?:una nueva|uno nuevo)$/, source: "Subir {kind === 'image' ? 'una nueva' : 'uno nuevo'}" },
+  { re: /^Agregar (?:enlace|enlace legal|contacto|cuenta)$/, source: 'Agregar {name}' },
+  { re: /^Fotos sin texto alternativo…$/, source: 'Fotos sin texto alternativo: dicen' },
+  { re: /^\[Por escribir\] …$/, source: "ALT_PLACEHOLDER_PREFIX = '[Por escribir]'" },
+  { re: /^Ver las \d+ en la lista$/, source: 'Ver las {counts[state]} en la lista' },
+  { re: /^→ [A-ZÁÉÍÓÚ][^«»]*$/, source: '→ {n.label}' },
+  { re: /^Reabrir: …$/, source: 'Reabrir: ${REQUEST_STATE_LABEL[to]}' },
+  { re: /^\d+ personas o casos se sumaron$/, source: '${r.supportCount} personas o casos se sumaron' },
+  { re: /^Este caso está unido a …: se atiende allí\.$/, source: 'Este caso está unido a {r.mainReference' },
+  { re: /^(?:Solicitud|Denuncia) vencida(?:: AC-…)?$/, source: '${what} vencida: ${c.reference}' },
+  { re: /^(?:Solicitud|Denuncia) sin movimiento(?:: AC-…)?$/, source: '${what} sin movimiento: ${c.reference}' },
+  { re: /^Solicitud recibida AC-…$/, source: 'Solicitud recibida ${reference}' },
+  { re: /^Apoyo registrado AC-…$/, source: 'Apoyo registrado ${reference}' },
+  { re: /^Respuesta a su solicitud AC-…$/, source: 'Respuesta a su solicitud ${ref}' },
+  { re: /^Se necesita información sobre su solicitud AC-…$/, source: 'Se necesita información sobre su solicitud ${ref}' },
+  { re: /^Su solicitud AC-…: [A-ZÁÉÍÓÚ][^«»]*$/, source: 'Su solicitud ${ref}: ${label}' },
+  { re: /^Su solicitud AC-… se tramita junto con otra$/, source: 'Su solicitud ${ref} se tramita junto con otra' },
 ];
 
 // Labels the screens build in code in a way a plain search cannot find, or say only to some people. Keep it short.
@@ -114,7 +159,21 @@ export const LABEL_ALLOW: string[] = [
   'Verde',
   'Amarillo',
   'Rojo',
+  // The web's and Atención's guide (WF-C): screen texts split by markup, so no plain search finds them whole.
+  // «Nueva solicitud», step 2: «(opcional)» goes in its own span (src/components/participation/location-picker.tsx).
+  'Ubicación exacta (opcional)',
+  // «Nueva solicitud», step 4: «aviso de privacidad» is a link with its hint (src/components/participation/contact-fields.tsx).
+  'Leí el aviso de privacidad (se abre en otra pestaña) y acepto el uso de mis datos para atender esta solicitud.',
+  // The receipt: its first sentence in bold (src/components/participation/receipt-view.tsx).
+  'Guárdelos ahora. La clave se muestra una sola vez y no se puede recuperar. Sin ella no es posible consultar la solicitud. No la comparta.',
+  // The legal pages' pending lines, which the panel's preview shows: they start so in config/clients/fb.json (web).
+  'Por completar antes de publicar: …',
 ];
+
+// Screen texts a guide quotes that only read as a time to concreteDateTime (U17), word for word: the two dates of
+// «Cifras» («Solicitudes que llegaron entre las dos fechas», src/lib/domain/attention.ts), which the web's guide copies.
+// Keep it short: anything else that reads as a time is said another way.
+export const TIME_LOOKALIKES: string[] = ['entre las dos fechas'];
 
 // First names and places of the demo seed: never in a guide or a tutorial (they describe the work, not the demo).
 export const DEMO_WORDS: string[] = [

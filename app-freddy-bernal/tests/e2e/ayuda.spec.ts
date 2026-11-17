@@ -1,7 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { loginAs } from './helpers';
+import { loginAs, readyForAxe } from './helpers';
 import { FLOWS, GLOSSARY, GUIDE_TITLES, flowById, guideFor } from '../../src/lib/guides';
+import { FLUJOS_WEB } from '../../src/lib/guides/web/flujos-web';
+import { WEB_PAGE_HREF, webFlows, webHref, webPartsOf } from '../../src/lib/guides/web';
 import type { TeamRole } from '../../src/lib/roles';
 import { HOW_TO_READ, MSG_CHANNELS } from '../../src/lib/guides/shared';
 
@@ -153,6 +155,97 @@ test('administración: su guía aparte y la de cada persona', async ({ page }) =
   await page.goto('/ayuda/redes');
   await expect(page.getByRole('heading', { level: 1, name: GUIDE_TITLES.social })).toBeVisible();
 });
+
+// The web's and Atención's guides (WF-C): the boss and Administración have «La web» and «Atención ciudadana» in «La
+// guía de cada persona» and open both pages, a part (an anchor per section) and a flow (its steps linked), at 360 px with
+// axe; Redes and the web's and the desk's own people have neither the rows nor the pages (back to their home with the
+// notice).
+for (const p of [
+  { email: 'jefe@demo.test', who: 'el jefe' },
+  { email: 'admin@demo.test', who: 'administración' },
+]) {
+  test(`${p.who}: «La web» y «Atención ciudadana» en «La guía de cada persona», a 360 px`, async ({ page }) => {
+    await loginAs(page, p.email);
+    await page.goto('/ayuda');
+    await expect(page.getByRole('heading', { name: 'La guía de cada persona' })).toBeVisible();
+    await expect(page.locator('a[href="/ayuda/web"]')).toContainText('La web');
+    await expect(page.locator('a[href="/ayuda/atencion"]')).toContainText('Atención ciudadana');
+    await page.locator('a[href="/ayuda/web"]').click();
+    await expect(page).toHaveURL(/\/ayuda\/web$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'La web' })).toBeVisible();
+    await expect(page.locator('#parte-4')).toContainText('Parte 4 · Administrar la web');
+    await readyForAxe(page, '/ayuda/web');
+    await check(page, '/ayuda/web');
+
+    // A part: every section with its anchor; the link of the index lands on it.
+    await page.locator('#parte-4 a[href="/ayuda/web?parte=4#aprobar"]').click();
+    await expect(page).toHaveURL(/\/ayuda\/web\?parte=4#aprobar$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Parte 4 · Administrar la web' })).toBeVisible();
+    await expect(page.locator('#aprobar')).toBeVisible();
+    await expect(page.locator('#ajustes-del-sitio')).toBeVisible();
+    await readyForAxe(page, '/ayuda/web?parte=4');
+    await check(page, '/ayuda/web?parte=4');
+
+    // Atención: its index, and one of its flows, each step linked to the ones that follow.
+    await page.goto('/ayuda/atencion');
+    await expect(page.getByRole('heading', { level: 1, name: 'Atención ciudadana' })).toBeVisible();
+    await expect(page.locator('#parte-5')).toBeVisible();
+    await readyForAxe(page, '/ayuda/atencion');
+    await check(page, '/ayuda/atencion');
+    const flow = FLUJOS_WEB.flows![0];
+    await page.locator(`a[href="/ayuda/atencion?flujo=${flow.id}"]`).first().click();
+    await expect(page).toHaveURL(new RegExp(`/ayuda/atencion\\?flujo=${flow.id}$`));
+    const list = page.getByRole('list', { name: `${flow.title}, ${flow.nodes.length} pasos` });
+    await expect(list.locator(':scope > li')).toHaveCount(flow.nodes.length);
+    const last = flow.edges[flow.edges.length - 1];
+    await list.locator(`a[href="#${flow.id}-${last.to}"]`).first().click();
+    await expect(page).toHaveURL(new RegExp(`#${flow.id}-${last.to}$`));
+    await readyForAxe(page, `/ayuda/atencion?flujo=${flow.id}`);
+    await check(page, `/ayuda/atencion?flujo=${flow.id}`);
+  });
+}
+
+// Every part of both guides and every flow, as the boss reads them on his phone: nothing cut, nothing sideways, axe on
+// each part (the tables are lists; the demo receipts and long addresses are in parts 4, 5 and 7).
+test('el jefe: cada parte de las dos guías de la web y cada flujo caben a 360 px', async ({ page }) => {
+  test.setTimeout(240_000);
+  await loginAs(page, 'jefe@demo.test');
+  for (const where of ['web', 'atencion'] as const) {
+    for (const v of webPartsOf(where)) {
+      const href = `${WEB_PAGE_HREF[where]}?parte=${v.part.n}`;
+      await page.goto(href);
+      await expect(page.getByRole('heading', { level: 1, name: `Parte ${v.part.n} · ${v.part.title}` })).toBeVisible();
+      await readyForAxe(page, href);
+      await check(page, href);
+    }
+  }
+  for (const f of webFlows()) {
+    const href = webHref(f.id)!;
+    await page.goto(href);
+    await expect(page.getByRole('list', { name: `${f.title}, ${f.nodes.length} pasos` })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Algo no cargó' }), href).toHaveCount(0);
+    await noSideScroll(page, href);
+  }
+});
+
+for (const p of [
+  { email: 'redes@demo.test', who: 'Redes', home: '/hoy' },
+  { email: 'web.editora@demo.test', who: 'el editor de la web', home: '/admin/web' },
+  { email: 'atencion.coordinacion@demo.test', who: 'la coordinación de atención', home: '/admin/atencion' },
+]) {
+  test(`${p.who} no ve las guías de la web: ni las filas en «Ayuda y guías» ni las páginas`, async ({ page }) => {
+    await loginAs(page, p.email);
+    await page.goto('/ayuda');
+    await expect(page.getByRole('heading', { level: 1, name: 'Ayuda y guías' })).toBeVisible();
+    await expect(page.locator('a[href="/ayuda/web"]')).toHaveCount(0);
+    await expect(page.locator('a[href="/ayuda/atencion"]')).toHaveCount(0);
+    const back = new RegExp(`${p.home}\\?sin-permiso=1$`);
+    await page.goto('/ayuda/web');
+    await expect(page).toHaveURL(back);
+    await page.goto('/ayuda/atencion?parte=5');
+    await expect(page).toHaveURL(back);
+  });
+}
 
 test('los flujos: el índice y uno abierto, con «tú» en los pasos de Redes', async ({ page }) => {
   await loginAs(page, 'redes@demo.test');

@@ -160,7 +160,7 @@ export function everyoneSections(role: TeamRole): S[] {
         '«Qué se hace en cada pantalla»: cada pantalla de tu menú, con sus botones.',
         '«Cómo va el trabajo entre todos»: cómo pasa el trabajo de un rol a otro (los flujos).',
         '«Tutoriales de mis pantallas»: cada uno te lleva a su pantalla y te la muestra paso a paso.',
-        ...(role === 'boss' ? ['«La guía de cada persona»: la guía de los seis roles del equipo.'] : []),
+        ...(role === 'boss' ? ['«La guía de cada persona»: la guía de los seis roles del equipo, la de la web y la de la atención ciudadana.'] : []),
       ],
     },
     {

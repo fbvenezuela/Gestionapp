@@ -2,7 +2,7 @@
 
 > Hoy todo esto se usa en la versión de prueba (ver 6.18). Sus solicitudes son de ejemplo. Por ahora no envía correos.
 
-<!-- Escrito a mano desde la app. Si la app cambia, se cambia aquí. Cada diagrama se revisa para que quepa en una hoja A4 con la letra legible. -->
+<!-- Generado por `npm run docs:guides` desde src/lib/guides/web/ (flujos-web.ts). No se edita a mano: se cambia la fuente y se corre otra vez. Cada diagrama se revisa para que quepa en una hoja A4 con la letra legible. -->
 
 Cómo va cada cosa de la web pública y de la atención ciudadana. Debajo de cada diagrama va lo que hay que saber. Los nombres de los botones están escritos tal como salen en la pantalla. El detalle de cada pantalla está en las partes 4 y 5.
 
@@ -210,7 +210,7 @@ flowchart TD
 ```
 
 **Qué hay que saber**
-- Solo se unen casos del mismo tipo, y los dos abiertos. Las dos historias se guardan.
+- Solo se unen casos del mismo tipo, y los dos abiertos. Se guardan las historias de los dos.
 - Un caso unido dice «Este caso está unido a …: se atiende allí.». Se trabaja en el que se quedó.
 - Lo que escribe quien se suma lo lee solo el personal. Quien se suma nunca ve el texto del reporte.
 
@@ -288,7 +288,7 @@ Los avisa la app sola, cada mañana, a quienes atienden el caso.
 ```mermaid
 flowchart TD
   aviso_fecha["Al llegar, el caso recibe su fecha comprometida. La persona nunca la ve."]
-  aviso_fecha --> aviso_revisa["La app, cada mañana desde las 7:00 a. m. del Táchira, revisa los casos abiertos."]
+  aviso_fecha --> aviso_revisa["La app, cada mañana, revisa los casos abiertos."]
   aviso_revisa --> aviso_vencida_q{"¿Pasó su fecha?"}
   aviso_vencida_q -- Sí --> aviso_vencida["«Solicitud vencida: AC-…»"]
   aviso_vencida_q -- No --> aviso_quieto_q{"¿5 días sin movimiento?"}
@@ -440,7 +440,7 @@ flowchart TD
 
 **Qué hay que saber**
 - No se redirige una dirección que la web ya usa. Tampoco se hacen dos desde la misma.
-- Las que se hicieron solas al traer las noticias de la web vieja dicen «De la web vieja». Las hechas aquí dicen «A mano», y nunca cambian solas.
+- Las que se hicieron solas al traer las noticias de la web vieja dicen «De la web vieja». Las hechas aquí dicen «A mano», y nunca cambian solas.
 - Cuando quien aprueba cambia la «Dirección en la web» de algo publicado, la vieja sigue llevando a la nueva sola.
 - Un cambio se nota en la web en más o menos un minuto. Un archivo viejo es una foto o un documento que estaba en la web anterior.
 

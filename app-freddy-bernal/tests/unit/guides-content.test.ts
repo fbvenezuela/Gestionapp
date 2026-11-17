@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { SCREENS, canOpen, screenFor } from '@/lib/assistant/screens';
-import { TEAM_ROLES, type TeamRole } from '@/lib/roles';
+import { ROLES, TEAM_ROLES, type TeamRole } from '@/lib/roles';
 import { ADMIN_GUIDE, FLOWS, GLOSSARY, SHARED, TOURS, allGuides, glossaryLine, guideFor, sectionCards } from '@/lib/guides';
 import {
   DEMO_WORDS,
@@ -22,6 +22,7 @@ import {
 } from '@/lib/guides/check';
 import { ADMIN_MENTIONS, MSG_AGENDA, MSG_CHANNELS, MSG_ENTER, MSG_FREE, MSG_PHONES, MSG_RELATIVE, MSG_TEAM } from '@/lib/guides/shared';
 import type { RoleGuide, TourText } from '@/lib/guides';
+import { WEB_GUIDE_ROWS, webGuideRows } from '@/lib/guides/web';
 
 // ── Every text of the help content, with where it is ───────────────────────────────────────────────────────────────
 
@@ -151,6 +152,15 @@ describe('sin datos concretos (U17)', () => {
 });
 
 describe('cada pantalla de cada rol tiene su sección', () => {
+  it('las guías de la web son filas de «La guía de cada persona»: las abre quien tiene las filas, y la sección «Ayuda y guías» del jefe las nombra', () => {
+    for (const r of WEB_GUIDE_ROWS) {
+      expect(screenFor(r.href)?.href, r.href).toBe(r.href);
+      for (const role of ROLES) expect(canOpen(r.href, [role]), `${r.href} ${role}`).toBe(webGuideRows([role]).some((x) => x.href === r.href));
+    }
+    const help = guideFor('boss').sections.find((s) => s.screen === '/ayuda')!;
+    expect(help.youDo.find((t) => t.startsWith('«La guía de cada persona»'))).toMatch(/la de la web y la de la atención ciudadana\.$/);
+  });
+
   for (const role of TEAM_ROLES) {
     const g = guideFor(role);
     it(`${g.label}: las secciones son pantallas que su rol abre`, () => {
@@ -162,7 +172,10 @@ describe('cada pantalla de cada rol tiene su sección', () => {
 
     it(`${g.label}: cada pantalla sin [id] que abre (salvo Ajustes) tiene su sección, y las importantes con [id] también`, () => {
       const have = new Set(g.sections.map((s) => screenFor(s.screen)!.href));
-      const want = SCREENS.filter((s) => !s.href.includes('[') && !s.href.startsWith('/ajustes') && canOpen(s.href, [role])).map((s) => s.href);
+      // The web's and Atención's guides (WF-C) are rows of «La guía de cada persona», like the role guides (/ayuda/[id]):
+      // the boss's «Ayuda y guías» section names them (the test below), not a section of their own.
+      const guides = new Set(WEB_GUIDE_ROWS.map((r) => r.href));
+      const want = SCREENS.filter((s) => !s.href.includes('[') && !s.href.startsWith('/ajustes') && !guides.has(s.href) && canOpen(s.href, [role])).map((s) => s.href);
       const important: Record<TeamRole, string[]> = {
         boss: ['/eventos/[id]', '/piezas/[id]', '/aprobar/[id]', '/obras/[id]', '/reportes/[id]', '/publicar/[id]', '/tweets/[id]', '/mensajes/[id]'],
         dispatch: ['/eventos/[id]', '/obras/[id]', '/reportes/[id]', '/mensajes/[id]'],
