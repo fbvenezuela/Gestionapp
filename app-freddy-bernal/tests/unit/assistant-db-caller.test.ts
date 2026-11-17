@@ -73,4 +73,53 @@ describe('en la base de demostración', () => {
       expect(await db(s, (sql) => sql.query(`select * from public.chat_people()`)), key).toEqual([]);
     }
   });
+
+  // Atención the same (WF-C, decision 4; 20261117000100_asistente_sin_solicitudes.sql): with the mark nobody reads a
+  // case or anything around it, a contact, the figures, the templates or the people of the desk, and no case changes;
+  // without it, each one reads what their role reads. (The web and attention roles get no 360: the wall is for the boss
+  // and Administración, who do, and for any way in that would carry the mark.)
+  const DESK_TABLES = ['requests', 'request_supports', 'request_events', 'request_messages', 'request_attachments', 'attended_publications', 'request_reply_templates'];
+  const count = (t: string) => `select count(*)::int as n from public.${t}`;
+
+  it('con la marca, nadie lee nada de Atención: casos, lo que tienen alrededor, plantillas (sin ella, cada quien lo suyo)', async () => {
+    for (const key of ['boss', 'admin', 'attention', 'auditView', 'servicesLead', 'complaintsDesk'] as const) {
+      const s = sessionOf(key);
+      for (const t of DESK_TABLES) expect((await db(s, (sql) => sql.one<{ n: number }>(count(t))))!.n, `${key} ${t}`).toBe(0);
+    }
+    // Without the mark: the boss reads the cases (no denuncias) and «lo atendido»; the coordinator, all and the templates.
+    for (const [key, t] of [['boss', 'requests'], ['boss', 'request_events'], ['boss', 'attended_publications'], ['attention', 'requests'], ['attention', 'request_messages'], ['attention', 'request_reply_templates']] as const)
+      expect((await personDb(sessionOf(key), (sql) => sql.one<{ n: number }>(count(t))))!.n, `${key} ${t}`).toBeGreaterThan(0);
+  });
+
+  it('con la marca, ni contactos, ni cifras, ni la gente de Atención, y ningún caso cambia', async () => {
+    const boss = sessionOf('boss');
+    const coord = sessionOf('attention');
+    const one = (await personDb(coord, (sql) => sql.one<{ id: string }>(`select id from public.requests where type <> 'denuncia' order by created_at limit 1`)))!.id;
+    // The figures: the boss, yes; with the mark, no.
+    expect((await personDb(boss, (sql) => sql.one<{ v: { received: number } }>(`select public.request_stats() as v`)))!.v.received).toBeGreaterThan(0);
+    await expect(db(boss, (sql) => sql.one(`select public.request_stats() as v`))).rejects.toThrow(/cifras de atención/);
+    // A contact: the coordinator, yes; with the mark, no.
+    await expect(personDb(coord, (sql) => sql.query(`select * from public.request_contact($1)`, [one]))).resolves.toBeDefined();
+    await expect(db(coord, (sql) => sql.query(`select * from public.request_contact($1)`, [one]))).rejects.toThrow(/contacto/);
+    // The people of the desk (Administración keeps the areas): without the mark, rows; with it, none.
+    for (const key of ['admin', 'attention'] as const) {
+      expect((await personDb(sessionOf(key), (sql) => sql.query(`select * from public.attention_staff()`))).length, key).toBeGreaterThan(0);
+      expect(await db(sessionOf(key), (sql) => sql.query(`select * from public.attention_staff()`)), key).toEqual([]);
+    }
+    expect((await personDb(coord, (sql) => sql.one<{ v: boolean }>(`select public.can_answer_requests() as v`)))!.v).toBe(true);
+    expect((await db(coord, (sql) => sql.one<{ v: boolean }>(`select public.can_answer_requests() as v`)))!.v).toBe(false);
+    // Nothing changes with the mark (each one refuses before it writes).
+    for (const [q, p] of [
+      [`select public.set_request_priority($1, 'alta', 'prueba') as v`, [one]],
+      [`select public.add_request_message($1, 'internal_note', 'Nota de prueba') as v`, [one]],
+      [`select public.merge_request($1, $1, 'prueba') as v`, [one]],
+      [`select public.publish_attended($1, 'Resumen de prueba para la web') as v`, [one]],
+      [`select public.withdraw_attended($1, 'prueba') as v`, [one]],
+      [`select public.log_attention_export(1, '{}'::jsonb, false) as v`, []],
+    ] as const)
+      await expect(db(coord, (sql) => sql.query(q, [...p])), q).rejects.toThrow();
+    // (And the case is as it was: the mark changed nothing.)
+    const after = (await personDb(coord, (sql) => sql.one<{ n: number }>(`select count(*)::int as n from public.request_events where request_id = $1 and actor_id = $2 and created_at > now() - interval '1 minute'`, [one, coord.userId])))!.n;
+    expect(after).toBe(0);
+  });
 });
