@@ -26,7 +26,8 @@ const ask = async (key: DemoUserKey, question: string, thread: string[] = [], sc
 };
 
 const WEB_ROLES: Role[] = ROLES.filter((r) => !TEAM_ROLES.includes(r as never) && r !== 'admin') as Role[];
-const web = () => allEntries().filter((e) => e.domain === 'web' || e.domain === 'atencion');
+// (The word «Web y Atención» of «Palabras de la app» is the web's too, but it is everyone's word: not counted here.)
+const web = () => allEntries().filter((e) => (e.domain === 'web' || e.domain === 'atencion') && e.kind !== 'term');
 
 describe('las entradas de la guía de la web', () => {
   it('cada sección y cada flujo de los cuatro documentos tiene la suya, para el jefe y Administración y nadie más', () => {

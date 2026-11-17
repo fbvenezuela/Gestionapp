@@ -41,6 +41,7 @@ export type Entry = {
   domain?: Domain; // the team's work, the web or Atención (design §4(d)3): set on every entry of the index
   also?: string[]; // other screens it is about (a web section: its list and its page with an id)
   cursor?: number; // a flow told as a story: how many of its steps the story says (its «¿Sigo?» goes on from there)
+  quiet?: boolean; // a fixed line that only points to the guide (a section 360 never says): never before another answer
 };
 
 export type Confidence = 'strong' | 'weak' | 'none';
@@ -871,7 +872,7 @@ function webSectionEntries(s: WebSection): Entry[] {
     const said = RECEIPT_SECTIONS.has(s.pdf)
       ? `${ucFirst(webSaid(s.title))}: está en la guía, con su botón. Yo no doy ni pido códigos ni claves, tampoco los de prueba: la persona consulta su solicitud con los suyos en «Consultar mi solicitud».`
       : `${ucFirst(webSaid(s.title))}: está en la guía, con su botón. Yo no doy ni pido códigos ni claves, tampoco los de prueba.`;
-    out.push({ ...base, id: prefix, kind: 'screen', q: asks, doc: title, a: said });
+    out.push({ ...base, id: prefix, kind: 'screen', q: asks, doc: title, a: said, quiet: true });
     return [...out, ...facetEntries(s, base, prefix)];
   }
   const { units, tasks } = webUnits(s);
@@ -1018,7 +1019,9 @@ function index(): Index {
   const filled = (t: string) => withWords(t, words);
   const entries = [...curatedEntries(ANSWERS, (a) => files.get(a) ?? 'respuestas'), ...guideEntries(), ...sharedEntries(), ...glossaryEntries(), ...flowEntries(), ...teamFlowStories(), ...adminEntries(), ...webEntries()]
     .map((e) => withClientWords(e, words))
-    .map((e): Entry => (e.domain ? e : { ...e, domain: 'equipo' }));
+    // (The word «Web y Atención» of «Palabras de la app» is the web's: asked with Atención's words, «¿qué son las vencidas
+    // en Atención?», it weighs them as the web's guide does, and its meaning does not answer what the guide says.)
+    .map((e): Entry => (e.domain ? e : { ...e, domain: e.id === 'palabra:web-y-atencion' ? 'web' : 'equipo' }));
   const saidOf = (e: Entry) => saidBy(e).map(([t, roles]): [string, Role[] | undefined] => [filled(t), roles]);
   // How much each word says: document frequency per root, over the entries (each entry once). Two tables: the team's
   // entries are weighed among themselves, so the web's and Atención's guide and the flows told as stories (WF-C) never
@@ -1036,7 +1039,8 @@ function index(): Index {
     for (const [r, w] of idf) if (!said.has(r) && w > common) idf.set(r, common);
     return { idf, said, n };
   };
-  const teamOnly = (e: Entry) => e.domain === 'equipo' && e.kind !== 'flowStory';
+  // (The team's: every entry but the web's guide, its curated answers and the flows told as stories, WF-C.)
+  const teamOnly = (e: Entry) => !e.source.startsWith('web:') && e.source !== 'curado:web' && e.kind !== 'flowStory';
   const { idf, said, n } = weights(entries.filter(teamOnly));
   const all = weights(entries);
   const weighOf = (table: Map<string, number>, size: number) => (r: string): Tok => ({ root: r, w: r in LIGHT ? LIGHT[r] : table.get(r) ?? Math.log(1 + size), light: r in LIGHT });
@@ -1427,8 +1431,9 @@ function rank(question: string, o: FindOptions): Match[] {
   for (const d of cand) {
     const doc = ix.docs[d];
     if (!forRoles(ix.entries[doc.entry], o.roles) || (doc.roles && !doc.roles.some((r) => o.roles.includes(r)))) continue;
-    // A way of asking about a label («¿Qué significa «Sube el material»?») is for a question that names it whole.
-    const s = scoreDoc(doc.web && aw ? aw : a, doc.toks, doc.total, doc.kind, doc.ask) * doc.weight * (doc.quoted && !` ${a.text} `.includes(` ${doc.quoted} `) ? 0.85 : 1);
+    // A way of asking about a label («¿Qué significa «Sube el material»?») is for a question that names it whole. (A
+    // question of the web or of Atención weighs its words as all the entries do, for every answer: comparable.)
+    const s = scoreDoc((doc.web || o.domain) && aw ? aw : a, doc.toks, doc.total, doc.kind, doc.ask) * doc.weight * (doc.quoted && !` ${a.text} `.includes(` ${doc.quoted} `) ? 0.85 : 1);
     if (!s) continue;
     const has = a.own.filter((r) => doc.toks.some((u) => likeness(r, u.root) > 0)).length;
     // A short question: a text or a button's name must say every word of it; a way of asking, at least half of them.
@@ -1522,11 +1527,11 @@ function rank(question: string, o: FindOptions): Match[] {
     // and the web's need to beat them clearly.
     const ed = e.domain ?? 'equipo';
     const qd = o.domain ?? null;
-    // (A word of «Palabras de la app» is everyone's: «¿qué es web y atención?» is its meaning.)
-    if (qd) s = ed === qd ? s + SAME_DOMAIN : ed === 'equipo' ? (e.kind === 'term' ? s : s * OTHER_DOMAIN) : s + SIBLING_DOMAIN;
+    if (qd) s = ed === qd ? s + SAME_DOMAIN : ed === 'equipo' ? s * OTHER_DOMAIN : s + SIBLING_DOMAIN;
     else if (ed !== 'equipo') s *= NO_DOMAIN;
-    // A rule of the web's guide answers «¿por qué…?» first.
+    // A rule of the web's guide answers «¿por qué…?» first; a section 360 never says only points to the guide.
     if (e.kind === 'rule' && why) s += 0.03;
+    if (e.quiet) s *= 0.85;
     // A whole flow told as a story is for a question about the way («¿cuál es el flujo…?», «¿cómo es el camino…?»,
     // «¿quién hace qué…?»): «¿cómo funciona el semáforo?» is what its colours mean.
     if (e.kind === 'flowStory' && !STORY_ASK.test(a.text)) s *= 0.8;

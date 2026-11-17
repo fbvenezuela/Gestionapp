@@ -178,7 +178,7 @@ const RECEIPT_GUIDE = 'La guía de atención explica cómo se practica: toca el 
 export const WEB_NOT_YOURS = 'La web y Atención no están en tu menú: las manejan el jefe, administración y las personas de la web y de la atención.';
 const WEB_NOT_YOURS_SHORT = 'No están en tu menú: las manejan el jefe, administración y las personas de la web y de la atención.';
 // The web or Atención said by name (step D2): words the team's own work never uses.
-const WEB_SAID = /\b(?:la web|de la web|en la web|por la web|a la web|pagina web|sitio web|web publica|web y atencion|atencion ciudadana|(?:el menu|en|a) atencion(?! a\b)|bandeja de atencion|consultar mi solicitud|comprobantes?|casos atendidos|redirecci\w*|ajustes del sitio|vista previa|solicitudes? (?:de la web|ciudadanas?)|la gente que (?:escribe|manda|reporta)|que (?:manda|mandan|escribe|escriben) la gente)\b/;
+const WEB_SAID = /\b(?:la web|de la web|en la web|por la web|a la web|pagina web|sitio web|web publica|web y atencion|atencion ciudadana|(?:el menu|en|a|por) atencion(?! a\b)|(?:registro|cifras|mapa|bandeja|tablero|plazos|areas|roles?) de atencion|consultar mi solicitud|comprobantes?|casos atendidos|transparencia|redirecci\w*|ajustes del sitio|vista previa|solicitudes? (?:de la web|de la gente|ciudadanas?)|lista de solicitudes|la gente que (?:escribe|manda|reporta)|que (?:manda|mandan|escribe|escriben) la gente)\b/;
 // Where the words of the app are (step W): «Ayuda y guías», «Palabras de la app».
 const TERM_WHERE = 'Las palabras de la app están en «Ayuda y guías», en «Palabras de la app».';
 export const NOT_SURE = 'No estoy seguro de eso y no quiero darte un dato malo. ¿Quieres que le avise a administración para que te ayuden?';

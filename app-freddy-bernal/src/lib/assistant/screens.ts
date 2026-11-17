@@ -143,6 +143,7 @@ export function navTarget(text: string, roles?: Role[], domain?: Domain | null):
  * asks for one of them). `domain`: the web's or Atención's, when the question is about them (engine.ts domainOf): their
  * screens go before the team's, after the ones the person can open (without it, the order of today).
  */
+const WIDE = new Set(['la web', 'web', 'pagina web', 'atencion', 'la atencion']);
 export function screenNamed(text: string, roles?: Role[], skip: readonly string[] = [], domain?: Domain | null): Screen | null {
   const t = ` ${plain(text)} `;
   const skipped = new Set(skip.map((w) => plain(w)));
@@ -153,7 +154,9 @@ export function screenNamed(text: string, roles?: Role[], skip: readonly string[
     if (s.href.includes('[')) continue;
     let first: Hit | null = null;
     for (const w of [plain(s.label), ...navOf(s)]) {
-      const at = w && !skipped.has(w) ? t.indexOf(` ${w} `) : -1;
+      // A word as wide as «la web» or «atención» names its screen only at the end («¿dónde está la web?», «desde dónde
+      // manejo la web»); «los correos que manda la web, ¿dónde quedan?» asks for something else.
+      const at = w && !skipped.has(w) && (!WIDE.has(w) || t.trimEnd().endsWith(` ${w}`)) ? t.indexOf(` ${w} `) : -1;
       if (at >= 0 && (!first || at < first.at || (at === first.at && w.length > first.len))) {
         first = { s, at, len: w.length, label: w === plain(s.label), open: !roles || canOpen(s.href, roles), general: GENERAL.has(s.href), own: !!wanted && domainOfScreen(s.href) === wanted };
       }
