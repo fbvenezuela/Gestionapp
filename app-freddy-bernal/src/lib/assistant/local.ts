@@ -835,7 +835,11 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // with an event, a place, a day or an hour in the ask (explainAsk), never a text it already said; with nothing new to
   // say, the steps of today answer (the tutorials, the agenda's refusal, all the rest). Only after an answer: a first
   // «¿qué significa el rojo?» is a question of its own (the answers below).
-  const ask = followsEvent || !lastSaid ? null : explainAsk(i.question, { titles: seenNow, last: lastSaid, withoutLabels });
+  // (After a word of the glossary, «¿qué es la fecha comprometida?», the thread is not an event's: the word was said only
+  // because its question had no when and no event in it (step W), and what explains a word is static text. Its «dame un
+  // ejemplo» is the word's, even when its name reads like a date to the event detector.)
+  const afterWord = !!i.ctx.last?.entry && entryById(i.ctx.last.entry)?.kind === 'term';
+  const ask = (followsEvent && !afterWord) || !lastSaid ? null : explainAsk(i.question, { titles: seenNow, last: lastSaid, withoutLabels, afterWord });
   const again = () => {
     const m = before ? findAnswers(before, { roles: i.ctx.roles, screen: i.ctx.screen, names })[0] : undefined;
     return m && m.confidence !== 'none' ? m.entry.id : null;

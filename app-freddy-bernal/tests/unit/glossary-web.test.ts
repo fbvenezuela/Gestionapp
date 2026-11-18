@@ -22,6 +22,7 @@ import { WEB_WORDS_TITLE, WebGuidePage } from '@/components/guides/web-guide';
 import { askedTerm, bestAnswer, entryById, findAnswers, readable } from '@/lib/assistant/answers/engine';
 import { canOpen } from '@/lib/assistant/screens';
 import { TERM_WHERE_WEB } from '@/lib/assistant/local';
+import { explainAsk } from '@/lib/assistant/explain';
 import { handleTurn } from '@/lib/assistant';
 
 const BOSS_ADMIN: Role[] = ['boss', 'admin'];
@@ -303,6 +304,35 @@ describe('360 dice y explica las palabras de la web y de la atención (el cerebr
     const [first, purpose] = await ask('boss', ['¿qué es la versión de prueba de la web?', '¿y pa qué sirve?']);
     expect(purpose.answer).toMatch(/^Es para conocer la app y practicar cada rol antes de abrir la web al público/);
     expect(purpose.answer).not.toBe(first.answer);
+  });
+
+  it('después de una palabra que suena a fecha («Fecha comprometida»), su ejemplo y su «más fácil»; el porqué dicho entero', async () => {
+    const g = (id: string) => WEB_GLOSSARY.find((x) => x.id === id)!;
+    for (const key of ['admin', 'boss'] as DemoUserKey[]) {
+      const [, example] = await ask(key, ['¿qué es la fecha comprometida?', 'dame un ejemplo']);
+      expect(example.answer, key).toContain(g('atencion-fecha-comprometida').example as string);
+      const [, easy] = await ask(key, ['que es la fecha comprometida', 'explícamelo más fácil']);
+      expect(easy.answer, key).toContain(g('atencion-fecha-comprometida').easy as string);
+    }
+    // «¿Y por qué es obligatorio?», «¿y por qué hacen falta?» right after a word: the word's own why.
+    const [, mandatory] = await ask('boss', ['¿qué es el texto alternativo?', '¿y por qué es obligatorio?']);
+    expect(mandatory.answer).toContain(g('web-texto-alternativo').why as string);
+    const [, needed] = await ask('admin', ['para que son las redirecciones', 'y por que hacen falta?']);
+    expect(needed.answer).toContain(g('web-redireccion').why as string);
+    // After anything else, the answer written for it: whose accounts the two factors protect.
+    const [, other] = await ask('social', ['¿qué es el doble factor?', '¿y por qué es obligatorio?']);
+    expect(other.answer).not.toMatch(/La guía no da el porqué/);
+    expect(explainAsk('¿y por qué es obligatorio?')).toBeNull();
+    expect(explainAsk('¿y por qué es obligatorio?', { afterWord: true })).toEqual({ facet: 'why' });
+  });
+
+  it('después de la palabra, el evento sigue sin fecha, hora ni lugar', async () => {
+    const [, feria] = await ask('boss', ['¿qué es la fecha comprometida?', 'dame un ejemplo de la feria de mañana']);
+    expect(feria.answer).not.toContain('Por ejemplo: un caso de una categoría');
+    expect(feria.answer).toMatch(/Agenda/);
+    const [, , hour] = await ask('boss', ['¿cuándo es la feria?', '¿qué es la fecha comprometida?', '¿y a qué hora es?']);
+    expect(hour.answer).toMatch(/no lo manejo/);
+    expect(concreteDateTime(hour.answer)).toBe(false);
   });
 
   it('a un rol del equipo, nunca la palabra de la web: lo de siempre, que no está en su menú', async () => {

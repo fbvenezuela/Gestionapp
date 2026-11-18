@@ -1469,7 +1469,7 @@ export const SOCIAL: Answer[] = [
   {
     id: 'red-repartir-nuevo',
     roles: ['social'],
-    q: ['¿Qué hace «Repartir de nuevo» en una tanda?', 'repartir de nuevo los tweets', 'cambiar las horas de toda la tanda', 'que es una tanda', 'repartir de nuevo la tanda', 'cambiar todas las horas de los tweets'],
+    q: ['¿Qué hace «Repartir de nuevo» en una tanda?', 'repartir de nuevo los tweets', 'cambiar las horas de toda la tanda', 'repartir de nuevo la tanda', 'cambiar todas las horas de los tweets'],
     a: 'En la tanda, «Repartir de nuevo» cambia las horas de todos; «Editar textos» y «Guardar texto» corrigen el texto.',
     go: '/tweets',
     tutorial: 'tanda',

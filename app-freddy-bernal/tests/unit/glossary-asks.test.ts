@@ -57,6 +57,8 @@ describe('los nombres y las maneras de preguntar de cada palabra', () => {
       ['social', 'que significa programar una publicacion', 'programar'],
       ['boss', '¿qué son las estrellitas?', 'receptividad'],
       ['ivt', '¿qué es un story board?', 'storyboard'],
+      // (Redes' answer about «Repartir de nuevo» does not say what a tanda is: the word does.)
+      ['social', '¿Qué es una tanda?', 'tanda'],
     ];
     for (const [r, q, id] of asked) expect(askedTerm(q, [r])?.id, `${r}: ${q}`).toBe(`palabra:${id}`);
   });

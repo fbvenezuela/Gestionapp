@@ -38,7 +38,8 @@ export type ExplainAsk = { facet: Facet; about?: string; pair?: [string, string]
  * «ponerle fecha», «cambiar fecha o lugar»), so a label is read as the app's and never as an event's date; without it
  * every such label stops the ask (the safe side).
  */
-export type AskOptions = { titles?: TitleSet; last?: string; withoutLabels?: (text: string) => string };
+// `afterWord`: 360's last answer was a word of the glossary (local.ts): «¿y por qué es obligatorio?» is then that word's why.
+export type AskOptions = { titles?: TitleSet; last?: string; withoutLabels?: (text: string) => string; afterWord?: boolean };
 
 const NO_TITLES: TitleSet = { events: [], pieces: [], places: [] };
 
@@ -107,6 +108,10 @@ const ASKS: [Facet, RegExp][] = [
   ['more', /^(?:dime|cuentame|explicame|dame|di|ensename|muestrame|quiero saber) (?:mas|algo mas|un poco mas|mas cosas|mas detalles|el resto|lo demas|lo que falta|todo)(?: (?:de eso|sobre eso|de esto|sobre esto))?$/],
   ['more', /^(?:algo mas|mas|mas detalles|mas informacion|el resto|lo demas|lo que falta|los demas pasos|el resto de los pasos|los otros pasos|que otros pasos|faltan pasos|hay mas|que mas hay|que otra cosa)$/],
 ];
+// «¿Y por qué es obligatorio?», «¿por qué hacen falta?»: why what was just explained is so, only right after a word of the
+// glossary (AskOptions.afterWord), whose own `why` says it (WF-C). After anything else the answers written for it say it
+// better («¿y por qué es obligatorio?» after the doble factor: whose accounts it protects and what it opens).
+const WHY_SO = /^por que (?:es|son) (?:obligatori[oa]s?|necesari[oa]s?)$|^por que (?:hace|hacen) falta$|^por que se (?:necesita|necesitan)$/;
 // A bare yes after 360's «¿Sigo?»: go on.
 const YES = /^(?:si|dale|ok|okey|claro|va|vale|si por favor|si dale|si claro|por favor|aja|listo|de una|sigue|si sigue|perfecto|bueno|esta bien|si porfa)$/;
 const ASKED_TO_GO_ON = /¿Sigo\?\s*$/;
@@ -158,6 +163,7 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
     const pair = /\bla diferencia entre\b/.test(core) ? /^(.+?) y (.+)$/.exec(about) : null;
     return { facet, about, ...(pair ? { pair: [pair[1], pair[2]] as [string, string] } : {}) };
   }
+  if (o.afterWord && WHY_SO.test(core)) return { facet: 'why' };
   return null;
 }
 
