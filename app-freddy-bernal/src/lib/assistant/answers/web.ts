@@ -50,6 +50,7 @@ export const WEB: Answer[] = [
       'puedo responder una solicitud',
       'puedo ver las solicitudes de la gente',
       'puedo exportar las solicitudes',
+      'puedo exportar la lista de solicitudes',
       'puedo ver las cifras de atencion',
     ],
     a: 'No: tú no abres casos ni los atiendes, y no ves sus contactos ni sus cifras. Los atienden la coordinación y los responsables de área; exportar es de la coordinación y de auditoría. Tú armas «Áreas y plazos» y lees el «Registro de atención».',
@@ -301,7 +302,7 @@ export const WEB: Answer[] = [
   {
     id: 'web-programar',
     roles: ['boss', 'admin'],
-    q: ['como funciona programar en la web', 'como programo una noticia para que salga sola', 'que pasa cuando algo queda programado', 'que pasa si programo con una hora que ya paso', 'quien programa lo de la web'],
+    q: ['como funciona programar en la web', 'que pasa cuando algo queda programado', 'que pasa si programo con una hora que ya paso', 'quien programa lo de la web'],
     a: {
       boss: 'En «Por aprobar» → el contenido → «Decidir» → «Programar»: eliges «Día» y «Hora», en hora del Táchira. A esa hora aparece sola en la web, en menos de un minuto, y hasta entonces nadie la ve. Una hora que ya pasó no se acepta. Lo que ya está en la web no se programa: sus cambios se publican ahora.',
       admin: 'Programan el aprobador de la web y el jefe, en «Decidir» → «Programar»: eligen «Día» y «Hora», en hora del Táchira. A esa hora aparece sola en la web, en menos de un minuto, y hasta entonces nadie la ve. Una hora que ya pasó no se acepta. Tú no programas.',
@@ -342,11 +343,18 @@ export const WEB: Answer[] = [
   {
     id: 'web-aprobar-saber',
     roles: ['boss', 'admin'],
-    q: ['que hay que saber de aprobar en la web', 'que hay que saber de la web al aprobar', 'que hay que saber cuando uno aprueba en la web', 'que cuidados hay al publicar en la web', 'que pasa si cambian el borrador mientras lo reviso'],
+    q: ['que hay que saber de la web al aprobar', 'que hay que saber cuando uno aprueba en la web', 'que cuidados hay al publicar en la web', 'que pasa si cambian el borrador mientras lo reviso'],
     a: {
       boss: 'Con «Le falta esto para publicarse», «Publicar ahora» no se puede tocar. Se publica exactamente lo que se revisó: si alguien cambió el borrador mientras tanto, la app no lo publica y pide abrirlo de nuevo. Lo que ya está en la web no se programa: sus cambios se publican ahora. El aviso de «Por aprobar» no te llega: lo ves en la lista.',
-      admin: 'Con «Le falta esto para publicarse», «Publicar ahora» no se puede tocar. Se publica exactamente lo que se revisó: si alguien cambió el borrador mientras tanto, la app no lo publica y pide abrirlo de nuevo. Lo que ya está en la web no se programa: sus cambios se publican ahora. El aviso de «Por aprobar» le llega solo al aprobador; el jefe lo ve en la lista.',
+      admin: 'Con «Le falta esto para publicarse», «Publicar ahora» no se puede tocar. Se publica exactamente lo que se revisó: si alguien cambió el borrador mientras tanto, la app no lo publica y pide abrirlo de nuevo. Lo que ya está en la web no se programa: sus cambios se publican ahora.',
     },
+  },
+  {
+    id: 'web-admin-aprobar-saber',
+    roles: ['admin'],
+    q: ['que hay que saber de aprobar en la web', 'que cuidados tiene el aprobador al publicar en la web', 'que revisa el aprobador antes de publicar en la web'],
+    a: 'Con «Le falta esto para publicarse», «Publicar ahora» no se puede tocar. Se publica exactamente lo que se revisó: si alguien cambió el borrador mientras tanto, la app no lo publica y pide abrirlo de nuevo. Lo que ya está en la web no se programa: sus cambios se publican ahora. El aviso de «Por aprobar» le llega solo al aprobador; el jefe lo ve en la lista. Tú lo lees, pero no decides.',
+    go: '/admin/web/por-aprobar',
   },
   {
     id: 'web-camino-revisar',

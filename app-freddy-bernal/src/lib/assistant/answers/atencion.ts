@@ -208,8 +208,8 @@ export const ATENCION: Answer[] = [
       'quien tiene la clave de las solicitudes',
     ],
     a: {
-      boss: 'No: la clave no se recupera. Nadie del panel la tiene, tampoco tú: se muestra una sola vez, y lo explica la parte «Pérdida de la clave» de «Consultar mi solicitud». Si la persona dejó un correo, le llega el código, nunca la clave.',
-      admin: 'No: la clave no se recupera. Nadie del panel la tiene, tampoco tú: se muestra una sola vez, y lo explica la parte «Pérdida de la clave» de «Consultar mi solicitud». Si la persona dejó un correo, le llega el código, nunca la clave.',
+      boss: 'No: la clave no se puede recuperar. Nadie del panel la tiene, tampoco tú: se muestra una sola vez, y lo explica la parte «Pérdida de la clave» de «Consultar mi solicitud». Si la persona dejó un correo, le llega el código, nunca la clave.',
+      admin: 'No: la clave no se puede recuperar. Nadie del panel la tiene, tampoco tú: se muestra una sola vez, y lo explica la parte «Pérdida de la clave» de «Consultar mi solicitud». Si la persona dejó un correo, le llega el código, nunca la clave.',
     },
   },
   {
@@ -475,7 +475,7 @@ export const ATENCION: Answer[] = [
   {
     id: 'atencion-admin-quien-exporto',
     roles: ['admin'],
-    q: ['quien exporto la lista de solicitudes donde lo veo', 'quien exporto la lista de solicitudes', 'donde veo las exportaciones de atencion', 'como se quien descargo el csv de atencion', 'queda registrado quien exporta'],
+    q: ['quien exporto la lista de solicitudes donde lo veo', 'donde veo las exportaciones de atencion', 'como se quien descargo el csv de atencion', 'queda registrado quien exporta'],
     a: 'En el «Registro de atención»: cada exportación queda registrada, con quién, cuándo y con qué filtros, igual que cada contacto visto. No guarda lo que dicen los casos.',
     go: '/admin/atencion/registro',
   },
@@ -512,7 +512,7 @@ export const ATENCION: Answer[] = [
     id: 'atencion-amenaza',
     roles: ['boss', 'admin'],
     q: ['que hacemos si llega una amenaza contra el gobernador', 'que se hace con una amenaza que llega por la web', 'llego una amenaza en una solicitud', 'como se responde una amenaza'],
-    a: 'Quien la recibe no la responde desde el caso: avisa de inmediato a la coordinación. Se retiran los datos que expongan a alguien y, si no hay nada que atender, va a «No procede» con su motivo. Mientras la Gobernación no defina cómo actuar, lo que se haga fuera de la app lo decide la coordinación.',
+    a: 'No la respondas desde el caso: avisa de inmediato a la coordinación. Se retiran los datos que expongan a alguien y, si no hay nada que atender, va a «No procede» con su motivo. Mientras la Gobernación no defina cómo actuar, lo que se haga fuera de la app lo decide la coordinación.',
   },
   {
     id: 'atencion-queja-no-spam',

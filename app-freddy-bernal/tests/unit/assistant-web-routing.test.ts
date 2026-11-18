@@ -31,7 +31,7 @@ const ROWS: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿qué significa «De la web vieja»?', { has: /«A mano» las hizo alguien del equipo/, go: '/admin/web/redirecciones' }],
     ['¿Puedo leer las denuncias?', { has: /^No: las denuncias son confidenciales/, go: '/admin/atencion' }],
     ['¿cómo descargo la lista de solicitudes en excel?', { has: /Tú no exportas/ }],
-    ['alguien perdió la clave de su solicitud, ¿se la puedo recuperar?', { has: /^No: la clave no se recupera/ }],
+    ['alguien perdió la clave de su solicitud, ¿se la puedo recuperar?', { has: /^No: la clave no se puede recuperar/ }],
     ['¿la gente necesita cuenta para mandar algo por la web?', { has: /^No: la persona no necesita cuenta ni contraseña/ }],
     ['¿qué pasa si otro vecino ya reportó lo mismo?', { has: /«Reportes parecidos».*nunca qué dicen/ }],
     ['¿dónde veo las cifras de atención?', { has: /[Cc]ifras/, go: '/admin/atencion/estadisticas' }],
