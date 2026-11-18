@@ -14,6 +14,7 @@ import { fillClientWords, type ClientWords } from './words';
 export { GUIA_WEB, MANUAL_ADMIN_WEB, MANUAL_ATENCION, FLUJOS_WEB };
 export { CLIENT_HUECOS, UNFILLED_HUECO, clientWords, fillClientWords, type ClientWords } from './words';
 export { PANEL_SCREENS, cannotLine, roleTextFor, webSectionsFor, type PanelScreen, type PanelSection } from './panel';
+export { WEB_GLOSSARY, webGlossaryOf } from './glossary';
 
 /** The four docs, in the order the repository lists them. */
 export const WEB_DOCS: readonly WebDoc[] = [GUIA_WEB, MANUAL_ADMIN_WEB, MANUAL_ATENCION, FLUJOS_WEB];

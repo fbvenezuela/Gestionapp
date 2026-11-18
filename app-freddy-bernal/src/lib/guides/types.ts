@@ -1,7 +1,7 @@
 // The shapes of the help content (R3, D-42): one source in src/lib/guides for the role guides (job description, step
 // by step, every screen), the flows between roles, the tutorials, the pages under /ayuda, 360's section cards and the
 // generated docs (docs/GUIA-POR-ROL.md, docs/FLUJOS.md, docs/GUIA-ADMINISTRACION.md). Data only: no React, no database.
-import type { TeamRole } from '../roles';
+import type { Role, TeamRole } from '../roles';
 import type { STABLE_TARGETS, TOUR_ANCHORS } from './anchors';
 
 // ── Tutorials (design §6.1) ─────────────────────────────────────────────────────────────────────────────────────────
@@ -97,8 +97,29 @@ export type RoleGuide = {
 export type SharedTopic = { id: string; title: string; body: string[] };
 
 // «Palabras de la app» (glossary.ts): a word a new person does not know, as the team uses it. `term` is how the guide
-// writes it («Reel y Short»), `aka` the words people ask with (lower case, singular and plural), `text` what it means.
-export type GlossaryTerm = { id: string; term: string; aka: string[]; text: string };
+// writes it («Reel y Short»), `aka` the words people ask with (lower case, singular and plural, as they say them: «el
+// texto de abajo», «la cuadrícula»), `text` what it means.
+// «Palabras de la web» and «Palabras de la atención» (web/glossary.ts, WF-C): the same for the web's and Atención's
+// words, only for the boss and Administración. `page`: the page of «Ayuda y guías» that lists it, and its domain in 360;
+// `section`: the section of the web's guide that explains it (360 goes on from there); `shared`: the names of `aka` the
+// team also uses for something of its own («Borrador» is a piece's state too, «Vencidas» the fichas of the municipios),
+// which mean this word only with the web's or Atención's words or on their screens.
+// What 360 says when asked to explain the word (design §4(c)): `easy`, the same said more simply; `example`, a made-up
+// case with the screen's labels (no dates, hours, names, phones or codes); `why`, only where the guide gives a reason.
+// One text, or one per role (`default` for the rest).
+export type GlossaryText = string | (Partial<Record<Role, string>> & { default?: string });
+export type GlossaryTerm = {
+  id: string;
+  term: string;
+  aka: string[];
+  text: string;
+  easy?: GlossaryText;
+  example?: GlossaryText;
+  why?: GlossaryText;
+  page?: WebPage;
+  section?: string;
+  shared?: string[];
+};
 
 // Administración's own guide (D-43): apart from the team's guides, only for admin (/ayuda/administracion).
 export type AdminGuide = {

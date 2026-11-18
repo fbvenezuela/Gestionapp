@@ -11,7 +11,7 @@ import { hasReceiptCode } from '../../guides/check';
 import type { Audience, Flow, RoleText, SectionGuide, Task, WebBlock, WebFacets, WebFlow, WebSection } from '../../guides/types';
 import { contract, plain } from '../text';
 import { domainOfScreen, type Domain } from '../screens';
-import { WEB_REF, webEntry, webFlows, webHref, webSections } from '../../guides/web';
+import { WEB_GLOSSARY, WEB_PAGE_HREF, WEB_REF, webEntry, webFlows, webHref, webSections } from '../../guides/web';
 import { UNFILLED_HUECO, clientWords, fillClientWords, type ClientWords } from '../../guides/web/words';
 import { ANSWERS, ANSWER_FILES, type Answer, type AnswerText } from './index';
 
@@ -38,6 +38,7 @@ export type Entry = {
   next?: string; // a step's next step («¿y después?»)
   may?: boolean; // a «No…» to «¿puedo…?» (what a role cannot or never does): only for that question
   names?: string[]; // a word of «Palabras de la app»: the names it is asked with («reel», «short»…)
+  shared?: string[]; // a word of the web or Atención: its names the team also uses («borrador»), read: only in its domain
   domain?: Domain; // the team's work, the web or Atención (design §4(d)3): set on every entry of the index
   also?: string[]; // other screens it is about (a web section: its list and its page with an id)
   cursor?: number; // a flow told as a story: how many of its steps the story says (its «¿Sigo?» goes on from there)
@@ -125,6 +126,30 @@ const SHORTHAND: [RegExp, string][] = [
   [/\b(se (?:publica|publican|sube|suben|manda|mandan|envia|envian|programa)|sale|salen) (?:sol[oa]s?|solit[oa]s?)\b/g, '$1 automatico'],
   [/\bdel? uno al? diez\b/g, 'de 1 a 10'],
   [/\b1 al 10\b/g, '1 a 10'],
+  // What a word means, typed in a hurry or dictated (WF-C, 17/11): «signfica», «sinifica», «kiere desir», «esplícame».
+  [/\b(?:signfica|sinifica|singifica|sigifica|sginifica|siginifica|significaa|sifnifica|signifca|significia|sifnica)\b/g, 'significa'],
+  [/\b(?:signfican|sinifican|signifcan|siginifican)\b/g, 'significan'],
+  [/\b(?:kiere|qiere|quiere|quere) (?:decir|desir|dcir|deci)\b/g, 'quiere decir'],
+  [/\b(?:kieren|qieren|quieren) (?:decir|desir|dcir|deci)\b/g, 'quieren decir'],
+  [/\b(?:esplicame|explikame|esplikame|explicme|explicam|explcame)\b/g, 'explicame'],
+  // The reading mode's − and + said as words («¿pa' qué son el más y el menos?»): they make the letter bigger or smaller.
+  // Only both together, at the end of the question or with the letter or the mode, or one with the letter or the mode:
+  // «el Más» alone is the phone bar's button, and «el post con el más y el menos de me gusta» asks for results.
+  [/\bel (?:signo )?mas y el (?:signo )?menos\b(?=$| (?:de la letra|de la lectura|del modo lectura|en el modo lectura|en modo lectura|en la lectura)\b)/g, 'el agranda letra y el achica letra'],
+  [/\bel (?:signo )?menos y el (?:signo )?mas\b(?=$| (?:de la letra|de la lectura|del modo lectura|en el modo lectura|en modo lectura|en la lectura)\b)/g, 'el achica letra y el agranda letra'],
+  [/\bel (?:signo )?mas(?= (?:de la letra|del modo lectura|en el modo lectura|en modo lectura)\b)/g, 'el agranda letra'],
+  [/\bel (?:signo )?menos(?= (?:de la letra|del modo lectura|en el modo lectura|en modo lectura)\b)/g, 'el achica letra'],
+  // The reading mode's green button makes the text run by itself («el botón verde del modo lectura»): with the reading,
+  // the text or the speech named, before or after it. Alone, «el botón verde» may be the boss's «Aprobar todas las verdes».
+  [/\bboton verde\b(?=.*\b(?:modo lectura|lectura|leer|leo|discurso|lo que voy a decir|el texto)\b)|(?<=\b(?:modo lectura|lectura|leer|leo|discurso|lo que voy a decir|el texto)\b.*)\bboton verde\b/g, 'boton verde correr texto solo'],
+  // The screen's pictures said other ways: the arrows ‹ ›, the level's box of a review, the person of Mi cuenta. «La
+  // cajita» is the level's when the question ends with it («¿para qué es la cajita?») or talks of the colors («la cajita no
+  // me deja cambiar el color»); with what box it is («la cajita de antes de aprobar», «… de texto», «… para buscar») it
+  // is that one, and in an explain ask it stays as said («y eso de la cajita pa qué es»: explain.ts reads its topic).
+  [/\bflechit[ao]s?\b/g, 'flechas'],
+  [/\bcajit[ao]s?$/g, 'cajita nivel'],
+  [/\bcajit[ao]s?\b(?! (?:de|del|para|pa|nivel) )(?=.*\b(?:color|colores|rojo|roja|amarillo|amarilla|verde|semaforo)\b)/g, 'cajita nivel'],
+  [/\b(?:muneco|munequita|munequitos|monito|monigote|personita|iconito de (?:la )?persona|icono de (?:la )?persona)\b/g, 'munequito'],
 ];
 
 /** plain(), with the shorthand read as words: what the index matches. */
@@ -305,6 +330,9 @@ const SYNONYMS: string[][] = [
   ['equivocar', 'error', 'mal'],
   ['nuevo', 'otro'],
   ['problema', 'falla', 'error'],
+  // The names a format and a text have in redes (design §4(b)): a Short is a reel of YouTube; the caption is the long copy.
+  ['reel', 'short'],
+  ['caption', 'copy'],
   // The kinds of event people name («el material de la feria», «el acto se grabó»): for the help content, an event.
   ['evento', 'acto', 'feria', 'asamblea', 'inauguracion', 'caravana', 'cabildo', 'conversatorio', 'foro', 'juramentacion', 'operativo', 'actividad', 'jornada'],
 ];
@@ -585,9 +613,16 @@ const GLOSSARY_FOR: Record<string, (line: string) => Partial<Record<Role, string
   },
 };
 
+// The ways a meaning is asked (design §4(b)): «¿qué es X?», «¿qué significa X?», «¿qué quiere decir X?», «X, ¿qué es?»,
+// «¿para qué es / sirve X?» and the word alone («explícame X» reads as the word alone: «explícame» says nothing more).
+const termAsks = (x: string) => [`que es ${x}`, `que son ${x}`, `que significa ${x}`, `que quiere decir ${x}`, `${x} que es`, `para que es ${x}`, `para que sirve ${x}`, x];
+// A word's names as the guide writes them and as people ask, lower case, its article left out as a question leaves it
+// out («La franja» is asked «¿qué es la franja?»: its name is «franja»).
+const termNames = (g: { term: string; aka: string[] }) => [...new Set([g.term, ...g.aka].map((x) => x.toLowerCase().replace(/^(?:el|la|los|las) /, '')))];
+
 function glossaryEntries(): Entry[] {
   return GLOSSARY.map((g) => {
-    const names = [...new Set([g.term, ...g.aka].map((x) => x.toLowerCase()))];
+    const names = termNames(g);
     const line = glossaryLine(g);
     const byRole = GLOSSARY_FOR[g.id]?.(line);
     return {
@@ -595,11 +630,42 @@ function glossaryEntries(): Entry[] {
       kind: 'term' as const,
       source: `glossary:${g.id}`,
       roles: null,
-      q: names.flatMap((x) => [`que es ${x}`, `que son ${x}`, `que significa ${x}`, `que quiere decir ${x}`, `para que es ${x}`, x]),
+      q: names.flatMap(termAsks),
       doc: g.text,
       a: byRole ? { default: line, ...byRole } : line,
       go: '/ayuda',
       names,
+    };
+  });
+}
+
+// «Palabras de la web» and «Palabras de la atención» (src/lib/guides/web/glossary.ts, WF-C): the words of «Web» and
+// «Atención», only for the boss and Administración (who have them in their menu; the web's and the desk's own roles get
+// no 360), each of its page's domain, with the words of its page of «Ayuda y guías» as its button. Their source is the
+// web's («web:…»), so the team's words keep their weights (index()). A name the team also uses for its own thing
+// (`shared`: «Borrador» is a piece's state, «Vencidas» the fichas of the municipios) is asked with the web's or
+// Atención's words («… en la web», «… en un caso»), and only a question of that domain, by its words or its screen,
+// asks for this word with it (termAsked).
+const WEB_TERM_ROLES: Role[] = ['boss', 'admin'];
+const DOMAIN_SAID: Record<'web' | 'atencion', string[]> = { web: ['en la web', 'de la web'], atencion: ['en atencion', 'de atencion', 'en un caso'] };
+function webGlossaryEntries(): Entry[] {
+  return WEB_GLOSSARY.map((g) => {
+    const domain: 'web' | 'atencion' = g.page === 'atencion' ? 'atencion' : 'web';
+    const names = termNames(g);
+    const shared = new Set((g.shared ?? []).map((x) => readable(x)));
+    const asks = names.flatMap((x) => (shared.has(readable(x)) ? DOMAIN_SAID[domain].flatMap((d) => termAsks(`${x} ${d}`)) : termAsks(x)));
+    return {
+      id: `palabra:${g.id}`,
+      kind: 'term' as const,
+      source: `web:palabra:${g.id}`,
+      roles: WEB_TERM_ROLES,
+      q: asks,
+      doc: g.text,
+      a: glossaryLine(g),
+      go: `${WEB_PAGE_HREF[domain]}#palabras`,
+      names,
+      ...(shared.size ? { shared: [...shared] } : {}),
+      domain,
     };
   });
 }
@@ -1036,7 +1102,7 @@ function index(): Index {
   const files = new Map<Answer, string>(Object.entries(ANSWER_FILES).flatMap(([f, list]) => list.map((a): [Answer, string] => [a, f])));
   const words = clientWords();
   const filled = (t: string) => withWords(t, words);
-  const entries = [...curatedEntries(ANSWERS, (a) => files.get(a) ?? 'respuestas'), ...guideEntries(), ...sharedEntries(), ...glossaryEntries(), ...flowEntries(), ...teamFlowStories(), ...adminEntries(), ...webEntries()]
+  const entries = [...curatedEntries(ANSWERS, (a) => files.get(a) ?? 'respuestas'), ...guideEntries(), ...sharedEntries(), ...glossaryEntries(), ...flowEntries(), ...teamFlowStories(), ...adminEntries(), ...webEntries(), ...webGlossaryEntries()]
     .map((e) => withClientWords(e, words))
     // (The word «Web y Atención» of «Palabras de la app» is the web's: asked with Atención's words, «¿qué son las vencidas
     // en Atención?», it weighs them as the web's guide does, and its meaning does not answer what the guide says.)
@@ -1061,7 +1127,9 @@ function index(): Index {
   // (The team's: every entry but the web's guide, its curated answers and the flows told as stories, WF-C.)
   const teamOnly = (e: Entry) => !e.source.startsWith('web:') && e.source !== 'curado:web' && e.kind !== 'flowStory';
   const { idf, said, n } = weights(entries.filter(teamOnly));
-  const all = weights(entries);
+  // (The words of «Palabras de la web» and «Palabras de la atención» say again what the guide's sections say: they are
+  // weighed with the others' weights and do not change them, so no other answer moves for them.)
+  const all = weights(entries.filter((e) => !(e.kind === 'term' && e.source.startsWith('web:'))));
   const weighOf = (table: Map<string, number>, size: number) => (r: string): Tok => ({ root: r, w: r in LIGHT ? LIGHT[r] : table.get(r) ?? Math.log(1 + size), light: r in LIGHT });
   const weighTeam = weighOf(idf, n);
   const weighAll = weighOf(all.idf, all.n);
@@ -1182,7 +1250,6 @@ const TERM_WHERE = 0.75;
 // A question that does not say any of the word's names, only a word with the same root («¿qué es el título?»: «Titular»
 // is a part of the art): another word, far behind and never sure.
 const TERM_OTHER = 0.8;
-const TERM_WHAT = /\b(?:que es|que son|que significa\w*|que quiere decir|que quieren decir|paraque es|paraque son|paraque sirven?)\b/;
 // Where a word that only ways of asking have is capped: the weight of the word at this share of the index (a common one).
 const DETAIL_AT = 0.2;
 // The domain's weights (design §4(d)3): an entry of the question's own domain adds, one of the other public domain (the
@@ -1387,25 +1454,91 @@ function formsOf(n: string): string[] {
 function saysName(e: Entry, text: string): boolean {
   return (e.names ?? []).some((n) => formsOf(n).some((f) => ` ${text} `.includes(` ${f} `)));
 }
-function termAsked(e: Entry, a: Asked): boolean {
-  const frame = TERM_WHAT.exec(a.text);
-  if (!frame) return false;
-  const rest = `${a.text.slice(0, frame.index)} ${a.text.slice(frame.index + frame[0].length)}`.split(' ').filter((w) => w && !TERM_OPEN.has(w)).join(' ');
-  const asked = `${rest} `.replace(TERM_LEAD, '').trim();
-  return !!asked && (e.names ?? []).some((n) => formsOf(n)[0] === asked);
+// The frames that ask what a word means, all of them (a question may say two: «explícame qué es un copy»): «¿qué es…?»,
+// «¿qué son…?», «¿qué significa…?», «¿qué quiere decir…?», «¿para qué es / sirve…?», «explícame…» (design §4(b):
+// «explícame el diálogo FAB») and, for a word that is people («Administración»), «¿quién es…?», «¿quiénes son…?». Only
+// before or after a whole name: «¿quién es el responsable del feed?» leaves more than a name.
+const TERM_FRAMES = /\b(?:que es|que son|que significa\w*|que quiere decir|que quieren decir|paraque es|paraque son|paraque sirven?|explica\w*|quien es|quienes son)\b/g;
+// Where the word is said, around it (WF-C, 17/11): «¿qué es el feed en redes?», «¿qué es la ficha técnica de un evento?»,
+// «en un caso, ¿qué significa en revisión?», «motivos rápidos, ¿qué es eso?», «la mediana que sale aquí», «pieza, ¿qué es?
+// la de redes». Only the app's and the web's places and things, never another word of its own («lo que va a decir en el
+// storyboard» stays a field of the storyboard).
+const TERM_IN = String.raw`(?:app|aplicacion|redes|panel|pantalla|menu|tarjeta|formulario|post|posts|pieza|piezas|reel|reels|video|videos|foto|fotos|imagen|imagenes|evento|eventos|lista|listas|web|atencion|caso|casos|cifras|biblioteca|instagram|facebook|youtube|noticia|noticias|solicitud|solicitudes|perfil|pagina|paginas)`;
+// (Not «esta lista», «este caso»: that one is the screen's own, and what it means there is what the screen says.)
+const TERM_DET = String.raw`(?:(?:el|la|los|las|un|una|mi|mis|tu|tus|cada) )?`;
+const TERM_TAILS: RegExp[] = [
+  new RegExp(String.raw` (?:lo )?que (?:sale|salen|aparece|aparecen|dice|dicen|esta|estan|hay)(?: (?:aqui|ahi|alli|arriba|abajo)| (?:en|de|del|arriba de|abajo de) ${TERM_DET}${TERM_IN})?$`),
+  / (?:aqui|ahi|alli|eso|esto|esa|ese)$/,
+  new RegExp(String.raw` (?:la|el|los|las) (?:de|del) ${TERM_DET}${TERM_IN}$`),
+  new RegExp(String.raw` (?:en|de|del|al lado del?|junto al?|dentro del?|arriba del?|abajo del?) ${TERM_DET}${TERM_IN}$`),
+];
+const TERM_HEAD = new RegExp(String.raw`^(?:en|de|del) ${TERM_DET}${TERM_IN} `);
+/**
+ * What a question asks the meaning of, as said and then without where it is said (a place at a time, up to three:
+ * «borrador en la lista de noticias de la web»), or null when no frame asks a meaning: without its frames, the words
+ * that open it («y», «oye», «exactamente») and the articles before the word («el feed», «eso de trancado»).
+ */
+function askedNames(text: string): string[] | null {
+  const frames = [...text.matchAll(TERM_FRAMES)];
+  if (!frames.length) return null;
+  let rest = text;
+  for (const f of frames.reverse()) rest = `${rest.slice(0, f.index)} ${rest.slice(f.index! + f[0].length)}`;
+  rest = rest.split(' ').filter((w) => w && !TERM_OPEN.has(w)).join(' ');
+  let asked = `${rest} `.replace(TERM_LEAD, '').trim();
+  const out = asked ? [asked] : [];
+  for (let k = 0; k < 3 && asked; k++) {
+    let next = asked.replace(TERM_HEAD, '');
+    for (const re of TERM_TAILS) next = next.replace(re, '');
+    next = `${next.trim()} `.replace(TERM_LEAD, '').trim();
+    if (!next || next === asked) break;
+    out.push((asked = next));
+  }
+  return out;
+}
+// A name as termAsked compares it: as said, without the words askedNames leaves out of a question («verde, amarillo y
+// rojo», «mediana y promedio» are asked without their «y»).
+const nameKey = (n: string) =>
+  formsOf(n)[0]
+    .split(' ')
+    .filter((w) => !TERM_OPEN.has(w))
+    .join(' ');
+// Every name of every word, so compared: a name of another word said first is that word's.
+let TERM_NAMES: Set<string> | null = null;
+const termNameSet = () => (TERM_NAMES ??= new Set(index().entries.flatMap((e) => (e.kind === 'term' ? (e.names ?? []).map(nameKey) : []))));
+/**
+ * Whether the question asks what this word means and nothing more (askedNames), by one of its names, whole, as it is
+ * said. A name the team also uses (`shared`, the web's and Atención's words): only in the question's own domain, by its
+ * words or its screen («¿qué significa borrador en la web?»; «¿qué son las vencidas?» alone is the municipios').
+ */
+function termAsked(e: Entry, a: Asked, domain: Domain | null = null): boolean {
+  // (A word of the team's asked with the web's or Atención's words, or on their screens, is theirs: «¿qué significan las
+  // etiquetas de esta lista?» on the web's list is its labels, not «Por decidir».)
+  if (domain && domain !== 'equipo' && (e.domain ?? 'equipo') === 'equipo') return false;
+  const asked = askedNames(a.text);
+  if (!asked) return false;
+  const all = termNameSet();
+  for (const c of asked) {
+    const n = (e.names ?? []).find((x) => nameKey(x) === c);
+    if (n !== undefined) return !e.shared?.includes(formsOf(n)[0]) || domain === e.domain;
+    if (all.has(c)) return false;
+  }
+  return false;
 }
 /**
- * The word of «Palabras de la app» a question asks the meaning of, by one of its names and nothing more (step W of the
- * demo brain: «¿qué es el feed?», «explícame qué es un copy», «¿qué significa trancado en la app?»), for these roles;
- * null when it asks anything else, or when an answer for this person was written for exactly that question (it says it
- * better: «¿qué es el feed?» of the IVT is «Son cosas de Redes…»).
+ * The word of «Palabras de la app» (or of the web or Atención, for the boss and Administración) a question asks the
+ * meaning of, by one of its names and nothing more (step W of the demo brain: «¿qué es el feed?», «explícame qué es un
+ * copy», «¿qué significa trancado en la app?», «¿qué es borrador en la web?»), for these roles and, for a name the team
+ * also uses, this domain (the question's words, else `screen`'s); null when it asks anything else, or when an answer for
+ * this person was written for exactly that question (it says it better: «¿qué es el feed?» of the IVT is «Son cosas de
+ * Redes…»).
  */
-export function askedTerm(question: string, roles: Role[]): Entry | null {
+export function askedTerm(question: string, roles: Role[], screen?: string | null): Entry | null {
   const ix = index();
   const a = askedOf(question);
   if (!a) return null;
   // (Only the team's own: a section of the web's guide titled like the word, «Programar», is the web's, asked with it.)
   if ((ix.asked.get(a.text) ?? []).some((x) => x.kind !== 'term' && (x.domain ?? 'equipo') === 'equipo' && forRoles(x, roles))) return null;
+  const domain = domainOf(question, screen);
   // Without the polite words before it and where it is said after it («… en la app», «… en Redes»).
   const text = a.text
     .replace(/^(?:(?:y|e|oye|bueno|mira|chamo|porfa|por favor) )*(?:explicame|explica|explicanos|dime|me dices|me explicas|sabes|quisiera saber|quiero saber|me puedes decir|podrias decirme)\b\s*/, '')
@@ -1414,7 +1547,7 @@ export function askedTerm(question: string, roles: Role[]): Entry | null {
   const quoted = labelsOf(question).map((l) => readable(l));
   for (const t of [a.text, text]) {
     const at = { ...a, text: t };
-    const e = ix.entries.find((x) => x.kind === 'term' && forRoles(x, roles) && saysName(x, t) && termAsked(x, at) && (!quoted.length || quoted.some((l) => (x.names ?? []).some((n) => formsOf(n).includes(l)))));
+    const e = ix.entries.find((x) => x.kind === 'term' && forRoles(x, roles) && saysName(x, t) && termAsked(x, at, domain) && (!quoted.length || quoted.some((l) => (x.names ?? []).some((n) => formsOf(n).includes(l)))));
     if (e) return e;
   }
   return null;
@@ -1564,11 +1697,13 @@ function rank(question: string, o: FindOptions): Match[] {
     if (e.kind === 'term') {
       // (A label quoted in the question, «¿qué es «Sin pilar»?», that is not one of its names: another question.)
       const says = saysName(e, a.text) && (!quoted.length || quoted.some((l) => (e.names ?? []).some((n) => formsOf(n).includes(l))));
-      if (says && !ownExact && termAsked(e, a)) {
+      if (says && !ownExact && termAsked(e, a, o.domain ?? null)) {
         s += TERM_ASKED;
         named.add(e);
       } else s *= !says ? TERM_OTHER : whereAsk ? TERM_WHERE : TERM_ELSE;
-      if (!termSure || !says) s = Math.min(s, STRONG - 0.01);
+      // (A word of the web or Atención said only by a name the team also uses, out of its domain: never sure.)
+      const sharedOnly = says && !!e.shared?.length && (o.domain ?? null) !== e.domain && !saysName({ ...e, names: (e.names ?? []).filter((n) => !e.shared!.includes(formsOf(n)[0])) }, a.text);
+      if (!termSure || !says || sharedOnly) s = Math.min(s, STRONG - 0.01);
     }
     // A curated answer, more when it was written for the asker's role (not everyone's).
     if (e.kind === 'curated') s += e.roles ? ROLE_OWN : 0.03;

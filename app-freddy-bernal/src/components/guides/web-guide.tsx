@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronRight, Workflow } from 'lucide-react';
+import { ChevronDown, ChevronRight, Workflow } from 'lucide-react';
 import type { WebBlock, WebFlow, WebPage, WebSection } from '@/lib/guides/types';
 import {
   GUIA_WEB,
@@ -11,6 +11,7 @@ import {
   webDocOf,
   webEntry,
   webHref,
+  webGlossaryOf,
   webPart,
   webPartsOf,
   type ClientWords,
@@ -168,6 +169,34 @@ function Row({ href, label, detail, icon }: { href: string; label: string; detai
 const opening = (s: WebSection) => pdfNumber(s.pdf)[1] === 0;
 const partHref = (page: WebPage, n: number) => `${WEB_PAGE_HREF[page]}?parte=${n}`;
 
+// «Palabras de la web» and «Palabras de la atención» (WF-C, src/lib/guides/web/glossary.ts): at the end of each page's
+// index, at #palabras (360's button for a word goes there), closed like «Palabras de la app» in «Para todos», so the phone
+// shows the parts first. 360 says where they are with these same titles (assistant/local.ts TERM_WHERE_WEB).
+export const WEB_WORDS_TITLE: Record<WebPage, string> = { web: 'Palabras de la web', atencion: 'Palabras de la atención' };
+
+function WebWords({ page, words }: { page: WebPage; words: ClientWords }) {
+  const list = webGlossaryOf(page);
+  if (!list.length) return null;
+  return (
+    <Card solid id="palabras" className="scroll-mt-20">
+      <details className="group">
+        <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 py-3 font-semibold sm:px-5 [&::-webkit-details-marker]:hidden">
+          <span className="min-w-0 flex-1">{WEB_WORDS_TITLE[page]}</span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" aria-hidden />
+        </summary>
+        <dl className="flex flex-col gap-3 px-4 pb-4 text-[15px] sm:px-5">
+          {list.map((g) => (
+            <div key={g.id}>
+              <dt className="font-semibold">{g.term}</dt>
+              <dd className="text-text-2">{fillClientWords(g.text, words)}</dd>
+            </div>
+          ))}
+        </dl>
+      </details>
+    </Card>
+  );
+}
+
 /** The page's index: its opening and each part as a card with its sections and flows. */
 export function WebGuideIndex({ page, words }: { page: WebPage; words: ClientWords }) {
   const parts = webPartsOf(page);
@@ -217,6 +246,7 @@ export function WebGuideIndex({ page, words }: { page: WebPage; words: ClientWor
           </ul>
         </Card>
       ) : null}
+      <WebWords page={page} words={words} />
     </div>
   );
 }

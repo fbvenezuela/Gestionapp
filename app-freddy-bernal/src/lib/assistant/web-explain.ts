@@ -7,9 +7,10 @@
 // pointed to (its own entry is the fixed line, engine.ts `quiet`), and any other text that has one is left out.
 // Pure: no database, no I/O.
 import type { Role } from '../roles';
-import type { Audience, RoleText, WebBlock, WebFlow, WebSection, WebTask } from '../guides/types';
+import type { Audience, GlossaryTerm, GlossaryText, RoleText, WebBlock, WebFlow, WebSection, WebTask } from '../guides/types';
 import { hasReceiptCode } from '../guides/check';
-import { PANEL_SCREENS, isWebFlow, webEntry, webHref } from '../guides/web';
+import { glossaryLine } from '../guides/glossary';
+import { PANEL_SCREENS, WEB_GLOSSARY, isWebFlow, webEntry, webHref } from '../guides/web';
 import { entryById, textFor, tokens, type Entry } from './answers/engine';
 import { sentencesOf, type Facet } from './explain';
 import { canOpen } from './screens';
@@ -163,14 +164,91 @@ function page(title: string | null, steps: string[], from: number): { text: stri
   return { text: `${title ? `${title}, paso a paso: ` : ''}${out.join(' ')}${more ? ' ¿Sigo?' : ''}`, ...(more ? { next: k } : {}) };
 }
 
+// ── The words of «Palabras de la web» and «Palabras de la atención» (WF-C, src/lib/guides/web/glossary.ts) ──────────
+// A word asked what it means («¿qué es borrador en la web?») is the topic `palabra:<id>`: explained from its own fields
+// (easy, example, why) first, then from the section of the guide that explains it (its `section`, when this person reads
+// it). «¿Qué significa eso?» after any answer of the web or Atención says the first of these words that answer named.
+
+const webTermOf = (id: string): GlossaryTerm | null => (id.startsWith('palabra:') ? (WEB_GLOSSARY.find((g) => `palabra:${g.id}` === id) ?? null) : null);
+/** A word's text for this person (its own, or the one for everyone else). */
+function termText(t: GlossaryText | undefined, roles: Role[]): string | undefined {
+  const s = typeof t === 'string' || t === undefined ? t : (roles.map((r) => t[r]).find((x): x is string => !!x) ?? t.default);
+  return sayable(s) ? s : undefined;
+}
+// The words a text names, by their names said whole, first named first (the boss's and Administración's).
+function termsNamedIn(text: string): GlossaryTerm[] {
+  const t = ` ${plain(text.replace(/«([^«»]*)»/g, ' $1 '))} `;
+  const at = (g: GlossaryTerm) => Math.min(...[g.term, ...g.aka].map((n) => t.indexOf(` ${plain(n)} `)).filter((k) => k >= 0), Infinity);
+  return WEB_GLOSSARY.map((g) => ({ g, k: at(g) }))
+    .filter((x) => x.k < Infinity)
+    .sort((a, b) => a.k - b.k || b.g.term.length - a.g.term.length)
+    .map((x) => x.g);
+}
+/** «¿Qué significa eso?» of an answer of the web or Atención: the first word of the glossary it named, not said yet. */
+function meaningOf(said: string[], roles: Role[]): WebExplained | null {
+  for (const g of termsNamedIn(said.at(-1) ?? '')) {
+    const id = `palabra:${g.id}`;
+    for (const line of [glossaryLine(g), termText(g.easy, roles)]) if (line && !wasSaid(line, said)) return { text: line, entryId: id };
+  }
+  return null;
+}
+function termExplain(facet: Facet, e: Entry, g: GlossaryTerm, ctx: Ctx): WebExplained | null {
+  const roles = ctx.roles;
+  const said = ctx.said ?? [];
+  const own = { entryId: e.id };
+  const fresh = (list: (WebExplained | null | undefined)[]) => list.find((c): c is WebExplained => !!c && !!c.text && !wasSaid(c.text, said)) ?? null;
+  const as = (t: string | undefined, go?: string) => (t ? { text: end(t), ...own, ...(go ? { goTo: go } : {}) } : null);
+  // The section that explains it, when this person reads it (its entry is for their audience), and its place in the guide.
+  const section = g.section ? entryById(`web:${g.section}`) : undefined;
+  const readsIt = !!section && (!section.roles || section.roles.some((r) => roles.includes(r)));
+  const x = readsIt && g.section ? webEntry(g.section) : null;
+  const guide = x ? guideOf(x, roles) : undefined;
+  const fromSection = (f: Facet) => (readsIt && section ? webExplain(f, section, { ...ctx, about: undefined }) : null);
+  const easy = termText(g.easy, roles);
+  const example = termText(g.example, roles);
+  const why = termText(g.why, roles);
+  const first = sentencesOf(g.text)[0];
+  switch (facet) {
+    case 'simpler':
+    case 'meaning':
+      return fresh([as(easy), fromSection('simpler'), as(first && `${first}${guide ? ' La guía lo explica con calma: toca el botón.' : ''}`, guide)]);
+    case 'example':
+      return fresh([as(example), fromSection('example')]);
+    case 'why':
+      return fresh([as(why), fromSection('why'), as(first && `La guía no da el porqué de eso. Lo que dice es esto: ${lcFirst(end(first))}`, guide)]);
+    case 'purpose': {
+      // What it is for: what its meaning says it is for («… sirve para conocer la app…», «…, para que ningún enlace se
+      // pierda»), said on its own («Es para…»); then the section's own «¿Para qué sirve…?» of this word, then the
+      // section's.
+      const m = /\bsirve para\s+([^.;]+)|,\s+para\s+([^.;]+)/i.exec(g.text);
+      const forWhat = m ? `Es para ${m[1] ?? m[2]}` : undefined;
+      const names = [g.term, ...g.aka].map((n) => ` ${plain(n)} `);
+      const asked = x && !isWebFlow(x) ? (x.faq ?? []).filter((f) => PURPOSE_Q.test(f.q) && names.some((n) => ` ${plain(f.q)} `.includes(n))).map((f) => forRole(f.a, roles)) : [];
+      return fresh([as(forWhat), ...asked.map((t) => as(t && clean(t), guide)), fromSection('purpose'), as(easy)]);
+    }
+    case 'more':
+      return fresh([as(example), fromSection('more')]);
+    case 'steps':
+    case 'next':
+      return fromSection(facet);
+    default:
+      return null;
+  }
+}
+
 /**
  * That facet of a web topic for this person, or null. `topic`: the entry that answered the turn before (its id is
- * `web:<section>…` or `webflujo:<flow>…`); `cursor`: where its steps go on after a «¿Sigo?».
+ * `web:<section>…`, `webflujo:<flow>…` or, for a word of the web's or Atención's glossary, `palabra:<id>`); `cursor`:
+ * where its steps go on after a «¿Sigo?».
  */
 export function webExplain(facet: Facet, topic: Entry | string | null | undefined, ctx: Ctx): WebExplained | null {
   const e = typeof topic === 'string' ? entryById(topic) : topic;
   if (!e || !e.domain || e.domain === 'equipo') return null;
   if (e.roles && !e.roles.some((r) => ctx.roles.includes(r))) return null;
+  const term = e.kind === 'term' ? webTermOf(e.id) : null;
+  if (term) return termExplain(facet, e, term, ctx);
+  // «¿Qué significa eso?» after an answer of the web or Atención: the first word of its glossary that answer named.
+  if (facet === 'meaning' && !ctx.about) return meaningOf(ctx.said ?? [], ctx.roles);
   // (A curated answer of the web, «¿qué es «De la web vieja»?», is explained from the section it is about, with its own
   // words as what was said: «rest» says it is not the section itself.)
   const curated = e.kind === 'curated' ? sectionOfCurated(e) : null;
