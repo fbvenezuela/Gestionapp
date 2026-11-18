@@ -14,7 +14,7 @@ export const ATENCION: Answer[] = [
   {
     id: 'atencion-pagina-de-la-web',
     roles: ['boss', 'admin'],
-    q: ['que ve la gente en la pagina de atencion ciudadana', 'la pagina de atencion ciudadana que otras paginas tiene en su menu', 'que tiene la pagina de atencion ciudadana de la web'],
+    q: ['que ve la gente en atencion ciudadana de la web', 'la pagina de atencion ciudadana que otras paginas tiene en su menu', 'que menu tiene atencion ciudadana en la web'],
     a: 'Un menú propio («Información general», «Nueva solicitud», «Consultar mi solicitud» y «Casos atendidos»), los botones «Nueva solicitud» y «Consultar mi solicitud» y un «Ejemplo de comprobante». Más abajo: «Tipos de solicitud», «Procedimiento», «Estados de una solicitud», «Denuncias confidenciales», «Preguntas frecuentes», «Otros canales» y «Casos atendidos».',
   },
   {
@@ -194,7 +194,7 @@ export const ATENCION: Answer[] = [
     id: 'atencion-nueva-sin-guardar',
     roles: ['boss', 'admin'],
     q: ['y si la persona le da nueva solicitud sin guardar el comprobante', 'que pasa si la persona no guardo el comprobante', 'la app le avisa a la persona que guarde el comprobante', 'si la persona sigue sin guardar el comprobante'],
-    a: 'Antes de seguir le pregunta: «Antes de continuar, guarde su código y su clave. No se pueden recuperar.», con «Sí, ya los guardé». La clave se muestra una sola vez: sin ella no se puede consultar la solicitud.',
+    a: 'Antes de seguir le pregunta: «Antes de continuar, guarde su código y su clave. No se pueden recuperar.», con «Sí, ya los guardé». Los guarda con «Descargar comprobante (PDF)», «Imprimir» o «Copiar código y clave». La clave se muestra una sola vez: sin ella no se puede consultar la solicitud.',
   },
   {
     id: 'atencion-clave-perdida',
@@ -214,7 +214,7 @@ export const ATENCION: Answer[] = [
   {
     id: 'atencion-consulta-salir',
     roles: ['boss', 'admin'],
-    q: ['la consulta de la solicitud se cierra sola', 'como sale la persona de su consulta', 'cuanto tiempo queda abierta la consulta de una solicitud', 'la consulta se queda abierta'],
+    q: ['la consulta de la solicitud se cierra sola', 'como termina la persona su consulta', 'cuanto tiempo queda abierta la consulta de una solicitud', 'la consulta se queda abierta'],
     a: 'Al terminar, la persona toca «Salir». Si no, la consulta se cierra sola a los 30 minutos. Para volver a entrar, escribe otra vez su código y su clave.',
   },
   {
@@ -281,16 +281,16 @@ export const ATENCION: Answer[] = [
       'como manda la persona un dato que le pidieron',
       'como le contesta la persona al equipo cuando le piden un dato',
       'como agrega informacion la persona a su solicitud',
-      'la persona puede mandar mas fotos despues',
-      'como responde la persona un pedido de informacion',
+      'la persona manda fotos despues de enviar',
+      'como contesta la persona lo que le preguntaron',
     ],
-    a: 'En su consulta, en «Agregar información» (o «Responder la solicitud de información», si le pidieron un dato), escribe, agrega hasta 3 fotos o documentos si hace falta y toca «Enviar información». Si esperaban ese dato, el caso vuelve solo a «En revisión». Una solicitud «Cerrada» o «No procede» ya no recibe información.',
+    a: 'En su consulta, en «Agregar información» (o «Responder la solicitud de información», si le pidieron un dato), escribe, agrega hasta 3 fotos o documentos si hace falta y toca «Enviar información». Si esperaban ese dato, el caso vuelve solo a «En revisión». Una solicitud «Cerrada» o «No procede» ya no recibe nada: la persona envía una nueva.',
   },
   // ── Denuncias (MANUAL-ATENCION 13, GUIA-WEB 2.6) ──
   {
     id: 'atencion-denuncia-como-funciona',
     roles: ['boss', 'admin'],
-    q: ['como funciona una denuncia que llega por la web', 'como es una denuncia en la web', 'que pasa con una denuncia que llega', 'las denuncias son confidenciales', 'como se maneja una denuncia'],
+    q: ['como funciona una denuncia que llega', 'que tiene de especial una denuncia', 'que pasa con una denuncia que llega', 'las denuncias son confidenciales', 'como se maneja una denuncia'],
     a: {
       boss: 'Es confidencial: el formulario lo avisa y pide solo el municipio y el sector, sin mapa. La leen solo el operador de denuncias y la coordinación; tú la ves solo en los totales. Su contenido nunca se publica: en «Casos atendidos» sale solo «Denuncia atendida en el municipio …», y los correos nunca dicen «denuncia».',
       admin: 'Es confidencial: el formulario lo avisa y pide solo el municipio y el sector, sin mapa. La leen solo el operador de denuncias y la coordinación; tú nunca la ves. Su contenido nunca se publica: en «Casos atendidos» sale solo «Denuncia atendida en el municipio …», y los correos nunca dicen «denuncia».',
@@ -299,7 +299,7 @@ export const ATENCION: Answer[] = [
   {
     id: 'atencion-denuncias-quien-lee',
     roles: ['boss', 'admin'],
-    q: ['quien lee las denuncias', 'quien ve las denuncias de la web', 'quienes atienden las denuncias', 'a quien le llegan las denuncias'],
+    q: ['quien lee las denuncias', 'quien ve las denuncias que llegan', 'quienes atienden las denuncias', 'a quien le llegan las denuncias'],
     a: {
       boss: 'Solo el operador de denuncias y la coordinación de atención: las denuncias son privadas de punta a punta. Tú y auditoría las ven solo en los totales, y un responsable de área nunca las ve.',
       admin: 'Solo el operador de denuncias y la coordinación de atención: las denuncias son privadas de punta a punta. El jefe y auditoría las cuentan solo en los totales, un responsable de área nunca las ve y tú tampoco.',
@@ -425,7 +425,7 @@ export const ATENCION: Answer[] = [
     id: 'atencion-jefe-roles-quien-da',
     roles: ['boss'],
     q: ['quien da los roles de atencion', 'como le doy un rol de atencion a alguien', 'quien le da el rol a la coordinadora de atencion'],
-    a: 'Administración, en «Ajustes» → «Equipo» → «Invitar a alguien», con el rol en «Web y atención ciudadana (siempre con doble factor)»; a un responsable de área le marca sus áreas. Cada persona entra con su propio usuario.',
+    a: 'Tú no los das: Administración, en «Ajustes» → «Equipo» → «Invitar a alguien», con el rol en «Web y atención ciudadana (siempre con doble factor)»; a un responsable de área le marca sus áreas. Cada persona entra con su propio usuario.',
   },
   // ── The figures, the export and the case's care (MANUAL-ATENCION 9, 15, 16, 17, 18) ──
   {
@@ -439,7 +439,7 @@ export const ATENCION: Answer[] = [
     id: 'atencion-cifras-que-muestran',
     roles: ['boss'],
     q: ['que muestran las cifras de atencion', 'que numeros salen en cifras de atencion', 'que cuenta la pantalla de cifras', 'que hay en las cifras de atencion'],
-    a: '«Recibidas», «Resueltas», «Pendientes» y «Vencidas»; el «Tiempo a la primera respuesta» y el «Tiempo de resolución», con mediana y promedio; y lo que llegó por tipo, estado, categoría, municipio y área. No cuentan el spam ni lo unido a otro caso, y las denuncias cuentan solo en los totales.',
+    a: '«Recibidas», «Resueltas» (las que el equipo marcó «Resuelto» entre las dos fechas, hayan llegado cuando hayan llegado), «Pendientes» y «Vencidas»; el «Tiempo a la primera respuesta» y el «Tiempo de resolución», con mediana y promedio; y lo que llegó por tipo, estado, categoría, municipio y área. El spam y lo unido a otro caso no entran, y las denuncias van solo en los totales.',
     go: '/admin/atencion/estadisticas',
   },
   {
@@ -495,7 +495,7 @@ export const ATENCION: Answer[] = [
     id: 'atencion-borrar-contacto',
     roles: ['boss', 'admin'],
     q: ['si una persona pide que borren su contacto quien lo hace', 'como se borra el contacto de una persona', 'la persona puede pedir que borren sus datos', 'se puede recuperar un contacto borrado'],
-    a: 'La coordinación: abre «La persona pidió borrar su contacto», escribe el «Motivo» y toca «Borrar el contacto». No se puede recuperar, y el caso sigue.',
+    a: 'Tú no lo borras: lo hace la coordinación, en «La persona pidió borrar su contacto», con su «Motivo» y «Borrar el contacto». No se puede recuperar, y el caso sigue.',
   },
   {
     id: 'atencion-dato-expuesto',
@@ -632,10 +632,10 @@ export const ATENCION: Answer[] = [
   {
     id: 'atencion-reabrir',
     roles: ['boss', 'admin'],
-    q: ['puedo reabrir un caso cerrado', 'como se reabre un caso', 'quien reabre un caso resuelto', 'se puede reabrir una solicitud cerrada'],
+    q: ['puedo reabrir un caso cerrado', 'como se reabre un caso', 'quien reabre un caso resuelto', 'se puede reabrir un caso que ya estaba cerrado'],
     a: {
-      boss: 'No: tú solo lees. Reabren quienes atienden el caso, con «Por qué se reabre», desde «Resuelto», «Cerrado» o «No procede». A un caso «Cerrado» o «No procede» la persona ya no le agrega información.',
-      admin: 'No: tú no abres casos. Reabren quienes atienden el caso, con «Por qué se reabre», desde «Resuelto», «Cerrado» o «No procede». A un caso «Cerrado» o «No procede» la persona ya no le agrega información.',
+      boss: 'No: tú solo lees. Reabren la coordinación y su responsable, desde «Resuelto», «Cerrado» o «No procede», con «Por qué se reabre». Para cambiar quién tiene un caso terminado, primero hay que reabrirlo; después se asigna otra vez.',
+      admin: 'No: tú nunca abres un caso. Reabren la coordinación y los responsables, desde «Resuelto», «Cerrado» o «No procede», con «Por qué se reabre». Para cambiar quién tiene un caso terminado, primero hay que reabrirlo; después se asigna otra vez.',
     },
   },
   {
@@ -669,7 +669,10 @@ export const ATENCION: Answer[] = [
     id: 'atencion-evidencia',
     roles: ['boss', 'admin'],
     q: ['que archivos sube el equipo como evidencia', 'la persona ve la evidencia que sube el equipo', 'que es subir evidencia en un caso', 'como comparte el equipo la foto del despues'],
-    a: 'En «Subir evidencia», una foto o un documento de la atención (JPG, PNG o PDF, hasta 4 MB); a las fotos se les quitan los datos de ubicación. La casilla «Que la vea la persona en su consulta» viene marcada; después se cambia con «Compartir con la persona» o «Dejar de compartir».',
+    a: {
+      boss: 'La suben la coordinación y los responsables (tú solo la ves), en «Subir evidencia»: una foto o un documento de la atención (JPG, PNG o PDF, hasta 4 MB); a las fotos se les quitan los datos de ubicación. La casilla «Que la vea la persona en su consulta» viene marcada; después se cambia con «Compartir con la persona» o «Dejar de compartir».',
+      admin: 'La suben la coordinación y los responsables (tú no subes evidencias), en «Subir evidencia»: una foto o un documento de la atención (JPG, PNG o PDF, hasta 4 MB); a las fotos se les quitan los datos de ubicación. La casilla «Que la vea la persona en su consulta» viene marcada; después se cambia con «Compartir con la persona» o «Dejar de compartir».',
+    },
   },
   {
     id: 'atencion-asignar-estado-solo',

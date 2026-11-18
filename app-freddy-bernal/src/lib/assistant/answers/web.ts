@@ -93,7 +93,7 @@ export const WEB: Answer[] = [
       'puedo ver el contacto de la persona',
       'puedo ver el telefono de la persona que mando una solicitud',
     ],
-    a: 'El contacto de la persona lo ven solo quienes atienden su caso: la coordinación, el responsable de su área o a quien se lo asignen y, si es una denuncia, el operador de denuncias. Al verlo queda registrado quién lo miró y cuándo. Tú no lo ves, y auditoría tampoco.',
+    a: 'El contacto de la persona lo ven solo quienes atienden su caso: la coordinación, el responsable de su área o a quien se lo asignen y, si es una denuncia, el operador de denuncias. La tarjeta avisa: «El contacto está cifrado. Al verlo queda registrado quién lo miró y cuándo.». Tú no lo ves, y auditoría tampoco.',
   },
   // Where the two guides are, for whoever has them (a team role hears the fixed line of local.ts, step D2).
   {
@@ -252,7 +252,7 @@ export const WEB: Answer[] = [
   {
     id: 'web-aprobador-que-hace',
     roles: ['boss', 'admin'],
-    q: ['que hace el aprobador de la web', 'que puede hacer el aprobador de la web', 'que hace quien aprueba la web'],
+    q: ['que hace el aprobador de la web', 'que puede hacer el aprobador de la web', 'que hace quien aprueba la web', 'y el aprobador que hace'],
     a: {
       boss: 'Todo lo del editor y, además, decide en «Por aprobar»: mira «Qué cambia si lo publicas» y toca «Publicar ahora», «Programar» o «Devolver con comentario». También archiva y desarchiva, cambia la dirección de lo ya publicado, «Ajustes del sitio» y «Redirecciones». Le llega el aviso «Hay contenido de la web por aprobar». Tú haces lo mismo, sin ese aviso.',
       admin: 'Todo lo del editor y, además, decide en «Por aprobar»: mira «Qué cambia si lo publicas» y toca «Publicar ahora», «Programar» o «Devolver con comentario». También archiva y desarchiva, cambia la dirección de lo ya publicado, «Ajustes del sitio» y «Redirecciones». Le llega el aviso «Hay contenido de la web por aprobar».',
@@ -302,7 +302,7 @@ export const WEB: Answer[] = [
   {
     id: 'web-programar',
     roles: ['boss', 'admin'],
-    q: ['como funciona programar en la web', 'como programo una noticia para que salga sola', 'que pasa si programo con una hora que ya paso', 'quien programa lo de la web'],
+    q: ['como funciona programar en la web', 'que pasa cuando algo queda programado', 'que pasa si programo con una hora que ya paso', 'quien programa lo de la web'],
     a: {
       boss: 'En «Por aprobar» → el contenido → «Decidir» → «Programar»: eliges «Día» y «Hora», en hora del Táchira. A esa hora aparece sola en la web, en menos de un minuto, y hasta entonces nadie la ve. Una hora que ya pasó no se acepta. Lo que ya está en la web no se programa: sus cambios se publican ahora.',
       admin: 'Programan el aprobador de la web y el jefe, en «Decidir» → «Programar»: eligen «Día» y «Hora», en hora del Táchira. A esa hora aparece sola en la web, en menos de un minuto, y hasta entonces nadie la ve. Una hora que ya pasó no se acepta. Tú no programas.',
@@ -343,10 +343,10 @@ export const WEB: Answer[] = [
   {
     id: 'web-aprobar-saber',
     roles: ['boss', 'admin'],
-    q: ['que hay que saber de aprobar en la web', 'que hay que saber cuando uno aprueba en la web', 'que cuidados hay al publicar en la web', 'que pasa si cambian el borrador mientras lo reviso'],
+    q: ['que hay que saber de la web al aprobar', 'que hay que saber cuando uno aprueba en la web', 'que cuidados hay al publicar en la web', 'que pasa si cambian el borrador mientras lo reviso'],
     a: {
-      boss: 'Con «Le falta esto para publicarse», «Publicar ahora» no se puede tocar. Se publica exactamente lo que se revisó: si alguien cambió el borrador mientras tanto, la app no lo publica y pide abrirlo de nuevo. Lo que ya está en la web no se programa: sus cambios se publican ahora. El aviso de «Por aprobar» le llega solo al aprobador; tú lo ves en la lista.',
-      admin: 'Con «Le falta esto para publicarse», «Publicar ahora» no se puede tocar. Se publica exactamente lo que se revisó: si alguien cambió el borrador mientras tanto, la app no lo publica y pide abrirlo de nuevo. Lo que ya está en la web no se programa: sus cambios se publican ahora. El aviso de «Por aprobar» le llega solo al aprobador; el jefe lo ve en la lista.',
+      boss: 'Con «Le falta esto para publicarse», «Publicar ahora» no se puede tocar. Se publica exactamente lo que se revisó: si alguien cambió el borrador mientras tanto, la app no lo publica y pide abrirlo de nuevo. Lo que ya está en la web no se programa: sus cambios se publican ahora. El aviso de «Por aprobar» no te llega: lo ves en la lista.',
+      admin: 'Con «Le falta esto para publicarse», «Publicar ahora» no se puede tocar. Se publica exactamente lo que se revisó: si alguien cambió el borrador mientras tanto, la app no lo publica y pide abrirlo de nuevo. Lo que ya está en la web no se programa: sus cambios se publican ahora.',
     },
   },
   {
@@ -401,7 +401,7 @@ export const WEB: Answer[] = [
   {
     id: 'web-traido-revisar',
     roles: ['boss', 'admin'],
-    q: ['que hay que revisar en cada nota traida de la web vieja', 'cuando pasemos las noticias de la web vieja que hay que revisar', 'que dice el aviso traido de la web vieja', 'como se revisa lo que se trae de la web anterior'],
+    q: ['que hay que revisar en cada nota traida de la web vieja', 'cuando pasemos las noticias de la web vieja que hay que revisar', 'que se revisa antes de enviar una nota traida', 'como se revisa lo que se trae de la web anterior'],
     a: 'Antes de enviar cada nota: el «Texto alternativo» de cada foto (llegan con «[Por escribir] …»), las marcas de datos quitados como «[correo retirado]», lo demás que diga el aviso «Traído de la web vieja», los nombres de personas que no son figuras públicas, menores y datos de salud, y el tipo, los temas, el municipio, la fecha y la foto principal. Lo que no se conserva se archiva.',
   },
   {
@@ -456,7 +456,7 @@ export const WEB: Answer[] = [
   {
     id: 'web-editor-avisos',
     roles: ['boss', 'admin'],
-    q: ['que avisos salen en el editor de la web', 'que avisos me pueden salir arriba del editor', 'que significa esto ya esta en la web en el editor', 'que es traido de la web vieja'],
+    q: ['que avisos salen en el editor de la web', 'que avisos me pueden salir arriba del editor', 'que significa esto ya esta en la web en el editor', 'cuales son los avisos del editor'],
     a: '«Te lo devolvieron con este comentario», «Esperando aprobación», «Esto ya está en la web» (los cambios salen solo cuando se publique de nuevo), «Programado: sale el …», «Traído de la web vieja» y «Archivado: no se ve en la web». Abajo, «Para enviarlo a aprobación falta esto» dice lo que falta.',
   },
   {
@@ -534,8 +534,8 @@ export const WEB: Answer[] = [
   {
     id: 'web-texto-formato',
     roles: ['boss', 'admin'],
-    q: ['como le pongo negritas a un texto de la web', 'como pongo un enlace en el texto de la web', 'como funciona el formato del texto y los enlaces en la web', 'como pongo cursiva en una noticia'],
-    a: 'Selecciona las palabras y toca el botón de negrita (la B), el de cursiva (la I) o el de enlace (la cadena); para un enlace, pon el enlace en «Dirección del enlace» y toca «Poner el enlace». En el cuadro quedan entre signos («Los botones lo escriben por ti.») y en la web salen sin ellos; «Así se ve en la web» lo muestra. Lo que se pega llega como texto simple.',
+    q: ['como le pongo negritas a un texto de la web', 'como pongo un enlace en el texto de la web', 'como funcionan las negritas y los enlaces', 'como pongo cursiva en una noticia'],
+    a: 'Selecciona las palabras y toca el botón de negrita (la B), el de cursiva (la I) o el de enlace (la cadena); para un enlace, pon el enlace en «Dirección del enlace» y toca «Poner el enlace». En el cuadro quedan entre signos («Los botones lo escriben por ti.») y en la web salen sin ellos. Lo que se pega llega como texto simple.',
   },
   {
     id: 'web-texto-asterisco',
@@ -590,7 +590,7 @@ export const WEB: Answer[] = [
     id: 'web-foto-palabras',
     roles: ['boss', 'admin'],
     q: ['que palabras lleva cada foto de la biblioteca', 'que se le escribe a una foto de la web', 'que es el pie de foto y el credito', 'como escribo el texto alternativo de una foto'],
-    a: 'El «Texto alternativo», obligatorio: lo oyen las personas ciegas y lo usan los buscadores, así que describe lo que se ve en pocas palabras (quién, qué hace, dónde). El «Pie de foto» cuenta la foto y el «Crédito» dice quién la tomó, los dos opcionales. Y el «Punto de interés»: lo que siempre debe verse cuando la web la recorta.',
+    a: 'El «Texto alternativo», obligatorio: lo oyen las personas ciegas y lo usan los buscadores, así que describe lo que se ve en pocas palabras (quién, qué hace, dónde). El «Pie de foto» (lo que cuenta la foto, debajo de ella) y el «Crédito» (quién la tomó) son opcionales. Y el «Punto de interés»: lo que siempre debe verse cuando la web la recorta.',
   },
   {
     id: 'web-biblioteca-acepta',
@@ -717,14 +717,17 @@ export const WEB: Answer[] = [
     id: 'web-direccion-cambiada',
     roles: ['boss', 'admin'],
     q: ['si el aprobador le cambia la direccion a una noticia publicada que pasa con la vieja', 'se puede cambiar la direccion de una noticia publicada', 'quien cambia la direccion en la web de un contenido'],
-    a: 'La vieja sigue llevando a la nueva sola. Después de publicado, la «Dirección en la web» solo la cambia quien aprueba, y la dirección de una página no se cambia.',
+    a: {
+      boss: 'La vieja sigue llevando a la nueva sola. Después de publicado, la «Dirección en la web» la cambian solo el aprobador de la web y tú. La dirección de una página no se cambia.',
+      admin: 'La vieja sigue llevando a la nueva sola. Después de publicado, la «Dirección en la web» la cambian solo el aprobador de la web y el jefe: tú no la cambias. La dirección de una página no se cambia.',
+    },
   },
   // The public site, what the person sees (GUIA-WEB part 1).
   {
     id: 'web-marco-paginas',
     roles: ['boss', 'admin'],
-    q: ['que tienen todas las paginas de la web arriba y abajo', 'que sale arriba de cada pagina de la web', 'que tiene el pie de la web', 'donde esta el boton de consultar mi solicitud en la web'],
-    a: 'Arriba, el nombre y el cargo del gobernador, con «Hacer un reporte» y «Consultar mi solicitud», y el menú. Abajo, el pie: los mismos dos botones, el aviso de que esto no es un servicio de emergencias, las secciones, «Canales oficiales», las páginas legales y «Acceso del personal». La franja de la versión de prueba sale arriba y al final.',
+    q: ['que tienen todas las paginas de la web arriba y en el pie', 'que tiene la cabecera de la web', 'que tiene el pie de la web', 'donde esta el boton de consultar mi solicitud en la web'],
+    a: 'Arriba, el nombre y el cargo del gobernador, con «Hacer un reporte» y «Consultar mi solicitud», y el menú. En el pie, los mismos dos botones, el aviso de que esto no es un servicio de emergencias, las secciones, «Canales oficiales», las páginas legales y «Acceso del personal».',
   },
   {
     id: 'web-noticias-vacio',
@@ -735,7 +738,7 @@ export const WEB: Answer[] = [
   {
     id: 'web-noticia-pagina',
     roles: ['boss', 'admin'],
-    q: ['que lleva cada noticia en su pagina', 'como se ve una noticia en la web', 'que sale al final de una noticia'],
+    q: ['que lleva cada noticia por dentro', 'que lleva cada nota cuando la abres', 'que sale al final de una noticia'],
     a: 'Cada nota lleva su fecha, su firma, su foto y su texto; al final, las «Fuentes», los temas y el botón «Enviar una observación», y debajo, «Noticias relacionadas». Una columna de «Opinión» dice «Observaciones sobre este artículo» y muestra «Otros artículos de opinión».',
   },
   {
@@ -805,7 +808,7 @@ export const WEB: Answer[] = [
   {
     id: 'web-prueba-real-ejemplo',
     roles: ['boss', 'admin'],
-    q: ['que es de verdad y que es de mentira en la web de prueba', 'que es real y que es de ejemplo en la prueba', 'que trae la version de prueba de la web', 'que hay que saber de la version de prueba'],
+    q: ['que es de verdad y que es de mentira en la web de prueba', 'que es real y que es de ejemplo en la prueba', 'que viene de la web oficial en la prueba', 'que hay que saber de la version de prueba'],
     a: 'Viene de la web oficial: el nombre, el cargo y la foto de la portada, la biografía, las noticias, las columnas de opinión y el último Semanario. Es de ejemplo: las personas del panel y las solicitudes de «Atención ciudadana», que llevan «(demo)» en el título. Siete preguntas frecuentes ya venían escritas en la app. Lo que no tiene contenido real todavía no sale.',
   },
   {
