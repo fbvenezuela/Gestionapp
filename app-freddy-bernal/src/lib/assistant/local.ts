@@ -826,8 +826,10 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // After a turn about an event, what goes on with it stays with the steps below (the refusal, how the event goes).
   const followsEvent = !!before && !!eventThread(earlier).at(-1) && goesOn(i.question);
   // (After an answer of the web or of Atención, a follow-up of one or two words is always read with the question before
-  // too: in its domain, a word alone, «¿y se borra?», would be sure of another answer of the web.)
-  const goesOnWith = !!before && (ELLIPTIC.test(q) || keyWords(q).length <= 2) && (tokens(q).length > 0 || NEXT_ASK.test(q)) && !eventThread(earlier).at(-1) && (ownFound[0]?.confidence !== 'strong' || (!!threadDomain && keyWords(q).length <= 2));
+  // too: in its domain, a word alone, «¿y se borra?», would be sure of another answer of the web. Not when what it is
+  // sure of was written as that follow-up: «¿Y si la devuelvo?» of the guide answers «¿y si lo devuelven?».)
+  const writtenFollowUp = !!ownFound[0]?.entry.q.some((x) => /^¿?\s*y\s/i.test(x));
+  const goesOnWith = !!before && (ELLIPTIC.test(q) || keyWords(q).length <= 2) && (tokens(q).length > 0 || NEXT_ASK.test(q)) && !eventThread(earlier).at(-1) && (ownFound[0]?.confidence !== 'strong' || (!!threadDomain && keyWords(q).length <= 2 && !writtenFollowUp));
   const found = goesOnWith ? fits(findAnswers(i.question, { roles: i.ctx.roles, screen: i.ctx.screen, extra: before, names, ...inThread })) : ownFound;
   const best: Match | null = found[0] ?? null;
   const strong = best?.confidence === 'strong';
