@@ -264,8 +264,8 @@ export const WEB: Answer[] = [
     roles: ['boss', 'admin'],
     q: ['la web publica sola', 'se publica solo lo que escribo en la web', 'algo sale en la web sin que lo aprueben', 'la web saca las noticias sola', 'lo que guarda el editor sale en la web'],
     a: {
-      boss: 'No: nada sale sin que alguien lo publique, y guardar un borrador nunca cambia la web. Lo programado sí sale solo: tú o el aprobador lo dejan en «Programar», con «Día» y «Hora» del Táchira, y a esa hora aparece. Al momento y sin aprobación solo sale lo que se guarda en «Ajustes del sitio».',
-      admin: 'No: nada sale sin que alguien lo publique, y guardar un borrador nunca cambia la web. Lo programado sí sale solo: el aprobador o el jefe lo dejan en «Programar», con «Día» y «Hora» del Táchira, y a esa hora aparece. Al momento y sin aprobación solo sale lo que se guarda en «Ajustes del sitio».',
+      boss: 'No: nada sale sin que alguien lo publique, y guardar un borrador nunca cambia la web. Lo programado sí sale solo: tú o el aprobador lo dejan en «Programar», con «Día» y «Hora» de Venezuela, y a esa hora aparece. Al momento y sin aprobación solo sale lo que se guarda en «Ajustes del sitio».',
+      admin: 'No: nada sale sin que alguien lo publique, y guardar un borrador nunca cambia la web. Lo programado sí sale solo: el aprobador o el jefe lo dejan en «Programar», con «Día» y «Hora» de Venezuela, y a esa hora aparece. Al momento y sin aprobación solo sale lo que se guarda en «Ajustes del sitio».',
     },
   },
   {
@@ -304,8 +304,8 @@ export const WEB: Answer[] = [
     roles: ['boss', 'admin'],
     q: ['como funciona programar en la web', 'que pasa cuando algo queda programado', 'que pasa si programo con una hora que ya paso', 'quien programa lo de la web'],
     a: {
-      boss: 'En «Por aprobar» → el contenido → «Decidir» → «Programar»: eliges «Día» y «Hora», en hora del Táchira. A esa hora aparece sola en la web, en menos de un minuto, y hasta entonces nadie la ve. Una hora que ya pasó no se acepta. Lo que ya está en la web no se programa: sus cambios se publican ahora.',
-      admin: 'Programan el aprobador de la web y el jefe, en «Decidir» → «Programar»: eligen «Día» y «Hora», en hora del Táchira. A esa hora aparece sola en la web, en menos de un minuto, y hasta entonces nadie la ve. Una hora que ya pasó no se acepta. Tú no programas.',
+      boss: 'En «Por aprobar» → el contenido → «Decidir» → «Programar»: eliges «Día» y «Hora», en hora de Venezuela. A esa hora aparece sola en la web, en menos de un minuto, y hasta entonces nadie la ve. Una hora que ya pasó no se acepta. Lo que ya está en la web no se programa: sus cambios se publican ahora.',
+      admin: 'Programan el aprobador de la web y el jefe, en «Decidir» → «Programar»: eligen «Día» y «Hora», en hora de Venezuela. A esa hora aparece sola en la web, en menos de un minuto, y hasta entonces nadie la ve. Una hora que ya pasó no se acepta. Tú no programas.',
     },
   },
   {
@@ -361,7 +361,7 @@ export const WEB: Answer[] = [
     roles: ['boss', 'admin'],
     q: ['como es el camino cuando me toca revisar algo de la web', 'como se revisa y se decide algo en la web', 'como apruebo algo de la web', 'como publico lo que me mando el editor'],
     a: {
-      boss: 'En «Por aprobar» abres el contenido, miras «Qué cambia si lo publicas» y la vista previa, y en «Decidir» eliges: «Publicar ahora», «Programar» (día y hora del Táchira) o «Devolver con comentario», escribiendo qué hay que cambiar. A quien lo envió le llega el aviso de lo que decidiste.',
+      boss: 'En «Por aprobar» abres el contenido, miras «Qué cambia si lo publicas» y la vista previa, y en «Decidir» eliges: «Publicar ahora», «Programar» (día y hora de Venezuela) o «Devolver con comentario», escribiendo qué hay que cambiar. A quien lo envió le llega el aviso de lo que decidiste.',
       admin: 'Lo revisan el aprobador de la web y el jefe: en «Por aprobar» abren el contenido, miran «Qué cambia si lo publicas» y la vista previa, y en «Decidir» eligen «Publicar ahora», «Programar» o «Devolver con comentario». Tú lo lees, pero no decides.',
     },
     go: '/admin/web/por-aprobar',
