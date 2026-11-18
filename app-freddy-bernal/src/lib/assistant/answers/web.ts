@@ -239,7 +239,7 @@ export const WEB: Answer[] = [
     roles: ['boss', 'admin'],
     q: ['quien hace que en la web', 'quien escribe y quien publica en la web', 'quien publica en la web', 'quien escribe lo de la web'],
     a: {
-      boss: 'El editor de la web escribe y envía a aprobación, y nunca publica. El aprobador de la web y tú revisan y deciden: publicar, programar, devolver con un comentario o archivar. Administración lee todo, borradores incluidos, y cambia «Ajustes del sitio» y «Redirecciones», pero nunca escribe ni publica.',
+      boss: 'El editor de la web escribe y envía a aprobación, y nunca publica. El aprobador de la web y tú (haces lo mismo que el aprobador) revisan y deciden: publicar, programar, devolver con un comentario o archivar. Administración lee todo, borradores incluidos, y cambia «Ajustes del sitio» y «Redirecciones», pero nunca escribe ni publica.',
       admin: 'El editor de la web escribe y envía a aprobación, y nunca publica. El aprobador de la web y el jefe revisan y deciden: publicar, programar, devolver con un comentario o archivar. Tú lees todo, borradores incluidos, y cambias «Ajustes del sitio» y «Redirecciones», pero nunca escribes ni publicas.',
     },
   },
@@ -302,7 +302,7 @@ export const WEB: Answer[] = [
   {
     id: 'web-programar',
     roles: ['boss', 'admin'],
-    q: ['como funciona programar en la web', 'que pasa cuando algo queda programado', 'que pasa si programo con una hora que ya paso', 'quien programa lo de la web'],
+    q: ['como funciona programar en la web', 'como programo una noticia para que salga sola', 'que pasa cuando algo queda programado', 'que pasa si programo con una hora que ya paso', 'quien programa lo de la web'],
     a: {
       boss: 'En «Por aprobar» → el contenido → «Decidir» → «Programar»: eliges «Día» y «Hora», en hora del Táchira. A esa hora aparece sola en la web, en menos de un minuto, y hasta entonces nadie la ve. Una hora que ya pasó no se acepta. Lo que ya está en la web no se programa: sus cambios se publican ahora.',
       admin: 'Programan el aprobador de la web y el jefe, en «Decidir» → «Programar»: eligen «Día» y «Hora», en hora del Táchira. A esa hora aparece sola en la web, en menos de un minuto, y hasta entonces nadie la ve. Una hora que ya pasó no se acepta. Tú no programas.',
@@ -319,7 +319,7 @@ export const WEB: Answer[] = [
     roles: ['boss', 'admin'],
     q: ['que avisos llegan cuando alguien manda o aprueba algo de la web', 'que avisos llegan cuando decido algo de la web', 'le llega aviso al editor cuando publican su noticia', 'que avisos tiene la web'],
     a: {
-      boss: 'Al enviar, al aprobador de la web le llega «Hay contenido de la web por aprobar»; a ti no: tú lo ves en la lista «Por aprobar». Al decidir, a quien lo envió le llega «Tu contenido ya está en la web», «Tu contenido de la web quedó programado» o «Te devolvieron un contenido de la web». Llegan en la campana y al teléfono, nunca por correo.',
+      boss: 'Al enviar, queda «En revisión» y al aprobador de la web le llega «Hay contenido de la web por aprobar»; a ti no: tú lo ves en la lista «Por aprobar». Al decidir, a quien lo envió le llega «Tu contenido ya está en la web», «Tu contenido de la web quedó programado» o «Te devolvieron un contenido de la web». Llegan en la campana y al teléfono, nunca por correo.',
       admin: 'Al enviar, al aprobador de la web le llega «Hay contenido de la web por aprobar» (al jefe no: lo ve en la lista). Al decidir, a quien lo envió le llega «Tu contenido ya está en la web», «Tu contenido de la web quedó programado» o «Te devolvieron un contenido de la web». Llegan en la campana y al teléfono, nunca por correo.',
     },
   },
@@ -336,17 +336,17 @@ export const WEB: Answer[] = [
     q: ['cuando reviso algo de la web que me muestra', 'que ve quien aprueba cuando revisa algo de la web', 'que sale cuando abro algo en por aprobar de la web', 'que es que cambia si lo publicas'],
     a: {
       boss: 'Quién lo envió y su último cambio; «Ver la vista previa», «Abrir el editor», «Versiones» y «Verlo en la web»; «Le falta esto para publicarse», si falta algo; y «Qué cambia si lo publicas», campo por campo, con «Antes» y «Ahora». En «Decidir» eliges «Publicar ahora», «Programar» o «Devolver con comentario».',
-      admin: 'Quién lo envió y su último cambio; «Ver la vista previa», «Abrir el editor», «Versiones» y «Verlo en la web»; «Le falta esto para publicarse», si falta algo; y «Qué cambia si lo publicas», campo por campo, con «Antes» y «Ahora». Deciden el aprobador de la web y el jefe; tú lo lees.',
+      admin: 'Quién lo envió y su último cambio; «Ver la vista previa», «Abrir el editor», «Versiones» y «Verlo en la web»; «Le falta esto para publicarse», si falta algo; y «Qué cambia si lo publicas», campo por campo, con «Antes» y «Ahora». En «Decidir», el aprobador de la web y el jefe eligen «Publicar ahora», «Programar» o «Devolver con comentario»; tú lo lees.',
     },
     go: '/admin/web/por-aprobar',
   },
   {
     id: 'web-aprobar-saber',
     roles: ['boss', 'admin'],
-    q: ['que hay que saber de la web al aprobar', 'que hay que saber cuando uno aprueba en la web', 'que cuidados hay al publicar en la web', 'que pasa si cambian el borrador mientras lo reviso'],
+    q: ['que hay que saber de aprobar en la web', 'que hay que saber de la web al aprobar', 'que hay que saber cuando uno aprueba en la web', 'que cuidados hay al publicar en la web', 'que pasa si cambian el borrador mientras lo reviso'],
     a: {
       boss: 'Con «Le falta esto para publicarse», «Publicar ahora» no se puede tocar. Se publica exactamente lo que se revisó: si alguien cambió el borrador mientras tanto, la app no lo publica y pide abrirlo de nuevo. Lo que ya está en la web no se programa: sus cambios se publican ahora. El aviso de «Por aprobar» no te llega: lo ves en la lista.',
-      admin: 'Con «Le falta esto para publicarse», «Publicar ahora» no se puede tocar. Se publica exactamente lo que se revisó: si alguien cambió el borrador mientras tanto, la app no lo publica y pide abrirlo de nuevo. Lo que ya está en la web no se programa: sus cambios se publican ahora.',
+      admin: 'Con «Le falta esto para publicarse», «Publicar ahora» no se puede tocar. Se publica exactamente lo que se revisó: si alguien cambió el borrador mientras tanto, la app no lo publica y pide abrirlo de nuevo. Lo que ya está en la web no se programa: sus cambios se publican ahora. El aviso de «Por aprobar» le llega solo al aprobador; el jefe lo ve en la lista.',
     },
   },
   {
@@ -371,7 +371,7 @@ export const WEB: Answer[] = [
     q: ['que hay que saber del flujo de escribir en la web', 'quien escribe lo de la web y que hay que saber de eso', 'que pasa si no guardo el borrador de la web', 'las paginas de la web se crean'],
     a: {
       boss: 'El editor de la web escribe y envía, pero nunca publica; tú y el aprobador también escriben. Las páginas no se crean: se editan, y la portada va por bloques. Lo que escribes y no guardas queda solo en ese teléfono o esa computadora: solo «Guardar borrador» lo sube. Administración lee todo, borradores también, y nunca escribe.',
-      admin: 'El editor de la web escribe y envía, pero nunca publica; el aprobador y el jefe también escriben. Las páginas no se crean: se editan, y la portada va por bloques. Lo que se escribe y no se guarda queda solo en ese teléfono o esa computadora: solo «Guardar borrador» lo sube. Tú lees todo, borradores también, y nunca escribes.',
+      admin: 'El editor de la web escribe y envía, pero nunca publica; el aprobador y el jefe también escriben. Las páginas no se crean: se editan, y la portada va por bloques. Lo que se escribe y no se guarda queda solo en ese teléfono o esa computadora: solo «Guardar borrador» lo sube. Tú, Administración, lees todo, borradores también, y nunca escribes.',
     },
   },
   {
@@ -387,22 +387,22 @@ export const WEB: Answer[] = [
     id: 'web-falta-esto',
     roles: ['boss'],
     q: ['no puedo publicar me dice falta esto', 'no me deja publicar la noticia', 'por que no puedo enviar a aprobacion', 'que significa para enviarlo a aprobacion falta esto'],
-    a: 'Completa lo que dice la lista: en el editor, «Para enviarlo a aprobación falta esto», y al revisar, «Le falta esto para publicarse»; cuando está completo dice «Listo para enviar a aprobación». En lo traído de la web anterior suele ser el «Texto alternativo» de las fotos y las marcas como «[correo retirado]».',
+    a: 'Completa lo que dice la lista: en el editor, «Para enviarlo a aprobación falta esto», y al revisar, «Le falta esto para publicarse»; cuando está completo dice «Listo para enviar a aprobación». En lo traído de la web anterior, lo que falta suele ser el «Texto alternativo» de las fotos que dicen «Por escribir» y las marcas de datos quitados, como «correo retirado».',
   },
   {
     id: 'web-por-escribir',
     roles: ['boss', 'admin'],
     q: ['no me deja publicar la nota y la foto tiene un por escribir', 'que es por escribir en una foto', 'por que una foto dice por escribir'],
     a: {
-      boss: 'Le falta su «Texto alternativo»: las fotos de la web anterior llegan con «[Por escribir] …», y la app no publica una nota con una foto así. Se escribe en la «Biblioteca», en esa foto, y después envías la nota otra vez.',
-      admin: 'Le falta su «Texto alternativo»: las fotos de la web anterior llegan con «[Por escribir] …», y la app no publica una nota con una foto así. Lo escriben en la «Biblioteca» el editor de la web, el aprobador o el jefe.',
+      boss: 'Le falta su «Texto alternativo»: las fotos de la web anterior llegan marcadas «Por escribir», y la app no publica una nota con una foto así. Se escribe en la «Biblioteca», en esa foto, y después envías la nota otra vez.',
+      admin: 'Le falta su «Texto alternativo»: las fotos de la web anterior llegan marcadas «Por escribir», y la app no publica una nota con una foto así. Lo escriben en la «Biblioteca» el editor de la web, el aprobador o el jefe.',
     },
   },
   {
     id: 'web-traido-revisar',
     roles: ['boss', 'admin'],
     q: ['que hay que revisar en cada nota traida de la web vieja', 'cuando pasemos las noticias de la web vieja que hay que revisar', 'que se revisa antes de enviar una nota traida', 'como se revisa lo que se trae de la web anterior'],
-    a: 'Antes de enviar cada nota: el «Texto alternativo» de cada foto (llegan con «[Por escribir] …»), las marcas de datos quitados como «[correo retirado]», lo demás que diga el aviso «Traído de la web vieja», los nombres de personas que no son figuras públicas, menores y datos de salud, y el tipo, los temas, el municipio, la fecha y la foto principal. Lo que no se conserva se archiva.',
+    a: 'Antes de enviar cada nota: el «Texto alternativo» de cada foto (llegan marcadas «Por escribir»), las marcas de datos quitados como «correo retirado», lo demás que diga el aviso «Traído de la web vieja», los nombres de personas que no son figuras públicas, menores y datos de salud, y el tipo, los temas, el municipio, la fecha y la foto principal. Lo que no se conserva se archiva: nada se borra.',
   },
   {
     id: 'web-limites',
@@ -457,7 +457,7 @@ export const WEB: Answer[] = [
     id: 'web-editor-avisos',
     roles: ['boss', 'admin'],
     q: ['que avisos salen en el editor de la web', 'que avisos me pueden salir arriba del editor', 'que significa esto ya esta en la web en el editor', 'cuales son los avisos del editor'],
-    a: '«Te lo devolvieron con este comentario», «Esperando aprobación», «Esto ya está en la web» (los cambios salen solo cuando se publique de nuevo), «Programado: sale el …», «Traído de la web vieja» y «Archivado: no se ve en la web». Abajo, «Para enviarlo a aprobación falta esto» dice lo que falta.',
+    a: '«Te lo devolvieron con este comentario», «Esperando aprobación», «Esto ya está en la web» (los cambios salen solo cuando se publique de nuevo), «Programado: sale el …», «Traído de la web vieja» y «Archivado: no se ve en la web». Lo que no se guardó vuelve con «Recuperamos cambios que no se habían guardado en este teléfono o en esta computadora.». Abajo, «Para enviarlo a aprobación falta esto» dice lo que falta.',
   },
   {
     id: 'web-buscadores',
@@ -470,7 +470,7 @@ export const WEB: Answer[] = [
     roles: ['boss', 'admin'],
     q: ['como veo una version vieja en vista previa', 'como vuelvo a una version anterior de una noticia', 'publique un cambio que estaba malo como vuelvo a lo de antes', 'y para que salga en la web una version vieja que hay que hacer'],
     a: {
-      boss: 'En el editor, «Versiones»: «Ver» abre una versión en la vista previa, y «Volver a esta versión» la copia al borrador como una versión nueva, sin perder nada. Para que salga en la web, se envía a aprobación y se publica otra vez. El editor también puede volver a una versión.',
+      boss: 'En el editor, «Versiones»: «Ver» abre una versión en la vista previa, y «Volver a esta versión» la copia al borrador como una versión nueva, sin perder nada. Para que salga en la web, hay que enviarla a aprobación y publicarla otra vez. El editor también puede volver a una versión.',
       admin: 'En el editor, «Versiones»: «Ver» abre una versión en la vista previa, y «Volver a esta versión» la copia al borrador como una versión nueva. Para que salga, se envía a aprobación y se publica otra vez. Lo hacen el editor de la web, el aprobador y el jefe; tú lees «Versiones».',
     },
   },
@@ -479,8 +479,8 @@ export const WEB: Answer[] = [
     roles: ['boss', 'admin'],
     q: ['como se arma la portada', 'como acomodo los bloques de la portada', 'que bloques puede tener una pagina de la web', 'como agrego un bloque a la portada'],
     a: {
-      boss: 'Por bloques: en «Web» → «Páginas» → «Inicio», «Bloques de la página» trae cada bloque con «Editar», «Subir», «Bajar» y «Ocultar» o «Mostrar», y «Agregar un bloque» abre los 15 tipos. Guarda el borrador y publica la página: el cambio sale cuando se publica.',
-      admin: 'Por bloques: en «Web» → «Páginas» → «Inicio», «Bloques de la página» trae cada bloque con «Editar», «Subir», «Bajar» y «Ocultar» o «Mostrar», y «Agregar un bloque» abre los 15 tipos. La arman el editor de la web, el aprobador y el jefe; tú no cambias las páginas.',
+      boss: 'Por bloques: en «Web» → «Páginas» → «Inicio», «Bloques de la página» trae cada bloque con «Editar», «Subir», «Bajar» y «Ocultar» o «Mostrar», y «Agregar un bloque» abre los 15 tipos, como «Portada con foto», «Texto», «Foto», «Galería» o «Video». Guarda el borrador y publica la página: el cambio sale cuando se publica.',
+      admin: 'Por bloques: en «Web» → «Páginas» → «Inicio», «Bloques de la página» trae cada bloque con «Editar», «Subir», «Bajar» y «Ocultar» o «Mostrar», y «Agregar un bloque» abre los 15 tipos, como «Portada con foto», «Texto», «Foto», «Galería» o «Video». La arman el editor de la web, el aprobador y el jefe; tú no cambias las páginas.',
     },
   },
   {
@@ -611,14 +611,14 @@ export const WEB: Answer[] = [
     id: 'web-foto-archivada',
     roles: ['boss', 'admin'],
     q: ['si archivan una foto que pasa con las paginas que la usan', 'si archivo una foto de la biblioteca se cae de las noticias', 'que pasa si archivo una foto', 'como saco una foto del archivo de la biblioteca'],
-    a: 'Las páginas publicadas que la usan la siguen mostrando. Pero nadie puede elegirla, y un borrador que la use no se puede enviar hasta cambiarla. «Devolver a la biblioteca» la saca del archivo.',
+    a: 'Lo publicado la sigue mostrando: «Archivar» la saca de la biblioteca, no de las páginas que ya la usan. Pero nadie puede elegirla, y un borrador que la use no se puede enviar hasta cambiarla. Cambiar sus textos tampoco toca lo publicado hasta que se publique de nuevo. «Devolver a la biblioteca» la saca del archivo.',
   },
   {
     id: 'web-biblioteca-privado',
     roles: ['boss', 'admin'],
     q: ['subi una foto que no debia ser publica', 'metieron en la biblioteca un documento privado por error', 'como borro una foto de la biblioteca de la web', 'se puede borrar un archivo de la biblioteca'],
     a: {
-      boss: 'Archívalo y avísale enseguida a Administración: la app no borra archivos, y para borrarlo del todo lo pide aparte. Mientras tanto, cámbialo en cada contenido de «Dónde se usa» y publícalos de nuevo, para que la web deje de mostrarlo.',
+      boss: 'Archívalo y avísale enseguida a Administración: la app no borra archivos, y para borrarlo del todo lo pide aparte. Mientras tanto, cámbialo en cada contenido de «Dónde se usa» y vuelve a publicar cada uno, para que la web deje de mostrarlo.',
       admin: 'Lo archiva quien escribe o aprueba la web, y te avisa: la app no borra archivos, y para borrarlo del todo tú lo pides aparte. Mientras tanto, ellos lo cambian en cada contenido de «Dónde se usa» y publican cada uno de nuevo, para que la web deje de mostrarlo.',
     },
   },
@@ -649,7 +649,7 @@ export const WEB: Answer[] = [
     q: ['que hay que saber de ajustes del sitio', 'como es el flujo de ajustes del sitio', 'quien puede tocar ajustes del sitio', 'el editor de la web entra a ajustes del sitio'],
     a: {
       boss: 'Lo cambian el aprobador de la web, tú y Administración; el editor de la web no entra. Lo guardado sale al momento, sin aprobación («Guardado. La web ya lo muestra.»). Un contacto sale solo «Verificado» y una cuenta solo «Activa» y «Verificada». Los «Avisos legales» se ven pero no se cambian ahí, y en la versión de prueba el nombre, las cuentas y los contactos no se guardan.',
-      admin: 'Lo cambian el aprobador de la web, el jefe y tú; el editor de la web no entra. Lo guardado sale al momento, sin aprobación («Guardado. La web ya lo muestra.»). Un contacto sale solo «Verificado» y una cuenta solo «Activa» y «Verificada». Los «Avisos legales» se ven pero no se cambian ahí, y en la versión de prueba el nombre, las cuentas y los contactos no se guardan.',
+      admin: 'Lo cambian el aprobador de la web y el jefe, y tú también; el editor de la web no entra. Lo guardado sale al momento, sin aprobación («Guardado. La web ya lo muestra.»). Un contacto sale solo «Verificado» y una cuenta solo «Activa» y «Verificada». Los «Avisos legales» se ven pero no se cambian ahí, y en la versión de prueba el nombre, las cuentas y los contactos no se guardan.',
     },
     go: '/admin/web/ajustes',
   },
@@ -703,7 +703,7 @@ export const WEB: Answer[] = [
     id: 'web-redireccion-como',
     roles: ['boss', 'admin'],
     q: ['como agrego una redireccion', 'como hago una redireccion', 'como llevo una direccion vieja a la nueva', 'como es el camino de una direccion vieja'],
-    a: 'En «Redirecciones» → «Nueva redirección»: en «Dirección vieja», la dirección como estaba antes, y en «Lleva a», la página de esta web adonde debe llevar; en ambas, solo el final, el que empieza con «/». En «Tipo» deja «Para siempre (lo normal)» y toca «Agregar la redirección». Sin redirección, quien entra a la vieja ve «Esta página no existe».',
+    a: 'En «Redirecciones» → «Nueva redirección»: en «Dirección vieja», la dirección como estaba antes, y en «Lleva a», la página de esta web adonde debe llevar; en ambas, solo el final, el que empieza con «/». En «Tipo» deja «Para siempre (lo normal)» y toca «Agregar la redirección»: la vieja lleva a la nueva. Sin redirección, quien entra a la vieja ve «Esta página no existe».',
     go: '/admin/web/redirecciones',
   },
   {
@@ -745,19 +745,19 @@ export const WEB: Answer[] = [
     id: 'web-programa-pagina',
     roles: ['boss', 'admin'],
     q: ['que es la pagina del programa semanal en la web', 'que dice la pagina del programa si no hay emisiones', 'que trae la pagina del programa del gobernador'],
-    a: 'Es la página del programa semanal del gobernador: la «Última emisión» y las «Emisiones anteriores», con el enlace al canal de YouTube. Cada emisión es un episodio, de «Web» → «Nuevo episodio». Sin emisiones, lleva al canal con «Ver las emisiones en YouTube», y hoy todavía no hay ninguna publicada.',
+    a: 'Es la página del programa semanal del gobernador: la «Última emisión» y las «Emisiones anteriores», con el enlace al canal de YouTube. Cada emisión es un episodio, de «Web» → «Nuevo episodio». Sin emisiones, lleva al canal oficial de YouTube con «Ver las emisiones en YouTube», y sin canal dice «Aún no hay emisiones publicadas.». El canal sale de «Ajustes del sitio» → «Canal de YouTube del programa». Hoy todavía no hay emisiones publicadas.',
   },
   {
     id: 'web-obras-gestion',
     roles: ['boss', 'admin'],
     q: ['que es gestion y obras en la web', 'de donde salen las obras de la web', 'que va a ver la gente en gestion y obras', 'como se ven las obras en la web'],
-    a: 'Es la página de las obras: «Obras», con tarjetas por estado («Anunciado», «En ejecución» o «Concluido») y filtros, y «Línea de tiempo», por mes. Sale de «Web» → «Obras y acciones». La «Inversión» y el «Avance» salen solo con su fuente. Hoy no hay obras publicadas, por eso no está en el menú.',
+    a: 'Es la página de las obras: «Obras», con tarjetas por estado («Anunciado», «En ejecución» o «Concluido») y los filtros «Municipio», «Categoría» y «Estado», con «Filtrar»; y «Línea de tiempo», por mes. Sale de «Web» → «Obras y acciones». La «Inversión» y el «Avance» salen solo con su fuente. Hoy no hay obras publicadas, por eso no está en el menú.',
   },
   {
     id: 'web-canales-pagina',
     roles: ['boss', 'admin'],
     q: ['que sale en la pagina canales de la web y de donde lo saca', 'que tiene la pagina de canales oficiales', 'que es como identificar las cuentas oficiales', 'que dice canales de la web si no hay cuentas'],
-    a: '«Canales oficiales», una tarjeta por cuenta, con la marca «verificada» en las confirmadas, y «Cómo identificar las cuentas oficiales», con el aviso contra estafas. Sale de «Ajustes del sitio» («Cuentas en redes» y los canales). Sin cuentas dice «Las cuentas oficiales se publicarán próximamente.», y en la prueba salen también las que faltan por confirmar.',
+    a: '«Canales oficiales», una tarjeta por cuenta, con la marca «verificada» en las confirmadas, y «Cómo identificar las cuentas oficiales», con el aviso contra estafas. Sale de «Ajustes del sitio» («Cuentas en redes» y los canales). Sin cuentas dice «Las cuentas oficiales se publicarán próximamente.». En la versión de prueba salen también las que faltan por confirmar, con «Estas cuentas están en proceso de confirmación.».',
   },
   {
     id: 'web-transparencia',
@@ -829,8 +829,8 @@ export const WEB: Answer[] = [
     roles: ['boss', 'admin'],
     q: ['en la lista de la prueba con que empieza cada rol', 'en la lista de la prueba yo con que entro y administracion con que', 'con que roles practico la web en la prueba', 'como entro a la web de prueba con otro rol'],
     a: {
-      boss: 'En «Acceso del personal» → «Versión de demostración», cada rol entra con un toque. Tú entras a tu «Inicio», con «Web» y «Atención» en el menú, y Administración a «Hoy», para empezar por «Ajustes» → «Equipo». El «Editor de la web» empieza en «Noticias y comunicados» → «Nueva noticia», y el «Aprobador de la web» en «Por aprobar» y «Ajustes del sitio».',
-      admin: 'En «Acceso del personal» → «Versión de demostración», cada rol entra con un toque. Tú entras a «Hoy», para empezar por «Ajustes» → «Equipo», y el jefe a su «Inicio», con «Web» y «Atención». El «Editor de la web» empieza en «Noticias y comunicados» → «Nueva noticia», y el «Aprobador de la web» en «Por aprobar» y «Ajustes del sitio».',
+      boss: 'En «Acceso del personal» → «Versión de demostración», cada rol entra con un toque. Tú entras a tu «Inicio», con «Web» y «Atención» en el menú, y Administración a «Hoy», para empezar por «Ajustes» → «Equipo». El «Editor de la web» empieza en «Noticias y comunicados» → «Nueva noticia», el «Aprobador de la web» en «Por aprobar» y «Ajustes del sitio», y el «Coordinador de atención» en la «Bandeja».',
+      admin: 'En «Acceso del personal» → «Versión de demostración», cada rol entra con un toque. Tú entras a «Hoy», para empezar por «Ajustes» → «Equipo», y el jefe a su «Inicio», con «Web» y «Atención». El «Editor de la web» empieza en «Noticias y comunicados» → «Nueva noticia», el «Aprobador de la web» en «Por aprobar» y «Ajustes del sitio», y el «Coordinador de atención» en la «Bandeja».',
     },
   },
   {

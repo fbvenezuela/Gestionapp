@@ -11,6 +11,7 @@ import { TOURS } from '@/lib/guides';
 import { DEMO_WORDS, LABEL_ALLOW, LABEL_PATTERNS, balancedQuotes, concreteDateTime, hasPhone, hasReceiptCode, quotedLabels } from '@/lib/guides/check';
 import { clientWords } from '@/lib/guides/web/words';
 import { ANSWERS, ANSWER_FILES, type Answer } from '@/lib/assistant/answers';
+import { HUECO } from '@/lib/assistant/text';
 
 // The screens' text: src/ outside the help content (the guides and these answers), without comments.
 const HELP_DIRS = [path.join('src', 'lib', 'guides'), path.join('src', 'lib', 'assistant', 'answers')];
@@ -159,7 +160,7 @@ describe('las respuestas de 360 sobre «Web» y «Atención»', () => {
     expect(bad, `\n${bad.join('\n')}`).toEqual([]);
   });
 
-  it('sin palabras del cliente, códigos, claves, nada interno, raya larga ni «usted» fuera de comillas', () => {
+  it('sin palabras del cliente, códigos, claves, nada interno, raya larga, «usted» fuera de comillas ni [corchetes]', () => {
     const bad: string[] = [];
     for (const [file, a] of list)
       for (const [key, text] of textsOf(a)) {
@@ -170,6 +171,8 @@ describe('las respuestas de 360 sobre «Web» y «Atención»', () => {
         if (INTERNAL.test(text)) bad.push(`${where}: algo interno`);
         if (/—/.test(text)) bad.push(`${where}: raya larga`);
         if (usted(text)) bad.push(`${where}: «usted» fuera de comillas`);
+        // A «[Por escribir]» reads as an unfilled hueco to the output net (brain.ts filterOutput), which drops its sentence.
+        if (HUECO.test(text.replace(/\[(?:ASISTENTE|APP|JEFE|NOMBRE)\]/g, ''))) bad.push(`${where}: un [corchete]: 360 lo toma por hueco y calla la frase`);
       }
     for (const [file, a] of list) for (const q of a.q) if (hasReceiptCode(q) || CLIENT.some((w) => q.toLowerCase().includes(w.toLowerCase()))) bad.push(`${file}/${a.id}: la pregunta «${q}»`);
     expect(bad, `\n${bad.join('\n')}`).toEqual([]);

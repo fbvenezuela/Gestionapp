@@ -60,8 +60,9 @@ export const ATENCION: Answer[] = [
       'que pasa si se va la señal a mitad del reporte',
       'el formulario de atencion guarda lo escrito',
       'y si se le va la luz llenando la solicitud',
+      'y si a la persona se le va la señal o quiere volver atras en el formulario',
     ],
-    a: 'No se pierde: lo escrito se guarda en esa pestaña. Si la página se recarga, dice «Se recuperó lo que había escrito en esta pestaña.», con «Empezar de nuevo». Sin señal, avisa que lo escrito queda guardado en ese dispositivo y que, si toca «Enviar», se enviará cuando vuelva la señal.',
+    a: 'No se pierde: lo escrito se guarda en esa pestaña. Si la página se recarga, dice «Se recuperó lo que había escrito en esta pestaña.», con «Empezar de nuevo». Sin señal, avisa que lo escrito queda guardado en ese dispositivo y que, si toca «Enviar», se enviará cuando vuelva la señal. Y «Atrás» vuelve al paso anterior.',
   },
   {
     id: 'atencion-formulario-atras',
@@ -207,8 +208,8 @@ export const ATENCION: Answer[] = [
       'quien tiene la clave de las solicitudes',
     ],
     a: {
-      boss: 'No: nadie del panel tiene la clave ni la puede recuperar, tampoco tú. Se muestra una sola vez, y lo explica la parte «Pérdida de la clave» de «Consultar mi solicitud». Si la persona dejó un correo, le llega el código, nunca la clave.',
-      admin: 'No: nadie del panel tiene la clave ni la puede recuperar, tampoco Administración. Se muestra una sola vez, y lo explica la parte «Pérdida de la clave» de «Consultar mi solicitud». Si la persona dejó un correo, le llega el código, nunca la clave.',
+      boss: 'No: la clave no se recupera. Nadie del panel la tiene, tampoco tú: se muestra una sola vez, y lo explica la parte «Pérdida de la clave» de «Consultar mi solicitud». Si la persona dejó un correo, le llega el código, nunca la clave.',
+      admin: 'No: la clave no se recupera. Nadie del panel la tiene, tampoco tú: se muestra una sola vez, y lo explica la parte «Pérdida de la clave» de «Consultar mi solicitud». Si la persona dejó un correo, le llega el código, nunca la clave.',
     },
   },
   {
@@ -284,7 +285,7 @@ export const ATENCION: Answer[] = [
       'la persona manda fotos despues de enviar',
       'como contesta la persona lo que le preguntaron',
     ],
-    a: 'En su consulta, en «Agregar información» (o «Responder la solicitud de información», si le pidieron un dato), escribe, agrega hasta 3 fotos o documentos si hace falta y toca «Enviar información». Si esperaban ese dato, el caso vuelve solo a «En revisión». Una solicitud «Cerrada» o «No procede» ya no recibe nada: la persona envía una nueva.',
+    a: 'En su consulta, en «Agregar información» (o «Responder la solicitud de información», si le pidieron un dato), escribe en «Información adicional» (o «Su respuesta»), agrega hasta 3 fotos o documentos si hace falta y toca «Enviar información». Si esperaban ese dato, el caso vuelve solo a «En revisión». Una solicitud «Cerrada» o «No procede» ya no recibe nada: la persona envía una nueva.',
   },
   // ── Denuncias (MANUAL-ATENCION 13, GUIA-WEB 2.6) ──
   {
@@ -360,7 +361,7 @@ export const ATENCION: Answer[] = [
     id: 'atencion-casos-atendidos-que-dice',
     roles: ['boss', 'admin'],
     q: ['que dice cada caso publicado en casos atendidos', 'como se ve la pagina de casos atendidos', 'como ve la gente los casos atendidos', 'que sale de cada caso en casos atendidos'],
-    a: 'Van agrupados por mes. Cada caso dice su tipo, su categoría y su municipio, el resumen, el nombre (si la persona dio permiso) o sus iniciales, y «Resuelta el …». De una denuncia sale solo el municipio. Se filtran con «Municipio» o «Categoría» y «Filtrar»; «Quitar filtros» vuelve a todos.',
+    a: 'En «Casos atendidos» van agrupados por mes. Cada caso dice su tipo, su categoría y su municipio, el resumen, el nombre (si la persona dio permiso) o sus iniciales, y «Resuelta el …». De una denuncia sale solo el municipio. Se filtran con «Municipio» o «Categoría» y «Filtrar»; «Quitar filtros» vuelve a todos. Sin casos dice «No hay casos publicados en este momento.».',
   },
   {
     id: 'atencion-casos-atendidos-vacio',
@@ -401,6 +402,7 @@ export const ATENCION: Answer[] = [
       boss: 'En «Atención» lees, como auditoría: todos los casos menos las denuncias (cuentan solo en los totales), sin contactos, y las «Cifras». No respondes, no asignas, no cambias estados y no exportas. En «Web» haces lo mismo que el aprobador.',
       admin: 'En «Atención», el jefe lee como auditoría: todos los casos menos las denuncias, sin contactos, y mira las «Cifras»; no exporta ni cambia nada. En «Web» hace lo mismo que el aprobador: publica, programa, devuelve y archiva, y el aviso de «Por aprobar» no le llega: lo ve en la lista.',
     },
+    go: '/admin/atencion',
   },
   {
     id: 'atencion-admin-por-que-no-veo',
@@ -510,7 +512,7 @@ export const ATENCION: Answer[] = [
     id: 'atencion-amenaza',
     roles: ['boss', 'admin'],
     q: ['que hacemos si llega una amenaza contra el gobernador', 'que se hace con una amenaza que llega por la web', 'llego una amenaza en una solicitud', 'como se responde una amenaza'],
-    a: 'No la respondas desde el caso: avisa de inmediato a la coordinación. Se retiran los datos que expongan a alguien y, si no hay nada que atender, va a «No procede» con su motivo. Mientras la Gobernación no defina cómo actuar, lo que se haga fuera de la app lo decide la coordinación.',
+    a: 'Quien la recibe no la responde desde el caso: avisa de inmediato a la coordinación. Se retiran los datos que expongan a alguien y, si no hay nada que atender, va a «No procede» con su motivo. Mientras la Gobernación no defina cómo actuar, lo que se haga fuera de la app lo decide la coordinación.',
   },
   {
     id: 'atencion-queja-no-spam',
@@ -539,7 +541,7 @@ export const ATENCION: Answer[] = [
     id: 'atencion-no-procede-persona',
     roles: ['boss', 'admin'],
     q: ['que lee la persona cuando le ponen no procede', 'que ve la persona si su solicitud no procede', 'que se le escribe a la persona en no procede'],
-    a: 'Su consulta dice «Se explicó por qué no puede atenderse por esta vía.»: por eso siempre hay que escribirle esas líneas en «Mensaje para la persona (opcional)». El motivo de «No procede» es interno y ella no lo lee.',
+    a: 'Su consulta dice «Se explicó por qué no puede atenderse por esta vía.»: por eso quien atiende siempre le escribe unas líneas en «Mensaje para la persona (opcional)». El motivo de «No procede» es interno y ella no lo lee.',
   },
   {
     id: 'atencion-respuesta-borrar',
@@ -551,7 +553,7 @@ export const ATENCION: Answer[] = [
     id: 'atencion-correos-cuando',
     roles: ['boss', 'admin'],
     q: ['cuando le llegan correos a la persona', 'que correos recibe la persona que escribe', 'la app le manda correos a la gente', 'que dicen los correos que recibe la persona'],
-    a: 'Si dejó un correo: al enviar, cuando le responden, cuando le piden información, cuando cambia el estado y cuando su caso se une a otro. Nunca llevan la clave ni lo que escribió el equipo, y nunca dicen «denuncia». La versión de prueba todavía no envía correos.',
+    a: 'Si dejó un correo: al enviar, con su código, y después de una respuesta, un pedido de información, un cambio de estado o una unión de casos. Nunca llevan la clave, el texto del equipo ni el tipo de solicitud, y nunca dicen «denuncia»: dicen qué pasó y que entre a «Consultar mi solicitud». La versión de prueba todavía no envía correos.',
   },
   {
     id: 'atencion-buzon',
@@ -663,7 +665,7 @@ export const ATENCION: Answer[] = [
     id: 'atencion-archivos-publicos',
     roles: ['boss', 'admin'],
     q: ['los archivos que manda la gente son publicos', 'las fotos de una solicitud salen en la web', 'se puede usar la foto de una solicitud en la web', 'la foto que mando una persona va a la biblioteca'],
-    a: 'No: los archivos de la gente nunca son públicos. Están en el caso, con «Descargar» y, las fotos, «Ver la foto»; nunca se reenvían ni se suben a la «Biblioteca» de «Web», que es pública.',
+    a: 'No: los archivos de la gente nunca son públicos. Se quedan en el caso, en «Atención», en privado, con «Descargar» y, las fotos, «Ver la foto»; nunca se reenvían ni se suben a la «Biblioteca» de «Web», que es pública.',
   },
   {
     id: 'atencion-evidencia',
@@ -691,7 +693,7 @@ export const ATENCION: Answer[] = [
     id: 'atencion-comprobantes-prueba',
     roles: ['boss', 'admin'],
     q: ['que caso es cada comprobante de prueba', 'para que son los comprobantes de prueba y que es cada uno', 'que trae cada comprobante de prueba para practicar', 'donde se abren los comprobantes de prueba'],
-    a: 'Son tres, para practicar la consulta en «Consultar mi solicitud», sin entrar al panel: un reporte de un hueco «En atención», con tres apoyos y un repetido unido; uno ya resuelto, que pregunta «¿Se resolvió el problema?»; y uno que «Requiere información». Sus códigos y claves están en la guía de atención: yo no los digo.',
+    a: 'Son tres, para practicar la consulta en «Consultar mi solicitud», sin entrar al panel: un reporte de un hueco «En atención», con tres apoyos y un repetido unido; uno ya resuelto, que dice «Resuelta» y pregunta «¿Se resolvió el problema?»; y uno que «Requiere información». Sus códigos y claves están en la guía de atención: yo no los digo.',
     go: '/ayuda/atencion',
   },
   {
