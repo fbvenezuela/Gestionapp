@@ -608,8 +608,9 @@ const GLOSSARY_FOR: Record<string, (line: string) => Partial<Record<Role, string
 // The ways a meaning is asked (design §4(b)): «¿qué es X?», «¿qué significa X?», «¿qué quiere decir X?», «X, ¿qué es?»,
 // «¿para qué es / sirve X?» and the word alone («explícame X» reads as the word alone: «explícame» says nothing more).
 const termAsks = (x: string) => [`que es ${x}`, `que son ${x}`, `que significa ${x}`, `que quiere decir ${x}`, `${x} que es`, `para que es ${x}`, `para que sirve ${x}`, x];
-// A word's names as the guide writes them and as people ask, lower case («El semáforo» is asked «semáforo» too).
-const termNames = (g: { term: string; aka: string[] }) => [...new Set([g.term, ...g.aka].map((x) => x.toLowerCase()))];
+// A word's names as the guide writes them and as people ask, lower case, its article left out as a question leaves it
+// out («La franja» is asked «¿qué es la franja?»: its name is «franja»).
+const termNames = (g: { term: string; aka: string[] }) => [...new Set([g.term, ...g.aka].map((x) => x.toLowerCase().replace(/^(?:el|la|los|las) /, '')))];
 
 function glossaryEntries(): Entry[] {
   return GLOSSARY.map((g) => {
@@ -1118,7 +1119,9 @@ function index(): Index {
   // (The team's: every entry but the web's guide, its curated answers and the flows told as stories, WF-C.)
   const teamOnly = (e: Entry) => !e.source.startsWith('web:') && e.source !== 'curado:web' && e.kind !== 'flowStory';
   const { idf, said, n } = weights(entries.filter(teamOnly));
-  const all = weights(entries);
+  // (The words of «Palabras de la web» and «Palabras de la atención» say again what the guide's sections say: they are
+  // weighed with the others' weights and do not change them, so no other answer moves for them.)
+  const all = weights(entries.filter((e) => !(e.kind === 'term' && e.source.startsWith('web:'))));
   const weighOf = (table: Map<string, number>, size: number) => (r: string): Tok => ({ root: r, w: r in LIGHT ? LIGHT[r] : table.get(r) ?? Math.log(1 + size), light: r in LIGHT });
   const weighTeam = weighOf(idf, n);
   const weighAll = weighOf(all.idf, all.n);
@@ -1453,7 +1456,8 @@ const TERM_FRAMES = /\b(?:que es|que son|que significa\w*|que quiere decir|que q
 // la de redes». Only the app's and the web's places and things, never another word of its own («lo que va a decir en el
 // storyboard» stays a field of the storyboard).
 const TERM_IN = String.raw`(?:app|aplicacion|redes|panel|pantalla|menu|tarjeta|formulario|post|posts|pieza|piezas|reel|reels|video|videos|foto|fotos|imagen|imagenes|evento|eventos|lista|listas|web|atencion|caso|casos|cifras|biblioteca|instagram|facebook|youtube|noticia|noticias|solicitud|solicitudes|perfil|pagina|paginas)`;
-const TERM_DET = String.raw`(?:(?:el|la|los|las|un|una|mi|mis|tu|tus|este|esta|ese|esa|cada) )?`;
+// (Not «esta lista», «este caso»: that one is the screen's own, and what it means there is what the screen says.)
+const TERM_DET = String.raw`(?:(?:el|la|los|las|un|una|mi|mis|tu|tus|cada) )?`;
 const TERM_TAILS: RegExp[] = [
   new RegExp(String.raw` (?:lo )?que (?:sale|salen|aparece|aparecen|dice|dicen|esta|estan|hay)(?: (?:aqui|ahi|alli|arriba|abajo)| (?:en|de|del|arriba de|abajo de) ${TERM_DET}${TERM_IN})?$`),
   / (?:aqui|ahi|alli|eso|esto|esa|ese)$/,
@@ -1499,6 +1503,9 @@ const termNameSet = () => (TERM_NAMES ??= new Set(index().entries.flatMap((e) =>
  * words or its screen («¿qué significa borrador en la web?»; «¿qué son las vencidas?» alone is the municipios').
  */
 function termAsked(e: Entry, a: Asked, domain: Domain | null = null): boolean {
+  // (A word of the team's asked with the web's or Atención's words, or on their screens, is theirs: «¿qué significan las
+  // etiquetas de esta lista?» on the web's list is its labels, not «Por decidir».)
+  if (domain && domain !== 'equipo' && (e.domain ?? 'equipo') === 'equipo') return false;
   const asked = askedNames(a.text);
   if (!asked) return false;
   const all = termNameSet();
@@ -1686,7 +1693,9 @@ function rank(question: string, o: FindOptions): Match[] {
         s += TERM_ASKED;
         named.add(e);
       } else s *= !says ? TERM_OTHER : whereAsk ? TERM_WHERE : TERM_ELSE;
-      if (!termSure || !says) s = Math.min(s, STRONG - 0.01);
+      // (A word of the web or Atención said only by a name the team also uses, out of its domain: never sure.)
+      const sharedOnly = says && !!e.shared?.length && (o.domain ?? null) !== e.domain && !saysName({ ...e, names: (e.names ?? []).filter((n) => !e.shared!.includes(formsOf(n)[0])) }, a.text);
+      if (!termSure || !says || sharedOnly) s = Math.min(s, STRONG - 0.01);
     }
     // A curated answer, more when it was written for the asker's role (not everyone's).
     if (e.kind === 'curated') s += e.roles ? ROLE_OWN : 0.03;

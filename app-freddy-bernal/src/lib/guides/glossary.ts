@@ -71,7 +71,7 @@ export const GLOSSARY: GlossaryTerm[] = [
   {
     id: 'caption',
     term: 'Caption',
-    aka: ['caption', 'captions', 'texto de abajo', 'texto de abajo de la foto', 'texto de abajo del video', 'copy largo'],
+    aka: ['caption', 'captions', 'texto de abajo', 'texto de abajo de la foto', 'texto de abajo del video'],
     text: 'El texto que va debajo de la foto o del video. Es el copy largo.',
     easy: 'Es el texto que sale debajo de la foto o del video. Es lo mismo que el copy largo.',
     example: 'Por ejemplo: en Instagram, lo que se lee debajo de un post es su caption.',

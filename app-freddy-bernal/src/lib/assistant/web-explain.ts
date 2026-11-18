@@ -218,10 +218,13 @@ function termExplain(facet: Facet, e: Entry, g: GlossaryTerm, ctx: Ctx): WebExpl
       return fresh([as(why), fromSection('why'), as(first && `La guía no da el porqué de eso. Lo que dice es esto: ${lcFirst(end(first))}`, guide)]);
     case 'purpose': {
       // What it is for: what its meaning says it is for («… sirve para conocer la app…», «…, para que ningún enlace se
-      // pierda»), said on its own («Es para…»), then the section's.
+      // pierda»), said on its own («Es para…»); then the section's own «¿Para qué sirve…?» of this word, then the
+      // section's.
       const m = /\bsirve para\s+([^.;]+)|,\s+para\s+([^.;]+)/i.exec(g.text);
       const forWhat = m ? `Es para ${m[1] ?? m[2]}` : undefined;
-      return fresh([as(forWhat), fromSection('purpose'), as(easy)]);
+      const names = [g.term, ...g.aka].map((n) => ` ${plain(n)} `);
+      const asked = x && !isWebFlow(x) ? (x.faq ?? []).filter((f) => PURPOSE_Q.test(f.q) && names.some((n) => ` ${plain(f.q)} `.includes(n))).map((f) => forRole(f.a, roles)) : [];
+      return fresh([as(forWhat), ...asked.map((t) => as(t && clean(t), guide)), fromSection('purpose'), as(easy)]);
     }
     case 'more':
       return fresh([as(example), fromSection('more')]);
