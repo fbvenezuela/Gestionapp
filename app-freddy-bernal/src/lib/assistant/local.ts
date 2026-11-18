@@ -180,7 +180,7 @@ const RECEIPT_GUIDE = 'La guía de atención explica cómo se practica: toca el 
 // los otros?». Never what it says («¿qué escribió…?», «dime…»), never Mensajes («el canal», «el chat»).
 const WROTE_ON_WEB = /\blo que (?:escribio|escribieron|escribe|escriben)\b|\b(?:persona|alguien|el que|la que|quien) (?:que )?(?:escribio|escribieron)\b/;
 const ON_WEB = /\b(?:la web|pagina|atencion|apoy\w*|buzon|correos?|solicitud\w*|formulario|la persona|una persona|alguien|la gente|ciudadan\w*)\b/;
-const NOT_ON_WEB = /\b(?:mensajes?|canal|canales|chat|grupo|dime|leeme|lee|muestrame|ensename|cuentame|resume|resumeme)\b|(?<!\blo )\bque (?:le |les |me |nos )?(?:dice|dijo|decia|pidio|escribio|escribieron|puso|mando|contesto|respondio)\b/;
+const NOT_ON_WEB = /\b(?:mensajes?|canal|canales|chat|grupo|dime|leeme|lee|muestrame|ensename|cuentame|resume|resumeme)\b|^(?:(?:y|e|pero|oye) )?(?:que|de que) (?:le |les |me |nos )?(?:dice|dijo|decia|pidio|escribio|escribieron|puso|mando|contesto|respondio)\b/;
 // A question of how Atención works that reads like one about its cases (step C, below): «en el registro, ¿puedo leer lo que
 // decía el caso?», «un responsable abre un caso y le sale…», «¿qué dice cada caso publicado en «Casos atendidos»?»,
 // «¿cuántas preguntas frecuentes trae?», «¿cuántas etiquetas puede tener…?». Asked as a rule, of no case or person in
@@ -867,7 +867,9 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // M1 and C for what reads like them but asks how the web or Atención works (above): their strong answer (static text of
   // the guide or a curated one), else the same fixed line.
   const webStrong = strong && (best!.entry.domain === 'web' || best!.entry.domain === 'atencion');
-  if (deskWrote) return webStrong ? sayEntry(best!) : messagesLine();
+  // (A role of the team, which has no web nor Atención: the line that says whose they are, when the question names them.)
+  const teamOnWeb = !i.ctx.roles.includes('boss') && !isAdmin && WEB_SAID.test(q);
+  if (deskWrote) return webStrong ? sayEntry(best!) : teamOnWeb ? { ...done(WEB_NOT_YOURS), fixed: true } : messagesLine();
   if (caseQ && caseRule) return webStrong ? sayEntry(best!) : caseLine(caseQ);
 
   // E. 360 explains what it just said (design §4(c)): «no entendí», «más fácil», «paso a paso», «dame un ejemplo», «¿y
@@ -1316,7 +1318,8 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const loDe = loDeEvent(q) && !WORK.test(q);
   // «La pestaña Cómo va» (Ajustes → Asistente) or «Cómo va» between «» is a label, not how a piece is going (D-89).
   const statusQ = spoken(i.question.replace(/«[^«»]*»|"[^"]*"|“[^”]*”/g, ' ')).replace(/\b(?:la |el )?(?:pestana|seccion|boton|parte|tarjeta|pantalla|panel) (?:de |del )?como (?:va|van)\b/g, ' ');
-  const status = PIECE_STATUS.test(statusQ) && !/\btweets?\b/.test(q);
+  // (Not of the web or of Atención: «el filtro «Estado» de la lista de noticias» is the web's list, not how a piece goes.)
+  const status = PIECE_STATUS.test(statusQ) && !/\btweets?\b/.test(q) && qDomain !== 'web' && qDomain !== 'atencion';
   // Only a status asked, a quoted title or «la pieza de/del X»: «¿qué reviso antes de aprobar una pieza en
   // rojo?» or «¿una pieza puede tener varias versiones?» are how-tos (the fichas); a tweet is never a piece.
   const aboutPiece = !howTo && !/\b(?:tweets?|tuits?)\b/.test(q) && !/\bque pasa si\b/.test(q) && ((/\bpiezas?\b/.test(q) && (status || !!quotedTitle || PIECE_NAMED.test(q))) || (status && eventFrom < 0 && !loDe));

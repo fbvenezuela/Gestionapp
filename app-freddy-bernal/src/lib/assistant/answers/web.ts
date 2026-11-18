@@ -59,7 +59,7 @@ export const WEB: Answer[] = [
   {
     id: 'web-jefe-que-hago',
     roles: ['boss'],
-    q: ['que hago yo en la web', 'que hago yo en web', 'que hace el jefe en la web', 'que hago yo en la web y en atencion'],
+    q: ['que hago yo en la web', 'que hago yo en web', 'que hago yo en el menu web', 'que hace el jefe en la web', 'que hago yo en la web y en atencion'],
     a: 'En «Web» haces lo mismo que quien aprueba la web: escribes, revisas, publicas, programas, devuelves con un comentario y archivas. El aviso de «Por aprobar» no te llega: lo ves en la lista. En «Atención» lees como auditoría: los casos menos las denuncias, sin contactos, y las «Cifras»; no exportas.',
     go: '/admin/web',
   },
