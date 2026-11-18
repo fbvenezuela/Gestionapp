@@ -71,9 +71,13 @@ describe('las entradas de la guía de la web', () => {
     }
   });
 
+  // (Administración's own «Equipo», where it gives the web's and Atención's roles and resets a lost phone, and its «Buzón»,
+  // where the mails the app would send are: a button there for an answer only Administración hears.)
   it('su botón: una pantalla de «Web» o de «Atención», o su lugar en la guía; nunca una pantalla del equipo', () => {
+    const ADMIN_OWN = new Set(['/ajustes/equipo', '/ajustes/buzon']);
     for (const e of web()) {
       if (!e.go) continue;
+      if (ADMIN_OWN.has(e.go) && e.roles?.length === 1 && e.roles[0] === 'admin') continue;
       const d = domainOfScreen(e.go);
       expect(d, `${e.id} → ${e.go}`).not.toBe('equipo');
       const path = e.go.split(/[?#]/)[0];

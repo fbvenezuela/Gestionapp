@@ -93,6 +93,8 @@ describe('las respuestas de 360', () => {
         if (/\bmila\b/i.test(text)) bad.push(`${where}: nombra la referencia`);
         if (/\[\[|\]\]/.test(text)) bad.push(`${where}: marca de título`);
         for (const h of text.match(/\[[A-Z]+\]/g) ?? []) if (!HUECOS.includes(h)) bad.push(`${where}: hueco desconocido ${h}`);
+        // Any other [corchete] reads as an unfilled hueco to the output net (brain.ts filterOutput), which drops its sentence.
+        if (HUECO.test(text.replace(/\[(?:ASISTENTE|APP|JEFE|NOMBRE)\]/g, ''))) bad.push(`${where}: un [corchete]: 360 lo toma por hueco y calla la frase`);
       }
       for (const q of a.q) if (concreteDateTime(q) || hasPhone(q)) bad.push(`${fileOf(a)}/${a.id}: la pregunta «${q}» trae fecha, hora o teléfono`);
     }
@@ -183,7 +185,9 @@ describe('las respuestas de 360 sobre «Web» y «Atención»', () => {
     for (const [file, a] of list) {
       if (!a.go) continue;
       const where = `${file}/${a.id} → ${a.go}`;
-      if (domainOfScreen(a.go) === 'equipo') bad.push(`${where}: pantalla del equipo`);
+      // (Administración's own «Equipo», where it gives the web's and Atención's roles, and its «Buzón»: for its answers only.)
+      const adminOwn = ['/ajustes/equipo', '/ajustes/buzon'].includes(a.go) && a.roles?.length === 1 && a.roles[0] === 'admin';
+      if (domainOfScreen(a.go) === 'equipo' && !adminOwn) bad.push(`${where}: pantalla del equipo`);
       for (const r of a.roles ?? []) if (!canOpen(a.go, [r])) bad.push(`${where}: ${r} no la abre`);
     }
     expect(bad, `\n${bad.join('\n')}`).toEqual([]);

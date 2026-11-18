@@ -1669,3 +1669,23 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
     el momento de la web oficial, no el del arranque. La demo nunca se indexa, aunque `SITE_INDEXABLE` diga que sí.
   - El Semanario sin nombre propio se llama por el día de su edición; un PDF guardado lleva el nombre de su contenido.
     `/transparencia` dice antes de la primera cifra que son de ejemplo. `/reporte-bernal` sin emisiones lleva al canal.
+
+## D-102. 360 sabe las dos guías y las explica (WF-C, 12/11 a 18/11/2026)
+- **Pedido de Juan:** «asegúrate que el bot sepa todo, TODO lo que está en las guías y cómo poder explicarlo».
+- **Se decidió (las siete del diseño, todas «sí»):**
+  1. Lo de la web y de Atención es dato de la app (`src/lib/guides/web`), se ve en «Ayuda y guías» para el jefe y
+     Administración, y los cuatro documentos de la web salen de ahí (`npm run docs:guides`).
+  2. A despacho, política, IVT, Grabación y Redes, 360 les dice solo qué son la web y Atención y de quién son.
+  3. Los comprobantes de prueba (códigos y claves) nunca los dice 360: lleva a la guía.
+  4. Un segundo candado en la base: nada de 360 lee las solicitudes (como con Mensajes).
+  5. «La app» en vez de «la plataforma» en todo lo que dice 360.
+  6. Los nombres del cliente fuera del código: el programa, el Semanario y la web oficial salen de su configuración.
+  7. El banco de reserva lo escribe alguien que solo leyó las dos guías.
+- **Y al juntar el trabajo (18/11):**
+  - Las palabras de la agenda en una pregunta de la web que no nombra ningún evento reciben la respuesta de la web; con
+    un evento, un lugar o el jefe yendo a algún sitio, sigue la negativa.
+  - Lo que parece una pregunta de Mensajes o de un caso pero pregunta cómo funciona la web o Atención lo contesta la
+    guía cuando está segura; se guarda igual como la marca.
+  - Una respuesta de Atención para Administración puede llevar el botón de «Equipo» o de «Buzón», sus propias pantallas.
+  - Las respuestas de Atención, como las de la web, no cambian los pesos de las palabras del equipo.
+- **Cómo está:** `docs/ASISTENTE.md`, «360 y las dos guías».

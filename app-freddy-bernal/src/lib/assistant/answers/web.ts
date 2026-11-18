@@ -864,6 +864,7 @@ export const WEB: Answer[] = [
       'alguien de la web cambio de telefono y no puede entrar',
     ],
     a: 'Tú: en «Ajustes» → «Equipo», toca «Cambiar» en la fila de esa persona y después «Reiniciar doble factor». Así puede entrar de nuevo y activarlo en el teléfono nuevo.',
+    go: '/ajustes/equipo',
   },
   {
     id: 'web-roles-telefono-perdido-jefe',

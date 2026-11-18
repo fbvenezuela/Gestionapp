@@ -515,6 +515,48 @@ Antes 360 contestaba con las fichas de la base y algunos guiones. Ahora tiene ad
 - Pruebas: `tests/unit/assistant-explain.test.ts` (el módulo), `tests/unit/assistant-explain-turn.test.ts` (la
   conversación entera y `go_to`) y la clase «un pedido de explicación junto a un evento» del red team.
 
+## 360 y las dos guías: la del equipo y la de la web (desde el 18/11/2026, WF-C)
+
+Juan pidió que 360 sepa todo lo que está en las guías y cómo explicarlo. La guía del equipo ya vivía en `src/lib/guides`;
+la de la web (GUIA-WEB, MANUAL-ADMIN-WEB, MANUAL-ATENCION y FLUJOS-WEB) ahora también (`src/lib/guides/web`), y «Ayuda y
+guías» la muestra al jefe y a Administración («La web» y «Atención ciudadana»).
+- **Qué sabe.** Las secciones, tareas, preguntas, reglas y flujos de la guía de la web entran al índice con su dominio
+  (`web` o `atencion`, `webEntries()` en `engine.ts`). Encima, las respuestas curadas de lo que la gente pregunta y la guía
+  no dice con esas palabras: `answers/web.ts` y `answers/atencion.ts`, solo para el jefe y Administración, con texto para
+  cada uno. Las «Palabras de la app» llevan los nombres con que se preguntan («short», «la cuadrícula», «el texto de
+  abajo», «9:16») y tienen sus pares de la web: «Palabras de la web» y «Palabras de la atención»
+  (`src/lib/guides/web/glossary.ts`). Las respuestas de Atención y las de la web no cuentan en los pesos de las palabras
+  del equipo: las respuestas del equipo no se mueven por ellas.
+- **Cada cosa en su dominio.** `domainOf()` lee si la pregunta es de la web o de Atención por sus palabras («la web»,
+  «noticia», «redirección», «solicitudes», «bandeja», «comprobante», «fecha comprometida»…) o por la pantalla donde está
+  la persona. Una respuesta de la web nunca lleva el botón de una pantalla del equipo, salvo dos de Administración: «Equipo»
+  (ahí da los roles de la web y de la atención y reinicia el doble factor) y «Buzón» (los correos que mandaría la app).
+  Un «¿y archivado?», «¿y si le falta algo?» después de una respuesta de la web se lee en su dominio y con la pregunta de
+  antes; un «dame un ejemplo» o «¿y después?» la explica con el texto de su guía (`web-explain.ts`). En una pantalla de la
+  web, «¿qué son estos botones?» o «¿qué es esta lista?» es esa pantalla. «¿Qué hago yo en «Web»?» es lo suyo de la web,
+  no su trabajo del equipo, y «¿cómo funciona programar en la web?» es su respuesta, no la lista de tutoriales.
+- **Los demás roles** (despacho, política, IVT, Grabación, Redes) oyen una sola línea: qué son la web y Atención y de quién
+  son. Los roles de la web y de la atención no tienen 360, ni guías, ni tutoriales.
+- **Lo que sigue sin salir:**
+  - La agenda: una palabra de la web junto a un evento sigue con la negativa («¿a qué hora se publica la nota de la
+    feria?»). Las palabras de la agenda en una pregunta de la web que no nombra ningún evento («cuando la persona manda lo
+    que le pidieron…», «¿qué bloques salen hoy en la portada?», «la página El gobernador») reciben la respuesta de la web,
+    que es texto fijo y sin fechas. Con un lugar al lado («¿la web dice cuándo es en la plaza?») o con el jefe yendo a
+    algún sitio, la negativa. «Fecha comprometida» es una etiqueta de Atención, nunca la agenda.
+  - Lo que manda la gente: 360 no lee solicitudes, casos ni denuncias, no da contactos, cuentas ni códigos de
+    comprobantes (paso C, y la base rechaza `app.caller = 'assistant'` en esas tablas). Lo que se pregunta como regla de
+    cómo funciona Atención y no pide nada de un caso ni de una persona («en el registro, ¿puedo leer lo que decía el
+    caso?», «¿cuántas etiquetas puede tener un contenido?») lo contesta la guía cuando está segura; la pregunta se guarda
+    igual como «[pregunta sobre un caso]». Lo mismo con «lo que escribió» la persona en la web («si se le recarga la
+    página, ¿pierde lo que escribió?»): se contesta lo de la web y se guarda como la marca de Mensajes. Mensajes nunca se
+    lee.
+  - La red de salida deja pasar las marcas del importador citadas entre «» («[Por escribir]», «[correo retirado]»), que la
+    pantalla muestra tal cual; cualquier otro corchete sigue siendo un hueco y su frase no sale.
+- **Pruebas:** `assistant-web-routing.test.ts` (preguntas típicas del jefe y de Administración, con su botón, y las filas de
+  la negativa), `assistant-web-guide.test.ts`, `glossary-web.test.ts`, `glossary-asks.test.ts`, `web-scope.test.ts`,
+  `attention-isolation.test.ts` y las filas de ataque de `assistant-redteam.test.ts`. Los bancos de preguntas (TRAIN y el
+  de reserva) están fuera del repositorio.
+
 ## Datos (migración `20261025000900_assistant.sql`)
 Todas con RLS encendido, **sin políticas y sin `grant` a anon/authenticated**: solo el servidor las toca.
 - `assistant_knowledge` (fichas): `id, roles app_role[] null` (null = todos los roles), `title, body, tags text[],

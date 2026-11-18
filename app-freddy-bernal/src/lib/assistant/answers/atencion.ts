@@ -422,6 +422,7 @@ export const ATENCION: Answer[] = [
       'como le doy el rol de coordinador de atencion',
     ],
     a: 'En «Ajustes» → «Equipo» → «Invitar a alguien»: marca el rol en «Web y atención ciudadana (siempre con doble factor)» y, a un responsable, sus áreas en «Sus áreas (ve y atiende lo de estas áreas y lo que le asignen)». Toca «Enviar invitación». Después, sus áreas se cambian con «Cambiar» en su fila.',
+    go: '/ajustes/equipo',
   },
   {
     id: 'atencion-jefe-roles-quien-da',
@@ -560,6 +561,7 @@ export const ATENCION: Answer[] = [
     roles: ['admin'],
     q: ['donde veo los correos que le mandaria la app a la gente', 'los correos que manda la web donde quedan', 'por que no le llegan correos a la persona en la prueba', 'la version de prueba manda correos'],
     a: 'La versión de prueba todavía no envía correos: los que mandaría quedan en «Ajustes» → «Buzón de correos», que solo ves tú, Administración. Mientras tanto, la persona ve todo en su consulta.',
+    go: '/ajustes/buzon',
   },
   {
     id: 'atencion-buzon-jefe',

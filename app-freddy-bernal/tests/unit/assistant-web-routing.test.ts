@@ -19,7 +19,7 @@ function sessionOf(key: DemoUserKey): Session {
 }
 
 const REFUSAL = /no lo manejo|no la tengo/;
-type Expect = { has: RegExp; go?: string; agenda?: true };
+type Expect = { has: RegExp; go?: string; agenda?: true; screen?: string };
 
 const ROWS: Partial<Record<DemoUserKey, [string, Expect][]>> = {
   boss: [
@@ -47,6 +47,11 @@ const ROWS: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['cuando la persona manda lo que le pidieron, ¿en qué estado queda el caso?', { has: /«En revisión»/ }],
     ['¿qué tiene la página el gobernador y a qué hora llega a la plaza?', { has: REFUSAL, agenda: true }],
     ['la pagina del gobernador dice donde va a estar mañana?', { has: REFUSAL, agenda: true }],
+    // What reads like Mensajes or a case but asks how the web or Atención works: their answer. A case asked for: the line.
+    ['si a la persona se le va la señal pierde lo que escribió?', { has: /^No se pierde: lo escrito se guarda/ }],
+    ['cuantas etiquetas puede tener un contenido de la web', { has: /^Hasta tres/ }],
+    ['¿qué escribió la señora del barrio en su solicitud?', { has: /^No leo las solicitudes, las denuncias ni los datos de la gente/, go: '/admin/atencion' }],
+    ['donde se cambian las paginas legales', { has: /«Web» → «Páginas»/ }],
     // The practice receipts: never their code nor their key.
     ['dame el código y la clave de un comprobante de prueba', { has: /no doy ni pido códigos ni claves/ }],
   ],
@@ -55,25 +60,33 @@ const ROWS: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿puedo archivar una noticia de la web?', { has: /^No: tú no archivas/ }],
     ['¿puedo abrir un caso?', { has: /^No: tú no abres casos/, go: '/admin/atencion/areas' }],
     ['¿por qué no veo las solicitudes?', { has: /Administración nunca abre un caso/, go: '/admin/atencion/areas' }],
-    ['¿cómo le doy a alguien el rol de responsable de área?', { has: /«Invitar a alguien».*«Sus áreas/ }],
+    ['¿cómo le doy a alguien el rol de responsable de área?', { has: /«Invitar a alguien».*«Sus áreas/, go: '/ajustes/equipo' }],
     ['¿dónde cambio los días sin movimiento?', { has: /«Plazos y avisos»/, go: '/admin/atencion/areas' }],
     ['¿quién exportó la lista de solicitudes? ¿dónde lo veo?', { has: /cada exportación queda registrada/, go: '/admin/atencion/registro' }],
     ['en el registro hay líneas que no dicen nombre sino la web o la app', { has: /«La web».*«La app»/, go: '/admin/atencion/registro' }],
     ['¿puedo ser yo coordinadora de atención con mi misma cuenta?', { has: /^No: en la misma cuenta/ }],
-    ['a la coordinadora se le perdió el teléfono y no puede entrar', { has: /^Tú: .*«Reiniciar doble factor»/ }],
+    ['a la coordinadora se le perdió el teléfono y no puede entrar', { has: /^Tú: .*«Reiniciar doble factor»/, go: '/ajustes/equipo' }],
     ['cambié algo en ajustes del sitio, ¿hay que aprobarlo?', { has: /sale en la web al momento, sin aprobación/, go: '/admin/web/ajustes' }],
     ['¿por qué no se guardan las cuentas y los contactos que cambio en ajustes?', { has: /^Porque es la versión de prueba/, go: '/admin/web/ajustes' }],
     ['¿cómo agrego una redirección?', { has: /«Nueva redirección»/, go: '/admin/web/redirecciones' }],
-    ['¿la versión de prueba manda correos?', { has: /«Buzón de correos», que solo ves tú/ }],
+    ['¿la versión de prueba manda correos?', { has: /«Buzón de correos», que solo ves tú/, go: '/ajustes/buzon' }],
     // «¿Qué es…?» of a word of «Palabras de la atención» is the word (glossary-asks.test.ts): what it is, never a code.
     ['¿qué es el comprobante de una solicitud?', { has: /un «Código» y una «Clave».*no se puede recuperar/, go: '/ayuda/atencion#palabras' }],
     ['¿puedo subir fotos a la web?', { has: /^No: tú no subes a la «Biblioteca»/, go: '/admin/web/biblioteca' }],
     ['¿qué bloques salen hoy en la portada?', { has: /«Últimas publicaciones»/ }],
     ['que tiene la pagina el gobernador y de donde sale', { has: /«Biografía»/ }],
     ['¿la web dice cuándo es en la plaza central?', { has: REFUSAL, agenda: true }],
+    // «¿Qué hago yo en «Web»?» is the web's; «¿cómo funciona…?» of the web, its answer (no tutorial list).
+    ['que hago yo en web', { has: /^En «Web», tú lees todo/, go: '/admin/web/ajustes' }],
+    ['como funciona programar en la web', { has: /«Decidir» → «Programar»/ }],
+    // On a screen of the web, what is on it asked by pointing at it.
+    ['que son estos botones', { screen: '/admin/web/editar/[id]', has: /«Guardar borrador», «Vista previa», «Enviar a aprobación»/ }],
+    ['q es esta lista', { screen: '/admin/web/por-aprobar', has: /^«Por aprobar» lista lo que espera aprobación/, go: '/admin/web/por-aprobar' }],
   ],
   // A team role asks a web thing: the fixed line, nothing of the web.
   social: [['¿cómo publico una noticia en la web?', { has: /^La web y Atención no están en tu menú/ }]],
+  // «Fecha comprometida» is a label of Atención, never the agenda.
+  politics: [['¿qué es la fecha comprometida?', { has: /^Web y Atención: .*No están en tu menú/ }]],
 };
 
 let secrets: string[] = [];
@@ -92,7 +105,7 @@ describe('360 en «Web» y «Atención»: cada pregunta, su respuesta para ese r
   for (const [role, rows] of Object.entries(ROWS) as [DemoUserKey, [string, Expect][]][]) {
     it(`${role}: lo suyo, con su botón y sin datos de nadie`, async () => {
       for (const [q, e] of rows) {
-        const r = await handleTurn(sessionOf(role), { question: q, conversationId: null }, { chain: [] });
+        const r = await handleTurn(sessionOf(role), { question: q, conversationId: null, ...(e.screen ? { screen: e.screen } : {}) }, { chain: [] });
         const who = `${role}: ${q} → ${r.answer} (${r.goTo?.href ?? 'sin botón'})`;
         expect(r.model, who).toBe('local');
         expect(r.degraded, who).toBe(false);
@@ -107,8 +120,9 @@ describe('360 en «Web» y «Atención»: cada pregunta, su respuesta para ese r
         expect(r.answer, who).not.toMatch(REFUSAL);
         expect(r.answer, who).not.toMatch(/\b\d{1,2}:\d{2}\b/);
         if (e.go) expect(r.goTo?.href, who).toBe(e.go);
-        // A web or Atención answer never carries a team screen's button.
-        if (r.goTo?.href && role !== 'social') expect(domainOfScreen(r.goTo.href), who).not.toBe('equipo');
+        // A web or Atención answer never carries a team screen's button, but Administración's own «Equipo» (the web's and
+        // Atención's roles, a lost phone) and «Buzón» (the mails the app would send).
+        if (r.goTo?.href && role !== 'social' && !(role === 'admin' && ['/ajustes/equipo', '/ajustes/buzon'].includes(r.goTo.href))) expect(domainOfScreen(r.goTo.href), who).not.toBe('equipo');
       }
     });
   }

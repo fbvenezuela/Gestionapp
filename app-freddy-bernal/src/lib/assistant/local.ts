@@ -175,12 +175,29 @@ const CASE_ADMIN = 'Tú no abres casos: en «Atención» armas las áreas y los 
 const CASE_TEAM = 'Atención no está en tu menú: la manejan el jefe, administración y las personas de la atención.';
 const RECEIPT_CODES = 'Yo no doy ni pido códigos ni claves, tampoco los de los comprobantes de prueba: cada persona consulta su solicitud con los suyos en «Consultar mi solicitud», y la clave no se recupera.';
 const RECEIPT_GUIDE = 'La guía de atención explica cómo se practica: toca el botón.';
+// What a person wrote on the web, asked as how the web or Atención works (step M1, below): «si se le recarga la página,
+// ¿pierde lo que escribió?», «¿puedo responderle a una persona que escribió?», «¿cuando alguien apoya ve lo que escribieron
+// los otros?». Never what it says («¿qué escribió…?», «dime…»), never Mensajes («el canal», «el chat»).
+const WROTE_ON_WEB = /\blo que (?:escribio|escribieron|escribe|escriben)\b|\b(?:persona|alguien|el que|la que|quien) (?:que )?(?:escribio|escribieron)\b/;
+const ON_WEB = /\b(?:la web|pagina|atencion|apoy\w*|buzon|correos?|solicitud\w*|formulario|la persona|una persona|alguien|la gente|ciudadan\w*)\b/;
+const NOT_ON_WEB = /\b(?:mensajes?|canal|canales|chat|grupo|dime|leeme|lee|muestrame|ensename|cuentame|resume|resumeme)\b|(?<!\blo )\bque (?:le |les |me |nos )?(?:dice|dijo|decia|pidio|escribio|escribieron|puso|mando|contesto|respondio)\b/;
+// A question of how Atención works that reads like one about its cases (step C, below): «en el registro, ¿puedo leer lo que
+// decía el caso?», «un responsable abre un caso y le sale…», «¿qué dice cada caso publicado en «Casos atendidos»?»,
+// «¿cuántas preguntas frecuentes trae?», «¿cuántas etiquetas puede tener…?». Asked as a rule, of no case or person in
+// particular, and nothing asked to 360 to read, say or give.
+const CASE_RULE = /\b(?:puedo|podemos) (?:leer|ver|abrir|saber|buscar|revisar)\b|^(?:(?:y|e|pero|oye) )?(?:un|una|el|la) (?:responsable|coordinador\w*|operador\w*|auditor\w*|editor\w*|aprobador\w*)\b|\bcada (?:caso|solicitud|denuncia)\b/;
+const ASKS_360 = /\b(?:lee|leeme|leelo|leela|leelos|leelas|resume|resumeme|dime|dimelo|cuentame|muestrame|ensename|busca|buscame|revisame|abreme|dame|pasame|mandame|enviame|exportame|descargame|sacame)\b|\b(?:puedes|podrias|me puedes) (?:leer|decir|mostrar|buscar|revisar|abrir|dar|pasar)\b/;
+const ONE_CASE = /\b(?:senora|senor|senorita|vecin[oa]s?|ciudadan[oa]s?|ultim[oa]s?|primer[oa]s?|ese caso|esa solicitud|esa denuncia|este caso|esta solicitud|esta denuncia|del caso de|de la persona de|codigos?|claves?|ac \d{4}|termina en|nombres?|telefonos?|contactos?|direccion|cedula|correo de|whatsapp)\b/;
+const NOT_DESK_COUNT = /^(?:(?:y|e|pero|oye|sabes) )*cuant[oa]s (?!(?:solicitudes|casos|denuncias|peticiones|quejas|observaciones|reportes|personas|vecinos|ciudadanos|hay|habia|van|tenemos|tienen|tiene|llegaron|llego|entraron|quedan|faltan|atend\w*|respond\w*|contest\w*|mandaron|enviaron|escribieron|pidieron|reportaron|denunciaron|recib\w*|vencid\w*|abiert\w*|resuelt\w*|cerrad\w*|nuev\w*|asignad\w*|unid\w*|derivad\w*|sin|en|de|del|se|me|le|les|nos|son|fueron)\b)[a-z]+/;
+// On a screen of the web or of Atención, what is on it asked by pointing at it (step S): «¿qué son estos botones?», «¿qué es
+// esta lista?».
+const THIS_THING = /^(?:y )?(?:que|para que|pa que) (?:es|son|sirve|sirven|hace|hacen) (?:esto|eso|esta lista|este boton|estos botones|esta pantalla|esta parte|esta seccion)(?: de (?:arriba|abajo))?$|^(?:y )?(?:esto|esta lista|estos botones|este boton) (?:que|para que) (?:es|son|sirve|sirven|hace|hacen)$/;
 // A question of the web or of Atención from a role that has neither in its menu (design §4(d)2): only what they are and
 // whose they are.
 export const WEB_NOT_YOURS = 'La web y Atención no están en tu menú: las manejan el jefe, administración y las personas de la web y de la atención.';
 const WEB_NOT_YOURS_SHORT = 'No están en tu menú: las manejan el jefe, administración y las personas de la web y de la atención.';
 // The web or Atención said by name (step D2): words the team's own work never uses.
-const WEB_SAID = /\b(?:la web|de la web|en la web|por la web|a la web|pagina web|sitio web|web publica|web y atencion|atencion ciudadana|(?:el menu|en|a|por) atencion(?! a\b)|(?:registro|cifras|mapa|tablero|plazos|areas|roles?|guias?|manual) de atencion|bandeja|consultar mi solicitud|comprobantes?|casos atendidos|transparencia|redirecci\w*|ajustes del sitio|vista previa|solicitudes? (?:de la web|de la gente|ciudadanas?)|lista de solicitudes|la gente que (?:escribe|manda|reporta)|que (?:manda|mandan|escribe|escriben) la gente)\b/;
+const WEB_SAID = /\b(?:la web|de la web|en la web|por la web|a la web|pagina web|sitio web|web publica|web y atencion|atencion ciudadana|(?:el menu|en|a|por) atencion(?! a\b)|(?:registro|cifras|mapa|tablero|plazos|areas|roles?|guias?|manual) de atencion|bandeja|consultar mi solicitud|comprobantes?|casos atendidos|fechas? comprometidas?|transparencia|redirecci\w*|ajustes del sitio|vista previa|solicitudes? (?:de la web|de la gente|ciudadanas?)|lista de solicitudes|la gente que (?:escribe|manda|reporta)|que (?:manda|mandan|escribe|escriben) la gente)\b/;
 // Where the words of the app are (step W): «Ayuda y guías», «Palabras de la app».
 const TERM_WHERE = 'Las palabras de la app están en «Ayuda y guías», en «Palabras de la app».';
 // …and those of the web and of Atención, on their own pages of «Ayuda y guías», the boss's and Administración's (the
@@ -710,22 +727,31 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // M1. What a message of the team says: 360 does not read them (D-50). Kept only as a mark (index.ts). Unless it is what
   // a person sent from the web (step C says it: «¿qué escribió el vecino que reportó el poste?»).
   const personBefore = i.ctx.history.filter((h) => h.who === 'persona').at(-1)?.body;
-  if (msgs === 'read' && !caseOverMessages(i.question, personBefore)) return inMensajes ? done(MESSAGES_READ_TEXT, '/mensajes') : done(MESSAGES_ADMIN_TEXT);
+  const caseQ = caseAsk(i.question, personBefore);
+  // (What a person wrote on the web, asked as how the web or Atención works: a strong answer of theirs says it, below, once
+  // the answers are read; else this same line.)
+  const deskWrote = msgs === 'read' && !caseQ && WROTE_ON_WEB.test(q) && ON_WEB.test(q) && !NOT_ON_WEB.test(q);
+  const messagesLine = () => (inMensajes ? done(MESSAGES_READ_TEXT, '/mensajes') : done(MESSAGES_ADMIN_TEXT));
+  if (msgs === 'read' && !deskWrote && !caseOverMessages(i.question, personBefore)) return messagesLine();
 
   // C. What people send from the web (design §4(e)): what a request, a case or a denuncia says, a person's contact or data,
   // the desk's counts, the exported list, a receipt's code or key. 360 never reads nor gives any of it: one fixed line for
   // each role, with the button to «Atención» for whoever opens it. Kept only as a mark (index.ts), never to a provider.
-  const caseQ = caseAsk(i.question, personBefore);
-  if (caseQ) {
+  const caseLine = (c: CaseAsk): BrainOutput => {
     const boss = i.ctx.roles.includes('boss');
     const admin = i.ctx.roles.includes('admin');
-    if (caseQ === 'code') {
+    if (c === 'code') {
       const guide = boss || admin ? webHref('practicar') : null;
       return { ...done(guide ? `${RECEIPT_CODES} ${RECEIPT_GUIDE}` : RECEIPT_CODES, guide && canOpen(guide, i.ctx.roles) ? guide : undefined), fixed: true };
     }
-    const tail = boss ? CASE_BOSS[caseQ] : admin ? CASE_ADMIN : CASE_TEAM;
+    const tail = boss ? CASE_BOSS[c] : admin ? CASE_ADMIN : CASE_TEAM;
     return { ...done(`${CASE_BASE} ${tail}`, (boss || admin) && canOpen('/admin/atencion', i.ctx.roles) ? '/admin/atencion' : undefined), fixed: true };
-  }
+  };
+  // (Asked as a rule of how Atención works, of no case or person in particular, with nothing asked to 360 to read, say or
+  // give: a strong answer of the web or of Atención says it, below, once the answers are read; else this same line. The
+  // question is kept only as the mark all the same, index.ts.)
+  const caseRule = !!caseQ && !ONE_CASE.test(q) && !ASKS_360.test(q) && ((caseQ === 'content' && CASE_RULE.test(q)) || (caseQ === 'count' && NOT_DESK_COUNT.test(q)));
+  if (caseQ && !caseRule) return caseLine(caseQ);
 
   // An answer said: up to about 460 letters, by whole sentences; its screen's button for whoever can open it, or the
   // tutorial of a task or a screen (whoever has it). «¿Y después?» gets the step that follows.
@@ -789,11 +815,20 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // (Someone of the team who is what is asked about stays: «¿Rubén puede aceptar eventos?» asks whether another person may.)
   const mayWho = MAY_OTHER.exec(spoken(typed))?.[1];
   const names = [...namedTitleWords(typed, seenNow.events), ...namedTitleWords(typed, seenNow.pieces), ...namedTitleWords(typed, seenNow.places), ...peopleWords(seenNow.people ?? []).filter((w) => w !== mayWho)];
-  const ownFound = fits(findAnswers(i.question, { roles: i.ctx.roles, screen: i.ctx.screen, names }));
+  // A short follow-up of an answer of the web or of Atención («¿y archivado?», «¿y si le falta algo?», «¿y vencidas?») that
+  // names no domain of its own is read in that answer's domain (design §4(d)3): «Archivado» there is the web's label, not a
+  // channel's.
+  const lastEntry = i.ctx.last?.entry ? entryById(i.ctx.last.entry) : undefined;
+  const afterWeb = lastEntry?.domain === 'web' || lastEntry?.domain === 'atencion';
+  const threadDomain = afterWeb && !qDomain && ELLIPTIC.test(q) && keyWords(q).length <= 3 ? (lastEntry!.domain as 'web' | 'atencion') : undefined;
+  const inThread = threadDomain ? { domain: threadDomain } : {};
+  const ownFound = fits(findAnswers(i.question, { roles: i.ctx.roles, screen: i.ctx.screen, names, ...inThread }));
   // After a turn about an event, what goes on with it stays with the steps below (the refusal, how the event goes).
   const followsEvent = !!before && !!eventThread(earlier).at(-1) && goesOn(i.question);
-  const goesOnWith = !!before && (ELLIPTIC.test(q) || keyWords(q).length <= 2) && (tokens(q).length > 0 || NEXT_ASK.test(q)) && !eventThread(earlier).at(-1) && ownFound[0]?.confidence !== 'strong';
-  const found = goesOnWith ? fits(findAnswers(i.question, { roles: i.ctx.roles, screen: i.ctx.screen, extra: before, names })) : ownFound;
+  // (After an answer of the web or of Atención, a follow-up of one or two words is always read with the question before
+  // too: in its domain, a word alone, «¿y se borra?», would be sure of another answer of the web.)
+  const goesOnWith = !!before && (ELLIPTIC.test(q) || keyWords(q).length <= 2) && (tokens(q).length > 0 || NEXT_ASK.test(q)) && !eventThread(earlier).at(-1) && (ownFound[0]?.confidence !== 'strong' || (!!threadDomain && keyWords(q).length <= 2));
+  const found = goesOnWith ? fits(findAnswers(i.question, { roles: i.ctx.roles, screen: i.ctx.screen, extra: before, names, ...inThread })) : ownFound;
   const best: Match | null = found[0] ?? null;
   const strong = best?.confidence === 'strong';
   // K. Someone's code or password, or a code asked from 360 («pásame la contraseña de Kevin», «necesito el código 2FA del
@@ -829,6 +864,11 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     const cursor = e.kind === 'flowStory' && e.cursor !== undefined && ASKED_TO_GO_ON.test(text) ? { cursor: e.cursor } : {};
     return { ...(tour?.href ? done(text, undefined, tour) : done(text, go)), fixed: true, entry: e.id, ...(dom ? { domain: dom } : {}), ...cursor };
   };
+  // M1 and C for what reads like them but asks how the web or Atención works (above): their strong answer (static text of
+  // the guide or a curated one), else the same fixed line.
+  const webStrong = strong && (best!.entry.domain === 'web' || best!.entry.domain === 'atencion');
+  if (deskWrote) return webStrong ? sayEntry(best!) : messagesLine();
+  if (caseQ && caseRule) return webStrong ? sayEntry(best!) : caseLine(caseQ);
 
   // E. 360 explains what it just said (design §4(c)): «no entendí», «más fácil», «paso a paso», «dame un ejemplo», «¿y
   // después?», «¿para qué sirve?», «¿por qué?», «¿qué significa eso?», «dime más», «sí» after its «¿Sigo?». The topic is
@@ -841,7 +881,9 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // because its question had no when and no event in it (step W), and what explains a word is static text. Its «dame un
   // ejemplo» is the word's, even when its name reads like a date to the event detector.)
   const afterWord = !!i.ctx.last?.entry && entryById(i.ctx.last.entry)?.kind === 'term';
-  const ask = (followsEvent && !afterWord) || !lastSaid ? null : explainAsk(i.question, { titles: seenNow, last: lastSaid, withoutLabels, afterWord });
+  // (Nor after an answer of the web or of Atención: it was said only because its question named no event, and what explains
+  // it is the guide's static text, web-explain.ts.)
+  const ask = (followsEvent && !afterWord && !afterWeb) || !lastSaid ? null : explainAsk(i.question, { titles: seenNow, last: lastSaid, withoutLabels, afterWord });
   const again = () => {
     const m = before ? findAnswers(before, { roles: i.ctx.roles, screen: i.ctx.screen, names })[0] : undefined;
     return m && m.confidence !== 'none' ? m.entry.id : null;
@@ -927,7 +969,8 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
 
   // S. What this screen is for, for this role («¿qué hago aquí?», «¿qué se hace en Publicar?»): its section card and
   // its tutorial (R3, design §8.2). Before the tutorials: «¿cómo funciona esta pantalla?» is this one.
-  const whatHere = WHAT_HERE.exec(q);
+  const onWebScreen = ['web', 'atencion'].includes(domainOfScreen(i.ctx.screen) ?? '');
+  const whatHere = WHAT_HERE.exec(q) ?? (onWebScreen && THIS_THING.test(q) ? (Object.assign([q], { index: 0, input: q }) as unknown as RegExpExecArray) : null);
   if (whatHere && !carriesWhen(i.question)) {
     const named = whatHere[1] ? screenNamed(whatHere[1], i.ctx.roles, NOT_A_SCREEN) : null;
     const screen = whatHere[1] ? named?.href ?? null : i.ctx.screen ?? null;
@@ -980,7 +1023,10 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const byName = !!screenAsked && [screenAsked.label, ...screenAsked.phrases].some((p) => ` ${q} `.includes(` ${plain(p)} `));
   const usedAsk = HOW_USED.test(q) && (byName || THIS_SCREEN.test(q));
   const eventOnly = eventAt(i.question) >= 0 && !screenAsked && !TUTORIAL_WORD.test(q);
-  if ((strongAsk || usedAsk) && !eventOnly && !carriesWhen(i.question) && !SUPPORT.test(q) && offered('ver_tutorial')) {
+  // «¿Cómo funciona programar en la web?», «¿cómo funciona una denuncia?»: the strong answer of the web or of Atención says
+  // how it works (their screens have no tutorials); only «tutorial», «muéstrame»… ask for one.
+  const webHow = usedAsk && !strongAsk && strong && (best!.entry.domain === 'web' || best!.entry.domain === 'atencion');
+  if ((strongAsk || usedAsk) && !webHow && !eventOnly && !carriesWhen(i.question) && !SUPPORT.test(q) && offered('ver_tutorial')) {
     type Listed = { tutoriales: { id: string; titulo: string }[] };
     if (screenAsked && !canOpen(screenAsked.href, i.ctx.roles)) return done(`${screenAsked.label} no es de tu rol, así que no tiene tutorial para ti. En el menú de tu cuenta, «Ayuda y guías» tiene la guía de tu trabajo.`);
     const welcome = WELCOME.test(q);
@@ -1323,7 +1369,9 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const chatter = (GREETING.test(q) || THANKS.test(q)) && q.length < 40 && !asksMore;
   const upload = UPLOAD.test(q) && UPLOAD_WHAT.test(q) && !i.ctx.roles.some((r) => UPLOADERS.has(r));
   const yesNo = !mayI || (!!best && (best.entry.may || best.entry.kind === 'faq' || best.entry.kind === 'curated' || best.entry.kind === 'never'));
-  const intent = !yesNo || upload || MARK.test(q) || noticeToGroup || navFirst || decide || ROLE_SELF.test(q) || pending || aboutPiece || tweetsLeft || videoRules || support || NAME_ASK.test(q) || NAME_ONLY.test(q) || BOT_ASK.test(q) || chatter || OFF_TOPIC.test(q);
+  // «¿Qué hago yo en «Web»?», «…, ¿qué hago yo?» of something of the web: its strong answer, not the role's job.
+  const roleSelf = ROLE_SELF.test(q) && !(strong && (best!.entry.domain === 'web' || best!.entry.domain === 'atencion'));
+  const intent = !yesNo || upload || MARK.test(q) || noticeToGroup || navFirst || decide || roleSelf || pending || aboutPiece || tweetsLeft || videoRules || support || NAME_ASK.test(q) || NAME_ONLY.test(q) || BOT_ASK.test(q) || chatter || OFF_TOPIC.test(q);
   // 2'. A strong answer (D-89) wins over the generic steps that misfire today (the refusal on a label or a rule, a
   // keyword tool, a loose ficha), but not over a tool asked for clearly (the intents above), not over a when or a where
   // that is no rule (the steps below judge it), not after a turn about an event, and only when it answers better than
@@ -1430,7 +1478,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
 
   // 4d. What this role does here («¿qué puedo hacer yo?»): the person's role ficha.
   // Since the answers (D-89), the job of the role's guide («Tu trabajo», as /ayuda says it), else the role ficha.
-  if (ROLE_SELF.test(q)) {
+  if (roleSelf) {
     const job = findAnswers('cual es mi trabajo', { roles: i.ctx.roles, limit: 4 }).find((m) => m.entry.kind === 'job' && m.entry.q.length);
     if (job) return sayEntry(job);
     const own = (knowledge ?? []).find((f) => roleFichaKeys(i.ctx.roles).includes(f.key ?? ''));
