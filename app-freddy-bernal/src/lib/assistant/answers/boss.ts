@@ -3433,6 +3433,8 @@ export const BOSS: Answer[] = [
     roles: ['boss'],
     q: [
       '¿Salió algo por error en la web, qué hago?',
+      // (Said whole: «publicó» alone is the same word as «público» without accents, so it only counts with the rest.)
+      '¿Se publicó algo por error en la web, qué hago?',
       'salio algo por error en la web',
       'como quito una noticia de la web',
       'como saco una noticia de la web',
