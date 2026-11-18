@@ -103,6 +103,20 @@ describe('explainAsk: lo que se pide', () => {
     ['no entiendo lo del #1 abajo a la derecha', 'simpler', '1 abajo a la derecha'],
     ['no entendi lo de quien graba', 'simpler', 'quien graba'],
     ['no entendí la diferencia entre mover y cambiar todo junto', 'simpler', 'mover y cambiar todo junto'],
+    // The follow-ups of a thread, «y …» first (WF-C2): what happens if X, who does it, when one's own task is done, the
+    // reason for X.
+    ['¿y si lo rechazo qué pasa?', 'whatif', 'lo rechazo'],
+    ['y si se va la señal en plena subida', 'whatif', 'se va la senal en plena subida'],
+    ['¿y qué pasa si el botón está apagado?', 'whatif', 'el boton esta apagado'],
+    ['¿y quién lo decide?', 'who', 'decide'],
+    ['y quien puede archivar?', 'who', 'puede archivar'],
+    ['¿y quién?', 'who'],
+    ['¿y cuándo lo hago?', 'when', 'hago'],
+    ['y cuando las subo', 'when', 'subo'],
+    ['¿y cuándo tengo que hacer eso?', 'when', 'hacer'],
+    ['y xq tengo que decidir rapido', 'why', 'tengo que decidir'],
+    ['¿y por qué no se publica sola?', 'why', 'no se publica automatico'],
+    ['y redes por que no', 'why', 'redes'],
   ];
   for (const [q, facet, about] of cases) {
     it(`«${q}» → ${facet}${about ? ` (${about})` : ''}`, () => {
@@ -128,7 +142,9 @@ describe('explainAsk: lo que se pide', () => {
       '¿qué más?',
       'hola',
       'gracias',
-      '¿y si lo rechazo qué pasa?',
+      // (Without the «y» of a follow-up, «si…», «¿quién…?» and «¿cuándo…?» are questions of their own.)
+      '¿qué pasa si no apruebo a tiempo?',
+      '¿cuándo subo el material?',
       '¿qué tengo pendiente?',
       'no entiendo la app',
       'no entiendo esta pantalla',
@@ -407,13 +423,18 @@ describe('explainAnswer: lo que nunca hace', () => {
     expect(explainAnswer('simpler', 'redes:paso-a-paso:enviar', ctx(SOCIAL, { earlier: ['como mando una pieza al jefe'], question: 'no te entendí' }))).toBeNull();
   });
 
-  it('paso a paso cuando ya se dijeron todos los pasos: el tutorial, o la guía; nunca la lista de los tutoriales', () => {
+  it('paso a paso cuando ya se dijeron todos los pasos: otra vez, uno tras otro; después, el tutorial o la guía; nunca la lista de los tutoriales', () => {
     const e = entryById('redes:paso-a-paso:aviso')!;
     expect(e.tutorial).toBeUndefined();
-    const r = explainAnswer('steps', e, ctx(SOCIAL, { said: [String(e.a)] }))!;
+    // (WF-C2) The list was said: once more, one after the other in plain words, never the same text.
+    const again = explainAnswer('steps', e, ctx(SOCIAL, { said: [String(e.a)] }))!;
+    expect(again.text).toMatch(/^Primero: en la tarjeta, «Agregar aviso».* Luego: .* Al final: /);
+    expect(again.text).not.toBe(String(e.a));
+    // And after that retell, the guide (never the list of the tutorials).
+    const r = explainAnswer('steps', e, ctx(SOCIAL, { said: [String(e.a), again.text] }))!;
     expect(r.text).toMatch(/^Esos son todos los pasos/);
     expect(r.goTo).toBe('/ayuda/redes?ver=pasos');
-    expect(r.text).not.toMatch(/Bienvenida|Puedo mostrarte/);
+    for (const x of [again, r]) expect(x.text).not.toMatch(/Bienvenida|Puedo mostrarte/);
   });
 
   it('nada para los roles de la web y de la atención, y nada de la guía de otro rol', () => {

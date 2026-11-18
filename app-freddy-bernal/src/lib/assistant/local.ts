@@ -893,23 +893,44 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     return m && m.confidence !== 'none' ? m.entry.id : null;
   };
   const aboutEntry = ask ? (i.ctx.last ? i.ctx.last.entry : again()) : null;
-  // A bare «¿y después?» goes to the step that comes next first (below: the entry's `next`, the task after it); after
-  // 360's own «¿Sigo?» or with «después de X» («¿y después de aprobarla?»), the explanation goes on here.
-  const bareNext = ask?.facet === 'next' && !ask.about && i.ctx.last?.cursor === undefined;
+  // The question that topic answered (WF-C2): the last of the person's that was no explain ask. A curated answer is
+  // explained from the guide's unit of what was asked («¿cómo creo un evento?» → the despacho's task).
+  const topicAsked = ask ? [...earlier].reverse().find((x) => !explainAsk(x, { titles: seenNow, withoutLabels })) : undefined;
+  // The thread knows its topic (360 stored it with its last answer, go_to.entry): «¿y después?», «paso a paso» and the
+  // rest walk that topic, never the answer of another one that the question before also matches.
+  const topicKnown = !!ask && !!i.ctx.last?.entry;
+  // A bare «¿y después?» with no topic stored (a thread from before 360 kept it) goes to the step that comes next first
+  // (below: the entry's `next`, the task after it); after 360's own «¿Sigo?», with «después de X» («¿y después de
+  // aprobarla?») or with the topic known, the explanation goes on here.
+  const bareNext = ask?.facet === 'next' && !ask.about && i.ctx.last?.cursor === undefined && !topicKnown;
   // An answer of the index written for that follow-up (a curated one, sure, other than the one just said) knows better what
   // comes next after a bare «¿y después?» and what a label it quotes is («¿qué significa por revisar?»: ««Por revisar» son
   // las piezas…»): it answers, with the steps below. A word of «Palabras de la app» is still said with its meaning.
   const written = !!ask && strong && best!.entry.kind === 'curated' && best!.entry.id !== aboutEntry;
   const aboutWords = ask?.about ? plain(ask.about).replace(/^(?:(?:el|la|los|las|lo|eso|esto) (?:de |del )?)+/, '') : '';
   const definesAsked = written && !!aboutWords && quotedLabels(best!.text).some((l) => plain(l) === aboutWords);
+  // A follow-up that names X («¿y si…?», «¿y quién…?», «¿y por qué X?») with a strong answer of its own in the topic's
+  // domain, about the same thing (a fair share of its words are the topic's) and not said yet in the thread: that answer
+  // was written for it (WF-C2). The topic's own part answers the rest.
+  const topicEntry = aboutEntry ? entryById(aboutEntry) : undefined;
+  const ownAnswer = (() => {
+    if (!ask || !topicEntry || !strong || !best || best.entry.id === aboutEntry || best.entry.may) return false;
+    if (!(ask.facet === 'whatif' || ask.facet === 'who' || (ask.facet === 'why' && !!ask.about))) return false;
+    if ((best.entry.domain ?? 'equipo') !== (topicEntry.domain ?? 'equipo')) return false;
+    const said = plain(fill(best.text));
+    if (i.ctx.history.some((h) => h.who === 'asistente' && plain(h.body) === said)) return false;
+    const mine = new Set(tokens(`${textFor(topicEntry.a, i.ctx.roles)} ${topicEntry.doc ?? ''} ${topicEntry.q.join(' ')}`));
+    const its = tokens(best.text).filter((w) => w.length >= 4);
+    return its.length > 0 && its.filter((w) => mine.has(w)).length / its.length >= 0.3;
+  })();
   const explained = async (): Promise<BrainOutput | null> => {
-    if (!ask) return null;
+    if (!ask || ownAnswer) return null;
     // A topic of the web or of Atención: explained from its own section or flow (web-explain.ts); with nothing new there,
     // only «¿qué significa eso?» goes on to the words of the app (explain.ts), and the rest to the steps of today.
     const webTopic = aboutEntry ? entryById(aboutEntry) : undefined;
     if (webTopic?.domain && webTopic.domain !== 'equipo') {
       const said = i.ctx.history.filter((h) => h.who === 'asistente').map((h) => h.body);
-      const w = webExplain(ask.facet, webTopic, { roles: i.ctx.roles, said, ...(ask.about ? { about: ask.about } : {}), ...(i.ctx.last?.cursor !== undefined && i.ctx.last.entry === aboutEntry ? { cursor: i.ctx.last.cursor } : {}) });
+      const w = webExplain(ask.facet, webTopic, { roles: i.ctx.roles, said, ...(topicAsked ? { asked: topicAsked } : {}), ...(ask.about ? { about: ask.about } : {}), ...(i.ctx.last?.cursor !== undefined && i.ctx.last.entry === aboutEntry ? { cursor: i.ctx.last.cursor } : {}) });
       if (w) {
         const text = clip(fill(w.text));
         const go = w.goTo ?? (webTopic.go && canOpen(webTopic.go, i.ctx.roles) ? webTopic.go : undefined);
@@ -925,6 +946,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       earlier,
       question: i.question,
       titles: seenNow,
+      ...(topicAsked ? { asked: topicAsked } : {}),
       ...(i.ctx.last?.cursor !== undefined && i.ctx.last.entry === aboutEntry ? { cursor: i.ctx.last.cursor } : {}),
       ...(ask.about ? { about: ask.about } : {}),
       ...(ask.pair ? { pair: ask.pair } : {}),
@@ -948,7 +970,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // the answer before already said a later step (every label of it is in that answer: «Pasa a «En revisión» y dice
   // «Espera al jefe»»), it goes on after the last one said, not after the first one the question matched; when it
   // already said the last one, never again (the explanation says what comes after it, below).
-  if (NEXT_ASK.test(q) && goesOnWith) {
+  if (NEXT_ASK.test(q) && goesOnWith && !topicKnown) {
     const prev = findAnswers(before, { roles: i.ctx.roles, screen: i.ctx.screen, names }).find((m) => m.entry.next && m.score >= WEAK);
     let next = prev?.entry.next ? entryById(prev.entry.next) : undefined;
     const saidBefore = (e: { doc?: string }) => {
@@ -962,6 +984,16 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   if (ask && bareNext) {
     const r = await explained();
     if (r) return r;
+  }
+  // «Paso a paso» of a known topic with nothing new to say: its tutorial, or the guide that has its steps; never the
+  // list of the tutorials (WF-C2: that list is only for a «paso a paso» with no topic).
+  if (ask?.facet === 'steps' && topicKnown && aboutEntry) {
+    const e = entryById(aboutEntry);
+    const tour = e?.tutorial && offered('ver_tutorial') ? ((await call('ver_tutorial', { tutorial: e.tutorial })).tutorial ?? null) : null;
+    if (tour?.href) return { ...done('Te lo muestro paso a paso en la pantalla: toca el botón.', undefined, tour), fixed: true, entry: aboutEntry };
+    const dom = e?.domain && e.domain !== 'equipo' ? e.domain : null;
+    const guide = dom && e?.go && canOpen(e.go, i.ctx.roles) ? e.go : canOpen('/ayuda', i.ctx.roles) ? '/ayuda' : undefined;
+    return { ...done('Los pasos de eso están en la guía, en «Ayuda y guías»: toca el botón y los ves con calma.', guide), fixed: true, entry: aboutEntry, ...(dom ? { domain: dom } : {}) };
   }
 
   // M2. How to write to someone of the team: the guide card of Mensajes and the button to Mensajes (R5: channels).
@@ -1317,7 +1349,8 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
 
   // The intents of the data tools, read once (their steps below): a strong answer does not take their place.
   const quotedTitle = /[«"“]([^»"”]+)[»"”]/.exec(typed)?.[1];
-  const loDe = loDeEvent(q) && !WORK.test(q);
+  // («Lo de X» inside an explain ask of the thread, which named no event, is its topic, never an event: design §4(c)1.)
+  const loDe = loDeEvent(q) && !WORK.test(q) && !ask;
   // «La pestaña Cómo va» (Ajustes → Asistente) or «Cómo va» between «» is a label, not how a piece is going (D-89).
   const statusQ = spoken(i.question.replace(/«[^«»]*»|"[^"]*"|“[^”]*”/g, ' ')).replace(/\b(?:la |el )?(?:pestana|seccion|boton|parte|tarjeta|pantalla|panel) (?:de |del )?como (?:va|van)\b/g, ' ');
   // (Not of the web or of Atención: «el filtro «Estado» de la lista de noticias» is the web's list, not how a piece goes.)

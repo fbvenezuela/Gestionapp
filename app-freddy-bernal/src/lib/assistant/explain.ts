@@ -24,8 +24,12 @@ import type { TitleSet } from './titles';
 
 // ── What is asked ──────────────────────────────────────────────────────────────────────────────────────────────────
 
-/** What an explain ask wants of the topic (design §4(c)1). */
-export type Facet = 'simpler' | 'steps' | 'example' | 'next' | 'purpose' | 'why' | 'meaning' | 'more';
+/**
+ * What an explain ask wants of the topic (design §4(c)1). WF-C2 (a follow-up of the thread, «y …» first): `whatif`, «¿y si
+ * …?» (what the topic says happens then); `who`, «¿y quién lo hace?»; `when`, «¿y cuándo lo hago?» (a task's «Cuándo», the
+ * person's own work: never an event's date).
+ */
+export type Facet = 'simpler' | 'steps' | 'example' | 'next' | 'purpose' | 'why' | 'meaning' | 'more' | 'whatif' | 'who' | 'when';
 /**
  * The facet asked and, when the ask names it («no entendí lo de X», «¿qué significa X?», «¿y después de X?»), what of the
  * topic; `pair`: the two things of «no entendí la diferencia entre A y B».
@@ -112,6 +116,23 @@ const ASKS: [Facet, RegExp][] = [
 // glossary (AskOptions.afterWord), whose own `why` says it (WF-C). After anything else the answers written for it say it
 // better («¿y por qué es obligatorio?» after the doble factor: whose accounts it protects and what it opens).
 const WHY_SO = /^por que (?:es|son) (?:obligatori[oa]s?|necesari[oa]s?)$|^por que (?:hace|hacen) falta$|^por que se (?:necesita|necesitan)$/;
+// The follow-ups of a thread (WF-C2): said with «y» first («¿y si…?», «¿y quién…?», «¿y cuándo lo hago?», «¿y por qué
+// X?»), they ask that of the topic; without it, the same words are a question of its own («¿quién aprueba los tweets?»),
+// and the answers of today take it.
+const FOLLOW = '(?:(?:y|e|pero|entonces|o sea|osea) )+';
+// «¿Y si se va la señal?», «¿y si no hay piezas aprobadas?», «¿y qué pasa si lo quito?»: what the topic says happens then.
+const WHAT_IF = new RegExp(String.raw`^${FOLLOW}(?:(?:eso|esto) )?(?:(?:que pasa|que hago|que sucede|que se hace|como hago) )?(?:si|en caso de que|cuando no) (?<about>.+)$`);
+// «¿Y quién lo hace?», «¿y quién puede archivar?», «¿y quién lee las notas internas?», «¿y eso quién lo decide?»: whose
+// step or rule it is.
+const WHO_ASK = new RegExp(String.raw`^${FOLLOW}(?:(?:eso|esto) )?(?:quien|quienes) (?:(?:lo|la|los|las|le|les|se) )?(?<about>[a-z]+(?: [a-z]+){0,5})$|^${FOLLOW}(?:quien|quienes)$`);
+// «¿Y cuándo lo hago?», «¿y cuándo las subo?», «¿y cuándo tengo que hacer eso?»: when a task of one's own is done (its
+// «Cuándo»), never when an event is: only a verb of one's work, about the topic («lo», «eso»), and no event in the ask.
+const OWN_WHEN = new RegExp(
+  String.raw`^${FOLLOW}(?:cuando|en que momento) (?:(?:lo|la|los|las|le|les|se) )?(?:(?:tengo|tenemos|hay|debo|puedo|se tiene) (?:que )?)?(?<about>${DO_VERB}|hacer\w*|subir\w*|cargar\w*|mandar\w*|marcar\w*|completar\w*|llenar\w*|bajar\w*|poner\w*|revisar\w*)(?: (?:eso|esto|lo|la|los|las|yo))?$`,
+);
+// «¿Y por qué tengo que decidir rápido?», «¿y por qué no se publica sola?», «¿y redes por qué no?»: the reason the topic
+// gives for X.
+const WHY_ABOUT = new RegExp(String.raw`^${FOLLOW}(?:(?:eso|esto) )?por que (?<about>.+)$|^${FOLLOW}(?<about2>[a-z]+(?: [a-z]+){0,2}) por que(?: no)?$`);
 // A bare yes after 360's «¿Sigo?»: go on.
 const YES = /^(?:si|dale|ok|okey|claro|va|vale|si por favor|si dale|si claro|por favor|aja|listo|de una|sigue|si sigue|perfecto|bueno|esta bien|si porfa)$/;
 const ASKED_TO_GO_ON = /¿Sigo\?\s*$/;
@@ -142,6 +163,14 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
   if (!t) return null;
   // As the agenda's checks read it (the screens' labels with a time word out, when the caller says how).
   const bare = (x: string) => (o.withoutLabels ? o.withoutLabels(x) : x);
+  // «¿Y cuándo lo subo?»: when a task of one's own is done (OWN_WHEN), read before the agenda's checks, which take any
+  // «cuándo» for an event's; still nothing with an event, a title, a place, a placeholder or the agenda's shape in it.
+  const own = OWN_WHEN.exec(t.replace(TAIL, '').replace(SOFT_LEAD, ''));
+  if (own) {
+    if (asksAgendaData(raw) || asksPlace(raw)) return null;
+    const s = eventSignals(bare(raw), titles);
+    return OWN_WHEN_BLOCK.some((b) => s.has(b)) ? null : { facet: 'when', about: own.groups!.about };
+  }
   // The agenda asked as such, or any event signal in the whole ask (but its «lo de», read below on its own X).
   if (asksAgendaData(raw) || blocked(bare(raw).replace(/\blo\s+del?\b/gi, ' '), titles)) return null;
   const tail = t.replace(TAIL, '');
@@ -164,8 +193,24 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
     return { facet, about, ...(pair ? { pair: [pair[1], pair[2]] as [string, string] } : {}) };
   }
   if (o.afterWord && WHY_SO.test(core)) return { facet: 'why' };
+  // The follow-ups of a thread, «y …» first (WF-C2): what the topic says happens if X, who does it, the reason for X.
+  const follow = tail.replace(SOFT_LEAD, '');
+  for (const [facet, re] of [['whatif', WHAT_IF], ['who', WHO_ASK], ['why', WHY_ABOUT]] as [Facet, RegExp][]) {
+    const m = re.exec(follow);
+    if (!m) continue;
+    // (Its X without the «¿… qué pasa?» it may end with: «¿y si lo rechazo qué pasa?» is about «lo rechazo».)
+    const about = (m.groups?.about ?? m.groups?.about2)?.replace(/ (?:que pasa|que hago|que sucede|que se hace|entonces)$/, '').trim();
+    if (!about) return { facet };
+    if (about.split(' ').length > 8 || about.length > 70 || YES.test(about)) return null;
+    if (blocked(bare(about), titles)) return null;
+    return { facet, about };
+  }
   return null;
 }
+// The openers that are not a follow-up's «y» (courtesy, fillers): left out before the follow-up's own shape is read.
+const SOFT_LEAD = /^(?:(?:ok|okey|okay|ya|aja|bueno|mira|oye|chamo|chama|pana|hola|epa|epale|disculpa|disculpe|perdon|perdona|360|ah|eh|mmm|vale|listo|gracias|muchas gracias|a ver|amigo|amiga|bro|mano|mana)(?: |$))+/;
+// What still stops «¿y cuándo lo hago?»: an event named or the agenda's shape (a title, a place, a date or an address).
+const OWN_WHEN_BLOCK: EventSignal[] = ['word', 'title', 'place', 'token', 'agenda'];
 
 // ── What it is about ───────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -188,6 +233,8 @@ export type ExplainContext = {
   about?: string;
   pair?: [string, string];
   tours?: string[];
+  // The question the topic answered in this thread (the last one that was not an explain ask): a curated answer's unit.
+  asked?: string;
 };
 
 /**
@@ -343,14 +390,44 @@ function unitText(u: Unit, roles: Role[]): string {
   return textFor(u.entry.a, roles);
 }
 
-/** The unit of the topic for this person: its own, or the one a curated answer is about (or its own text, when none). */
-function unitFor(topic: Entry | string, roles: Role[]): Unit | null {
+/**
+ * The unit of the topic for this person: its own, or the one a curated answer is about (or its own text, when none).
+ * `asked`: the question the curated answer answered in this thread (WF-C2): when its ways of asking do not tell its unit,
+ * what the person asked does («¿cómo creo un evento nuevo?» is the despacho's task «Crear un evento…»).
+ */
+function unitFor(topic: Entry | string, roles: Role[], asked?: string): Unit | null {
   const id = typeof topic === 'string' ? topic : topic.id;
   const e = typeof topic === 'string' ? entryById(topic) : topic;
   // The web's and Atención's entries are explained from their own sections (assistant/web-explain.ts), not here.
   if (e?.domain && e.domain !== 'equipo') return null;
-  if (e?.kind === 'curated') return relatedOf(e, roles) ?? { kind: 'entry', id: e.id, entry: e };
+  if (e?.kind === 'curated') return relatedOf(e, roles) ?? relatedByAsk(e, roles, asked) ?? { kind: 'entry', id: e.id, entry: e };
   return unitOf(id, e);
+}
+// The guide's unit of what the person asked: among the first entries of the guide that answer it (no curated one), the
+// first of this person's whose text says a fair share of the curated answer's words (OVERLAP), as relatedId() checks.
+const askedCache = new Map<string, string | null>();
+function relatedByAsk(e: Entry, roles: Role[], asked?: string): Unit | null {
+  const q = plain(asked ?? '');
+  if (!q) return null;
+  const key = `${e.id}|${[...roles].sort().join(',')}|${q}`;
+  if (!askedCache.has(key)) {
+    const said = new Set(tokens(textFor(e.a, roles)).filter((w) => w.length >= 4));
+    let pick: string | null = null;
+    const found = findAnswers(q, { roles, limit: 10 }).filter((x) => x.entry.kind !== 'curated' && (UNIT_KINDS.has(x.entry.kind) || x.entry.kind === 'flowStory') && x.score >= WEAK && (!x.entry.domain || x.entry.domain === 'equipo'));
+    for (const m of found.slice(0, 4)) {
+      const u = unitOf(m.entry.id, m.entry);
+      if (!u || u.kind === 'entry' || !allowed(u, roles)) continue;
+      const has = new Set(tokens(unitText(u, roles)));
+      const share = said.size ? [...said].filter((w) => has.has(w)).length / said.size : 0;
+      if (share >= OVERLAP) {
+        pick = u.id;
+        break;
+      }
+    }
+    askedCache.set(key, pick);
+  }
+  const id = askedCache.get(key);
+  return id ? unitOf(id, entryById(id)) : null;
 }
 
 // ── Saying it ──────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -373,6 +450,12 @@ function turnOf(step: FlowStep, roles: Role[]): string {
   return `Después le toca ${list([...others.map((r) => TO_WHO[r]), ...(mine.length ? ['a ti'] : [])])}`;
 }
 const stepText = (s: FlowStep) => lcFirst(end(s.text));
+
+/** Whether this text was a whole answer of the thread already. */
+function saidWhole(text: string, said: string[]): boolean {
+  const core = plain(text.replace(/\s*¿Sigo\?\s*$/, ''));
+  return !core || said.some((x) => plain(x.replace(/\s*¿Sigo\?\s*$/, '')) === core);
+}
 
 /** Whether this text (or most of it) was already said in the thread. */
 function wasSaid(text: string, said: string[]): boolean {
@@ -418,6 +501,21 @@ function stepsPage(title: string | null, steps: string[], from: number): { text:
   const more = k < steps.length;
   const head = title && from === 0 ? `${title}, paso a paso: ` : '';
   return { text: `${head}${out.join(' ')}${more ? ' ¿Sigo?' : ''}`, ...(more ? { next: k } : {}) };
+}
+
+// The steps said once more, one after the other (stepsFacet, when the list was already said), three at a time.
+const RETELL = /^Primero: /;
+function retellPage(steps: string[], from: number): { text: string; next?: number } {
+  const out: string[] = [];
+  let k = from;
+  for (; k < steps.length && out.length < PAGE; k++) {
+    const lead = k === 0 ? 'Primero' : k === steps.length - 1 ? 'Al final' : 'Luego';
+    const line = `${lead}: ${lcFirst(end(steps[k]))}`;
+    if (out.length && [...out, line].join(' ').length > PAGE_LETTERS) break;
+    out.push(line);
+  }
+  const more = k < steps.length;
+  return { text: `${out.join(' ')}${more ? ' ¿Sigo?' : ''}`, ...(more ? { next: k } : {}) };
 }
 
 // How far the steps were already said in the thread: an answer of the last ones that listed them («Cargar una ficha…,
@@ -558,8 +656,11 @@ const definesWord = (text: string, w: string) => {
 };
 
 const TURNS = new Set(['sin', 'no', 'nunca', 'menos', 'solo', 'nada']);
-/** The part of the unit that says X best (its labels named whole first, then its words; what defines X, asked what it means), or null. */
-function partAbout(u: Unit, about: string, roles: Role[], define = false, last = false): Part | null {
+/**
+ * The part of the unit that says X best (its labels named whole first, then its words; what defines X, asked what it
+ * means), or null. `bonus`: what the ask prefers of a part (a «si …» for «¿y si…?», someone named for «¿y quién…?»).
+ */
+function partAbout(u: Unit, about: string, roles: Role[], define = false, last = false, bonus?: (p: Part) => number, minShare = 0): Part | null {
   const want = tokens(about).filter((w) => w.length >= 3);
   if (!want.length) return null;
   const a = ` ${readable(about)} `;
@@ -574,7 +675,11 @@ function partAbout(u: Unit, about: string, roles: Role[], define = false, last =
     const like = (w: string) => have.some((h) => h === w || (h.length >= 4 && w.length >= 4 && (h.startsWith(w) || w.startsWith(h))));
     const share = want.filter(like).length / want.length;
     const defines = define && want.some((w) => definesWord(p.text, w));
-    return { p, score: share + (named ? 0.5 : 0) + (defines ? 0.4 : 0) + (p.own ? 0.1 : 0) };
+    // (A preference counts only for a part that already says X: it orders, it never makes one.)
+    const extra = bonus && share >= 0.5 ? bonus(p) : 0;
+    // (A follow-up that names X wants a part that says most of X itself: `minShare`.)
+    if (share < minShare && !named) return { p, score: 0 };
+    return { p, score: share + (named ? 0.5 : 0) + (defines ? 0.4 : 0) + (p.own ? 0.1 : 0) + extra };
   });
   // The best (the last of the best, «¿y después de …?»: the step where it is done).
   let best: { p: Part; score: number } | null = null;
@@ -655,8 +760,13 @@ function simpler(u: Unit, ctx: ExplainContext, tours: Set<string>): Candidate[] 
   if (word) out.push({ text: [word, first ? `Lo primero: ${lcFirst(end(first))}` : ''].filter(Boolean).join(' '), entryId: u.id });
   // Its first sentence, and the tutorial when there is one.
   const tour = tourOfUnit(u);
-  const lead = sentencesOf(guideText(u, ctx.roles))[0];
+  const all = sentencesOf(guideText(u, ctx.roles));
+  const lead = all[0];
   if (lead && tour && tours.has(tour)) out.push({ text: `${lead} ¿Te lo muestro? Toca el botón.`, entryId: u.id, tutorial: tour });
+  // Nothing simpler written and no tutorial (WF-C2): what it is in its first sentence, when the topic says more than that,
+  // and where the guide explains it with calm (never «dime con tus palabras»: the topic is known).
+  const go = guideHref(u, ctx.roles);
+  if (lead && all.length > 1 && go) out.push({ text: `En corto: ${lcFirst(end(lead))} La guía lo explica con calma: toca el botón.`, entryId: u.id, goTo: go });
   return out;
 }
 
@@ -673,8 +783,14 @@ function stepsFacet(u: Unit, ctx: ExplainContext, tours: Set<string>): Candidate
       const page = stepsPage(title, steps, from);
       return [{ text: page.text, entryId: u.id, ...(tutorial ? { tutorial } : {}), ...(page.next !== undefined ? { cursor: page.next } : {}), ...(u.kind === 'flow' ? { goTo: flowsHref(ctx.roles) } : {}) }];
     }
-    // All of them were said: the tutorial shows them on the screen, or else the guide has them (never the list of the
-    // tutorials: the topic is this one).
+    // All of them were said as a list: once more, one after the other in plain words («Primero: … Luego: … Al final: …»),
+    // with the tutorial when there is one (WF-C2: «paso a paso» asks for the steps, not for something else). After that
+    // retell, the tutorial shows them on the screen, or else the guide has them (never the list of the tutorials: the
+    // topic is this one).
+    if (!said.some((x) => RETELL.test(x))) {
+      const page = retellPage(steps, 0);
+      return [{ text: page.text, entryId: u.id, ...(tutorial ? { tutorial } : {}), ...(page.next !== undefined ? { cursor: page.next } : {}), ...(u.kind === 'flow' ? { goTo: flowsHref(ctx.roles) } : {}) }];
+    }
     if (tutorial) return [{ text: 'Ya te dije todos los pasos. Si quieres, te los muestro en la pantalla: toca el botón.', entryId: u.id, tutorial }];
     const go = u.kind === 'task' ? opens(`/ayuda/${u.guide.slug}?ver=pasos`, ctx.roles) : u.kind === 'flow' ? flowsHref(ctx.roles) : guideHref(u, ctx.roles);
     return go ? [{ text: 'Esos son todos los pasos. Para verlos con calma, están en «Ayuda y guías»: toca el botón.', entryId: u.id, goTo: go }] : [];
@@ -731,6 +847,9 @@ function next(u: Unit, ctx: ExplainContext): Candidate[] {
     return [flowTurn(u.flow, n, roles, !who)];
   }
   if (u.kind === 'topic') return more(u, ctx);
+  // A curated answer that declares what comes after it (design §4(c)3 next (ii)).
+  const nx = u.kind === 'entry' && u.entry.next ? entryById(u.entry.next) : undefined;
+  if (nx && allowed(unitOf(nx.id, nx) ?? { kind: 'entry', id: nx.id, entry: nx }, roles)) return [{ text: `Después: ${lcFirst(end(textFor(nx.a, roles)))}`, entryId: nx.id }];
   return [];
 }
 
@@ -748,7 +867,74 @@ function purpose(u: Unit, ctx: ExplainContext): Candidate[] {
     out.push({ text: `${guideText(u, roles)}${after}`, entryId: u.id });
   }
   if (u.kind === 'flow' || u.kind === 'topic' || u.kind === 'job') out.push({ text: guideText(u, roles), entryId: u.id });
+  // A curated answer: its sentence that says what it is for («… para que cuente en los resultados»), else its first one.
+  if (u.kind === 'entry') {
+    const s = sentencesOf(textFor(u.entry.a, roles));
+    const forWhat = s.find((x) => /\b(?:para|paraque|sirve|sirven)\b/.test(readable(x)) && !/^para (?:verlo|ver|abrir)/.test(readable(x)));
+    if (forWhat) out.push({ text: end(forWhat), entryId: u.id });
+  }
   return out;
+}
+
+// What makes a sentence a reason: «porque…», «para que…», «así nadie…», «es información de seguridad»… (read plain).
+const REASON = /\b(?:porque|por eso|paraque|asi nadie|asi no|para no|ya que|es informacion de seguridad|son informacion de seguridad)\b/;
+/** «No: … no se prestan, porque con ellos se aprueba todo…» said as the reason: «Porque con ellos se aprueba todo…». */
+function reasonText(t: string): string {
+  const m = /(?:^|[,;:]\s*|\s)porque\s+(.+)$/i.exec(t);
+  return m ? end(`Porque ${m[1]}`) : end(ucFirst(t));
+}
+/** The topic's own sentence that gives a reason (about X first, when the ask names X), or null. */
+function reasonPart(u: Unit, roles: Role[], about?: string): Part | null {
+  const reasons = partsOf(u, roles).filter((p) => REASON.test(readable(p.text)));
+  // Without X, only the topic's own text («¿por qué?» of a task is never the reason of its guide's other questions).
+  if (!about) return reasons.find((p) => p.own) ?? null;
+  if (!reasons.length) return null;
+  const want = tokens(about).filter((w) => w.length >= 3);
+  if (!want.length) return reasons.find((p) => p.own) ?? null;
+  const like = (have: string[], w: string) => have.some((h) => h === w || (h.length >= 4 && w.length >= 4 && (h.startsWith(w) || w.startsWith(h))));
+  let best: Part | null = null;
+  let top = 0;
+  for (const p of reasons) {
+    const share = want.filter((w) => like(tokens(p.text), w)).length / want.length;
+    if (share > top) [best, top] = [p, share];
+  }
+  return top >= 0.4 ? best : null;
+}
+
+// ── The follow-ups of a thread (WF-C2) ─────────────────────────────────────────────────────────────────────────────
+
+// «¿Y si…?»: the part of the topic about X that says what happens then (a «si …», a «cuando …», what cannot be done).
+const IF_SAYS = /(?:^|[\s(«,:])(?:si|cuando|mientras|aunque)\s/i;
+const ifBonus = (p: Part) => (IF_SAYS.test(p.text) ? 0.3 : 0) + (/^No puedes/.test(p.text) ? 0.1 : 0);
+function whatIf(u: Unit, ctx: ExplainContext): Candidate[] {
+  if (!ctx.about) return [];
+  const part = partAbout(u, ctx.about, ctx.roles, false, false, ifBonus, 0.6);
+  return part ? [{ text: end(ucFirst(part.text)), entryId: u.id }] : [];
+}
+
+// «¿Y quién…?»: the part of the topic about X that names who does it; a task of one's own is the person's.
+const NAMES_ROLE = /\b(?:jefe|despacho|politica|ivt|grabacion|redes|administracion|coordinacion|coordinador\w*|aprobador\w*|editor\w*|auditoria|responsables?|operador\w*|tu|cada quien|nadie|todos)\b/;
+const whoBonus = (p: Part) => (NAMES_ROLE.test(readable(p.text)) ? 0.4 : 0);
+function who(u: Unit, ctx: ExplainContext): Candidate[] {
+  const roles = ctx.roles;
+  const parts = partsOf(u, roles);
+  const part = ctx.about ? partAbout(u, ctx.about, roles, false, false, whoBonus, 0.6) : (parts.find((p) => p.own && NAMES_ROLE.test(readable(p.text))) ?? null);
+  if (part && NAMES_ROLE.test(readable(part.text))) {
+    // With the sentence after it when that one goes on with the same (a curated answer: «El jefe: … Cuando lo acepta…»).
+    const k = parts.findIndex((p) => p.text === part.text);
+    const after = u.kind === 'entry' && k >= 0 ? parts[k + 1] : undefined;
+    const text = after && part.text.length + after.text.length < 260 ? `${end(ucFirst(part.text))} ${end(ucFirst(after.text))}` : end(ucFirst(part.text));
+    return [{ text, entryId: u.id }];
+  }
+  // A task of the person's own guide: it is theirs.
+  if (u.kind === 'task' && roles.includes(u.role) && (!ctx.about || part)) return [{ text: `Lo haces tú: ${lcFirst(end(u.task.title))} ${ucFirst(lcFirst(end(u.task.when)))}`.trim(), entryId: u.id }];
+  return [];
+}
+
+// «¿Y cuándo lo hago?»: the task's «Cuándo» (the person's own work; never an event's date).
+function when(u: Unit, ctx: ExplainContext): Candidate[] {
+  if (u.kind === 'task' && ctx.roles.includes(u.role)) return [{ text: `Lo haces ${lcFirst(end(u.task.when))}`, entryId: u.id }];
+  return [];
 }
 
 // Without a reason in the data: the guide does not give it (or, for a curated answer of 360, 360 does not have it).
@@ -759,6 +945,9 @@ function why(u: Unit, ctx: ExplainContext): Candidate[] {
   const out: Candidate[] = [];
   const w = facetText(u, 'why', roles);
   if (w) out.push({ text: w, entryId: u.id });
+  // The reason the topic itself gives («… porque con ellos se aprueba todo…»), about X first when the ask names it.
+  const r = reasonPart(u, roles, ctx.about);
+  if (r) out.push({ text: reasonText(r.text), entryId: u.id });
   // Without a reason in the guide: what the guide says, and the guide.
   const go = guideHref(u, roles);
   const says = sentencesOf(guideText(u, roles)).find((s) => !wasSaid(s, ctx.said ?? [])) ?? null;
@@ -904,13 +1093,21 @@ export function explainAnswer(facet: Facet, topic: Entry | string | null | undef
   // Never in a thread about an event: it keeps the agenda's steps (and its refusal).
   if (followsEventThread(ctx)) return null;
   const said = ctx.said ?? [];
-  const u = topic ? unitFor(topic, roles) : null;
+  const u = topic ? unitFor(topic, roles, ctx.asked) : null;
   // «¿Qué significa eso?» can work from the answer before alone; anything else needs a topic.
   if (!u && facet !== 'meaning') return null;
   if (u && !allowed(u, roles)) return null;
   const tours = toursOf(ctx);
   let list: Candidate[] | null = null;
-  if (ctx.about) list = aboutCandidates(facet, u, ctx.about, ctx, tours);
+  // The follow-ups of a thread (WF-C2): what happens if X, who does it, when (each from the topic itself).
+  if (u && (facet === 'whatif' || facet === 'who' || facet === 'when')) list = facet === 'whatif' ? whatIf(u, ctx) : facet === 'who' ? who(u, ctx) : when(u, ctx);
+  else if (facet === 'whatif' || facet === 'who' || facet === 'when') list = [];
+  // «¿Y por qué X?»: the reason of the data, the topic's sentence that gives it, then what the topic says of X.
+  else if (u && facet === 'why' && ctx.about) {
+    const w = facetText(u, 'why', roles);
+    const r = reasonPart(u, roles, ctx.about);
+    list = [...(w ? [{ text: w, entryId: u.id }] : []), ...(r ? [{ text: reasonText(r.text), entryId: u.id }] : []), ...aboutCandidates(facet, u, ctx.about, ctx, tours), ...why(u, { ...ctx, about: undefined })];
+  } else if (ctx.about) list = aboutCandidates(facet, u, ctx.about, ctx, tours);
   else if (facet === 'meaning') list = meaning(u, ctx);
   else if (u) {
     list =
@@ -922,7 +1119,10 @@ export function explainAnswer(facet: Facet, topic: Entry | string | null | undef
       : facet === 'why' ? why(u, ctx)
       : more(u, ctx);
   }
-  const pick = (list ?? []).find((c) => c.text && !wasSaid(c.text, said));
+  // (The answer to «¿y si…?», «¿y quién…?», «¿y cuándo…?» or «¿por qué?» may say again a sentence of a longer answer
+  // before: that is what was asked. Never a whole answer said before.)
+  const answersAsked = facet === 'whatif' || facet === 'who' || facet === 'when' || facet === 'why';
+  const pick = (list ?? []).find((c) => c.text && (answersAsked ? !saidWhole(c.text, said) : !wasSaid(c.text, said)));
   if (!pick) return null;
   const text = clip(pick.text);
   const goTo = opens(pick.goTo, roles);
