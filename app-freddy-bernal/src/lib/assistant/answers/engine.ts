@@ -140,10 +140,12 @@ const SHORTHAND: [RegExp, string][] = [
   [/\bel (?:signo )?mas(?= (?:de la letra|del modo lectura|en el modo lectura|en modo lectura)\b)/g, 'el agranda letra'],
   [/\bel (?:signo )?menos(?= (?:de la letra|del modo lectura|en el modo lectura|en modo lectura)\b)/g, 'el achica letra'],
   // The screen's pictures said other ways: the arrows ‹ ›, the level's box of a review, the person of Mi cuenta. «La
-  // cajita» alone is the level's; with what box it is («la cajita de antes de aprobar», «… de texto», «… para buscar»),
-  // that one.
+  // cajita» is the level's when the question ends with it («¿para qué es la cajita?») or talks of the colors («la cajita no
+  // me deja cambiar el color»); with what box it is («la cajita de antes de aprobar», «… de texto», «… para buscar») it
+  // is that one, and in an explain ask it stays as said («y eso de la cajita pa qué es»: explain.ts reads its topic).
   [/\bflechit[ao]s?\b/g, 'flechas'],
-  [/\bcajit[ao]s?\b(?! (?:de|del|para|pa) )/g, 'cajita nivel'],
+  [/\bcajit[ao]s?$/g, 'cajita nivel'],
+  [/\bcajit[ao]s?\b(?! (?:de|del|para|pa|nivel) )(?=.*\b(?:color|colores|rojo|roja|amarillo|amarilla|verde|semaforo)\b)/g, 'cajita nivel'],
   [/\b(?:muneco|munequita|munequitos|monito|monigote|personita|iconito de (?:la )?persona|icono de (?:la )?persona)\b/g, 'munequito'],
 ];
 

@@ -152,7 +152,7 @@ describe('las palabras de las pantallas dichas de otra forma (SHORTHAND) y los s
 
   it('«la cajita» de otra cosa y «el más y el menos» de otra cosa siguen siendo lo suyo', () => {
     // (With what box it is, that box: the list «Antes de aprobar», the search, a text.)
-    for (const q of ['marco la cajita de antes de aprobar y no pasa nada', 'la cajita de texto no me deja escribir', 'donde esta la cajita para buscar'])
+    for (const q of ['marco la cajita de antes de aprobar y no pasa nada', 'la cajita de texto no me deja escribir', 'donde esta la cajita para buscar', 'y eso de la cajita pa que es'])
       expect(readable(q), q).not.toContain('nivel');
     expect(bestAnswer('marco la cajita de antes de aprobar y no pasa nada', { roles: ['boss'] })!.text).toMatch(/«Antes de aprobar»/);
     // (The most and the least of something else: results, not the letter.)
