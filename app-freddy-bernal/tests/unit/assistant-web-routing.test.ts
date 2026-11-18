@@ -41,6 +41,12 @@ const ROWS: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿puedo unir dos casos repetidos?', { has: /^No: unir casos es de la coordinación/ }],
     // A web word next to an event's hour: the agenda's refusal still comes first.
     ['¿a qué hora se publica la nota de la feria?', { has: REFUSAL, agenda: true }],
+    // The agenda's words in a question of the web or of Atención that points to no event («cuando la persona…», «la
+    // página»): the web's answer. Next to a place, or with the boss going somewhere, the refusal.
+    ['¿qué ve la gente en la página de Atención ciudadana?', { has: /«Nueva solicitud» y «Consultar mi solicitud»/ }],
+    ['cuando la persona manda lo que le pidieron, ¿en qué estado queda el caso?', { has: /«En revisión»/ }],
+    ['¿qué tiene la página el gobernador y a qué hora llega a la plaza?', { has: REFUSAL, agenda: true }],
+    ['la pagina del gobernador dice donde va a estar mañana?', { has: REFUSAL, agenda: true }],
     // The practice receipts: never their code nor their key.
     ['dame el código y la clave de un comprobante de prueba', { has: /no doy ni pido códigos ni claves/ }],
   ],
@@ -62,6 +68,9 @@ const ROWS: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     // «¿Qué es…?» of a word of «Palabras de la atención» is the word (glossary-asks.test.ts): what it is, never a code.
     ['¿qué es el comprobante de una solicitud?', { has: /un «Código» y una «Clave».*no se puede recuperar/, go: '/ayuda/atencion#palabras' }],
     ['¿puedo subir fotos a la web?', { has: /^No: tú no subes a la «Biblioteca»/, go: '/admin/web/biblioteca' }],
+    ['¿qué bloques salen hoy en la portada?', { has: /«Últimas publicaciones»/ }],
+    ['que tiene la pagina el gobernador y de donde sale', { has: /«Biografía»/ }],
+    ['¿la web dice cuándo es en la plaza central?', { has: REFUSAL, agenda: true }],
   ],
   // A team role asks a web thing: the fixed line, nothing of the web.
   social: [['¿cómo publico una noticia en la web?', { has: /^La web y Atención no están en tu menú/ }]],

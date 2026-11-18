@@ -153,6 +153,8 @@ const LABEL_VALUE = /\b(?:que (?:dice|pone|tiene|trae|sale|hay)|dime lo que|dime
 const MAP_ASK = /\b(?:google maps|maps|waze|coordenadas|geolocalizacion|ubicacion en el mapa|pin de ubicacion|link del mapa|mapa del sitio)\b|\b(?:mandame|pasame|dame|enviame) el pin\b/;
 // A where of a place in particular: «¿dónde queda la casa comunal…?», «¿cómo llego a la plaza?».
 const PLACE_ASKED = /\b(?:donde|como llego a|como se llega a|como llegar a)\s+(?:(?:queda|quedan|esta|estan|es|son)\s+)?(?:el|la|los|las)\s+(?:casa comunal|casita comunal|casa comunal|escuela|escuelita|plaza|placita|plazoleta|urbanismo|cancha|canchita|puente|comunidad|liceo|colegio|iglesia|sede del evento|parroquia)\b/;
+// A place of the town said by its kind («la plaza», «la escuela», «el puente»): next to a when or a where it is the agenda's.
+const PLACE_WORD = /\b(?:plaza|plazoleta|liceo|escuela|escuelita|colegio|universidad|alcaldia|cancha|canchita|polideportivo|estadio|gimnasio|iglesia|capilla|catedral|mercado|ambulatorio|hospital|clinica|parque|redoma|terminal|auditorio|teatro|monumento|cementerio|casa comunal|casita comunal|urbanismo|puente|calle|avenida|carretera|hacienda|finca)\b/;
 // The weather or what to wear for it, of an event named («¿llevo chaqueta para lo de Alto Verde o hace calor allá?»).
 const WEATHER = /\b(?:calor|frio|llueve|lluvia|llover|clima|chaqueta|sueter|abrigo|paraguas|sombrero|protector solar|barro|polvero)\b/;
 const NO_CODES = /\bno (?:tengo|doy|pido)(?: ni (?:tengo|doy|pido))* c[oó]digos\b|\bnunca (?:da|doy) (?:ni pide )?c[oó]digos\b/i;
@@ -428,7 +430,7 @@ const BOSS_GOES = /\b(?:fue|va|van|viene|vienen|vino|llega|llego|llegara|ira|iri
 // way there) only when they end the question. Matched without accents or case. A few never are the agenda: SAFE.
 const DATA_IN_LABEL = /\b(?:direccion|lugar|contactos?|llega|llegar|sitio|mapa|donde)\b/;
 const LOOSE: Record<string, string> = { a: '[aá]', e: '[eé]', i: '[ií]', o: '[oó]', u: '[uúü]', n: '[nñ]' };
-const SAFE_LABELS = ['horas de silencio', 'por ponerle fecha', 'ponerle fecha', 'ya tiene fecha', 'fecha estimada de entrega', 'vaciar este mes', 'borrar este mes', 'mover a otro mes', 'guardar la fecha', 'guardar la nueva fecha', 'cambiar fecha o lugar'];
+const SAFE_LABELS = ['horas de silencio', 'por ponerle fecha', 'ponerle fecha', 'ya tiene fecha', 'fecha estimada de entrega', 'vaciar este mes', 'borrar este mes', 'mover a otro mes', 'guardar la fecha', 'guardar la nueva fecha', 'cambiar fecha o lugar', 'fecha comprometida', 'fechas comprometidas'];
 const WHAT_IS = String.raw`(?:que es|que son|que significa|que significan|que quiere decir|que sale en|que hay en|que dice|para que sirve|para que es|donde esta|donde veo|que hago en|como (?:uso|funciona))`;
 const looseRe = (labels: string[]) =>
   labels
@@ -1233,6 +1235,19 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const workFrom = WORK.exec(q)?.index ?? -1;
   const aboutWork = workFrom >= 0 && (eventFrom < 0 || workFrom < eventFrom);
   const refuseNamed = () => refuseWith(evs.length === 1 ? evs[0] : undefined, lookup);
+  // W'. The web's or Atención's guide asked by the boss or Administración (design §4(e)): the agenda's words in it («hoy»,
+  // «cuándo» as a «when the person sends…», «el camino», «de dónde sale», «la dirección vieja», «ajustes del sitio») are
+  // the web's when it points to no event (no event word, title, event's place, placeholder or «lo de…», the boss as the
+  // subject only as the web's page «El gobernador») and its strong answer is the web's or Atención's: a guide or curated
+  // text, static and with no date, said through the same net. A web word next to an event keeps the refusal («¿a qué hora
+  // se publica la nota de la feria?»).
+  // (A when, a where or the way asked next to a place word, «¿la web dice cuándo es en la plaza?», keeps the refusal.)
+  const webBest = strong && (best!.entry.domain === 'web' || best!.entry.domain === 'atencion');
+  const bossPage = /\bpaginas? (?:de |del )?(?:el )?gobernador\b/.test(pBare) && !BOSS_GOES.test(pBare);
+  const pointsNowhere = eventAt(bareQ) < 0 && !['word', 'title', 'place', 'token'].some((x) => gBare.has(x as never)) && (!gBare.has('subject') || bossPage) && !loDeEvent(pBare) && !NAMED_EVENT.test(pBare) && !DEFINITE_EVENT.test(pBare);
+  const askedThere = (trap || asking || valueAsk) && PLACE_WORD.test(pBare);
+  const webAsk = webBest && (i.ctx.roles.includes('boss') || isAdmin) && pointsNowhere && !askedThere && !followsEvent && !noticeToGroup && !CONTACT_ASK.test(spoken(bare)) && !mapAsk && !labelValue && !screenEvent && !threadValue && !placeAsked;
+  if (webAsk && (trap || asking || whereish || valueAsk || one || dayList || carriesWhen(i.question))) return sayEntry(best!);
   if (trap) return refuseNamed();
   // «¿Qué me toca grabar mañana?», «¿qué tengo el sábado?» (red team, 05/11): the person's list has no dates, so a day
   // asked with it never gets it (it would say that day is that event's, or a wrong one). «Hoy» (their home screen) and
