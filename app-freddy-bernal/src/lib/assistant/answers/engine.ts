@@ -133,14 +133,17 @@ const SHORTHAND: [RegExp, string][] = [
   [/\b(?:kieren|qieren|quieren) (?:decir|desir|dcir|deci)\b/g, 'quieren decir'],
   [/\b(?:esplicame|explikame|esplikame|explicme|explicam|explcame)\b/g, 'explicame'],
   // The reading mode's − and + said as words («¿pa' qué son el más y el menos?»): they make the letter bigger or smaller.
-  // Only both together or with the letter or the mode: «el Más» alone is the phone bar's button.
-  [/\bel (?:signo )?mas y el (?:signo )?menos\b/g, 'el agranda letra y el achica letra'],
-  [/\bel (?:signo )?menos y el (?:signo )?mas\b/g, 'el achica letra y el agranda letra'],
+  // Only both together, at the end of the question or with the letter or the mode, or one with the letter or the mode:
+  // «el Más» alone is the phone bar's button, and «el post con el más y el menos de me gusta» asks for results.
+  [/\bel (?:signo )?mas y el (?:signo )?menos\b(?=$| (?:de la letra|de la lectura|del modo lectura|en el modo lectura|en modo lectura|en la lectura)\b)/g, 'el agranda letra y el achica letra'],
+  [/\bel (?:signo )?menos y el (?:signo )?mas\b(?=$| (?:de la letra|de la lectura|del modo lectura|en el modo lectura|en modo lectura|en la lectura)\b)/g, 'el achica letra y el agranda letra'],
   [/\bel (?:signo )?mas(?= (?:de la letra|del modo lectura|en el modo lectura|en modo lectura)\b)/g, 'el agranda letra'],
   [/\bel (?:signo )?menos(?= (?:de la letra|del modo lectura|en el modo lectura|en modo lectura)\b)/g, 'el achica letra'],
-  // The screen's pictures said other ways: the arrows ‹ ›, the level's box of a review, the person of Mi cuenta.
+  // The screen's pictures said other ways: the arrows ‹ ›, the level's box of a review, the person of Mi cuenta. «La
+  // cajita» alone is the level's; with what box it is («la cajita de antes de aprobar», «… de texto», «… para buscar»),
+  // that one.
   [/\bflechit[ao]s?\b/g, 'flechas'],
-  [/\bcajit[ao]s?\b(?! (?:del|de) nivel\b)/g, 'cajita nivel'],
+  [/\bcajit[ao]s?\b(?! (?:de|del|para|pa) )/g, 'cajita nivel'],
   [/\b(?:muneco|munequita|munequitos|monito|monigote|personita|iconito de (?:la )?persona|icono de (?:la )?persona)\b/g, 'munequito'],
 ];
 
