@@ -141,6 +141,12 @@ describe('las palabras de las pantallas dichas de otra forma (SHORTHAND) y los s
     expect(m.text).toMatch(/letra/);
   });
 
+  it('el botón verde del modo lectura hace correr el texto; solo, puede ser otro botón', () => {
+    for (const q of ['¿para qué es el botón verde del modo lectura?', 'en el modo lectura que hace el boton verde', 'el botón verde del modo lectura pa qué sirve'])
+      expect(bestAnswer(q, { roles: ['boss'] })!.text, q).toMatch(/botón verde hace correr el texto solo/);
+    expect(readable('que hace el boton verde')).toBe('que hace el boton verde');
+  });
+
   it('las flechitas son las flechas; la cajita es la del nivel; el muñeco es el muñequito de Mi cuenta', () => {
     expect(readable('para que son las flechitas')).toBe('paraque son las flechas');
     expect(readable('donde esta la cajita')).toBe('donde esta la cajita nivel');
@@ -168,11 +174,11 @@ describe('las palabras de las pantallas dichas de otra forma (SHORTHAND) y los s
     expect(caption.text).toMatch(/copy largo/);
   });
 
-  it('cada nombre de cada palabra, por cada rol, como lo pregunta la gente («X, ¿qué es?», «explícame X»)', () => {
+  it('cada nombre de cada palabra, por cada rol, como lo pregunta la gente («¿qué es X?», «¿qué significa X?», «¿qué quiere decir X?», «X, ¿qué es?», «explícame X»)', () => {
     const bad: string[] = [];
     for (const g of GLOSSARY)
       for (const name of new Set(g.aka))
-        for (const q of [`${name}, ¿qué es?`, `explícame ${name}`])
+        for (const q of [`¿qué es ${name}?`, `¿qué significa ${name}?`, `¿qué quiere decir ${name}?`, `${name}, ¿qué es?`, `explícame ${name}`])
           for (const r of ROLES) {
             if (r === 'admin' && /\b(?:mensajes?|canal(?:es)?|globitos?)\b/.test(name)) continue;
             const t = askedTerm(q, [r]);

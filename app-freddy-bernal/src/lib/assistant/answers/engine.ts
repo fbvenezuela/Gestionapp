@@ -139,6 +139,9 @@ const SHORTHAND: [RegExp, string][] = [
   [/\bel (?:signo )?menos y el (?:signo )?mas\b(?=$| (?:de la letra|de la lectura|del modo lectura|en el modo lectura|en modo lectura|en la lectura)\b)/g, 'el achica letra y el agranda letra'],
   [/\bel (?:signo )?mas(?= (?:de la letra|del modo lectura|en el modo lectura|en modo lectura)\b)/g, 'el agranda letra'],
   [/\bel (?:signo )?menos(?= (?:de la letra|del modo lectura|en el modo lectura|en modo lectura)\b)/g, 'el achica letra'],
+  // The reading mode's green button makes the text run by itself («el botón verde del modo lectura»): with the reading,
+  // the text or the speech named, before or after it. Alone, «el botón verde» may be the boss's «Aprobar todas las verdes».
+  [/\bboton verde\b(?=.*\b(?:modo lectura|lectura|leer|leo|discurso|lo que voy a decir|el texto)\b)|(?<=\b(?:modo lectura|lectura|leer|leo|discurso|lo que voy a decir|el texto)\b.*)\bboton verde\b/g, 'boton verde correr texto solo'],
   // The screen's pictures said other ways: the arrows ‹ ›, the level's box of a review, the person of Mi cuenta. «La
   // cajita» is the level's when the question ends with it («¿para qué es la cajita?») or talks of the colors («la cajita no
   // me deja cambiar el color»); with what box it is («la cajita de antes de aprobar», «… de texto», «… para buscar») it
