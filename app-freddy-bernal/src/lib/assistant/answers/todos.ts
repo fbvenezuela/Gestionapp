@@ -2903,7 +2903,8 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-quien-ficha-tecnica',
     roles: null,
-    q: ['quien llena la ficha tecnica', 'puedo editar la ficha técnica', 'como completo la ficha tecnica del evento', 'qué lleva la ficha técnica'],
+    // (What it carries, «¿qué lleva la ficha técnica?», is its meaning in «Palabras de la app»: engine.ts definedTerm.)
+    q: ['quien llena la ficha tecnica', 'puedo editar la ficha técnica', 'como completo la ficha tecnica del evento'],
     a: {
       boss: 'Sí: en la ficha del evento, la ficha técnica: de qué se trata, quién lo dirige, quién está a cargo, los logros, las cifras clave con su fuente y el protocolo. Mientras más completa, mejores copies y storyboard.',
       dispatch: 'Sí: en la ficha del evento, la ficha técnica: de qué se trata, quién lo dirige, quién está a cargo, los logros, las cifras clave con su fuente y el protocolo. Las incompletas te salen en Hoy.',
