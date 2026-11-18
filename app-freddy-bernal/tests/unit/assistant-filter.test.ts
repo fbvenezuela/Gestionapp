@@ -33,6 +33,19 @@ describe('filtro de salida', () => {
     expect(filterOutput('360: Hola, ¿en qué te ayudo?', '360')).toBe('Hola, ¿en qué te ayudo?');
   });
 
+  it('las marcas del importador de la web, entre «» como las muestra la pantalla, no son huecos; lo demás sí', () => {
+    // (The web's guide names them: «Frena el envío una foto que dice «[Por escribir]»…», web flows 6.16 and the manual.)
+    for (const t of [
+      'Frena el envío una foto que dice «[Por escribir]». ¿Algo más?',
+      'Las fotos de la web anterior llegan con «[Por escribir] …» y se escribe en la biblioteca.',
+      'Una marca como «[correo retirado]», «[teléfono retirado]» o «[cédula retirada]» frena la publicación.',
+    ])
+      expect(filterOutput(t)).toBe(t);
+    expect(filterOutput('La foto dice [Por escribir]. ¿Algo más?')).toBe('¿Algo más?');
+    expect(filterOutput('Quedó «[correo retirado]» y «[nombre]». ¿Algo más?')).toBe('¿Algo más?');
+    expect(filterOutput('La marca «[Por escribir] [estado]» sale. ¿Algo más?')).toBe('¿Algo más?');
+  });
+
   it('looksLikeText: más de 8 caracteres, la mitad letras y sin ristras de puntos', () => {
     expect(looksLikeText('Quedan 6 días de tweets.')).toBe(true);
     expect(looksLikeText('ok')).toBe(false);

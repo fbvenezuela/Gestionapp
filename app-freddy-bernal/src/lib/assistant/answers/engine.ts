@@ -1124,8 +1124,9 @@ function index(): Index {
     for (const [r, w] of idf) if (!said.has(r) && w > common) idf.set(r, common);
     return { idf, said, n };
   };
-  // (The team's: every entry but the web's guide, its curated answers and the flows told as stories, WF-C.)
-  const teamOnly = (e: Entry) => !e.source.startsWith('web:') && e.source !== 'curado:web' && e.kind !== 'flowStory';
+  // (The team's: every entry but the web's guide, the curated answers of the web and of Atención, and the flows told as
+  // stories, WF-C.)
+  const teamOnly = (e: Entry) => !e.source.startsWith('web:') && e.source !== 'curado:web' && e.source !== 'curado:atencion' && e.kind !== 'flowStory';
   const { idf, said, n } = weights(entries.filter(teamOnly));
   // (The words of «Palabras de la web» and «Palabras de la atención» say again what the guide's sections say: they are
   // weighed with the others' weights and do not change them, so no other answer moves for them.)

@@ -59,7 +59,8 @@ const ROWS: Partial<Record<DemoUserKey, [string, Expect][]>> = {
     ['¿por qué no se guardan las cuentas y los contactos que cambio en ajustes?', { has: /^Porque es la versión de prueba/, go: '/admin/web/ajustes' }],
     ['¿cómo agrego una redirección?', { has: /«Nueva redirección»/, go: '/admin/web/redirecciones' }],
     ['¿la versión de prueba manda correos?', { has: /«Buzón de correos», que solo ves tú/ }],
-    ['¿qué es el comprobante de una solicitud?', { has: /un «Código» y una «Clave».*no doy ni pido códigos ni claves/ }],
+    // «¿Qué es…?» of a word of «Palabras de la atención» is the word (glossary-asks.test.ts): what it is, never a code.
+    ['¿qué es el comprobante de una solicitud?', { has: /un «Código» y una «Clave».*no se puede recuperar/, go: '/ayuda/atencion#palabras' }],
     ['¿puedo subir fotos a la web?', { has: /^No: tú no subes a la «Biblioteca»/, go: '/admin/web/biblioteca' }],
   ],
   // A team role asks a web thing: the fixed line, nothing of the web.

@@ -10,6 +10,7 @@ import { GLOSSARY, sectionCards } from '../guides';
 import { findAnswers } from './answers/engine';
 import { screenFor } from './screens';
 import { ANY_TOKEN, NO_TITLES, Placeholders, type TitleSet } from './titles';
+import { ALT_PLACEHOLDER_PREFIX, REMOVED_MARKS } from '../web/import-marks';
 import { runTool, toSpecs, type Tool, type ToolCtx, type ToolRun, type TutorialLink } from './tools';
 
 // The readings of a question (when, where, how to get there, publishing) live with the shared detector.
@@ -393,6 +394,12 @@ export function systemPrompt(ctx: TurnContext, tools: Tool[], question: string, 
 // code. Revealing sentences go WHOLE (split by sentence). It NEVER leaves the answer empty.
 // ---------------------------------------------------------------------------
 const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFD]/g;
+// The marks the web's importer leaves on a screen for a person to finish (src/lib/web/import-marks.ts), between «», with
+// the «…» the guide puts after the start of the alternative text. Nothing else in brackets passes.
+const SCREEN_MARKS = new RegExp(
+  `«(?:${[ALT_PLACEHOLDER_PREFIX, ...Object.values(REMOVED_MARKS)].map((m) => m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?: …)?»`,
+  'g',
+);
 const REVEALING = /(?<![\p{L}])(como (una? )?(ia|inteligencia artificial|modelo de lenguaje)|soy (una ia|un modelo de lenguaje|un bot|un programa|un asistente virtual)|modelo de lenguaje)(?![\p{L}])/iu;
 
 function dropSentences(text: string, bad: (s: string) => boolean): string {
@@ -418,8 +425,9 @@ export function filterOutput(t: string, assistantName?: string): string {
   // A copied script line: "[ASISTENTE]: …" or "Name: …".
   const prefixes = ['\\[ASISTENTE\\]', 'Asistente', ...(assistantName ? [assistantName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')] : [])];
   x = x.replace(new RegExp(`^(?:${prefixes.join('|')})\\s*:\\s*`, 'i'), '');
-  // A title's placeholder («[[E1]]») is not an unfilled hueco: it becomes the real name later.
-  const steps = [(s: string) => REVEALING.test(s), (s: string) => HUECO.test(s.replace(ANY_TOKEN, ''))];
+  // A title's placeholder («[[E1]]») is not an unfilled hueco: it becomes the real name later. Nor is a mark of the web's
+  // importer quoted as the screen shows it («[Por escribir]», «[correo retirado]»: the web's guide names them).
+  const steps = [(s: string) => REVEALING.test(s), (s: string) => HUECO.test(s.replace(ANY_TOKEN, '').replace(SCREEN_MARKS, '«»'))];
   for (const bad of steps) {
     const y = dropSentences(x, bad);
     if (y) x = y;
