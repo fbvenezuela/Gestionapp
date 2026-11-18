@@ -475,7 +475,7 @@ export const ATENCION: Answer[] = [
   {
     id: 'atencion-admin-quien-exporto',
     roles: ['admin'],
-    q: ['quien exporto la lista de solicitudes donde lo veo', 'donde veo las exportaciones de atencion', 'como se quien descargo el csv de atencion', 'queda registrado quien exporta'],
+    q: ['quien exporto la lista de solicitudes donde lo veo', 'quien exporto la lista de solicitudes', 'donde veo las exportaciones de atencion', 'como se quien descargo el csv de atencion', 'queda registrado quien exporta'],
     a: 'En el «Registro de atención»: cada exportación queda registrada, con quién, cuándo y con qué filtros, igual que cada contacto visto. No guarda lo que dicen los casos.',
     go: '/admin/atencion/registro',
   },

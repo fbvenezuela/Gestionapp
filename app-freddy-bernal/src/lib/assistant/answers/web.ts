@@ -51,7 +51,6 @@ export const WEB: Answer[] = [
       'puedo ver las solicitudes de la gente',
       'puedo exportar las solicitudes',
       'puedo ver las cifras de atencion',
-      'quien exporta la lista de solicitudes',
     ],
     a: 'No: tú no abres casos ni los atiendes, y no ves sus contactos ni sus cifras. Los atienden la coordinación y los responsables de área; exportar es de la coordinación y de auditoría. Tú armas «Áreas y plazos» y lees el «Registro de atención».',
     go: '/admin/atencion/areas',
