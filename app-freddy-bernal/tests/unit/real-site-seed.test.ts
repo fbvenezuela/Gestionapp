@@ -108,11 +108,14 @@ describe('el contenido real en la demo', () => {
     expect([list.projects.total, list.notices.total, list.indicators.total]).toEqual([0, 0, 0]);
   });
 
-  it('la portada: el nombre, el lema y la foto de la web oficial; nada sin contenido; opinión y Semanario tras las noticias', async () => {
+  it('la portada: el nombre y el cargo de la configuración con la foto de la web oficial; nada sin contenido; opinión y Semanario tras las noticias', async () => {
     const home = (await asAnon(a, (sql) => publishedBySlug(sql, 'page', 'inicio')))!;
     const blocks = home.data.blocks as Block[];
     const hero = blocks.find((x) => x.type === 'hero')!;
-    expect(hero.data).toMatchObject({ title: 'Persona Demo', text: 'Gobernadora de prueba (demo)', mediaId: real.pages.heroMediaId });
+    // The invented site's own office («Gobernadora de prueba (demo)») never reaches the hero (G1).
+    expect(real.identity.tagline).toContain('Gobernadora de prueba (demo)');
+    expect(hero.data).toMatchObject({ title: cfg.brand.clientName, text: cfg.web.structuredData.jobTitle || cfg.brand.clientTitle, mediaId: real.pages.heroMediaId });
+    expect(JSON.stringify(hero.data)).not.toContain('Gobernadora de prueba');
     expect(home.media[real.pages.heroMediaId!]).toMatchObject({ kind: 'image' });
     for (const id of ['indicadores', 'atendido', 'gestion', 'avisos']) expect(blocks.find((x) => x.id === id)?.visible, id).toBe(false);
     const at = blocks.findIndex((x) => x.id === 'actualidad');

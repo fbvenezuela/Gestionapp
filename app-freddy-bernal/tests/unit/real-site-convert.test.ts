@@ -1,13 +1,16 @@
 // What the official site's texts become in the demo (scripts/real-site/text.ts, news.ts, build.ts identityFrom), on
 // invented texts: whole sentences out where the importer left a removal mark (never a word), the biography's
-// «actualmente», the alternative texts of the photos, the site's name and tagline. Everything here is made up (demo).
+// «actualmente», the alternative texts of the photos, the site's name and tagline, and the home's hero, which takes the
+// config's name and title and never the site's (G1). Everything here is made up (demo).
 import { describe, expect, it } from 'vitest';
-import type { TextNode } from '@/lib/web/blocks';
+import { getClientConfig } from '@/lib/client-config';
+import type { Block, TextNode } from '@/lib/web/blocks';
 import { REMOVED_MARKS } from '@/lib/web/import-marks';
 import { taglineWithoutName } from '@/lib/web/real-site';
+import { composeHome, homeHero } from '@/lib/db/seed-parts/web-real';
 import { wantFromImage, wantFromWp, type PhotoWant } from '../../scripts/web-import/media';
 import type { WpPost, WpTerm } from '../../scripts/web-import/mapping';
-import { identityFrom } from '../../scripts/real-site/build';
+import { TAGLINE_MAX_WORDS, identityCheck, identityFrom, taglineOf } from '../../scripts/real-site/build';
 import { altFor, biographyOf, captionFor, listsFromDashes, looksLikeFileName, newsDraft, officeLeadOf, photoWants, planNews } from '../../scripts/real-site/news';
 import { dropSentences, dropSentencesInNodes, dropSentencesInRuns, hasRemovalMark, sentenceRanges } from '../../scripts/real-site/text';
 
@@ -199,6 +202,66 @@ describe('el nombre y el lema del sitio', () => {
     expect(identityFrom({ name: 'Sitio Demo', description: 'Un lema &amp; algo (demo)' }, { name: 'X', tagline: 'Y' })).toEqual({ name: 'Sitio Demo', tagline: 'Un lema & algo (demo)' });
     expect(identityFrom(null, { name: 'Respaldo (demo)', tagline: 'Respaldo - Cargo (demo)' })).toEqual({ name: 'Respaldo (demo)', tagline: 'Respaldo - Cargo (demo)' });
     expect(identityFrom({ name: 'Ana Demo - Cargo de prueba' }, { name: 'X', tagline: 'Y' })).toEqual({ name: 'Ana Demo', tagline: 'Ana Demo - Cargo de prueba' });
+  });
+
+  it('«Nombre - Cargo» con una frase larga para buscadores (la forma de la web oficial desde el 11/11): el nombre partido, la frase fuera', () => {
+    // Invented, with the shape the official site took: the office after a dash in the name, a sentence of 20-odd words
+    // that ends in a period as the description.
+    const seo = 'Un texto inventado para los buscadores, con muchas palabras de relleno sobre una persona de prueba y lo que hace en un estado que no existe (demo).';
+    expect(seo.split(/\s+/).length).toBeGreaterThan(20);
+    expect(identityFrom({ name: 'Persona Demo - Gobernadora del estado de prueba', description: seo }, { name: 'X', tagline: 'Y' })).toEqual({
+      name: 'Persona Demo', tagline: 'Persona Demo - Gobernadora del estado de prueba',
+    });
+    // The name said twice, with such a description: the same.
+    expect(identityFrom({ name: 'Persona Demo  Persona Demo - Gobernadora de prueba (demo)', description: seo }, { name: 'X', tagline: 'Y' })).toEqual({
+      name: 'Persona Demo', tagline: 'Persona Demo - Gobernadora de prueba (demo)',
+    });
+    // Without an office in the name, the brand's tagline.
+    expect(identityFrom({ name: 'Sitio Demo', description: seo }, { name: 'X', tagline: 'Lema de respaldo (demo)' })).toEqual({ name: 'Sitio Demo', tagline: 'Lema de respaldo (demo)' });
+    // A short description that reads as a tagline stays, and the name is split all the same.
+    expect(identityFrom({ name: 'Ana Demo - Cargo de prueba', description: 'Un lema corto (demo)' }, { name: 'X', tagline: 'Y' })).toEqual({ name: 'Ana Demo', tagline: 'Un lema corto (demo)' });
+  });
+
+  it('una descripción es lema solo con hasta 12 palabras y sin punto final', () => {
+    expect(TAGLINE_MAX_WORDS).toBe(12);
+    const twelve = 'Doce palabras justas de un lema inventado para probar el borde demo';
+    expect(twelve.split(/\s+/)).toHaveLength(12);
+    expect(taglineOf(twelve)).toBe(twelve);
+    expect(taglineOf(`${twelve} trece`)).toBe('');
+    expect(taglineOf('Un lema corto que termina en punto (demo).')).toBe('');
+    expect(taglineOf('Un lema que se queda a medias…')).toBe('');
+    expect(taglineOf('Un lema entre comillas que termina en punto.»')).toBe('');
+    expect(taglineOf('Un lema & algo (demo)')).toBe('Un lema & algo (demo)');
+    expect(taglineOf('¿Un lema que pregunta? (demo)')).toBe('¿Un lema que pregunta? (demo)');
+    expect(taglineOf('   ')).toBe('');
+  });
+
+  it('el nombre de la web oficial solo se compara con el de la configuración (sin acentos, mayúsculas ni espacios de más)', () => {
+    expect(identityCheck({ name: 'Persona  Démo' }, 'persona demo')).toBeNull();
+    expect(identityCheck({ name: 'Persona Demo' }, '')).toBeNull();
+    const line = identityCheck({ name: 'Otra Persona (demo)' }, 'Persona Demo');
+    expect(line).toContain('«Otra Persona (demo)»');
+    expect(line).toContain('«Persona Demo»');
+    expect(line).toMatch(/la portada usa el de la configuración/);
+  });
+
+  it('la portada de la demo: el nombre y el cargo de la configuración, nunca los de WordPress; la foto, de la web oficial', () => {
+    const cfg = structuredClone(getClientConfig());
+    cfg.brand = { ...cfg.brand, clientName: 'Persona Demo', clientTitle: 'Cargo corto (demo)' };
+    cfg.web = { ...cfg.web, structuredData: { ...cfg.web.structuredData, jobTitle: 'Gobernadora del estado de prueba (demo)' } };
+    expect(homeHero(cfg)).toEqual({ title: 'Persona Demo', text: 'Gobernadora del estado de prueba (demo)' });
+    // Without the public office, the brand's short one.
+    expect(homeHero({ ...cfg, web: { ...cfg.web, structuredData: { ...cfg.web.structuredData, jobTitle: '' } } })).toEqual({ title: 'Persona Demo', text: 'Cargo corto (demo)' });
+    const draft = {
+      title: 'Inicio',
+      blocks: [
+        { id: 'portada', type: 'hero', visible: true, data: { title: 'Título viejo (demo)', text: 'Texto viejo (demo)', mediaId: null } },
+        { id: 'actualidad', type: 'news', visible: true, data: { title: 'Actualidad', limit: 4 } },
+      ] as Block[],
+    } as Parameters<typeof composeHome>[0];
+    const heroMediaId = '00000000-0000-4000-8000-00000000abcd';
+    const home = composeHome(draft, { pages: { heroMediaId } as Parameters<typeof composeHome>[1]['pages'] }, cfg);
+    expect(home.blocks[0].data).toEqual({ title: 'Persona Demo', text: 'Gobernadora del estado de prueba (demo)', mediaId: heroMediaId });
   });
 
   it('el lema sin el nombre delante, para la portada', () => {

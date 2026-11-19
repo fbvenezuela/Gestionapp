@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { getClientConfig, type ClientConfig } from '../../client-config';
 import type { Block, TextNode } from '../../web/blocks';
 import { DENUNCIA_NOTICE, EMERGENCY_NOTICE } from '../../participation/notices';
-import { REAL_DEMO_BANNER, accountKeyOf, realIds, taglineWithoutName, type RealSnapshot } from '../../web/real-site';
+import { REAL_DEMO_BANNER, accountKeyOf, realIds, type RealSnapshot } from '../../web/real-site';
 import { parseSnapshot, type Snapshot } from '../../web/schema';
 import type { Sql } from '../core';
 import type { DemoUserKey } from '../seed-demo';
@@ -17,9 +17,9 @@ import { asPerson } from './context';
 // vieja»). Everything from the snapshot's ids, in a fixed order: the same rows on every demo server (D-39).
 //
 // The pages are composed here from the client's skeleton (config/clients/fb.json, as the seed put it), so the copy of
-// the site stays the config's; the official site gives the name and tagline, the photos, the biography and the
-// posts about taking office. The FAQs of the attention desk are this platform's own (they describe how the desk works,
-// in the site's voice), not the official site's.
+// the site stays the config's, the home's title and lead included (homeHero); the official site gives the photos, the
+// biography and the posts about taking office. The FAQs of the attention desk are this platform's own (they describe how
+// the desk works, in the site's voice), not the official site's.
 
 export { REAL_DEMO_BANNER };
 
@@ -60,14 +60,27 @@ type PageDraft = Snapshot<'page'>;
 const HOME_HIDDEN_IDS = new Set(['indicadores', 'atendido', 'gestion', 'avisos']);
 const HOME_HIDDEN_TYPES = new Set<Block['type']>(['indicators', 'attended', 'projects', 'notices']);
 
-/** «inicio»: the hero with the official site's name, tagline and photo; nothing without content; the opinion pieces and
- * the latest weekly right after the news. */
-export function composeHome(draft: PageDraft, snap: Pick<RealSnapshot, 'identity' | 'pages'>, weeklyName = getClientConfig().brand.weeklyName || 'Semanario'): PageDraft {
+type BrandConfig = Pick<ClientConfig, 'brand' | 'web'>;
+
+/** The home hero's title and lead: the client's name and the site's title, from the config (design §4.2: the H1 is
+ * brand.clientName and the subtitle site.title, whose starting value is web.structuredData.jobTitle, else
+ * brand.clientTitle, as in site-settings.ts and seed-client.ts). Never the official site's WordPress name or description:
+ * around 11/11 they became «Name - Office» and a long sentence for search engines (G1); the build only checks that name
+ * against the config's (scripts/real-site/build.ts identityCheck). */
+export function homeHero(cfg: BrandConfig): { title: string; text: string } {
+  return { title: cfg.brand.clientName, text: cfg.web.structuredData.jobTitle || cfg.brand.clientTitle };
+}
+
+/** «inicio»: the hero with the config's name and title (homeHero) and the official site's photo; nothing without
+ * content; the opinion pieces and the latest weekly right after the news. */
+export function composeHome(draft: PageDraft, snap: Pick<RealSnapshot, 'pages'>, cfg: BrandConfig = getClientConfig()): PageDraft {
+  const weeklyName = cfg.brand.weeklyName || 'Semanario';
+  const { title, text } = homeHero(cfg);
   let hero = false;
   const blocks: Block[] = draft.blocks.map((b) => {
     if (b.type === 'hero' && !hero) {
       hero = true;
-      return { ...b, data: { ...b.data, title: snap.identity.name, text: taglineWithoutName(snap.identity), mediaId: snap.pages.heroMediaId } };
+      return { ...b, data: { ...b.data, title, text, mediaId: snap.pages.heroMediaId } };
     }
     if (HOME_HIDDEN_IDS.has(b.id) || HOME_HIDDEN_TYPES.has(b.type)) return { ...b, visible: false };
     return b;
@@ -175,7 +188,7 @@ export async function seedRealWeb(ctx: RealSeedCtx, snap: RealSnapshot, cfg: Cli
     `select id, slug, draft from public.web_items where kind = 'page' and slug = any ($1::text[]) order by slug`,
     [['gobernador', 'inicio']],
   );
-  const composed = pages.map((pg) => ({ id: pg.id, slug: pg.slug, draft: pg.slug === 'inicio' ? composeHome(pg.draft, snap, cfg.brand.weeklyName || 'Semanario') : composeGovernor(pg.draft, snap) }));
+  const composed = pages.map((pg) => ({ id: pg.id, slug: pg.slug, draft: pg.slug === 'inicio' ? composeHome(pg.draft, snap, cfg) : composeGovernor(pg.draft, snap) }));
   for (const c of composed) {
     const ok = parseSnapshot('page', c.draft);
     if (!ok.ok) throw new Error(`contenido real: página ${c.slug}: ${ok.error}`);
