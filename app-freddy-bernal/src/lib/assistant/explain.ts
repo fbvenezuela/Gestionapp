@@ -626,13 +626,16 @@ function flowNext(flow: Flow, index: number, roles: Role[] = []): number | null 
   const to = way?.to ? flow.steps.findIndex((x) => x.id === way.to) : index + 1;
   return to > index && to < flow.steps.length ? to : null;
 }
-// What the way on of a step says happens right then («Si la puso el despacho, al jefe le llega «Por decidir»»), the
-// sentences of it the thread did not say yet; null when there are none.
+// What the way on of a step says happens right then («Si la puso el despacho, al jefe le llega «Por decidir»»), when the
+// thread did not say any of it yet; null when it did. Only the «Sí» or «No» of a yes-or-no question:
+// one of several ways («¿De qué color es?»: «Verde», «Amarillo»…) is no outcome of the step.
 function wayOnSays(flow: Flow, index: number, said: string[], roles: Role[] = []): string | null {
   const way = wayOn(flow, index, roles);
-  if (!way?.text) return null;
-  const left = sentencesOf(way.text).filter((x) => !wasSaid(x, said) && !said.some((y) => plain(y).includes(plain(x).replace(/[.]$/, ''))));
-  return left.length ? left.join(' ') : null;
+  if (!way?.text || !/^(?:S[ií]|No)$/u.test(way.label.trim())) return null;
+  // (Said in part already, it was said: its sentences go together.)
+  const all = sentencesOf(way.text);
+  const told = (x: string) => wasSaid(x, said) || said.some((y) => plain(y).includes(plain(x).replace(/[.]$/, '')));
+  return all.length && !all.some(told) ? all.join(' ') : null;
 }
 // After the asker's own steps: the next step of the flow that someone else does (design §4(c)3 next (i)).
 function flowNextOther(flow: Flow, index: number, roles: Role[]): number | null {
@@ -760,13 +763,13 @@ const TURNS = new Set(['sin', 'no', 'nunca', 'menos', 'solo', 'nada']);
  * The part of the unit that says X best (its labels named whole first, then its words; what defines X, asked what it
  * means), or null. `bonus`: what the ask prefers of a part (a «si …» for «¿y si…?», someone named for «¿y quién…?»).
  */
-function partAbout(u: Unit, about: string, roles: Role[], define = false, last = false, bonus?: (p: Part) => number, minShare = 0): Part | null {
+function partAbout(u: Unit, about: string, roles: Role[], define = false, last = false, bonus?: (p: Part) => number, minShare = 0, ownFirst = false, pool?: Part[]): Part | null {
   const want = tokens(about).filter((w) => w.length >= 3);
   if (!want.length) {
     // (X with no word of its own, «no va»: the part that quotes it as a label, «No va».)
     const x = readable(about).replace(ARTICLES, '').trim();
     if (x.length < 3) return null;
-    return partsOf(u, roles).find((p) => [...p.text.matchAll(/«([^«»]+)»/g)].some((m) => readable(m[1]) === x)) ?? null;
+    return (pool ?? partsOf(u, roles)).find((p) => [...p.text.matchAll(/«([^«»]+)»/g)].some((m) => readable(m[1]) === x)) ?? null;
   }
   const a = ` ${readable(about)} `;
   // A phrase with a word that turns its meaning around and that tokens() leaves out («sin programar» is «programar» to
@@ -778,7 +781,13 @@ function partAbout(u: Unit, about: string, roles: Role[], define = false, last =
     const its = tokens(l);
     return want.filter((w) => its.some((h) => rootsLike(h, w))).length / want.length >= 0.67;
   };
-  const scored = partsOf(u, roles).filter((p) => !whole || ` ${readable(p.text)} `.includes(` ${whole} `)).map((p) => {
+  // (A follow-up asks first of the topic itself, `ownFirst`: its own parts, then what is said around it.)
+  const all = pool ?? partsOf(u, roles);
+  if (ownFirst && all.some((p) => !p.own)) {
+    const mine = partAbout(u, about, roles, define, last, bonus, minShare, false, all.filter((p) => p.own));
+    if (mine) return mine;
+  }
+  const scored = all.filter((p) => !whole || ` ${readable(p.text)} `.includes(` ${whole} `)).map((p) => {
     const labels = [...p.text.matchAll(/«([^«»]+)»/g)].map((m) => readable(m[1]));
     const named = labels.some((l) => l.length >= 3 && (a.includes(` ${l} `) || ` ${l} `.includes(a)) && covers(l));
     const have = tokens(p.text);
@@ -951,7 +960,7 @@ function next(u: Unit, ctx: ExplainContext): Candidate[] {
     const fs = flowStepOf(u.task, u.role);
     const did = fs && ctx.doer ? flowNextDoing(fs.flow, fs.index, ctx.doer, roles) : null;
     if (fs && did !== null) return [flowTurn(fs.flow, did, roles, false)];
-    const then = fs && !who && !ctx.about ? wayOnSays(fs.flow, fs.index, said, roles) : null;
+    const then = fs && !who && !ctx.about ? wayOnSays(fs.flow, fs.index, [...said, unitText(u, roles)], roles) : null;
     if (fs && then) return [{ text: `Después: ${lcFirst(end(then))}`, entryId: `flujo:${fs.flow.id}:${fs.flow.steps[fs.index].id}` }];
     const n = fs ? (who ? flowNextBy(fs.flow, fs.index, who, roles) : flowNext(fs.flow, fs.index, roles)) : null;
     if (fs && n !== null) return [flowTurn(fs.flow, n, roles, !who)];
@@ -1035,7 +1044,7 @@ function whatIf(u: Unit, ctx: ExplainContext): Candidate[] {
   // (A curated answer's own sentence that says it first: «Sin área, …» to «¿y si no tiene área?».)
   const said = u.kind === 'entry' ? sentenceSaying('whatif', ctx.about, textFor(u.entry.a, ctx.roles)) : null;
   if (said) return [{ text: end(ucFirst(said)), entryId: u.id }];
-  const part = partAbout(u, ctx.about, ctx.roles, false, false, ifBonus, 0.6);
+  const part = partAbout(u, ctx.about, ctx.roles, false, false, ifBonus, 0.6, true);
   return part ? [{ text: end(ucFirst(part.text)), entryId: u.id }] : [];
 }
 
@@ -1048,7 +1057,7 @@ const whoBonus = (p: Part) => (saysFacet('who', p.text) ? 0.4 : 0);
 function who(u: Unit, ctx: ExplainContext): Candidate[] {
   const roles = ctx.roles;
   const parts = partsOf(u, roles);
-  const part = ctx.about ? partAbout(u, ctx.about, roles, false, false, whoBonus, 0.6) : (parts.find((p) => p.own && saysFacet('who', p.text)) ?? null);
+  const part = ctx.about ? partAbout(u, ctx.about, roles, false, false, whoBonus, 0.6, true) : (parts.find((p) => p.own && saysFacet('who', p.text)) ?? null);
   if (part && saysFacet('who', part.text)) {
     // With the sentence after it when that one goes on with the same (a curated answer: «El jefe: … Cuando lo acepta…»).
     const k = parts.findIndex((p) => p.text === part.text);
@@ -1056,8 +1065,8 @@ function who(u: Unit, ctx: ExplainContext): Candidate[] {
     const text = after && part.text.length + after.text.length < 260 ? `${end(ucFirst(part.text))} ${end(ucFirst(after.text))}` : end(ucFirst(part.text));
     return [{ text, entryId: u.id }];
   }
-  // A task of the person's own guide: it is theirs.
-  if (u.kind === 'task' && roles.includes(u.role) && (!ctx.about || part)) return [{ text: `Lo haces tú: ${lcFirst(end(u.task.title))} ${ucFirst(lcFirst(end(u.task.when)))}`.trim(), entryId: u.id }];
+  // A task of the person's own guide, asked who does it (no X, or X is what the task does): it is theirs.
+  if (u.kind === 'task' && roles.includes(u.role) && (!ctx.about || aboutTitle(u.task.title, ctx.about))) return [{ text: `Lo haces tú: ${lcFirst(end(u.task.title))} ${ucFirst(lcFirst(end(u.task.when)))}`.trim(), entryId: u.id }];
   return [];
 }
 
