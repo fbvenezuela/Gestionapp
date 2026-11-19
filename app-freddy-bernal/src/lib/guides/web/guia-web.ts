@@ -627,6 +627,7 @@ export const GUIA_WEB: WebDoc = {
         { q: '¿Quién lee el comentario de un apoyo?', a: 'Solo el personal de atención: en el caso sale con «(solo el equipo)». El comentario es opcional.' },
       ],
       easy: 'Apoyar es decir “a mí también me pasa” en un reporte que ya existe. La persona se suma y recibe su propio código.',
+      example: 'Por ejemplo: alguien va a reportar un hueco y la web le muestra «Hay 2 reportes abiertos del mismo problema cerca de ese lugar.». En vez de mandar otro, toca «Apoyar este reporte», deja un «Comentario» si quiere y toca «Enviar apoyo»: recibe «Apoyo registrado».',
       blocks: [
         {
           kind: 'steps',
@@ -717,6 +718,7 @@ export const GUIA_WEB: WebDoc = {
         { q: '¿Cómo confirma la gente que ya le resolvieron?', a: 'Cuando la marcan «Resuelta», su consulta pregunta «¿Se resolvió el problema?»: elige «Sí, se resolvió» o «No, todavía no» y toca «Responder». Con «No, todavía no», escribe «¿Qué falta por resolver?» y vuelve a atención.' },
       ],
       easy: 'La persona escribe su código y su clave en «Consultar mi solicitud» y ve en qué va lo suyo y qué le respondieron.',
+      example: 'Por ejemplo: una señora mandó un reporte y quiere saber en qué va. Toca «Consultar mi solicitud», escribe el «Código» y la «Clave» de su comprobante y toca «Consultar»: ve el «Estado» y lo que le respondieron. Cuando dice «Resuelta», le pregunta «¿Se resolvió el problema?».',
       blocks: [
         {
           kind: 'steps',

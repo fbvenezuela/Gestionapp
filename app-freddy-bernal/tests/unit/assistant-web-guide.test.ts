@@ -287,10 +287,13 @@ describe('explicar un tema de la web y contar un flujo', () => {
           for (const e of web().filter((y) => y.id === `web:${x.id}` || y.id.startsWith(`web:${x.id}:`)))
             if (!e.roles || e.roles.includes(role)) expect(webExplain('steps', e, { roles: [role] })?.text ?? '', `${e.id} ${role}`).not.toContain(t.steps[0].replace(/\*\*/g, ''));
         }
-    // A task's own steps go on in that task: «¿y después?» after its last step ends there, not in another task's.
+    // A task's own steps go on in that task: «¿y después?» after its last step never goes on with another task's steps;
+    // what comes after it is its flow's next box (WF-C2: the notice to whoever sent it), else the end.
     const last = entryById('web:aprobar:tarea:devolver-contenido:3')!;
     expect(last.roles).toEqual(['boss']);
-    expect(webExplain('next', last, { roles: ['boss'] })?.text).toMatch(/^Ahí termina/);
+    const after = webExplain('next', last, { roles: ['boss'] })?.text ?? '';
+    expect(after).toMatch(/^Ahí termina|^Después: a quien lo envió le llega «Te devolvieron un contenido de la web»/);
+    expect(after).not.toContain('«Publicar ahora»');
     expect(steps('web:aprobar:tarea:devolver-contenido', 'boss')).toMatch(/^Aprobar.*?, paso a paso: 1\) «Web» → «Por aprobar» → el contenido\. 2\) En «Decidir», escribe en «Qué hay que cambiar»/);
   });
 

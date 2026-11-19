@@ -7,12 +7,12 @@
 // pointed to (its own entry is the fixed line, engine.ts `quiet`), and any other text that has one is left out.
 // Pure: no database, no I/O.
 import type { Role } from '../roles';
-import type { Audience, GlossaryTerm, GlossaryText, RoleText, WebBlock, WebFlow, WebSection, WebTask } from '../guides/types';
+import type { Audience, GlossaryTerm, GlossaryText, RoleText, WebBlock, WebFlow, WebFlowEdge, WebSection, WebTask } from '../guides/types';
 import { hasReceiptCode } from '../guides/check';
 import { glossaryLine } from '../guides/glossary';
-import { PANEL_SCREENS, WEB_GLOSSARY, isWebFlow, webEntry, webFlows, webHref } from '../guides/web';
+import { PANEL_SCREENS, WEB_DOCS, WEB_GLOSSARY, isWebFlow, webEntry, webFlows, webHref } from '../guides/web';
 import { WEAK, entryById, findAnswers, textFor, tokens, type Entry } from './answers/engine';
-import { saysIf, sentenceSaying, sentencesOf, type Facet } from './explain';
+import { AUX, family, saysIf, sentenceSaying, sentencesOf, type Facet } from './explain';
 import { canOpen } from './screens';
 import { plain } from './text';
 
@@ -49,6 +49,10 @@ function forRole(t: RoleText | undefined, roles: Role[]): string | undefined {
 }
 // Someone named in a text of the web or of Atención: whose step or rule it is («¿y quién lo hace?»).
 const WHO_NAMED = /\b(?:jefe|tu|administracion|coordinacion|coordinador\w*|responsables? de area|operador\w* de denuncias|auditoria|editor\w*|aprobador\w*|quien aprueba|quienes atienden|la persona|cualquier persona|nadie)\b/;
+/** Every section of the web's four guides (their flows apart). */
+const WEB_SECTIONS_ALL = (): WebSection[] => WEB_DOCS.flatMap((d) => d.sections);
+/** The domain of a section, as the index gives its entry (`web:<id>`): the web's or Atención's. */
+const webDomainOf = (x: WebSection) => entryById(`web:${x.id}`)?.domain;
 /** A text 360 may say: one without a receipt's code or key. */
 const sayable = (t: string | undefined): t is string => !!t && !hasReceiptCode(t);
 /** A section whose text 360 never says (it prints the demo receipts, keys or example codes): its entry only points. */
@@ -81,19 +85,29 @@ function cannotOf(x: WebSection | WebFlow, roles: Role[]): string | undefined {
  * («pasos:<n>», its n-th list of steps, as the index numbers them); else its first list of steps, unless the section is
  * one 360 never says or its how-tos are someone else's (WebTask.audience: then none, and `cannotOf` says why).
  */
+const flowPaths = new Map<string, string[]>();
 function stepsOf(x: WebSection | WebFlow, roles: Role[], rest = ''): string[] {
   if (isWebFlow(x)) {
+    const known = flowPaths.get(x.id);
+    if (known) return known;
     const byId = new Map(x.nodes.map((n) => [n.id, n]));
+    const exitsOf = (id: string) => x.edges.filter((e) => e.from === id && !e.dotted);
+    // (How far a way goes on from a box without coming back: at a question, the main path takes the one that goes on
+    // furthest, «¿Falta algo?» → «No» → «Enviar a aprobación», not the «Sí» that goes back to writing; even, the «Sí».)
+    const reach = (id: string, seen: Set<string>, depth = 0): number =>
+      seen.has(id) || depth > 12 ? 0 : 1 + Math.max(0, ...exitsOf(id).map((e) => reach(e.to, new Set(seen).add(id), depth + 1)));
+    const isYes = (e: WebFlowEdge) => /^s[ií]$/i.test(e.label ?? '');
     const out: string[] = [];
     const seen = new Set<string>();
     let n = x.nodes[0];
     while (n && !seen.has(n.id)) {
       seen.add(n.id);
       if (sayable(n.text)) out.push(end(clean(n.text)));
-      const exits = x.edges.filter((e) => e.from === n!.id && !e.dotted);
-      const next = exits.find((e) => /^s[ií]$/i.test(e.label ?? '')) ?? exits[0];
+      const exits = exitsOf(n.id).filter((e) => !seen.has(e.to));
+      const next = exits.length > 1 ? [...exits].sort((a, b) => reach(b.to, seen) - reach(a.to, seen) || Number(isYes(b)) - Number(isYes(a)))[0] : exits[0];
       n = next ? byId.get(next.to)! : undefined!;
     }
+    flowPaths.set(x.id, out);
     return out;
   }
   const mine = (x.tasks ?? []).filter((t) => doesIt(t, roles) && t.steps.every(sayable));
@@ -125,9 +139,9 @@ function partsOf(x: WebSection | WebFlow, roles: Role[], guideFirst = false): st
  * questions' answers, this person's steps), when it has most of X's words; else null (the facet goes on as without X).
  */
 function partNamed(x: WebSection | WebFlow, roles: Role[], about: string, bonus?: (t: string) => number): string | null {
-  const want = tokens(about).filter((w) => w.length >= 3);
+  const want = tokens(about).filter((w) => w.length >= 3 && !AUX.has(w)).map(family);
   if (!want.length) return null;
-  const like = (have: string[], w: string) => have.some((h) => h === w || (h.length >= 4 && w.length >= 4 && (h.startsWith(w) || w.startsWith(h))));
+  const like = (have: string[], w: string) => have.map(family).some((h) => h === w || (h.length >= 4 && w.length >= 4 && (h.startsWith(w) || w.startsWith(h))));
   const parts = [
     ...partsOf(x, roles),
     ...(x.rules ?? []).filter(sayable).map((r) => end(clean(r))),
@@ -170,7 +184,14 @@ function nearSaid(text: string, said: string[]): boolean {
  * (WF-C2) the section or flow of the guide's first answers to what the person asked (or to the answer's own first way of
  * asking), when that text says a fair share of the curated answer's words.
  */
+const curatedCache = new Map<string, WebSection | WebFlow | null>();
 function sectionOfCurated(e: Entry, roles: Role[], asked?: string): WebSection | WebFlow | null {
+  // (The same answer, person and question give the same section: read once.)
+  const key = `${e.id}|${[...roles].sort().join(',')}|${asked ?? ''}`;
+  if (!curatedCache.has(key)) curatedCache.set(key, sectionOfCuratedOnce(e, roles, asked));
+  return curatedCache.get(key) ?? null;
+}
+function sectionOfCuratedOnce(e: Entry, roles: Role[], asked?: string): WebSection | WebFlow | null {
   const anchor = e.go ? /#([a-z0-9-]+)$/.exec(e.go)?.[1] : undefined;
   const byAnchor = anchor ? webEntry(anchor) : undefined;
   if (byAnchor && !isWebFlow(byAnchor)) return byAnchor;
@@ -226,6 +247,16 @@ const likeWord = (have: string[], w: string) => have.some((h) => h === w || (h.l
 // publicarlo»). When no label has it, X is read whole, as before.
 const POINTING = new Set(tokens('dar darle dale hacerle tocar toca tocarle pulsar presionar apretar clic click boton'));
 const labelWords = (t: string) => tokens((t.match(/«[^«»]*»/g) ?? []).join(' '));
+// The first word of each label of a text: a button's name starts with what it does («Publicar ahora», not «Qué cambia si
+// lo publicas»).
+const labelHeads = (t: string) => [...t.matchAll(/«([^«»]+)»/g)].map((m) => tokens(m[1])[0]).filter((w): w is string => !!w);
+/** How many labels of a flow the text says (its own flow says the topic's labels: «Enviar a aprobación», «En revisión»). */
+function flowShares(f: WebFlow, text: string): number {
+  const said = new Set(labelsOf(text));
+  if (!said.size) return 0;
+  const its = new Set(f.nodes.flatMap((n) => labelsOf(n.text)));
+  return [...said].filter((l) => its.has(l)).length;
+}
 type Reading = { want: string[]; read: (t: string) => string[]; button: boolean };
 function readingsOf(x: string): Reading[] {
   const all = tokens(x).filter((w) => w.length >= 3);
@@ -252,17 +283,22 @@ function stepAbout(steps: string[], about: string): number {
  * just said), and the box after it on its main path, with the one after that when both are short. Null when no box says
  * enough of X.
  */
-function flowAfter(x: string, roles: Role[], said: string[], within?: WebFlow): { text: string; flow: WebFlow } | null {
+function flowAfter(x: string, roles: Role[], said: string[], within?: WebFlow, topic?: string): { text: string; flow: WebFlow } | null {
   for (const { want, read, button } of readingsOf(x)) {
     if (!want.length) continue;
     let best: { flow: WebFlow; k: number; score: number } | null = null;
     for (const f of within ? [within] : webFlows()) {
       if (!f.audience.some((a) => roles.includes(a as Role))) continue;
       const path = stepsOf(f, roles);
+      // (The flow of the topic first: the one that has the labels the thread's answer quotes, WF-C2.)
+      const own = topic ? Math.min(2, flowShares(f, topic)) * 0.15 : 0;
       path.forEach((t, k) => {
         if (k + 1 >= path.length) return;
         const share = want.filter((w) => likeWord(read(t), w)).length / want.length;
-        if (share >= 0.6 && (!best || share > best.score)) best = { flow: f, k, score: share };
+        // (A button: the box whose label starts with it.)
+        const head = button ? want.filter((w) => labelHeads(t).some((h) => likeWord([h], w))).length / want.length : 0;
+        const score = share + 0.5 * head + own;
+        if (share >= 0.6 && (!best || score > best.score)) best = { flow: f, k, score };
       });
     }
     if (!best) continue;
@@ -371,6 +407,11 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
   // words as what was said: «rest» says it is not the section itself.)
   const curated = e.kind === 'curated' ? sectionOfCurated(e, ctx.roles, ctx.asked) : null;
   const place = curated ? { x: curated, rest: 'curado' } : placeOf(e.id);
+  // (A curated answer with no section of its own: «¿y si…?», «¿y quién…?», «¿y cuándo…?» from its own sentences, WF-C2.)
+  if (!place && e.kind === 'curated' && (facet === 'whatif' || facet === 'who' || facet === 'when')) {
+    const own0 = sentenceSaying(facet, ctx.about, textFor(e.a, ctx.roles));
+    return own0 && sayable(own0) && !(ctx.said ?? []).some((s) => plain(s) === plain(end(own0))) ? { text: end(own0), entryId: e.id } : null;
+  }
   if (!place) return null;
   const { x } = place;
   const roles = ctx.roles;
@@ -445,20 +486,31 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
       // («¿y después de asignarlo?»); else after the last one the thread said.
       const named = ctx.about ? stepAbout(steps, ctx.about) : -1;
       const k = at ?? (named >= 0 ? named + 1 : saidThrough(steps, said) + 1);
-      if (k < steps.length && (at !== undefined || named >= 0 || k > 0 || !ctx.about)) {
-        const left = k + 1 < steps.length;
-        const step = fresh([{ text: `Después: ${lcFirst(steps[k])}${left ? ' ¿Sigo?' : ''}`, ...own, ...(left ? { cursor: k + 1 } : {}), ...(guide ? { goTo: guide } : {}) }]);
+      // (A curated answer is narrower than its section: its steps go on only from one it said, or the one X names.)
+      const startsHere = place.rest !== 'curado' || at !== undefined || named >= 0 || k > 0;
+      if (k < steps.length && startsHere && (at !== undefined || named >= 0 || k > 0 || !ctx.about)) {
+        // (The next ones while they are short: up to three, about 300 letters, as a coworker says what follows.)
+        let upto = k + 1;
+        while (upto < steps.length && upto - k < 3 && [...steps.slice(k, upto + 1)].join(' ').length <= 300) upto++;
+        const left = upto < steps.length;
+        const text = `Después: ${lcFirst(steps[k])}${steps.slice(k + 1, upto).map((t) => ` ${t}`).join('')}${left ? ' ¿Sigo?' : ''}`;
+        const step = fresh([{ text, ...own, ...(left ? { cursor: upto } : {}), ...(guide ? { goTo: guide } : {}) }]);
         if (step) return step;
       }
       // At the end of the steps, or X is not one of them: what comes after it in the web's flows (the section's own
       // flow first), then what the section goes on to say; only then «Ahí termina».
-      const after = flowAfter(ctx.about ?? said.at(-1) ?? '', roles, said, isWebFlow(x) ? x : undefined) ?? (isWebFlow(x) ? null : flowAfter(ctx.about ?? said.at(-1) ?? '', roles, said));
+      const topicText = said.at(-1) ?? textFor(e.a, roles);
+      // (X, else what the thread just said, else the task's last step: «Devolver con comentario» goes on with the notice
+      // to whoever sent it.)
+      const from = ctx.about ?? said.at(-1) ?? (steps.length && k >= steps.length ? steps[steps.length - 1] : '');
+      const after = flowAfter(from, roles, said, isWebFlow(x) ? x : undefined, topicText) ?? (isWebFlow(x) ? null : flowAfter(from, roles, said, undefined, topicText));
       if (after) {
         const go = guideOf(after.flow, roles) ?? guide;
         const c = fresh([{ text: after.text, ...own, ...(go ? { goTo: go } : {}) }]);
         if (c) return c;
       }
-      const rest = isWebFlow(x) ? [] : partsOf(x, roles, true).filter((t) => !wasSaid(t, said) && !lead.some((l) => plain(l) === plain(t)));
+      // (Never after a task's last step: a task ends with its own steps, and what the section says next is another thing.)
+      const rest = isWebFlow(x) || /^tarea:/.test(place.rest) ? [] : partsOf(x, roles, true).filter((t) => !wasSaid(t, said) && !lead.some((l) => plain(l) === plain(t)));
       if (rest.length && (at !== undefined || named >= 0 || saidThrough(steps, said) >= 0)) {
         const c = fresh([{ text: `Después, en ${lcFirst(title)}: ${lcFirst(rest[0])}`, ...own, ...(guide ? { goTo: guide } : {}) }]);
         if (c) return c;
@@ -475,10 +527,61 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
       // again.)
       const own0 = place.rest === 'curado' ? sentenceSaying(facet, ctx.about, textFor(e.a, roles)) : null;
       if (own0 && !said.some((s) => plain(s) === plain(end(own0)))) return { text: end(own0), ...own, ...(guide ? { goTo: guide } : {}) };
-      const prefer = facet === 'whatif' ? (t: string) => (saysIf(t) ? 0.3 : 0) : facet === 'who' ? (t: string) => (WHO_NAMED.test(plain(t)) ? 0.4 : 0) : (t: string) => (/\b(?:cuando|al|antes|despues|apenas|cada)\b/i.test(t) ? 0.3 : 0);
+      // (A «¿y si ya…?» or a «¿y si no…?» wants a part that says that «ya» or that «no» too: «Lo que ya está en la web no se
+      // programa» to «¿y si ya la había publicado?».)
+      const marks = ['ya', 'no', 'sin', 'nunca', 'todavia'].filter((m) => ` ${plain(ctx.about ?? '')} `.includes(` ${m} `));
+      const marked = (t: string) => marks.filter((m) => ` ${plain(t)} `.includes(` ${m} `)).length * 0.35;
+      const prefer = facet === 'whatif' ? (t: string) => (saysIf(t) ? 0.3 : 0) + marked(t) : facet === 'who' ? (t: string) => (WHO_NAMED.test(plain(t)) ? 0.4 : 0) : (t: string) => (/\b(?:cuando|al|antes|despues|apenas|cada)\b/i.test(t) ? 0.3 : 0);
       const part = ctx.about ? partNamed(x, roles, ctx.about, prefer) : (partsOf(x, roles).find((t) => WHO_NAMED.test(plain(t))) ?? null);
       if (!part || (facet === 'who' && !WHO_NAMED.test(plain(part)))) return null;
-      return fresh([{ text: end(part), ...own, ...(guide ? { goTo: guide } : {}) }]);
+      // (What was asked may be a sentence of a longer answer said before: said again alone, never a whole answer again.)
+      return said.some((t) => plain(t) === plain(end(part))) ? null : { text: end(part), ...own, ...(guide ? { goTo: guide } : {}) };
+    }
+    case 'mine': {
+      // This person's own part (WF-C2): the steps of a task of theirs here; else the section's own «No: …» for them, with
+      // what they do instead in this domain (their line of «Quién hace qué»: the boss's, Administración's).
+      const aud = audienceOf(roles);
+      if (aud === 'default') return null;
+      // (A task with no audience of its own is theirs only when the section says no «No: …» to them: «Cómo se atiende lo
+      // que llega» is the desk's, and the boss only reads it.)
+      const theirs = !isWebFlow(x) && (x.tasks ?? []).some((t) => doesIt(t, roles) && t.steps.every(sayable) && (!!t.audience || !(x.cannot?.[aud] ?? []).length));
+      const role = webEntry(aud === 'boss' ? 'rol-jefe' : 'rol-administracion');
+      const label = e.domain === 'atencion' ? '«Atención»' : '«Web»';
+      const line = role && !isWebFlow(role) ? (role.items ?? []).map((t) => forRole(t, roles)).find((t): t is string => !!t && t.includes(label)) : undefined;
+      const roleLine = line ? end(clean(line)) : undefined;
+      // (The section's first «No: …» for them, its main one, unless the thread already said it.)
+      const no = (x.cannot?.[aud] ?? []).filter(sayable).map((t) => end(clean(t))).slice(0, 1).find((t) => !wasSaid(t, said) && !nearSaid(t, said));
+      const both = no && roleLine && no.length + roleLine.length <= 440 ? `${no} ${roleLine}` : undefined;
+      return fresh([theirs ? stepsFrom(0) : null, both ? { text: both, ...own } : null, roleLine ? { text: roleLine, ...own, ...(guide ? { goTo: guide } : {}) } : null, no ? { text: no, ...own } : null]);
+    }
+    case 'meaning': {
+      // What X is, asked in the thread («¿y la denuncia en qué se diferencia?»): its word of the glossary of the web or of
+      // Atención, else what the section says of it.
+      if (!ctx.about) return null;
+      const bare = plain(ctx.about).replace(/^(?:(?:el|la|los|las|un|una|lo de|eso de) )+/, '');
+      const g = WEB_GLOSSARY.find((w) => [w.term, ...w.aka].some((n) => plain(n) === bare));
+      const word = g ? [glossaryLine(g), termText(g.easy, roles)].find((t): t is string => !!t && !wasSaid(t, said)) : undefined;
+      // (What the guide says X is: a line that starts with X, «Denuncia: «Hechos irregulares…»», in this section, else in
+      // another of this domain this person reads.)
+      const folded = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+      const defines = (t: string) => new RegExp(String.raw`^«?${bare.replace(/[^a-z0-9 ]/g, '')}»?\s*(?:\([^)]*\)\s*)?:`).test(folded(t));
+      const definition = (y: WebSection | WebFlow) => partsOf(y, roles).find((t) => defines(t) && !wasSaid(t, said));
+      const elsewhere = () => {
+        for (const d of WEB_SECTIONS_ALL()) if (d.id !== x.id && d.audience.some((a) => a === audienceOf(roles)) && webDomainOf(d) === e.domain) {
+          const t = definition(d);
+          if (t) return { t, d };
+        }
+        return null;
+      };
+      const here = bare.length >= 3 ? definition(x) : undefined;
+      const there = !here && bare.length >= 3 ? elsewhere() : null;
+      const part = partNamed(x, roles, ctx.about);
+      return fresh([
+        word ? { text: word, entryId: `palabra:${g!.id}` } : null,
+        here ? { text: end(here), ...own, ...(guide ? { goTo: guide } : {}) } : null,
+        there ? { text: end(there.t), ...own, ...(guideOf(there.d, roles) ? { goTo: guideOf(there.d, roles)! } : {}) } : null,
+        part ? { text: end(part), ...own, ...(guide ? { goTo: guide } : {}) } : null,
+      ]);
     }
     case 'more': {
       if (at !== undefined && at < steps.length) return fresh([stepsFrom(at)]);

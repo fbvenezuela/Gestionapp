@@ -6,7 +6,7 @@ import { AGENDA_FALLBACK, canon, hasWord, isSection, keyWords, makesOne, roleFic
 import { EVENT_NOUNS, EVENT_WORDS, GOAL, OCCURRENCE, PLATFORM, WORK, aboutEvent, asksAboutPublishing, asksAgendaData, asksPlace, asksPlaceWord, asksRoute, asksSchedule, asksWhenIndirect, asksWhenWhere, eventAt, eventSignals, eventThread, goesOn, namedTitleWords, namesPlatform, spoken, withoutAgendaThings, withoutWhenWhere, type EventSignal } from './events';
 import { STRONG, WEAK, askKind, askedTerm, domainOf, entryById, entryForScreen, findAnswers, knownLabels, readable, scoreFicha, textFor, tokens, type Domain, type Match } from './answers/engine';
 import { NOTICE_MAX, NOTICE_TOO_LONG, noticeIssues } from './guard';
-import { explainAnswer, explainAsk, followFit, followWords, topicalOf } from './explain';
+import { explainAnswer, explainAsk, followFit, followWords, saysVerb, topicalOf, type ExplainAsk } from './explain';
 import { caseAsk, caseOverMessages, type CaseAsk } from './case-ask';
 import { webExplain } from './web-explain';
 import { GLOSSARY, glossaryLine } from '../guides';
@@ -367,6 +367,17 @@ const REDES_WORDS = /\b(?:cupo|pilar|pilares|seccion|secciones|piezas?|reels?|po
 // A question that goes on with the one before («¿y después?», «¿y quién lo aprueba?», «¿y si no va?»): matched with the
 // earlier question's words too, at half weight.
 const ELLIPTIC = /^(?:y|e|pero|entonces|o sea|osea)\b|\b(?:eso|esa|ese|esos|esas|ahi|alli|lo mismo)\b/;
+const ucFirstText = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+// What says where a thing is in the app, when one's own work is done, who does it (the guard against saying a text twice).
+const WHERE_SAYS = /→|\ben «|\b(?:arriba|abajo|men[uú]|pesta[nñ]a|tarjeta|pantalla|Mi cuenta)\b/i;
+const WHEN_SAYS_T = /\b(?:cuando|antes|despu[eé]s|apenas|al (?:terminar|subir|aprobar|publicar|guardar)|el mismo d[ií]a)\b/i;
+const WHO_SAYS = /\b(?:jefe|despacho|pol[ií]tica|IVT|Grabaci[oó]n|Redes|Administraci[oó]n|coordinaci[oó]n|responsables?|t[uú])\b/;
+// Two forms of one word: the same once their endings are off («borra», «borran», «borrado»; «días», «día»), never a
+// longer word that only starts like it («borrador»).
+const ENDING = /(?:ados|adas|idos|idas|ado|ada|ido|ida|ar|er|ir|an|en|as|es|os|a|e|o|s)$/;
+const sameWord = (a: string, b: string) => a === b || (a.length >= 4 && b.length >= 4 && a.replace(ENDING, '') === b.replace(ENDING, ''));
+// What a follow-up says around its X and asks nothing of the topic (the guard against saying a text twice reads X alone).
+const REPEAT_ASKS = /\b(?:y|e|pero|entonces|o sea|osea|que|como|donde|cuando|quien|quienes|cual|cuales|por que|para que|pa que|en que|se diferencia\w*|diferencia\w*|distingue\w*|pasa|pasan|sucede|ocurre|hago|hace|hacen|significa\w*|es|son|eso|esto|ahi|alli|aqui|despues|luego)\b/g;
 // «¿Y después?», «¿qué sigue?»: the step that comes next.
 const NEXT_ASK = /\b(?:y despues|despues que|que sigue|y luego|luego que|que hago despues|siguiente paso|y ahora que)\b/;
 // The date as a field or a rule (who sees it, why it does not show, how it is set, whether it can be written somewhere,
@@ -852,6 +863,10 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     const specific = named.filter((n) => !named.some((m) => m !== n && m.x.href.startsWith(`${n.x.href}/`)));
     return specific.sort((a, b) => a.at - b.at)[0]?.x.href;
   };
+  // Never the same text twice in a thread (WF-C2): an answer of the index that would say again what 360 already said gets
+  // what the thread's topic still has for this question instead (`onRepeat`, set once the topic is read, below).
+  const saidBefore = new Set(i.ctx.history.filter((h) => h.who === 'asistente').map((h) => plain(h.body)));
+  let onRepeat: ((m: Match) => Promise<BrainOutput | null>) | null = null;
   // An answer of the index says which entry it was (BrainOutput.entry): the next turn's topic, if it asks to explain it.
   // A flow told as a story that asks «¿Sigo?» keeps where its steps go on (BrainOutput.cursor).
   const sayEntry = async (m: Match, follow = true): Promise<BrainOutput> => {
@@ -860,6 +875,10 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     // its «No,» or «Sí,».
     const said = fill(textFor(e.a, i.ctx.roles));
     const text = clip(WH_ASK.test(q) ? said.replace(/^(?:No|Sí)[,:] (\p{L})/u, (_, c: string) => c.toUpperCase()) : said);
+    if (onRepeat && saidBefore.has(plain(text))) {
+      const instead = await onRepeat(m);
+      if (instead) return instead;
+    }
     const dom = e.domain && e.domain !== 'equipo' ? e.domain : null;
     const go = e.go && canOpen(e.go, i.ctx.roles) ? e.go : e.go ? undefined : screenNamedIn(text, dom);
     const tour = e.tutorial && (e.kind === 'task' || e.kind === 'screen' || e.kind === 'curated') && offered('ver_tutorial') ? ((await call('ver_tutorial', { tutorial: e.tutorial })).tutorial ?? null) : null;
@@ -893,8 +912,9 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // (Only when the question it answered named no event of its own: no title, place or event mark. «¿Cómo creo un evento
   // nuevo?» and «¿por qué no veo la fecha de los eventos?» ask how the app works; «¿quién graba la feria?» stays the
   // agenda's thread.)
+  // («Lo del doble factor» is no event: «lo de X» names one only when X is a title or a place, read without the «lo de».)
   const ownEvent: EventSignal[] = ['title', 'place', 'token'];
-  const beforeGeneral = !!before && !ownEvent.some((x) => eventSignals(withoutLabels(before), seenNow).has(x));
+  const beforeGeneral = !!before && !ownEvent.some((x) => eventSignals(withoutLabels(before).replace(/\blo\s+del?\b/gi, ' '), seenNow).has(x));
   const afterIndex = !!i.ctx.last?.entry && !!entryById(i.ctx.last.entry) && beforeGeneral;
   const ask = (followsEvent && !afterWord && !afterWeb && !afterIndex) || !lastSaid ? null : explainAsk(i.question, { titles: seenNow, last: lastSaid, withoutLabels, afterWord });
   const again = () => {
@@ -906,7 +926,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const aboutEntry = ask ? (i.ctx.last?.entry ?? again()) : null;
   // The question that topic answered (WF-C2): the last of the person's that was no explain ask. A curated answer is
   // explained from the guide's unit of what was asked («¿cómo creo un evento?» → the despacho's task).
-  const topicAsked = ask ? [...earlier].reverse().find((x) => !explainAsk(x, { titles: seenNow, withoutLabels })) : undefined;
+  const topicAsked = ask || i.ctx.last?.entry ? [...earlier].reverse().find((x) => !explainAsk(x, { titles: seenNow, withoutLabels })) : undefined;
   // The thread knows its topic (360 stored it with its last answer, go_to.entry): «¿y después?», «paso a paso» and the
   // rest walk that topic, never the answer of another one that the question before also matches.
   const topicKnown = !!ask && !!i.ctx.last?.entry;
@@ -931,7 +951,8 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // (they say «si te equivocaste…» or «sin señal…» of anything).
   const topicEntry = aboutEntry ? entryById(aboutEntry) : undefined;
   // (Only when X says something of its own: «¿y si se pasan?» has no word to tell one answer from another.)
-  const followAsk = !!ask && !!topicEntry && (ask.facet === 'whatif' || ask.facet === 'who' || ask.facet === 'when' || (ask.facet === 'why' && !!ask.about)) && followWords(ask.about).length > 0;
+  // (Not «¿y qué pasa con X?»: what the topic itself says of X, `of`.)
+  const followAsk = !!ask && !!topicEntry && !ask.of && (ask.facet === 'whatif' || ask.facet === 'who' || ask.facet === 'when' || (ask.facet === 'why' && !!ask.about)) && followWords(ask.about).length > 0;
   const writtenFor = ((): { m: Match; cov: number; said: number; says: boolean; asked: boolean; topical: number } | null => {
     if (!followAsk || !ask || !topicEntry) return null;
     const topicText = textFor(topicEntry.a, i.ctx.roles);
@@ -939,6 +960,12 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     const subject = [...new Set(tokens(`${topicText} ${quotedLabels(topicText).join(' ')} ${topicAsked ?? ''}`).filter((w) => w.length >= 4))];
     const onTopic = (m: Match) => topicalOf(subject, m.entry.q);
     const saidNow = new Set(i.ctx.history.filter((h) => h.who === 'asistente').map((h) => plain(h.body)));
+    // (Nor one that says again, in other words, an answer of the thread: most of its words were in it.)
+    const saidWords = i.ctx.history.filter((h) => h.who === 'asistente').map((h) => new Set(tokens(h.body)));
+    const nearlySaid = (t: string) => {
+      const its = tokens(t).filter((w) => w.length >= 4);
+      return its.length > 0 && saidWords.some((have) => its.filter((w) => have.has(w)).length / its.length >= 0.75);
+    };
     // (Each answer at its better match, matched with the question before or alone: a sure one first, then the higher
     // score; the first four of each.)
     const byId = new Map<string, Match>();
@@ -949,13 +976,34 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       .filter((m) => (m.entry.domain ?? 'equipo') === dom && !saidNow.has(plain(fill(m.text))))
       .map((m) => ({ m, ...followFit(ask.facet, ask.about, fill(m.text), m.entry.q), topical: onTopic(m) }))
       .filter((x) => (x.cov >= 0.5 || x.topical >= 0.3) && (!/^curado:todo-/.test(x.m.entry.id) || x.topical >= 0.67 || /^(?:curado:todo-|todos:)/.test(aboutEntry ?? '')))
+      // (A yes or no: one that says its verb itself and is about the topic, «No: nada se pierde…» of a version, never
+      // «Si alguien pierde el teléfono…».)
+      .filter((x) => !ask.verb || (saysVerb(fill(x.m.text), ask.verb) && x.topical >= 0.3))
+      // (Nor one that says again, in other words, an answer of the thread without saying what is asked of X: the steps of
+      // «Programar» again to «¿y si ya la había publicado?». One that says the yes or no's verb restates it on purpose.)
+      .filter((x) => !nearlySaid(fill(x.m.text)) || x.cov >= 0.5 || (!!ask.verb && saysVerb(fill(x.m.text), ask.verb)))
       .map((x) => ({ x, rank: x.m.score + 0.5 * x.cov + (x.says ? 0.25 : 0) + 0.3 * x.topical }))
       .sort((a, b) => b.rank - a.rank);
     return fit[0]?.x ?? null;
   })();
   // What the explanation of the topic says (explain.ts, web-explain.ts), before it is said: no button, tool or tutorial yet.
   type Said = { text: string; entry: string; goTo?: string; tutorial?: string; cursor?: number; domain?: 'web' | 'atencion' };
+  // (A yes or no is answered by the topic only when what it says has that verb itself: else the answers of today take it.)
+  // (And about the topic: a word of its answer besides the verb, «nada se borra» of an area to «¿se borra lo que tenía?»
+  // after one; never a part that only shares the verb, «Si alguien pierde el teléfono…» to «¿y se pierde lo que tenía?».)
   const explainedRaw = (): Said | null => {
+    const x = explainedFor(ask, aboutEntry);
+    if (!x || !ask?.verb) return x;
+    const verbRoot = tokens(ask.verb)[0];
+    const topicWords = new Set(tokens(lastSaid).filter((w) => w.length >= 3 && w !== verbRoot));
+    const onTopic = tokens(x.text).some((w) => topicWords.has(w));
+    // (A question of the guide with its answer, «¿Puedo borrar una nota? No: …», whose question says that verb: its answer,
+    // with its yes or no. Else its «Sí:» or «No:» answered another question: what it says of X stays, the yes or no goes.)
+    const pair = /^¿([^?]*)\?\s+(.+)$/s.exec(x.text);
+    const text = pair && saysVerb(pair[1], ask.verb) ? pair[2] : x.text.replace(/^¿[^?]*\?\s+/, '').replace(/^(?:Sí|No)[,:]\s+(\p{L})/u, (_, c: string) => c.toUpperCase());
+    return saysVerb(text, ask.verb) && onTopic ? { ...x, text } : null;
+  };
+  const explainedFor = (ask: ExplainAsk | null, aboutEntry: string | null): Said | null => {
     if (!ask) return null;
     // A topic of the web or of Atención: explained from its own section or flow (web-explain.ts); with nothing new there,
     // only «¿qué significa eso?» goes on to the words of the app (explain.ts), and the rest to the steps of today.
@@ -1001,6 +1049,61 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     const x = explainedRaw();
     return x ? sayExplained(x) : null;
   };
+  // The guard against saying a text twice (above, sayEntry): what the topic says of this question's own words (as «¿y qué
+  // pasa con X?»), else the rest of the topic not said yet; else the next sure answer not said yet; else nothing (the
+  // answer stays). Never after a turn about an event (that thread keeps the agenda's steps), nor with an event in it.
+  onRepeat = async (m: Match) => {
+    onRepeat = null;
+    // (A «No: …» of what a role cannot or never does is said again as it is: it stays the answer.)
+    if (m.entry.may) return null;
+    // (The question's own words, as written, that say something: a word of it said in a text is itself or the same word with
+    // another ending, never a longer word that only starts like it: «borra» is not «borrador».)
+    const asked = readable(plain(i.question).replace(REPEAT_ASKS, ' ')).split(' ').filter((w) => w.length >= 3 && tokens(w).length > 0);
+    const hits = (t: string) => {
+      const have = readable(t).split(' ');
+      return asked.filter((w) => have.some((h) => sameWord(h, w))).length;
+    };
+    const parts = sentences(clip(fill(textFor(m.entry.a, i.ctx.roles))));
+    const go = m.entry.go && canOpen(m.entry.go, i.ctx.roles) ? m.entry.go : undefined;
+    const dom = m.entry.domain && m.entry.domain !== 'equipo' ? m.entry.domain : null;
+    const part = (t: string) => (saidBefore.has(plain(t)) ? null : { ...done(ucFirstText(t), go), fixed: true, entry: m.entry.id, ...(dom ? { domain: dom } : {}) });
+    // 1. Its own sentence that says this question's words (the answer before said it among other things): that alone. A
+    // «¿dónde…?», «¿cuándo…?» or «¿quién…?» that no sentence answers by its words: its sentence that says where, when or
+    // who.
+    if (asked.length && parts.length > 1) {
+      const top = parts.map((t, k) => ({ t, k, c: hits(t) / asked.length })).sort((a, b) => b.c - a.c || a.k - b.k)[0];
+      if (top && top.c >= 0.5) {
+        const one = part(top.t.length < 80 && parts[top.k + 1] ? `${top.t} ${parts[top.k + 1]}` : top.t);
+        if (one) return one;
+      }
+    }
+    const kind = /\bdonde\b/.test(q) ? WHERE_SAYS : /\bcuando\b/.test(q) ? WHEN_SAYS_T : /\bquien(?:es)?\b/.test(q) ? WHO_SAYS : null;
+    if (kind && parts.length > 1) {
+      const one = parts.find((t) => kind.test(t) && hits(t) > 0) ?? parts.find((t) => kind.test(t));
+      const said = one ? part(one) : null;
+      if (said) return said;
+    }
+    // 2. What the topic says of those words (one of them said itself), else, for anything but a yes or no, the rest of the
+    // topic not said yet.
+    const topic = i.ctx.last?.entry ?? null;
+    if (topic && (!followsEvent || afterIndex)) {
+      const words = plain(i.question).replace(REPEAT_ASKS, ' ').replace(/\s+/g, ' ').trim();
+      const fine = !!words && !!explainAsk(`y si ${words}`, { titles: seenNow, withoutLabels });
+      const x = fine && asked.length ? explainedFor({ facet: 'whatif', about: words }, topic) : null;
+      if (x && hits(x.text) >= Math.max(1, asked.length / 2) && !saidBefore.has(plain(x.text))) return sayExplained(x);
+      if (!ask?.verb && asked.length) {
+        const rest = explainedFor({ facet: 'more' }, topic);
+        if (rest && !saidBefore.has(plain(rest.text))) return sayExplained(rest);
+      }
+    }
+    // 3. A yes or no about the topic that no part says: what it said first, alone (the answer was in it).
+    if (ask?.verb && parts.length > 1) {
+      const first = part(parts[0]);
+      if (first) return first;
+    }
+    const other = found.find((x) => x.confidence === 'strong' && x.entry.id !== m.entry.id && !x.entry.may && !saidBefore.has(plain(clip(fill(textFor(x.entry.a, i.ctx.roles))))));
+    return other ? sayEntry(other) : null;
+  };
   // The follow-up with an answer written for it: that answer, or the topic's own part, whichever says what is asked of X.
   // Both saying it: the topic's part (it is about this topic), unless the written one says more of X in its own words and
   // is about the topic, or the topic's part would only say again a sentence of the thread while the written one was
@@ -1012,7 +1115,10 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     const w = writtenFor;
     const generic = /^curado:todo-/.test(w.m.entry.id);
     const again = !!e && i.ctx.history.some((h) => h.who === 'asistente' && plain(h.body).includes(plain(e.text)));
-    const topicPart = !!e && !!ef && (ef.says !== w.says ? ef.says : ef.says ? (again ? generic || !w.asked : !(w.said > ef.said && w.topical >= 0.5 && !generic)) : ask.facet !== 'why' && ef.said > w.said);
+    // (A yes or no: the answer written for it, one of whose ways of asking says most of X, which says its yes or its no;
+    // else the topic's own part.)
+    const writtenAsk = w.m.entry.q.some((x) => followFit(ask.facet, ask.about, x).said >= 0.6);
+    const topicPart = ask.verb ? !!e && !writtenAsk : !!e && !!ef && (ef.says !== w.says ? ef.says : ef.says ? (again ? generic || !w.asked : !(w.said > ef.said && w.topical >= 0.5 && !generic)) : ask.facet !== 'why' && ef.said > w.said);
     return topicPart && e ? sayExplained(e) : sayEntry(w.m, false);
   }
   if (ask && !bareNext) {
@@ -1116,6 +1222,18 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // «¿Cómo funciona programar en la web?», «¿cómo funciona una denuncia?»: the strong answer of the web or of Atención says
   // how it works (their screens have no tutorials); only «tutorial», «muéstrame»… ask for one.
   const webHow = usedAsk && !strongAsk && strong && (best!.entry.domain === 'web' || best!.entry.domain === 'atencion');
+  // «¿Cómo se atiende un caso paso a paso?» (WF-C2): «paso a paso» said of a topic of its own, which the index is sure of and
+  // which has no tutorial, is that topic's steps (one with a tutorial gets it, below); never the list of the tutorials.
+  const stepsOnly = /\b(?:paso a paso|por pasos|pasito a pasito)\b/.test(q) && !/\b(?:tutorial(?:es)?|recorrido guiado)\b/.test(q) && !SHOW_ME.test(q) && !LOST.test(q);
+  // (Never with an event in it: «¿cómo grabo la feria paso a paso?» keeps the tutorials and the agenda's steps.)
+  const namesEvent = (['word', 'title', 'place', 'token'] as EventSignal[]).some((x) => eventSignals(withoutLabels(i.question), seenNow).has(x));
+  const stepsTopic = stepsOnly && !topicTour && !eventOnly && !namesEvent && !carriesWhen(i.question) && !SUPPORT.test(q)
+    ? findAnswers(q.replace(/\b(?:paso a paso|por pasos|pasito a pasito)\b/g, ' '), { roles: i.ctx.roles, screen: i.ctx.screen, names }).find((m) => m.confidence === 'strong' && !m.entry.may && !m.entry.tutorial)
+    : undefined;
+  if (stepsTopic) {
+    const x = explainedFor({ facet: 'steps' }, stepsTopic.entry.id);
+    return x ? sayExplained(x) : sayEntry(stepsTopic);
+  }
   if ((strongAsk || usedAsk) && !webHow && !eventOnly && !carriesWhen(i.question) && !SUPPORT.test(q) && offered('ver_tutorial')) {
     type Listed = { tutoriales: { id: string; titulo: string }[] };
     if (screenAsked && !canOpen(screenAsked.href, i.ctx.roles)) return done(`${screenAsked.label} no es de tu rol, así que no tiene tutorial para ti. En el menú de tu cuenta, «Ayuda y guías» tiene la guía de tu trabajo.`);

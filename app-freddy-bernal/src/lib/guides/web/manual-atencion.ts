@@ -197,6 +197,7 @@ export const MANUAL_ATENCION: WebDoc = {
         { q: '¿Qué pestañas tengo en Atención?', a: { boss: '«Bandeja», «Tablero», «Mapa», «Cifras» y «Áreas y plazos» (para leer).', admin: '«Áreas y plazos» y «Registro»: nunca un caso.' } },
       ],
       easy: { boss: 'La bandeja es la lista de todo lo que llega, con cuántos esperan y cuántos están vencidos. Tú la miras; la trabajan los que atienden.', admin: 'Tú no ves la bandeja: la trabajan la coordinación y las áreas. Tu parte es que las áreas y los plazos estén bien armados.' },
+      example: { boss: 'Por ejemplo: abres «Atención ciudadana» y la «Bandeja» dice cuántos hay «Por revisar» y cuántos «Vencidas». Tocas un caso para leerlo, o pasas al «Tablero» para ver cuántos hay en cada estado.', admin: 'Por ejemplo: un área tiene casos «Vencidas»: la coordinación lo ve en la bandeja, y tú revisas en «Áreas y plazos» si los días de sus categorías están bien puestos.' },
       blocks: [
         { kind: 'p', text: 'Arriba, las pestañas de lo que tu rol puede usar: **«Bandeja»**, **«Tablero»**, **«Mapa»**, **«Cifras»**, **«Áreas y plazos»**, **«Respuestas guardadas»** y **«Registro»**.' },
         { kind: 'p', text: 'Cuatro números cuentan lo que puedes ver, sin el spam ni lo unido a otro caso:' },
@@ -296,6 +297,7 @@ export const MANUAL_ATENCION: WebDoc = {
         { q: '¿Qué hace el equipo cuando necesita un dato de la persona?', a: '«Pedir más información» → «Pedir la información»: la solicitud queda «Requiere información» hasta que la persona responda.' },
       ],
       easy: 'Un caso se lee, se asigna, se le avisa a la persona, se resuelve y se cierra. Tú lo puedes leer, pero no lo cambias.',
+      example: 'Por ejemplo: llega un reporte de un bote de agua. Alguien lo lee y lo pasa a «En revisión», lo asigna al área («Asignado»), le avisa a la persona, lo trabaja («En atención»), sube la evidencia y lo marca «Resuelto». La persona confirma y queda «Cerrado». Tú lo vas viendo, sin cambiar nada.',
       blocks: [
         { kind: 'p', text: 'Al abrir un caso se ve el título, el código, el tipo y el estado. Si aplica, también «Vencida», la prioridad y «Spam». Debajo está **«Lo que llegó»**: el texto, la categoría, dónde, cuándo pasó, si marcó un punto con su permiso, si dejó contacto, si permite su nombre y la noticia u obra de la que habla. Después vienen las tarjetas «Estado», «Área y responsable», «Prioridad y fecha comprometida», «Contacto de la persona», «Archivos», «Resolución», «Casos iguales», «Casos atendidos», «Corregir tipo o categoría», «Moderación», «Escribir» y el «Historial». Cada quien ve los botones de lo que puede hacer en **ese** caso. Si solo puedes leerlo, dice «Lo puedes consultar, pero no te toca atenderlo: sin contacto y sin cambios.».' },
         { kind: 'p', text: 'Un reporte de principio a fin:' },
@@ -359,6 +361,7 @@ export const MANUAL_ATENCION: WebDoc = {
         { q: '¿Qué es reabrir un caso?', a: 'Volver a trabajar un caso «Resuelto», «Cerrado» o «No procede». Sale como «Reabrir: …» en «Pasar a» y pide «Por qué se reabre».' },
       ],
       easy: 'Cada caso va pasando por estados, como un trámite: recibido, en revisión, asignado, en atención y resuelto. Algunos pasos piden explicar por qué.',
+      example: 'Por ejemplo: un reporte de alumbrado llega «Recibido», alguien lo lee («En revisión»), lo asignan al área («Asignado») y la cuadrilla trabaja («En atención»). Si falta saber dónde está el poste, pasa a «Requiere información». Al arreglarlo, «Resuelto» con su justificación, y después «Cerrado».',
       blocks: [
         { kind: 'p', text: 'En la tarjeta «Estado»: **«Pasar a»** → el estado → **«Cambiar el estado»**. La lista solo trae los pasos que se pueden dar desde el estado en que está el caso. Los que piden motivo dicen «(con motivo)».', wrap: [112, 90] },
         {
@@ -482,6 +485,7 @@ export const MANUAL_ATENCION: WebDoc = {
         { q: 'Las respuestas guardadas que trae la app, ¿están de tú o de usted?', a: 'De usted: le hablan de usted a la persona, como todo lo que ella lee. No hace falta cambiarlas para eso.' },
       ],
       easy: 'Hay dos maneras de escribir en un caso: una nota que solo ve el equipo y una respuesta que lee la persona. Nunca se mezclan.',
+      example: 'Por ejemplo: en un reporte de una fuga, el responsable anota en «Nota interna» que ya habló con el área de agua: eso solo lo ve el equipo. A la persona le escribe en «Respuesta a la persona» algo como “Recibimos su reporte y lo estamos revisando”, de usted, y toca «Enviar respuesta».',
       blocks: [
         { kind: 'p', text: 'En **«Escribir»**, elige en «Qué vas a escribir»:' },
         {
@@ -612,6 +616,8 @@ export const MANUAL_ATENCION: WebDoc = {
         { q: '¿Cómo sigue su caso quien mandó el repetido?', a: 'Con su mismo código: el repetido queda cerrado, unido al que se queda.' },
         { q: '¿Qué es un apoyo en atención?', a: 'Una persona que se suma a un reporte del mismo problema, desde «Reportes parecidos» → «Apoyar este reporte». Recibe su propio código.' },
       ],
+      easy: 'Si varias personas reportan lo mismo, se suman como apoyos a un reporte, y la coordinación une dos casos iguales en uno, sin perder lo que dice cada uno.',
+      example: 'Por ejemplo: dos personas reportan el mismo poste caído. La coordinación abre uno, en «Casos iguales» toca «Buscar el otro caso», lo elige, dice «¿Cuál se queda?», escribe el «Motivo» y toca «Unir los casos»: el repetido se cierra y apunta al que se queda, y sus apoyos pasan a ese.',
       blocks: [
         {
           kind: 'list',

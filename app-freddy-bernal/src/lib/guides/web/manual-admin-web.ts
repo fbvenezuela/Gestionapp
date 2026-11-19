@@ -244,6 +244,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         { q: '¿Se puede usar la página «Atención ciudadana» de «Páginas»?', a: 'No: lleva el chip «No sale en la web», y lo que se escribe ahí no sale en la web. De la atención se cambian las preguntas y los contactos verificados.' },
       ],
       easy: 'Para crear algo en la web se elige su tipo, se le pone título y se escribe. Nada se inventa: lo que falte queda «Por completar».',
+      example: { boss: 'Por ejemplo: quieres contar que llegó el agua a un sector. En «Web» → «Noticias y comunicados» tocas «Nueva noticia», escribes el «Título» y «Crear borrador»; llenas el resumen, la foto principal y el «Texto de la nota», la miras en «Vista previa» y tocas «Enviar a aprobación».', admin: 'Por ejemplo: el editor de la web quiere contar que llegó el agua a un sector. En «Noticias y comunicados» toca «Nueva noticia», escribe el «Título» y «Crear borrador», la llena y la manda con «Enviar a aprobación». Tú no escribes contenido: lo lees.' },
       blocks: [
         { kind: 'p', text: 'En la lista del tipo, el botón de arriba (**«Nueva noticia»**, **«Nueva obra o acción»**, **«Nuevo episodio»**, **«Nuevo documento»**, **«Nuevo aviso»**, **«Nueva pregunta»** o **«Nuevo indicador»**) → escribe el **«Título»** (la dirección en la web sale de él) → **«Crear borrador»**. Se abre el editor.' },
         { kind: 'p', text: '**Las páginas no se crean, se editan.** Son seis y ya existen: la portada («Inicio»), «El gobernador», «Atención ciudadana» y tres legales («Aviso de privacidad», «Condiciones de participación» y «Accesibilidad»). No uses la página «Atención ciudadana»: lo que se escribe ahí no sale en la web. En la lista lleva el chip «No sale en la web», y su editor lo avisa arriba («Esta página no sale en la web»), sin «Vista previa» ni «Enviar a aprobación». Los textos de la sección «Atención ciudadana» no se cambian desde el panel. De ella se cambian las preguntas («Preguntas frecuentes», grupo «Atención ciudadana») y los contactos verificados (ver [§ajustes-del-sitio]).' },
@@ -303,6 +304,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         { q: '¿Qué significa «Para enviarlo a aprobación falta esto»?', a: 'Es la lista de lo que le falta al contenido. Cuando se completa, dice «Listo para enviar a aprobación».' },
       ],
       easy: 'El editor es donde se escribe: guardas el borrador, lo miras en vista previa y lo mandas a aprobar. Mientras no se publique, la web no cambia.',
+      example: { boss: 'Por ejemplo: escribes una noticia y se va la luz. Al volver, el editor dice «Recuperamos cambios que no se habían guardado en este teléfono o en esta computadora.». Tocas «Guardar borrador», la miras en «Vista previa» y, cuando está lista, «Enviar a aprobación».', admin: 'Por ejemplo: el editor de la web escribe una noticia y toca «Guardar borrador»: la web no cambia hasta que la publique quien aprueba. Tú lo puedes leer, pero no escribes contenido.' },
       blocks: [
         { kind: 'p', text: 'La barra de arriba acompaña mientras bajas:' },
         {
@@ -433,6 +435,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         { q: 'En la vista previa, ¿las últimas noticias son las del borrador?', a: 'No: las listas dentro de la página muestran lo que el público ve hoy. Del borrador es solo el contenido que estás viendo.' },
       ],
       easy: 'La vista previa es como un espejo: muestra el borrador como quedará en la web, pero todavía no está publicado.',
+      example: 'Por ejemplo: antes de mandar una noticia a aprobar, tocas «Vista previa» y la ves tal como saldrá, con la franja naranja «Vista previa: no está publicado». Si algo se ve mal, «Volver al editor» y lo arreglas.',
       blocks: [
         { kind: 'p', text: '«Vista previa» muestra **el borrador** tal como se verá en la web, con una franja naranja arriba: **«Vista previa: no está publicado»**, con «Volver al editor» y, para quien aprueba, «Revisar y publicar». Solo la ven las personas de la web, el jefe y Administración. Ningún buscador la muestra. Las listas dentro de la página (las últimas noticias, las obras…) muestran lo que el público ve hoy. Si al borrador le falta algo, la vista previa dice qué. Desde «Versiones», «Ver» muestra una versión guardada.', wrap: [117, 117, 116, 98, 54] },
       ],
@@ -539,6 +542,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         { q: '¿Cómo funciona programar en la web?', a: 'Quien aprueba elige «Día» y «Hora» en «Programar»: hasta entonces nadie lo ve, y a esa hora aparece sola en la web, en menos de un minuto. Una hora que ya pasó no se acepta.' },
       ],
       easy: 'Programar es dejar algo listo para que salga solo a una hora. Solo sirve para lo nuevo: lo que ya está en la web se cambia al momento.',
+      example: { boss: 'Por ejemplo: dejas lista una noticia para que salga sola más tarde. En «Por aprobar» la abres, en «Decidir» tocas «Programar», eliges el «Día» y la «Hora» y confirmas: queda «Programado» y a esa hora aparece en la web.', admin: 'Por ejemplo: el aprobador de la web deja lista una noticia para que salga más tarde: en «Decidir» toca «Programar», elige el «Día» y la «Hora», y queda «Programado». Tú lo lees; no programas.' },
       blocks: [
         { kind: 'p', text: 'En «Programar», «Día» y «Hora» son **hora del Táchira**. A esa hora aparece sola en la web, en menos de un minuto. Hasta entonces nadie lo ve. Una hora que ya pasó no se acepta («Elige una hora que todavía no haya pasado, o publica ahora.»).' },
         { kind: 'p', text: '**Límite:** lo que **ya está en la web no se programa**: sus cambios se publican ahora («Ya está en la web: sus cambios se publican ahora. Para programarlo, archívalo antes.»). Si un cambio debe salir a cierta hora, guárdalo listo y tócale «Publicar ahora» a esa hora. Lo nuevo sí se programa.' },
@@ -571,6 +575,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         { q: '¿Puedo cambiarle algo a una noticia archivada?', a: 'No: un contenido archivado no se cambia hasta desarchivarlo.' },
       ],
       easy: 'Archivar es como guardar en una gaveta: deja de verse en la web, pero no se pierde y se puede volver a sacar.',
+      example: { boss: 'Por ejemplo: una noticia vieja ya no debe verse. La abres con «Revisar y publicar», en «Decidir» tocas «Archivar» y confirmas: sale de la web al momento y no se borra. Si la quieres de vuelta, «Desarchivar».', admin: 'Por ejemplo: el aprobador de la web archiva una noticia vieja: sale de la web al momento, sin borrarse, y la lista dice «Archivado». Tú lo lees; archivan el aprobador y el jefe.' },
       blocks: [
         { kind: 'p', text: '**«Archivar»** saca el contenido de la web **al momento**, sin borrar nada: su historia y lo aprobado se quedan. **«Desarchivar»** vuelve a poner lo que estaba aprobado (si estaba publicado, se ve otra vez). Un contenido archivado no se cambia hasta desarchivarlo. Solo el aprobador y el jefe archivan. No hay botón de borrar.' },
       ],
@@ -603,6 +608,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         { q: '¿Se pierde lo que tenía al volver a una versión?', a: 'No: nada se pierde. La versión vieja se copia al borrador como una versión nueva, y las demás siguen en «Versiones».' },
       ],
       easy: 'Versiones es la historia de cada contenido: puedes ver cómo estaba antes y volver a eso, sin perder lo que había.',
+      example: { boss: 'Por ejemplo: alguien cambió el texto de una noticia y quedó peor. En el editor tocas «Versiones», «Ver» en la de antes y «Volver a esta versión»; después la envías a aprobación y la publicas otra vez.', admin: 'Por ejemplo: un texto quedó peor después de un cambio. En «Versiones», quien edita toca «Ver» en la de antes y «Volver a esta versión»; para que salga, se envía a aprobación y se publica otra vez. Tú lees «Versiones».' },
       blocks: [
         { kind: 'p', text: 'Desde el editor, **«Versiones»**: cada borrador guardado, con quién, cuándo y su nota. «Borrador actual» marca la versión que se está escribiendo, y «La publicada», la que está en la web. **«Ver»** abre esa versión en la vista previa. **«Volver a esta versión»** la copia al borrador como una versión nueva (nada se pierde). Para que salga en la web hay que enviarla a aprobación y publicarla otra vez. El editor también puede hacerlo.' },
       ],
@@ -658,7 +664,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         { q: 'Se subió una foto que no debía ser pública, ¿qué se hace?', a: { boss: 'Archívala y avísale enseguida a Administración, que pide aparte borrarla del todo. Mientras tanto, cámbiala en cada contenido de «Dónde se usa» y publícalos de nuevo.', admin: 'Quien la subió la archiva y te avisa: la app no borra archivos, y tú pides aparte borrarla del todo. Mientras tanto, se cambia en cada contenido de «Dónde se usa» y se publica de nuevo.' } },
         { q: '¿Los archivos de la biblioteca de la web los puede ver cualquiera?', a: 'Sí: todo lo que está en la biblioteca es público. Por eso nunca van ahí fotos ni archivos de la gente que escribe a Atención: esos van aparte, en privado.' },
       ],
-      easy: 'La biblioteca es el álbum de la web: con «Subir una foto» la eliges, le escribes su «Texto alternativo» (unas palabras que la describen) y tocas «Subir la foto». Todo lo que se sube ahí es público.',
+      easy: 'La biblioteca es el álbum de la web: subes la foto con «Subir una foto» y le escribes unas palabras que la describen. Todo lo que se sube ahí es público.',
       example: 'Por ejemplo, un buen texto alternativo inventado: “Obreros asfaltan una calle de tierra frente a una escuela”, y no “foto1” ni “Obra”.',
       blocks: [
         {
@@ -758,6 +764,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         { q: '¿Cómo meto «Gestión y obras» en el menú de la web?', a: 'En «Ajustes del sitio» → «Navegación»: «Agregar enlace», con el nombre «Gestión y obras» y la dirección «/gestion», y «Guardar». Va cuando haya obras publicadas.' },
       ],
       easy: 'Son los datos fijos de la web, como el menú y los contactos. Se guardan y salen al momento, sin aprobación: por eso nunca va un dato sin confirmar.',
+      example: 'Por ejemplo: quieres que el menú de la web lleve a «Gestión y obras». En «Ajustes del sitio» → «Navegación» tocas «Agregar enlace», pones su «Nombre» y su «Dirección» («/gestion») y tocas «Guardar»: sale «Guardado. La web ya lo muestra.».',
       blocks: [
         { kind: 'p', text: 'Los cambia el aprobador, el jefe o Administración. **Lo que se guarda aquí sale en la web al momento, sin aprobación** («Guardado. La web ya lo muestra.»). Cada sección tiene su «Guardar».', wrap: [105, 82] },
         {
