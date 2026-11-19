@@ -140,8 +140,9 @@ const SHORTHAND: [RegExp, string][] = [
   [/\bcomo (?:le|les|lo|la|los|las) (?:dicen|dice|llaman|llama)\b/g, 'comosellama'],
   [/\bque nombre (?:tiene|tienen|le da|le dan|le pone|le ponen|le dice|le dicen|lleva|llevan|recibe|reciben)\b/g, 'comosellama'],
   [/\bcual es el nombre (?:de|del)\b/g, 'comosellama de'],
-  // What a word stands for, said another way: «cuando Redes habla de una pieza, ¿a qué se refiere?».
-  [/\b(?:a que se refieren?|a que te refieres|de que (?:hablan|habla) cuando dicen?)\b/g, 'que significa'],
+  // What a word stands for, said another way: «¿a qué se refiere X?», «¿de qué hablan cuando dicen X?». «¿A qué te
+  // refieres (con X)?» is said to 360 about the answer it just gave: explain.ts reads it as «dímelo más fácil» (WF-C2).
+  [/\b(?:a que se refieren?|de que (?:hablan|habla) cuando dicen?)\b/g, 'que significa'],
   // The reading mode's − and + said as words («¿pa' qué son el más y el menos?»): they make the letter bigger or smaller.
   // Only both together, at the end of the question or with the letter or the mode, or one with the letter or the mode:
   // «el Más» alone is the phone bar's button, and «el post con el más y el menos de me gusta» asks for results.

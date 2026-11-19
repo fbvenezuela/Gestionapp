@@ -116,6 +116,12 @@ describe('360 explica en toda la conversación (WF-C2)', () => {
     expect(r.answer).not.toMatch(/Mensajes/);
   });
 
+  it('«¿en qué estado queda?» después de una respuesta que lo dice: la oración del estado al que pasa, no otro estado (junta WF-C2)', async () => {
+    const r = (await thread('boss', ['la persona cómo contesta lo que le preguntamos', 'y al contestar, ¿en qué estado queda?'])).answers[1];
+    expect(r.answer).toMatch(/vuelve solo a «En revisión»/);
+    expect(r.answer).not.toMatch(/Requiere información/);
+  });
+
   it('en una conversación larga nunca dice dos veces lo mismo', async () => {
     const { answers } = await thread('social', ['¿cómo armo el feed de este mes?', 'no entendí', 'dame un ejemplo', 'paso a paso', 'sigue', '¿y después?', '¿y para qué sirve eso?']);
     const said = answers.map((a) => plain(a.answer));

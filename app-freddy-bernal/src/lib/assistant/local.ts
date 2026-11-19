@@ -372,6 +372,10 @@ const ucFirstText = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 const WHERE_SAYS = /→|\ben «|\b(?:arriba|abajo|men[uú]|pesta[nñ]a|tarjeta|pantalla|Mi cuenta)\b/i;
 const WHEN_SAYS_T = /\b(?:cuando|antes|despu[eé]s|apenas|al (?:terminar|subir|aprobar|publicar|guardar)|el mismo d[ií]a)\b/i;
 const WHO_SAYS = /\b(?:jefe|despacho|pol[ií]tica|IVT|Grabaci[oó]n|Redes|Administraci[oó]n|coordinaci[oó]n|responsables?|t[uú])\b/;
+// «¿En qué estado queda?», «¿cómo queda?»: the state something goes to. Its sentence says that change with the state's
+// label: «vuelve solo a «En revisión»», «pasa a «Publicado»», «queda en «Por decidir»» (WF-C2 merge).
+const STATE_ASK = /\b(?:que|cual) estado\b|\bcomo (?:queda|quedan|termina|terminan)\b/;
+const STATE_SAYS = /\b(?:vuelve|vuelven|pasa|pasan|queda|quedan|cambia|cambian)\b(?: (?:sol[oa]s?|otra vez|de nuevo))? (?:a|en|como) «/i;
 // Two forms of one word: the same once their endings are off («borra», «borran», «borrado»; «días», «día»), never a
 // longer word that only starts like it («borrador»).
 const ENDING = /(?:ados|adas|idos|idas|ado|ada|ido|ida|ar|er|ir|an|en|as|es|os|a|e|o|s)$/;
@@ -1069,7 +1073,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
     const part = (t: string) => (saidBefore.has(plain(t)) ? null : { ...done(ucFirstText(t), go), fixed: true, entry: m.entry.id, ...(dom ? { domain: dom } : {}) });
     // 1. Its own sentence that says this question's words (the answer before said it among other things): that alone. A
     // «¿dónde…?», «¿cuándo…?» or «¿quién…?» that no sentence answers by its words: its sentence that says where, when or
-    // who.
+    // who. «¿En qué estado queda?» first: its sentence that says the state it goes to (WF-C2 merge).
     if (asked.length && parts.length > 1) {
       const top = parts.map((t, k) => ({ t, k, c: hits(t) / asked.length })).sort((a, b) => b.c - a.c || a.k - b.k)[0];
       if (top && top.c >= 0.5) {
@@ -1077,8 +1081,9 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
         if (one) return one;
       }
     }
-    const kind = /\bdonde\b/.test(q) ? WHERE_SAYS : /\bcuando\b/.test(q) ? WHEN_SAYS_T : /\bquien(?:es)?\b/.test(q) ? WHO_SAYS : null;
-    if (kind && parts.length > 1) {
+    const kinds = [STATE_ASK.test(q) ? STATE_SAYS : null, /\bdonde\b/.test(q) ? WHERE_SAYS : /\bcuando\b/.test(q) ? WHEN_SAYS_T : /\bquien(?:es)?\b/.test(q) ? WHO_SAYS : null];
+    for (const kind of kinds) {
+      if (!kind || parts.length < 2) continue;
       const one = parts.find((t) => kind.test(t) && hits(t) > 0) ?? parts.find((t) => kind.test(t));
       const said = one ? part(one) : null;
       if (said) return said;

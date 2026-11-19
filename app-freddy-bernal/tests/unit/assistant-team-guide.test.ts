@@ -17,6 +17,7 @@ import { describe, it, expect } from 'vitest';
 import type { Role } from '@/lib/roles';
 import { FLOWS } from '@/lib/guides/flows';
 import { bestAnswer, describedTerm, entryById, findAnswers, oneSlip, readable, selfAsk, textFor } from '@/lib/assistant/answers/engine';
+import { explainAsk } from '@/lib/assistant/explain';
 
 const TEAM: Role[] = ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'];
 
@@ -171,6 +172,12 @@ describe('(a) otras formas de preguntar qué es una palabra', () => {
     expect(readable('¿de qué hablan cuando dicen cupo?')).toBe('que significa cupo');
     // Su nombre, por lo que describe, también para Redes.
     expect(describedTerm('el texto que va debajo de la foto cuando se publica, ¿qué nombre tiene?', ['social'])?.entry.id).toBe('palabra:caption');
+  });
+
+  it('«¿a qué te refieres?» se le dice a 360 de lo que acaba de decir: es «dímelo más fácil», no «¿qué significa…?» (junta WF-C2)', () => {
+    expect(readable('¿a qué te refieres con eso?')).toBe('a que te refieres con eso');
+    expect(explainAsk('¿a qué te refieres?')).toMatchObject({ facet: 'simpler' });
+    expect(explainAsk('a qué te refieres con lo de la tanda')).toMatchObject({ facet: 'simpler', about: 'la tanda' });
   });
 
   it('el nombre preguntado decide: lo que describe puede decir «cuántas», «uno» o «lo que dice» sin volverse otra pregunta', () => {

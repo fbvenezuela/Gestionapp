@@ -46,7 +46,7 @@ export const CAMERA: Answer[] = [
     id: 'gra-storyboard-que-es',
     roles: ['camera'],
     q: ['¿Qué es el storyboard y para qué me sirve?', 'para que sirve la pestaña storyboard si no la puedo cambiar', 'que es un storyboard', 'para que leo el storyboard', 'para que sirve el storyboard', 'que es el plan de redes', 'tengo que leer el storyboard'],
-    a: 'Es el guion de grabación de Redes: qué se graba y qué se dice, toma por toma. Lo lees antes de grabar para saber qué tomas hacen falta; no lo cambias: el tuyo, con el que grabaste, va en tu entrega, en la pestaña «Material».',
+    a: 'Es el plan de Redes: el guion de grabación, qué se graba y qué se dice, toma por toma. Lo lees antes de grabar para saber qué tomas hacen falta; no lo cambias: el tuyo, con el que grabaste, va en tu entrega, en la pestaña «Material».',
     go: '/agenda',
     tutorial: 'evento-grabacion',
   },

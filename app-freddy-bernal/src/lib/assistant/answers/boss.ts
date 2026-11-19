@@ -596,7 +596,7 @@ export const BOSS: Answer[] = [
       'si no contesto a tiempo se publica igual',
       'y si no apruebo a tiempo se publica sola',
     ],
-    a: 'No: nunca se publica sola. Sigue sin aprobar hasta que decidas, sale en «Trancado», te llega otro aviso y la revisión dice «Venció el plazo y sigue sin aprobar». Ábrela y decide.',
+    a: 'La pieza nunca se publica sola: sigue sin aprobar hasta que decidas, sale en «Trancado», te llega otro aviso y la revisión dice «Venció el plazo y sigue sin aprobar». Ábrela y decide.',
     go: '/aprobar',
   },
   {
