@@ -6,8 +6,8 @@ import { SafeLink } from './ui';
 
 // The website's own renderer of structured text (design §3): headings, paragraphs, lists, quotes and «por completar»
 // slots, with bold, italic and links. Every string is a React text child, so React escapes it: no HTML or script that
-// an editor writes ever runs (there is no dangerouslySetInnerHTML here, and tests/unit/web-blocks-render.test.ts checks
-// it); links go through SafeLink (https, http, mailto or a path of this site). Synchronous and pure.
+// an editor writes ever runs (there is no dangerouslySetInnerHTML here, and tests/unit/web-chrome-render.test.ts
+// checks it); links go through SafeLink (https, http, mailto or a path of this site). Synchronous and pure.
 //
 // A «por completar» slot is the editors' note of what is missing: the public site never draws it (nor a heading left
 // with nothing under it); the administrator's preview (`preview`) draws it, so editors see what is still to write.

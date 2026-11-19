@@ -11,7 +11,7 @@ import { REFERENCE_PATTERN } from './receipt-code';
 // In the browser, before any schema exists: zod's speed-up compiles its parsers with `new Function`, which the public
 // site's CSP refuses ('unsafe-eval' is not allowed), and its probe alone makes the browser report a CSP violation on
 // /atencion/nueva (Lighthouse «Buenas prácticas», 06/11). This is the only zod module of the public pages' client code
-// (tests/e2e/web-recorridos.spec.ts checks the form reports none); the server keeps the speed-up.
+// (tests/e2e/web-recorridos-ciudadano.spec.ts checks the form reports none); the server keeps the speed-up.
 if (typeof window !== 'undefined') z.config({ jitless: true });
 
 export const REQUEST_TYPES = ['reporte', 'peticion', 'acotacion', 'sugerencia', 'reconocimiento', 'denuncia'] as const;

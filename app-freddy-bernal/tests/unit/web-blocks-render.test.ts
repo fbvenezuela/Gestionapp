@@ -1,20 +1,16 @@
-// The public website's renderer (design §3, §7): every block type has its component, text is escaped (no HTML or script
-// an editor writes ever runs), links go only through safeHref, photos come from what the item froze with their alt, focal
-// point and sizes, indicators only with a source, notices only while active, the attended cases with no personal data,
-// and no dangerouslySetInnerHTML anywhere but the escaped JSON-LD. No scaffolding reaches the public (F1): a missing
+// The public website's blocks (design §3, §7): every block type has its component, photos come from what the item froze
+// with their alt, focal point and sizes, indicators only with a source, notices only while active, the attended cases
+// with no personal data, the public figures with their definitions. No scaffolding reaches the public (F1): a missing
 // photo, video or file and a «por completar» text draw nothing there; only the administrator's preview shows them.
-import fs from 'node:fs';
-import path from 'node:path';
+// (The frame and the escaping of text are in web-chrome-render.test.ts since 19/11/2026; the shared helpers are in
+// helpers/web-render.ts.)
 import { createElement as h } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { BLOCK_DATA, BLOCK_TYPES, type Block, type TextNode } from '@/lib/web/blocks';
 import { newsSnapshot, parseSnapshot } from '@/lib/web/schema';
-import { normalizeSite } from '@/lib/web/site-settings';
 import type { FrozenMedia } from '@/lib/web/public';
 import type { AttendedItem, WebItem } from '@/lib/web/cache';
-import { publicNodes, RichText } from '@/components/web/rich-text';
-import { ExternalText, SafeLink } from '@/components/web/ui';
+import { publicNodes } from '@/components/web/rich-text';
 import { BlockView, opensWithHero } from '@/components/web/blocks';
 import { CtaBlock, GalleryBlock, HeroBlock, ImageBlock, SafeButton, TextBlock, isPendingText } from '@/components/web/blocks/simple';
 import { AttendedView, FaqView, IndicatorsView, NoticesView, indicatorListHref } from '@/components/web/blocks/views';
@@ -23,60 +19,14 @@ import { DocumentRow, NewsCard, NewsFeature, newsLabel, Topics } from '@/compone
 import { VideoFrame } from '@/components/web/blocks/data';
 import { NewsArticle, ProjectFicha } from '@/components/web/item-views';
 import { StatsView, STAT_DEFINITIONS } from '@/components/web/stats';
-import { ChannelPills, PendingAccountsNote, orderedChannels, pendingAccountsText } from '@/components/web/channels';
-import { DemoBanner } from '@/components/web/public-chrome';
-import { SiteHeader } from '@/components/web/site-header';
-import { ParticipationActions } from '@/components/web/participation-actions';
-import { SiteFooter } from '@/components/web/site-footer';
-import { EMERGENCY_NOTICE } from '@/lib/participation/notices';
+import { EVIL, html, site } from './helpers/web-render';
 
-const site = normalizeSite({}, { demo: true, indexable: false, baseUrl: 'https://web.prueba.test' });
 const KEY = '0b1c2d3e-4f50-4a6b-8c7d-8e9fa0b1c2d3';
 const PHOTO: FrozenMedia = {
   key: `${KEY}.jpg`, kind: 'image', mime: 'image/jpeg', bytes: 50_000, width: 1600, height: 1000, alt: 'Cuadrilla en la avenida',
   caption: 'La cuadrilla de la mañana', credit: 'Prensa', title: '', focalX: 0.3, focalY: 0.7,
 };
 const ctx = (media: Record<string, FrozenMedia> = {}) => ({ site, media, heading: 'h2' as const, first: false });
-const html = (el: ReturnType<typeof h>) => renderToStaticMarkup(el);
-
-const EVIL = '<script>alert(1)</script><img src=x onerror=alert(2)>';
-
-describe('el texto estructurado: escapado siempre', () => {
-  it('ningún texto de un editor sale como HTML ni como script', () => {
-    const nodes = [
-      { type: 'heading', level: 2, text: EVIL },
-      { type: 'paragraph', text: EVIL },
-      { type: 'paragraph', runs: [{ text: EVIL, bold: true }, { text: ' y un enlace', href: '/gestion' }] },
-      { type: 'list', items: [EVIL, [{ text: EVIL, italic: true }]] },
-      { type: 'quote', text: EVIL, cite: EVIL },
-      { type: 'pending', text: EVIL },
-    ] as TextNode[];
-    // The administrator's preview draws everything, the «por completar» slot too: escaped all the same.
-    const out = html(h(RichText, { nodes, preview: true }));
-    expect(out).not.toContain('<script');
-    expect(out).not.toContain('<img');
-    expect(out).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
-    expect(out).toMatch(/<a [^>]*href="\/gestion"/);
-    expect(out).toContain('Por completar');
-    const pub = html(h(RichText, { nodes }));
-    expect(pub).not.toContain('<script');
-    expect(pub).not.toContain('Por completar');
-  });
-
-  it('un enlace que no pasa safeHref (aunque se cuele) sale como texto, sin href', () => {
-    for (const bad of ['javascript:alert(1)', 'data:text/html,<b>x</b>', '//otro.test', 'vbscript:x']) {
-      const out = html(h(RichText, { nodes: [{ type: 'paragraph', runs: [{ text: 'clic', href: bad }] }] as TextNode[] }));
-      expect(out, bad).not.toContain('href');
-      expect(out, bad).toContain('clic');
-    }
-    expect(html(h(SafeLink, { href: 'https://fuente.test/a', children: 'fuente' }))).toBe('<a href="https://fuente.test/a" rel="noopener noreferrer">fuente</a>');
-    expect(html(h(SafeLink, { href: 'mailto:prensa@ejemplo.test', children: 'correo' }))).toContain('href="mailto:prensa@ejemplo.test"');
-  });
-
-  it('los saltos de línea de un párrafo quedan, sin HTML', () => {
-    expect(html(h(RichText, { nodes: [{ type: 'paragraph', text: 'uno\ndos' }] as TextNode[] }))).toContain('uno<br/>dos');
-  });
-});
 
 describe('cada tipo de bloque', () => {
   it('el renderer tiene un componente para cada tipo de src/lib/web/blocks.ts', () => {
@@ -314,89 +264,5 @@ describe('el andamio no llega al público (F1)', () => {
     // Topics as links to the news search (the news page); plain chips elsewhere.
     expect(html(h(Topics, { topics: ['Táchira'], linked: true }))).toContain('href="/actualidad?q=T%C3%A1chira"');
     expect(html(h(Topics, { topics: ['vialidad'] }))).toContain('Vialidad');
-  });
-});
-
-describe('el marco de la web', () => {
-  it('el aviso de la versión de prueba, fijo', () => {
-    expect(html(h(DemoBanner, { text: site.demoBanner }))).toContain('Versión de prueba. El contenido es de ejemplo.');
-  });
-
-  it('las páginas llegan enteras: sin loading.tsx (un esqueleto escondería el contenido a quien no tiene JavaScript); la carga es la barra de arriba', () => {
-    const web = path.join(process.cwd(), 'src', 'app', '(web)');
-    expect(fs.existsSync(path.join(web, 'loading.tsx'))).toBe(false);
-    const chrome = fs.readFileSync(path.join(process.cwd(), 'src', 'components', 'web', 'public-chrome.tsx'), 'utf8');
-    expect(chrome).toMatch(/<Suspense fallback=\{null\}>\s*<NavProgress \/>\s*<\/Suspense>/);
-  });
-
-  it('la cabecera: el nombre en letras, las dos acciones a la vista y el menú del teléfono nativo (abre al primer toque)', () => {
-    const out = html(h(SiteHeader, { site }));
-    expect(out).toContain(site.name);
-    expect(out.match(/href="\/atencion\/nueva\?tipo=reporte"/g)?.length).toBeGreaterThanOrEqual(2);
-    expect(out.match(/href="\/atencion\/consultar"/g)?.length).toBeGreaterThanOrEqual(2);
-    expect(out).toMatch(/<details[^>]*>\s*<summary/);
-    expect(out).toContain('Menú');
-    for (const n of site.navigation) expect(out).toContain(`href="${n.path}"`);
-    expect(out).not.toMatch(/<img|logo/i);
-  });
-
-  it('los canales: el del programa primero, cada uno una vez; sin una marca en cada cuenta por confirmar, una sola línea', () => {
-    const list = orderedChannels(site);
-    expect(list[0].url).toBe('https://www.youtube.com/@FreddyBernal.oficial');
-    expect(new Set(list.map((c) => c.url)).size).toBe(list.length);
-    const out = html(h(ChannelPills, { channels: list }));
-    expect(out).not.toMatch(/sin verificar|por confirmar/);
-    expect(out).toContain('rel="noopener noreferrer nofollow"');
-    // None confirmed: one line for all of them; some confirmed: the line says which; production lists only confirmed ones.
-    expect(pendingAccountsText(list, true)).toBe('Estas cuentas están en proceso de confirmación.');
-    const mixed = [{ ...list[0], verified: true }, ...list.slice(1)];
-    expect(pendingAccountsText(mixed, true)).toBe('Las cuentas sin la marca de verificación están en proceso de confirmación.');
-    expect(html(h(ChannelPills, { channels: mixed }))).toContain('<span class="sr-only">verificada</span>');
-    expect(pendingAccountsText(mixed.map((c) => ({ ...c, verified: true })), true)).toBeNull();
-    expect(pendingAccountsText(list, false)).toBeNull();
-    expect(html(h(PendingAccountsNote, { channels: list, demo: true }))).toContain('Estas cuentas están en proceso de confirmación.');
-  });
-
-  it('un enlace a otro sitio: el icono va pegado a la última palabra (nunca solo en una línea del teléfono)', () => {
-    const out = html(h(ExternalText, { text: 'Canal de YouTube @canal.prueba' }));
-    expect(out).toMatch(/^<span>Canal de YouTube <span class="whitespace-nowrap">@canal\.prueba<svg[^>]*aria-hidden="true"/);
-    expect(out.replace(/<[^>]+>/g, '')).toBe('Canal de YouTube @canal.prueba');
-    expect(html(h(ExternalText, { text: ' Portal ' }))).toMatch(/^<span><span class="whitespace-nowrap">Portal<svg/);
-  });
-
-  it('los accesos de participación: el reporte en naranja, los cuatro tipos y el aviso de emergencias', () => {
-    const out = html(h(ParticipationActions, { title: 'Atención ciudadana' }));
-    for (const href of ['/atencion/nueva?tipo=reporte', '/atencion/nueva?tipo=peticion', '/atencion/nueva?tipo=acotacion', '/atencion/nueva?tipo=denuncia', '/atencion/consultar']) {
-      expect(out, href).toContain(`href="${href}"`);
-    }
-    expect(out).toContain('bg-action');
-    expect(out).toContain(EMERGENCY_NOTICE);
-  });
-
-  it('el pie de la web: el aviso de emergencias es el de las constantes (el mismo de los formularios y los correos)', () => {
-    const out = html(h(SiteFooter, { site }));
-    expect(out).toContain(EMERGENCY_NOTICE);
-    expect(out.match(/no es un servicio de emergencias/gi)).toHaveLength(1);
-  });
-});
-
-describe('nada de HTML crudo en la web pública', () => {
-  const files = (dir: string): string[] =>
-    fs.readdirSync(dir, { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? files(path.join(dir, d.name)) : /\.tsx?$/.test(d.name) ? [path.join(dir, d.name)] : []));
-
-  it('dangerouslySetInnerHTML solo en json-ld.tsx (datos escapados, nunca contenido)', () => {
-    const offenders = [...files(path.join('src', 'components', 'web')), ...files(path.join('src', 'app', '(web)'))]
-      .filter((f) => /dangerouslySetInnerHTML\s*=/.test(fs.readFileSync(f, 'utf8')))
-      .filter((f) => !f.endsWith(path.join('components', 'web', 'json-ld.tsx')));
-    expect(offenders).toEqual([]);
-  });
-
-  it('los componentes de cliente de la web no traen librerías pesadas (ni iconos ni clases combinadas)', () => {
-    const client = files(path.join('src', 'components', 'web')).filter((f) => /^['"]use client['"]/.test(fs.readFileSync(f, 'utf8').trimStart()));
-    expect(client.length).toBeGreaterThan(0);
-    for (const f of client) {
-      const src = fs.readFileSync(f, 'utf8');
-      expect(src, f).not.toMatch(/^import [^;]*from '(lucide-react|@\/lib\/cn|tailwind-merge|clsx|next\/image)';/m);
-    }
   });
 });

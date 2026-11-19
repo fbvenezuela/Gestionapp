@@ -4,13 +4,18 @@ Lo que se probó de la web nueva del gobernador (`/`), la participación ciudada
 web (`/admin/web`) y el de la atención (`/admin/atencion`), cómo se probó, los números que salieron y **lo que no se
 pudo comprobar**. Todo en modo demostración: datos inventados, base en memoria, nada sale a personas reales.
 
+> **Nota del 19/11/2026.** Dos archivos de pruebas de punta a punta se partieron, con las mismas pruebas y los mismos
+> títulos: `web-publica.spec.ts` es hoy `web-marco`, `web-portada`, `web-noticias` y `web-paginas` (lo que comparten,
+> en `web-helpers.ts`); `web-recorridos.spec.ts` es hoy `web-recorridos-ciudadano`, `web-recorridos-equipo` y
+> `web-recorridos-cms` (lo que comparten, en `recorridos-helpers.ts`). Los números de abajo son los del 06/11.
+
 ## En corto
 
 - **Pasa todo:** las pruebas de unidad y de RLS (2.859), el lint, el chequeo de tipos, el armado y **las 311 pruebas
   de punta a punta** (6 omitidas, las de Google Drive simulado; 0 fallan).
 - **Los diez recorridos** del encargo largo y los del encargo del 6/11 tienen cada uno su prueba de punta a punta que
-  los recorre de verdad en el navegador (tabla en §3). Se agregó `tests/e2e/web-recorridos.spec.ts` para los que
-  estaban cubiertos solo en parte.
+  los recorre de verdad en el navegador (tabla en §3). Se agregó `tests/e2e/web-recorridos.spec.ts` (hoy partido en
+  tres) para los que estaban cubiertos solo en parte.
 - **Lighthouse en el teléfono** (medido aquí, no en Vercel): rendimiento 94–97, accesibilidad 100, buenas prácticas
   100 y SEO 66 en las cuatro páginas medidas. El SEO baja **a propósito**: la versión de prueba les pide a los
   buscadores que no la muestren (D-95); sin esa única regla, el SEO da 100.
@@ -32,7 +37,7 @@ pudo comprobar**. Todo en modo demostración: datos inventados, base en memoria,
 | RLS (permisos en la base) | Cada rol y el público intentan leer o cambiar lo que no les toca: borradores, casos de otra área, denuncias, contactos, notas internas, archivos, exportación, registro | `tests/rls/` (PGlite, el mismo Postgres de la demo) | `npm test` |
 | De punta a punta | La app armada como en producción, en un Chromium de verdad, a 360 px (teléfono) y a 1280 px (computadora), con el ingreso real del equipo (código por correo y doble factor) y **axe** (accesibilidad) en las pantallas principales | `tests/e2e/` | §12 |
 | Lighthouse | Rendimiento, accesibilidad, buenas prácticas y SEO, como lo mide Google para un teléfono | fuera del repositorio | §4 |
-| Peso | Lo que baja un teléfono en la primera visita | `tests/e2e/web-publica.spec.ts` (portada) y una medición aparte | §5 |
+| Peso | Lo que baja un teléfono en la primera visita | `tests/e2e/web-portada.spec.ts` y una medición aparte | §5 |
 | Capturas | Mirar cada pantalla a 360 px y en computadora, clara y oscura | fuera del repositorio | §7 |
 
 **Dónde se corrió:** el contenedor de Claude (Linux, 4 núcleos), Node 22.22, Next 16.4.3, Chromium 153 sin pantalla,
@@ -62,26 +67,26 @@ Cada recorrido se hace en el navegador como lo haría la persona: con sus botone
 
 | # | Recorrido | Prueba (archivo › prueba) | Dónde | Resultado |
 |---|---|---|---|---|
-| 1 | El editor crea una noticia, la mira en vista previa y quien aprueba la publica | `admin-web` › «el editor crea una noticia con su foto…» y «quien aprueba la publica y aparece en /actualidad…»; `web-recorridos` › «una noticia en la computadora…» (2 pruebas: además, antes de aprobarla no está en la web, y al archivarla sale) | teléfono y computadora | pasa |
+| 1 | El editor crea una noticia, la mira en vista previa y quien aprueba la publica | `admin-web` › «el editor crea una noticia con su foto…» y «quien aprueba la publica y aparece en /actualidad…»; `web-recorridos-cms` › «una noticia en la computadora…» (2 pruebas: además, antes de aprobarla no está en la web, y al archivarla sale) | teléfono y computadora | pasa |
 | 2 | Se cambia y se reordena una sección de la portada y se publica | `admin-web` › «el editor cambia y reordena bloques de la portada; quien aprueba lo publica y la portada lo muestra» y «volver a una versión…» | teléfono | pasa |
-| 3 | Una persona manda una solicitud con un archivo | `participacion` › «un reporte con una foto…» (teléfono) y «…de punta a punta, en la computadora»; `web-recorridos` › «1) una persona manda una petición con un PDF…» | teléfono y computadora | pasa |
-| 4 | La coordinación la recibe y la asigna | `admin-atencion` › «la coordinación recibe una solicitud enviada desde el formulario público y la asigna»; `web-recorridos` › «2) la coordinación la recibe por su código, ve el contacto, la asigna… y le sube la prioridad» | teléfono y computadora | pasa |
-| 5 | El responsable responde y cambia el estado | `admin-atencion` › «el responsable del área responde, deja una nota interna y cambia el estado»; `web-recorridos` › «3) el responsable pide más información…» y «4) …le contesta, la atiende y la resuelve…» | teléfono y computadora | pasa |
-| 6 | La persona consulta y agrega información | `admin-atencion` › «la persona consulta: ve la respuesta (nunca la nota interna) y agrega información»; `participacion` › «un reporte con una foto…»; `web-recorridos` › «3) …la persona la ve en su consulta y responde con una foto» (texto **y** archivo) | teléfono y computadora | pasa |
-| 7 | El equipo resuelve y la historia queda | `admin-atencion` › «el equipo lo resuelve con evidencia, la persona lo ve y la historia completa queda»; `web-recorridos` › «5) la persona confirma que se resolvió; la coordinación la cierra y la historia completa queda, también para la persona» (cada paso, en orden) | teléfono y computadora | pasa |
-| 8 | Alguien sin permiso no abre el caso, sus archivos, sus notas internas ni la exportación | `admin-atencion` › «un responsable de otra área, el editor de la web y alguien de fuera no abren el caso, sus archivos ni la exportación» y «auditoría lo lee sin el contacto…»; `admin-web` › «quien no es de la web no entra…»; `web-recorridos` › «6) un id cambiado no revela nada…» y «…el responsable de servicios ve solo los de su área y nunca una denuncia» | teléfono y computadora | pasa |
-| 9 | Una clave mala o un id cambiado no revelan nada | `participacion` › «clave mala, código alterado o inventado: siempre la misma respuesta…»; `seguridad-web` › «los archivos: un comprobante malo recibe el «no encontrado» de siempre…»; `web-recorridos` › «6) un id cambiado no revela nada: otra consulta, la cookie alterada, un id inventado o un caso de otra área» | teléfono y computadora | pasa |
-| 10 | Un envío repetido no crea otra solicitud | `participacion` › «un reintento (la respuesta se perdió) no crea otra solicitud: vuelve el mismo código»; `web-recorridos` › «con JavaScript: la respuesta se pierde… la coordinación ve una sola» y «sin JavaScript: el mismo formulario llega dos veces… la coordinación ve una sola» | teléfono | pasa |
-| 6/11 | Un caso de cada tipo (reporte, petición, acotación, sugerencia, reconocimiento, denuncia) se sigue con su código | `web-recorridos` › 12 pruebas «teléfono: …» y «computadora: …» (comprobante, consulta con código y clave en minúsculas, solo lo suyo, la denuncia privada) y «la coordinación recibe los doce con su tipo…»; `participacion` › «una … llega y da su comprobante» | teléfono y computadora | pasa |
+| 3 | Una persona manda una solicitud con un archivo | `participacion` › «un reporte con una foto…» (teléfono) y «…de punta a punta, en la computadora»; `web-recorridos-equipo` › «1) una persona manda una petición con un PDF…» | teléfono y computadora | pasa |
+| 4 | La coordinación la recibe y la asigna | `admin-atencion` › «la coordinación recibe una solicitud enviada desde el formulario público y la asigna»; `web-recorridos-equipo` › «2) la coordinación la recibe por su código, ve el contacto, la asigna… y le sube la prioridad» | teléfono y computadora | pasa |
+| 5 | El responsable responde y cambia el estado | `admin-atencion` › «el responsable del área responde, deja una nota interna y cambia el estado»; `web-recorridos-equipo` › «3) el responsable pide más información…» y «4) …le contesta, la atiende y la resuelve…» | teléfono y computadora | pasa |
+| 6 | La persona consulta y agrega información | `admin-atencion` › «la persona consulta: ve la respuesta (nunca la nota interna) y agrega información»; `participacion` › «un reporte con una foto…»; `web-recorridos-equipo` › «3) …la persona la ve en su consulta y responde con una foto» (texto **y** archivo) | teléfono y computadora | pasa |
+| 7 | El equipo resuelve y la historia queda | `admin-atencion` › «el equipo lo resuelve con evidencia, la persona lo ve y la historia completa queda»; `web-recorridos-equipo` › «5) la persona confirma que se resolvió; la coordinación la cierra y la historia completa queda, también para la persona» (cada paso, en orden) | teléfono y computadora | pasa |
+| 8 | Alguien sin permiso no abre el caso, sus archivos, sus notas internas ni la exportación | `admin-atencion` › «un responsable de otra área, el editor de la web y alguien de fuera no abren el caso, sus archivos ni la exportación» y «auditoría lo lee sin el contacto…»; `admin-web` › «quien no es de la web no entra…»; `web-recorridos-equipo` › «6) un id cambiado no revela nada…» y «…el responsable de servicios ve solo los de su área y nunca una denuncia» | teléfono y computadora | pasa |
+| 9 | Una clave mala o un id cambiado no revelan nada | `participacion` › «clave mala, código alterado o inventado: siempre la misma respuesta…»; `seguridad-web` › «los archivos: un comprobante malo recibe el «no encontrado» de siempre…»; `web-recorridos-equipo` › «6) un id cambiado no revela nada: otra consulta, la cookie alterada, un id inventado o un caso de otra área» | teléfono y computadora | pasa |
+| 10 | Un envío repetido no crea otra solicitud | `participacion` › «un reintento (la respuesta se perdió) no crea otra solicitud: vuelve el mismo código»; `web-recorridos-ciudadano` › «con JavaScript: la respuesta se pierde… la coordinación ve una sola» y «sin JavaScript: el mismo formulario llega dos veces… la coordinación ve una sola» | teléfono | pasa |
+| 6/11 | Un caso de cada tipo (reporte, petición, acotación, sugerencia, reconocimiento, denuncia) se sigue con su código | `web-recorridos-ciudadano` › 12 pruebas «teléfono: …» y «computadora: …» (comprobante, consulta con código y clave en minúsculas, solo lo suyo, la denuncia privada) y «la coordinación recibe los doce con su tipo…»; `participacion` › «una … llega y da su comprobante» | teléfono y computadora | pasa |
 | 6/11 | Atenderlo en el panel hasta resolverlo | los recorridos 4 a 7 | teléfono y computadora | pasa |
 | 6/11 | Editar un bloque de la portada, aprobarlo y verlo publicado | el recorrido 2 | teléfono | pasa |
 
-Lo que agrega `web-recorridos.spec.ts` (25 pruebas) que antes faltaba: cada tipo **seguido con su código** (antes, solo
-el reporte); agregar un **archivo** desde la consulta; el pedido de más información y su respuesta; la confirmación de
-la persona y el cierre con la historia completa; abrir el archivo de **otra** persona con una consulta propia abierta,
-con la galleta alterada o con ids inventados; contar que un envío repetido deja **una sola** solicitud (con y sin
-JavaScript); la noticia en la computadora y su archivo; que el formulario no rompa su CSP; y que los archivos de la
-consulta se lean en el teléfono.
+Lo que agrega `web-recorridos.spec.ts` (25 pruebas; hoy en tres archivos) que antes faltaba: cada tipo **seguido con
+su código** (antes, solo el reporte); agregar un **archivo** desde la consulta; el pedido de más información y su
+respuesta; la confirmación de la persona y el cierre con la historia completa; abrir el archivo de **otra** persona con
+una consulta propia abierta, con la galleta alterada o con ids inventados; contar que un envío repetido deja **una
+sola** solicitud (con y sin JavaScript); la noticia en la computadora y su archivo; que el formulario no rompa su CSP;
+y que los archivos de la consulta se lean en el teléfono.
 
 ## 4. Lighthouse en el teléfono
 
@@ -127,7 +132,7 @@ La demo **no tiene fotos**, así que con fotos y sin fotos pesan lo mismo.
 | `/atencion/consultar` | 272 KB | 257 KB | 18 | 207 KB |
 
 - **Meta del encargo:** menos de 200 KB en la primera carga de la portada sin fotos. **No se cumple por poco:** 219 KB
-  con gzip, unos 204 KB con brotli. La prueba de `web-publica.spec.ts` lo mide en cada corrida y avisa si pasa de 240
+  con gzip, unos 204 KB con brotli. La prueba de `web-portada.spec.ts` lo mide en cada corrida y avisa si pasa de 240
   KB (es un freno para que no crezca, no la meta).
 - **Qué pesa en la portada:** JavaScript 146 KB (unos 117 KB son la base de Next y React, que toda página trae), la
   letra Montserrat 35 KB, la hoja de estilos 16 KB y la página en sí 21 KB.
@@ -217,7 +222,7 @@ la galleta de la consulta para otro caso; CSRF; XSS por texto, enlaces o datos e
 Lo que queda con su riesgo (fotos de la biblioteca en el depósito público antes de publicarse, el límite por red grueso,
 la CSP con `'unsafe-inline'`, la versión de prueba sin protección de acceso) está en esa misma sección. **Esta etapa no
 repitió esa revisión**; sus pruebas corrieron otra vez dentro de `npm test` y de la corrida completa de punta a punta,
-y `web-recorridos.spec.ts` agrega pruebas de punta a punta de ids cambiados (§3, recorrido 9).
+y `web-recorridos-equipo.spec.ts` agrega pruebas de punta a punta de ids cambiados (§3, recorrido 9).
 
 ## 10. En local, con datos que se quedan
 
@@ -310,7 +315,7 @@ npm test                       # unidad + RLS
 npm run lint && npm run typecheck
 npm run build
 PW_CHROMIUM_PATH=/opt/pw-browsers/chromium npm run test:e2e        # todo, de punta a punta (en el contenedor de Claude)
-PW_CHROMIUM_PATH=/opt/pw-browsers/chromium npx playwright test tests/e2e/web-recorridos.spec.ts   # solo los recorridos
+PW_CHROMIUM_PATH=/opt/pw-browsers/chromium npx playwright test tests/e2e/web-recorridos-*.spec.ts   # solo los recorridos
 ```
 
 Fuera de un contenedor, `npm run test:e2e` usa el Chromium que instala Playwright (`npx playwright install chromium`).
