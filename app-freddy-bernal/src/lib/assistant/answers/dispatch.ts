@@ -104,7 +104,7 @@ export const DISPATCH: Answer[] = [
       'que hay en trancado',
       'por que algo esta trancado',
     ],
-    a: '«Trancado» junta lo que se paró y necesita una mano. Si dice «Nada trancado.», no hay nada parado.',
+    a: '«Trancado» junta lo que se paró y necesita una mano, como una publicación que falló o una pieza que venció sin aprobar. Si dice «Nada trancado.», no hay nada parado.',
     go: '/hoy',
   },
   {
@@ -543,7 +543,7 @@ export const DISPATCH: Answer[] = [
       'como fecho un reporte desde la ficha comunitaria',
       'donde esta ponerle fecha en el reporte',
     ],
-    a: 'En la ficha comunitaria, «Agenda del jefe»: si va a la agenda y todavía no tiene fecha, ahí está «Ponerle fecha».',
+    a: 'En la ficha comunitaria, «Agenda del jefe»: si va a la agenda y todavía no tiene fecha, ahí está «Ponerle fecha»; al ponérsela, la actividad se crea en la agenda.',
     go: '/municipios',
   },
   {
@@ -670,7 +670,7 @@ export const DISPATCH: Answer[] = [
       'que pongo en prioridad',
       'que significa urgente normal puede esperar',
     ],
-    a: '«Prioridad para el equipo» («Urgente», «Normal» o «Puede esperar») le dice al equipo qué tan urgente es el evento. La pones tú; la importancia de 1 a 10 es del jefe.',
+    a: '«Prioridad para el equipo» («Urgente», «Normal» o «Puede esperar») le dice al equipo qué va primero. La pones tú; la importancia de 1 a 10 es del jefe.',
     go: '/agenda/nuevo',
   },
   {
@@ -1520,7 +1520,7 @@ export const DISPATCH: Answer[] = [
       'la nota que deja grabacion la veo',
       'por que no veo la nota de grabacion',
     ],
-    a: 'No: la nota para el editor es para Redes y el jefe. Tú ves y descargas el material y el archivo del storyboard con el que grabó.',
+    a: 'No: la nota para el editor la deja Grabación para Redes y el jefe. Tú ves y descargas el material y el archivo del storyboard con el que grabó.',
     go: '/agenda',
   },
   {
@@ -1535,7 +1535,7 @@ export const DISPATCH: Answer[] = [
       'como subo el material del acto',
       'puedo cargar las fotos del evento',
     ],
-    a: 'No: el material lo sube Grabación (también Redes y el jefe). Tú lo ves y lo bajas con «Descargar todo el material». Las fotos de una ficha de obra o comunitaria sí las subes tú, en la ficha.',
+    a: 'No: el material lo sube Grabación (también Redes y el jefe). Tú lo ves y lo bajas con «Descargar todo el material», con la foto o el PDF del guion con el que grabó. Las fotos de una ficha de obra o comunitaria sí las subes tú, en la ficha.',
     go: '/agenda',
   },
   {
@@ -1595,7 +1595,7 @@ export const DISPATCH: Answer[] = [
       'puedo abrir el modo lectura',
       'yo veo lo que va a decir el jefe',
     ],
-    a: 'Es lo que va a decir el jefe, en letra grande, para leer en el iPad o el teléfono; tú también lo abres. Se abre con «Modo lectura» en el evento, cuando el storyboard ya tiene texto, y arriba trae «Antes de hablar».',
+    a: 'Es lo que va a decir el jefe, en letra grande, para leer en el iPad o el teléfono; tú también lo abres. Se abre con «Modo lectura» en el evento, cuando el storyboard ya tiene texto, y arriba trae «Antes de hablar». La X de arriba sale del modo lectura.',
     go: '/agenda',
     tutorial: 'lectura',
   },
@@ -1922,7 +1922,7 @@ export const DISPATCH: Answer[] = [
       'donde veo las vencidas',
       'que significa vencida',
     ],
-    a: 'Son las fichas comunitarias que pasaron su fecha de seguimiento y no están finalizadas ni suspendidas; salen arriba en Municipios. Para ver solo esas, marca «Solo las vencidas» y toca «Filtrar».',
+    a: 'Son las fichas comunitarias que pasaron su fecha de seguimiento y no están finalizadas ni suspendidas; salen arriba en Municipios. Para ver solo esas, marca «Solo las vencidas» y toca «Filtrar»; «Quitar los filtros» lo limpia.',
     go: '/municipios',
   },
   {
@@ -1983,7 +1983,7 @@ export const DISPATCH: Answer[] = [
       'como marco un reporte como finalizado',
       'cambiar el estado de la ficha comunitaria',
     ],
-    a: 'En la ficha comunitaria, «Estado» (en qué va el reporte): eliges el «Nuevo estado», escribes el «Motivo o avance (opcional)» y tocas «Cambiar estado». Cada cambio queda en la historia.',
+    a: 'En la ficha comunitaria, «Estado» (en qué va el reporte): eliges el «Nuevo estado» («Programado», «En ejecución», «Finalizado», «Pendiente» o «Suspendido»), escribes el «Motivo o avance (opcional)» y tocas «Cambiar estado». Cada cambio queda en la historia.',
     go: '/municipios',
     tutorial: 'ficha-comunitaria',
   },
@@ -2015,7 +2015,7 @@ export const DISPATCH: Answer[] = [
       'los contactos salen ocultos',
       'no me deja ver la persona que reporta',
     ],
-    a: 'Los contactos (quien reporta, los teléfonos de otras personas) solo se ven si entraste con el doble factor; Redes y Grabación no los ven. Si no te salen, entra otra vez con el «Código de tu aplicación».',
+    a: 'Los contactos de la pestaña «Ficha de obra» o «Reporte» (quien reporta, los teléfonos de otras personas) solo se ven si entraste con el doble factor; Redes y Grabación no los ven. Si no te salen, entra otra vez con el «Código de tu aplicación».',
   },
 
   // ── Biblioteca ─────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -2496,7 +2496,7 @@ export const DISPATCH: Answer[] = [
       'como se cuando el jefe crea un evento',
       'me llego que el jefe agrego algo a la agenda',
     ],
-    a: 'Cuando el jefe crea un evento, queda aceptado desde que lo guarda y te llega «El jefe agregó a la agenda» con su título. Lo ves en la Agenda.',
+    a: 'Cuando el jefe crea un evento, queda aceptado desde que lo guarda y te llega «El jefe agregó a la agenda» con su título; lo que creas tú le llega a él «Por decidir». Lo ves en la Agenda.',
     go: '/agenda',
   },
   {

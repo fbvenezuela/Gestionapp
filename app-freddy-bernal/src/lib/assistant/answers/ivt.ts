@@ -185,7 +185,7 @@ export const IVT: Answer[] = [
       'no veo la obra que mande',
       'donde busco una obra que ya mande',
     ],
-    a: 'Al guardar se abre la ficha. Después la ves en Obras, según en qué va: «Borradores», «Por ponerle fecha», «Con fecha» o «Visitas realizadas». Las archivadas, con «Estado» → «Archivada» y «Filtrar»; si tienes un filtro puesto, «Quitar».',
+    a: 'Al guardar se abre la ficha: ahí subes las fotos del antes y del avance y tocas «Generar diálogo FAB». Después la ves en Obras, según en qué va: «Borradores», «Por ponerle fecha», «Con fecha» o «Visitas realizadas». Las archivadas, con «Estado» → «Archivada» y «Filtrar»; si tienes un filtro puesto, «Quitar».',
     go: '/obras',
   },
   {
@@ -1275,7 +1275,7 @@ export const IVT: Answer[] = [
       'caracteristica ventaja beneficio que es',
       'para que sirve el fab',
     ],
-    a: 'Es lo que va a decir el jefe en la visita: qué es la obra (característica), qué mejora (ventaja) y qué gana la gente (beneficio). Se arma solo con las cifras de la ficha.',
+    a: 'Es lo que va a decir el jefe en la visita de obra, en tres partes: qué es la obra (característica), qué mejora (ventaja) y qué gana la gente (beneficio). Se arma solo con las cifras de la ficha.',
   },
   {
     id: 'ivt-fab-no-sale',
@@ -1507,7 +1507,7 @@ export const IVT: Answer[] = [
       'donde veo la hora de mi visita',
       'donde salen mis visitas con fecha',
     ],
-    a: 'En Agenda → «Mis visitas de obra»: las visitas del jefe a tus obras. Si entraste con el doble factor, ves ahí su fecha, su hora y su dirección; yo no las digo.',
+    a: 'En Agenda → «Mis visitas de obra»: las visitas del jefe a tus obras. Si entraste con el doble factor, ves ahí su fecha, su hora y su dirección; yo no las digo. En la ficha, la fecha está en «Fecha de la visita».',
     go: '/agenda',
     tutorial: 'agenda-ivt',
   },
@@ -1540,7 +1540,8 @@ export const IVT: Answer[] = [
       'por que no veo la fecha de mi visita',
       'no me deja ver la fecha de la visita',
     ],
-    a: 'La fecha solo se ve si entraste con el doble factor: sal y vuelve a entrar con el «Código de tu aplicación». Si no, la visita dice «Ya tiene fecha» y la ficha «Ya tiene fecha. Se ve con el doble factor.»',
+    a: 'La fecha solo se ve si entraste con el doble factor; si no, arriba dice «La fecha se ve con el doble factor: entra con tu código.» y la ficha, «Ya tiene fecha. Se ve con el doble factor.» Sal y vuelve a entrar con el «Código de tu aplicación».',
+    go: '/agenda',
   },
   {
     id: 'ivt-fecha-visita-tarjeta',
@@ -1581,7 +1582,7 @@ export const IVT: Answer[] = [
       'rechazaron mi visita que hago',
       'el jefe rechazo la visita y ahora que pasa',
     ],
-    a: 'El jefe rechazó esa visita: ya no tiene fecha y la ficha vuelve sola a «Por ponerle fecha». El jefe o el despacho le pueden poner otra; tú no tienes que volver a cargarla.',
+    a: 'El jefe rechazó esa visita: te llega un aviso, ya no tiene fecha y la ficha vuelve sola a «Por ponerle fecha». El jefe o el despacho le pueden poner otra; tú no tienes que volver a cargarla.',
   },
   {
     id: 'ivt-cancelada',
@@ -1703,7 +1704,7 @@ export const IVT: Answer[] = [
       'que veo cuando abro la visita',
       'que sale en la visita',
     ],
-    a: 'La vista corta de la visita: el código, «Visita de obra», la decisión del jefe y, si entraste con el doble factor, su fecha, su hora y su dirección. «Ver la ficha de obra» te lleva a tu ficha, y «Mis visitas de obra», a la lista.',
+    a: 'La vista corta de la visita: el código, «Visita de obra», la decisión del jefe y, si entraste con el doble factor, su fecha, su hora y su dirección. «Ver la ficha de obra» te lleva a tu ficha de obra, y «Mis visitas de obra», a la lista.',
   },
   {
     id: 'ivt-visita-chips',
