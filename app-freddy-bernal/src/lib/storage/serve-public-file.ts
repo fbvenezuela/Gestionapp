@@ -30,7 +30,7 @@ async function realSiteFile(key: string): Promise<Uint8Array | null> {
   // Spelled out for the bundler's file tracing (next.config.ts also ships the folder with the public files' route);
   // REAL_SITE_DIR (tests only: the invented fixture, tests/fixtures/real-site) is a folder laid out the same way.
   const custom = realSiteDirFromEnv();
-  const file = insideFolder(custom ? path.join(custom, REAL_SITE.media) : path.join(process.cwd(), '.real-site', 'media'), key);
+  const file = insideFolder(custom ? path.join(/* turbopackIgnore: true */ custom, REAL_SITE.media) : path.join(process.cwd(), '.real-site', 'media'), key);
   return file ? readIfExists(file) : null;
 }
 

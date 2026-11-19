@@ -329,7 +329,8 @@ const g = globalThis as unknown as { __fbRealSnapshot?: Memo; __fbRealSeeded?: '
 export function loadRealSnapshot(): RealSnapshot | null {
   if (g.__fbRealSnapshot) return g.__fbRealSnapshot.value;
   const custom = realSiteDirFromEnv();
-  const file = custom ? path.join(custom, REAL_SITE.file) : path.join(process.cwd(), '.real-site', 'snapshot.json');
+  // The folder of REAL_SITE_DIR is never traced (it is not deployed): only the spelled-out path is.
+  const file = custom ? path.join(/* turbopackIgnore: true */ custom, REAL_SITE.file) : path.join(process.cwd(), '.real-site', 'snapshot.json');
   let value: RealSnapshot | null = null;
   if (realModeAtRuntime(process.env, fs.existsSync(file))) {
     try {

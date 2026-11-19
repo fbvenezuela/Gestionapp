@@ -34,6 +34,11 @@ const nextConfig: NextConfig = {
     '/**': ['./supabase/migrations/*.sql', './supabase/shim/*.sql', './src/lib/db/demo-assets/*.jpg', './.real-site/snapshot.json'],
     '/api/archivos/web/*': ['./.real-site/media/*'],
   },
+  // Test data never ships: the demo store's read of «<path>.json» (src/lib/storage/demo-store.ts) makes the tracer take
+  // every .json of the project, tests/unit/pending-labels/*.json included, and no server code reads tests/.
+  outputFileTracingExcludes: {
+    '/**': ['./tests/**'],
+  },
   turbopack: {
     rules: {
       '*.css': { loaders: ['@tailwindcss/turbopack'], as: '*.css' },
