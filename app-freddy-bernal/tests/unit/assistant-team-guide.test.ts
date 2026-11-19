@@ -5,11 +5,13 @@
 //     word, with what its meaning says, above weaker matches; never a count of the word itself, a «nunca», or «¿qué es lo
 //     que tengo que hacer con…?»;
 // (b) the role's own job and its «Nunca» answer a question about them asked whole («¿qué tengo que hacer yo en la app?»,
-//     «¿qué es lo que nunca debo hacer?»), and never stand in for a question about something else.
+//     «¿qué es lo que nunca debo hacer?»), and never stand in for a question about something else;
+// (f) a word typed with one slip («tutorail») is read as the word it was meant to be; on a screen, the screen's own
+//     entries count more, the more of the question they say; who a role works with, asked with the team's names.
 // The index only (pure): no database.
 import { describe, it, expect } from 'vitest';
 import type { Role } from '@/lib/roles';
-import { bestAnswer, describedTerm, findAnswers, readable, selfAsk } from '@/lib/assistant/answers/engine';
+import { bestAnswer, describedTerm, findAnswers, oneSlip, readable, selfAsk } from '@/lib/assistant/answers/engine';
 
 const TEAM: Role[] = ['boss', 'dispatch', 'politics', 'ivt', 'camera', 'social'];
 
@@ -93,6 +95,58 @@ describe('(b) el trabajo del rol y lo que nunca le toca, solo cuando se pregunta
     ] as [Role, string][]) {
       const m = bestAnswer(q, { roles: [role] });
       expect(m?.entry.id, `${role}: ${q}`).not.toMatch(/^curado:todo-360-quien$|^curado:todo-que-es-app$|:trabajo$/);
+    }
+  });
+});
+
+describe('(f) una palabra con una letra mal, la pantalla en la que estás y con quién trabajas', () => {
+  it('oneSlip: una letra cambiada, de más, de menos o dos letras al revés, en palabras largas que empiezan igual', () => {
+    expect(oneSlip('tutorail', 'tutorial')).toBe(true); // dos al revés
+    expect(oneSlip('publicacon', 'publicacion')).toBe(true); // una de menos
+    expect(oneSlip('notificacionn', 'notificacion')).toBe(true); // una de más
+    expect(oneSlip('materal', 'material')).toBe(true);
+    expect(oneSlip('mensajr', 'mensaje')).toBe(true); // una cambiada
+    // Nunca: palabras cortas, que empiezan distinto, a dos letras, o la misma.
+    expect(oneSlip('pieza', 'pizza')).toBe(false);
+    expect(oneSlip('nombre', 'hombre')).toBe(false);
+    expect(oneSlip('contacto', 'contrato')).toBe(false);
+    expect(oneSlip('tutorial', 'tutorial')).toBe(false);
+  });
+
+  it('la palabra mal escrita se lee como la que es: la misma respuesta que bien escrita', () => {
+    for (const [role, typo, fine] of [
+      ['politics', '¿cómo salgo de un tutorail?', '¿cómo salgo de un tutorial?'],
+      ['camera', 'como subo el materal del evento', 'como subo el material del evento'],
+      ['social', 'donde estan los mensjaes nuevos', 'donde estan los mensajes nuevos'],
+    ] as [Role, string, string][]) {
+      const a = bestAnswer(typo, { roles: [role] });
+      const b = bestAnswer(fine, { roles: [role] });
+      expect(a?.entry.id, `${role}: ${typo}`).toBe(b?.entry.id);
+      expect(a?.confidence, `${role}: ${typo}`).toBe('strong');
+    }
+  });
+
+  it('el nombre de un evento o de una persona nunca se corrige', () => {
+    // «Montalbán» no es «montaban»: un nombre dicho se deja como nombre.
+    const m = findAnswers('¿qué pasó con lo de Montalbanes?', { roles: ['boss'], names: ['Montalbanes'] });
+    for (const x of m) expect(x.via.toLowerCase()).not.toContain('montaban');
+  });
+
+  it('en una pantalla, la entrada de esa pantalla gana un empate de una sola palabra', () => {
+    const m = bestAnswer('¿y lo de mis datos?', { roles: ['boss'], screen: '/perfil' });
+    expect(m?.entry.screen).toBe('/perfil');
+    expect(m?.confidence).toBe('strong');
+    expect(m?.text).toMatch(/«Mis datos»/);
+  });
+
+  it('con quién trabaja cada rol, también dicho con los nombres del equipo', () => {
+    for (const [role, q, id] of [
+      ['boss', '¿cómo trabajo con el despacho?', 'jefe:con:dispatch'],
+      ['camera', '¿qué le paso a Redes?', 'grabacion:con:social'],
+      ['ivt', '¿qué hace el jefe por mí?', 'ivt:con:boss'],
+    ] as [Role, string, string][]) {
+      const all = findAnswers(q, { roles: [role], limit: 3 }).map((x) => x.entry.id);
+      expect(all, `${role}: ${q}`).toContain(id);
     }
   });
 });
