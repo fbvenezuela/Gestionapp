@@ -18,8 +18,15 @@ const DMAX = FRONT + DEPTH;
 const OX = DMAX * A + 70;
 const OY = 190;
 const WALL = 140;
-const W = (5 + DMAX) * A + 140;
-const H = OY + (5 + DMAX) * B + 70;
+// The building is 6.3 cells wide: the five rooms of each row, and at the end of the hall the meeting room (19/11).
+const IW = 6.3;
+const W = (IW + DMAX) * A + 140;
+const H = OY + (IW + DMAX) * B + 70;
+// The meeting room, an annex of glass at the end of the hall: across from MI0 to MI1, in depth from MJ0 to MJ1.
+const MI0 = 5.15;
+const MI1 = 6.2;
+const MJ0 = 0.3;
+const MJ1 = DMAX - 0.3;
 const LANE_BACK = 1.7; // the belt going right, in front of the back rooms
 const LANE_FRONT = 2.12; // and coming back, in front of the front rooms
 const AISLE_BACK = 1.42; // where people walk
@@ -32,9 +39,20 @@ const pts = (...p: Pt[]) => p.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`)
 
 // Back row left to right, then the front row right to left: the line turns like a snake, so the two editors and the
 // boss's office end up side by side. [column, where the room starts in depth].
-export const ROOM_CELL: Record<Room, [number, number]> = Object.fromEntries(
-  ROOMS.map((r, n) => [r, n < 5 ? [n, 0] : [9 - n, FRONT]]),
-) as Record<Room, [number, number]>;
+// The meeting room is apart: the annex at the end of the hall (19/11/2026).
+export const ROOM_CELL: Record<Room, [number, number]> = {
+  reception: [0, 0],
+  meeting: [MI0, 0],
+  script: [1, 0],
+  storyboard: [2, 0],
+  recording: [3, 0],
+  clean_cut: [4, 0],
+  brutal_edit: [4, FRONT],
+  approval: [3, FRONT],
+  copywriting: [2, FRONT],
+  publishing: [1, FRONT],
+  analytics: [0, FRONT],
+};
 
 const v = (name: string) => `var(--c-office-${name})`;
 const WHITE = { top: v('white'), left: v('white-3'), right: v('white-2') };
@@ -340,6 +358,12 @@ const WALKERS: { from: [number, number]; to: [number, number]; n: number; carry:
   { from: [2.4, AISLE_FRONT], to: [1.4, AISLE_FRONT], n: 0, carry: 'folder', dur: 13, begin: 6 }, // the copies, to the publisher
 ];
 
+// When a project is starting, the team walks to the meeting room down the front aisle (19/11).
+const TO_MEETING: typeof WALKERS = [
+  { from: [3.3, AISLE_FRONT], to: [5.3, AISLE_FRONT], n: 2, carry: 'folder', dur: 9, begin: 1 },
+  { from: [2.6, AISLE_FRONT], to: [5.25, AISLE_FRONT], n: 4, carry: 'tablet', dur: 11, begin: 3 },
+];
+
 // The belt: right in front of the back rooms, a turn at the end, and back in front of the front rooms.
 const BELT_START = 0.2;
 const BELT_END = 4.82;
@@ -406,11 +430,12 @@ function Parcel() {
 }
 
 // People walking an aisle (behind the belt or in front of it), carrying the work and back, with a pause at each end.
-function Walkers({ which }: { which: 'back' | 'front' }) {
+function Walkers({ which }: { which: 'back' | 'front' | 'meeting' }) {
   const lane = which === 'back' ? AISLE_BACK : AISLE_FRONT;
+  const list = which === 'meeting' ? TO_MEETING : WALKERS.filter((w) => w.from[1] === lane);
   return (
     <g className="o-walkers">
-      {WALKERS.filter((w) => w.from[1] === lane).map((w, k) => {
+      {list.map((w, k) => {
         const [x1, y1] = P(w.from[0], w.from[1]);
         const [x2, y2] = P(w.to[0], w.to[1]);
         return (
@@ -432,9 +457,43 @@ function Walkers({ which }: { which: 'back' | 'front' }) {
   );
 }
 
+// The meeting room (Juan, 19/11: «cuando empiece un proyecto todos vayan a la reunión»): a long table, the boss at the
+// big screen going over the reading, and when a project is starting, the whole team around the table.
+function MeetingRoom({ full, mine }: { full: boolean; mine: boolean }) {
+  const seats = [1.15, 1.55, 1.95, 2.35, 2.75];
+  const chair = (i: number, j: number) => <Box key={`c${i}${j}`} i={i - 0.05} j={j - 0.05} w={0.1} d={0.1} h={8} f={OLIVE} />;
+  return (
+    <g>
+      <polygon points={pts(P(MI0 + 0.04, MJ0 + 0.04), P(MI1 - 0.04, MJ0 + 0.04), P(MI1 - 0.04, MJ1 - 0.04), P(MI0 + 0.04, MJ1 - 0.04))} fill={v('rug-2')} stroke={mine ? 'var(--c-accent)' : v('gold')} strokeWidth={2} />
+      {/* Glass walls, with the door to the hall */}
+      <polygon points={pts(P(MI0, MJ0), P(MI0, 1.45), P(MI0, 1.45, 34), P(MI0, MJ0, 34))} fill={v('glass')} opacity={0.5} stroke={v('gold')} strokeWidth={0.9} />
+      <polygon points={pts(P(MI0, 2.45), P(MI0, MJ1), P(MI0, MJ1, 34), P(MI0, 2.45, 34))} fill={v('glass')} opacity={0.5} stroke={v('gold')} strokeWidth={0.9} />
+      {/* The big screen with the reading on it */}
+      <polygon points={panel(MI0 + 0.2, MJ0 + 0.05, 0.65, 20, 36)} fill={v('screen')} />
+      {[0, 1, 2, 3].map((k) => (
+        <polygon key={k} points={panel(MI0 + 0.26, MJ0 + 0.05, [0.5, 0.42, 0.46, 0.3][k]!, 47 - k * 7, 3)} fill={k === 0 ? 'var(--c-accent)' : v('glow')} className={full ? 'o-flicker' : undefined} />
+      ))}
+      <Plant at={P(MI1 - 0.12, MJ0 + 0.12)} big />
+      <Plant at={P(MI0 + 0.12, MJ1 - 0.12)} />
+      {full ? <Standing at={P(MI0 + 0.55, MJ0 + 0.32)} n={0} shirt={v('shirt-3')} /> : null}
+      {/* Behind the table, facing us */}
+      {seats.map((j, k) => (full ? <Standing key={`a${j}`} at={P(MI0 + 0.2, j)} n={k + 1} /> : chair(MI0 + 0.2, j)))}
+      <Box i={MI0 + 0.34} j={0.95} w={0.38} d={2.1} h={14} f={WOOD} />
+      <Box i={MI0 + 0.34} j={0.95} w={0.38} d={2.1} h={1.5} z={14} f={{ top: v('gold-2'), left: v('gold'), right: v('gold') }} />
+      {full
+        ? [1.3, 1.9, 2.5].map((j) => <Box key={`p${j}`} i={MI0 + 0.45} j={j} w={0.1} d={0.08} h={1} z={15.5} f={WHITE} />)
+        : null}
+      {/* In front of the table, seen from behind */}
+      {seats.map((j, k) => (full ? <Seated key={`b${j}`} at={P(MI0 + 0.88, j)} n={k + 2} /> : chair(MI0 + 0.88, j)))}
+      <polygon points={pts(P(MI0, MJ1), P(MI1, MJ1), P(MI1, MJ1, 34), P(MI0, MJ1, 34))} fill={v('glass')} opacity={0.3} stroke={v('gold')} strokeWidth={0.9} />
+    </g>
+  );
+}
+
 export function OfficeMap({ counts, mine, base = '' }: { counts: Record<Room, number>; mine?: Room[]; base?: string }) {
-  const back = ROOMS.filter((r) => ROOM_CELL[r][1] === 0).sort((a, b) => ROOM_CELL[a][0] - ROOM_CELL[b][0]);
-  const front = ROOMS.filter((r) => ROOM_CELL[r][1] !== 0).sort((a, b) => ROOM_CELL[a][0] - ROOM_CELL[b][0]);
+  const meetingFull = (counts.meeting ?? 0) > 0;
+  const back = ROOMS.filter((r) => r !== 'meeting' && ROOM_CELL[r][1] === 0).sort((a, b) => ROOM_CELL[a][0] - ROOM_CELL[b][0]);
+  const front = ROOMS.filter((r) => r !== 'meeting' && ROOM_CELL[r][1] !== 0).sort((a, b) => ROOM_CELL[a][0] - ROOM_CELL[b][0]);
   const room = (r: Room) => {
     const [c, r0] = ROOM_CELL[r];
     const k = ROOMS.indexOf(r);
@@ -449,7 +508,7 @@ export function OfficeMap({ counts, mine, base = '' }: { counts: Record<Room, nu
     );
   };
   return (
-    <div className="-mx-2 overflow-x-auto sm:mx-0" role="group" aria-label="Dibujo de la oficina con sus diez salas">
+    <div className="-mx-2 overflow-x-auto sm:mx-0" role="group" aria-label="Dibujo de la oficina con sus once salas">
       <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full min-w-[900px] select-none" aria-hidden={false}>
         <style>{`
           @keyframes o-type { from { transform: translateY(0) } to { transform: translateY(-0.9px) } }
@@ -485,19 +544,19 @@ export function OfficeMap({ counts, mine, base = '' }: { counts: Record<Room, nu
 
         {/* Floor */}
         {/* A marble floor with gold inlay */}
-        <polygon points={pts(P(0, 0), P(5, 0), P(5, DMAX), P(0, DMAX))} fill={v('floor')} />
-        {Array.from({ length: Math.floor(DMAX * 2) }, (_, k) => (k + 1) / 2).map((j) => <line key={j} x1={P(0, j)[0]} y1={P(0, j)[1]} x2={P(5, j)[0]} y2={P(5, j)[1]} stroke={v('floor-line')} strokeWidth={0.7} opacity={0.6} />)}
-        {[0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5].map((i) => <line key={i} x1={P(i, 0)[0]} y1={P(i, 0)[1]} x2={P(i, DMAX)[0]} y2={P(i, DMAX)[1]} stroke={v('floor-line')} strokeWidth={0.7} opacity={0.6} />)}
+        <polygon points={pts(P(0, 0), P(IW, 0), P(IW, DMAX), P(0, DMAX))} fill={v('floor')} />
+        {Array.from({ length: Math.floor(DMAX * 2) }, (_, k) => (k + 1) / 2).map((j) => <line key={j} x1={P(0, j)[0]} y1={P(0, j)[1]} x2={P(IW, j)[0]} y2={P(IW, j)[1]} stroke={v('floor-line')} strokeWidth={0.7} opacity={0.6} />)}
+        {[0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6].map((i) => <line key={i} x1={P(i, 0)[0]} y1={P(i, 0)[1]} x2={P(i, DMAX)[0]} y2={P(i, DMAX)[1]} stroke={v('floor-line')} strokeWidth={0.7} opacity={0.6} />)}
         {/* The floor's edge, with a gold trim */}
-        <polygon points={pts(P(0, DMAX), P(5, DMAX), P(5, DMAX, -10), P(0, DMAX, -10))} fill={v('wall')} />
-        <polygon points={pts(P(5, 0), P(5, DMAX), P(5, DMAX, -10), P(5, 0, -10))} fill={v('wall-side')} />
-        <line x1={P(0, DMAX)[0]} y1={P(0, DMAX)[1]} x2={P(5, DMAX)[0]} y2={P(5, DMAX)[1]} stroke={v('gold')} strokeWidth={1.4} />
-        <line x1={P(5, 0)[0]} y1={P(5, 0)[1]} x2={P(5, DMAX)[0]} y2={P(5, DMAX)[1]} stroke={v('gold')} strokeWidth={1.4} />
+        <polygon points={pts(P(0, DMAX), P(IW, DMAX), P(IW, DMAX, -10), P(0, DMAX, -10))} fill={v('wall')} />
+        <polygon points={pts(P(IW, 0), P(IW, DMAX), P(IW, DMAX, -10), P(IW, 0, -10))} fill={v('wall-side')} />
+        <line x1={P(0, DMAX)[0]} y1={P(0, DMAX)[1]} x2={P(IW, DMAX)[0]} y2={P(IW, DMAX)[1]} stroke={v('gold')} strokeWidth={1.4} />
+        <line x1={P(IW, 0)[0]} y1={P(IW, 0)[1]} x2={P(IW, DMAX)[0]} y2={P(IW, DMAX)[1]} stroke={v('gold')} strokeWidth={1.4} />
 
         {/* Two tall walls of windows, with the city behind */}
-        <polygon points={pts(P(0, 0), P(5, 0), P(5, 0, WALL), P(0, 0, WALL))} fill={v('wall')} />
+        <polygon points={pts(P(0, 0), P(IW, 0), P(IW, 0, WALL), P(0, 0, WALL))} fill={v('wall')} />
         <polygon points={pts(P(0, 0), P(0, DMAX), P(0, DMAX, WALL), P(0, 0, WALL))} fill={v('wall-side')} />
-        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((k) => {
+        {Array.from({ length: 12 }, (_, k) => k).map((k) => {
           const i = 0.1 + k * 0.49;
           return (
             <g key={`w${k}`}>
@@ -521,7 +580,7 @@ export function OfficeMap({ counts, mine, base = '' }: { counts: Record<Room, nu
             </g>
           );
         })}
-        <polygon points={pts(P(0, 0, WALL), P(5, 0, WALL), P(5, -0.08, WALL), P(0, -0.08, WALL))} fill={v('wall-top')} />
+        <polygon points={pts(P(0, 0, WALL), P(IW, 0, WALL), P(IW, -0.08, WALL), P(0, -0.08, WALL))} fill={v('wall-top')} />
         <polygon points={pts(P(0, 0, WALL), P(0, DMAX, WALL), P(-0.08, DMAX, WALL), P(-0.08, 0, WALL))} fill={v('wall-top')} />
         <text x={24} y={44} fontSize={20} fontWeight={800} fill="var(--c-text)" letterSpacing={1.5}>LA OFICINA</text>
         <text x={24} y={62} fontSize={10} fill="var(--c-text-2)">Las cajas van de sala en sala</text>
@@ -543,20 +602,22 @@ export function OfficeMap({ counts, mine, base = '' }: { counts: Record<Room, nu
             </g>
           ))}
         </g>
-        {ROOMS.map((r, k) => {
+        {ROOMS.filter((r) => r !== 'meeting').map((r, k) => {
           const [c, r0] = ROOM_CELL[r];
           return <Machine key={r} i={c + 0.5} lane={r0 === 0 ? LANE_BACK : LANE_FRONT} n={k} />;
         })}
         <Walkers which="front" />
+        {meetingFull ? <Walkers which="meeting" /> : null}
 
         {front.map(room)}
+        <MeetingRoom full={meetingFull} mine={!!mine?.includes('meeting')} />
 
         {/* The labels outside the office, like an anatomy plate (Juan, 06/11): the back rooms' above the wall, the front
             rooms' under the floor, each with a thin line to its room. Number, name and the real count; each opens its room. */}
         {ROOMS.map((r, k) => {
           const [c, r0] = ROOM_CELL[r];
           const isBack = r0 === 0;
-          const [x, ay] = P(c + 0.5, isBack ? 0.55 : r0 + 0.75);
+          const [x, ay] = r === 'meeting' ? P(MI0 + 0.55, 1.1) : P(c + 0.5, isBack ? 0.55 : r0 + 0.75);
           // Straight up to just above the wall, or straight down to just under the floor, at the same x.
           const across = (x - OX) / A;
           const ly = isBack ? OY + across * B - WALL - 24 : OY + (across + 2 * DMAX) * B + 34;

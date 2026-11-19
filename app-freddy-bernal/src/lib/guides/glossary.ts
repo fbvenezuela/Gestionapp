@@ -163,7 +163,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     id: 'oficina',
     term: 'La oficina',
     aka: ['oficina', 'sala', 'salas'],
-    text: 'Lo que abre «Oficina» en el menú: el trabajo dibujado como una oficina de diez salas, de «Recepción» a «Analizador». Cada actividad del jefe está en la sala donde va su trabajo. Tocas una sala para ver cuáles hay. El jefe también la ve arriba de Digital.',
+    text: 'Lo que abre «Oficina» en el menú: el trabajo dibujado como una oficina de once salas, de «Recepción» a «Analizador», con una sala de reuniones donde todos se juntan cuando arranca un proyecto. Cada actividad del jefe está en la sala donde va su trabajo. Tocas una sala para ver cuáles hay. El jefe también la ve arriba de Digital.',
   },
   {
     // The web's own guide is not inside the app.

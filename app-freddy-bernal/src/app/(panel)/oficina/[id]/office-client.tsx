@@ -1,7 +1,7 @@
 'use client';
 
 import { useId } from 'react';
-import { approveReception, approveScript, draftScript, markEdit, saveReception, saveScript } from '@/lib/actions/office';
+import { approveReception, approveScript, draftScript, holdMeeting, markEdit, saveReception, saveScript } from '@/lib/actions/office';
 import { useAction } from '@/lib/hooks/use-action';
 import { useDraft } from '@/lib/hooks/use-draft';
 import { Button } from '@/components/ui/button';
@@ -140,5 +140,22 @@ export function ReceptionPanel({
         ) : null}
       </div>
     </div>
+  );
+}
+
+// The meeting room: the boss says the kick-off meeting was held (or undoes it).
+export function MeetingStep({ eventId, done }: { eventId: string; done: boolean }) {
+  const { run, pending } = useAction();
+  return done ? (
+    <div className="flex flex-wrap items-center gap-2">
+      <Chip tone="ok">Reunión hecha</Chip>
+      <Button type="button" variant="ghost" size="sm" disabled={pending} onClick={() => run(() => holdMeeting({ eventId, done: false }))}>
+        Deshacer
+      </Button>
+    </div>
+  ) : (
+    <Button type="button" size="lg" disabled={pending} onClick={() => run(() => holdMeeting({ eventId, done: true }))}>
+      {pending ? 'Guardando…' : 'La reunión ya se hizo'}
+    </Button>
   );
 }

@@ -39,6 +39,19 @@ obligatorias; «Lo que se encontró afuera» con su fuente; «Guardar y mandar a
 deja empezar el guion sin la lectura aprobada, y una lectura aprobada que cambia vuelve al jefe. Sin ficha, el borrador
 del guion usa las respuestas. La búsqueda la hace una persona mientras la IA siga apagada.
 
+## 1b. Sala de reuniones (19/11)
+
+**Cuándo.** Apenas el jefe aprueba la lectura de la recepción, empieza el proyecto: **todos van a la reunión de
+arranque** para estar al tanto.
+
+**Quiénes.** El jefe, despacho, Redes y quien graba esa actividad. A todos les llega un aviso con el título del
+proyecto (sin fecha ni lugar).
+
+**Qué se hace.** Se lee la lectura aprobada (la ficha, las respuestas y lo que se encontró afuera), cada sala dice qué
+le toca y se anota lo que falta averiguar.
+
+**Quién la cierra.** El jefe toca «La reunión ya se hizo». Recién entonces empieza el guion (la base no deja antes).
+
 ## 2. Guionistas
 
 **Qué recibe.** La lectura de la recepción, ya aprobada por el jefe.

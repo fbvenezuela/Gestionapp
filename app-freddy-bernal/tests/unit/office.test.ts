@@ -1,11 +1,11 @@
 // «La oficina» (06/11/2026): which room an activity is in, the script's first draft and the drawing's cells. Pure.
 import { describe, expect, it } from 'vitest';
-import { hasFicha, officeRoom, receptionGaps, ROOM, ROOMS, scriptDraft, type OfficeFacts } from '@/lib/domain/office';
+import { hasFicha, meetingNotice, officeRoom, receptionGaps, ROOM, ROOMS, scriptDraft, type OfficeFacts } from '@/lib/domain/office';
 import { myRooms } from '@/lib/domain/office-roles';
 import { ROOM_CELL } from '@/components/office/office-map';
 
 const base: OfficeFacts = {
-  tracked: true, receptionStatus: 'approved', scriptStatus: 'none', cleanDone: false, brutalDone: false, shots: 0, rawMedia: 0,
+  tracked: true, receptionStatus: 'approved', kickoffDone: true, scriptStatus: 'none', cleanDone: false, brutalDone: false, shots: 0, rawMedia: 0,
   pieces: 0, piecesInReview: 0, piecesApproved: 0, piecesApprovedWithCopies: 0, published: 0,
 };
 const room = (f: Partial<OfficeFacts>) => officeRoom({ ...base, ...f });
@@ -14,6 +14,9 @@ describe('la sala de cada actividad', () => {
   it('sigue la línea, paso por paso', () => {
     expect(room({ receptionStatus: 'none' })).toBe('reception');
     expect(room({ receptionStatus: 'draft' })).toBe('reception');
+    // Reading approved: the whole team goes to the meeting room before the script (19/11).
+    expect(room({ kickoffDone: false })).toBe('meeting');
+    expect(room({ receptionStatus: 'draft', kickoffDone: false })).toBe('reception');
     expect(room({})).toBe('script');
     expect(room({ scriptStatus: 'draft' })).toBe('script');
     expect(room({ scriptStatus: 'approved' })).toBe('storyboard');
@@ -58,6 +61,16 @@ describe('la recepción', () => {
   });
 });
 
+describe('el aviso de la reunión', () => {
+  it('llama a todos con el título, sin cuándo ni dónde, y lleva a la actividad', () => {
+    const n = meetingNotice({ id: 'e1', title: 'Jornada de salud (demo)' });
+    expect(n.title).toMatch(/Reunión de arranque/);
+    expect(n.body).toContain('Jornada de salud');
+    expect(n.link).toBe('/oficina/e1');
+    expect(n.key).toBe('office_meeting:e1');
+  });
+});
+
 describe('el borrador del guion', () => {
   it('usa solo lo que dice la ficha y dice lo que falta', () => {
     const s = scriptDraft({ title: 'Entrega de un módulo (demo)', work: 'Pintura y techo', ledBy: '', achievements: 'Techo nuevo', keyFacts: '' });
@@ -70,11 +83,13 @@ describe('el borrador del guion', () => {
 });
 
 describe('las salas', () => {
-  it('diez salas, cada una en su lugar del dibujo (cinco atrás, cinco adelante) y con su ejemplo', () => {
-    expect(ROOMS).toHaveLength(10);
+  it('once salas: cinco atrás, cinco adelante y la sala de reuniones al final del salón, cada una con su ejemplo', () => {
+    expect(ROOMS).toHaveLength(11);
+    expect(ROOMS.slice(0, 3)).toEqual(['reception', 'meeting', 'script']);
     const cells = new Set(ROOMS.map((r) => ROOM_CELL[r].join(',')));
-    expect(cells.size).toBe(10);
-    expect(ROOMS.filter((r) => ROOM_CELL[r][1] === 0)).toHaveLength(5);
+    expect(cells.size).toBe(11);
+    expect(ROOMS.filter((r) => r !== 'meeting' && ROOM_CELL[r][1] === 0)).toHaveLength(5);
+    expect(ROOM_CELL.meeting[0]).toBeGreaterThan(5);
     // The two editors and the boss's office side by side (Juan, 06/11: «deberían estar cerca»).
     expect(Math.abs(ROOM_CELL.clean_cut[0] - ROOM_CELL.brutal_edit[0])).toBe(0);
     expect(Math.abs(ROOM_CELL.brutal_edit[0] - ROOM_CELL.approval[0])).toBe(1);
@@ -88,9 +103,10 @@ describe('las salas', () => {
   });
 
   it('las salas de cada rol', () => {
-    expect(myRooms(['boss'])).toEqual(['clean_cut', 'approval']);
+    expect(myRooms(['boss'])).toEqual(['meeting', 'clean_cut', 'approval']);
+    for (const r of ['boss', 'dispatch', 'social', 'camera'] as const) expect(myRooms([r]), r).toContain('meeting');
     expect(myRooms(['social'])).not.toContain('clean_cut');
-    expect(myRooms(['dispatch'])).toEqual(['reception']);
+    expect(myRooms(['dispatch'])).toEqual(['reception', 'meeting']);
     expect(myRooms(['camera'])).toContain('recording');
     expect(myRooms(['politics'])).toEqual([]);
   });

@@ -1,9 +1,12 @@
-// «La oficina» (pedido del 06/11/2026): the content line for the boss's activities drawn as an isometric office. Ten
-// rooms, in the order the work goes through them. Pure: what each room is, who works there and which room an activity
+import { noticeEventTitle } from './agenda-notices';
+
+// «La oficina» (pedido del 06/11/2026): the content line for the boss's activities drawn as an isometric office. Eleven
+// rooms (the meeting room since 19/11), in the order the work goes through them. Pure: what each room is, who works there and which room an activity
 // is in, from facts the data layer reads under RLS. Never a date, a time or a place: everyone on the team sees it.
 
 export const ROOMS = [
   'reception',
+  'meeting',
   'script',
   'storyboard',
   'recording',
@@ -36,6 +39,13 @@ export const ROOM: Record<Room, RoomInfo> = {
     crew: 'person',
     does: 'Llega la actividad con su ficha. Si viene vacía, se hacen 3 preguntas y se busca afuera (solo en el Táchira). El jefe aprueba la lectura.',
     example: '«Bacheo en la calle 5»: qué se va a hacer, quién se beneficia, quién lo hizo y con cuánto; reseñas de Google de la zona y lo que dice la gente en TikTok, con su fuente.',
+  },
+  meeting: {
+    label: 'Sala de reuniones',
+    who: 'Todo el equipo',
+    crew: 'person',
+    does: 'Cuando empieza un proyecto, todos van a la reunión de arranque para estar al tanto. El jefe la da por hecha.',
+    example: 'Se lee la lectura aprobada: de qué se trata, quién se beneficia, lo que dice la gente. Cada sala dice qué le toca.',
   },
   script: {
     label: 'Guionistas',
@@ -115,6 +125,7 @@ export type ScriptStatus = (typeof SCRIPT_STATUSES)[number];
 export type OfficeFacts = {
   tracked: boolean; // the activity has its office row (it went through the office); older ones are inferred
   receptionStatus: ScriptStatus;
+  kickoffDone: boolean;
   scriptStatus: ScriptStatus;
   cleanDone: boolean;
   brutalDone: boolean;
@@ -142,6 +153,8 @@ export function officeRoom(f: OfficeFacts): Room {
   if (f.piecesInReview > 0) return 'approval';
   // The boss approves the reception's reading before the script starts (Juan, 06/11/2026).
   if (f.tracked && f.receptionStatus !== 'approved') return 'reception';
+  // Then the whole team meets before the script starts (Juan, 19/11/2026).
+  if (f.tracked && !f.kickoffDone) return 'meeting';
   // Reading approved and no script yet: the script room. An activity with no office row has not been read yet.
   if (script === 'none') return f.tracked ? 'script' : 'reception';
   if (script === 'draft') return 'script';
@@ -212,4 +225,15 @@ export function scriptDraft(b: { title: string; work: string; ledBy: string; ach
     `Toma 4 · El dato: ${or(b.keyFacts)}. Solo las cifras de la ficha.`,
     'Toma 5 · Cierre: frase del jefe mirando a cámara.',
   ].join('\n');
+}
+
+/** The notice that calls the team to the kick-off meeting: the title only, never when or where (rule 4). */
+export function meetingNotice(ev: { id: string; title: string }) {
+  return {
+    kind: 'office_meeting',
+    title: 'Reunión de arranque: todos a la sala de reuniones',
+    body: noticeEventTitle(ev.title),
+    link: `/oficina/${ev.id}`,
+    key: `office_meeting:${ev.id}`,
+  };
 }

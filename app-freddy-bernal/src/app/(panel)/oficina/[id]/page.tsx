@@ -9,7 +9,7 @@ import { Chip } from '@/components/ui/chip';
 import { LinkButton } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import type { Role } from '@/lib/roles';
-import { EditStep, ReceptionPanel, ScriptPanel } from './office-client';
+import { EditStep, MeetingStep, ReceptionPanel, ScriptPanel } from './office-client';
 
 export const metadata = { title: 'Actividad en la oficina' };
 
@@ -69,7 +69,7 @@ export default async function OfficeItemPage({ params }: { params: Promise<{ id:
         </div>
       </Card>
 
-      {item.room !== 'reception' && reception.status !== 'none' ? <ReadingCard reception={reception} /> : null}
+      {item.room !== 'reception' && item.room !== 'meeting' && reception.status !== 'none' ? <ReadingCard reception={reception} /> : null}
 
       {item.room !== 'reception' && item.room !== 'script' && script.status !== 'none' ? (
         <Card className="p-4">
@@ -107,19 +107,28 @@ function FichaSummary({ reception }: { reception: OfficeReception }) {
   );
 }
 
-// The reading the boss approved, for the rooms after the reception.
-function ReadingCard({ reception }: { reception: OfficeReception }) {
+// The reception's answers and what was found outside.
+function ReadingAnswers({ reception }: { reception: OfficeReception }) {
   const r = reception.reception;
   const answers = RX_QUESTIONS.filter((q) => r[q.key].trim());
+  return (
+    <div>
+      {answers.map((q) => (
+        <p key={q.key} className="text-[15px]"><span className="font-semibold">{q.label}</span> {r[q.key]}</p>
+      ))}
+      {r.research.trim() ? <p className="mt-2 whitespace-pre-line text-[15px]"><span className="font-semibold">Lo que se encontró afuera:</span> {r.research}</p> : null}
+    </div>
+  );
+}
+
+// The reading the boss approved, for the rooms after the reception (the meeting room shows it open).
+function ReadingCard({ reception }: { reception: OfficeReception }) {
   return (
     <Card className="p-4">
       <details>
         <summary className="min-h-11 cursor-pointer content-center text-lg font-bold">La lectura de la recepción</summary>
         <FichaSummary reception={reception} />
-        {answers.map((q) => (
-          <p key={q.key} className="text-[15px]"><span className="font-semibold">{q.label}</span> {r[q.key]}</p>
-        ))}
-        {r.research.trim() ? <p className="mt-2 whitespace-pre-line text-[15px]"><span className="font-semibold">Lo que se encontró afuera:</span> {r.research}</p> : null}
+        <ReadingAnswers reception={reception} />
       </details>
     </Card>
   );
@@ -139,6 +148,22 @@ function RoomWork({
           ) : (
             <p className="text-[15px] text-text-2">{reception.status === 'draft' ? 'La lectura espera que el jefe la apruebe.' : 'Redes prepara la lectura de la actividad.'}</p>
           )}
+        </div>
+      );
+    case 'meeting':
+      // Everyone goes (Juan, 19/11/2026): the boss, despacho, Redes and Grabación got the notice. The reading is right
+      // here, so the meeting goes over the same thing; the boss says it was held, and then the script starts.
+      return (
+        <div className="flex flex-col gap-3">
+          <p className="text-[15px]">Van todos: el jefe, despacho, Redes y Grabación. Ya les llegó el aviso.</p>
+          <ul className="list-disc pl-5 text-[15px] text-text-2">
+            <li>Se lee la lectura de la recepción (abajo).</li>
+            <li>Cada sala dice qué le toca: el guion, el storyboard, con qué equipo se graba.</li>
+            <li>Se anota lo que falta averiguar.</li>
+          </ul>
+          <FichaSummary reception={reception} />
+          <ReadingAnswers reception={reception} />
+          {boss ? <MeetingStep eventId={id} done={false} /> : <p className="text-[15px] text-text-2">El jefe la da por hecha cuando termina.</p>}
         </div>
       );
     case 'script':

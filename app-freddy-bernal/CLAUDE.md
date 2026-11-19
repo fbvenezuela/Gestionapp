@@ -79,7 +79,10 @@ Venezuela y dicta por voz; contéstale corto y sin jerga. La interfaz en españo
 - **La oficina (06/11; D-100, era D-90 en main):** `/oficina` dibuja la línea de contenido como una oficina isométrica de diez salas
   (Recepción a Analizador) con cada actividad en la suya; `/oficina/[id]` tiene el guion (lo aprueba solo el jefe) y
   los botones del editor en línea y el brutal. Tabla `event_office` y `office_facts()` en
-  `20261106000100_office.sql` (**falta aplicarla en `fb-dev`**). IA apagada: el borrador sale de la ficha.
+  `20261106000100_office.sql` (**falta aplicarla en `fb-dev`**). IA apagada: el borrador sale de la ficha. Desde el
+  19/11 (D-102) son once salas: la **sala de reuniones** (reunión de arranque, la cierra el jefe) entre Recepción y
+  Guionistas, con `20261119000100_office_meeting.sql` (también falta en `fb-dev`). Cómo trabaja cada sala:
+  `docs/AGENTES-OFICINA.md`.
 - Marca: oliva como color principal (D-21). Diagnóstico Digital 360 resumido en `docs/DIAGNOSTICO-360.md` (el ZIP es
   confidencial y no está en el repositorio).
 - Pruebas: Vitest (unidad + RLS) y Playwright a 360 px con axe. CI en `.github/workflows/ci.yml`.
