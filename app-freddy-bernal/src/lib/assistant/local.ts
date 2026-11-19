@@ -3,10 +3,10 @@ import { TEAM_ROLES, homeFor, navFor } from '../roles';
 import { GUIDE_SLUGS } from '../guides/slugs';
 import { quotedLabels } from '../guides/check';
 import { AGENDA_FALLBACK, canon, hasWord, isSection, keyWords, makesOne, roleFichaKeys, scoreFichas, sectionsFor, stem, type BrainOutput, type ChosenScript, type TurnContext } from './brain';
-import { EVENT_NOUNS, EVENT_WORDS, GOAL, OCCURRENCE, PLATFORM, WORK, aboutEvent, asksAboutPublishing, asksAgendaData, asksPlace, asksPlaceWord, asksRoute, asksSchedule, asksWhenIndirect, asksWhenWhere, eventAt, eventSignals, eventThread, goesOn, namedTitleWords, namesPlatform, spoken, withoutAgendaThings, withoutWhenWhere } from './events';
+import { EVENT_NOUNS, EVENT_WORDS, GOAL, OCCURRENCE, PLATFORM, WORK, aboutEvent, asksAboutPublishing, asksAgendaData, asksPlace, asksPlaceWord, asksRoute, asksSchedule, asksWhenIndirect, asksWhenWhere, eventAt, eventSignals, eventThread, goesOn, namedTitleWords, namesPlatform, spoken, withoutAgendaThings, withoutWhenWhere, type EventSignal } from './events';
 import { STRONG, WEAK, askKind, askedTerm, domainOf, entryById, entryForScreen, findAnswers, knownLabels, readable, scoreFicha, textFor, tokens, type Domain, type Match } from './answers/engine';
 import { NOTICE_MAX, NOTICE_TOO_LONG, noticeIssues } from './guard';
-import { explainAnswer, explainAsk } from './explain';
+import { explainAnswer, explainAsk, followFit, topicalOf } from './explain';
 import { caseAsk, caseOverMessages, type CaseAsk } from './case-ask';
 import { webExplain } from './web-explain';
 import { GLOSSARY, glossaryLine } from '../guides';
@@ -887,7 +887,16 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const afterWord = !!i.ctx.last?.entry && entryById(i.ctx.last.entry)?.kind === 'term';
   // (Nor after an answer of the web or of Atención: it was said only because its question named no event, and what explains
   // it is the guide's static text, web-explain.ts.)
-  const ask = (followsEvent && !afterWord && !afterWeb) || !lastSaid ? null : explainAsk(i.question, { titles: seenNow, last: lastSaid, withoutLabels, afterWord });
+  // (WF-C2: nor after any answer of the index, the topic stored with it, «¿cómo creo un evento nuevo?» → «paso a paso»: it
+  // was said because its question asked how the app works and no event's date, hour or place; a turn about an event's
+  // data is answered by the agenda's steps and stores no topic. The ask itself still carries no event (explainAsk).)
+  // (Only when the question it answered named no event of its own: no title, place or event mark. «¿Cómo creo un evento
+  // nuevo?» and «¿por qué no veo la fecha de los eventos?» ask how the app works; «¿quién graba la feria?» stays the
+  // agenda's thread.)
+  const ownEvent: EventSignal[] = ['title', 'place', 'token'];
+  const beforeGeneral = !!before && !ownEvent.some((x) => eventSignals(withoutLabels(before), seenNow).has(x));
+  const afterIndex = !!i.ctx.last?.entry && !!entryById(i.ctx.last.entry) && beforeGeneral;
+  const ask = (followsEvent && !afterIndex) || !lastSaid ? null : explainAsk(i.question, { titles: seenNow, last: lastSaid, withoutLabels, afterWord });
   const again = () => {
     const m = before ? findAnswers(before, { roles: i.ctx.roles, screen: i.ctx.screen, names })[0] : undefined;
     return m && m.confidence !== 'none' ? m.entry.id : null;
@@ -909,22 +918,42 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const written = !!ask && strong && best!.entry.kind === 'curated' && best!.entry.id !== aboutEntry;
   const aboutWords = ask?.about ? plain(ask.about).replace(/^(?:(?:el|la|los|las|lo|eso|esto) (?:de |del )?)+/, '') : '';
   const definesAsked = written && !!aboutWords && quotedLabels(best!.text).some((l) => plain(l) === aboutWords);
-  // A follow-up that names X («¿y si…?», «¿y quién…?», «¿y por qué X?») with a strong answer of its own in the topic's
-  // domain, about the same thing (a fair share of its words are the topic's) and not said yet in the thread: that answer
-  // was written for it (WF-C2). The topic's own part answers the rest.
+  // A follow-up that names X («¿y si…?», «¿y quién…?», «¿y cuándo…?», «¿y por qué X?»): an answer of the index may have
+  // been written for it (WF-C2). Its candidates: the first sure answers of the follow-up, matched with the question before
+  // and alone, in the topic's domain, other than the topic and not said yet in the thread; never one of 360's lines about
+  // itself («Eso no lo manejo yo…»), nor a whole screen, job or topic of «Para todos» (those are explained, not answered).
+  // The best says X (its words, in its text or in its ways of asking), says what the follow-up asks of X (a «si …» of it,
+  // someone named, a moment, a reason, or a way of asking that is that same follow-up) and is about the topic (one of its
+  // ways of asking says the topic's words: of its answer, of the labels it quotes, of what the person asked), then by its
+  // score. It still has to say X or be about the topic; one for everyone («Para todos») only when it is about the topic
+  // (they say «si te equivocaste…» or «sin señal…» of anything).
   const topicEntry = aboutEntry ? entryById(aboutEntry) : undefined;
-  const ownAnswer = (() => {
-    if (!ask || !topicEntry || !strong || !best || best.entry.id === aboutEntry || best.entry.may) return false;
-    if (!(ask.facet === 'whatif' || ask.facet === 'who' || (ask.facet === 'why' && !!ask.about))) return false;
-    if ((best.entry.domain ?? 'equipo') !== (topicEntry.domain ?? 'equipo')) return false;
-    const said = plain(fill(best.text));
-    if (i.ctx.history.some((h) => h.who === 'asistente' && plain(h.body) === said)) return false;
-    const mine = new Set(tokens(`${textFor(topicEntry.a, i.ctx.roles)} ${topicEntry.doc ?? ''} ${topicEntry.q.join(' ')}`));
-    const its = tokens(best.text).filter((w) => w.length >= 4);
-    return its.length > 0 && its.filter((w) => mine.has(w)).length / its.length >= 0.3;
+  const followAsk = !!ask && !!topicEntry && (ask.facet === 'whatif' || ask.facet === 'who' || ask.facet === 'when' || (ask.facet === 'why' && !!ask.about));
+  const writtenFor = ((): { m: Match; cov: number; said: number; says: boolean; asked: boolean; topical: number } | null => {
+    if (!followAsk || !ask || !topicEntry) return null;
+    const topicText = textFor(topicEntry.a, i.ctx.roles);
+    const dom = topicEntry.domain ?? 'equipo';
+    const subject = [...new Set(tokens(`${topicText} ${quotedLabels(topicText).join(' ')} ${topicAsked ?? ''}`).filter((w) => w.length >= 4))];
+    const onTopic = (m: Match) => topicalOf(subject, m.entry.q);
+    const saidNow = new Set(i.ctx.history.filter((h) => h.who === 'asistente').map((h) => plain(h.body)));
+    // (Each answer at its better match, matched with the question before or alone: a sure one first, then the higher
+    // score; the first four of each.)
+    const byId = new Map<string, Match>();
+    const better = (a: Match, b: Match | undefined) => !b || (a.confidence === 'strong') !== (b.confidence === 'strong') ? a.confidence === 'strong' || !b : a.score > b.score;
+    for (const m of [...found.slice(0, 4), ...ownFound.slice(0, 4)]) if (better(m, byId.get(m.entry.id))) byId.set(m.entry.id, m);
+    const fit = [...byId.values()]
+      .filter((m) => m.confidence === 'strong' && !m.entry.may && m.entry.id !== aboutEntry && !/^curado:todo-360-/.test(m.entry.id) && !['screen', 'job', 'topic'].includes(m.entry.kind))
+      .filter((m) => (m.entry.domain ?? 'equipo') === dom && !saidNow.has(plain(fill(m.text))))
+      .map((m) => ({ m, ...followFit(ask.facet, ask.about, fill(m.text), m.entry.q), topical: onTopic(m) }))
+      .filter((x) => (x.cov >= 0.5 || x.topical >= 0.3) && (!/^curado:todo-/.test(x.m.entry.id) || x.topical >= 0.67 || /^(?:curado:todo-|todos:)/.test(aboutEntry ?? '')))
+      .map((x) => ({ x, rank: x.m.score + 0.5 * x.cov + (x.says ? 0.25 : 0) + 0.3 * x.topical }))
+      .sort((a, b) => b.rank - a.rank);
+    return fit[0]?.x ?? null;
   })();
-  const explained = async (): Promise<BrainOutput | null> => {
-    if (!ask || ownAnswer) return null;
+  // What the explanation of the topic says (explain.ts, web-explain.ts), before it is said: no button, tool or tutorial yet.
+  type Said = { text: string; entry: string; goTo?: string; tutorial?: string; cursor?: number; domain?: 'web' | 'atencion' };
+  const explainedRaw = (): Said | null => {
+    if (!ask) return null;
     // A topic of the web or of Atención: explained from its own section or flow (web-explain.ts); with nothing new there,
     // only «¿qué significa eso?» goes on to the words of the app (explain.ts), and the rest to the steps of today.
     const webTopic = aboutEntry ? entryById(aboutEntry) : undefined;
@@ -934,8 +963,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       if (w) {
         const text = clip(fill(w.text));
         const go = w.goTo ?? (webTopic.go && canOpen(webTopic.go, i.ctx.roles) ? webTopic.go : undefined);
-        const cursor = w.cursor !== undefined && ASKED_TO_GO_ON.test(text) ? { cursor: w.cursor } : {};
-        return { ...done(text, go), fixed: true, entry: w.entryId, domain: webTopic.domain, ...cursor };
+        return { text, entry: w.entryId, domain: webTopic.domain as 'web' | 'atencion', ...(go ? { goTo: go } : {}), ...(w.cursor !== undefined && ASKED_TO_GO_ON.test(text) ? { cursor: w.cursor } : {}) };
       }
       if (ask.facet !== 'meaning') return null;
     }
@@ -950,17 +978,39 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       ...(i.ctx.last?.cursor !== undefined && i.ctx.last.entry === aboutEntry ? { cursor: i.ctx.last.cursor } : {}),
       ...(ask.about ? { about: ask.about } : {}),
       ...(ask.pair ? { pair: ask.pair } : {}),
+      // (The topic is 360's last answer, from the index: a thread about how the app works.)
+      ...(afterIndex && i.ctx.last?.entry === aboutEntry ? { topicSaid: true } : {}),
     });
     if (!r || (written && ask.facet === 'next' && bareNext) || (definesAsked && ask.facet === 'meaning' && !r.entryId.startsWith('palabra:'))) return null;
     const text = clip(fill(r.text));
-    const tour = r.tutorial && offered('ver_tutorial') ? ((await call('ver_tutorial', { tutorial: r.tutorial })).tutorial ?? null) : null;
     // Its button, else the first screen it names, else the topic's own screen.
     const own = aboutEntry ? entryById(aboutEntry)?.go : undefined;
     const go = r.goTo ?? screenNamedIn(text) ?? (own && canOpen(own, i.ctx.roles) ? own : undefined);
     // The cursor goes with an answer that still asks «¿Sigo?» (a «sí» or «sigue» then says the next steps).
-    const cursor = r.cursor !== undefined && ASKED_TO_GO_ON.test(text) ? { cursor: r.cursor } : {};
-    return { ...(tour?.href ? done(text, undefined, tour) : done(text, go)), fixed: true, entry: r.entryId, ...cursor };
+    return { text, entry: r.entryId, ...(go ? { goTo: go } : {}), ...(r.tutorial ? { tutorial: r.tutorial } : {}), ...(r.cursor !== undefined && ASKED_TO_GO_ON.test(text) ? { cursor: r.cursor } : {}) };
   };
+  const sayExplained = async (x: Said): Promise<BrainOutput> => {
+    const tour = x.tutorial && offered('ver_tutorial') ? ((await call('ver_tutorial', { tutorial: x.tutorial })).tutorial ?? null) : null;
+    return { ...(tour?.href ? done(x.text, undefined, tour) : done(x.text, x.goTo)), fixed: true, entry: x.entry, ...(x.domain ? { domain: x.domain } : {}), ...(x.cursor !== undefined ? { cursor: x.cursor } : {}) };
+  };
+  const explained = async (): Promise<BrainOutput | null> => {
+    const x = explainedRaw();
+    return x ? sayExplained(x) : null;
+  };
+  // The follow-up with an answer written for it: that answer, or the topic's own part, whichever says what is asked of X.
+  // Both saying it: the topic's part (it is about this topic), unless the written one says more of X in its own words and
+  // is about the topic, or the topic's part would only say again a sentence of the thread while the written one was
+  // written for that same follow-up («¿Y si no hay casos publicados?»). Neither saying it: the one that says more of X;
+  // for a reason, the written one (the topic has none).
+  if (writtenFor && ask) {
+    const e = explainedRaw();
+    const ef = e ? followFit(ask.facet, ask.about, e.text) : null;
+    const w = writtenFor;
+    const generic = /^curado:todo-/.test(w.m.entry.id);
+    const again = !!e && i.ctx.history.some((h) => h.who === 'asistente' && plain(h.body).includes(plain(e.text)));
+    const topicPart = !!e && !!ef && (ef.says !== w.says ? ef.says : ef.says ? (again ? generic || !w.asked : !(w.said > ef.said && w.topical >= 0.5 && !generic)) : ask.facet !== 'why' && ef.said > w.said);
+    return topicPart && e ? sayExplained(e) : sayEntry(w.m, false);
+  }
   if (ask && !bareNext) {
     const r = await explained();
     if (r) return r;

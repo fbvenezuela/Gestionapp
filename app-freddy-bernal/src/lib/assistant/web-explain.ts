@@ -12,7 +12,7 @@ import { hasReceiptCode } from '../guides/check';
 import { glossaryLine } from '../guides/glossary';
 import { PANEL_SCREENS, WEB_GLOSSARY, isWebFlow, webEntry, webFlows, webHref } from '../guides/web';
 import { WEAK, entryById, findAnswers, textFor, tokens, type Entry } from './answers/engine';
-import { sentencesOf, type Facet } from './explain';
+import { saysIf, sentenceSaying, sentencesOf, type Facet } from './explain';
 import { canOpen } from './screens';
 import { plain } from './text';
 
@@ -147,6 +147,24 @@ function partNamed(x: WebSection | WebFlow, roles: Role[], about: string, bonus?
 }
 /** A section's own question that asks what it is for («¿Para qué sirve la vista previa?», «¿Para qué es…?»). */
 const PURPOSE_Q = /^¿?\s*para\s+qu[eé]\s+(?:sirve|sirven|es|son)\b/i;
+/** A section's own question that asks what something is or what it is for («¿Qué son las respuestas guardadas?»). */
+const DEFINE_Q = /^¿?\s*(?:qu[eé]\s+(?:es|son)|para\s+qu[eé]\s+(?:sirve|sirven|es|son))\b/i;
+const likeRoot = (have: string[], w: string) => have.some((h) => h === w || (h.length >= 4 && w.length >= 4 && (h.startsWith(w) || w.startsWith(h))));
+/** Whether a question of the guide asks what the person asked: most of its words are the person's. */
+function sameAsk(guideQ: string, asked: string): boolean {
+  const want = tokens(guideQ).filter((w) => w.length >= 3);
+  const have = tokens(asked);
+  return want.length > 0 && want.filter((w) => likeRoot(have, w)).length / want.length >= 0.6;
+}
+/** Whether most of a text's words were in one answer of the thread already (said again in other words). */
+function nearSaid(text: string, said: string[]): boolean {
+  const its = tokens(text).filter((w) => w.length >= 4);
+  if (!its.length) return false;
+  return said.some((x) => {
+    const have = tokens(x);
+    return its.filter((w) => likeRoot(have, w)).length / its.length >= 0.7;
+  });
+}
 /**
  * The section a curated answer of the web is about: the one its button's anchor names, else the panel screen's; else
  * (WF-C2) the section or flow of the guide's first answers to what the person asked (or to the answer's own first way of
@@ -352,8 +370,13 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
   // The «lo de X» of the ask, when the section says it (design §4(c)1: X is a topic, never an event).
   const named = ctx.about ? partNamed(x, roles, ctx.about) : null;
   // A curated answer is narrower than its section (WF-C2): what the section says of the curated answer's own subject (its
-  // first way of asking) goes before the section's whole «para qué es».
+  // first way of asking) goes before the section's whole «para qué es», unless it says again what the thread said.
   const ownPart = place.rest === 'curado' && !ctx.about && e.q[0] ? partNamed(x, roles, e.q[0]) : null;
+  const ownFresh = ownPart && !nearSaid(ownPart, said) ? ownPart : null;
+  // The section's own «¿Qué es…?» or «¿Para qué sirve…?» of what the person asked about («¿qué son las respuestas
+  // guardadas?» → its answer, to «¿y pa' qué sirven?»).
+  const subject = [ctx.asked, e.q[0]].filter((t): t is string => !!t);
+  const defines = (x.faq ?? []).filter((f) => DEFINE_Q.test(f.q) && subject.some((q) => sameAsk(f.q, q))).map((f) => forRole(f.a, roles)).filter(sayable);
   switch (facet) {
     case 'simpler': {
       // The section's «dicho más fácil» is about the whole section: one of its items, rules or questions («Vencidas» of
@@ -384,7 +407,7 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
       const what = forRole(x.what, roles);
       const asked = (x.faq ?? []).filter((f) => PURPOSE_Q.test(f.q)).map((f) => forRole(f.a, roles)).filter(sayable);
       const first = partsOf(x, roles, true).find((t) => !wasSaid(t, said));
-      return fresh([named ? { text: named, ...own } : null, ownPart ? { text: ownPart, ...own } : null, what ? { text: end(clean(what)), ...own } : null, ...asked.map((t) => ({ text: end(clean(t)), ...own })), first ? { text: `${title}: ${lcFirst(first)}`, ...own } : null]);
+      return fresh([named ? { text: named, ...own } : null, ...defines.map((t) => ({ text: end(clean(t)), ...own })), ownFresh ? { text: ownFresh, ...own } : null, what ? { text: end(clean(what)), ...own } : null, ...asked.map((t) => ({ text: end(clean(t)), ...own })), first ? { text: `${title}: ${lcFirst(first)}`, ...own } : null]);
     }
     case 'steps': {
       // A how-to that only the other one does: this person's own «No: …» of the section, never its steps as theirs.
@@ -426,7 +449,11 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
       // The follow-ups of a thread (WF-C2): the part of the section that says X, with what the ask prefers of it (a «si
       // …», someone named, a «cuando …»).
       if (!ctx.about && facet !== 'who') return null;
-      const prefer = facet === 'whatif' ? (t: string) => (/(?:^|[\s(«,:])(?:si|cuando|mientras)\s/i.test(t) ? 0.3 : 0) : facet === 'who' ? (t: string) => (WHO_NAMED.test(plain(t)) ? 0.4 : 0) : (t: string) => (/\b(?:cuando|al|antes|despues|apenas|cada)\b/i.test(t) ? 0.3 : 0);
+      // (A curated answer's own sentence that says it first: what 360 just said, said again alone, never the whole answer
+      // again.)
+      const own0 = place.rest === 'curado' ? sentenceSaying(facet, ctx.about, textFor(e.a, roles)) : null;
+      if (own0 && !said.some((s) => plain(s) === plain(end(own0)))) return { text: end(own0), ...own, ...(guide ? { goTo: guide } : {}) };
+      const prefer = facet === 'whatif' ? (t: string) => (saysIf(t) ? 0.3 : 0) : facet === 'who' ? (t: string) => (WHO_NAMED.test(plain(t)) ? 0.4 : 0) : (t: string) => (/\b(?:cuando|al|antes|despues|apenas|cada)\b/i.test(t) ? 0.3 : 0);
       const part = ctx.about ? partNamed(x, roles, ctx.about, prefer) : (partsOf(x, roles).find((t) => WHO_NAMED.test(plain(t))) ?? null);
       if (!part || (facet === 'who' && !WHO_NAMED.test(plain(part)))) return null;
       return fresh([{ text: end(part), ...own, ...(guide ? { goTo: guide } : {}) }]);

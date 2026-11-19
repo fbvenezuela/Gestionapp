@@ -563,7 +563,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
           'No: tú no archivas ni desarchivas. Archivan el aprobador de la web y el jefe; si algo salió por error, avísales.',
         ],
       },
-      why: 'No hay botón de borrar para que nada se pierda: al archivar, su historia y lo aprobado se quedan, y «Desarchivar» lo vuelve a poner.',
+      why: 'En la web nada se borra, para que nada se pierda: lo que sobra se archiva, su historia y lo aprobado se quedan, y «Desarchivar» lo vuelve a poner.',
       faq: [
         { q: '¿Cómo borro una noticia de la web?', a: { boss: 'No hay botón de borrar: nada se borra. Para sacarla de la web, «Archivar»: sale al momento y su historia se queda.', admin: 'No hay botón de borrar: nada se borra. Para sacarla de la web se archiva, y archivan el aprobador de la web y el jefe.' } },
         { q: '¿Qué hace «Archivar» en la web?', a: 'Saca el contenido de la web al momento, sin borrar nada: su historia y lo aprobado se quedan. Lo hacen el aprobador y el jefe.' },

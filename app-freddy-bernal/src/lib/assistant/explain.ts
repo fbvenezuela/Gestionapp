@@ -235,6 +235,10 @@ export type ExplainContext = {
   tours?: string[];
   // The question the topic answered in this thread (the last one that was not an explain ask): a curated answer's unit.
   asked?: string;
+  // The topic is 360's last answer, an entry of the index stored with it (local.ts): the thread is about how the app works
+  // even when its questions named an event («¿cómo creo un evento nuevo?»). Without it, a thread about an event gets
+  // nothing (followsEventThread).
+  topicSaid?: boolean;
 };
 
 /**
@@ -655,6 +659,21 @@ const definesWord = (text: string, w: string) => {
   return new RegExp(String.raw`\b${stem}[a-z]*»?(?: \([^)]*\))?(?: [a-z]+){0,4}:|\b${stem}[a-z]* (?:es|son) |que (?:es|son) (?:una?|el|la|los|las) (?:[a-z]+ ){0,2}${stem}`).test(fold(text));
 };
 
+// Two roots of the same word: the same, one the other with an ending, or one verb said two ways whose roots part only at
+// their last letters («equivoco» and «equivocaste»: «equibos» and «equibocast» once folded). A verb whose stem changes
+// when stressed is the same verb too («devuelvo» and «devolver», «cierra» and «cerrar»: «ue» is «o», «ie» is «e»).
+const unstressed = (w: string) => w.replace(/ue/g, 'o').replace(/ie/g, 'e');
+function rootsLike(a: string, b: string): boolean {
+  if (a === b) return true;
+  if (a.length < 4 || b.length < 4) return false;
+  if (a.startsWith(b) || b.startsWith(a)) return true;
+  let k = 0;
+  while (k < a.length && k < b.length && a[k] === b[k]) k++;
+  if (k >= 5 && Math.min(a.length, b.length) - k <= 1) return true;
+  const [x, y] = [unstressed(a), unstressed(b)];
+  return (x !== a || y !== b) && x.length >= 4 && y.length >= 4 && (x === y || x.startsWith(y) || y.startsWith(x));
+}
+
 const TURNS = new Set(['sin', 'no', 'nunca', 'menos', 'solo', 'nada']);
 /**
  * The part of the unit that says X best (its labels named whole first, then its words; what defines X, asked what it
@@ -668,11 +687,16 @@ function partAbout(u: Unit, about: string, roles: Role[], define = false, last =
   // it): the part must say the phrase itself.
   const phrase = readable(about).replace(ARTICLES, '').trim();
   const whole = phrase.split(' ').some((w) => TURNS.has(w)) ? phrase : null;
+  // (A label names X when it says most of X: «Feed» alone does not name «la quito del feed».)
+  const covers = (l: string) => {
+    const its = tokens(l);
+    return want.filter((w) => its.some((h) => rootsLike(h, w))).length / want.length >= 0.67;
+  };
   const scored = partsOf(u, roles).filter((p) => !whole || ` ${readable(p.text)} `.includes(` ${whole} `)).map((p) => {
     const labels = [...p.text.matchAll(/«([^«»]+)»/g)].map((m) => readable(m[1]));
-    const named = labels.some((l) => l.length >= 3 && (a.includes(` ${l} `) || ` ${l} `.includes(a)));
+    const named = labels.some((l) => l.length >= 3 && (a.includes(` ${l} `) || ` ${l} `.includes(a)) && covers(l));
     const have = tokens(p.text);
-    const like = (w: string) => have.some((h) => h === w || (h.length >= 4 && w.length >= 4 && (h.startsWith(w) || w.startsWith(h))));
+    const like = (w: string) => have.some((h) => rootsLike(h, w));
     const share = want.filter(like).length / want.length;
     const defines = define && want.some((w) => definesWord(p.text, w));
     // (A preference counts only for a part that already says X: it orders, it never makes one.)
@@ -877,7 +901,8 @@ function purpose(u: Unit, ctx: ExplainContext): Candidate[] {
 }
 
 // What makes a sentence a reason: «porque…», «para que…», «así nadie…», «es información de seguridad»… (read plain).
-const REASON = /\b(?:porque|por eso|paraque|asi nadie|asi no|para no|ya que|es informacion de seguridad|son informacion de seguridad)\b/;
+// («Aun así, no escribas…» is no reason.)
+const REASON = /\b(?:porque|por eso|paraque|(?<!\baun )asi nadie|(?<!\baun )asi no|para no|ya que|es informacion de seguridad|son informacion de seguridad)\b/;
 /** «No: … no se prestan, porque con ellos se aprueba todo…» said as the reason: «Porque con ellos se aprueba todo…». */
 function reasonText(t: string): string {
   const m = /(?:^|[,;:]\s*|\s)porque\s+(.+)$/i.exec(t);
@@ -891,7 +916,7 @@ function reasonPart(u: Unit, roles: Role[], about?: string): Part | null {
   if (!reasons.length) return null;
   const want = tokens(about).filter((w) => w.length >= 3);
   if (!want.length) return reasons.find((p) => p.own) ?? null;
-  const like = (have: string[], w: string) => have.some((h) => h === w || (h.length >= 4 && w.length >= 4 && (h.startsWith(w) || w.startsWith(h))));
+  const like = (have: string[], w: string) => have.some((h) => rootsLike(h, w));
   let best: Part | null = null;
   let top = 0;
   for (const p of reasons) {
@@ -905,15 +930,21 @@ function reasonPart(u: Unit, roles: Role[], about?: string): Part | null {
 
 // «¿Y si…?»: the part of the topic about X that says what happens then (a «si …», a «cuando …», what cannot be done).
 const IF_SAYS = /(?:^|[\s(«,:])(?:si|cuando|mientras|aunque)\s/i;
-const ifBonus = (p: Part) => (IF_SAYS.test(p.text) ? 0.3 : 0) + (/^No puedes/.test(p.text) ? 0.1 : 0);
+// (A «si» of a label the screen shows is no condition: «Qué cambia si lo publicas».)
+export const saysIf = (t: string) => IF_SAYS.test(t.replace(/«[^«»]*»/g, '«»'));
+const ifBonus = (p: Part) => (saysIf(p.text) ? 0.3 : 0) + (/^No puedes/.test(p.text) ? 0.1 : 0);
 function whatIf(u: Unit, ctx: ExplainContext): Candidate[] {
   if (!ctx.about) return [];
+  // (A curated answer's own sentence that says it first: «Sin área, …» to «¿y si no tiene área?».)
+  const said = u.kind === 'entry' ? sentenceSaying('whatif', ctx.about, textFor(u.entry.a, ctx.roles)) : null;
+  if (said) return [{ text: end(ucFirst(said)), entryId: u.id }];
   const part = partAbout(u, ctx.about, ctx.roles, false, false, ifBonus, 0.6);
   return part ? [{ text: end(ucFirst(part.text)), entryId: u.id }] : [];
 }
 
 // «¿Y quién…?»: the part of the topic about X that names who does it; a task of one's own is the person's.
-const NAMES_ROLE = /\b(?:jefe|despacho|politica|ivt|grabacion|redes|administracion|coordinacion|coordinador\w*|aprobador\w*|editor\w*|auditoria|responsables?|operador\w*|tu|cada quien|nadie|todos)\b/;
+// («El editor» alone is the web's screen where one writes: the role is «el editor de la web».)
+const NAMES_ROLE = /\b(?:jefe|despacho|politica|ivt|grabacion|redes|administracion|coordinacion|coordinador\w*|aprobador\w*|editor(?:es)? de la web|editores|auditoria|responsables?|operador\w*|tu|cada quien|nadie|todos)\b/;
 const whoBonus = (p: Part) => (NAMES_ROLE.test(readable(p.text)) ? 0.4 : 0);
 function who(u: Unit, ctx: ExplainContext): Candidate[] {
   const roles = ctx.roles;
@@ -929,6 +960,93 @@ function who(u: Unit, ctx: ExplainContext): Candidate[] {
   // A task of the person's own guide: it is theirs.
   if (u.kind === 'task' && roles.includes(u.role) && (!ctx.about || part)) return [{ text: `Lo haces tú: ${lcFirst(end(u.task.title))} ${ucFirst(lcFirst(end(u.task.when)))}`.trim(), entryId: u.id }];
   return [];
+}
+
+// What a moment of one's own work reads like («cuando lo acepta…», «antes de publicar», «el mismo día»).
+const WHEN_SAYS = /\b(?:cuando|antes|despues|apenas|cada|mismo dia|en cuanto|hasta que|al (?:terminar|subir|grabar|aprobar|publicar|enviar|mandar|guardar|llegar|volver))\b/;
+/**
+ * Whether a text says what a follow-up asks (WF-C2): a reason to «¿y por qué X?», someone to «¿y quién…?», a moment to
+ * «¿y cuándo…?» (an answer of the index written for that follow-up must say it to answer it).
+ */
+export function saysFacet(facet: Facet, text: string): boolean {
+  const t = readable(text);
+  // («El porqué» is no reason: «De eso no tengo el porqué».)
+  if (facet === 'why') return REASON.test(t.replace(/\b(?:el|un|su|del) porque\b/g, ' '));
+  if (facet === 'who') return NAMES_ROLE.test(t);
+  if (facet === 'when') return WHEN_SAYS.test(t);
+  return true;
+}
+// «¿Y si una categoría no tiene área?» asks what the guide says as «Sin área, …»: the same condition, said the other way.
+const LACKS = /\bno (?:tiene|tienen|tengo|tienes|hay|trae|traen|lleva|llevan) (?:(?:un|una|el|la|los|las|ningun|ninguna) )?([a-z]{3,})/;
+// The verbs any follow-up says («¿y si dice que no?», «¿qué sale?»): X is its other words.
+const SAYS_ANYTHING = new Set(tokens('dice dicen decir pasa pasan sale salen hace hacen tiene tienen queda quedan puede pueden hago haga quiero quiere va van hay'));
+const wordsOf = (about: string) => tokens(about).filter((w) => w.length >= 3 && !SAYS_ANYTHING.has(w));
+// A sentence that says what happens then: a «si …», a «cuando …», or what follows a label («Con «No, todavía no»
+// escribe…», «Sin área, …»).
+const IF_OR_WITH = (s: string) => saysIf(s) || /^(?:con|sin) «/i.test(s.trim());
+/**
+ * The sentence of a text (an answer already said) about X that says what the follow-up asks («Si te equivocaste, agrega
+ * otra nota…» to «¿y si me equivoco?», «Sin área, la asigna la coordinación» to «¿y si no tiene área?»), or null.
+ */
+export function sentenceSaying(facet: Facet, about: string | undefined, text: string): string | null {
+  const want = about ? wordsOf(about) : [];
+  if (!want.length) return null;
+  const lacks = facet === 'whatif' && about ? LACKS.exec(readable(about))?.[1] : undefined;
+  for (const s of sentencesOf(text)) {
+    if (lacks && new RegExp(String.raw`(?:^|[\s(«,:])sin ${lacks}\b`).test(readable(s))) return s;
+    const have = tokens(s);
+    const share = want.filter((w) => have.some((h) => rootsLike(h, w))).length / want.length;
+    if (share >= 0.6 && (facet === 'whatif' ? IF_OR_WITH(s) : saysFacet(facet, s))) return s;
+  }
+  return null;
+}
+/**
+ * Whether a text gives the reason for X: a reason (never «La guía no da el porqué…»), with a fair share of X's words (or
+ * no X). «¿Y por qué no veo las denuncias?» is not answered by the reason of another thing.
+ */
+export function reasonFor(text: string, about?: string): boolean {
+  if (/^(?:La guía no da el porqué|De eso no tengo el porqué)/.test(text) || !saysFacet('why', text)) return false;
+  const want = about ? wordsOf(about) : [];
+  if (!want.length) return true;
+  const have = tokens(text);
+  return want.filter((w) => have.some((h) => rootsLike(h, w))).length / want.length >= 0.4;
+}
+/**
+ * How much an answer is about a topic (WF-C2): the best share, over its ways of asking `asks`, of their words (four
+ * letters or more) that are words of the topic (`subject`: the roots of what was said and asked about it).
+ */
+export function topicalOf(subject: string[], asks: string[]): number {
+  let best = 0;
+  for (const q of asks) {
+    const its = tokens(q).filter((w) => w.length >= 4);
+    if (!its.length) continue;
+    const share = its.filter((w) => subject.some((h) => rootsLike(h, w))).length / its.length;
+    if (share > best) best = share;
+  }
+  return best;
+}
+// The shape of a way of asking that is that follow-up itself («¿Y si la devuelvo?», «¿quién publica?», «¿por qué…?»).
+const FOLLOW_SHAPE: Partial<Record<Facet, RegExp>> = { whatif: /\b(?:si|sin|cuando)\b/, who: /\bquien(?:es)?\b/, when: /\bcuando\b/, why: /\bpor que\b/ };
+/**
+ * How an answer fits a follow-up that names X (WF-C2), to choose between the answers of the index and the topic's own
+ * part: `cov`, the share of X's words it says (in its text or in one of its ways of asking `asks`), `said` the same in its
+ * text alone; `says`, whether it says what the follow-up asks of X: a sentence of it (sentenceSaying(); a reason about X
+ * for «¿por qué…?», reasonFor()), or a way of asking that is that same follow-up about X («¿Y si la devuelvo?» to «¿y si
+ * lo devuelven?»: `asked`).
+ */
+export function followFit(facet: Facet, about: string | undefined, text: string, asks: string[] = []): { cov: number; said: number; says: boolean; asked: boolean } {
+  const want = about ? wordsOf(about) : [];
+  const share = (t: string) => {
+    if (!want.length) return 0;
+    const have = tokens(t);
+    return want.filter((w) => have.some((h) => rootsLike(h, w))).length / want.length;
+  };
+  const said = share(text);
+  const cov = Math.max(said, ...asks.map(share));
+  const shape = FOLLOW_SHAPE[facet];
+  const asked = !!shape && asks.some((q) => shape.test(readable(q)) && share(q) >= 0.6);
+  const says = facet === 'why' ? reasonFor(text, about) || asked : !!sentenceSaying(facet, about, text) || asked;
+  return { cov, said, says, asked };
 }
 
 // «¿Y cuándo lo hago?»: the task's «Cuándo» (the person's own work; never an event's date).
@@ -1064,6 +1182,10 @@ function aboutCandidates(facet: Facet, u: Unit | null, about: string, ctx: Expla
   if (part && u) {
     if (facet === 'example') {
       const ex = facetText(u, 'example', roles);
+      // (What the topic says of X first, when the thread has not said it: the example shows it. Its first clause only,
+      // «En «Tu nota para el editor», qué toma sirve, qué falló y qué falta», then «Por ejemplo: …».)
+      const clause = end(ucFirst(part.text.split(/;\s/)[0]));
+      if (ex && !wasSaid(part.text, ctx.said ?? []) && clause.length <= 160 && !plain(ex).includes(plain(clause))) fromPart.push({ text: `${clause} ${ex}`, entryId: u.id });
       if (ex) fromPart.push({ text: ex, entryId: u.id });
     } else if (facet === 'why') {
       const w = facetText(u, 'why', roles);
@@ -1090,14 +1212,33 @@ export function explainAnswer(facet: Facet, topic: Entry | string | null | undef
   const roles = ctx.roles;
   // The web's and Atención's roles get no 360 (D-90): nothing to explain to them here.
   if (!roles.some((r) => TEAM_ROLES.includes(r as TeamRole) || r === 'admin')) return null;
-  // Never in a thread about an event: it keeps the agenda's steps (and its refusal).
-  if (followsEventThread(ctx)) return null;
-  const said = ctx.said ?? [];
+  // Never in a thread about an event: it keeps the agenda's steps (and its refusal). Unless the topic is what 360 just
+  // said from the index (`topicSaid`): its question asked how the app works, not an event's data.
+  if (!ctx.topicSaid && followsEventThread(ctx)) return null;
   const u = topic ? unitFor(topic, roles, ctx.asked) : null;
   // «¿Qué significa eso?» can work from the answer before alone; anything else needs a topic.
   if (!u && facet !== 'meaning') return null;
   if (u && !allowed(u, roles)) return null;
   const tours = toursOf(ctx);
+  // A curated answer explained from its guide's unit (WF-C2): what happens if X, who and when are first what the answer
+  // itself says (it is what 360 said; the unit may be a wider thing), and so is the reason it gives for X. When the unit
+  // was only guessed from what the person asked (relatedByAsk), what was not understood and the reason too.
+  const e0 = typeof topic === 'string' ? entryById(topic) : (topic ?? undefined);
+  const own: Unit | null = e0 && u && u.kind !== 'entry' && e0.kind === 'curated' ? { kind: 'entry', id: e0.id, entry: e0 } : null;
+  if (own && e0) {
+    const guessed = !relatedOf(e0, roles);
+    const first = facet === 'whatif' || facet === 'who' || facet === 'when' || (facet === 'why' && !!ctx.about) || (guessed && (facet === 'simpler' || facet === 'why'));
+    const mine = first ? answerOf(facet, own, ctx, tours) : null;
+    // (The reason, only when the answer gives one: else the unit's own «¿por qué?».)
+    if (mine && (facet !== 'why' || saysFacet('why', mine.text))) return mine;
+  }
+  return answerOf(facet, u, ctx, tours);
+}
+
+/** That facet of a unit (null for «¿qué significa eso?» of the answer before alone), as explainAnswer() says it. */
+function answerOf(facet: Facet, u: Unit | null, ctx: ExplainContext, tours: Set<string>): ExplainAnswer | null {
+  const roles = ctx.roles;
+  const said = ctx.said ?? [];
   let list: Candidate[] | null = null;
   // The follow-ups of a thread (WF-C2): what happens if X, who does it, when (each from the topic itself).
   if (u && (facet === 'whatif' || facet === 'who' || facet === 'when')) list = facet === 'whatif' ? whatIf(u, ctx) : facet === 'who' ? who(u, ctx) : when(u, ctx);
