@@ -10,10 +10,13 @@ import { REQUEST_STATES, REQUEST_TYPES, type RequestState } from '@/lib/particip
 import { REFERENCE_PATTERN } from '@/lib/participation/receipt-code';
 import { PUBLIC_SEGMENTS } from '@/lib/web/routes';
 import {
-  DOOR_MAILBOXES, DOOR_TYPE, LONG_REFERENCE_PATTERN, MAILBOXES_CLOSED_TEXT, MAILBOXES_PATH, MAILBOX_CATEGORIES, MAILBOX_ENDPOINTS,
-  MAILBOX_FETCH_INIT, MAILBOX_FORM_TYPES, MAILBOX_HINT, MAILBOX_IDS, MAILBOX_NAME, MAILBOX_TYPES, OTHER_PROCEDURES, OTHER_PROCEDURES_LABEL,
-  PUBLIC_STATE, PUBLIC_STATES, isDoorMailbox, isMailboxId, mailboxOfCategory, mailboxesOpen, publicStateOf, typeFits,
-  type ReceiptResponse, type SendBody, type SendResponse, type StartResponse,
+  DOOR_MAILBOXES, DOOR_TYPE, ENDPOINT_STEPS, LONG_REFERENCE_PATTERN, MAILBOXES_CLOSED_TEXT, MAILBOXES_PATH, MAILBOX_CATEGORIES,
+  MAILBOX_ENDPOINTS, MAILBOX_FETCH_INIT, MAILBOX_FORM_TYPES, MAILBOX_HINT, MAILBOX_IDS, MAILBOX_NAME, MAILBOX_TYPES, OTHER_CATEGORY_RULES,
+  OTHER_PROCEDURES, OTHER_PROCEDURES_LABEL, PHRASE_RULES, PUBLIC_STATE, PUBLIC_STATES, SIMILAR_CELL_DEGREES, SIMILAR_COUNTS,
+  SIMILAR_JOIN_LABEL, SIMILAR_OTHER_LABEL, isDoorMailbox, isMailboxId, isRetiredCategory, isSensitiveCategory, mailboxOfCategory,
+  mailboxesOpen, ownPhraseLongEnough, phraseWordCount, publicStateOf, similarCountOf, similarOfferText, typeFits,
+  type EndpointBody, type GeneratedPhrase, type PhraseChoice, type PhraseResponse, type ReceiptResponse, type SendBody, type SendResponse,
+  type SimilarBody, type SimilarResponse, type StartResponse,
 } from '@/lib/participation/mailboxes';
 import {
   MAILBOX_INTENT_TTL_MS, clearMailboxIntent, peekMailboxIntent, setMailboxIntent, takeMailboxIntent,
@@ -104,6 +107,37 @@ describe('qué va en cada buzón', () => {
       if (same) expect(same.name, c.slug).toBe(c.name);
     }
   });
+
+  it('«otros» guarda las de hoy: la de vías ya no se ofrece (sus casos se quedan) y la de salud es sensible', () => {
+    expect(OTHER_CATEGORY_RULES).toEqual({ retired: ['vialidad'], sensitive: ['salud'] });
+    expect(isRetiredCategory('vialidad')).toBe(true);
+    for (const c of DOOR_MAILBOXES.flatMap((m) => MAILBOX_CATEGORIES[m])) expect(isRetiredCategory(c.slug), c.slug).toBe(false);
+    expect(isRetiredCategory('agua')).toBe(false);
+    // Health is sensitive wherever it lives: the doors' marked ones and «otros» «Salud» (never in «Casos atendidos»).
+    expect(DOOR_MAILBOXES.flatMap((m) => MAILBOX_CATEGORIES[m]).filter((c) => isSensitiveCategory(c.slug)).map((c) => c.slug)).toEqual([
+      'ayuda-medicinas', 'ayuda-protesis', 'ayuda-salud',
+    ]);
+    expect(isSensitiveCategory('salud')).toBe(true);
+    for (const s of ['agua', 'educacion', 'vialidad', 'otros', 'no-existe']) expect(isSensitiveCategory(s), s).toBe(false);
+  });
+
+  it('con la configuración del cliente: las reglas de «otros» nombran categorías que existen, sin buzón de una puerta', () => {
+    // The config's categories without a door's mailbox are «otros»; one that carries a mailbox (WP2 marks the doors'
+    // ones) must be that door's, by slug and name.
+    const today = getClientConfig().participation.categories as { slug: string; name: string; mailbox?: string }[];
+    const others = today.filter((c) => !c.mailbox);
+    for (const slug of [...OTHER_CATEGORY_RULES.retired, ...OTHER_CATEGORY_RULES.sensitive]) {
+      expect(others.map((c) => c.slug), slug).toContain(slug);
+      expect(mailboxOfCategory(slug), slug).toBeNull();
+    }
+    for (const c of others) expect(mailboxOfCategory(c.slug), c.slug).toBeNull();
+    for (const c of today.filter((t) => t.mailbox)) {
+      expect(isDoorMailbox(c.mailbox), c.slug).toBe(true);
+      expect(MAILBOX_CATEGORIES[c.mailbox as (typeof DOOR_MAILBOXES)[number]].find((d) => d.slug === c.slug)?.name, c.slug).toBe(c.name);
+    }
+    // At least one category stays to offer in «Reportar otro problema».
+    expect(others.filter((c) => !isRetiredCategory(c.slug)).length).toBeGreaterThan(0);
+  });
 });
 
 describe('los tres estados públicos de un reporte de vías', () => {
@@ -144,6 +178,44 @@ describe('lo que el punto neutro recibe y devuelve', () => {
     expectTypeOf<Extract<StartResponse, { ok: true }>>().toHaveProperty('fillToken');
     expectTypeOf<SendBody['buzon']>().toEqualTypeOf<(typeof MAILBOX_IDS)[number]>();
     expectTypeOf<SendBody['paso']>().toEqualTypeOf<'enviar'>();
+  });
+
+  it('una sola dirección con cuatro pasos: empezar, otra frase, «¿Se suma?» y enviar', () => {
+    expect(ENDPOINT_STEPS).toEqual(['empezar', 'frase', 'parecidos', 'enviar']);
+    expectTypeOf<EndpointBody['paso']>().toEqualTypeOf<(typeof ENDPOINT_STEPS)[number]>();
+    expectTypeOf<SendBody['sumarse']>().toEqualTypeOf<boolean>();
+  });
+
+  it('la frase clave la hace el servidor (con su ficha), nunca el navegador; la propia lleva cinco palabras o más', () => {
+    expect(PHRASE_RULES).toEqual({ generatedWords: 4, wordListSize: 2048, ownMinWords: 5 });
+    // 4 words of 2,048: 44 bits.
+    expect(PHRASE_RULES.generatedWords * Math.log2(PHRASE_RULES.wordListSize)).toBe(44);
+    // «Empezar» and «Otra frase» bring a generated phrase with its token; a send says which kind it carries, and only a
+    // generated one carries a token (the server checks it against the key: a browser cannot pass its own as generated).
+    expectTypeOf<Extract<StartResponse, { ok: true }>['phrase']>().toEqualTypeOf<GeneratedPhrase>();
+    expectTypeOf<Extract<PhraseResponse, { ok: true }>['phrase']>().toEqualTypeOf<GeneratedPhrase>();
+    expectTypeOf<keyof GeneratedPhrase>().toEqualTypeOf<'text' | 'token'>();
+    expectTypeOf<PhraseChoice['kind']>().toEqualTypeOf<'generated' | 'own'>();
+    expectTypeOf<Extract<PhraseChoice, { kind: 'own' }>>().not.toHaveProperty('token');
+    expect(phraseWordCount('  caballo  verde   luna  río ')).toBe(4);
+    expect(phraseWordCount('mi perro come mango - todos . los días')).toBe(7);
+    expect(phraseWordCount('')).toBe(0);
+    expect(ownPhraseLongEnough('caballo verde luna río')).toBe(false);
+    expect(ownPhraseLongEnough('caballo verde luna río montaña')).toBe(true);
+    expect(ownPhraseLongEnough('a - b - c . d')).toBe(false);
+  });
+
+  it('«¿Se suma?»: solo cuántos (0, 1, 2 o «3 o más»), nunca cuál; la persona elige «Sí, sumarme» o «No, es otro problema»', () => {
+    expect(SIMILAR_CELL_DEGREES).toBe(0.0009);
+    expect(SIMILAR_COUNTS).toEqual([0, 1, 2, '3+']);
+    expect([-1, 0, 0.5, 1, 2, 3, 4, 250, Number.NaN].map(similarCountOf)).toEqual([0, 0, 0, 1, 2, '3+', '3+', '3+', 0]);
+    expect(similarOfferText('3+')).toBe('Ya hay 3 o más reportes de esto a unos 100 metros. ¿Se suma?');
+    expect(similarOfferText(2)).toBe('Ya hay 2 reportes de esto a unos 100 metros. ¿Se suma?');
+    expect(similarOfferText(1)).toBe('Ya hay 1 reporte de esto a unos 100 metros. ¿Se suma?');
+    expect([SIMILAR_JOIN_LABEL, SIMILAR_OTHER_LABEL]).toEqual(['Sí, sumarme', 'No, es otro problema']);
+    // No id goes to the browser: the answer is the coarse count only, and the body carries the person's own point.
+    expectTypeOf<keyof Extract<SimilarResponse, { ok: true }>>().toEqualTypeOf<'ok' | 'similar'>();
+    expectTypeOf<keyof SimilarBody>().toEqualTypeOf<'paso' | 'key' | 'fillToken' | 'categoryId' | 'point'>();
   });
 
   it('el código nuevo: AC y cuatro grupos de cuatro (80 bits, Crockford); el viejo sigue siendo otro patrón', () => {

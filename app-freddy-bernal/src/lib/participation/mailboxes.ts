@@ -78,7 +78,7 @@ export function typeFits(type: RequestType, mailbox: MailboxId): boolean {
 
 /** A category of a door's mailbox: its slug (the config's and the database's), its name on the screen, and whether it
  * is about health (sensitive: never published in «Casos atendidos», files only for the handling area and the
- * coordination). The «otros» mailbox keeps the categories it has today (every category the config does not mark). */
+ * coordination). The «otros» mailbox keeps the categories it has today (OTHER_CATEGORY_RULES below). */
 export type MailboxCategory = { slug: string; name: string; sensitive: boolean };
 
 /** The categories of the three doors, in the order the forms show them (§5.2–5.4; decision 5: five for corruption, and
@@ -117,6 +117,27 @@ export function mailboxOfCategory(slug: string): DoorMailbox | null {
   return DOOR_MAILBOXES.find((m) => MAILBOX_CATEGORIES[m].some((c) => c.slug === slug)) ?? null;
 }
 
+/** «otros» («Reportar otro problema» and the other procedures of the generic form) keeps today's categories: those of
+ * config/clients/fb.json participation.categories that carry no mailbox of a door. Two of them have a rule of their own:
+ *   - retired: the road category stays on the cases that have it (they stay where they are, in «otros») but is never
+ *     offered for a new send: roads go to the Reporte de vías and its seven categories («¿Es una vía? Use el Reporte de
+ *     vías.», §5.5); the fit check refuses it for a new send;
+ *   - sensitive: health, like the door categories marked sensitive (never in «Casos atendidos», §4.2; files only for
+ *     the handling area and the coordination, B18). */
+export const OTHER_CATEGORY_RULES = { retired: ['vialidad'], sensitive: ['salud'] } as const satisfies Record<string, readonly string[]>;
+
+/** Whether a category is retired: kept on the cases that have it, never offered for a new send. */
+export function isRetiredCategory(slug: string): boolean {
+  return (OTHER_CATEGORY_RULES.retired as readonly string[]).includes(slug);
+}
+
+/** Whether a category is about health: a door's marked one or one of «otros». Never shown in public. */
+export function isSensitiveCategory(slug: string): boolean {
+  const door = mailboxOfCategory(slug);
+  if (door) return MAILBOX_CATEGORIES[door].some((c) => c.slug === slug && c.sensitive);
+  return (OTHER_CATEGORY_RULES.sensitive as readonly string[]).includes(slug);
+}
+
 // --- The public states of a road report (§2.3, §5.7) -----------------------------------------------------------------
 /** In legend order everywhere: Recibido · En camino · Arreglado. Never told by colour alone: each has a shape and a
  * glyph, the same chip in legends, tags and map markers. */
@@ -153,18 +174,74 @@ export function publicStateOf(c: { state: RequestState; resolvedAt: string | Dat
  * short-lived upload token of the send's answer. */
 export const MAILBOX_ENDPOINTS = { send: '/api/atencion/enviar', files: '/api/atencion/adjuntos' } as const;
 
+/** The steps of that one address, by the body's «paso»: «Empezar», «Otra frase», «¿Se suma?» (vías only) and «Enviar». */
+export const ENDPOINT_STEPS = ['empezar', 'frase', 'parecidos', 'enviar'] as const;
+export type EndpointStep = (typeof ENDPOINT_STEPS)[number];
+
 /** How the browser calls them: no session cookie travels with a send, the referrer says only the site, nothing cached.
  * (`no-referrer` would null the Origin header that the server's same-origin check reads.) */
 export const MAILBOX_FETCH_INIT = { method: 'POST', credentials: 'omit', referrerPolicy: 'strict-origin', cache: 'no-store' } as const satisfies RequestInit;
 
+// --- The frase clave (§5.1; review B5 and B27) -----------------------------------------------------------------------
+/** Four words from a list of 2,048 common words (44 bits), made by the SERVER (crypto.randomBytes), never by the browser
+ * and never in a cached page: «Empezar» brings the first one, «Otra frase» asks for another (paso «frase»), and without
+ * JavaScript the per-request answer of «Empezar» renders it. Each comes with a token, an HMAC over the send's key and
+ * the phrase that is stored nowhere, so at «Enviar» the server knows a phrase sent as generated is one it made for this
+ * key: a browser cannot pass a short phrase of its own as generated. A person's own phrase needs five words or more
+ * (and WP2's phrase.ts refuses the code, the person's contact and obvious phrases). */
+export const PHRASE_RULES = { generatedWords: 4, wordListSize: 2048, ownMinWords: 5 } as const;
+export type GeneratedPhrase = { text: string; token: string };
+
+/** The words of a person's own phrase, as the length rule counts them: what the spaces separate, with a letter or a
+ * digit in it (a dash or a dot alone is no word). */
+export function phraseWordCount(text: string): number {
+  return text
+    .trim()
+    .split(/\s+/)
+    .filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+}
+export const ownPhraseLongEnough = (text: string) => phraseWordCount(text) >= PHRASE_RULES.ownMinWords;
+
+/** The frase clave a send carries: «Usar esta frase» (one the server generated, with its token) or «Escribir mi propia
+ * frase». */
+export type PhraseChoice = { kind: 'generated'; text: string; token: string } | { kind: 'own'; text: string };
+
+// --- The steps' bodies and answers -----------------------------------------------------------------------------------
 /** «Empezar»: the server gives the send its key, the signed fill-time token (an HMAC over the key and the time it
- * started) and a light proof-of-work challenge. With JavaScript it is this POST; without it, the page's server action. */
+ * started), a light proof-of-work challenge and the first generated phrase. With JavaScript it is this POST; without
+ * it, the page's server action renders the same in its own answer. */
 export type StartBody = { paso: 'empezar' };
 export type ProofOfWorkChallenge = { salt: string; bits: number };
-export type StartResponse = { ok: true; key: string; fillToken: string; challenge: ProofOfWorkChallenge } | { ok: false; error: string };
+export type StartResponse =
+  | { ok: true; key: string; fillToken: string; challenge: ProofOfWorkChallenge; phrase: GeneratedPhrase }
+  | { ok: false; error: string };
 
-/** The frase clave: one the app generated (four words) or the person's own (five words or more). */
-export type PhraseChoice = { text: string; own: boolean };
+/** «Otra frase»: another generated phrase for the same key. */
+export type PhraseBody = { paso: 'frase'; key: string; fillToken: string };
+export type PhraseResponse = { ok: true; phrase: GeneratedPhrase } | { ok: false; error: string };
+
+/** «¿Se suma?» (§5.3; review B7), only in the Reporte de vías and only for a point the person agreed to show on the
+ * public map: how many OPEN vías reports of the same category, among those sent with that consent (point_public_ok),
+ * have their point in the same cell of about 100 m (SIMILAR_CELL_DEGREES) or an adjacent one. The answer is coarse and
+ * never an id: 0 (no offer), 1, 2 or «3 o más». With «Sí, sumarme» the send says `sumarse` and the server finds the
+ * case again from the request's category and point. The step goes through the network limit, as today's check does. */
+export const SIMILAR_CELL_DEGREES = 0.0009;
+export const SIMILAR_COUNTS = [0, 1, 2, '3+'] as const;
+export type SimilarCount = (typeof SIMILAR_COUNTS)[number];
+export function similarCountOf(n: number): SimilarCount {
+  if (!(n >= 1)) return 0;
+  return n >= 3 ? '3+' : n >= 2 ? 2 : 1;
+}
+export type SimilarBody = { paso: 'parecidos'; key: string; fillToken: string; categoryId: string; point: { lat: number; lng: number } };
+export type SimilarResponse = { ok: true; similar: SimilarCount } | { ok: false; error: string };
+
+/** The offer's sentence and its two answers (§5.3, §7). */
+export function similarOfferText(n: Exclude<SimilarCount, 0>): string {
+  const many = n === '3+' ? '3 o más reportes' : n === 2 ? '2 reportes' : '1 reporte';
+  return `Ya hay ${many} de esto a unos 100 metros. ¿Se suma?`;
+}
+export const SIMILAR_JOIN_LABEL = 'Sí, sumarme';
+export const SIMILAR_OTHER_LABEL = 'No, es otro problema';
 
 /** «Enviar»: the mailbox travels in the body, never in the address. A send that misses a soft check (no Turnstile, no
  * proof of work…) is still accepted and goes to «Por revisar (posible envío masivo)». */
@@ -178,8 +255,15 @@ export type SendBody = {
   /** Turnstile's token, or null (off in the demo, or no JavaScript). */
   turnstile: string | null;
   phrase: PhraseChoice;
+  /** «Sí, sumarme» (vías only; false everywhere else, and the server refuses true elsewhere): a support of the open
+   * case the server finds again. If none is open any more, it is filed as a new report: the answer is the same receipt
+   * either way, as with the automatic join of a fourth report. */
+  sumarse: boolean;
   request: RequestInput;
 };
+
+/** Whatever the one address takes. */
+export type EndpointBody = StartBody | PhraseBody | SimilarBody | SendBody;
 
 /** The receipt, the same for every mailbox: never its name or a link of its own. The upload token is null when the
  * send takes no files now (none chosen, or the hourly budget is spent: «texto sí, archivos después»). */
