@@ -425,6 +425,40 @@ test('al recargar, lo escrito vuelve aunque la persona haya cambiado el tipo a m
   await expect(form.getByText(CONFIDENTIAL)).toHaveCount(0);
 });
 
+test('el tipo cambiado a mano no gana al enlace: de la petición a «Denuncia», «Hacer una petición» otra vez da la petición', async ({ page }) => {
+  // From the petición's link, «Denuncia» ticked by hand, then written.
+  await page.goto('/atencion/nueva?tipo=peticion');
+  let form = await formReady(page);
+  await form.getByLabel(/^Denuncia/).check();
+  await expect(form.getByText(CONFIDENTIAL)).toBeVisible();
+  await page.getByLabel(/^Seguridad/).check();
+  await next(page);
+  await page.getByLabel(/^Municipio/).selectOption({ label: 'Cárdenas' });
+  const sector = unique();
+  await page.getByLabel(/Parroquia, localidad o sector/).fill(sector);
+  await page.waitForTimeout(600);
+  // Away, and later «Hacer una petición» by the site's own link (a soft navigation): the petición's form, clean.
+  await page.goto('/atencion');
+  await page.getByRole('region', { name: 'Tipos de solicitud' }).getByRole('link', { name: /^Hacer una petición/ }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Hacer una petición' })).toBeVisible();
+  form = await formReady(page);
+  await expect(form.getByLabel(/^Petición/)).toBeChecked();
+  await expect(form.getByLabel(/^Denuncia/)).not.toBeChecked();
+  await expect(form.getByText(CONFIDENTIAL)).toHaveCount(0);
+  await expect(page.getByText(RESTORED)).toHaveCount(0);
+  // A reload shows that page as it was left: the petición, still clean.
+  await page.waitForTimeout(600);
+  await page.reload();
+  form = await formReady(page);
+  await expect(form.getByLabel(/^Petición/)).toBeChecked();
+  await expect(form.getByText(CONFIDENTIAL)).toHaveCount(0);
+  await expect(page.getByText(RESTORED)).toHaveCount(0);
+  // What was written is not lost: the denuncia's own link brings it back.
+  await page.goto('/atencion/nueva?tipo=denuncia');
+  await expect(page.getByText(RESTORED)).toBeVisible();
+  await expect(page.getByLabel(/Parroquia, localidad o sector/)).toHaveValue(sector);
+});
+
 test('«Casos atendidos»: casos publicados sin datos personales, las denuncias solo por su municipio, con filtros y su estado vacío', async ({ page }) => {
   await page.goto('/atencion/atendido');
   await expect(page.getByRole('heading', { level: 1, name: 'Casos atendidos' })).toBeVisible();
