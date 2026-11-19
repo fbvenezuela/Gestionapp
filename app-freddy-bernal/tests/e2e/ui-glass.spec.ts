@@ -8,6 +8,11 @@ import { loginAs } from './helpers';
 // contraste», colors forced by the system and «Reducir transparencia». Also «Menos movimiento» and a pass
 // in dark mode, which no other spec covers.
 
+// A normal phone, with motion: the suite's phones run with «Menos movimiento» (playwright.config.ts), whose rule gives
+// EVERY element a 0.01 ms transition (globals.css), so a colour read in the frame a media query flips still shows the
+// old one. The «Menos movimiento» test below sets reduce itself (page.emulateMedia).
+test.use({ reducedMotion: 'no-preference' });
+
 // The boss's home has big buttons (and a card only when something is overdue); Redes' home has cards
 // (figures, «Lo que espera por mí»).
 const HOMES = { 'jefe@demo.test': { home: '/jefe', cards: false }, 'redes@demo.test': { home: '/hoy', cards: true } } as const;
@@ -275,8 +280,6 @@ test('teléfono con poca memoria o con ahorro de datos: el vidrio se apaga antes
 });
 
 test('«Menos movimiento»: sin transiciones ni animaciones (las ruedas de espera siguen)', async ({ page }) => {
-  // The suite's phones run with «Menos movimiento» (playwright.config.ts): this test starts from a normal phone.
-  await page.emulateMedia({ reducedMotion: 'no-preference' });
   await loginAs(page, 'redes@demo.test');
   await visitHome(page, 'redes@demo.test');
   const button = page.locator('header .transition-colors').first();

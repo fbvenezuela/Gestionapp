@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 import { QUIET_STATE } from './tests/e2e/global-setup';
-import { REAL_DEMO_BANNER } from './src/lib/web/real-site';
+import { REAL_DEMO_BANNER, switchOf } from './src/lib/web/real-site';
 
 // A build with the official site's content (.real-site/, or REAL_SITE_DIR at build time; D-101) prerendered its pages
 // with it, and REAL_SITE_CONTENT=0 changes only what a server seeds, not those pages: the tests would read real content
@@ -27,7 +27,23 @@ const shortcutsPort = port + 1;
 const fixturePort = port + 2;
 const local = (p: number) => (process.env.E2E_BASE_URL ? null : `http://localhost:${p}`);
 const shortcutsUrl = process.env.E2E_SHORTCUTS_URL ?? local(shortcutsPort);
-const fixtureUrl = process.env.E2E_FIXTURE_URL ?? local(fixturePort);
+// E2E_FIXTURE=0 leaves the fixture out (no project, no third server): for a run of panel specs on a busy machine.
+const fixtureOff = switchOf(process.env.E2E_FIXTURE) === false;
+const fixtureUrl = fixtureOff ? null : (process.env.E2E_FIXTURE_URL ?? local(fixturePort));
+// The fixture's server is also skipped when the command names its projects (--project, which takes several names, or
+// --project=<name>) and none can be «real-fixture»: its tests would not run (a pattern such as «mobile*» keeps it). The
+// project list itself never depends on the command: the workers load this file too.
+function projectArgs(argv: string[]): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i].startsWith('--project=')) out.push(argv[i].slice('--project='.length));
+    else if (argv[i] === '--project') for (let j = i + 1; j < argv.length && !argv[j].startsWith('-'); j++) out.push(argv[j]);
+  }
+  return out;
+}
+const OTHER_PROJECTS = ['mobile-360', 'shortcuts', 'motion'];
+const asked = projectArgs(process.argv);
+const fixtureServerNeeded = !!fixtureUrl && (asked.length === 0 || asked.some((p) => !OTHER_PROJECTS.includes(p)));
 // Where the fixture's server reads it from (REAL_SITE_DIR): made right before that server starts, one folder per port.
 const fixtureDir = path.join(os.tmpdir(), `fb-real-fixture-${fixturePort}`);
 // Every context starts with 360's offer of tutorials turned off on this «phone» (tests/e2e/global-setup.ts writes the
@@ -35,7 +51,11 @@ const fixtureDir = path.join(os.tmpdir(), `fb-real-fixture-${fixturePort}`);
 const mobile = { ...devices['Galaxy S9+'], viewport: { width: 360, height: 760 }, storageState: QUIET_STATE };
 // «Menos movimiento» everywhere but in the motion project (design of the new website, §3): no reveal, transition or
 // scroll animation is half-way when a test reads, measures or runs axe. A test that needs motion asks for it
-// (page.emulateMedia({ reducedMotion: 'no-preference' })) or lives in web-movimiento.spec.ts.
+// (test.use or page.emulateMedia with reducedMotion 'no-preference': tours.spec.ts and ui-glass.spec.ts, which test
+// the panel's moving default) or lives in web-movimiento.spec.ts. Careful: the app's own «Menos movimiento» rule
+// (src/app/globals.css) sets transition-duration 0.01ms on EVERY element, and transition-property is «all» by
+// default, so under reduce any style change is a one-frame transition: a layout or computed-style read in the same
+// frame as a change still gets the old value. Read with expect.poll / toHave…, or after two animation frames.
 const still = { ...mobile, reducedMotion: 'reduce' as const };
 // The real-content fixture's tests carry this tag (any spec may have one): they run only in «real-fixture», on the
 // fixture's server, and never on the invented ones.
@@ -92,10 +112,14 @@ export default defineConfig({
         // real-content mode reads it (REAL_SITE_DIR), with its pages and data cached in its own memory only
         // (E2E_MEMORY_CACHE: next.config.ts), so it renders them from its own database instead of serving the build's
         // invented ones, and never writes into the shared .next.
-        server(
-          fixturePort,
-          { DEMO_SHORTCUTS: 'false', REAL_SITE_CONTENT: '1', REAL_SITE_DIR: fixtureDir, E2E_MEMORY_CACHE: '1' },
-          `npx tsx tests/fixtures/real-site/make-snapshot.mts ${JSON.stringify(fixtureDir)} && `,
-        ),
+        ...(fixtureServerNeeded
+          ? [
+              server(
+                fixturePort,
+                { DEMO_SHORTCUTS: 'false', REAL_SITE_CONTENT: '1', REAL_SITE_DIR: fixtureDir, E2E_MEMORY_CACHE: '1' },
+                `npx tsx tests/fixtures/real-site/make-snapshot.mts ${JSON.stringify(fixtureDir)} && `,
+              ),
+            ]
+          : []),
       ],
 });
