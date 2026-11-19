@@ -126,13 +126,16 @@ describe('el borrador de la pestaña', () => {
     expect(newDraft().secret).not.toBe(d.secret);
     expect(uuidV4(new Uint8Array(16))).toBe('00000000-0000-4000-8000-000000000000');
     expect(d.values.type).toBe('peticion');
+    // It remembers what the address chose when it started.
+    expect(d.opened).toEqual({ type: 'peticion', linkedItemId: null });
+    expect(newDraft().opened).toEqual({ type: null, linkedItemId: null });
     expect(DRAFT_KEY).toMatch(/borrador/);
   });
 
   it('vuelve tal cual lo escrito (ida y vuelta por JSON)', () => {
-    const d = { ...newDraft(), step: 3 as const, values: filled({ point: { lat: 7.71234, lng: -72.21234 }, locationConsent: true, name: 'Ana' }) };
+    const d = { ...newDraft({ type: 'acotacion', linkedItemId: '44444444-4444-4444-8444-444444444444' }), step: 3 as const, values: filled({ point: { lat: 7.71234, lng: -72.21234 }, locationConsent: true, name: 'Ana' }) };
     const back = parseDraft(JSON.stringify(d));
-    expect(back).toMatchObject({ submissionKey: d.submissionKey, secret: d.secret, step: 3, values: d.values });
+    expect(back).toMatchObject({ submissionKey: d.submissionKey, secret: d.secret, step: 3, values: d.values, opened: { type: 'acotacion', linkedItemId: '44444444-4444-4444-8444-444444444444' } });
   });
 
   it('lo raro se descarta: JSON roto, sin llave, clave mala, muy viejo; y campo por campo, lo que no cabe', () => {
@@ -146,13 +149,17 @@ describe('el borrador de la pestaña', () => {
         ...d,
         step: 9,
         values: { type: 'otra', categoryId: '<script>', title: 'x'.repeat(500), point: { lat: 200, lng: 0 }, locationConsent: true, channel: 'paloma', linkedItemId: 'no' },
+        opened: { type: 'otra', linkedItemId: '<b>' },
         receipt: { reference: 'AC-2026-<b>', type: 'reporte' },
       }),
     )!;
     expect(odd.step).toBe(1);
     expect(odd.values).toMatchObject({ type: '', categoryId: '', point: null, locationConsent: false, channel: '', linkedItemId: null });
     expect(odd.values.title).toHaveLength(140);
+    expect(odd.opened).toEqual({ type: null, linkedItemId: null });
     expect(odd.receipt).toBeNull();
+    // A draft kept before «opened» existed (or with something else there): opened with no choice.
+    for (const opened of [undefined, null, 'denuncia', 7]) expect(parseDraft(JSON.stringify({ ...d, opened }))?.opened).toEqual({ type: null, linkedItemId: null });
   });
 
   it('el comprobante se recuerda con la clave del borrador; tras recargar, lo que no subió se da por perdido', () => {
@@ -216,8 +223,26 @@ describe('al llegar al formulario: el borrador de la pestaña o uno nuevo', () =
     expect(resumeDraft(aboutA, preset('acotacion', LINK_B))).toBeNull();
     expect(resumeDraft(aboutA, preset('acotacion', LINK_A))).toMatchObject({ values: { linkedItemId: LINK_A } });
     expect(resumeDraft(aboutA, preset('acotacion'))).toMatchObject({ values: { linkedItemId: LINK_A } });
-    // A draft that dropped its item («Quitar») comes back as it was.
-    expect(resumeDraft(stored(written({ type: 'acotacion', linkedItemId: null })), preset('acotacion', LINK_A))).toMatchObject({ values: { linkedItemId: null } });
+    // Written about no item in a form opened without one: the form about an item is another one (the link wins).
+    expect(resumeDraft(stored(written({ type: 'acotacion', linkedItemId: null })), preset('acotacion', LINK_A))).toBeNull();
+    // A draft that dropped its item («Quitar») comes back as it was when its address is opened again (a reload).
+    const dropped = stored({ ...written({ type: 'acotacion', linkedItemId: null }), opened: { type: 'acotacion', linkedItemId: LINK_A } });
+    expect(resumeDraft(dropped, preset('acotacion', LINK_A))).toMatchObject({ values: { linkedItemId: null } });
+    expect(resumeDraft(dropped, preset('acotacion', LINK_B))).toBeNull();
+  });
+
+  it('al recargar la misma dirección, lo escrito vuelve aunque la persona haya cambiado el tipo a mano; en otro tipo, no', () => {
+    // Opened from the denuncia's link, «Petición» ticked by hand, then written.
+    const switched = stored({ ...written({ type: 'peticion' }), opened: { type: 'denuncia', linkedItemId: null } });
+    expect(resumeDraft(switched, preset('denuncia'))).toMatchObject({ values: { type: 'peticion', sector: 'Sector escrito (prueba)' } });
+    expect(resumeDraft(switched, preset('peticion'))).toMatchObject({ values: { type: 'peticion' } });
+    expect(resumeDraft(switched, preset(null))).not.toBeNull();
+    expect(resumeDraft(switched, preset('reporte'))).toBeNull();
+    // Kept by an older version (no «opened»): only its own kind brings it back.
+    const legacy = JSON.parse(JSON.stringify(written({ type: 'denuncia', title: 'Un hecho escrito (prueba)' })));
+    delete legacy.opened;
+    expect(resumeDraft(parseDraft(JSON.stringify(legacy)), preset('denuncia'))).not.toBeNull();
+    expect(resumeDraft(parseDraft(JSON.stringify(legacy)), preset('peticion'))).toBeNull();
   });
 
   it('un comprobante vuelve siempre (su código y su clave no se pueden pedir otra vez), con lo que no subió dado por perdido', () => {

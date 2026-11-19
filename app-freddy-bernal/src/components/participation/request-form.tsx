@@ -54,9 +54,11 @@ function stepTitle(step: Step, type: FormValues['type']): string {
   return 'Contacto y envío';
 }
 
-/** A form before this browser made its key and secret (the server's render): the same screen, not yet sendable. */
+/** A form before this browser made its key and secret (the server's render): the same screen, not yet sendable. It
+ * remembers what the address chose (resumeDraft brings it back on a reload of that address). */
 function blankDraft(type: RequestType | null, linkedItemId: string | null): Draft {
-  return { v: 1, submissionKey: '', secret: '', step: 1, values: emptyValues({ type, linkedItemId }), fileNames: [], receipt: null, similarAnswered: null, savedAt: new Date(0).toISOString() };
+  const opened = { type, linkedItemId };
+  return { v: 1, submissionKey: '', secret: '', step: 1, values: emptyValues(opened), opened, fileNames: [], receipt: null, similarAnswered: null, savedAt: new Date(0).toISOString() };
 }
 
 /**
@@ -68,7 +70,8 @@ function blankDraft(type: RequestType | null, linkedItemId: string | null): Draf
  *
  * The kind and the item the address chose make the form: a link of the site to another kind (the header's, the
  * attention menu's) is a soft navigation, and search params keep a component's state, so a new choice mounts a new
- * form, which reads the tab's draft again with that choice (resumeDraft: the address's kind wins).
+ * form, which reads the tab's draft again with that choice (resumeDraft: the address's choice wins over a draft of
+ * another kind or item; a reload of the same address brings back what was written, even after a change by hand).
  */
 export function RequestForm(props: Props) {
   return <TypedRequestForm key={`${props.presetType ?? ''}|${props.linked?.id ?? ''}`} {...props} />;

@@ -56,12 +56,18 @@ export type Receipt = {
   saved: boolean;
 };
 
+/** What the form's address chose: the kind (?tipo=) and the published item the request is about (?sobre=). */
+export type FormPreset = { type: RequestType | null; linkedItemId: string | null };
+
 export type Draft = {
   v: 1;
   submissionKey: string;
   secret: string;
   step: Step;
   values: FormValues;
+  /** What the address chose when this form started (resumeDraft): reloading that address brings the draft back even
+   * after the person changed the kind or dropped the item by hand. */
+  opened: FormPreset;
   /** The files chosen before a reload (files themselves cannot be kept): the form asks to choose them again. */
   fileNames: string[];
   receipt: Receipt | null;
@@ -111,7 +117,8 @@ export function uuidV4(bytes: Uint8Array = globalThis.crypto.getRandomValues(new
 
 /** A new form: its key and the receipt's secret are made now, in this browser, and kept with what is written. */
 export function newDraft(preset: { type?: RequestType | null; linkedItemId?: string | null } = {}, now = new Date()): Draft {
-  return { v: 1, submissionKey: uuidV4(), secret: generateSecret(), step: 1, values: emptyValues(preset), fileNames: [], receipt: null, similarAnswered: null, savedAt: now.toISOString() };
+  const opened = { type: preset.type ?? null, linkedItemId: preset.linkedItemId ?? null };
+  return { v: 1, submissionKey: uuidV4(), secret: generateSecret(), step: 1, values: emptyValues(preset), opened, fileNames: [], receipt: null, similarAnswered: null, savedAt: now.toISOString() };
 }
 
 const nonEmpty = (s: string) => s.trim() !== '';
@@ -122,14 +129,13 @@ export function hasContent(v: FormValues): boolean {
   return [v.categoryId, v.municipalityId, v.parishId, v.sector, v.locationReference, v.title, v.description, v.eventDate, v.name, v.email, v.phone, v.note].some(nonEmpty) || !!v.point;
 }
 
-/** What the form's address chose: the kind (?tipo=) and the published item the request is about (?sobre=). */
-export type FormPreset = { type: RequestType | null; linkedItemId: string | null };
-
 /**
  * The tab's saved draft the form starts from, or null for a new form (design §5.1 «Drafts»):
  *   * a sent request always comes back, with its receipt: its code and secret cannot be had again;
- *   * what was written comes back only if something was written (hasContent: the kind alone is not) and for the same
- *     choice as the address: the address's kind wins over the draft's, and a draft about another item is another form;
+ *   * what was written comes back only if something was written (hasContent: the kind alone is not) and only for the
+ *     address's choice: each kind or item the address names is the draft's, or the one its form was opened with (a
+ *     reload after the person changed the kind or dropped the item by hand). A draft of another kind, or about another
+ *     item, is another form: the address's choice wins over it;
  *   * anything else is a new form, with a key and a secret of its own (never the draft's: a key that may have reached
  *     the server with other content is not reused for this one).
  */
@@ -137,8 +143,9 @@ export function resumeDraft(saved: Draft | null, preset: FormPreset): Draft | nu
   if (!saved) return null;
   if (saved.receipt) return { ...saved, receipt: { ...saved.receipt, files: filesAfterReload(saved.receipt.files) } };
   if (!hasContent(saved.values)) return null;
-  if (preset.type && saved.values.type !== preset.type) return null;
-  if (preset.linkedItemId && saved.values.linkedItemId && saved.values.linkedItemId !== preset.linkedItemId) return null;
+  const fits = (asked: string | null, now: string | null, opened: string | null) => !asked || asked === now || asked === opened;
+  if (!fits(preset.type, saved.values.type || null, saved.opened.type)) return null;
+  if (!fits(preset.linkedItemId, saved.values.linkedItemId, saved.opened.linkedItemId)) return null;
   return saved;
 }
 
@@ -304,12 +311,16 @@ export function parseDraft(raw: string | null, now = Date.now()): Draft | null {
     note: str(x.note, 2000),
   };
   const step = [1, 2, 3, 4].includes(d.step as number) ? (d.step as Step) : 1;
+  // A draft kept before this field existed opened with no choice: only its own kind and item bring it back.
+  const o = (d.opened ?? {}) as Record<string, unknown>;
+  const opened: FormPreset = { type: isRequestType(o.type) ? o.type : null, linkedItemId: UUID.test(str(o.linkedItemId)) ? str(o.linkedItemId) : null };
   return {
     v: 1,
     submissionKey: d.submissionKey,
     secret,
     step,
     values,
+    opened,
     fileNames: Array.isArray(d.fileNames) ? d.fileNames.filter((n): n is string => typeof n === 'string').slice(0, 3).map((n) => n.slice(0, 120)) : [],
     receipt: parseReceipt(d.receipt, secret),
     similarAnswered: typeof d.similarAnswered === 'string' ? d.similarAnswered.slice(0, 400) : null,
