@@ -2,7 +2,7 @@ import 'server-only';
 import { cache } from 'react';
 import { env, isDemo } from '../env';
 import { rawSettings } from './cache';
-import { REAL_DEMO_BANNER, realContentShown } from './real-site';
+import { REAL_DEMO_BANNER, loadRealSnapshot, realContentShown } from './real-site';
 import { normalizeSite, type Site } from './site-settings';
 
 export type { Site, NavLink, PublicChannel, Contact } from './site-settings';
@@ -33,6 +33,8 @@ export const getSite = cache(async (): Promise<Site> => {
     console.error('[web] no se pudieron leer los ajustes del sitio; se usan los iniciales:', (e as Error).message);
     site = normalizeSite({}, opts);
   }
-  // With the official site's content (D-101) the band always says it is not the official site, whatever its setting.
-  return realContentShown() ? { ...site, demoBanner: REAL_DEMO_BANNER } : site;
+  // With the official site's content (D-101) the band always says it is not the official site, whatever its setting,
+  // and the footer can say when the build read it («Contenido de la web oficial leído el …»).
+  if (!realContentShown()) return site;
+  return { ...site, demoBanner: REAL_DEMO_BANNER, realReadAt: loadRealSnapshot()?.fetchedAt ?? null };
 });
