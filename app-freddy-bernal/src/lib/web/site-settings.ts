@@ -91,7 +91,8 @@ const phoneNumber = z
   .string()
   .trim()
   .max(40)
-  .refine((v) => /^\+?[0-9](?:[0-9 ()-]*[0-9])?$/.test(v) && v.replace(/\D/g, '').length >= 3, 'Revisa el teléfono: solo números, espacios, guiones o paréntesis.');
+  // «(0276) 000-0000» is how a landline is usually written; short numbers («911») count too.
+  .refine((v) => /^\+?\(?[0-9](?:[0-9 ()-]*[0-9])?$/.test(v) && v.replace(/\D/g, '').length >= 3, 'Revisa el teléfono: solo números, espacios, guiones o paréntesis.');
 export const authoritySchema = z.object({
   nombre: text(120).min(2),
   telefono: phoneNumber.optional(),

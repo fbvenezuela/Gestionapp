@@ -50,6 +50,8 @@ describe('«Autoridades competentes»', () => {
     ]);
     expect(normalizeSite({ [AUTHORITIES_KEY]: list }, opts(false)).authorities).toHaveLength(2);
     expect(publicAuthorities({ [AUTHORITIES_KEY]: [AUTH({ telefono: '+58 (276) 000-0000' })] })[0].telHref).toBe('tel:+582760000000');
+    // A landline as it is usually written, with its area code in parentheses.
+    expect(publicAuthorities({ [AUTHORITIES_KEY]: [AUTH({ telefono: '(0276) 000-0000' })] })[0].telHref).toBe('tel:02760000000');
   });
 
   it('solo tel: y https: entran: un enlace http o javascript, o un teléfono con letras, no tienen la forma y no se muestra ninguna', () => {
