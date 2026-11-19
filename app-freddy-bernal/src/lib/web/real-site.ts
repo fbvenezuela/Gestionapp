@@ -15,8 +15,10 @@ import { parseSnapshot, slug as slugSchema } from './schema';
 //
 //   * Same file, same rows: every id is a hash of a name («real:item:news:<WordPress id>») and every key a hash of the
 //     file's bytes, so every server of the demo seeds identical rows (D-39) and a file under a key never changes.
-//   * Off unless all of this holds at runtime: the file exists in process.cwd(), there is no DATABASE_URL, the tests are
-//     not running (VITEST), and REAL_SITE_CONTENT is not 0/false (Playwright sets it to 0: the e2e stay invented).
+//   * Off unless all of this holds at runtime: the file exists (in .real-site/ under process.cwd(), or in the folder
+//     REAL_SITE_DIR names: realSiteDirFromEnv below), there is no DATABASE_URL, the tests are not running (VITEST), and
+//     REAL_SITE_CONTENT is not 0/false. Playwright sets it to 0 on its two invented servers, and to 1 on the third one
+//     («real-fixture»), which reads the INVENTED fixture of tests/fixtures/real-site through REAL_SITE_DIR.
 //   * Read with fs, never imported (the file does not exist in CI), validated again here, memoized per process.
 // Pure, except loadRealSnapshot (it reads the file once). No Next or server-only imports: the build script uses it too.
 
