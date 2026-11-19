@@ -434,14 +434,6 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
   const lead = sentencesOf(textFor(e.a, roles));
   // The «lo de X» of the ask, when the section says it (design §4(c)1: X is a topic, never an event).
   const named = ctx.about ? partNamed(x, roles, ctx.about) : null;
-  // A curated answer is narrower than its section (WF-C2): what the section says of the curated answer's own subject (its
-  // first way of asking) goes before the section's whole «para qué es», unless it says again what the thread said.
-  const ownPart = place.rest === 'curado' && !ctx.about && e.q[0] ? partNamed(x, roles, e.q[0]) : null;
-  const ownFresh = ownPart && !nearSaid(ownPart, said) ? ownPart : null;
-  // The section's own «¿Qué es…?» or «¿Para qué sirve…?» of what the person asked about («¿qué son las respuestas
-  // guardadas?» → its answer, to «¿y pa' qué sirven?»).
-  const subject = [ctx.asked, e.q[0]].filter((t): t is string => !!t);
-  const defines = (x.faq ?? []).filter((f) => DEFINE_Q.test(f.q) && subject.some((q) => sameAsk(f.q, q))).map((f) => forRole(f.a, roles)).filter(sayable);
   switch (facet) {
     case 'simpler': {
       // The section's «dicho más fácil» is about the whole section: one of its items, rules or questions («Vencidas» of
@@ -467,6 +459,15 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
       ]);
     }
     case 'purpose': {
+      // A curated answer is narrower than its section (WF-C2): what the section says of the curated answer's own subject
+      // (its first way of asking) goes before the section's whole «para qué es», unless it says again what the thread
+      // said. (Read here only: no other facet uses it, and reading every part of a section on every call is slow.)
+      const ownPart = place.rest === 'curado' && !ctx.about && e.q[0] ? partNamed(x, roles, e.q[0]) : null;
+      const ownFresh = ownPart && !nearSaid(ownPart, said) ? ownPart : null;
+      // The section's own «¿Qué es…?» or «¿Para qué sirve…?» of what the person asked about («¿qué son las respuestas
+      // guardadas?» → its answer, to «¿y pa' qué sirven?»).
+      const subject = [ctx.asked, e.q[0]].filter((t): t is string => !!t);
+      const defines = (x.faq ?? []).filter((f) => DEFINE_Q.test(f.q) && subject.some((q) => sameAsk(f.q, q))).map((f) => forRole(f.a, roles)).filter(sayable);
       // What it is for: its «para qué es», its own «¿Para qué sirve…?», then the first thing the guide says of it that
       // was not said (the guide's words before 360's items, which say what is on the screen).
       const what = forRole(x.what, roles);
