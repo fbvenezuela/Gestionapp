@@ -26,9 +26,14 @@ let a: Backend;
 let b: Backend;
 const sys = <T,>(db: Backend, q: string, p: unknown[] = []) => asSystem(db, (sql) => sql.query<T>(q, p));
 
+// The config names the client otherwise than the invented site does («Persona Demo»): the home's hero shows the
+// config's name, never the site's (G1).
+const CONFIG_NAME = 'Persona de la configuración (demo)';
+
 beforeAll(async () => {
   real = (await demoSnapshot()).snapshot;
-  cfg = demoClientConfig();
+  const demo = demoClientConfig();
+  cfg = { ...demo, brand: { ...demo.brand, clientName: CONFIG_NAME } };
   a = (await createMemoryDb()).backend;
   expect(await seedDemoData(a, real, cfg)).toBe('real');
   b = (await createMemoryDb()).backend;
@@ -112,10 +117,14 @@ describe('el contenido real en la demo', () => {
     const home = (await asAnon(a, (sql) => publishedBySlug(sql, 'page', 'inicio')))!;
     const blocks = home.data.blocks as Block[];
     const hero = blocks.find((x) => x.type === 'hero')!;
-    // The invented site's own office («Gobernadora de prueba (demo)») never reaches the hero (G1).
-    expect(real.identity.tagline).toContain('Gobernadora de prueba (demo)');
-    expect(hero.data).toMatchObject({ title: cfg.brand.clientName, text: cfg.web.structuredData.jobTitle || cfg.brand.clientTitle, mediaId: real.pages.heroMediaId });
-    expect(JSON.stringify(hero.data)).not.toContain('Gobernadora de prueba');
+    // The invented site's own name and office («Persona Demo», «Gobernadora de prueba (demo)») never reach the hero (G1):
+    // its title is the config's name and its lead the site's title as the seed put it in the settings (site.identity,
+    // what the header and the wordmark show), not a formula of this test.
+    expect(real.identity).toMatchObject({ name: 'Persona Demo', tagline: expect.stringContaining('Gobernadora de prueba (demo)') });
+    const identity = (await asAnon(a, (sql) => publicSettings(sql)))['site.identity'] as { title: string };
+    expect(identity.title).toBeTruthy();
+    expect(hero.data).toMatchObject({ title: CONFIG_NAME, text: identity.title, mediaId: real.pages.heroMediaId });
+    expect(JSON.stringify(hero.data)).not.toMatch(/Gobernadora de prueba|"Persona Demo"/);
     expect(home.media[real.pages.heroMediaId!]).toMatchObject({ kind: 'image' });
     for (const id of ['indicadores', 'atendido', 'gestion', 'avisos']) expect(blocks.find((x) => x.id === id)?.visible, id).toBe(false);
     const at = blocks.findIndex((x) => x.id === 'actualidad');

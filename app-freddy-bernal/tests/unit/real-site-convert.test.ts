@@ -7,6 +7,7 @@ import { getClientConfig } from '@/lib/client-config';
 import type { Block, TextNode } from '@/lib/web/blocks';
 import { REMOVED_MARKS } from '@/lib/web/import-marks';
 import { taglineWithoutName } from '@/lib/web/real-site';
+import { defaultSettings } from '@/lib/web/site-settings';
 import { composeHome, homeHero } from '@/lib/db/seed-parts/web-real';
 import { wantFromImage, wantFromWp, type PhotoWant } from '../../scripts/web-import/media';
 import type { WpPost, WpTerm } from '../../scripts/web-import/mapping';
@@ -262,6 +263,13 @@ describe('el nombre y el lema del sitio', () => {
     const heroMediaId = '00000000-0000-4000-8000-00000000abcd';
     const home = composeHome(draft, { pages: { heroMediaId } as Parameters<typeof composeHome>[1]['pages'] }, cfg);
     expect(home.blocks[0].data).toEqual({ title: 'Persona Demo', text: 'Gobernadora del estado de prueba (demo)', mediaId: heroMediaId });
+  });
+
+  it('el título y la bajada de la portada son el nombre y el título del sitio de los ajustes iniciales (site.identity), los mismos', () => {
+    // homeHero writes the site's title rule again (as site-settings.ts and seed-client.ts do): if one of them changes,
+    // this says so (real-site-seed compares the hero with what the seed put in the settings).
+    const identity = defaultSettings()['site.identity'] as { name: string; title: string };
+    expect(homeHero(getClientConfig())).toEqual({ title: identity.name, text: identity.title });
   });
 
   it('el lema sin el nombre delante, para la portada', () => {
