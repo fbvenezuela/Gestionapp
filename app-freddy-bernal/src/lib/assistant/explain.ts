@@ -173,8 +173,13 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
     const s = eventSignals(bare(raw), titles);
     return OWN_WHEN_BLOCK.some((b) => s.has(b)) ? null : { facet: 'when', about: own.groups!.about };
   }
-  // The agenda asked as such, or any event signal in the whole ask (but its «lo de», read below on its own X).
-  if (asksAgendaData(raw) || blocked(bare(raw).replace(/\blo\s+del?\b/gi, ' '), titles)) return null;
+  // The agenda asked as such, or any event signal in the whole ask (but its «lo de», read below on its own X). A follow-up
+  // that says the topic's own thing again with «esa», «ese», «la» («¿y si esa visita no va?», «¿y si el evento se
+  // cancela?») is read without those two words: they name no event of their own; anything else of an event (a title, a
+  // place, a day, an hour, «¿y quién va a esa visita?») still stops it (WF-C2).
+  const again = SAID_AGAIN.exec(t.replace(TAIL, '').replace(SOFT_LEAD, ''));
+  const probe = again ? `${again[1]} ${again[2]}`.trim() : raw;
+  if (asksAgendaData(probe) || blocked(bare(probe).replace(/\blo\s+del?\b/gi, ' '), titles)) return null;
   const tail = t.replace(TAIL, '');
   if (o.last && ASKED_TO_GO_ON.test(o.last) && YES.test(tail)) return { facet: 'more' };
   if (WHAT_ELSE.test(tail)) return { facet: 'more' };
@@ -201,8 +206,9 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
   for (const [facet, re] of [['whatif', WHAT_IF], ['who', WHO_ASK], ['why', WHY_ABOUT]] as [Facet, RegExp][]) {
     const m = re.exec(follow);
     if (!m) continue;
-    // (Its X without the «¿… qué pasa?» it may end with: «¿y si lo rechazo qué pasa?» is about «lo rechazo».)
-    const about = (m.groups?.about ?? m.groups?.about2)?.replace(/ (?:que pasa|que hago|que sucede|que se hace|entonces)$/, '').trim();
+    // (Its X without the «¿… qué pasa?» it may end with: «¿y si lo rechazo qué pasa?» is about «lo rechazo»; and without
+    // the topic's own thing said again: «¿y si esa visita no va?» is about «no va».)
+    const about = (m.groups?.about ?? m.groups?.about2)?.replace(/ (?:que pasa|que hago|que sucede|que se hace|entonces)$/, '').replace(THING_AGAIN, '').trim();
     if (!about) return { facet };
     if (about.split(' ').length > 8 || about.length > 70 || YES.test(about)) return null;
     if (blocked(bare(about), titles)) return null;
@@ -210,6 +216,11 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
   }
   return null;
 }
+// The topic's own thing said again in a follow-up («esa visita», «el evento»): an event word with a demonstrative or an
+// article and nothing after it but what is said of it.
+const THING = String.raw`(?:ese|esa|este|esta|el|la) (?:evento|visita|actividad|acto|reunion|jornada|entrega|asamblea)`;
+const THING_AGAIN = new RegExp(String.raw`^${THING}\b\s*`);
+const SAID_AGAIN = new RegExp(String.raw`^(${FOLLOW}(?:(?:eso|esto) )?(?:(?:que pasa|que hago|que sucede|que se hace|como hago) )?(?:si|en caso de que|cuando no|por que)) ${THING}\b ?(.*)$`);
 // The openers that are not a follow-up's «y» (courtesy, fillers): left out before the follow-up's own shape is read.
 const SOFT_LEAD = /^(?:(?:ok|okey|okay|ya|aja|bueno|mira|oye|chamo|chama|pana|hola|epa|epale|disculpa|disculpe|perdon|perdona|360|ah|eh|mmm|vale|listo|gracias|muchas gracias|a ver|amigo|amiga|bro|mano|mana)(?: |$))+/;
 // What still stops «¿y cuándo lo hago?»: an event named or the agenda's shape (a title, a place, a date or an address).
@@ -412,15 +423,35 @@ function unitFor(topic: Entry | string, roles: Role[], asked?: string): Unit | n
   if (e?.kind === 'curated') return relatedOf(e, roles) ?? relatedByAsk(e, roles, asked) ?? { kind: 'entry', id: e.id, entry: e };
   return unitOf(id, e);
 }
-// The task of this person's guide that answers what they asked (the first sure task or step of the guide among its first
-// answers), for «paso a paso» of a topic that has no steps of its own.
+// The task of this person's guide that the question asked (for «paso a paso» of a topic with no steps of its own): the
+// one whose title says most of its words, then its «Cuándo» and steps, and whose title starts with the question's own verb
+// («¿cómo publico…?» is «Publicar a mano», not «Cambiar algo de una pieza aprobada»; «hago», «pongo» say no task). Only
+// when one task stands out.
+const ANY_VERB = new Set(tokens('hago hace hacer hacen pongo pone poner uso usa usar veo ve ver tengo tiene doy da dar'));
 function taskAsked(asked: string, roles: Role[]): Unit | null {
-  const found = findAnswers(asked, { roles, limit: 6 }).filter((m) => (m.entry.kind === 'task' || m.entry.kind === 'step') && m.score >= WEAK && (!m.entry.domain || m.entry.domain === 'equipo'));
-  for (const m of found.slice(0, 2)) {
-    const u = unitOf(m.entry.id, m.entry);
-    if (u && u.kind === 'task' && allowed(u, roles)) return { kind: 'task', id: u.id, role: u.role, guide: u.guide, task: u.task };
+  const words = tokens(asked).filter((w) => w.length >= 3);
+  if (!words.length) return null;
+  const verb = /\bcomo (?:(?:lo|la|los|las|le|les|se|me) )?([a-z]+)/.exec(readable(asked))?.[1];
+  const v = verb ? tokens(verb)[0] : undefined;
+  const share = (text: string) => {
+    const have = tokens(text);
+    return words.filter((w) => have.some((h) => rootsLike(h, w))).length / words.length;
+  };
+  let best: { u: Unit; score: number } | null = null;
+  let second = 0;
+  for (const g of allGuides()) {
+    if (!roles.includes(g.role)) continue;
+    for (const task of g.tasks) {
+      const head = tokens(task.title)[0];
+      const score = share(task.title) + 0.5 * share([task.when, ...task.steps].join(' ')) + (v && !ANY_VERB.has(v) && head && rootsLike(head, v) ? 1 : 0);
+      const u: Unit = { kind: 'task', id: `${g.slug}:paso-a-paso:${task.id}`, role: g.role, guide: g, task };
+      if (!best || score > best.score) {
+        second = best?.score ?? 0;
+        best = { u, score };
+      } else if (score > second) second = score;
+    }
   }
-  return null;
+  return best && best.score >= 0.75 && best.score >= second + 0.25 ? best.u : null;
 }
 // The guide's unit of what the person asked: among the first entries of the guide that answer it (no curated one), the
 // first of this person's whose text says a fair share of the curated answer's words (OVERLAP), as relatedId() checks.
@@ -575,31 +606,40 @@ function flowStepOf(task: Task, role: TeamRole): { flow: Flow; index: number } |
 
 // The way out of a step of a flow that goes on: its «Sí» (or the first) that leads to a later step; a «Sí» that goes back
 // («¿Se canceló?» → back to «Ponerle fecha») is not the way on.
-function wayOn(flow: Flow, index: number): NonNullable<FlowStep['branches']>[number] | undefined {
+// A step's question that asks who did it («¿Lo creó el jefe?»): its «Sí» is that role's way, its «No» everyone else's.
+const DONE_BY = /^(?:lo|la|los|las) (?:creo|puso|propuso|hizo|mando|cargo) (?:el |la )?([a-z]+)$/;
+function wayOn(flow: Flow, index: number, roles: Role[] = []): NonNullable<FlowStep['branches']>[number] | undefined {
   const s = flow.steps[index];
   const ahead = (b: { to?: string }) => !!b.to && flow.steps.findIndex((x) => x.id === b.to) > index;
+  const by = s.question ? DONE_BY.exec(readable(s.question))?.[1] : undefined;
+  const role = by ? ROLE_WORDS.find(([re]) => re.test(by))?.[1] : undefined;
+  if (role && roles.length) {
+    const mine = roles.includes(role);
+    const b = s.branches?.find((x) => (mine ? /^S[ií](?![\p{L}])/u : /^No(?![\p{L}])/u).test(x.label));
+    if (b && ahead(b)) return b;
+  }
   return s.branches?.find((b) => /^S[ií](?![\p{L}])/u.test(b.label) && ahead(b)) ?? s.branches?.find(ahead);
 }
 // The step that comes after one of a flow: where its way on leads, else the next one.
-function flowNext(flow: Flow, index: number): number | null {
-  const way = wayOn(flow, index);
+function flowNext(flow: Flow, index: number, roles: Role[] = []): number | null {
+  const way = wayOn(flow, index, roles);
   const to = way?.to ? flow.steps.findIndex((x) => x.id === way.to) : index + 1;
   return to > index && to < flow.steps.length ? to : null;
 }
 // What the way on of a step says happens right then («Si la puso el despacho, al jefe le llega «Por decidir»»), the
 // sentences of it the thread did not say yet; null when there are none.
-function wayOnSays(flow: Flow, index: number, said: string[]): string | null {
-  const way = wayOn(flow, index);
+function wayOnSays(flow: Flow, index: number, said: string[], roles: Role[] = []): string | null {
+  const way = wayOn(flow, index, roles);
   if (!way?.text) return null;
   const left = sentencesOf(way.text).filter((x) => !wasSaid(x, said) && !said.some((y) => plain(y).includes(plain(x).replace(/[.]$/, ''))));
   return left.length ? left.join(' ') : null;
 }
 // After the asker's own steps: the next step of the flow that someone else does (design §4(c)3 next (i)).
 function flowNextOther(flow: Flow, index: number, roles: Role[]): number | null {
-  let k = flowNext(flow, index);
+  let k = flowNext(flow, index, roles);
   for (let n = 0; k !== null && n < flow.steps.length; n++) {
     if (!flow.steps[k].roles.every((r) => roles.includes(r))) return k;
-    k = flowNext(flow, k);
+    k = flowNext(flow, k, roles);
   }
   return k;
 }
@@ -630,23 +670,23 @@ function aboutTitle(title: string, about: string): boolean {
 }
 
 // The next step of the flow (from this one on) that this role does.
-function flowNextBy(flow: Flow, index: number, role: TeamRole): number | null {
-  let k = flowNext(flow, index);
+function flowNextBy(flow: Flow, index: number, role: TeamRole, roles: Role[] = []): number | null {
+  let k = flowNext(flow, index, roles);
   for (let n = 0; k !== null && n < flow.steps.length; n++) {
     if (flow.steps[k].roles.includes(role)) return k;
-    k = flowNext(flow, k);
+    k = flowNext(flow, k, roles);
   }
   return null;
 }
 // The next step of the flow (from this one on) whose text says the verb asked («¿y después quién lo publica?»).
-function flowNextDoing(flow: Flow, index: number, verb: string): number | null {
+function flowNextDoing(flow: Flow, index: number, verb: string, roles: Role[] = []): number | null {
   const root = tokens(verb)[0];
   if (!root) return null;
-  let k = flowNext(flow, index);
+  let k = flowNext(flow, index, roles);
   for (let n = 0; k !== null && n < flow.steps.length; n++) {
     const s = flow.steps[k];
     if (tokens([s.text, ...(s.branches ?? []).map((b) => b.text)].join(' ')).some((w) => rootsLike(w, root))) return k;
-    k = flowNext(flow, k);
+    k = flowNext(flow, k, roles);
   }
   return null;
 }
@@ -722,7 +762,12 @@ const TURNS = new Set(['sin', 'no', 'nunca', 'menos', 'solo', 'nada']);
  */
 function partAbout(u: Unit, about: string, roles: Role[], define = false, last = false, bonus?: (p: Part) => number, minShare = 0): Part | null {
   const want = tokens(about).filter((w) => w.length >= 3);
-  if (!want.length) return null;
+  if (!want.length) {
+    // (X with no word of its own, «no va»: the part that quotes it as a label, «No va».)
+    const x = readable(about).replace(ARTICLES, '').trim();
+    if (x.length < 3) return null;
+    return partsOf(u, roles).find((p) => [...p.text.matchAll(/«([^«»]+)»/g)].some((m) => readable(m[1]) === x)) ?? null;
+  }
   const a = ` ${readable(about)} `;
   // A phrase with a word that turns its meaning around and that tokens() leaves out («sin programar» is «programar» to
   // it): the part must say the phrase itself.
@@ -860,17 +905,16 @@ function stepsFacet(u: Unit, ctx: ExplainContext, tours: Set<string>): Candidate
     const go = u.kind === 'task' ? opens(`/ayuda/${u.guide.slug}?ver=pasos`, ctx.roles) : u.kind === 'flow' ? flowsHref(ctx.roles) : guideHref(u, ctx.roles);
     return go ? [{ text: 'Esos son todos los pasos. Para verlos con calma, están en «Ayuda y guías»: toca el botón.', entryId: u.id, goTo: go }] : [];
   }
-  // No steps of its own (a screen, a word, a curated answer): the task the person asked about, when the guide has one for
-  // them («¿cómo hago el storyboard?» answered by the screen that shows it: «Armar el storyboard»); a screen, its task by
-  // its tutorial; then its tutorial on the screen.
+  // No steps of its own (a screen, a word, a curated answer): a screen's task, the one that has its tutorial (of several,
+  // the one the person asked about); else the task the person asked about, when their guide has one («¿cómo hago el
+  // storyboard?» answered by the screen that shows it: «Armar el storyboard»); then the screen's tutorial.
   const out: Candidate[] = [];
   const asked = ctx.asked ? taskAsked(ctx.asked, ctx.roles) : null;
-  if (asked && asked.id !== u.id) out.push(...stepsFacet(asked, { ...ctx, cursor: undefined }, tours));
-  if (u.kind === 'screen') {
-    const task = u.guide?.tasks.find((t) => t.tour && t.tour === u.section.tour);
-    if (task && u.guide) out.push(...stepsFacet({ kind: 'task', id: `${u.guide.slug}:paso-a-paso:${task.id}`, role: u.guide.role, guide: u.guide, task }, { ...ctx, cursor: undefined }, tours));
-    if (tutorial) out.push({ text: `Te lo muestro paso a paso en la pantalla: toca el botón y te enseño ${lcFirst(u.section.title.replace(/: .*$/, ''))}.`, entryId: u.id, tutorial });
-  }
+  const shared = u.kind === 'screen' && u.guide ? u.guide.tasks.filter((t) => t.tour && t.tour === u.section.tour) : [];
+  const own = shared.length === 1 ? shared[0] : shared.find((t) => asked?.kind === 'task' && asked.task === t) ?? (asked ? undefined : shared[0]);
+  if (own && u.kind === 'screen' && u.guide) out.push(...stepsFacet({ kind: 'task', id: `${u.guide.slug}:paso-a-paso:${own.id}`, role: u.guide.role, guide: u.guide, task: own }, { ...ctx, cursor: undefined }, tours));
+  else if (asked && asked.id !== u.id) out.push(...stepsFacet(asked, { ...ctx, cursor: undefined }, tours));
+  if (u.kind === 'screen' && tutorial) out.push({ text: `Te lo muestro paso a paso en la pantalla: toca el botón y te enseño ${lcFirst(u.section.title.replace(/: .*$/, ''))}.`, entryId: u.id, tutorial });
   return out;
 }
 
@@ -905,21 +949,21 @@ function next(u: Unit, ctx: ExplainContext): Candidate[] {
     // At its end: what its step of the flow says happens then (its way on: «Si la puso el despacho, al jefe le llega «Por
     // decidir»»), then the next step of its flow that someone else does (or the one the role asked about does).
     const fs = flowStepOf(u.task, u.role);
-    const did = fs && ctx.doer ? flowNextDoing(fs.flow, fs.index, ctx.doer) : null;
+    const did = fs && ctx.doer ? flowNextDoing(fs.flow, fs.index, ctx.doer, roles) : null;
     if (fs && did !== null) return [flowTurn(fs.flow, did, roles, false)];
-    const then = fs && !who && !ctx.about ? wayOnSays(fs.flow, fs.index, said) : null;
+    const then = fs && !who && !ctx.about ? wayOnSays(fs.flow, fs.index, said, roles) : null;
     if (fs && then) return [{ text: `Después: ${lcFirst(end(then))}`, entryId: `flujo:${fs.flow.id}:${fs.flow.steps[fs.index].id}` }];
-    const n = fs ? (who ? flowNextBy(fs.flow, fs.index, who) : flowNext(fs.flow, fs.index)) : null;
+    const n = fs ? (who ? flowNextBy(fs.flow, fs.index, who, roles) : flowNext(fs.flow, fs.index, roles)) : null;
     if (fs && n !== null) return [flowTurn(fs.flow, n, roles, !who)];
     return [];
   }
   if (u.kind === 'flow') {
     const from = (ctx.about && !who ? partAbout(u, ctx.about, roles)?.step : undefined) ?? u.step ?? (ctx.cursor !== undefined ? ctx.cursor - 1 : 0);
-    const did = ctx.doer ? flowNextDoing(u.flow, from, ctx.doer) : null;
+    const did = ctx.doer ? flowNextDoing(u.flow, from, ctx.doer, roles) : null;
     if (did !== null) return [flowTurn(u.flow, did, roles, false)];
-    const then = !who && !ctx.about ? wayOnSays(u.flow, from, said) : null;
+    const then = !who && !ctx.about ? wayOnSays(u.flow, from, said, roles) : null;
     if (then) return [{ text: `Después: ${lcFirst(end(then))}`, entryId: `flujo:${u.flow.id}:${u.flow.steps[from].id}` }];
-    const n = who ? flowNextBy(u.flow, from, who) : flowNext(u.flow, from);
+    const n = who ? flowNextBy(u.flow, from, who, roles) : flowNext(u.flow, from, roles);
     if (n === null) return [{ text: `Ahí termina el camino: ${lcFirst(u.flow.title)}. Lo ves completo en «Ayuda y guías», en «Cómo va el trabajo entre todos».`, entryId: u.id, ...(flowsHref(roles) ? { goTo: flowsHref(roles) } : {}) }];
     return [flowTurn(u.flow, n, roles, !who)];
   }
@@ -997,7 +1041,9 @@ function whatIf(u: Unit, ctx: ExplainContext): Candidate[] {
 
 // «¿Y quién…?»: the part of the topic about X that names who does it; a task of one's own is the person's.
 // («El editor» alone is the web's screen where one writes: the role is «el editor de la web».)
-const NAMES_ROLE = /\b(?:jefe|despacho|politica|ivt|grabacion|redes|administracion|coordinacion|coordinador\w*|aprobador\w*|editor(?:es)? de la web|editores|auditoria|responsables?|operador\w*|tu|cada quien|nadie|todos)\b/;
+// («Tú», with its accent, is someone; «tu» is «your»: read on the text as written.)
+const NAMES_ROLE = /\b(?:jefe|despacho|politica|ivt|grabacion|redes|administracion|coordinacion|coordinador\w*|aprobador\w*|editor(?:es)? de la web|editores|auditoria|responsables?|operador\w*|cada quien|nadie|todos)\b/;
+const YOU = /(?:^|[^\p{L}])tú(?![\p{L}])/iu;
 const whoBonus = (p: Part) => (saysFacet('who', p.text) ? 0.4 : 0);
 function who(u: Unit, ctx: ExplainContext): Candidate[] {
   const roles = ctx.roles;
@@ -1028,7 +1074,7 @@ export function saysFacet(facet: Facet, text: string): boolean {
   // («El porqué» is no reason: «De eso no tengo el porqué».)
   if (facet === 'why') return REASON.test(t.replace(/\b(?:el|un|su|del) porque\b/g, ' '));
   // (Who does X is said by someone named, not by what happens when it is done: «Cuando el jefe la aprueba: …».)
-  if (facet === 'who') return NAMES_ROLE.test(t) && !WHEN_FIRST.test(t);
+  if (facet === 'who') return (NAMES_ROLE.test(t) || YOU.test(text)) && !WHEN_FIRST.test(t);
   if (facet === 'when') return WHEN_SAYS.test(t);
   return true;
 }
