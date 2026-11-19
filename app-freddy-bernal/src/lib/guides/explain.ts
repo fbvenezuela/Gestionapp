@@ -140,7 +140,7 @@ const TASKS: Record<string, Facets> = {
 
   // Política
   'politica:paso-a-paso:nueva-ficha': {
-    easy: 'Cuando pasa algo en una comunidad, lo cargas con «Nueva ficha comunitaria». Si es para la agenda del jefe, lo marcas y le llega al jefe para ponerle fecha.',
+    easy: 'Cuando pasa algo en una comunidad, en Municipios tocas «Nueva ficha comunitaria» y lo cuentas. Si es para la agenda del jefe, lo marcas y tocas «Guardar y avisar al jefe»; si no, «Guardar».',
     example: 'Por ejemplo: una comunidad pide que el jefe la visite. En Municipios tocas «Nueva ficha comunitaria», llenas los grupos, prendes «¿Va a la agenda del jefe?» y tocas «Guardar y avisar al jefe».',
   },
   'politica:paso-a-paso:seguimiento': {
@@ -160,7 +160,7 @@ const TASKS: Record<string, Facets> = {
 
   // El IVT
   'ivt:paso-a-paso:nueva-obra': {
-    easy: 'Antes de cada visita del jefe cargas la ficha de la obra con «Nueva ficha de obra». Si te falta algo, la guardas como borrador; completa, le avisas al jefe.',
+    easy: 'Antes de cada visita del jefe, en Obras tocas «Nueva ficha de obra» y la llenas. Si te falta algo, «Guardar borrador»; completa, «Guardar y avisar al jefe».',
     example: 'Por ejemplo: el jefe va a visitar una obra. En Obras tocas «Nueva ficha de obra», llenas los cinco grupos, en lo que falta saber pones «Por confirmar» y tocas «Guardar y avisar al jefe».',
     why: 'Porque lo que va a decir el jefe sale solo de las cifras de la ficha: por eso cada dato lleva su fuente, y lo que no sabes va «Por confirmar».',
   },
@@ -189,7 +189,7 @@ const TASKS: Record<string, Facets> = {
     example: 'Por ejemplo: te llega «Te asignaron un evento». Vas a Agenda → «Mis eventos», lo abres, lees «Cómo se llega» y en la pestaña «Storyboard» ves que Redes pide una toma del jefe hablando.',
   },
   'grabacion:paso-a-paso:subir': {
-    easy: 'El mismo día que grabas, subes lo grabado en el evento con el botón «Subir» de cada casilla, ya limpio y tal como sale de la cámara.',
+    easy: 'El mismo día que grabas, abres el evento en la pestaña «Material» y subes cada archivo en su casilla con «Subir», limpio y tal como sale de la cámara.',
     example: 'Por ejemplo: grabaste al jefe hablando y unas tomas con el dron. Abres el evento, en «Material» tocas «Subir» en la casilla del jefe y luego en la del dron, con los archivos sin pasar por WhatsApp.',
   },
   'grabacion:paso-a-paso:entrega': {

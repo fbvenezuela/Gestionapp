@@ -221,17 +221,31 @@ function saidThrough(steps: string[], said: string[]): number {
   return k;
 }
 const likeWord = (have: string[], w: string) => have.some((h) => h === w || (h.length >= 4 && w.length >= 4 && (h.startsWith(w) || w.startsWith(h))));
+// The words that only point at a button («darle a publicar», «tocar enviar», «el botón de archivar»): a short X with one
+// of them is a button, said by a step or a box that has it in a label, never by one that only names the word («sin
+// publicarlo»). When no label has it, X is read whole, as before.
+const POINTING = new Set(tokens('dar darle dale hacerle tocar toca tocarle pulsar presionar apretar clic click boton'));
+const labelWords = (t: string) => tokens((t.match(/«[^«»]*»/g) ?? []).join(' '));
+type Reading = { want: string[]; read: (t: string) => string[]; button: boolean };
+function readingsOf(x: string): Reading[] {
+  const all = tokens(x).filter((w) => w.length >= 3);
+  const rest = all.filter((w) => !POINTING.has(w));
+  const whole: Reading = { want: all, read: tokens, button: false };
+  return rest.length && rest.length < all.length && rest.length <= 4 ? [{ want: rest, read: labelWords, button: true }, whole] : [whole];
+}
 /** The step that says X (most of its words), or −1. */
 function stepAbout(steps: string[], about: string): number {
-  const want = tokens(about).filter((w) => w.length >= 3);
-  if (!want.length) return -1;
-  let best = -1;
-  let top = 0;
-  steps.forEach((st, k) => {
-    const share = want.filter((w) => likeWord(tokens(st), w)).length / want.length;
-    if (share > top || (share === top && share > 0)) [best, top] = [k, share];
-  });
-  return top >= 0.6 ? best : -1;
+  for (const { want, read } of readingsOf(about)) {
+    if (!want.length) continue;
+    let best = -1;
+    let top = 0;
+    steps.forEach((st, k) => {
+      const share = want.filter((w) => likeWord(read(st), w)).length / want.length;
+      if (share > top || (share === top && share > 0)) [best, top] = [k, share];
+    });
+    if (top >= 0.6) return best;
+  }
+  return -1;
 }
 /**
  * What comes after X in the web's flows (6.1-6.18): the box of a flow this person reads that says X best (or the text
@@ -239,25 +253,33 @@ function stepAbout(steps: string[], about: string): number {
  * enough of X.
  */
 function flowAfter(x: string, roles: Role[], said: string[], within?: WebFlow): { text: string; flow: WebFlow } | null {
-  const want = tokens(x).filter((w) => w.length >= 3);
-  if (!want.length) return null;
-  let best: { flow: WebFlow; k: number; score: number } | null = null;
-  for (const f of within ? [within] : webFlows()) {
-    if (!f.audience.some((a) => roles.includes(a as Role))) continue;
-    const path = stepsOf(f, roles);
-    path.forEach((t, k) => {
-      if (k + 1 >= path.length) return;
-      const share = want.filter((w) => likeWord(tokens(t), w)).length / want.length;
-      if (share >= 0.6 && (!best || share > best.score)) best = { flow: f, k, score: share };
-    });
+  for (const { want, read, button } of readingsOf(x)) {
+    if (!want.length) continue;
+    let best: { flow: WebFlow; k: number; score: number } | null = null;
+    for (const f of within ? [within] : webFlows()) {
+      if (!f.audience.some((a) => roles.includes(a as Role))) continue;
+      const path = stepsOf(f, roles);
+      path.forEach((t, k) => {
+        if (k + 1 >= path.length) return;
+        const share = want.filter((w) => likeWord(read(t), w)).length / want.length;
+        if (share >= 0.6 && (!best || share > best.score)) best = { flow: f, k, score: share };
+      });
+    }
+    if (!best) continue;
+    const { flow, k } = best;
+    const path = stepsOf(flow, roles);
+    const next = path.slice(k + 1).filter((t) => !wasSaid(t, said));
+    if (!next.length) return null;
+    // A button's own box says what tapping it does («Publicar ahora»: queda «Publicado» en ese momento), then what follows.
+    const tapped = button && !wasSaid(path[k], said) ? path[k] : null;
+    const text = tapped
+      ? `${tapped} Después: ${lcFirst(next[0])}`
+      : next[1] && next[0].length + next[1].length < 260
+        ? `Después: ${lcFirst(next[0])} ${next[1]}`
+        : `Después: ${lcFirst(next[0])}`;
+    return { text, flow };
   }
-  if (!best) return null;
-  const { flow, k } = best;
-  const path = stepsOf(flow, roles);
-  const next = path.slice(k + 1).filter((t) => !wasSaid(t, said));
-  if (!next.length) return null;
-  const text = next[1] && next[0].length + next[1].length < 260 ? `Después: ${lcFirst(next[0])} ${next[1]}` : `Después: ${lcFirst(next[0])}`;
-  return { text, flow };
+  return null;
 }
 
 // ── The words of «Palabras de la web» and «Palabras de la atención» (WF-C, src/lib/guides/web/glossary.ts) ──────────
