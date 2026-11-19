@@ -65,8 +65,9 @@ export type Draft = {
   secret: string;
   step: Step;
   values: FormValues;
-  /** What the address chose when this form started (resumeDraft): reloading that address brings the draft back even
-   * after the person changed the kind or dropped the item by hand. */
+  /** The address (kind and item) of the page this draft is on: the one its form started at, or the one that brought it
+   * back; its own kind and item once another address's form took its place (setAside). When that page comes back as the
+   * person left it (a reload), the draft comes back even after the person changed the kind or dropped the item by hand. */
   opened: FormPreset;
   /** The files chosen before a reload (files themselves cannot be kept): the form asks to choose them again. */
   fileNames: string[];
@@ -129,24 +130,34 @@ export function hasContent(v: FormValues): boolean {
   return [v.categoryId, v.municipalityId, v.parishId, v.sector, v.locationReference, v.title, v.description, v.eventDate, v.name, v.email, v.phone, v.note].some(nonEmpty) || !!v.point;
 }
 
+const sameAddress = (a: FormPreset, b: FormPreset) => a.type === b.type && a.linkedItemId === b.linkedItemId;
+
 /**
- * The tab's saved draft the form starts from, or null for a new form (design §5.1 «Drafts»):
+ * The tab's saved draft the form starts from, or null for a new form (design §5.1 «Drafts», §11):
  *   * a sent request always comes back, with its receipt: its code and secret cannot be had again;
- *   * what was written comes back only if something was written (hasContent: the kind alone is not) and only for the
- *     address's choice: each kind or item the address names is the draft's, or the one its form was opened with (a
- *     reload after the person changed the kind or dropped the item by hand). A draft of another kind, or about another
- *     item, is another form: the address's choice wins over it;
+ *   * what was written comes back only if something was written (hasContent: the kind alone is not), and only when
+ *     each kind or item the address names is the draft's own. The address's choice wins over a draft of another kind,
+ *     or about another item, every time the form is opened: by a link of the site, or by the address typed or followed;
+ *   * the one exception is the page coming back as the person left it (`cameBack`: a reload, or Back or Forward to it,
+ *     draft-storage.ts formCameBack): the draft that was on this very page comes back, even after the person changed
+ *     the kind or dropped the item by hand;
  *   * anything else is a new form, with a key and a secret of its own (never the draft's: a key that may have reached
- *     the server with other content is not reused for this one).
+ *     the server with other content is not reused for this one), and the draft is set aside (setAside).
+ * What comes back is on this page now (its `opened` is this address).
  */
-export function resumeDraft(saved: Draft | null, preset: FormPreset): Draft | null {
+export function resumeDraft(saved: Draft | null, preset: FormPreset, cameBack = false): Draft | null {
   if (!saved) return null;
   if (saved.receipt) return { ...saved, receipt: { ...saved.receipt, files: filesAfterReload(saved.receipt.files) } };
   if (!hasContent(saved.values)) return null;
-  const fits = (asked: string | null, now: string | null, opened: string | null) => !asked || asked === now || asked === opened;
-  if (!fits(preset.type, saved.values.type || null, saved.opened.type)) return null;
-  if (!fits(preset.linkedItemId, saved.values.linkedItemId, saved.opened.linkedItemId)) return null;
-  return saved;
+  const own = (asked: string | null, now: string | null) => !asked || asked === now;
+  if (own(preset.type, saved.values.type || null) && own(preset.linkedItemId, saved.values.linkedItemId)) return { ...saved, opened: preset };
+  return cameBack && sameAddress(saved.opened, preset) ? saved : null;
+}
+
+/** A draft the form of another address took the place of (resumeDraft gave null): it stays in the tab on no page, so
+ * only its own kind and item bring it back, never a reload of the page that showed the other form. */
+export function setAside(saved: Draft): Draft {
+  return { ...saved, opened: { type: saved.values.type || null, linkedItemId: saved.values.linkedItemId } };
 }
 
 /** Whether a form's draft is worth keeping in the tab: a receipt, or something written. A form with nothing written

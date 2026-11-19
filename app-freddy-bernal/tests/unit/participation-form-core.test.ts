@@ -3,13 +3,13 @@
 // the server with the errors on the step that owns them, the draft kept in sessionStorage (anything odd in it is
 // dropped, never trusted), and the small helpers of the pages: «?sobre=», the date rule, the verified contacts, the
 // words of the states.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { requestInput } from '@/lib/participation/input';
 import { SECRET_PATTERN } from '@/lib/participation/receipt-code';
 import { chosenChannel, eventDateProblem, linkedItemPath, parseSobre, stepOfField } from '@/lib/actions/participation-types';
 import {
-  DRAFT_KEY, canAskSimilar, emptyValues, errorsOfStep, filesAfterReload, firstErrorStep, hasContent, newDraft, parseDraft, resumeDraft, similarKey,
-  toInput, uuidV4, validate, validateJoin, worthKeeping, type Draft, type FormValues,
+  DRAFT_KEY, canAskSimilar, emptyValues, errorsOfStep, filesAfterReload, firstErrorStep, hasContent, newDraft, parseDraft, resumeDraft, setAside,
+  similarKey, toInput, uuidV4, validate, validateJoin, worthKeeping, type Draft, type FormValues,
 } from '@/components/participation/form-core';
 import { verifiedContacts } from '@/components/participation/contacts';
 import { STATE_PLAIN, dayDate, reportsCount, tachiraToday, timelineLine } from '@/components/participation/words';
@@ -225,24 +225,45 @@ describe('al llegar al formulario: el borrador de la pestaña o uno nuevo', () =
     expect(resumeDraft(aboutA, preset('acotacion'))).toMatchObject({ values: { linkedItemId: LINK_A } });
     // Written about no item in a form opened without one: the form about an item is another one (the link wins).
     expect(resumeDraft(stored(written({ type: 'acotacion', linkedItemId: null })), preset('acotacion', LINK_A))).toBeNull();
-    // A draft that dropped its item («Quitar») comes back as it was when its address is opened again (a reload).
+    // A draft that dropped its item («Quitar») on the page about A: opening that page again gives the form about A (the
+    // link wins); the page coming back as it was left (a reload) brings the draft back as it was.
     const dropped = stored({ ...written({ type: 'acotacion', linkedItemId: null }), opened: { type: 'acotacion', linkedItemId: LINK_A } });
-    expect(resumeDraft(dropped, preset('acotacion', LINK_A))).toMatchObject({ values: { linkedItemId: null } });
-    expect(resumeDraft(dropped, preset('acotacion', LINK_B))).toBeNull();
+    expect(resumeDraft(dropped, preset('acotacion', LINK_A))).toBeNull();
+    expect(resumeDraft(dropped, preset('acotacion', LINK_A), true)).toMatchObject({ values: { linkedItemId: null } });
+    expect(resumeDraft(dropped, preset('acotacion', LINK_B), true)).toBeNull();
   });
 
-  it('al recargar la misma dirección, lo escrito vuelve aunque la persona haya cambiado el tipo a mano; en otro tipo, no', () => {
+  it('el tipo cambiado a mano: al abrir otra vez el enlace, gana el enlace; solo al recargar esa página vuelve lo escrito', () => {
     // Opened from the denuncia's link, «Petición» ticked by hand, then written.
     const switched = stored({ ...written({ type: 'peticion' }), opened: { type: 'denuncia', linkedItemId: null } });
-    expect(resumeDraft(switched, preset('denuncia'))).toMatchObject({ values: { type: 'peticion', sector: 'Sector escrito (prueba)' } });
-    expect(resumeDraft(switched, preset('peticion'))).toMatchObject({ values: { type: 'peticion' } });
-    expect(resumeDraft(switched, preset(null))).not.toBeNull();
-    expect(resumeDraft(switched, preset('reporte'))).toBeNull();
+    // The denuncia's link opened again (a link of the site, the address typed or followed): the denuncia's form.
+    expect(resumeDraft(switched, preset('denuncia'))).toBeNull();
+    // That page coming back as it was left (a reload, Back or Forward): the petición, as written.
+    expect(resumeDraft(switched, preset('denuncia'), true)).toMatchObject({ values: { type: 'peticion', sector: 'Sector escrito (prueba)' } });
+    // Its own kind, and the form without a kind, bring it back any time, and then it is on that page.
+    expect(resumeDraft(switched, preset('peticion'))).toMatchObject({ values: { type: 'peticion' }, opened: { type: 'peticion', linkedItemId: null } });
+    expect(resumeDraft(switched, preset(null))).toMatchObject({ opened: { type: null, linkedItemId: null } });
+    expect(resumeDraft(switched, preset('reporte'), true)).toBeNull();
     // Kept by an older version (no «opened»): only its own kind brings it back.
     const legacy = JSON.parse(JSON.stringify(written({ type: 'denuncia', title: 'Un hecho escrito (prueba)' })));
     delete legacy.opened;
     expect(resumeDraft(parseDraft(JSON.stringify(legacy)), preset('denuncia'))).not.toBeNull();
-    expect(resumeDraft(parseDraft(JSON.stringify(legacy)), preset('peticion'))).toBeNull();
+    expect(resumeDraft(parseDraft(JSON.stringify(legacy)), preset('peticion'), true)).toBeNull();
+  });
+
+  it('de la petición a «Denuncia» a mano: «Hacer una petición» otra vez da la petición, y lo escrito queda para la denuncia', () => {
+    const toDenuncia = stored({ ...written({ type: 'denuncia', title: 'Un hecho escrito (prueba)' }), opened: { type: 'peticion', linkedItemId: null } })!;
+    // Before another form takes its place, a reload of the petición's page brings back what was on it.
+    expect(resumeDraft(toDenuncia, preset('peticion'), true)).toMatchObject({ values: { type: 'denuncia' } });
+    // Opened again: the petición's form, nothing of the denuncia.
+    expect(resumeDraft(toDenuncia, preset('peticion'))).toBeNull();
+    // That new form sets the draft aside (the same draft, on no page): a reload of the petición's page, which now shows
+    // the petición, does not bring it back; the denuncia's link does.
+    const aside = stored(setAside(toDenuncia))!;
+    expect(aside).toEqual({ ...toDenuncia, opened: { type: 'denuncia', linkedItemId: null } });
+    expect(resumeDraft(aside, preset('peticion'), true)).toBeNull();
+    expect(resumeDraft(aside, preset('denuncia'))).toMatchObject({ submissionKey: toDenuncia.submissionKey, values: { type: 'denuncia', title: 'Un hecho escrito (prueba)' } });
+    expect(setAside(stored(written({ type: 'acotacion', linkedItemId: LINK_A }))!).opened).toEqual({ type: 'acotacion', linkedItemId: LINK_A });
   });
 
   it('un comprobante vuelve siempre (su código y su clave no se pueden pedir otra vez), con lo que no subió dado por perdido', () => {
@@ -259,6 +280,35 @@ describe('al llegar al formulario: el borrador de la pestaña o uno nuevo', () =
     expect(worthKeeping(newDraft({ type: 'denuncia', linkedItemId: null }))).toBe(false);
     expect(worthKeeping(written())).toBe(true);
     expect(worthKeeping({ receipt: { reference: 'AC-2026-K7QM2H' } as Draft['receipt'], values: emptyValues({ type: 'reporte' }) })).toBe(true);
+  });
+});
+
+describe('la página del formulario que vuelve como se dejó (recargar, atrás o adelante)', () => {
+  const FORM = 'http://localhost:3000/atencion/nueva?tipo=peticion';
+  // The answers of two forms started one after the other in a page load with this navigation timing (a fresh module:
+  // the first form of a page load).
+  async function twoForms(entries: { type: string; name: string }[], href = FORM) {
+    vi.resetModules();
+    vi.stubGlobal('location', { href });
+    const timing = vi.spyOn(performance, 'getEntriesByType').mockReturnValue(entries as unknown as PerformanceEntryList);
+    try {
+      const { formCameBack } = await import('@/components/participation/draft-storage');
+      return [formCameBack(), formCameBack()];
+    } finally {
+      timing.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  }
+
+  it('solo el primer formulario de una carga que recarga o vuelve a esa misma dirección', async () => {
+    expect(await twoForms([{ type: 'reload', name: FORM }])).toEqual([true, false]);
+    expect(await twoForms([{ type: 'back_forward', name: FORM }])).toEqual([true, false]);
+    // The address typed or followed: a new visit.
+    expect(await twoForms([{ type: 'navigate', name: FORM }])).toEqual([false, false]);
+    // A reload of another page, then a link of the site to the form: a new visit too.
+    expect(await twoForms([{ type: 'reload', name: 'http://localhost:3000/atencion' }])).toEqual([false, false]);
+    // Without the browser's timing: never (the address's choice wins).
+    expect(await twoForms([])).toEqual([false, false]);
   });
 });
 
