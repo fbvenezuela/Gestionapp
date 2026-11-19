@@ -62,6 +62,9 @@ const UNDERSTOOD = '(?:entendi|entiendo|entendio|capte|capto|comprendi|comprendo
 const DO_VERB =
   '(?:hago|hace|hacemos|activo|activa|uso|usa|lleno|llena|pongo|pone|subo|sube|armo|arma|mando|manda|reviso|revisa|apruebo|aprueba|cambio|cambia|veo|ve|marco|marca|quito|quita|agrego|agrega|abro|abre|leo|lee|consigo|saco|preparo|prepara|cargo|carga|creo|crea|escribo|escribe|configuro|configura|instalo|instala|programo|programa|publico|publica|elimino|elimina|archivo|archiva|muevo|mueve|pido|pide|bajo|baja|guardo|guarda)';
 const ROLE_NAMES = '(?:el jefe|jefe|el despacho|despacho|politica|el ivt|ivt|grabacion|redes|administracion)';
+// «¿Y cómo lo pongo otra vez?», «¿cómo lo dejo como estaba?», «¿cómo lo recupero?», «¿cómo lo vuelvo a poner?»: how it
+// is put back (never «¿cómo lo subo otra vez?», which asks the steps again).
+const RESTORE = new RegExp(String.raw`^(?:(?:y|e|pero|entonces) )*como (?:(?:lo|la|los|las) )?(?:(?:pongo|pone|dejo|deja|tengo|tiene|traigo|trae) (?:otra vez|de nuevo|de vuelta|como estaba)|recupero|recupera|recuperamos|vuelvo a (?:poner|tener|dejar|traer)(?:lo|la|los|las)?)(?: (?:por favor|porfa|pues|entonces))*$`);
 // What one asks to be told how to do, said around «paso a paso» («qué hago», «cómo lo hago», «cómo cambio algo ahí»).
 const HOW_DO = String.raw`(?:que (?:hago|hacemos|tengo que hacer|debo hacer|se hace|hay que hacer)|como (?:(?:lo|la|los|las|le|se) )?(?:hago|hace|le hago|${DO_VERB}))(?: (?:eso|esto|algo|ahi|alli|aqui|entonces|yo))*`;
 
@@ -134,9 +137,9 @@ const WHY_SO = /^por que (?:es|son) (?:obligatori[oa]s?|necesari[oa]s?)$|^por qu
 const FOLLOW = '(?:(?:y|e|pero|entonces|o sea|osea) )+';
 // «¿Y si se va la señal?», «¿y si no hay piezas aprobadas?», «¿y qué pasa si lo quito?»: what the topic says happens then.
 const WHAT_IF = new RegExp(String.raw`^${FOLLOW}(?:(?:eso|esto) )?(?:(?:que pasa|que hago|que sucede|que se hace|como hago) )?(?:si|en caso de que|cuando no) (?<about>.+)$`);
-// «¿Y quién lo hace?», «¿y quién puede archivar?», «¿y quién lee las notas internas?», «¿y eso quién lo decide?»: whose
-// step or rule it is.
-const WHO_ASK = new RegExp(String.raw`^${FOLLOW}(?:(?:eso|esto) )?(?:quien|quienes) (?:(?:lo|la|los|las|le|les|se) )?(?<about>[a-z]+(?: [a-z]+){0,5})$|^${FOLLOW}(?:quien|quienes)$`);
+// «¿Y quién lo hace?», «¿y quién puede archivar?», «¿y quién lee las notas internas?», «¿y eso quién lo decide?», «¿y a
+// quién le llega?»: whose step or rule it is.
+const WHO_ASK = new RegExp(String.raw`^${FOLLOW}(?:(?:eso|esto) )?(?:(?:a|de|con|para|por) )?(?:quien|quienes) (?:(?:lo|la|los|las|le|les|se) )?(?<about>[a-z]+(?: [a-z]+){0,5})$|^${FOLLOW}(?:(?:a|de|con|para|por) )?(?:quien|quienes)$`);
 // «¿Y cuándo lo hago?», «¿y cuándo las subo?», «¿y cuándo tengo que hacer eso?»: when a task of one's own is done (its
 // «Cuándo»), never when an event is: only a verb of one's work, about the topic («lo», «eso»), and no event in the ask.
 const OWN_WHEN = new RegExp(
@@ -157,7 +160,10 @@ const POINTS_BACK = /^(?:eso|esto|ella|ellas|el|ellos)$|^(?:esa|ese|esas|esos|es
 const YES_NO_VERB =
   '(?:borra|borran|borro|borrar|pierde|pierden|perder|ve|ven|veo|ver|sale|salen|salir|queda|quedan|llega|llegan|cambia|cambian|cambiar|puede|pueden|puedo|sube|suben|subir|guarda|guardan|guardar|publica|publican|aparece|aparecen|avisa|avisan|entera|enteran|lee|leen|recibe|reciben|devuelve|devuelven|vuelve|vuelven|tiene|tienen|lleva|llevan|cierra|cierran|abre|abren|quita|quitan|quitar|vence|vencen|deja|dejan|cuenta|cuentan|necesita|necesitan|manda|mandan)';
 const YES_LEAD = String.raw`(?:(?:(?:y|e|pero|entonces) )*(?:o sea|osea)(?: que)? |(?:(?:y|e|pero|entonces) )+)`;
-const YES_NO = new RegExp(String.raw`^${YES_LEAD}(?!(?:que|como|quien|quienes|por|para|paraque|pa|si|en que|de que|a que|con que|despues|luego|ahora|entonces)\b)(?<about>(?:(?!que )[a-z]+ ){0,5}(?<verb>${YES_NO_VERB})(?: [a-z]+){0,5})$`);
+const YES_NO = new RegExp(String.raw`^${YES_LEAD}(?!(?:que|como|quien|quienes|por|para|paraque|pa|si|en que|de que|a que|con que|(?:a|de|con) (?:quien|quienes)|despues|luego|ahora|entonces)\b)(?<about>(?:(?!que )[a-z]+ ){0,5}(?<verb>${YES_NO_VERB})(?: [a-z]+){0,5})$`);
+// A yes or no said with its verb and a pronoun only («¿se borra?», «¿lo ven?», «¿ya se pierde?»): it has nothing to be
+// about but the topic of the thread.
+const YES_BARE = new RegExp(String.raw`^(?:(?:ya|tambien|igual|todavia|entonces) )?(?:(?:se|lo|la|los|las|le|les|me) ){1,2}(?<verb>${YES_NO_VERB})(?: (?:ya|tambien|igual|todavia|solo|sola|solos|solas|asi|tambien))?$`);
 /** Whether a text says that verb itself: its stem with a short ending («borra», «borran», «borrado»), never a longer word
  * that only starts like it («borrador»). A stem too short to tell («ve») says it always. */
 export function saysVerb(text: string, verb: string): boolean {
@@ -218,6 +224,13 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
   const tail = t.replace(TAIL, '');
   if (o.last && ASKED_TO_GO_ON.test(o.last) && YES.test(tail)) return { facet: 'more' };
   if (WHAT_ELSE.test(tail)) return { facet: 'more' };
+  // «¿Y cómo lo pongo otra vez?»: how it is put back is what the topic says of getting it back, as «¿y si lo quiero de
+  // vuelta?» asks («si te arrepientes, «Volver a la agenda» lo pone otra vez en la agenda»), never its steps from the start
+  // (WF-C2).
+  if (RESTORE.test(t.replace(SOFT_LEAD, ''))) return { facet: 'whatif', about: 'lo quiero de vuelta' };
+  // «¿Se borra?», «¿lo ven?», «¿ya se pierde?»: a yes or no with no word of its own but its verb is about the topic.
+  const bareYes = YES_BARE.exec(t.replace(SOFT_LEAD, '').replace(TAIL, ''));
+  if (bareYes) return { facet: 'whatif', about: bareYes[0].replace(YES_NO_FILLER, ' ').replace(/\s+/g, ' ').trim(), verb: bareYes.groups!.verb };
   let core = tail.replace(LEAD, '').replace(TAIL, '').trim() || t.replace(LEAD, '').trim() || tail;
   if (!core) return null;
   // «No entendí, dame un ejemplo»: the second ask says what is wanted.
@@ -671,7 +684,12 @@ function wayOn(flow: Flow, index: number, roles: Role[] = []): NonNullable<FlowS
     const b = s.branches?.find((x) => (mine ? /^S[ií](?![\p{L}])/u : /^No(?![\p{L}])/u).test(x.label));
     if (b && ahead(b)) return b;
   }
-  return s.branches?.find((b) => /^S[ií](?![\p{L}])/u.test(b.label) && ahead(b)) ?? s.branches?.find(ahead);
+  const yes = s.branches?.find((b) => /^S[ií](?![\p{L}])/u.test(b.label) && ahead(b));
+  if (yes) return yes;
+  // (Ways that are no yes or no, «¿De qué color es?» → «Verde», «Amarillo o rojo»: the one to the nearest step ahead, the
+  // flow's own order; «Verde» skips the jefe's step only because he approves those all at once.)
+  const at = (b: { to?: string }) => flow.steps.findIndex((x) => x.id === b.to);
+  return s.branches?.filter(ahead).sort((a, b) => at(a) - at(b))[0];
 }
 // The step that comes after one of a flow: where its way on leads, else the next one.
 function flowNext(flow: Flow, index: number, roles: Role[] = []): number | null {
@@ -748,6 +766,25 @@ function flowNextDoing(flow: Flow, index: number, verb: string, roles: Role[] = 
     k = flowNext(flow, k, roles);
   }
   return null;
+}
+// The step of a flow of the person's that does X («¿y después de enviarla?»: «Enviar a aprobación»): its verb in the
+// step's own text; a step of the person's own role first, then the one that shares most words with the topic.
+function flowStepDoing(about: string, topicText: string, roles: Role[]): { flow: Flow; index: number } | null {
+  const root = tokens(about)[0];
+  if (!root || root.length < 3) return null;
+  const words = new Set(tokens(topicText));
+  let best: { flow: Flow; index: number } | null = null;
+  let top = 0;
+  for (const flow of FLOWS) {
+    if (!flow.roles.some((r) => roles.includes(r))) continue;
+    flow.steps.forEach((s, k) => {
+      const have = tokens(s.text);
+      if (!have.some((w) => rootsLike(w, root))) return;
+      const score = 1 + (s.roles.some((r) => roles.includes(r)) ? 1 : 0) + 0.1 * have.filter((w) => words.has(w)).length;
+      if (score > top) [best, top] = [{ flow, index: k }, score];
+    });
+  }
+  return best;
 }
 const ROLE_WORDS: [RegExp, TeamRole][] = [
   [/\bjefe\b/, 'boss'],
@@ -1022,6 +1059,10 @@ function next(u: Unit, ctx: ExplainContext): Candidate[] {
     if (fs && then) return [{ text: `Después: ${lcFirst(end(then))}`, entryId: `flujo:${fs.flow.id}:${fs.flow.steps[fs.index].id}` }];
     const n = fs ? (who ? flowNextBy(fs.flow, fs.index, who, roles) : flowNext(fs.flow, fs.index, roles)) : null;
     if (fs && n !== null) return [flowTurn(fs.flow, n, roles, !who)];
+    // (A task with no flow of its own, «¿y después de enviarla?»: the step of a flow that does X, and the one after it.)
+    const fx = !fs && ctx.about && !who ? flowStepDoing(ctx.about, unitText(u, roles), roles) : null;
+    const nx = fx ? flowNext(fx.flow, fx.index, roles) : null;
+    if (fx && nx !== null) return [flowTurn(fx.flow, nx, roles, true)];
     return [];
   }
   if (u.kind === 'flow') {
@@ -1122,7 +1163,11 @@ const whoBonus = (p: Part) => (saysFacet('who', p.text) ? 0.4 : 0);
 function who(u: Unit, ctx: ExplainContext): Candidate[] {
   const roles = ctx.roles;
   const parts = partsOf(u, roles);
-  const part = ctx.about ? partAbout(u, ctx.about, roles, false, false, whoBonus, 0.6, true) : (parts.find((p) => p.own && saysFacet('who', p.text)) ?? null);
+  // (A part that says X does not happen yet, «todavía no le llega al jefe», is not whom it happens to.)
+  const heads = ctx.about ? readable(ctx.about).split(' ').filter((w) => w.length >= 4).map((w) => w.slice(0, 4)) : [];
+  const denies = (p: Part) => heads.some((h) => new RegExp(String.raw`\bno (?:(?:le|les|lo|la|los|las|se|te|me) )?${h}`).test(readable(p.text)));
+  const bonus = (p: Part) => whoBonus(p) - (denies(p) ? 1 : 0);
+  const part = ctx.about ? partAbout(u, ctx.about, roles, false, false, bonus, 0.6, true) : (parts.find((p) => p.own && saysFacet('who', p.text)) ?? null);
   if (part && saysFacet('who', part.text)) {
     // With the sentence after it when that one goes on with the same (a curated answer: «El jefe: … Cuando lo acepta…»).
     const k = parts.findIndex((p) => p.text === part.text);
@@ -1173,10 +1218,11 @@ export function saysFacet(facet: Facet, text: string): boolean {
 // «¿Y si una categoría no tiene área?» asks what the guide says as «Sin área, …»: the same condition, said the other way.
 const LACKS = /\bno (?:tiene|tienen|tengo|tienes|hay|trae|traen|lleva|llevan) (?:(?:un|una|el|la|los|las|ningun|ninguna) )?([a-z]{3,})/;
 // The verbs any follow-up says («¿y si dice que no?», «¿qué sale?»): X is its other words.
-const SAYS_ANYTHING = new Set(tokens('dice dicen decir pasa pasan sale salen hace hacen tiene tienen queda quedan puede pueden hago haga quiero quiere va van hay'));
+const SAYS_ANYTHING = new Set(tokens('dice dicen decir pasa pasan sale salen hace hacen tiene tienen queda quedan puede pueden hago haga quiero quiere va van hay despues ahora entonces'));
 const wordsOf = (about: string) => tokens(about).filter((w) => w.length >= 3 && !SAYS_ANYTHING.has(w) && !AUX.has(w)).map(family);
-// One word family said several ways: «de vuelta», «vuelve», «volver», «devolver», «regresar», «desarchivar».
-const BACK = /^(?:vuelt|vuelv|volv|devuelv|devolv|regres|desarchiv)/;
+// One word family said several ways: «de vuelta», «vuelve», «volver», «regresar», «desarchivar» (read as tokens() writes
+// them: «vuelta» is «buelt», «vuelve» is «bolb»). Never «devolver»: that is sending it back to whom wrote it.
+const BACK = /^(?:[vb]uelt|[vb]uel[vb]|[vb]ol[vb]|regres|desarchi[vb])/;
 export const family = (w: string) => (BACK.test(w) ? 'volv' : w);
 /** The words of a follow-up's X that say something of their own («¿y si se pasan?» has none: «pasan» says nothing). */
 export const followWords = (about: string | undefined): string[] => (about ? wordsOf(about) : []);
@@ -1184,7 +1230,7 @@ export const followWords = (about: string | undefined): string[] => (about ? wor
 // escribe…», «Sin área, …»).
 const IF_OR_WITH = (s: string) => saysIf(s) || /^(?:con|sin) «/i.test(s.trim());
 // «Si lo quiero de vuelta», «si necesito cambiarlo»: a wish said as «si» (how it is done, not what happens then).
-const WISH = /^(?:(?:lo|la|los|las|le|me) )?(?:quiero|quisiera|necesito|ocupo|toca)\b/;
+const WISH = /^(?:(?:despues|luego|ahora|entonces|ya) )?(?:(?:lo|la|los|las|le|me) )?(?:quiero|quisiera|necesito|ocupo|toca)\b/;
 /**
  * The sentence of a text (an answer already said) about X that says what the follow-up asks («Si te equivocaste, agrega
  * otra nota…» to «¿y si me equivoco?», «Sin área, la asigna la coordinación» to «¿y si no tiene área?»), or null.
@@ -1356,7 +1402,12 @@ function aboutCandidates(facet: Facet, u: Unit | null, about: string, ctx: Expla
     if (u && (u.kind === 'task' || u.kind === 'flow')) return next(u, ctx);
     // (A screen or a curated answer: the task asked, by its title and its verb, as above.)
     const task = u && ctx.asked && HOW_ASKED.test(readable(ctx.asked)) && (u.kind === 'screen' || u.kind === 'entry') ? taskAsked(ctx.asked, roles) : null;
-    return task?.kind === 'task' && allowed(task, roles) ? next(task, ctx) : [];
+    const byTask = task?.kind === 'task' && allowed(task, roles) ? next(task, ctx) : [];
+    if (byTask.length || !u || (u.kind !== 'screen' && u.kind !== 'entry') || roleNamed(about)) return byTask;
+    // (Else «¿y después de enviarla?»: the step of a flow of the person's that does X, and the one after it, WF-C2.)
+    const fs = flowStepDoing(about, `${unitText(u, roles)} ${ctx.asked ?? ''}`, roles);
+    const n = fs ? flowNext(fs.flow, fs.index, roles) : null;
+    return fs && n !== null ? [flowTurn(fs.flow, n, roles, true)] : [];
   }
   // «Paso a paso lo de…», «dime más de…»: the steps of the topic, the rest of it.
   if (facet === 'steps') return u ? stepsFacet(u, { ...ctx, about: undefined }, tours) : [];

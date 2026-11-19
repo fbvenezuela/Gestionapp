@@ -11,7 +11,7 @@ import { withSystem } from '@/lib/db';
 import { DEMO_USERS, type DemoUserKey } from '@/lib/db/seed-demo';
 import type { Role } from '@/lib/roles';
 import { handleTurn, type TurnResult } from '@/lib/assistant';
-import { explainAsk, saysVerb } from '@/lib/assistant/explain';
+import { explainAsk, saysVerb, sentenceSaying } from '@/lib/assistant/explain';
 import { plain } from '@/lib/assistant/text';
 
 function sessionOf(key: DemoUserKey): Session {
@@ -76,6 +76,26 @@ describe('explainAsk: los seguimientos de una conversación (WF-C2)', () => {
     expect(explainAsk('¿en qué se diferencia una sugerencia?')).toMatchObject({ facet: 'meaning', about: 'una sugerencia' });
   });
 
+  it('«¿y a quién le llega?» pregunta quién, nunca un sí o un no', () => {
+    expect(explainAsk('¿y a quién le llega eso?')).toMatchObject({ facet: 'who' });
+    expect(explainAsk('¿y a quién le llega eso?')?.verb).toBeUndefined();
+    expect(explainAsk('¿y con quién lo hablo?')?.facet).toBe('who');
+  });
+
+  it('«¿y cómo lo dejo otra vez?» es cómo se recupera, como «¿y si lo quiero de vuelta?»; «¿cómo lo subo otra vez?» son los pasos', () => {
+    for (const q of ['¿y cómo lo dejo otra vez?', '¿cómo lo recupero?', '¿y cómo lo vuelvo a poner?', 'y como la pongo de nuevo']) expect(explainAsk(q), q).toEqual({ facet: 'whatif', about: 'lo quiero de vuelta' });
+    expect(explainAsk('¿y cómo lo subo otra vez?')?.facet).toBe('steps');
+    // («De vuelta», «vuelve», «volver» y «desarchivar» son la misma familia de palabras.)
+    expect(sentenceSaying('whatif', 'lo quiero de vuelta', 'Nada se pierde. Si te arrepientes, «Desarchivar» lo vuelve a poner.')).toBe('Si te arrepientes, «Desarchivar» lo vuelve a poner.');
+    expect(sentenceSaying('whatif', 'despues la quiero de vuelta', 'Nada se pierde. Si te arrepientes, «Desarchivar» lo vuelve a poner.')).toBe('Si te arrepientes, «Desarchivar» lo vuelve a poner.');
+  });
+
+  it('un sí o un no con solo su verbo («¿se borra?») es del tema', () => {
+    expect(explainAsk('¿se borra?')).toMatchObject({ facet: 'whatif', verb: 'borra' });
+    expect(explainAsk('¿ya se pierde?')).toMatchObject({ facet: 'whatif', verb: 'pierde' });
+    expect(explainAsk('¿se borra el evento?')).toBeNull();
+  });
+
   it('con un evento nombrado no es ninguno de ellos (los pasos de la agenda contestan)', () => {
     for (const q of ['¿y se cancela el evento?', '¿y qué pasa con la feria?', '¿y la visita sale en la agenda?']) expect(explainAsk(q), q).toBeNull();
   });
@@ -121,6 +141,36 @@ describe('360 sigue el tema con esos seguimientos (WF-C2)', () => {
     const answers = await thread('boss', ['¿cómo saco de la web algo que publiqué?', '¿y eso lo borra?', '¿y si lo quiero de vuelta?', '¿y después?']);
     expect(answers[1].answer).not.toMatch(NOT_SURE);
     expect(distinct(answers), answers.map((a) => a.answer).join('\n')).toBe(true);
+  });
+
+  it('después de enviarla a aprobación le toca al jefe, sea del color que sea; «¿y después de enviarla?» también', async () => {
+    const [, luego] = await thread('social', ['¿cómo mando una pieza a que la apruebe el jefe?', '¿y luego?']);
+    expect(luego.answer).toMatch(/^Después le toca al jefe/);
+    await resetHourly();
+    const [, after] = await thread('social', ['ya corregí la pieza que el jefe me devolvió con cambios, ¿qué hago?', '¿y después de enviarla?']);
+    expect(after.answer).toMatch(/^Después le toca al jefe/);
+    expect(after.answer).not.toMatch(/evento/);
+  });
+
+  it('«¿y a quién le llega?» dice lo que la guía nombra de más, no la misma oración otra vez', async () => {
+    const answers = await thread('boss', ['¿cada cuánto avisa la app de un caso quieto?', '¿y a quién le llega eso?']);
+    expect(answers[1].answer).toMatch(/Si nadie lo tiene, a los responsables de su área/);
+    expect(distinct(answers)).toBe(true);
+  });
+
+  it('«¿y cómo lo dejo otra vez?» de un evento cancelado: cómo vuelve a la agenda', async () => {
+    const answers = await thread('dispatch', ['cancelé por error un evento', '¿y cómo lo dejo otra vez?']);
+    expect(answers[1].answer).toContain('«Volver a la agenda»');
+    expect(answers[1].answer).not.toMatch(/«Usar lo de él»|«Ponerle fecha»/);
+    expect(distinct(answers)).toBe(true);
+  });
+
+  it('«¿se borra?» y «¿y si después la quiero de vuelta?» siguen el tema de la web', async () => {
+    const answers = await thread('boss', ['¿cómo archivo una página de la web?', '¿se borra?', '¿y si después la quiero de vuelta?']);
+    expect(answers[1].answer).toMatch(/nada se borra/);
+    expect(answers[1].answer).not.toMatch(/evento/);
+    expect(answers[2].answer).toContain('«Desarchivar»');
+    expect(answers[2].answer).not.toMatch(NOT_SURE);
   });
 
   it('el camino de una obra nunca dice «Se sigue con el paso…»: dice el paso', async () => {

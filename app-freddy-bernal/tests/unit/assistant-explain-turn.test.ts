@@ -81,7 +81,8 @@ describe('360 explica en la conversación (el paso E de local.ts)', () => {
 
   it('«¿y después?», «más fácil» y «¿qué significa eso?» del tema de la respuesta de antes', async () => {
     const next = (await thread('social', ['¿cómo mando una pieza a aprobación?', '¿y después?'])).answers[1];
-    expect(next.answer).toMatch(/«Revisado y listo para publicar»|«Aprobada: lista para publicar»/);
+    // (After «Enviar a aprobación» comes the jefe's step, whatever its colour: the flow's next box, never «Aprobada» first.)
+    expect(next.answer).toMatch(/^Después le toca al jefe: .*«Antes de aprobar»/);
     await resetHourly();
     const easy = (await thread('politics', ['¿cómo cargo una ficha comunitaria?', 'no entendí, explícamelo más fácil'])).answers[1];
     expect(easy.answer).toMatch(/«Nueva ficha comunitaria»/);

@@ -138,8 +138,10 @@ function partsOf(x: WebSection | WebFlow, roles: Role[], guideFirst = false): st
  * «No entendí lo de gana el más corto»: the part of the section that says X (its items, the guide's words, its rules, its
  * questions' answers, this person's steps), when it has most of X's words; else null (the facet goes on as without X).
  */
+// (When it happens says nothing of what: «¿y si después la quiero de vuelta?» is about getting it back.)
+const WHEN_WORDS = new Set(tokens('despues ahora entonces'));
 function partNamed(x: WebSection | WebFlow, roles: Role[], about: string, bonus?: (t: string) => number): string | null {
-  const want = tokens(about).filter((w) => w.length >= 3 && !AUX.has(w)).map(family);
+  const want = tokens(about).filter((w) => w.length >= 3 && !AUX.has(w) && !WHEN_WORDS.has(w)).map(family);
   if (!want.length) return null;
   const like = (have: string[], w: string) => have.map(family).some((h) => h === w || (h.length >= 4 && w.length >= 4 && (h.startsWith(w) || w.startsWith(h))));
   const parts = [
@@ -526,14 +528,21 @@ export function webExplain(facet: Facet, topic: Entry | string | null | undefine
       // (A curated answer's own sentence that says it first: what 360 just said, said again alone, never the whole answer
       // again.)
       const own0 = place.rest === 'curado' ? sentenceSaying(facet, ctx.about, textFor(e.a, roles)) : null;
-      if (own0 && !said.some((s) => plain(s) === plain(end(own0)))) return { text: end(own0), ...own, ...(guide ? { goTo: guide } : {}) };
       // (A «¿y si ya…?» or a «¿y si no…?» wants a part that says that «ya» or that «no» too: «Lo que ya está en la web no se
       // programa» to «¿y si ya la había publicado?».)
       const marks = ['ya', 'no', 'sin', 'nunca', 'todavia'].filter((m) => ` ${plain(ctx.about ?? '')} `.includes(` ${m} `));
       const marked = (t: string) => marks.filter((m) => ` ${plain(t)} `.includes(` ${m} `)).length * 0.35;
       const prefer = facet === 'whatif' ? (t: string) => (saysIf(t) ? 0.3 : 0) + marked(t) : facet === 'who' ? (t: string) => (WHO_NAMED.test(plain(t)) ? 0.4 : 0) : (t: string) => (/\b(?:cuando|al|antes|despues|apenas|cada)\b/i.test(t) ? 0.3 : 0);
       const part = ctx.about ? partNamed(x, roles, ctx.about, prefer) : (partsOf(x, roles).find((t) => WHO_NAMED.test(plain(t))) ?? null);
-      if (!part || (facet === 'who' && !WHO_NAMED.test(plain(part)))) return null;
+      const fits = !!part && (facet !== 'who' || WHO_NAMED.test(plain(part)));
+      // (A «¿y quién…?» whose answer is a sentence 360 just said: the section's part about X goes first when it names more
+      // that the thread did not say yet, «Si nadie lo tiene, a los responsables de su área» to «¿y a quién le llega?». A
+      // «¿y si…?» keeps the sentence: an answer written for it may still say it better.)
+      const saidWords = new Set(said.flatMap((t) => tokens(t)));
+      const saysMore = (t: string) => tokens(t).filter((w) => w.length >= 4 && !saidWords.has(w)).length >= 2;
+      const better = facet === 'who' && !!own0 && wasSaid(end(own0), said) && fits && !wasSaid(part!, said) && !nearSaid(part!, said) && saysMore(part!);
+      if (own0 && !better && !said.some((s) => plain(s) === plain(end(own0)))) return { text: end(own0), ...own, ...(guide ? { goTo: guide } : {}) };
+      if (!part || !fits) return null;
       // (What was asked may be a sentence of a longer answer said before: said again alone, never a whole answer again.)
       return said.some((t) => plain(t) === plain(end(part))) ? null : { text: end(part), ...own, ...(guide ? { goTo: guide } : {}) };
     }
