@@ -48,6 +48,16 @@ export function realModeAtRuntime(env: Record<string, string | undefined>, snaps
   return snapshotExists && !env.DATABASE_URL && !env.VITEST && switchOf(env.REAL_SITE_CONTENT) !== false;
 }
 
+/** REAL_SITE_DIR: a folder laid out like .real-site/ (snapshot.json and media/) to read INSTEAD of it, relative to the
+ * app or absolute; null when it is not set. Only for the tests and local checks: `npm run fixture:real-site -- <folder>`
+ * writes the invented one (tests/fixtures/real-site), and the Playwright project «real-fixture» starts a server on it.
+ * Never set on Vercel: the deployed demo reads the .real-site/ its build wrote, whose path stays spelled out for the
+ * bundler's file tracing. A build with it set prerenders that folder's content, as a build with .real-site/ does. */
+export function realSiteDirFromEnv(env: Record<string, string | undefined> = process.env): string | null {
+  const dir = (env.REAL_SITE_DIR ?? '').trim();
+  return dir ? path.resolve(dir) : null;
+}
+
 // --- Ids -------------------------------------------------------------------------------------------------------------
 const sha256 = (v: string | Uint8Array) => createHash('sha256').update(v).digest('hex');
 
@@ -315,10 +325,11 @@ const g = globalThis as unknown as { __fbRealSnapshot?: Memo; __fbRealSeeded?: '
 
 /** The official site's content for this demo server, or null (invented content): read once per process. The path is
  * written out in full so the bundler traces exactly that file (a path built from variables makes Turbopack trace the
- * whole project into every server function). */
+ * whole project into every server function); REAL_SITE_DIR (tests only) points elsewhere. */
 export function loadRealSnapshot(): RealSnapshot | null {
   if (g.__fbRealSnapshot) return g.__fbRealSnapshot.value;
-  const file = path.join(process.cwd(), '.real-site', 'snapshot.json');
+  const custom = realSiteDirFromEnv();
+  const file = custom ? path.join(custom, REAL_SITE.file) : path.join(process.cwd(), '.real-site', 'snapshot.json');
   let value: RealSnapshot | null = null;
   if (realModeAtRuntime(process.env, fs.existsSync(file))) {
     try {

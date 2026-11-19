@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 import { securityHeaderRules } from './src/lib/web/headers';
 
@@ -21,6 +22,10 @@ const nextConfig: NextConfig = {
     useOffline: true,
   },
   serverExternalPackages: ['@electric-sql/pglite'],
+  // Only the e2e server of the invented real-content fixture (playwright.config.ts, «real-fixture»): its pages and data
+  // live in its own memory, so it never serves the build's invented pages nor writes into the .next the other servers
+  // read (tests/e2e/memory-cache-handler.mjs). Read when the server starts; never set in a deployment.
+  cacheHandler: process.env.E2E_MEMORY_CACHE === '1' ? path.resolve('tests/e2e/memory-cache-handler.mjs') : undefined,
   // Read from disk when the demo database seeds itself (src/lib/db/migrations.ts, src/lib/db/seed-parts/thumbs.ts) and,
   // when the build fetched it, the official site's content (.real-site/, src/lib/web/real-site.ts): its snapshot for
   // every server and its photos and PDFs for the public files' route. Vercel ships only what is listed here; a folder

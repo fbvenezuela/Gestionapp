@@ -275,6 +275,8 @@ test('teléfono con poca memoria o con ahorro de datos: el vidrio se apaga antes
 });
 
 test('«Menos movimiento»: sin transiciones ni animaciones (las ruedas de espera siguen)', async ({ page }) => {
+  // The suite's phones run with «Menos movimiento» (playwright.config.ts): this test starts from a normal phone.
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   await loginAs(page, 'redes@demo.test');
   await visitHome(page, 'redes@demo.test');
   const button = page.locator('header .transition-colors').first();

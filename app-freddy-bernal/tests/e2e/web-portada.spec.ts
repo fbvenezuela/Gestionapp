@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import fb from '../../config/clients/fb.json';
+import { REAL_DEMO_BANNER } from '../../src/lib/web/real-site';
 import { PROGRAM, noScaffolding, transfer } from './web-helpers';
 
 // The public website's home (D-91, design §1–§3), with no session, at 360 px: the name and the office, the attention
@@ -44,6 +46,24 @@ test.describe('la web pública en el teléfono (360 px)', () => {
     expect(person.sameAs).toBeUndefined();
     expect(ld.some((x) => x['@type'] === 'GovernmentOrganization')).toBe(true);
   });
+});
+
+// The home with the official site's content mode on, read from the INVENTED fixture (tests/fixtures/real-site, made
+// when its server starts): only in the Playwright project «real-fixture», on its own server (the tag keeps it off the
+// invented ones). WP3 tests the first screen with the photo here.
+test('con el contenido real (el de prueba, inventado): la banda lo dice, la portada trae sus noticias y su foto se sirve desde la carpeta de prueba', { tag: '@real-fixture' }, async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByText(REAL_DEMO_BANNER).first()).toBeVisible();
+  const main = page.getByRole('main');
+  await expect(main.getByRole('heading', { level: 1, name: fb.brand.clientName })).toBeVisible();
+  await expect(main.getByText('Vecinos del municipio Lobatera estrenan una plaza con juegos infantiles (demo)').first()).toBeVisible();
+  // The invented content's figures are not there: this server seeded the fixture.
+  await expect(main.getByText(/Cifra inventada para la demostración/)).toHaveCount(0);
+  // Its photos come from the fixture's folder (REAL_SITE_DIR; /api/archivos/web/<key>, through the image optimizer) and load.
+  const photo = main.locator('img[src*="api%2Farchivos%2Fweb"], img[src*="/api/archivos/web/"]').first();
+  await photo.scrollIntoViewIfNeeded();
+  await expect(photo).toBeVisible();
+  await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
 });
 
 test('el peso de la portada, medido con y sin fotos (meta del encargo: menos de 200 KB sin fotos)', async ({ browser }) => {
