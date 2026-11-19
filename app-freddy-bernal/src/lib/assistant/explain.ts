@@ -26,7 +26,7 @@ import type { TitleSet } from './titles';
 
 /**
  * What an explain ask wants of the topic (design §4(c)1). WF-C2 (a follow-up of the thread, «y …» first): `whatif`, «¿y si
- * …?» (what the topic says happens then); `who`, «¿y quién lo hace?»; `when`, «¿y cuándo lo hago?» (a task's «Cuándo», the
+ * …?» (what the topic says happens then); `who`, whose step it is («¿y quién lo hace?»); `when`, «¿y cuándo lo hago?» (a task's «Cuándo», the
  * person's own work: never an event's date); `mine`, «¿y yo qué hago ahí?» (the person's own part of the topic).
  */
 export type Facet = 'simpler' | 'steps' | 'example' | 'next' | 'purpose' | 'why' | 'meaning' | 'more' | 'whatif' | 'who' | 'when' | 'mine';
@@ -690,7 +690,8 @@ function flowStepOf(task: Task, role: TeamRole): { flow: Flow; index: number } |
 }
 
 // The step of a flow of a role that a screen of its guide is (WF-C2): one of the role's, quoting most of the screen's
-// labels (two at least, or one with its words).
+// labels (one at least; on a tie, the first flow). A single label that steps of two flows share can pick the wrong one:
+// «Por ponerle fecha» of a ficha comunitaria reads as the obra's.
 function flowStepOfScreen(section: { title: string; what: string; youDo: string[] }, role: Role): { flow: Flow; index: number } | null {
   const labels = (t: string) => new Set([...t.matchAll(/«([^«»]+)»/g)].map((m) => plain(m[1])));
   const mine = labels([section.title, section.what, ...section.youDo].join(' '));
