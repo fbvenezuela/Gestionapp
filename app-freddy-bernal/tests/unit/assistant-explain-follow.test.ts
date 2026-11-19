@@ -2,9 +2,12 @@
 // «paso a paso cómo …» are the topic's steps, and «… paso a paso» said of a topic of its own is that topic's steps (never
 // the list of the tutorials); «¿y qué pasa con X?» is what the topic says of X («¿y después qué pasa con esos…?» is what
 // comes next); a yes or no («¿y se borra?») is what the topic says of it, by its own verb and about the topic; «¿y yo qué
-// hago ahí?» is the person's own part; «¿y X en qué se diferencia?» is what X is. In a thread 360 never says the same text
-// twice: an answer that would say again what it said is the sentence of it that answers. The asks alone, and threads
-// through the demo brain on the demo database, as the demo users; asks and threads written for this file.
+// hago ahí?» is the person's own part; «¿y X en qué se diferencia?» is what X is; «¿y a quién le llega?» is a «who»;
+// «¿y cómo lo pongo otra vez?» is how it is got back; «¿se borra?» alone is about the topic. «¿Y después?» goes on by the
+// flow: the jefe's step after «Enviar a aprobación», the way the person named, what each answer of someone else's step
+// does, and one's own steps in a row before someone else's. In a thread 360 never says the same text twice: an answer
+// that would say again what it said is the sentence of it that answers. The asks alone, and threads through the demo
+// brain on the demo database, as the demo users; asks and threads written for this file.
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { Session } from '@/lib/auth/session';
 import { withSystem } from '@/lib/db';
@@ -143,13 +146,28 @@ describe('360 sigue el tema con esos seguimientos (WF-C2)', () => {
     expect(distinct(answers), answers.map((a) => a.answer).join('\n')).toBe(true);
   });
 
-  it('después de enviarla a aprobación le toca al jefe, sea del color que sea; «¿y después de enviarla?» también', async () => {
+  it('después de «Espera al jefe», lo que pasa entonces; «¿y después de enviarla?», el paso del jefe, sea del color que sea', async () => {
     const [, luego] = await thread('social', ['¿cómo mando una pieza a que la apruebe el jefe?', '¿y luego?']);
-    expect(luego.answer).toMatch(/^Después le toca al jefe/);
+    expect(luego.answer).toMatch(/^Después: cuando el jefe la aprueba/);
     await resetHourly();
     const [, after] = await thread('social', ['ya corregí la pieza que el jefe me devolvió con cambios, ¿qué hago?', '¿y después de enviarla?']);
     expect(after.answer).toMatch(/^Después le toca al jefe/);
     expect(after.answer).not.toMatch(/evento/);
+  });
+
+  it('la vía que la persona nombró («una pieza roja») y lo que hace cada respuesta del jefe', async () => {
+    const [, red] = await thread('social', ['mandé a aprobación una pieza roja', '¿y luego qué pasa?']);
+    expect(red.answer).toMatch(/rojo en 30/);
+    expect(red.answer).toMatch(/Si la aprueba, «Aprobar»; si no, «Pedir cambios»/);
+    await resetHourly();
+    const [, saved] = await thread('dispatch', ['¿cómo creo un evento nuevo?', '¿y después de guardarlo?']);
+    expect(saved.answer).toMatch(/^Después le toca al jefe: .*Si lo acepta, «Aceptar»; si no, «Rechazar»/);
+  });
+
+  it('«¿y luego qué hago?» de una pantalla sigue el flujo: los pasos propios seguidos, nunca saltados, y luego el del otro', async () => {
+    const answers = await thread('social', ['¿qué campos tiene un post nuevo?', '¿y luego qué hago?']);
+    expect(answers[1].answer).toMatch(/^Después te toca a ti: arma el «Feed».* Luego, «Enviar a aprobación».* Luego le toca al jefe/);
+    expect(answers[1].answer).not.toMatch(/Grabación/);
   });
 
   it('«¿y a quién le llega?» dice lo que la guía nombra de más, no la misma oración otra vez', async () => {

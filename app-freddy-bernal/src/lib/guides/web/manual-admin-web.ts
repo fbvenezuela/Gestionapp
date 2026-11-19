@@ -664,7 +664,7 @@ export const MANUAL_ADMIN_WEB: WebDoc = {
         { q: 'Se subió una foto que no debía ser pública, ¿qué se hace?', a: { boss: 'Archívala y avísale enseguida a Administración, que pide aparte borrarla del todo. Mientras tanto, cámbiala en cada contenido de «Dónde se usa» y publícalos de nuevo.', admin: 'Quien la subió la archiva y te avisa: la app no borra archivos, y tú pides aparte borrarla del todo. Mientras tanto, se cambia en cada contenido de «Dónde se usa» y se publica de nuevo.' } },
         { q: '¿Los archivos de la biblioteca de la web los puede ver cualquiera?', a: 'Sí: todo lo que está en la biblioteca es público. Por eso nunca van ahí fotos ni archivos de la gente que escribe a Atención: esos van aparte, en privado.' },
       ],
-      easy: 'La biblioteca es el álbum de la web: subes la foto con «Subir una foto» y le escribes unas palabras que la describen. Todo lo que se sube ahí es público.',
+      easy: 'La biblioteca es el álbum de la web: cada foto entra con «Subir una foto», con unas palabras que la describen. Todo lo que se sube ahí es público.',
       example: 'Por ejemplo, un buen texto alternativo inventado: “Obreros asfaltan una calle de tierra frente a una escuela”, y no “foto1” ni “Obra”.',
       blocks: [
         {

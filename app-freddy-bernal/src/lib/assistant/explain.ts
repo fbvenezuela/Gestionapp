@@ -251,6 +251,8 @@ export function explainAsk(question: string, o: AskOptions = {}): ExplainAsk | n
   if (o.afterWord && WHY_SO.test(core)) return { facet: 'why' };
   // The follow-ups of a thread, «y …» first (WF-C2): what the topic says happens if X, who does it, the reason for X.
   const follow = tail.replace(SOFT_LEAD, '');
+  // («¿Y por qué es obligatorio?» with no word of the glossary before is a question of its own: the answer written for it.)
+  if (!o.afterWord && WHY_SO.test(follow.replace(/^(?:(?:y|e|pero|entonces) )+/, ''))) return null;
   if (MINE_ASK.test(follow)) return { facet: 'mine' };
   for (const [facet, re] of [['whatif', WHAT_IF], ['who', WHO_ASK], ['why', WHY_ABOUT]] as [Facet, RegExp][]) {
     const m = re.exec(follow);
@@ -651,6 +653,23 @@ function saidUpTo(steps: string[], said: string[]): number {
   return upTo;
 }
 
+// The last step of a task whose labels the answer just said all quotes, when the step after it is what happens then
+// («Pasa a «En revisión» y dice «Espera al jefe»» is step 3 of «Mandar una pieza a aprobación», and step 4 is «Cuando el
+// jefe la aprueba: …»), or -1 (WF-C2). A step after it that is more of one's own work, or another case («Si no va…»), is
+// not what comes next: the flow is.
+const THEN_STEP = /^cuando /i;
+function labelsUpTo(steps: string[], said: string[]): number {
+  const last = said.at(-1);
+  if (!last) return -1;
+  const have = new Set(quotedLabels(last).map(plain));
+  let upTo = -1;
+  steps.forEach((s, k) => {
+    const its = quotedLabels(s).map(plain);
+    if (its.length && its.every((l) => have.has(l))) upTo = k;
+  });
+  return upTo >= 0 && upTo + 1 < steps.length && THEN_STEP.test(steps[upTo + 1].trim()) ? upTo : -1;
+}
+
 // The step of its flow a task is: one of the task's role, the one that shares most of its labels and words.
 function flowStepOf(task: Task, role: TeamRole): { flow: Flow; index: number } | null {
   const flow = task.flow ? FLOWS.find((f) => f.id === task.flow) : undefined;
@@ -670,11 +689,27 @@ function flowStepOf(task: Task, role: TeamRole): { flow: Flow; index: number } |
   return best >= 0 ? { flow, index: best } : null;
 }
 
+// The step of a flow of a role that a screen of its guide is (WF-C2): one of the role's, quoting most of the screen's
+// labels (two at least, or one with its words).
+function flowStepOfScreen(section: { title: string; what: string; youDo: string[] }, role: Role): { flow: Flow; index: number } | null {
+  const labels = (t: string) => new Set([...t.matchAll(/«([^«»]+)»/g)].map((m) => plain(m[1])));
+  const mine = labels([section.title, section.what, ...section.youDo].join(' '));
+  let best: { flow: Flow; index: number } | null = null;
+  let top = 0;
+  for (const flow of FLOWS) {
+    flow.steps.forEach((s, k) => {
+      if (!(s.roles as Role[]).includes(role)) return;
+      const score = [...labels([s.text, ...(s.branches ?? []).map((b) => b.text)].join(' '))].filter((l) => mine.has(l)).length;
+      if (score > top) [best, top] = [{ flow, index: k }, score];
+    });
+  }
+  return top >= 1 ? best : null;
+}
 // The way out of a step of a flow that goes on: its «Sí» (or the first) that leads to a later step; a «Sí» that goes back
 // («¿Se canceló?» → back to «Ponerle fecha») is not the way on.
 // A step's question that asks who did it («¿Lo creó el jefe?»): its «Sí» is that role's way, its «No» everyone else's.
 const DONE_BY = /^(?:lo|la|los|las) (?:creo|puso|propuso|hizo|mando|cargo) (?:el |la )?([a-z]+)$/;
-function wayOn(flow: Flow, index: number, roles: Role[] = []): NonNullable<FlowStep['branches']>[number] | undefined {
+function wayOn(flow: Flow, index: number, roles: Role[] = [], named: string[] = []): NonNullable<FlowStep['branches']>[number] | undefined {
   const s = flow.steps[index];
   const ahead = (b: { to?: string }) => !!b.to && flow.steps.findIndex((x) => x.id === b.to) > index;
   const by = s.question ? DONE_BY.exec(readable(s.question))?.[1] : undefined;
@@ -686,14 +721,25 @@ function wayOn(flow: Flow, index: number, roles: Role[] = []): NonNullable<FlowS
   }
   const yes = s.branches?.find((b) => /^S[ií](?![\p{L}])/u.test(b.label) && ahead(b));
   if (yes) return yes;
-  // (Ways that are no yes or no, «¿De qué color es?» → «Verde», «Amarillo o rojo»: the one to the nearest step ahead, the
-  // flow's own order; «Verde» skips the jefe's step only because he approves those all at once.)
+  // (Ways that are no yes or no, «¿De qué color es?» → «Verde», «Amarillo o rojo»: the one the person named, «una pieza
+  // amarilla»; else the one to the nearest step ahead, the flow's own order: «Verde» skips the jefe's step only because he
+  // approves those all at once.)
+  const on = s.branches?.filter(ahead) ?? [];
+  const byName = named.length ? on.filter((b) => tokens(b.label).some((w) => named.some((h) => rootsLike(h, w)))) : [];
+  if (byName.length === 1) return byName[0];
   const at = (b: { to?: string }) => flow.steps.findIndex((x) => x.id === b.to);
-  return s.branches?.filter(ahead).sort((a, b) => at(a) - at(b))[0];
+  return on.sort((a, b) => at(a) - at(b))[0];
+}
+/** What the way the person named of a step's question that is no yes or no says («una pieza amarilla» → «Amarillo o
+ * rojo»: «Amarillo en 60 minutos, rojo en 30.»), when it leads to `to`; else null. */
+function kindWay(flow: Flow, index: number, to: number, named: string[]): string | null {
+  const ways = (flow.steps[index].branches ?? []).filter((b) => !/^(?:S[ií]|No)$/u.test(b.label.trim()) && tokens(b.label).some((w) => named.some((h) => rootsLike(h, w))));
+  const way = ways.length === 1 ? ways[0] : undefined;
+  return way?.text && flow.steps.findIndex((x) => x.id === way.to) === to ? way.text : null;
 }
 // The step that comes after one of a flow: where its way on leads, else the next one.
-function flowNext(flow: Flow, index: number, roles: Role[] = []): number | null {
-  const way = wayOn(flow, index, roles);
+function flowNext(flow: Flow, index: number, roles: Role[] = [], named: string[] = []): number | null {
+  const way = wayOn(flow, index, roles, named);
   const to = way?.to ? flow.steps.findIndex((x) => x.id === way.to) : index + 1;
   return to > index && to < flow.steps.length ? to : null;
 }
@@ -723,18 +769,35 @@ function flowNextOther(flow: Flow, index: number, roles: Role[]): number | null 
 
 // A step of a flow said as what comes next: «Después le toca a Redes: …». When it is the asker's own, and `more`, who
 // comes after it too («Después te toca a ti: … Luego le toca al jefe: …»), within about 360 letters.
-function flowTurn(flow: Flow, n: number, roles: Role[], more: boolean): Candidate {
+function flowTurn(flow: Flow, n: number, roles: Role[], more: boolean, lead?: string | null): Candidate {
   const s = flow.steps[n];
-  let text = `${turnOf(s, roles)}: ${stepText(s)}`;
+  // (`lead`: what the way that led here says, «Amarillo en 60 minutos, rojo en 30.»)
+  let text = `${turnOf(s, roles)}: ${lead ? `${lcFirst(end(lead))} ${end(s.text)}` : stepText(s)}`;
   let last = s;
-  const after = more && s.roles.every((r) => roles.includes(r)) ? flowNextOther(flow, n, roles) : null;
-  if (after !== null) {
-    const t = flow.steps[after];
-    const line = `${turnOf(t, roles).replace(/^Después/, 'Luego')}: ${stepText(t)}`;
-    if (text.length + line.length <= 360) {
-      text = `${text} ${line}`;
-      last = t;
-    }
+  // (Someone else's step with a yes or no: what each answer does, «Si la aprueba, «Aprobar»; si no, «Pedir cambios»…».)
+  // (Never a way that only points on, «Se sigue con el paso 5.»: the step it leads to says it. One sentence each: a «si
+  // no» after a second sentence would read as the «no» of that one.)
+  const says = (b: { text: string }) => !!b.text && !POINTS_ON.test(b.text.trim()) && sentencesOf(b.text).length === 1;
+  const yes = s.question && !s.roles.every((r) => roles.includes(r)) ? s.branches?.find((b) => /^S[ií]$/u.test(b.label.trim()) && says(b)) : undefined;
+  const no = yes ? s.branches?.find((b) => /^No$/.test(b.label.trim()) && says(b)) : undefined;
+  if (yes && /^¿[^?]+\?$/.test(s.question!.trim())) {
+    const ask = lcFirst(s.question!.trim().replace(/^¿|\?$/g, ''));
+    const bare = (t: string) => lcFirst(t.trim().replace(/[.]$/, ''));
+    const outcome = `Si ${ask}, ${bare(yes.text)}${no ? `; si no, ${bare(no.text)}` : ''}.`;
+    if (text.length + outcome.length + 1 <= 360) text = `${text} ${outcome}`;
+  }
+  // (The person's own steps right after it, «Luego, «Enviar a aprobación»…», then the first one someone else does, all
+  // within about 360 letters: never someone else's step with one of the person's own skipped before it.)
+  const mineAll = (t: FlowStep) => t.roles.every((r) => roles.includes(r));
+  let k = more && mineAll(s) ? flowNext(flow, n, roles) : null;
+  for (let hops = 0; k !== null && hops < 4; hops++) {
+    const t = flow.steps[k];
+    const line = mineAll(t) ? `Luego, ${stepText(t)}` : `${turnOf(t, roles).replace(/^Después/, 'Luego')}: ${stepText(t)}`;
+    if (text.length + line.length + 1 > 360) break;
+    text = `${text} ${line}`;
+    last = t;
+    if (!mineAll(t)) break;
+    k = flowNext(flow, k, roles);
   }
   return { text, entryId: `flujo:${flow.id}:${last.id}`, ...(s.href && canOpen(s.href, roles) ? { goTo: s.href } : {}) };
 }
@@ -1037,6 +1100,8 @@ function example(u: Unit, ctx: ExplainContext): Candidate[] {
 function next(u: Unit, ctx: ExplainContext): Candidate[] {
   const said = ctx.said ?? [];
   const roles = ctx.roles;
+  // (The person's own words in the thread, to tell which way of a step they mean: «una pieza amarilla».)
+  const named = tokens([ctx.asked, ctx.question].filter(Boolean).join(' '));
   // «¿Y después qué hace Grabación?»: the next step of the flow that role does.
   const who = ctx.about ? roleNamed(ctx.about) : null;
   if (u.kind === 'task') {
@@ -1044,7 +1109,12 @@ function next(u: Unit, ctx: ExplainContext): Candidate[] {
     // Where the person is in the task: the step asked about, the cursor, the step the topic was, or what was said.
     const whole = ctx.about && !who ? aboutTitle(u.task.title, ctx.about) : false;
     const at = ctx.about && !who && !whole ? partAbout(u, ctx.about, roles, false, true)?.step : whole ? steps.length - 1 : undefined;
-    const pos = at ?? (ctx.cursor !== undefined ? ctx.cursor - 1 : (u.step ?? (saidUpTo(steps, said) >= 0 ? saidUpTo(steps, said) : steps.length - 1)));
+    const upTo = saidUpTo(steps, said);
+    // (Not when the person named a way of the task's step in its flow, «una pieza amarilla»: the flow says what it does.)
+    const fs0 = flowStepOf(u.task, u.role);
+    const namesWay = !!fs0 && (fs0.flow.steps[fs0.index].branches ?? []).some((b) => !/^(?:S[ií]|No)$/u.test(b.label.trim()) && tokens(b.label).some((w) => named.some((h) => rootsLike(h, w))));
+    const byLabels = upTo >= 0 ? upTo : namesWay ? -1 : labelsUpTo(steps, said);
+    const pos = at ?? (ctx.cursor !== undefined ? ctx.cursor - 1 : (u.step ?? (byLabels >= 0 ? byLabels : steps.length - 1)));
     if (pos + 1 < steps.length && !who) {
       const k = pos + 1;
       const left = k + 1 < steps.length;
@@ -1057,8 +1127,8 @@ function next(u: Unit, ctx: ExplainContext): Candidate[] {
     if (fs && did !== null) return [flowTurn(fs.flow, did, roles, false)];
     const then = fs && !who && !ctx.about ? wayOnSays(fs.flow, fs.index, [...said, unitText(u, roles)], roles) : null;
     if (fs && then) return [{ text: `Después: ${lcFirst(end(then))}`, entryId: `flujo:${fs.flow.id}:${fs.flow.steps[fs.index].id}` }];
-    const n = fs ? (who ? flowNextBy(fs.flow, fs.index, who, roles) : flowNext(fs.flow, fs.index, roles)) : null;
-    if (fs && n !== null) return [flowTurn(fs.flow, n, roles, !who)];
+    const n = fs ? (who ? flowNextBy(fs.flow, fs.index, who, roles) : flowNext(fs.flow, fs.index, roles, named)) : null;
+    if (fs && n !== null) return [flowTurn(fs.flow, n, roles, !who, who ? null : kindWay(fs.flow, fs.index, n, named))];
     // (A task with no flow of its own, «¿y después de enviarla?»: the step of a flow that does X, and the one after it.)
     const fx = !fs && ctx.about && !who ? flowStepDoing(ctx.about, unitText(u, roles), roles) : null;
     const nx = fx ? flowNext(fx.flow, fx.index, roles) : null;
@@ -1071,9 +1141,9 @@ function next(u: Unit, ctx: ExplainContext): Candidate[] {
     if (did !== null) return [flowTurn(u.flow, did, roles, false)];
     const then = !who && !ctx.about ? wayOnSays(u.flow, from, said, roles) : null;
     if (then) return [{ text: `Después: ${lcFirst(end(then))}`, entryId: `flujo:${u.flow.id}:${u.flow.steps[from].id}` }];
-    const n = who ? flowNextBy(u.flow, from, who, roles) : flowNext(u.flow, from, roles);
+    const n = who ? flowNextBy(u.flow, from, who, roles) : flowNext(u.flow, from, roles, named);
     if (n === null) return [{ text: `Ahí termina el camino: ${lcFirst(u.flow.title)}. Lo ves completo en «Ayuda y guías», en «Cómo va el trabajo entre todos».`, entryId: u.id, ...(flowsHref(roles) ? { goTo: flowsHref(roles) } : {}) }];
-    return [flowTurn(u.flow, n, roles, !who)];
+    return [flowTurn(u.flow, n, roles, !who, who ? null : kindWay(u.flow, from, n, named))];
   }
   if (u.kind === 'topic') return more(u, ctx);
   // A curated answer that declares what comes after it (design §4(c)3 next (ii)).
@@ -1083,6 +1153,10 @@ function next(u: Unit, ctx: ExplainContext): Candidate[] {
   // verb, goes on («¿cómo publico una pieza aprobada?» → «¿y después de publicar?»: its flow's next step).
   const task = ctx.asked && HOW_ASKED.test(readable(ctx.asked)) && (u.kind === 'screen' || u.kind === 'entry') ? taskAsked(ctx.asked, roles) : null;
   if (task?.kind === 'task' && allowed(task, roles)) return next(task, ctx);
+  // (A screen of one's own: the step of a flow that quotes most of its labels, and the one after it.)
+  const fs = u.kind === 'screen' && !who ? flowStepOfScreen(u.section, u.role) : null;
+  const n = fs ? flowNext(fs.flow, fs.index, roles) : null;
+  if (fs && n !== null) return [flowTurn(fs.flow, n, roles, true)];
   return [];
 }
 
