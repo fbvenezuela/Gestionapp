@@ -6,7 +6,7 @@ import { AGENDA_FALLBACK, canon, hasWord, isSection, keyWords, makesOne, roleFic
 import { EVENT_NOUNS, EVENT_WORDS, GOAL, OCCURRENCE, PLATFORM, WORK, aboutEvent, asksAboutPublishing, asksAgendaData, asksPlace, asksPlaceWord, asksRoute, asksSchedule, asksWhenIndirect, asksWhenWhere, eventAt, eventSignals, eventThread, goesOn, namedTitleWords, namesPlatform, spoken, withoutAgendaThings, withoutWhenWhere, type EventSignal } from './events';
 import { STRONG, WEAK, askKind, askedTerm, domainOf, entryById, entryForScreen, findAnswers, knownLabels, readable, scoreFicha, textFor, tokens, type Domain, type Match } from './answers/engine';
 import { NOTICE_MAX, NOTICE_TOO_LONG, noticeIssues } from './guard';
-import { explainAnswer, explainAsk, followFit, topicalOf } from './explain';
+import { explainAnswer, explainAsk, followFit, followWords, topicalOf } from './explain';
 import { caseAsk, caseOverMessages, type CaseAsk } from './case-ask';
 import { webExplain } from './web-explain';
 import { GLOSSARY, glossaryLine } from '../guides';
@@ -896,12 +896,14 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   const ownEvent: EventSignal[] = ['title', 'place', 'token'];
   const beforeGeneral = !!before && !ownEvent.some((x) => eventSignals(withoutLabels(before), seenNow).has(x));
   const afterIndex = !!i.ctx.last?.entry && !!entryById(i.ctx.last.entry) && beforeGeneral;
-  const ask = (followsEvent && !afterIndex) || !lastSaid ? null : explainAsk(i.question, { titles: seenNow, last: lastSaid, withoutLabels, afterWord });
+  const ask = (followsEvent && !afterWord && !afterWeb && !afterIndex) || !lastSaid ? null : explainAsk(i.question, { titles: seenNow, last: lastSaid, withoutLabels, afterWord });
   const again = () => {
     const m = before ? findAnswers(before, { roles: i.ctx.roles, screen: i.ctx.screen, names })[0] : undefined;
     return m && m.confidence !== 'none' ? m.entry.id : null;
   };
-  const aboutEntry = ask ? (i.ctx.last ? i.ctx.last.entry : again()) : null;
+  // (When 360's last answer was no entry of the index, a fixed line or a thread saved before 360 kept it, the question
+  // before is matched again: «¿cómo entro con el doble factor?» → «paso a paso» is that task.)
+  const aboutEntry = ask ? (i.ctx.last?.entry ?? again()) : null;
   // The question that topic answered (WF-C2): the last of the person's that was no explain ask. A curated answer is
   // explained from the guide's unit of what was asked («¿cómo creo un evento?» → the despacho's task).
   const topicAsked = ask ? [...earlier].reverse().find((x) => !explainAsk(x, { titles: seenNow, withoutLabels })) : undefined;
@@ -928,7 +930,8 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   // score. It still has to say X or be about the topic; one for everyone («Para todos») only when it is about the topic
   // (they say «si te equivocaste…» or «sin señal…» of anything).
   const topicEntry = aboutEntry ? entryById(aboutEntry) : undefined;
-  const followAsk = !!ask && !!topicEntry && (ask.facet === 'whatif' || ask.facet === 'who' || ask.facet === 'when' || (ask.facet === 'why' && !!ask.about));
+  // (Only when X says something of its own: «¿y si se pasan?» has no word to tell one answer from another.)
+  const followAsk = !!ask && !!topicEntry && (ask.facet === 'whatif' || ask.facet === 'who' || ask.facet === 'when' || (ask.facet === 'why' && !!ask.about)) && followWords(ask.about).length > 0;
   const writtenFor = ((): { m: Match; cov: number; said: number; says: boolean; asked: boolean; topical: number } | null => {
     if (!followAsk || !ask || !topicEntry) return null;
     const topicText = textFor(topicEntry.a, i.ctx.roles);
@@ -978,6 +981,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
       ...(i.ctx.last?.cursor !== undefined && i.ctx.last.entry === aboutEntry ? { cursor: i.ctx.last.cursor } : {}),
       ...(ask.about ? { about: ask.about } : {}),
       ...(ask.pair ? { pair: ask.pair } : {}),
+      ...(ask.doer ? { doer: ask.doer } : {}),
       // (The topic is 360's last answer, from the index: a thread about how the app works.)
       ...(afterIndex && i.ctx.last?.entry === aboutEntry ? { topicSaid: true } : {}),
     });
@@ -1037,7 +1041,7 @@ export async function localTurn(i: LocalInput): Promise<BrainOutput> {
   }
   // «Paso a paso» of a known topic with nothing new to say: its tutorial, or the guide that has its steps; never the
   // list of the tutorials (WF-C2: that list is only for a «paso a paso» with no topic).
-  if (ask?.facet === 'steps' && topicKnown && aboutEntry) {
+  if (ask?.facet === 'steps' && aboutEntry) {
     const e = entryById(aboutEntry);
     const tour = e?.tutorial && offered('ver_tutorial') ? ((await call('ver_tutorial', { tutorial: e.tutorial })).tutorial ?? null) : null;
     if (tour?.href) return { ...done('Te lo muestro paso a paso en la pantalla: toca el botón.', undefined, tour), fixed: true, entry: aboutEntry };

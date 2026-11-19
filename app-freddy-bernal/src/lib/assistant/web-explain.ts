@@ -20,7 +20,7 @@ export type WebExplained = { text: string; entryId: string; goTo?: string; curso
 // `asked`: the question the topic answered in this thread (WF-C2): the section a curated answer of the web is about.
 type Ctx = { roles: Role[]; said?: string[]; cursor?: number; about?: string; asked?: string };
 
-const PAGE = 3;
+const PAGE = 5;
 const PAGE_LETTERS = 440;
 const end = (s: string) => (/[.!?…»)]$/.test(s.trim()) ? s.trim() : `${s.trim()}.`);
 const lcFirst = (s: string) => (s.startsWith('«') ? s : s.charAt(0).toLowerCase() + s.slice(1));
