@@ -116,13 +116,36 @@ export function newDraft(preset: { type?: RequestType | null; linkedItemId?: str
 
 const nonEmpty = (s: string) => s.trim() !== '';
 
-/** Whether the person wrote or chose anything beyond the presets (a draft worth restoring). */
-export function hasContent(v: FormValues, preset: { type?: RequestType | null } = {}): boolean {
-  return (
-    (v.type !== '' && v.type !== (preset.type ?? '')) ||
-    [v.categoryId, v.municipalityId, v.parishId, v.sector, v.locationReference, v.title, v.description, v.eventDate, v.name, v.email, v.phone, v.note].some(nonEmpty) ||
-    !!v.point
-  );
+/** Whether the person wrote or chose anything (a draft worth restoring). The kind alone is not: it comes with the link,
+ * or is one tick (a draft holding only «Denuncia» used to come back on the petición page, design §11). */
+export function hasContent(v: FormValues): boolean {
+  return [v.categoryId, v.municipalityId, v.parishId, v.sector, v.locationReference, v.title, v.description, v.eventDate, v.name, v.email, v.phone, v.note].some(nonEmpty) || !!v.point;
+}
+
+/** What the form's address chose: the kind (?tipo=) and the published item the request is about (?sobre=). */
+export type FormPreset = { type: RequestType | null; linkedItemId: string | null };
+
+/**
+ * The tab's saved draft the form starts from, or null for a new form (design §5.1 «Drafts»):
+ *   * a sent request always comes back, with its receipt: its code and secret cannot be had again;
+ *   * what was written comes back only if something was written (hasContent: the kind alone is not) and for the same
+ *     choice as the address: the address's kind wins over the draft's, and a draft about another item is another form;
+ *   * anything else is a new form, with a key and a secret of its own (never the draft's: a key that may have reached
+ *     the server with other content is not reused for this one).
+ */
+export function resumeDraft(saved: Draft | null, preset: FormPreset): Draft | null {
+  if (!saved) return null;
+  if (saved.receipt) return { ...saved, receipt: { ...saved.receipt, files: filesAfterReload(saved.receipt.files) } };
+  if (!hasContent(saved.values)) return null;
+  if (preset.type && saved.values.type !== preset.type) return null;
+  if (preset.linkedItemId && saved.values.linkedItemId && saved.values.linkedItemId !== preset.linkedItemId) return null;
+  return saved;
+}
+
+/** Whether a form's draft is worth keeping in the tab: a receipt, or something written. A form with nothing written
+ * yet keeps nothing, so a saved draft of another form stays where it is until this one has something of its own. */
+export function worthKeeping(d: Pick<Draft, 'receipt' | 'values'>): boolean {
+  return !!d.receipt || hasContent(d.values);
 }
 
 /** What the server receives (and what requestInput checks, here and there). */

@@ -20,8 +20,8 @@ import type { PickedFile } from './file-picker';
 import { uploadFile } from './files-client';
 import { readDraft, removeDraft, writeDraft } from './draft-storage';
 import {
-  DRAFT_KEY, STEPS, canAskSimilar, emptyValues, errorsOfStep, filesAfterReload, firstErrorStep, hasContent, parseDraft, similarKey, toInput, uuidV4,
-  validate, validateJoin, type Draft, type FormValues, type ReceiptFile, type Step,
+  DRAFT_KEY, STEPS, canAskSimilar, emptyValues, errorsOfStep, firstErrorStep, parseDraft, resumeDraft, similarKey, toInput, uuidV4, validate,
+  validateJoin, worthKeeping, type Draft, type FormValues, type ReceiptFile, type Step,
 } from './form-core';
 import { TYPE_COPY } from './words';
 
@@ -65,8 +65,16 @@ function blankDraft(type: RequestType | null, linkedItemId: string | null): Draf
  * connection never loses it, and a retry gets the same receipt (the server is idempotent by the key; Next retries the
  * send itself when the signal comes back). The browser checks with the same schema as the server; the receipt shows
  * only once the database committed. Files go up right after, one by one, each with its own «Reintentar».
+ *
+ * The kind and the item the address chose make the form: a link of the site to another kind (the header's, the
+ * attention menu's) is a soft navigation, and search params keep a component's state, so a new choice mounts a new
+ * form, which reads the tab's draft again with that choice (resumeDraft: the address's kind wins).
  */
-export function RequestForm({ municipalities, categories, linked, presetType, today, siteName, maxFileBytes, turnstileSiteKey }: Props) {
+export function RequestForm(props: Props) {
+  return <TypedRequestForm key={`${props.presetType ?? ''}|${props.linked?.id ?? ''}`} {...props} />;
+}
+
+function TypedRequestForm({ municipalities, categories, linked, presetType, today, siteName, maxFileBytes, turnstileSiteKey }: Props) {
   const [draft, setDraft] = useState<Draft>(() => blankDraft(presetType, linked?.id ?? null));
   const [ready, setReady] = useState(false);
   const [restored, setRestored] = useState(false);
@@ -88,32 +96,30 @@ export function RequestForm({ municipalities, categories, linked, presetType, to
   const uploading = useRef(false);
   const focusNext = useRef<'heading' | 'summary' | null>(null);
 
-  // The draft of this tab, or a new form with its key and secret (made here, in the browser, once). sessionStorage is an
-  // external store the server cannot read: its draft comes in once, right after hydration.
+  // The draft of this tab when it belongs to this form (resumeDraft: a receipt, or something written for the kind and the
+  // item the address chose), or a new form with its key and secret (made here, in the browser, once). sessionStorage is
+  // an external store the server cannot read: its draft comes in once, right after hydration.
   useEffect(() => {
     const preset = { type: presetType, linkedItemId: linked?.id ?? null };
-    const saved = parseDraft(readDraft(DRAFT_KEY));
-    let next: Draft;
-    if (saved && (saved.receipt || hasContent(saved.values, preset))) {
-      next = saved.receipt ? { ...saved, receipt: { ...saved.receipt, files: filesAfterReload(saved.receipt.files) } } : saved;
-    } else if (saved) {
-      next = { ...saved, step: 1, values: { ...saved.values, type: presetType ?? saved.values.type, linkedItemId: preset.linkedItemId ?? saved.values.linkedItemId } };
-    } else {
-      next = { ...blankDraft(presetType, preset.linkedItemId), submissionKey: uuidV4(), secret: generateSecret(), savedAt: new Date().toISOString() };
-    }
+    const resumed = resumeDraft(parseDraft(readDraft(DRAFT_KEY)), preset);
+    const next = resumed ?? { ...blankDraft(presetType, preset.linkedItemId), submissionKey: uuidV4(), secret: generateSecret(), savedAt: new Date().toISOString() };
     /* eslint-disable react-hooks/set-state-in-effect -- the one-time read of the tab's own storage after hydration */
     setDraft(next);
-    setRestored(!!saved && !saved.receipt && next === saved);
+    setRestored(!!resumed && !resumed.receipt);
     setReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
     // Once, on arrival.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Everything written is kept in the tab as it is written.
+  // What is written is kept in the tab as it is written. A form with nothing written keeps nothing (worthKeeping): a
+  // saved draft of another form stays until this one has something of its own, and this form's own, emptied, goes.
   useEffect(() => {
     if (!ready || !draft.submissionKey) return;
-    const t = setTimeout(() => writeDraft(DRAFT_KEY, JSON.stringify({ ...draft, savedAt: new Date().toISOString() })), 150);
+    const t = setTimeout(() => {
+      if (worthKeeping(draft)) writeDraft(DRAFT_KEY, JSON.stringify({ ...draft, savedAt: new Date().toISOString() }));
+      else if (parseDraft(readDraft(DRAFT_KEY))?.submissionKey === draft.submissionKey) removeDraft(DRAFT_KEY);
+    }, 150);
     return () => clearTimeout(t);
   }, [draft, ready]);
 

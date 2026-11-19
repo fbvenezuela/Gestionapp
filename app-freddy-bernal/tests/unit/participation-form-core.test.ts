@@ -8,8 +8,8 @@ import { requestInput } from '@/lib/participation/input';
 import { SECRET_PATTERN } from '@/lib/participation/receipt-code';
 import { chosenChannel, eventDateProblem, linkedItemPath, parseSobre, stepOfField } from '@/lib/actions/participation-types';
 import {
-  DRAFT_KEY, canAskSimilar, emptyValues, errorsOfStep, filesAfterReload, firstErrorStep, hasContent, newDraft, parseDraft, similarKey, toInput,
-  uuidV4, validate, validateJoin, type FormValues,
+  DRAFT_KEY, canAskSimilar, emptyValues, errorsOfStep, filesAfterReload, firstErrorStep, hasContent, newDraft, parseDraft, resumeDraft, similarKey,
+  toInput, uuidV4, validate, validateJoin, worthKeeping, type Draft, type FormValues,
 } from '@/components/participation/form-core';
 import { verifiedContacts } from '@/components/participation/contacts';
 import { STATE_PLAIN, dayDate, reportsCount, tachiraToday, timelineLine } from '@/components/participation/words';
@@ -170,10 +170,70 @@ describe('el borrador de la pestaña', () => {
     expect(filesAfterReload(back.receipt!.files).map((f) => f.status)).toEqual(['done', 'lost', 'lost']);
   });
 
-  it('un borrador sin nada escrito (solo lo que vino en la dirección) no se ofrece para seguir', () => {
-    expect(hasContent(emptyValues({ type: 'reporte' }), { type: 'reporte' })).toBe(false);
-    expect(hasContent({ ...emptyValues({ type: 'reporte' }), sector: 'Centro' }, { type: 'reporte' })).toBe(true);
-    expect(hasContent(emptyValues({ type: 'denuncia' }), { type: null })).toBe(true);
+  it('un borrador sin nada escrito no se ofrece para seguir: el tipo solo no es algo escrito', () => {
+    expect(hasContent(emptyValues({ type: 'reporte' }))).toBe(false);
+    // A kind ticked by hand is not something written either (it used to count when it was not the address's).
+    expect(hasContent(emptyValues({ type: 'denuncia' }))).toBe(false);
+    expect(hasContent({ ...emptyValues({ type: 'reporte' }), linkedItemId: '44444444-4444-4444-8444-444444444444', anonymous: true, privacyAccepted: true })).toBe(false);
+    expect(hasContent({ ...emptyValues({ type: 'reporte' }), sector: 'Centro' })).toBe(true);
+    expect(hasContent({ ...emptyValues({ type: 'peticion' }), categoryId: CAT })).toBe(true);
+    expect(hasContent({ ...emptyValues(), point: { lat: 7.7, lng: -72.2 } })).toBe(true);
+  });
+});
+
+describe('al llegar al formulario: el borrador de la pestaña o uno nuevo', () => {
+  const LINK_A = '55555555-5555-4555-8555-555555555555';
+  const LINK_B = '66666666-6666-4666-8666-666666666666';
+  const preset = (type: Draft['values']['type'] | null, linkedItemId: string | null = null) => ({ type: type || null, linkedItemId });
+  const written = (over: Partial<FormValues> = {}): Draft => ({ ...newDraft(), step: 2, values: { ...emptyValues({ type: 'peticion' }), categoryId: CAT, sector: 'Sector escrito (prueba)', ...over } });
+  // As the tab keeps it: through JSON and the field-by-field check.
+  const stored = (d: Draft) => parseDraft(JSON.stringify(d));
+
+  it('el tipo del enlace gana: un borrador con solo «Denuncia» no vuelve en la página de la petición (ni en ninguna)', () => {
+    const onlyType = stored(newDraft({ type: 'denuncia', linkedItemId: null }));
+    expect(onlyType).not.toBeNull();
+    expect(resumeDraft(onlyType, preset('peticion'))).toBeNull();
+    expect(resumeDraft(onlyType, preset('denuncia'))).toBeNull();
+    expect(resumeDraft(onlyType, preset(null))).toBeNull();
+    expect(resumeDraft(null, preset('peticion'))).toBeNull();
+  });
+
+  it('lo escrito para un tipo no vuelve en el formulario de otro tipo', () => {
+    const denuncia = stored(written({ type: 'denuncia', title: 'Un hecho escrito (prueba)' }));
+    expect(resumeDraft(denuncia, preset('peticion'))).toBeNull();
+    expect(resumeDraft(denuncia, preset('reporte'))).toBeNull();
+  });
+
+  it('lo escrito vuelve, tal cual y con su llave y su clave, al abrir el mismo tipo (o el formulario sin tipo)', () => {
+    const d = written();
+    const back = resumeDraft(stored(d), preset('peticion'));
+    expect(back).toMatchObject({ submissionKey: d.submissionKey, secret: d.secret, step: 2, values: d.values });
+    expect(resumeDraft(stored(d), preset(null))).toMatchObject({ submissionKey: d.submissionKey, values: { type: 'peticion', sector: 'Sector escrito (prueba)' } });
+  });
+
+  it('lo escrito sobre una publicación no vuelve en el formulario sobre otra; sin publicación en la dirección, sí', () => {
+    const aboutA = stored(written({ type: 'acotacion', linkedItemId: LINK_A }));
+    expect(resumeDraft(aboutA, preset('acotacion', LINK_B))).toBeNull();
+    expect(resumeDraft(aboutA, preset('acotacion', LINK_A))).toMatchObject({ values: { linkedItemId: LINK_A } });
+    expect(resumeDraft(aboutA, preset('acotacion'))).toMatchObject({ values: { linkedItemId: LINK_A } });
+    // A draft that dropped its item («Quitar») comes back as it was.
+    expect(resumeDraft(stored(written({ type: 'acotacion', linkedItemId: null })), preset('acotacion', LINK_A))).toMatchObject({ values: { linkedItemId: null } });
+  });
+
+  it('un comprobante vuelve siempre (su código y su clave no se pueden pedir otra vez), con lo que no subió dado por perdido', () => {
+    const d = newDraft({ type: 'denuncia', linkedItemId: null });
+    const receipt = {
+      reference: 'AC-2026-K7QM2H', secret: d.secret, kind: 'request' as const, sentAt: '2026-11-06T10:00:00Z', type: 'denuncia' as const, emailNote: false, saved: false,
+      files: [{ id: 'a', name: 'a.jpg', size: 10, status: 'uploading' as const }],
+    };
+    const back = resumeDraft(stored({ ...d, values: emptyValues({ type: 'denuncia' }), receipt }), preset('peticion'));
+    expect(back?.receipt).toMatchObject({ reference: 'AC-2026-K7QM2H', files: [{ id: 'a', status: 'lost' }] });
+  });
+
+  it('se guarda en la pestaña solo lo que vale la pena: un comprobante o algo escrito', () => {
+    expect(worthKeeping(newDraft({ type: 'denuncia', linkedItemId: null }))).toBe(false);
+    expect(worthKeeping(written())).toBe(true);
+    expect(worthKeeping({ receipt: { reference: 'AC-2026-K7QM2H' } as Draft['receipt'], values: emptyValues({ type: 'reporte' }) })).toBe(true);
   });
 });
 
