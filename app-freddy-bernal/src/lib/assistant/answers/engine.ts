@@ -375,19 +375,18 @@ export function undiminished(w: string): string | null {
   return d !== w && d.length >= 3 ? rootOf(d) : null;
 }
 
-// A word typed in a hurry (WF-C2): one letter wrong, missing, extra, or two letters swapped («tutorail», «pantlla»,
-// «mensjaes», «notificacoin»). Only long words (six letters or more) that start like the known word, so short words and
-// another word that only rhymes never pass for each other.
+// A word typed in a hurry (WF-C2): one letter missing or extra, or two letters swapped («tutorail», «materal»,
+// «mensjaes», «notificacionn»). Only long words (six letters or more) that start like the known word, so short words and
+// another word that only rhymes never pass for each other; one letter changed is often another real word («capital» is
+// not «capítulo»), so it never counts.
 const TYPO_MIN = 6;
-/** Whether two roots are one slip apart (Damerau: one change, one letter in or out, or two neighbours swapped). */
+/** Whether two roots are one slip apart: one letter in or out, or two neighbours swapped. */
 export function oneSlip(a: string, b: string): boolean {
   if (a === b || Math.min(a.length, b.length) < TYPO_MIN || Math.abs(a.length - b.length) > 1 || a.slice(0, 2) !== b.slice(0, 2)) return false;
   let i = 0;
   while (i < a.length && i < b.length && a[i] === b[i]) i++;
-  if (a.length === b.length) {
-    // One letter changed, or the two at i swapped.
-    return a.slice(i + 1) === b.slice(i + 1) || (a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2));
-  }
+  // Two neighbours swapped. (One letter changed is often another real word, «capital» / «capítulo»: never.)
+  if (a.length === b.length) return a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2);
   // One letter in or out.
   const [s, l] = a.length < b.length ? [a, b] : [b, a];
   return s.slice(i) === l.slice(i + 1);
@@ -1934,7 +1933,8 @@ function rank(question: string, o: FindOptions): Match[] {
     else if (!why && /^Porque\b/.test(said)) s *= 0.85;
     // The screen the person is on: its own entries a little more, and more the more of the question their text says
     // (WF-C2: «¿cómo veo solo las fichas por ponerle fecha?» asked on Obras is Obras's filter, not the card of a ficha).
-    if (onScreen(e)) s += SCREEN_HERE + SCREEN_SAYS * (byDoc.get(k)?.[0] ?? 0);
+    // A «¿por qué…?» is answered by the reason, not by what the screen shows: only the little.
+    if (onScreen(e)) s += SCREEN_HERE + (why ? 0 : SCREEN_SAYS * (byDoc.get(k)?.[0] ?? 0));
     // The domain (design §4(d)3): a question of the web or of Atención goes to the entries of its own (the other of the two
     // a little less) and the team's far behind; a question that names neither keeps today's scores for the team's entries,
     // and the web's need to beat them clearly.

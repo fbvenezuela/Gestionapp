@@ -100,13 +100,14 @@ describe('(b) el trabajo del rol y lo que nunca le toca, solo cuando se pregunta
 });
 
 describe('(f) una palabra con una letra mal, la pantalla en la que estás y con quién trabajas', () => {
-  it('oneSlip: una letra cambiada, de más, de menos o dos letras al revés, en palabras largas que empiezan igual', () => {
+  it('oneSlip: una letra de más, de menos o dos letras al revés, en palabras largas que empiezan igual', () => {
     expect(oneSlip('tutorail', 'tutorial')).toBe(true); // dos al revés
     expect(oneSlip('publicacon', 'publicacion')).toBe(true); // una de menos
     expect(oneSlip('notificacionn', 'notificacion')).toBe(true); // una de más
     expect(oneSlip('materal', 'material')).toBe(true);
-    expect(oneSlip('mensajr', 'mensaje')).toBe(true); // una cambiada
-    // Nunca: palabras cortas, que empiezan distinto, a dos letras, o la misma.
+    // Nunca: una letra cambiada (otra palabra de verdad), palabras cortas, que empiezan distinto, a dos letras, o la misma.
+    expect(oneSlip('capital', 'capitul')).toBe(false);
+    expect(oneSlip('mensajr', 'mensaje')).toBe(false);
     expect(oneSlip('pieza', 'pizza')).toBe(false);
     expect(oneSlip('nombre', 'hombre')).toBe(false);
     expect(oneSlip('contacto', 'contrato')).toBe(false);
@@ -123,6 +124,14 @@ describe('(f) una palabra con una letra mal, la pantalla en la que estás y con 
       const b = bestAnswer(fine, { roles: [role] });
       expect(a?.entry.id, `${role}: ${typo}`).toBe(b?.entry.id);
       expect(a?.confidence, `${role}: ${typo}`).toBe('strong');
+    }
+  });
+
+  it('una pregunta de fuera de la app no se vuelve otra por una palabra parecida', () => {
+    // «capital» no es «capítulos» (la descripción de un video de YouTube).
+    for (const role of ['social', 'boss'] as Role[]) {
+      const m = bestAnswer('¿cuál es la capital de Portugal?', { roles: [role] });
+      expect(m?.confidence === 'strong' ? m.text : '', role).not.toMatch(/cap[ií]tulos/);
     }
   });
 
