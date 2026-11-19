@@ -163,8 +163,21 @@ const SHORTHAND: [RegExp, string][] = [
 ];
 
 /** plain(), with the shorthand read as words: what the index matches. */
+// The same texts are read again and again (every entry's names, labels and answers, for each question): kept once each, up
+// to a bound (read the same either way: readable() is pure). The slow rule of the reading mode's green button (a
+// lookbehind over the whole text) only runs on a text that says «boton verde».
+const READ = new Map<string, string>();
+const READ_MAX = 50_000;
+const GREEN = SHORTHAND.findIndex(([re]) => re.source.startsWith('\\bboton verde\\b(?='));
 export function readable(text: string): string {
-  return SHORTHAND.reduce((t, [re, to]) => t.replace(re, to), plain(text)).replace(/\s+/g, ' ').trim();
+  const got = READ.get(text);
+  if (got !== undefined) return got;
+  const p = plain(text);
+  const green = p.includes('boton verde');
+  const out = SHORTHAND.reduce((t, [re, to], k) => (k === GREEN && !green ? t : t.replace(re, to)), p).replace(/\s+/g, ' ').trim();
+  if (READ.size >= READ_MAX) READ.clear();
+  READ.set(text, out);
+  return out;
 }
 
 // Words that say nothing of what is asked (articles, prepositions, fillers, auxiliaries).
@@ -1663,6 +1676,15 @@ function screenWords(): Set<string> {
 }
 // The words of each term's name and meaning, as roots (built once).
 let DEF_TOKS: Map<Entry, string[]> | null = null;
+// What a word's meaning says for these roles, as the index reads it (once per word and roles: definedTerm reads it for
+// every question that asks a meaning).
+const SAID_READABLE = new Map<string, string>();
+function saidReadable(e: Entry, roles: Role[]): string {
+  const k = `${e.id}|${roles.join(',')}`;
+  let s = SAID_READABLE.get(k);
+  if (s === undefined) SAID_READABLE.set(k, (s = ` ${readable(textFor(e.a, roles))} `));
+  return s;
+}
 function defTokens(): Map<Entry, string[]> {
   if (DEF_TOKS) return DEF_TOKS;
   const easy = new Map<string, string[]>([...GLOSSARY, ...WEB_GLOSSARY].map((g) => [g.id, g.easy ? roleTexts(g.easy) : []]));
@@ -1704,7 +1726,7 @@ function definedTerm(a: Asked, roles: Role[], domain: Domain | null, quoted: str
     if (!forRoles(e, roles)) continue;
     const ed = e.domain ?? 'equipo';
     if (domain && domain !== 'equipo' ? ed !== domain : ed !== 'equipo' && e.id !== 'palabra:web-y-atencion') continue;
-    const said = ` ${readable(textFor(e.a, roles))} `;
+    const said = saidReadable(e, roles);
     if (frames.some((f) => f.cue && !f.cue.test(said))) continue;
     // A label of the screen named whole that this word does not quote, or one quoted in the question that is none of its
     // names: another question.
