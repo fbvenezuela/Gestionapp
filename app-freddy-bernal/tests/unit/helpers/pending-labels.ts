@@ -1,5 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { getClientConfig } from '@/lib/client-config';
+import { LABEL_ALLOW, LABEL_PATTERNS } from '@/lib/guides/check';
 
 // The labels the new website retires on purpose while the guides and 360 still quote them (design §7 of the new
 // website, 19/11/2026). The rule stays: every «label» the guides or 360 quote is a text of a screen (src/ outside the
@@ -56,4 +58,56 @@ let memo: Set<string> | null = null;
 export function isPendingLabel(label: string): boolean {
   memo ??= new Set(readPendingLabels().map((p) => p.label));
   return memo.has(label);
+}
+
+// --- Only what is really pending ---------------------------------------------------------------------------------------
+// An entry widens the six tests, so the folder keeps only what they need: a label the screens really lost (else the
+// tests find it anyway) that the guides or 360 still quote (else nothing quotes it: the entry just sits there).
+// The screens' text is the strictest of the six tests': src/ outside the help content (the guides, 360's answers and
+// its explain lines), without comments, plus the client's config; the patterns and the allow list of
+// src/lib/guides/check.ts count as found too. The quotes are looked for in the guides and in all of 360 (src/lib/assistant).
+const HELP_PARTS = [path.join('src', 'lib', 'guides'), path.join('src', 'lib', 'assistant', 'answers'), path.join('src', 'lib', 'assistant', 'explain.ts')];
+const QUOTING_PARTS = [path.join('src', 'lib', 'guides'), path.join('src', 'lib', 'assistant')];
+
+function codeFiles(dir: string, skip: (p: string) => boolean): string[] {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
+    const p = path.join(dir, d.name);
+    if (skip(p)) return [];
+    if (d.isDirectory()) return codeFiles(p, skip);
+    return /\.(ts|tsx)$/.test(d.name) ? [p] : [];
+  });
+}
+const withoutComments = (s: string) =>
+  s
+    .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, ' ')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/^\s*\/\/.*$/gm, ' ')
+    .replace(/\s\/\/\s.*$/gm, ' ');
+const textOf = (files: string[]) => files.map((f) => withoutComments(fs.readFileSync(f, 'utf8'))).join('\n').replace(/\s+/g, ' ');
+const strings = (v: unknown): string[] =>
+  typeof v === 'string' ? [v] : Array.isArray(v) ? v.flatMap(strings) : v && typeof v === 'object' ? Object.values(v).flatMap(strings) : [];
+
+/** The screens' text (src/ outside the help content) and the client's config, as one string. */
+export function screensText(): string {
+  const src = textOf(codeFiles('src', (p) => HELP_PARTS.some((h) => p.startsWith(h))));
+  return `${src}\n${strings(getClientConfig()).join('\n').replace(/\s+/g, ' ')}`;
+}
+
+/** What the guides and 360 say, as one string (where a retired label is still quoted). */
+export function helpText(): string {
+  return textOf(QUOTING_PARTS.flatMap((d) => (fs.statSync(d).isDirectory() ? codeFiles(d, () => false) : [d])));
+}
+
+/** What is wrong with the entries: a label that is still on the screens (nothing to accept: drop it) or that no guide
+ * or 360 text quotes («label», with its «») any more (nothing quotes it: drop it). Empty when every entry is needed. */
+export function pendingLabelProblems(entries: PendingLabel[] = readPendingLabels(), screens: string = screensText(), help: string = helpText()): string[] {
+  const out: string[] = [];
+  for (const e of entries) {
+    const where = `«${e.label}» (${e.file})`;
+    if (screens.includes(e.label) || LABEL_PATTERNS.some((p) => p.re.test(e.label)) || LABEL_ALLOW.includes(e.label)) {
+      out.push(`${where}: sigue en las pantallas o en la configuración, así que no hace falta anotarla`);
+    }
+    if (!help.includes(`«${e.label}»`)) out.push(`${where}: ninguna guía ni 360 la cita, así que no hace falta anotarla`);
+  }
+  return out;
 }

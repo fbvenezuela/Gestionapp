@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { PENDING_LABELS_DIR, isPendingLabel, readPendingLabels } from './helpers/pending-labels';
+import { PENDING_LABELS_DIR, helpText, isPendingLabel, pendingLabelProblems, readPendingLabels, screensText } from './helpers/pending-labels';
 
 const dirs: string[] = [];
 function folder(files: Record<string, unknown>): string {
@@ -57,5 +57,28 @@ describe('las etiquetas pendientes de la web nueva', () => {
     const listed = new Set(readPendingLabels().map((p) => p.label));
     expect(isPendingLabel('Una etiqueta que ninguna pantalla tiene (prueba)')).toBe(false);
     for (const l of listed) expect(isPendingLabel(l), l).toBe(true);
+  });
+
+  it('cada etiqueta anotada hace falta: ya no está en las pantallas ni en la configuración, y una guía o 360 todavía la cita', () => {
+    expect(pendingLabelProblems()).toEqual([]);
+  });
+
+  it('una anotada que sigue en las pantallas sobra, y una que nadie cita también; la que perdió la pantalla y se cita, no', () => {
+    const entry = (label: string) => ({ label, why: 'Un motivo largo (prueba).', paquete: 'WP3', file: 'wp3.json' });
+    const screens = screensText();
+    const help = helpText();
+    // «Hacer un reporte»: today on the screens (the home's card, the form's words) and quoted by the guides and 360.
+    expect(screens).toContain('Hacer un reporte');
+    expect(help).toContain('«Hacer un reporte»');
+    expect(pendingLabelProblems([entry('Hacer un reporte')], screens, help)).toEqual([
+      '«Hacer un reporte» (wp3.json): sigue en las pantallas o en la configuración, así que no hace falta anotarla',
+    ]);
+    expect(pendingLabelProblems([entry('Una etiqueta que nadie tiene (prueba)')], screens, help)).toEqual([
+      '«Una etiqueta que nadie tiene (prueba)» (wp3.json): ninguna guía ni 360 la cita, así que no hace falta anotarla',
+    ]);
+    // What a package lists on purpose: gone from the screens, still quoted.
+    expect(pendingLabelProblems([entry('Botón viejo (prueba)')], 'otra pantalla', 'Toque «Botón viejo (prueba)» y listo.')).toEqual([]);
+    // The patterns of the guides' check count as on the screens too («Nivel amarillo» is built from a value).
+    expect(pendingLabelProblems([entry('Nivel amarillo')], 'otra pantalla', 'Vea «Nivel amarillo».')).toHaveLength(1);
   });
 });
