@@ -802,13 +802,13 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-demo-dos',
     roles: null,
-    q: ['cuántas personas tiene cada rol en la demo', 'para probar entre dos en la demo'],
+    q: ['cuántas personas tiene cada rol en la demo', 'para probar entre dos en la demo', 'dos personas por rol en la versión de demostración'],
     a: 'En la demo, Redes y Grabación tienen dos personas cada una, para probar entre dos; los demás roles, una.',
   },
   {
     id: 'todo-demo-primero',
     roles: null,
-    q: ['qué probar primero con cada rol', 'por dónde empiezo en la demo'],
+    q: ['qué probar primero con cada rol', 'por dónde empiezo en la demo', 'cómo practicar cada rol en la demo'],
     a: 'Con cada rol, primero el tutorial de su inicio (Mi cuenta → «Ver el tutorial: Bienvenida»), después su guía en «Ayuda y guías», un canal de Mensajes y lo de su «Paso a paso».',
     go: '/ayuda',
   },
@@ -816,7 +816,7 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-guia-cuenta',
     roles: null,
-    q: ['qué cuenta la guía', 'qué tiene la guía impresa'],
+    q: ['qué cuenta la guía', 'qué tiene la guía impresa', 'qué hace cada persona del equipo según la guía'],
     a: 'La guía del equipo cuenta qué hace cada persona en la app: el jefe, el despacho, política, el IVT, Grabación y Redes. Cada rol trae su trabajo, su día, cada tarea paso a paso y cada pantalla, con su captura.',
     go: '/ayuda',
   },
@@ -836,7 +836,7 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-guia-mitades',
     roles: null,
-    q: ['una pantalla larga va partida en dos', 'una captura cortada en dos'],
+    q: ['una pantalla larga va partida en dos', 'una captura cortada en dos', 'pantallas partidas en la guía'],
     a: 'En la guía, una pantalla larga va partida en dos, una mitad al lado de la otra: primero la parte de arriba y después lo que sigue más abajo.',
   },
   {
