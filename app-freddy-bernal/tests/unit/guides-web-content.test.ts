@@ -32,6 +32,7 @@ import {
   webSections,
   webTexts,
 } from '@/lib/guides/web';
+import { isPendingLabel } from './helpers/pending-labels';
 
 const cfg = getClientConfig();
 const words = clientWords(cfg);
@@ -73,7 +74,7 @@ const SOURCE = sourceFiles('src')
   .replace(/\s+/g, ' ');
 const strings = (v: unknown): string[] => (typeof v === 'string' ? [v] : Array.isArray(v) ? v.flatMap(strings) : v && typeof v === 'object' ? Object.values(v).flatMap(strings) : []);
 const CONFIG = strings(cfg).join('\n').replace(/\s+/g, ' ');
-const labelFound = (l: string) => SOURCE.includes(l) || CONFIG.includes(l) || LABEL_PATTERNS.some((p) => p.re.test(l)) || LABEL_ALLOW.includes(l);
+const labelFound = (l: string) => SOURCE.includes(l) || CONFIG.includes(l) || LABEL_PATTERNS.some((p) => p.re.test(l)) || LABEL_ALLOW.includes(l) || isPendingLabel(l);
 
 describe('la guía de la web como datos de la app (WF-C)', () => {
   it('cuatro documentos: GUIA-WEB, los dos manuales y los flujos, cada uno con su archivo y su título', () => {

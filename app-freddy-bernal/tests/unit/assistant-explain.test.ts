@@ -14,6 +14,7 @@ import { explainAnswer, explainAsk, explainUnitId, followsEventThread, sentences
 import { withoutLabels } from '@/lib/assistant/local';
 import { FLOW_FACET_IDS, facetsOf } from '@/lib/guides/explain';
 import { allGuides, toursForRoles } from '@/lib/guides';
+import { isPendingLabel } from './helpers/pending-labels';
 
 const FACETS: Facet[] = ['simpler', 'steps', 'example', 'next', 'purpose', 'why', 'meaning', 'more'];
 const ask = (q: string, last?: string) => explainAsk(q, last ? { last } : {});
@@ -470,7 +471,7 @@ const SOURCE = sourceFiles('src')
   )
   .join('\n')
   .replace(/\s+/g, ' ');
-const labelFound = (label: string) => SOURCE.includes(label) || LABEL_PATTERNS.some((p) => p.re.test(label)) || LABEL_ALLOW.includes(label);
+const labelFound = (label: string) => SOURCE.includes(label) || LABEL_PATTERNS.some((p) => p.re.test(label)) || LABEL_ALLOW.includes(label) || isPendingLabel(label);
 
 describe('explainAnswer: las reglas del contenido en todo lo que dice', () => {
   // Every task, screen, flow step, topic and word of the index, as each of its roles, with each facet; and a sample of

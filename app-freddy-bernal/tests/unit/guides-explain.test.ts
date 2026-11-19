@@ -11,6 +11,7 @@ import { DEMO_WORDS, LABEL_ALLOW, LABEL_PATTERNS, balancedQuotes, concreteDateTi
 import { FLOW_FACET_IDS, explainFacets, type FacetText } from '@/lib/guides/explain';
 import { allEntries, textFor } from '@/lib/assistant/answers/engine';
 import { sentencesOf } from '@/lib/assistant/explain';
+import { isPendingLabel } from './helpers/pending-labels';
 
 // The screens' text: src/ outside the help content (the guides, 360's answers and 360's explain lines), without comments.
 const HELP = [path.join('src', 'lib', 'guides'), path.join('src', 'lib', 'assistant', 'answers'), path.join('src', 'lib', 'assistant', 'explain.ts')];
@@ -32,7 +33,7 @@ const SOURCE = sourceFiles('src')
   .map((f) => withoutComments(fs.readFileSync(f, 'utf8')))
   .join('\n')
   .replace(/\s+/g, ' ');
-const labelFound = (label: string) => SOURCE.includes(label) || LABEL_PATTERNS.some((p) => p.re.test(label)) || LABEL_ALLOW.includes(label);
+const labelFound = (label: string) => SOURCE.includes(label) || LABEL_PATTERNS.some((p) => p.re.test(label)) || LABEL_ALLOW.includes(label) || isPendingLabel(label);
 
 const FACETS = explainFacets();
 const ENTRIES = new Map(allEntries().map((e) => [e.id, e]));

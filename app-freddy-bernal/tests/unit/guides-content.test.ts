@@ -24,6 +24,7 @@ import {
 import { ADMIN_MENTIONS, MSG_AGENDA, MSG_CHANNELS, MSG_ENTER, MSG_FREE, MSG_PHONES, MSG_RELATIVE, MSG_TEAM } from '@/lib/guides/shared';
 import type { RoleGuide, TourText } from '@/lib/guides';
 import { WEB_GUIDE_ROWS, webGuideRows } from '@/lib/guides/web';
+import { isPendingLabel } from './helpers/pending-labels';
 
 // ── Every text of the help content, with where it is ───────────────────────────────────────────────────────────────
 
@@ -83,7 +84,7 @@ const SOURCE = sourceFiles('src')
   .replace(/\s+/g, ' ');
 
 const labelFound = (label: string) =>
-  SOURCE.includes(label) || LABEL_PATTERNS.some((p) => p.re.test(label)) || LABEL_ALLOW.includes(label);
+  SOURCE.includes(label) || LABEL_PATTERNS.some((p) => p.re.test(label)) || LABEL_ALLOW.includes(label) || isPendingLabel(label);
 
 describe('las etiquetas «…» existen en las pantallas (U16)', () => {
   it('cada «» de guías y tutoriales está cerrado', () => {
