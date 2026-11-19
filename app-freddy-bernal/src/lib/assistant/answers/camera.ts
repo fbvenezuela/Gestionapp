@@ -635,7 +635,7 @@ export const CAMERA: Answer[] = [
     id: 'gra-realizado-que-pasa',
     roles: ['camera'],
     q: ['que pasa cuando marco realizado', 'que pasa con una visita de obra cuando la marco realizada', 'para que sirve marcar realizado', 'despues de marcar realizado', 'que pasa al marcar realizado'],
-    a: 'Su material pasa al registro por día, en la Biblioteca. Si es una visita de obra, la ficha de obra pasa a «Visitas realizadas».',
+    a: 'Cuando el evento ya empezó, tocas «Marcar realizado»: su material pasa al registro por día, en la Biblioteca. Si es una visita de obra, la ficha de obra pasa a «Visitas realizadas».',
   },
   {
     id: 'gra-realizado-quien',

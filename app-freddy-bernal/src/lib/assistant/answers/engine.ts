@@ -375,6 +375,47 @@ export function undiminished(w: string): string | null {
   return d !== w && d.length >= 3 ? rootOf(d) : null;
 }
 
+// A word typed in a hurry (WF-C2): one letter wrong, missing, extra, or two letters swapped («tutorail», «pantlla»,
+// «mensjaes», «notificacoin»). Only long words (six letters or more) that start like the known word, so short words and
+// another word that only rhymes never pass for each other.
+const TYPO_MIN = 6;
+/** Whether two roots are one slip apart (Damerau: one change, one letter in or out, or two neighbours swapped). */
+export function oneSlip(a: string, b: string): boolean {
+  if (a === b || Math.min(a.length, b.length) < TYPO_MIN || Math.abs(a.length - b.length) > 1 || a.slice(0, 2) !== b.slice(0, 2)) return false;
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  if (a.length === b.length) {
+    // One letter changed, or the two at i swapped.
+    return a.slice(i + 1) === b.slice(i + 1) || (a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2));
+  }
+  // One letter in or out.
+  const [s, l] = a.length < b.length ? [a, b] : [b, a];
+  return s.slice(i) === l.slice(i + 1);
+}
+
+/**
+ * The known root a word the index does not know was meant to be, when it is one slip from exactly one known root of its
+ * length class (or from several, the commonest): «tutorail» is «tutorial». Null when none, or when the word is a name.
+ */
+// The known roots by their first two letters (built once, as the index).
+let BY_START: { of: Index; map: Map<string, string[]> } | null = null;
+function rootsByStart(ix: Index): Map<string, string[]> {
+  if (BY_START?.of === ix) return BY_START.map;
+  const map = new Map<string, string[]>();
+  for (const k of ix.idfAll.keys()) if (k.length >= TYPO_MIN - 1) map.set(k.slice(0, 2), [...(map.get(k.slice(0, 2)) ?? []), k]);
+  BY_START = { of: ix, map };
+  return map;
+}
+function typoOf(r: string, known: Map<string, number>, byStart: Map<string, string[]>): string | null {
+  if (r.length < TYPO_MIN) return null;
+  let best: string | null = null;
+  for (const k of byStart.get(r.slice(0, 2)) ?? []) {
+    if (!oneSlip(r, k)) continue;
+    if (!best || (known.get(k) ?? 99) < (known.get(best) ?? 99)) best = k;
+  }
+  return best;
+}
+
 // How two roots match: the same (1), synonyms (0.8), or one is the other with a short ending («comunit» / «comunitari»,
 // «histori» / «historial» do not: they differ by more than a quarter).
 function likeness(a: string, b: string): number {
@@ -555,12 +596,14 @@ function guideEntries(): Entry[] {
     });
     for (const w of g.job.worksWith) {
       const who = ROLE_LABEL[w.role];
+      // Asked with the role's name on the screen («Director de despacho») or as the team says it («el despacho»).
+      const names = [...new Set([who, WHO[w.role]])];
       out.push({
         id: `${slug}:con:${w.role}`,
         kind: 'with',
         source: `${role}:job.worksWith`,
         roles: r,
-        q: [`que hace ${who} por mi`, `que me da ${who}`, `que le paso a ${who}`, `que hago con ${who}`, `como trabajo con ${who}`],
+        q: names.flatMap((n) => [`que hace ${n} por mi`, `que me da ${n}`, `que le paso a ${n}`, `que hago con ${n}`, `como trabajo con ${n}`]),
         doc: w.what,
         a: `${who}: ${lcFirst(end(w.what))}`,
       });
@@ -1322,11 +1365,17 @@ function askedOf(question: string, extra?: string, names?: string[], web = false
   const unknown = web ? ix.unknownAll : ix.unknown;
   // A word the index does not know, said as a diminutive («los numeritos», «la cosita»), is its word.
   const dim = new Map<string, string>();
+  // …and one typed with a slip («tutorail»), the known word it is one letter from (typoOf); never a name's word.
+  const named = new Set((names ?? []).flatMap((w) => tokens(w)));
   for (const w of readable(question).split(' ')) {
     const r = rootOf(w);
     if (r in LIGHT || ix.idf.has(r)) continue;
     const u = undiminished(w);
     if (u && ix.idf.has(u)) dim.set(r, u);
+    else if (!STOP.has(w) && !named.has(r) && !ix.idfAll.has(r)) {
+      const k = typoOf(r, ix.idfAll, rootsByStart(ix));
+      if (k) dim.set(r, k);
+    }
   }
   const skip = new Set((names ?? []).flatMap((w) => tokens(w)).filter((r) => !(web ? ix.saidAll : ix.said).has(r)));
   const all = [...new Set(tokens(question).map((r) => dim.get(r) ?? r))];
@@ -1738,6 +1787,11 @@ export function selfAsk(question: string, screen?: string | null): 'job' | 'neve
 // «no me sale el feed»): the meaning only backs up another answer, never a sure one by itself (13/11).
 const TERM_SURE = new Set<AskKind | null>(['what', 'where', null]);
 
+// What an entry of the screen the person is on adds (rank): a little for being there, and up to a fifth of what its text
+// says of the question.
+const SCREEN_HERE = 0.04;
+const SCREEN_SAYS = 0.2;
+
 function rank(question: string, o: FindOptions): Match[] {
   const ix = index();
   // Asked whole what one's own job is, or what is never one's own (selfAsk): the role's «Tu trabajo» or its «Nunca»
@@ -1847,6 +1901,8 @@ function rank(question: string, o: FindOptions): Match[] {
   const asksBot = ASKS_BOT.test(a.text);
   const asksJob = ASKS_JOB.test(a.text);
   const asksApp = ASKS_APP.test(a.text) && !asksJob;
+  // An entry of the screen the person is on.
+  const onScreen = (e: Entry) => !!o.screen && ((!!e.screen && e.screen === o.screen) || !!e.also?.includes(o.screen));
   const out: Match[] = [];
   for (const [k, s0] of best) {
     const e = ix.entries[k];
@@ -1876,7 +1932,9 @@ function rank(question: string, o: FindOptions): Match[] {
     if (whereAsk && saysWhere) s += 0.04;
     else if (explain && /^(?:En|Desde)\b/.test(said)) s *= 0.92;
     else if (!why && /^Porque\b/.test(said)) s *= 0.85;
-    if (o.screen && ((e.screen && e.screen === o.screen) || e.also?.includes(o.screen))) s += 0.04;
+    // The screen the person is on: its own entries a little more, and more the more of the question their text says
+    // (WF-C2: «¿cómo veo solo las fichas por ponerle fecha?» asked on Obras is Obras's filter, not the card of a ficha).
+    if (onScreen(e)) s += SCREEN_HERE + SCREEN_SAYS * (byDoc.get(k)?.[0] ?? 0);
     // The domain (design §4(d)3): a question of the web or of Atención goes to the entries of its own (the other of the two
     // a little less) and the team's far behind; a question that names neither keeps today's scores for the team's entries,
     // and the web's need to beat them clearly.
@@ -1926,7 +1984,8 @@ function rank(question: string, o: FindOptions): Match[] {
   // quién está en un canal?» of the despacho is the members' list, not who arms the channels).
   if (oneWord && !exactly.has(out[0]?.entry) && !named.has(out[0]?.entry) && out.length > 1 && out[0].confidence === 'strong' && out[1].score >= out[0].score - 0.1) {
     const tied = out.filter((m) => m.score >= out[0].score - 0.1);
-    const own = tied.find((m) => m.entry.kind !== 'term' && exactly.has(m.entry));
+    // (…or, asked on a screen, the one of that screen: «¿qué hay en mis datos?» on Mi perfil is its «Mis datos».)
+    const own = tied.find((m) => m.entry.kind !== 'term' && exactly.has(m.entry)) ?? tied.find((m) => m.entry.kind !== 'term' && onScreen(m.entry));
     for (const m of tied) if (m !== own) m.confidence = 'weak';
     if (own) {
       own.score = out[0].score + 0.001;

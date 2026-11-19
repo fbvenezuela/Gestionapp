@@ -836,7 +836,7 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-guia-mitades',
     roles: null,
-    q: ['una pantalla larga va partida en dos', 'una captura cortada en dos', 'pantallas partidas en la guía'],
+    q: ['una pantalla larga va partida en dos', 'una captura cortada en dos', 'las capturas en dos mitades'],
     a: 'En la guía, una pantalla larga va partida en dos, una mitad al lado de la otra: primero la parte de arriba y después lo que sigue más abajo.',
   },
   {
@@ -1592,7 +1592,7 @@ export const TODOS: Answer[] = [
   {
     id: 'todo-msj-orden',
     roles: null,
-    q: ['los mensajes del más viejo al más nuevo', 'el primer mensaje sin leer', 'qué quiere decir Mensajes nuevos en un canal'],
+    q: ['los mensajes del más viejo al más nuevo', 'el primer mensaje sin leer', 'qué quiere decir Mensajes nuevos en un canal', 'el orden de los mensajes en un canal'],
     a: { default: 'Los mensajes de un canal van del más viejo al más nuevo. Al abrirlo, te lleva al primer mensaje sin leer, donde dice «Mensajes nuevos»; si ya leíste todo, al último.', admin: NO_MSG },
     go: '/mensajes',
   },
@@ -2834,7 +2834,7 @@ export const TODOS: Answer[] = [
     ],
     a: {
       default: 'No: la fecha y la hora no van en títulos, notas, motivos, comentarios ni mensajes, porque los lee gente que no debe saberlas. Escribe “lo antes posible”, “cuando esté listo” o “el día del evento”.',
-      camera: 'No: la nota para el editor va sin hora, fecha, dirección ni teléfonos, porque la lee Redes. Escribe “el día del evento”.',
+      camera: 'No: la nota para el editor va sin hora, fecha, dirección ni teléfonos, porque la lee Redes. Con un teléfono, la nota no se guarda; si escribes una fecha o una hora, la app te avisa antes de guardar. Escribe “el día del evento”.',
     },
   },
   {
