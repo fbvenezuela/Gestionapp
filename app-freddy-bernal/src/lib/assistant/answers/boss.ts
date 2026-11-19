@@ -75,7 +75,7 @@ export const BOSS: Answer[] = [
       'que trae el boton de obras del inicio',
       'que dicen los numeros de obras en mi inicio',
     ],
-    a: 'El botón Obras cuenta las fichas del IVT por estado (por ponerle fecha, con fecha, borradores y visitas realizadas) y por municipio; cada número abre Obras con ese filtro. Abajo está «Ver los municipios».',
+    a: 'El botón Obras cuenta las fichas del IVT según en qué van (por ponerle fecha, con fecha, borradores y visitas realizadas) y por municipio; cada número abre Obras con ese filtro. Abajo está «Ver los municipios».',
     go: '/obras',
     tutorial: 'jefe-inicio',
   },
@@ -163,7 +163,7 @@ export const BOSS: Answer[] = [
       'donde esta la pantalla hoy para mi',
       'como llego a hoy',
     ],
-    a: 'Tu pantalla es el Inicio. En Hoy, «Lo que espera por mí» trae lo que tienes por aprobar y las «Notas de Grabación nuevas», con «Hoy en la agenda» y «Trancado» al lado; llegas desde tu botón Redes, con el enlace para ver más en «Hoy».',
+    a: 'Tu pantalla es el Inicio. Hoy te muestra lo mismo que Redes ve en su Hoy, más lo que espera tu aprobación: «Lo que espera por mí» trae lo que tienes por aprobar y las «Notas de Grabación nuevas», con «Hoy en la agenda» y «Trancado» al lado; llegas desde tu botón Redes, con el enlace para ver más en «Hoy».',
     go: '/hoy',
   },
   {
@@ -353,7 +353,7 @@ export const BOSS: Answer[] = [
       'el audio de la pieza esta malo como lo devuelvo',
       'el video tiene algo mal que hago',
     ],
-    a: 'En la revisión de la pieza, escribe en «Qué hay que cambiar (o un comentario)» o toca un motivo ya escrito («Muy largo», «Revisar ortografía»…), y toca «Pedir cambios». Le vuelve a Redes con tu comentario; cuando la corrige, te la manda otra vez.',
+    a: 'En la revisión de la pieza, escribe en «Qué hay que cambiar (o un comentario)» o toca uno de los motivos ya escritos («Muy largo», «Revisar ortografía», «Dice fecha u hora»…), y toca «Pedir cambios». Le vuelve a Redes con tu comentario; cuando la corrige, te la manda otra vez.',
     go: '/aprobar',
     tutorial: 'aprobar-pieza',
   },
@@ -369,7 +369,7 @@ export const BOSS: Answer[] = [
       'no se envia el pedido de cambios',
       'por que pedir cambios me pide un comentario',
     ],
-    a: '«Pedir cambios» necesita decir qué cambiar: si sale «Escribe qué hay que cambiar o toca un motivo rápido.», escribe en «Qué hay que cambiar (o un comentario)» o toca un motivo ya escrito, y vuelve a tocar «Pedir cambios».',
+    a: '«Pedir cambios» necesita decir qué cambiar: si sale «Escribe qué hay que cambiar o toca un motivo rápido.», escribe en «Qué hay que cambiar (o un comentario)» o toca uno de los motivos ya escritos («Muy largo», «Revisar ortografía», «Dice fecha u hora»…), y vuelve a tocar «Pedir cambios».',
     go: '/aprobar',
   },
   {
@@ -506,7 +506,7 @@ export const BOSS: Answer[] = [
       'las historias se aprueban igual',
       'donde apruebo las historias de instagram',
     ],
-    a: 'Como cualquier pieza, en su revisión; además apruebas «Lo que sale en la app»: el texto en pantalla y el sticker, que se escriben al publicarla. Por eso su lista pide «El texto en pantalla y el sticker están revisados». Las historias empiezan en verde (rutina): se aprueban con «Aprobar todas las verdes (2)» si no tienen avisos.',
+    a: 'Como cualquier pieza, en su revisión; además apruebas «Lo que sale en la app» (lo que se escribe en Instagram al publicarla): el texto en pantalla y el sticker. Por eso su lista pide «El texto en pantalla y el sticker están revisados». Las historias empiezan en verde (rutina), para que las apruebes todas juntas con «Aprobar todas las verdes (2)» si no tienen avisos.',
     go: '/aprobar',
   },
   {
@@ -543,7 +543,7 @@ export const BOSS: Answer[] = [
       'que plazo tiene cada color',
       'cuanto dura el plazo de aprobacion',
     ],
-    a: 'Las verdes, en el día; las amarillas, en 60 minutos; las rojas, en 30. Cada pieza dice su plazo, y si vence sigue sin aprobar: nunca se publica sola.',
+    a: 'Las verdes, en el día; las amarillas, en 60 minutos; las rojas, en 30, siempre con la lista «Antes de aprobar». Cada pieza dice su plazo. Si vence, sigue sin aprobar (nunca se publica sola), sale en «Trancado» y te llega otro aviso.',
     go: '/aprobar',
   },
   {
@@ -577,7 +577,7 @@ export const BOSS: Answer[] = [
       'quien decide si una pieza es roja',
       'de donde sale el color de cada pieza',
     ],
-    a: 'Redes elige el nivel de aprobación al mandarla a aprobar, en la cajita de la pieza en grande («Verde: rutina», «Amarillo: normal» o «Rojo: sensible»). Tú lo cambias en la revisión, arriba, en la cajita del nivel; administración también puede.',
+    a: 'Redes elige el nivel de aprobación al mandarla a aprobar, en la cajita de la pieza en grande («Verde: rutina», «Amarillo: normal» o «Rojo: sensible»). Tú lo cambias en la revisión, arriba, en la cajita del nivel (dice, por ejemplo, «Nivel amarillo»); administración también puede.',
     go: '/aprobar',
   },
   {
@@ -596,7 +596,7 @@ export const BOSS: Answer[] = [
       'si no contesto a tiempo se publica igual',
       'y si no apruebo a tiempo se publica sola',
     ],
-    a: 'No se publica: sigue sin aprobar hasta que decidas. Sale en «Trancado», te llega otro aviso y la revisión dice «Venció el plazo y sigue sin aprobar». Ábrela y decide.',
+    a: 'No: nunca se publica sola. Sigue sin aprobar hasta que decidas, sale en «Trancado», te llega otro aviso y la revisión dice «Venció el plazo y sigue sin aprobar». Ábrela y decide.',
     go: '/aprobar',
   },
   {
@@ -800,7 +800,7 @@ export const BOSS: Answer[] = [
       'redes edito un tweet que ya aprobe',
       'por que volvio un tweet que ya habia aprobado',
     ],
-    a: 'Si Redes cambia un tweet aprobado, vuelve a «Por aprobar» para que lo apruebes otra vez. Si lo cambió mientras lo leías, ese se salta y te avisa: lo apruebas con su texto nuevo.',
+    a: 'Si cambias un tweet aprobado («Editar textos» y «Guardar texto»), o lo cambia Redes, vuelve a «Por aprobar» para que lo apruebes otra vez. Si lo cambiaron mientras lo leías, ese se salta y te avisa: lo apruebas con su texto nuevo.',
     go: '/aprobar',
   },
   {
@@ -1267,7 +1267,7 @@ export const BOSS: Answer[] = [
       'redes puede ver donde son mis actos',
       'politica ve mi agenda',
     ],
-    a: 'Tu agenda con fecha y hora la ven tú y el despacho; quien graba, solo sus eventos, y el IVT, solo las visitas a sus obras. Redes ve una lista sin fecha, sin hora y sin dirección, y política nunca la ve: la app nunca les manda esos datos.',
+    a: 'Tu agenda con fecha y hora la ven tú y el despacho; quien graba, solo sus eventos, y el IVT, solo las visitas a sus obras. Redes ve una lista sin fecha, sin hora y sin dirección, y política nunca la ve: la app nunca les manda esos datos, así que no los pueden ver de ninguna forma.',
   },
 
   // ── Nuevo evento o visita de obra ──────────────────────────────────────────────────────────────────────────────────
@@ -1417,7 +1417,7 @@ export const BOSS: Answer[] = [
       'que es la prioridad del evento',
       'prioridad para el equipo que pongo',
     ],
-    a: '«Prioridad para el equipo» («Urgente», «Normal» o «Puede esperar») le dice al equipo qué tan rápido mover el evento. Tu importancia de 1 a 10 es otra cosa: va en «Tu decisión».',
+    a: '«Prioridad para el equipo» («Urgente», «Normal» o «Puede esperar») le dice al equipo qué va primero. Tu importancia de 1 a 10 es otra cosa: la pones tú en «Tu decisión».',
     go: '/agenda/nuevo',
   },
   {
@@ -1603,7 +1603,7 @@ export const BOSS: Answer[] = [
       'cambiamos el mismo evento cual queda',
       'editamos el mismo evento a la vez que pasa',
     ],
-    a: 'Se queda el último cambio guardado, tuyo o del despacho, y al otro le llega un aviso; lo de antes queda en el «Historial». Si otro guardó mientras escribías, te pregunta: «Usar lo de él» o «Dejar lo mío».',
+    a: 'Se queda el último cambio guardado, tuyo o del despacho, y al otro le llega un aviso; en el «Historial» del evento ves quién cambió qué. Si otro guardó mientras escribías, te pregunta: «Usar lo de él» o «Dejar lo mío».',
     go: '/agenda',
   },
   {
@@ -1839,7 +1839,7 @@ export const BOSS: Answer[] = [
       'aumentar el tamaño de la letra',
       'como hago la letra mas chiquita',
     ],
-    a: 'En el modo lectura, el + agranda la letra hasta que se lea cómodo; el − la achica.',
+    a: 'En el modo lectura, el − y el + cambian el tamaño de la letra. El botón verde hace correr el texto solo, a la velocidad que te guste («Lento», «Medio» o «Rápido»); otro toque lo para.',
     tutorial: 'lectura',
   },
   {
@@ -1968,7 +1968,7 @@ export const BOSS: Answer[] = [
       'cuantas vistas tuvimos',
       'como nos fue esta semana en redes',
     ],
-    a: 'Tu Inicio → botón Digital: «Publicado esta semana», «Vistas esta semana» y «En revisión»; debajo, «Lo publicado» (con su red y sus vistas) y «Lo que viene». «Ver resultados» te lleva a los números.',
+    a: 'Tu Inicio → botón Digital: arriba, «La oficina» (el dibujo del trabajo por salas), con «Ver todas las salas»; después «Publicado esta semana», «Vistas esta semana» y «En revisión»; debajo, «Lo publicado» (con su red y sus vistas) y «Lo que viene». «Ver resultados» te lleva a los números.',
     go: '/jefe/digital',
     tutorial: 'jefe-digital',
   },
@@ -2180,7 +2180,7 @@ export const BOSS: Answer[] = [
       'receptividad del publico que es',
       'que mide la receptividad',
     ],
-    a: 'Es la «Receptividad del público (1 a 10)»: cómo recibió la gente la pieza en redes (comentarios, reacciones); no mide apoyo político. La ponen Redes y tú con las estrellas de la tarjeta, en posts, reels y carruseles. La «Receptividad media» es el promedio de las piezas que ya tienen nota.',
+    a: 'Es la «Receptividad del público (1 a 10)»: cómo recibió la gente la pieza en redes (comentarios, reacciones); no mide apoyo político. La ponen Redes y tú con las estrellas de la tarjeta, en posts, reels y carruseles. La «Receptividad media» es el promedio de las piezas que ya tienen nota; en el tablero sale junto a «Listas para publicar» y «Programadas».',
     go: '/redes',
   },
   {
@@ -2276,7 +2276,7 @@ export const BOSS: Answer[] = [
       'duplicar un reel',
       'como hago una copia de una pieza',
     ],
-    a: 'En los tres puntos de la tarjeta: «Abrir la pieza», «Duplicar», «Subir» y «Bajar» (mueven la tarjeta más arriba o más abajo en la lista, con el orden «A mano»), «Mover a otro mes» y «Eliminar».',
+    a: 'En los tres puntos de la tarjeta: «Abrir la pieza», «Duplicar», «Subir» y «Bajar» (mueven la tarjeta más arriba o más abajo en la lista, con el orden «A mano»), «Mover a otro mes» y «Eliminar» (con el doble factor: sale de su sección y del feed, y administración la puede recuperar).',
     go: '/redes',
   },
   {
@@ -2308,7 +2308,7 @@ export const BOSS: Answer[] = [
       'quien mas puede eliminar piezas',
       'administracion borra piezas',
     ],
-    a: 'No: solo tú eliminas piezas, con el doble factor. Redes no puede, y administración solo las recupera.',
+    a: 'No: solo tú eliminas piezas, con el doble factor. Redes no puede, y administración las puede recuperar.',
     go: '/redes',
   },
   {
@@ -2341,7 +2341,7 @@ export const BOSS: Answer[] = [
       'como quito la marca de diseño desaprobado',
       'redes puede quitar el diseño desaprobado',
     ],
-    a: 'Solo tú; Redes no puede: tocas otra vez «Diseño desaprobado» o marcas «Diseño aprobado». Mientras esté desaprobado después de tu aprobación, no se publica hasta que la vuelvas a aprobar.',
+    a: 'Solo tú; Redes no puede: tocas otra vez «Diseño desaprobado» o marcas «Diseño aprobado». Si la pieza ya estaba aprobada, al guardar la nota te pregunta «¿Pedir cambios también?»: «Sí, pedir cambios» se la devuelve a Redes con tu nota; «No, solo marcar» no se la devuelve a Redes, pero queda frenada: no se publica hasta que la apruebes otra vez.',
     go: '/redes',
   },
   {
@@ -2442,7 +2442,7 @@ export const BOSS: Answer[] = [
       'como encuentro una pieza vieja',
       'buscar un reel por su titulo',
     ],
-    a: '«Buscar en Redes», en el tablero o en la barra de secciones: escribes al menos dos letras y tocas «Buscar». Sale agrupado por formato y cada resultado abre su tarjeta.',
+    a: '«Buscar en Redes», en el tablero o en la barra de secciones: escribes al menos dos letras y tocas «Buscar». Busca en los títulos, lo escrito en las tarjetas, los copies, los avisos y los tweets; sale agrupado por formato y cada resultado abre su tarjeta.',
     go: '/redes/buscar',
   },
   {
@@ -2473,7 +2473,7 @@ export const BOSS: Answer[] = [
       'nueva publicacion como se hace',
       'como programo una pieza para que salga',
     ],
-    a: 'Publicar → «Nueva publicación»: eliges una pieza aprobada y las redes (cada una lleva una marca: verde si todo está bien, amarilla si hay algo que revisar y roja si no pasa), el día y la hora, y tocas «Programar en 2 redes». La app no publica sola: a esa hora se publica a mano y se marca «Ya lo publiqué».',
+    a: 'Publicar → «Nueva publicación»: eliges una pieza aprobada y las redes (cada una lleva una marca: verde si todo está bien, amarilla si hay algo que revisar y roja si no pasa; debajo dice qué arreglar, y «Ver el copy que va» muestra el texto), el día y la hora, y tocas «Programar en 2 redes». La app no publica sola: a esa hora se publica a mano y se marca «Ya lo publiqué».',
     go: '/publicar/nueva',
     tutorial: 'publicar-nueva',
   },
@@ -2505,7 +2505,7 @@ export const BOSS: Answer[] = [
       'donde veo lo aprobado sin publicar',
       'que esta listo para publicar',
     ],
-    a: 'En Publicar, «Aprobadas y sin publicar», con la etiqueta «Lista»; también «Listas para publicar» en el tablero de Redes y en tu botón Redes.',
+    a: 'En Publicar, «Aprobadas y sin publicar»: las piezas listas, con la etiqueta «Lista»; también «Listas para publicar» en el tablero de Redes y en tu botón Redes.',
     go: '/publicar',
   },
 
@@ -2604,7 +2604,7 @@ export const BOSS: Answer[] = [
       'como cambio el estado de un reporte comunitario',
       'cambiar el estado de una ficha comunitaria',
     ],
-    a: 'En la ficha comunitaria, «Estado» (en qué va el reporte): eliges el «Nuevo estado», escribes el «Motivo o avance (opcional)» y tocas «Cambiar estado». Cada cambio queda en la historia.',
+    a: 'En la ficha comunitaria, «Estado» (en qué va el reporte): eliges el «Nuevo estado» («Programado», «En ejecución», «Finalizado», «Pendiente» o «Suspendido»), escribes el «Motivo o avance (opcional)» y tocas «Cambiar estado». Cada cambio queda en la historia.',
     go: '/municipios',
     tutorial: 'ficha-comunitaria',
   },
@@ -2660,7 +2660,7 @@ export const BOSS: Answer[] = [
       'armar un canal con algunos del equipo',
       'quiero un canal con unas personas',
     ],
-    a: 'Los globitos de arriba → «Nuevo canal»: el «Nombre del canal», si quieres la «Descripción corta (opcional)», marcas a quienes van (salen por rol; tú ya estás) y tocas «Crear canal».',
+    a: 'Los globitos de arriba → «Nuevo canal»: el «Nombre del canal», si quieres la «Descripción corta (opcional)», marcas a quienes van (salen por rol; la primera fila eres tú, ya marcado, porque estás en todos los canales) y tocas «Crear canal».',
     go: '/mensajes/canales/nuevo',
     tutorial: 'mensajes',
   },
@@ -2769,7 +2769,7 @@ export const BOSS: Answer[] = [
       'limite de personas por canal',
       'cuantas personas pueden estar en un canal',
     ],
-    a: 'El nombre, hasta 60 letras; la descripción, hasta 140; y hasta 50 personas además de ti. El nombre y la descripción no llevan teléfonos, fechas, horas ni mapas: todos los del canal los leen siempre.',
+    a: 'El «Nombre del canal», hasta 60 letras; la «Descripción corta (opcional)», hasta 140; y hasta 50 personas además de ti. El nombre y la descripción no llevan teléfonos, fechas, horas ni mapas: todos los del canal los leen siempre.',
     go: '/mensajes/canales/nuevo',
   },
   {
@@ -3375,7 +3375,7 @@ export const BOSS: Answer[] = [
       'borre un reel sin querer',
       'elimine un post por error',
     ],
-    a: 'Sí: eliminar no la borra de verdad. Administración la recupera en Ajustes → «Cupo y pilares», en «Piezas eliminadas», con «Recuperar»: vuelve a su mes, sin espacio en el feed. Pídeselo.',
+    a: 'Sí: si fue un error, administración la puede recuperar en Ajustes → «Cupo y pilares», en «Piezas eliminadas», con «Recuperar»: vuelve a su mes, sin espacio en el feed. Pídeselo.',
     go: '/redes',
   },
   {

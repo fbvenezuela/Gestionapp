@@ -138,7 +138,7 @@ const SHORTHAND: [RegExp, string][] = [
   // «¿cómo te llamas?» (360's name) or «cambiar cómo me llamo» (Mi perfil). «¿Cómo te llamas?» stays as it is.
   [/\bcomo (?:es que )?se (?:le |les )?(?:llama|llaman|dice|dicen)\b/g, 'comosellama'],
   [/\bcomo (?:le|les|lo|la|los|las) (?:dicen|dice|llaman|llama)\b/g, 'comosellama'],
-  [/\bque nombre (?:tiene|tienen|le dan|le dicen|lleva|llevan|recibe|reciben)\b/g, 'comosellama'],
+  [/\bque nombre (?:tiene|tienen|le da|le dan|le pone|le ponen|le dice|le dicen|lleva|llevan|recibe|reciben)\b/g, 'comosellama'],
   [/\bcual es el nombre (?:de|del)\b/g, 'comosellama de'],
   // What a word stands for, said another way: «cuando Redes habla de una pieza, ¿a qué se refiere?».
   [/\b(?:a que se refieren?|a que te refieres|de que (?:hablan|habla) cuando dicen?)\b/g, 'que significa'],
@@ -451,6 +451,10 @@ const whoOf = (roles: TeamRole[]) => {
   const names = roles.map((r) => WHO[r]);
   return names.length > 1 ? `${names.slice(0, -1).join(', ')} o ${names.at(-1)}` : names[0] ?? '';
 };
+// A step of a flow said with who does it. A step of the whole team («360 te ofrece en una línea…») goes without the six
+// names: the roles are said when they tell something (WF-C2 (b)), never as a line of their own.
+const stepLine = (roles: TeamRole[], text: string) =>
+  new Set(roles).size >= Object.keys(WHO).length ? ucFirst(text) : `${ucFirst(whoOf(roles))}: ${lcFirst(text)}`;
 
 // What a screen is for, said: its name first unless what it says already names it, then what is done there, up to about
 // 400 letters («Por ponerle fecha: las fichas del IVT y los reportes… Cada tarjeta dice…»).
@@ -697,7 +701,7 @@ function flowEntries(): Entry[] {
         roles,
         q: askedLabels(s.text),
         doc: `${f.title}. ${s.text}${branches}`,
-        a: `${ucFirst(whoOf(s.roles))}: ${lcFirst(end(s.text))}${branches}`,
+        a: `${stepLine(s.roles, end(s.text))}${branches}`,
         ...(nextStep ? { next: `flujo:${f.id}:${nextStep.id}` } : {}),
       });
     });
@@ -759,7 +763,7 @@ function teamFlowStories(): Entry[] {
   const guides = allGuides();
   return FLOWS.map((f: Flow): Entry => {
     const roles = guides.filter((g) => g.flows.includes(f.id)).map((g) => g.role as Role);
-    const lines = f.steps.map((s) => `${ucFirst(whoOf(s.roles))}: ${lcFirst(end(firstSentence(s.text)))}`);
+    const lines = f.steps.map((s) => stepLine(s.roles, end(firstSentence(s.text))));
     const { text, said } = storyText(f.title, lines);
     return { id: `flujo:${f.id}`, kind: 'flowStory', source: `flows:${f.id} story`, roles, q: storyAsks(f.title), doc: `${f.title}. ${f.steps.map((s) => s.text).join(' ')}`, a: text, go: `/ayuda/flujos?f=${f.id}`, ...(said < lines.length ? { cursor: said } : {}) };
   });
@@ -1583,14 +1587,20 @@ export function askedTerm(question: string, roles: Role[], screen?: string | nul
 // says the property as the guide says it. A count or a duration needs a number or a time in that meaning. A label of the
 // screen named whole that the meaning does not quote is another question («¿qué es antes de aprobar?»). Only the team's
 // words for a question of no domain; the web's and Atención's, for the boss and Administración, in their own domain.
-const DEF_FRAMES: { frame: 'name' | 'meaning' | 'property'; re: RegExp; words: string[]; cue?: RegExp }[] = [
+// («¿Qué es lo que tengo que hacer con…?» asks what to do, not what a word means. «¿Cuántos…?» asks a count of
+// something the meaning counts, «¿cuántas piezas lleva el feed?»; «¿cuántos reels?» alone is how many there are.)
+const DEF_FRAMES: { frame: 'name' | 'meaning' | 'property'; re: RegExp; words: string[]; cue?: RegExp; count?: true }[] = [
   { frame: 'name', re: /\bcomosellama\b/, words: ['nombre', 'nombres', 'palabra', 'llama', 'llaman'] },
-  { frame: 'meaning', re: /\b(?:que es|que son|que significa\w*|que quiere decir|que quieren decir)\b/, words: ['habla', 'hablan', 'hablar', 'dice', 'dicen'] },
-  { frame: 'property', re: /\bcuant[oa]s\b/, words: ['lleva', 'llevan', 'trae', 'traen', 'tiene', 'tienen', 'caben', 'hay'], cue: /\b(?:\d+|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|varias|varios)\b/ },
+  { frame: 'meaning', re: /\b(?:que es(?! (?:lo|el|la) que\b)|que son(?! (?:los|las) que\b)|que significa\w*|que quiere decir|que quieren decir)\b/, words: ['habla', 'hablan', 'hablar', 'dice', 'dicen'] },
+  { frame: 'property', re: /\bcuant[oa]s\b/, words: ['lleva', 'llevan', 'trae', 'traen', 'tiene', 'tienen', 'caben', 'hay'], cue: /\b(?:\d+|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|varias|varios)\b/, count: true },
   { frame: 'property', re: /\bcuanto (?:dura\w*|tiempo)\b|\bpor cuanto tiempo\b|\bdura(?:n)?\b/, words: ['dura', 'duran', 'durar', 'tiempo'], cue: /\b(?:un dia|dias|horas?|minutos?|segundos?)\b/ },
   { frame: 'property', re: /\bque (?:lleva|llevan|trae|traen|incluye|incluyen|mide|miden)\b|\bde que (?:es|son|se trata)\b/, words: ['lleva', 'llevan', 'trae', 'traen', 'incluye', 'incluyen', 'mide', 'miden'] },
 ];
-const FRAME_ROOTS = new Map(DEF_FRAMES.map((f) => [f, new Set(f.words.map((w) => rootOf(w)))]));
+// (The app naming itself, «¿qué nombre le da la app?», or «cuando…» before what is described, says nothing of the word.)
+const FRAME_AROUND = ['app', 'aplicacion', 'plataforma', 'cuando'].map((w) => rootOf(w));
+// What a word has, asked with a count («¿cuántas imágenes tiene un carrusel?», «¿cuántas piezas lleva el feed?»).
+const COUNT_HAS = /\b(?:tiene|tienen|lleva|llevan|trae|traen|cabe|caben|incluye|incluyen)\b/;
+const FRAME_ROOTS = new Map(DEF_FRAMES.map((f) => [f, new Set([...f.words.map((w) => rootOf(w)), ...FRAME_AROUND])]));
 // How sure a word must be: what its meaning says of the question (weighted by how rare each word is), and its lead.
 const DEF_COVER = 0.8;
 const DEF_LEAD = 0.15;
@@ -1632,6 +1642,13 @@ function definedTerm(a: Asked, roles: Role[], domain: Domain | null, quoted: str
   // One word only for a name asked («¿cómo se llama lo que se paró?») or a count or a time asked of it («¿cuánto dura una
   // historia?»: the meaning must say a number or a time); never a long story.
   if (!asked.length || asked.length > 6 || (asked.length < 2 && !name && !frames.some((f) => f.cue))) return null;
+  // A count of what one word names, with no verb of what it has («¿cuántos reels?», «¿cuántas salas?», «¿cuántas piezas
+  // de Redes?»): how many there are, not what a word means. («¿Cuántas imágenes tiene un carrusel?» is what it has.)
+  const count = frames.some((f) => f.count);
+  if (count && !COUNT_HAS.test(a.text) && [...defTokens().keys()].some((e) => {
+    const n = new Set((e.names ?? []).flatMap((x) => tokens(x)));
+    return asked.every((r) => n.has(r));
+  })) return null;
   const ix = index();
   const labels = [...ix.labels.keys()].filter((l) => l.includes(' ') && ` ${a.text} `.includes(` ${l} `));
   const scored: Defined[] = [];
@@ -1649,6 +1666,8 @@ function definedTerm(a: Asked, roles: Role[], domain: Domain | null, quoted: str
     // (A screen named in the question is said by a word that has it as a name: «¿qué es lo de arriba en Digital?» is the
     // screen's, though the meaning of «La oficina» says «arriba de Digital».)
     const nameToks = new Set((e.names ?? []).flatMap((n) => tokens(n)));
+    // A count asked of the word, named, and of something its meaning counts («¿cuántas piezas lleva el feed?»).
+    if (count && !asked.some((r) => nameToks.has(r))) continue;
     let got = 0;
     let total = 0;
     for (const r of asked) {
@@ -1670,6 +1689,50 @@ function definedTerm(a: Asked, roles: Role[], domain: Domain | null, quoted: str
   return { ...scored[0], cover: Math.min(1, scored[0].cover) };
 }
 
+// ── 360 itself, the app and the role's own job (WF-C2) ─────────────────────────────────────────────────────────────
+// They answer only when someone asks for them: «¿quién eres?», «¿qué es 360?» (360); «¿para qué sirve esta app?» (the
+// app); «¿cuál es mi trabajo?», «¿qué tengo que hacer yo?», «¿de qué me encargo?» (the role's own job). Never as the
+// nearest thing to a question about something else: «lo que va escrito en la imagen de un post, ¿cómo se llama?» is not
+// 360's name, and «¿qué tengo que hacer yo en esta app?» is the role's job, not what the app is.
+const SELF_BOT = new Set(['curado:todo-360-quien']);
+const SELF_APP = new Set(['curado:todo-que-es-app']);
+const SELF_JOB = new Set(['curado:todo-mi-trabajo', 'curado:todo-mi-rol', 'curado:jefe-que-hago', 'curado:desp-chamba', 'curado:gra-chamba', 'curado:red-chamba']);
+const ASKS_BOT = /\b(?:quien eres|que eres|eres|como te llamas|tu nombre|360|asistente|bot|robot|contigo|me (?:esta )?contestando|hablo)\b/;
+const ASKS_APP = /\b(?:app|plataforma|pagina|esto|operaciones)\b/;
+const ASKS_JOB = /\b(?:mis? (?:trabajo|rol|funcion|funciones|chamba|tareas?|papel|responsabilidad\w*)|lo mio|que (?:hago|tengo que hacer|debo hacer) yo|que hago yo|de que me encargo|para que (?:estoy|me invitaron)|que me toca(?: hacer)?(?: (?:a mi|yo|aqui|en (?:la|esta) (?:app|plataforma)))?$)/;
+// What 360's, the app's and the job's own answers weigh when nobody asked for them.
+const SELF_ELSE = 0.75;
+// …and what the job's answers add when the question asks for the job.
+const SELF_LIFT = 0.06;
+// The words around a question about one's own job that do not change it: «yo», «a mí», «en la app», «como jefe», «en mi
+// trabajo», the words that open it.
+const SELF_AROUND =
+  /\b(?:yo|a mi|aqui|aca|exactamente|de verdad|realmente|entonces|pues|bueno|oye|dime|en (?:la|esta) (?:app|aplicacion|plataforma)|en (?:mi|el) (?:trabajo|rol|puesto)|como (?:el |la )?(?:jefe|despacho|politica|ivt|grabacion|redes|administracion))\b/g;
+// «¿Cuál es mi trabajo?», «¿qué tengo que hacer yo en la app?», «¿de qué me encargo?», «¿qué hago yo?»: the role's job.
+const JOB_ASK =
+  /^(?:y )?(?:(?:cual|que) es (?:mi|el) (?:trabajo|rol|funcion|papel|chamba|responsabilidad|tarea)|(?:cuales|que) son mis (?:funciones|tareas|responsabilidades)|que (?:es lo que )?(?:tengo que|debo|me toca) hacer|que es lo que hago|de que (?:me encargo|se trata mi (?:trabajo|rol))|en que consiste mi (?:trabajo|rol)|para que (?:estoy|me invitaron|me metieron))$/;
+// «¿Qué no me toca?», «¿qué es lo que nunca debo hacer?», «¿qué tengo prohibido?»: the role's «Nunca».
+const NEVER_ASK =
+  /^(?:y )?(?:(?:que|cuales)(?: cosas| es lo que| son las cosas que)? (?:nunca|no) (?:debo|puedo|tengo que|me tocan?|hago)(?: hacer)?|que (?:cosas )?tengo prohibid[oa]s?(?: hacer)?)$/;
+// The score of the role's job or «Nunca» asked for whole: above whatever else matches.
+const SELF_SURE = 0.2;
+const isMission = (e: Entry) => e.kind === 'job' && (e.source.endsWith(':job.mission') || e.source === 'admin:mission');
+
+/**
+ * Whether a question asks, whole, what the asker's own job is («¿qué tengo que hacer yo en esta app?») or what is never
+ * theirs to do («¿qué es lo que nunca debo hacer como jefe?»). On a screen, «aquí» is that screen («¿qué hago aquí?»):
+ * not the job.
+ */
+export function selfAsk(question: string, screen?: string | null): 'job' | 'never' | null {
+  const r = readable(question);
+  if (screen && /\b(?:aqui|aca|esta pantalla)\b/.test(r)) return null;
+  const t = r.replace(SELF_AROUND, ' ').replace(/\s+/g, ' ').trim();
+  if (NEVER_ASK.test(t)) return 'never';
+  if (JOB_ASK.test(t)) return 'job';
+  // «¿Qué hago yo?» (not «¿qué hago?», maybe what to do next in a conversation).
+  return /^(?:y )?que hago$/.test(t) && /\b(?:yo|a mi)\b/.test(r) ? 'job' : null;
+}
+
 // The kinds of question a word's meaning answers for sure: what it is, where it is (when nothing says where) and the
 // word alone. Any other («¿cómo hago un reel?», «¿puedo cambiar el copy?», «¿quién arma el feed?», «¿cuántos reels…?»,
 // «no me sale el feed»): the meaning only backs up another answer, never a sure one by itself (13/11).
@@ -1677,6 +1740,17 @@ const TERM_SURE = new Set<AskKind | null>(['what', 'where', null]);
 
 function rank(question: string, o: FindOptions): Match[] {
   const ix = index();
+  // Asked whole what one's own job is, or what is never one's own (selfAsk): the role's «Tu trabajo» or its «Nunca»
+  // goes first, sure, whatever else shares a word with the question.
+  const self = selfAsk(question, o.screen);
+  const selfFirst = (list: Match[]): Match[] => {
+    if (!self) return list;
+    const mine = ix.entries.filter((e) => e.roles !== null && forRoles(e, o.roles) && (self === 'job' ? isMission(e) : e.kind === 'never' && !e.may));
+    if (!mine.length) return list;
+    const top = Math.max(STRONG + SELF_SURE, (list[0]?.score ?? 0) + 0.01);
+    const first = mine.map((e) => ({ entry: e, score: top, confidence: 'strong' as const, text: textFor(e.a, o.roles), via: readable(question) }));
+    return [...first, ...list.filter((m) => !mine.includes(m.entry))].slice(0, o.limit ?? 8);
+  };
   const a = askedOf(question, o.extra, o.names);
   // The same question weighed for the web's entries (index(): two tables of weights).
   const aw = a && (o.roles.includes('boss') || o.roles.includes('admin')) ? askedOf(question, o.extra, o.names, true) ?? a : a;
@@ -1685,7 +1759,7 @@ function rank(question: string, o: FindOptions): Match[] {
     // without its «nunca» or «yo», is still the answer.
     const t = readable(question);
     const same = ix.asked.get(t) ?? ix.asked.get(t.replace(/\b(?:nunca|jamas|yo|aqui|nada|entonces)\b/g, ' ').replace(/\s+/g, ' ').trim()) ?? [];
-    return same.filter((e) => forRoles(e, o.roles)).slice(0, o.limit ?? 8).map((e) => ({ entry: e, score: STRONG + 0.1, confidence: 'strong' as const, text: textFor(e.a, o.roles), via: t }));
+    return selfFirst(same.filter((e) => forRoles(e, o.roles)).slice(0, o.limit ?? 8).map((e) => ({ entry: e, score: STRONG + 0.1, confidence: 'strong' as const, text: textFor(e.a, o.roles), via: t })));
   }
   // Candidates: the docs that share a key with a word asked.
   const cand = new Set<number>();
@@ -1769,6 +1843,10 @@ function rank(question: string, o: FindOptions): Match[] {
   // this person was written for exactly that question. A name asked for lifts like a meaning asked; a property, less, so
   // an answer that says that property for this role still goes first.
   const defined = ownExact ? null : definedTerm(a, o.roles, o.domain ?? null, quoted);
+  // 360, the app and the role's job: asked for, or not (SELF_*).
+  const asksBot = ASKS_BOT.test(a.text);
+  const asksJob = ASKS_JOB.test(a.text);
+  const asksApp = ASKS_APP.test(a.text) && !asksJob;
   const out: Match[] = [];
   for (const [k, s0] of best) {
     const e = ix.entries[k];
@@ -1831,6 +1909,10 @@ function rank(question: string, o: FindOptions): Match[] {
     }
     // A curated answer, more when it was written for the asker's role (not everyone's).
     if (e.kind === 'curated') s += e.roles ? ROLE_OWN : 0.03;
+    // 360, the app and the role's own job, only when asked for (WF-C2).
+    if (SELF_BOT.has(e.id) && !asksBot) s *= SELF_ELSE;
+    else if (SELF_APP.has(e.id) && !asksApp) s *= SELF_ELSE;
+    else if (SELF_JOB.has(e.id) || (e.kind === 'job' && (e.source.endsWith(':job.mission') || e.source === 'admin:mission'))) s = asksJob ? s + SELF_LIFT : s * SELF_ELSE;
     // (A word asked by what it describes is said by its meaning, not by a way of asking that has every word.)
     if (partial.has(k) && defined?.entry !== e) s = Math.min(s, STRONG - 0.01);
     out.push({ entry: e, score: s, confidence: s >= STRONG ? 'strong' : s >= WEAK ? 'weak' : 'none', text: textFor(e.a, o.roles), via: ix.docs[via.get(k)!]?.text ?? '' });
@@ -1852,7 +1934,7 @@ function rank(question: string, o: FindOptions): Match[] {
       out.sort((x, y) => y.score - x.score);
     }
   }
-  return out.slice(0, o.limit ?? 8);
+  return selfFirst(out.slice(0, o.limit ?? 8));
 }
 
 /** How well a ficha (a card of the database: the team's or the platform's) answers, on the same scale as the entries. */

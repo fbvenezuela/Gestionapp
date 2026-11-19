@@ -203,7 +203,7 @@ export const POLITICS: Answer[] = [
       'para que sirven los filtros',
       'filtrar por municipio y tipo',
     ],
-    a: 'En Municipios eliges «Municipio», «Parroquia», «Tipo», «Estado» o «Prioridad» (o marcas «Solo las vencidas») y tocas «Filtrar». Sale la lista «Fichas comunitarias», con las vencidas primero; «Quitar los filtros» lo limpia.',
+    a: 'En Municipios eliges «Municipio», «Parroquia», «Tipo», «Estado» (en qué va: «Programado», «En ejecución», «Finalizado», «Pendiente» o «Suspendido») o «Prioridad» (o marcas «Solo las vencidas») y tocas «Filtrar». Sale la lista «Fichas comunitarias», con las vencidas primero; «Quitar los filtros» lo limpia.',
     go: '/municipios',
     tutorial: 'municipios',
   },
@@ -1006,7 +1006,7 @@ export const POLITICS: Answer[] = [
       'no me deja ver el telefono de la persona que reporta',
       'los contactos salen bloqueados',
     ],
-    a: 'Los contactos solo se ven y se llenan si entraste con el doble factor. Si te sale «Los contactos (nombres y teléfonos) piden el doble factor: entra con tu código para verlos y llenarlos.», sal y vuelve a entrar con el «Código de tu aplicación».',
+    a: 'Los contactos de «Persona que reporta» solo se ven y se llenan si entraste con el doble factor. Si te sale «Los contactos (nombres y teléfonos) piden el doble factor: entra con tu código para verlos y llenarlos.», sal y vuelve a entrar con el «Código de tu aplicación».',
   },
   {
     id: 'pol-telefono-nota',
@@ -1163,7 +1163,7 @@ export const POLITICS: Answer[] = [
       'que es el seguimiento de la ficha',
       'para que es el grupo seguimiento',
     ],
-    a: 'En «Seguimiento», la «Fecha prevista de atención o actualización»: para cuándo hay que atenderla o revisarla otra vez. Si pasa y la ficha no está finalizada ni suspendida, sale como vencida.',
+    a: 'En «Seguimiento», la «Fecha prevista de atención o actualización»: para cuándo hay que atenderla o revisarla otra vez. Si pasa y la ficha no está finalizada ni suspendida, sale como vencida, arriba en Municipios y en el Inicio del jefe.',
   },
   {
     id: 'pol-responsable',
@@ -1958,7 +1958,7 @@ export const POLITICS: Answer[] = [
       'rechazaron mi actividad que hago',
       'si el jefe la rechaza tengo que cargarla otra vez',
     ],
-    a: 'La ficha vuelve a «Por ponerle fecha» y te llega «El jefe rechazó la fecha». La ficha lo dice en «Agenda del jefe», y el jefe o el despacho le pueden poner otra; tú no la cargas de nuevo.',
+    a: 'La ficha vuelve a «Por ponerle fecha» y te llega un aviso: «El jefe rechazó la fecha». La ficha lo dice en «Agenda del jefe», y el jefe o el despacho le pueden poner otra; tú no la cargas de nuevo.',
   },
   {
     id: 'pol-cancelada',
@@ -2075,7 +2075,7 @@ export const POLITICS: Answer[] = [
       'que es el chip actividad comunitaria',
       'que es una actividad en la agenda',
     ],
-    a: 'Es el evento de la agenda que sale de tu reporte cuando el jefe o el despacho le ponen fecha. Tú ves su vista corta: el código, «Actividad comunitaria» y la decisión del jefe, sin la fecha.',
+    a: 'Es el evento de la agenda que sale de tu reporte cuando el jefe o el despacho le ponen fecha. Tú ves su vista corta: el código, «Actividad comunitaria» y la decisión del jefe; si ya tiene fecha, dice «Ya tiene fecha», sin decir cuál.',
   },
   {
     id: 'pol-vista-actividad',

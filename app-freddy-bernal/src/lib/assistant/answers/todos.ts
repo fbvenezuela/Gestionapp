@@ -18,6 +18,8 @@ const myProfileByRole = (): AnswerText => ({
   ...Object.fromEntries(TWO_FACTOR_ROLES.map((r) => [r, myProfile('tu nombre y cómo está tu doble factor')])),
 });
 
+// Who publishes, for the roles that do not (E-1.9-19): the app never publishes by itself.
+const PUBLISHED_BY_HAND = 'La app no publica sola: lo publica Redes (también el jefe y administración), a mano y solo lo que aprobó el jefe, y marca «Ya lo publiqué».';
 // What administración hears when it asks how to use Mensajes (shared.ts NO_MESSAGES_LINE).
 const NO_MSG = 'Mensajes es del equipo: administración no lo ve, y por eso no tiene los globitos.';
 // The roles that know the agenda write under the date rule in Mensajes (MSG_AGENDA); Redes and política write freely.
@@ -207,7 +209,7 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['que aplicacion necesito para el doble factor', 'cuál app de códigos uso', 'qué autenticador bajo', 'sirve google authenticator', 'donde descargo la app de codigos'],
     a: {
-      default: 'Una aplicación de códigos: Google Authenticator o Microsoft Authenticator, gratis en Play Store o App Store.',
+      default: 'Una aplicación de códigos del teléfono, como Google Authenticator o Microsoft Authenticator, gratis en Play Store o App Store: te da la segunda clave, de 6 números.',
       camera: 'Tu rol no la necesita: entras solo con el código del correo. Las que sirven para el doble factor son Google Authenticator o Microsoft Authenticator.',
       social: 'Tu rol no la necesita: entras solo con el código del correo. Las que sirven para el doble factor son Google Authenticator o Microsoft Authenticator.',
     },
@@ -756,7 +758,7 @@ export const TODOS: Answer[] = [
       'lo que subi en la demo no aparece',
       'que significa que se creo en otro servidor',
     ],
-    a: 'Es un límite de la demostración, que es solo para practicar: lo que creas o subes puede no verse después, o no verse en otro teléfono. Lo más seguro es probar con lo que la demo ya trae; con los datos reales esto no pasa.',
+    a: 'Es un límite de la demostración, que es solo para practicar: lo que creas o subes puede borrarse o no verse en otro teléfono. Lo más seguro es probar con lo que la demo ya trae; con los datos reales esto no pasa.',
   },
   {
     id: 'todo-demo-reinicio',
@@ -774,7 +776,7 @@ export const TODOS: Answer[] = [
       'en la demo se reinicio todo',
       'por que la demo volvio a como estaba',
     ],
-    a: 'La demostración trae datos inventados y es solo para practicar: de vez en cuando empieza de nuevo, y lo que hiciste se borra. Con los datos reales no pasa.',
+    a: 'La demostración es solo para practicar: trae datos inventados, de ejemplo (las personas, los eventos, las fichas, las piezas y los mensajes), y lo que dice (demo) en el título es de ejemplo. De vez en cuando empieza de nuevo, y lo que hiciste se borra. Con los datos reales no pasa.',
   },
   {
     id: 'todo-demo-entrar',
@@ -790,11 +792,65 @@ export const TODOS: Answer[] = [
       'como pruebo la demo como redes',
       'probar la demo con otro usuario',
       'version de demostracion como entro',
+      'para qué es la demo',
     ],
     a: {
-      default: 'En «Entrar», en la lista «Versión de demostración», tocas el rol y entras directo, sin código ni doble factor: es un atajo solo para probar. Con los datos reales no existe.',
-      admin: 'En «Entrar», en la lista «Versión de demostración», tocas el rol y entras directo, sin código (atajo solo para probar; con los datos reales no existe). Sin salir de tu cuenta, «Ver como» te muestra los menús de ese rol.',
+      default: 'La versión de demostración sirve para practicar cada rol sin tocar nada real. Se abre con el enlace que te pasaron: en «Entrar», más abajo, está «Versión de demostración»; tocas el rol y entras directo, sin correo ni código. Con los datos reales no existe.',
+      admin: 'La versión de demostración sirve para practicar cada rol sin tocar nada real: en «Entrar», en la lista «Versión de demostración», tocas el rol y entras directo, sin correo ni código (con los datos reales no existe). Sin salir de tu cuenta, «Ver como» te muestra los menús de ese rol.',
     },
+  },
+  {
+    id: 'todo-demo-dos',
+    roles: null,
+    q: ['cuántas personas tiene cada rol en la demo', 'para probar entre dos en la demo'],
+    a: 'En la demo, Redes y Grabación tienen dos personas cada una, para probar entre dos; los demás roles, una.',
+  },
+  {
+    id: 'todo-demo-primero',
+    roles: null,
+    q: ['qué probar primero con cada rol', 'por dónde empiezo en la demo'],
+    a: 'Con cada rol, primero el tutorial de su inicio (Mi cuenta → «Ver el tutorial: Bienvenida»), después su guía en «Ayuda y guías», un canal de Mensajes y lo de su «Paso a paso».',
+    go: '/ayuda',
+  },
+  // ── La guía del equipo (la que se imprime): su portada y «cómo se lee esta guía» ──────────────────────────────────
+  {
+    id: 'todo-guia-cuenta',
+    roles: null,
+    q: ['qué cuenta la guía', 'qué tiene la guía impresa'],
+    a: 'La guía del equipo cuenta qué hace cada persona en la app: el jefe, el despacho, política, el IVT, Grabación y Redes. Cada rol trae su trabajo, su día, cada tarea paso a paso y cada pantalla, con su captura.',
+    go: '/ayuda',
+  },
+  {
+    id: 'todo-guia-partes',
+    roles: null,
+    q: ['las partes de la guía', 'cómo se divide la guía', 'qué parte de la guía leo primero'],
+    a: 'La parte 1 es para todos: léela primero. Las partes 2 a 7 son una por rol. La parte 8 dibuja cómo pasa el trabajo de un rol a otro (los flujos).',
+    go: '/ayuda',
+  },
+  {
+    id: 'todo-guia-ejemplo',
+    roles: null,
+    q: ['de dónde salen los datos de las capturas', 'son inventadas las personas de la guía', 'los nombres de las capturas son de gente real', 'qué quiere decir demo en un título'],
+    a: 'Las capturas son de la versión de demostración, con datos de ejemplo: las personas, los eventos, las fichas, las piezas, los mensajes y el nombre de la cuenta son inventados. Lo que dice (demo) en el título es de ejemplo.',
+  },
+  {
+    id: 'todo-guia-mitades',
+    roles: null,
+    q: ['una pantalla larga va partida en dos', 'una captura cortada en dos'],
+    a: 'En la guía, una pantalla larga va partida en dos, una mitad al lado de la otra: primero la parte de arriba y después lo que sigue más abajo.',
+  },
+  {
+    id: 'todo-guia-se-repite',
+    roles: null,
+    q: ['por qué la guía repite lo mismo en cada rol', 'se repite Mensajes en cada parte de la guía', 'tengo que leer la guía entera'],
+    a: 'Cada una de las partes 2 a 7 se lee sola, por eso Mensajes, Avisos y la ayuda se repiten en cada rol. La parte 1 es para todos, y en ella se explican las palabras de Redes, como copy o feed (en la app, en «Palabras de la app»).',
+  },
+  {
+    id: 'todo-guia-en-la-app',
+    roles: null,
+    q: ['lo mismo de la guía está en la app', 'dónde está la guía dentro de la app', 'lo de la guía impresa dónde lo veo en el teléfono'],
+    a: 'Lo mismo de la guía está en la app, en Mi cuenta → «Ayuda y guías», con los tutoriales de cada pantalla. Cómo pasa el trabajo de un rol a otro (los flujos, la parte 8 de la guía) está en «Cómo va el trabajo entre todos».',
+    go: '/ayuda',
   },
 
   // ── Avisos y Mi perfil ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -936,6 +992,8 @@ export const TODOS: Answer[] = [
       'dejar de recibir correos de la plataforma',
       'que no me manden correos',
       'son muchas notificaciones',
+      'los importantes llegan siempre aunque los desmarques',
+      'los avisos que no se pueden apagar',
     ],
     a: noticesByRole(),
     go: '/perfil',
@@ -1161,7 +1219,7 @@ export const TODOS: Answer[] = [
       'donde esta el chat del equipo',
       'no veo el sobre',
     ],
-    a: { default: 'Arriba, los globitos junto a la campana: ahí están tus canales y «Todo el equipo».', admin: NO_MSG },
+    a: { default: 'Arriba, los globitos junto a la campana: son Mensajes, con tus canales y «Todo el equipo»; su número dice cuántos canales tienen algo nuevo.', admin: NO_MSG },
     go: '/mensajes',
   },
   {
@@ -1426,7 +1484,7 @@ export const TODOS: Answer[] = [
     ],
     a: {
       default:
-        'Porque conoces la agenda, y en ese canal está Redes o política: la app no deja escribir fechas, horas ni mapas ahí. Escribe “lo antes posible”, “cuando esté listo” o “el día del evento”. En «Todo el equipo» también están Redes y política.',
+        'Porque conoces la agenda, y en ese canal está Redes o política: con una fecha, una hora, un mapa o un teléfono, la app no lo deja enviar y te dice cómo decirlo sin eso. Escribe “lo antes posible”, “cuando esté listo” o “el día del evento”. En «Todo el equipo» también están Redes y política.',
       social: FREE_WRITE,
       politics: FREE_WRITE,
       admin: NO_MSG,
@@ -1529,6 +1587,13 @@ export const TODOS: Answer[] = [
       default: 'No: los teléfonos no van en los mensajes, van en los contactos de la ficha. La regla es para todos y en todos los canales. Si es un enlace de la app con un número largo, pega solo el enlace.',
       admin: NO_MSG,
     },
+    go: '/mensajes',
+  },
+  {
+    id: 'todo-msj-orden',
+    roles: null,
+    q: ['los mensajes del más viejo al más nuevo', 'el primer mensaje sin leer', 'qué quiere decir Mensajes nuevos en un canal'],
+    a: { default: 'Los mensajes de un canal van del más viejo al más nuevo. Al abrirlo, te lleva al primer mensaje sin leer, donde dice «Mensajes nuevos»; si ya leíste todo, al último.', admin: NO_MSG },
     go: '/mensajes',
   },
   {
@@ -1871,7 +1936,7 @@ export const TODOS: Answer[] = [
     roles: null,
     q: ['¿cómo vuelvo a prender lo de te muestro esta pantalla?', 'quiero que vuelva a ofrecerme ayuda', 'volver a ofrecerme ayuda', 'se apagó la ayuda de 360'],
     a: {
-      default: 'Mi cuenta → «Ayuda y guías» → «Volver a ofrecerme ayuda»: sale debajo de «Tutoriales de mis pantallas» cuando la ayuda está apagada.',
+      default: 'Si cierras «¿Te muestro esta pantalla?» con la X dos veces, 360 ya no te la ofrece en ese teléfono. Para que vuelva: Mi cuenta → «Ayuda y guías» → «Volver a ofrecerme ayuda», debajo de «Tutoriales de mis pantallas».',
       admin: 'A administración no le sale esa franja: sus pantallas no tienen tutorial. Con «Ver como» ves los tutoriales del rol que elijas.',
     },
     go: '/ayuda',
@@ -1916,8 +1981,8 @@ export const TODOS: Answer[] = [
     q: ['¿dónde veo los flujogramas?', 'cómo va el trabajo entre todos', 'flujo del trabajo', 'cómo pasa el trabajo de un rol a otro', 'diagrama del proceso', 'que es un flujo', 'que es un flujograma'],
     a: {
       default:
-        'Un flujo es el camino que sigue un trabajo de un rol a otro. Están en Mi cuenta → «Ayuda y guías» → «Cómo va el trabajo entre todos»: un evento, una obra, un reporte de la comunidad, los tweets, el semáforo, el mes de Redes, la entrega de Grabación, Mensajes y la ayuda. Los pasos que son tuyos dicen «tú».',
-      admin: 'Un flujo es el camino que sigue un trabajo de un rol a otro. Están en Mi cuenta → «Ayuda y guías» → «Cómo va el trabajo entre todos», paso a paso.',
+        'Un flujo es el camino que sigue un trabajo de un rol a otro. Cada uno va dibujado, con sus pasos en lista, en Mi cuenta → «Ayuda y guías» → «Cómo va el trabajo entre todos»: un evento, una obra, un reporte de la comunidad, los tweets, el semáforo, el mes de Redes, la entrega de Grabación, Mensajes y la ayuda. Los pasos que son tuyos dicen «tú».',
+      admin: 'Un flujo es el camino que sigue un trabajo de un rol a otro. Cada uno va dibujado, con sus pasos en lista, en Mi cuenta → «Ayuda y guías» → «Cómo va el trabajo entre todos».',
     },
     go: '/ayuda/flujos',
   },
@@ -1927,7 +1992,7 @@ export const TODOS: Answer[] = [
     q: ['que es eso de ayuda y guias', 'para que sirve ayuda y guias', 'donde esta ayuda', 'qué hay en ayuda'],
     a: {
       default:
-        'Es la ayuda de la app, en Mi cuenta → «Ayuda y guías»: «Mi trabajo, paso a paso», «Qué se hace en cada pantalla», «Cómo va el trabajo entre todos», los «Tutoriales de mis pantallas» y lo que es para todos (entrar, el teléfono, sin señal, la regla de la fecha, Mensajes, 360 y las palabras de la app).',
+        'Es la ayuda de la app, en Mi cuenta → «Ayuda y guías»: «Mi trabajo, paso a paso» (tu guía), «Qué se hace en cada pantalla» (cada pantalla de tu menú, con sus botones), «Cómo va el trabajo entre todos» (cómo pasa el trabajo de un rol a otro: los flujos), los «Tutoriales de mis pantallas» y lo que es para todos (entrar, el teléfono, sin señal, la regla de la fecha, Mensajes, 360 y las palabras de la app).',
       admin: 'Es la ayuda de la app, en Mi cuenta → «Ayuda y guías»: para ti, la «Guía de administración», «Cómo va el trabajo entre todos», «La guía de cada persona» y «Para todos», con las palabras de la app.',
     },
     go: '/ayuda',
@@ -2378,7 +2443,7 @@ export const TODOS: Answer[] = [
       'los roles de la plataforma',
       'que hace cada persona del equipo',
     ],
-    a: 'Son seis: el jefe decide la agenda y aprueba todo; el despacho arma la agenda con él; política lleva los municipios; el IVT carga las fichas de obra; Grabación graba y entrega el material; Redes arma el contenido y publica. Administración es el rol técnico: invita al equipo y cuida los ajustes.',
+    a: 'Son seis: el jefe decide la agenda y aprueba todo; el despacho arma la agenda con él; política lleva los municipios; el IVT carga las fichas de obra; Grabación graba y entrega el material; Redes arma el contenido y publica. Administración no es ninguno de los seis: es la parte técnica de la app, que invita al equipo y cuida los ajustes.',
     go: '/ayuda',
   },
   {
@@ -2433,7 +2498,7 @@ export const TODOS: Answer[] = [
       boss: 'Tú: todo lo que sale lo apruebas tú, las piezas verdes, amarillas y rojas y los tweets. Las verdes, todas de un toque con «Aprobar todas las verdes»; las demás, una por una con la lista «Antes de aprobar».',
       admin: 'No: todo lo aprueba el jefe, también los tweets. En Por aprobar puedes cambiar el nivel (arriba, en la cajita del nivel), comentar o «Pedir frase al jefe».',
       social: 'Todo lo aprueba el jefe: piezas y tweets. Tú mandas la pieza con «Enviar a aprobación» y eliges el color; los tweets le llegan al repartir la tanda.',
-      default: 'Todo lo aprueba el jefe: las piezas verdes, amarillas y rojas y los tweets. Nadie más aprueba.',
+      default: 'Todo lo aprueba el jefe, con el semáforo: las piezas verdes, amarillas y rojas y los tweets. Nadie más aprueba.',
     },
     go: '/aprobar',
   },
@@ -2480,8 +2545,8 @@ export const TODOS: Answer[] = [
       'quien convierte mi ficha en evento',
     ],
     a: {
-      boss: 'Tú o el despacho: en «Por ponerle fecha» eliges la ficha de obra o el reporte y le pones fecha y hora; así se convierte en evento.',
-      dispatch: 'Tú o el jefe: en «Por ponerle fecha» eliges la ficha de obra o el reporte y le pones fecha y hora; así se convierte en evento. Lo que le pones tú le llega al jefe «Por decidir».',
+      boss: 'Tú o el despacho: en «Por ponerle fecha» eliges la ficha de obra o el reporte y le pones fecha y hora; así se crea en la agenda: una «Visita de obra» o la actividad del reporte.',
+      dispatch: 'Tú o el jefe: en «Por ponerle fecha» eliges la ficha de obra o el reporte y le pones fecha y hora; así se crea en la agenda: una «Visita de obra» o la actividad del reporte. Lo que le pones tú le llega al jefe «Por decidir».',
       politics: 'El jefe o el despacho, desde «Por ponerle fecha». Tú no la ves: de tu ficha solo ves «Ya tiene fecha».',
       ivt: 'El jefe o el despacho: tu ficha llega a «Por ponerle fecha» cuando tocas «Guardar y avisar al jefe». Cuando le ponen fecha, la ves en Agenda, si entraste con el doble factor.',
       admin: 'El jefe o el despacho, desde «Por ponerle fecha». Tú lo lees, pero no le pones fecha.',
@@ -2672,13 +2737,14 @@ export const TODOS: Answer[] = [
       'quien sube las piezas a las redes',
       'se publica automatico',
       'quien monta en instagram',
+      'lo programado sale solo en las redes',
     ],
     a: {
       default: 'La app no publica sola, y solo sale lo aprobado: en Publicar eliges la pieza y las redes, bajas el paquete, lo publicas tú en la red y marcas «Ya lo publiqué» con el link.',
-      dispatch: 'Redes (también el jefe y administración), a mano y solo lo que aprobó el jefe.',
-      politics: 'Redes (también el jefe y administración), a mano y solo lo que aprobó el jefe.',
-      ivt: 'Redes (también el jefe y administración), a mano y solo lo que aprobó el jefe.',
-      camera: 'Redes (también el jefe y administración), a mano y solo lo que aprobó el jefe.',
+      dispatch: PUBLISHED_BY_HAND,
+      politics: PUBLISHED_BY_HAND,
+      ivt: PUBLISHED_BY_HAND,
+      camera: PUBLISHED_BY_HAND,
     },
     go: '/publicar',
   },
@@ -2783,7 +2849,7 @@ export const TODOS: Answer[] = [
       'los contactos del reporte quien los ve',
       'quien puede ver los datos de la persona que reporta',
     ],
-    a: 'Los reportes los ven política, el jefe y el despacho; los contactos y los documentos, solo ellos y si entraron con el doble factor. Redes y Grabación nunca ven un reporte. Administración ve lo principal, sin contactos ni documentos.',
+    a: 'Los reportes los ven política, el jefe y el despacho; los contactos de «Persona que reporta» y los documentos, solo ellos y si entraron con el doble factor. Redes y Grabación nunca ven un reporte. Administración ve lo principal, sin contactos ni documentos.',
   },
   {
     id: 'todo-quien-ve-obra',
