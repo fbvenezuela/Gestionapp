@@ -1657,8 +1657,9 @@ const DEF_FRAMES: { frame: 'name' | 'meaning' | 'property'; re: RegExp; words: s
   { frame: 'property', re: /\bcuanto (?:dura\w*|tiempo)\b|\bpor cuanto tiempo\b|\bdura(?:n)?\b/, words: ['dura', 'duran', 'durar', 'tiempo'], cue: /\b(?:un dia|dias|horas?|minutos?|segundos?)\b/ },
   { frame: 'property', re: /\bque (?:lleva|llevan|trae|traen|incluye|incluyen|mide|miden)\b|\bde que (?:es|son|se trata)\b/, words: ['lleva', 'llevan', 'trae', 'traen', 'incluye', 'incluyen', 'mide', 'miden'] },
 ];
-// (The app naming itself, «¿qué nombre le da la app?», or «cuando…» before what is described, says nothing of the word.)
-const FRAME_AROUND = ['app', 'aplicacion', 'plataforma', 'cuando'].map((w) => rootOf(w));
+// (The app naming itself, «¿qué nombre le da la app?», «cuando…» before what is described, or the «uno» of «donde uno
+// escribe», says nothing of the word.)
+const FRAME_AROUND = ['app', 'aplicacion', 'plataforma', 'cuando', 'uno'].map((w) => rootOf(w));
 // What a word has, asked with a count («¿cuántas imágenes tiene un carrusel?», «¿cuántas piezas lleva el feed?»).
 const COUNT_HAS = /\b(?:tiene|tienen|lleva|llevan|trae|traen|cabe|caben|incluye|incluyen)\b/;
 const FRAME_ROOTS = new Map(DEF_FRAMES.map((f) => [f, new Set([...f.words.map((w) => rootOf(w)), ...FRAME_AROUND])]));
@@ -1714,20 +1715,23 @@ function definedTerm(a: Asked, roles: Role[], domain: Domain | null, quoted: str
   if (!asked.length || asked.length > 6 || (asked.length < 2 && !name && !frames.some((f) => f.cue))) return null;
   // A count of what one word names, with no verb of what it has («¿cuántos reels?», «¿cuántas salas?», «¿cuántas piezas
   // de Redes?»): how many there are, not what a word means. («¿Cuántas imágenes tiene un carrusel?» is what it has.)
-  const count = frames.some((f) => f.count);
+  // A name asked for decides: «lo que dice cuántas piezas de cada formato van, ¿cómo se llama?» describes the word with a
+  // «cuántas» and asks for its name, not for a count (no count rule and no number needed in the meaning).
+  const count = !name && frames.some((f) => f.count);
   if (count && !COUNT_HAS.test(a.text) && [...defTokens().keys()].some((e) => {
     const n = new Set((e.names ?? []).flatMap((x) => tokens(x)));
     return asked.every((r) => n.has(r));
   })) return null;
   const ix = index();
-  const labels = [...ix.labels.keys()].filter((l) => l.includes(' ') && ` ${a.text} `.includes(` ${l} `));
+  // (A label made only of words that say nothing, «Lo que dice», is no label named: «lo que dice cuántas piezas…» describes.)
+  const labels = [...ix.labels.keys()].filter((l) => l.includes(' ') && ` ${a.text} `.includes(` ${l} `) && tokens(l).length > 0);
   const scored: Defined[] = [];
   for (const [e, toks] of defTokens()) {
     if (!forRoles(e, roles)) continue;
     const ed = e.domain ?? 'equipo';
     if (domain && domain !== 'equipo' ? ed !== domain : ed !== 'equipo' && e.id !== 'palabra:web-y-atencion') continue;
     const said = saidReadable(e, roles);
-    if (frames.some((f) => f.cue && !f.cue.test(said))) continue;
+    if (!name && frames.some((f) => f.cue && !f.cue.test(said))) continue;
     // A label of the screen named whole that this word does not quote, or one quoted in the question that is none of its
     // names: another question.
     if (labels.some((l) => !said.includes(l))) continue;

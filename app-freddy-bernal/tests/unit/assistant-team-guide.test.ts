@@ -172,6 +172,19 @@ describe('(a) otras formas de preguntar qué es una palabra', () => {
     // Su nombre, por lo que describe, también para Redes.
     expect(describedTerm('el texto que va debajo de la foto cuando se publica, ¿qué nombre tiene?', ['social'])?.entry.id).toBe('palabra:caption');
   });
+
+  it('el nombre preguntado decide: lo que describe puede decir «cuántas», «uno» o «lo que dice» sin volverse otra pregunta', () => {
+    for (const [role, q, id] of [
+      ['camera', 'eso que dice cuántas piezas lleva cada formato en el mes, ¿cómo le dicen?', 'palabra:mes-cupo-y-pilar'],
+      ['ivt', 'en una tarjeta, cada espacio donde uno escribe, ¿cómo se llama?', 'palabra:campos'],
+      ['boss', 'lo que uno pone para que la gente comente al final, ¿qué nombre tiene?', 'palabra:hook-y-cta'],
+    ] as [Role, string, string][]) {
+      expect(describedTerm(q, [role])?.entry.id, `${role}: ${q}`).toBe(id);
+      expect(bestAnswer(q, { roles: [role] })?.entry.id, `${role}: ${q}`).toBe(id);
+    }
+    // …y una cuenta sigue siendo una cuenta: «¿cuántos reels?» no pregunta qué es un reel.
+    expect(describedTerm('¿cuántos reels?', ['social'])).toBeNull();
+  });
 });
 
 describe('(b) 360, la app y el trabajo sí responden cuando se preguntan', () => {
