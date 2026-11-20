@@ -1,7 +1,7 @@
 import 'server-only';
 import path from 'node:path';
 import { env } from '../env';
-import { loadRealSnapshot, realFileNames } from '../web/real-site';
+import { REAL_SITE, loadRealSnapshot, realFileNames, realSiteDirFromEnv } from '../web/real-site';
 import { bucketStore, KEY_PATTERN, mimeOfKey, publicFileUrl } from './buckets';
 import { insideFolder, readIfExists } from './local-files';
 
@@ -27,8 +27,10 @@ function realFiles(): Map<string, string | null> {
  * it never leaves that folder. */
 async function realSiteFile(key: string): Promise<Uint8Array | null> {
   if (!realFiles().has(key)) return null;
-  // Spelled out for the bundler's file tracing (next.config.ts also ships the folder with the public files' route).
-  const file = insideFolder(path.join(process.cwd(), '.real-site', 'media'), key);
+  // Spelled out for the bundler's file tracing (next.config.ts also ships the folder with the public files' route);
+  // REAL_SITE_DIR (tests only: the invented fixture, tests/fixtures/real-site) is a folder laid out the same way.
+  const custom = realSiteDirFromEnv();
+  const file = insideFolder(custom ? path.join(/* turbopackIgnore: true */ custom, REAL_SITE.media) : path.join(process.cwd(), '.real-site', 'media'), key);
   return file ? readIfExists(file) : null;
 }
 

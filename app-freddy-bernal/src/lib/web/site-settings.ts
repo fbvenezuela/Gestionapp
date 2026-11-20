@@ -79,6 +79,69 @@ const SCHEMAS = {
   'site.structured_data': z.object({ personName: text(120).optional(), jobTitle: text(160).optional(), organizationName: text(200).optional() }),
 } as const;
 
+// --- The new website's fields (design of 19/11/2026, wave 0: the types and their defaults; no screen uses them yet) ---
+//
+// «Autoridades competentes» (design §5.8): who a person can also go to when there is a risk to life or a crime under
+// way. Stored in web_settings under AUTHORITIES_KEY, but NOT in SCHEMAS on purpose: SCHEMAS is what the settings screen
+// saves in one step (src/lib/actions/web-site.ts), and the authorities are published by a second person (WP2 adds that
+// action). Only a phone (shown as a tel: link) and an https link are accepted. Nothing is shown until it is verified:
+// until then the page says «Los datos de las autoridades se publican cuando estén verificados.»
+export const AUTHORITIES_KEY = 'site.authorities';
+const phoneNumber = z
+  .string()
+  .trim()
+  .max(40)
+  // «(0276) 000-0000» is how a landline is usually written; short numbers («911») count too.
+  .refine((v) => /^\+?\(?[0-9](?:[0-9 ()-]*[0-9])?$/.test(v) && v.replace(/\D/g, '').length >= 3, 'Revisa el teléfono: solo números, espacios, guiones o paréntesis.');
+export const authoritySchema = z.object({
+  nombre: text(120).min(2),
+  telefono: phoneNumber.optional(),
+  enlace: httpsUrl.optional(),
+  nota: text(300).optional(),
+  verificado: z.boolean().default(false),
+  activa: z.boolean().default(true),
+});
+export const AUTHORITIES_SCHEMA = z.array(authoritySchema).max(12);
+export type Authority = z.infer<typeof authoritySchema>;
+/** An authority as the public pages show it: verified and active only, its phone ready as a tel: link. */
+export type PublicAuthority = { nombre: string; telefono: string | null; telHref: string | null; enlace: string | null; nota: string | null };
+
+// The logo slot (design §2.8): config/clients/fb.json → brand.identity, optional; absent means today's look (the text
+// wordmark, the panel's «FB» tile). The files live in public/marca/ (PNG at 1× and 2×, made by `npm run marca:preparar`).
+const logoFile = z.object({
+  src: z.string().regex(/^\/marca\/[a-z0-9-]+\.png$/),
+  src2x: z.string().regex(/^\/marca\/[a-z0-9-]+@2x\.png$/).optional(),
+  width: z.number().int().min(8).max(1200),
+  height: z.number().int().min(8).max(600),
+});
+const LOGO_NONE = { primary: null, white: null, black: null, olive: null, orange: null };
+const MARK_NONE = { primary: null, white: null };
+export const brandIdentitySchema = z.object({
+  logo: z
+    .object({
+      primary: logoFile.nullable().default(null),
+      white: logoFile.nullable().default(null),
+      black: logoFile.nullable().default(null),
+      olive: logoFile.nullable().default(null),
+      orange: logoFile.nullable().default(null),
+    })
+    .default(LOGO_NONE),
+  mark: z.object({ primary: logoFile.nullable().default(null), white: logoFile.nullable().default(null) }).default(MARK_NONE),
+  slogan: text(160).min(1).nullable().default(null),
+  pattern: z.string().regex(/^\/marca\/[a-z0-9-]+\.png$/).nullable().default(null),
+});
+export type BrandIdentity = z.infer<typeof brandIdentitySchema>;
+export type LogoFile = z.infer<typeof logoFile>;
+
+/** The client's identity of brand.identity, or null when there is none (today's look) or it does not have the shape. */
+export function brandIdentityOf(brand: Record<string, unknown>): BrandIdentity | null {
+  if (brand.identity === undefined || brand.identity === null) return null;
+  const r = brandIdentitySchema.safeParse(brand.identity);
+  if (r.success) return r.data;
+  console.error('[web] brand.identity de la configuración no tiene la forma esperada; se usa el aspecto de hoy.');
+  return null;
+}
+
 type Key = keyof typeof SCHEMAS;
 type Value<K extends Key> = z.infer<(typeof SCHEMAS)[K]>;
 
@@ -117,9 +180,18 @@ export type Site = {
   demoBanner: string;
   person: { name: string; jobTitle: string };
   organization: { name: string; areaServed: string; country: string };
+  /** «Autoridades competentes»: only the verified and active ones; empty until one is verified. */
+  authorities: PublicAuthority[];
+  /** With the official site's content (D-101): when the build read it (ISO 8601), for the footer's «Contenido de la web
+   * oficial leído el …»; null with the invented content. */
+  realReadAt: string | null;
+  /** The logo slot of the client's brand.identity, or null: today's text wordmark. */
+  identity: BrandIdentity | null;
+  /** The slogan (brand.identity.slogan): under the home's subtitle from 1024 px and in the footer; null without one. */
+  slogan: string | null;
 };
 
-export type SiteOptions = { demo: boolean; indexable: boolean; baseUrl: string };
+export type SiteOptions = { demo: boolean; indexable: boolean; baseUrl: string; realReadAt?: string | null };
 
 function pick<K extends Key>(raw: Record<string, unknown>, key: K, fallback: Value<K>): Value<K> {
   if (!(key in raw)) return fallback;
@@ -151,6 +223,26 @@ export function channelShown(c: { verified: boolean; active: boolean }, demo: bo
   return c.active && (c.verified || demo);
 }
 
+/** The authorities as the public pages show them: a stored list that does not have the shape shows none (and says so in
+ * the log); never one that is not verified or not active. */
+export function publicAuthorities(raw: Record<string, unknown>): PublicAuthority[] {
+  if (!(AUTHORITIES_KEY in raw)) return [];
+  const r = AUTHORITIES_SCHEMA.safeParse(raw[AUTHORITIES_KEY]);
+  if (!r.success) {
+    console.error(`[web] el ajuste ${AUTHORITIES_KEY} no tiene la forma esperada; no se muestra ninguna autoridad.`);
+    return [];
+  }
+  return r.data
+    .filter((a) => a.verificado && a.activa)
+    .map((a) => ({
+      nombre: a.nombre,
+      telefono: a.telefono ?? null,
+      telHref: a.telefono ? `tel:${a.telefono.replace(/[^\d+]/g, '')}` : null,
+      enlace: a.enlace ?? null,
+      nota: a.nota ?? null,
+    }));
+}
+
 const toPublic = (c: { network?: string; label?: string; handle?: string; url: string; verified: boolean }, network = c.network ?? 'web'): PublicChannel => ({
   network,
   networkLabel: NETWORK_LABEL[network] ?? (c.label || network),
@@ -172,6 +264,7 @@ export function normalizeSite(raw: Record<string, unknown>, opts: SiteOptions): 
   const portal = get('site.institutional_portal');
   const whatsapp = get('site.whatsapp_channel');
   const sd = cfg.web.structuredData;
+  const brandIdentity = brandIdentityOf(cfg.brand as Record<string, unknown>);
   return {
     demo: opts.demo,
     indexable: opts.indexable,
@@ -195,6 +288,10 @@ export function normalizeSite(raw: Record<string, unknown>, opts: SiteOptions): 
     demoBanner: get('site.demo_banner'),
     person: { name: structured.personName || identity.name, jobTitle: structured.jobTitle || sd.jobTitle },
     organization: { name: structured.organizationName || sd.organizationName, areaServed: sd.areaServed, country: sd.country },
+    authorities: publicAuthorities(raw),
+    realReadAt: opts.realReadAt ?? null,
+    identity: brandIdentity,
+    slogan: brandIdentity?.slogan ?? null,
   };
 }
 

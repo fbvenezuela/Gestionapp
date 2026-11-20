@@ -15,8 +15,10 @@ import { parseSnapshot, slug as slugSchema } from './schema';
 //
 //   * Same file, same rows: every id is a hash of a name («real:item:news:<WordPress id>») and every key a hash of the
 //     file's bytes, so every server of the demo seeds identical rows (D-39) and a file under a key never changes.
-//   * Off unless all of this holds at runtime: the file exists in process.cwd(), there is no DATABASE_URL, the tests are
-//     not running (VITEST), and REAL_SITE_CONTENT is not 0/false (Playwright sets it to 0: the e2e stay invented).
+//   * Off unless all of this holds at runtime: the file exists (in .real-site/ under process.cwd(), or in the folder
+//     REAL_SITE_DIR names: realSiteDirFromEnv below), there is no DATABASE_URL, the tests are not running (VITEST), and
+//     REAL_SITE_CONTENT is not 0/false. Playwright sets it to 0 on its two invented servers, and to 1 on the third one
+//     («real-fixture»), which reads the INVENTED fixture of tests/fixtures/real-site through REAL_SITE_DIR.
 //   * Read with fs, never imported (the file does not exist in CI), validated again here, memoized per process.
 // Pure, except loadRealSnapshot (it reads the file once). No Next or server-only imports: the build script uses it too.
 
@@ -46,6 +48,16 @@ export function switchOf(v: string | undefined): boolean | null {
 /** At runtime: whether the demo seeds the official site's content (the file must exist too). */
 export function realModeAtRuntime(env: Record<string, string | undefined>, snapshotExists: boolean): boolean {
   return snapshotExists && !env.DATABASE_URL && !env.VITEST && switchOf(env.REAL_SITE_CONTENT) !== false;
+}
+
+/** REAL_SITE_DIR: a folder laid out like .real-site/ (snapshot.json and media/) to read INSTEAD of it, relative to the
+ * app or absolute; null when it is not set. Only for the tests and local checks: `npm run fixture:real-site -- <folder>`
+ * writes the invented one (tests/fixtures/real-site), and the Playwright project «real-fixture» starts a server on it.
+ * Never set on Vercel: the deployed demo reads the .real-site/ its build wrote, whose path stays spelled out for the
+ * bundler's file tracing. A build with it set prerenders that folder's content, as a build with .real-site/ does. */
+export function realSiteDirFromEnv(env: Record<string, string | undefined> = process.env): string | null {
+  const dir = (env.REAL_SITE_DIR ?? '').trim();
+  return dir ? path.resolve(dir) : null;
 }
 
 // --- Ids -------------------------------------------------------------------------------------------------------------
@@ -315,10 +327,12 @@ const g = globalThis as unknown as { __fbRealSnapshot?: Memo; __fbRealSeeded?: '
 
 /** The official site's content for this demo server, or null (invented content): read once per process. The path is
  * written out in full so the bundler traces exactly that file (a path built from variables makes Turbopack trace the
- * whole project into every server function). */
+ * whole project into every server function); REAL_SITE_DIR (tests only) points elsewhere. */
 export function loadRealSnapshot(): RealSnapshot | null {
   if (g.__fbRealSnapshot) return g.__fbRealSnapshot.value;
-  const file = path.join(process.cwd(), '.real-site', 'snapshot.json');
+  const custom = realSiteDirFromEnv();
+  // The folder of REAL_SITE_DIR is never traced (it is not deployed): only the spelled-out path is.
+  const file = custom ? path.join(/* turbopackIgnore: true */ custom, REAL_SITE.file) : path.join(process.cwd(), '.real-site', 'snapshot.json');
   let value: RealSnapshot | null = null;
   if (realModeAtRuntime(process.env, fs.existsSync(file))) {
     try {

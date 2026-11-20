@@ -12,6 +12,7 @@ import { DEMO_WORDS, LABEL_ALLOW, LABEL_PATTERNS, balancedQuotes, concreteDateTi
 import { clientWords } from '@/lib/guides/web/words';
 import { ANSWERS, ANSWER_FILES, type Answer } from '@/lib/assistant/answers';
 import { HUECO } from '@/lib/assistant/text';
+import { isPendingLabel } from './helpers/pending-labels';
 
 // The screens' text: src/ outside the help content (the guides and these answers), without comments.
 const HELP_DIRS = [path.join('src', 'lib', 'guides'), path.join('src', 'lib', 'assistant', 'answers')];
@@ -36,7 +37,7 @@ const SOURCE = sourceFiles('src')
 // de 8»), and some labels are built from a value («Nivel amarillo», «Publicar antes (#20)»): the guides' LABEL_PATTERNS
 // (check.ts) take them, and guides-content.test.ts checks that each pattern's source is still in src/.
 const labelFound = (label: string) =>
-  SOURCE.includes(label) || LABEL_PATTERNS.some((p) => p.re.test(label)) || LABEL_ALLOW.includes(label);
+  SOURCE.includes(label) || LABEL_PATTERNS.some((p) => p.re.test(label)) || LABEL_ALLOW.includes(label) || isPendingLabel(label);
 
 const HUECOS = ['[ASISTENTE]', '[APP]', '[JEFE]', '[NOMBRE]'];
 const EVERYONE: Role[] = ['admin', ...TEAM_ROLES];

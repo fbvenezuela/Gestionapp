@@ -11,6 +11,11 @@ import { toursForRoles, type Tour } from '../../src/lib/guides';
 // cuenta»; the tutorial never opens by itself. Read-only: nothing here changes the demo database (the progress lives
 // in the phone's storage).
 test.describe.configure({ mode: 'serial', timeout: 180_000 });
+// The panel's default phone moves (smooth scroll, transitions): the suite's phones run with «Menos movimiento»
+// (playwright.config.ts), so these tests ask for motion, as before; the «Menos movimiento» test below sets reduce
+// itself (page.emulateMedia). Under reduce the app's rule gives EVERY element a 0.01 ms transition (globals.css): a
+// card read in the frame it moves still shows its old place.
+test.use({ reducedMotion: 'no-preference' });
 
 const RING_PAD = 4; // tour-core.ts: the ring goes 4 px outside its target
 const tourOf = (roles: Parameters<typeof toursForRoles>[0], id: string) => toursForRoles(roles).find((t) => t.id === id)!;

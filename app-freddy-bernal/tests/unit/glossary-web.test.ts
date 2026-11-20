@@ -24,6 +24,7 @@ import { canOpen } from '@/lib/assistant/screens';
 import { TERM_WHERE_WEB } from '@/lib/assistant/local';
 import { explainAsk } from '@/lib/assistant/explain';
 import { handleTurn } from '@/lib/assistant';
+import { isPendingLabel } from './helpers/pending-labels';
 
 const BOSS_ADMIN: Role[] = ['boss', 'admin'];
 const ASKS = (x: string) => [`¿qué es ${x}?`, `¿qué significa ${x}?`, `¿qué quiere decir ${x}?`];
@@ -53,7 +54,7 @@ const SOURCE = sourceFiles('src')
   .map((f) => withoutComments(fs.readFileSync(f, 'utf8')))
   .join('\n')
   .replace(/\s+/g, ' ');
-const labelFound = (label: string) => SOURCE.includes(label) || LABEL_PATTERNS.some((p) => p.re.test(label)) || LABEL_ALLOW.includes(label);
+const labelFound = (label: string) => SOURCE.includes(label) || LABEL_PATTERNS.some((p) => p.re.test(label)) || LABEL_ALLOW.includes(label) || isPendingLabel(label);
 
 // Every text of the web's words, with where it is.
 const TEXTS = WEB_GLOSSARY.flatMap((g) =>

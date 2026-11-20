@@ -26,12 +26,17 @@ async function noSideScroll(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
 }
 
-// An open menu panel is whole inside the screen, edge to edge.
+// An open menu panel is whole inside the screen, edge to edge, once it is placed: the panel places itself again when
+// the window changes size (a resize listener, then React), and under «Menos movimiento» (this project's default) the
+// new place takes one more frame (the app's 0.01 ms transitions), so a read right after setViewportSize can still see
+// the old place. Read until it settles, as underButton does.
 async function insideScreen(panel: Locator) {
-  const box = (await panel.boundingBox())!;
-  const width = panel.page().viewportSize()!.width;
-  expect(box.x, 'el menú empieza dentro de la pantalla').toBeGreaterThanOrEqual(0);
-  expect(box.x + box.width, 'el menú termina dentro de la pantalla').toBeLessThanOrEqual(width);
+  await expect(async () => {
+    const box = (await panel.boundingBox())!;
+    const width = panel.page().viewportSize()!.width;
+    expect(box.x, 'el menú empieza dentro de la pantalla').toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width, 'el menú termina dentro de la pantalla').toBeLessThanOrEqual(width);
+  }).toPass({ timeout: 5000 });
 }
 
 // …and right under the button that opened it (F8, R17: hung from the row's right edge, it opened far from the «⋯»).
