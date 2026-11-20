@@ -1,2 +1,5 @@
 # Git worktrees that Claude Code agents create while they work (never part of the project)
 .claude/worktrees/
+
+# Cachés de vite/vitest si alguien corre una prueba desde la raíz (no es del proyecto)
+node_modules/

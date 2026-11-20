@@ -816,7 +816,7 @@ export const WEB: Answer[] = [
     id: 'web-prueba-real-ejemplo',
     roles: ['boss', 'admin'],
     q: ['que es de verdad y que es de mentira en la web de prueba', 'que es real y que es de ejemplo en la prueba', 'que viene de la web oficial en la prueba', 'que hay que saber de la version de prueba'],
-    a: 'Viene de la web oficial: el nombre, el cargo y la foto de la portada, la biografía, las noticias, las columnas de opinión y el último Semanario. Es de ejemplo: las personas del panel y las solicitudes de «Atención ciudadana», que llevan «(demo)» en el título. Siete preguntas frecuentes ya venían escritas en la app. Lo que no tiene contenido real todavía no sale.',
+    a: 'Viene de la web oficial: la foto de la portada, la biografía, las noticias, las columnas de opinión y el último Semanario; el nombre y el cargo de la portada salen de la configuración de la app. Es de ejemplo: las personas del panel y las solicitudes de «Atención ciudadana», que llevan «(demo)» en el título. Siete preguntas frecuentes ya venían escritas en la app. Lo que no tiene contenido real todavía no sale.',
   },
   {
     id: 'web-prueba-se-borra',

@@ -401,9 +401,9 @@ la web al público.
 
 ### 3.2 Qué es real y qué es de ejemplo
 
-- **Viene de la web oficial:** el nombre, el cargo y la foto de la portada. En «El gobernador», la «Biografía»,
-  «Elección y toma de posesión» y «Condecoraciones», con su fuente. Las noticias y las columnas de «Opinión» más
-  recientes, con sus fotos. La última edición del Semanario.
+- **Viene de la web oficial:** la foto de la portada. En «El gobernador», la «Biografía», «Elección y toma de posesión»
+  y «Condecoraciones», con su fuente. Las noticias y las columnas de «Opinión» más recientes, con sus fotos. La última
+  edición del Semanario. El nombre y el cargo de la portada salen de la configuración de la app.
 - **Es de ejemplo:** las personas del panel (ver 3.5). También las solicitudes de «Atención ciudadana», 60 en total,
   que llevan «(demo)» en el título, con sus tres comprobantes (ver 3.6). Las cifras de «Transparencia» salen de esas
   solicitudes, y la página lo dice.

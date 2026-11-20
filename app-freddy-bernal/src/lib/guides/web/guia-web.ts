@@ -907,7 +907,7 @@ export const GUIA_WEB: WebDoc = {
       audience: ['boss', 'admin'],
       what: 'Qué es real y qué es de ejemplo en la versión de prueba: lo de la web viene de la web oficial; las personas del panel y las solicitudes son de ejemplo.',
       items: [
-        'Viene de la web oficial: el nombre, el cargo y la foto de la portada; en «El gobernador», la «Biografía», «Elección y toma de posesión» y «Condecoraciones»; las noticias y las columnas de «Opinión» más recientes, y la última edición del Semanario.',
+        'Viene de la web oficial: la foto de la portada; en «El gobernador», la «Biografía», «Elección y toma de posesión» y «Condecoraciones»; las noticias y las columnas de «Opinión» más recientes, y la última edición del Semanario. El nombre y el cargo de la portada salen de la configuración de la app.',
         'Es de ejemplo: las personas del panel y las solicitudes de «Atención ciudadana», que llevan «(demo)» en el título, con sus tres comprobantes. Las cifras de «Transparencia» salen de esas solicitudes, y la página lo dice.',
         'Ya venía escrito en la app: siete preguntas frecuentes de «Atención ciudadana», que cuentan cómo funciona la atención.',
         'Todavía no sale: las emisiones del «[PROGRAMA]»; en la portada, «Gestión en cifras», «Casos atendidos», «Gestión y obras» y «Avisos de servicio»; en el menú, «Gestión y obras»; en «El gobernador», «Material para la prensa».',
@@ -922,7 +922,7 @@ export const GUIA_WEB: WebDoc = {
         {
           kind: 'list',
           items: [
-            '**Viene de la web oficial:** el nombre, el cargo y la foto de la portada. En «El gobernador», la «Biografía», «Elección y toma de posesión» y «Condecoraciones», con su fuente. Las noticias y las columnas de «Opinión» más recientes, con sus fotos. La última edición del Semanario.',
+            '**Viene de la web oficial:** la foto de la portada. En «El gobernador», la «Biografía», «Elección y toma de posesión» y «Condecoraciones», con su fuente. Las noticias y las columnas de «Opinión» más recientes, con sus fotos. La última edición del Semanario. El nombre y el cargo de la portada salen de la configuración de la app.',
             '**Es de ejemplo:** las personas del panel (ver [§entrar-con-un-toque]). También las solicitudes de «Atención ciudadana», 60 en total, que llevan «(demo)» en el título, con sus tres comprobantes (ver [§comprobantes-de-prueba]). Las cifras de «Transparencia» salen de esas solicitudes, y la página lo dice.',
             '**Ya venía escrito en la app:** siete preguntas frecuentes de «Atención ciudadana». Cuentan cómo funciona la atención.',
             '**Todavía no sale:** las emisiones del «[PROGRAMA]»: su página lleva al canal oficial de YouTube. En la portada, «Gestión en cifras», «Casos atendidos», «Gestión y obras» y «Avisos de servicio». En el menú, «Gestión y obras». En «El gobernador», «Material para la prensa». Para ellos todavía no hay contenido real (ver [§inicio], [§el-gobernador] y [§programa]).',
