@@ -107,7 +107,10 @@ npm test && npm run lint && npm run typecheck
 npm run build && PW_CHROMIUM_PATH=/opt/pw-browsers/chromium npm run test:e2e   # en el contenedor de Claude
 ```
 Usuarios demo en `docs/DEMO.md`. En demo, `DEMO_SHORTCUTS` (activo por defecto) deja entrar con un toque y sin doble
-factor; con `DATABASE_URL` nunca se activa. Playwright levanta dos servidores: 3100 estricto y 3101 con atajos.
+factor; con `DATABASE_URL` nunca se activa. Playwright levanta hasta tres servidores: 3100 estricto, 3101 con atajos y
+3102 con el contenido real inventado (`tests/fixtures/real-site/`; solo si la corrida puede incluir el proyecto
+«real-fixture»; `E2E_FIXTURE=0` lo quita). Corre todo con «menos movimiento» salvo el proyecto «motion», y las pruebas
+de «La oficina» van primero (proyecto «office»), sobre la siembra recién hecha.
 
 ## Qué falta (siguiente sesión)
 1. `fb-dev` (Supabase, gratis) ya tiene las 31 migraciones, hasta `20261029090000`, y la configuración del cliente al

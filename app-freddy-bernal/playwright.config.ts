@@ -41,7 +41,7 @@ function projectArgs(argv: string[]): string[] {
   }
   return out;
 }
-const OTHER_PROJECTS = ['mobile-360', 'shortcuts', 'motion'];
+const OTHER_PROJECTS = ['office', 'mobile-360', 'shortcuts', 'motion'];
 const asked = projectArgs(process.argv);
 const fixtureServerNeeded = !!fixtureUrl && (asked.length === 0 || asked.some((p) => !OTHER_PROJECTS.includes(p)));
 // Where the fixture's server reads it from (REAL_SITE_DIR): made right before that server starts, one folder per port.
@@ -62,6 +62,8 @@ const still = { ...mobile, reducedMotion: 'reduce' as const };
 const REAL_FIXTURE_TAG = /@real-fixture/;
 const MOTION_SPEC = /web-movimiento\.spec\.ts/;
 const SHORTCUTS_SPEC = /demo-shortcuts\.spec\.ts/;
+// «La oficina» reads where each demo activity sits, so it runs first, on the fresh seed (project «office» below).
+const OFFICE_SPEC = /oficina\.spec\.ts/;
 
 // The servers' shared settings. TRUST_PROXY_HEADERS: the test runner stands for the platform's proxy, giving each test
 // a network of its own with x-real-ip (src/lib/participation/keys.ts trusts that header only on Vercel or with this
@@ -93,7 +95,12 @@ export default defineConfig({
     channel: process.env.PW_CHROMIUM_PATH ? undefined : 'chromium',
   },
   projects: [
-    { name: 'mobile-360', testIgnore: [SHORTCUTS_SPEC, MOTION_SPEC], grepInvert: REAL_FIXTURE_TAG, use: still },
+    // «La oficina» first, on the fresh seed: its tests read which room each demo activity is in, and the main suite
+    // moves them (flows.spec sends the school health day's piece to the boss, which takes that activity out of the
+    // meeting room it was seeded in; D-103). No other spec reads the office, so running it first changes nothing else.
+    // A failure here skips the main suite (Playwright's dependencies): fix the office first.
+    { name: 'office', testMatch: OFFICE_SPEC, grepInvert: REAL_FIXTURE_TAG, use: still },
+    { name: 'mobile-360', dependencies: ['office'], testIgnore: [SHORTCUTS_SPEC, MOTION_SPEC, OFFICE_SPEC], grepInvert: REAL_FIXTURE_TAG, use: still },
     ...(shortcutsUrl ? [{ name: 'shortcuts', testMatch: SHORTCUTS_SPEC, use: { ...still, baseURL: shortcutsUrl } }] : []),
     // The real-content mode on the invented fixture: today the home (web-portada.spec.ts); WP3 tests its first screen
     // with the photo here.
