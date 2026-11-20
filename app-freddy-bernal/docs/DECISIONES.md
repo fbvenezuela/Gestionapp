@@ -1689,3 +1689,18 @@ aplicada). Reemplaza D-49, D-50, D-51, D-57 y D-59; ajusta D-52, D-54, D-55, D-5
   - Una respuesta de Atención para Administración puede llevar el botón de «Equipo» o de «Buzón», sus propias pantallas.
   - Las respuestas de Atención, como las de la web, no cambian los pesos de las palabras del equipo.
 - **Cómo está:** `docs/ASISTENTE.md`, «360 y las dos guías».
+
+## D-103. La sala de reuniones: la reunión de arranque de cada proyecto (19/11/2026)
+- **Número:** en `main` se escribió como D-102; al juntarla con la rama de trabajo, que ya tenía su D-102 (360 y las
+  dos guías), pasó a D-103.
+- **Pedido de Juan:** «anexa una sala de reuniones, y que cuando empiece un proyecto todos vayan a la reunión para que
+  estén al tanto».
+- Es la sala 2 de la oficina, entre Recepción y Guionistas. Cuando el jefe aprueba la lectura, la actividad pasa a la
+  sala de reuniones y les llega un aviso (`office_meeting`, solo el título) al jefe, despacho, Redes y a quien graba la
+  actividad. La página muestra la lectura abierta y lo que se hace en la reunión; **solo el jefe** toca «La reunión ya
+  se hizo» (con doble factor) y entonces empieza el guion: la base no deja guion antes de la reunión.
+- En el dibujo es un anexo de vidrio al final del salón, con una mesa larga y la pantalla grande; cuando hay un proyecto
+  arrancando, la mesa se llena y dos personas caminan hacia la sala.
+- Migración nueva `20261119000100_office_meeting.sql` (columna `kickoff_done`, la guarda y `office_facts()` con la
+  reunión). Es un archivo aparte porque no se sabe si `20261106000100_office.sql` ya está en `fb-dev`; lo que ya tenía
+  guion queda con la reunión hecha. **Falta aplicar las dos en `fb-dev`**, en orden.

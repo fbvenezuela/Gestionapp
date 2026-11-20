@@ -90,7 +90,7 @@ Son seis roles: el jefe, el despacho, política, el IVT, Grabación y Redes. Par
 - **Campos.** Los espacios de una tarjeta o de un formulario donde se escribe.
 - **Números y medidas.** “85/280” dice cuántas letras lleva un texto y cuántas caben. 9:16 es vertical, como la pantalla del teléfono; 16:9 es horizontal y 4:5, casi cuadrado. Junto a un archivo salen su peso (KB o MB), su duración y su tamaño (por ejemplo, 1080×1920).
 - **CSV.** Un archivo de hoja de cálculo, como los de Excel, guardado en ese formato. Sirve para cargar muchos resultados de una vez.
-- **La oficina.** Lo que abre «Oficina» en el menú: el trabajo dibujado como una oficina de diez salas, de «Recepción» a «Analizador». Cada actividad del jefe está en la sala donde va su trabajo. Tocas una sala para ver cuáles hay. El jefe también la ve arriba de Digital.
+- **La oficina.** Lo que abre «Oficina» en el menú: el trabajo dibujado como una oficina de once salas, de «Recepción» a «Analizador», con una sala de reuniones donde todos se juntan cuando arranca un proyecto. Cada actividad del jefe está en la sala donde va su trabajo. Tocas una sala para ver cuáles hay. El jefe también la ve arriba de Digital.
 - **Web y Atención.** En el menú del jefe: la web pública y la atención a la gente que escribe por ella. Tienen su propia guía, aparte de esta.
 - **Administración.** Las personas que manejan la parte técnica de la app: invitan a cada quien, ayudan con el doble factor y recuperan lo eliminado. No es ninguno de los seis roles.
 

@@ -680,7 +680,7 @@ const NOT_PUBLISHING: Role[] = ['dispatch', 'politics', 'ivt', 'camera'];
 const GLOSSARY_FOR: Record<string, (line: string) => Partial<Record<Role, string>>> = {
   programar: (line) => Object.fromEntries(NOT_PUBLISHING.map((r) => [r, line.replace('a esa hora la publicas tú y marcas «Ya lo publiqué»', 'a esa hora la publica a mano quien publica (Redes, el jefe o administración) y marca «Ya lo publiqué»')])),
   oficina: () => {
-    const text = 'La oficina: El trabajo dibujado como una oficina de diez salas, de «Recepción» a «Analizador». No está en tu menú: la abren el jefe, el despacho, Redes, Grabación y administración, con «Oficina».';
+    const text = 'La oficina: El trabajo dibujado como una oficina de once salas, de «Recepción» a «Analizador», con una sala de reuniones donde todos se juntan cuando arranca un proyecto. No está en tu menú: la abren el jefe, el despacho, Redes, Grabación y administración, con «Oficina».';
     return { politics: text, ivt: text };
   },
 };

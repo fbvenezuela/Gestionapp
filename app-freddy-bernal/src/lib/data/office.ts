@@ -8,7 +8,7 @@ import { officeRoom, ROOMS, type Brief, type OfficeFacts, type Reception, type R
 export type OfficeItem = { id: string; code: string; title: string; room: Room; facts: OfficeFacts };
 
 type FactsRow = {
-  event_id: string; code: string; title: string; tracked: boolean; reception_status: ScriptStatus; script_status: ScriptStatus; clean_done: boolean; brutal_done: boolean;
+  event_id: string; code: string; title: string; tracked: boolean; reception_status: ScriptStatus; kickoff_done: boolean; script_status: ScriptStatus; clean_done: boolean; brutal_done: boolean;
   shots: number; raw_media: number; pieces: number; pieces_in_review: number; pieces_approved: number; pieces_approved_with_copies: number; published: number;
 };
 
@@ -16,6 +16,7 @@ const toItem = (r: FactsRow): OfficeItem => {
   const facts: OfficeFacts = {
     tracked: r.tracked,
     receptionStatus: r.reception_status,
+    kickoffDone: r.kickoff_done,
     scriptStatus: r.script_status,
     cleanDone: r.clean_done,
     brutalDone: r.brutal_done,

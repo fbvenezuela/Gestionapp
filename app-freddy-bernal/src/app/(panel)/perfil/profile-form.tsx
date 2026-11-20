@@ -16,6 +16,7 @@ import { Field, Input } from '@/components/ui/field';
 const OPTIONAL = [
   { key: 'material_ready', label: 'Llegó material nuevo' },
   { key: 'recording_note', label: 'Grabación dejó su nota o su storyboard' },
+  { key: 'office_meeting', label: 'Hay reunión de arranque de un proyecto' },
   { key: 'review_pending', label: 'Hay algo por aprobar' },
   { key: 'piece_approved', label: 'Aprobaron una pieza' },
   { key: 'voice_line', label: 'Hay que pedir una frase al jefe' },

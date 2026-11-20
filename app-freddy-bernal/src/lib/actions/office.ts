@@ -5,6 +5,8 @@ import { act, UserError } from './run';
 import type { Sql } from '../db/core';
 import { RX_MAX, RX_RESEARCH_MAX, SCRIPT_MAX, receptionGaps, scriptDraft } from '../domain/office';
 import { officeReception } from '../data/office';
+import { notify, usersWithRole } from '../notify';
+import { meetingNotice } from '../domain/office';
 
 // «La oficina» (06/11/2026): the three steps that live in event_office. The database decides who writes (the boss and
 // Redes, on an event they see), that only the boss approves the script, that changing an approved script sends it
@@ -12,6 +14,7 @@ import { officeReception } from '../data/office';
 
 const revalidate = ['/oficina'];
 const eventId = z.string().uuid();
+const schemaId = (raw: unknown) => z.object({ eventId }).parse(raw).eventId;
 
 // The row is born empty the first time a room touches the activity, then the step changes it.
 async function setStep(sql: Sql, id: string, set: string, params: unknown[]) {
@@ -101,12 +104,39 @@ export async function saveReception(raw: unknown) {
   return { ...res, message: res.data === 'approved' ? 'Guardado. Sigue aprobada.' : 'Lectura guardada. Ahora la ve el jefe.' };
 }
 
-/** The boss approves the reading: the activity goes to Guionistas (the database refuses anyone else). */
+/**
+ * The boss approves the reading: the activity goes to the meeting room and the whole team is told (Juan, 19/11/2026:
+ * «cuando empiece un proyecto todos vayan a la reunión»): the boss, despacho, Redes and whoever records it. The
+ * notice carries the title only, never when or where (rule 4).
+ */
 export async function approveReception(raw: unknown) {
-  const res = await act(z.object({ eventId }), raw, async (sql, i) => {
+  const res = await act(z.object({ eventId }), raw, async (sql, i, s) => {
     const cur = await sql.one<{ reception_status: string }>(`select reception_status from public.event_office where event_id = $1`, [i.eventId]);
     if (!cur || cur.reception_status === 'none') throw new UserError('Todavía no hay lectura de la recepción.');
     await sql.query(`update public.event_office set reception_status = 'approved' where event_id = $1`, [i.eventId]);
+    const ev = await sql.one<{ title: string }>(`select title from public.events where id = $1`, [i.eventId]);
+    const camera = (await sql.query<{ user_id: string }>(`select user_id from public.event_assignments where event_id = $1 and duty = 'camera'`, [i.eventId])).map((r) => r.user_id);
+    return { title: ev?.title ?? '', camera, by: s.userId };
   }, { revalidate });
-  return res.ok ? { ...res, message: 'Lectura aprobada. Pasa a Guionistas.' } : res;
+  if (!res.ok || !res.data) return res;
+  const { title, camera, by } = res.data;
+  try {
+    const team = [...new Set([...(await usersWithRole('boss')), ...(await usersWithRole('dispatch')), ...(await usersWithRole('social')), ...camera])];
+    await notify({ ...meetingNotice({ id: schemaId(raw), title }), userIds: team.filter((u) => u !== by) });
+  } catch (e) {
+    // Approved is approved: a notice that failed never undoes it.
+    console.error('[office] meeting notice:', (e as Error).message);
+  }
+  return { ok: true as const, message: 'Lectura aprobada. Todos a la sala de reuniones.' };
+}
+
+/** The boss says the kick-off meeting was held (or undoes it): then the script can start. */
+export async function holdMeeting(raw: unknown) {
+  const schema = z.object({ eventId, done: z.boolean() });
+  const res = await act(schema, raw, async (sql, i) => {
+    await setStep(sql, i.eventId, 'kickoff_done = $2', [i.done]);
+    return i.done;
+  }, { revalidate });
+  if (!res.ok) return res;
+  return { ...res, message: res.data ? 'Reunión hecha. Pasa a Guionistas.' : 'Listo, vuelve a la sala de reuniones.' };
 }

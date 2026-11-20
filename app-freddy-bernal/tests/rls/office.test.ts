@@ -9,7 +9,7 @@ import type { DemoUserKey } from '@/lib/db/seed-demo';
 
 let t: TestDb;
 let ev: string; // an accepted event with no office row
-let ev2: string; // another accepted event with no office row, that nobody here writes
+let ev2: string; // another accepted event, recorded by «camera», that nobody here writes (RLS refuses before anything else)
 let scripted: string; // the demo event whose script waits for the boss
 
 const row = (id: string) => t.system((sql) => sql.one<{ script_status: string; clean_done: boolean; brutal_done: boolean; script_approved_by: string | null }>(`select * from public.event_office where event_id = $1`, [id]));
@@ -27,7 +27,7 @@ beforeAll(async () => {
     sql.one<{ id: string }>(
       `select e.id from public.events e join public.event_assignments a on a.event_id = e.id and a.user_id = $2
         where e.boss_decision = 'accepted' and e.deleted_at is null and e.cancelled_at is null and e.id <> $1
-          and not exists (select 1 from public.event_office o where o.event_id = e.id) order by e.code limit 1`,
+        order by e.code limit 1`,
       [ev, t.ids.camera],
     ),
   ))!.id;
@@ -40,6 +40,14 @@ describe('event_office: la lectura de la recepción', () => {
     await expect(t.as('social', (sql) => sql.query(`update public.event_office set reception_status = 'approved' where event_id = $1`, [ev]))).rejects.toThrow(/Solo el jefe/);
     await t.as('boss', (sql) => sql.query(`update public.event_office set reception_status = 'approved' where event_id = $1`, [ev]));
     expect(await t.system((sql) => sql.one(`select reception_status, reception_approved_by from public.event_office where event_id = $1`, [ev]))).toMatchObject({ reception_status: 'approved', reception_approved_by: t.ids.boss });
+  });
+
+  it('la reunión: solo el jefe la da por hecha, y el guion espera a que se haga', async () => {
+    await expect(t.as('social', (sql) => sql.query(`update public.event_office set script = 'Toma 1 (prueba)', script_status = 'draft' where event_id = $1`, [ev]))).rejects.toThrow(/reunión de arranque/);
+    await expect(t.as('social', (sql) => sql.query(`update public.event_office set kickoff_done = true where event_id = $1`, [ev]))).rejects.toThrow(/Solo el jefe/);
+    await expect(t.as('boss', (sql) => sql.query(`update public.event_office set kickoff_done = true where event_id = $1`, [ev]), 'aal1')).rejects.toThrow();
+    await t.as('boss', (sql) => sql.query(`update public.event_office set kickoff_done = true where event_id = $1`, [ev]));
+    expect(await t.system((sql) => sql.one(`select kickoff_done, kickoff_by from public.event_office where event_id = $1`, [ev]))).toMatchObject({ kickoff_done: true, kickoff_by: t.ids.boss });
   });
 
   it('cambiar una lectura aprobada la devuelve al jefe', async () => {
@@ -93,6 +101,11 @@ describe('event_office: las dos ediciones', () => {
 });
 
 describe('office_facts: dónde está cada actividad', () => {
+  it('la demo tiene una actividad en la sala de reuniones', async () => {
+    const rooms = (await t.as('boss', (sql) => officeItems(sql))).map((i) => i.room);
+    expect(rooms).toContain('meeting');
+  });
+
   it('la misma sala para el jefe, despacho y Redes; Grabación solo las suyas', async () => {
     const rooms = async (who: DemoUserKey) => Object.fromEntries((await t.as(who, (sql) => officeItems(sql))).map((i) => [i.id, i.room]));
     const boss = await rooms('boss');
