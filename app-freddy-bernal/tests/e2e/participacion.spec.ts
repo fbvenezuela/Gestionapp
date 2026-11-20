@@ -342,6 +342,123 @@ test('lo escrito sigue ahí después de recargar la página', async ({ page }) =
   await expect(page.getByRole('heading', { level: 2, name: 'Tipo de solicitud' })).toBeVisible();
 });
 
+const RESTORED = 'Se recuperó lo que había escrito en esta pestaña.';
+const CONFIDENTIAL = 'Las denuncias son confidenciales.';
+
+/** The form once it is the browser's (hydrated, the tab's draft read): with JavaScript, «Siguiente» on a step 1 with
+ * nothing chosen says on the page what is missing. Its locator (the form without JavaScript, in <noscript>, carries the
+ * denuncia's notice too). */
+async function formReady(page: Page) {
+  const form = page.locator('.js-only');
+  await next(page);
+  await expect(form.getByText(/^Elija (una categoría de la lista|el tipo de solicitud)\.$/).first()).toBeVisible();
+  return form;
+}
+
+test('en una misma pestaña, el tipo del enlace gana al borrador: de la denuncia a la petición, nada de la denuncia', async ({ page }) => {
+  // The denuncia's form, left with nothing written (an old version kept that draft and showed it on the petición page).
+  await page.goto('/atencion/nueva?tipo=denuncia');
+  let form = await formReady(page);
+  await expect(form.getByLabel(/^Denuncia/)).toBeChecked();
+  await expect(form.getByText(CONFIDENTIAL)).toBeVisible();
+  await page.waitForTimeout(600);
+  // The petición's, in the same tab: «Petición» ticked, no confidential notice, nothing «recovered».
+  await page.goto('/atencion/nueva?tipo=peticion');
+  await expect(page.getByRole('heading', { level: 1, name: 'Hacer una petición' })).toBeVisible();
+  form = await formReady(page);
+  await expect(form.getByLabel(/^Petición/)).toBeChecked();
+  await expect(form.getByLabel(/^Denuncia/)).not.toBeChecked();
+  await expect(form.getByText(CONFIDENTIAL)).toHaveCount(0);
+  await expect(page.getByText(RESTORED)).toHaveCount(0);
+  // A link of the site from the denuncia to another form is a soft navigation (a page's state survives it): the new
+  // form starts clean too.
+  await page.goto('/atencion/nueva?tipo=denuncia');
+  await formReady(page);
+  await page.getByRole('navigation', { name: 'Atención ciudadana' }).getByRole('link', { name: 'Nueva solicitud' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Nueva solicitud' })).toBeVisible();
+  form = page.locator('.js-only');
+  await expect(form.getByRole('heading', { level: 2, name: 'Tipo de solicitud' })).toBeVisible();
+  await expect(form.locator('input[name="type"]:checked')).toHaveCount(0);
+  await expect(form.getByText(CONFIDENTIAL)).toHaveCount(0);
+  await expect(form.getByText('Elija una categoría de la lista.')).toHaveCount(0);
+  await expect(page.getByText(RESTORED)).toHaveCount(0);
+});
+
+test('lo escrito para un tipo vuelve al abrir ese tipo otra vez en la pestaña, aunque en medio se abra otro', async ({ page }) => {
+  await page.goto('/atencion/nueva?tipo=peticion');
+  await page.getByLabel(/^Salud/).check();
+  await next(page);
+  await page.getByLabel(/^Municipio/).selectOption({ label: 'Junín' });
+  const sector = unique();
+  await page.getByLabel(/Parroquia, localidad o sector/).fill(sector);
+  await page.waitForTimeout(600);
+  // Another kind: its own form, with nothing of the petición.
+  await page.goto('/atencion/nueva?tipo=denuncia');
+  const form = await formReady(page);
+  await expect(form.getByLabel(/^Denuncia/)).toBeChecked();
+  await expect(page.getByText(RESTORED)).toHaveCount(0);
+  await page.waitForTimeout(600);
+  // The petición again: what was written comes back, where it was.
+  await page.goto('/atencion/nueva?tipo=peticion');
+  await expect(page.getByText(RESTORED)).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: /^Lugar/ })).toBeVisible();
+  await expect(page.getByLabel(/Parroquia, localidad o sector/)).toHaveValue(sector);
+});
+
+test('al recargar, lo escrito vuelve aunque la persona haya cambiado el tipo a mano', async ({ page }) => {
+  // From the denuncia's link, «Petición» ticked by hand, then written.
+  await page.goto('/atencion/nueva?tipo=denuncia');
+  const form = await formReady(page);
+  await form.getByLabel(/^Petición/).check();
+  await page.getByLabel(/^Salud/).check();
+  await next(page);
+  await page.getByLabel(/^Municipio/).selectOption({ label: 'Junín' });
+  const sector = unique();
+  await page.getByLabel(/Parroquia, localidad o sector/).fill(sector);
+  await page.waitForTimeout(600);
+  // The same address again: the petición comes back as it was left, not a blank denuncia.
+  await page.reload();
+  await expect(page.getByText(RESTORED)).toBeVisible();
+  await expect(page.getByLabel(/Parroquia, localidad o sector/)).toHaveValue(sector);
+  await page.getByRole('button', { name: 'Volver al paso 1: Tipo' }).click();
+  await expect(form.getByLabel(/^Petición/)).toBeChecked();
+  await expect(form.getByText(CONFIDENTIAL)).toHaveCount(0);
+});
+
+test('el tipo cambiado a mano no gana al enlace: de la petición a «Denuncia», «Hacer una petición» otra vez da la petición', async ({ page }) => {
+  // From the petición's link, «Denuncia» ticked by hand, then written.
+  await page.goto('/atencion/nueva?tipo=peticion');
+  let form = await formReady(page);
+  await form.getByLabel(/^Denuncia/).check();
+  await expect(form.getByText(CONFIDENTIAL)).toBeVisible();
+  await page.getByLabel(/^Seguridad/).check();
+  await next(page);
+  await page.getByLabel(/^Municipio/).selectOption({ label: 'Cárdenas' });
+  const sector = unique();
+  await page.getByLabel(/Parroquia, localidad o sector/).fill(sector);
+  await page.waitForTimeout(600);
+  // Away, and later «Hacer una petición» by the site's own link (a soft navigation): the petición's form, clean.
+  await page.goto('/atencion');
+  await page.getByRole('region', { name: 'Tipos de solicitud' }).getByRole('link', { name: /^Hacer una petición/ }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Hacer una petición' })).toBeVisible();
+  form = await formReady(page);
+  await expect(form.getByLabel(/^Petición/)).toBeChecked();
+  await expect(form.getByLabel(/^Denuncia/)).not.toBeChecked();
+  await expect(form.getByText(CONFIDENTIAL)).toHaveCount(0);
+  await expect(page.getByText(RESTORED)).toHaveCount(0);
+  // A reload shows that page as it was left: the petición, still clean.
+  await page.waitForTimeout(600);
+  await page.reload();
+  form = await formReady(page);
+  await expect(form.getByLabel(/^Petición/)).toBeChecked();
+  await expect(form.getByText(CONFIDENTIAL)).toHaveCount(0);
+  await expect(page.getByText(RESTORED)).toHaveCount(0);
+  // What was written is not lost: the denuncia's own link brings it back.
+  await page.goto('/atencion/nueva?tipo=denuncia');
+  await expect(page.getByText(RESTORED)).toBeVisible();
+  await expect(page.getByLabel(/Parroquia, localidad o sector/)).toHaveValue(sector);
+});
+
 test('«Casos atendidos»: casos publicados sin datos personales, las denuncias solo por su municipio, con filtros y su estado vacío', async ({ page }) => {
   await page.goto('/atencion/atendido');
   await expect(page.getByRole('heading', { level: 1, name: 'Casos atendidos' })).toBeVisible();

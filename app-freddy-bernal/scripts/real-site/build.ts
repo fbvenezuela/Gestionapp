@@ -53,7 +53,7 @@ export type BuildInput = {
   tz: string;
   /** The configured official accounts (site.social_accounts and site.youtube_channel). */
   accounts: { url: string }[];
-  /** When the site's API gives no name or tagline (the client's brand). */
+  /** The client's brand: when the site's API gives no name or tagline, and what the site's name is checked against. */
   fallbackIdentity: { name: string; tagline: string };
   now: Date;
   log?: (line: string) => void;
@@ -73,21 +73,43 @@ const KIND_ORDER: Record<string, number> = { news: 0, episode: 1, document: 2 };
 
 const clean = (s: string | undefined) => plainFromHtml(s ?? '').replace(/\s+/g, ' ').trim();
 
-/** The site's name and tagline as WordPress keeps them («Name  Name - Tagline» in the name, an empty description). */
+/** The most words a WordPress description may have to count as the site's tagline. */
+export const TAGLINE_MAX_WORDS = 12;
+
+/** A WordPress description that reads as a tagline, or '': one longer than TAGLINE_MAX_WORDS words, or one that ends like
+ * a sentence (a period or an ellipsis), is the site's text for search engines, never a tagline (G1: around 11/11 the
+ * official site's description became such a sentence). */
+export function taglineOf(description: string): string {
+  const d = description.trim();
+  if (!d || d.split(/\s+/).length > TAGLINE_MAX_WORDS) return '';
+  return /[.…][\s"'»”’)\]]*$/u.test(d) ? '' : d;
+}
+
+/** The site's name and tagline as WordPress keeps them: the name carries the office after a dash («Name - Office», or
+ * «Name  Name - Office» with the name said twice) and is split there even when there is a description; the description is
+ * the tagline only when it reads as one (taglineOf), else the name with its office. The home's hero never shows them
+ * (seed-parts/web-real.ts composeHome takes the config's name and title): the build only checks the name against the
+ * config's (identityCheck). */
 export function identityFrom(root: WpRoot | null, fallback: { name: string; tagline: string }): { name: string; tagline: string } {
   let name = clean(root?.name);
-  let tagline = clean(root?.description);
-  if (!tagline) {
-    const m = /^(.+?)\s+[-–—|]\s+(.+)$/.exec(name);
-    if (m) {
-      const words = m[1].split(/\s+/);
-      const half = words.length / 2;
-      const repeated = words.length % 2 === 0 && words.slice(0, half).join(' ').toLowerCase() === words.slice(half).join(' ').toLowerCase();
-      name = repeated ? words.slice(0, half).join(' ') : m[1];
-      tagline = `${name} - ${m[2]}`;
-    }
+  let tagline = taglineOf(clean(root?.description));
+  const m = /^(.+?)\s+[-–—|]\s+(.+)$/.exec(name);
+  if (m) {
+    const words = m[1].split(/\s+/);
+    const half = words.length / 2;
+    const repeated = words.length % 2 === 0 && words.slice(0, half).join(' ').toLowerCase() === words.slice(half).join(' ').toLowerCase();
+    name = repeated ? words.slice(0, half).join(' ') : m[1];
+    if (!tagline) tagline = `${name} - ${m[2]}`;
   }
   return { name: cut(name || fallback.name, 120), tagline: cut(tagline || fallback.tagline, 200) };
+}
+
+/** The build's line when the official site's name is not the config's (accents, case and spacing aside), or null: the
+ * home keeps the config's name either way; the line says that someone should look whether the config is out of date. */
+export function identityCheck(identity: { name: string }, configName: string): string | null {
+  const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  if (!fold(configName) || fold(identity.name) === fold(configName)) return null;
+  return `la web oficial se llama «${identity.name}» y la configuración, «${configName.trim()}»: la portada usa el de la configuración`;
 }
 
 /** The addresses a page links (its <a href>), for the accounts the official site itself names. */
@@ -161,12 +183,15 @@ export async function buildSnapshot(input: BuildInput, src: Sources): Promise<Bu
   };
 
   // --- WordPress: who, which categories, the newest posts (the lists may not fail) ----------------------------------
-  // The site's name and tagline are a courtesy: without them, the client's own.
+  // The site's name and tagline are a courtesy: without them, the client's own. The home's hero takes the config's name
+  // and title anyway (G1); the site's name is only compared with the config's.
   const root = await src.root().catch((e) => {
     skip('/wp-json/', (e as Error).message);
     return null;
   });
   const identity = identityFrom(root, input.fallbackIdentity);
+  const differs = root ? identityCheck(identity, input.fallbackIdentity.name) : null;
+  if (differs) log(`  ${differs}`);
   const categories = await src.categories();
   const bySlug = new Map(categories.map((c) => [c.slug, c.id]));
   const catMap = new Map(categories.map((c) => [c.id, c]));

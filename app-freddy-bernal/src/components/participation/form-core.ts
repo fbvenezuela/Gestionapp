@@ -56,12 +56,19 @@ export type Receipt = {
   saved: boolean;
 };
 
+/** What the form's address chose: the kind (?tipo=) and the published item the request is about (?sobre=). */
+export type FormPreset = { type: RequestType | null; linkedItemId: string | null };
+
 export type Draft = {
   v: 1;
   submissionKey: string;
   secret: string;
   step: Step;
   values: FormValues;
+  /** The address (kind and item) of the page this draft is on: the one its form started at, or the one that brought it
+   * back; its own kind and item once another address's form took its place (setAside). When that page comes back as the
+   * person left it (a reload), the draft comes back even after the person changed the kind or dropped the item by hand. */
+  opened: FormPreset;
   /** The files chosen before a reload (files themselves cannot be kept): the form asks to choose them again. */
   fileNames: string[];
   receipt: Receipt | null;
@@ -111,18 +118,52 @@ export function uuidV4(bytes: Uint8Array = globalThis.crypto.getRandomValues(new
 
 /** A new form: its key and the receipt's secret are made now, in this browser, and kept with what is written. */
 export function newDraft(preset: { type?: RequestType | null; linkedItemId?: string | null } = {}, now = new Date()): Draft {
-  return { v: 1, submissionKey: uuidV4(), secret: generateSecret(), step: 1, values: emptyValues(preset), fileNames: [], receipt: null, similarAnswered: null, savedAt: now.toISOString() };
+  const opened = { type: preset.type ?? null, linkedItemId: preset.linkedItemId ?? null };
+  return { v: 1, submissionKey: uuidV4(), secret: generateSecret(), step: 1, values: emptyValues(preset), opened, fileNames: [], receipt: null, similarAnswered: null, savedAt: now.toISOString() };
 }
 
 const nonEmpty = (s: string) => s.trim() !== '';
 
-/** Whether the person wrote or chose anything beyond the presets (a draft worth restoring). */
-export function hasContent(v: FormValues, preset: { type?: RequestType | null } = {}): boolean {
-  return (
-    (v.type !== '' && v.type !== (preset.type ?? '')) ||
-    [v.categoryId, v.municipalityId, v.parishId, v.sector, v.locationReference, v.title, v.description, v.eventDate, v.name, v.email, v.phone, v.note].some(nonEmpty) ||
-    !!v.point
-  );
+/** Whether the person wrote or chose anything (a draft worth restoring). The kind alone is not: it comes with the link,
+ * or is one tick (a draft holding only «Denuncia» used to come back on the petición page, design §11). */
+export function hasContent(v: FormValues): boolean {
+  return [v.categoryId, v.municipalityId, v.parishId, v.sector, v.locationReference, v.title, v.description, v.eventDate, v.name, v.email, v.phone, v.note].some(nonEmpty) || !!v.point;
+}
+
+const sameAddress = (a: FormPreset, b: FormPreset) => a.type === b.type && a.linkedItemId === b.linkedItemId;
+
+/**
+ * The tab's saved draft the form starts from, or null for a new form (design §5.1 «Drafts», §11):
+ *   * a sent request always comes back, with its receipt: its code and secret cannot be had again;
+ *   * what was written comes back only if something was written (hasContent: the kind alone is not), and only when
+ *     each kind or item the address names is the draft's own. The address's choice wins over a draft of another kind,
+ *     or about another item, every time the form is opened: by a link of the site, or by the address typed or followed;
+ *   * the one exception is the page coming back as the person left it (`cameBack`: a reload, or Back or Forward to it,
+ *     draft-storage.ts formCameBack): the draft that was on this very page comes back, even after the person changed
+ *     the kind or dropped the item by hand;
+ *   * anything else is a new form, with a key and a secret of its own (never the draft's: a key that may have reached
+ *     the server with other content is not reused for this one), and the draft is set aside (setAside).
+ * What comes back is on this page now (its `opened` is this address).
+ */
+export function resumeDraft(saved: Draft | null, preset: FormPreset, cameBack = false): Draft | null {
+  if (!saved) return null;
+  if (saved.receipt) return { ...saved, receipt: { ...saved.receipt, files: filesAfterReload(saved.receipt.files) } };
+  if (!hasContent(saved.values)) return null;
+  const own = (asked: string | null, now: string | null) => !asked || asked === now;
+  if (own(preset.type, saved.values.type || null) && own(preset.linkedItemId, saved.values.linkedItemId)) return { ...saved, opened: preset };
+  return cameBack && sameAddress(saved.opened, preset) ? saved : null;
+}
+
+/** A draft the form of another address took the place of (resumeDraft gave null): it stays in the tab on no page, so
+ * only its own kind and item bring it back, never a reload of the page that showed the other form. */
+export function setAside(saved: Draft): Draft {
+  return { ...saved, opened: { type: saved.values.type || null, linkedItemId: saved.values.linkedItemId } };
+}
+
+/** Whether a form's draft is worth keeping in the tab: a receipt, or something written. A form with nothing written
+ * yet keeps nothing, so a saved draft of another form stays where it is until this one has something of its own. */
+export function worthKeeping(d: Pick<Draft, 'receipt' | 'values'>): boolean {
+  return !!d.receipt || hasContent(d.values);
 }
 
 /** What the server receives (and what requestInput checks, here and there). */
@@ -281,12 +322,16 @@ export function parseDraft(raw: string | null, now = Date.now()): Draft | null {
     note: str(x.note, 2000),
   };
   const step = [1, 2, 3, 4].includes(d.step as number) ? (d.step as Step) : 1;
+  // A draft kept before this field existed opened with no choice: only its own kind and item bring it back.
+  const o = (d.opened ?? {}) as Record<string, unknown>;
+  const opened: FormPreset = { type: isRequestType(o.type) ? o.type : null, linkedItemId: UUID.test(str(o.linkedItemId)) ? str(o.linkedItemId) : null };
   return {
     v: 1,
     submissionKey: d.submissionKey,
     secret,
     step,
     values,
+    opened,
     fileNames: Array.isArray(d.fileNames) ? d.fileNames.filter((n): n is string => typeof n === 'string').slice(0, 3).map((n) => n.slice(0, 120)) : [],
     receipt: parseReceipt(d.receipt, secret),
     similarAnswered: typeof d.similarAnswered === 'string' ? d.similarAnswered.slice(0, 400) : null,
